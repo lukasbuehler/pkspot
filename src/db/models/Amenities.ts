@@ -4,7 +4,7 @@ export const AmenityNames: { [key in keyof AmenitiesMap]: string } = {
   covered: $localize`:@@amenities.covered:Covered area`,
   outdoor: $localize`:@@amenities.outdoor:Outdoor area`,
   indoor: $localize`:@@amenities.indoor:Indoor area`,
-  lighting: $localize`:@@amenities.lighting:Lighted area`,
+  lighting: $localize`:@@amenities.lighting:Lighting`,
   wc: $localize`:@@amenities.wc:WC`, // WC on site
   changing_room: $localize`:@@amenities.changing_room:Changing room`,
   lockers: $localize`:@@amenities.lockers:Lockers`,

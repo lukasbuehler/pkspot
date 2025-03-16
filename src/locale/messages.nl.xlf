@@ -721,19 +721,19 @@
     </unit>
     <unit id="amenities.covered">
       <segment state="initial">
-        <source>Covered</source>
+        <source>Covered area</source>
         <target>Overdekt</target>
       </segment>
     </unit>
     <unit id="amenities.outdoor">
       <segment state="initial">
-        <source>Outdoor</source>
+        <source>Outdoor area</source>
         <target>Buiten</target>
       </segment>
     </unit>
     <unit id="amenities.indoor">
       <segment state="initial">
-        <source>Indoor</source>
+        <source>Indoor area</source>
         <target>Binnen</target>
       </segment>
     </unit>
@@ -787,7 +787,7 @@
     </unit>
     <unit id="amenities.maybe_overgrown">
       <segment state="initial">
-        <source>Maybe overgrown</source>
+        <source>Possibly overgrown</source>
         <target>Mogelijk overwoekerd</target>
       </segment>
     </unit>
@@ -1152,6 +1152,36 @@
       <segment state="initial">
         <source>More Information</source>
         <target>Meer informatie</target>
+      </segment>
+    </unit>
+    <unit id="8755396282893693521">
+      <segment state="initial">
+        <source>Event spots</source>
+        <target>Evenementspots</target>
+      </segment>
+    </unit>
+    <unit id="5242484178712762710">
+      <segment state="initial">
+        <source>Iconic Spot</source>
+        <target>Iconische Spot</target>
+      </segment>
+    </unit>
+    <unit id="amenities.heated">
+      <segment state="initial">
+        <source>Heated</source>
+        <target>Verwarmd</target>
+      </segment>
+    </unit>
+    <unit id="amenities.ac">
+      <segment state="initial">
+        <source>Air conditioning</source>
+        <target>Airconditioning</target>
+      </segment>
+    </unit>
+    <unit id="amenities.water_feature">
+      <segment state="initial">
+        <source>Water feature</source>
+        <target>Waterelement</target>
       </segment>
     </unit>
   </file>

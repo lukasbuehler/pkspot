@@ -721,19 +721,19 @@
     </unit>
     <unit id="amenities.covered">
       <segment state="initial">
-        <source>Covered</source>
+        <source>Covered area</source>
         <target>Cubierto</target>
       </segment>
     </unit>
     <unit id="amenities.outdoor">
       <segment state="initial">
-        <source>Outdoor</source>
+        <source>Outdoor area</source>
         <target>Externo</target>
       </segment>
     </unit>
     <unit id="amenities.indoor">
       <segment state="initial">
-        <source>Indoor</source>
+        <source>Indoor area</source>
         <target>Interno</target>
       </segment>
     </unit>
@@ -787,7 +787,7 @@
     </unit>
     <unit id="amenities.maybe_overgrown">
       <segment state="initial">
-        <source>Maybe overgrown</source>
+        <source>Possibly overgrown</source>
         <target>Quizás cubierto de vegetación</target>
       </segment>
     </unit>
@@ -1151,6 +1151,36 @@
       <segment state="initial">
         <source>More Information</source>
         <target>Más información</target>
+      </segment>
+    </unit>
+    <unit id="8755396282893693521">
+      <segment state="initial">
+        <source>Event spots</source>
+        <target>Spots de eventos</target>
+      </segment>
+    </unit>
+    <unit id="5242484178712762710">
+      <segment state="initial">
+        <source>Iconic Spot</source>
+        <target>Spot icónico</target>
+      </segment>
+    </unit>
+    <unit id="amenities.heated">
+      <segment state="initial">
+        <source>Heated</source>
+        <target>Con calefacción</target>
+      </segment>
+    </unit>
+    <unit id="amenities.ac">
+      <segment state="initial">
+        <source>Air conditioning</source>
+        <target>Aire acondicionado</target>
+      </segment>
+    </unit>
+    <unit id="amenities.water_feature">
+      <segment state="initial">
+        <source>Water feature</source>
+        <target>Elemento acuático</target>
       </segment>
     </unit>
   </file>

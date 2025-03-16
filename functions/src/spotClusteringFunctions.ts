@@ -81,11 +81,14 @@ async function _clusterAllSpots() {
           spotForTile = {
             name: getSpotName(spot, "en"),
             id: id,
-            rating: spot.rating,
             isIconic: spot.is_iconic ?? false,
             imageSrc: getSpotPreviewImage(spot),
             locality: getSpotLocalityString(spot),
           };
+
+          if (spot.rating) {
+            spotForTile.rating = spot.rating;
+          }
         }
 
         // check if the tile exists in the clusterTilesMap for zoom 12
@@ -175,7 +178,7 @@ async function _clusterAllSpots() {
               ...spot,
               score: spot.isIconic
                 ? Math.max(spot.rating ?? 1, iconicScore)
-                : spot.rating!,
+                : spot.rating ?? 2,
             };
           })
           .sort((a, b) => b.score - a.score)
