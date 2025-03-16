@@ -78,7 +78,7 @@ function _fixLocaleMaps(
             };
           } else {
             console.warn(
-              "Invalid description value on spot",
+              "Invalid locale value on spot",
               spotIdForWarnings,
               "locale:",
               code,
@@ -116,10 +116,18 @@ export const fixLocaleMaps = onDocumentCreated(
       );
       const newName: SpotSchema["name"] = _fixLocaleMaps(name, spot.id);
 
+      console.log("Fixed locale maps for spot", spot.id);
+
       batch.update(spot.ref, { description: newDescription, name: newName });
     });
+    try {
+      await batch.commit();
+    } catch (err) {
+      console.error("Error committing batch", err);
+      return Promise.reject(err);
+    }
 
-    await batch.commit();
+    console.log("Done fixing locale maps for all spots");
 
     return event.data?.ref.delete();
   }
