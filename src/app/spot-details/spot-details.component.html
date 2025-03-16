@@ -10,6 +10,7 @@
   class="pt-0 bg-transparent"
   [class.border]="border"
   [class.clickable]="clickable"
+  style="box-shadow: none"
 >
   @if(spot()) {@if(!isEditing) {
   <mat-card-header class="pb-2 px-3">
@@ -190,7 +191,7 @@
         <mat-card-header class="pb-2">
           <mat-card-title
             class="text-truncate mw-100 pt-2 mat-title-medium"
-            style="font-size: 1.2rem"
+            style="font-size: 1.1rem"
           >
             {{ googlePlace()!.name }}
           </mat-card-title>
@@ -248,7 +249,8 @@
     }
 
     <!-- Ratings -->
-    @if(spot()?.rating || authenticationService.isSignedIn) {
+    @if(!isLocalSpot() && (spot()?.rating || authenticationService.isSignedIn))
+    {
     <div class="mb-4">
       <h4 class="mat-title-small" i18n>Rating and user reviews</h4>
       @if(spot()!.rating) {

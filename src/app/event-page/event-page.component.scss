@@ -10,3 +10,15 @@
     width: 33.33%;
   }
 }
+
+.drawer-container {
+  overflow: hidden;
+}
+
+::ng-deep .mat-drawer-content {
+  overflow: hidden !important;
+}
+
+.no-rounding {
+  border-radius: 0px !important;
+}

@@ -178,6 +178,9 @@ export class SpotDetailsComponent
   implements OnInit, AfterViewInit, OnChanges, OnDestroy
 {
   spot = model<Spot | LocalSpot | null>(null);
+  isLocalSpot = computed(
+    () => !(this.spot() instanceof Spot) && this.spot() !== null
+  );
   @Input() infoOnly: boolean = false;
   @Input() dismissable: boolean = false;
   @Input() border: boolean = false;

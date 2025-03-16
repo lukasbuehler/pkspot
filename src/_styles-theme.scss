@@ -3,18 +3,29 @@
 
 @mixin color($theme) {
   div.info-panel,
-  :root {
-    --swiper-theme-color: mat.get-theme-color($theme, primary) !important;
+  div.drawer-container {
+    background-color: mat.get-theme-color($theme, surface-container-low);
   }
 
+  :root,
   body,
   html {
-    // background-color: mat.get-theme-color($theme, surface-container-low);
-    body {
-      background: var(--mat-sys-surface);
-      color: var(--mat-sys-on-surface);
-    }
+    --swiper-theme-color: mat.get-theme-color($theme, primary) !important;
+    // --mat-app-background-color: mat.get-theme-color(
+    //   $theme,
+    //   surface-container-lowest
+    // );
+    background-color: #0e0e11; // background-color: mat.get-theme-color($theme, surface-container-lowest);
   }
+
+  // body,
+  // html {
+  //   // background-color: mat.get-theme-color($theme, surface-container-low);
+  //   body {
+  //     // background: mat.get-theme-color($theme, surface-container-lowest);
+  //     // color: var(--mat-sys-on-surface);
+  //   }
+  // }
 
   .mat-mdc-dialog-surface {
     background-color: mat.get-theme-color($theme, surface-container-high);
