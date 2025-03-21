@@ -139,6 +139,7 @@
         [boundRestriction]="bounds"
         [polygons]="areaPolygon() ? [areaPolygon()!] : []"
         [minZoom]="16"
+        [focusZoom]="focusZoom"
         [mapStyle]="mapStyle"
         [markers]="markers"
         [spots]="spots()"
@@ -159,6 +160,7 @@
         [boundRestriction]="bounds"
         [polygons]="areaPolygon() ? [areaPolygon()!] : []"
         [minZoom]="16"
+        [focusZoom]="focusZoom"
         [centerStart]="markers[markers.length - 1].location"
         [mapStyle]="mapStyle"
         [markers]="markers"
@@ -175,9 +177,14 @@
       <button
         mat-icon-button
         (click)="toggleSidenav()"
-        class="d-flex"
+        class="d-flex border justify-content-center align-items-center p-0"
         style="
           background-color: var(--mat-bottom-sheet-container-background-color);
+          border-color: var(
+            --mdc-icon-button-icon-color,
+            var(--mat-sys-on-surface-variant)
+          ) !important;
+          border-width: 0.8px !important;
         "
       >
         @if(sidenavOpen()) {

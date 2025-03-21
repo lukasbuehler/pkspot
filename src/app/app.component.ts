@@ -122,7 +122,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   alainMode: boolean = false;
 
-  isEmbedded: WritableSignal<boolean> = signal(false);
+  isEmbedded: WritableSignal<boolean | null> = signal(null);
 
   baseUrl = "https://pkspot.app";
 
@@ -162,66 +162,20 @@ export class AppComponent implements OnInit, AfterViewInit {
   authenticatedUserMenuConfig?: ButtonConfig;
 
   ngOnInit() {
-    const currentTermsVersion = "2";
-
-    let isABot: boolean = false;
-    if (typeof window !== "undefined") {
-      isABot =
-        navigator.userAgent.match(
-          /bot|googlebot|crawler|spider|robot|crawling/i
-        ) !== null;
-      let acceptedVersion = localStorage.getItem("acceptedVersion");
-
-      if (
-        !isABot &&
-        !this.isEmbedded() &&
-        acceptedVersion !== currentTermsVersion &&
-        this.welcomeDialog.openDialogs.length === 0
-      ) {
-        this.router.events
-          .pipe(filter((event) => event instanceof NavigationEnd))
-          .subscribe(() => {
-            this.route.firstChild?.data.subscribe((data) => {
-              // open welcome dialog if the user has not accepted the terms of service
-              acceptedVersion = localStorage.getItem("acceptedVersion");
-
-              if (acceptedVersion !== currentTermsVersion) {
-                // get the acceptanceFree variable from the route data
-                console.log("routeData", data);
-                const acceptanceFree = data["acceptanceFree"] || false;
-
-                console.log("acceptanceFree", acceptanceFree);
-
-                if (!acceptanceFree) {
-                  this.welcomeDialog.open(WelcomeDialogComponent, {
-                    data: { version: currentTermsVersion },
-                    hasBackdrop: true,
-                    disableClose: true,
-                  });
-                } else {
-                  // if the dialog was already open, close it now
-                  this.welcomeDialog.closeAll();
-                }
-              }
-            });
-          });
-      }
-
-      // structured data
-      const json: WebSite = {
-        "@type": "WebSite",
-        name: "PK Spot",
-        alternateName: [
-          "pkspot.app",
-          "PK Spot App",
-          "Parkour Spot",
-          "PKFR Spot",
-          "pkfrspot.com",
-        ],
-        url: "https://pkspot.app/",
-      };
-      this._structuredDataService.addStructuredData("website", json);
-    }
+    // structured data
+    const json: WebSite = {
+      "@type": "WebSite",
+      name: "PK Spot",
+      alternateName: [
+        "pkspot.app",
+        "PK Spot App",
+        "Parkour Spot",
+        "PKFR Spot",
+        "pkfrspot.com",
+      ],
+      url: "https://pkspot.app/",
+    };
+    this._structuredDataService.addStructuredData("website", json);
 
     this.authService.authState$.subscribe(
       (user) => {
@@ -254,11 +208,61 @@ export class AppComponent implements OnInit, AfterViewInit {
       .subscribe((event: RoutesRecognized) => {
         const isEmbedded = event.url.split("/")[1] === "embedded";
         this.isEmbedded.set(isEmbedded);
+
+        this.maybeOpenClickWrap();
       });
   }
 
   ngAfterViewInit() {
     this.updateMenus();
+  }
+
+  maybeOpenClickWrap() {
+    const currentTermsVersion = "2";
+
+    let isABot: boolean = false;
+    if (typeof window !== "undefined") {
+      isABot =
+        navigator.userAgent.match(
+          /bot|googlebot|crawler|spider|robot|crawling/i
+        ) !== null;
+      let acceptedVersion = localStorage.getItem("acceptedVersion");
+
+      if (
+        !isABot &&
+        this.isEmbedded() === false &&
+        acceptedVersion !== currentTermsVersion &&
+        this.welcomeDialog.openDialogs.length === 0
+      ) {
+        this.router.events
+          .pipe(filter((event) => event instanceof NavigationEnd))
+          .subscribe(() => {
+            this.route.firstChild?.data.subscribe((data) => {
+              // open welcome dialog if the user has not accepted the terms of service
+              acceptedVersion = localStorage.getItem("acceptedVersion");
+
+              if (acceptedVersion !== currentTermsVersion) {
+                // get the acceptanceFree variable from the route data
+                console.log("routeData", data);
+                const acceptanceFree = data["acceptanceFree"] || false;
+
+                console.log("acceptanceFree", acceptanceFree);
+
+                if (!acceptanceFree) {
+                  this.welcomeDialog.open(WelcomeDialogComponent, {
+                    data: { version: currentTermsVersion },
+                    hasBackdrop: true,
+                    disableClose: true,
+                  });
+                } else {
+                  // if the dialog was already open, close it now
+                  this.welcomeDialog.closeAll();
+                }
+              }
+            });
+          });
+      }
+    }
   }
 
   logUserOut() {

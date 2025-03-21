@@ -547,8 +547,14 @@ export class MapComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.setZoom(zoom);
-    this.googleMap.panTo(location);
+    if (this.zoom !== this.focusZoom()) {
+      this.setZoom(this.focusZoom());
+      setTimeout(() => {
+        this.googleMap?.panTo(location);
+      }, 200);
+    } else {
+      this.googleMap?.panTo(location);
+    }
   }
 
   focusOnGeolocation() {

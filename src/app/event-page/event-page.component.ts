@@ -79,7 +79,7 @@ import { MatSidenavModule } from "@angular/material/sidenav";
   styleUrl: "./event-page.component.scss",
 })
 export class EventPageComponent implements OnInit, OnDestroy {
-  @ViewChild("spotMap") spotMap: SpotMapComponent | undefined;
+  @ViewChild("spotMap") spotMap: SpotMapComponent | MapComponent | undefined;
 
   metaInfoService = inject(MetaInfoService);
   locale = inject<LocaleCode>(LOCALE_ID);
@@ -101,7 +101,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   eventId: string = "swissjam25";
   name: string = "Swiss Jam 2025";
-  bannerImageSrc: string = "/assets/swissjam.jpg";
+  bannerImageSrc: string = "/assets/swissjam/swissjam0.jpg";
   venueString: string = "Universität Irchel";
   localityString: string = "Zurich, Switzerland";
   start: Date = new Date("2025-05-24T09:00:00+01:00");
@@ -124,6 +124,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
   ];
 
   areaPolygon = signal<PolygonSchema | null>(null);
+
+  focusZoom = 19;
 
   bounds = {
     north: 47.4,
@@ -252,12 +254,29 @@ export class EventPageComponent implements OnInit, OnDestroy {
         ],
         media: [
           {
-            src: "/assets/swissjam.jpg" as SizedStorageSrc,
+            src: "/assets/swissjam/swissjam2.jpg" as SizedStorageSrc,
+            type: MediaType.Image,
+            isSized: false,
+            uid: "",
+          },
+          {
+            src: "/assets/swissjam/swissjam0.jpg" as SizedStorageSrc,
+            type: MediaType.Image,
+            isSized: false,
+            uid: "",
+          },
+          {
+            src: "/assets/swissjam/swissjam1.jpg" as SizedStorageSrc,
             type: MediaType.Image,
             isSized: false,
             uid: "",
           },
         ],
+        // description: {
+        //   en: {
+        //     text: `The main spot of the Swiss Jam 25. It will have a shade `,
+        //     provider: "user",
+        //   },},
         is_iconic: true,
       },
       this.locale
@@ -390,7 +409,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   spotClickedIndex(spotIndex: number) {
-    this.selectedSpot.set(this.spots()[spotIndex]);
+    this.selectSpot(this.spots()[spotIndex]);
   }
 
   ngOnDestroy() {
@@ -443,6 +462,11 @@ export class EventPageComponent implements OnInit, OnDestroy {
   selectSpot(spot: Spot | LocalSpot | SpotId | SpotPreviewData) {
     if (spot instanceof Spot || spot instanceof LocalSpot) {
       this.selectedSpot.set(spot);
+      if (this.spotMap instanceof SpotMapComponent) {
+        this.spotMap?.focusSpot(spot);
+      } else if (this.spotMap instanceof MapComponent) {
+        this.spotMap?.focusOnLocation(spot.location());
+      }
     }
   }
 

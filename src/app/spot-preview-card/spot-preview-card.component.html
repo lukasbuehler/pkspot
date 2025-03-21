@@ -77,6 +77,19 @@
   } } @else { @if(media()) {
   <div class="img-container">
     <img [ngSrc]="media()[0]" fill priority />
+    <!-- @if(showInfoButton()) {
+    <button
+      mat-icon-button
+      style="
+        position: absolute;
+        right: 5px;
+        bottom: 5px;
+        background-color: var(--mat-bottom-sheet-container-background-color);
+      "
+      (click)="onClick()"
+    >
+      <mat-icon>info</mat-icon></button
+    >} -->
   </div>
   } }
 </mat-card>

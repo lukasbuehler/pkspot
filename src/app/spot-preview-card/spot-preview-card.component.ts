@@ -27,6 +27,7 @@ import {
   OtherMedia,
   MediaType,
 } from "../../db/models/Interfaces";
+import { MatButtonModule } from "@angular/material/button";
 
 @Component({
   selector: "app-spot-preview-card",
@@ -38,6 +39,8 @@ import {
     MatIconModule,
     NgOptimizedImage,
     SpotRatingComponent,
+    MatButtonModule,
+    MatIconModule,
   ],
 })
 export class SpotPreviewCardComponent implements OnChanges {
@@ -47,10 +50,14 @@ export class SpotPreviewCardComponent implements OnChanges {
   imgSize = input<200 | 400 | 800>(200);
 
   spot = input<Spot | LocalSpot | SpotPreviewData | null>(null);
+  showInfoButton = input<boolean>(true);
   @Input() infoOnly: boolean = false;
   @Input() clickable: boolean = false;
   @Input() isCompact: boolean = false;
 
+  @Output() spotClick: EventEmitter<Spot | LocalSpot> = new EventEmitter<
+    Spot | LocalSpot
+  >();
   @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() edit: EventEmitter<any> = new EventEmitter<any>();
 
@@ -108,12 +115,12 @@ export class SpotPreviewCardComponent implements OnChanges {
     return s && s[0].toUpperCase() + s.slice(1);
   }
 
-  onClick() {
-    if (this.clickable && this.spot && this.spot instanceof Spot) {
-      // open the spot in the spot map
-      this._router.navigateByUrl(`/map/${this.spot.id}`);
-    }
-  }
+  // onClick() {
+  //   if (this.clickable && this.spot && this.spot instanceof Spot) {
+  //     // open the spot in the spot map
+  //     this.spotClick.emit(this.spot);
+  //   }
+  // }
 
   shareSpot() {
     // TODO

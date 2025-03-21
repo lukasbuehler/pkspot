@@ -226,11 +226,15 @@
   <map-advanced-marker
     [position]="marker.location"
     [content]="markerComp.elementRef.nativeElement"
-    [options]="{}"
+    [options]="{
+      gmpClickable: true
+    }"
+    (mapClick)="focusOnLocation(marker.location)"
   ></map-advanced-marker>
   <app-marker
     #markerComp
     class="fade-in"
+    style="pointer-events: none"
     [icons]="marker.icons"
     [number]="marker.number"
     [color]="marker.color ?? 'primary'"
