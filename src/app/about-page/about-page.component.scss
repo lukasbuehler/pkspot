@@ -17,6 +17,28 @@
   @media (min-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  > a {
+    aspect-ratio: 7/5;
+    // Fallback
+    @supports not (aspect-ratio: 7/5) {
+      &::before {
+        float: left;
+        padding-top: calc(100% * 5 / 7);
+        content: "";
+      }
+
+      &::after {
+        display: block;
+        content: "";
+        clear: both;
+      }
+    }
+
+    div {
+      height: 100%;
+    }
+  }
 }
 
 .credit-grid {

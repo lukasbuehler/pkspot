@@ -122,14 +122,19 @@ export class LocalSpot {
 
     this.descriptions = signal(data.description ?? {});
     this.description = computed(() => {
-      const descriptionsObj = this.descriptions() as Record<string, string>;
+      const descriptionsObj = this.descriptions();
       if (descriptionsObj && Object.keys(descriptionsObj).length > 0) {
-        if (descriptionsObj[locale]) {
+        const descriptionLocales: LocaleCode[] = Object.keys(
+          descriptionsObj
+        ) as LocaleCode[];
+        const locale = descriptionLocales.includes(this.locale)
+          ? this.locale
+          : descriptionLocales[0];
+
+        if (typeof descriptionsObj[locale] === "string") {
           return descriptionsObj[locale];
         } else {
-          // return the first description if the locale doesn't exist
-          const firstKey = Object.keys(descriptionsObj)[0];
-          return descriptionsObj[firstKey];
+          return descriptionsObj[locale]?.text || "";
         }
       }
       return "";

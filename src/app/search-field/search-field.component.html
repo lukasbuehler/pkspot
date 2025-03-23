@@ -1,0 +1,78 @@
+<mat-form-field appearance="fill" class="w-100 spot-search-field">
+  <mat-icon matSuffix>search</mat-icon>
+
+  <input
+    #mapSearchInput
+    id="mapSearchInput"
+    matInput
+    i18n-placeholder
+    placeholder="Find spots and places"
+    [formControl]="spotSearchControl"
+    [matAutocomplete]="spotAutocomplete"
+  />
+  <mat-autocomplete
+    #spotAutocomplete="matAutocomplete"
+    [autoActiveFirstOption]="true"
+    (optionSelected)="optionSelected($event)"
+    class="mt-2 rounded"
+  >
+    @if(((spotAndPlaceSearchResults$ | async)?.spots?.hits?.length ?? 0) > 0) {
+    <div>
+      <p class="mat-label-medium ps-3 pt-1 mb-1">Spots</p>
+      <mat-divider></mat-divider>
+    </div>
+    } @for(hit of (spotAndPlaceSearchResults$ | async)?.spots?.hits; track hit)
+    {
+    <mat-option
+      class="spotAutocompleteOption"
+      [value]="{ type: 'spot', id: hit.document.id }"
+    >
+      <!-- <img
+              *ngIf="spot.previewImage"
+              [src]="spot.previewImage"
+              alt="Img"
+            /> -->
+      <!-- TODO FIX -->
+      <span>{{ getSpotName(hit.document) }}</span>
+      <!-- <small
+              >Location: {{ spot.location.lat }}, {{ spot.location.lng }}</small
+            > -->
+    </mat-option>
+    } @if(((spotAndPlaceSearchResults$ | async)?.spots?.hits?.length ?? 0) > 0)
+    {
+    <div class="pt-2"></div>
+    } @if(((spotAndPlaceSearchResults$ | async)?.places?.length ?? 0) > 0) {
+    <div>
+      <p class="mat-label-medium ps-3 pt-1 mb-1">Places</p>
+      <mat-divider></mat-divider>
+    </div>
+    }
+    <mat-option
+      class="spotAutocompleteOption"
+      *ngFor="let place of (spotAndPlaceSearchResults$ | async)?.places"
+      [value]="{ type: 'place', id: place.place_id }"
+      ><span>{{ place.description }}</span>
+    </mat-option>
+  </mat-autocomplete>
+  <!-- <button
+          mat-icon-button
+          matSuffix
+          color="primary"
+          class="profile-icon-button login-fab d-md-none me-2"
+          [matMenuTriggerFor]="searchUserMatMenu"
+          (click)="$event.stopPropagation()"
+        >
+          <mat-icon *ngIf="!authService.isSignedIn">person_outline</mat-icon>
+          <img
+            *ngIf="
+              authService.isSignedIn && authService.user?.data?.profilePicture
+            "
+            [src]="
+              storageService.getSpotMediaURL(
+                authService.user.data.profilePicture,
+                200
+              )
+            "
+          />
+        </button>-->
+</mat-form-field>

@@ -24,98 +24,10 @@
       @if(alainMode) {
       <div class="spacer d-block d-md-none" style="width: 56px"></div>
       }
-      <mat-form-field
-        class="spot-search-field mat-elevation-z3"
-        appearance="fill"
-      >
-        <mat-icon matSuffix>search</mat-icon>
-
-        <input
-          #mapSearchInput
-          id="mapSearchInput"
-          matInput
-          i18n-placeholder
-          placeholder="Find spots and places"
-          [formControl]="spotSearchControl"
-          [matAutocomplete]="spotAutocomplete"
-        />
-        <mat-autocomplete
-          #spotAutocomplete="matAutocomplete"
-          [autoActiveFirstOption]="true"
-          (optionSelected)="
-            openSpotOrGooglePlace($event.option.value);
-            spotSearchControl.setValue('')
-          "
-          class="mt-2 rounded"
-        >
-          @if(((spotAndPlaceSearchResults$ | async)?.spots?.hits?.length ?? 0) >
-          0) {
-          <div>
-            <p class="mat-label-medium ps-3 pt-1 mb-1">Spots</p>
-            <mat-divider></mat-divider>
-          </div>
-          }
-          <mat-option
-            class="spotAutocompleteOption"
-            *ngFor="
-              let hit of (spotAndPlaceSearchResults$ | async)?.spots?.hits
-            "
-            [value]="{ type: 'spot', id: hit.document.id }"
-          >
-            <!-- <img
-              *ngIf="spot.previewImage"
-              [src]="spot.previewImage"
-              alt="Img"
-            /> -->
-            <!-- TODO FIX -->
-            <span>{{
-              hit.document.name[locale] ??
-                hit.document.name["de-CH"] ??
-                "Unnamed Spot"
-            }}</span>
-            <!-- <small
-              >Location: {{ spot.location.lat }}, {{ spot.location.lng }}</small
-            > -->
-          </mat-option>
-          @if(((spotAndPlaceSearchResults$ | async)?.spots?.hits?.length ?? 0) >
-          0) {
-          <div class="pt-2"></div>
-          } @if(((spotAndPlaceSearchResults$ | async)?.places?.length ?? 0) > 0)
-          {
-          <div>
-            <p class="mat-label-medium ps-3 pt-1 mb-1">Places</p>
-            <mat-divider></mat-divider>
-          </div>
-          }
-          <mat-option
-            class="spotAutocompleteOption"
-            *ngFor="let place of (spotAndPlaceSearchResults$ | async)?.places"
-            [value]="{ type: 'place', id: place.place_id }"
-            ><span>{{ place.description }}</span>
-          </mat-option>
-        </mat-autocomplete>
-        <!-- <button
-          mat-icon-button
-          matSuffix
-          color="primary"
-          class="profile-icon-button login-fab d-md-none me-2"
-          [matMenuTriggerFor]="searchUserMatMenu"
-          (click)="$event.stopPropagation()"
-        >
-          <mat-icon *ngIf="!authService.isSignedIn">person_outline</mat-icon>
-          <img
-            *ngIf="
-              authService.isSignedIn && authService.user?.data?.profilePicture
-            "
-            [src]="
-              storageService.getSpotMediaURL(
-                authService.user.data.profilePicture,
-                200
-              )
-            "
-          />
-        </button>-->
-      </mat-form-field>
+      <app-search-field
+        class="w-100 mat-elevation-z3"
+        (spotSelected)="openSpotOrGooglePlace($event)"
+      ></app-search-field>
     </div>
 
     @if(spotMap) { @if(selectedSpot) {

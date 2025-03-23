@@ -32,9 +32,8 @@ import {
 } from "rxjs";
 import { animate, style, transition, trigger } from "@angular/animations";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
-import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { SearchService } from "../services/search.service";
-import { SearchResponse } from "typesense/lib/Typesense/Documents";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
   Location,
@@ -65,6 +64,8 @@ import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { MetaInfoService } from "../services/meta-info.service";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { SpotSchema } from "../../../functions/src/spotHelpers";
+import { SearchFieldComponent } from "../search-field/search-field.component";
 
 @Component({
   selector: "app-map-page",
@@ -84,27 +85,18 @@ import { MatTooltipModule } from "@angular/material/tooltip";
   ],
   imports: [
     SpotMapComponent,
-    MatFormField,
-    MatIconButton,
     MatButtonModule,
-    MatSuffix,
     MatIconModule,
     MatIcon,
-    MatInput,
     FormsModule,
     MatChipsModule,
-    MatAutocompleteTrigger,
     ReactiveFormsModule,
-    MatAutocomplete,
-    NgFor,
-    MatOption,
     SpotDetailsComponent,
     SpotListComponent,
     BottomSheetComponent,
-    // UserMenuContentComponent,
-    AsyncPipe,
     MatDividerModule,
     MatTooltipModule,
+    SearchFieldComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -122,12 +114,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   visibleSpots: Spot[] = [];
   highlightedSpots: SpotPreviewData[] = [];
 
-  spotSearchControl = new FormControl();
-  spotAndPlaceSearchResults$ = new BehaviorSubject<{
-    places: google.maps.places.AutocompletePrediction[] | null;
-    spots: SearchResponse<any> | null;
-  } | null>(null);
-
   alainMode: boolean = false;
 
   isServer: boolean;
@@ -136,7 +122,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
-  private _spotSearchSubscription?: Subscription;
 
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
@@ -241,28 +226,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             if (spotId) return this.loadSpotById(spotId); // TODO out of context
           })
           .then(() => {});
-      });
-
-    // subscribe to the spot search control and update the search results
-    this._spotSearchSubscription =
-      this.spotSearchControl.valueChanges.subscribe((query) => {
-        if (query) {
-          this._searchService.searchSpotsAndPlaces(query).then((results) => {
-            this.spotAndPlaceSearchResults$.next(results);
-            console.log("results", results);
-          });
-        } else {
-          this.spotAndPlaceSearchResults$.next(null);
-        }
-
-        //   this.mapsService
-        //     .autocompletePlaceSearch(query, ["geocode"])
-        //     .then((results) => {
-        //       this.spotAndPlaceSearchResults$.next({
-        //         places: results,
-        //         spots: null,
-        //       });
-        //     });
       });
   }
 
@@ -377,9 +340,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.spotAndPlaceSearchResults$.complete();
     this._routerSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();
-    this._spotSearchSubscription?.unsubscribe();
   }
 }

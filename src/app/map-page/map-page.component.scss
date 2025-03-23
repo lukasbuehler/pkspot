@@ -121,6 +121,7 @@ div.search-group {
   left: 0px;
   padding-left: 10px;
   padding-right: 10px;
+  padding-top: 10px;
 
   @media (max-width: 599px) {
     // small screen
@@ -138,36 +139,19 @@ div.search-group {
     width: 600px;
   }
 
+  app-search-field,
   mat-form-field,
   app-bottom-sheet,
   div.info-panel {
     overflow-y: auto;
     overflow-x: hidden;
-    pointer-events: visible;
+    pointer-events: all;
     border-radius: 16px;
     width: 100%;
     margin-bottom: 10px;
 
     ::ng-deep mat-card {
       border-radius: 28px;
-    }
-  }
-
-  .spot-search-field {
-    height: 56px;
-    overflow: hidden;
-    border: none;
-    margin-top: 10px;
-
-    ::ng-deep .mat-mdc-form-field-subscript-wrapper,
-    ::ng-deep .mdc-line-ripple {
-      display: none;
-    }
-    ::ng-deep .mat-mdc-text-field-wrapper {
-      background-color: transparent;
-    }
-    ::ng-deep .mat-mdc-form-field-icon-suffix {
-      align-items: center;
     }
   }
 }
