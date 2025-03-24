@@ -53,8 +53,13 @@ export class SelectLanguageDialogComponent implements OnInit {
   private _filter(value: string): string[] {
     const filterValue = value.toLowerCase();
 
-    return this.allLocaleCodes.filter((option: LocaleCode) =>
-      this.getLanguageNameFromLocale(option).toLowerCase().includes(filterValue)
+    return this.allLocaleCodes.filter(
+      (option: LocaleCode) =>
+        option.toLowerCase().includes(filterValue) ||
+        this.languages[option].name_native
+          .toLowerCase()
+          .includes(filterValue) ||
+        this.languages[option].name_english.toLowerCase().includes(filterValue)
     );
   }
 

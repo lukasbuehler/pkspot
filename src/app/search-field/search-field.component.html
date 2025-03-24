@@ -21,8 +21,8 @@
       <p class="mat-label-medium ps-3 pt-1 mb-1">Spots</p>
       <mat-divider></mat-divider>
     </div>
-    } @for(hit of (spotAndPlaceSearchResults$ | async)?.spots?.hits; track hit)
-    {
+    } @for(hit of (spotAndPlaceSearchResults$ | async)?.spots?.hits; track
+    $index) {
     <mat-option
       class="spotAutocompleteOption"
       [value]="{ type: 'spot', id: hit.document.id }"
@@ -46,13 +46,14 @@
       <p class="mat-label-medium ps-3 pt-1 mb-1">Places</p>
       <mat-divider></mat-divider>
     </div>
-    }
+    } @for(place of (spotAndPlaceSearchResults$ | async)?.places; track $index)
+    {
     <mat-option
       class="spotAutocompleteOption"
-      *ngFor="let place of (spotAndPlaceSearchResults$ | async)?.places"
       [value]="{ type: 'place', id: place.place_id }"
       ><span>{{ place.description }}</span>
     </mat-option>
+    }
   </mat-autocomplete>
   <!-- <button
           mat-icon-button

@@ -13,7 +13,7 @@ import {
 } from "@angular/core";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { LocaleCode, LocaleMap } from "../../db/models/Interfaces";
-import { getValueFromEventTarget } from "../../scripts/Helpers";
+import { getBestLocale, getValueFromEventTarget } from "../../scripts/Helpers";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
@@ -58,16 +58,10 @@ export class LocaleMapEditFieldComponent {
   appLocale = inject<LocaleCode>(LOCALE_ID);
   dialog = inject(MatDialog);
 
-  shownLocale = computed<LocaleCode>(() => {
+  bestLocale = computed<LocaleCode>(() => {
     const appLocale = this.appLocale;
-    if (this.localeKeys().includes(appLocale)) {
-      return appLocale;
-    }
-    if (this.localeKeys().length > 0) {
-      return this.localeKeys()[0];
-    }
 
-    return appLocale;
+    return getBestLocale(this.localeKeys(), appLocale);
   });
 
   localeMap: ModelSignal<LocaleMap> = model<LocaleMap>({});
@@ -80,19 +74,17 @@ export class LocaleMapEditFieldComponent {
   );
   shownLocales: Signal<LocaleCode[]> = computed(() => {
     const isExpanded = this.isExpanded();
-    const localeMap = this.localeMap();
+    const localeMap = this.localeMap() ?? {};
+    const localeKeys = this.localeKeys();
+    const bestLocale = this.bestLocale();
 
-    if (Object.keys(localeMap).length === 0) {
+    if (localeKeys.length === 0) {
       return [];
     }
     if (!isExpanded) {
-      if (Object.keys(localeMap).includes(this.appLocale)) {
-        return [this.appLocale];
-      } else {
-        return [Object.keys(localeMap)[0] as LocaleCode];
-      }
+      return [bestLocale];
     } else {
-      if (Object.keys(localeMap).includes(this.appLocale)) {
+      if (localeKeys.includes(this.appLocale)) {
         const keysWithoutAppLocale = Object.keys(localeMap).filter(
           (key) => key !== this.appLocale
         );
@@ -128,8 +120,6 @@ export class LocaleMapEditFieldComponent {
 
     dialogRef.afterClosed().subscribe((locale: LocaleCode | null) => {
       if (locale) {
-        this.isExpanded.set(true);
-
         this.localeMap.update((val) => {
           return { ...val, [locale]: { text: "", provider: "user" } };
         });

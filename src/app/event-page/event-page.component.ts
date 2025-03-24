@@ -278,6 +278,13 @@ export class EventPageComponent implements OnInit, OnDestroy {
         //     provider: "user",
         //   },},
         is_iconic: true,
+        amenities: {
+          covered: true,
+          entry_fee: true,
+          lighting: true,
+          outdoor: true,
+          changing_room: false,
+        },
       },
       this.locale
     );

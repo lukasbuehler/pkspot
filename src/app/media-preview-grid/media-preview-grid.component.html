@@ -3,12 +3,12 @@
   class="media-preview-grid"
   cdkDropListGroup
 >
+  @for(mediaObj of media; track $index) {
   <div
-    *ngFor="let mediaObj of media; let index = index"
     class="grid-drop-list"
     cdkDropList
     cdkDropListOrientation="horizontal"
-    [cdkDropListData]="index"
+    [cdkDropListData]="$index"
     (cdkDropListDropped)="drop($event)"
   >
     <div cdkDrag class="drag-element">
@@ -28,10 +28,11 @@
         color="warn"
         mat-icon-button
         aria-label="icon button with a trash icon"
-        (click)="removeMedia(index)"
+        (click)="removeMedia($index)"
       >
         <mat-icon>delete</mat-icon>
       </button>
     </div>
   </div>
+  }
 </div>
