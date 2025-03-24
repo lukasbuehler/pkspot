@@ -117,7 +117,11 @@ export class SpotMapDataManager {
     let saveSpotPromise: Promise<void>;
     if (spot instanceof Spot) {
       // this spot already exists in the database
-      saveSpotPromise = this._spotsService.updateSpot(spot.id, spot.data());
+      saveSpotPromise = this._spotsService.updateSpot(
+        spot.id,
+        spot.data(),
+        this.locale
+      );
     } else {
       // this is a new (client / local) spot
       saveSpotPromise = this._spotsService

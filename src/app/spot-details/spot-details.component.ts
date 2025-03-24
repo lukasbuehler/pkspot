@@ -43,6 +43,7 @@ import {
   LocaleCode,
   OtherMedia,
   SizedStorageSrc,
+  LocaleMap,
 } from "../../db/models/Interfaces";
 import {
   AmenityIcons,
@@ -106,6 +107,7 @@ import {
   MatSlideToggle,
   MatSlideToggleChange,
 } from "@angular/material/slide-toggle";
+import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -171,6 +173,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     AsRatingKeyPipe,
     NgOptimizedImage,
     MatSlideToggle,
+    LocaleMapEditFieldComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -213,6 +216,26 @@ export class SpotDetailsComponent
 
   visited: boolean = false;
   bookmarked: boolean = false;
+
+  get spotNameLocaleMap(): LocaleMap {
+    const spot = this.spot();
+    if (!spot) return {};
+
+    return spot.names();
+  }
+  set spotNameLocaleMap(value: LocaleMap) {
+    this.spot()?.names.set(value);
+  }
+
+  get spotDescriptionLocaleMap(): LocaleMap {
+    const spot = this.spot();
+    if (!spot || !spot.description()) return {};
+
+    return spot.descriptions()!;
+  }
+  set spotDescriptionLocaleMap(value: LocaleMap) {
+    this.spot()?.descriptions.set(value);
+  }
 
   spotTypes = Object.values(Types);
   spotAreas = Object.values(Areas);

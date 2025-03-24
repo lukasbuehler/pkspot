@@ -429,23 +429,17 @@
 
     } @else {
     <!-- Spot title editing field -->
-    <form>
-      <mat-form-field style="width: 100%">
-        <mat-label
-          i18n="
-            spot name placeholder|Placeholder of the spot name in the edit form
-          "
-          >Spot name</mat-label
-        >
-        <input
-          #spotNameInput
-          matInput
-          [value]="spot()!.name()"
-          (change)="
-            spot()!.setName(getValueFromEventTarget($event.target), locale)
-          "
-        />
-      </mat-form-field>
+    <h4 class="mat-title-small" i18n>Spot Name</h4>
+    <form class="mb-3">
+      <app-locale-map-edit-field
+        class="w-100"
+        i18n-placeholder="
+          spot name placeholder|Placeholder of the spot name in the edit form
+        "
+        placeholder="Spot name"
+        [(localeMap)]="spotNameLocaleMap"
+      >
+      </app-locale-map-edit-field>
     </form>
 
     <!-- Media preview grid -->
@@ -571,19 +565,16 @@
     >
       Description
     </h4>
-    <mat-form-field style="width: 100%">
-      <mat-label i18n>Description</mat-label>
-      <textarea
-        matInput
-        i18n-placeholder="
-          Spot description edit field placeholder|Placeholder of the spot
-          description edit field
-        "
-        placeholder="Description of the spot, its features and more..."
-        [value]="spot()!.description()"
-        (change)="descriptionTextChanged(spot()!, $event.target)"
-      ></textarea>
-    </mat-form-field>
+    <app-locale-map-edit-field
+      class="w-100"
+      i18n-placeholder="
+        Spot description edit field placeholder|Placeholder of the spot
+        description edit field
+      "
+      placeholder="Description of the spot, its features and more..."
+      [(localeMap)]="spotDescriptionLocaleMap"
+    >
+    </app-locale-map-edit-field>
 
     <div class="my-3 d-flex justify-start">
       @if(!isNewSpot && !hasBounds()) {

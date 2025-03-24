@@ -1,6 +1,6 @@
 import { languageCodes } from "../../scripts/Languages";
 
-export type LocaleCode = keyof typeof languageCodes;
+export type LocaleCode = string;
 
 export type LocaleMap = {
   [langCode in LocaleCode]?: {

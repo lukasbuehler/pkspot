@@ -226,6 +226,7 @@ export class SpotsService {
   updateSpot(
     spotId: SpotId,
     spotUpdateData: Partial<SpotSchema>,
+    locale: LocaleCode,
     oldSpotData?: Partial<SpotSchema>
   ): Promise<void> {
     // remove the reviews, review_histogram and review_count fields
@@ -236,7 +237,7 @@ export class SpotsService {
     if (oldSpotData && oldSpotData.media) {
       oldSpotMediaPromise = Promise.resolve(oldSpotData.media);
     } else {
-      oldSpotMediaPromise = this.getSpotById(spotId, "en").then((spot) => {
+      oldSpotMediaPromise = this.getSpotById(spotId, locale).then((spot) => {
         const dbMedia = spot.data().media;
         return dbMedia;
       });

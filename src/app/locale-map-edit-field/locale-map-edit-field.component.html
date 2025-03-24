@@ -1,0 +1,34 @@
+<div class="border rounded p-2">
+  @for(locale of shownLocales(); track locale) {
+  <div @fadeInOut class="d-flex flex-row gap-2 align-items-start pb-2">
+    <mat-form-field style="width: 100%" appearance="outline">
+      <mat-label>{{ languages[locale]?.name_native ?? locale }}</mat-label>
+
+      <input
+        matInput
+        [value]="localeMap()[locale]?.text"
+        [placeholder]="placeholder()"
+        (change)="valueChanged($event, locale)"
+      />
+    </mat-form-field>
+
+    <button mat-icon-button (click)="removeTranslation(locale)" class="mt-2">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+  } @if(isExpanded()) {
+  <button mat-button (click)="addTranslation()">
+    <mat-icon>add</mat-icon>Add translation
+  </button>
+  <button mat-button (click)="isExpanded.set(false)">
+    <mat-icon> expand_less </mat-icon>Show less</button
+  >} @else { @if(localeKeys().length > 1) {
+  <button mat-button (click)="isExpanded.set(true)">
+    <mat-icon>expand_more</mat-icon>Show more
+  </button>
+  } @else {
+  <button mat-button (click)="addTranslation()">
+    <mat-icon>add</mat-icon>Add translation
+  </button>
+  } }
+</div>

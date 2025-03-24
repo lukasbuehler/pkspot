@@ -69,7 +69,15 @@ export class MediaPreviewGridComponent implements OnInit {
     this.mediaChanged.emit(mediaCopy);
   }
 
-  editMedia(index: number) {
-    console.log("edit media", index);
+  // editMedia(index: number) {
+  //   console.log("edit media", index);
+  // }
+
+  getSrc(mediaObj: OtherMedia | SizedUserMedia): string {
+    if ("uid" in mediaObj) {
+      return StorageService.getSrc(mediaObj.src, 200);
+    } else {
+      return mediaObj.src;
+    }
   }
 }

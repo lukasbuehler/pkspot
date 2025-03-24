@@ -1,0 +1,37 @@
+<h1 mat-dialog-title>Select language</h1>
+<mat-dialog-content class="pt-2">
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Language</mat-label>
+    <input
+      matInput
+      name="languageInput"
+      [matAutocomplete]="autocomplete"
+      [formControl]="myControl"
+    />
+    <mat-autocomplete
+      #autocomplete="matAutocomplete"
+      (optionSelected)="data.locale = $event.option.value"
+      [displayWith]="getLanguageNameFromLocale"
+    >
+      @for(locale of filteredOptions | async; track locale) {
+      <mat-option [value]="locale">
+        <!-- <img *ngIf="spot.hasMedia()" [src]="spot.previewImageSrc()" alt="Img" /> -->
+        <span
+          >{{ languages[locale].emoji ?? "" }}
+          {{ languages[locale].name_native ?? data.locale }}</span
+        >
+
+        <!-- <small>{{ languages[locale].name_english ?? "" }}</small> -->
+      </mat-option>
+      }
+    </mat-autocomplete>
+    <mat-hint>{{ data.locale }}</mat-hint>
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions class="d-flex flex-row justify-content-between">
+  <button i18n mat-button (click)="onNoClick()">Abort</button>
+  <div class="spacer"></div>
+  <button mat-flat-button color="primary" [mat-dialog-close]="data.locale" i18n>
+    Continue
+  </button>
+</mat-dialog-actions>

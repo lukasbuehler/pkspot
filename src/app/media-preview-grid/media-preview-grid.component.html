@@ -13,16 +13,16 @@
   >
     <div cdkDrag class="drag-element">
       <div class="tile-image">
-        <img class="tile-image" [ngSrc]="mediaObj.src" fill />
+        <img class="tile-image rounded" [ngSrc]="getSrc(mediaObj)" fill />
       </div>
-      <button
+      <!-- <button
         class="bl-fab"
         mat-icon-button
         aria-label="icon button with a trash icon"
         (click)="editMedia(index)"
       >
         <mat-icon>edit</mat-icon>
-      </button>
+      </button> -->
       <button
         class="br-fab"
         color="warn"

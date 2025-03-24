@@ -22,6 +22,7 @@ import { computed, Signal, signal, WritableSignal } from "@angular/core";
 import { defaultSpotNames } from "../../../functions/src/spotHelpers";
 import { SpotReviewSchema } from "../schemas/SpotReviewSchema";
 import { StorageService } from "../../app/services/firebase/storage.service";
+import { getBestLocale, makeLocaleMapFromObject } from "../../scripts/Helpers";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
@@ -83,31 +84,13 @@ export class LocalSpot {
   paths?: google.maps.LatLngLiteral[][];
 
   constructor(data: SpotSchema, readonly locale: LocaleCode) {
-    const namesMap = data.name;
-    const localeMap: LocaleMap = {};
-    for (const key of Object.keys(namesMap) as LocaleCode[]) {
-      const name = namesMap[key];
-      if (typeof name === "string") {
-        localeMap[key] = {
-          text: name,
-          provider: "user",
-          timestamp: new Date(),
-        };
-      } else {
-        localeMap[key] = name;
-      }
-    }
-
-    this.names = signal(localeMap);
+    this.names = signal(makeLocaleMapFromObject(data.name));
     this.name = computed(() => {
       const namesMap = this.names();
-      if (namesMap[locale]) {
-        return namesMap[locale].text;
-      } else {
-        // return the first name if the locale doesn't exist
-        const firstKey = Object.keys(namesMap)[0] as LocaleCode;
-        return namesMap[firstKey]?.text || "";
-      }
+      console.log("namesMap", namesMap, "locale:", this.locale);
+      const nameLocale = getBestLocale(Object.keys(namesMap), this.locale);
+      console.log("nameLocale", nameLocale);
+      return namesMap[nameLocale]?.text ?? $localize`Unnamed Spot`;
     });
 
     this.location = signal({
@@ -120,21 +103,21 @@ export class LocalSpot {
       return MapHelpers.getHumanReadableCoordinates(this.location());
     });
 
-    this.descriptions = signal(data.description ?? {});
+    this.descriptions = signal(
+      data.description ? makeLocaleMapFromObject(data.description) : undefined
+    );
     this.description = computed(() => {
       const descriptionsObj = this.descriptions();
       if (descriptionsObj && Object.keys(descriptionsObj).length > 0) {
         const descriptionLocales: LocaleCode[] = Object.keys(
           descriptionsObj
         ) as LocaleCode[];
-        const locale = descriptionLocales.includes(this.locale)
-          ? this.locale
-          : descriptionLocales[0];
+        const descLocale = getBestLocale(descriptionLocales, this.locale);
 
-        if (typeof descriptionsObj[locale] === "string") {
-          return descriptionsObj[locale];
+        if (typeof descriptionsObj[descLocale] === "string") {
+          return descriptionsObj[descLocale];
         } else {
-          return descriptionsObj[locale]?.text || "";
+          return descriptionsObj[descLocale]?.text || "";
         }
       }
       return "";
