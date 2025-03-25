@@ -68,14 +68,16 @@ export class LocaleMapEditFieldComponent {
     return getBestLocale(localeKeys, appLocale);
   });
 
-  localeMap: ModelSignal<LocaleMap> = model<LocaleMap>({});
+  localeMap: ModelSignal<LocaleMap | undefined | null> = model<
+    LocaleMap | undefined | null
+  >({});
   isTextArea: InputSignal<boolean> = input(false);
   placeholder: InputSignal<string> = input("");
 
   languages = languageCodes;
 
   localeKeys: Signal<LocaleCode[]> = computed(
-    () => Object.keys(this.localeMap()) as LocaleCode[]
+    () => Object.keys(this.localeMap() ?? {}) as LocaleCode[]
   );
   shownLocales: Signal<LocaleCode[]> = computed(() => {
     const isExpanded = this.isExpanded();

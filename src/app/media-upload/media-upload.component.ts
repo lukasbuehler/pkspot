@@ -28,12 +28,17 @@ import {
   StorageFolder,
   StorageService,
 } from "../services/firebase/storage.service";
-import { SizedStorageSrc } from "../../db/models/Interfaces";
+import {
+  MediaType,
+  SizedStorageSrc,
+  SizedUserMedia,
+} from "../../db/models/Interfaces";
 
-export interface Media {
+export interface UploadMedia {
   file: File;
   previewSrc: string;
   uploadProgress: number;
+  type: MediaType;
 }
 @Component({
   selector: "app-media-upload",
@@ -63,13 +68,17 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   @Input() allowedMimeTypes: string[] | null = null;
   @Input() acceptString: string | null = null;
   @Output() changed = new EventEmitter<void>();
-  @Output() newMedia = new EventEmitter<{ url: SizedStorageSrc }>();
+  @Output() newMedia = new EventEmitter<{
+    src: string | SizedStorageSrc;
+    is_sized: boolean;
+    type: MediaType;
+  }>();
 
   private _storageService = inject(StorageService);
 
   showPreview = signal(true);
 
-  mediaList = signal<Media[]>([]);
+  mediaList = signal<UploadMedia[]>([]);
   uploadFile: File | null = null;
 
   formGroup: UntypedFormGroup;
@@ -108,14 +117,15 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
     const fileList = (eventTarget as HTMLInputElement).files;
 
     if (fileList) {
-      const _mediaList: Media[] = [];
+      const _mediaList: UploadMedia[] = [];
       for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
 
-        const newMedia: Media = {
+        const newMedia: UploadMedia = {
           previewSrc: this.getFileImageSrc(file),
           file: file,
           uploadProgress: 0,
+          type: file.type.includes("image") ? MediaType.Image : MediaType.Video,
         };
 
         _mediaList.push(newMedia);
@@ -193,7 +203,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
     return src;
   }
 
-  uploadMedia(media: Media, index: number) {
+  uploadMedia(media: UploadMedia, index: number) {
     console.log("Starting media upload", media);
 
     if (!this.storageFolder) {
@@ -232,8 +242,20 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
       );
   }
 
-  mediaFinishedUploading(media: Media, imageLink: string) {
-    this.newMedia.emit({ url: imageLink as SizedStorageSrc });
+  mediaFinishedUploading(media: UploadMedia, imageLink: string) {
+    let isSized = false;
+
+    let url: string | SizedStorageSrc = imageLink;
+
+    if (
+      [StorageFolder.SpotPictures, StorageFolder.ProfilePictures].includes(
+        this.storageFolder!
+      )
+    ) {
+      isSized = true;
+      url = url as SizedStorageSrc;
+    }
+    this.newMedia.emit({ src: url, is_sized: isSized, type: media.type });
   }
 
   clear() {

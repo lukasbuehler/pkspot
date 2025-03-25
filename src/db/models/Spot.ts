@@ -26,6 +26,7 @@ import {
   getBestLocale,
   makeLocaleMapFromObject,
 } from "../../scripts/LanguageHelpers";
+import { SpotPreviewData } from "../schemas/SpotPreviewData";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
@@ -413,7 +414,7 @@ export class LocalSpot {
 export class Spot extends LocalSpot {
   readonly id: SpotId;
 
-  constructor(private _id: SpotId, _data: SpotSchema, locale: LocaleCode) {
+  constructor(_id: SpotId, _data: SpotSchema, locale: LocaleCode) {
     super(_data, locale);
     this.id = _id;
   }
@@ -421,6 +422,18 @@ export class Spot extends LocalSpot {
   public override clone(): Spot {
     const dataCopy = JSON.parse(JSON.stringify(this.data()));
     return new Spot(this.id, dataCopy, this.locale);
+  }
+
+  makePreviewData(): SpotPreviewData {
+    return {
+      name: this.name(),
+      id: this.id,
+      locality: this.localityString(),
+      imageSrc: this.previewImageSrc(),
+      isIconic: this.isIconic,
+      rating: this.rating ?? undefined,
+      amenities: this.amenities(),
+    };
   }
 }
 

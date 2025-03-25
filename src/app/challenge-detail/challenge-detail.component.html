@@ -1,14 +1,19 @@
-<h2 mat-dialog-title i18n>Add new challange</h2>
+<h2 mat-dialog-title i18n>Add new challenge</h2>
 <mat-dialog-content>
+  @if(challenge) {
   <!-- Spot -->
   <div class="pb-4">
     <h3 class="mat-title-medium" i18n>Spot</h3>
     <div class="d-flex flex-row gap-2 w-100 align-items-center">
+      @if(spot()) {
       <app-spot-preview-card
         class="flex-grow-1"
-        [spot]="data.spot"
+        [spot]="spot()"
         [isCompact]="true"
-      ></app-spot-preview-card>
+      ></app-spot-preview-card
+      >} @else {
+      <p>select spot</p>
+      }
       <button mat-icon-button><mat-icon>edit</mat-icon></button>
     </div>
   </div>
@@ -19,7 +24,7 @@
 
     <app-locale-map-edit-field
       cdkFocusInitial
-      [localeMap]="data.challenge?.name ?? {}"
+      [(localeMap)]="challenge!.name"
     ></app-locale-map-edit-field>
   </div>
 
@@ -30,7 +35,8 @@
       class="d-flex"
       [allowedMimeTypes]="['image/png', 'image/jpeg', 'image/jpg', 'video/mp4']"
       [multipleAllowed]="false"
-      [storageFolder]="challangeStorageFolder"
+      [storageFolder]="challengeStorageFolder"
+      (newMedia)="onNewMedia($event)"
     ></app-media-upload>
   </div>
 
@@ -38,21 +44,23 @@
   <div class="pb-4">
     <h3 class="mat-title-medium" i18n>Description</h3>
     <app-locale-map-edit-field
-      [localeMap]="data.challenge?.description ?? {}"
+      [(localeMap)]="challenge!.description"
       [isTextArea]="true"
     ></app-locale-map-edit-field>
   </div>
+  }
 </mat-dialog-content>
 <mat-dialog-actions class="d-flex justify-content-between p-3">
-  <button mat-button (click)="onNoClick()" i18n="cancel button label">
-    Cancel
+  <button mat-button (click)="onNoClick()">
+    @if(!hasChanges) { <span i18n="cancel button label">Cancel</span> } @else {
+    <span i18n>Discard</span>
+    }
   </button>
   <button
     mat-flat-button
-    [mat-dialog-close]="data"
     color="primary"
-    (click)="saveChallenge()"
     i18n="report button label|"
+    (click)="saveChallenge()"
   >
     Save
   </button>

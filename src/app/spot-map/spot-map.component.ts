@@ -350,7 +350,14 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     } else if ("id" in spot) {
       spotId = spot.id as SpotId;
       if ("location" in spot) {
-        this.focusPoint(spot.location());
+        if (spot.location instanceof GeoPoint) {
+          this.focusPoint({
+            lat: spot.location.latitude,
+            lng: spot.location.longitude,
+          });
+        } else if (typeof spot.location !== "undefined") {
+          this.focusPoint(spot.location());
+        }
       }
     } else {
       console.error("Invalid spot data provided:", spot);

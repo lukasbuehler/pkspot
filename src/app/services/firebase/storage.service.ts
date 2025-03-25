@@ -11,7 +11,7 @@ export enum StorageFolder {
   PostMedia = "post_media",
   ProfilePictures = "profile_pictures",
   SpotPictures = "spot_pictures",
-  Challanges = "challanges",
+  Challenges = "challenges",
 }
 
 @Injectable({

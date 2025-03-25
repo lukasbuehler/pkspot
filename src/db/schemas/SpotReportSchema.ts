@@ -1,9 +1,10 @@
+import { SpotPreviewData } from "./SpotPreviewData";
 import { UserReferenceSchema } from "./UserSchema";
 
-interface SpotData {
+type SpotData = Partial<SpotPreviewData> & {
   name: string; // english name
   id: string;
-}
+};
 
 export enum SpotReportReason {
   Duplicate = "duplicate",

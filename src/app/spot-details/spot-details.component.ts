@@ -461,7 +461,11 @@ export class SpotDetailsComponent
   //   this.spot.address.set(newAddress);
   // }
 
-  setNewMediaFromUpload(media: { url: SizedStorageSrc }) {
+  setNewMediaFromUpload(media: {
+    src: SizedStorageSrc | string;
+    is_sized: boolean;
+    type: MediaType;
+  }) {
     console.log("Setting new media from upload");
     const spot = this.spot();
     if (!spot) {
@@ -476,9 +480,19 @@ export class SpotDetailsComponent
           return spot;
         }
 
+        if (media.type !== MediaType.Image) {
+          console.error("Only images are allowed for now");
+          return spot;
+        }
+
+        if (!media.is_sized) {
+          console.error("Media is not sized, cannot upload");
+          return spot;
+        }
+
         spot.addMedia(
-          media.url,
-          MediaType.Image,
+          media.src as SizedStorageSrc,
+          media.type,
           this.authenticationService.user.uid
         );
       }
@@ -727,12 +741,12 @@ export class SpotDetailsComponent
       });
   }
 
-  openChallengeDialog(challangeId: string) {
+  openChallengeDialog(challengeId: string) {
     const spot = this.spot();
 
     if (spot && spot instanceof Spot) {
       this._challengeService
-        .getSpotChallenge(spot.id, challangeId)
+        .getSpotChallenge(spot.id, challengeId)
         .then((challenge) => {
           const dialogRef = this.dialog.open(SpotReportDialogComponent, {
             data: challenge,
@@ -744,6 +758,12 @@ export class SpotDetailsComponent
   addChallenge() {
     const spot = this.spot();
 
+    const uid = this.authenticationService.user.uid;
+    if (!uid) {
+      console.error("User not signed in, cannot add challenge");
+      return;
+    }
+
     if (spot && spot instanceof Spot) {
       const newChallenge: Partial<SpotChallengeSchema> = {
         name: {
@@ -752,14 +772,17 @@ export class SpotDetailsComponent
             provider: "user",
           },
         },
-        spot: {
-          id: spot.id,
-          name: spot.name(),
+        spot: spot.makePreviewData(),
+        user: {
+          uid: uid,
+          display_name: this.authenticationService.user.data?.displayName,
+          profile_picture:
+            this.authenticationService.user.data?.profilePicture ?? undefined,
         },
         is_completed: false,
       };
       const dialogRef = this.dialog.open(ChallengeDetailComponent, {
-        data: { challenge: newChallenge, spot: spot },
+        data: newChallenge,
         width: "600px",
         maxWidth: "95vw",
       });
