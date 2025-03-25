@@ -4,12 +4,21 @@
     <mat-form-field style="width: 100%" appearance="outline">
       <mat-label>{{ languages[locale]?.name_native ?? locale }}</mat-label>
 
+      @if(isTextArea()) {
+      <textarea
+        matInput
+        [value]="localeMap()[locale]?.text"
+        [placeholder]="placeholder()"
+        (change)="valueChanged($event, locale)"
+        rows="3"
+      ></textarea>
+      }@else {
       <input
         matInput
         [value]="localeMap()[locale]?.text"
         [placeholder]="placeholder()"
         (change)="valueChanged($event, locale)"
-      />
+      />}
     </mat-form-field>
 
     <button mat-icon-button (click)="removeTranslation(locale)" class="mt-2">

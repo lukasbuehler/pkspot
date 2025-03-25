@@ -147,7 +147,8 @@
       mat-mini-fab
       #amenitiesFab
       id="amenitiesFab"
-      color="primary"
+      color="accent"
+      style="background-color: #055300; color: #a7f690"
       (click)="showAmenities.set(!showAmenities())"
       [disabled]="spotMap ? spotMap.mapZoom < 16 : true"
       i18n-matTootlip
@@ -165,25 +166,27 @@
 
   @if(authService.isSignedIn && !isEditing) {
   <!-- Add / import spots speed dial-->
-  <!-- <app-speed-dial-fab
+  <app-speed-dial-fab
     #createSpotSpeedDial
     id="createSpotSpeedDial"
     [buttonConfig]="speedDialButtonConfig"
     [openOnHover]="true"
     [rotationDegrees]="0"
-    (mainFabClick)="spotMap.createSpot()"
+    (mainFabClick)="spotMap?.createSpot()"
     (miniFabClick)="speedDialMiniFabClick($event)"
-  ></app-speed-dial-fab> -->
-  <button
+  ></app-speed-dial-fab>
+  <!-- <button
     @fadeInOut
     mat-fab
+    extended
     #createSpotSpeedDial
     id="createSpotSpeedDial"
     color="primary"
     (click)="spotMap ? spotMap.createSpot() : null"
   >
     <mat-icon> add_location </mat-icon>
-  </button>
+    <span i18n class="mat-lable-large">Add Spot</span>
+  </button> -->
   }
 
   <!-- <mat-menu #searchUserMatMenu="matMenu">

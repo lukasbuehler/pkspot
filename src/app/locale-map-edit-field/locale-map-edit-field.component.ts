@@ -65,6 +65,7 @@ export class LocaleMapEditFieldComponent {
   });
 
   localeMap: ModelSignal<LocaleMap> = model<LocaleMap>({});
+  isTextArea: InputSignal<boolean> = input(false);
   placeholder: InputSignal<string> = input("");
 
   languages = languageCodes;

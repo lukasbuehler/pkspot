@@ -28,6 +28,8 @@ import {
   MediaType,
 } from "../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
+import { AmenitiesMap } from "../../db/schemas/Amenities";
+import { makeAmenitiesArray } from "../../db/models/Amenities";
 
 @Component({
   selector: "app-spot-preview-card",
@@ -50,6 +52,16 @@ export class SpotPreviewCardComponent implements OnChanges {
   imgSize = input<200 | 400 | 800>(200);
 
   spot = input<Spot | LocalSpot | SpotPreviewData | null>(null);
+  spotAmentitiesArray = computed<{ name?: string; icon?: string }[]>(() => {
+    const spot = this.spot();
+    if (!spot) {
+      return [];
+    }
+    if (spot instanceof Spot || spot instanceof LocalSpot) {
+      return spot.amentitiesArray();
+    }
+    return spot.amenities ? makeAmenitiesArray(spot.amenities) : [];
+  });
   showInfoButton = input<boolean>(true);
   @Input() infoOnly: boolean = false;
   @Input() clickable: boolean = false;

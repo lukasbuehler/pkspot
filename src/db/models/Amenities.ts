@@ -1,4 +1,8 @@
-import { AmenitiesMap } from "../schemas/Amenities";
+import {
+  AmenitiesMap,
+  AmenitiesOrder,
+  AmenityIcons,
+} from "../schemas/Amenities";
 
 export const AmenityNames: { [key in keyof AmenitiesMap]: string } = {
   covered: $localize`:@@amenities.covered:Covered area`,
@@ -17,3 +21,14 @@ export const AmenityNames: { [key in keyof AmenitiesMap]: string } = {
   maybe_overgrown: $localize`:@@amenities.maybe_overgrown:Possibly overgrown`,
   water_feature: $localize`:@@amenities.water_feature:Water feature`,
 };
+
+export function makeAmenitiesArray(
+  amenities: AmenitiesMap
+): { name?: string; icon?: string }[] {
+  if (!amenities) return [];
+
+  return AmenitiesOrder.map((key) => {
+    if (!amenities[key as keyof AmenitiesMap]) return null;
+    return { name: AmenityNames[key], icon: AmenityIcons[key] };
+  }).filter((val) => val !== null);
+}

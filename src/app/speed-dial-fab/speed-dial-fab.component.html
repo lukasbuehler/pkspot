@@ -6,10 +6,9 @@
 >
   <button
     mat-fab
+    [extended]="buttonConfig?.mainButton?.isExtended"
     class="sd-toggler"
-    [style.backgroundColor]="
-      getBackgroundColor(buttonConfig?.mainButton?.color ?? 'primary')
-    "
+    [color]="buttonConfig?.mainButton?.color || 'primary'"
     [matTooltipDisabled]="!buttonConfig?.mainButton?.tooltip || !openOnHover"
     [matTooltip]="buttonConfig?.mainButton?.tooltip || ''"
     [matTooltipPosition]="
@@ -22,30 +21,26 @@
         value: isOpen ? 'open' : 'closed',
         params: { degrees: rotationDegrees }
       }"
-      [style.color]="getIconColor(buttonConfig?.mainButton?.color ?? 'primary')"
       >{{ buttonConfig?.mainButton?.icon ?? "add" }}</mat-icon
     >
+    @if(buttonConfig?.mainButton?.isExtended) {
+    {{ buttonConfig?.mainButton?.label }} }
   </button>
   <div
     class="mini-fab-container"
     *ngIf="isOpen"
     [@speedDialStagger]="{ value: buttonConfig?.miniButtons?.length || 0 }"
   >
+    @for(miniBtn of buttonConfig?.miniButtons ?? []; track $index) {
     <button
-      *ngFor="let miniBtn of buttonConfig?.miniButtons ?? []; let i = index"
       mat-mini-fab
       class="mini-fab"
-      [style.backgroundColor]="
-        getBackgroundColor(buttonConfig?.miniButtonColor ?? 'primary')
-      "
+      [color]="buttonConfig?.miniButtonColor || 'accent'"
       [matTooltip]="miniBtn.tooltip"
       [matTooltipPosition]="buttonConfig?.tooltipPosition || 'left'"
-      (click)="miniButtonClick(i)"
+      (click)="miniButtonClick($index)"
     >
-      <mat-icon
-        [style.color]="getIconColor(buttonConfig?.miniButtonColor ?? 'primary')"
-        >{{ miniBtn.icon }}</mat-icon
-      >
-    </button>
+      <mat-icon>{{ miniBtn.icon }}</mat-icon></button
+    >}
   </div>
 </div>

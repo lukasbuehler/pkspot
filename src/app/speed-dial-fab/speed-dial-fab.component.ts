@@ -20,6 +20,8 @@ export interface SpeedDialFabButtonConfig {
     icon?: string;
     tooltip?: string;
     color?: string;
+    label?: string;
+    isExtended?: boolean;
   };
   miniButtonColor: string;
   tooltipPosition?: TooltipPosition;

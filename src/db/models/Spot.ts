@@ -13,7 +13,7 @@ import {
   AmenityIcons,
   AmenitiesOrder,
 } from "../schemas/Amenities";
-import { AmenityNames } from "./Amenities";
+import { AmenityNames, makeAmenitiesArray } from "./Amenities";
 import { MapHelpers } from "../../scripts/MapHelpers";
 import { environment } from "../../environments/environment";
 import { GeoPoint } from "@firebase/firestore";
@@ -252,12 +252,7 @@ export class LocalSpot {
     this.amenities = signal(data.amenities);
     this.amentitiesArray = computed(() => {
       const amenities = this.amenities();
-      if (!amenities) return [];
-
-      return AmenitiesOrder.map((key) => {
-        if (!amenities[key as keyof AmenitiesMap]) return null;
-        return { name: AmenityNames[key], icon: AmenityIcons[key] };
-      }).filter((val) => val !== null);
+      return makeAmenitiesArray(amenities);
     });
 
     this.paths = this._makePathsFromBounds(data.bounds ?? []);

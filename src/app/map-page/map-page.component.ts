@@ -18,7 +18,10 @@ import {
   Router,
   RouterEvent,
 } from "@angular/router";
-import { SpeedDialFabButtonConfig } from "../speed-dial-fab/speed-dial-fab.component";
+import {
+  SpeedDialFabButtonConfig,
+  SpeedDialFabComponent,
+} from "../speed-dial-fab/speed-dial-fab.component";
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MapsApiService } from "../services/maps-api.service";
@@ -87,7 +90,6 @@ import { SearchFieldComponent } from "../search-field/search-field.component";
     SpotMapComponent,
     MatButtonModule,
     MatIconModule,
-    MatIcon,
     FormsModule,
     MatChipsModule,
     ReactiveFormsModule,
@@ -97,6 +99,7 @@ import { SearchFieldComponent } from "../search-field/search-field.component";
     MatDividerModule,
     MatTooltipModule,
     SearchFieldComponent,
+    SpeedDialFabComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -155,14 +158,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   speedDialButtonConfig: SpeedDialFabButtonConfig = {
     mainButton: {
       icon: "add_location",
-      tooltip: "Create a new spot",
-      color: "accent",
+      tooltip: $localize`Add a new spot`,
+      color: "primary",
+      label: $localize`:@@pk.spotmap.addSpot:Add spot`,
+      isExtended: false,
     },
     miniButtonColor: "primary",
     miniButtons: [
       {
+        icon: "outlined_flag",
+        tooltip: $localize`Add a challenge`,
+      },
+      {
         icon: "note_add",
-        tooltip: "Import Spots from a KML file",
+        tooltip: $localize`Import spots from a file`,
       },
     ],
   };

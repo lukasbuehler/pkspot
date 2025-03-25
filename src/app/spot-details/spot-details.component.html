@@ -49,12 +49,25 @@
     <mat-card-subtitle class="d-flex flex-row justify-content-between">
       <div class="d-flex flex-column justify-content-center text-truncate">
         @if(spot()?.rating) {
-        <app-spot-rating
-          class="flex-shrink-0"
-          [rating1to5]="spot()!.rating"
-          [showNumReviews]="true"
-          [numReviews]="spot()!.numReviews"
-        ></app-spot-rating>
+        <div class="d-flex flex-row gap-1 align-items-center">
+          <app-spot-rating
+            class="flex-shrink-0"
+            [rating1to5]="spot()!.rating"
+            [showNumReviews]="true"
+            [numReviews]="spot()!.numReviews"
+          ></app-spot-rating>
+          {{
+            spot()?.rating && spot()!.amentitiesArray().length > 0 ? "⸱" : null
+          }}
+          <div class="d-flex flex-row gap-1 align-items-center">
+            @for(amenity of spot()!.amentitiesArray(); track amenity) {
+            <mat-icon class="amenity-icon" [matTooltip]="amenity.name">{{
+              amenity.icon
+            }}</mat-icon>
+            }
+          </div>
+        </div>
+
         } @if(spot()?.address()) {
         <span class="text-truncate">{{ spot()!.localityString() }}</span>
         }
@@ -156,20 +169,49 @@
     </app-img-carousel>
     }
 
-    <!-- Spot Description -->
-    <!-- @if(spot.media() && spot.media().length > 0) {
-    <swiper-container
-      class="spot-media-swiper"
-      [navigation]="true"
-      [pagination]="{ clickable: true }"
-    >
-      @for(mediaObj of spot.media(); track mediaObj) {
-      <swiper-slide
-        ><img ngSrc="{{ mediaObj.src }}" class="spot-img" fill />
-      </swiper-slide>
-      }
-    </swiper-container>
-    } -->
+    <!-- Spot Challenges -->
+    @if(challenges().length > 0) {
+    <div class="pb-4">
+      <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
+      <div class="challenge-preview-grid">
+        @for(challenge of challenges(); track challenge) {
+        <div class="d-flex flex-column">
+          <div
+            class="rounded w-100 overflow-hidden position-relative"
+            style="aspect-ratio: 1; background-color: #2c2d31"
+          >
+            <img
+              ngSrc="/assets/no_media.png"
+              fill
+              class="w-100 h-100"
+              style="object-fit: cover"
+            />
+          </div>
+          <span class="mat-title-small pt-1">Challenge</span>
+        </div>
+        } @if(authenticationService.isSignedIn) {
+        <button mat-stroked-button (click)="addChallenge()">
+          <mat-icon>outlined_flag</mat-icon>
+          <span i18n>Add challenge</span>
+        </button>
+        }
+      </div>
+    </div>
+    } @else { @if(authenticationService.isSignedIn) {
+    <div class="mb-4 mt-2">
+      <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
+      <p class="mat-body-medium" i18n>
+        There are no challenges for this spot yet.
+      </p>
+
+      <button mat-stroked-button>
+        <mat-icon>outlined_flag</mat-icon>
+        <span i18n>Add a challenge</span>
+      </button>
+    </div>
+    } }
+
+    <h3 class="mat-title-medium" i18n>Details</h3>
 
     <!-- Google place -->
     @if(googlePlace()) {
@@ -237,66 +279,74 @@
 
     <!-- Spot Description -->
     @if(spot()?.description()) {
-    <div>
+    <div class="pb-3">
       <h4
         class="mat-title-small"
         i18n="description header|The header for the spot description"
       >
         Description
       </h4>
-      <p class="mat-body-medium">
+      <p class="mat-body-medium m-0">
         {{ spot()!.description() }}
       </p>
     </div>
     }
 
-    <!-- Spot Challenges -->
-    @if(challenges().length > 0) {
-    <div class="mb-4 mt-2">
-      <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
-      <div class="challenge-preview-grid">
-        @for(challenge of challenges(); track challenge) {
-        <div class="d-flex flex-column">
-          <div
-            class="rounded w-100 overflow-hidden position-relative"
-            style="aspect-ratio: 1; background-color: #2c2d31"
+    <!-- Spot Address or Location and action buttons -->
+    <div class="d-flex justify-start mb-4 flex-column">
+      @if(spot()?.address()?.formatted) {
+      <h4
+        class="mat-title-small"
+        i18n="
+          Address subtitle|The address subtitle in the spot
+          details@@address_title"
+      >
+        Address
+      </h4>
+      <p class="mat-body-medium">{{ spot()!.address()?.formatted }}</p>
+      } @else {
+      <h4 class="mat-title-small" i18n>Location</h4>
+      <p class="mat-body-medium">
+        {{ spot()!.locationString() }}
+      </p>
+      }
+      <div class="d-flex flex-column flex-xl-row gap-2">
+        <button
+          mat-stroked-button
+          color="primary"
+          class="flex-grow-1 flex-basis-0 py-2"
+          i18n-matTooltip="
+            Open in maps button tooltip|Tooltip of button to open the spot in
+            maps@@open_maps_tooltip"
+          matTooltip="Open the location of this spot in Maps"
+          (click)="openSpotInMaps()"
+        >
+          <mat-icon>place</mat-icon>
+          <span
+            i18n="
+              Open in maps button|Button to open the spot in
+              maps@@open_maps_button_label"
+            >Open in {{ isAppleMaps ? "Apple Maps" : "Google Maps" }}</span
           >
-            <img
-              ngSrc="/assets/no_media.png"
-              fill
-              class="w-100 h-100"
-              style="object-fit: cover"
-            />
-          </div>
-          <span class="mat-title-small pt-1">Challenge</span>
-        </div>
-        } @if(authenticationService.isSignedIn) {
-        <button mat-stroked-button>
-          <mat-icon>outlined_flag</mat-icon>
-          <span i18n>Add a challenge</span>
         </button>
-        }
+        <button
+          mat-stroked-button
+          color="primary"
+          class="flex-grow-1 flex-basis-0 py-2"
+          matTooltip="Navigate to this spot"
+          (click)="openDirectionsInMaps()"
+        >
+          <mat-icon>directions</mat-icon>
+          <span i18n="@@directions_spot_tooltip">Navigate to spot</span>
+        </button>
       </div>
     </div>
-    } @else { @if(authenticationService.isSignedIn) {
-    <div class="mb-4 mt-2">
-      <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
-      <p class="mat-body-medium" i18n>
-        There are no challenges for this spot yet.
-      </p>
-
-      <button mat-stroked-button>
-        <mat-icon>outlined_flag</mat-icon>
-        <span i18n>Add a challenge</span>
-      </button>
-    </div>
-    } }
 
     <!-- Ratings -->
     @if(!isLocalSpot() && (spot()?.rating || authenticationService.isSignedIn))
     {
     <div class="mb-4">
-      <h4 class="mat-title-small" i18n>Rating and user reviews</h4>
+      <h4 class="mat-title-medium" i18n>Rating and user reviews</h4>
       @if(spot()!.rating) {
       <div class="d-flex flex-row align-items-center mb-3">
         <div
@@ -339,7 +389,9 @@
         }
       </div>
       } @else {
-      <p i18n>This spot has no reviews yet, be the first to leave one!</p>
+      <p i18n class="mat-body-medium">
+        This spot has no reviews yet, be the first to leave one!
+      </p>
       }
       <!-- if(spot.rating) -->
 
@@ -349,69 +401,25 @@
       @if(authenticationService.isSignedIn) {
       <!-- // TODO in the future also make sure the user visited the spot -->
       <button
-        mat-flat-button
-        color="primary"
+        mat-stroked-button
+        color="accent"
         i18n-matTooltip="
           Review this spot button tooltip|Tooltip of button to review the
           spot@@review_spot_tooltip"
         matTooltip="Review this spot"
         (click)="openSpotReviewDialog()"
-        i18n="
-          Review spot button label|Button to review the spot
-          label@@review_spot_button_label"
       >
-        Review spot
+        <mat-icon>reviews</mat-icon>
+        <span
+          i18n="
+            Review spot button label|Button to review the spot
+            label@@review_spot_button_label"
+          >Review spot</span
+        >
       </button>
       }
     </div>
     }
-
-    <!-- Spot Address or Location and action buttons -->
-    <div class="d-flex justify-start mb-4 flex-column">
-      @if(spot()?.address()?.formatted) {
-      <h4
-        class="mat-title-small"
-        i18n="
-          Address subtitle|The address subtitle in the spot
-          details@@address_title"
-      >
-        Address
-      </h4>
-      <p class="mat-body-medium">{{ spot()!.address()?.formatted }}</p>
-      } @else {
-      <h4 class="mat-title-small" i18n>Location</h4>
-      <p class="mat-body-medium">
-        {{ spot()!.locationString() }}
-      </p>
-      }
-      <div class="d-flex flex-column flex-xl-row gap-2">
-        <button
-          mat-stroked-button
-          color="primary"
-          class="flex-grow-1 flex-basis-0 py-2"
-          i18n-matTooltip="
-            Open in maps button tooltip|Tooltip of button to open the spot in
-            maps@@open_maps_tooltip"
-          matTooltip="Open the location of this spot in Maps"
-          (click)="openSpotInMaps()"
-          i18n="
-            Open in maps button|Button to open the spot in
-            maps@@open_maps_button_label"
-        >
-          Open in {{ isAppleMaps ? "Apple Maps" : "Google Maps" }}
-        </button>
-        <button
-          mat-stroked-button
-          color="primary"
-          class="flex-grow-1 flex-basis-0 py-2"
-          matTooltip="Navigate to this spot"
-          (click)="openDirectionsInMaps()"
-          i18n="@@directions_spot_tooltip"
-        >
-          Navigate to spot
-        </button>
-      </div>
-    </div>
 
     <!-- Action buttons -->
     @if(authenticationService.isSignedIn && editable) {
@@ -422,11 +430,14 @@
         i18n-matTooltip
         matTooltip="Edit this spot"
         i18n-aria-label
+        aria-label="Edit button with a pencil icon"
         (click)="editButtonClick()"
         class="flex-grow-1 flex-basis-0"
-        i18n="Edit button label|Label of the button to edit the spot"
       >
-        Edit
+        <mat-icon>edit</mat-icon>
+        <span i18n="Edit button label|Label of the button to edit the spot"
+          >Edit Spot</span
+        >
       </button>
       <button
         mat-stroked-button
@@ -434,12 +445,14 @@
         i18n-matTooltip
         matTooltip="Report this spot"
         i18n-aria-label
-        aria-label="Example icon button with a share icon"
+        aria-label="Report button with a warning icon"
         class="flex-grow-1 flex-basis-0"
         (click)="openSpotReportDialog()"
-        i18n="report button label|Label of the button to report the spot"
       >
-        Report
+        <mat-icon>report</mat-icon>
+        <span i18n="report button label|Label of the button to report the spot"
+          >Report</span
+        >
       </button>
     </div>
     }
@@ -565,6 +578,7 @@
         Spot description edit field placeholder|Placeholder of the spot
         description edit field
       "
+      [isTextArea]="true"
       placeholder="Description of the spot, its features and more..."
       [(localeMap)]="spotDescriptionLocaleMap"
     >

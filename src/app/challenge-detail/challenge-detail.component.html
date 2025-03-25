@@ -1,0 +1,30 @@
+<h2 mat-dialog-title i18n>{{ challenge()?.name }}'</h2>
+<mat-dialog-content>
+  <p i18n>What would you like to report this spot for?</p>
+
+  <p class="mat-body pt-3" i18n>Which spot is this spot a duplicate of?</p>
+  <mat-form-field class="w-100">
+    <mat-label i18n>Spot</mat-label>
+    <input matInput placeholder="Spot name" required />
+  </mat-form-field>
+  <p class="mat-body pt-3" i18n>
+    Note: Spot reports are public and will be displayed on the spot itself
+    together with your profile and user name.
+  </p>
+</mat-dialog-content>
+<!-- <mat-dialog-actions class="d-flex justify-content-between p-3">
+  <button mat-button (click)="onNoClick()" i18n="cancel button label">
+    Cancel
+  </button>
+  <button
+    [disabled]="!data.reason"
+    mat-flat-button
+    [mat-dialog-close]="data"
+    color="warn"
+    cdkFocusInitial
+    (click)="saveChallenge()"
+    i18n="report button label|"
+  >
+    Report
+  </button>
+</mat-dialog-actions> -->

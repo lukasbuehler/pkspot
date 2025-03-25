@@ -110,6 +110,7 @@ import {
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
+import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -287,8 +288,7 @@ export class SpotDetailsComponent
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
     public authenticationService: AuthenticationService,
-    public reportDialog: MatDialog,
-    public reviewDialog: MatDialog,
+    public dialog: MatDialog,
     private _locationStrategy: LocationStrategy,
     private _element: ElementRef,
     private _spotsService: SpotsService,
@@ -649,7 +649,7 @@ export class SpotDetailsComponent
       },
       reason: "",
     };
-    const dialogRef = this.reportDialog.open(SpotReportDialogComponent, {
+    const dialogRef = this.dialog.open(SpotReportDialogComponent, {
       data: spotReportData,
     });
   }
@@ -682,7 +682,7 @@ export class SpotDetailsComponent
       .finally(() => {
         if (!spot) {
           console.warn("Spot has been unselected after opening review dialog");
-          this.reviewDialog.closeAll();
+          this.dialog.closeAll();
           return;
         }
         if (!this.authenticationService.user.data?.displayName) {
@@ -717,13 +717,50 @@ export class SpotDetailsComponent
           }
         }
 
-        const dialogRef = this.reviewDialog.open(SpotReviewDialogComponent, {
+        const dialogRef = this.dialog.open(SpotReviewDialogComponent, {
           data: {
             review: review,
             isUpdate: isUpdate,
           },
         });
       });
+  }
+
+  openChallengeDialog(challangeId: string) {
+    const spot = this.spot();
+
+    if (spot && spot instanceof Spot) {
+      this._challengeService
+        .getSpotChallenge(spot.id, challangeId)
+        .then((challenge) => {
+          const dialogRef = this.dialog.open(SpotReportDialogComponent, {
+            data: challenge,
+          });
+        });
+    }
+  }
+
+  addChallenge() {
+    const spot = this.spot();
+
+    if (spot && spot instanceof Spot) {
+      const newChallenge: Partial<SpotChallengeSchema> = {
+        name: {
+          [this.locale]: {
+            text: $localize`New Challenge`,
+            provider: "user",
+          },
+        },
+        spot: {
+          id: spot.id,
+          name: spot.name(),
+        },
+        is_completed: false,
+      };
+      const dialogRef = this.dialog.open(ChallengeDetailComponent, {
+        data: newChallenge,
+      });
+    }
   }
 
   setSpotIconicFromToggle(event: MatSlideToggleChange) {

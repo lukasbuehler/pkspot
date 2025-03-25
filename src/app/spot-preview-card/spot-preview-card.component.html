@@ -8,10 +8,7 @@
   [class.rounded]="true"
 >
   <mat-card-header class="pb-2">
-    <mat-card-title
-      class="pt-2 mat-title-medium d-flex w-100 gap-2 align-items-center"
-      style="font-size: 1.2rem"
-    >
+    <mat-card-title class="pt-2 d-flex w-100 gap-2 align-items-center">
       @if(spot()?.isIconic) {
       <mat-icon
         style="width: 24px; flex-shrink: 0; margin: -2px"
@@ -20,20 +17,32 @@
         >stars</mat-icon
       >
       }
-      <span class="text-truncate">{{ spotName }}</span>
+      <span class="text-truncate mat-title-medium">{{ spotName }}</span>
     </mat-card-title>
     <!-- @if(isCompact) { -->
-    <mat-card-subtitle class="d-flex flex-row gap-2 mat-title-small">
-      @if(spot()?.rating) {
-      <app-spot-rating
-        [rating1to5]="spot()?.rating ?? null"
-        [showEmptyStars]="false"
-        [isCompact]="true"
-      ></app-spot-rating>
-      }
-      <span class="text-truncate" style="flex-shrink: 1">
-        {{ spotLocality }}
-      </span>
+    <mat-card-subtitle class="d-flex flex-row gap-2">
+      <div class="d-flex flex-column w-100">
+        <div class="d-flex flex-row gap-1 align-items-center mat-title-small">
+          @if(spot()?.rating) {
+          <app-spot-rating
+            [rating1to5]="spot()?.rating ?? null"
+            [showEmptyStars]="false"
+            [isCompact]="true"
+          ></app-spot-rating>
+          }
+          {{ spot()?.rating && spotAmentitiesArray().length > 0 ? "⸱" : null }}
+          <div class="d-flex flex-row align-items-center gap-1">
+            @for(amenity of spotAmentitiesArray(); track amenity) {
+            <mat-icon class="amenity-icon">{{ amenity.icon }}</mat-icon>
+            }
+          </div>
+        </div>
+        @if(spotLocality) {
+        <span class="text-truncate mat-title-small" style="flex-shrink: 1">
+          {{ spotLocality }}
+        </span>
+        }
+      </div>
     </mat-card-subtitle>
     <!-- } -->
   </mat-card-header>
