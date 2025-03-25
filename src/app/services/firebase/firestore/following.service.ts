@@ -11,8 +11,12 @@ import {
   limit,
 } from "@angular/fire/firestore";
 import { Observable } from "rxjs";
-import { User } from "../../../../db/models/User";
 import { Timestamp } from "@firebase/firestore";
+import {
+  FollowingDataSchema,
+  FollowingSchema,
+  UserSchema,
+} from "../../../../db/schemas/UserSchema";
 
 @Injectable({
   providedIn: "root",
@@ -61,9 +65,9 @@ export class FollowingService {
 
   followUser(
     myUserId: string,
-    myUserData: User.Schema,
+    myUserData: UserSchema,
     otherUserId: string,
-    otherUserData: User.Schema
+    otherUserData: UserSchema
   ): Promise<void> {
     if (!myUserId) {
       return Promise.reject("Your User ID is empty");
@@ -79,12 +83,12 @@ export class FollowingService {
       );
     }
 
-    let followingData: User.FollowingDataSchema = {
+    let followingData: FollowingDataSchema = {
       display_name: otherUserData.display_name,
       profile_picture: otherUserData.profile_picture || "",
       start_following: new Timestamp(Date.now() / 1000, 0),
     };
-    let followerData: User.FollowingDataSchema = {
+    let followerData: FollowingDataSchema = {
       display_name: myUserData.display_name,
       profile_picture: myUserData.profile_picture,
       start_following: new Timestamp(Date.now() / 1000, 0),
@@ -113,8 +117,8 @@ export class FollowingService {
   getFollowersOfUser(
     userId: string,
     chunkSize: number = 20
-  ): Observable<User.FollowingSchema[]> {
-    return new Observable<User.FollowingSchema[]>((obs) => {
+  ): Observable<FollowingSchema[]> {
+    return new Observable<FollowingSchema[]>((obs) => {
       return onSnapshot(
         query(
           collection(this.firestore, `users/${userId}/followers`),
@@ -123,7 +127,7 @@ export class FollowingService {
         ),
         (snap) => {
           const followers = snap.docs.map((doc) => {
-            const data = doc.data() as User.FollowingSchema;
+            const data = doc.data() as FollowingSchema;
             return {
               ...data,
               uid: doc.id,
@@ -141,8 +145,8 @@ export class FollowingService {
   getFollowingsOfUser(
     userId: string,
     chunkSize: number = 20
-  ): Observable<User.FollowingSchema[]> {
-    return new Observable<User.FollowingSchema[]>((obs) => {
+  ): Observable<FollowingSchema[]> {
+    return new Observable<FollowingSchema[]>((obs) => {
       return onSnapshot(
         query(
           collection(this.firestore, `users/${userId}/following`),
@@ -151,7 +155,7 @@ export class FollowingService {
         ),
         (snap) => {
           const followers = snap.docs.map((doc) => {
-            const data = doc.data() as User.FollowingSchema;
+            const data = doc.data() as FollowingSchema;
             return {
               ...data,
               uid: doc.id,

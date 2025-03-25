@@ -108,6 +108,8 @@ import {
   MatSlideToggleChange,
 } from "@angular/material/slide-toggle";
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
+import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
+import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -180,10 +182,14 @@ export class AsRatingKeyPipe implements PipeTransform {
 export class SpotDetailsComponent
   implements OnInit, AfterViewInit, OnChanges, OnDestroy
 {
+  private _challengeService = inject(SpotChallengesService);
+  private _structuredDataService = inject(StructuredDataService);
+
   spot = model<Spot | LocalSpot | null>(null);
   isLocalSpot = computed(
     () => !(this.spot() instanceof Spot) && this.spot() !== null
   );
+
   @Input() infoOnly: boolean = false;
   @Input() dismissable: boolean = false;
   @Input() border: boolean = false;
@@ -202,7 +208,7 @@ export class SpotDetailsComponent
   @ViewChild(MediaUpload)
   mediaUploadComponent: MediaUpload | null = null;
 
-  private _structuredDataService = inject(StructuredDataService);
+  challenges: WritableSignal<SpotChallengeSchema[]> = signal([]);
 
   getValueFromEventTarget = getValueFromEventTarget;
 
@@ -335,6 +341,15 @@ export class SpotDetailsComponent
       }
 
       this._structuredDataService.addStructuredData("spot", placeData);
+    }
+
+    const spot = this.spot();
+    if (spot instanceof Spot) {
+      this._challengeService
+        .getAllChallengesForSpot(spot.id)
+        .then((challenges) => {
+          this.challenges.set(challenges);
+        });
     }
   }
 

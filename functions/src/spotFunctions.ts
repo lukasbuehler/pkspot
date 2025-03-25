@@ -8,6 +8,7 @@ import {
 import { googleAPIKey } from "./secrets";
 import { SpotSchema } from "./spotHelpers";
 import { SpotReviewSchema } from "../../src/db/schemas/SpotReviewSchema";
+import { LocaleCode } from "../../src/db/models/Interfaces";
 
 type AddressType = {
   sublocality?: string;
@@ -33,7 +34,7 @@ type AddressAPIResultType = {
 const updateSpotAddressFromLocation = async (
   location: GeoPoint,
   apiKey: string
-): Promise<AddressType> => {
+): Promise<[AddressType, LocaleCode[]]> => {
   if (!location || !location.latitude || !location.longitude) {
     return Promise.reject("Location is invalid");
   }
@@ -57,6 +58,7 @@ const updateSpotAddressFromLocation = async (
   });
 
   const address: AddressType = {};
+  // const locales: LocaleCode[] = [];
 
   // loop over the results
   for (const result of data.results as AddressAPIResultType[]) {
@@ -106,7 +108,7 @@ const updateSpotAddressFromLocation = async (
     }
   }
 
-  return address;
+  return [address, []];
 };
 
 /**
@@ -152,7 +154,7 @@ export const updateAllSpotAddresses = onDocumentCreated(
         continue;
       }
 
-      const address = await updateSpotAddressFromLocation(
+      const [address, _] = await updateSpotAddressFromLocation(
         location,
         apiKey
       ).catch((err) => {

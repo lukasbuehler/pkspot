@@ -1,12 +1,12 @@
-import { User } from "./User";
 import { OtherMedia, MediaType } from "./Interfaces";
 import { DocumentReference, GeoPoint, Timestamp } from "@firebase/firestore";
+import { UserReferenceSchema } from "../schemas/UserSchema";
 
 export namespace Post {
   export class Class {
     id: string = "";
     title: string = "";
-    user: User.ReferenceSchema | null = null;
+    user: UserReferenceSchema | null = null;
     body: string = "";
     mediaSrc: string = "";
     mediaIsImage: boolean = false;
@@ -64,7 +64,7 @@ export namespace Post {
 
   export interface Schema {
     title: string;
-    user: User.ReferenceSchema;
+    user: UserReferenceSchema;
     body: string;
     media?: OtherMedia;
     location?: GeoPoint; // where the media was taken or the post was made

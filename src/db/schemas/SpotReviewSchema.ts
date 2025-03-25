@@ -1,8 +1,8 @@
-import { User } from "../models/User";
+import { UserReferenceSchema } from "./UserSchema";
 
 export interface SpotReviewSchema {
   spot: { id: string; name: string };
-  user: User.ReferenceSchema;
+  user: UserReferenceSchema;
   rating: number; // number between 1 and 10
   comment?: {
     text: string;

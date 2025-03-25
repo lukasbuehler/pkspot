@@ -46,7 +46,7 @@ function _fixLocaleMaps(
   const fixedLocaleMap: LocaleMap = {};
 
   if (typeof localeMapObj === "string") {
-    fixedLocaleMap.en = { text: localeMapObj, provider: "user" };
+    fixedLocaleMap["en"] = { text: localeMapObj, provider: "user" };
     console.log("Fixed description for spot:", spotIdForWarnings);
   } else if (typeof localeMapObj === "object") {
     if (Object.keys(localeMapObj).length === 0) {

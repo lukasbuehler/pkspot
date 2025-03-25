@@ -15,6 +15,7 @@ import {
 import { BehaviorSubject, Subject, firstValueFrom } from "rxjs";
 import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
+import { UserSchema } from "../../../db/schemas/UserSchema";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -22,7 +23,7 @@ interface AuthServiceUser {
   uid?: string;
   email?: string;
   emailVerified?: boolean;
-  data?: User.Class;
+  data?: User;
 }
 
 @Injectable({
@@ -50,7 +51,7 @@ export class AuthenticationService {
 
   private _currentFirebaseUser: FirebaseUser | null = null;
 
-  private _defaultUserSettings: User.Schema["settings"] = {
+  private _defaultUserSettings: UserSchema["settings"] = {
     maps: "googlemaps",
   };
 
@@ -128,7 +129,7 @@ export class AuthenticationService {
 
     // check if the user exists in the database
     try {
-      let user: User.Class | null = await firstValueFrom(
+      let user: User | null = await firstValueFrom(
         this._userService.getUserById(googleSignInResponse.user.uid)
       ); // TODO check out of context
       if (!user) {

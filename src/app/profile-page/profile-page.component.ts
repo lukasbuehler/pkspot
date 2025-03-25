@@ -46,7 +46,7 @@ import { PostsService } from "../services/firebase/firestore/posts.service";
 })
 export class ProfilePageComponent implements OnInit {
   userId: string = "";
-  user: User.Class | null = null;
+  user: User | null = null;
   isLoading: boolean = false;
 
   postsFromUser: Post.Class[] = [];

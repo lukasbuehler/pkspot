@@ -1,4 +1,4 @@
-import { User } from "../models/User";
+import { UserReferenceSchema } from "./UserSchema";
 
 interface SpotData {
   name: string; // english name
@@ -13,5 +13,5 @@ export interface SpotReportSchema {
   spot: SpotData;
   reason: SpotReportReason | string;
   duplicateOf?: SpotData;
-  user: User.ReferenceSchema;
+  user: UserReferenceSchema;
 }

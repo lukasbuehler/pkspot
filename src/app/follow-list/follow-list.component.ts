@@ -22,11 +22,12 @@ import {
 } from "@angular/material/table";
 import { NgIf } from "@angular/common";
 import { FollowingService } from "../services/firebase/firestore/following.service.js";
+import { FollowingDataSchema } from "../../db/schemas/UserSchema";
 
 export interface FollowListDialogData {
   userId: string;
   type: "followers" | "following";
-  followUsers: User.FollowingDataSchema[];
+  followUsers: FollowingDataSchema[];
   allLoaded: boolean;
 }
 
@@ -94,7 +95,7 @@ export class FollowListComponent implements OnInit {
     this.isLoading = true;
     const chunkSize = 20;
 
-    let obs: Observable<User.FollowingDataSchema[]>;
+    let obs: Observable<FollowingDataSchema[]>;
     if (this.data.type === "followers") {
       obs = this._followingService.getFollowersOfUser(
         this.data.userId,

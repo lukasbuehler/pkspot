@@ -33,6 +33,7 @@ import { MatBadge } from "@angular/material/badge";
 import { NgIf } from "@angular/common";
 import { UsersService } from "../services/firebase/firestore/users.service";
 import { getValueFromEventTarget } from "../../scripts/Helpers";
+import { UserSchema } from "../../db/schemas/UserSchema";
 
 @Component({
   selector: "app-edit-profile",
@@ -58,7 +59,7 @@ export class EditProfileComponent implements OnInit {
   @Output("changes")
   changes: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  user: User.Class | null = null;
+  user: User | null = null;
   // user properties
   displayName: string | null = null;
   biography: string | null = null;
@@ -199,7 +200,7 @@ export class EditProfileComponent implements OnInit {
   saveAllChanges() {
     if (this.user && this.user.uid) {
       let promises: Promise<void>[] = [];
-      let data: User.Schema = {};
+      let data: UserSchema = {};
 
       // Update display name if changed
       if (this.displayName !== this.user.displayName) {

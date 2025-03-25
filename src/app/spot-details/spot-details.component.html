@@ -85,7 +85,7 @@
             visited = !visited; bookmarked = false; $event.stopPropagation()
           "
         >
-          <mat-icon>{{ visited ? "flag" : "outlined_flag" }}</mat-icon>
+          <mat-icon>beenhere</mat-icon>
         </button> 
         }
         -->
@@ -244,11 +244,53 @@
       >
         Description
       </h4>
-      <p>
+      <p class="mat-body-medium">
         {{ spot()!.description() }}
       </p>
     </div>
     }
+
+    <!-- Spot Challenges -->
+    @if(challenges().length > 0) {
+    <div class="mb-4 mt-2">
+      <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
+      <div class="challenge-preview-grid">
+        @for(challenge of challenges(); track challenge) {
+        <div class="d-flex flex-column">
+          <div
+            class="rounded w-100 overflow-hidden position-relative"
+            style="aspect-ratio: 1; background-color: #2c2d31"
+          >
+            <img
+              ngSrc="/assets/no_media.png"
+              fill
+              class="w-100 h-100"
+              style="object-fit: cover"
+            />
+          </div>
+          <span class="mat-title-small pt-1">Challenge</span>
+        </div>
+        } @if(authenticationService.isSignedIn) {
+        <button mat-stroked-button>
+          <mat-icon>outlined_flag</mat-icon>
+          <span i18n>Add a challenge</span>
+        </button>
+        }
+      </div>
+    </div>
+    } @else { @if(authenticationService.isSignedIn) {
+    <div class="mb-4 mt-2">
+      <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
+      <p class="mat-body-medium" i18n>
+        There are no challenges for this spot yet.
+      </p>
+
+      <button mat-stroked-button>
+        <mat-icon>outlined_flag</mat-icon>
+        <span i18n>Add a challenge</span>
+      </button>
+    </div>
+    } }
 
     <!-- Ratings -->
     @if(!isLocalSpot() && (spot()?.rating || authenticationService.isSignedIn))
@@ -307,7 +349,7 @@
       @if(authenticationService.isSignedIn) {
       <!-- // TODO in the future also make sure the user visited the spot -->
       <button
-        mat-stroked-button
+        mat-flat-button
         color="primary"
         i18n-matTooltip="
           Review this spot button tooltip|Tooltip of button to review the
@@ -335,10 +377,10 @@
       >
         Address
       </h4>
-      <p class="mat-body-large">{{ spot()!.address()?.formatted }}</p>
+      <p class="mat-body-medium">{{ spot()!.address()?.formatted }}</p>
       } @else {
       <h4 class="mat-title-small" i18n>Location</h4>
-      <p class="mat-body-large">
+      <p class="mat-body-medium">
         {{ spot()!.locationString() }}
       </p>
       }
@@ -370,30 +412,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Spot Challenges -->
-    <!-- <mat-divider></mat-divider> -->
-    <!-- <div class="mb-4">
-      <h4 class="mat-title-small mt-3" i18n>Challenges</h4>
-      <div class="challenge-preview-grid">
-        @for(challenge of [].constructor(3); track challenge) {
-        <div class="d-flex flex-column">
-          <div
-            class="rounded w-100 overflow-hidden position-relative"
-            style="aspect-ratio: 1; background-color: #2c2d31"
-          >
-            <img
-              ngSrc="/assets/no_media.png"
-              fill
-              class="w-100 h-100"
-              style="object-fit: cover"
-            />
-          </div>
-          <span>Challenge</span>
-        </div>
-        }
-      </div>
-    </div> -->
 
     <!-- Action buttons -->
     @if(authenticationService.isSignedIn && editable) {
