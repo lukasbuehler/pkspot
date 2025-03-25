@@ -1,4 +1,4 @@
-<div class="d-flex flex-column">
+<div class="d-flex flex-column w-100">
   @if(showPreview()) {
   <div class="preview-grid overflow-y-scroll pb-3">
     @for(media of mediaList(); track $index) { @if(media && media.file) {
@@ -46,7 +46,7 @@
       [multiple]="multipleAllowed"
     />
     <mat-form-field appearance="outline">
-      <mat-label>Please select a File</mat-label>
+      <mat-label i18n>Please select a file to upload</mat-label>
       <input
         #filenameInput
         matInput

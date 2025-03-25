@@ -1,30 +1,59 @@
-<h2 mat-dialog-title i18n>{{ challenge()?.name }}'</h2>
+<h2 mat-dialog-title i18n>Add new challange</h2>
 <mat-dialog-content>
-  <p i18n>What would you like to report this spot for?</p>
+  <!-- Spot -->
+  <div class="pb-4">
+    <h3 class="mat-title-medium" i18n>Spot</h3>
+    <div class="d-flex flex-row gap-2 w-100 align-items-center">
+      <app-spot-preview-card
+        class="flex-grow-1"
+        [spot]="data.spot"
+        [isCompact]="true"
+      ></app-spot-preview-card>
+      <button mat-icon-button><mat-icon>edit</mat-icon></button>
+    </div>
+  </div>
 
-  <p class="mat-body pt-3" i18n>Which spot is this spot a duplicate of?</p>
-  <mat-form-field class="w-100">
-    <mat-label i18n>Spot</mat-label>
-    <input matInput placeholder="Spot name" required />
-  </mat-form-field>
-  <p class="mat-body pt-3" i18n>
-    Note: Spot reports are public and will be displayed on the spot itself
-    together with your profile and user name.
-  </p>
+  <!-- Name -->
+  <div class="pb-4">
+    <h3 class="mat-title-medium" i18n>Challenge name</h3>
+
+    <app-locale-map-edit-field
+      cdkFocusInitial
+      [localeMap]="data.challenge?.name ?? {}"
+    ></app-locale-map-edit-field>
+  </div>
+
+  <!-- Media -->
+  <div class="pb-4">
+    <h3 class="mat-title-medium" i18n>Media</h3>
+    <app-media-upload
+      class="d-flex"
+      [allowedMimeTypes]="['image/png', 'image/jpeg', 'image/jpg', 'video/mp4']"
+      [multipleAllowed]="false"
+      [storageFolder]="challangeStorageFolder"
+    ></app-media-upload>
+  </div>
+
+  <!-- Description -->
+  <div class="pb-4">
+    <h3 class="mat-title-medium" i18n>Description</h3>
+    <app-locale-map-edit-field
+      [localeMap]="data.challenge?.description ?? {}"
+      [isTextArea]="true"
+    ></app-locale-map-edit-field>
+  </div>
 </mat-dialog-content>
-<!-- <mat-dialog-actions class="d-flex justify-content-between p-3">
+<mat-dialog-actions class="d-flex justify-content-between p-3">
   <button mat-button (click)="onNoClick()" i18n="cancel button label">
     Cancel
   </button>
   <button
-    [disabled]="!data.reason"
     mat-flat-button
     [mat-dialog-close]="data"
-    color="warn"
-    cdkFocusInitial
+    color="primary"
     (click)="saveChallenge()"
     i18n="report button label|"
   >
-    Report
+    Save
   </button>
-</mat-dialog-actions> -->
+</mat-dialog-actions>

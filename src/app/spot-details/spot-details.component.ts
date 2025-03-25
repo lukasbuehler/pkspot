@@ -111,6 +111,7 @@ import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map
 import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
+import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -747,7 +748,7 @@ export class SpotDetailsComponent
       const newChallenge: Partial<SpotChallengeSchema> = {
         name: {
           [this.locale]: {
-            text: $localize`New Challenge`,
+            text: "",
             provider: "user",
           },
         },
@@ -758,8 +759,25 @@ export class SpotDetailsComponent
         is_completed: false,
       };
       const dialogRef = this.dialog.open(ChallengeDetailComponent, {
-        data: newChallenge,
+        data: { challenge: newChallenge, spot: spot },
+        width: "600px",
+        maxWidth: "95vw",
       });
+      dialogRef
+        .afterClosed()
+        .subscribe(
+          (result: {
+            challenge: Partial<SpotChallengeSchema>;
+            spot: Spot | LocalSpot | SpotPreviewData | null;
+          }) => {
+            if (result?.challenge) {
+              const challenge: SpotChallengeSchema =
+                result.challenge as SpotChallengeSchema;
+              this._challengeService.addChallenge(spot.id, challenge);
+              console.log("Challenge added", challenge);
+            }
+          }
+        );
     }
   }
 

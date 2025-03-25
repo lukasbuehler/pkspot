@@ -8,6 +8,12 @@ import {
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
+import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
+import { MediaUpload } from "../media-upload/media-upload.component";
+import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+import { LocalSpot, Spot } from "../../db/models/Spot";
+import { MatIconModule } from "@angular/material/icon";
+import { StorageFolder } from "../services/firebase/storage.service";
 
 @Component({
   selector: "app-challenge-detail",
@@ -16,6 +22,10 @@ import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
     MatInputModule,
     MatButtonModule,
     MatDialogModule,
+    LocaleMapEditFieldComponent,
+    MediaUpload,
+    SpotPreviewCardComponent,
+    MatIconModule,
   ],
   templateUrl: "./challenge-detail.component.html",
   styleUrl: "./challenge-detail.component.scss",
@@ -23,11 +33,15 @@ import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
 export class ChallengeDetailComponent {
   public dialogRef: MatDialogRef<ChallengeDetailComponent> =
     inject(MatDialogRef);
-  data = inject(MAT_DIALOG_DATA);
+  data = inject<{
+    challenge: Partial<SpotChallengeSchema> | null;
+    spot: Spot | LocalSpot | null;
+  }>(MAT_DIALOG_DATA);
 
-  challenge = signal<SpotChallengeSchema | null>(this.data ?? null);
+  challangeStorageFolder = StorageFolder.Challanges;
 
   onNoClick(): void {
+    this.data.challenge = null;
     this.dialogRef.close();
   }
 

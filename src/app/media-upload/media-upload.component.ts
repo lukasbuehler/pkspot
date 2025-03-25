@@ -86,7 +86,11 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
     });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    if (this.storageFolder === null) {
+      console.error("No storage folder specified for media upload");
+    }
+  }
 
   writeValue() {}
 

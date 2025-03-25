@@ -22,7 +22,10 @@ import { computed, Signal, signal, WritableSignal } from "@angular/core";
 import { defaultSpotNames } from "../../../functions/src/spotHelpers";
 import { SpotReviewSchema } from "../schemas/SpotReviewSchema";
 import { StorageService } from "../../app/services/firebase/storage.service";
-import { getBestLocale, makeLocaleMapFromObject } from "../../scripts/Helpers";
+import {
+  getBestLocale,
+  makeLocaleMapFromObject,
+} from "../../scripts/LanguageHelpers";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };

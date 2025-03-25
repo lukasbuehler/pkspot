@@ -13,7 +13,7 @@ import {
 } from "@angular/core";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { LocaleCode, LocaleMap } from "../../db/models/Interfaces";
-import { getBestLocale, getValueFromEventTarget } from "../../scripts/Helpers";
+import { getValueFromEventTarget } from "../../scripts/Helpers";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
@@ -22,6 +22,7 @@ import { trigger, transition, style, animate } from "@angular/animations";
 import { languageCodes } from "../../scripts/Languages";
 import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { getBestLocale } from "../../scripts/LanguageHelpers";
 
 @Component({
   selector: "app-locale-map-edit-field",
@@ -60,8 +61,11 @@ export class LocaleMapEditFieldComponent {
 
   bestLocale = computed<LocaleCode>(() => {
     const appLocale = this.appLocale;
-
-    return getBestLocale(this.localeKeys(), appLocale);
+    const localeKeys = this.localeKeys();
+    if (localeKeys.length === 0) {
+      return appLocale;
+    }
+    return getBestLocale(localeKeys, appLocale);
   });
 
   localeMap: ModelSignal<LocaleMap> = model<LocaleMap>({});
@@ -126,6 +130,8 @@ export class LocaleMapEditFieldComponent {
         });
       }
     });
+
+    this.isExpanded.set(true);
   }
 
   removeTranslation(locale: LocaleCode) {

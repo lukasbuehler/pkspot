@@ -13,8 +13,8 @@ interface PostData {
 }
 
 export interface SpotChallengeSchema {
-  name: LocaleMap;
   spot: SpotData;
+  name: LocaleMap;
   media: Media;
   description?: LocaleMap;
   user: UserReferenceSchema;
