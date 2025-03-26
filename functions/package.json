@@ -16,6 +16,7 @@
   "main": "lib/functions/src/index.js",
   "devDependencies": {
     "@firebase/functions-types": "^0.6.3",
+    "@types/fluent-ffmpeg": "^2.1.27",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
     "eslint": "^8.9.0",
@@ -26,7 +27,9 @@
   },
   "private": true,
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "firebase-admin": "^13.2.0",
-    "firebase-functions": "^6.3.2"
+    "firebase-functions": "^6.3.2",
+    "fluent-ffmpeg": "^2.1.3"
   }
 }

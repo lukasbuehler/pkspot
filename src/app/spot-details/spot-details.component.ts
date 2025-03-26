@@ -112,6 +112,7 @@ import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
+import { SpotChallenge } from "../../db/models/SpotChallenge";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -210,7 +211,7 @@ export class SpotDetailsComponent
   @ViewChild(MediaUpload)
   mediaUploadComponent: MediaUpload | null = null;
 
-  challenges: WritableSignal<SpotChallengeSchema[]> = signal([]);
+  challenges: WritableSignal<SpotChallenge[]> = signal([]);
 
   getValueFromEventTarget = getValueFromEventTarget;
 
@@ -349,7 +350,10 @@ export class SpotDetailsComponent
       this._challengeService
         .getAllChallengesForSpot(spot.id)
         .then((challenges) => {
-          this.challenges.set(challenges);
+          console.log("Challenges", challenges);
+          this.challenges.set(
+            challenges.map((c) => new SpotChallenge(c.id, c, this.locale))
+          );
         });
     }
   }

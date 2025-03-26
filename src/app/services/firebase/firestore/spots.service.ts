@@ -15,7 +15,8 @@ import {
 } from "@angular/fire/firestore";
 import { Observable, forkJoin } from "rxjs";
 import { map, take } from "rxjs/operators";
-import { Spot, SpotId } from "../../../../db/models/Spot";
+import { Spot } from "../../../../db/models/Spot";
+import { SpotId } from "../../../../db/schemas/SpotSchema";
 import {
   MapTileKey,
   getDataFromClusterTileKey,

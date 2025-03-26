@@ -1,6 +1,6 @@
 import { inject, Injectable } from "@angular/core";
 import { Firestore } from "@angular/fire/firestore";
-import { SpotId } from "../../../../db/models/Spot";
+import { SpotId } from "../../../../db/schemas/SpotSchema";
 import { SpotChallengeSchema } from "../../../../db/schemas/SpotChallengeSchema";
 import {
   addDoc,
@@ -37,7 +37,10 @@ export class SpotChallengesService {
       if (snap.size == 0) {
         return [];
       }
-      return snap.docs.map((data) => data.data() as SpotChallengeSchema);
+      return snap.docs.map((data) => ({
+        ...(data.data() as SpotChallengeSchema),
+        id: data.id,
+      }));
     });
   }
 

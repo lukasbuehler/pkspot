@@ -10,7 +10,7 @@ import {
   where,
 } from "@angular/fire/firestore";
 import { SpotSlug } from "../../../../db/models/Interfaces";
-import { SpotId } from "../../../../db/models/Spot";
+import { SpotId } from "../../../../db/schemas/SpotSchema";
 
 @Injectable({
   providedIn: "root",

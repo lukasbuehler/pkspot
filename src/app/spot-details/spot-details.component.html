@@ -48,14 +48,15 @@
     </mat-card-title>
     <mat-card-subtitle class="d-flex flex-row justify-content-between">
       <div class="d-flex flex-column justify-content-center text-truncate">
-        @if(spot()?.rating) {
         <div class="d-flex flex-row gap-1 align-items-center">
+          @if(spot()?.rating) {
           <app-spot-rating
             class="flex-shrink-0"
             [rating1to5]="spot()!.rating"
             [showNumReviews]="true"
             [numReviews]="spot()!.numReviews"
-          ></app-spot-rating>
+          ></app-spot-rating
+          >}
           {{
             spot()?.rating && spot()!.amentitiesArray().length > 0 ? "⸱" : null
           }}
@@ -68,7 +69,7 @@
           </div>
         </div>
 
-        } @if(spot()?.address()) {
+        @if(spot()?.address()) {
         <span class="text-truncate">{{ spot()!.localityString() }}</span>
         }
       </div>
@@ -173,29 +174,37 @@
     @if(challenges().length > 0) {
     <div class="pb-4">
       <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
-      <div class="challenge-preview-grid">
+      <div class="challenge-preview-grid pb-3">
         @for(challenge of challenges(); track challenge) {
-        <div class="d-flex flex-column">
+        <div class="d-flex flex-column overflow-hidden">
           <div
             class="rounded w-100 overflow-hidden position-relative"
             style="aspect-ratio: 1; background-color: #2c2d31"
           >
             <img
-              ngSrc="/assets/no_media.png"
+              [ngSrc]="challenge.previewImage"
               fill
               class="w-100 h-100"
               style="object-fit: cover"
             />
           </div>
-          <span class="mat-title-small pt-1">Challenge</span>
+          <span class="mat-title-small pt-1 text-truncate">{{
+            challenge.name
+          }}</span>
         </div>
-        } @if(authenticationService.isSignedIn) {
-        <button mat-stroked-button (click)="addChallenge()">
-          <mat-icon>outlined_flag</mat-icon>
-          <span i18n>Add challenge</span>
-        </button>
         }
       </div>
+      @if(challenges().length > 0) {
+      <button mat-stroked-button (click)="addChallenge()">
+        <mat-icon> read_more </mat-icon>
+        <span i18n>View more challanges</span>
+      </button>
+      } @if(authenticationService.isSignedIn) {
+      <button mat-stroked-button (click)="addChallenge()">
+        <mat-icon>outlined_flag</mat-icon>
+        <span i18n>Add challenge</span>
+      </button>
+      }
     </div>
     } @else { @if(authenticationService.isSignedIn) {
     <div class="mb-4 mt-2">

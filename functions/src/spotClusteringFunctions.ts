@@ -10,6 +10,7 @@ import {
   getSpotName,
   getSpotPreviewImage,
 } from "./spotHelpers";
+import { SpotId } from "../../src/db/schemas/SpotSchema";
 
 interface ClusterTileDot {
   location: GeoPoint;
@@ -80,7 +81,7 @@ async function _clusterAllSpots() {
         if (spotIsClusterWorthy) {
           spotForTile = {
             name: getSpotName(spot, "en"),
-            id: id,
+            id: id as SpotId,
             isIconic: spot.is_iconic ?? false,
             imageSrc: getSpotPreviewImage(spot),
             locality: getSpotLocalityString(spot),

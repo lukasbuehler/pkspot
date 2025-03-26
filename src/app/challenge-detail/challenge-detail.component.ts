@@ -17,7 +17,7 @@ import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
-import { LocalSpot, Spot, SpotId } from "../../db/models/Spot";
+import { SpotId } from "../../db/schemas/SpotSchema";
 import { MatIconModule } from "@angular/material/icon";
 import { StorageFolder } from "../services/firebase/storage.service";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";

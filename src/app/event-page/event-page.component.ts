@@ -12,7 +12,8 @@ import {
 import { CountdownComponent } from "../countdown/countdown.component";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import { LocationStrategy, NgOptimizedImage } from "@angular/common";
-import { LocalSpot, Spot, SpotId } from "../../db/models/Spot";
+import { LocalSpot, Spot } from "../../db/models/Spot";
+import { SpotId } from "../../db/schemas/SpotSchema";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../services/firebase/firestore/spots.service";
 import {

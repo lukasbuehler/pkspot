@@ -1,5 +1,3 @@
-import { LocaleCode } from "../db/models/Interfaces";
-
 export const languageCodes: {
   [localeCode: string]: {
     name_english: string;

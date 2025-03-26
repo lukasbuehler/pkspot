@@ -33,7 +33,7 @@ import {
   MyRegex,
   RegexInputComponent,
 } from "../regex-input/regex-input.component";
-import { LocalSpot, Spot, SpotId } from "../../db/models/Spot";
+import { LocalSpot } from "../../db/models/Spot";
 import { SpotsService } from "../services/firebase/firestore/spots.service";
 import { GeoPoint } from "@firebase/firestore";
 import { SpotMapComponent } from "../spot-map/spot-map.component";

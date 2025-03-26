@@ -1,5 +1,5 @@
 import { GeoPoint } from "@firebase/firestore";
-import { SpotId } from "../models/Spot";
+import { SpotId } from "../schemas/SpotSchema";
 import { AmenitiesMap } from "./Amenities";
 
 export interface SpotPreviewData {

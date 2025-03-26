@@ -10,7 +10,8 @@ import {
   signal,
 } from "@angular/core";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
-import { LocalSpot, Spot, SpotId } from "../../db/models/Spot";
+import { LocalSpot, Spot } from "../../db/models/Spot";
+import { SpotId } from "../../db/schemas/SpotSchema";
 import {
   ActivatedRoute,
   NavigationEnd,

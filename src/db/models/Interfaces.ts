@@ -1,5 +1,3 @@
-import { languageCodes } from "../../scripts/Languages";
-
 export type LocaleCode = string;
 
 export type LocaleMap = {

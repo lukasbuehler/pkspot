@@ -19,7 +19,8 @@ import {
   signal,
   effect,
 } from "@angular/core";
-import { LocalSpot, Spot, SpotId } from "../../db/models/Spot";
+import { LocalSpot, Spot } from "../../db/models/Spot";
+import { SpotId } from "../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 
 import {

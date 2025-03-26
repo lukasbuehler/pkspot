@@ -27,3 +27,6 @@ export { clusterAllSpotsOnRun, clusterAllSpotsOnSchedule };
 
 // fixes
 export { fixSpotLocations, fixLocaleMaps };
+
+// storage triggers
+export { processVideoUpload } from "./storageFunctions";

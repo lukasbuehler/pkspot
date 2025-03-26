@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 import { generateUUID } from "../../../scripts/Helpers";
 
 import { getDownloadURL, Storage } from "@angular/fire/storage";
-import { deleteObject, ref, uploadBytes } from "@firebase/storage";
+import { deleteObject, ref } from "@firebase/storage";
 import { uploadBytesResumable } from "@firebase/storage";
 import { SizedStorageSrc } from "../../../db/models/Interfaces";
 

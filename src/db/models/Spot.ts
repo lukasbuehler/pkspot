@@ -8,18 +8,13 @@ import {
   mediaIsUserMedia,
   SizedStorageSrc,
 } from "./Interfaces";
-import {
-  AmenitiesMap,
-  AmenityIcons,
-  AmenitiesOrder,
-} from "../schemas/Amenities";
-import { AmenityNames, makeAmenitiesArray } from "./Amenities";
+import { AmenitiesMap } from "../schemas/Amenities";
+import { makeAmenitiesArray } from "./Amenities";
 import { MapHelpers } from "../../scripts/MapHelpers";
 import { environment } from "../../environments/environment";
 import { GeoPoint } from "@firebase/firestore";
-import { SpotAddressSchema, SpotSchema } from "../schemas/SpotSchema";
+import { SpotAddressSchema, SpotId, SpotSchema } from "../schemas/SpotSchema";
 import { computed, Signal, signal, WritableSignal } from "@angular/core";
-import { defaultSpotNames } from "../../../functions/src/spotHelpers";
 import { SpotReviewSchema } from "../schemas/SpotReviewSchema";
 import { StorageService } from "../../app/services/firebase/storage.service";
 import {
@@ -27,9 +22,6 @@ import {
   makeLocaleMapFromObject,
 } from "../../scripts/LanguageHelpers";
 import { SpotPreviewData } from "../schemas/SpotPreviewData";
-
-export type SpotId = string & { __brand: "SpotId" };
-export type SpotSlug = string & { __brand: "SpotSlug" };
 
 /**
  * A spot is a location of interest to the Parkour and Freerunning community.

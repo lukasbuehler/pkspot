@@ -3,6 +3,9 @@ import { LocaleMap, MediaType, SizedStorageSrc } from "../models/Interfaces";
 import { SpotReviewSchema } from "./SpotReviewSchema";
 import { AmenitiesMap } from "./Amenities";
 
+export type SpotId = string & { __brand: "SpotId" };
+export type SpotSlug = string & { __brand: "SpotSlug" };
+
 export interface SpotAddressSchema {
   sublocality?: string;
   locality?: string;

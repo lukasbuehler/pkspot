@@ -17,7 +17,8 @@ import {
 } from "@angular/material/dialog";
 
 import { Post } from "../../db/models/Post";
-import { Spot, SpotId } from "../../db/models/Spot";
+import { Spot } from "../../db/models/Spot";
+import { SpotId } from "../../db/schemas/SpotSchema";
 
 import {
   StorageService,
