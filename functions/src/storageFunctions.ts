@@ -20,7 +20,6 @@ async function _getFrameFromVideo(
         timestamps: [time],
         filename: basename(thumbnailPath),
         folder: os.tmpdir(),
-        size: "320x240",
       })
       .on("end", () => resolve())
       .on("error", reject);
@@ -39,7 +38,7 @@ async function _compressVideo(videoPath: string): Promise<string> {
       .outputOptions(["-crf 26", "-preset fast"]) // Adjust CRF for quality vs size tradeoff
       .audioCodec("aac")
       .audioBitrate("128k")
-      .size("1280x720") // Resize to 720p (adjust as needed)
+      .size("1280x?")
       .on("end", () => resolve())
       .on("error", reject)
       .run();
@@ -48,62 +47,81 @@ async function _compressVideo(videoPath: string): Promise<string> {
   return compressedVideoPath;
 }
 
-export const processVideoUpload = onObjectFinalized(async (event) => {
-  const fileBucket = event.data.bucket;
-  const filePath = event.data.name;
-  const fileName = basename(filePath);
-  const contentType = event.data.contentType;
+export const processVideoUpload = onObjectFinalized(
+  {
+    cpu: 2,
+    region: "europe-west1",
+    timeoutSeconds: 300,
+    memory: "1GiB",
+    maxInstances: 10,
+  },
+  async (event) => {
+    const fileBucket = event.data.bucket;
+    const filePath = event.data.name;
+    const fileName = basename(filePath);
+    const contentType = event.data.contentType;
+    const originalMetadata = event.data.metadata;
 
-  if (!contentType || !contentType.startsWith("video/")) {
-    console.log("Ignoring non-video file", filePath);
-    return;
+    if (!contentType || !contentType.startsWith("video/")) {
+      console.log("Ignoring non-video file", filePath);
+      return;
+    }
+
+    if (fileName.startsWith("comp_")) {
+      console.log("Ignoring already compressed file", filePath);
+      return;
+    }
+
+    console.log("Processing video upload:", filePath);
+
+    const tempVideoPath = join(os.tmpdir(), fileName);
+    const bucket = getStorage().bucket(fileBucket);
+
+    await bucket.file(filePath).download({ destination: tempVideoPath });
+    console.log(`Video downloaded to ${tempVideoPath}`);
+
+    // Compress Video
+    const compressedVideoPath = await _compressVideo(tempVideoPath);
+    console.log(`Compressed video created at ${compressedVideoPath}`);
+
+    // Generate Thumbnail
+    const thumbnailPath = await _getFrameFromVideo(compressedVideoPath, 1);
+    console.log(`Thumbnail generated at ${thumbnailPath}`);
+
+    const compressedVideoFileName = `comp_${fileName}`;
+    const compressedVideoStoragePath = join(
+      dirname(filePath),
+      compressedVideoFileName
+    );
+    const thumbnailFileName = `thumb_${fileName}.png`;
+    const thumbnailStoragePath = join(dirname(filePath), thumbnailFileName);
+
+    // Upload Compressed Video with access token in metadata
+    await bucket.upload(compressedVideoPath, {
+      destination: compressedVideoStoragePath,
+      metadata: {
+        contentType,
+        metadata: originalMetadata,
+      },
+    });
+    console.log(`Compressed video uploaded to ${compressedVideoStoragePath}`);
+
+    // Upload Thumbnail with token in metadata
+    await bucket.upload(thumbnailPath, {
+      destination: thumbnailStoragePath,
+      metadata: {
+        contentType: "image/png",
+        metadata: originalMetadata,
+      },
+    });
+    console.log(`Thumbnail uploaded to ${thumbnailStoragePath}`);
+
+    // Cleanup Temporary Files
+    fs.unlinkSync(tempVideoPath);
+    fs.unlinkSync(thumbnailPath);
+    fs.unlinkSync(compressedVideoPath);
+
+    // delte original file
+    await bucket.file(filePath).delete();
   }
-
-  if (fileName.startsWith("comp_")) {
-    console.log("Ignoring already compressed file", filePath);
-    return;
-  }
-
-  console.log("Processing video upload:", filePath);
-
-  const tempVideoPath = join(os.tmpdir(), fileName);
-  const bucket = getStorage().bucket(fileBucket);
-
-  await bucket.file(filePath).download({ destination: tempVideoPath });
-  console.log(`Video downloaded to ${tempVideoPath}`);
-
-  // Generate Thumbnail
-  const thumbnailPath = await _getFrameFromVideo(tempVideoPath, 1);
-  console.log(`Thumbnail generated at ${thumbnailPath}`);
-
-  // Compress Video
-  const compressedVideoPath = await _compressVideo(tempVideoPath);
-  console.log(`Compressed video created at ${compressedVideoPath}`);
-
-  const compressedVideoFileName = `comp_${fileName}`;
-  const compressedVideoStoragePath = join(
-    dirname(filePath),
-    compressedVideoFileName
-  );
-  const thumbnailFileName = `thumb_${fileName}.png`;
-  const thumbnailStoragePath = join(dirname(filePath), thumbnailFileName);
-
-  // Upload Compressed Video
-  await bucket.upload(compressedVideoPath, {
-    destination: compressedVideoStoragePath,
-    metadata: { contentType },
-  });
-  console.log(`Compressed video uploaded to ${compressedVideoStoragePath}`);
-
-  // Upload Thumbnail
-  await bucket.upload(thumbnailPath, {
-    destination: thumbnailStoragePath,
-    metadata: { contentType: "image/png" },
-  });
-  console.log(`Thumbnail uploaded to ${thumbnailStoragePath}`);
-
-  // Cleanup Temporary Files
-  fs.unlinkSync(tempVideoPath);
-  fs.unlinkSync(thumbnailPath);
-  fs.unlinkSync(compressedVideoPath);
-});
+);

@@ -6,6 +6,7 @@ import { getDownloadURL, Storage } from "@angular/fire/storage";
 import { deleteObject, ref } from "@firebase/storage";
 import { uploadBytesResumable } from "@firebase/storage";
 import { SizedStorageSrc } from "../../../db/models/Interfaces";
+import { AuthenticationService } from "./authentication.service";
 
 export enum StorageFolder {
   PostMedia = "post_media",
@@ -19,6 +20,7 @@ export enum StorageFolder {
 })
 export class StorageService {
   storage = inject(Storage);
+  authService = inject(AuthenticationService);
 
   constructor() {}
 
@@ -46,8 +48,24 @@ export class StorageService {
     //   return getDownloadURL(snapshot.ref);
     // });
 
+    let uid: string | null = null;
+    if (this.authService.isSignedIn) {
+      uid = this.authService.user?.uid ?? null;
+    } else {
+      return Promise.reject("User is not signed in");
+    }
+
     return new Promise<string>((resolve, reject) => {
-      const uploadTask = uploadBytesResumable(uploadRef, blob);
+      if (uid === null) {
+        reject("User is not signed in");
+        return;
+      }
+
+      const uploadTask = uploadBytesResumable(uploadRef, blob, {
+        customMetadata: {
+          uid: uid,
+        },
+      });
 
       uploadTask.on(
         "state_changed",

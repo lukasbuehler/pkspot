@@ -1,12 +1,13 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
-      allow read, write: if false;
+      allow read: if true;
+      allow write: request.auth.uid != null &&
+      request.resource.size < 30 * 1024 * 1024 &&
+      request.resource.metadata.customMetadata.uid == request.auth.uid;
+      // Only allow uploads of any image file that's less than 30MB 
     }
   }
 }
