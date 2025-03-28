@@ -1,5 +1,3 @@
-import { LocaleCode, LocaleMap } from "../db/models/Interfaces";
-
 export function getValueFromEventTarget(
   eventTarget: EventTarget | null | undefined
 ): string | undefined {

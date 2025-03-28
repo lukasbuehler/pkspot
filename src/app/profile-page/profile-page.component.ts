@@ -140,10 +140,7 @@ export class ProfilePageComponent implements OnInit {
 
         // Load the profile picture of this user
         if (this.user.profilePicture) {
-          this.profilePicture = StorageService.getSrc(
-            this.user.profilePicture,
-            400
-          );
+          this.profilePicture = this.user.profilePicture.getSrc(400);
         }
 
         // Load all the posts from this user

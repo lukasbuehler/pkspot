@@ -14,17 +14,12 @@ import {
   Input,
   OnInit,
   Output,
-  ViewChild,
 } from "@angular/core";
-import {
-  SizedUserMedia,
-  OtherMedia,
-  MediaType,
-} from "../../db/models/Interfaces";
 import { MatIcon } from "@angular/material/icon";
 import { MatIconButton } from "@angular/material/button";
 import { NgIf, NgFor, NgOptimizedImage } from "@angular/common";
 import { StorageService } from "../services/firebase/storage.service";
+import { AnyMedia, StorageImage, StorageVideo } from "../../db/models/Media";
 
 @Component({
   selector: "app-media-preview-grid",
@@ -33,7 +28,6 @@ import { StorageService } from "../services/firebase/storage.service";
   imports: [
     NgIf,
     CdkDropListGroup,
-    NgFor,
     CdkDropList,
     CdkDrag,
     MatIconButton,
@@ -42,9 +36,9 @@ import { StorageService } from "../services/firebase/storage.service";
   ],
 })
 export class MediaPreviewGridComponent implements OnInit {
-  @Input() media: SizedUserMedia[] = [];
-  @Output() mediaChanged: EventEmitter<SizedUserMedia[]> = new EventEmitter<
-    SizedUserMedia[]
+  @Input() media: AnyMedia[] = [];
+  @Output() mediaChanged: EventEmitter<AnyMedia[]> = new EventEmitter<
+    AnyMedia[]
   >();
 
   storageService = inject(StorageService);
@@ -64,7 +58,7 @@ export class MediaPreviewGridComponent implements OnInit {
   }
 
   removeMedia(index: number) {
-    let mediaCopy: SizedUserMedia[] = JSON.parse(JSON.stringify(this.media));
+    let mediaCopy: AnyMedia[] = JSON.parse(JSON.stringify(this.media));
     mediaCopy.splice(index, 1);
     this.mediaChanged.emit(mediaCopy);
   }
@@ -73,9 +67,11 @@ export class MediaPreviewGridComponent implements OnInit {
   //   console.log("edit media", index);
   // }
 
-  getSrc(mediaObj: OtherMedia | SizedUserMedia): string {
-    if ("uid" in mediaObj) {
-      return StorageService.getSrc(mediaObj.src, 200);
+  getSrc(mediaObj: AnyMedia): string {
+    if (mediaObj instanceof StorageImage) {
+      return mediaObj.getSrc(200);
+    } else if (mediaObj instanceof StorageVideo) {
+      return mediaObj.getThumbnailSrc();
     } else {
       return mediaObj.src;
     }

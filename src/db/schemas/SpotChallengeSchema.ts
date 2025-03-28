@@ -1,4 +1,5 @@
-import { LocaleMap, Media } from "../models/Interfaces";
+import { LocaleMap } from "../models/Interfaces";
+import { MediaSchema } from "../schemas/Media";
 import { SpotPreviewData } from "./SpotPreviewData";
 import { UserReferenceSchema } from "./UserSchema";
 
@@ -9,14 +10,14 @@ type SpotData = Partial<SpotPreviewData> & {
 
 interface PostData {
   id: string;
-  media: Media;
+  media: MediaSchema[];
   user: UserReferenceSchema;
 }
 
 export interface SpotChallengeSchema {
   spot: SpotData;
   name: LocaleMap;
-  media: Media;
+  media: MediaSchema;
   description?: LocaleMap;
   user: UserReferenceSchema;
   createdAt: Date;

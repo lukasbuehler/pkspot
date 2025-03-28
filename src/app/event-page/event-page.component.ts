@@ -24,11 +24,7 @@ import {
   take,
   timeout,
 } from "rxjs";
-import {
-  LocaleCode,
-  MediaType,
-  SizedStorageSrc,
-} from "../../db/models/Interfaces";
+import { LocaleCode, MediaType } from "../../db/models/Interfaces";
 import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
 import { MetaInfoService } from "../services/meta-info.service";
 import { MatButtonModule } from "@angular/material/button";
@@ -46,6 +42,7 @@ import { MapComponent } from "../map/map.component";
 import { GeoPoint } from "@firebase/firestore";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { MatSidenavModule } from "@angular/material/sidenav";
+import { ExternalImage } from "../../db/models/Media";
 
 @Component({
   selector: "app-event-page",
@@ -255,22 +252,19 @@ export class EventPageComponent implements OnInit, OnDestroy {
         ],
         media: [
           {
-            src: "/assets/swissjam/swissjam2.jpg" as SizedStorageSrc,
+            src: "/assets/swissjam/swissjam2.jpg",
             type: MediaType.Image,
-            isSized: false,
-            uid: "",
+            isInStorage: false,
           },
           {
-            src: "/assets/swissjam/swissjam0.jpg" as SizedStorageSrc,
+            src: "/assets/swissjam/swissjam0.jpg",
             type: MediaType.Image,
-            isSized: false,
-            uid: "",
+            isInStorage: false,
           },
           {
-            src: "/assets/swissjam/swissjam1.jpg" as SizedStorageSrc,
+            src: "/assets/swissjam/swissjam1.jpg",
             type: MediaType.Image,
-            isSized: false,
-            uid: "",
+            isInStorage: false,
           },
         ],
         // description: {

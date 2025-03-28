@@ -1,13 +1,13 @@
 import { DocumentReference, Timestamp } from "@firebase/firestore";
 import { humanTimeSince } from "../../scripts/Helpers";
-import { SizedStorageSrc } from "./Interfaces";
 import { UserSchema, UserSettingsSchema } from "../schemas/UserSchema";
+import { StorageImage } from "./Media";
 
 export class User {
   public uid: string;
   public displayName: string = "";
   public biography: string = "";
-  public profilePicture: SizedStorageSrc | null = null;
+  public profilePicture: StorageImage | null = null;
   public startTimeDiffString: string | null = null;
   public startDate: Date | null = null;
   public followerCount: number = 0;
@@ -25,7 +25,7 @@ export class User {
     this._updateData();
   }
 
-  public setProfilePicture(url: SizedStorageSrc) {
+  public setProfilePicture(url: string) {
     this._data.profile_picture = url;
     this._updateData();
   }
@@ -33,9 +33,11 @@ export class User {
   private _updateData() {
     this.displayName = this._data.display_name ?? "";
     this.biography = this._data.biography ?? "";
-    this.profilePicture =
-      (this._data.profile_picture as SizedStorageSrc) ??
-      ("" as SizedStorageSrc);
+
+    if (this._data.profile_picture) {
+      this.profilePicture = new StorageImage(this._data.profile_picture);
+    }
+
     this.settings = this._data.settings ?? {};
 
     // Start date

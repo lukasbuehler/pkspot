@@ -23,14 +23,11 @@ import {
   SpotClusterTileSchema,
 } from "../../../../db/schemas/SpotClusterTile";
 import { SpotSchema } from "../../../../db/schemas/SpotSchema";
-import {
-  LocaleCode,
-  Media,
-  SizedUserMedia,
-} from "../../../../db/models/Interfaces";
+import { LocaleCode } from "../../../../db/models/Interfaces";
 import { transformFirestoreData } from "../../../../scripts/Helpers";
 import { GeoPoint } from "@firebase/firestore";
 import { StorageService } from "../storage.service";
+import { AnyMedia, StorageImage } from "../../../../db/models/Media";
 
 @Injectable({
   providedIn: "root",
@@ -274,7 +271,7 @@ export class SpotsService {
     return spotData;
   }
 
-  updateSpotMedia(spotId: SpotId, media: SizedUserMedia[]): Promise<void> {
+  updateSpotMedia(spotId: SpotId, media: AnyMedia[]): Promise<void> {
     return updateDoc(doc(this.firestore, "spots", spotId), { media });
   }
 
@@ -290,16 +287,10 @@ export class SpotsService {
         !newMedia ||
         !newMedia.find((newMediaItem) => newMediaItem.src === oldMediaItem.src)
       ) {
-        let filenameRegex = RegExp(
-          /(?:spot_pictures)(?:\/|%2F)(.+?)(?:\?.*)?$/
-        );
-        let storageFilenameMatch = oldMediaItem.src.match(filenameRegex);
-        if (storageFilenameMatch && storageFilenameMatch[1]) {
-          let storageFilename = storageFilenameMatch[1] || "";
-          // delete oldMediaItem from storage
-          console.log("Deleting media item: ", oldMediaItem);
-          this.storageService.deleteSpotImageFromStorage(storageFilename);
-        }
+        // delete oldMediaItem from storage
+        console.log("Deleting media item: ", oldMediaItem);
+        const storageImage = new StorageImage(oldMediaItem.src);
+        this.storageService.delete(storageImage);
       }
     });
   }

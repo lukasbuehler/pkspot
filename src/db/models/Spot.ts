@@ -1,13 +1,4 @@
-import {
-  SizedUserMedia,
-  LocaleMap,
-  MediaType,
-  LocaleCode,
-  OtherMedia,
-  Media,
-  mediaIsUserMedia,
-  SizedStorageSrc,
-} from "./Interfaces";
+import { LocaleMap, MediaType, LocaleCode } from "./Interfaces";
 import { AmenitiesMap } from "../schemas/Amenities";
 import { makeAmenitiesArray } from "./Amenities";
 import { MapHelpers } from "../../scripts/MapHelpers";
@@ -22,6 +13,16 @@ import {
   makeLocaleMapFromObject,
 } from "../../scripts/LanguageHelpers";
 import { SpotPreviewData } from "../schemas/SpotPreviewData";
+import {
+  StorageMedia,
+  StorageImage,
+  ExternalImage,
+  Media,
+  StorageVideo,
+  ExternalVideo,
+  AnyMedia,
+} from "./Media";
+import { MediaSchema } from "../schemas/Media";
 
 /**
  * A spot is a location of interest to the Parkour and Freerunning community.
@@ -41,9 +42,9 @@ export class LocalSpot {
   description: Signal<string>;
 
   // Media stuff
-  userMedia: WritableSignal<SizedUserMedia[]>;
-  private _streetview?: Signal<OtherMedia | undefined>; // signal that is computed from location
-  readonly media: Signal<Media[]>;
+  userMedia: WritableSignal<AnyMedia[]>;
+  private _streetview?: Signal<ExternalImage | undefined>; // signal that is computed from location
+  readonly media: Signal<AnyMedia[]>;
   readonly hasMedia: Signal<boolean>;
   readonly previewImageSrc: Signal<string>;
 
@@ -119,17 +120,23 @@ export class LocalSpot {
       return "";
     });
 
-    const userMediaArr: SizedUserMedia[] | undefined = data?.media?.map(
-      (media) => {
-        const userMedia: SizedUserMedia = {
-          src: media.src,
-          type: media.type,
-          uid: media.uid,
-          isSized: media.isSized ?? true,
-        };
-        return userMedia;
-      }
-    );
+    const userMediaArr: (StorageImage | StorageVideo)[] | undefined =
+      data?.media
+        ?.filter((media) => media.uid !== undefined)
+        .map((media) => {
+          if (media.type === MediaType.Image) {
+            return new StorageImage(media.src);
+          } else if (media.type === MediaType.Video) {
+            return new StorageVideo(media.src);
+          } else {
+            console.error("Unknown media type", media.type);
+            return undefined;
+          }
+        })
+        .filter((media) => media !== undefined) as (
+        | StorageImage
+        | StorageVideo
+      )[];
 
     this.userMedia = signal(userMediaArr ?? []);
     // initilize media signal with streetview
@@ -162,14 +169,21 @@ export class LocalSpot {
     this.previewImageSrc = computed(() => {
       const previewSize = 200;
 
-      if (this.hasMedia()) {
-        const media = this.media()[0];
+      if (!this.hasMedia()) return "";
 
-        if (mediaIsUserMedia(media)) {
-          const src = media.src;
-          return StorageService.getSrc(src, previewSize);
+      const imageMedia = this.media().filter(
+        (media) => media.type === MediaType.Image
+      );
+
+      if (imageMedia.length > 0) {
+        if (imageMedia[0] instanceof StorageImage) {
+          return imageMedia[0].getSrc(previewSize);
+        } else if (imageMedia[0] instanceof StorageVideo) {
+          return imageMedia[0].getThumbnailSrc();
         } else {
-          return media.src;
+          if (imageMedia[0] instanceof ExternalImage) {
+            return imageMedia[0].src;
+          }
         }
       }
       return "";
@@ -260,13 +274,25 @@ export class LocalSpot {
    */
   public data(): SpotSchema {
     const location = this.location();
+    const mediaSchema: SpotSchema["media"] = this.userMedia().map(
+      (mediaObj) => {
+        const isInStorage = mediaObj instanceof StorageMedia;
+        const obj: MediaSchema = {
+          src: isInStorage ? mediaObj.baseSrc : mediaObj.src,
+          type: mediaObj.type,
+          uid: mediaObj.userId,
+          isInStorage: isInStorage,
+        };
+        return obj;
+      }
+    );
 
     const data: SpotSchema = {
       name: this.names(),
       location: new GeoPoint(location.lat, location.lng),
       tile_coordinates: MapHelpers.getTileCoordinates(location),
       description: this.descriptions(),
-      media: this.userMedia(),
+      media: mediaSchema,
       is_iconic: this.isIconic,
       rating: this.rating ?? undefined,
       num_reviews: this.numReviews,
@@ -326,10 +352,36 @@ export class LocalSpot {
     return this.media()[index];
   }
 
-  public addMedia(src: SizedStorageSrc, type: MediaType, uid: string) {
-    const _userMedia: SizedUserMedia[] = this.userMedia();
-    _userMedia.push({ src: src, type: type, uid: uid });
-    this.userMedia.set(_userMedia);
+  public addMedia(
+    src: string,
+    type: MediaType,
+    uid: string,
+    isFromStorage: boolean
+  ) {
+    let media: AnyMedia | undefined;
+    if (isFromStorage) {
+      if (type === MediaType.Image) {
+        media = new StorageImage(src, uid, "user");
+      } else if (type === MediaType.Video) {
+        media = new StorageVideo(src, uid, "user");
+      } else {
+        console.error("Unknown media type for storage media: ", type);
+        return;
+      }
+    } else {
+      if (type === MediaType.Image) {
+        media = new ExternalImage(src, "user");
+      } else if (type === MediaType.Video) {
+        media = new ExternalVideo(src, "user");
+      } else {
+        console.error("Unknown media type for external media: ", type);
+        return;
+      }
+    }
+
+    this.userMedia.update((userMedia) => {
+      return [...userMedia, media];
+    });
   }
 
   public clone(): LocalSpot {
@@ -365,7 +417,7 @@ export class LocalSpot {
   // TODO move this to maps api service
   private async _loadStreetviewForLocation(
     location: google.maps.LatLngLiteral
-  ): Promise<OtherMedia | undefined> {
+  ): Promise<ExternalImage | undefined> {
     // street view metadata
     return fetch(
       `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
@@ -382,19 +434,16 @@ export class LocalSpot {
       .then((data) => {
         if (data.status !== "ZERO_RESULTS") {
           // street view media
-          const streetView: OtherMedia = {
-            src: `https://maps.googleapis.com/maps/api/streetview?size=800x800&location=${
+          return new ExternalImage(
+            `https://maps.googleapis.com/maps/api/streetview?size=800x800&location=${
               location.lat
             },${
               location.lng
             }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
               environment.keys.firebaseConfig.apiKey
             }`,
-            type: MediaType.Image,
-            origin: "streetview",
-          };
-
-          return streetView;
+            "streetview"
+          );
         }
       });
   }

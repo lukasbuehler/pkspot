@@ -21,15 +21,15 @@ import { MatRippleModule } from "@angular/material/core";
 import { MatIconModule } from "@angular/material/icon";
 import { NgOptimizedImage } from "@angular/common";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
-import {
-  SizedUserMedia,
-  LocaleCode,
-  OtherMedia,
-  MediaType,
-} from "../../db/models/Interfaces";
+import { LocaleCode, MediaType } from "../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
 import { AmenitiesMap } from "../../db/schemas/Amenities";
 import { makeAmenitiesArray } from "../../db/models/Amenities";
+import {
+  StorageImage,
+  StorageMedia,
+  StorageVideo,
+} from "../../db/models/Media";
 
 @Component({
   selector: "app-spot-preview-card",
@@ -84,20 +84,26 @@ export class SpotPreviewCardComponent implements OnChanges {
       return [];
     }
 
-    if (spot instanceof Spot || spot instanceof LocalSpot) {
-      if (spot.media().length === 0) {
-        return [this.fallbackImgSrc];
-      }
-      return spot.media().map((m) => {
-        if ("uid" in m) {
-          return StorageService.getSrc(m.src, this.imgSize());
-        } else {
-          return m.src;
-        }
-      });
-    } else {
+    if (!(spot instanceof Spot || spot instanceof LocalSpot)) {
+      // Spot is a SpotPreviewData object
       return [spot.imageSrc];
     }
+
+    const media = spot.media().filter((m) => m.type === MediaType.Image);
+
+    if (media.length === 0) {
+      return [this.fallbackImgSrc];
+    }
+
+    return media.map((m) => {
+      if (m instanceof StorageImage) {
+        return m.getSrc(this.imgSize());
+      } else if (m instanceof StorageVideo) {
+        return m.getThumbnailSrc();
+      } else {
+        return m.src;
+      }
+    });
   });
 
   bookmarked = false;

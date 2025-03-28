@@ -40,10 +40,11 @@ import { NavRailContainerComponent } from "./nav-rail-container/nav-rail-contain
 import { WelcomeDialogComponent } from "./welcome-dialog/welcome-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { languageCodes } from "../scripts/Languages";
-import { LocaleCode, SizedStorageSrc } from "../db/models/Interfaces";
+import { LocaleCode } from "../db/models/Interfaces";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebSite } from "schema-dts";
 import { StructuredDataService } from "./services/structured-data.service";
+import { StorageImage } from "../db/models/Media";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -303,12 +304,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     const shortDisplayName: string | undefined =
       this.authService?.auth?.currentUser?.displayName?.split(" ")[0] ??
       undefined;
-    const userPhotoStorageSrc: SizedStorageSrc | undefined =
-      this.authService?.user?.data?.profilePicture ?? undefined;
-
-    const userPhoto = userPhotoStorageSrc
-      ? StorageService.getSrc(userPhotoStorageSrc, 200)
-      : undefined;
+    const userPhoto =
+      this.authService?.user?.data?.profilePicture?.getSrc(200) ?? undefined;
 
     this.navbarConfig = [
       // {

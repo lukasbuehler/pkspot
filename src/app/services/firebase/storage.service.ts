@@ -5,10 +5,10 @@ import { generateUUID } from "../../../scripts/Helpers";
 import { getDownloadURL, Storage } from "@angular/fire/storage";
 import { deleteObject, ref } from "@firebase/storage";
 import { uploadBytesResumable } from "@firebase/storage";
-import { SizedStorageSrc } from "../../../db/models/Interfaces";
 import { AuthenticationService } from "./authentication.service";
+import { StorageMedia } from "../../../db/models/Media";
 
-export enum StorageFolder {
+export enum StorageBucket {
   PostMedia = "post_media",
   ProfilePictures = "profile_pictures",
   SpotPictures = "spot_pictures",
@@ -37,7 +37,7 @@ export class StorageService {
    */
   setUploadToStorage(
     blob: Blob,
-    location: StorageFolder,
+    location: StorageBucket,
     progressCallback?: (progressPercent: number) => void,
     filename?: string
   ): Promise<string> {
@@ -92,29 +92,25 @@ export class StorageService {
     });
   }
 
-  deleteFromStorage(location: StorageFolder, filename: string): Promise<void> {
-    return deleteObject(ref(this.storage, `${location}/${filename}`));
+  deleteFromStorage(bucket: StorageBucket, filename: string): Promise<void>;
+  deleteFromStorage(src: string): Promise<void>;
+  deleteFromStorage(
+    bucketOrSrc: StorageBucket | string,
+    filename?: string
+  ): Promise<void> {
+    if (filename === undefined) {
+      return deleteObject(ref(this.storage, bucketOrSrc as string));
+    }
+    return deleteObject(ref(this.storage, `${bucketOrSrc}/${filename}`));
   }
 
-  deleteSpotImageFromStorage(filename: string): Promise<void> {
-    return Promise.all([
-      this.deleteFromStorage(StorageFolder.SpotPictures, filename + "_200x200"),
-      this.deleteFromStorage(StorageFolder.SpotPictures, filename + "_400x400"),
-      this.deleteFromStorage(StorageFolder.SpotPictures, filename + "_800x800"),
-    ]).then(() => {
-      return;
+  delete(file: StorageMedia) {
+    file.getAllFileSrcs().map((src) => {
+      this.deleteFromStorage(src);
     });
   }
 
   upload(): Observable<string> | null {
     return this.uploadObs;
-  }
-
-  static getSrc(src: SizedStorageSrc, size: 200 | 400 | 800): string {
-    return src.replace(/\?/, `_${size}x${size}?`);
-  }
-
-  static getStorageSrcFromSrc(url: string): SizedStorageSrc {
-    return url.replace(/_\d+x\d+\?/, "?") as SizedStorageSrc;
   }
 }

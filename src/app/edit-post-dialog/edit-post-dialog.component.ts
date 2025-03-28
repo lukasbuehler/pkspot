@@ -22,7 +22,7 @@ import { SpotId } from "../../db/schemas/SpotSchema";
 
 import {
   StorageService,
-  StorageFolder,
+  StorageBucket,
 } from "../services/firebase/storage.service";
 import { PostsService } from "../services/firebase/firestore/posts.service";
 
@@ -218,7 +218,7 @@ export class EditPostDialogComponent implements AfterViewInit {
       // Upload file to storage
       this._storageService.setUploadToStorage(
         this.uploadFile,
-        StorageFolder.PostMedia
+        StorageBucket.PostMedia
       );
     }
 

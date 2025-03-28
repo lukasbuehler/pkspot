@@ -19,7 +19,7 @@ import { MediaUpload } from "../media-upload/media-upload.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { SpotId } from "../../db/schemas/SpotSchema";
 import { MatIconModule } from "@angular/material/icon";
-import { StorageFolder } from "../services/firebase/storage.service";
+import { StorageBucket } from "../services/firebase/storage.service";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import {
   FormControl,
@@ -29,8 +29,9 @@ import {
 } from "@angular/forms";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
-import { Media, OtherMedia, SizedStorageSrc } from "../../db/models/Interfaces";
 import { AuthenticationService } from "../services/firebase/authentication.service";
+import { AnyMedia } from "../../db/models/Media";
+import { MediaType } from "../../db/models/Interfaces";
 
 @Component({
   selector: "app-challenge-detail",
@@ -60,7 +61,7 @@ export class ChallengeDetailComponent {
     (this.challenge?.spot as SpotPreviewData) ?? null
   );
 
-  challengeStorageFolder = StorageFolder.Challenges;
+  challengeStorageFolder = StorageBucket.Challenges;
 
   hasChanges: boolean = false;
 
@@ -113,8 +114,14 @@ export class ChallengeDetailComponent {
     return true;
   }
 
-  onNewMedia(media: Media) {
-    this.challenge!.media = media;
+  onNewMedia(media: { src: string; is_sized: boolean; type: MediaType }) {
+    this.challenge!.media = {
+      src: media.src,
+      isInStorage: true,
+      type: media.type,
+      uid: this._authService.user.uid,
+      origin: "user",
+    };
     this.hasChanges = true;
   }
 

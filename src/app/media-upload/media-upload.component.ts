@@ -25,14 +25,10 @@ import { MatMiniFabButton } from "@angular/material/button";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import {
-  StorageFolder,
+  StorageBucket,
   StorageService,
 } from "../services/firebase/storage.service";
-import {
-  MediaType,
-  SizedStorageSrc,
-  SizedUserMedia,
-} from "../../db/models/Interfaces";
+import { MediaType } from "../../db/models/Interfaces";
 
 export interface UploadMedia {
   file: File;
@@ -63,13 +59,13 @@ export interface UploadMedia {
 export class MediaUpload implements OnInit, ControlValueAccessor {
   @Input() required: boolean = false;
   @Input() multipleAllowed: boolean = false;
-  @Input() storageFolder: StorageFolder | null = null;
+  @Input() storageFolder: StorageBucket | null = null;
   @Input() maximumSizeInBytes: number | null = null;
   @Input() allowedMimeTypes: string[] | null = null;
   @Input() acceptString: string | null = null;
   @Output() changed = new EventEmitter<void>();
   @Output() newMedia = new EventEmitter<{
-    src: string | SizedStorageSrc;
+    src: string;
     is_sized: boolean;
     type: MediaType;
   }>();
@@ -242,18 +238,15 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
       );
   }
 
-  mediaFinishedUploading(media: UploadMedia, imageLink: string) {
+  mediaFinishedUploading(media: UploadMedia, url: string) {
     let isSized = false;
 
-    let url: string | SizedStorageSrc = imageLink;
-
     if (
-      [StorageFolder.SpotPictures, StorageFolder.ProfilePictures].includes(
+      [StorageBucket.SpotPictures, StorageBucket.ProfilePictures].includes(
         this.storageFolder!
       )
     ) {
       isSized = true;
-      url = url as SizedStorageSrc;
     }
     this.newMedia.emit({ src: url, is_sized: isSized, type: media.type });
   }

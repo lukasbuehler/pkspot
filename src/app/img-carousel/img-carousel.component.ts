@@ -6,7 +6,6 @@ import {
   Inject,
   PLATFORM_ID,
 } from "@angular/core";
-import { SizedUserMedia, OtherMedia, Media } from "../../db/models/Interfaces";
 import { MatRippleModule } from "@angular/material/core";
 import { MatButtonModule, MatIconButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
@@ -24,6 +23,7 @@ import { Navigation, Pagination } from "swiper/modules";
 Swiper.use([Navigation, Pagination]);
 
 import { isPlatformBrowser, NgOptimizedImage } from "@angular/common";
+import { ExternalImage, StorageImage } from "../../db/models/Media";
 
 @Component({
   selector: "app-img-carousel",
@@ -32,7 +32,7 @@ import { isPlatformBrowser, NgOptimizedImage } from "@angular/common";
   styleUrl: "./img-carousel.component.scss",
 })
 export class ImgCarouselComponent {
-  @Input() media: Media[] | undefined;
+  @Input() media: (ExternalImage | StorageImage)[] | undefined;
 
   constructor(
     public dialog: MatDialog,
@@ -57,9 +57,9 @@ export class ImgCarouselComponent {
     // });
   }
 
-  getSrc(mediaObj: OtherMedia | SizedUserMedia): string {
-    if ("uid" in mediaObj) {
-      return StorageService.getSrc(mediaObj.src, 400);
+  getSrc(mediaObj: ExternalImage | StorageImage): string {
+    if (mediaObj instanceof StorageImage) {
+      return mediaObj.getSrc(400);
     } else {
       return mediaObj.src;
     }
@@ -141,9 +141,9 @@ export class SwiperDialogComponent implements AfterViewInit {
     this.isBroswer = isPlatformBrowser(platformId);
   }
 
-  getSrc(mediaObj: Media) {
-    if ("isSized" in mediaObj) {
-      return StorageService.getSrc(mediaObj.src, 800);
+  getSrc(mediaObj: StorageImage | ExternalImage): string {
+    if (mediaObj instanceof StorageImage) {
+      return mediaObj.getSrc(800);
     } else {
       return mediaObj.src;
     }

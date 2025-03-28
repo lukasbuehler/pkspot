@@ -9,7 +9,7 @@ import {
 import { User } from "../../db/models/User";
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import {
-  StorageFolder,
+  StorageBucket,
   StorageService,
 } from "../services/firebase/storage.service";
 import { MatSnackBar } from "@angular/material/snack-bar";

@@ -16,6 +16,7 @@ async function _getFrameFromVideo(
 
   await new Promise<void>((resolve, reject) => {
     ffmpeg(videoPath)
+      .outputOptions(["-compression_level 100"]) // Use maximum compression for PNG
       .screenshots({
         timestamps: [time],
         filename: basename(thumbnailPath),

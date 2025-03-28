@@ -33,18 +33,11 @@ import { MediaUpload } from "../media-upload/media-upload.component";
 import { Post } from "../../db/models/Post";
 import {
   StorageService,
-  StorageFolder,
+  StorageBucket,
 } from "../services/firebase/storage.service";
 import { Observable, Subscription } from "rxjs";
 import { AuthenticationService } from "../services/firebase/authentication.service";
-import {
-  SizedUserMedia,
-  MediaType,
-  LocaleCode,
-  OtherMedia,
-  SizedStorageSrc,
-  LocaleMap,
-} from "../../db/models/Interfaces";
+import { MediaType, LocaleCode, LocaleMap } from "../../db/models/Interfaces";
 import {
   AmenityIcons,
   IndoorAmenities,
@@ -113,6 +106,7 @@ import { SpotChallengesService } from "../services/firebase/firestore/spot-chall
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { SpotChallenge } from "../../db/models/SpotChallenge";
+import { AnyMedia, ExternalImage, StorageImage } from "../../db/models/Media";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -193,6 +187,18 @@ export class SpotDetailsComponent
     () => !(this.spot() instanceof Spot) && this.spot() !== null
   );
 
+  spotImages = computed(() => {
+    const spot = this.spot();
+    if (!spot) return [];
+
+    return spot
+      .userMedia()
+      .filter(
+        (media) =>
+          media instanceof StorageImage || media instanceof ExternalImage
+      );
+  });
+
   @Input() infoOnly: boolean = false;
   @Input() dismissable: boolean = false;
   @Input() border: boolean = false;
@@ -264,7 +270,7 @@ export class SpotDetailsComponent
 
   isAppleMaps: boolean = false;
 
-  mediaStorageFolder: StorageFolder = StorageFolder.SpotPictures;
+  mediaStorageFolder: StorageBucket = StorageBucket.SpotPictures;
 
   googlePlace = signal<
     | {
@@ -466,7 +472,7 @@ export class SpotDetailsComponent
   // }
 
   setNewMediaFromUpload(media: {
-    src: SizedStorageSrc | string;
+    src: string;
     is_sized: boolean;
     type: MediaType;
   }) {
@@ -495,9 +501,10 @@ export class SpotDetailsComponent
         }
 
         spot.addMedia(
-          media.src as SizedStorageSrc,
+          media.src,
           media.type,
-          this.authenticationService.user.uid
+          this.authenticationService.user.uid,
+          true
         );
       }
       if (spot instanceof Spot) {
@@ -520,7 +527,7 @@ export class SpotDetailsComponent
     }
   }
 
-  mediaChanged(newSpotMedia: SizedUserMedia[]) {
+  mediaChanged(newSpotMedia: AnyMedia[]) {
     this.spot()?.userMedia.set(newSpotMedia);
   }
 
@@ -781,7 +788,8 @@ export class SpotDetailsComponent
           uid: uid,
           display_name: this.authenticationService.user.data?.displayName,
           profile_picture:
-            this.authenticationService.user.data?.profilePicture ?? undefined,
+            this.authenticationService.user.data?.profilePicture?.baseSrc ??
+            undefined,
         },
         is_completed: false,
       };
