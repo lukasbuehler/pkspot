@@ -107,6 +107,9 @@ import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.c
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { SpotChallenge } from "../../db/models/SpotChallenge";
 import { AnyMedia, ExternalImage, StorageImage } from "../../db/models/Media";
+import { languageCodes } from "../../scripts/Languages";
+import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
+import { locale } from "core-js";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -198,6 +201,8 @@ export class SpotDetailsComponent
           media instanceof StorageImage || media instanceof ExternalImage
       );
   });
+
+  languages = languageCodes;
 
   @Input() infoOnly: boolean = false;
   @Input() dismissable: boolean = false;
@@ -807,6 +812,26 @@ export class SpotDetailsComponent
       if (!spot) return spot;
       spot.isIconic = event.checked;
       return spot;
+    });
+  }
+
+  changeDescriptionLocale() {
+    const currentLocale = this.spot()?.descriptionLocale();
+    const availbleLocales = Object.keys(this.spot()?.descriptions() ?? {});
+
+    const ref = this.dialog.open(SelectLanguageDialogComponent, {
+      width: "400px",
+      maxWidth: "95vw",
+      data: {
+        locale: currentLocale,
+        availableLocales: availbleLocales,
+      },
+    });
+
+    ref.afterClosed().subscribe((locale: LocaleCode) => {
+      if (locale) {
+        this.spot()?.descriptionLocale.set(locale);
+      }
     });
   }
 }

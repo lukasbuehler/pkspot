@@ -3,14 +3,17 @@
   <mat-form-field appearance="outline" class="w-100">
     <mat-label>Language</mat-label>
     <input
+      #input
       matInput
       name="languageInput"
       [matAutocomplete]="autocomplete"
       [formControl]="myControl"
+      cdkFocusInitial
     />
     <mat-autocomplete
       #autocomplete="matAutocomplete"
-      (optionSelected)="data.locale = $event.option.value"
+      (optionSelected)="data.locale = $event.option.value; close()"
+      [autoActiveFirstOption]="true"
       [displayWith]="getLanguageNameFromLocale"
     >
       @for(locale of filteredOptions | async; track locale) {

@@ -1,4 +1,11 @@
-import { Component, inject, OnInit } from "@angular/core";
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  inject,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -16,6 +23,7 @@ import { AsyncPipe } from "@angular/common";
 
 export interface SelectLanguageDialogData {
   locale: LocaleCode | null;
+  availableLocales?: LocaleCode[];
 }
 
 @Component({
@@ -32,13 +40,20 @@ export interface SelectLanguageDialogData {
   templateUrl: "./select-language-dialog.component.html",
   styleUrl: "./select-language-dialog.component.scss",
 })
-export class SelectLanguageDialogComponent implements OnInit {
+export class SelectLanguageDialogComponent implements OnInit, AfterViewInit {
   public data = inject<SelectLanguageDialogData>(MAT_DIALOG_DATA);
   public dialogRef =
     inject<MatDialogRef<SelectLanguageDialogComponent>>(MatDialogRef);
+  @ViewChild("input") input: ElementRef<HTMLInputElement> | null = null;
 
   languages = languageCodes;
-  allLocaleCodes: LocaleCode[] = Object.keys(languageCodes) as LocaleCode[];
+  allLocaleCodes: LocaleCode[] = Object.keys(this.languages) as LocaleCode[];
+  availableLocaleCodes = this.data.availableLocales
+    ? this.allLocaleCodes.filter((code) =>
+        this.data.availableLocales!.includes(code)
+      )
+    : this.allLocaleCodes;
+
   myControl: FormControl = new FormControl();
   filteredOptions: Observable<LocaleCode[]> | null = null;
 
@@ -49,11 +64,16 @@ export class SelectLanguageDialogComponent implements OnInit {
       map((value) => this._filter(value))
     );
   }
+  ngAfterViewInit() {
+    if (this.input) {
+      this.input.nativeElement.focus();
+    }
+  }
 
   private _filter(value: string): string[] {
     const filterValue = value.toLowerCase();
 
-    return this.allLocaleCodes.filter(
+    return this.availableLocaleCodes.filter(
       (option: LocaleCode) =>
         option.toLowerCase().includes(filterValue) ||
         this.languages[option].name_native
@@ -74,5 +94,9 @@ export class SelectLanguageDialogComponent implements OnInit {
 
   onNoClick(): void {
     this.dialogRef.close();
+  }
+
+  close(): void {
+    this.dialogRef.close(this.data.locale);
   }
 }

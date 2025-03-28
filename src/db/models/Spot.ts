@@ -42,6 +42,8 @@ export class LocalSpot {
   readonly tileCoordinates: SpotSchema["tile_coordinates"];
   descriptions: WritableSignal<LocaleMap | undefined>;
   description: Signal<string>;
+  descriptionLocale: WritableSignal<LocaleCode>;
+  numDescriptions: Signal<number>;
 
   // Media stuff
   userMedia: WritableSignal<AnyMedia[]>;
@@ -116,14 +118,16 @@ export class LocalSpot {
     this.descriptions = signal(
       data.description ? makeLocaleMapFromObject(data.description) : undefined
     );
+    const descriptionLocales: LocaleCode[] = Object.keys(
+      this.descriptions() ?? {}
+    ) as LocaleCode[];
+    const descLocale = getBestLocale(descriptionLocales, this.locale);
+    this.descriptionLocale = signal<LocaleCode>(descLocale);
+
     this.description = computed(() => {
+      const descLocale = this.descriptionLocale();
       const descriptionsObj = this.descriptions();
       if (descriptionsObj && Object.keys(descriptionsObj).length > 0) {
-        const descriptionLocales: LocaleCode[] = Object.keys(
-          descriptionsObj
-        ) as LocaleCode[];
-        const descLocale = getBestLocale(descriptionLocales, this.locale);
-
         if (typeof descriptionsObj[descLocale] === "string") {
           return descriptionsObj[descLocale];
         } else {
@@ -131,6 +135,9 @@ export class LocalSpot {
         }
       }
       return "";
+    });
+    this.numDescriptions = computed(() => {
+      return Object.keys(this.descriptions() ?? {}).length;
     });
 
     const userMediaArr:
