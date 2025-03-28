@@ -1,8 +1,9 @@
 import { GeoPoint, Timestamp } from "@firebase/firestore";
-import { LocaleMap, MediaType } from "../models/Interfaces";
+import { LocaleMap } from "../models/Interfaces";
 import { SpotReviewSchema } from "./SpotReviewSchema";
 import { AmenitiesMap } from "./Amenities";
 import { MediaSchema } from "../schemas/Media";
+import { ChallengePreviewSchema } from "./SpotChallengeSchema";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
@@ -36,6 +37,9 @@ export interface SpotSchema {
   isMiniSpot?: boolean;
   description?: LocaleMap | Record<string, string>;
   media?: MediaSchema[];
+
+  top_challenges?: ChallengePreviewSchema[]; // 0-3 challenges
+  num_challenges?: number; // integer
 
   is_iconic?: boolean;
   rating?: number; // from 1 to 5, set by cloud function.

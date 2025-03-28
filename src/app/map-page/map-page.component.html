@@ -166,7 +166,7 @@
 
   @if(authService.isSignedIn && !isEditing) {
   <!-- Add / import spots speed dial-->
-  <app-speed-dial-fab
+  <!-- <app-speed-dial-fab
     #createSpotSpeedDial
     id="createSpotSpeedDial"
     [buttonConfig]="speedDialButtonConfig"
@@ -174,8 +174,8 @@
     [rotationDegrees]="0"
     (mainFabClick)="spotMap?.createSpot()"
     (miniFabClick)="speedDialMiniFabClick($event)"
-  ></app-speed-dial-fab>
-  <!-- <button
+  ></app-speed-dial-fab> -->
+  <button
     @fadeInOut
     mat-fab
     extended
@@ -186,7 +186,7 @@
   >
     <mat-icon> add_location </mat-icon>
     <span i18n class="mat-lable-large">Add Spot</span>
-  </button> -->
+  </button>
   }
 
   <!-- <mat-menu #searchUserMatMenu="matMenu">

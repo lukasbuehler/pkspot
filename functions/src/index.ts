@@ -1,32 +1,30 @@
 import * as admin from "firebase-admin";
 import { setGlobalOptions } from "firebase-functions/v2/options";
 
-import {
+setGlobalOptions({ maxInstances: 10, region: "europe-west1" });
+admin.initializeApp();
+
+// post functions
+export {
   countFollowersOnWrite,
   countFollowingOnWrite,
   countPostLikesOnWrite,
 } from "./postFunctions";
-import { computeRatingOnWrite, updateAllSpotAddresses } from "./spotFunctions";
-import {
+
+// spot functions
+export { updateAllSpotAddresses, computeRatingOnWrite } from "./spotFunctions";
+
+// spot clustering functions
+export {
   clusterAllSpotsOnRun,
   clusterAllSpotsOnSchedule,
 } from "./spotClusteringFunctions";
-import { fixSpotLocations, fixLocaleMaps } from "./fixFunctions";
-
-setGlobalOptions({ maxInstances: 10 });
-admin.initializeApp();
-
-// post functions
-export { countFollowersOnWrite, countFollowingOnWrite, countPostLikesOnWrite };
-
-// spot functions
-export { updateAllSpotAddresses, computeRatingOnWrite };
-
-// spot clustering functions
-export { clusterAllSpotsOnRun, clusterAllSpotsOnSchedule };
 
 // fixes
-export { fixSpotLocations, fixLocaleMaps };
+export { fixSpotLocations, fixLocaleMaps } from "./fixFunctions";
 
 // storage triggers
 export { processVideoUpload } from "./storageFunctions";
+
+// spot challenge functions
+export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";

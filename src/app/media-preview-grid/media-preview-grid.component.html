@@ -1,9 +1,9 @@
 <div
-  *ngIf="media && media.length > 0"
+  *ngIf="media() && media.length > 0"
   class="media-preview-grid"
   cdkDropListGroup
 >
-  @for(mediaObj of media; track $index) {
+  @for(mediaSrc of mediaSources(); track $index) {
   <div
     class="grid-drop-list"
     cdkDropList
@@ -13,7 +13,7 @@
   >
     <div cdkDrag class="drag-element">
       <div class="tile-image">
-        <img class="tile-image rounded" [ngSrc]="getSrc(mediaObj)" fill />
+        <img class="tile-image rounded" [ngSrc]="mediaSrc" fill />
       </div>
       <!-- <button
         class="bl-fab"

@@ -23,6 +23,8 @@ import {
   AnyMedia,
 } from "./Media";
 import { MediaSchema } from "../schemas/Media";
+import { ChallengePreviewSchema } from "../schemas/SpotChallengeSchema";
+import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";
 
 /**
  * A spot is a location of interest to the Parkour and Freerunning community.
@@ -66,6 +68,17 @@ export class LocalSpot {
     "5": number;
   }>;
   readonly highlightedReviews?: SpotReviewSchema[];
+
+  // 0-3 challenges
+  topChallenges = signal<
+    {
+      name: string;
+      id: string;
+      media: AnyMedia;
+      location?: google.maps.LatLngLiteral;
+    }[]
+  >([]);
+  numChallenges = signal<number>(0); // integer
 
   address: WritableSignal<SpotAddressSchema | null>;
   formattedAddress: Signal<string>;
@@ -120,12 +133,17 @@ export class LocalSpot {
       return "";
     });
 
-    const userMediaArr: (StorageImage | StorageVideo)[] | undefined =
+    const userMediaArr:
+      | (StorageImage | StorageVideo | ExternalImage)[]
+      | undefined =
       data?.media
-        ?.filter((media) => media.uid !== undefined)
-        .map((media) => {
+        ?.map((media) => {
           if (media.type === MediaType.Image) {
-            return new StorageImage(media.src);
+            if (media.isInStorage ?? true) {
+              return new StorageImage(media.src);
+            } else {
+              return new ExternalImage(media.src);
+            }
           } else if (media.type === MediaType.Video) {
             return new StorageVideo(media.src);
           } else {
@@ -133,11 +151,7 @@ export class LocalSpot {
             return undefined;
           }
         })
-        .filter((media) => media !== undefined) as (
-        | StorageImage
-        | StorageVideo
-      )[];
-
+        .filter((media) => media !== undefined) ?? [];
     this.userMedia = signal(userMediaArr ?? []);
     // initilize media signal with streetview
     this._loadStreetviewForLocation(this.location()).then((streetview) => {
@@ -176,10 +190,8 @@ export class LocalSpot {
       );
 
       if (imageMedia.length > 0) {
-        if (imageMedia[0] instanceof StorageImage) {
-          return imageMedia[0].getSrc(previewSize);
-        } else if (imageMedia[0] instanceof StorageVideo) {
-          return imageMedia[0].getThumbnailSrc();
+        if (imageMedia[0] instanceof StorageMedia) {
+          return imageMedia[0].getPreviewImageSrc();
         } else {
           if (imageMedia[0] instanceof ExternalImage) {
             return imageMedia[0].src;
@@ -229,6 +241,35 @@ export class LocalSpot {
     });
 
     this.highlightedReviews = data.highlighted_reviews;
+
+    this.topChallenges = signal(
+      data.top_challenges?.map((data) => {
+        const bestLocaleForChallenge = getBestLocale(
+          Object.keys(data.name),
+          this.locale
+        );
+        const name = data.name[bestLocaleForChallenge]!.text;
+        const media: AnyMedia = makeAnyMediaFromMediaSchema(data.media);
+        const newData: {
+          name: string;
+          id: string;
+          media: AnyMedia;
+          location?: google.maps.LatLngLiteral;
+        } = {
+          name: name,
+          id: data.id,
+          media: media,
+        };
+        if (data.location) {
+          newData.location = {
+            lat: data.location.latitude,
+            lng: data.location.longitude,
+          };
+        }
+        return newData;
+      }) ?? []
+    );
+    this.numChallenges.set(data.num_challenges ?? 0);
 
     this.address = signal(data.address ?? null);
     this.formattedAddress = computed(() => this.address()?.formatted ?? "");

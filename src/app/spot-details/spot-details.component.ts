@@ -217,8 +217,6 @@ export class SpotDetailsComponent
   @ViewChild(MediaUpload)
   mediaUploadComponent: MediaUpload | null = null;
 
-  challenges: WritableSignal<SpotChallenge[]> = signal([]);
-
   getValueFromEventTarget = getValueFromEventTarget;
 
   isSaving: boolean = false;
@@ -349,18 +347,6 @@ export class SpotDetailsComponent
       }
 
       this._structuredDataService.addStructuredData("spot", placeData);
-    }
-
-    const spot = this.spot();
-    if (spot instanceof Spot) {
-      this._challengeService
-        .getAllChallengesForSpot(spot.id)
-        .then((challenges) => {
-          console.log("Challenges", challenges);
-          this.challenges.set(
-            challenges.map((c) => new SpotChallenge(c.id, c, this.locale))
-          );
-        });
     }
   }
 

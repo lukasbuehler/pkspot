@@ -60,7 +60,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   @Input() required: boolean = false;
   @Input() multipleAllowed: boolean = false;
   @Input() storageFolder: StorageBucket | null = null;
-  @Input() maximumSizeInBytes: number | null = null;
+  @Input() maximumSizeInBytes: number = 100 * 1024 * 1024; // 100 MB
   @Input() allowedMimeTypes: string[] | null = null;
   @Input() acceptString: string | null = null;
   @Output() changed = new EventEmitter<void>();
@@ -117,6 +117,40 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
       for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
 
+        this.hasError = false;
+        let type = file.type;
+        if (this.allowedMimeTypes && this.allowedMimeTypes.includes(type)) {
+          if (
+            this.maximumSizeInBytes !== null &&
+            file.size > this.maximumSizeInBytes
+          ) {
+            // The selected file is too large
+            console.log(
+              `The selected file was too big. (Max: ${humanFileSize(
+                this.maximumSizeInBytes
+              )})`
+            );
+            this._errorMessage = `The selected file was too big. (It needs to be less than ${humanFileSize(
+              this.maximumSizeInBytes
+            )})`;
+            this.hasError = true;
+            return;
+          }
+        } else {
+          console.log(
+            "A file was selected, but its mimetype is not allowed. Please select a different file.\n" +
+              "Mimetype of selected file is '" +
+              type +
+              "', allowed mime types are: " +
+              (this.allowedMimeTypes
+                ? this.allowedMimeTypes.join(", ")
+                : "undefined") +
+              "\n"
+          );
+          this._errorMessage = "The type of this file is not allowed";
+          this.hasError = true;
+          return;
+        }
         const newMedia: UploadMedia = {
           previewSrc: this.getFileImageSrc(file),
           file: file,
@@ -129,50 +163,6 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
       }
       this.mediaList.set(_mediaList);
     }
-
-    // if (!file) {
-    //   return;
-    // }
-    // this.hasError = false;
-    // let type = file.type;
-    // if (this.allowedMimeTypes && this.allowedMimeTypes.includes(type)) {
-    //   if (
-    //     this.maximumSizeInBytes !== null &&
-    //     file.size > this.maximumSizeInBytes
-    //   ) {
-    //     // The selected file is too large
-    //     console.log(
-    //       `The selected file was too big. (Max: ${humanFileSize(
-    //         this.maximumSizeInBytes
-    //       )})`
-    //     );
-    //     this._errorMessage = `The selected file was too big. (It needs to be less than ${humanFileSize(
-    //       this.maximumSizeInBytes
-    //     )})`;
-    //     this.hasError = true;
-    //     return;
-    //   }
-    // } else {
-    //   console.log(
-    //     "A file was selected, but its mimetype is not allowed. Please select a different file.\n" +
-    //       "Mimetype of selected file is '" +
-    //       type +
-    //       "', allowed mime types are: " +
-    //       (this.allowedMimeTypes
-    //         ? this.allowedMimeTypes.join(", ")
-    //         : "undefined") +
-    //       "\n"
-    //   );
-    //   this._errorMessage = "The type of this file is not allowed";
-    //   this.hasError = true;
-    //   return;
-    // }
-    // this.uploadFile = file;
-    // this.uploadFileName = this.uploadFile.name;
-    // this.uploadFileSizeString = humanFileSize(this.uploadFile.size, true);
-    // //console.log("File selected");
-    // this.changed.emit(); // Emit changes
-    // this.uploadMedia.emit(this.uploadFile);
   }
 
   fileIsImage(file: File): boolean {
@@ -207,6 +197,8 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
       return;
     }
 
+    const fileEnding = media.file.name.split(".").pop();
+
     this._storageService
       .setUploadToStorage(
         media.file,
@@ -219,7 +211,8 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
             };
             return list;
           });
-        }
+        },
+        fileEnding
       )
       .then(
         (imageLink) => {

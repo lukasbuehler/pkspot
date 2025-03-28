@@ -171,18 +171,18 @@
     }
 
     <!-- Spot Challenges -->
-    @if(challenges().length > 0) {
+    @if(spot()!.topChallenges().length > 0) {
     <div class="pb-4">
       <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
       <div class="challenge-preview-grid pb-3">
-        @for(challenge of challenges(); track challenge) {
+        @for(challenge of spot()!.topChallenges(); track challenge) {
         <div class="d-flex flex-column overflow-hidden">
           <div
             class="rounded w-100 overflow-hidden position-relative"
             style="aspect-ratio: 1; background-color: #2c2d31"
           >
             <img
-              [ngSrc]="challenge.previewImage"
+              [ngSrc]="challenge.media.getPreviewImageSrc()"
               fill
               class="w-100 h-100"
               style="object-fit: cover"
@@ -194,7 +194,7 @@
         </div>
         }
       </div>
-      @if(challenges().length > 0) {
+      @if(spot()!.numChallenges() > spot()!.topChallenges().length) {
       <button mat-stroked-button (click)="addChallenge()">
         <mat-icon> read_more </mat-icon>
         <span i18n>View more challanges</span>

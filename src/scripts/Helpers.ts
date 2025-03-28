@@ -1,3 +1,13 @@
+import { MediaType } from "../db/models/Interfaces";
+import {
+  AnyMedia,
+  ExternalImage,
+  ExternalVideo,
+  StorageImage,
+  StorageVideo,
+} from "../db/models/Media";
+import { MediaSchema } from "../db/schemas/Media";
+
 export function getValueFromEventTarget(
   eventTarget: EventTarget | null | undefined
 ): string | undefined {
@@ -132,4 +142,45 @@ export function isMobileDevice() {
   return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
     navigator.userAgent.toLowerCase()
   );
+}
+
+export function makeAnyMediaFromMediaSchema(
+  mediaSchema: MediaSchema
+): AnyMedia {
+  if (!mediaSchema) {
+    throw new Error("mediaSchema is null");
+  }
+  if (mediaSchema.isInStorage ?? true) {
+    if (mediaSchema.type === MediaType.Image) {
+      return new StorageImage(
+        mediaSchema.src,
+        mediaSchema.uid,
+        (mediaSchema.origin as "user" | "other") ?? "other"
+      );
+    } else if (mediaSchema.type === MediaType.Video) {
+      return new StorageVideo(
+        mediaSchema.src,
+        mediaSchema.uid,
+        (mediaSchema.origin as "user" | "other") ?? "other"
+      );
+    } else {
+      throw new Error("Unknown media type for storage media");
+    }
+  } else {
+    if (mediaSchema.type === MediaType.Image) {
+      return new ExternalImage(
+        mediaSchema.src,
+        mediaSchema.uid,
+        mediaSchema.origin
+      );
+    } else if (mediaSchema.type === MediaType.Video) {
+      return new ExternalVideo(
+        mediaSchema.src,
+        mediaSchema.uid,
+        mediaSchema.origin
+      );
+    } else {
+      throw new Error("Unknown media type for external media");
+    }
+  }
 }

@@ -244,6 +244,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
           (post.media = {
             type: mediaType,
             src: src,
+            origin: "user",
+            isInStorage: true,
           }),
             this._postsService.addPost(post);
         },

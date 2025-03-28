@@ -198,6 +198,8 @@ export class EditPostDialogComponent implements AfterViewInit {
     let isImage = false;
     let mediaType: MediaType | null = null;
     if (this.uploadFile) {
+      let fileEnding = this.uploadFile.name.split(".").pop();
+
       // Get the media type
       if (this.uploadFile.type.includes("image")) {
         mediaType = MediaType.Image;
@@ -218,7 +220,11 @@ export class EditPostDialogComponent implements AfterViewInit {
       // Upload file to storage
       this._storageService.setUploadToStorage(
         this.uploadFile,
-        StorageBucket.PostMedia
+        StorageBucket.PostMedia,
+        (percent) => {
+          console.log("Upload progress", percent);
+        },
+        fileEnding
       );
     }
 

@@ -39,10 +39,13 @@ export class StorageService {
     blob: Blob,
     location: StorageBucket,
     progressCallback?: (progressPercent: number) => void,
-    filename?: string
+    ending?: string // e.g "jpg", "png", "mp4"
   ): Promise<string> {
-    let uploadFileName = filename || generateUUID();
-    let uploadRef = ref(this.storage, `${location}/${uploadFileName}`);
+    let uploadFileName = generateUUID();
+    let uploadRef = ref(
+      this.storage,
+      `${location}/${uploadFileName}${ending ? "." + ending : ""}`
+    );
 
     // return uploadBytes(uploadRef, blob).then((snapshot) => {
     //   return getDownloadURL(snapshot.ref);

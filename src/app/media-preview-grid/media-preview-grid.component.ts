@@ -9,9 +9,12 @@ import {
 } from "@angular/cdk/drag-drop";
 import {
   Component,
+  computed,
   EventEmitter,
   inject,
+  input,
   Input,
+  InputSignal,
   OnInit,
   Output,
 } from "@angular/core";
@@ -36,12 +39,25 @@ import { AnyMedia, StorageImage, StorageVideo } from "../../db/models/Media";
   ],
 })
 export class MediaPreviewGridComponent implements OnInit {
-  @Input() media: AnyMedia[] = [];
+  media: InputSignal<AnyMedia[]> = input<AnyMedia[]>([]);
   @Output() mediaChanged: EventEmitter<AnyMedia[]> = new EventEmitter<
     AnyMedia[]
   >();
 
   storageService = inject(StorageService);
+
+  mediaSources = computed(() => {
+    const media = this.media();
+    return media.map((mediaObj) => {
+      if (mediaObj instanceof StorageImage) {
+        return mediaObj.getSrc(400);
+      } else if (mediaObj instanceof StorageVideo) {
+        return mediaObj.getPreviewImageSrc();
+      } else {
+        return mediaObj.src;
+      }
+    });
+  });
 
   constructor() {}
 
@@ -49,31 +65,17 @@ export class MediaPreviewGridComponent implements OnInit {
 
   drop(event: CdkDragDrop<number>) {
     moveItemInArray(
-      this.media,
+      this.media(),
       event.previousContainer.data,
       event.container.data
     );
 
-    this.mediaChanged.emit(this.media);
+    this.mediaChanged.emit(this.media());
   }
 
   removeMedia(index: number) {
-    let mediaCopy: AnyMedia[] = JSON.parse(JSON.stringify(this.media));
+    let mediaCopy: AnyMedia[] = JSON.parse(JSON.stringify(this.media()));
     mediaCopy.splice(index, 1);
     this.mediaChanged.emit(mediaCopy);
-  }
-
-  // editMedia(index: number) {
-  //   console.log("edit media", index);
-  // }
-
-  getSrc(mediaObj: AnyMedia): string {
-    if (mediaObj instanceof StorageImage) {
-      return mediaObj.getSrc(200);
-    } else if (mediaObj instanceof StorageVideo) {
-      return mediaObj.getThumbnailSrc();
-    } else {
-      return mediaObj.src;
-    }
   }
 }

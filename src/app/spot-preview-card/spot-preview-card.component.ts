@@ -96,10 +96,8 @@ export class SpotPreviewCardComponent implements OnChanges {
     }
 
     return media.map((m) => {
-      if (m instanceof StorageImage) {
-        return m.getSrc(this.imgSize());
-      } else if (m instanceof StorageVideo) {
-        return m.getThumbnailSrc();
+      if (m instanceof StorageMedia) {
+        return m.getPreviewImageSrc();
       } else {
         return m.src;
       }

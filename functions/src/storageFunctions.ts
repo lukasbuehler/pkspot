@@ -12,11 +12,11 @@ async function _getFrameFromVideo(
   videoPath: string,
   time: number
 ): Promise<string> {
-  const thumbnailPath = join(os.tmpdir(), `${basename(videoPath)}_thumb.png`);
+  const thumbnailPath = join(os.tmpdir(), `thumb_${basename(videoPath)}.png`);
 
   await new Promise<void>((resolve, reject) => {
     ffmpeg(videoPath)
-      .outputOptions(["-compression_level 100"]) // Use maximum compression for PNG
+      .outputOptions("-pred mixed")
       .screenshots({
         timestamps: [time],
         filename: basename(thumbnailPath),
@@ -59,7 +59,8 @@ export const processVideoUpload = onObjectFinalized(
   async (event) => {
     const fileBucket = event.data.bucket;
     const filePath = event.data.name;
-    const fileName = basename(filePath);
+    const fileNameWithExtension = basename(filePath);
+    const fileName = fileNameWithExtension.replace(/\.[^/.]+$/, "");
     const contentType = event.data.contentType;
     const originalMetadata = event.data.metadata;
 
@@ -68,14 +69,14 @@ export const processVideoUpload = onObjectFinalized(
       return;
     }
 
-    if (fileName.startsWith("comp_")) {
+    if (fileNameWithExtension.startsWith("comp_")) {
       console.log("Ignoring already compressed file", filePath);
       return;
     }
 
     console.log("Processing video upload:", filePath);
 
-    const tempVideoPath = join(os.tmpdir(), fileName);
+    const tempVideoPath = join(os.tmpdir(), fileNameWithExtension);
     const bucket = getStorage().bucket(fileBucket);
 
     await bucket.file(filePath).download({ destination: tempVideoPath });
@@ -89,7 +90,7 @@ export const processVideoUpload = onObjectFinalized(
     const thumbnailPath = await _getFrameFromVideo(compressedVideoPath, 1);
     console.log(`Thumbnail generated at ${thumbnailPath}`);
 
-    const compressedVideoFileName = `comp_${fileName}`;
+    const compressedVideoFileName = `comp_${fileName}.mp4`;
     const compressedVideoStoragePath = join(
       dirname(filePath),
       compressedVideoFileName

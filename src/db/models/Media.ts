@@ -25,6 +25,8 @@ export abstract class Media {
   readonly origin?: MediaSchema["origin"];
   readonly type: MediaType;
 
+  abstract getPreviewImageSrc(): string;
+
   getData(): MediaSchema {
     const data = {
       src: this._src,
@@ -45,21 +47,29 @@ export abstract class Media {
 }
 
 export class ExternalImage extends Media {
-  constructor(src: string, origin?: MediaSchema["origin"]) {
-    super(src, MediaType.Image, origin);
+  constructor(src: string, userId?: string, origin?: MediaSchema["origin"]) {
+    super(src, MediaType.Image, userId, origin);
   }
 
   get src(): string {
     return this._src;
   }
+
+  getPreviewImageSrc(): string {
+    return this._src;
+  }
 }
 
 export class ExternalVideo extends Media {
-  constructor(src: string, origin?: MediaSchema["origin"]) {
-    super(src, MediaType.Video, origin);
+  constructor(src: string, userId?: string, origin?: MediaSchema["origin"]) {
+    super(src, MediaType.Video, userId, origin);
   }
 
   get src(): string {
+    return this._src;
+  }
+
+  getPreviewImageSrc(): string {
     return this._src;
   }
 }
@@ -75,12 +85,38 @@ export abstract class StorageMedia extends Media {
     origin?: "user" | "other"
   ) {
     super(src, type, userId, origin);
-    this.bucket = src.split("/")[0] as StorageBucket;
-    this.filename = src.split("/")[1];
+    console.log("StorageMedia src", src);
+    const regexp = new RegExp(
+      /(https?:\/\/[\w.-]+\/v0\/b\/[\w-.]+\/o\/)([\w\_]+)(?:\%2F|\/)([\w_-]+).?(\w+)?\?([\w-=&]+)/
+    );
+    const match = regexp.exec(src);
+    if (match === null) {
+      throw new Error("Invalid src format for StorageMedia: " + src);
+    }
+
+    // Regex match groups:
+    this.uriBeforeBucket = match[1] ?? "";
+    this.bucket = (match[2] as StorageBucket) ?? "";
+    this.filename = match[3] ?? "";
+    this.extension = match[4] ?? "";
+    this.options = match[5] ?? "";
   }
 
+  readonly uriBeforeBucket: string;
   readonly bucket: StorageBucket;
   readonly filename: string;
+  readonly extension: string;
+  readonly options: string;
+
+  protected _makeSrc(
+    filename: string = this.filename,
+    extension: string = this.extension
+  ): string {
+    return `${this.uriBeforeBucket}${this.bucket}%2F${filename}${
+      extension ? "." + extension : ""
+    }?${this.options}
+`;
+  }
 
   override getData(): MediaSchema {
     const data = {
@@ -120,6 +156,7 @@ export abstract class StorageMedia extends Media {
 export class StorageVideo extends StorageMedia {
   readonly thumbnailPrefix = "thumb_";
   readonly compressedPrefix = "comp_";
+  readonly thumbnail: StorageImage;
 
   constructor(src: string, userId?: string, origin?: "user" | "other") {
     super(
@@ -128,17 +165,23 @@ export class StorageVideo extends StorageMedia {
       userId,
       origin
     );
+    this.thumbnail = new StorageImage(
+      this._makeSrc(this.thumbnailPrefix + this.filename, "png"),
+      this.userId,
+      this.origin as "user" | "other"
+    );
   }
 
   getVideoSrc(): string {
-    return this.compressedPrefix + this._src;
+    return this._makeSrc(this.compressedPrefix + this.filename);
   }
-  getThumbnailSrc(): string {
-    return this.thumbnailPrefix + this._src;
+
+  override getPreviewImageSrc(): string {
+    return this.thumbnail.getSrc(400);
   }
 
   override getAllFileSrcs(): string[] {
-    return [this.getVideoSrc(), this.getThumbnailSrc()];
+    return [this.getVideoSrc(), ...this.thumbnail.getAllFileSrcs()];
   }
 }
 
@@ -151,7 +194,7 @@ export class StorageImage extends StorageMedia {
   readonly sizes = [200, 400, 800];
 
   constructor(src: string, userId?: string, origin?: "user" | "other") {
-    super(src.replace(/_\d+x\d+\?/, "?"), MediaType.Image, userId, origin);
+    super(src, MediaType.Image, userId, origin);
   }
 
   getSrc(size: number): string {
@@ -160,15 +203,15 @@ export class StorageImage extends StorageMedia {
         `Size ${size} not supported. Supported sizes are: ${this.sizes}`
       );
     }
-    return this._src.replace(/\?/, `_${size}x${size}?`);
+    return this._makeSrc(this.filename + `_${size}x${size}`, this.extension);
+  }
+
+  override getPreviewImageSrc(): string {
+    return this.getSrc(400);
   }
 
   override getAllFileSrcs(): string[] {
     return this.sizes.map((size) => this.getSrc(size));
-  }
-
-  delete(): Promise<void> {
-    throw new Error("Method not implemented.");
   }
 }
 
