@@ -4,8 +4,8 @@
   <app-spot-map
     #spotMap
     id="spotMap"
-    [selectedSpot]="selectedSpot"
-    (selectedSpotChange)="selectedSpot = $event; updateMapURL()"
+    [selectedSpot]="selectedSpot()"
+    (selectedSpotChange)="selectedSpot.set($event); updateMapURL()"
     [centerStart]="{
       lat: 48.6270939,
       lng: 2.4305363,
@@ -30,12 +30,12 @@
       ></app-search-field>
     </div>
 
-    @if(spotMap) { @if(selectedSpot) {
+    @if(spotMap) { @if(selectedSpot()) {
     <div class="info-panel d-none d-md-block spot-preview-container p-1 pt-3">
       <app-spot-details
         @fadeInOut
         #spotDetail
-        [spot]="selectedSpot"
+        [spot]="selectedSpot()"
         [border]="false"
         [dismissable]="true"
         [infoOnly]="false"
@@ -44,7 +44,7 @@
         (isEditingChange)="$event ? spotMap.startEdit() : spotMap.discardEdit()"
         (dismiss)="spotMap.closeSpot()"
         (addBoundsClick)="spotMap.addBounds()"
-        (focusClick)="spotMap.focusSpot(selectedSpot)"
+        (focusClick)="spotMap.focusSpot(selectedSpot()!)"
         (saveClick)="spotMap.saveSpot($event)"
       ></app-spot-details>
     </div>
@@ -58,12 +58,12 @@
     </div>
     }
     <app-bottom-sheet #bottomSheet class="d-md-none flex-grow-1">
-      @if(selectedSpot) {
+      @if(selectedSpot()) {
       <div class="spot-preview-container">
         <app-spot-details
           @fadeInOut
           #spotDetail
-          [spot]="selectedSpot"
+          [spot]="selectedSpot()"
           [border]="false"
           [dismissable]="true"
           [infoOnly]="false"
@@ -74,7 +74,7 @@
           "
           (dismiss)="spotMap.closeSpot()"
           (addBoundsClick)="spotMap.addBounds()"
-          (focusClick)="spotMap.focusSpot(selectedSpot)"
+          (focusClick)="spotMap.focusSpot(selectedSpot()!)"
           (saveClick)="spotMap.saveSpot($event)"
         ></app-spot-details>
       </div>

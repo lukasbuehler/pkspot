@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  computed,
   HostListener,
   inject,
   OnInit,
@@ -45,6 +46,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebSite } from "schema-dts";
 import { StructuredDataService } from "./services/structured-data.service";
 import { StorageImage } from "../db/models/Media";
+import { SelectLanguageDialogComponent } from "./select-language-dialog/select-language-dialog.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -104,8 +106,8 @@ type ButtonConfig = LinkMenuButton[];
     MatButtonModule,
   ],
 })
-export class AppComponent implements OnInit, AfterViewInit {
-  readonly welcomeDialog = inject(MatDialog);
+export class AppComponent implements OnInit {
+  readonly dialog = inject(MatDialog);
   private _snackbar = inject(MatSnackBar);
   private _structuredDataService = inject(StructuredDataService);
 
@@ -124,8 +126,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   alainMode: boolean = false;
 
   isEmbedded: WritableSignal<boolean | null> = signal(null);
-
-  baseUrl = "https://pkspot.app";
 
   availableLanguageCodes: LocaleCode[] = [
     "en",
@@ -158,10 +158,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  navbarConfig?: NavbarButtonConfig;
-  unauthenticatedUserMenuConfig?: ButtonConfig;
-  authenticatedUserMenuConfig?: ButtonConfig;
-
   ngOnInit() {
     // structured data
     const json: WebSite = {
@@ -188,7 +184,13 @@ export class AppComponent implements OnInit, AfterViewInit {
           isAuthenticated = true;
         }
 
-        this.updateMenus();
+        this.shortUserDisplayName.set(
+          this.authService?.auth?.currentUser?.displayName?.split(" ")[0] ??
+            undefined
+        );
+        this.userPhoto.set(
+          this.authService?.user?.data?.profilePicture?.getSrc(200) ?? undefined
+        );
 
         if (typeof plausible !== "undefined") {
           plausible("pageview", { props: { authenticated: isAuthenticated } });
@@ -214,10 +216,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       });
   }
 
-  ngAfterViewInit() {
-    this.updateMenus();
-  }
-
   maybeOpenClickWrap() {
     const currentTermsVersion = "2";
 
@@ -233,7 +231,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         !isABot &&
         this.isEmbedded() === false &&
         acceptedVersion !== currentTermsVersion &&
-        this.welcomeDialog.openDialogs.length === 0
+        this.dialog.openDialogs.length === 0
       ) {
         this.router.events
           .pipe(filter((event) => event instanceof NavigationEnd))
@@ -250,14 +248,14 @@ export class AppComponent implements OnInit, AfterViewInit {
                 console.log("acceptanceFree", acceptanceFree);
 
                 if (!acceptanceFree) {
-                  this.welcomeDialog.open(WelcomeDialogComponent, {
+                  this.dialog.open(WelcomeDialogComponent, {
                     data: { version: currentTermsVersion },
                     hasBackdrop: true,
                     disableClose: true,
                   });
                 } else {
                   // if the dialog was already open, close it now
-                  this.welcomeDialog.closeAll();
+                  this.dialog.closeAll();
                 }
               }
             });
@@ -300,14 +298,82 @@ export class AppComponent implements OnInit, AfterViewInit {
       });
   }
 
-  updateMenus() {
-    const shortDisplayName: string | undefined =
-      this.authService?.auth?.currentUser?.displayName?.split(" ")[0] ??
-      undefined;
-    const userPhoto =
-      this.authService?.user?.data?.profilePicture?.getSrc(200) ?? undefined;
+  changeLanguage() {
+    const url = new URL(window.location.href);
+    const segments = url.pathname.split("/");
+    console.log("segments", segments);
+    const currentLocale = segments[1];
 
-    this.navbarConfig = [
+    // open language dialog
+    const dialogRef = this.dialog.open(SelectLanguageDialogComponent, {
+      data: {
+        locale: currentLocale,
+        availableLocales: this.availableLanguageCodes,
+      },
+      width: "400px",
+      maxWidth: "90vw",
+    });
+    dialogRef.afterClosed().subscribe((localeCode) => {
+      if (localeCode) {
+        // set the new language
+        segments[1] = localeCode;
+        url.pathname = segments.join("/");
+        window.location.href = url.toString();
+      }
+    });
+  }
+
+  unauthenticatedUserMenuConfig: ButtonConfig = [
+    {
+      name: $localize`:@@login.nav_label:Login`,
+      link: "/sign-in",
+      icon: "login",
+    },
+    {
+      name: $localize`:@@create_acc.nav_label:Create Account`,
+      link: "/sign-up",
+      icon: "person_add",
+    },
+    {
+      name: $localize`:Language button label|The label of the change language button@@lang_btn_label:Language`,
+      icon: "language",
+      function: () => this.changeLanguage(),
+    },
+  ];
+
+  authenticatedUserMenuConfig: ButtonConfig = [
+    {
+      name: $localize`:@@profile.nav_label:My Profile`,
+      link: "/profile",
+      icon: "face",
+    },
+    {
+      name: $localize`:Language button label|The label of the change language button@@lang_btn_label:Language`,
+      icon: "language",
+      function: () => this.changeLanguage(),
+    },
+    {
+      name: $localize`:@@settings.nav_label:Settings`,
+      link: "/settings",
+      icon: "settings",
+    },
+    {
+      name: $localize`:@@logout.nav_label:Logout`,
+      function: () => {
+        return this.logUserOut();
+      },
+      icon: "logout",
+    },
+  ];
+
+  shortUserDisplayName = signal<string | undefined>(undefined);
+  userPhoto = signal<string | undefined>(undefined);
+
+  navbarConfig = computed<NavbarButtonConfig | undefined>(() => {
+    const shortUserDisplayName = this.shortUserDisplayName();
+    const userPhoto = this.userPhoto();
+
+    return [
       // {
       //   name: "Posts",
       //   link: "/posts",
@@ -330,49 +396,11 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
       {
         spacerBefore: true,
-        name: shortDisplayName ? shortDisplayName : $localize`Account`,
+        name: shortUserDisplayName ? shortUserDisplayName : $localize`Account`,
         menu: "user",
         icon: "person",
-        image: shortDisplayName && userPhoto ? userPhoto : "",
+        image: shortUserDisplayName && userPhoto ? userPhoto : "",
       },
     ];
-
-    this.unauthenticatedUserMenuConfig = [
-      {
-        name: $localize`:@@login.nav_label:Login`,
-        link: "/sign-in",
-        icon: "login",
-      },
-      {
-        name: $localize`:@@create_acc.nav_label:Create Account`,
-        link: "/sign-up",
-        icon: "person_add",
-      },
-      {
-        name: $localize`:Language button label|The label of the change language button@@lang_btn_label:Language`,
-        icon: "language",
-        menu: "lang",
-      },
-    ];
-
-    this.authenticatedUserMenuConfig = [
-      {
-        name: $localize`:@@profile.nav_label:My Profile`,
-        link: "/profile",
-        icon: "face",
-      },
-      {
-        name: $localize`:@@settings.nav_label:Settings`,
-        link: "/settings",
-        icon: "settings",
-      },
-      {
-        name: $localize`:@@logout.nav_label:Logout`,
-        function: () => {
-          return this.logUserOut();
-        },
-        icon: "logout",
-      },
-    ];
-  }
+  });
 }

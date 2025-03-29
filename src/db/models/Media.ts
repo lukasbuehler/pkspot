@@ -85,7 +85,6 @@ export abstract class StorageMedia extends Media {
     origin?: "user" | "other"
   ) {
     super(src, type, userId, origin);
-    console.log("StorageMedia src", src);
     const regexp = new RegExp(
       /(https?:\/\/[\w.-]+\/v0\/b\/[\w-.]+\/o\/)([\w\_]+)(?:\%2F|\/)([\w_-]+).?(\w+)?\?([\w-=&]+)/
     );

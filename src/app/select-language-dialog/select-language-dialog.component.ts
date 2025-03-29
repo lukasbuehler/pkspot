@@ -65,9 +65,11 @@ export class SelectLanguageDialogComponent implements OnInit, AfterViewInit {
     );
   }
   ngAfterViewInit() {
-    if (this.input) {
-      this.input.nativeElement.focus();
-    }
+    setTimeout(() => {
+      if (this.input) {
+        this.input.nativeElement.focus();
+      }
+    }, 100);
   }
 
   private _filter(value: string): string[] {

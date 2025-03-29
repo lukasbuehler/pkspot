@@ -288,8 +288,6 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    console.log("LOCALE_ID", this.locale);
-
     this.metaInfoService.setMetaTags(
       this.name,
       this.bannerImageSrc,

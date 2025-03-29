@@ -13,7 +13,7 @@
         height="48.02"
       />
     </a>
-    @for (button of navbarConfig; track button) { @if(button.spacerBefore) {
+    @for (button of navbarConfig(); track button) { @if(button.spacerBefore) {
     <div class="spacer"></div>
     } @if(button.link) {
     <a [routerLink]="button.link" tabindex="-1">
@@ -24,7 +24,7 @@
     </a>
     } @else {
     <app-mat3-nav-button
-      [matMenuTriggerFor]="button.menu == 'lang' ? langMenu : userMenu"
+      [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
       [icon]="button.icon"
       [image]="button.image ?? ''"
       [label]="button.name"
@@ -52,7 +52,7 @@
     @if(!alainMode) {
     <!-- Bottom navigation bar -->
     <mat-toolbar class="d-md-none mat-elevation-z1">
-      @for (button of navbarConfig; track button) { @if(button.link) {
+      @for (button of navbarConfig(); track button) { @if(button.link) {
       <a [routerLink]="button.link" tabindex="-1">
         <app-mat3-nav-button
           [icon]="button.icon"
@@ -67,7 +67,7 @@
       ></app-mat3-nav-button>
       } @else {
       <app-mat3-nav-button
-        [matMenuTriggerFor]="button.menu == 'lang' ? langMenu : userMenu"
+        [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
         [icon]="button.icon"
         [image]="button.image ?? ''"
         [label]="button.name"
@@ -87,7 +87,7 @@
       <mat-icon>menu</mat-icon>
     </button>
     <mat-menu #mainMenu="matMenu">
-      @for(button of navbarConfig; track button) { @if(button.link) {
+      @for(button of navbarConfig(); track button) { @if(button.link) {
       <a [routerLink]="button.link">
         <button mat-menu-item>
           <mat-icon>{{ button.icon }}</mat-icon>
@@ -102,7 +102,7 @@
       } @else {
       <button
         mat-menu-item
-        [matMenuTriggerFor]="button.menu == 'lang' ? langMenu : userMenu"
+        [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
       >
         @if(button.image) {
         <img
@@ -177,15 +177,6 @@
 </div>
 }
 
-<!-- Language menu -->
-<mat-menu #langMenu="matMenu" id="langMenu">
-  @for(code of availableLanguageCodes; track code ) {
-  <a mat-menu-item [href]="'/' + code + '/'">{{
-    languageCodes[code].name_native
-  }}</a>
-  }
-</mat-menu>
-
 <!-- User FAB -->
 <!-- <button
   mat-fab
@@ -227,7 +218,7 @@
   } @else {
   <button
     mat-menu-item
-    [matMenuTriggerFor]="button.menu == 'lang' ? langMenu : userMenu"
+    [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
   >
     <mat-icon>{{ button.icon }}</mat-icon>
     <span>{{ button.name }}</span>

@@ -8,6 +8,7 @@ import {
   LOCALE_ID,
   OnDestroy,
   signal,
+  WritableSignal,
 } from "@angular/core";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../db/models/Spot";
@@ -108,7 +109,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     null;
   @ViewChild("bottomSheet") bottomSheet: BottomSheetComponent | undefined;
 
-  selectedSpot: Spot | LocalSpot | null = null;
+  selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
   isEditing: boolean = false;
   mapStyle: "roadmap" | "satellite" | null = null;
 
@@ -289,9 +290,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   loadSpotById(spotId: SpotId) {
     this._spotsService.getSpotByIdHttp(spotId, this.locale).then((spot) => {
       if (!spot) return;
-      this.selectedSpot = spot;
+      this.selectedSpot.set(spot);
       this.setSpotMetaTags();
-      this.spotMap?.focusSpot(this.selectedSpot);
+      this.spotMap?.focusSpot(spot);
       this.updateMapURL();
       console.log("is selected spot now");
     });
@@ -306,7 +307,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setSpotMetaTags() {
-    const spot = this.selectedSpot;
+    const spot = this.selectedSpot();
 
     if (spot === null) {
       this.clearTitleAndMetaTags();
