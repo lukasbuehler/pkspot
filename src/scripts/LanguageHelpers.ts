@@ -36,7 +36,8 @@ export function getBestLocale(
     // if no locale with the same language is found, return the first available locale
     return availableLocales[0];
   } else {
-    console.warn("No available locales given");
-    return locale;
+    throw new Error(
+      `No available locales found for locale: ${locale}. Please check your configuration.`
+    );
   }
 }

@@ -47,7 +47,7 @@ export class LocalSpot {
 
   // Media stuff
   userMedia: WritableSignal<AnyMedia[]>;
-  private _streetview?: Signal<ExternalImage | undefined>; // signal that is computed from location
+  private _streetview: WritableSignal<ExternalImage | undefined>; // signal that is computed from location
   readonly media: Signal<AnyMedia[]>;
   readonly hasMedia: Signal<boolean>;
   readonly previewImageSrc: Signal<string>;
@@ -99,9 +99,7 @@ export class LocalSpot {
     this.names = signal(makeLocaleMapFromObject(data.name));
     this.name = computed(() => {
       const namesMap = this.names();
-      console.log("namesMap", namesMap, "locale:", this.locale);
       const nameLocale = getBestLocale(Object.keys(namesMap), this.locale);
-      console.log("nameLocale", nameLocale);
       return namesMap[nameLocale]?.text ?? $localize`Unnamed Spot`;
     });
 
@@ -121,7 +119,11 @@ export class LocalSpot {
     const descriptionLocales: LocaleCode[] = Object.keys(
       this.descriptions() ?? {}
     ) as LocaleCode[];
-    const descLocale = getBestLocale(descriptionLocales, this.locale);
+
+    const descLocale =
+      descriptionLocales.length > 0
+        ? getBestLocale(descriptionLocales, this.locale)
+        : this.locale;
     this.descriptionLocale = signal<LocaleCode>(descLocale);
 
     this.description = computed(() => {
@@ -160,26 +162,21 @@ export class LocalSpot {
         })
         .filter((media) => media !== undefined) ?? [];
     this.userMedia = signal(userMediaArr ?? []);
-    // initilize media signal with streetview
-    this._loadStreetviewForLocation(this.location()).then((streetview) => {
-      this._streetview = signal(streetview);
-    });
 
-    // effect(() => {
-    // const location = this.location();
-    // const streetview = await this._loadStreetviewForLocation(location);
-    // const arr = [].concat(this.media(), streetview ?? []);
-    // this.media.set(arr);
-    // });
+    // initilize media signal with streetview
+    this._streetview = signal<ExternalImage | undefined>(undefined);
+    this._loadStreetviewForLocation(this.location()).then((streetview) => {
+      this._streetview.set(streetview);
+    });
 
     this.media = computed(() => {
       const userMedia = this.userMedia();
-      // const streetview = this._streetview();
-      // if (streetview) {
-      //   return [streetview, ...userMedia];
-      // } else {
-      //   return userMedia;
-      return [...userMedia];
+      const streetview = this._streetview();
+
+      if (streetview) {
+        return [...userMedia, streetview];
+      }
+      return userMedia;
     });
 
     this.hasMedia = computed(() => {
@@ -329,8 +326,16 @@ export class LocalSpot {
           src: isInStorage ? mediaObj.baseSrc : mediaObj.src,
           type: mediaObj.type,
           uid: mediaObj.userId,
+          origin: mediaObj.origin,
           isInStorage: isInStorage,
         };
+
+        Object.keys(obj).forEach((key) => {
+          if (obj[key as keyof MediaSchema] === undefined) {
+            delete obj[key as keyof MediaSchema];
+          }
+        });
+
         return obj;
       }
     );

@@ -166,7 +166,7 @@
     @if(!isEditing) {
     <!-- spot media carousel  -->
     @if(spot()?.media() && spot()!.media().length > 0) {
-    <app-img-carousel class="mb-2 mt-1" [media]="spotImages()">
+    <app-img-carousel class="mb-2 mt-1" [media]="spot()?.media()">
     </app-img-carousel>
     }
 

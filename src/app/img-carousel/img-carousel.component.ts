@@ -23,7 +23,12 @@ import { Navigation, Pagination } from "swiper/modules";
 Swiper.use([Navigation, Pagination]);
 
 import { isPlatformBrowser, NgOptimizedImage } from "@angular/common";
-import { ExternalImage, StorageImage } from "../../db/models/Media";
+import {
+  AnyMedia,
+  ExternalImage,
+  StorageImage,
+  StorageVideo,
+} from "../../db/models/Media";
 
 @Component({
   selector: "app-img-carousel",
@@ -32,7 +37,7 @@ import { ExternalImage, StorageImage } from "../../db/models/Media";
   styleUrl: "./img-carousel.component.scss",
 })
 export class ImgCarouselComponent {
-  @Input() media: (ExternalImage | StorageImage)[] | undefined;
+  @Input() media: AnyMedia[] | undefined;
 
   constructor(
     public dialog: MatDialog,
@@ -55,14 +60,6 @@ export class ImgCarouselComponent {
     // dialogRef.afterClosed().subscribe((result) => {
     //   console.log("The dialog was closed");
     // });
-  }
-
-  getSrc(mediaObj: ExternalImage | StorageImage): string {
-    if (mediaObj instanceof StorageImage) {
-      return mediaObj.getSrc(400);
-    } else {
-      return mediaObj.src;
-    }
   }
 }
 

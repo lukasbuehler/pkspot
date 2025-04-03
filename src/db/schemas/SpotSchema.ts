@@ -4,6 +4,7 @@ import { SpotReviewSchema } from "./SpotReviewSchema";
 import { AmenitiesMap } from "./Amenities";
 import { MediaSchema } from "../schemas/Media";
 import { ChallengePreviewSchema } from "./SpotChallengeSchema";
+import { SpotReportReason } from "./SpotReportSchema";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
@@ -68,6 +69,9 @@ export interface SpotSchema {
 
   time_created?: Timestamp;
   time_updated?: { seconds: number; nanoseconds: number };
+
+  isReported?: boolean;
+  reportReason?: SpotReportReason;
 }
 
 export enum Types {

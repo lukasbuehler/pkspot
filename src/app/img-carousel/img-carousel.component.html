@@ -6,7 +6,7 @@
     style="cursor: pointer"
     (click)="imageClick($index)"
   >
-    <img [ngSrc]="getSrc(mediaObj)" fill priority />
+    <img [ngSrc]="mediaObj.getPreviewImageSrc()" fill priority />
   </div>
   } }
 </div>
