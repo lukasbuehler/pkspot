@@ -180,7 +180,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   isInitiated: boolean = false;
 
   ngAfterViewInit(): void {
-    console.log("SpotMapComponent initialized");
+    // console.log("SpotMapComponent initialized");
 
     if (!this.map) {
       console.warn("Map not initialized in ngAFterViewInit!");

@@ -72,6 +72,11 @@ export interface SpotSchema {
 
   isReported?: boolean;
   reportReason?: SpotReportReason;
+
+  // Preffered slug
+  slug?: string;
+
+  hide_streetview?: boolean;
 }
 
 export enum Types {

@@ -10,9 +10,11 @@ import {
 import { Router, RouterLink } from "@angular/router";
 import { MatDivider } from "@angular/material/divider";
 import { MatButton } from "@angular/material/button";
-import { NgIf } from "@angular/common";
+import { NgIf, NgOptimizedImage } from "@angular/common";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
+import { MatTooltipModule } from "@angular/material/tooltip";
 
 @Component({
   selector: "app-sign-in-page",
@@ -29,6 +31,9 @@ import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
     MatButton,
     RouterLink,
     MatDivider,
+    MatIconModule,
+    NgOptimizedImage,
+    MatTooltipModule,
   ],
 })
 export class SignInPageComponent implements OnInit {

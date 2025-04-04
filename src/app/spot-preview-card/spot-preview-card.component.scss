@@ -25,6 +25,9 @@ mat-card.compact {
 
     > img {
       object-fit: cover;
+      transition: filter 0.2s ease-in-out, transform 0.2s ease-in-out;
+      filter: brightness(1);
+      transform: scale(1);
     }
   }
 
@@ -40,10 +43,23 @@ mat-card:not(.compact) {
     width: 100%;
     aspect-ratio: 4/3;
     position: relative;
+    overflow: hidden;
 
     > img {
       object-fit: cover;
+      transition: filter 0.2s ease-in-out, transform 0.2s ease-in-out;
+      filter: brightness(1);
+      transform: scale(1);
     }
+  }
+}
+mat-card.clickable:hover {
+  background-color: #232325;
+  transition: background-color 0.2s ease-in-out;
+  > .img-container > img {
+    filter: brightness(1.2);
+    transform: scale(1.1);
+    transition: filter 0.2s ease-in-out, transform 0.2s ease-in-out;
   }
 }
 

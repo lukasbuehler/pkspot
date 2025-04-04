@@ -5,7 +5,6 @@
     #spotMap
     id="spotMap"
     [selectedSpot]="selectedSpot()"
-    (selectedSpotChange)="selectedSpot.set($event); updateMapURL()"
     [centerStart]="{
       lat: 48.6270939,
       lng: 2.4305363,
@@ -42,7 +41,7 @@
         [editable]="true"
         [isEditing]="isEditing"
         (isEditingChange)="$event ? spotMap.startEdit() : spotMap.discardEdit()"
-        (dismiss)="spotMap.closeSpot()"
+        (dismiss)="closeSpot()"
         (addBoundsClick)="spotMap.addBounds()"
         (focusClick)="spotMap.focusSpot(selectedSpot()!)"
         (saveClick)="spotMap.saveSpot($event)"
@@ -72,7 +71,7 @@
           (isEditingChange)="
             $event ? spotMap.startEdit() : spotMap.discardEdit()
           "
-          (dismiss)="spotMap.closeSpot()"
+          (dismiss)="closeSpot()"
           (addBoundsClick)="spotMap.addBounds()"
           (focusClick)="spotMap.focusSpot(selectedSpot()!)"
           (saveClick)="spotMap.saveSpot($event)"

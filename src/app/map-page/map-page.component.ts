@@ -17,6 +17,7 @@ import {
   ActivatedRoute,
   NavigationEnd,
   NavigationStart,
+  ParamMap,
   Router,
   RouterEvent,
 } from "@angular/router";
@@ -29,9 +30,12 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { MapsApiService } from "../services/maps-api.service";
 import {
   BehaviorSubject,
+  catchError,
   filter,
   firstValueFrom,
+  of,
   Subscription,
+  switchMap,
   take,
   timeout,
 } from "rxjs";
@@ -201,18 +205,42 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Initialization ///////////////////////////////////////////////////////////
 
   ngOnInit() {
-    this._getSpotIdFromRoute()
-      .then((spotId) => {
+    this.route.paramMap
+      .pipe(
+        switchMap((params: ParamMap) => {
+          const spotIdOrSlug = params.get("spot");
+          if (spotIdOrSlug) {
+            return this._slugsService
+              .getSpotIdFromSpotSlugHttp(spotIdOrSlug)
+              .catch(
+                () => spotIdOrSlug as SpotId // fallback to using the s
+              );
+          } else {
+            return of(null);
+          }
+        })
+      )
+      .subscribe((spotId) => {
         if (spotId) {
-          console.log("got spotId from route", spotId, "loading now");
-          return this.loadSpotById(spotId);
+          this.loadSpotById(spotId as SpotId);
+        } else {
+          // Handle the case where there's no spot ID in the URL
+          this.closeSpot();
         }
-        return Promise.resolve();
-      })
-      .then(() => {})
-      .catch((err) => {
-        console.error("Error opening spot", err);
       });
+
+    // this._getSpotIdFromRoute()
+    //   .then((spotId) => {
+    //     if (spotId) {
+    //       console.log("got spotId from route", spotId, "loading now");
+    //       return this.loadSpotById(spotId);
+    //     }
+    //     return Promise.resolve();
+    //   })
+    //   .then(() => {})
+    //   .catch((err) => {
+    //     console.error("Error opening spot", err);
+    //   });
   }
 
   async ngAfterViewInit() {
@@ -223,54 +251,53 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     //   }, 2000);
     //   return;
     // }
-
     // subscribe to changes of the route
-    this._routerSubscription = this.router.events
-      .pipe(
-        filter((event) => {
-          return event instanceof NavigationEnd;
-        })
-      )
-      .subscribe(async (event: NavigationEnd) => {
-        this._getSpotIdFromRoute()
-          .then((spotId) => {
-            if (spotId) return this.loadSpotById(spotId); // TODO out of context
-          })
-          .then(() => {});
-      });
+    // this._routerSubscription = this.router.events
+    //   .pipe(
+    //     filter((event) => {
+    //       return event instanceof NavigationEnd;
+    //     })
+    //   )
+    //   .subscribe(async (event: NavigationEnd) => {
+    //     this._getSpotIdFromRoute()
+    //       .then((spotId) => {
+    //         if (spotId) return this.loadSpotById(spotId); // TODO out of context
+    //       })
+    //       .then(() => {});
+    //   });
   }
 
-  async _getSpotIdFromRoute(): Promise<SpotId | void> {
-    let spotIdOrSlug: SpotId | SpotSlug = this.route.snapshot.paramMap.get(
-      "spot"
-    ) as SpotId | SpotSlug;
+  // async _getSpotIdFromRoute(): Promise<SpotId | void> {
+  //   let spotIdOrSlug: SpotId | SpotSlug = this.route.snapshot.paramMap.get(
+  //     "spot"
+  //   ) as SpotId | SpotSlug;
 
-    if (["null", "undefined"].includes(spotIdOrSlug as string)) return;
+  //   if (["null", "undefined"].includes(spotIdOrSlug as string)) return;
 
-    if (!spotIdOrSlug && this.route.snapshot.queryParamMap.keys.length > 0) {
-      spotIdOrSlug = (this.route.snapshot.queryParamMap.get("id") ??
-        this.route.snapshot.queryParamMap.get("spot") ??
-        this.route.snapshot.queryParamMap.get("spotId") ??
-        this.route.snapshot.queryParamMap.get("slug") ??
-        "") as SpotId | SpotSlug;
-    }
+  //   if (!spotIdOrSlug && this.route.snapshot.queryParamMap.keys.length > 0) {
+  //     spotIdOrSlug = (this.route.snapshot.queryParamMap.get("id") ??
+  //       this.route.snapshot.queryParamMap.get("spot") ??
+  //       this.route.snapshot.queryParamMap.get("spotId") ??
+  //       this.route.snapshot.queryParamMap.get("slug") ??
+  //       "") as SpotId | SpotSlug;
+  //   }
 
-    if (spotIdOrSlug) {
-      // first search for possible slugs
-      let spotId: SpotId = "" as SpotId;
-      try {
-        spotId = await this._slugsService.getSpotIdFromSpotSlugHttp(
-          spotIdOrSlug as SpotSlug
-        );
-      } catch (e) {
-        // ignore error
-      } finally {
-        if (!spotId) spotId = spotIdOrSlug as SpotId;
+  //   if (spotIdOrSlug) {
+  //     // first search for possible slugs
+  //     let spotId: SpotId = "" as SpotId;
+  //     try {
+  //       spotId = await this._slugsService.getSpotIdFromSpotSlugHttp(
+  //         spotIdOrSlug as SpotSlug
+  //       );
+  //     } catch (e) {
+  //       // ignore error
+  //     } finally {
+  //       if (!spotId) spotId = spotIdOrSlug as SpotId;
 
-        return spotId;
-      }
-    }
-  }
+  //       return spotId;
+  //     }
+  //   }
+  // }
 
   openSpotOrGooglePlace(value: { type: "place" | "spot"; id: string }) {
     if (value.type === "place") {
@@ -288,22 +315,40 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadSpotById(spotId: SpotId) {
+    console.debug("loading spot by id", spotId);
     this._spotsService.getSpotByIdHttp(spotId, this.locale).then((spot) => {
-      if (!spot) return;
-      this.selectedSpot.set(spot);
-      this.setSpotMetaTags();
-      this.spotMap?.focusSpot(spot);
-      this.updateMapURL();
-      console.log("is selected spot now");
+      this.selectSpot(spot);
     });
   }
 
   updateMapURL() {
-    if (this.selectedSpot && this.selectedSpot instanceof Spot) {
-      this.location.go(`/map/${this.selectedSpot.id}`);
+    const selectedSpot = this.selectedSpot();
+    if (selectedSpot && selectedSpot instanceof Spot) {
+      this.router.navigate(["map", selectedSpot.slug ?? selectedSpot.id]);
     } else {
-      this.location.go(`/map`);
+      this.router.navigate(["map"]);
     }
+  }
+
+  selectSpot(spot: Spot | LocalSpot | null) {
+    console.debug("selecting spot", spot);
+    if (!spot) {
+      this.closeSpot();
+    } else {
+      this.selectedSpot.set(spot);
+      this.spotMap?.focusSpot(spot);
+      this.setSpotMetaTags();
+
+      if (spot instanceof Spot) {
+        this.updateMapURL();
+      }
+    }
+  }
+
+  closeSpot() {
+    this.clearTitleAndMetaTags();
+    this.selectedSpot.set(null);
+    this.updateMapURL();
   }
 
   setSpotMetaTags() {

@@ -57,8 +57,27 @@
       <h3 class="mat-h2 text-center d-none d-md-block" i18n>OAuth providers</h3>
       <p class="mat-body text-center" i18n>You can also sign in with:</p>
       <div class="oauth-buttons d-flex flex-column align-items-center">
-        <button mat-flat-button color="warn" (click)="trySignInGoogle()">
-          Google
+        <button mat-stroked-button (click)="trySignInGoogle()">
+          <span class="d-flex gap-2 align-items-center">
+            <img
+              ngSrc="/assets/logos/google_icon.png"
+              height="16"
+              width="16"
+              alt="G"
+            />
+            Google</span
+          >
+        </button>
+        <button mat-stroked-button>
+          <span class="d-flex gap-2 align-items-center">
+            <img
+              ngSrc="/assets/logos/apple_icon_dark.png"
+              height="16"
+              width="16"
+              alt=""
+            />
+            Apple</span
+          >
         </button>
         <!-- <button mat-flat-button disabled color="accent">Twitter</button>
         <button mat-flat-button disabled color="primary">Github</button> -->

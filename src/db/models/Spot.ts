@@ -25,6 +25,7 @@ import {
 import { MediaSchema } from "../schemas/Media";
 import { ChallengePreviewSchema } from "../schemas/SpotChallengeSchema";
 import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";
+import { MapsApiService } from "../../app/services/maps-api.service";
 
 /**
  * A spot is a location of interest to the Parkour and Freerunning community.
@@ -85,6 +86,8 @@ export class LocalSpot {
   address: WritableSignal<SpotAddressSchema | null>;
   formattedAddress: Signal<string>;
   localityString: Signal<string>;
+
+  hideStreetview: boolean;
 
   googlePlaceId = signal<string | undefined>(undefined);
 
@@ -164,10 +167,8 @@ export class LocalSpot {
     this.userMedia = signal(userMediaArr ?? []);
 
     // initilize media signal with streetview
+    this.hideStreetview = data.hide_streetview ?? false;
     this._streetview = signal<ExternalImage | undefined>(undefined);
-    this._loadStreetviewForLocation(this.location()).then((streetview) => {
-      this._streetview.set(streetview);
-    });
 
     this.media = computed(() => {
       const userMedia = this.userMedia();
@@ -183,6 +184,14 @@ export class LocalSpot {
       const media = this.media();
       return media.length > 0;
     });
+
+    if (!data.hide_streetview && !this.hasMedia()) {
+      MapsApiService.loadStreetviewForLocation(this.location()).then(
+        (streetview) => {
+          this._streetview.set(streetview);
+        }
+      );
+    }
 
     this.previewImageSrc = computed(() => {
       const previewSize = 200;
@@ -356,6 +365,7 @@ export class LocalSpot {
       area: this.area,
       amenities: this.amenities(),
       bounds: this._makeBoundsFromPaths(this.paths ?? []),
+      hide_streetview: this.hideStreetview,
     };
 
     // delete all the fields from the object that are undefined
@@ -466,40 +476,6 @@ export class LocalSpot {
       return new GeoPoint(point.lat, point.lng);
     });
   }
-
-  // TODO move this to maps api service
-  private async _loadStreetviewForLocation(
-    location: google.maps.LatLngLiteral
-  ): Promise<ExternalImage | undefined> {
-    // street view metadata
-    return fetch(
-      `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
-        location.lat
-      },${
-        location.lng
-      }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-        environment.keys.firebaseConfig.apiKey
-      }`
-    )
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        if (data.status !== "ZERO_RESULTS") {
-          // street view media
-          return new ExternalImage(
-            `https://maps.googleapis.com/maps/api/streetview?size=800x800&location=${
-              location.lat
-            },${
-              location.lng
-            }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-              environment.keys.firebaseConfig.apiKey
-            }`,
-            "streetview"
-          );
-        }
-      });
-  }
 }
 
 /**
@@ -507,10 +483,15 @@ export class LocalSpot {
  */
 export class Spot extends LocalSpot {
   readonly id: SpotId;
+  readonly slug: string | null = null;
 
   constructor(_id: SpotId, _data: SpotSchema, locale: LocaleCode) {
     super(_data, locale);
     this.id = _id;
+
+    if (_data.slug) {
+      this.slug = _data.slug;
+    }
   }
 
   public override clone(): Spot {
@@ -522,6 +503,7 @@ export class Spot extends LocalSpot {
     return {
       name: this.name(),
       id: this.id,
+      slug: this.slug ?? undefined,
       locality: this.localityString(),
       imageSrc: this.previewImageSrc(),
       isIconic: this.isIconic,

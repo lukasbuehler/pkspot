@@ -22,7 +22,7 @@
 </h4>
 <div [class.compact]="group.value === 'compact'" class="spot-container pb-3">
   @for(spot of highlightedSpots; track $index) { @if(withHrefLink()) {
-  <a [routerLink]="['/map', spot.id]">
+  <a [routerLink]="['/map', spot.slug ?? spot.id]">
     <app-spot-preview-card
       [spot]="spot"
       [infoOnly]="true"
@@ -52,7 +52,7 @@
 } @if(remainingSpots.length > 0) {
 <div [class.compact]="group.value === 'compact'" class="spot-container">
   @for(spot of remainingSpots; track $index) { @if(withHrefLink()) {
-  <a [routerLink]="['/map', getSpotId(spot)]">
+  <a [routerLink]="['/map', getSpotIdOrSlugForSpotObj(spot)]">
     <app-spot-preview-card
       [spot]="spot"
       [infoOnly]="true"

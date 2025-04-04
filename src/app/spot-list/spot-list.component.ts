@@ -62,11 +62,15 @@ export class SpotListComponent implements OnChanges {
     this.spotClickIndexEvent.emit(spotIndex);
   }
 
-  getSpotId(spot: Spot | LocalSpot): string {
+  getSpotIdOrSlugForSpotObj(spot: Spot | LocalSpot): string {
     if (spot instanceof Spot) {
-      return spot.id;
+      if (spot.slug) {
+        return spot.slug;
+      } else {
+        return spot.id;
+      }
     } else {
-      return spot.name().toLowerCase().replace(" ", "-");
+      return "";
     }
   }
 }

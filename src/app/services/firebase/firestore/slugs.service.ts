@@ -60,7 +60,7 @@ export class SlugsService {
       .then((data) => data.spotId as SpotId);
   }
 
-  getSpotIdFromSpotSlugHttp(slug: SpotSlug): Promise<SpotId> {
+  getSpotIdFromSpotSlugHttp(slug: string): Promise<SpotId> {
     return fetch(
       `https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/spot_slugs/${slug}`
     )

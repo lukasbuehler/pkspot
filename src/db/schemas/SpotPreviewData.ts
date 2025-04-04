@@ -5,6 +5,7 @@ import { AmenitiesMap } from "./Amenities";
 export interface SpotPreviewData {
   name: string;
   id: SpotId;
+  slug?: string;
   location?: GeoPoint;
   locality: string;
   imageSrc: string;

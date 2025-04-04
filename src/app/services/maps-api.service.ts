@@ -10,6 +10,7 @@ import {
   take,
   firstValueFrom,
 } from "rxjs";
+import { ExternalImage } from "../../db/models/Media";
 
 interface LocationAndZoom {
   location: google.maps.LatLngLiteral;
@@ -260,5 +261,39 @@ export class MapsApiService {
     },${location.lng}&fov=${120}&source=outdoor&key=${
       environment.keys.firebaseConfig.apiKey
     }`;
+  }
+
+  // TODO move this to maps api service
+  static async loadStreetviewForLocation(
+    location: google.maps.LatLngLiteral
+  ): Promise<ExternalImage | undefined> {
+    // street view metadata
+    return fetch(
+      `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
+        location.lat
+      },${
+        location.lng
+      }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
+        environment.keys.firebaseConfig.apiKey
+      }`
+    )
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        if (data.status !== "ZERO_RESULTS") {
+          // street view media
+          return new ExternalImage(
+            `https://maps.googleapis.com/maps/api/streetview?size=800x800&location=${
+              location.lat
+            },${
+              location.lng
+            }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
+              environment.keys.firebaseConfig.apiKey
+            }`,
+            "streetview"
+          );
+        }
+      });
   }
 }

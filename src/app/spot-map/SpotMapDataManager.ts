@@ -273,7 +273,7 @@ export class SpotMapDataManager {
   }
 
   private _getMarkerTilesToLoad(visibleTilesObj: TilesObject): Set<MapTileKey> {
-    console.debug("Getting marker tiles to load");
+    // console.debug("Getting marker tiles to load");
 
     const visibleTilesObj16 = this._transformTilesObjectToZoom(
       visibleTilesObj,
@@ -306,7 +306,7 @@ export class SpotMapDataManager {
       if (!tiles12.has(tile12)) tiles12.add(tile12);
     });
 
-    console.debug("Loading markers for tiles", tiles12);
+    // console.debug("Loading markers for tiles", tiles12);
 
     // add an empty array for the tiles that water markers will be loaded for
     tiles12.forEach((tileKey) => {

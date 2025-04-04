@@ -223,7 +223,7 @@
       </notes>
       <segment state="initial">
         <source> Discard changes </source>
-        <target> Änderungen verwerfen </target>
+        <target> Verwerfen </target>
       </segment>
     </unit>
     <unit id="8486228314424763172">
@@ -233,7 +233,7 @@
       </notes>
       <segment state="initial">
         <source> Save changes </source>
-        <target> Änderungen speichern </target>
+        <target> Speichern </target>
       </segment>
     </unit>
     <unit id="4930506384627295710">

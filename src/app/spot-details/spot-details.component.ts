@@ -77,7 +77,7 @@ import {
   NgOptimizedImage,
 } from "@angular/common";
 import { MatChipListbox, MatChipsModule } from "@angular/material/chips";
-import { MatRipple, MatOption } from "@angular/material/core";
+import { MatRipple, MatOption, MatRippleModule } from "@angular/material/core";
 import {
   MatCard,
   MatCardHeader,
@@ -173,6 +173,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     NgOptimizedImage,
     MatSlideToggle,
     LocaleMapEditFieldComponent,
+    MatRippleModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -578,12 +579,12 @@ export class SpotDetailsComponent
   }
 
   loadReportForSpot() {
-    const spot = this.spot();
-    if (!(spot instanceof Spot)) return;
-
-    this._spotReportsService.getSpotReportsBySpotId(spot.id).then((reports) => {
-      this.report = reports[0] || null;
-    });
+    // TODO
+    // const spot = this.spot();
+    // if (!(spot instanceof Spot)) return;
+    // this._spotReportsService.getSpotReportsBySpotId(spot.id).then((reports) => {
+    //   this.report = reports[0] || null;
+    // });
   }
 
   private _loadGooglePlaceDataForSpot() {
@@ -808,6 +809,14 @@ export class SpotDetailsComponent
     this.spot!.update((spot) => {
       if (!spot) return spot;
       spot.isIconic = event.checked;
+      return spot;
+    });
+  }
+
+  setHideStreetviewFromToggle(event: MatSlideToggleChange) {
+    this.spot!.update((spot) => {
+      if (!spot) return spot;
+      spot.hideStreetview = event.checked;
       return spot;
     });
   }

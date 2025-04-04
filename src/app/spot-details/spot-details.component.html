@@ -13,7 +13,7 @@
   style="box-shadow: none"
 >
   @if(spot()) {@if(!isEditing) {
-  <mat-card-header class="pb-2 px-3">
+  <mat-card-header class="pb-2 px-3 d-flex flex-column-reverse">
     <mat-card-title class="d-flex align-items-center w-100 gap-1">
       <span
         class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
@@ -48,13 +48,17 @@
     </mat-card-title>
     <mat-card-subtitle class="d-flex flex-row justify-content-between">
       <div class="d-flex flex-column justify-content-center text-truncate">
-        <div class="d-flex flex-row gap-1 align-items-center">
+        <div class="d-flex flex-row gap-1 align-items-center pb-1">
+          <span i18n class="mat-label-small px-1 border rounded me-1"
+            >Spot</span
+          >
           @if(spot()?.rating) {
           <app-spot-rating
             class="flex-shrink-0"
             [rating1to5]="spot()!.rating"
             [showNumReviews]="true"
             [numReviews]="spot()!.numReviews"
+            [isCompact]="true"
           ></app-spot-rating
           >}
           {{
@@ -176,7 +180,11 @@
       <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
       <div class="challenge-preview-grid pb-3">
         @for(challenge of spot()!.topChallenges(); track challenge) {
-        <div class="d-flex flex-column overflow-hidden">
+        <div
+          class="d-flex flex-column overflow-hidden challenge-card"
+          matRipple
+          style="cursor: pointer"
+        >
           <div
             class="rounded w-100 overflow-hidden position-relative"
             style="aspect-ratio: 1; background-color: #2c2d31"
@@ -514,15 +522,25 @@
       </app-media-upload>
     </div>
 
-    <!-- Iconic -->
+    <!-- Hide Streetview -->
     <mat-slide-toggle
+      i18n
+      class="mb-4"
+      [checked]="spot()!.hideStreetview"
+      color="primary"
+      (change)="setHideStreetviewFromToggle($event)"
+      >Hide Streetview</mat-slide-toggle
+    >
+
+    <!-- Iconic -->
+    <!-- <mat-slide-toggle
       i18n
       class="mb-4"
       [checked]="spot()!.isIconic"
       color="primary"
       (change)="setSpotIconicFromToggle($event)"
       >Iconic Spot</mat-slide-toggle
-    >
+    > -->
 
     <!-- Features and Amenities -->
     <div class="w-100 mb-4">
