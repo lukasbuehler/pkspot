@@ -24,11 +24,15 @@ export const routes: Routes = [
   { path: "", redirectTo: "map", pathMatch: "full" },
 
   // Map page
-  { path: "map", component: MapPageComponent, data: { routeName: "Spot map" } },
+  {
+    path: "map",
+    component: MapPageComponent,
+    // data: { routeName: "Spot map" }
+  },
   {
     path: "map/:spot", // :spot is a spot ID or a spot slug
     component: MapPageComponent,
-    data: { routeName: "Spot map" },
+    // data: { routeName: "Spot map" },
   },
   {
     path: "s/:slug",

@@ -34,6 +34,7 @@ import {
   filter,
   firstValueFrom,
   of,
+  EMPTY,
   Subscription,
   switchMap,
   take,
@@ -105,7 +106,7 @@ import { SearchFieldComponent } from "../search-field/search-field.component";
     MatDividerModule,
     MatTooltipModule,
     SearchFieldComponent,
-    SpeedDialFabComponent,
+    // SpeedDialFabComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -209,14 +210,23 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(
         switchMap((params: ParamMap) => {
           const spotIdOrSlug = params.get("spot");
+          const selectedSpot = this.selectedSpot();
+          if (
+            selectedSpot &&
+            selectedSpot instanceof Spot &&
+            spotIdOrSlug === (selectedSpot.slug ?? selectedSpot.id)
+          ) {
+            // don't emit anything if it's already selected
+            return EMPTY;
+          }
+
           if (spotIdOrSlug) {
             return this._slugsService
               .getSpotIdFromSpotSlugHttp(spotIdOrSlug)
-              .catch(
-                () => spotIdOrSlug as SpotId // fallback to using the s
-              );
+              .catch(() => spotIdOrSlug as SpotId);
           } else {
-            return of(null);
+            // don't emit anything if no spot is provided
+            return EMPTY;
           }
         })
       )
@@ -224,7 +234,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         if (spotId) {
           this.loadSpotById(spotId as SpotId);
         } else {
-          // Handle the case where there's no spot ID in the URL
           this.closeSpot();
         }
       });
@@ -324,9 +333,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   updateMapURL() {
     const selectedSpot = this.selectedSpot();
     if (selectedSpot && selectedSpot instanceof Spot) {
-      this.router.navigate(["map", selectedSpot.slug ?? selectedSpot.id]);
+      this.location.go(
+        ["/map", selectedSpot.slug ?? selectedSpot.id].join("/")
+      );
     } else {
-      this.router.navigate(["map"]);
+      this.location.go(["/map"].join("/"));
     }
   }
 

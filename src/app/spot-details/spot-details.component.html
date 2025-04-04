@@ -490,6 +490,12 @@
     <!-- @if(authenticationService.isSignedIn && editable) -->
 
     } @else {
+    <!-- 
+    /////////////////////////////////////////////////   
+    EDITING MODE
+    /////////////////////////////////////////////////   
+    -->
+
     <!-- Spot title editing field -->
     <h4 class="mat-title-small" i18n>Spot Name</h4>
     <form class="mb-3">
@@ -523,6 +529,7 @@
     </div>
 
     <!-- Hide Streetview -->
+
     <mat-slide-toggle
       i18n
       class="mb-4"
@@ -531,6 +538,26 @@
       (change)="setHideStreetviewFromToggle($event)"
       >Hide Streetview</mat-slide-toggle
     >
+
+    <!-- Slug selection -->
+    <div class="pb-4">
+      <h4 class="mat-title-small" i18n>Spot URL</h4>
+      @if(allSpotSlugs.length > 0) {
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label i18n>Select preffered spot URL</mat-label>
+        <mat-select [(value)]="spotSlug">
+          @for(slug of allSpotSlugs; track $index) {
+          <mat-option [value]="slug">{{ slug }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      }
+
+      <button mat-stroked-button>
+        <mat-icon>add</mat-icon>
+        <span i18n>Add custom spot URL</span>
+      </button>
+    </div>
 
     <!-- Iconic -->
     <!-- <mat-slide-toggle

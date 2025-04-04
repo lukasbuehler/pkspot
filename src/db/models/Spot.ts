@@ -483,7 +483,7 @@ export class LocalSpot {
  */
 export class Spot extends LocalSpot {
   readonly id: SpotId;
-  readonly slug: string | null = null;
+  slug: string | null = null;
 
   constructor(_id: SpotId, _data: SpotSchema, locale: LocaleCode) {
     super(_data, locale);
@@ -511,6 +511,16 @@ export class Spot extends LocalSpot {
       amenities: this.amenities(),
     };
   }
+
+  public override data(): SpotSchema {
+    const data = super.data();
+
+    if (this.slug) {
+      data.slug = this.slug;
+    }
+
+    return data;
+  }
 }
 
 /**
@@ -524,5 +534,6 @@ export function convertLocalSpotToSpot(
 ): Spot {
   let spotPlusId = localSpot as LocalSpot & { id: SpotId };
   spotPlusId.id = _id;
+
   return spotPlusId as Spot;
 }

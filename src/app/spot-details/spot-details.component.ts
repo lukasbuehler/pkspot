@@ -62,7 +62,7 @@ import { SpotReviewDialogComponent } from "../spot-review-dialog/spot-review-dia
 import { MatDialog } from "@angular/material/dialog";
 import { SpotReportSchema } from "../../db/schemas/SpotReportSchema";
 import { Types, Areas, SpotAddressSchema } from "../../db/schemas/SpotSchema";
-import { MatSelect } from "@angular/material/select";
+import { MatSelect, MatSelectModule } from "@angular/material/select";
 import { MediaPreviewGridComponent } from "../media-preview-grid/media-preview-grid.component";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel } from "@angular/material/form-field";
@@ -110,6 +110,7 @@ import { AnyMedia, ExternalImage, StorageImage } from "../../db/models/Media";
 import { languageCodes } from "../../scripts/Languages";
 import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
 import { locale } from "core-js";
+import { SlugsService } from "../services/firebase/firestore/slugs.service";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -174,6 +175,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatSlideToggle,
     LocaleMapEditFieldComponent,
     MatRippleModule,
+    MatSelectModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -233,6 +235,8 @@ export class SpotDetailsComponent
   visited: boolean = false;
   bookmarked: boolean = false;
 
+  allSpotSlugs: string[] = [];
+
   get spotNameLocaleMap(): LocaleMap {
     const spot = this.spot();
     if (!spot) return {};
@@ -241,6 +245,18 @@ export class SpotDetailsComponent
   }
   set spotNameLocaleMap(value: LocaleMap) {
     this.spot()?.names.set(value);
+  }
+
+  get spotSlug(): string {
+    const spot = this.spot();
+    if (!spot || this.isLocalSpot()) return "";
+
+    return (spot as Spot).slug ?? "";
+  }
+  set spotSlug(value: string) {
+    const spot = this.spot();
+    if (!spot || this.isLocalSpot()) return;
+    (spot as Spot).slug = value;
   }
 
   get spotDescriptionLocaleMap(): LocaleMap {
@@ -303,6 +319,7 @@ export class SpotDetailsComponent
     private _spotsService: SpotsService,
     private _spotReportsService: SpotReportsService,
     private _spotReviewsService: SpotReviewsService,
+    private _slugService: SlugsService,
     private _postsService: PostsService,
     private _storageService: StorageService,
     private _mapsApiService: MapsApiService,
@@ -320,6 +337,10 @@ export class SpotDetailsComponent
 
       if (spot instanceof Spot) {
         this._loadGooglePlaceDataForSpot();
+
+        this._slugService.getAllSlugsForASpot(spot.id).then((slugs) => {
+          this.allSpotSlugs = slugs;
+        });
       }
     });
   }
