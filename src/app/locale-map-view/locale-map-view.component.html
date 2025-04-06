@@ -1,0 +1,18 @@
+<div class="pb-4" style="margin-top: -0.6rem">
+  <div class="d-flex flex-row justify-content-between align-items-center mb-1">
+    <h4 class="mat-title-small m-0">
+      {{ title() }}
+    </h4>
+    <button
+      mat-button
+      class="overflow-hidden"
+      (click)="changeLocale()"
+      [disabled]="numberOfLocales() <= 1"
+    >
+      <mat-icon>translate</mat-icon>{{ languages[bestLocale()]?.name_native }}
+    </button>
+  </div>
+  <p class="mat-body-medium m-0">
+    {{ text() }}
+  </p>
+</div>

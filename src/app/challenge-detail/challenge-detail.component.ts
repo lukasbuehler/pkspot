@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   signal,
   WritableSignal,
@@ -30,8 +31,10 @@ import {
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { AuthenticationService } from "../services/firebase/authentication.service";
-import { AnyMedia } from "../../db/models/Media";
+import { AnyMedia, StorageVideo } from "../../db/models/Media";
 import { MediaType } from "../../db/models/Interfaces";
+import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
+import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";
 
 @Component({
   selector: "app-challenge-detail",
@@ -45,6 +48,7 @@ import { MediaType } from "../../db/models/Interfaces";
     SpotPreviewCardComponent,
     MatIconModule,
     MatSnackBarModule,
+    LocaleMapViewComponent,
   ],
   templateUrl: "./challenge-detail.component.html",
   styleUrl: "./challenge-detail.component.scss",
@@ -52,14 +56,49 @@ import { MediaType } from "../../db/models/Interfaces";
 export class ChallengeDetailComponent {
   public dialogRef: MatDialogRef<ChallengeDetailComponent> =
     inject(MatDialogRef);
-  challenge = inject<Partial<SpotChallengeSchema> | null>(MAT_DIALOG_DATA);
+  data = inject<
+    Partial<{
+      isEditing?: boolean;
+      challenge?: SpotChallengeSchema | null;
+    }>
+  >(MAT_DIALOG_DATA);
   private _challengeService = inject(SpotChallengesService);
   private _authService = inject(AuthenticationService);
   private _snackbar = inject(MatSnackBar);
 
+  isEditing = signal<boolean>(this.data?.isEditing ?? false);
+  challenge = signal<SpotChallengeSchema | null>(this.data?.challenge ?? null);
+  challengeMedia = computed<AnyMedia | null>(() => {
+    const challenge = this.challenge();
+    if (!challenge) {
+      return null;
+    }
+
+    const media = makeAnyMediaFromMediaSchema(challenge.media);
+
+    return media;
+  });
   spot = signal<SpotPreviewData | null>(
-    (this.challenge?.spot as SpotPreviewData) ?? null
+    (this.data?.challenge?.spot as SpotPreviewData) ?? null
   );
+  videoSrc = signal<string | null>(null);
+
+  constructor() {
+    effect(() => {
+      const challenge = this.challenge();
+      if (challenge) {
+        this.data.challenge = challenge;
+      }
+    });
+
+    effect(() => {
+      const media = this.challengeMedia();
+
+      if (media instanceof StorageVideo) {
+        this.videoSrc.set(media.getVideoSrc());
+      }
+    });
+  }
 
   challengeStorageFolder = StorageBucket.Challenges;
 
@@ -67,7 +106,7 @@ export class ChallengeDetailComponent {
 
   onNoClick(): void {
     if (!this.hasChanges) {
-      this.challenge = null;
+      this.challenge.set(null);
       this.dialogRef.close();
     }
   }
@@ -75,7 +114,7 @@ export class ChallengeDetailComponent {
   validateChallenge(): boolean {
     // check that data.challenge is a valid SpotChallengeSchema
 
-    const challenge = this.challenge as SpotChallengeSchema;
+    const challenge = this.challenge();
     if (!challenge) {
       return false;
     } else if (!challenge.spot || !challenge.spot.id) {
@@ -115,13 +154,21 @@ export class ChallengeDetailComponent {
   }
 
   onNewMedia(media: { src: string; is_sized: boolean; type: MediaType }) {
-    this.challenge!.media = {
-      src: media.src,
-      isInStorage: true,
-      type: media.type,
-      uid: this._authService.user.uid,
-      origin: "user",
-    };
+    this.challenge.update((challenge) => {
+      if (!challenge) {
+        return challenge;
+      }
+
+      challenge.media = {
+        src: media.src,
+        isInStorage: true,
+        type: media.type,
+        uid: this._authService.user.uid,
+        origin: "user",
+      };
+
+      return challenge;
+    });
     this.hasChanges = true;
   }
 
@@ -131,15 +178,23 @@ export class ChallengeDetailComponent {
   }
   saveChallenge() {
     const spot = this.spot();
-    if (!this.challenge) return;
+    const challenge = this.challenge();
 
-    if (!this.challenge.user || !this.challenge.user.uid) {
+    if (!challenge) return;
+
+    if (!challenge.user || !challenge.user.uid) {
       console.error("No user found for challenge! Implementation error.");
       return;
     }
 
     const { id, name } = spot as { id: SpotId; name: string };
-    this.challenge.spot = { id, name };
+    this.challenge.update((challenge) => {
+      if (!challenge) {
+        return challenge;
+      }
+      challenge.spot = { id, name };
+      return challenge;
+    });
 
     console.log(this.challenge);
 
@@ -148,10 +203,7 @@ export class ChallengeDetailComponent {
     }
 
     this._challengeService
-      .addChallenge(
-        this.challenge!.spot!.id,
-        this.challenge as SpotChallengeSchema
-      )
+      .addChallenge(challenge.spot!.id, challenge)
       .then(() => {
         this._snackbar.open($localize`Challenge saved`, "OK", {
           duration: 5000,

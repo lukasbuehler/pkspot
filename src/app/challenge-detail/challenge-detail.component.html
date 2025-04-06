@@ -1,6 +1,55 @@
+@if(!isEditing()) {
+<h2 mat-dialog-title i18n>Challenge details</h2>
+<mat-dialog-content class="pt-3">
+  @if(challenge()) {
+  <!-- Name -->
+  <app-locale-map-view
+    title="Name"
+    title-i18n="Challenge name label"
+    [localeMap]="challenge()!.name"
+  ></app-locale-map-view>
+
+  <!-- Media -->
+  <div class="pb-4">
+    <h3 class="mat-title-small" i18n>Media</h3>
+    <div class="media-container">
+      @if(challengeMedia()?.type === 'image') {
+      <img class="media-image" [src]="challengeMedia()!.getPreviewImageSrc()" />
+      } @if(challengeMedia()?.type === 'video') {
+      <video class="media-video" [src]="videoSrc()" controls></video>
+      }
+    </div>
+  </div>
+
+  <!-- Description -->
+  @if(challenge()!.description) {
+  <div class="pb-4">
+    <app-locale-map-view
+      title="Description"
+      title-i18n="Challenge description label"
+      [localeMap]="challenge()!.description"
+    ></app-locale-map-view>
+  </div>
+  }
+
+  <!-- Posts -->
+  <!--<div class="pb-4">
+    <h3 class="mat-title-medium" i18n>Posts</h3>
+     @if(challenge()!.posts) {
+    <app-locale-map-view
+      title="Posts"
+      title-i18n="Challenge posts label"
+      [localeMap]="challenge()!.posts"
+    ></app-locale-map-view>
+    } 
+  </div>-->
+
+  }
+</mat-dialog-content>
+} @else {
 <h2 mat-dialog-title i18n>Add new challenge</h2>
 <mat-dialog-content>
-  @if(challenge) {
+  @if(challenge()) {
   <!-- Spot -->
   <div class="pb-4">
     <h3 class="mat-title-medium" i18n>Spot</h3>
@@ -24,7 +73,7 @@
 
     <app-locale-map-edit-field
       cdkFocusInitial
-      [(localeMap)]="challenge!.name"
+      [(localeMap)]="challenge()!.name"
     ></app-locale-map-edit-field>
   </div>
 
@@ -44,7 +93,7 @@
   <div class="pb-4">
     <h3 class="mat-title-medium" i18n>Description</h3>
     <app-locale-map-edit-field
-      [(localeMap)]="challenge!.description"
+      [(localeMap)]="challenge()!.description"
       [isTextArea]="true"
     ></app-locale-map-edit-field>
   </div>
@@ -65,3 +114,4 @@
     Save
   </button>
 </mat-dialog-actions>
+}

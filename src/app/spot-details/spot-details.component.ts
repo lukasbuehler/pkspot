@@ -111,6 +111,7 @@ import { languageCodes } from "../../scripts/Languages";
 import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
 import { locale } from "core-js";
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
+import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -176,6 +177,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     LocaleMapEditFieldComponent,
     MatRippleModule,
     MatSelectModule,
+    LocaleMapViewComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -776,6 +778,28 @@ export class SpotDetailsComponent
     }
   }
 
+  openChallenge(challengeId: string) {
+    const spot = this.spot();
+    if (!spot) {
+      console.error("No spot selected");
+      return;
+    } else if (!(spot instanceof Spot)) {
+      console.error("Spot is a LocalSpot, which has no challenges");
+      return;
+    }
+
+    // get challenge
+    this._challengeService
+      .getSpotChallenge(spot.id, challengeId)
+      .then((challenge) => {
+        this.dialog.open(ChallengeDetailComponent, {
+          data: { isEditing: false, challenge: challenge },
+          width: "600px",
+          maxWidth: "95vw",
+        });
+      });
+  }
+
   addChallenge() {
     const spot = this.spot();
 
@@ -804,7 +828,7 @@ export class SpotDetailsComponent
         is_completed: false,
       };
       const dialogRef = this.dialog.open(ChallengeDetailComponent, {
-        data: newChallenge,
+        data: { isEditing: true, challenge: newChallenge },
         width: "600px",
         maxWidth: "95vw",
       });
@@ -839,26 +863,6 @@ export class SpotDetailsComponent
       if (!spot) return spot;
       spot.hideStreetview = event.checked;
       return spot;
-    });
-  }
-
-  changeDescriptionLocale() {
-    const currentLocale = this.spot()?.descriptionLocale();
-    const availbleLocales = Object.keys(this.spot()?.descriptions() ?? {});
-
-    const ref = this.dialog.open(SelectLanguageDialogComponent, {
-      width: "400px",
-      maxWidth: "95vw",
-      data: {
-        locale: currentLocale,
-        availableLocales: availbleLocales,
-      },
-    });
-
-    ref.afterClosed().subscribe((locale: LocaleCode) => {
-      if (locale) {
-        this.spot()?.descriptionLocale.set(locale);
-      }
     });
   }
 }

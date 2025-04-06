@@ -138,7 +138,6 @@
     #selectedSpotMarker
     id="selectedSpotMarker"
     [position]="selectedSpot.location()"
-    [draggable]="isEditing"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotMarkerNode.elementRef.nativeElement"
     [zIndex]="1000000 + 1"
