@@ -10,11 +10,13 @@ import {
 import { Router, RouterLink } from "@angular/router";
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import { Auth, RecaptchaVerifier } from "@firebase/auth";
-import { NgIf } from "@angular/common";
+import { NgIf, NgOptimizedImage } from "@angular/common";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatHint } from "@angular/material/form-field";
 import { MatButton } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { MatDividerModule } from "@angular/material/divider";
 
 @Component({
   selector: "app-sign-up-page",
@@ -31,6 +33,9 @@ import { MatButton } from "@angular/material/button";
     MatHint,
     MatCheckbox,
     NgIf,
+    MatIconModule,
+    NgOptimizedImage,
+    MatDividerModule,
   ],
 })
 export class SignUpPageComponent implements OnInit {
@@ -140,6 +145,17 @@ export class SignUpPageComponent implements OnInit {
       .catch((err) => {
         console.error("Cannot create account!", err);
         this.signUpError = $localize`Could not create account!`;
+      });
+  }
+
+  trySignInGoogle() {
+    this._authService
+      .signInGoogle()
+      .then(() => {
+        console.log("Successfully signed in with google :)");
+      })
+      .catch((err) => {
+        console.error(err);
       });
   }
 }

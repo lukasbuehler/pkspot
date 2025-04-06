@@ -121,11 +121,14 @@ export class AuthenticationService {
   }
 
   public async signInGoogle(): Promise<void> {
-    let provider = new GoogleAuthProvider();
-    provider.addScope("email");
-    provider.addScope("profile");
+    let googleAuthProvider = new GoogleAuthProvider();
+    googleAuthProvider.addScope("email");
+    googleAuthProvider.addScope("profile");
 
-    let googleSignInResponse = await signInWithPopup(this.auth, provider);
+    let googleSignInResponse = await signInWithPopup(
+      this.auth,
+      googleAuthProvider
+    );
 
     // check if the user exists in the database
     try {
@@ -177,34 +180,32 @@ export class AuthenticationService {
     confirmedPassword: string,
     displayName: string
   ): Promise<void> {
-    let firebaseAuthResponse = await createUserWithEmailAndPassword(
-      this.auth,
-      email,
-      confirmedPassword
+    createUserWithEmailAndPassword(this.auth, email, confirmedPassword).then(
+      (firebaseAuthResponse) => {
+        if (typeof plausible !== "undefined") {
+          plausible("Create Account", {
+            props: { accountType: "Email and Password" },
+          });
+        }
+
+        if (!this._currentFirebaseUser) {
+          return Promise.reject("No current firebase user found");
+        }
+
+        // Set the user chose Display name
+        updateProfile(this._currentFirebaseUser, {
+          displayName: displayName,
+        });
+
+        // create a database entry for the user
+        this._userService.addUser(firebaseAuthResponse.user.uid, displayName, {
+          verified_email: false,
+          settings: this._defaultUserSettings,
+        });
+
+        // Send verification email
+        sendEmailVerification(firebaseAuthResponse.user);
+      }
     );
-
-    if (!this._currentFirebaseUser) {
-      return Promise.reject("No current firebase user found");
-    }
-
-    if (typeof plausible !== "undefined") {
-      plausible("Create Account", {
-        props: { accountType: "Email and Password" },
-      });
-    }
-
-    // Set the user chose Display name
-    updateProfile(this._currentFirebaseUser, {
-      displayName: displayName,
-    });
-
-    // create a database entry for the user
-    this._userService.addUser(firebaseAuthResponse.user.uid, displayName, {
-      verified_email: false,
-      settings: this._defaultUserSettings,
-    });
-
-    // Send verification email
-    sendEmailVerification(firebaseAuthResponse.user);
   }
 }

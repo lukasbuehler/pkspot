@@ -1,9 +1,4 @@
-<div class="container">
-  <div class="row">
-    <div class="col-md-12">
-      <h1 class="mat-headline-medium" i18n>Sign Up</h1>
-    </div>
-  </div>
+<div class="container" style="padding-top: 80px">
   <!-- <div class="row justify-content-center">
     <div class="col-md-8">
       <div class="alert alert-danger" color="">
@@ -18,30 +13,31 @@
       <h3 class="mat-h2 text-center" i18n>Sign in instead?</h3>
 
       <div class="oauth-buttons d-flex flex-row justify-content-center">
-        <button mat-flat-button color="accent" routerLink="/sign-in" i18n>
-          Sign in
+        <button mat-flat-button routerLink="/sign-in">
+          <mat-icon>login</mat-icon><span i18n>Sign in</span>
         </button>
-        <button mat-flat-button color="warn">Google</button>
-        <!-- <button mat-flat-button disabled color="accent">Twitter</button> -->
-        <!-- <button mat-flat-button disabled color="primary">Github</button> -->
+        <button mat-stroked-button (click)="trySignInGoogle()">
+          <span class="d-flex gap-2 align-items-center">
+            <img
+              ngSrc="/assets/logos/google_icon.png"
+              height="16"
+              width="16"
+              alt="G"
+            />
+            Google</span
+          >
+        </button>
       </div>
     </div>
   </div>
   <div class="row justify-content-center">
     <div class="col-md-8">
-      <h2 class="mat-h2 mt-5" i18n>Create a new account</h2>
+      <h2 class="mat-title-large mt-5" i18n>Create a new account</h2>
       <form
         [formGroup]="createAccountForm!"
         class="d-flex flex-column"
         (ngSubmit)="tryCreateAccount(createAccountForm!.value)"
       >
-        <mat-form-field appearance="outline">
-          <mat-label i18n>Display Name</mat-label>
-          <input matInput type="text" formControlName="displayName" required />
-          <mat-hint i18n
-            >Don't worry, the display name can be changed later.</mat-hint
-          >
-        </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label i18n>E-Mail address</mat-label>
           <input matInput type="email" formControlName="email" required />
@@ -68,23 +64,29 @@
           >
         </mat-form-field>
 
+        <div class="d-flex flex-column pt-4">
+          <h4 class="mat-title-medium" i18n>About you</h4>
+          <p class="mat-body">
+            What should we call you? Don't worry, the display name can be
+            changed later.
+          </p>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Display Name</mat-label>
+            <input
+              matInput
+              type="text"
+              formControlName="displayName"
+              required
+            />
+          </mat-form-field>
+        </div>
+
         <!-- Accept Terms and conditions -->
-        <div class="mt-4 d-flex flex-row justify-content-left">
-          <button
-            mat-stroked-button
-            routerLink="/terms-of-service"
-            color="accent"
-            i18n
-          >
+        <div class="mt-4 d-flex flex-row justify-content-left gap-2">
+          <button mat-button routerLink="/terms-of-service" i18n>
             Terms of Service
           </button>
-          <button
-            class="ml-3"
-            mat-stroked-button
-            routerLink="/privacy-policy"
-            color="accent"
-            i18n
-          >
+          <button mat-button routerLink="/privacy-policy" i18n>
             Privacy policy
           </button>
         </div>
@@ -106,13 +108,13 @@
 
         <div class="mt-5 mb-5 d-flex flex-row justify-content-center">
           <button
-            mat-raised-button
+            mat-flat-button
             color="accent"
             type="submit"
             (click)="tryCreateAccount(createAccountForm!.value)"
-            i18n
           >
-            Create Account
+            <mat-icon>person_add</mat-icon>
+            <span i18n>Create Account</span>
           </button>
         </div>
       </form>
