@@ -27,6 +27,7 @@ div.sheet {
   > div.content {
     overflow-y: scroll;
     height: calc(100% - $handle-region-height);
+    overflow-x: hidden;
   }
 }
 

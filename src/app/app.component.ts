@@ -122,6 +122,7 @@ export class AppComponent implements OnInit {
 
   hasAds = false;
   userId: string = "";
+  policyAccepted: boolean = false;
 
   alainMode: boolean = false;
 
@@ -227,10 +228,12 @@ export class AppComponent implements OnInit {
         ) !== null;
       let acceptedVersion = localStorage.getItem("acceptedVersion");
 
+      this.policyAccepted = acceptedVersion === currentTermsVersion;
+
       if (
+        !this.policyAccepted &&
         !isABot &&
         this.isEmbedded() === false &&
-        acceptedVersion !== currentTermsVersion &&
         this.dialog.openDialogs.length === 0
       ) {
         this.router.events
