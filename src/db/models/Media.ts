@@ -69,6 +69,10 @@ export class ExternalVideo extends Media {
     return this._src;
   }
 
+  getVideoSrc(): string {
+    return this._src;
+  }
+
   getPreviewImageSrc(): string {
     return this._src;
   }
@@ -219,3 +223,7 @@ export type AnyMedia =
   | StorageVideo
   | ExternalImage
   | ExternalVideo;
+
+export type VideoMedia = StorageVideo | ExternalVideo;
+
+export type ImageMedia = StorageImage | ExternalImage;

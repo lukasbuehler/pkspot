@@ -26,6 +26,10 @@ export interface SpotChallengeSchema {
   num_posts?: number;
   is_completed?: boolean;
   description?: LocaleMap;
+  label?: string;
+  participants?: "solo" | "pair" | "group";
+  is_water_challenge?: boolean;
+  is_beginner_friendly?: boolean;
 }
 
 export interface ChallengePreviewSchema {

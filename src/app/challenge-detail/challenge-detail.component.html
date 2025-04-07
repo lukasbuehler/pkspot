@@ -1,39 +1,105 @@
-@if(!isEditing()) {
-<h2 mat-dialog-title i18n>Challenge details</h2>
-<mat-dialog-content class="pt-3">
-  @if(challenge()) {
-  <!-- Name -->
-  <app-locale-map-view
-    title="Name"
-    title-i18n="Challenge name label"
-    [localeMap]="challenge()!.name"
-  ></app-locale-map-view>
+<div class="p-3">
+  @if(!isEditing()) {
+  <div class="d-flex flex-column gap-2">
+    @if(challenge()) {
+    <div class="d-flex flex-column pb-2">
+      <div class="pb-3">
+        <button mat-button (click)="share()">
+          <mat-icon>arrow_back_ios</mat-icon>
+          <span class="d-flex flex-row gap-2 align-items-center">
+            Lindenhof
+            <span i18n class="mat-label-small px-1 border rounded me-1"
+              >Spot</span
+            >
+          </span>
+        </button>
+      </div>
 
-  <!-- Media -->
-  <div class="pb-4">
-    <h3 class="mat-title-small" i18n>Media</h3>
-    <div class="media-container">
-      @if(challengeMedia()?.type === 'image') {
-      <img class="media-image" [src]="challengeMedia()!.getPreviewImageSrc()" />
-      } @if(challengeMedia()?.type === 'video') {
-      <video class="media-video" [src]="videoSrc()" controls></video>
-      }
+      <div
+        class="d-flex flex-row justify-content-between align-items-center pb-2"
+      >
+        <div class="d-flex flex-row gap-3 align-items-center">
+          <h3 class="mat-title-large mb-0">
+            {{ challengeName() }}
+          </h3>
+          <span i18n class="mat-label-small px-1 border rounded me-1"
+            >Challenge</span
+          >
+        </div>
+        <button mat-icon-button (click)="share()">
+          <mat-icon>share</mat-icon>
+        </button>
+      </div>
+
+      <mat-chip-set
+        class="d-flex flex-row gap-2 w-100 justify-content-start align-items-center"
+      >
+        <mat-chip>
+          <mat-icon matChipAvatar>psychology</mat-icon>
+          Sketchy
+        </mat-chip>
+        <mat-chip>
+          <mat-icon matChipAvatar>person</mat-icon>
+          Solo
+        </mat-chip>
+        @if(challenge()!.is_beginner_friendly || true) {
+        <mat-chip>
+          <mat-icon matChipAvatar>interests</mat-icon>
+          <span i18n>Beginner friendly</span>
+        </mat-chip>
+        } @if(challenge()!.is_water_challenge || true) {
+        <mat-chip>
+          <mat-icon matChipAvatar>water</mat-icon>
+          <span i18n>Water challenge</span>
+        </mat-chip>
+        }
+      </mat-chip-set>
     </div>
-  </div>
 
-  <!-- Description -->
-  @if(challenge()!.description) {
-  <div class="pb-4">
-    <app-locale-map-view
-      title="Description"
-      title-i18n="Challenge description label"
-      [localeMap]="challenge()!.description"
-    ></app-locale-map-view>
-  </div>
-  }
+    <!-- Media -->
+    <div class="pb-4">
+      <!-- <h3 class="mat-title-small" i18n>Media</h3> -->
+      <div class="media-container">
+        @if(challengeMedia()?.type === 'image') {
+        <img
+          class="media-image"
+          [src]="challengeMedia()!.getPreviewImageSrc()"
+        />
+        } @if(challengeMedia()?.type === 'video') {
+        <app-video [media]="videoMedia()"></app-video>
+        }
+      </div>
+    </div>
 
-  <!-- Posts -->
-  <!--<div class="pb-4">
+    <!-- Description -->
+    @if(challenge()!.description) {
+    <div class="pb-3">
+      <app-locale-map-view
+        title="Description"
+        title-i18n="Challenge description label"
+        [localeMap]="challenge()!.description"
+      ></app-locale-map-view>
+    </div>
+    }
+
+    <div class="pb-3 d-flex flex-row align-items-center gap-1">
+      <span class="mat-title-small" i18n>Uploaded by: </span
+      ><a mat-button [routerLink]="'/u/' + challenge()!.user.uid" class="p-2">
+        @if(userPicture()) {
+        <img
+          class="rounded-circle"
+          [ngSrc]="userPicture()!.getSrc(200)"
+          height="24"
+          width="24"
+        />
+
+        }
+        {{ challenge()!.user.display_name }}
+      </a>
+    </div>
+
+    <!-- Posts -->
+    <!--<div class="pb-4">
     <h3 class="mat-title-medium" i18n>Posts</h3>
      @if(challenge()!.posts) {
     <app-locale-map-view
@@ -44,74 +110,81 @@
     } 
   </div>-->
 
-  }
-</mat-dialog-content>
-} @else {
-<h2 mat-dialog-title i18n>Add new challenge</h2>
-<mat-dialog-content>
-  @if(challenge()) {
-  <!-- Spot -->
-  <div class="pb-4">
-    <h3 class="mat-title-medium" i18n>Spot</h3>
-    <div class="d-flex flex-row gap-2 w-100 align-items-center">
-      @if(spot()) {
-      <app-spot-preview-card
-        class="flex-grow-1"
-        [spot]="spot()"
-        [isCompact]="true"
-      ></app-spot-preview-card
-      >} @else {
-      <p>select spot</p>
-      }
-      <button mat-icon-button><mat-icon>edit</mat-icon></button>
+    }
+  </div>
+  } @else {
+  <h2 mat-dialog-title i18n>Add new challenge</h2>
+  <div>
+    @if(challenge()) {
+    <!-- Spot -->
+    <div class="pb-4">
+      <h3 class="mat-title-medium" i18n>Spot</h3>
+      <div class="d-flex flex-row gap-2 w-100 align-items-center">
+        @if(spot()) {
+        <app-spot-preview-card
+          class="flex-grow-1"
+          [spot]="spot()"
+          [isCompact]="true"
+        ></app-spot-preview-card
+        >} @else {
+        <p>select spot</p>
+        }
+        <button mat-icon-button><mat-icon>edit</mat-icon></button>
+      </div>
+    </div>
+
+    <!-- Name -->
+    <div class="pb-4">
+      <h3 class="mat-title-medium" i18n>Challenge name</h3>
+
+      <app-locale-map-edit-field
+        cdkFocusInitial
+        [(localeMap)]="challenge()!.name"
+      ></app-locale-map-edit-field>
+    </div>
+
+    <!-- Media -->
+    <div class="pb-4">
+      <h3 class="mat-title-medium" i18n>Media</h3>
+      <app-media-upload
+        class="d-flex"
+        [allowedMimeTypes]="[
+          'image/png',
+          'image/jpeg',
+          'image/jpg',
+          'video/mp4'
+        ]"
+        [multipleAllowed]="false"
+        [storageFolder]="challengeStorageFolder"
+        (newMedia)="onNewMedia($event)"
+      ></app-media-upload>
+    </div>
+
+    <!-- Description -->
+    <div class="pb-4">
+      <h3 class="mat-title-medium" i18n>Description</h3>
+      <app-locale-map-edit-field
+        [(localeMap)]="challenge()!.description"
+        [isTextArea]="true"
+      ></app-locale-map-edit-field>
+    </div>
+    }
+    <div class="d-flex justify-content-between pt-3">
+      <button mat-button (click)="onNoClick()">
+        @if(!hasChanges) { <span i18n="cancel button label">Cancel</span> }
+        @else {
+        <span i18n>Discard</span>
+        }
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        i18n="report button label|"
+        (click)="saveChallenge()"
+      >
+        Save
+      </button>
     </div>
   </div>
-
-  <!-- Name -->
-  <div class="pb-4">
-    <h3 class="mat-title-medium" i18n>Challenge name</h3>
-
-    <app-locale-map-edit-field
-      cdkFocusInitial
-      [(localeMap)]="challenge()!.name"
-    ></app-locale-map-edit-field>
-  </div>
-
-  <!-- Media -->
-  <div class="pb-4">
-    <h3 class="mat-title-medium" i18n>Media</h3>
-    <app-media-upload
-      class="d-flex"
-      [allowedMimeTypes]="['image/png', 'image/jpeg', 'image/jpg', 'video/mp4']"
-      [multipleAllowed]="false"
-      [storageFolder]="challengeStorageFolder"
-      (newMedia)="onNewMedia($event)"
-    ></app-media-upload>
-  </div>
-
-  <!-- Description -->
-  <div class="pb-4">
-    <h3 class="mat-title-medium" i18n>Description</h3>
-    <app-locale-map-edit-field
-      [(localeMap)]="challenge()!.description"
-      [isTextArea]="true"
-    ></app-locale-map-edit-field>
-  </div>
   }
-</mat-dialog-content>
-<mat-dialog-actions class="d-flex justify-content-between p-3">
-  <button mat-button (click)="onNoClick()">
-    @if(!hasChanges) { <span i18n="cancel button label">Cancel</span> } @else {
-    <span i18n>Discard</span>
-    }
-  </button>
-  <button
-    mat-flat-button
-    color="primary"
-    i18n="report button label|"
-    (click)="saveChallenge()"
-  >
-    Save
-  </button>
-</mat-dialog-actions>
-}
+</div>

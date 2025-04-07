@@ -3,6 +3,7 @@ import {
   computed,
   effect,
   inject,
+  LOCALE_ID,
   signal,
   WritableSignal,
 } from "@angular/core";
@@ -31,10 +32,21 @@ import {
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { AuthenticationService } from "../services/firebase/authentication.service";
-import { AnyMedia, StorageVideo } from "../../db/models/Media";
+import {
+  AnyMedia,
+  ExternalVideo,
+  StorageImage,
+  StorageVideo,
+  VideoMedia,
+} from "../../db/models/Media";
 import { MediaType } from "../../db/models/Interfaces";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";
+import { VideoComponent } from "../video/video.component";
+import { getBestLocale } from "../../scripts/LanguageHelpers";
+import { MatChipsModule } from "@angular/material/chips";
+import { NgOptimizedImage } from "@angular/common";
+import { RouterLink } from "@angular/router";
 
 @Component({
   selector: "app-challenge-detail",
@@ -49,6 +61,10 @@ import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";
     MatIconModule,
     MatSnackBarModule,
     LocaleMapViewComponent,
+    VideoComponent,
+    MatChipsModule,
+    NgOptimizedImage,
+    RouterLink,
   ],
   templateUrl: "./challenge-detail.component.html",
   styleUrl: "./challenge-detail.component.scss",
@@ -65,6 +81,7 @@ export class ChallengeDetailComponent {
   private _challengeService = inject(SpotChallengesService);
   private _authService = inject(AuthenticationService);
   private _snackbar = inject(MatSnackBar);
+  private locale = inject<string>(LOCALE_ID);
 
   isEditing = signal<boolean>(this.data?.isEditing ?? false);
   challenge = signal<SpotChallengeSchema | null>(this.data?.challenge ?? null);
@@ -78,10 +95,32 @@ export class ChallengeDetailComponent {
 
     return media;
   });
+  challengeName = computed<string>(() => {
+    const challenge = this.challenge();
+    if (!challenge) {
+      return "";
+    }
+
+    const locale = getBestLocale(Object.keys(challenge.name), this.locale);
+
+    return challenge.name[locale]?.text ?? "";
+  });
+  userPicture = computed<StorageImage | null>(() => {
+    const challenge = this.challenge();
+    if (!challenge) {
+      return null;
+    }
+    const user = challenge.user;
+    if (!user) {
+      return null;
+    }
+    return new StorageImage(challenge.user.profile_picture!);
+  });
+
   spot = signal<SpotPreviewData | null>(
     (this.data?.challenge?.spot as SpotPreviewData) ?? null
   );
-  videoSrc = signal<string | null>(null);
+  videoMedia = signal<VideoMedia | null>(null);
 
   constructor() {
     effect(() => {
@@ -94,8 +133,8 @@ export class ChallengeDetailComponent {
     effect(() => {
       const media = this.challengeMedia();
 
-      if (media instanceof StorageVideo) {
-        this.videoSrc.set(media.getVideoSrc());
+      if (media instanceof StorageVideo || media instanceof ExternalVideo) {
+        this.videoMedia.set(media as VideoMedia);
       }
     });
   }
@@ -171,6 +210,13 @@ export class ChallengeDetailComponent {
     });
     this.hasChanges = true;
   }
+
+  dismiss() {
+    this.hasChanges = false;
+    this.dialogRef.close();
+  }
+
+  share() {}
 
   cancel() {
     this.hasChanges = false;
