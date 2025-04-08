@@ -36,10 +36,10 @@ async function _compressVideo(videoPath: string): Promise<string> {
     ffmpeg(videoPath)
       .output(compressedVideoPath)
       .videoCodec("libx265") // Use libx265 for better compression
-      .outputOptions(["-crf 26", "-preset fast"]) // Adjust CRF for quality vs size tradeoff
+      .outputOptions(["-crf 26", "-preset fast", "-tag:v hvc1"]) // Adjust CRF for quality vs size tradeoff
       .audioCodec("aac")
       .audioBitrate("128k")
-      .size("1280x?")
+      .size("?x720")
       .on("end", () => resolve())
       .on("error", reject)
       .run();
