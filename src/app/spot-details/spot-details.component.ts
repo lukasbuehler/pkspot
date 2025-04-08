@@ -694,7 +694,6 @@ export class SpotDetailsComponent
 
   openSpotReviewDialog() {
     const spot = this.spot();
-    console.log(typeof Spot);
     if (!(spot instanceof Spot)) return;
 
     const uid = this.authenticationService.user.uid;
