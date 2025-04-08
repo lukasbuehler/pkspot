@@ -374,7 +374,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    console.log("Opening spot by ID", spotId);
+    // console.log("Opening spot by ID", spotId);
     firstValueFrom(this._spotsService.getSpotById$(spotId, this.locale)).then(
       (spot) => {
         if (spot) {

@@ -33,16 +33,21 @@
     } }
 
     <!-- terms  -->
-    <!-- <span
+    <span
       class="mat-body-small d-flex align-items-center flex-row mb-0 pb-1"
-      style="justify-content: space-evenly; width: 100%; font-size: 10px"
+      style="
+        justify-content: space-evenly;
+        width: 100%;
+        font-size: 10px;
+        color: lightgray;
+      "
     >
       <a routerLink="/terms-of-service">Terms</a>
       <a routerLink="/privacy-policy">Policy</a>
-    </span> -->
-    <!-- <span class="mat-body-small" style="font-size: 8px"
-      >© Lukas Bühler 2025</span
-    > -->
+    </span>
+    <span class="mat-body-small mb-0" style="font-size: 8px; color: lightgray"
+      >©2025 Lukas Bühler
+    </span>
   </app-nav-rail>
   <app-nav-rail-content class="flex-col">
     <!-- This is where the pages content gets displayed -->
@@ -123,14 +128,18 @@
 
     <!-- Terms and Privacy -->
 
-    <!-- <div
-      class="d-flex d-md-none w-100 pt-1 px-3 mat-body-small justify-content-end align-items-center flex-row mb-0 pb-1 gap-3"
-      style="background-color: #1f1f23; font-size: 10px"
+    @if(!policyAccepted || !userId) {
+    <div
+      class="d-flex d-md-none w-100px-3 mat-body-small justify-content-around align-items-center flex-row mb-0 py-1 gap-3 px-3"
+      style="background-color: #1f1f23; font-size: 10px; color: gray"
     >
-      <a routerLink="/terms-of-service">Terms of Service</a>
-      <a routerLink="/privacy-policy">Policy Policy</a>
+      <a routerLink="/terms-of-service">Terms</a>
+      <a routerLink="/privacy-policy">Policy</a>
+      <a routerLink="/about">About</a>
+      <a href="https://github.com/lukasbuehler/pkspot">GitHub</a>
       <span>©2025 Lukas Bühler</span>
-    </div> -->
+    </div>
+    }
   </app-nav-rail-content>
 </app-nav-rail-container>
 

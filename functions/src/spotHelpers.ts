@@ -100,7 +100,7 @@ export function getSpotPreviewImage(spotSchema: PartialSpotSchema): string {
   if (spotSchema.media && spotSchema.media[0]?.type === "image") {
     const media = spotSchema.media[0];
     let url: string = media.src;
-    if (media.uid) {
+    if (media.uid || media.isInStorage) {
       // has uid: is from a user.
       url = url.replace(/\?/, `_${previewSize}?`);
     }

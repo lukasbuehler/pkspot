@@ -145,12 +145,12 @@ export const routes: Routes = [
   {
     path: "sign-in",
     component: SignInPageComponent,
-    data: { routeName: "Sign-in" },
+    data: { routeName: "Sign-in", acceptanceFree: true },
   },
   {
     path: "sign-up",
     component: SignUpPageComponent,
-    data: { routeName: "Sign-up" },
+    data: { routeName: "Sign-up", acceptanceFree: true },
   },
   {
     path: "forgot-password",
@@ -174,7 +174,7 @@ export const routes: Routes = [
   {
     path: "about",
     component: AboutPageComponent,
-    data: { routeName: "About" },
+    data: { routeName: "About", acceptanceFree: true },
   },
   {
     path: "welcome",

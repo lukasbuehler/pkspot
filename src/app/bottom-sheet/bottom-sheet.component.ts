@@ -22,6 +22,8 @@ export class BottomSheetComponent {
     | ElementRef
     | undefined;
 
+  contentElement: HTMLElement | undefined;
+
   constructor(private renderer: Renderer2) {}
 
   ngAfterViewInit() {
@@ -33,9 +35,16 @@ export class BottomSheetComponent {
       }
     );
 
+    console.log("bottomSheet", this.bottomSheet);
+    console.log("bottomSheet.nativeElement", this.bottomSheet?.nativeElement);
+
+    this.contentElement = this.bottomSheet?.nativeElement
+      .lastChild as HTMLElement;
+    console.log("contentElement", this.contentElement);
+
     const startDrag = (event: MouseEvent | TouchEvent) => {
       if (typeof window === "undefined") return; // abort if not in browser
-      if (!this.bottomSheet) return;
+      if (!this.bottomSheet || !this.contentElement) return;
 
       let lastY = 0;
       let speed = 0;
@@ -79,17 +88,18 @@ export class BottomSheetComponent {
           : (event as MouseEvent).clientY;
       let shiftY = clientY - this.bottomSheet.nativeElement.offsetTop;
 
-      const moveAt = (event: TouchEvent | MouseEvent) => {
-        if (!this.bottomSheet) return;
+      const moveAt = (moveEvent: TouchEvent | MouseEvent) => {
+        if (!this.bottomSheet || !this.contentElement) return;
 
         let pageY =
-          window.TouchEvent && event instanceof TouchEvent
-            ? event.touches[0].pageY
-            : (event as MouseEvent).pageY;
+          window.TouchEvent && moveEvent instanceof TouchEvent
+            ? moveEvent.touches[0].pageY
+            : (moveEvent as MouseEvent).pageY;
 
-        const isScrollingUp = pageY - shiftY > 0;
+        const isScrollingUp = pageY - shiftY >= 0;
         if (isScrollingUp && isScrollableUp) {
           // don't move the sheet when the user is scrolling up, and the content can scroll up
+          this.contentElement.style.overflowY = "scroll";
           return;
         }
 
@@ -101,6 +111,12 @@ export class BottomSheetComponent {
 
         if (newTop < 0) newTop = 0;
         if (newTop > alwaysVisibleHeight) newTop = alwaysVisibleHeight;
+
+        if (newTop === 0) {
+          this.contentElement.style.overflowY = "scroll";
+        } else {
+          this.contentElement.style.overflowY = "hidden";
+        }
 
         this.bottomSheet.nativeElement.style.top = newTop + "px";
       };
@@ -117,7 +133,7 @@ export class BottomSheetComponent {
       );
 
       const stopDrag = (event: MouseEvent | TouchEvent) => {
-        if (!this.bottomSheet) return;
+        if (!this.bottomSheet || !this.contentElement) return;
 
         mouseMoveListener();
         touchMoveListener();
@@ -138,8 +154,10 @@ export class BottomSheetComponent {
         if (Math.abs(speed) > this.minimumSpeedToSlide) {
           if (speed > 0) {
             targetOffset = bottomHeightOffset;
+            this.contentElement.style.overflowY = "hidden";
           } else {
             targetOffset = topHeightOffset;
+            this.contentElement.style.overflowY = "scroll";
           }
 
           // prevent pull to refresh and other default browser behavior
@@ -148,8 +166,10 @@ export class BottomSheetComponent {
           // decide the next sheet position based on the offset
           if (offset > middlePoint) {
             targetOffset = bottomHeightOffset;
+            this.contentElement.style.overflowY = "hidden";
           } else {
             targetOffset = topHeightOffset;
+            this.contentElement.style.overflowY = "scroll";
           }
         }
 
