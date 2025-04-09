@@ -12,7 +12,7 @@
   [class.clickable]="clickable"
   style="box-shadow: none"
 >
-  @if(spot()) {@if(!isEditing) {
+  @if(spot()) {@if(!isEditing()) {
   <mat-card-header class="pb-2 px-3 d-flex flex-column-reverse">
     <mat-card-title class="d-flex align-items-center w-100 gap-1">
       <span
@@ -77,7 +77,7 @@
       </div>
 
       <!-- Icon buttons in header -->
-      @if(!isEditing) {
+      @if(!isEditing()) {
       <div class="spot-button-row">
         <!--@if(authenticationService.isSignedIn) {
         @if (!visited) {
@@ -153,7 +153,7 @@
     </mat-card-subtitle> -->
   </mat-card-header>
   }
-  <!-- if(!isEditing)  -->
+  <!-- if(!isEditing())  -->
 
   @if(report) {
   <div class="report-info">
@@ -165,7 +165,7 @@
   <!-- @if(report) -->
 
   <mat-card-content>
-    @if(!isEditing) {
+    @if(!isEditing()) {
     <!-- spot media carousel  -->
     @if(spot()?.media() && spot()!.media().length > 0) {
     <app-img-carousel class="mb-2 mt-1" [media]="spot()?.media()">
@@ -647,7 +647,7 @@
     </div>
     }
   </mat-card-content>
-  @if(isEditing) {
+  @if(isEditing()) {
   <mat-card-actions class="mt-3 gap-2">
     @if(editable) {
     <button

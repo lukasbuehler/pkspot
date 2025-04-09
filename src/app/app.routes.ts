@@ -35,6 +35,11 @@ export const routes: Routes = [
     // data: { routeName: "Spot map" },
   },
   {
+    path: "map/:spot/c/:challenge", // :spot is a spot ID or a spot slug
+    component: MapPageComponent,
+    // data: { routeName: "Spot map" },
+  },
+  {
     path: "s/:slug",
     redirectTo: "map/:slug",
     pathMatch: "full",

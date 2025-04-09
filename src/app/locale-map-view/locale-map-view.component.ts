@@ -49,7 +49,11 @@ export class LocaleMapViewComponent {
     const localeMap = this.localeMap() ?? {};
     const bestLocale = this.bestLocale();
 
-    return localeMap[bestLocale]?.text ?? "";
+    if (this.availableLocales().length > 0) {
+      return localeMap[bestLocale]?.text ?? "";
+    } else {
+      return "";
+    }
   });
 
   changeLocale() {

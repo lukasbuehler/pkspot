@@ -3,16 +3,13 @@ import {
   computed,
   effect,
   inject,
+  input,
   LOCALE_ID,
+  model,
   signal,
   WritableSignal,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
@@ -47,6 +44,15 @@ import { getBestLocale } from "../../scripts/LanguageHelpers";
 import { MatChipsModule } from "@angular/material/chips";
 import { NgOptimizedImage } from "@angular/common";
 import { RouterLink } from "@angular/router";
+import {
+  ChallengeLabelNames,
+  ChallengeParticipantTypeNames,
+  LocalSpotChallenge,
+  SpotChallenge,
+} from "../../db/models/SpotChallenge";
+import { Spot } from "../../db/models/Spot";
+import { MediaSchema } from "../../db/schemas/Media";
+import { MatDividerModule } from "@angular/material/divider";
 
 @Component({
   selector: "app-challenge-detail",
@@ -54,7 +60,6 @@ import { RouterLink } from "@angular/router";
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatDialogModule,
     LocaleMapEditFieldComponent,
     MediaUpload,
     SpotPreviewCardComponent,
@@ -65,46 +70,25 @@ import { RouterLink } from "@angular/router";
     MatChipsModule,
     NgOptimizedImage,
     RouterLink,
+    MatDividerModule,
   ],
   templateUrl: "./challenge-detail.component.html",
   styleUrl: "./challenge-detail.component.scss",
 })
 export class ChallengeDetailComponent {
-  public dialogRef: MatDialogRef<ChallengeDetailComponent> =
-    inject(MatDialogRef);
-  data = inject<
-    Partial<{
-      isEditing?: boolean;
-      challenge?: SpotChallengeSchema | null;
-    }>
-  >(MAT_DIALOG_DATA);
   private _challengeService = inject(SpotChallengesService);
   private _authService = inject(AuthenticationService);
   private _snackbar = inject(MatSnackBar);
   private locale = inject<string>(LOCALE_ID);
 
-  isEditing = signal<boolean>(this.data?.isEditing ?? false);
-  challenge = signal<SpotChallengeSchema | null>(this.data?.challenge ?? null);
-  challengeMedia = computed<AnyMedia | null>(() => {
-    const challenge = this.challenge();
-    if (!challenge) {
-      return null;
-    }
+  readonly challengeLabelNames = ChallengeLabelNames;
+  readonly challengeLabelIcons = ChallengeLabelNames;
+  readonly challengeParticipantTypeNames = ChallengeParticipantTypeNames;
+  readonly challengeParticipantTypeIcons = ChallengeParticipantTypeNames;
 
-    const media = makeAnyMediaFromMediaSchema(challenge.media);
+  isEditing = model<boolean>(false);
+  challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
 
-    return media;
-  });
-  challengeName = computed<string>(() => {
-    const challenge = this.challenge();
-    if (!challenge) {
-      return "";
-    }
-
-    const locale = getBestLocale(Object.keys(challenge.name), this.locale);
-
-    return challenge.name[locale]?.text ?? "";
-  });
   userPicture = computed<StorageImage | null>(() => {
     const challenge = this.challenge();
     if (!challenge) {
@@ -117,21 +101,23 @@ export class ChallengeDetailComponent {
     return new StorageImage(challenge.user.profile_picture!);
   });
 
-  spot = signal<SpotPreviewData | null>(
-    (this.data?.challenge?.spot as SpotPreviewData) ?? null
-  );
+  spot = computed<Spot | null>(() => {
+    const challenge = this.challenge();
+    if (!challenge) {
+      return null;
+    }
+    return challenge.spot;
+  });
   videoMedia = signal<VideoMedia | null>(null);
+
+  hasDescription = computed<boolean>(() => {
+    const keys = Object.keys(this.challenge()?.descriptionLocaleMap() ?? {});
+    return keys.length > 0;
+  });
 
   constructor() {
     effect(() => {
-      const challenge = this.challenge();
-      if (challenge) {
-        this.data.challenge = challenge;
-      }
-    });
-
-    effect(() => {
-      const media = this.challengeMedia();
+      const media = this.challenge()?.media();
 
       if (media instanceof StorageVideo || media instanceof ExternalVideo) {
         this.videoMedia.set(media as VideoMedia);
@@ -143,119 +129,126 @@ export class ChallengeDetailComponent {
 
   hasChanges: boolean = false;
 
-  onNoClick(): void {
-    if (!this.hasChanges) {
-      this.challenge.set(null);
-      this.dialogRef.close();
-    }
-  }
-
   validateChallenge(): boolean {
     // check that data.challenge is a valid SpotChallengeSchema
 
-    const challenge = this.challenge();
-    if (!challenge) {
-      return false;
-    } else if (!challenge.spot || !challenge.spot.id) {
-      this._snackbar.open(
-        $localize`Error creating challenge: A spot is required`,
-        "OK",
-        {
-          duration: 5000,
-        }
-      );
-      return false;
-    } else if (
-      !challenge.name ||
-      Object.keys(challenge.name).length === 0 ||
-      challenge.name[0]?.text.trim().length === 0
-    ) {
-      this._snackbar.open(
-        $localize`Error creating challenge: A challenge name is required`,
-        "OK",
-        {
-          duration: 5000,
-        }
-      );
-      return false;
-    } else if (!challenge.media || !challenge.media.src) {
-      this._snackbar.open(
-        $localize`Error creating challenge: An image or video is required`,
-        "OK",
-        {
-          duration: 5000,
-        }
-      );
-      return false;
-    }
+    // const challenge = this.challenge();
+    // if (!challenge) {
+    //   return false;
+    // } else if (!challenge.spot || !challenge.spot.id) {
+    //   this._snackbar.open(
+    //     $localize`Error creating challenge: A spot is required`,
+    //     "OK",
+    //     {
+    //       duration: 5000,
+    //     }
+    //   );
+    //   return false;
+    // } else if (
+    //   !challenge.name ||
+    //   Object.keys(challenge.name).length === 0 ||
+    //   challenge.name[0]?.text.trim().length === 0
+    // ) {
+    //   this._snackbar.open(
+    //     $localize`Error creating challenge: A challenge name is required`,
+    //     "OK",
+    //     {
+    //       duration: 5000,
+    //     }
+    //   );
+    //   return false;
+    // } else if (!challenge.media || !challenge.media.src) {
+    //   this._snackbar.open(
+    //     $localize`Error creating challenge: An image or video is required`,
+    //     "OK",
+    //     {
+    //       duration: 5000,
+    //     }
+    //   );
+    //   return false;
+    // }
 
     return true;
   }
 
-  onNewMedia(media: { src: string; is_sized: boolean; type: MediaType }) {
+  onNewMedia(newMedia: { src: string; is_sized: boolean; type: MediaType }) {
     this.challenge.update((challenge) => {
       if (!challenge) {
         return challenge;
       }
 
-      challenge.media = {
-        src: media.src,
+      const media: MediaSchema = {
+        src: newMedia.src,
         isInStorage: true,
-        type: media.type,
+        type: newMedia.type,
         uid: this._authService.user.uid,
         origin: "user",
       };
 
+      challenge.media.set(makeAnyMediaFromMediaSchema(media));
+
       return challenge;
     });
-    this.hasChanges = true;
   }
 
-  dismiss() {
-    this.hasChanges = false;
-    this.dialogRef.close();
+  backToSpot() {
+    this.isEditing.set(false);
+    this.challenge.set(null);
   }
 
   share() {}
 
-  cancel() {
-    this.hasChanges = false;
-    this.onNoClick();
+  startEdit() {
+    this.isEditing.set(true);
   }
+
+  cancelEdit() {
+    this.isEditing.set(false);
+
+    if (!(this.challenge() instanceof SpotChallenge)) {
+      // this is a local challenge, that wasn't saved so we can just delete it
+      this.challenge.set(null);
+    }
+  }
+
   saveChallenge() {
     const spot = this.spot();
     const challenge = this.challenge();
 
-    if (!challenge) return;
+    if (!spot || !challenge) throw new Error("No spot or challenge found!");
 
-    if (!challenge.user || !challenge.user.uid) {
-      console.error("No user found for challenge! Implementation error.");
-      return;
+    const challengeData = this.challenge()?.getData();
+
+    if (!challengeData) throw new Error("Could not get challenge Data!");
+
+    if (!challengeData.user || !challengeData.user.uid) {
+      throw new Error("No user found for challenge! Implementation error.");
     }
-
-    const { id, name } = spot as { id: SpotId; name: string };
-    this.challenge.update((challenge) => {
-      if (!challenge) {
-        return challenge;
-      }
-      challenge.spot = { id, name };
-      return challenge;
-    });
-
-    console.log(this.challenge);
 
     if (!this.validateChallenge()) {
-      return;
+      console.error("Challenge validation failed");
     }
 
-    this._challengeService
-      .addChallenge(challenge.spot!.id, challenge)
-      .then(() => {
-        this._snackbar.open($localize`Challenge saved`, "OK", {
-          duration: 5000,
+    if (challenge instanceof SpotChallenge) {
+      // update the challenge
+      this._challengeService
+        .updateChallenge(spot.id, challenge.id, challengeData)
+        .then(() => {
+          this._snackbar.open($localize`Challenge updated successfully`, "OK", {
+            duration: 5000,
+          });
+          this.hasChanges = false;
+          this.isEditing.set(false);
         });
-        this.hasChanges = false;
-        this.dialogRef.close();
+    } else {
+      // create a new challenge
+    }
+    this._challengeService.addChallenge(spot.id, challengeData).then(() => {
+      this._snackbar.open($localize`New challenge saved successfully`, "OK", {
+        duration: 5000,
       });
+      this.hasChanges = false;
+      this.isEditing.set(false);
+    });
   }
 }

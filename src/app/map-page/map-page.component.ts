@@ -12,6 +12,7 @@ import {
   afterNextRender,
   PendingTasks,
   inject,
+  effect,
 } from "@angular/core";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../db/models/Spot";
@@ -80,6 +81,11 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { SpotSchema } from "../../../functions/src/spotHelpers";
 import { SearchFieldComponent } from "../search-field/search-field.component";
+import {
+  LocalSpotChallenge,
+  SpotChallenge,
+} from "../../db/models/SpotChallenge";
+import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 
 @Component({
   selector: "app-map-page",
@@ -110,6 +116,7 @@ import { SearchFieldComponent } from "../search-field/search-field.component";
     MatDividerModule,
     MatTooltipModule,
     SearchFieldComponent,
+    ChallengeDetailComponent,
     // SpeedDialFabComponent,
   ],
 })
@@ -123,6 +130,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
   isEditing: boolean = false;
   mapStyle: "roadmap" | "satellite" | null = null;
+  selectedChallenge: WritableSignal<SpotChallenge | LocalSpotChallenge | null> =
+    signal(null);
 
   askedGeoPermission: boolean = false;
   hasGeolocation: boolean = false;
@@ -164,6 +173,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isServer = isPlatformServer(platformId);
 
     this.titleService.setTitle($localize`:@@pk.spotmap.title:PK Spot map`);
+
+    effect(() => {
+      const selectedSpot = this.selectedSpot();
+      const challenge = this.selectedChallenge();
+
+      if (!selectedSpot || !(selectedSpot instanceof Spot)) return;
+
+      console.debug("updating URL for challenge");
+
+      if (challenge && challenge instanceof SpotChallenge) {
+        this.location.go(
+          [
+            "/map",
+            selectedSpot.slug ?? selectedSpot.id,
+            "c",
+            challenge.id,
+          ].join("/")
+        );
+      } else {
+        this.location.go(
+          ["/map", selectedSpot.slug ?? selectedSpot.id].join("/")
+        );
+      }
+    });
   }
 
   // Speed dial FAB //////////////////////////////////////////////////////////

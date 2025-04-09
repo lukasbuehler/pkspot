@@ -184,3 +184,9 @@ export function makeAnyMediaFromMediaSchema(
     }
   }
 }
+
+export function removeUndefinedProperties<T>(obj: object): object {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, value]) => value !== undefined)
+  );
+}

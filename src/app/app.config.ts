@@ -39,7 +39,15 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     BrowserModule,
     GoogleMapsModule,
-    { provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: { hasBackdrop: true } },
+    {
+      provide: MAT_DIALOG_DEFAULT_OPTIONS,
+      useValue: {
+        hasBackdrop: true,
+        position: {
+          top: "50px",
+        },
+      },
+    },
     provideClientHydration(withI18nSupport()),
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideAnimations(),

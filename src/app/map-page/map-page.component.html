@@ -32,10 +32,17 @@
 
     @if(spotMap) { @if(selectedSpot()) {
     <div class="info-panel d-none d-md-block spot-preview-container p-1 pt-3">
+      @if(selectedChallenge()) {
+      <app-challenge-detail
+        [(challenge)]="selectedChallenge"
+        [(isEditing)]="isEditing"
+      ></app-challenge-detail>
+      } @else {
       <app-spot-details
         @fadeInOut
         #spotDetail
         [spot]="selectedSpot()"
+        [(challenge)]="selectedChallenge"
         [border]="false"
         [dismissable]="true"
         [infoOnly]="false"
@@ -46,7 +53,8 @@
         (addBoundsClick)="spotMap.addBounds()"
         (focusClick)="spotMap.focusSpot(selectedSpot()!)"
         (saveClick)="spotMap.saveSpot($event)"
-      ></app-spot-details>
+      ></app-spot-details
+      >}
     </div>
     } @else {
     <div class="info-panel d-none d-md-block p-3">
@@ -60,10 +68,17 @@
     <app-bottom-sheet #bottomSheet class="d-md-none flex-grow-1">
       @if(selectedSpot()) {
       <div class="spot-preview-container">
+        @if(selectedChallenge()) {
+        <app-challenge-detail
+          [(challenge)]="selectedChallenge"
+          [(isEditing)]="isEditing"
+        ></app-challenge-detail>
+        } @else {
         <app-spot-details
           @fadeInOut
           #spotDetail
           [spot]="selectedSpot()"
+          [(challenge)]="selectedChallenge"
           [border]="false"
           [dismissable]="true"
           [infoOnly]="false"
@@ -76,7 +91,8 @@
           (addBoundsClick)="spotMap.addBounds()"
           (focusClick)="spotMap.focusSpot(selectedSpot()!)"
           (saveClick)="spotMap.saveSpot($event)"
-        ></app-spot-details>
+        ></app-spot-details
+        >}
       </div>
       } @else {
       <div class="px-3">

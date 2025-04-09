@@ -3,6 +3,10 @@ import { LocaleMap } from "../models/Interfaces";
 import { MediaSchema } from "../schemas/Media";
 import { SpotPreviewData } from "./SpotPreviewData";
 import { UserReferenceSchema } from "./UserSchema";
+import {
+  ChallengeLabel,
+  ChallengeParticipantType,
+} from "./SpotChallengeLabels";
 
 type SpotData = Partial<SpotPreviewData> & {
   name: string; // english name
@@ -18,16 +22,16 @@ interface PostData {
 export interface SpotChallengeSchema {
   spot: SpotData;
   name: LocaleMap;
-  media: MediaSchema;
+  media?: MediaSchema;
+  description?: LocaleMap;
   user: UserReferenceSchema;
   createdAt: Date;
   location?: GeoPoint;
   top_posts?: PostData[];
   num_posts?: number;
   is_completed?: boolean;
-  description?: LocaleMap;
-  label?: string;
-  participants?: "solo" | "pair" | "group";
+  label?: ChallengeLabel;
+  participant_type?: ChallengeParticipantType;
   is_water_challenge?: boolean;
   is_beginner_friendly?: boolean;
 }

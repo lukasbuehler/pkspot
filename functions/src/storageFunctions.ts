@@ -32,20 +32,54 @@ async function _getFrameFromVideo(
 async function _compressVideo(videoPath: string): Promise<string> {
   const compressedVideoPath = join(os.tmpdir(), `comp_${basename(videoPath)}`);
 
-  await new Promise<void>((resolve, reject) => {
-    ffmpeg(videoPath)
-      .output(compressedVideoPath)
-      .videoCodec("libx265") // Use libx265 for better compression
-      .outputOptions(["-crf 26", "-preset fast", "-tag:v hvc1"]) // Adjust CRF for quality vs size tradeoff
-      .audioCodec("aac")
-      .audioBitrate("128k")
-      .size("?x720")
-      .on("end", () => resolve())
-      .on("error", reject)
-      .run();
-  });
+  return new Promise<string>((resolve, reject) => {
+    ffmpeg.ffprobe(videoPath, (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
 
-  return compressedVideoPath;
+      const videoStream = data.streams.find(
+        (stream) => stream.codec_type === "video"
+      );
+      if (!videoStream) {
+        reject(new Error("No video stream found"));
+        return;
+      }
+
+      const width = videoStream.width;
+      const height = videoStream.height;
+
+      if (!width || !height) {
+        reject(new Error("Couldn't get video dimensions"));
+        return;
+      }
+
+      let size = "?x720";
+      if (height > width) {
+        size = "720x?";
+      }
+
+      ffmpeg(videoPath)
+        .output(compressedVideoPath)
+        .videoCodec("libx265") // Use libx265 for better compression
+        .outputOptions([
+          "-crf 24",
+          "-preset slow",
+          "-tag:v hvc1",
+          "-loglevel debug",
+        ]) // Adjust CRF for quality vs size tradeoff
+        .audioCodec("aac")
+        .audioBitrate("128k")
+        .size(size)
+        .on("end", () => resolve(compressedVideoPath))
+        .on("error", (err) => {
+          console.error("FFmpeg error:", err); // Log the error
+          reject(err);
+        })
+        .run();
+    });
+  });
 }
 
 export const processVideoUpload = onObjectFinalized(

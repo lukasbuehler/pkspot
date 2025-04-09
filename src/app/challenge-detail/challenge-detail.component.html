@@ -1,26 +1,25 @@
-<div class="p-3">
-  @if(!isEditing()) {
+<div class="px-3">
+  @if(challenge()) {
   <div class="d-flex flex-column gap-2">
-    @if(challenge()) {
+    <div class="pb-3">
+      <button mat-button (click)="backToSpot()">
+        <mat-icon>arrow_back_ios</mat-icon>
+        <span class="d-flex flex-row gap-2 align-items-center">
+          Lindenhof
+          <span i18n class="mat-label-small px-1 border rounded me-1"
+            >Spot</span
+          >
+        </span>
+      </button>
+    </div>
+    @if(!isEditing()) {
     <div class="d-flex flex-column pb-2">
-      <div class="pb-3">
-        <button mat-button (click)="share()">
-          <mat-icon>arrow_back_ios</mat-icon>
-          <span class="d-flex flex-row gap-2 align-items-center">
-            Lindenhof
-            <span i18n class="mat-label-small px-1 border rounded me-1"
-              >Spot</span
-            >
-          </span>
-        </button>
-      </div>
-
       <div
         class="d-flex flex-row justify-content-between align-items-center pb-2"
       >
         <div class="d-flex flex-row gap-3 align-items-center">
           <h3 class="mat-title-large mb-0">
-            {{ challengeName() }}
+            {{ challenge()?.name() }}
           </h3>
           <span i18n class="mat-label-small px-1 border rounded me-1"
             >Challenge</span
@@ -34,20 +33,26 @@
       <mat-chip-set
         class="d-flex flex-row gap-2 w-100 justify-content-start align-items-center"
       >
+        @if(challenge()!.label) {
         <mat-chip>
-          <mat-icon matChipAvatar>psychology</mat-icon>
-          Sketchy
+          <mat-icon matChipAvatar>{{
+            challengeLabelIcons[challenge()!.label!]
+          }}</mat-icon>
+          {{ challengeLabelNames[challenge()!.label!] }}
         </mat-chip>
+        } @if(challenge()!.participantType) {
         <mat-chip>
-          <mat-icon matChipAvatar>person</mat-icon>
-          Solo
+          <mat-icon matChipAvatar>{{
+            challengeParticipantTypeIcons[challenge()!.participantType!]
+          }}</mat-icon>
+          {{ challengeParticipantTypeNames[challenge()!.participantType!] }}
         </mat-chip>
-        @if(challenge()!.is_beginner_friendly || true) {
+        } @if(challenge()!.isBeginnerFriendly) {
         <mat-chip>
           <mat-icon matChipAvatar>interests</mat-icon>
           <span i18n>Beginner friendly</span>
         </mat-chip>
-        } @if(challenge()!.is_water_challenge || true) {
+        } @if(challenge()!.isWaterChallenge) {
         <mat-chip>
           <mat-icon matChipAvatar>water</mat-icon>
           <span i18n>Water challenge</span>
@@ -60,24 +65,24 @@
     <div class="pb-4">
       <!-- <h3 class="mat-title-small" i18n>Media</h3> -->
       <div class="media-container">
-        @if(challengeMedia()?.type === 'image') {
+        @if(challenge()?.media()?.type === 'image') {
         <img
           class="media-image"
-          [src]="challengeMedia()!.getPreviewImageSrc()"
+          [src]="challenge()!.media()!.getPreviewImageSrc()"
         />
-        } @if(challengeMedia()?.type === 'video') {
+        } @if(challenge()?.media()?.type === 'video') {
         <app-video [media]="videoMedia()"></app-video>
         }
       </div>
     </div>
 
     <!-- Description -->
-    @if(challenge()!.description) {
+    @if(hasDescription()) {
     <div class="pb-3">
       <app-locale-map-view
         title="Description"
         title-i18n="Challenge description label"
-        [localeMap]="challenge()!.description"
+        [localeMap]="challenge()!.descriptionLocaleMap()"
       ></app-locale-map-view>
     </div>
     }
@@ -110,81 +115,94 @@
     } 
   </div>-->
 
-    }
-  </div>
-  } @else {
-  <h2 mat-dialog-title i18n>Add new challenge</h2>
-  <div>
-    @if(challenge()) {
-    <!-- Spot -->
-    <div class="pb-4">
-      <h3 class="mat-title-medium" i18n>Spot</h3>
-      <div class="d-flex flex-row gap-2 w-100 align-items-center">
-        @if(spot()) {
-        <app-spot-preview-card
-          class="flex-grow-1"
-          [spot]="spot()"
-          [isCompact]="true"
-        ></app-spot-preview-card
-        >} @else {
-        <p>select spot</p>
-        }
-        <button mat-icon-button><mat-icon>edit</mat-icon></button>
+    <mat-divider></mat-divider>
+
+    <div class="d-flex flex-row gap-2 align-items-center py-3">
+      <button
+        mat-stroked-button
+        (click)="isEditing.set(true)"
+        class="flex-grow-1"
+      >
+        <mat-icon>edit</mat-icon><span i18n>Edit</span></button
+      ><button mat-stroked-button disabled class="flex-grow-1">
+        <mat-icon>report</mat-icon><span i18n>Report</span>
+      </button>
+    </div>
+
+    } @else {
+    <div>
+      @if(challenge()) {
+      <!-- Spot -->
+      <div class="pb-4">
+        <h3 class="mat-title-medium" i18n>Spot</h3>
+        <div class="d-flex flex-row gap-2 w-100 align-items-center">
+          @if(spot()) {
+          <app-spot-preview-card
+            class="flex-grow-1"
+            [spot]="spot()"
+            [isCompact]="true"
+          ></app-spot-preview-card
+          >} @else {
+          <p>select spot</p>
+          }
+          <button mat-icon-button><mat-icon>edit</mat-icon></button>
+        </div>
+      </div>
+
+      <!-- Name -->
+      <div class="pb-4">
+        <h3 class="mat-title-medium" i18n>Challenge name</h3>
+
+        <app-locale-map-edit-field
+          cdkFocusInitial
+          [(localeMap)]="challenge()!.nameLocaleMap"
+        ></app-locale-map-edit-field>
+      </div>
+
+      <!-- Media -->
+      <div class="pb-4">
+        <h3 class="mat-title-medium" i18n>Media</h3>
+        <app-media-upload
+          class="d-flex"
+          [allowedMimeTypes]="[
+            'image/png',
+            'image/jpeg',
+            'image/jpg',
+            'video/mp4'
+          ]"
+          [multipleAllowed]="false"
+          [storageFolder]="challengeStorageFolder"
+          (newMedia)="onNewMedia($event)"
+        ></app-media-upload>
+      </div>
+
+      <!-- Description -->
+      <div class="pb-4">
+        <h3 class="mat-title-medium" i18n>Description</h3>
+        <app-locale-map-edit-field
+          [(localeMap)]="challenge()!.descriptionLocaleMap"
+          [isTextArea]="true"
+        ></app-locale-map-edit-field>
+      </div>
+      }
+      <div class="d-flex justify-content-between py-3">
+        <button mat-button (click)="cancelEdit()">
+          @if(!hasChanges) { <span i18n="cancel button label">Cancel</span> }
+          @else {
+          <span i18n>Discard</span>
+          }
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          i18n="report button label|"
+          (click)="saveChallenge()"
+        >
+          Save
+        </button>
       </div>
     </div>
-
-    <!-- Name -->
-    <div class="pb-4">
-      <h3 class="mat-title-medium" i18n>Challenge name</h3>
-
-      <app-locale-map-edit-field
-        cdkFocusInitial
-        [(localeMap)]="challenge()!.name"
-      ></app-locale-map-edit-field>
-    </div>
-
-    <!-- Media -->
-    <div class="pb-4">
-      <h3 class="mat-title-medium" i18n>Media</h3>
-      <app-media-upload
-        class="d-flex"
-        [allowedMimeTypes]="[
-          'image/png',
-          'image/jpeg',
-          'image/jpg',
-          'video/mp4'
-        ]"
-        [multipleAllowed]="false"
-        [storageFolder]="challengeStorageFolder"
-        (newMedia)="onNewMedia($event)"
-      ></app-media-upload>
-    </div>
-
-    <!-- Description -->
-    <div class="pb-4">
-      <h3 class="mat-title-medium" i18n>Description</h3>
-      <app-locale-map-edit-field
-        [(localeMap)]="challenge()!.description"
-        [isTextArea]="true"
-      ></app-locale-map-edit-field>
-    </div>
     }
-    <div class="d-flex justify-content-between pt-3">
-      <button mat-button (click)="onNoClick()">
-        @if(!hasChanges) { <span i18n="cancel button label">Cancel</span> }
-        @else {
-        <span i18n>Discard</span>
-        }
-      </button>
-      <button
-        mat-flat-button
-        color="primary"
-        i18n="report button label|"
-        (click)="saveChallenge()"
-      >
-        Save
-      </button>
-    </div>
   </div>
   }
 </div>

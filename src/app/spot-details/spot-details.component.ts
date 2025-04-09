@@ -9,7 +9,6 @@ import {
   ElementRef,
   HostBinding,
   LOCALE_ID,
-  Inject,
   AfterViewInit,
   Pipe,
   PipeTransform,
@@ -105,7 +104,10 @@ import { SpotChallengeSchema } from "../../db/schemas/SpotChallengeSchema";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
-import { SpotChallenge } from "../../db/models/SpotChallenge";
+import {
+  LocalSpotChallenge,
+  SpotChallenge,
+} from "../../db/models/SpotChallenge";
 import { AnyMedia, ExternalImage, StorageImage } from "../../db/models/Media";
 import { languageCodes } from "../../scripts/Languages";
 import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
@@ -184,10 +186,13 @@ export class AsRatingKeyPipe implements PipeTransform {
 export class SpotDetailsComponent
   implements OnInit, AfterViewInit, OnChanges, OnDestroy
 {
+  public locale: LocaleCode = inject(LOCALE_ID);
   private _challengeService = inject(SpotChallengesService);
   private _structuredDataService = inject(StructuredDataService);
 
   spot = model<Spot | LocalSpot | null>(null);
+  challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
+  isEditing = model<boolean>(false);
   isLocalSpot = computed(
     () => !(this.spot() instanceof Spot) && this.spot() !== null
   );
@@ -211,10 +216,7 @@ export class SpotDetailsComponent
   @Input() border: boolean = false;
   @Input() clickable: boolean = false;
   @Input() editable: boolean = false;
-  @Input() isEditing: boolean = false;
 
-  @Output()
-  isEditingChange: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() addBoundsClick: EventEmitter<void> = new EventEmitter<void>();
   @Output() focusClick: EventEmitter<void> = new EventEmitter<void>();
@@ -313,7 +315,6 @@ export class SpotDetailsComponent
   }
 
   constructor(
-    @Inject(LOCALE_ID) public locale: LocaleCode,
     public authenticationService: AuthenticationService,
     public dialog: MatDialog,
     private _locationStrategy: LocationStrategy,
@@ -411,8 +412,7 @@ export class SpotDetailsComponent
 
   dismissed() {
     if (this.dismissable) {
-      this.isEditing = false;
-      this.isEditingChange.emit(false);
+      this.isEditing.set(false);
 
       this.dismiss.emit(true);
     }
@@ -420,8 +420,7 @@ export class SpotDetailsComponent
 
   editButtonClick() {
     if (this.editable && this.authenticationService.isSignedIn) {
-      this.isEditing = true;
-      this.isEditingChange.emit(true);
+      this.isEditing.set(true);
     }
   }
   saveButtonClick() {
@@ -431,8 +430,7 @@ export class SpotDetailsComponent
   }
   discardButtonClick() {
     this.discardClick.emit();
-    this.isEditing = false;
-    this.isEditingChange.emit(false);
+    this.isEditing.set(false);
 
     if (this.isNewSpot) {
       // close the compact view as well
@@ -455,9 +453,8 @@ export class SpotDetailsComponent
     if (this.spot() instanceof LocalSpot) {
       console.error("the spot needs to be saved first before adding bounds");
     }
-    if (!this.isEditing) {
-      this.isEditing = true;
-      this.isEditingChange.emit(true);
+    if (!this.isEditing()) {
+      this.isEditing.set(true);
     }
     this.addBoundsClick.emit();
   }
@@ -763,20 +760,6 @@ export class SpotDetailsComponent
       });
   }
 
-  openChallengeDialog(challengeId: string) {
-    const spot = this.spot();
-
-    if (spot && spot instanceof Spot) {
-      this._challengeService
-        .getSpotChallenge(spot.id, challengeId)
-        .then((challenge) => {
-          const dialogRef = this.dialog.open(SpotReportDialogComponent, {
-            data: challenge,
-          });
-        });
-    }
-  }
-
   openChallenge(challengeId: string) {
     const spot = this.spot();
     if (!spot) {
@@ -789,13 +772,9 @@ export class SpotDetailsComponent
 
     // get challenge
     this._challengeService
-      .getSpotChallenge(spot.id, challengeId)
+      .getSpotChallenge(spot, challengeId)
       .then((challenge) => {
-        this.dialog.open(ChallengeDetailComponent, {
-          data: { isEditing: false, challenge: challenge },
-          width: "600px",
-          maxWidth: "95vw",
-        });
+        this.challenge.set(challenge);
       });
   }
 
@@ -809,7 +788,7 @@ export class SpotDetailsComponent
     }
 
     if (spot && spot instanceof Spot) {
-      const newChallenge: Partial<SpotChallengeSchema> = {
+      const newChallengeData: SpotChallengeSchema = {
         name: {
           [this.locale]: {
             text: "",
@@ -825,27 +804,15 @@ export class SpotDetailsComponent
             undefined,
         },
         is_completed: false,
+        createdAt: new Date(),
       };
-      const dialogRef = this.dialog.open(ChallengeDetailComponent, {
-        data: { isEditing: true, challenge: newChallenge },
-        width: "600px",
-        maxWidth: "95vw",
-      });
-      dialogRef
-        .afterClosed()
-        .subscribe(
-          (result: {
-            challenge: Partial<SpotChallengeSchema>;
-            spot: Spot | LocalSpot | SpotPreviewData | null;
-          }) => {
-            if (result?.challenge) {
-              const challenge: SpotChallengeSchema =
-                result.challenge as SpotChallengeSchema;
-              this._challengeService.addChallenge(spot.id, challenge);
-              console.log("Challenge added", challenge);
-            }
-          }
-        );
+      const newChallenge: LocalSpotChallenge = new LocalSpotChallenge(
+        newChallengeData,
+        spot,
+        this.locale
+      );
+      this.challenge.set(newChallenge);
+      this.isEditing.set(true);
     }
   }
 
