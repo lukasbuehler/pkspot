@@ -7,7 +7,6 @@ import {
   LOCALE_ID,
   model,
   signal,
-  WritableSignal,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -18,14 +17,8 @@ import { MediaUpload } from "../media-upload/media-upload.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { SpotId } from "../../db/schemas/SpotSchema";
 import { MatIconModule } from "@angular/material/icon";
-import { StorageBucket } from "../services/firebase/storage.service";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from "@angular/forms";
+
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { AuthenticationService } from "../services/firebase/authentication.service";
@@ -51,7 +44,7 @@ import {
   SpotChallenge,
 } from "../../db/models/SpotChallenge";
 import { Spot } from "../../db/models/Spot";
-import { MediaSchema } from "../../db/schemas/Media";
+import { MediaSchema, StorageBucket } from "../../db/schemas/Media";
 import { MatDividerModule } from "@angular/material/divider";
 
 @Component({

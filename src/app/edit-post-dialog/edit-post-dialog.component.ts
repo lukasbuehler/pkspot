@@ -20,10 +20,7 @@ import { Post } from "../../db/models/Post";
 import { Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
 
-import {
-  StorageService,
-  StorageBucket,
-} from "../services/firebase/storage.service";
+import { StorageService } from "../services/firebase/storage.service";
 import { PostsService } from "../services/firebase/firestore/posts.service";
 
 import {
@@ -52,6 +49,7 @@ import {
   MatError,
 } from "@angular/material/form-field";
 import { getValueFromEventTarget } from "../../scripts/Helpers";
+import { StorageBucket } from "../../db/schemas/Media";
 
 export interface PostDialogData {
   isCreating: string;

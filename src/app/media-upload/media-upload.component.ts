@@ -24,11 +24,9 @@ import { MatIcon } from "@angular/material/icon";
 import { MatMiniFabButton } from "@angular/material/button";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import {
-  StorageBucket,
-  StorageService,
-} from "../services/firebase/storage.service";
+import { StorageService } from "../services/firebase/storage.service";
 import { MediaType } from "../../db/models/Interfaces";
+import { StorageBucket } from "../../db/schemas/Media";
 
 export interface UploadMedia {
   file: File;

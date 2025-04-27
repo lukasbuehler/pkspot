@@ -30,10 +30,7 @@ import {
 import { LocalSpot, Spot } from "../../db/models/Spot";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { Post } from "../../db/models/Post";
-import {
-  StorageService,
-  StorageBucket,
-} from "../services/firebase/storage.service";
+import { StorageService } from "../services/firebase/storage.service";
 import { Observable, Subscription } from "rxjs";
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import { MediaType, LocaleCode, LocaleMap } from "../../db/models/Interfaces";
@@ -114,6 +111,7 @@ import { SelectLanguageDialogComponent } from "../select-language-dialog/select-
 import { locale } from "core-js";
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
+import { StorageBucket } from "../../db/schemas/Media";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 

@@ -145,25 +145,12 @@ export class LocalSpot {
       return Object.keys(this.descriptions() ?? {}).length;
     });
 
-    const userMediaArr:
-      | (StorageImage | StorageVideo | ExternalImage)[]
-      | undefined =
-      data?.media
-        ?.map((media) => {
-          if (media.type === MediaType.Image) {
-            if (media.isInStorage ?? true) {
-              return new StorageImage(media.src);
-            } else {
-              return new ExternalImage(media.src);
-            }
-          } else if (media.type === MediaType.Video) {
-            return new StorageVideo(media.src);
-          } else {
-            console.error("Unknown media type", media.type);
-            return undefined;
-          }
-        })
-        .filter((media) => media !== undefined) ?? [];
+    const userMediaArr: AnyMedia[] | undefined = data.media
+      ? data.media.map((mediaSchema) =>
+          makeAnyMediaFromMediaSchema(mediaSchema)
+        )
+      : undefined;
+
     this.userMedia = signal(userMediaArr ?? []);
 
     // initilize media signal with streetview

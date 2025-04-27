@@ -16,6 +16,8 @@ export class MetaInfoService {
   }
 
   public setMetaTags(title: string, image_src: string, description: string) {
+    image_src = image_src.trim();
+
     // Title
     this.titleService.setTitle(title);
     this.meta.updateTag({

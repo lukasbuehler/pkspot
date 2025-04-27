@@ -7,13 +7,7 @@ import { deleteObject, ref } from "@firebase/storage";
 import { uploadBytesResumable } from "@firebase/storage";
 import { AuthenticationService } from "./authentication.service";
 import { StorageMedia } from "../../../db/models/Media";
-
-export enum StorageBucket {
-  PostMedia = "post_media",
-  ProfilePictures = "profile_pictures",
-  SpotPictures = "spot_pictures",
-  Challenges = "challenges",
-}
+import { StorageBucket } from "../../../db/schemas/Media";
 
 @Injectable({
   providedIn: "root",

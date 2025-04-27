@@ -9,6 +9,9 @@
     "strict": true,
     "target": "es2022"
   },
+  "angularCompilerOptions": {
+    "strictTemplates": true
+  },
   "compileOnSave": true,
   "include": ["src"]
 }

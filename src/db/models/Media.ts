@@ -1,5 +1,4 @@
-import { StorageBucket } from "../../app/services/firebase/storage.service";
-import { MediaSchema } from "../schemas/Media";
+import { MediaSchema, StorageBucket } from "../schemas/Media";
 import { MediaType } from "./Interfaces";
 
 /**

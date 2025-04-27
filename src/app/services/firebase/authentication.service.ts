@@ -1,8 +1,6 @@
 import { Injectable } from "@angular/core";
 import {
-  Auth,
   GoogleAuthProvider,
-  UserCredential,
   getAuth,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -12,7 +10,7 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from "@angular/fire/auth";
-import { BehaviorSubject, Subject, firstValueFrom } from "rxjs";
+import { BehaviorSubject, firstValueFrom } from "rxjs";
 import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
 import { UserSchema } from "../../../db/schemas/UserSchema";

@@ -8,10 +8,7 @@ import {
 } from "@angular/core";
 import { User } from "../../db/models/User";
 import { AuthenticationService } from "../services/firebase/authentication.service";
-import {
-  StorageBucket,
-  StorageService,
-} from "../services/firebase/storage.service";
+import { StorageService } from "../services/firebase/storage.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Timestamp } from "@firebase/firestore";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";

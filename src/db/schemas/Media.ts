@@ -7,3 +7,10 @@ export interface MediaSchema {
   isInStorage: boolean;
   origin?: "user" | "streetview" | "other";
 }
+
+export enum StorageBucket {
+  PostMedia = "post_media",
+  ProfilePictures = "profile_pictures",
+  SpotPictures = "spot_pictures",
+  Challenges = "challenges",
+}

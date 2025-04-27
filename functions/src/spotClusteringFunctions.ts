@@ -85,6 +85,7 @@ async function _clusterAllSpots() {
             isIconic: spot.is_iconic ?? false,
             imageSrc: getSpotPreviewImage(spot),
             locality: getSpotLocalityString(spot),
+            location: spot.location,
           };
 
           if (spot.rating) {
