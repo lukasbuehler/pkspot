@@ -47,6 +47,8 @@ import { Spot } from "../../db/models/Spot";
 import { MediaSchema, StorageBucket } from "../../db/schemas/Media";
 import { MatDividerModule } from "@angular/material/divider";
 
+declare function plausible(eventName: string, options?: { props: any }): void;
+
 @Component({
   selector: "app-challenge-detail",
   imports: [
@@ -65,6 +67,7 @@ import { MatDividerModule } from "@angular/material/divider";
     RouterLink,
     MatDividerModule,
   ],
+  animations: [],
   templateUrl: "./challenge-detail.component.html",
   styleUrl: "./challenge-detail.component.scss",
 })
@@ -243,5 +246,60 @@ export class ChallengeDetailComponent {
       this.hasChanges = false;
       this.isEditing.set(false);
     });
+  }
+
+  async shareChallenge() {
+    const spot = this.spot();
+    const challenge = this.challenge();
+
+    if (!spot) {
+      console.error("No spot found to share");
+      return;
+    }
+    if (!challenge) {
+      console.error("No challenge found to share");
+      return;
+    }
+    if (!(challenge instanceof SpotChallenge)) {
+      console.error("Challenge is not a SpotChallenge");
+      return;
+    }
+
+    const url = "https://pkspot.app";
+    // TODO use slug instead of id if available
+
+    const link = url + "/map/" + spot.id + "/c/" + challenge.id;
+
+    if (navigator["share"]) {
+      try {
+        const shareData = {
+          title: "Challenge: " + spot.name(),
+          text: `PK Spot: ${spot.name()}`,
+          url: link,
+        };
+
+        await navigator["share"](shareData);
+      } catch (err) {
+        console.error("Couldn't share this challenge");
+        console.error(err);
+      }
+    } else {
+      navigator.clipboard.writeText(
+        `${spot.name()} Challenge - PK Spot \n${link}`
+      );
+      this._snackbar.open(
+        $localize`Link to challenge copied to clipboard`,
+        "Dismiss",
+        {
+          duration: 3000,
+          horizontalPosition: "center",
+          verticalPosition: "top",
+        }
+      );
+    }
+
+    if (typeof plausible !== "undefined") {
+      plausible("Share Challenge", { props: { spotId: spot.id } });
+    }
   }
 }

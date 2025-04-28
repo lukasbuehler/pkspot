@@ -94,12 +94,28 @@ import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.c
   animations: [
     trigger("fadeInOut", [
       transition(":enter", [
-        style({ opacity: 0, scale: 0.8 }),
+        style({ opacity: 0, scale: 1 }),
         animate("0.3s ease-out", style({ opacity: 1, scale: 1 })),
       ]),
       transition(":leave", [
-        style({ opacity: 1, scale: 1 }),
-        animate("0.3s ease-in", style({ opacity: 0, scale: 0.8 })),
+        style({ opacity: 1, scale: 1, position: "absolute" }),
+        animate("0.3s ease-in", style({ opacity: 0, scale: 1 })),
+      ]),
+    ]),
+    trigger("slideInOut", [
+      transition(":enter", [
+        style({ opacity: 0, scale: 1, translate: "100%" }),
+        animate(
+          "0.3s ease-in-out",
+          style({ opacity: 1, scale: 1, translate: "0px" })
+        ),
+      ]),
+      transition(":leave", [
+        style({ opacity: 1, scale: 1, translate: "0px", position: "absolute" }),
+        animate(
+          "0.3s ease-in-out",
+          style({ opacity: 0, scale: 1, translate: "100%" })
+        ),
       ]),
     ]),
   ],

@@ -34,6 +34,8 @@
     <div class="info-panel d-none d-md-block spot-preview-container p-1 pt-3">
       @if(selectedChallenge()) {
       <app-challenge-detail
+        @slideInOut
+        class="d-block"
         [(challenge)]="selectedChallenge"
         [(isEditing)]="isEditing"
       ></app-challenge-detail>
@@ -41,6 +43,7 @@
       <app-spot-details
         @fadeInOut
         #spotDetail
+        class="d-block"
         [spot]="selectedSpot()"
         [(challenge)]="selectedChallenge"
         [border]="false"

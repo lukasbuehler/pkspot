@@ -541,7 +541,7 @@ export class SpotDetailsComponent
   async shareSpot() {
     const spot = this.spot();
     if (!(spot instanceof Spot)) {
-      console.error("Cannot share a spot that hasn't been saved yet");
+      console.error($localize`Cannot share a spot that hasn't been saved yet`);
       return;
     }
 
@@ -566,12 +566,16 @@ export class SpotDetailsComponent
         console.error(err);
       }
     } else {
-      navigator.clipboard.writeText(`${spot.name()} - PK Spot \n${link}`);
-      this._snackbar.open("Link to spot copied to clipboard", "Dismiss", {
-        duration: 3000,
-        horizontalPosition: "center",
-        verticalPosition: "top",
-      });
+      navigator.clipboard.writeText(`${spot.name()} Spot - PK Spot \n${link}`);
+      this._snackbar.open(
+        $localize`Link to spot copied to clipboard`,
+        "Dismiss",
+        {
+          duration: 3000,
+          horizontalPosition: "center",
+          verticalPosition: "top",
+        }
+      );
     }
 
     if (typeof plausible !== "undefined") {
