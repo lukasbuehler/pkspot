@@ -14,6 +14,9 @@ export const ChallengeLabelIcons: Record<ChallengeLabel, string> = {
   core: "adjust",
 };
 
+// Get all possible values of ChallengeLabel as an array
+export const ChallengeLabelValues = Object.values(ChallengeLabel);
+
 export enum ChallengeParticipantType {
   solo = "solo",
   pair = "pair",
@@ -28,3 +31,8 @@ export const ChallengeParticipantTypeIcons: Record<
   pair: "people",
   group: "groups",
 };
+
+// Get all possible values of ChallengeParticipantType as an array
+export const ChallengeParticipantTypeValues = Object.values(
+  ChallengeParticipantType
+);

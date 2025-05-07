@@ -43,7 +43,10 @@ export class SpotsService {
   }
 
   getSpotById(spotId: SpotId, locale: LocaleCode): Promise<Spot> {
-    return getDoc(doc(this.firestore, "spots", spotId)).then((snap) => {
+    console.log(spotId);
+    const spotIdString: string = spotId as string;
+
+    return getDoc(doc(this.firestore, "spots", spotIdString)).then((snap) => {
       if (snap.exists()) {
         const data = snap.data() as SpotSchema;
         return new Spot(snap.id as SpotId, data, locale);

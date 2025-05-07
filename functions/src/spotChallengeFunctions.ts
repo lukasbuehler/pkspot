@@ -17,8 +17,12 @@ export const setTopChallengesForSpotOnWrite = onDocumentWritten(
           .filter((doc) => {
             // only keep if the release date is in the past if it has one
             const data = doc.data();
-            const releaseDate: Timestamp | null = data.relase_date ?? null;
-            return !releaseDate || releaseDate.toMillis() < Date.now();
+            const releaseDate: Timestamp | null = data.release_date ?? null;
+            const isReleased =
+              !releaseDate || Date.now() >= releaseDate.toDate().getTime();
+            const hasMedia = !!data.media;
+
+            return isReleased && hasMedia;
           })
           .sort((docA, docB) => {
             const a = docA.data();

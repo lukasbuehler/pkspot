@@ -27,6 +27,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { StorageService } from "../services/firebase/storage.service";
 import { MediaType } from "../../db/models/Interfaces";
 import { StorageBucket } from "../../db/schemas/Media";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 
 export interface UploadMedia {
   file: File;
@@ -52,9 +53,12 @@ export interface UploadMedia {
     MatError,
     MatProgressBarModule,
     MatProgressSpinnerModule,
+    MatSnackBarModule,
   ],
 })
 export class MediaUpload implements OnInit, ControlValueAccessor {
+  private _snackbar: MatSnackBar = inject(MatSnackBar);
+
   @Input() required: boolean = false;
   @Input() multipleAllowed: boolean = false;
   @Input() storageFolder: StorageBucket | null = null;
@@ -135,6 +139,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
             return;
           }
         } else {
+          this._snackbar.open($localize`File mimetype is not allowed!`);
           console.log(
             "A file was selected, but its mimetype is not allowed. Please select a different file.\n" +
               "Mimetype of selected file is '" +
@@ -225,6 +230,13 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         },
         (error) => {
           console.error("Error uploading media: ", error);
+          this._snackbar.open(
+            $localize`Error uploading media!`,
+            $localize`OK`,
+            {
+              duration: 5000,
+            }
+          );
         }
       );
   }

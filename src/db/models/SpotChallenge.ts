@@ -134,7 +134,7 @@ export const ChallengeLabelNames: Record<ChallengeLabel, string> = {
   core: $localize`Core`,
 };
 
-export const ChallengeTooltips: Record<ChallengeLabel, string> = {
+export const ChallengeLabelTooltips: Record<ChallengeLabel, string> = {
   sketchy: $localize`This is a sketchy or mental challenge that requires physical and emotional control`,
   creative: $localize`The goal of this challenge is to be creative. This challenge may also be more open to interpretation.`,
   techy: $localize`This techy challenge requires great precision and control.`,

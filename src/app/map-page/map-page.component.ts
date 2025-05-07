@@ -86,6 +86,7 @@ import {
   SpotChallenge,
 } from "../../db/models/SpotChallenge";
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
+import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 
 @Component({
   selector: "app-map-page",
@@ -173,6 +174,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     public storageService: StorageService,
     private metaInfoService: MetaInfoService,
     private _spotsService: SpotsService,
+    private _challengesService: SpotChallengesService,
     private _searchService: SearchService,
     private _slugsService: SlugsService,
     private router: Router,
@@ -264,6 +266,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log("map page init");
     this.pendingTasks.run(async () => {
       const spotIdOrSlug = this.activatedRoute.snapshot.paramMap.get("spot");
+      const challengeId =
+        this.activatedRoute.snapshot.paramMap.get("challenge");
 
       console.log("spotIdOrSlug", spotIdOrSlug);
 
@@ -273,7 +277,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log("spotId", spotId);
 
         if (spotId) {
-          await this.loadSpotById(spotId as SpotId);
+          const spot = await this.loadSpotById(spotId as SpotId);
+
+          if (spot && challengeId) {
+            await this.loadChallengeById(spot, challengeId);
+          }
         }
       }
     });
@@ -346,13 +354,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  async loadSpotById(spotId: SpotId) {
+  async loadSpotById(spotId: SpotId): Promise<Spot> {
     console.debug("loading spot by id", spotId);
     const spot: Spot = await this._spotsService.getSpotByIdHttp(
       spotId,
       this.locale
     );
     this.selectSpot(spot);
+
+    return spot;
+  }
+
+  async loadChallengeById(
+    spot: Spot,
+    challengeId: string
+  ): Promise<SpotChallenge> {
+    console.debug("loading challenge by id", challengeId);
+
+    const challenge: SpotChallenge =
+      await this._challengesService.getSpotChallenge(spot, challengeId);
+    this.selectedChallenge.set(challenge);
+
+    return challenge;
   }
 
   updateMapURL() {

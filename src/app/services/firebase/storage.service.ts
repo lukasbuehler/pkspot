@@ -40,7 +40,6 @@ export class StorageService {
       this.storage,
       `${location}/${uploadFileName}${ending ? "." + ending : ""}`
     );
-
     // return uploadBytes(uploadRef, blob).then((snapshot) => {
     //   return getDownloadURL(snapshot.ref);
     // });

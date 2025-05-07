@@ -5,21 +5,23 @@ import * as os from "os";
 import * as fs from "fs";
 import * as ffmpeg from "fluent-ffmpeg";
 import * as ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
+import { v4 as uuidv4 } from "uuid"; // <-- add this import
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 async function _getFrameFromVideo(
   videoPath: string,
-  time: number
+  time: number,
+  uuid: string // <-- add uuid param
 ): Promise<string> {
-  const thumbnailPath = join(os.tmpdir(), `thumb_${basename(videoPath)}.png`);
+  const thumbnailPath = join(os.tmpdir(), `thumb_${uuid}.png`); // <-- use uuid
 
   await new Promise<void>((resolve, reject) => {
     ffmpeg(videoPath)
       .outputOptions("-pred mixed")
       .screenshots({
         timestamps: [time],
-        filename: basename(thumbnailPath),
+        filename: `thumb_${uuid}.png`, // <-- use uuid
         folder: os.tmpdir(),
       })
       .on("end", () => resolve())
@@ -29,8 +31,12 @@ async function _getFrameFromVideo(
   return thumbnailPath;
 }
 
-async function _compressVideo(videoPath: string): Promise<string> {
-  const compressedVideoPath = join(os.tmpdir(), `comp_${basename(videoPath)}`);
+async function _compressVideo(
+  videoPath: string,
+  uuid: string
+): Promise<string> {
+  // <-- add uuid param
+  const compressedVideoPath = join(os.tmpdir(), `comp_${uuid}.mp4`); // <-- always .mp4 and uuid
 
   return new Promise<string>((resolve, reject) => {
     ffmpeg.ffprobe(videoPath, (err, data) => {
@@ -62,19 +68,20 @@ async function _compressVideo(videoPath: string): Promise<string> {
 
       ffmpeg(videoPath)
         .output(compressedVideoPath)
-        .videoCodec("libx265") // Use libx265 for better compression
+        .format("mp4") // <-- force mp4 output
+        .videoCodec("libx265")
         .outputOptions([
           "-crf 24",
           "-preset slow",
           "-tag:v hvc1",
           "-loglevel debug",
-        ]) // Adjust CRF for quality vs size tradeoff
+        ])
         .audioCodec("aac")
         .audioBitrate("128k")
         .size(size)
         .on("end", () => resolve(compressedVideoPath))
         .on("error", (err) => {
-          console.error("FFmpeg error:", err); // Log the error
+          console.error("FFmpeg error:", err);
           reject(err);
         })
         .run();
@@ -94,7 +101,6 @@ export const processVideoUpload = onObjectFinalized(
     const fileBucket = event.data.bucket;
     const filePath = event.data.name;
     const fileNameWithExtension = basename(filePath);
-    const fileName = fileNameWithExtension.replace(/\.[^/.]+$/, "");
     const contentType = event.data.contentType;
     const originalMetadata = event.data.metadata;
 
@@ -116,27 +122,34 @@ export const processVideoUpload = onObjectFinalized(
     await bucket.file(filePath).download({ destination: tempVideoPath });
     console.log(`Video downloaded to ${tempVideoPath}`);
 
+    // Generate a uuid for this processing
+    const uuid = uuidv4();
+
     // Compress Video
-    const compressedVideoPath = await _compressVideo(tempVideoPath);
+    const compressedVideoPath = await _compressVideo(tempVideoPath, uuid);
     console.log(`Compressed video created at ${compressedVideoPath}`);
 
     // Generate Thumbnail
-    const thumbnailPath = await _getFrameFromVideo(compressedVideoPath, 1);
+    const thumbnailPath = await _getFrameFromVideo(
+      compressedVideoPath,
+      1,
+      uuid
+    );
     console.log(`Thumbnail generated at ${thumbnailPath}`);
 
-    const compressedVideoFileName = `comp_${fileName}.mp4`;
+    const compressedVideoFileName = `comp_${uuid}.mp4`; // <-- use uuid
     const compressedVideoStoragePath = join(
       dirname(filePath),
       compressedVideoFileName
     );
-    const thumbnailFileName = `thumb_${fileName}.png`;
+    const thumbnailFileName = `thumb_${uuid}.png`; // <-- use uuid
     const thumbnailStoragePath = join(dirname(filePath), thumbnailFileName);
 
     // Upload Compressed Video with access token in metadata
     await bucket.upload(compressedVideoPath, {
       destination: compressedVideoStoragePath,
       metadata: {
-        contentType,
+        contentType: "video/mp4", // <-- always mp4
         metadata: originalMetadata,
       },
     });

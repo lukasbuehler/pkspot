@@ -42,14 +42,27 @@ import {
   ChallengeParticipantTypeNames,
   LocalSpotChallenge,
   SpotChallenge,
+  ChallengeLabelTooltips,
 } from "../../db/models/SpotChallenge";
 import { Spot } from "../../db/models/Spot";
 import { MediaSchema, StorageBucket } from "../../db/schemas/Media";
 import { MatDividerModule } from "@angular/material/divider";
 import {
   ChallengeLabelIcons,
+  ChallengeLabelValues,
   ChallengeParticipantTypeIcons,
+  ChallengeParticipantTypeValues,
 } from "../../db/schemas/SpotChallengeLabels";
+import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import { MatTimepickerModule } from "@angular/material/timepicker";
+import { FormsModule } from "@angular/forms";
+import { provideNativeDateAdapter } from "@angular/material/core";
+import {
+  MatSlideToggleChange,
+  MatSlideToggleModule,
+} from "@angular/material/slide-toggle";
+import { MatSelectModule } from "@angular/material/select";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -70,8 +83,15 @@ declare function plausible(eventName: string, options?: { props: any }): void;
     NgOptimizedImage,
     RouterLink,
     MatDividerModule,
+    MatTooltipModule,
+    MatDatepickerModule,
+    MatTimepickerModule,
+    FormsModule,
+    MatSlideToggleModule,
+    MatSelectModule,
   ],
   animations: [],
+  providers: [provideNativeDateAdapter()],
   templateUrl: "./challenge-detail.component.html",
   styleUrl: "./challenge-detail.component.scss",
 })
@@ -81,10 +101,13 @@ export class ChallengeDetailComponent {
   private _snackbar = inject(MatSnackBar);
   private locale = inject<string>(LOCALE_ID);
 
+  readonly challengeLabels = ChallengeLabelValues;
   readonly challengeLabelNames = ChallengeLabelNames;
   readonly challengeLabelIcons = ChallengeLabelIcons;
+  readonly challengeParticipantTypes = ChallengeParticipantTypeValues;
   readonly challengeParticipantTypeNames = ChallengeParticipantTypeNames;
   readonly challengeParticipantTypeIcons = ChallengeParticipantTypeIcons;
+  readonly challengeLabelTooltips = ChallengeLabelTooltips;
 
   isEditing = model<boolean>(false);
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
@@ -215,9 +238,22 @@ export class ChallengeDetailComponent {
     const spot = this.spot();
     const challenge = this.challenge();
 
+    console.log(challenge);
+
     if (!spot || !challenge) throw new Error("No spot or challenge found!");
 
-    const challengeData = this.challenge()?.getData();
+    if (!challenge.media()) {
+      this._snackbar.open(
+        $localize`Challenge media is required!`,
+        $localize`I'll add media!`,
+        {
+          duration: 5000,
+        }
+      );
+      return;
+    }
+
+    const challengeData = challenge.getData();
 
     if (!challengeData) throw new Error("Could not get challenge Data!");
 
@@ -304,6 +340,21 @@ export class ChallengeDetailComponent {
 
     if (typeof plausible !== "undefined") {
       plausible("Share Challenge", { props: { spotId: spot.id } });
+    }
+  }
+
+  onReleaseDateToggleChange(event: MatSlideToggleChange) {
+    const challenge = this.challenge();
+    if (!challenge) {
+      throw new Error("No challenge found");
+    }
+
+    if (event.checked) {
+      // it was switched on
+      challenge.releaseDate = new Date();
+    } else {
+      // release date was switched off
+      challenge.releaseDate = null;
     }
   }
 }
