@@ -26,9 +26,9 @@
     @if(buttonConfig?.mainButton?.isExtended) {
     {{ buttonConfig?.mainButton?.label }} }
   </button>
+  @if(isOpen) {
   <div
     class="mini-fab-container"
-    *ngIf="isOpen"
     [@speedDialStagger]="{ value: buttonConfig?.miniButtons?.length || 0 }"
   >
     @for(miniBtn of buttonConfig?.miniButtons ?? []; track $index) {
@@ -43,4 +43,5 @@
       <mat-icon>{{ miniBtn.icon }}</mat-icon></button
     >}
   </div>
+  }
 </div>

@@ -135,12 +135,10 @@
         <note category="meaning">Open in maps button</note>
       </notes>
       <segment state="initial">
-        <source> Open in <ph id="0" equiv="INTERPOLATION"
-            disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}" />
-        </source>
-        <target> Apri in <ph id="0" equiv="INTERPOLATION"
-            disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}" />
-        </target>
+        <source>Open in <ph id="0" equiv="INTERPOLATION"
+            disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}" /></source>
+        <target>Apri in <ph id="0" equiv="INTERPOLATION"
+            disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}" /></target>
       </segment>
     </unit>
     <unit id="2066444621746625793">
@@ -149,20 +147,10 @@
         <target>Modifica questo spot</target>
       </segment>
     </unit>
-    <unit id="3699896649941451869">
+    <unit id="7585826646011739428">
       <segment state="initial">
-        <source>Example icon button with a share icon</source>
-        <target>Esempio di pulsante con icona di condivisione</target>
-      </segment>
-    </unit>
-    <unit id="7649443828660758780">
-      <notes>
-        <note category="description">Label of the button to edit the spot</note>
-        <note category="meaning">Edit button label</note>
-      </notes>
-      <segment state="initial">
-        <source> Edit </source>
-        <target> Modifica </target>
+        <source>Edit</source>
+        <target>Modifica</target>
       </segment>
     </unit>
     <unit id="7970470041734812503">
@@ -173,7 +161,6 @@
     </unit>
     <unit id="3228321309780982411">
       <notes>
-        <note category="description">Label of the button to report the spot</note>
         <note category="meaning">report button label</note>
       </notes>
       <segment state="initial">
@@ -386,28 +373,10 @@
         <target>Il campo della password è vuoto!</target>
       </segment>
     </unit>
-    <unit id="6663783128602596673">
+    <unit id="8264044238565501678">
       <segment state="initial">
-        <source> Sign in </source>
-        <target> Accedi </target>
-      </segment>
-    </unit>
-    <unit id="4056337625566966411">
-      <segment state="initial">
-        <source> Forgot password </source>
-        <target> Password dimenticata </target>
-      </segment>
-    </unit>
-    <unit id="7931009175244499164">
-      <segment state="initial">
-        <source>OAuth providers</source>
-        <target>Provider OAuth</target>
-      </segment>
-    </unit>
-    <unit id="1221014007346917816">
-      <segment state="initial">
-        <source>You can also sign in with:</source>
-        <target>Puoi anche accedere con:</target>
+        <source>Forgot password</source>
+        <target>Password dimenticata</target>
       </segment>
     </unit>
     <unit id="906351267490856003">
@@ -418,10 +387,10 @@
           registrati qui sotto. </target>
       </segment>
     </unit>
-    <unit id="4815152070613902062">
+    <unit id="8900043755527456150">
       <segment state="initial">
-        <source> Sign up here </source>
-        <target> Registrati qui </target>
+        <source>Sign up here</source>
+        <target>Registrati qui</target>
       </segment>
     </unit>
     <unit id="5726791725186220555">
@@ -466,12 +435,6 @@
         <target>Nome visualizzato</target>
       </segment>
     </unit>
-    <unit id="5664264029355272360">
-      <segment state="initial">
-        <source>Don&apos;t worry, the display name can be changed later.</source>
-        <target>Non preoccuparti, il nome visualizzato può essere cambiato in seguito.</target>
-      </segment>
-    </unit>
     <unit id="6858563845386603352">
       <segment state="initial">
         <source>The e-mail address needs to be verified later.</source>
@@ -512,8 +475,7 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
-            equivEnd="CLOSE_BOLD_TEXT"
+          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>Ho letto e compreso i <pc id="0" equivStart="START_BOLD_TEXT"
@@ -523,10 +485,10 @@
           accetto entrambi.</target>
       </segment>
     </unit>
-    <unit id="149974019994124409">
+    <unit id="1267967133679326155">
       <segment state="initial">
-        <source> Create Account </source>
-        <target> Crea account </target>
+        <source>Create Account</source>
+        <target>Crea account</target>
       </segment>
     </unit>
     <unit id="6464436780502674570">
@@ -844,10 +806,10 @@
         <target>Valutazioni e recensioni degli utenti</target>
       </segment>
     </unit>
-    <unit id="3651210692254714604">
+    <unit id="2099100880026927677">
       <segment state="initial">
-        <source>This spot has no reviews yet, be the first to leave one!</source>
-        <target>Questo spot non ha ancora recensioni, sii il primo a lasciarne una!</target>
+        <source> This spot has no reviews yet, be the first to leave one! </source>
+        <target> Questo spot non ha ancora recensioni, sii il primo a lasciarne una! </target>
       </segment>
     </unit>
     <unit id="review_spot_tooltip">
@@ -866,8 +828,8 @@
         <note category="meaning">Review spot button label</note>
       </notes>
       <segment state="initial">
-        <source> Review spot </source>
-        <target> Recensisci questo spot </target>
+        <source>Review spot</source>
+        <target>Recensisci questo spot</target>
       </segment>
     </unit>
     <unit id="9074160907730350759">
@@ -1119,12 +1081,6 @@
         <target>Crea account</target>
       </segment>
     </unit>
-    <unit id="1466012768716286509">
-      <segment state="initial">
-        <source>Sign Up</source>
-        <target>Registrati</target>
-      </segment>
-    </unit>
     <unit id="add_review_label">
       <notes>
         <note category="description">add review button label</note>
@@ -1161,12 +1117,6 @@
         <target>Spot eventi</target>
       </segment>
     </unit>
-    <unit id="5242484178712762710">
-      <segment state="initial">
-        <source>Iconic Spot</source>
-        <target>Spot iconico</target>
-      </segment>
-    </unit>
     <unit id="amenities.heated">
       <segment state="initial">
         <source>Heated</source>
@@ -1183,6 +1133,364 @@
       <segment state="initial">
         <source>Water feature</source>
         <target>Elemento acquatico</target>
+      </segment>
+    </unit>
+    <unit id="3915449131951067233">
+      <segment state="initial">
+        <source>Challenge</source>
+        <target>Challenge</target>
+      </segment>
+    </unit>
+    <unit id="4771468580618188841">
+      <segment state="initial">
+        <source>Beginner friendly</source>
+        <target>Adatto ai principianti</target>
+      </segment>
+    </unit>
+    <unit id="7059749880989073519">
+      <segment state="initial">
+        <source>Water challenge</source>
+        <target>Water Challenge</target>
+      </segment>
+    </unit>
+    <unit id="2496518471623524249">
+      <segment state="initial">
+        <source>Uploaded by: </source>
+        <target>Caricato da: </target>
+      </segment>
+    </unit>
+    <unit id="599066928832045467">
+      <segment state="initial">
+        <source>Challenge name</source>
+        <target>Nome Challenge</target>
+      </segment>
+    </unit>
+    <unit id="3250391385569692601">
+      <segment state="initial">
+        <source>Media</source>
+        <target>Media</target>
+      </segment>
+    </unit>
+    <unit id="2159130950882492111">
+      <notes>
+        <note category="description">cancel button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Cancel</source>
+        <target>Annulla</target>
+      </segment>
+    </unit>
+    <unit id="3823219296477075982">
+      <segment state="initial">
+        <source>Discard</source>
+        <target>Ignora</target>
+      </segment>
+    </unit>
+    <unit id="7801350351736394974">
+      <notes>
+        <note category="meaning">report button label</note>
+      </notes>
+      <segment state="initial">
+        <source> Save </source>
+        <target> Salva </target>
+      </segment>
+    </unit>
+    <unit id="4115668858470490289">
+      <segment state="initial">
+        <source>Challenge updated successfully</source>
+        <target>Challenge aggiornato con successo</target>
+      </segment>
+    </unit>
+    <unit id="3714343477148346459">
+      <segment state="initial">
+        <source>New challenge saved successfully</source>
+        <target>Nuovo Challenge salvato con successo</target>
+      </segment>
+    </unit>
+    <unit id="5078551942621038511">
+      <segment state="initial">
+        <source>Link to challenge copied to clipboard</source>
+        <target>Link al Challenge copiato negli appunti</target>
+      </segment>
+    </unit>
+    <unit id="8333618256474808727">
+      <segment state="initial">
+        <source>Add translation</source>
+        <target>Aggiungi traduzione</target>
+      </segment>
+    </unit>
+    <unit id="3249513483374643425">
+      <segment state="initial">
+        <source>Add</source>
+        <target>Aggiungi</target>
+      </segment>
+    </unit>
+    <unit id="2736531674722915416">
+      <segment state="initial">
+        <source>Add Spot</source>
+        <target>Add Spot</target>
+      </segment>
+    </unit>
+    <unit id="5505398954394440330">
+      <segment state="initial">
+        <source>Add a new spot</source>
+        <target>Aggiungi un nuovo Spot</target>
+      </segment>
+    </unit>
+    <unit id="pk.spotmap.addSpot">
+      <segment state="initial">
+        <source>Add spot</source>
+        <target>Add Spot</target>
+      </segment>
+    </unit>
+    <unit id="9698809509485912">
+      <segment state="initial">
+        <source>Add a challenge</source>
+        <target>Aggiungi un Challenge</target>
+      </segment>
+    </unit>
+    <unit id="8641204385685223856">
+      <segment state="initial">
+        <source>Import spots from a file</source>
+        <target>Importa Spots da un file</target>
+      </segment>
+    </unit>
+    <unit id="801213320890707566">
+      <segment state="initial">
+        <source>Please select a file to upload</source>
+        <target>Seleziona un file da caricare</target>
+      </segment>
+    </unit>
+    <unit id="3368417786821334758">
+      <segment state="initial">
+        <source>Abort</source>
+        <target>Interrompi</target>
+      </segment>
+    </unit>
+    <unit id="2917314929120683887">
+      <segment state="initial">
+        <source> Continue </source>
+        <target> Continua </target>
+      </segment>
+    </unit>
+    <unit id="1554994164801384863">
+      <segment state="initial">
+        <source>Other sign-in options</source>
+        <target>Altre opzioni di accesso</target>
+      </segment>
+    </unit>
+    <unit id="3297238960219201653">
+      <segment state="initial">
+        <source>About you</source>
+        <target>Su di te</target>
+      </segment>
+    </unit>
+    <unit id="3148120434799119252">
+      <segment state="initial">
+        <source>Challenges</source>
+        <target>Challenges</target>
+      </segment>
+    </unit>
+    <unit id="4737245431088085317">
+      <segment state="initial">
+        <source>View more challanges</source>
+        <target>Mostra altri Challenges</target>
+      </segment>
+    </unit>
+    <unit id="1464855415523029044">
+      <segment state="initial">
+        <source>Add challenge</source>
+        <target>Aggiungi Challenge</target>
+      </segment>
+    </unit>
+    <unit id="4081547874744566874">
+      <segment state="initial">
+        <source> There are no challenges for this spot yet. </source>
+        <target> Non ci sono ancora Challenges per questo Spot. </target>
+      </segment>
+    </unit>
+    <unit id="5028777105388019087">
+      <segment state="initial">
+        <source>Details</source>
+        <target>Dettagli</target>
+      </segment>
+    </unit>
+    <unit id="1581074162625291057">
+      <notes>
+        <note category="description">The header for the spot description</note>
+        <note category="meaning">description header</note>
+      </notes>
+      <segment state="initial">
+        <source>Description</source>
+        <target>Descrizione</target>
+      </segment>
+    </unit>
+    <unit id="471816275243265264">
+      <segment state="initial">
+        <source>Location</source>
+        <target>Posizione</target>
+      </segment>
+    </unit>
+    <unit id="135650503363677266">
+      <segment state="initial">
+        <source>Edit button with a pencil icon</source>
+        <target>Pulsante Modifica con icona a matita</target>
+      </segment>
+    </unit>
+    <unit id="8902169607450414056">
+      <notes>
+        <note category="description">Label of the button to edit the spot</note>
+        <note category="meaning">Edit button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Edit Spot</source>
+        <target>Edit Spot</target>
+      </segment>
+    </unit>
+    <unit id="187689463189065695">
+      <segment state="initial">
+        <source>Report button with a warning icon</source>
+        <target>Pulsante Segnala con icona di avviso</target>
+      </segment>
+    </unit>
+    <unit id="5354481455147566182">
+      <notes>
+        <note category="description">Label of the button to report the spot</note>
+        <note category="meaning">report button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Report</source>
+        <target>Segnala</target>
+      </segment>
+    </unit>
+    <unit id="2208123916070421028">
+      <segment state="initial">
+        <source>Spot Name</source>
+        <target>Nome Spot</target>
+      </segment>
+    </unit>
+    <unit id="5165045713296944365">
+      <segment state="initial">
+        <source>Hide Streetview</source>
+        <target>Nascondi Streetview</target>
+      </segment>
+    </unit>
+    <unit id="6061464576886045437">
+      <segment state="initial">
+        <source>Spot URL</source>
+        <target>Spot URL</target>
+      </segment>
+    </unit>
+    <unit id="519327032454261783">
+      <segment state="initial">
+        <source>Select preffered spot URL</source>
+        <target>Seleziona Spot URL preferito</target>
+      </segment>
+    </unit>
+    <unit id="3891461247659349800">
+      <segment state="initial">
+        <source>Add custom spot URL</source>
+        <target>Aggiungi Spot URL personalizzato</target>
+      </segment>
+    </unit>
+    <unit id="6670068416688791508">
+      <segment state="initial">
+        <source>Cannot share a spot that hasn&apos;t been saved yet</source>
+        <target>Non è possibile condividere uno Spot che non è stato ancora salvato</target>
+      </segment>
+    </unit>
+    <unit id="7523630390926625638">
+      <segment state="initial">
+        <source>Link to spot copied to clipboard</source>
+        <target>Link allo Spot copiato negli appunti</target>
+      </segment>
+    </unit>
+    <unit id="250704833554562493">
+      <segment state="initial">
+        <source>Unnamed Challenge</source>
+        <target>Challenge senza nome</target>
+      </segment>
+    </unit>
+    <unit id="2043725857486133673">
+      <segment state="initial">
+        <source>Sketchy</source>
+        <target>Sketchy</target>
+      </segment>
+    </unit>
+    <unit id="6554529363159797991">
+      <segment state="initial">
+        <source>Creative</source>
+        <target>Creativo</target>
+      </segment>
+    </unit>
+    <unit id="6179528187219959958">
+      <segment state="initial">
+        <source>Techy</source>
+        <target>Techy</target>
+      </segment>
+    </unit>
+    <unit id="5451766476743569122">
+      <segment state="initial">
+        <source>Fun</source>
+        <target>Divertente</target>
+      </segment>
+    </unit>
+    <unit id="7027401708987643293">
+      <segment state="initial">
+        <source>Core</source>
+        <target>Core</target>
+      </segment>
+    </unit>
+    <unit id="3998090677451328461">
+      <segment state="initial">
+        <source>This is a sketchy or mental challenge that requires physical and emotional control</source>
+        <target>Questo è un Challenge sketchy o mentale che richiede controllo fisico ed emotivo</target>
+      </segment>
+    </unit>
+    <unit id="2085915950119931041">
+      <segment state="initial">
+        <source>The goal of this challenge is to be creative. This challenge may also be more open
+          to interpretation.</source>
+        <target>L&apos;obiettivo di questo Challenge è essere creativo. Questo Challenge può anche
+          essere più aperto all&apos;interpretazione.</target>
+      </segment>
+    </unit>
+    <unit id="3420095157187102720">
+      <segment state="initial">
+        <source>This techy challenge requires great precision and control.</source>
+        <target>Questo Challenge techy richiede grande precisione e controllo.</target>
+      </segment>
+    </unit>
+    <unit id="5109390034351761565">
+      <segment state="initial">
+        <source>This challenge is for fun! </source>
+        <target>Questo Challenge è per divertimento! </target>
+      </segment>
+    </unit>
+    <unit id="2369409944839137310">
+      <segment state="initial">
+        <source>A core challenge of this spot. An essential challenge for anyone seeking to master
+          this spot.</source>
+        <target>Un Challenge core di questo Spot. Un Challenge essenziale per chiunque cerchi di
+          padroneggiare questo Spot.</target>
+      </segment>
+    </unit>
+    <unit id="3935646276054511852">
+      <segment state="initial">
+        <source>Solo</source>
+        <target>Solo</target>
+      </segment>
+    </unit>
+    <unit id="2273032269971765958">
+      <segment state="initial">
+        <source>Pair</source>
+        <target>Coppia</target>
+      </segment>
+    </unit>
+    <unit id="8623978917681527907">
+      <segment state="initial">
+        <source>Group</source>
+        <target>Gruppo</target>
       </segment>
     </unit>
   </file>

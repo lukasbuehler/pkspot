@@ -12,7 +12,7 @@ import { LocaleCode, LocaleMap } from "./Interfaces";
 import { Spot } from "./Spot";
 import { User } from "./User";
 import { UserReferenceSchema } from "../schemas/UserSchema";
-import { GeoPoint } from "@firebase/firestore";
+import { GeoPoint, Timestamp } from "@firebase/firestore";
 import { AuthenticationService } from "../../app/services/firebase/authentication.service";
 import { AnyMedia } from "./Media";
 import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";
@@ -29,6 +29,7 @@ export class LocalSpotChallenge {
   descriptionLocaleMap: WritableSignal<LocaleMap>;
   user: UserReferenceSchema;
   createdAt: Date;
+  releaseDate: Date | null;
   location: WritableSignal<google.maps.LatLngLiteral | null>;
   // posts: Signal<SpotChallengeSchema["top_posts"]>;
   label: ChallengeLabel | null;
@@ -67,7 +68,8 @@ export class LocalSpotChallenge {
     this.descriptionLocaleMap = signal<LocaleMap>(data.description ?? {});
 
     this.user = data.user;
-    this.createdAt = data.createdAt;
+    this.releaseDate = data.release_date?.toDate() ?? null;
+    this.createdAt = data.created_at?.toDate();
     this.location = signal<google.maps.LatLngLiteral | null>(
       data.location
         ? {
@@ -93,7 +95,10 @@ export class LocalSpotChallenge {
       media: this.media()?.getData() ?? undefined,
       description: this.descriptionLocaleMap(),
       user: this.user,
-      createdAt: this.createdAt,
+      created_at: new Timestamp(this.createdAt.getTime() / 1000, 0),
+      release_date: this.releaseDate
+        ? new Timestamp(this.releaseDate.getTime() / 1000, 0)
+        : undefined,
       location: new GeoPoint(
         this.spot.location().lat,
         this.spot.location().lng
@@ -126,6 +131,15 @@ export const ChallengeLabelNames: Record<ChallengeLabel, string> = {
   creative: $localize`Creative`,
   techy: $localize`Techy`,
   fun: $localize`Fun`,
+  core: $localize`Core`,
+};
+
+export const ChallengeTooltips: Record<ChallengeLabel, string> = {
+  sketchy: $localize`This is a sketchy or mental challenge that requires physical and emotional control`,
+  creative: $localize`The goal of this challenge is to be creative. This challenge may also be more open to interpretation.`,
+  techy: $localize`This techy challenge requires great precision and control.`,
+  fun: $localize`This challenge is for fun! `,
+  core: $localize`A core challenge of this spot. An essential challenge for anyone seeking to master this spot.`,
 };
 
 export const ChallengeParticipantTypeNames: Record<

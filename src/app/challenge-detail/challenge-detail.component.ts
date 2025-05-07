@@ -46,6 +46,10 @@ import {
 import { Spot } from "../../db/models/Spot";
 import { MediaSchema, StorageBucket } from "../../db/schemas/Media";
 import { MatDividerModule } from "@angular/material/divider";
+import {
+  ChallengeLabelIcons,
+  ChallengeParticipantTypeIcons,
+} from "../../db/schemas/SpotChallengeLabels";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -78,9 +82,9 @@ export class ChallengeDetailComponent {
   private locale = inject<string>(LOCALE_ID);
 
   readonly challengeLabelNames = ChallengeLabelNames;
-  readonly challengeLabelIcons = ChallengeLabelNames;
+  readonly challengeLabelIcons = ChallengeLabelIcons;
   readonly challengeParticipantTypeNames = ChallengeParticipantTypeNames;
-  readonly challengeParticipantTypeIcons = ChallengeParticipantTypeNames;
+  readonly challengeParticipantTypeIcons = ChallengeParticipantTypeIcons;
 
   isEditing = model<boolean>(false);
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);

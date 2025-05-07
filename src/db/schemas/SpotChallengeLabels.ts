@@ -3,6 +3,7 @@ export enum ChallengeLabel {
   creative = "creative",
   techy = "techy",
   fun = "fun",
+  core = "core",
 }
 
 export const ChallengeLabelIcons: Record<ChallengeLabel, string> = {
@@ -10,6 +11,7 @@ export const ChallengeLabelIcons: Record<ChallengeLabel, string> = {
   creative: "palette",
   techy: "biotech", // "engineering", square_foot, architecture, biotech
   fun: "mood",
+  core: "adjust",
 };
 
 export enum ChallengeParticipantType {

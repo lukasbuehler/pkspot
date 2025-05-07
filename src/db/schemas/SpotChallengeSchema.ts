@@ -1,4 +1,4 @@
-import { GeoPoint } from "@firebase/firestore";
+import { GeoPoint, Timestamp } from "@firebase/firestore";
 import { LocaleMap } from "../models/Interfaces";
 import { MediaSchema } from "../schemas/Media";
 import { SpotPreviewData } from "./SpotPreviewData";
@@ -25,7 +25,8 @@ export interface SpotChallengeSchema {
   media?: MediaSchema;
   description?: LocaleMap;
   user: UserReferenceSchema;
-  createdAt: Date;
+  created_at: Timestamp;
+  release_date?: Timestamp;
   location?: GeoPoint;
   top_posts?: PostData[];
   num_posts?: number;

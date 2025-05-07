@@ -50,7 +50,9 @@ service cloud.firestore {
       // Spot Challenges
       match /challenges/{challengeId}
       {
-        allow read: if true;
+        allow read: if (!('release_date' in resource.data)) ||
+          (resource.data.release_date <= request.time) ||
+          (resource.data.user.uid == request.auth.uid);
         allow write: if request.auth.uid != null 
           && request.auth.uid == request.resource.data.user.uid;
       }

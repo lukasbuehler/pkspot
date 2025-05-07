@@ -112,6 +112,7 @@ import { locale } from "core-js";
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { StorageBucket } from "../../db/schemas/Media";
+import { Timestamp } from "@firebase/firestore";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -806,7 +807,7 @@ export class SpotDetailsComponent
             undefined,
         },
         is_completed: false,
-        createdAt: new Date(),
+        created_at: new Timestamp(Date.now() / 1000, 0),
       };
       const newChallenge: LocalSpotChallenge = new LocalSpotChallenge(
         newChallengeData,

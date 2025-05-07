@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { Timestamp } from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 
 export const setTopChallengesForSpotOnWrite = onDocumentWritten(
@@ -13,6 +14,12 @@ export const setTopChallengesForSpotOnWrite = onDocumentWritten(
       .get()
       .then((snapshot) => {
         const topChallenges = snapshot.docs
+          .filter((doc) => {
+            // only keep if the release date is in the past if it has one
+            const data = doc.data();
+            const releaseDate: Timestamp | null = data.relase_date ?? null;
+            return !releaseDate || releaseDate.toMillis() < Date.now();
+          })
           .sort((docA, docB) => {
             const a = docA.data();
             const b = docB.data();

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">
   <file id="ngi18n" original="ng.template">
     <unit id="1940752772695642659">
@@ -13,22 +13,17 @@
     </unit>
     <unit id="3733695846697223562">
       <segment>
-        <source> Discover spots and fellow athletes, plan training sessions with your friends and
-          share achievements and memories with them and the world. </source>
+        <source> Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world. </source>
       </segment>
     </unit>
     <unit id="7411379953853971507">
       <segment>
-        <source> This project is Open-Source! Our code is licensed under the <pc id="0"
-            equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;"
-            dispEnd="&lt;/b&gt;">MIT License</pc>. </source>
+        <source> This project is Open-Source! Our code is licensed under the <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">MIT License</pc>. </source>
       </segment>
     </unit>
     <unit id="1563251428514246752">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
-            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc>
-          View License </source>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc> View License </source>
       </segment>
     </unit>
     <unit id="3687194426938367329">
@@ -58,15 +53,12 @@
     </unit>
     <unit id="8062277427231117545">
       <segment>
-        <source> Join our community of Parkour and Freerunning enthusiasts! Contribute your ideas,
-          report bugs, and provide feedback to help us improve this platform together! </source>
+        <source> Join our community of Parkour and Freerunning enthusiasts! Contribute your ideas, report bugs, and provide feedback to help us improve this platform together! </source>
       </segment>
     </unit>
     <unit id="5825310972408482968">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
-            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc>
-          Discord </source>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc> Discord </source>
       </segment>
     </unit>
     <unit id="about.title">
@@ -138,8 +130,7 @@
     </unit>
     <unit id="spot.locality.pretext">
       <notes>
-        <note category="description">The text before the localized location of the spot. E.g. Spot
-          in Wiedikon, Zurich, CH</note>
+        <note category="description">The text before the localized location of the spot. E.g. Spot in Wiedikon, Zurich, CH</note>
       </notes>
       <segment>
         <source>Spot in </source>
@@ -157,8 +148,7 @@
     </unit>
     <unit id="2123282629077022668">
       <segment>
-        <source> You can edit your public profile here. The information on your public profile can
-          be seen by everyone, even unauthenticated visitors. </source>
+        <source> You can edit your public profile here. The information on your public profile can be seen by everyone, even unauthenticated visitors. </source>
       </segment>
     </unit>
     <unit id="7008130086784868968">
@@ -168,8 +158,7 @@
     </unit>
     <unit id="4248798592595704576">
       <segment>
-        <source> Your login information. Your E-mail address here is used for your login. You can
-          add the same E-mail address or a different one to your contact information. </source>
+        <source> Your login information. Your E-mail address here is used for your login. You can add the same E-mail address or a different one to your contact information. </source>
       </segment>
     </unit>
     <unit id="6815507474406960450">
@@ -247,35 +236,19 @@
         <source>The password field is empty!</source>
       </segment>
     </unit>
-    <unit id="6663783128602596673">
+    <unit id="8264044238565501678">
       <segment>
-        <source> Sign in </source>
-      </segment>
-    </unit>
-    <unit id="4056337625566966411">
-      <segment>
-        <source> Forgot password </source>
-      </segment>
-    </unit>
-    <unit id="7931009175244499164">
-      <segment>
-        <source>OAuth providers</source>
-      </segment>
-    </unit>
-    <unit id="1221014007346917816">
-      <segment>
-        <source>You can also sign in with:</source>
+        <source>Forgot password</source>
       </segment>
     </unit>
     <unit id="906351267490856003">
       <segment>
-        <source> Don&apos;t have an account yet? Simply sign in with your Google account or sign up
-          below. </source>
+        <source> Don&apos;t have an account yet? Simply sign in with your Google account or sign up below. </source>
       </segment>
     </unit>
-    <unit id="4815152070613902062">
+    <unit id="8900043755527456150">
       <segment>
-        <source> Sign up here </source>
+        <source>Sign up here</source>
       </segment>
     </unit>
     <unit id="5726791725186220555">
@@ -313,11 +286,6 @@
         <source>Display Name</source>
       </segment>
     </unit>
-    <unit id="5664264029355272360">
-      <segment>
-        <source>Don&apos;t worry, the display name can be changed later.</source>
-      </segment>
-    </unit>
     <unit id="6858563845386603352">
       <segment>
         <source>The e-mail address needs to be verified later.</source>
@@ -350,16 +318,12 @@
     </unit>
     <unit id="3289630490580318568">
       <segment>
-        <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
-            equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
-            type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
-          both.</source>
+        <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to both.</source>
       </segment>
     </unit>
-    <unit id="149974019994124409">
+    <unit id="1267967133679326155">
       <segment>
-        <source> Create Account </source>
+        <source>Create Account</source>
       </segment>
     </unit>
     <unit id="6464436780502674570">
@@ -415,8 +379,7 @@
     </unit>
     <unit id="5176788475731011723">
       <segment>
-        <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION"
-            disp="{{ report.reason }}" />&quot;</source>
+        <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</source>
       </segment>
     </unit>
     <unit id="8126459137636028145">
@@ -444,13 +407,12 @@
     </unit>
     <unit id="1115951775217164684">
       <segment>
-        <source>{VAR_PLURAL, plural, =0 {no reviews} =1 {1 review} other {<ph id="0"
-            equiv="INTERPOLATION" /> reviews}}</source>
+        <source>{VAR_PLURAL, plural, =0 {no reviews} =1 {1 review} other {<ph id="0" equiv="INTERPOLATION"/> reviews}}</source>
       </segment>
     </unit>
-    <unit id="3651210692254714604">
+    <unit id="2099100880026927677">
       <segment>
-        <source>This spot has no reviews yet, be the first to leave one!</source>
+        <source> This spot has no reviews yet, be the first to leave one! </source>
       </segment>
     </unit>
     <unit id="review_spot_tooltip">
@@ -468,7 +430,7 @@
         <note category="meaning">Review spot button label</note>
       </notes>
       <segment>
-        <source> Review spot </source>
+        <source>Review spot</source>
       </segment>
     </unit>
     <unit id="address_title">
@@ -495,9 +457,7 @@
         <note category="meaning">Open in maps button</note>
       </notes>
       <segment>
-        <source> Open in <ph id="0" equiv="INTERPOLATION"
-            disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}" />
-        </source>
+        <source>Open in <ph id="0" equiv="INTERPOLATION" disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}"/></source>
       </segment>
     </unit>
     <unit id="2066444621746625793">
@@ -505,18 +465,9 @@
         <source>Edit this spot</source>
       </segment>
     </unit>
-    <unit id="3699896649941451869">
+    <unit id="7585826646011739428">
       <segment>
-        <source>Example icon button with a share icon</source>
-      </segment>
-    </unit>
-    <unit id="7649443828660758780">
-      <notes>
-        <note category="description">Label of the button to edit the spot</note>
-        <note category="meaning">Edit button label</note>
-      </notes>
-      <segment>
-        <source> Edit </source>
+        <source>Edit</source>
       </segment>
     </unit>
     <unit id="7970470041734812503">
@@ -526,7 +477,6 @@
     </unit>
     <unit id="3228321309780982411">
       <notes>
-        <note category="description">Label of the button to report the spot</note>
         <note category="meaning">report button label</note>
       </notes>
       <segment>
@@ -601,8 +551,7 @@
         <note category="description">The text in the spot list panel if no spots are found/displayed</note>
       </notes>
       <segment>
-        <source> There are no highlighted spots for this area, zoom in on dots in the map to
-          discover other spots. </source>
+        <source> There are no highlighted spots for this area, zoom in on dots in the map to discover other spots. </source>
       </segment>
     </unit>
     <unit id="8011758699583016596">
@@ -632,8 +581,7 @@
     </unit>
     <unit id="6024008212258429928">
       <segment>
-        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}" />
-          &apos;</source>
+        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}"/>&apos;</source>
       </segment>
     </unit>
     <unit id="8425796083769561052">
@@ -678,8 +626,7 @@
     </unit>
     <unit id="4411046525037051458">
       <segment>
-        <source> Note: Spot reports are public and will be displayed on the spot itself together
-          with your profile and user name. </source>
+        <source> Note: Spot reports are public and will be displayed on the spot itself together with your profile and user name. </source>
       </segment>
     </unit>
     <unit id="2330577642930707695">
@@ -692,8 +639,7 @@
     </unit>
     <unit id="9074160907730350759">
       <segment>
-        <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}" />
-          &apos;</source>
+        <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
       </segment>
     </unit>
     <unit id="6435282697411612190">
@@ -728,19 +674,12 @@
     </unit>
     <unit id="welcomeDialogText">
       <segment>
-        <source> Explore spots, posts, and more from our Parkour and Freerunning community. To
-          access our content, please agree to our Terms of Service and Privacy Policy. We value your
-          privacy and don&apos;t store cookies. 🍪 </source>
+        <source> Explore spots, posts, and more from our Parkour and Freerunning community. To access our content, please agree to our Terms of Service and Privacy Policy. We value your privacy and don&apos;t store cookies. 🍪 </source>
       </segment>
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment>
-        <source> By clicking &quot;Agree and continue&quot;, you accept our <pc id="0"
-            equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link"
-            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
-          of Service</pc> and <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link"
-            dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy
-          Policy</pc>. </source>
+        <source> By clicking &quot;Agree and continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. </source>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">
@@ -833,7 +772,7 @@
     </unit>
     <unit id="1541983925188119749">
       <segment>
-        <source>Rating: <ph id="0" equiv="PH" disp="spot.rating" /> / 5</source>
+        <source>Rating: <ph id="0" equiv="PH" disp="spot.rating"/> / 5</source>
       </segment>
     </unit>
     <unit id="3427802043987444957">
@@ -849,12 +788,7 @@
     <unit id="4433625416488305982">
       <segment>
         <source>
-          <pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other"
-            dispStart="@if(googlePlace()!.rating) {" dispEnd="}"> Rating: <pc id="1"
-              equivStart="START_TAG_APP_SPOT_RATING" equivEnd="CLOSE_TAG_APP_SPOT_RATING"
-              type="other"
-              dispStart="&lt;app-spot-rating [rating1to5]=&quot;googlePlace()!.rating!&quot; [showEmptyStars]=&quot;false&quot; [isCompact]=&quot;true&quot; &gt;"
-              dispEnd="&lt;/app-spot-rating&gt;" /></pc>
+          <pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if(googlePlace()!.rating) {" dispEnd="}"> Rating: <pc id="1" equivStart="START_TAG_APP_SPOT_RATING" equivEnd="CLOSE_TAG_APP_SPOT_RATING" type="other" dispStart="&lt;app-spot-rating [rating1to5]=&quot;googlePlace()!.rating!&quot; [showEmptyStars]=&quot;false&quot; [isCompact]=&quot;true&quot; &gt;" dispEnd="&lt;/app-spot-rating&gt;"/></pc>
         </source>
       </segment>
     </unit>
@@ -923,11 +857,6 @@
         <source>Login</source>
       </segment>
     </unit>
-    <unit id="1466012768716286509">
-      <segment>
-        <source>Sign Up</source>
-      </segment>
-    </unit>
     <unit id="add_review_label">
       <notes>
         <note category="description">add review button label</note>
@@ -954,11 +883,6 @@
         <source>More Information</source>
       </segment>
     </unit>
-    <unit id="5242484178712762710">
-      <segment>
-        <source>Iconic Spot</source>
-      </segment>
-    </unit>
     <unit id="8755396282893693521">
       <segment>
         <source>Event spots</source>
@@ -977,6 +901,304 @@
     <unit id="amenities.water_feature">
       <segment>
         <source>Water feature</source>
+      </segment>
+    </unit>
+    <unit id="135650503363677266">
+      <segment>
+        <source>Edit button with a pencil icon</source>
+      </segment>
+    </unit>
+    <unit id="1464855415523029044">
+      <segment>
+        <source>Add challenge</source>
+      </segment>
+    </unit>
+    <unit id="1554994164801384863">
+      <segment>
+        <source>Other sign-in options</source>
+      </segment>
+    </unit>
+    <unit id="1581074162625291057">
+      <notes>
+        <note category="description">The header for the spot description</note>
+        <note category="meaning">description header</note>
+      </notes>
+      <segment>
+        <source>Description</source>
+      </segment>
+    </unit>
+    <unit id="187689463189065695">
+      <segment>
+        <source>Report button with a warning icon</source>
+      </segment>
+    </unit>
+    <unit id="2043725857486133673">
+      <segment>
+        <source>Sketchy</source>
+      </segment>
+    </unit>
+    <unit id="2085915950119931041">
+      <segment>
+        <source>The goal of this challenge is to be creative. This challenge may also be more open to interpretation.</source>
+      </segment>
+    </unit>
+    <unit id="2159130950882492111">
+      <notes>
+        <note category="description">cancel button label</note>
+      </notes>
+      <segment>
+        <source>Cancel</source>
+      </segment>
+    </unit>
+    <unit id="2208123916070421028">
+      <segment>
+        <source>Spot Name</source>
+      </segment>
+    </unit>
+    <unit id="2273032269971765958">
+      <segment>
+        <source>Pair</source>
+      </segment>
+    </unit>
+    <unit id="2369409944839137310">
+      <segment>
+        <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
+      </segment>
+    </unit>
+    <unit id="2496518471623524249">
+      <segment>
+        <source>Uploaded by: </source>
+      </segment>
+    </unit>
+    <unit id="250704833554562493">
+      <segment>
+        <source>Unnamed Challenge</source>
+      </segment>
+    </unit>
+    <unit id="2736531674722915416">
+      <segment>
+        <source>Add Spot</source>
+      </segment>
+    </unit>
+    <unit id="2917314929120683887">
+      <segment>
+        <source> Continue </source>
+      </segment>
+    </unit>
+    <unit id="3148120434799119252">
+      <segment>
+        <source>Challenges</source>
+      </segment>
+    </unit>
+    <unit id="3249513483374643425">
+      <segment>
+        <source>Add</source>
+      </segment>
+    </unit>
+    <unit id="3250391385569692601">
+      <segment>
+        <source>Media</source>
+      </segment>
+    </unit>
+    <unit id="3297238960219201653">
+      <segment>
+        <source>About you</source>
+      </segment>
+    </unit>
+    <unit id="3368417786821334758">
+      <segment>
+        <source>Abort</source>
+      </segment>
+    </unit>
+    <unit id="3420095157187102720">
+      <segment>
+        <source>This techy challenge requires great precision and control.</source>
+      </segment>
+    </unit>
+    <unit id="3714343477148346459">
+      <segment>
+        <source>New challenge saved successfully</source>
+      </segment>
+    </unit>
+    <unit id="3823219296477075982">
+      <segment>
+        <source>Discard</source>
+      </segment>
+    </unit>
+    <unit id="3891461247659349800">
+      <segment>
+        <source>Add custom spot URL</source>
+      </segment>
+    </unit>
+    <unit id="3915449131951067233">
+      <segment>
+        <source>Challenge</source>
+      </segment>
+    </unit>
+    <unit id="3935646276054511852">
+      <segment>
+        <source>Solo</source>
+      </segment>
+    </unit>
+    <unit id="3998090677451328461">
+      <segment>
+        <source>This is a sketchy or mental challenge that requires physical and emotional control</source>
+      </segment>
+    </unit>
+    <unit id="4081547874744566874">
+      <segment>
+        <source> There are no challenges for this spot yet. </source>
+      </segment>
+    </unit>
+    <unit id="4115668858470490289">
+      <segment>
+        <source>Challenge updated successfully</source>
+      </segment>
+    </unit>
+    <unit id="471816275243265264">
+      <segment>
+        <source>Location</source>
+      </segment>
+    </unit>
+    <unit id="4737245431088085317">
+      <segment>
+        <source>View more challanges</source>
+      </segment>
+    </unit>
+    <unit id="4771468580618188841">
+      <segment>
+        <source>Beginner friendly</source>
+      </segment>
+    </unit>
+    <unit id="5028777105388019087">
+      <segment>
+        <source>Details</source>
+      </segment>
+    </unit>
+    <unit id="5078551942621038511">
+      <segment>
+        <source>Link to challenge copied to clipboard</source>
+      </segment>
+    </unit>
+    <unit id="5109390034351761565">
+      <segment>
+        <source>This challenge is for fun! </source>
+      </segment>
+    </unit>
+    <unit id="5165045713296944365">
+      <segment>
+        <source>Hide Streetview</source>
+      </segment>
+    </unit>
+    <unit id="519327032454261783">
+      <segment>
+        <source>Select preffered spot URL</source>
+      </segment>
+    </unit>
+    <unit id="5354481455147566182">
+      <notes>
+        <note category="description">Label of the button to report the spot</note>
+        <note category="meaning">report button label</note>
+      </notes>
+      <segment>
+        <source>Report</source>
+      </segment>
+    </unit>
+    <unit id="5451766476743569122">
+      <segment>
+        <source>Fun</source>
+      </segment>
+    </unit>
+    <unit id="5505398954394440330">
+      <segment>
+        <source>Add a new spot</source>
+      </segment>
+    </unit>
+    <unit id="599066928832045467">
+      <segment>
+        <source>Challenge name</source>
+      </segment>
+    </unit>
+    <unit id="6061464576886045437">
+      <segment>
+        <source>Spot URL</source>
+      </segment>
+    </unit>
+    <unit id="6179528187219959958">
+      <segment>
+        <source>Techy</source>
+      </segment>
+    </unit>
+    <unit id="6554529363159797991">
+      <segment>
+        <source>Creative</source>
+      </segment>
+    </unit>
+    <unit id="6670068416688791508">
+      <segment>
+        <source>Cannot share a spot that hasn&apos;t been saved yet</source>
+      </segment>
+    </unit>
+    <unit id="7027401708987643293">
+      <segment>
+        <source>Core</source>
+      </segment>
+    </unit>
+    <unit id="7059749880989073519">
+      <segment>
+        <source>Water challenge</source>
+      </segment>
+    </unit>
+    <unit id="7523630390926625638">
+      <segment>
+        <source>Link to spot copied to clipboard</source>
+      </segment>
+    </unit>
+    <unit id="7801350351736394974">
+      <notes>
+        <note category="meaning">report button label</note>
+      </notes>
+      <segment>
+        <source> Save </source>
+      </segment>
+    </unit>
+    <unit id="801213320890707566">
+      <segment>
+        <source>Please select a file to upload</source>
+      </segment>
+    </unit>
+    <unit id="8333618256474808727">
+      <segment>
+        <source>Add translation</source>
+      </segment>
+    </unit>
+    <unit id="8623978917681527907">
+      <segment>
+        <source>Group</source>
+      </segment>
+    </unit>
+    <unit id="8641204385685223856">
+      <segment>
+        <source>Import spots from a file</source>
+      </segment>
+    </unit>
+    <unit id="8902169607450414056">
+      <notes>
+        <note category="description">Label of the button to edit the spot</note>
+        <note category="meaning">Edit button label</note>
+      </notes>
+      <segment>
+        <source>Edit Spot</source>
+      </segment>
+    </unit>
+    <unit id="9698809509485912">
+      <segment>
+        <source>Add a challenge</source>
+      </segment>
+    </unit>
+    <unit id="pk.spotmap.addSpot">
+      <segment>
+        <source>Add spot</source>
       </segment>
     </unit>
   </file>
