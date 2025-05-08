@@ -202,9 +202,9 @@
         }
       </div>
       @if(spot()!.numChallenges() > spot()!.topChallenges().length) {
-      <button mat-stroked-button (click)="addChallenge()">
+      <button mat-stroked-button (click)="showAllChallenges()">
         <mat-icon> read_more </mat-icon>
-        <span i18n>View more challanges</span>
+        <span i18n>View all challanges</span>
       </button>
       } @if(authenticationService.isSignedIn) {
       <button mat-stroked-button (click)="addChallenge()">
@@ -224,6 +224,14 @@
         <mat-icon>outlined_flag</mat-icon>
         <span i18n>Add challenge</span>
       </button>
+
+      <!-- If the user has private challenges for this spot -->
+      @if(true) {
+      <button mat-stroked-button (click)="showAllChallenges()">
+        <mat-icon>lock</mat-icon>
+        <span i18n>See private challenges</span>
+      </button>
+      }
     </div>
     } }
 

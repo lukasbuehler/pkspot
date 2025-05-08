@@ -113,6 +113,7 @@ import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { StorageBucket } from "../../db/schemas/Media";
 import { Timestamp } from "@firebase/firestore";
+import { Router, RouterLink } from "@angular/router";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -317,6 +318,7 @@ export class SpotDetailsComponent
     public authenticationService: AuthenticationService,
     public dialog: MatDialog,
     private _locationStrategy: LocationStrategy,
+    private _router: Router,
     private _element: ElementRef,
     private _spotsService: SpotsService,
     private _spotReportsService: SpotReportsService,
@@ -817,6 +819,16 @@ export class SpotDetailsComponent
       this.challenge.set(newChallenge);
       this.isEditing.set(true);
     }
+  }
+
+  showAllChallenges() {
+    const spot = this.spot();
+
+    if (!spot || !(spot instanceof Spot)) {
+      throw new Error("The spot is a local spot, it has no challenges");
+    }
+
+    this._router.navigate(["/map", spot.id, "c"]);
   }
 
   setSpotIconicFromToggle(event: MatSlideToggleChange) {

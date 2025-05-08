@@ -35,9 +35,14 @@ export const routes: Routes = [
     // data: { routeName: "Spot map" },
   },
   {
+    path: "map/:spot/c", // :spot is a spot ID or a spot slug
+    component: MapPageComponent,
+    data: { showChallenges: true },
+  },
+  {
     path: "map/:spot/c/:challenge", // :spot is a spot ID or a spot slug
     component: MapPageComponent,
-    // data: { routeName: "Spot map" },
+    data: { showChallenges: true },
   },
   {
     path: "s/:slug",

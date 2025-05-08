@@ -1,7 +1,7 @@
 <div class="px-3">
   @if(challenge()) {
   <div class="d-flex flex-column gap-2">
-    <div class="pb-3">
+    <div class="pb-2">
       @if(spot()) {
       <button mat-button (click)="backToSpot()">
         <mat-icon>arrow_back_ios</mat-icon>
@@ -63,6 +63,21 @@
       </mat-chip-set>
     </div>
 
+    <!-- Release Date -->
+    @if(challenge()!.releaseDate) {
+    <div class="mb-2 p-2 border rounded">
+      <p class="m-0 mat-title-small d-flex flex-row pb-2 gap-2">
+        <mat-icon>lock</mat-icon
+        ><span i18n class="pt-1">This challenge is still private to you!</span>
+      </p>
+      <p class="mat-body-medium mb-0" i18n>
+        This challenge will be released on
+        {{ challenge()!.releaseDate?.toLocaleDateString() }}, at
+        {{ challenge()!.releaseDate?.toLocaleTimeString() }}.
+      </p>
+    </div>
+    }
+
     <!-- Media -->
     <div class="pb-4">
       <!-- <h3 class="mat-title-small" i18n>Media</h3> -->
@@ -91,7 +106,11 @@
 
     <div class="pb-3 d-flex flex-row align-items-center gap-1">
       <span class="mat-title-small" i18n>Uploaded by: </span
-      ><a mat-button [routerLink]="'/u/' + challenge()!.user.uid" class="p-2">
+      ><a
+        mat-button
+        [routerLink]="'/u/' + challenge()!.user.uid"
+        class="p-2 pe-3"
+      >
         @if(userPicture()) {
         <img
           class="rounded-circle"

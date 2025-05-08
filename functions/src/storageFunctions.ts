@@ -56,14 +56,36 @@ async function _compressVideo(
       const width = videoStream.width;
       const height = videoStream.height;
 
+      console.debug(`Video dimensions: ${width}x${height}`);
+
+      const MAX_SMALLER_DIMENSION = 720; // px
+      const MAX_LARGER_DIMENSION = 1280; // px
+
+      let size: string;
       if (!width || !height) {
         reject(new Error("Couldn't get video dimensions"));
         return;
       }
-
-      let size = "?x720";
-      if (height > width) {
-        size = "720x?";
+      if (width >= height) {
+        // horizontal video
+        if (height > MAX_SMALLER_DIMENSION) {
+          size = `?x${MAX_SMALLER_DIMENSION}`;
+        } else if (width > MAX_LARGER_DIMENSION) {
+          size = `${MAX_LARGER_DIMENSION}x?`;
+        } else {
+          // both dimensions are already small enough, don't rescale
+          size = `${width}x${height}`;
+        }
+      } else {
+        // vertical video
+        if (width > MAX_SMALLER_DIMENSION) {
+          size = `${MAX_SMALLER_DIMENSION}x?`;
+        } else if (height > MAX_LARGER_DIMENSION) {
+          size = `?x${MAX_LARGER_DIMENSION}`;
+        } else {
+          // both dimensions are already small enough, don't rescale
+          size = `${width}x${height}`;
+        }
       }
 
       ffmpeg(videoPath)
@@ -102,6 +124,7 @@ export const processVideoUpload = onObjectFinalized(
     const filePath = event.data.name;
     const fileNameWithExtension = basename(filePath);
     const contentType = event.data.contentType;
+    const fileName = fileNameWithExtension.replace(/\.[^/.]+$/, "");
     const originalMetadata = event.data.metadata;
 
     if (!contentType || !contentType.startsWith("video/")) {
@@ -122,8 +145,17 @@ export const processVideoUpload = onObjectFinalized(
     await bucket.file(filePath).download({ destination: tempVideoPath });
     console.log(`Video downloaded to ${tempVideoPath}`);
 
-    // Generate a uuid for this processing
-    const uuid = uuidv4();
+    // check if the filename is a uuid, if not create a new one
+    const uuidV4Regex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    let uuid: string;
+    if (uuidV4Regex.test(fileName)) {
+      uuid = fileName;
+      console.log(`Using existing uuid from filename: ${uuid}`);
+    } else {
+      uuid = uuidv4();
+      console.log(`Generated new uuid: ${uuid}`);
+    }
 
     // Compress Video
     const compressedVideoPath = await _compressVideo(tempVideoPath, uuid);

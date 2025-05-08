@@ -279,8 +279,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         if (spotId) {
           const spot = await this.loadSpotById(spotId as SpotId);
 
-          if (spot && challengeId) {
-            await this.loadChallengeById(spot, challengeId);
+          // if the route data 'showChallenges' boolean is true then we want to
+          // either show the challenge if we have the challenge id or show
+          // all the challenges on the spot
+
+          if (spot && challengeId && isPlatformBrowser(this.platformId)) {
+            try {
+              await this.loadChallengeById(spot, challengeId);
+            } catch (err) {
+              console.log("Error loading challenge", err);
+            }
           }
         }
       }
@@ -395,6 +403,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.closeSpot();
     } else {
       this.selectedSpot.set(spot);
+      this.selectedChallenge.set(null);
       this.setSpotMetaTags();
       this.spotMap?.focusSpot(spot);
 
@@ -407,6 +416,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   closeSpot() {
     this.clearTitleAndMetaTags();
     this.selectedSpot.set(null);
+    this.selectedChallenge.set(null);
     this.updateMapURL();
   }
 

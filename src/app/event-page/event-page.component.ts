@@ -121,6 +121,10 @@ export class EventPageComponent implements OnInit, OnDestroy {
     "sRX9lb5lNYKGqQ5e4rcO" as SpotId,
   ];
 
+  swissJamChallengeIds: Record<string, string> = {
+    yhRsQmaXABRQVrbtgQ7D: "QLQv51skvhF8JZhRPfIF",
+  };
+
   areaPolygon = signal<PolygonSchema | null>(null);
 
   focusZoom = 19;
