@@ -27,7 +27,7 @@
             >Challenge</span
           >
         </div>
-        <button mat-icon-button (click)="shareChallenge()">
+        <button mat-icon-button class="d-flex" (click)="shareChallenge()">
           <mat-icon>share</mat-icon>
         </button>
       </div>
@@ -72,8 +72,16 @@
       </p>
       <p class="mat-body-medium mb-0" i18n>
         This challenge will be released on
-        {{ challenge()!.releaseDate?.toLocaleDateString() }}, at
-        {{ challenge()!.releaseDate?.toLocaleTimeString() }}.
+        {{
+          challenge()!.releaseDate?.toLocaleDateString(locale, {
+            dateStyle: "medium"
+          })
+        }}, at
+        {{
+          challenge()!.releaseDate?.toLocaleTimeString(locale, {
+            timeStyle: "short"
+          })
+        }}.
       </p>
     </div>
     }

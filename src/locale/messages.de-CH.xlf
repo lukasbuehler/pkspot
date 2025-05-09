@@ -671,13 +671,13 @@
     <unit id="about.title">
       <segment state="initial">
         <source>About PK Spot</source>
-        <target>Über PKFR Spot</target>
+        <target>Über PK Spot</target>
       </segment>
     </unit>
     <unit id="pk.spotmap.title">
       <segment state="initial">
-        <source>PK Spot map</source>
-        <target>PKFR Spot Charte</target>
+        <source>PK Spot Map</source>
+        <target>PK Spot Charte</target>
       </segment>
     </unit>
     <unit id="amenities.covered">
@@ -901,7 +901,7 @@
     <unit id="welcomeDialogTitle">
       <segment state="initial">
         <source>Welcome to PK Spot!</source>
-        <target>Willkomme bi PKFR Spot!</target>
+        <target>Willkomme bi PK Spot!</target>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">
@@ -939,7 +939,7 @@
     <unit id="about.description">
       <segment state="initial">
         <source>About PK Spot</source>
-        <target>Über PKFR Spot</target>
+        <target>Über PK Spot</target>
       </segment>
     </unit>
     <unit id="7629436164719717851">

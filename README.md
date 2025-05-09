@@ -15,20 +15,20 @@ For the detailed progress please refer to the following GitHub project: [PK Spot
 | Non-binding time estimate | Features                                                                                          |
 | :------------------------ | :------------------------------------------------------------------------------------------------ |
 | Q1 2025                   | Spot Map Update leftovers: Link Google places, drinking water and WC's on map, Angular 19, French |
-| End of Q1 2025            | **Integration update**: Let websites embed PKFR Spots or the PKFR Spot map.                       |
+| End of Q1 2025            | **Integration update**: Let websites embed PK Spots or the PK Spot map.                           |
 | Q2 2025                   | **Post Update**: Posts (Image, Video, Link), Profile pages, Link posts to spots, ...              |
 | Q3 2025                   | **Training Update**: Plan and share training sessions and jams, organize teams and groups, ...    |
 | ...                       | ...                                                                                               |
 
 ### Past Updates
 
-| Date              | Features                                                                                                                                                                             | Last Commit                                                                                                                                                               |
-| :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 27. December 2024 | **Spot map update**: Improvements to spot clustering, Highlighted spots, Spot ratings, spot features and amenities, performance improvements, more languages (Italian, Swiss-German) | [209dcbe](https://github.com/lukasbuehler/pkfrspot/commit/209dcbe7649289aee0813403b991e96f7c54b61b#diff-0cdfa2a1ed45e76b091a17632ec22c4c45b9642c15b03c26cd7e38756546201e) |
-| 8. September 2024 | Added locality (region, city, country) to spots                                                                                                                                      | [8170d25](https://github.com/lukasbuehler/pkfrspot/commit/8170d25a558ff160b39de69095f928d0a44fd5a9)                                                                       |
-| 28. August 2024   | Multilanguage (English, German), SSR, link previews, Angular 18                                                                                                                      | [504d587](https://github.com/lukasbuehler/pkfrspot/commit/504d58743607b84a3932c98ee9e6ef5073d77c41)                                                                       |
-| Spring 2024       | Mobile (web) UI/UX enhancements                                                                                                                                                      |                                                                                                                                                                           |
-| Spring 2024       | Spot and places full-text search                                                                                                                                                     |                                                                                                                                                                           |
+| Date              | Features                                                                                                                                                                             | Last Commit                                                                                                                                                             |
+| :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 27. December 2024 | **Spot map update**: Improvements to spot clustering, Highlighted spots, Spot ratings, spot features and amenities, performance improvements, more languages (Italian, Swiss-German) | [209dcbe](https://github.com/lukasbuehler/pkspot/commit/209dcbe7649289aee0813403b991e96f7c54b61b#diff-0cdfa2a1ed45e76b091a17632ec22c4c45b9642c15b03c26cd7e38756546201e) |
+| 8. September 2024 | Added locality (region, city, country) to spots                                                                                                                                      | [8170d25](https://github.com/lukasbuehler/pkspot/commit/8170d25a558ff160b39de69095f928d0a44fd5a9)                                                                       |
+| 28. August 2024   | Multilanguage (English, German), SSR, link previews, Angular 18                                                                                                                      | [504d587](https://github.com/lukasbuehler/pkspot/commit/504d58743607b84a3932c98ee9e6ef5073d77c41)                                                                       |
+| Spring 2024       | Mobile (web) UI/UX enhancements                                                                                                                                                      |                                                                                                                                                                         |
+| Spring 2024       | Spot and places full-text search                                                                                                                                                     |                                                                                                                                                                         |
 
 ## Local Installation
 
@@ -163,7 +163,7 @@ After that the language files will be updated (and possibly reformatted, which i
 
 4. Edit this new language file in [`src/locales`](./src/locale/).
 
-5. Submit a pull-request with your changes on [GitHub](https://github.com/lukasbuehler/pkfrspot/compare)
+5. Submit a pull-request with your changes on [GitHub](https://github.com/lukasbuehler/pkspot/compare)
 
 ### Developing Locally
 

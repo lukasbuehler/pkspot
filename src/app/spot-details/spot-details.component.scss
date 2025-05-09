@@ -164,7 +164,8 @@ div.google-img-container {
   transition: filter 0.2s ease-in-out, background-color 0.2 ease-in-out;
   filter: brightness(1);
   background-color: transparent;
-
+  text-decoration: none;
+  color: inherit;
   img {
     transform: scale(1);
     transition: transform 0.2s ease-in-out;

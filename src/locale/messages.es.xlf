@@ -310,7 +310,7 @@
     <unit id="5223089976416033243">
       <segment state="initial">
         <source> General settings to tune your experience on PK Spot. </source>
-        <target> Configuraciones generales para personalizar tu experiencia en PKFR Spot. </target>
+        <target> Configuraciones generales para personalizar tu experiencia en PK Spot. </target>
       </segment>
     </unit>
     <unit id="5851560788527570644">
@@ -475,7 +475,8 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
+            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
+            equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>He leído y comprendido los <pc id="0" equivStart="START_BOLD_TEXT"
@@ -672,13 +673,13 @@
     <unit id="about.title">
       <segment state="initial">
         <source>About PK Spot</source>
-        <target>Acerca de PKFR Spot</target>
+        <target>Acerca de PK Spot</target>
       </segment>
     </unit>
     <unit id="pk.spotmap.title">
       <segment state="initial">
-        <source>PK Spot map</source>
-        <target>Mapa PKFR Spot</target>
+        <source>PK Spot Map</source>
+        <target>Mapa PK Spot</target>
       </segment>
     </unit>
     <unit id="amenities.covered">
@@ -901,7 +902,7 @@
     <unit id="welcomeDialogTitle">
       <segment state="initial">
         <source>Welcome to PK Spot!</source>
-        <target>¡Bienvenido a PKFR Spot!</target>
+        <target>¡Bienvenido a PK Spot!</target>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">
@@ -939,7 +940,7 @@
     <unit id="about.description">
       <segment state="initial">
         <source>About PK Spot</source>
-        <target>Acerca de PKFR Spot</target>
+        <target>Acerca de PK Spot</target>
       </segment>
     </unit>
     <unit id="7629436164719717851">

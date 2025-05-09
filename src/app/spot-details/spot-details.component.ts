@@ -180,6 +180,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatRippleModule,
     MatSelectModule,
     LocaleMapViewComponent,
+    RouterLink,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -191,6 +192,15 @@ export class SpotDetailsComponent
   private _structuredDataService = inject(StructuredDataService);
 
   spot = model<Spot | LocalSpot | null>(null);
+  spotSlugOrId = computed(() => {
+    const spot = this.spot();
+
+    if (spot instanceof Spot) {
+      return spot.slug ?? spot.id;
+    } else {
+      return "";
+    }
+  });
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
   isEditing = model<boolean>(false);
   isLocalSpot = computed(

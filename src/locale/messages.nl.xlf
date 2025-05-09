@@ -308,7 +308,7 @@
     <unit id="5223089976416033243">
       <segment state="initial">
         <source> General settings to tune your experience on PK Spot. </source>
-        <target> Algemene instellingen om je ervaring op PKFR Spot aan te passen. </target>
+        <target> Algemene instellingen om je ervaring op PK Spot aan te passen. </target>
       </segment>
     </unit>
     <unit id="5851560788527570644">
@@ -474,7 +474,8 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
+            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
+            equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>Ik heb de <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
@@ -672,13 +673,13 @@
     <unit id="about.title">
       <segment state="initial">
         <source>About PK Spot</source>
-        <target>Over PKFR Spot</target>
+        <target>Over PK Spot</target>
       </segment>
     </unit>
     <unit id="pk.spotmap.title">
       <segment state="initial">
-        <source>PK Spot map</source>
-        <target>PKFR Spot-kaart</target>
+        <source>PK Spot Map</source>
+        <target>PK Spot-kaart</target>
       </segment>
     </unit>
     <unit id="amenities.covered">
@@ -902,7 +903,7 @@
     <unit id="welcomeDialogTitle">
       <segment state="initial">
         <source>Welcome to PK Spot!</source>
-        <target>Welkom bij PKFR Spot!</target>
+        <target>Welkom bij PK Spot!</target>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">

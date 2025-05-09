@@ -12,7 +12,8 @@
           [class.grayed-out]="media.uploadProgress < 100"
         />
         @if(media.uploadProgress < 100) {
-        <mat-spinner class="position: absolute"></mat-spinner>
+        <!-- <mat-spinner class="position-absolute"></mat-spinner> -->
+        <mat-icon class="position-absolute"></mat-icon>
         }
       </div>
       }

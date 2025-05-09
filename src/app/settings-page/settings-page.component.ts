@@ -1,14 +1,7 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { ActivatedRoute } from "@angular/router";
-import {
-  Location,
-  NgFor,
-  NgClass,
-  NgSwitch,
-  NgSwitchCase,
-  NgIf,
-} from "@angular/common";
+import { ActivatedRoute, Router } from "@angular/router";
+import { NgFor, NgClass, NgSwitch, NgSwitchCase, NgIf } from "@angular/common";
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import { EditProfileComponent } from "../edit-profile/edit-profile.component";
 import {
@@ -60,7 +53,7 @@ export class SettingsPageComponent implements OnInit {
   constructor(
     public authService: AuthenticationService,
     private route: ActivatedRoute,
-    private location: Location,
+    private router: Router,
     private _snackbar: MatSnackBar
   ) {}
 
@@ -147,7 +140,7 @@ export class SettingsPageComponent implements OnInit {
   }
 
   updateURL(selectedPoint: string) {
-    this.location.go(`/settings/${selectedPoint}`);
+    this.router.navigate(["/settings", selectedPoint]);
   }
 
   verifyUserEmailAddress() {

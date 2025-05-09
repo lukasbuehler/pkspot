@@ -99,7 +99,7 @@ export class ChallengeDetailComponent {
   private _challengeService = inject(SpotChallengesService);
   private _authService = inject(AuthenticationService);
   private _snackbar = inject(MatSnackBar);
-  private locale = inject<string>(LOCALE_ID);
+  locale = inject<string>(LOCALE_ID);
 
   readonly challengeLabels = ChallengeLabelValues;
   readonly challengeLabelNames = ChallengeLabelNames;
@@ -198,6 +198,12 @@ export class ChallengeDetailComponent {
     this.challenge.update((challenge) => {
       if (!challenge) {
         return challenge;
+      }
+
+      // replace the media file ending with mp4 if it has one
+      // since the quicktime .mov files will be converted to mp4
+      if (newMedia.type === "video" && newMedia.src.endsWith(".mov")) {
+        newMedia.src = newMedia.src.replace(/\.mov$/i, ".mp4");
       }
 
       const media: MediaSchema = {

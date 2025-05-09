@@ -23,7 +23,7 @@ import { filter } from "rxjs/operators";
 import { AuthenticationService } from "./services/firebase/authentication.service";
 import { StorageService } from "./services/firebase/storage.service";
 import { GlobalVariables } from "../scripts/global";
-import { NgOptimizedImage } from "@angular/common";
+import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
 import { MatButtonModule, MatFabButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import {
@@ -387,10 +387,15 @@ export class AppComponent implements OnInit {
         link: "/map",
         icon: "map",
       },
+      // {
+      //   name: $localize`:@@events.nav_label:Events`,
+      //   link: "/events",
+      //   icon: "calendar_month", // or event, local_activity, calendar_month
+      // },
       {
-        name: $localize`:@@events.nav_label:Events`,
-        link: "/events",
-        icon: "calendar_month", // or event, local_activity, calendar_month
+        name: "Swiss Jam",
+        link: "/events/swissjam25",
+        icon: "local_activity",
       },
       {
         name: $localize`:About page navbar button label|A very short label for the navbar about page button:About`,

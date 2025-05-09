@@ -309,7 +309,7 @@
     <unit id="5223089976416033243">
       <segment state="initial">
         <source> General settings to tune your experience on PK Spot. </source>
-        <target> Deine allgemeinen Einstellungen für PKFR Spot </target>
+        <target> Deine allgemeinen Einstellungen für PK Spot </target>
       </segment>
     </unit>
     <unit id="5851560788527570644">
@@ -673,13 +673,13 @@
     <unit id="about.title">
       <segment state="initial">
         <source>About PK Spot</source>
-        <target>Über PKFR Spot</target>
+        <target>Über PK Spot</target>
       </segment>
     </unit>
     <unit id="pk.spotmap.title">
       <segment state="initial">
-        <source>PK Spot map</source>
-        <target>PKFR Spot Karte</target>
+        <source>PK Spot Map</source>
+        <target>PK Spot Karte</target>
       </segment>
     </unit>
     <unit id="amenities.covered">
@@ -904,7 +904,7 @@
     <unit id="welcomeDialogTitle">
       <segment state="initial">
         <source>Welcome to PK Spot!</source>
-        <target>Willkommen bei PKFR Spot!</target>
+        <target>Willkommen bei PK Spot!</target>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">
@@ -942,7 +942,7 @@
     <unit id="about.description">
       <segment state="initial">
         <source>About PK Spot</source>
-        <target>Über PKFR Spot</target>
+        <target>Über PK Spot</target>
       </segment>
     </unit>
     <unit id="7629436164719717851">

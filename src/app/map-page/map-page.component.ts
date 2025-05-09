@@ -50,9 +50,6 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { SearchService } from "../services/search.service";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
-  Location,
-  NgIf,
-  NgFor,
   AsyncPipe,
   isPlatformServer,
   isPlatformBrowser,
@@ -178,7 +175,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private _searchService: SearchService,
     private _slugsService: SlugsService,
     private router: Router,
-    private location: Location,
     private _snackbar: MatSnackBar,
     private titleService: Title
   ) {
@@ -190,30 +186,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.isServer = isPlatformServer(platformId);
 
-    this.titleService.setTitle($localize`:@@pk.spotmap.title:PK Spot map`);
+    this.clearTitleAndMetaTags();
 
     effect(() => {
-      const selectedSpot = this.selectedSpot();
+      // const selectedSpot = this.selectedSpot();
       const challenge = this.selectedChallenge();
 
-      if (!selectedSpot || !(selectedSpot instanceof Spot)) return;
-
-      console.debug("updating URL for challenge");
-
-      if (challenge && challenge instanceof SpotChallenge) {
-        this.location.go(
-          [
-            "/map",
-            selectedSpot.slug ?? selectedSpot.id,
-            "c",
-            challenge.id,
-          ].join("/")
-        );
-      } else {
-        this.location.go(
-          ["/map", selectedSpot.slug ?? selectedSpot.id].join("/")
-        );
-      }
+      this.updateMapURL();
     });
   }
 
@@ -264,11 +243,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     console.log("map page init");
-    this.pendingTasks.run(async () => {
-      const spotIdOrSlug = this.activatedRoute.snapshot.paramMap.get("spot");
-      const challengeId =
-        this.activatedRoute.snapshot.paramMap.get("challenge");
 
+    // Collect params from all levels in the route tree
+    const spotIdOrSlug: string | null =
+      this.activatedRoute.snapshot.firstChild?.paramMap.get("spot") ?? null;
+    const challengeId: string | null =
+      this.activatedRoute.snapshot.firstChild?.firstChild?.firstChild?.paramMap.get(
+        "challenge"
+      ) ?? null;
+    const showChallenges =
+      !!this.activatedRoute.snapshot.firstChild?.firstChild;
+
+    this.pendingTasks.run(async () => {
       console.log("spotIdOrSlug", spotIdOrSlug);
 
       if (spotIdOrSlug) {
@@ -277,15 +263,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log("spotId", spotId);
 
         if (spotId) {
-          const spot = await this.loadSpotById(spotId as SpotId);
-
-          // if the route data 'showChallenges' boolean is true then we want to
-          // either show the challenge if we have the challenge id or show
-          // all the challenges on the spot
+          const spot = await this.loadSpotById(spotId as SpotId, false);
 
           if (spot && challengeId && isPlatformBrowser(this.platformId)) {
             try {
-              await this.loadChallengeById(spot, challengeId);
+              await this.loadChallengeById(spot, challengeId, false);
             } catch (err) {
               console.log("Error loading challenge", err);
             }
@@ -319,29 +301,51 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
-      // after the first load
-      this._routerSubscription = this.activatedRoute.paramMap
-        .pipe(
-          switchMap(async (params: ParamMap) => {
-            const spotIdOrSlug = params.get("spot") ?? "";
+      this._routerSubscription = this.router.events
+        .pipe(filter((event) => event instanceof NavigationStart))
+        .subscribe((event) => {
+          const match = (event as NavigationStart).url.match(
+            /^\/map(?:\/([^\/]+))?(?:\/(c)(?:\/([^\/]+))?)?/
+          );
+          const spotIdOrSlug = match?.[1] ?? null;
+          const showChallenges = !!match?.[2];
+          const challengeId = match?.[3] ?? null;
+          console.log("Parsed from URL:", {
+            spotIdOrSlug,
+            challengeId,
+            showChallenges,
+          });
 
-            if (!spotIdOrSlug) {
-              return EMPTY;
-            }
-            const spotId = await this._getSpotIdFromSlugOrId(spotIdOrSlug);
+          console.log(spotIdOrSlug, showChallenges, challengeId);
 
-            if (spotId) {
-              return spotId;
+          if (challengeId && spotIdOrSlug) {
+            // open the spot on a challenge
+            const selectedSpot = this.selectedSpot();
+            if (selectedSpot && selectedSpot instanceof Spot) {
+              this.loadChallengeById(selectedSpot, challengeId, false).then(
+                () => {}
+              );
+            } else if (!selectedSpot) {
+              // load the spot by id then the challenge
             } else {
-              return EMPTY;
+              // the spot is a local spot
+              console.error(
+                "Cannot open a challenge of a local spot, it should not have one!"
+              );
             }
-          })
-        )
-        .subscribe((spotId) => {
-          if (spotId) {
-            this.loadSpotById(spotId as SpotId).then(() => {});
+          } else if (spotIdOrSlug) {
+            this._getSpotIdFromSlugOrId(spotIdOrSlug).then((spotId) => {
+              if (!spotId) {
+                console.warn("Could not get spot id from slug or id.");
+                return;
+              }
+
+              // open the spot
+              this.loadSpotById(spotId as SpotId, false).then(() => {});
+            });
           } else {
-            this.closeSpot();
+            // close the spot
+            this.closeSpot(false);
           }
         });
     }
@@ -362,62 +366,107 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  async loadSpotById(spotId: SpotId): Promise<Spot> {
+  async loadSpotById(spotId: SpotId, updateUrl: boolean = true): Promise<Spot> {
     console.debug("loading spot by id", spotId);
     const spot: Spot = await this._spotsService.getSpotByIdHttp(
       spotId,
       this.locale
     );
-    this.selectSpot(spot);
+    this.selectSpot(spot, updateUrl);
 
     return spot;
   }
 
   async loadChallengeById(
     spot: Spot,
-    challengeId: string
+    challengeId: string,
+    updateUrl: boolean = true
   ): Promise<SpotChallenge> {
     console.debug("loading challenge by id", challengeId);
 
     const challenge: SpotChallenge =
       await this._challengesService.getSpotChallenge(spot, challengeId);
-    this.selectedChallenge.set(challenge);
+
+    this.selectChallenge(challenge, updateUrl);
 
     return challenge;
   }
 
   updateMapURL() {
     const selectedSpot = this.selectedSpot();
-    if (selectedSpot && selectedSpot instanceof Spot) {
-      this.location.go(
-        ["/map", selectedSpot.slug ?? selectedSpot.id].join("/")
-      );
+    const selectedChallenge = this.selectedChallenge();
+
+    const urlTree = this.router.createUrlTree(
+      selectedChallenge &&
+        selectedChallenge instanceof SpotChallenge &&
+        selectedSpot &&
+        selectedSpot instanceof Spot
+        ? [
+            "/map",
+            selectedSpot.slug ?? selectedSpot.id,
+            "c",
+            selectedChallenge.id,
+          ]
+        : selectedSpot && selectedSpot instanceof Spot
+        ? ["/map", selectedSpot.slug ?? selectedSpot.id]
+        : ["/map"]
+    );
+    const currentUrl = this.router.url;
+    const newUrl = this.router.serializeUrl(urlTree);
+
+    console.log(currentUrl, newUrl);
+
+    if (currentUrl === newUrl) {
+      return;
     } else {
-      this.location.go(["/map"].join("/"));
+      this.router.navigateByUrl(newUrl);
     }
   }
 
-  selectSpot(spot: Spot | LocalSpot | null) {
-    // console.debug("selecting spot", spot);
+  selectSpot(spot: Spot | LocalSpot | null, updateUrl: boolean = true) {
+    console.debug("selecting spot", spot);
     if (!spot) {
-      this.closeSpot();
+      this.closeSpot(updateUrl);
     } else {
+      this.closeChallenge(false);
       this.selectedSpot.set(spot);
-      this.selectedChallenge.set(null);
       this.setSpotMetaTags();
       this.spotMap?.focusSpot(spot);
 
-      if (spot instanceof Spot) {
+      if (updateUrl && spot instanceof Spot) {
         this.updateMapURL();
       }
     }
   }
 
-  closeSpot() {
+  selectChallenge(challenge: SpotChallenge, updateUrl: boolean = true) {
+    if (!challenge) {
+      return this.closeChallenge(updateUrl);
+    } else {
+      this.selectedChallenge.set(challenge);
+
+      if (updateUrl) {
+        this.updateMapURL();
+      }
+    }
+  }
+
+  closeSpot(updateUrl: boolean = true) {
     this.clearTitleAndMetaTags();
     this.selectedSpot.set(null);
+    this.closeChallenge(false);
+
+    if (updateUrl) {
+      this.updateMapURL();
+    }
+  }
+
+  closeChallenge(updateUrl: boolean = true) {
     this.selectedChallenge.set(null);
-    this.updateMapURL();
+
+    if (updateUrl) {
+      this.updateMapURL();
+    }
   }
 
   setSpotMetaTags() {
@@ -462,7 +511,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   clearTitleAndMetaTags() {
-    this.titleService.setTitle($localize`:@@pk.spotmap.title:PK Spot map`);
+    this.titleService.setTitle($localize`:@@pk.spotmap.title:PK Spot Map`);
+    this.metaInfoService.setMetaTags(
+      $localize`:@@pk.spotmap.title:PK Spot Map`,
+      "/assets/banner_1200x630.png",
+      "Discover, Train, Share. Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world."
+    );
   }
 
   ngOnDestroy() {

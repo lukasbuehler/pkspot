@@ -85,7 +85,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   private _route = inject(ActivatedRoute);
   private _locationStrategy = inject(LocationStrategy);
   private _snackbar = inject(MatSnackBar);
-  private _mapsApiService = inject(MapsApiService);
+  mapsApiService = inject(MapsApiService);
 
   private _routeSubscription: Subscription;
 
@@ -307,7 +307,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
     );
 
     firstValueFrom(
-      this._mapsApiService.isApiLoaded$.pipe(
+      this.mapsApiService.isApiLoaded$.pipe(
         filter((isLoaded) => isLoaded),
         take(1)
       )

@@ -1,5 +1,5 @@
 import { NgModule } from "@angular/core";
-import { Routes, RouterModule } from "@angular/router";
+import { Routes, RouterModule, UrlSegment, Route } from "@angular/router";
 import { HomePageComponent } from "./home-page/home-page.component";
 import { NotFoundPageComponent } from "./not-found-page/not-found-page.component";
 import { MapPageComponent } from "./map-page/map-page.component";
@@ -23,27 +23,31 @@ export const routes: Routes = [
   // Home page (redirects to spot map)
   { path: "", redirectTo: "map", pathMatch: "full" },
 
-  // Map page
+  // Map page (single matcher for all map routes)
   {
     path: "map",
     component: MapPageComponent,
-    // data: { routeName: "Spot map" }
+    // Optionally add data if needed
+    children: [
+      {
+        path: ":spot",
+        component: MapPageComponent,
+        children: [
+          {
+            path: "c",
+            component: MapPageComponent,
+            children: [
+              {
+                path: ":challenge",
+                component: MapPageComponent,
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
-  {
-    path: "map/:spot", // :spot is a spot ID or a spot slug
-    component: MapPageComponent,
-    // data: { routeName: "Spot map" },
-  },
-  {
-    path: "map/:spot/c", // :spot is a spot ID or a spot slug
-    component: MapPageComponent,
-    data: { showChallenges: true },
-  },
-  {
-    path: "map/:spot/c/:challenge", // :spot is a spot ID or a spot slug
-    component: MapPageComponent,
-    data: { showChallenges: true },
-  },
+
   {
     path: "s/:slug",
     redirectTo: "map/:slug",

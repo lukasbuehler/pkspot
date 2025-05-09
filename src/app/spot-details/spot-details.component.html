@@ -173,16 +173,15 @@
     }
 
     <!-- Spot Challenges -->
-    @if(spot()!.topChallenges().length > 0) {
+    @if(spot()!.topChallenges().length > 0 && spotSlugOrId()) {
     <div class="pb-4">
       <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
       <div class="challenge-preview-grid pb-3">
         @for(challenge of spot()!.topChallenges(); track challenge) {
-        <div
+        <a
           class="d-flex flex-column overflow-hidden challenge-card"
           matRipple
-          style="cursor: pointer"
-          (click)="openChallenge(challenge.id)"
+          [routerLink]="['/map', spotSlugOrId(), 'c', challenge.id]"
         >
           <div
             class="rounded w-100 overflow-hidden position-relative"
@@ -198,7 +197,7 @@
           <span class="mat-title-small pt-1 text-truncate">{{
             challenge.name
           }}</span>
-        </div>
+        </a>
         }
       </div>
       @if(spot()!.numChallenges() > spot()!.topChallenges().length) {

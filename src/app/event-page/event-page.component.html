@@ -53,10 +53,23 @@
       </span>
       }
     </p>
-    <p>
+    <p class="d-flex gap-2">
       <a [href]="url" target="_blank" mat-stroked-button>
         <mat-icon>launch</mat-icon><span i18n>More Information</span></a
       >
+      <button
+        (click)="mapsApiService.openDirectionsInMaps(markers[1].location)"
+        target="_blank"
+        mat-stroked-button
+      >
+        <mat-icon>directions</mat-icon
+        ><span
+          i18n="
+            Directions to spot|The label of a button opening directions to a
+            spot@@directions_spot"
+          >Directions</span
+        >
+      </button>
     </p>
   </div>
 

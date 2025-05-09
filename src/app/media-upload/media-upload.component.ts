@@ -32,6 +32,7 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 export interface UploadMedia {
   file: File;
   previewSrc: string;
+  icon: string;
   uploadProgress: number;
   type: MediaType;
 }
@@ -158,6 +159,11 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
           previewSrc: this.getFileImageSrc(file),
           file: file,
           uploadProgress: 0,
+          icon: file.type.includes("image")
+            ? "image"
+            : file.type.includes("video")
+            ? "movie"
+            : "insert_drive_file",
           type: file.type.includes("image") ? MediaType.Image : MediaType.Video,
         };
 

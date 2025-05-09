@@ -48,6 +48,7 @@ type EmbedType = "map" | "event";
       provide: APP_BASE_HREF,
       useFactory: (platformId: Object) => {
         if (isPlatformBrowser(platformId)) {
+          console.log("in factory platform id:", platformId);
           const pathSegments = window.location.pathname.split("/");
           return window.location.origin;
         }

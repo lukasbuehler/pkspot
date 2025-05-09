@@ -140,16 +140,17 @@
     [position]="selectedSpot.location()"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotMarkerNode.elementRef.nativeElement"
-    [zIndex]="1000000 + 1"
+    [zIndex]="1000 + 1"
     [options]="{
       gmpDraggable: isEditing
     }"
+    [draggable]="isEditing"
   ></map-advanced-marker>
   <app-marker
     #selectedSpotMarkerNode
     class="fade-in"
     id="selectedSpotMarkerNode"
-    [icons]="[selectedSpot.isIconic ? 'star' : 'directions_run']"
+    [icons]="[selectedSpot.isIconic ? 'star' : 'emoji_people']"
     [isIconic]="selectedSpot.isIconic"
   >
   </app-marker>
