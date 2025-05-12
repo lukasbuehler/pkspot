@@ -45,6 +45,10 @@ import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
 import { MapHelpers } from "../../scripts/MapHelpers";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { PolygonSchema } from "../../db/schemas/PolygonSchema";
+import {
+  LocalSpotChallenge,
+  SpotChallenge,
+} from "../../db/models/SpotChallenge";
 
 export interface TilesObject {
   zoom: number;
@@ -88,6 +92,9 @@ export class MapComponent implements OnInit, OnChanges {
   // @ViewChildren(MapPolygon, { read: ElementRef })
   polygonElements: QueryList<ElementRef> | undefined;
   @ViewChild("selectedSpotMarkerNode") selectedSpotMarkerNode: Node | undefined;
+  @ViewChild("selectedChallengeMarker") selectedChallengeMarker:
+    | MapAdvancedMarker
+    | undefined;
 
   // add math function to markup
   sqrt = Math.sqrt;
@@ -95,6 +102,7 @@ export class MapComponent implements OnInit, OnChanges {
   focusZoom = input<number>(17);
   isDebug = input<boolean>(false);
   showSpotPreview = input<boolean>(false);
+  isEditing = input<boolean>(false);
 
   isDarkMode = input<boolean>(true); // should be false if mapStyle is roadmap and the dark map is used
   markers: InputSignal<MarkerSchema[]> = input<MarkerSchema[]>([]);
@@ -152,7 +160,13 @@ export class MapComponent implements OnInit, OnChanges {
   @Input() dots: SpotClusterDotSchema[] = [];
 
   @Input() selectedSpot: Spot | LocalSpot | null = null;
-  @Input() isEditing: boolean = false;
+  @Input() selectedSpotChallenges: {
+    name: string;
+    id: string;
+    location?: google.maps.LatLngLiteral;
+  }[] = [];
+  @Input() selectedChallenge: SpotChallenge | LocalSpotChallenge | null = null;
+
   @Input() showGeolocation: boolean = false;
   @Input() selectedMarker: google.maps.LatLngLiteral | null = null;
 
@@ -265,6 +279,17 @@ export class MapComponent implements OnInit, OnChanges {
 
       this.visibleTilesChange.emit(visibleTiles);
     });
+
+    // effect(() => {
+    //   const isEditing = this.isEditing();
+
+    //   this.cdr.detectChanges();
+
+    //   console.log("Setting!", this.selectedChallengeMarker);
+    //   if (this.selectedChallengeMarker) {
+    //     this.selectedChallengeMarker.options.gmpDraggable = isEditing;
+    //   }
+    // });
   }
 
   isApiLoadedSubscription: Subscription | null = null;
@@ -514,6 +539,12 @@ export class MapComponent implements OnInit, OnChanges {
     if (!this.selectedSpot) return;
 
     this.selectedSpot.location.set(position.toJSON());
+  }
+
+  editingChallengePositionChanged(position: google.maps.LatLng) {
+    if (!this.selectedChallenge) return;
+
+    this.selectedChallenge.location.set(position.toJSON());
   }
 
   geopointToLatLngLiteral(geoPoint: GeoPoint): google.maps.LatLngLiteral {

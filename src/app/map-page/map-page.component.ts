@@ -142,7 +142,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   pendingTasks = inject(PendingTasks);
 
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
-  isEditing: boolean = false;
+
+  isEditing: WritableSignal<boolean> = signal(false);
   mapStyle: "roadmap" | "satellite" | null = null;
   selectedChallenge: WritableSignal<SpotChallenge | LocalSpotChallenge | null> =
     signal(null);

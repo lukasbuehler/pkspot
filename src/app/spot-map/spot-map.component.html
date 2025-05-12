@@ -6,6 +6,8 @@
   [spots]="(visibleSpots$ | async) ?? []"
   [dots]="(visibleDots$ | async) ?? []"
   [selectedSpot]="selectedSpot()"
+  [selectedChallenge]="selectedChallenge()"
+  [selectedSpotChallenges]="selectedSpotChallenges()"
   [markers]="visibleMarkers.asReadonly()()"
   [polygons]="polygons()"
   [selectedMarker]="selectedMarker()"

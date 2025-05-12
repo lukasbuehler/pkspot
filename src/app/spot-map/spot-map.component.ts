@@ -47,6 +47,10 @@ import { OsmDataService } from "../services/osm-data.service";
 import { SpotMapDataManager } from "./SpotMapDataManager";
 import { distinctUntilChanged } from "rxjs/operators";
 import { PolygonSchema } from "../../db/schemas/PolygonSchema";
+import {
+  LocalSpotChallenge,
+  SpotChallenge,
+} from "../../db/models/SpotChallenge";
 
 @Component({
   selector: "app-spot-map",
@@ -61,6 +65,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   osmDataService = inject(OsmDataService);
 
   selectedSpot = model<Spot | LocalSpot | null>(null); // input and output signal
+  selectedSpotChallenges = model<
+    {
+      name: string;
+      id: string;
+      location?: google.maps.LatLngLiteral;
+    }[]
+  >([]);
+  selectedChallenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
+
   isEditing = model<boolean>(false);
   mapStyle = model<"roadmap" | "satellite" | null>(null);
   markers = input<MarkerSchema[]>([]);

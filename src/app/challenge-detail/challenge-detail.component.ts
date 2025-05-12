@@ -101,6 +101,7 @@ export class ChallengeDetailComponent {
   private _snackbar = inject(MatSnackBar);
   locale = inject<string>(LOCALE_ID);
 
+  Date = Date;
   readonly challengeLabels = ChallengeLabelValues;
   readonly challengeLabelNames = ChallengeLabelNames;
   readonly challengeLabelIcons = ChallengeLabelIcons;

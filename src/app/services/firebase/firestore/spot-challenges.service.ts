@@ -58,27 +58,37 @@ export class SpotChallengesService {
     });
   }
 
-  addChallenge(spotId: SpotId, challengeData: SpotChallengeSchema) {
+  addChallenge(
+    spotId: SpotId,
+    challengeData: SpotChallengeSchema
+  ): Promise<void> {
     challengeData = removeUndefinedProperties(
       challengeData
     ) as SpotChallengeSchema;
 
-    return addDoc(
-      collection(this._firestore, "spots", spotId, "challenges"),
-      challengeData
-    );
+    console.debug("adding challenge");
+
+    // return addDoc(
+    //   collection(this._firestore, "spots", spotId, "challenges"),
+    //   challengeData
+    // );
+
+    return Promise.resolve();
   }
 
   updateChallenge(
     spotId: SpotId,
     challengeId: string,
     challengeData: Partial<SpotChallengeSchema>
-  ) {
+  ): Promise<void> {
     challengeData = removeUndefinedProperties(challengeData);
 
-    return updateDoc(
-      doc(this._firestore, "spots", spotId, "challenges", challengeId),
-      challengeData
-    );
+    console.log("updating challenge", challengeId);
+
+    // return updateDoc(
+    //   doc(this._firestore, "spots", spotId, "challenges", challengeId),
+    //   challengeData
+    // );
+    return Promise.resolve();
   }
 }

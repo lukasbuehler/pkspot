@@ -64,7 +64,8 @@
     </div>
 
     <!-- Release Date -->
-    @if(challenge()!.releaseDate) {
+    @if(challenge()!.releaseDate && challenge()!.releaseDate!.getTime() >
+    Date.now()) {
     <div class="mb-2 p-2 border rounded">
       <p class="m-0 mat-title-small d-flex flex-row pb-2 gap-2">
         <mat-icon>lock</mat-icon

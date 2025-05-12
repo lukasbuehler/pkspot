@@ -5,6 +5,8 @@
     #spotMap
     id="spotMap"
     [selectedSpot]="selectedSpot()"
+    [selectedChallenge]="selectedChallenge()"
+    [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"
     (selectedSpotChange)="selectSpot($event)"
     [centerStart]="{
       lat: 48.6270939,
@@ -50,7 +52,7 @@
         [dismissable]="true"
         [infoOnly]="false"
         [editable]="true"
-        [isEditing]="isEditing"
+        [isEditing]="isEditing()"
         (isEditingChange)="$event ? spotMap.startEdit() : spotMap.discardEdit()"
         (dismiss)="closeSpot()"
         (addBoundsClick)="spotMap.addBounds()"
@@ -86,7 +88,7 @@
           [dismissable]="true"
           [infoOnly]="false"
           [editable]="true"
-          [isEditing]="isEditing"
+          [isEditing]="isEditing()"
           (isEditingChange)="
             $event ? spotMap.startEdit() : spotMap.discardEdit()
           "
@@ -111,7 +113,7 @@
   </div>
 
   <!-- Search option chips -->
-  <!-- @if(authService.isSignedIn && !isEditing) {
+  <!-- @if(authService.isSignedIn && !isEditing()) {
   <mat-chip-listbox class="search-option-chips">
     <mat-chip-option color="">Unvisited</mat-chip-option>
     <mat-chip-option color="primary" leadingIcon="flag"
@@ -183,7 +185,7 @@
     </button>
   </div>
 
-  @if(authService.isSignedIn && !isEditing) {
+  @if(authService.isSignedIn && !isEditing()) {
   <!-- Add / import spots speed dial-->
   <!-- <app-speed-dial-fab
     #createSpotSpeedDial

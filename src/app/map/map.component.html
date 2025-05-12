@@ -98,15 +98,47 @@
   ></map-polygon>
   } } }
   <!-- selected spot marker -->
-  @if(selectedSpot) { @if(showSpotPreview()) {
+  @if(selectedSpot) { @if(selectedChallenge){ @if(isEditing()) {
+  <map-advanced-marker
+    #selectedSpotChallengeMarker
+    id="selectedChallengeMarker"
+    [position]="selectedChallenge.location() ?? selectedSpot.location()"
+    (mapDragend)="editingChallengePositionChanged($event.latLng!)"
+    [content]="selectedChallengeMarkerNode.elementRef.nativeElement"
+    [zIndex]="100 + 1"
+    [options]="{
+      gmpDraggable: true
+    }"
+  ></map-advanced-marker>
+  } @else {
+  <map-advanced-marker
+    #selectedSpotChallengeMarker
+    id="selectedChallengeMarker"
+    [position]="selectedChallenge.location() ?? selectedSpot.location()"
+    [content]="selectedChallengeMarkerNode.elementRef.nativeElement"
+    [zIndex]="100 + 1"
+    [options]="{
+      gmpDraggable: false
+    }"
+  ></map-advanced-marker>
+  }
+  <app-marker
+    #selectedChallengeMarkerNode
+    class="fade-in"
+    id="selectedChallengeMarkerNode"
+    [icons]="['flag']"
+    [isIconic]="isEditing()"
+  >
+  </app-marker>
+  }@else if(showSpotPreview()) {
   <map-advanced-marker
     #selectedSpotMarker
     id="selectedSpotMarker"
     [position]="selectedSpot.location()"
-    [draggable]="isEditing"
+    [draggable]="isEditing()"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotInfoWindow"
-    [zIndex]="1000000 + 1"
+    [zIndex]="100000 + 1"
   ></map-advanced-marker>
   <div
     #selectedSpotInfoWindow
@@ -133,19 +165,30 @@
       />
     </svg>
   </div>
-  } @else {
+  } @else { @if(isEditing()) {
   <map-advanced-marker
     #selectedSpotMarker
     id="selectedSpotMarker"
     [position]="selectedSpot.location()"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotMarkerNode.elementRef.nativeElement"
-    [zIndex]="1000 + 1"
+    [zIndex]="100 + 1"
     [options]="{
-      gmpDraggable: isEditing
+      gmpDraggable: true
     }"
-    [draggable]="isEditing"
   ></map-advanced-marker>
+  } @else {
+  <map-advanced-marker
+    #selectedSpotMarker
+    id="selectedSpotMarker"
+    [position]="selectedSpot.location()"
+    [content]="selectedSpotMarkerNode.elementRef.nativeElement"
+    [zIndex]="100 + 1"
+    [options]="{
+      gmpDraggable: false
+    }"
+  ></map-advanced-marker>
+  }
   <app-marker
     #selectedSpotMarkerNode
     class="fade-in"
@@ -154,7 +197,30 @@
     [isIconic]="selectedSpot.isIconic"
   >
   </app-marker>
-  } }
+
+  @for(challenge of selectedSpotChallenges; track $index) {
+  @if(challenge.location) {
+  <map-advanced-marker
+    #selectedSpotChallengeMarker
+    id="selectedSpotChallengeMarker"
+    [position]="challenge.location"
+    [content]="selectedSpotChallengeMarkerNode"
+    [zIndex]="100 + 1"
+  ></map-advanced-marker>
+  <div
+    #selectedSpotChallengeMarkerNode
+    id="selectedSpotChallengeMarkerNode"
+    class="small-dot-marker"
+    [ngClass]="{
+      'marker-primary-dark': isDarkMode,
+      'marker-primary-light': !isDarkMode
+    }"
+    [style]="{
+      height: 12 + 'px',
+      width: 12 + 'px'
+    }"
+  ></div>
+  } } } }
 
   <!-- <map-advanced-marker
     *ngIf="selectedSpot"
@@ -162,7 +228,7 @@
     className="'spot-marker'"
     id="selectedSpotMarker"
     [options]="
-      isEditing ? selectedSpotMarkerEditingOptions : selectedSpotMarkerOptions
+      isEditing() ? selectedSpotMarkerEditingOptions : selectedSpotMarkerOptions
     "
     [position]="selectedSpot.location"
     (mapDragend)="editingSpotPositionChanged($event.latLng)"
