@@ -86,6 +86,8 @@ export class LocalSpotChallenge {
   }
 
   getData(): SpotChallengeSchema {
+    const location = this.location();
+
     const data: SpotChallengeSchema = {
       spot: {
         id: this.spot.id,
@@ -99,10 +101,7 @@ export class LocalSpotChallenge {
       release_date: this.releaseDate
         ? new Timestamp(this.releaseDate.getTime() / 1000, 0)
         : undefined,
-      location: new GeoPoint(
-        this.spot.location().lat,
-        this.spot.location().lng
-      ),
+      location: location ? new GeoPoint(location.lat, location.lng) : undefined,
       label: this.label ?? undefined,
       participant_type: this.participantType ?? undefined,
       is_water_challenge: this.isWaterChallenge ?? undefined,

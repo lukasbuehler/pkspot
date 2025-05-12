@@ -145,6 +145,8 @@
     } 
   </div>-->
 
+    @if(authenticationService.isSignedIn) {
+
     <mat-divider></mat-divider>
 
     <div class="d-flex flex-row gap-2 align-items-center py-3">
@@ -159,7 +161,7 @@
       </button>
     </div>
 
-    } @else {
+    } } @else {
     <div>
       @if(challenge()) {
       <!-- Spot -->

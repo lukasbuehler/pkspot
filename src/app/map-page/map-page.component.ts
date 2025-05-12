@@ -305,7 +305,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this._routerSubscription = this.router.events
         .pipe(filter((event) => event instanceof NavigationStart))
         .subscribe((event) => {
-          const match = (event as NavigationStart).url.match(
+          const navEvent = event as NavigationStart;
+          // Only handle navigation events that are for the map page
+          if (!navEvent.url.startsWith("/map")) {
+            // Navigating away from map, do not interfere
+            return;
+          }
+          const match = navEvent.url.match(
             /^\/map(?:\/([^\/]+))?(?:\/(c)(?:\/([^\/]+))?)?/
           );
           const spotIdOrSlug = match?.[1] ?? null;
@@ -419,9 +425,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (currentUrl === newUrl) {
       return;
-    } else {
+    } else if (currentUrl.startsWith("/map")) {
       this.router.navigateByUrl(newUrl);
     }
+    // If not on /map, do not update the URL
   }
 
   selectSpot(spot: Spot | LocalSpot | null, updateUrl: boolean = true) {

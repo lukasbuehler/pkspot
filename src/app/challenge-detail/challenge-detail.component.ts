@@ -97,7 +97,7 @@ declare function plausible(eventName: string, options?: { props: any }): void;
 })
 export class ChallengeDetailComponent {
   private _challengeService = inject(SpotChallengesService);
-  private _authService = inject(AuthenticationService);
+  authenticationService = inject(AuthenticationService);
   private _snackbar = inject(MatSnackBar);
   locale = inject<string>(LOCALE_ID);
 
@@ -211,7 +211,7 @@ export class ChallengeDetailComponent {
         src: newMedia.src,
         isInStorage: true,
         type: newMedia.type,
-        uid: this._authService.user.uid,
+        uid: this.authenticationService.user.uid,
         origin: "user",
       };
 
@@ -285,14 +285,15 @@ export class ChallengeDetailComponent {
         });
     } else {
       // create a new challenge
-    }
-    this._challengeService.addChallenge(spot.id, challengeData).then(() => {
-      this._snackbar.open($localize`New challenge saved successfully`, "OK", {
-        duration: 5000,
+
+      this._challengeService.addChallenge(spot.id, challengeData).then(() => {
+        this._snackbar.open($localize`New challenge saved successfully`, "OK", {
+          duration: 5000,
+        });
+        this.hasChanges = false;
+        this.isEditing.set(false);
       });
-      this.hasChanges = false;
-      this.isEditing.set(false);
-    });
+    }
   }
 
   async shareChallenge() {

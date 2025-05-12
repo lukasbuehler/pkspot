@@ -61,19 +61,17 @@ export class SpotChallengesService {
   addChallenge(
     spotId: SpotId,
     challengeData: SpotChallengeSchema
-  ): Promise<void> {
+  ): Promise<any> {
     challengeData = removeUndefinedProperties(
       challengeData
     ) as SpotChallengeSchema;
 
     console.debug("adding challenge");
 
-    // return addDoc(
-    //   collection(this._firestore, "spots", spotId, "challenges"),
-    //   challengeData
-    // );
-
-    return Promise.resolve();
+    return addDoc(
+      collection(this._firestore, "spots", spotId, "challenges"),
+      challengeData
+    );
   }
 
   updateChallenge(
@@ -85,10 +83,9 @@ export class SpotChallengesService {
 
     console.log("updating challenge", challengeId);
 
-    // return updateDoc(
-    //   doc(this._firestore, "spots", spotId, "challenges", challengeId),
-    //   challengeData
-    // );
-    return Promise.resolve();
+    return updateDoc(
+      doc(this._firestore, "spots", spotId, "challenges", challengeId),
+      challengeData
+    );
   }
 }

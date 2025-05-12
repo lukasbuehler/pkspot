@@ -205,7 +205,7 @@
     id="selectedSpotChallengeMarker"
     [position]="challenge.location"
     [content]="selectedSpotChallengeMarkerNode"
-    [zIndex]="100 + 1"
+    [zIndex]="10"
   ></map-advanced-marker>
   <div
     #selectedSpotChallengeMarkerNode
@@ -216,8 +216,8 @@
       'marker-primary-light': !isDarkMode
     }"
     [style]="{
-      height: 12 + 'px',
-      width: 12 + 'px'
+      height: 15 + 'px',
+      width: 15 + 'px'
     }"
   ></div>
   } } } }
