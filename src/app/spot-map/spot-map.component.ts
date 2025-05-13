@@ -51,6 +51,7 @@ import {
   LocalSpotChallenge,
   SpotChallenge,
 } from "../../db/models/SpotChallenge";
+import { AnyMedia } from "../../db/models/Media";
 
 @Component({
   selector: "app-spot-map",
@@ -67,8 +68,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   selectedSpot = model<Spot | LocalSpot | null>(null); // input and output signal
   selectedSpotChallenges = model<
     {
-      name: string;
+      name: Signal<string>;
       id: string;
+      media: Signal<AnyMedia>;
       location?: google.maps.LatLngLiteral;
     }[]
   >([]);

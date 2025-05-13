@@ -41,7 +41,21 @@
         [(challenge)]="selectedChallenge"
         [(isEditing)]="isEditing"
       ></app-challenge-detail>
-      } @else {
+      } @else if(showChallenges()) {
+      <button mat-button [routerLink]="['\map', selectedSpotIdOrSlug()]">
+        <mat-icon>arrow_back_ios</mat-icon>
+        <span class="d-flex flex-row gap-2 align-items-center">
+          {{ selectedSpot()!.name() }}
+          <span i18n class="mat-label-small px-1 border rounded me-1"
+            >Spot</span
+          >
+          Challenges
+        </span>
+      </button>
+      <app-challenge-list
+        [challenges]="allSpotChallenges()"
+      ></app-challenge-list>
+      }@else {
       <app-spot-details
         @fadeInOut
         #spotDetail

@@ -44,18 +44,22 @@ export class SpotChallengesService {
     });
   }
 
-  getAllChallengesForSpot(spotId: SpotId) {
-    return getDocs(
-      collection(this._firestore, "spots", spotId, "challenges")
-    ).then((snap) => {
-      if (snap.size == 0) {
-        return [];
-      }
-      return snap.docs.map((data) => ({
-        ...(data.data() as SpotChallengeSchema),
-        id: data.id,
-      }));
-    });
+  getAllChallengesForSpot(spot: Spot): Promise<SpotChallenge[]> {
+    return getDocs(collection(this._firestore, "spots", spot.id, "challenges"))
+      .then((snap) => {
+        if (snap.size == 0) {
+          return [];
+        }
+        return snap.docs.map((data) => ({
+          ...(data.data() as SpotChallengeSchema),
+          id: data.id,
+        }));
+      })
+      .then((dataArr: (SpotChallengeSchema & { id: string })[]) => {
+        return dataArr.map<SpotChallenge>(
+          (data) => new SpotChallenge(data.id, data, spot, this.locale)
+        );
+      });
   }
 
   addChallenge(

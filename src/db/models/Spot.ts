@@ -75,9 +75,9 @@ export class LocalSpot {
   // 0-3 challenges
   topChallenges = signal<
     {
-      name: string;
+      name: Signal<string>;
       id: string;
-      media: AnyMedia;
+      media: Signal<AnyMedia>;
       location?: google.maps.LatLngLiteral;
     }[]
   >([]);
@@ -251,14 +251,14 @@ export class LocalSpot {
         const name = data.name[bestLocaleForChallenge]!.text;
         const media: AnyMedia = makeAnyMediaFromMediaSchema(data.media);
         const newData: {
-          name: string;
+          name: Signal<string>;
           id: string;
-          media: AnyMedia;
+          media: Signal<AnyMedia>;
           location?: google.maps.LatLngLiteral;
         } = {
-          name: name,
+          name: signal(name),
           id: data.id,
-          media: media,
+          media: signal(media),
         };
         if (data.location) {
           newData.location = {

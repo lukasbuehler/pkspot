@@ -24,6 +24,7 @@ import {
   ParamMap,
   Router,
   RouterEvent,
+  RouterLink,
 } from "@angular/router";
 import {
   SpeedDialFabButtonConfig,
@@ -53,6 +54,8 @@ import {
   AsyncPipe,
   isPlatformServer,
   isPlatformBrowser,
+  KeyValuePipe,
+  NgOptimizedImage,
 } from "@angular/common";
 import { StorageService } from "../services/firebase/storage.service";
 import { GlobalVariables } from "../../scripts/global";
@@ -84,6 +87,7 @@ import {
 } from "../../db/models/SpotChallenge";
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
+import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 
 @Component({
   selector: "app-map-page",
@@ -132,6 +136,8 @@ import { SpotChallengesService } from "../services/firebase/firestore/spot-chall
     SearchFieldComponent,
     ChallengeDetailComponent,
     // SpeedDialFabComponent,
+    RouterLink,
+    ChallengeListComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -142,6 +148,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   pendingTasks = inject(PendingTasks);
 
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
+  selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
+  showChallenges: WritableSignal<boolean> = signal(false);
+  allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
 
   isEditing: WritableSignal<boolean> = signal(false);
   mapStyle: "roadmap" | "satellite" | null = null;
@@ -194,6 +203,33 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       const challenge = this.selectedChallenge();
 
       this.updateMapURL();
+    });
+
+    effect(() => {
+      const showChallenges = this.showChallenges();
+      const spot = this.selectedSpot();
+
+      if (spot && showChallenges && spot instanceof Spot) {
+        this._challengesService
+          .getAllChallengesForSpot(spot)
+          .then((challenges) => {
+            this.allSpotChallenges.set(challenges);
+            console.log("setting all challenges", challenges);
+          });
+      } else {
+        this.allSpotChallenges.set([]);
+        console.log("clearing all challenges");
+      }
+    });
+
+    effect(() => {
+      const spot = this.selectedSpot();
+
+      if (spot instanceof Spot) {
+        this.selectedSpotIdOrSlug.set(spot.slug ?? spot.id);
+      } else {
+        this.selectedSpotIdOrSlug.set("");
+      }
     });
   }
 
@@ -323,7 +359,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             showChallenges,
           });
 
-          console.log(spotIdOrSlug, showChallenges, challengeId);
+          this.showChallenges.set(showChallenges);
 
           if (challengeId && spotIdOrSlug) {
             // open the spot on a challenge
@@ -414,6 +450,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             "c",
             selectedChallenge.id,
           ]
+        : selectedSpot && selectedSpot instanceof Spot && this.showChallenges()
+        ? ["/map", selectedSpot.slug ?? selectedSpot.id, "c"]
         : selectedSpot && selectedSpot instanceof Spot
         ? ["/map", selectedSpot.slug ?? selectedSpot.id]
         : ["/map"]

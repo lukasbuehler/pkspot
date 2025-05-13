@@ -125,16 +125,6 @@ div.hist-grid-container {
   }
 }
 
-.challenge-preview-grid {
-  display: grid;
-  // grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-
-  // @media (min-width: 1024px) {
-  grid-template-columns: repeat(3, 1fr);
-  // }
-}
-
 div.google-img-container {
   border-radius: 0;
   aspect-ratio: 4/3;
@@ -155,29 +145,4 @@ div.google-img-container {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.challenge-card {
-  padding: 5px;
-  margin: -5px;
-  border-radius: calc(0.375rem + 5px);
-  transition: filter 0.2s ease-in-out, background-color 0.2 ease-in-out;
-  filter: brightness(1);
-  background-color: transparent;
-  text-decoration: none;
-  color: inherit;
-  img {
-    transform: scale(1);
-    transition: transform 0.2s ease-in-out;
-  }
-}
-.challenge-card:hover {
-  transition: filter 0.2s ease-in-out, background-color 0.2 ease-in-out;
-  filter: brightness(1.2);
-  background-color: #1f1f23;
-
-  img {
-    transition: transform 0.2s ease-in-out;
-    transform: scale(1.1);
-  }
 }

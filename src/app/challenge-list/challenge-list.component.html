@@ -1,0 +1,33 @@
+<div class="challenge-preview-grid pb-3">
+  @for(challenge of challenges(); track challenge) {
+  <a
+    class="d-flex flex-column overflow-hidden challenge-card"
+    matRipple
+    [routerLink]="[
+      '/map',
+      challenge.spot?.slug ??
+        challenge.spot?.id ??
+        spot()?.slug ??
+        spot()?.id ??
+        '',
+      'c',
+      challenge.id
+    ]"
+  >
+    <div
+      class="rounded w-100 overflow-hidden position-relative"
+      style="aspect-ratio: 1; background-color: #2c2d31"
+    >
+      <img
+        [ngSrc]="challenge.media()!.getPreviewImageSrc()"
+        fill
+        class="w-100 h-100"
+        style="object-fit: cover"
+      />
+    </div>
+    <span class="mat-title-small pt-1 text-truncate">{{
+      challenge.name()
+    }}</span>
+  </a>
+  }
+</div>

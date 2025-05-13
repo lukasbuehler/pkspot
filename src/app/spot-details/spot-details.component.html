@@ -176,30 +176,10 @@
     @if(spot()!.topChallenges().length > 0 && spotSlugOrId()) {
     <div class="pb-4">
       <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
-      <div class="challenge-preview-grid pb-3">
-        @for(challenge of spot()!.topChallenges(); track challenge) {
-        <a
-          class="d-flex flex-column overflow-hidden challenge-card"
-          matRipple
-          [routerLink]="['/map', spotSlugOrId(), 'c', challenge.id]"
-        >
-          <div
-            class="rounded w-100 overflow-hidden position-relative"
-            style="aspect-ratio: 1; background-color: #2c2d31"
-          >
-            <img
-              [ngSrc]="challenge.media.getPreviewImageSrc()"
-              fill
-              class="w-100 h-100"
-              style="object-fit: cover"
-            />
-          </div>
-          <span class="mat-title-small pt-1 text-truncate">{{
-            challenge.name
-          }}</span>
-        </a>
-        }
-      </div>
+      <app-spot-list
+        [challenges]="spot()!.topChallenges()"
+        [spot]="spot()"
+      ></app-spot-list>
       @if(spot()!.numChallenges() > spot()!.topChallenges().length) {
       <button mat-stroked-button (click)="showAllChallenges()">
         <mat-icon> read_more </mat-icon>
@@ -219,18 +199,20 @@
         There are no challenges for this spot yet.
       </p>
 
-      <button mat-stroked-button (click)="addChallenge()">
-        <mat-icon>outlined_flag</mat-icon>
-        <span i18n>Add challenge</span>
-      </button>
+      <div class="d-flex gap-2">
+        <button mat-stroked-button (click)="addChallenge()">
+          <mat-icon>outlined_flag</mat-icon>
+          <span i18n>Add challenge</span>
+        </button>
 
-      <!-- If the user has private challenges for this spot -->
-      @if(true) {
-      <button mat-stroked-button (click)="showAllChallenges()">
-        <mat-icon>lock</mat-icon>
-        <span i18n>See private challenges</span>
-      </button>
-      }
+        <!-- If the user has private challenges for this spot -->
+        @if(true) {
+        <button mat-stroked-button (click)="showAllChallenges()">
+          <mat-icon>lock</mat-icon>
+          <span i18n>See private challenges</span>
+        </button>
+        }
+      </div>
     </div>
     } }
 

@@ -49,6 +49,7 @@ import {
   LocalSpotChallenge,
   SpotChallenge,
 } from "../../db/models/SpotChallenge";
+import { AnyMedia } from "../../db/models/Media";
 
 export interface TilesObject {
   zoom: number;
@@ -161,8 +162,9 @@ export class MapComponent implements OnInit, OnChanges {
 
   @Input() selectedSpot: Spot | LocalSpot | null = null;
   @Input() selectedSpotChallenges: {
-    name: string;
+    name: Signal<string>;
     id: string;
+    media: Signal<AnyMedia>;
     location?: google.maps.LatLngLiteral;
   }[] = [];
   @Input() selectedChallenge: SpotChallenge | LocalSpotChallenge | null = null;
