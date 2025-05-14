@@ -41,7 +41,8 @@
     <mat-label i18n="challenge participant type title">Participants</mat-label>
     <mat-select [formControl]="participantTypeCtrl" multiple>
       <mat-select-trigger>
-        @if (labelCtrl.value?.length === challengeLabels.length) {
+        @if (participantTypeCtrl.value?.length ===
+        challengeParticipantTypes.length) {
         <span i18n="all participant types">All Participants</span>
         } @else {
         {{participantTypeCtrl.value?.[0] ? challengeParticipantTypeNames[participantTypeCtrl.value![0]] : ''}}

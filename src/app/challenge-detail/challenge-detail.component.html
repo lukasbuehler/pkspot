@@ -79,10 +79,8 @@
       <!-- <h3 class="mat-title-small" i18n>Media</h3> -->
       <div class="media-container">
         @if(challenge()?.media()?.type === 'image') {
-        <img
-          class="media-image"
-          [src]="challenge()!.media()!.getPreviewImageSrc()"
-        />
+        <!-- TODO swiper for 1600x1600 image or similar -->
+        <img class="media-image" [src]="getImageSrc(challenge()!.media()!)" />
         } @if(challenge()?.media()?.type === 'video') {
         <app-video [media]="videoMedia()"></app-video>
         }

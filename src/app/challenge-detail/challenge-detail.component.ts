@@ -241,6 +241,14 @@ export class ChallengeDetailComponent {
     }
   }
 
+  getImageSrc(media: AnyMedia): string {
+    if (media instanceof StorageImage) {
+      return media.getSrc(800);
+    } else {
+      return "";
+    }
+  }
+
   saveChallenge() {
     const spot = this.spot();
     const challenge = this.challenge();

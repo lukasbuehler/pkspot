@@ -80,20 +80,30 @@ export class ChallengeListComponent {
   filteredChallenges = computed(() => {
     const challenges = this.challenges();
 
-    const label = this.selectedLabels();
-    const participantType = this.selectedParticipantTypes();
+    const labels = this.selectedLabels();
+    const participantTypes = this.selectedParticipantTypes();
 
     return challenges.filter((challenge) => {
+      if (
+        (labels?.length === this.challengeLabels.length &&
+          participantTypes?.length === this.challengeParticipantTypes.length) ||
+        (labels?.length === 0 && participantTypes?.length === 0) ||
+        !labels ||
+        !participantTypes
+      ) {
+        return true;
+      }
+
       const labelMatch =
-        !label ||
-        (Array.isArray(label)
-          ? label.includes(challenge.label as string)
-          : challenge.label === label);
+        !labels ||
+        (Array.isArray(labels)
+          ? labels.includes(challenge.label as string)
+          : challenge.label === labels);
       const participantTypeMatch =
-        !participantType ||
-        (Array.isArray(participantType)
-          ? participantType.includes(challenge.participantType as string)
-          : challenge.participantType === participantType);
+        !participantTypes ||
+        (Array.isArray(participantTypes)
+          ? participantTypes.includes(challenge.participantType as string)
+          : challenge.participantType === participantTypes);
       return labelMatch && participantTypeMatch;
     });
   });

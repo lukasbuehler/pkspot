@@ -156,5 +156,5 @@ export const ChallengeParticipantTypeNames: Record<
 > = {
   solo: $localize`Solo`,
   pair: $localize`Pair`,
-  group: $localize`Group`,
+  team: $localize`Team`,
 };

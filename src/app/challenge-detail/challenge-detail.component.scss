@@ -9,3 +9,11 @@ a.mdc-button {
   padding-left: 6px;
   padding-right: 6px;
 }
+
+.media-image {
+  width: calc(100% + 2 * 16px);
+  height: auto;
+  max-height: 100%;
+  margin-left: -16px;
+  margin-right: -16px;
+}
