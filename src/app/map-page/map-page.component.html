@@ -35,26 +35,51 @@
     @if(spotMap) { @if(selectedSpot()) {
     <div class="info-panel d-none d-md-block spot-preview-container p-1 pt-3">
       @if(selectedChallenge()) {
+      <a
+        mat-button
+        [routerLink]="[
+          '/map',
+          selectedSpotIdOrSlug(),
+          showAllChallenges() ? 'c' : ''
+        ]"
+      >
+        <mat-icon>arrow_back_ios</mat-icon>
+        <span class="d-flex flex-row gap-2 align-items-center">
+          <span
+            >@if(showAllChallenges()) {<span i18n>All Challenges of </span>}{{
+              selectedSpot()!.name()
+            }}</span
+          >
+          <span i18n class="mat-label-small px-1 border rounded me-1"
+            >Spot</span
+          >
+        </span>
+      </a>
       <app-challenge-detail
         @slideInOut
         class="d-block"
         [(challenge)]="selectedChallenge"
         [(isEditing)]="isEditing"
       ></app-challenge-detail>
-      } @else if(showChallenges()) {
-      <button mat-button [routerLink]="['\map', selectedSpotIdOrSlug()]">
+      } @else if(showAllChallenges()) {
+      <a mat-button [routerLink]="['/map', selectedSpotIdOrSlug()]">
         <mat-icon>arrow_back_ios</mat-icon>
-        <span class="d-flex flex-row gap-2 align-items-center">
-          {{ selectedSpot()!.name() }}
+        <span class="d-flex flex-row align-items-center gap-2">
+          <span>{{ selectedSpot()!.name() }}</span>
           <span i18n class="mat-label-small px-1 border rounded me-1"
             >Spot</span
           >
-          Challenges
         </span>
-      </button>
-      <app-challenge-list
-        [challenges]="allSpotChallenges()"
-      ></app-challenge-list>
+      </a>
+      <div class="p-3 d-flex flex-column gap-2" @slideInOut>
+        <h4 class="mat-title-medium mt-2" i18n>
+          All Challenges of {{ selectedSpot()!.name() }}
+        </h4>
+        <app-challenge-list
+          class="w-100"
+          [challenges]="allSpotChallenges()"
+        ></app-challenge-list>
+      </div>
       }@else {
       <app-spot-details
         @fadeInOut

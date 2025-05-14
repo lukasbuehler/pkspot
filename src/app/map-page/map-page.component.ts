@@ -149,7 +149,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
-  showChallenges: WritableSignal<boolean> = signal(false);
+  showAllChallenges: WritableSignal<boolean> = signal(false);
   allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
 
   isEditing: WritableSignal<boolean> = signal(false);
@@ -206,7 +206,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     effect(() => {
-      const showChallenges = this.showChallenges();
+      const showChallenges = this.showAllChallenges();
       const spot = this.selectedSpot();
 
       if (spot && showChallenges && spot instanceof Spot) {
@@ -359,8 +359,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             showChallenges,
           });
 
-          this.showChallenges.set(showChallenges);
-
           if (challengeId && spotIdOrSlug) {
             // open the spot on a challenge
             const selectedSpot = this.selectedSpot();
@@ -377,18 +375,24 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
               );
             }
           } else if (spotIdOrSlug) {
-            this._getSpotIdFromSlugOrId(spotIdOrSlug).then((spotId) => {
-              if (!spotId) {
-                console.warn("Could not get spot id from slug or id.");
-                return;
-              }
+            if (this.selectedChallenge()) this.closeChallenge();
+            this.showAllChallenges.set(showChallenges);
 
-              // open the spot
-              this.loadSpotById(spotId as SpotId, false).then(() => {});
-            });
+            if (this.selectedSpotIdOrSlug() !== spotIdOrSlug) {
+              this._getSpotIdFromSlugOrId(spotIdOrSlug).then((spotId) => {
+                if (!spotId) {
+                  console.warn("Could not get spot id from slug or id.");
+                  return;
+                }
+
+                // open the spot
+                this.loadSpotById(spotId as SpotId, false).then(() => {});
+              });
+            }
           } else {
             // close the spot
             this.closeSpot(false);
+            this.showAllChallenges.set(false);
           }
         });
     }
@@ -450,7 +454,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             "c",
             selectedChallenge.id,
           ]
-        : selectedSpot && selectedSpot instanceof Spot && this.showChallenges()
+        : selectedSpot &&
+          selectedSpot instanceof Spot &&
+          this.showAllChallenges()
         ? ["/map", selectedSpot.slug ?? selectedSpot.id, "c"]
         : selectedSpot && selectedSpot instanceof Spot
         ? ["/map", selectedSpot.slug ?? selectedSpot.id]

@@ -114,6 +114,7 @@ import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.compo
 import { StorageBucket } from "../../db/schemas/Media";
 import { Timestamp } from "@firebase/firestore";
 import { Router, RouterLink } from "@angular/router";
+import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -181,6 +182,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatSelectModule,
     LocaleMapViewComponent,
     RouterLink,
+    ChallengeListComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -192,6 +194,15 @@ export class SpotDetailsComponent
   private _structuredDataService = inject(StructuredDataService);
 
   spot = model<Spot | LocalSpot | null>(null);
+  notLocalSpotOrNull = computed(() => {
+    const spot = this.spot();
+
+    if (spot instanceof Spot) {
+      return spot;
+    } else {
+      return null;
+    }
+  });
   spotSlugOrId = computed(() => {
     const spot = this.spot();
 
@@ -204,7 +215,7 @@ export class SpotDetailsComponent
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
   isEditing = model<boolean>(false);
   isLocalSpot = computed(
-    () => !(this.spot() instanceof Spot) && this.spot() !== null
+    () => this.spot() !== null && !(this.spot() instanceof Spot)
   );
 
   spotImages = computed(() => {
@@ -315,7 +326,7 @@ export class SpotDetailsComponent
   >(undefined);
 
   get isNewSpot() {
-    return this.spot() instanceof LocalSpot;
+    return !(this.spot() instanceof Spot);
   }
 
   startHeight: number = 0;

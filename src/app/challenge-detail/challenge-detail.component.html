@@ -1,19 +1,6 @@
 <div class="px-3">
   @if(challenge()) {
   <div class="d-flex flex-column gap-2">
-    <div class="pb-2">
-      @if(spot()) {
-      <button mat-button (click)="backToSpot()">
-        <mat-icon>arrow_back_ios</mat-icon>
-        <span class="d-flex flex-row gap-2 align-items-center">
-          {{ spot()!.name() }}
-          <span i18n class="mat-label-small px-1 border rounded me-1"
-            >Spot</span
-          >
-        </span>
-      </button>
-      }
-    </div>
     @if(!isEditing()) {
     <div class="d-flex flex-column pb-2">
       <div

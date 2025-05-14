@@ -173,13 +173,14 @@
     }
 
     <!-- Spot Challenges -->
-    @if(spot()!.topChallenges().length > 0 && spotSlugOrId()) {
+    @if(!isLocalSpot()) { @if(spot()!.topChallenges().length > 0 &&
+    spotSlugOrId()) {
     <div class="pb-4">
       <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
-      <app-spot-list
+      <app-challenge-list
         [challenges]="spot()!.topChallenges()"
-        [spot]="spot()"
-      ></app-spot-list>
+        [spot]="notLocalSpotOrNull()"
+      ></app-challenge-list>
       @if(spot()!.numChallenges() > spot()!.topChallenges().length) {
       <button mat-stroked-button (click)="showAllChallenges()">
         <mat-icon> read_more </mat-icon>
@@ -214,7 +215,7 @@
         }
       </div>
     </div>
-    } }
+    } } }
 
     <h3 class="mat-title-medium" i18n>Details</h3>
 
