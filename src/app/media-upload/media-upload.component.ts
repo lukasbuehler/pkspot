@@ -20,6 +20,8 @@ import {
   MatHint,
   MatError,
 } from "@angular/material/form-field";
+import { generateUUID } from "../../scripts/Helpers";
+
 import { MatIcon } from "@angular/material/icon";
 import { MatMiniFabButton } from "@angular/material/button";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
@@ -208,6 +210,8 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
 
     const fileEnding = media.file.name.split(".").pop();
 
+    let filename = generateUUID();
+
     this._storageService
       .setUploadToStorage(
         media.file,
@@ -221,6 +225,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
             return list;
           });
         },
+        filename,
         fileEnding
       )
       .then(

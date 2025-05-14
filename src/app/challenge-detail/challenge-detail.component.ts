@@ -286,13 +286,24 @@ export class ChallengeDetailComponent {
     } else {
       // create a new challenge
 
-      this._challengeService.addChallenge(spot.id, challengeData).then(() => {
-        this._snackbar.open($localize`New challenge saved successfully`, "OK", {
-          duration: 5000,
+      this._challengeService
+        .addChallenge(spot.id, challengeData)
+        .then((newChallengeId) => {
+          this._snackbar.open(
+            $localize`New challenge saved successfully`,
+            "OK",
+            {
+              duration: 5000,
+            }
+          );
+          this.hasChanges = false;
+          this.isEditing.set(false);
+
+          // make this challenge a SpotChallenge instead of a LocalSpotChallenge
+          this.challenge.set(
+            new SpotChallenge(newChallengeId, challengeData, spot, this.locale)
+          );
         });
-        this.hasChanges = false;
-        this.isEditing.set(false);
-      });
     }
   }
 

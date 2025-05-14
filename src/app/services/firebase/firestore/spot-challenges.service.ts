@@ -65,7 +65,7 @@ export class SpotChallengesService {
   addChallenge(
     spotId: SpotId,
     challengeData: SpotChallengeSchema
-  ): Promise<any> {
+  ): Promise<string> {
     challengeData = removeUndefinedProperties(
       challengeData
     ) as SpotChallengeSchema;
@@ -75,7 +75,9 @@ export class SpotChallengesService {
     return addDoc(
       collection(this._firestore, "spots", spotId, "challenges"),
       challengeData
-    );
+    ).then((docRef) => {
+      return docRef.id;
+    });
   }
 
   updateChallenge(

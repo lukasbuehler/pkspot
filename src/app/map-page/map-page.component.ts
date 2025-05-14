@@ -292,25 +292,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       !!this.activatedRoute.snapshot.firstChild?.firstChild;
 
     this.pendingTasks.run(async () => {
-      console.log("spotIdOrSlug", spotIdOrSlug);
-
-      if (spotIdOrSlug) {
-        const spotId = await this._getSpotIdFromSlugOrId(spotIdOrSlug);
-
-        console.log("spotId", spotId);
-
-        if (spotId) {
-          const spot = await this.loadSpotById(spotId as SpotId, false);
-
-          if (spot && challengeId && isPlatformBrowser(this.platformId)) {
-            try {
-              await this.loadChallengeById(spot, challengeId, false);
-            } catch (err) {
-              console.log("Error loading challenge", err);
-            }
-          }
-        }
-      }
+      this._handleURLParamsChange(spotIdOrSlug, showChallenges, challengeId);
     });
   }
 
@@ -353,48 +335,53 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           const spotIdOrSlug = match?.[1] ?? null;
           const showChallenges = !!match?.[2];
           const challengeId = match?.[3] ?? null;
-          console.log("Parsed from URL:", {
+
+          this._handleURLParamsChange(
             spotIdOrSlug,
-            challengeId,
             showChallenges,
-          });
-
-          if (challengeId && spotIdOrSlug) {
-            // open the spot on a challenge
-            const selectedSpot = this.selectedSpot();
-            if (selectedSpot && selectedSpot instanceof Spot) {
-              this.loadChallengeById(selectedSpot, challengeId, false).then(
-                () => {}
-              );
-            } else if (!selectedSpot) {
-              // load the spot by id then the challenge
-            } else {
-              // the spot is a local spot
-              console.error(
-                "Cannot open a challenge of a local spot, it should not have one!"
-              );
-            }
-          } else if (spotIdOrSlug) {
-            if (this.selectedChallenge()) this.closeChallenge();
-            this.showAllChallenges.set(showChallenges);
-
-            if (this.selectedSpotIdOrSlug() !== spotIdOrSlug) {
-              this._getSpotIdFromSlugOrId(spotIdOrSlug).then((spotId) => {
-                if (!spotId) {
-                  console.warn("Could not get spot id from slug or id.");
-                  return;
-                }
-
-                // open the spot
-                this.loadSpotById(spotId as SpotId, false).then(() => {});
-              });
-            }
-          } else {
-            // close the spot
-            this.closeSpot(false);
-            this.showAllChallenges.set(false);
-          }
+            challengeId
+          );
         });
+    }
+  }
+
+  _handleURLParamsChange(
+    spotIdOrSlug: string | null,
+    showChallenges: boolean,
+    challengeId: string | null
+  ) {
+    if (challengeId && spotIdOrSlug) {
+      // open the spot on a challenge
+      const selectedSpot = this.selectedSpot();
+      if (selectedSpot && selectedSpot instanceof Spot) {
+        this.loadChallengeById(selectedSpot, challengeId, false).then(() => {});
+      } else if (!selectedSpot) {
+        // load the spot by id then the challenge
+      } else {
+        // the spot is a local spot
+        console.error(
+          "Cannot open a challenge of a local spot, it should not have one!"
+        );
+      }
+    } else if (spotIdOrSlug) {
+      if (this.selectedChallenge()) this.closeChallenge();
+      this.showAllChallenges.set(showChallenges);
+
+      if (this.selectedSpotIdOrSlug() !== spotIdOrSlug) {
+        this._getSpotIdFromSlugOrId(spotIdOrSlug).then((spotId) => {
+          if (!spotId) {
+            console.warn("Could not get spot id from slug or id.");
+            return;
+          }
+
+          // open the spot
+          this.loadSpotById(spotId as SpotId, false).then(() => {});
+        });
+      }
+    } else {
+      // close the spot
+      this.closeSpot(false);
+      this.showAllChallenges.set(false);
     }
   }
 

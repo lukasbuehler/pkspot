@@ -1,6 +1,5 @@
 import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
-import { generateUUID } from "../../../scripts/Helpers";
 
 import { getDownloadURL, Storage } from "@angular/fire/storage";
 import { deleteObject, ref } from "@firebase/storage";
@@ -27,18 +26,19 @@ export class StorageService {
    * @param blob
    * @param location
    * @param filename
+   * @param fileEnding
    * @returns Observable which sends the download URL as soon as the upload is completed
    */
   setUploadToStorage(
     blob: Blob,
     location: StorageBucket,
     progressCallback?: (progressPercent: number) => void,
-    ending?: string // e.g "jpg", "png", "mp4"
+    filename?: string,
+    fileEnding?: string // e.g "jpg", "png", "mp4"
   ): Promise<string> {
-    let uploadFileName = generateUUID();
     let uploadRef = ref(
       this.storage,
-      `${location}/${uploadFileName}${ending ? "." + ending : ""}`
+      `${location}/${filename}${fileEnding ? "." + fileEnding : ""}`
     );
     // return uploadBytes(uploadRef, blob).then((snapshot) => {
     //   return getDownloadURL(snapshot.ref);
