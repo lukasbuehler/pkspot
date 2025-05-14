@@ -26,6 +26,11 @@ import { MediaSchema } from "../schemas/Media";
 import { ChallengePreviewSchema } from "../schemas/SpotChallengeSchema";
 import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";
 import { MapsApiService } from "../../app/services/maps-api.service";
+import { SpotChallengePreview } from "./SpotChallenge";
+import {
+  ChallengeLabel,
+  ChallengeParticipantType,
+} from "../schemas/SpotChallengeLabels";
 
 /**
  * A spot is a location of interest to the Parkour and Freerunning community.
@@ -73,14 +78,7 @@ export class LocalSpot {
   readonly highlightedReviews?: SpotReviewSchema[];
 
   // 0-3 challenges
-  topChallenges = signal<
-    {
-      name: Signal<string>;
-      id: string;
-      media: Signal<AnyMedia>;
-      location?: google.maps.LatLngLiteral;
-    }[]
-  >([]);
+  topChallenges = signal<SpotChallengePreview[]>([]);
   numChallenges = signal<number>(0); // integer
 
   address: WritableSignal<SpotAddressSchema | null>;
@@ -250,12 +248,7 @@ export class LocalSpot {
         );
         const name = data.name[bestLocaleForChallenge]!.text;
         const media: AnyMedia = makeAnyMediaFromMediaSchema(data.media);
-        const newData: {
-          name: Signal<string>;
-          id: string;
-          media: Signal<AnyMedia>;
-          location?: google.maps.LatLngLiteral;
-        } = {
+        const newData: SpotChallengePreview = {
           name: signal(name),
           id: data.id,
           media: signal(media),
@@ -266,6 +259,13 @@ export class LocalSpot {
             lng: data.location.longitude,
           };
         }
+        if (data.label as ChallengeLabel)
+          newData.label = data.label as ChallengeLabel;
+        if (data.participant_type as ChallengeParticipantType)
+          newData.participantType =
+            data.participant_type as ChallengeParticipantType;
+
+        console.log("newData", newData, data);
         return newData;
       }) ?? []
     );

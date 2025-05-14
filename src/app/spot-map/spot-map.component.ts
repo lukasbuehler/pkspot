@@ -50,6 +50,7 @@ import { PolygonSchema } from "../../db/schemas/PolygonSchema";
 import {
   LocalSpotChallenge,
   SpotChallenge,
+  SpotChallengePreview,
 } from "../../db/models/SpotChallenge";
 import { AnyMedia } from "../../db/models/Media";
 
@@ -66,14 +67,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   osmDataService = inject(OsmDataService);
 
   selectedSpot = model<Spot | LocalSpot | null>(null); // input and output signal
-  selectedSpotChallenges = model<
-    {
-      name: Signal<string>;
-      id: string;
-      media: Signal<AnyMedia>;
-      location?: google.maps.LatLngLiteral;
-    }[]
-  >([]);
+  selectedSpotChallenges = model<SpotChallengePreview[]>([]);
   selectedChallenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
 
   isEditing = model<boolean>(false);

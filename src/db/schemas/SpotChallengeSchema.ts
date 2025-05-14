@@ -42,4 +42,6 @@ export interface ChallengePreviewSchema {
   name: LocaleMap;
   media: MediaSchema;
   location?: GeoPoint;
+  label?: string;
+  participant_type?: string;
 }

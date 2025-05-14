@@ -24,6 +24,30 @@
         class="w-100 h-100"
         style="object-fit: cover"
       />
+      @if(challenge.label || challenge.participantType) {
+      <div
+        class="position-absolute d-flex flex-row"
+        style="
+          bottom: 4px;
+          left: 4px;
+          background-color: inherit;
+          border-radius: 10px;
+          padding: 4px;
+          gap: 2px;
+          opacity: 0.9;
+        "
+      >
+        @if(challenge.label) {
+        <mat-icon>
+          {{ challengeLabelIcons[challenge.label] }}
+        </mat-icon>
+        } @if(challenge.participantType) {
+        <mat-icon>
+          {{ challengeParticipantTypeIcons[challenge.participantType] }}
+        </mat-icon>
+        }
+      </div>
+      }
     </div>
     <span class="mat-title-small pt-1 text-truncate">{{
       challenge.name()

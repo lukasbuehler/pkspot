@@ -125,6 +125,15 @@ export class SpotChallenge extends LocalSpotChallenge {
   }
 }
 
+export interface SpotChallengePreview {
+  name: Signal<string>;
+  id: string;
+  media: Signal<AnyMedia>;
+  location?: google.maps.LatLngLiteral;
+  label?: ChallengeLabel;
+  participantType?: ChallengeParticipantType;
+}
+
 export const ChallengeLabelNames: Record<ChallengeLabel, string> = {
   sketchy: $localize`Sketchy`,
   creative: $localize`Creative`,

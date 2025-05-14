@@ -1,31 +1,34 @@
 import { Component, input, Signal } from "@angular/core";
-import { SpotChallenge } from "../../db/models/SpotChallenge";
+import {
+  SpotChallenge,
+  SpotChallengePreview,
+} from "../../db/models/SpotChallenge";
 import { NgOptimizedImage } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { ChallengePreviewSchema } from "../../db/schemas/SpotChallengeSchema";
 import { Spot } from "../../db/models/Spot";
 import { AnyMedia } from "../../db/models/Media";
 import { SpotId } from "../../db/schemas/SpotSchema";
+import { MatIconModule } from "@angular/material/icon";
+import {
+  ChallengeLabelIcons,
+  ChallengeParticipantTypeIcons,
+} from "../../db/schemas/SpotChallengeLabels";
 
 @Component({
   selector: "app-challenge-list",
-  imports: [NgOptimizedImage, RouterLink],
+  imports: [NgOptimizedImage, RouterLink, MatIconModule],
   templateUrl: "./challenge-list.component.html",
   styleUrl: "./challenge-list.component.scss",
 })
 export class ChallengeListComponent {
   spot = input<Spot | null>(null);
   challenges = input<
-    | SpotChallenge[]
-    | {
-        name: Signal<string>;
-        id: string;
-        media: Signal<AnyMedia>;
-        location?: google.maps.LatLngLiteral;
-        spot?: {
-          slug: string;
-          id: string;
-        };
-      }[]
+    SpotChallenge[] | (SpotChallengePreview & { spot?: Spot })[]
   >([]);
+
+  readonly challengeLabelIcons = ChallengeLabelIcons;
+  // readonly challengeParticipantTypes = ChallengeParticipantTypeValues;
+  // readonly challengeParticipantTypeNames = ChallengeParticipantTypeNames;
+  readonly challengeParticipantTypeIcons = ChallengeParticipantTypeIcons;
 }

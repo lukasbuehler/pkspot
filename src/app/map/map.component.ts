@@ -48,6 +48,7 @@ import { PolygonSchema } from "../../db/schemas/PolygonSchema";
 import {
   LocalSpotChallenge,
   SpotChallenge,
+  SpotChallengePreview,
 } from "../../db/models/SpotChallenge";
 import { AnyMedia } from "../../db/models/Media";
 
@@ -161,12 +162,7 @@ export class MapComponent implements OnInit, OnChanges {
   @Input() dots: SpotClusterDotSchema[] = [];
 
   @Input() selectedSpot: Spot | LocalSpot | null = null;
-  @Input() selectedSpotChallenges: {
-    name: Signal<string>;
-    id: string;
-    media: Signal<AnyMedia>;
-    location?: google.maps.LatLngLiteral;
-  }[] = [];
+  @Input() selectedSpotChallenges: SpotChallengePreview[] = [];
   @Input() selectedChallenge: SpotChallenge | LocalSpotChallenge | null = null;
 
   @Input() showGeolocation: boolean = false;
