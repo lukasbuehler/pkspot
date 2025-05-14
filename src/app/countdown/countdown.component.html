@@ -1,10 +1,14 @@
 <span>
   <app-fancy-counter [number]="days()"></app-fancy-counter>
+  <span>{{ " " }}</span>
   <span i18n>days</span>,
   <app-fancy-counter [number]="hours()"></app-fancy-counter>
+  <span>{{ " " }}</span>
   <span i18n>hours</span>,
   <app-fancy-counter [number]="minutes()"></app-fancy-counter>
-  <span i18n>mins.</span>,
+  <span>{{ " " }}</span>
+  <span i18n="minutes short">min.</span>,
   <app-fancy-counter [number]="seconds()"></app-fancy-counter>
-  <span i18n>s</span>
+  <span>{{ " " }}</span>
+  <span i18n="seconds short">s.</span>
 </span>

@@ -8,6 +8,7 @@ import {
   signal,
   OnDestroy,
   AfterViewInit,
+  effect,
 } from "@angular/core";
 import { CountdownComponent } from "../countdown/countdown.component";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
@@ -43,6 +44,8 @@ import { GeoPoint } from "@firebase/firestore";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { ExternalImage } from "../../db/models/Media";
+import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
+import { SpotChallenge } from "../../db/models/SpotChallenge";
 
 @Component({
   selector: "app-event-page",
@@ -82,6 +85,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   metaInfoService = inject(MetaInfoService);
   locale = inject<LocaleCode>(LOCALE_ID);
   private _spotService = inject(SpotsService);
+  private _challengeService = inject(SpotChallengesService);
   private _route = inject(ActivatedRoute);
   private _locationStrategy = inject(LocationStrategy);
   private _snackbar = inject(MatSnackBar);
@@ -119,11 +123,20 @@ export class EventPageComponent implements OnInit, OnDestroy {
     "lhSX9YEqSTKbZ9jfYy6L" as SpotId,
     "ZkDaO5DSY7wyBQkgZMWC" as SpotId,
     "sRX9lb5lNYKGqQ5e4rcO" as SpotId,
+    "SpF4Abl5qmH95xalJcIX" as SpotId,
   ];
 
-  swissJamChallengeIds: Record<string, string> = {
-    yhRsQmaXABRQVrbtgQ7D: "QLQv51skvhF8JZhRPfIF",
+  swissJamChallengeIds: Record<string, string[]> = {
+    yhRsQmaXABRQVrbtgQ7D: [
+      "QLQv51skvhF8JZhRPfIF",
+      "fff",
+      "K0T1AuHT0qanTaa91YdM",
+      "gEsMEOnehCnQY48uUu43",
+      "vqU3zXlgG2OzlU6J7n2J",
+    ],
+    SpF4Abl5qmH95xalJcIX: ["WtQuOWish8CgCOgP2qxx"],
   };
+  challenges = signal<SpotChallenge[]>([]);
 
   areaPolygon = signal<PolygonSchema | null>(null);
 
@@ -131,12 +144,12 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   bounds = {
     north: 47.4,
-    south: 47.395,
+    south: 47.393,
     west: 8.54087,
-    east: 8.55208,
+    east: 8.553,
   };
 
-  markers: MarkerSchema[] = [
+  customMarkers: MarkerSchema[] = [
     // WC
     {
       name: $localize`WC`,
@@ -155,7 +168,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
         lat: 47.39723002436682,
         lng: 8.548602928177829,
       },
-      icons: ["info", "local_activity", "restaurant"],
+      icons: ["info", "restaurant"] /* "local_activity", */,
       priority: "required",
     },
 
@@ -204,6 +217,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
     // },
   ];
 
+  markers: MarkerSchema[] = this.customMarkers;
+
   spots = signal<(Spot | LocalSpot)[]>([]);
 
   mapStyle: "roadmap" | "satellite" = "satellite";
@@ -225,6 +240,49 @@ export class EventPageComponent implements OnInit, OnDestroy {
       }
     });
 
+    effect(() => {
+      const spots = this.spots();
+
+      // Load challenges for spots that have them
+      const challengePromises: Promise<(SpotChallenge | null)[]>[] = spots
+        .filter((spot: Spot | LocalSpot) => spot instanceof Spot)
+        .map((spot: Spot) => {
+          const spotId = spot.id;
+          if (!(spotId in this.swissJamChallengeIds))
+            return Promise.resolve([]);
+          const challengeIds = this.swissJamChallengeIds[spotId];
+          const promises = challengeIds.map((challengeId: string) => {
+            return this._challengeService
+              .getSpotChallenge(spot, challengeId)
+              .catch(() => null);
+          });
+          return Promise.all(promises);
+        });
+
+      Promise.all(challengePromises).then((challengeArrays) => {
+        // Flatten the array of arrays, keeping nulls for failed fetches
+        const allChallenges =
+          challengeArrays.flat() as (SpotChallenge | null)[];
+        this.challenges.set(
+          allChallenges.filter((c): c is SpotChallenge => !!c)
+        );
+
+        const challengeMarkers: MarkerSchema[] = [];
+        allChallenges.forEach((challenge, index) => {
+          if (challenge && challenge.location()) {
+            challengeMarkers.push({
+              name: challenge.name(),
+              location: challenge.location()!,
+              color: "primary",
+              number: index + 1,
+            });
+          }
+        });
+
+        this.customMarkers.unshift(...challengeMarkers);
+      });
+    });
+
     afterNextRender(() => {
       const promises = this.swissJamSpotIds.map((spotId) => {
         return firstValueFrom(
@@ -237,7 +295,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
       });
     });
 
-    const mainSpot = new LocalSpot(
+    const mainSpot = new Spot(
+      "yhRsQmaXABRQVrbtgQ7D" as SpotId,
       {
         location: new GeoPoint(47.39732893509323, 8.548509576285669),
         name: {
