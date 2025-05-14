@@ -474,8 +474,7 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
-            equivEnd="CLOSE_BOLD_TEXT"
+          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>Ik heb de <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
@@ -599,7 +598,7 @@
     </unit>
     <unit id="6024008212258429928">
       <segment state="initial">
-        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}" />
+        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}" />
           &apos;</source>
         <target>Spot melden: &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}" />
           &apos;</target>
@@ -959,12 +958,6 @@
         <target>Evenementen</target>
       </segment>
     </unit>
-    <unit id="events.nav_label">
-      <segment state="initial">
-        <source>Events</source>
-        <target>Events</target>
-      </segment>
-    </unit>
     <unit id="6019314900948916795">
       <segment state="initial">
         <source>WC</source>
@@ -1291,12 +1284,6 @@
         <target>Challenges</target>
       </segment>
     </unit>
-    <unit id="4737245431088085317">
-      <segment state="initial">
-        <source>View more challanges</source>
-        <target>Meer Challenges bekijken</target>
-      </segment>
-    </unit>
     <unit id="1464855415523029044">
       <segment state="initial">
         <source>Add challenge</source>
@@ -1487,10 +1474,224 @@
         <target>Duo</target>
       </segment>
     </unit>
-    <unit id="8623978917681527907">
+    <unit id="7374538640222631357">
       <segment state="initial">
-        <source>Group</source>
-        <target>Groep</target>
+        <source>This challenge is still private to you!</source>
+        <target>Deze challenge is nog steeds privé voor jou!</target>
+      </segment>
+    </unit>
+    <unit id="7408374932533578639">
+      <segment state="initial">
+        <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION"
+            disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}" />,
+          at <ph id="1" equiv="INTERPOLATION_1"
+            disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}" />
+          . </source>
+        <target> Deze challenge wordt vrijgegeven op <ph id="0" equiv="INTERPOLATION"
+            disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}" />,
+          om <ph id="1" equiv="INTERPOLATION_1"
+            disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}" />
+          . </target>
+      </segment>
+    </unit>
+    <unit id="5442876463654189578">
+      <segment state="initial">
+        <source>Label and particpant type</source>
+        <target>Label en deelnemertype</target>
+      </segment>
+    </unit>
+    <unit id="4077520913910941990">
+      <segment state="initial">
+        <source>Label</source>
+        <target>Label</target>
+      </segment>
+    </unit>
+    <unit id="7095237946376271162">
+      <segment state="initial">
+        <source>Participant Type</source>
+        <target>Deelnemertype</target>
+      </segment>
+    </unit>
+    <unit id="8828059408146193176">
+      <segment state="initial">
+        <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE"
+            equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other"
+            dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;"
+            dispEnd="&lt;/mat-slide-toggle&gt;" /></source>
+        <target> Publicatiedatum <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE"
+            equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other"
+            dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;"
+            dispEnd="&lt;/mat-slide-toggle&gt;" /></target>
+      </segment>
+    </unit>
+    <unit id="501118076159295384">
+      <segment state="initial">
+        <source> The Challenge will only be available starting from the release date. Before that it
+          will be private to you. </source>
+        <target> De challenge is pas beschikbaar vanaf de publicatiedatum. Daarvoor is deze privé
+          voor jou. </target>
+      </segment>
+    </unit>
+    <unit id="5992560285899135152">
+      <segment state="initial">
+        <source> The Challenge will be public right away after it is added. </source>
+        <target> De challenge wordt direct openbaar zodra deze is toegevoegd. </target>
+      </segment>
+    </unit>
+    <unit id="3973931101896534797">
+      <segment state="initial">
+        <source>Date</source>
+        <target>Datum</target>
+      </segment>
+    </unit>
+    <unit id="8497528947328199741">
+      <segment state="initial">
+        <source>Time</source>
+        <target>Tijd</target>
+      </segment>
+    </unit>
+    <unit id="8387795974331999553">
+      <segment state="initial">
+        <source>Challenge media is required!</source>
+        <target>Challenge-media is vereist!</target>
+      </segment>
+    </unit>
+    <unit id="7150227608403439982">
+      <segment state="initial">
+        <source>I&apos;ll add media!</source>
+        <target>Ik voeg media toe!</target>
+      </segment>
+    </unit>
+    <unit id="8650499415827640724">
+      <notes>
+        <note category="description">challenge type label title</note>
+      </notes>
+      <segment state="initial">
+        <source>Type</source>
+        <target>Type</target>
+      </segment>
+    </unit>
+    <unit id="565606266379309262">
+      <notes>
+        <note category="description">all challenge types</note>
+      </notes>
+      <segment state="initial">
+        <source>All Types</source>
+        <target>Alle types</target>
+      </segment>
+    </unit>
+    <unit id="1107810910795488937">
+      <segment state="initial">
+        <source> (+<ph id="0" equiv="INTERPOLATION" disp="{{ (labelCtrl.value?.length || 0) - 1 }}" /> <ph
+            id="1" equiv="INTERPOLATION_1"
+            disp="{{ labelCtrl.value?.length === 2 ? &quot;other&quot; : &quot;others&quot; }}" />) </source>
+        <target> (+<ph id="0" equiv="INTERPOLATION" disp="{{ (labelCtrl.value?.length || 0) - 1 }}" /> <ph
+            id="1" equiv="INTERPOLATION_1"
+            disp="{{ labelCtrl.value?.length === 2 ? &quot;ander&quot; : &quot;anderen&quot; }}" />) </target>
+      </segment>
+    </unit>
+    <unit id="3481736869685494304">
+      <notes>
+        <note category="description">challenge participant type title</note>
+      </notes>
+      <segment state="initial">
+        <source>Participants</source>
+        <target>Deelnemers</target>
+      </segment>
+    </unit>
+    <unit id="4570725150232607497">
+      <notes>
+        <note category="description">all participant types</note>
+      </notes>
+      <segment state="initial">
+        <source>All Participants</source>
+        <target>Alle deelnemers</target>
+      </segment>
+    </unit>
+    <unit id="7036284206110282007">
+      <segment state="initial">
+        <source>days</source>
+        <target>dagen</target>
+      </segment>
+    </unit>
+    <unit id="3370839803061654054">
+      <segment state="initial">
+        <source>hours</source>
+        <target>uren</target>
+      </segment>
+    </unit>
+    <unit id="2284709915291073024">
+      <segment state="initial">
+        <source>mins.</source>
+        <target>min.</target>
+      </segment>
+    </unit>
+    <unit id="2155832126259145609">
+      <segment state="initial">
+        <source>s</source>
+        <target>s</target>
+      </segment>
+    </unit>
+    <unit id="directions_spot">
+      <notes>
+        <note category="description">The label of a button opening directions to a spot</note>
+        <note category="meaning">Directions to spot</note>
+      </notes>
+      <segment state="initial">
+        <source>Directions</source>
+        <target>Route</target>
+      </segment>
+    </unit>
+    <unit id="6299599810982807013">
+      <segment state="initial">
+        <source>All Challenges of </source>
+        <target>Alle challenges van </target>
+      </segment>
+    </unit>
+    <unit id="4020018249666121252">
+      <segment state="initial">
+        <source> All Challenges of <ph id="0" equiv="INTERPOLATION"
+            disp="{{ selectedSpot()!.name() }}" />
+        </source>
+        <target> Alle challenges van <ph id="0" equiv="INTERPOLATION"
+            disp="{{ selectedSpot()!.name() }}" />
+        </target>
+      </segment>
+    </unit>
+    <unit id="7014916356457269810">
+      <segment state="initial">
+        <source>File mimetype is not allowed!</source>
+        <target>Bestandstype is niet toegestaan!</target>
+      </segment>
+    </unit>
+    <unit id="7334091550966090385">
+      <segment state="initial">
+        <source>Error uploading media!</source>
+        <target>Fout bij het uploaden van media!</target>
+      </segment>
+    </unit>
+    <unit id="8998179362936748717">
+      <segment state="initial">
+        <source>OK</source>
+        <target>OK</target>
+      </segment>
+    </unit>
+    <unit id="4727551339190347889">
+      <segment state="initial">
+        <source>View all challanges</source>
+        <target>Bekijk alle challenges</target>
+      </segment>
+    </unit>
+    <unit id="4140025051574737361">
+      <segment state="initial">
+        <source>See private challenges</source>
+        <target>Bekijk privé challenges</target>
+      </segment>
+    </unit>
+    <unit id="3724068243287682962">
+      <segment state="initial">
+        <source>Team</source>
+        <target>Team</target>
       </segment>
     </unit>
   </file>
