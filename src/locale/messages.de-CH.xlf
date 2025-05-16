@@ -683,7 +683,7 @@
     <unit id="amenities.covered">
       <segment state="initial">
         <source>Covered area</source>
-        <target>Deckt</target>
+        <target>Im Schärme</target>
       </segment>
     </unit>
     <unit id="amenities.outdoor">

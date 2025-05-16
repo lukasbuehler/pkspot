@@ -46,6 +46,7 @@ import { MatSidenavModule } from "@angular/material/sidenav";
 import { ExternalImage } from "../../db/models/Media";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import { SpotChallenge } from "../../db/models/SpotChallenge";
+import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 
 @Component({
   selector: "app-event-page",
@@ -63,6 +64,7 @@ import { SpotChallenge } from "../../db/models/SpotChallenge";
     MatChipsModule,
     MapComponent,
     MatSidenavModule,
+    ChallengeListComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -137,7 +139,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
     lhSX9YEqSTKbZ9jfYy6L: ["MdELs6auoXeAU83LAb8P"],
     SpF4Abl5qmH95xalJcIX: ["WtQuOWish8CgCOgP2qxx"],
   };
-  challenges = signal<SpotChallenge[]>([]);
+  challenges = signal<(SpotChallenge & { number: number })[]>([]);
 
   areaPolygon = signal<PolygonSchema | null>(null);
 
@@ -151,10 +153,41 @@ export class EventPageComponent implements OnInit, OnDestroy {
   };
 
   customMarkers: MarkerSchema[] = [
+    // Parking local_parking
+    {
+      name: "Parking garage",
+      color: "tertiary",
+      location: {
+        lat: 47.39812077013162,
+        lng: 8.546551689295336,
+      },
+      icons: ["local_parking", "garage"],
+    },
+
+    // Tram stations
+    {
+      name: "Milchbuck (Tram-Station)",
+      color: "tertiary",
+      location: {
+        lat: 47.39778445846257,
+        lng: 8.541912684696003,
+      },
+      icons: ["tram", "directions_bus"],
+    },
+    {
+      name: "Universität Irchel (Tram-Station)",
+      color: "tertiary",
+      location: {
+        lat: 47.39622541657696,
+        lng: 8.544870658516267,
+      },
+      icons: ["tram"],
+    },
+
     // WC
     {
       name: $localize`WC`,
-      color: "tertiary",
+      color: "secondary",
       location: {
         lat: 47.397143104254134,
         lng: 8.549462816940418,
@@ -169,53 +202,23 @@ export class EventPageComponent implements OnInit, OnDestroy {
         lat: 47.39723002436682,
         lng: 8.548602928177829,
       },
-      icons: ["info", "restaurant"] /* "local_activity", */,
+      icons: [
+        "info",
+        "restaurant",
+        "video_camera_front",
+      ] /* "local_activity", */,
       priority: "required",
     },
-
-    // Tram stations
     {
-      name: "Milchbuck",
-      color: "tertiary",
+      name: $localize`Open Gym (ASVZ)`,
+      color: "secondary",
       location: {
-        lat: 47.39778445846257,
-        lng: 8.541912684696003,
+        lat: 47.39791103067576,
+        lng: 8.545801263180458,
       },
-      icons: ["tram", "directions_bus"],
+      icons: ["roofing", "wc"] /* "local_activity", */,
+      priority: "required",
     },
-    {
-      name: "Universität Irchel",
-      color: "tertiary",
-      location: {
-        lat: 47.39622541657696,
-        lng: 8.544870658516267,
-      },
-      icons: ["tram"],
-    },
-
-    // // Workshop 1
-    // {
-    //   name: `Challenge 1`,
-    //   color: "secondary",
-    //   location: {
-    //     lat: 47.39723208524732,
-    //     lng: 8.547745381467138,
-    //   },
-    //   icon: "diversity_3",
-    //   number: 1,
-    // },
-
-    // // Workshop 2
-    // {
-    //   name: "Challenge 2",
-    //   color: "secondary",
-    //   location: {
-    //     lat: 47.39736800362042,
-    //     lng: 8.54858267174903,
-    //   },
-    //   icon: "person",
-    //   number: 2,
-    // },
   ];
 
   markers: MarkerSchema[] = this.customMarkers;
@@ -265,7 +268,17 @@ export class EventPageComponent implements OnInit, OnDestroy {
         const allChallenges =
           challengeArrays.flat() as (SpotChallenge | null)[];
         this.challenges.set(
-          allChallenges.filter((c): c is SpotChallenge => !!c)
+          allChallenges
+            .map((c, idx) => [c, idx])
+            .filter(([c, idx]) => c instanceof SpotChallenge)
+            .map(([c, idx]) => {
+              const challenge = c as SpotChallenge;
+              // Use object spread to ensure the number property is present on the returned object
+              return {
+                ...challenge,
+                number: (idx as number) + 1,
+              } as SpotChallenge & { number: number };
+            })
         );
 
         const challengeMarkers: MarkerSchema[] = [];

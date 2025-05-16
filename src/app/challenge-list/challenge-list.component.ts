@@ -5,7 +5,7 @@ import {
   SpotChallenge,
   SpotChallengePreview,
 } from "../../db/models/SpotChallenge";
-import { NgOptimizedImage } from "@angular/common";
+import { KeyValuePipe, NgOptimizedImage } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { ChallengePreviewSchema } from "../../db/schemas/SpotChallengeSchema";
 import { Spot } from "../../db/models/Spot";
@@ -23,7 +23,11 @@ import { MatMenuModule } from "@angular/material/menu";
 import { MatSelectModule } from "@angular/material/select";
 import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatDividerModule } from "@angular/material/divider";
 
+type ChallengeType =
+  | SpotChallenge
+  | ((SpotChallengePreview & { spot?: Spot }) & { number?: number });
 @Component({
   selector: "app-challenge-list",
   imports: [
@@ -33,11 +37,12 @@ import { MatFormFieldModule } from "@angular/material/form-field";
     MatChipsModule,
     MatMenuModule,
     MatSelectModule,
-
+    KeyValuePipe,
     MatFormFieldModule,
     MatSelectModule,
     FormsModule,
     ReactiveFormsModule,
+    MatDividerModule,
   ],
   templateUrl: "./challenge-list.component.html",
   styleUrl: "./challenge-list.component.scss",
@@ -48,7 +53,8 @@ export class ChallengeListComponent {
     SpotChallenge[] | (SpotChallengePreview & { spot?: Spot })[]
   >([]);
 
-  filterOptions = input<boolean>(false);
+  showFilterOptions = input<boolean>(false);
+  showIndexAsNumber = input<boolean>(false);
 
   readonly challengeLabels = ChallengeLabelValues as string[];
   readonly challengeLabelNames = ChallengeLabelNames as Record<string, string>;
@@ -75,13 +81,13 @@ export class ChallengeListComponent {
     });
   }
 
-  filteredChallenges = computed(() => {
+  filteredChallenges = computed<ChallengeType[]>(() => {
     const challenges = this.challenges();
-
     const labels = this.selectedLabels();
     const participantTypes = this.selectedParticipantTypes();
 
     return challenges.filter((challenge) => {
+      const c = challenge as SpotChallenge;
       if (
         (labels?.length === this.challengeLabels.length &&
           participantTypes?.length === this.challengeParticipantTypes.length) ||
@@ -91,18 +97,24 @@ export class ChallengeListComponent {
       ) {
         return true;
       }
-
       const labelMatch =
         !labels ||
+        labels.length === 0 ||
         (Array.isArray(labels)
-          ? labels.includes(challenge.label as string)
-          : challenge.label === labels);
+          ? labels.includes(c.label as string)
+          : c.label === labels);
       const participantTypeMatch =
         !participantTypes ||
+        participantTypes.length === 0 ||
         (Array.isArray(participantTypes)
-          ? participantTypes.includes(challenge.participantType as string)
-          : challenge.participantType === participantTypes);
+          ? participantTypes.includes(c.participantType as string)
+          : c.participantType === participantTypes);
       return labelMatch && participantTypeMatch;
     });
   });
+
+  // Helper method to get the display number for a challenge
+  getChallengeDisplayNumber(challenge: ChallengeType, index: number): number {
+    return (challenge as any).number ?? index;
+  }
 }

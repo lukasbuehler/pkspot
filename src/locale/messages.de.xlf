@@ -685,7 +685,7 @@
     <unit id="amenities.covered">
       <segment state="initial">
         <source>Covered area</source>
-        <target>Gedeckt</target>
+        <target>Überdacht</target>
       </segment>
     </unit>
     <unit id="amenities.outdoor">

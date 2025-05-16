@@ -111,6 +111,17 @@
         style="border-radius: 16px"
         [class.no-rounding]="isEmbedded"
       >
+        @if(true) {
+        <!-- Show challenges -->
+        <app-challenge-list
+          class="p-3"
+          [challenges]="challenges()"
+          [showFilterOptions]="true"
+          [showIndexAsNumber]="true"
+        >
+        </app-challenge-list>
+        } @else {
+        <!-- Show spots -->
         @if(selectedSpot()) {
         <app-spot-details
           @fadeInOut
@@ -133,7 +144,7 @@
           text="Event spots"
           i18n-text
         ></app-spot-list>
-        } }
+        } } }
       </div>
     </mat-drawer>
 
@@ -162,7 +173,7 @@
         [showSpotPreview]="!sidenavOpen()"
         class="w-100 h-100 overflow-hidden d-block"
       ></app-map>
-      } }@else { @if(spots() && spots()!.length > 0) {
+      } } @else { @if(spots() && spots()!.length > 0) {
       <app-spot-map
         @fadeInOut
         #spotMap
