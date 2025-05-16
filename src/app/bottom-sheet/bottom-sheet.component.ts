@@ -88,6 +88,11 @@ export class BottomSheetComponent {
           : (event as MouseEvent).clientY;
       let shiftY = clientY - this.bottomSheet.nativeElement.offsetTop;
 
+      // Track initial Y for minimum drag distance
+      let initialY = clientY;
+      let hasDragged = false;
+      const minDragDistance = 10; // px
+
       const moveAt = (moveEvent: TouchEvent | MouseEvent) => {
         if (!this.bottomSheet || !this.contentElement) return;
 
@@ -95,6 +100,11 @@ export class BottomSheetComponent {
           window.TouchEvent && moveEvent instanceof TouchEvent
             ? moveEvent.touches[0].pageY
             : (moveEvent as MouseEvent).pageY;
+
+        // Check if drag distance exceeded threshold
+        if (!hasDragged && Math.abs(pageY - initialY) > minDragDistance) {
+          hasDragged = true;
+        }
 
         const isScrollingUp = pageY - shiftY >= 0;
         if (isScrollingUp && isScrollableUp) {
@@ -150,6 +160,12 @@ export class BottomSheetComponent {
 
         let middlePoint = (bottomHeightOffset - topHeightOffset) / 2;
 
+        // Only trigger slide if drag distance exceeded threshold
+        if (!hasDragged) {
+          // Not a real drag, do nothing (don't close/open)
+          return;
+        }
+
         // the user let go, decide where to slide the sheet to
         if (Math.abs(speed) > this.minimumSpeedToSlide) {
           if (speed > 0) {
@@ -159,9 +175,6 @@ export class BottomSheetComponent {
             targetOffset = topHeightOffset;
             this.contentElement.style.overflowY = "scroll";
           }
-
-          // prevent pull to refresh and other default browser behavior
-          // event.preventDefault();
         } else {
           // decide the next sheet position based on the offset
           if (offset > middlePoint) {

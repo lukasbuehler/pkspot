@@ -64,7 +64,7 @@ export class EmbedPageComponent {
   baseHref = inject(APP_BASE_HREF);
 
   supportedLanguageCodes = ["en", "de", "de-CH", "fr", "it", "nl", "es"]; // TODO get supported languages somehow
-  languages: Record<string, { name_english: string; name_native: string }> =
+  languages: Record<string, { name_english: string; name_native?: string }> =
     languageCodes;
   embedLanguage = signal<LocaleCode | "auto">("auto");
 

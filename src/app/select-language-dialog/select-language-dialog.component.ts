@@ -79,7 +79,7 @@ export class SelectLanguageDialogComponent implements OnInit, AfterViewInit {
       (option: LocaleCode) =>
         option.toLowerCase().includes(filterValue) ||
         this.languages[option].name_native
-          .toLowerCase()
+          ?.toLowerCase()
           .includes(filterValue) ||
         this.languages[option].name_english.toLowerCase().includes(filterValue)
     );

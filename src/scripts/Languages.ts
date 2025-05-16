@@ -1,7 +1,7 @@
 export const languageCodes: {
   [localeCode: string]: {
     name_english: string;
-    name_native: string;
+    name_native?: string;
     emoji?: string;
   };
 } = {
