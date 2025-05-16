@@ -121,8 +121,10 @@
           @fadeInOut
           class="p-3 overflow-y-auto flex-grow-1"
           [challenges]="challenges()"
+          [withHrefLink]="false"
           [showFilterOptions]="true"
           [showIndexAsNumber]="true"
+          (challengeClickIndex)="challengeClickedIndex($event)"
         >
         </app-challenge-list>
         } @else {

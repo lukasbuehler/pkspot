@@ -66,7 +66,8 @@
 <mat-divider class="mb-3"></mat-divider>
 }
 <div class="challenge-preview-grid pb-3 pt-1">
-  @for (challenge of filteredChallenges(); track challenge) {
+  @for (challenge of filteredChallenges(); track challenge; let i = $index) {
+  @if(withHrefLink()) {
   <a
     class="d-flex flex-column overflow-hidden challenge-card"
     matRipple
@@ -138,7 +139,71 @@
       challenge.name()
     }}</span>
   </a>
-  } @empty {
+  } @else {
+  <div
+    class="d-flex flex-column overflow-hidden challenge-card"
+    matRipple
+    (click)="onChallengeClick(i)"
+    style="cursor: pointer"
+  >
+    <div
+      class="rounded w-100 overflow-hidden position-relative"
+      style="aspect-ratio: 1; background-color: #2c2d31"
+    >
+      <img
+        [ngSrc]="challenge.media()!.getPreviewImageSrc()"
+        fill
+        class="w-100 h-100"
+        style="object-fit: cover"
+      />
+      @if(challenge.label || challenge.participantType || showIndexAsNumber()) {
+      <div
+        class="position-absolute d-flex flex-row"
+        style="
+          bottom: 4px;
+          left: 4px;
+          background-color: inherit;
+          border-radius: 10px;
+          padding: 4px;
+          gap: 2px;
+          opacity: 0.9;
+        "
+      >
+        @if(showIndexAsNumber()) {
+        <div
+          class="mat-title-small d-flex justify-content-center align-items-center"
+          style="
+            border: solid 2px;
+            border-radius: 13px;
+            height: 26px;
+            min-width: 26px;
+            padding: 5px;
+          "
+        >
+          {{
+            getChallengeDisplayNumber(
+              challenge,
+              filteredChallenges().indexOf(challenge)
+            )
+          }}
+        </div>
+        } @if(challenge.label) {
+        <mat-icon>
+          {{ challengeLabelIcons[challenge.label] }}
+        </mat-icon>
+        } @if(challenge.participantType) {
+        <mat-icon>
+          {{ challengeParticipantTypeIcons[challenge.participantType] }}
+        </mat-icon>
+        }
+      </div>
+      }
+    </div>
+    <span class="mat-title-small pt-1 text-truncate">{{
+      challenge.name()
+    }}</span>
+  </div>
+  } } @empty {
   <p class="mat-body-medium">No challenges!</p>
   }
 </div>

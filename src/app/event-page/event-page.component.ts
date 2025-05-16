@@ -550,6 +550,16 @@ export class EventPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  challengeClickedIndex(challengeIndex: number) {
+    const location = this.challenges()[challengeIndex].location()!;
+    console.log("Challenge clicked", challengeIndex, location);
+    if (this.spotMap instanceof SpotMapComponent && this.spotMap.map) {
+      this.spotMap.map.focusOnLocation(location);
+    } else if (this.spotMap instanceof MapComponent) {
+      this.spotMap.focusOnLocation(location);
+    }
+  }
+
   deselectSpot() {
     this.selectedSpot.set(null);
   }

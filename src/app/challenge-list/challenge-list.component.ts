@@ -1,11 +1,18 @@
-import { Component, computed, input, signal } from "@angular/core";
+import {
+  Component,
+  computed,
+  input,
+  signal,
+  Output,
+  EventEmitter,
+} from "@angular/core";
 import {
   ChallengeLabelNames,
   ChallengeParticipantTypeNames,
   SpotChallenge,
   SpotChallengePreview,
 } from "../../db/models/SpotChallenge";
-import { KeyValuePipe, NgOptimizedImage } from "@angular/common";
+import { NgOptimizedImage } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { ChallengePreviewSchema } from "../../db/schemas/SpotChallengeSchema";
 import { Spot } from "../../db/models/Spot";
@@ -37,7 +44,6 @@ type ChallengeType =
     MatChipsModule,
     MatMenuModule,
     MatSelectModule,
-    KeyValuePipe,
     MatFormFieldModule,
     MatSelectModule,
     FormsModule,
@@ -55,6 +61,10 @@ export class ChallengeListComponent {
 
   showFilterOptions = input<boolean>(false);
   showIndexAsNumber = input<boolean>(false);
+
+  withHrefLink = input(true);
+  @Output("challengeClickIndex") challengeClickIndexEvent =
+    new EventEmitter<number>();
 
   readonly challengeLabels = ChallengeLabelValues as string[];
   readonly challengeLabelNames = ChallengeLabelNames as Record<string, string>;
@@ -116,5 +126,9 @@ export class ChallengeListComponent {
   // Helper method to get the display number for a challenge
   getChallengeDisplayNumber(challenge: ChallengeType, index: number): number {
     return (challenge as any).number ?? index;
+  }
+
+  onChallengeClick(index: number) {
+    this.challengeClickIndexEvent.emit(index);
   }
 }
