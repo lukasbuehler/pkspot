@@ -12,7 +12,11 @@ import {
 } from "@angular/core";
 import { CountdownComponent } from "../countdown/countdown.component";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
-import { LocationStrategy, NgOptimizedImage } from "@angular/common";
+import {
+  KeyValuePipe,
+  LocationStrategy,
+  NgOptimizedImage,
+} from "@angular/common";
 import { LocalSpot, Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
 import { SpotListComponent } from "../spot-list/spot-list.component";
@@ -48,6 +52,7 @@ import { SpotChallengesService } from "../services/firebase/firestore/spot-chall
 import { SpotChallenge } from "../../db/models/SpotChallenge";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { MatDividerModule } from "@angular/material/divider";
+import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 
 @Component({
   selector: "app-event-page",
@@ -67,6 +72,8 @@ import { MatDividerModule } from "@angular/material/divider";
     MatSidenavModule,
     ChallengeListComponent,
     MatDividerModule,
+    ChallengeDetailComponent,
+    KeyValuePipe,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -98,9 +105,15 @@ export class EventPageComponent implements OnInit, OnDestroy {
   private _routeSubscription: Subscription;
 
   selectedSpot = signal<Spot | LocalSpot | null>(null);
+  selectedChallenge = signal<(SpotChallenge & { number: number }) | null>(null);
 
   sidenavOpen = signal<boolean>(false);
-  tab = signal<"spots" | "challenges">("challenges");
+  tabs = {
+    spots: $localize`Spots`,
+    challenges: $localize`Challenges`,
+    event: $localize`:event locations label:Event`,
+  };
+  tab = signal<(typeof this.tabs)[keyof typeof this.tabs]>("challenges");
 
   showHeader = signal<boolean>(true);
 
@@ -229,6 +242,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   spots = signal<(Spot | LocalSpot)[]>([]);
 
   mapStyle: "roadmap" | "satellite" = "satellite";
+  tabKeyVal: any;
 
   constructor() {
     this._routeSubscription = this._route.queryParams.subscribe((params) => {
@@ -296,7 +310,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
           }
         });
 
-        this.customMarkers.unshift(...challengeMarkers);
+        this.markers = [...challengeMarkers, ...this.customMarkers];
       });
     });
 
@@ -540,6 +554,9 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   selectSpot(spot: Spot | LocalSpot | SpotId | SpotPreviewData) {
+    this.tab.set("spots");
+    this.sidenavOpen.set(true);
+
     if (spot instanceof Spot || spot instanceof LocalSpot) {
       this.selectedSpot.set(spot);
       if (this.spotMap instanceof SpotMapComponent) {
@@ -551,12 +568,17 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   challengeClickedIndex(challengeIndex: number) {
-    const location = this.challenges()[challengeIndex].location()!;
-    console.log("Challenge clicked", challengeIndex, location);
-    if (this.spotMap instanceof SpotMapComponent && this.spotMap.map) {
-      this.spotMap.map.focusOnLocation(location);
-    } else if (this.spotMap instanceof MapComponent) {
-      this.spotMap.focusOnLocation(location);
+    const challenge = this.challenges()[challengeIndex];
+    if (challenge) {
+      const location = challenge.location()!;
+
+      this.selectedChallenge.set(challenge);
+
+      if (this.spotMap instanceof SpotMapComponent && this.spotMap.map) {
+        this.spotMap.map.focusOnLocation(location);
+      } else if (this.spotMap instanceof MapComponent) {
+        this.spotMap.focusOnLocation(location);
+      }
     }
   }
 
@@ -566,6 +588,30 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   toggleSidenav() {
     this.sidenavOpen.update((open) => !open);
+  }
+
+  markerClick(markerIndex: number) {
+    const marker = this.markers[markerIndex];
+    console.log("Marker clicked", marker);
+
+    if (marker.number) {
+      this.challangeMarkerClicked(markerIndex);
+    }
+  }
+
+  challangeMarkerClicked(challengeIndex: number) {
+    const challenge = this.challenges()[challengeIndex];
+
+    console.log("Challenge clicked", challenge);
+
+    if (challenge) {
+      // open the challenge tab
+      this.tab.set("challenges");
+      this.sidenavOpen.set(true);
+
+      // open the challenge in the sidenav
+      this.selectedChallenge.set(challenge);
+    }
   }
 
   tabChanged(event: MatChipListboxChange) {

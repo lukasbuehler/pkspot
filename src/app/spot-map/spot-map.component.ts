@@ -95,6 +95,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @Output() hasGeolocationChange = new EventEmitter<boolean>();
   @Output() visibleSpotsChange = new EventEmitter<Spot[]>();
   @Output() hightlightedSpotsChange = new EventEmitter<SpotPreviewData[]>();
+  @Output() markerClickEvent = new EventEmitter<number>();
 
   uneditedSpot?: Spot | LocalSpot;
 

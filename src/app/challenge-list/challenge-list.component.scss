@@ -7,9 +7,8 @@
 .challenge-preview-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  // This will create as many columns of at least 100px as will fit, up to as many as possible
-  // and will automatically reduce to 2 columns if 3 don't fit
+  grid-template-columns: repeat(2, minmax(100px, 1fr));
+  // This will always show at least 2 columns, even if there is only one item
 }
 
 .challenge-card {

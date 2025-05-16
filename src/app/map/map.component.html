@@ -294,7 +294,7 @@
     [options]="{
       gmpClickable: true
     }"
-    (mapClick)="focusOnLocation(marker.location)"
+    (mapClick)="focusOnLocation(marker.location); markerClick($index)"
   ></map-advanced-marker>
   <app-marker
     #markerComp

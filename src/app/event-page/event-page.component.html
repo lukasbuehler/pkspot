@@ -102,7 +102,7 @@
       position="end"
     >
       <div
-        class="h-100 w-100 drawer-container d-flex flex-column gap-0"
+        class="h-100 w-100 drawer-container d-flex flex-column gap-0 align-items-start"
         style="border-radius: 16px"
         [class.no-rounding]="isEmbedded"
       >
@@ -111,12 +111,38 @@
           (change)="tabChanged($event)"
           [value]="tab()"
         >
-          <mat-chip-option i18n value="challenges">Challenges</mat-chip-option>
-          <mat-chip-option i18n value="spots">Spots</mat-chip-option>
+          @for (tabKeyVal of (tabs | keyvalue); track $index) {
+          <mat-chip-option i18n [value]="tabKeyVal.key">{{
+            tabKeyVal.value
+          }}</mat-chip-option>
+          }
         </mat-chip-listbox>
+
         <mat-divider></mat-divider>
         @if(tab() === 'challenges') {
         <!-- Show challenges -->
+        @if(selectedChallenge()) {
+        <button
+          mat-button
+          (click)="selectedChallenge.set(null)"
+          class="flex-shrink-0"
+        >
+          <mat-icon>arrow_back_ios</mat-icon>
+          <span class="d-flex flex-row gap-2 align-items-center">
+            <span>All Challenges</span>
+            <span i18n class="mat-label-small px-1 border rounded me-1"
+              >Challenges</span
+            >
+          </span>
+        </button>
+
+        <app-challenge-detail
+          @fadeInOut
+          class="py-3 overflow-y-auto flex-grow-1"
+          [challenge]="selectedChallenge()!"
+          [number]="selectedChallenge()!.number"
+        ></app-challenge-detail>
+        } @else {
         <app-challenge-list
           @fadeInOut
           class="p-3 overflow-y-auto flex-grow-1"
@@ -127,7 +153,7 @@
           (challengeClickIndex)="challengeClickedIndex($event)"
         >
         </app-challenge-list>
-        } @else {
+        } } @else {
         <!-- Show spots -->
         @if(selectedSpot()) {
         <app-spot-details
@@ -178,6 +204,7 @@
         (spotClick)="selectSpot($event)"
         (mapClick)="deselectSpot()"
         [showSpotPreview]="!sidenavOpen()"
+        (markerClickEvent)="markerClick($event)"
         class="w-100 h-100 overflow-hidden d-block"
       ></app-map>
       } } @else { @if(spots() && spots()!.length > 0) {
@@ -199,6 +226,7 @@
         [selectedSpot]="selectedSpot()"
         [showSpotPreview]="!sidenavOpen()"
         (selectedSpotChange)="selectedSpot.set($event)"
+        (markerClickEvent)="markerClick($event)"
         class="w-100 h-100 overflow-hidden d-block"
       ></app-spot-map>
       } }

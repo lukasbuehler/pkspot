@@ -24,4 +24,5 @@
   (spotClick)="isClickable() ? openSpotByWhateverMeansNecessary($event) : null"
   (centerChange)="mapCenter = $event"
   (hasGeolocationChange)="hasGeolocationChange.emit($event)"
+  (markerClickEvent)="markerClickEvent.emit($event)"
 ></app-map>

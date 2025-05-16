@@ -112,6 +112,7 @@ export class ChallengeDetailComponent {
 
   isEditing = model<boolean>(false);
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
+  number = input<number | null>(null);
 
   userPicture = computed<StorageImage | null>(() => {
     const challenge = this.challenge();

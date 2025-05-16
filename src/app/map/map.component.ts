@@ -157,6 +157,7 @@ export class MapComponent implements OnInit, OnChanges {
     path: google.maps.LatLngLiteral[][];
   }>();
   @Output() hasGeolocationChange = new EventEmitter<boolean>();
+  @Output() markerClickEvent = new EventEmitter<number>();
 
   @Input() spots: (LocalSpot | Spot)[] = [];
   @Input() dots: SpotClusterDotSchema[] = [];
@@ -594,6 +595,10 @@ export class MapComponent implements OnInit, OnChanges {
     } else {
       // TODO maybe ask again for geolocation in the future
     }
+  }
+
+  markerClick(markerIndex: number) {
+    this.markerClickEvent.emit(markerIndex);
   }
 
   // private _getPolygonBySpotId(spotId: string): MapPolygon | undefined {
