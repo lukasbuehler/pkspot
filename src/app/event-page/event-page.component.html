@@ -91,11 +91,6 @@
   </mat-menu>
   }
 
-  <!-- <mat-chip-listbox class="py-2">
-    <mat-chip-option i18n>Spot Map</mat-chip-option>
-    <mat-chip-option i18n disabled>Challenges</mat-chip-option>
-  </mat-chip-listbox> -->
-
   <mat-drawer-container class="flex-grow-1 bg-transparent">
     <mat-drawer
       #drawer
@@ -107,14 +102,24 @@
       position="end"
     >
       <div
-        class="h-100 w-100 drawer-container"
+        class="h-100 w-100 drawer-container d-flex flex-column gap-0"
         style="border-radius: 16px"
         [class.no-rounding]="isEmbedded"
       >
-        @if(true) {
+        <mat-chip-listbox
+          class="p-3"
+          (change)="tabChanged($event)"
+          [value]="tab()"
+        >
+          <mat-chip-option i18n value="challenges">Challenges</mat-chip-option>
+          <mat-chip-option i18n value="spots">Spots</mat-chip-option>
+        </mat-chip-listbox>
+        <mat-divider></mat-divider>
+        @if(tab() === 'challenges') {
         <!-- Show challenges -->
         <app-challenge-list
-          class="p-3"
+          @fadeInOut
+          class="p-3 overflow-y-auto flex-grow-1"
           [challenges]="challenges()"
           [showFilterOptions]="true"
           [showIndexAsNumber]="true"

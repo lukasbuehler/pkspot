@@ -36,7 +36,7 @@ import { trigger, transition, style, animate } from "@angular/animations";
 import { CodeBlockComponent } from "../code-block/code-block.component";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { MatChipsModule } from "@angular/material/chips";
+import { MatChipListboxChange, MatChipsModule } from "@angular/material/chips";
 import { MapsApiService } from "../services/maps-api.service";
 import { PolygonSchema } from "../../db/schemas/PolygonSchema";
 import { MapComponent } from "../map/map.component";
@@ -47,6 +47,7 @@ import { ExternalImage } from "../../db/models/Media";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import { SpotChallenge } from "../../db/models/SpotChallenge";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
+import { MatDividerModule } from "@angular/material/divider";
 
 @Component({
   selector: "app-event-page",
@@ -65,6 +66,7 @@ import { ChallengeListComponent } from "../challenge-list/challenge-list.compone
     MapComponent,
     MatSidenavModule,
     ChallengeListComponent,
+    MatDividerModule,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -98,6 +100,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   selectedSpot = signal<Spot | LocalSpot | null>(null);
 
   sidenavOpen = signal<boolean>(false);
+  tab = signal<"spots" | "challenges">("challenges");
 
   showHeader = signal<boolean>(true);
 
@@ -553,5 +556,11 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   toggleSidenav() {
     this.sidenavOpen.update((open) => !open);
+  }
+
+  tabChanged(event: MatChipListboxChange) {
+    const selectedTab = event.value;
+
+    this.tab.set(selectedTab);
   }
 }
