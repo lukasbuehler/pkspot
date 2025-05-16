@@ -60,13 +60,11 @@ export class ChallengeListComponent {
   readonly challengeParticipantTypeIcons =
     ChallengeParticipantTypeIcons as Record<string, string>;
 
-  labelCtrl = new FormControl(this.challengeLabels);
-  participantTypeCtrl = new FormControl(this.challengeParticipantTypes);
+  labelCtrl = new FormControl([]);
+  participantTypeCtrl = new FormControl([]);
 
-  private selectedLabels = signal<string[] | null>(this.challengeLabels);
-  private selectedParticipantTypes = signal<string[] | null>(
-    this.challengeParticipantTypes
-  );
+  private selectedLabels = signal<string[] | null>([]);
+  private selectedParticipantTypes = signal<string[] | null>([]);
 
   constructor() {
     this.labelCtrl.valueChanges.subscribe((value) => {

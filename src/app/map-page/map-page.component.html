@@ -70,12 +70,12 @@
           >
         </span>
       </a>
-      <div class="p-3 d-flex flex-column gap-2" @slideInOut>
+      <div class="px-3 d-flex flex-column gap-2" @slideInOut>
         <h4 class="mat-title-medium mt-2" i18n>
           All Challenges of {{ selectedSpot()!.name() }}
         </h4>
         <app-challenge-list
-          class="w-100 px-3"
+          class="w-100"
           [challenges]="allSpotChallenges()"
           [filterOptions]="true"
         ></app-challenge-list>
@@ -84,7 +84,7 @@
       <app-spot-details
         @fadeInOut
         #spotDetail
-        class="d-block py-3"
+        class="d-block"
         [spot]="selectedSpot()"
         [(challenge)]="selectedChallenge"
         [border]="false"
@@ -100,7 +100,7 @@
       ></app-spot-details>
       } } @else {
       <app-spot-list
-        class="p-3 d-block"
+        class="px-3 d-block"
         @fadeInOut
         [spots]="visibleSpots"
         [highlightedSpots]="highlightedSpots"

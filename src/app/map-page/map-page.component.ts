@@ -88,7 +88,7 @@ import {
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
-import { PrimaryInfoPanelComponent } from '../primary-info-panel/primary-info-panel.component';
+import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-panel.component";
 
 @Component({
   selector: "app-map-page",
@@ -488,6 +488,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (updateUrl) {
         this.updateMapURL();
+      }
+      const location = challenge.location();
+      if (location) {
+        this.spotMap?.focusPoint(location);
+      } else {
+        this.spotMap?.focusSpot(challenge.spot);
       }
     }
   }
