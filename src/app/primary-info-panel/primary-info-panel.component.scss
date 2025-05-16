@@ -1,0 +1,24 @@
+:host {
+  display: flex;
+  overflow-y: hidden;
+}
+
+.info-panel {
+  overflow-y: auto;
+  overflow-x: hidden;
+  pointer-events: all;
+  border-radius: 16px;
+  width: 100%;
+  max-height: 100%;
+
+  ::ng-deep mat-card {
+    border-radius: 28px;
+  }
+
+  transition: height 0.3s ease-in-out;
+}
+
+app-bottom-sheet {
+  overflow: hidden !important;
+  margin-bottom: 0px !important;
+}

@@ -1,0 +1,19 @@
+<!-- Renders projected content as a side panel on desktop, or as a bottom sheet on mobile. Uses @if for control flow. -->
+<ng-template #projectedContent>
+  <ng-content></ng-content>
+</ng-template>
+
+@if(!showBottomSheet()) {
+<div
+  style="padding-left: 10px; padding-right: 10px; padding-bottom: 10px"
+  class="overflow-hidden h-100"
+>
+  <div class="info-panel">
+    <ng-container *ngTemplateOutlet="projectedContent"></ng-container>
+  </div>
+</div>
+} @else {
+<app-bottom-sheet class="flex-grow-1">
+  <ng-container *ngTemplateOutlet="projectedContent"></ng-container>
+</app-bottom-sheet>
+}

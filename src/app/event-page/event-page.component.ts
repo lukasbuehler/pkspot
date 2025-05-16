@@ -134,6 +134,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
       "gEsMEOnehCnQY48uUu43",
       "vqU3zXlgG2OzlU6J7n2J",
     ],
+    lhSX9YEqSTKbZ9jfYy6L: ["MdELs6auoXeAU83LAb8P"],
     SpF4Abl5qmH95xalJcIX: ["WtQuOWish8CgCOgP2qxx"],
   };
   challenges = signal<SpotChallenge[]>([]);

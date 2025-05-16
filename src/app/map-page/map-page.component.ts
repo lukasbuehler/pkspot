@@ -88,6 +88,7 @@ import {
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
+import { PrimaryInfoPanelComponent } from '../primary-info-panel/primary-info-panel.component';
 
 @Component({
   selector: "app-map-page",
@@ -138,6 +139,7 @@ import { ChallengeListComponent } from "../challenge-list/challenge-list.compone
     // SpeedDialFabComponent,
     RouterLink,
     ChallengeListComponent,
+    PrimaryInfoPanelComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {

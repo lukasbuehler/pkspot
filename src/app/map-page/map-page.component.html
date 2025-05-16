@@ -32,9 +32,9 @@
       ></app-search-field>
     </div>
 
-    @if(spotMap) { @if(selectedSpot()) {
-    <div class="info-panel d-none d-md-block spot-preview-container pt-3">
-      @if(selectedChallenge()) {
+    @if(spotMap) {
+    <app-primary-info-panel class="flex-grow-1">
+      @if(selectedSpot()) { @if(selectedChallenge()) {
       <a
         mat-button
         [routerLink]="[
@@ -45,11 +45,10 @@
       >
         <mat-icon>arrow_back_ios</mat-icon>
         <span class="d-flex flex-row gap-2 align-items-center">
-          <span
-            >@if(showAllChallenges()) {<span i18n>All Challenges of </span>}{{
-              selectedSpot()!.name()
-            }}</span
-          >
+          <span>
+            @if(showAllChallenges()) {<span i18n>All Challenges of </span
+            >{{ selectedSpot()!.name() }}}
+          </span>
           <span i18n class="mat-label-small px-1 border rounded me-1"
             >Spot</span
           >
@@ -76,16 +75,16 @@
           All Challenges of {{ selectedSpot()!.name() }}
         </h4>
         <app-challenge-list
-          class="w-100"
+          class="w-100 px-3"
           [challenges]="allSpotChallenges()"
           [filterOptions]="true"
         ></app-challenge-list>
       </div>
-      }@else {
+      } @else {
       <app-spot-details
         @fadeInOut
         #spotDetail
-        class="d-block"
+        class="d-block py-3"
         [spot]="selectedSpot()"
         [(challenge)]="selectedChallenge"
         [border]="false"
@@ -98,57 +97,16 @@
         (addBoundsClick)="spotMap.addBounds()"
         (focusClick)="spotMap.focusSpot(selectedSpot()!)"
         (saveClick)="spotMap.saveSpot($event)"
-      ></app-spot-details
-      >}
-    </div>
-    } @else {
-    <div class="info-panel d-none d-md-block p-3">
+      ></app-spot-details>
+      } } @else {
       <app-spot-list
+        class="p-3 d-block"
         @fadeInOut
         [spots]="visibleSpots"
         [highlightedSpots]="highlightedSpots"
       ></app-spot-list>
-    </div>
-    }
-    <app-bottom-sheet #bottomSheet class="d-md-none flex-grow-1">
-      @if(selectedSpot()) {
-      <div class="spot-preview-container">
-        @if(selectedChallenge()) {
-        <app-challenge-detail
-          [(challenge)]="selectedChallenge"
-          [(isEditing)]="isEditing"
-        ></app-challenge-detail>
-        } @else {
-        <app-spot-details
-          @fadeInOut
-          #spotDetail
-          [spot]="selectedSpot()"
-          [(challenge)]="selectedChallenge"
-          [border]="false"
-          [dismissable]="true"
-          [infoOnly]="false"
-          [editable]="true"
-          [isEditing]="isEditing()"
-          (isEditingChange)="
-            $event ? spotMap.startEdit() : spotMap.discardEdit()
-          "
-          (dismiss)="closeSpot()"
-          (addBoundsClick)="spotMap.addBounds()"
-          (focusClick)="spotMap.focusSpot(selectedSpot()!)"
-          (saveClick)="spotMap.saveSpot($event)"
-        ></app-spot-details
-        >}
-      </div>
-      } @else {
-      <div class="px-3">
-        <app-spot-list
-          @fadeInOut
-          [spots]="visibleSpots"
-          [highlightedSpots]="highlightedSpots"
-        ></app-spot-list>
-      </div>
       }
-    </app-bottom-sheet>
+    </app-primary-info-panel>
     }
   </div>
 
