@@ -119,13 +119,13 @@
         </mat-chip-listbox>
 
         <mat-divider></mat-divider>
-        @if(tab() === 'challenges') {
+        @switch (tab()) { @case('challenges') {
         <!-- Show challenges -->
         @if(selectedChallenge()) {
         <button
           mat-button
           (click)="selectedChallenge.set(null)"
-          class="flex-shrink-0"
+          class="flex-shrink-0 text-truncate"
         >
           <mat-icon>arrow_back_ios</mat-icon>
           <span class="d-flex flex-row gap-2 align-items-center">
@@ -138,7 +138,7 @@
 
         <app-challenge-detail
           @fadeInOut
-          class="py-3 overflow-y-auto flex-grow-1"
+          class="py-3 overflow-y-auto overflow-x-hidden flex-grow-1 mw-100"
           [challenge]="selectedChallenge()!"
           [number]="selectedChallenge()!.number"
         ></app-challenge-detail>
@@ -155,7 +155,22 @@
           (challengeClickIndex)="challengeClickedIndex($event)"
         >
         </app-challenge-list>
-        } } @else {
+        } } @case('event') {
+        <div class="d-flex flex-column gap-3 p-3 overflow-y-auto">
+          @for(marker of customMarkers | reverse; track marker) {
+          <div
+            class="d-flex flex-row justify-content-start gap-2 align-items-center p-2"
+          >
+            <app-marker
+              [clickable]="false"
+              [color]="marker.color ?? 'primary'"
+              [icons]="marker.icons"
+            ></app-marker>
+            <span>{{ marker.name }}</span>
+          </div>
+          }
+        </div>
+        } @case('spots') {
         <!-- Show spots -->
         @if(selectedSpot()) {
         <app-spot-details
@@ -179,7 +194,7 @@
           text="Event spots"
           i18n-text
         ></app-spot-list>
-        } } }
+        } } } }
       </div>
     </mat-drawer>
 

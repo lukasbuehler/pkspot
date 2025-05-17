@@ -32,7 +32,10 @@
         } }
       </mat-select-trigger>
       @for (label of challengeLabels; track label) {
-      <mat-option [value]="label">{{ challengeLabelNames[label] }}</mat-option>
+      <mat-option [value]="label">
+        <mat-icon class="me-2">{{ challengeLabelIcons[label] }}</mat-icon>
+        {{ challengeLabelNames[label] }}</mat-option
+      >
       }
     </mat-select>
   </mat-form-field>

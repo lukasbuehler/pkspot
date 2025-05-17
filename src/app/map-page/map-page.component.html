@@ -42,6 +42,7 @@
           selectedSpotIdOrSlug(),
           showAllChallenges() ? 'c' : ''
         ]"
+        class="text-truncate"
       >
         <mat-icon>arrow_back_ios</mat-icon>
         <span class="d-flex flex-row gap-2 align-items-center">
@@ -61,7 +62,11 @@
         [(isEditing)]="isEditing"
       ></app-challenge-detail>
       } @else if(showAllChallenges()) {
-      <a mat-button [routerLink]="['/map', selectedSpotIdOrSlug()]">
+      <a
+        mat-button
+        [routerLink]="['/map', selectedSpotIdOrSlug()]"
+        class="text-truncate"
+      >
         <mat-icon>arrow_back_ios</mat-icon>
         <span class="d-flex flex-row align-items-center gap-2">
           <span>{{ selectedSpot()!.name() }}</span>

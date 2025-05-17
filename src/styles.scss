@@ -46,3 +46,9 @@ html {
 .error-chips {
   @include mat.chips-color($dark-theme, $color-variant: error);
 }
+
+.mdc-button__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

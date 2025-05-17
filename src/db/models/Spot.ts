@@ -258,6 +258,8 @@ export class LocalSpot {
             lat: data.location.latitude,
             lng: data.location.longitude,
           };
+        } else {
+          newData.location = this.location();
         }
         if (data.label as ChallengeLabel)
           newData.label = data.label as ChallengeLabel;

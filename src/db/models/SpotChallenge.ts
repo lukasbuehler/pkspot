@@ -30,7 +30,7 @@ export class LocalSpotChallenge {
   user: UserReferenceSchema;
   createdAt: Date;
   releaseDate: Date | null;
-  location: WritableSignal<google.maps.LatLngLiteral | null>;
+  location: WritableSignal<google.maps.LatLngLiteral>;
   // posts: Signal<SpotChallengeSchema["top_posts"]>;
   label: ChallengeLabel | null;
   participantType: ChallengeParticipantType | null;
@@ -70,13 +70,13 @@ export class LocalSpotChallenge {
     this.user = data.user;
     this.releaseDate = data.release_date?.toDate() ?? null;
     this.createdAt = data.created_at?.toDate();
-    this.location = signal<google.maps.LatLngLiteral | null>(
+    this.location = signal<google.maps.LatLngLiteral>(
       data.location
         ? {
             lat: data.location.latitude,
             lng: data.location.longitude,
           }
-        : null
+        : spot.location()
     );
 
     this.label = data.label ?? null;

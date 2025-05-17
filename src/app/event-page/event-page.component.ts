@@ -53,6 +53,18 @@ import { SpotChallenge } from "../../db/models/SpotChallenge";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { MatDividerModule } from "@angular/material/divider";
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
+import { Pipe, PipeTransform } from "@angular/core";
+
+@Pipe({
+  name: "reverse",
+  standalone: true,
+})
+export class ReversePipe implements PipeTransform {
+  transform<T>(value: T[]): T[] {
+    if (!Array.isArray(value)) return value;
+    return [...value].reverse();
+  }
+}
 
 @Component({
   selector: "app-event-page",
@@ -74,6 +86,8 @@ import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.c
     MatDividerModule,
     ChallengeDetailComponent,
     KeyValuePipe,
+    MarkerComponent,
+    ReversePipe,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -111,7 +125,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   tabs = {
     spots: $localize`Spots`,
     challenges: $localize`Challenges`,
-    event: $localize`:event locations label:Event`,
+    // event: $localize`:event locations label:Event`,
   };
   tab = signal<(typeof this.tabs)[keyof typeof this.tabs]>("challenges");
 
@@ -144,16 +158,20 @@ export class EventPageComponent implements OnInit, OnDestroy {
     "SpF4Abl5qmH95xalJcIX" as SpotId,
   ];
 
-  swissJamChallengeIds: Record<string, string[]> = {
-    yhRsQmaXABRQVrbtgQ7D: [
-      "QLQv51skvhF8JZhRPfIF",
-      "fff",
-      "K0T1AuHT0qanTaa91YdM",
-      "gEsMEOnehCnQY48uUu43",
-      "vqU3zXlgG2OzlU6J7n2J",
-    ],
-    lhSX9YEqSTKbZ9jfYy6L: ["MdELs6auoXeAU83LAb8P"],
-    SpF4Abl5qmH95xalJcIX: ["WtQuOWish8CgCOgP2qxx"],
+  swissJamChallengeIds: Record<string, SpotId> = {
+    QLQv51skvhF8JZhRPfIF: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 1
+    D7a2hgAmd9508i2eCWxA: "lhSX9YEqSTKbZ9jfYy6L" as SpotId, // CH 2
+    K0T1AuHT0qanTaa91YdM: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 3
+    gEsMEOnehCnQY48uUu43: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 4
+    vqU3zXlgG2OzlU6J7n2J: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 5
+    MdELs6auoXeAU83LAb8P: "lhSX9YEqSTKbZ9jfYy6L" as SpotId, // CH 6
+    WtQuOWish8CgCOgP2qxx: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 7
+    FKMXqEnEWCUvywveQM9V: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 9 (8)
+    vk49nGUNxLngnyNUxfbI: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 10 (9)
+    TDzQiroN6H4NeXrVI8zP: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 12 (10)
+    vsRLsBYLiL0FIhQx8708: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 13 (11)
+
+    CnviOVVgUtkdFrdsM7bk: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 55 (?)
   };
   challenges = signal<(SpotChallenge & { number: number })[]>([]);
 
@@ -268,20 +286,30 @@ export class EventPageComponent implements OnInit, OnDestroy {
       const spots = this.spots();
 
       // Load challenges for spots that have them
-      const challengePromises: Promise<(SpotChallenge | null)[]>[] = spots
-        .filter((spot: Spot | LocalSpot) => spot instanceof Spot)
-        .map((spot: Spot) => {
-          const spotId = spot.id;
-          if (!(spotId in this.swissJamChallengeIds))
-            return Promise.resolve([]);
-          const challengeIds = this.swissJamChallengeIds[spotId];
-          const promises = challengeIds.map((challengeId: string) => {
-            return this._challengeService
-              .getSpotChallenge(spot, challengeId)
-              .catch(() => null);
-          });
-          return Promise.all(promises);
+      const challengePromises: Promise<SpotChallenge | null>[] = Object.entries(
+        this.swissJamChallengeIds
+      ).map(([challengeId, spotId]) => {
+        const spot = spots.find((s) => {
+          if (s instanceof Spot) {
+            return s.id === spotId;
+          } else {
+            return false;
+          }
         });
+        if (spot && spot instanceof Spot) {
+          return this._challengeService
+            .getSpotChallenge(spot, challengeId)
+            .then((challenge) => {
+              if (challenge) {
+                return challenge;
+              } else {
+                return null;
+              }
+            })
+            .catch(() => null);
+        }
+        return Promise.resolve(null);
+      });
 
       Promise.all(challengePromises).then((challengeArrays) => {
         // Flatten the array of arrays, keeping nulls for failed fetches
