@@ -244,6 +244,9 @@ export class EventPageComponent implements OnInit, OnDestroy {
   mapStyle: "roadmap" | "satellite" = "satellite";
   tabKeyVal: any;
 
+  selectedLabels = signal<string[]>([]);
+  selectedParticipantTypes = signal<string[]>([]);
+
   constructor() {
     this._routeSubscription = this._route.queryParams.subscribe((params) => {
       if (params["showHeader"]) {

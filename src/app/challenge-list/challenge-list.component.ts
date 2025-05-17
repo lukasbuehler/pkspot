@@ -5,6 +5,11 @@ import {
   signal,
   Output,
   EventEmitter,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  model,
+  effect,
 } from "@angular/core";
 import {
   ChallengeLabelNames,
@@ -76,18 +81,35 @@ export class ChallengeListComponent {
   readonly challengeParticipantTypeIcons =
     ChallengeParticipantTypeIcons as Record<string, string>;
 
-  labelCtrl = new FormControl([]);
-  participantTypeCtrl = new FormControl([]);
+  labelCtrl = new FormControl<string[]>([]);
+  participantTypeCtrl = new FormControl<string[]>([]);
 
-  private selectedLabels = signal<string[] | null>([]);
-  private selectedParticipantTypes = signal<string[] | null>([]);
+  selectedLabels = model<string[]>([]);
+  selectedParticipantTypes = model<string[]>([]);
 
   constructor() {
+    effect(() => {
+      const selectedLabels: string[] = this.selectedLabels() ?? [];
+
+      this.labelCtrl.setValue(selectedLabels, {
+        emitEvent: false,
+      });
+    });
+
+    effect(() => {
+      const selectedParticipantTypes: string[] =
+        this.selectedParticipantTypes() ?? [];
+
+      this.participantTypeCtrl.setValue(selectedParticipantTypes, {
+        emitEvent: false,
+      });
+    });
+
     this.labelCtrl.valueChanges.subscribe((value) => {
-      this.selectedLabels.set(value);
+      this.selectedLabels.set(value ?? []);
     });
     this.participantTypeCtrl.valueChanges.subscribe((value) => {
-      this.selectedParticipantTypes.set(value);
+      this.selectedParticipantTypes.set(value ?? []);
     });
   }
 

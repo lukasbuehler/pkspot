@@ -150,6 +150,8 @@
           [withHrefLink]="false"
           [showFilterOptions]="true"
           [showIndexAsNumber]="true"
+          [(selectedLabels)]="selectedLabels"
+          [(selectedParticipantTypes)]="selectedParticipantTypes"
           (challengeClickIndex)="challengeClickedIndex($event)"
         >
         </app-challenge-list>
