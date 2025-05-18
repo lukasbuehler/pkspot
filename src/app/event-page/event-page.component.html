@@ -125,20 +125,17 @@
         <button
           mat-button
           (click)="selectedChallenge.set(null)"
-          class="flex-shrink-0 text-truncate"
+          class="flex-shrink-0 text-truncate mb-2 ms-1"
         >
           <mat-icon>arrow_back_ios</mat-icon>
           <span class="d-flex flex-row gap-2 align-items-center">
-            <span>All Challenges</span>
-            <span i18n class="mat-label-small px-1 border rounded me-1"
-              >Challenges</span
-            >
+            <span i18n>All Event Challenges</span>
           </span>
         </button>
 
         <app-challenge-detail
           @fadeInOut
-          class="py-3 overflow-y-auto overflow-x-hidden flex-grow-1 mw-100"
+          class="py-3 overflow-y-auto overflow-x-hidden flex-grow-1 w-100"
           [challenge]="selectedChallenge()!"
           [number]="selectedChallenge()!.number"
         ></app-challenge-detail>
@@ -182,7 +179,7 @@
           [border]="false"
           (dismiss)="selectedSpot.set(null)"
           [border]="false"
-          class="d-block overflow-x-hidden h-100"
+          class="w-100 d-block overflow-x-hidden h-100"
         ></app-spot-details>
         } @else {@if(spots() && spots()!.length > 0) {
         <app-spot-list

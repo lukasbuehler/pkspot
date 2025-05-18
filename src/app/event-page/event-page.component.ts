@@ -169,7 +169,11 @@ export class EventPageComponent implements OnInit, OnDestroy {
     FKMXqEnEWCUvywveQM9V: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 9 (8)
     vk49nGUNxLngnyNUxfbI: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 10 (9)
     TDzQiroN6H4NeXrVI8zP: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 12 (10)
-    vsRLsBYLiL0FIhQx8708: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 13 (11)
+    // vsRLsBYLiL0FIhQx8708: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 13 (11)
+    z15ugcuet4cWAL5iBAZY: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 14 (11) Crowded High Pillar
+    ZoTqnbxosdeUUnngZjdN: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 15 (12) Parallel bar 180/360
+    mlb5C7ws1Fkh2ILjZ2cn: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 16 (13) How can you slide me
+    vRSKCWusby7bEz5amSHo: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 17 (14) Water pre
 
     CnviOVVgUtkdFrdsM7bk: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 55 (?)
   };
