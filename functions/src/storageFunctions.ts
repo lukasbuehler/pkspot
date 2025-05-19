@@ -35,8 +35,7 @@ async function _compressVideo(
   videoPath: string,
   uuid: string
 ): Promise<string> {
-  // <-- add uuid param
-  const compressedVideoPath = join(os.tmpdir(), `comp_${uuid}.mp4`); // <-- always .mp4 and uuid
+  const compressedVideoPath = join(os.tmpdir(), `comp_${uuid}.mp4`);
 
   return new Promise<string>((resolve, reject) => {
     ffmpeg.ffprobe(videoPath, (err, data) => {
@@ -53,50 +52,65 @@ async function _compressVideo(
         return;
       }
 
-      const width = videoStream.width;
-      const height = videoStream.height;
+      let width = videoStream.width;
+      let height = videoStream.height;
+      let rotation = 0;
+      if (videoStream.tags && videoStream.tags.rotate) {
+        rotation = parseInt(videoStream.tags.rotate, 10) || 0;
+      } else if (videoStream.side_data_list) {
+        // Some ffprobe versions put rotation here
+        const rotationData = videoStream.side_data_list.find(
+          (d: any) => d.rotation !== undefined
+        );
+        if (rotationData) rotation = rotationData.rotation;
+      }
 
-      console.debug(`Video dimensions: ${width}x${height}`);
+      console.debug(
+        `Video dimensions: ${width}x${height}, rotation: ${rotation}`
+      );
+
+      // If rotated 90 or 270, swap width/height for aspect ratio logic, but DO NOT apply a transpose filter
+      let swapDimensions = rotation === 90 || rotation === 270;
+      let effectiveWidth = swapDimensions ? height : width;
+      let effectiveHeight = swapDimensions ? width : height;
 
       const MAX_SMALLER_DIMENSION = 720; // px
       const MAX_LARGER_DIMENSION = 1280; // px
 
       let size: string;
-      if (!width || !height) {
+      if (!effectiveWidth || !effectiveHeight) {
         reject(new Error("Couldn't get video dimensions"));
         return;
       }
-      if (width >= height) {
+      if (effectiveWidth >= effectiveHeight) {
         // landscape video
         console.debug("Landscape video detected");
 
-        if (width > MAX_LARGER_DIMENSION) {
+        if (effectiveWidth > MAX_LARGER_DIMENSION) {
           size = `${MAX_LARGER_DIMENSION}x?`;
-        } else if (height > MAX_SMALLER_DIMENSION) {
+        } else if (effectiveHeight > MAX_SMALLER_DIMENSION) {
           size = `?x${MAX_SMALLER_DIMENSION}`;
         } else {
-          // both dimensions are already small enough, don't rescale
-          size = `${width}x${height}`;
+          size = `${effectiveWidth}x${effectiveHeight}`;
         }
       } else {
         // vertical video
         console.debug("Vertical video detected");
 
-        if (height > MAX_LARGER_DIMENSION) {
+        if (effectiveHeight > MAX_LARGER_DIMENSION) {
           size = `?x${MAX_LARGER_DIMENSION}`;
-        } else if (width > MAX_SMALLER_DIMENSION) {
+        } else if (effectiveWidth > MAX_SMALLER_DIMENSION) {
           size = `${MAX_SMALLER_DIMENSION}x?`;
         } else {
-          // both dimensions are already small enough, don't rescale
-          size = `${width}x${height}`;
+          size = `${effectiveWidth}x${effectiveHeight}`;
         }
       }
 
       console.debug(`Rescaling video to: ${size}`);
 
-      ffmpeg(videoPath)
+      let command = ffmpeg(videoPath)
         .output(compressedVideoPath)
-        .format("mp4") // <-- force mp4 output
+        .format("mp4")
         .videoCodec("libx265")
         .outputOptions([
           "-crf 24",
@@ -106,7 +120,11 @@ async function _compressVideo(
         ])
         .audioCodec("aac")
         .audioBitrate("128k")
-        .size(size)
+        .size(size);
+
+      // Do NOT apply a transpose filter; keep rotation metadata as is
+
+      command
         .on("end", () => resolve(compressedVideoPath))
         .on("error", (err) => {
           console.error("FFmpeg error:", err);

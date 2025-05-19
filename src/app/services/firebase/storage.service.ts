@@ -84,7 +84,8 @@ export class StorageService {
           // For instance, get the download URL: https://firebasestorage.googleapis.com/...
 
           const downloadUrl = getDownloadURL(uploadTask.snapshot.ref).then(
-            (url) => url.replace(/\.mov\?/i, ".mp4?")
+            (url) =>
+              url.replace(/\.MP4\?/, ".mp4?").replace(/\.mov\?/i, ".mp4?")
           );
 
           resolve(downloadUrl);

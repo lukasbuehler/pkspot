@@ -127,7 +127,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
     challenges: $localize`Challenges`,
     // event: $localize`:event locations label:Event`,
   };
-  tab = signal<(typeof this.tabs)[keyof typeof this.tabs]>("challenges");
+  tab = signal<(typeof this.tabs)[keyof typeof this.tabs]>("spots");
 
   showHeader = signal<boolean>(true);
 
@@ -159,6 +159,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
     "KgeGafTHPg4mgJgG00Gj" as SpotId,
     "teekopIoaqy0CublyWrY" as SpotId,
     "Amxf5W61oLpov55sDMGb" as SpotId,
+    "cmKGumywcZ4F7ZzSjvl2" as SpotId,
+    "UTFmdSsQ6oWOpzsxZVw0" as SpotId,
   ];
 
   swissJamChallengeIds: Record<string, SpotId> = {
@@ -188,7 +190,35 @@ export class EventPageComponent implements OnInit, OnDestroy {
     "9AWj4bLnIK4FPBwziR74": "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 29 (23) Running gap
     uueZk4lnMtbovTcbF2PH: "Amxf5W61oLpov55sDMGb" as SpotId, // CH 30 (24) Lori Chill Standing Pre
     QOxoU0WfCbvePKf2iTXq: "Amxf5W61oLpov55sDMGb" as SpotId, // CH 31 (25) Team climb
-    IiEnyvxfGL8agTR3R1oM: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 32 (26) Side kong to pre
+    Xdd7GBJpqxVlGboYbqMb: "Amxf5W61oLpov55sDMGb" as SpotId, // CH 58 (26) Team vault
+    G0ZiRM4znjHXHLLCawNJ: "Amxf5W61oLpov55sDMGb" as SpotId, // CH 59 (27) Roundabout
+    Qzi7FGUREABhRH3AL8Pr: "Amxf5W61oLpov55sDMGb" as SpotId, // CH 60 (28) Fantasy turns
+    IiEnyvxfGL8agTR3R1oM: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 32 (?) Side kong to pre
+    f0oVghc01nxtGtROZzoj: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 33 (?) Standing kong pre
+    cWv5ZCeTfEunNUKHnr4K: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 34 (?) Easy hurdle
+    zEzrzAGhwWqOljZ7XJvv: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 35 (?) Nasty pre
+    ikUY18abG2fVs8khCygU: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 56 (?) Edge swing
+    "1z7JXAqC9vigFJ6BObMO": "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 57 (?) Climb Challenge
+    "7KpmrH41UV3RFWztlr2n": "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 36 (?) 90 degree pre
+    Q1ljcOISiJUfsep1vuTl: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 37 (?) balcony pre
+
+    JjFpk5AHK7n0AkyBFlzC: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 38 (?) Water kong pre
+    "4JgXkTp9WS8mH25esZMf": "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 39 (?) Water standing pre
+    TeR2cRngig5vg4SRgpNp: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 48 (?) Pass by
+
+    KkM23zLvv1aUq2yFjZaZ: "Amxf5W61oLpov55sDMGb" as SpotId, // CH 44 (?) Funky ting
+
+    oiF8FeZrPiEpI9JX3k84: "UTFmdSsQ6oWOpzsxZVw0" as SpotId, // CH 45 (?) Team plyo
+    ajCGEBOnCyDb7TNqtWiA: "UTFmdSsQ6oWOpzsxZVw0" as SpotId, // CH 46 (?) nasty ass pre
+
+    "2bI6mdJqMfnbOoWJoIdy": "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 50 (?) skip the middle step
+    TgLyTpfDzDQWkCo6zIYE: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 52 (?) lu gumpiball
+    qA3kFOUdZweQkHsM2uZn: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 53 (?) Big Plyo
+
+    "4L6gdXR7Usv32jgJmKZc": "teekopIoaqy0CublyWrY" as SpotId, // CH 47 (?) Böckli vault
+    "519ZY623JjKNTnPzMshY": "cmKGumywcZ4F7ZzSjvl2" as SpotId, // CH 49 (?) Floor is Lava
+
+    wmmDfHREL9nPvdDwKSb5: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 54 (?) Ass slide
 
     CnviOVVgUtkdFrdsM7bk: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 55 (?) Ganja bush
     LSLNGNbkVq1Fypr9enbs: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 28 (?) Team hurdle
@@ -361,7 +391,10 @@ export class EventPageComponent implements OnInit, OnDestroy {
           }
         });
 
-        this.markers = [...challengeMarkers, ...this.customMarkers];
+        if (challengeMarkers.length > 0) {
+          this.markers = [...challengeMarkers, ...this.customMarkers];
+          this.tab.set("challenges");
+        }
       });
     });
 
@@ -667,7 +700,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   tabChanged(event: MatChipListboxChange) {
     const selectedTab = event.value;
-
-    this.tab.set(selectedTab);
+    if (selectedTab) {
+      this.tab.set(selectedTab);
+    }
   }
 }
