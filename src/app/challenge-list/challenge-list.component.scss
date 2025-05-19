@@ -7,7 +7,7 @@
 .challenge-preview-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 2fr));
+  grid-template-columns: repeat(auto-fit, minmax(125px, 2fr));
 }
 
 .challenge-card {

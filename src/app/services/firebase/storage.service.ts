@@ -82,7 +82,12 @@ export class StorageService {
         () => {
           // Handle successful uploads on complete
           // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-          resolve(getDownloadURL(uploadTask.snapshot.ref));
+
+          const downloadUrl = getDownloadURL(uploadTask.snapshot.ref).then(
+            (url) => url.replace(/\.mov\?/i, ".mp4?")
+          );
+
+          resolve(downloadUrl);
         }
       );
     });

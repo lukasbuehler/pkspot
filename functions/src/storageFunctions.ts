@@ -67,26 +67,32 @@ async function _compressVideo(
         return;
       }
       if (width >= height) {
-        // horizontal video
-        if (height > MAX_SMALLER_DIMENSION) {
-          size = `?x${MAX_SMALLER_DIMENSION}`;
-        } else if (width > MAX_LARGER_DIMENSION) {
+        // landscape video
+        console.debug("Landscape video detected");
+
+        if (width > MAX_LARGER_DIMENSION) {
           size = `${MAX_LARGER_DIMENSION}x?`;
+        } else if (height > MAX_SMALLER_DIMENSION) {
+          size = `?x${MAX_SMALLER_DIMENSION}`;
         } else {
           // both dimensions are already small enough, don't rescale
           size = `${width}x${height}`;
         }
       } else {
         // vertical video
-        if (width > MAX_SMALLER_DIMENSION) {
-          size = `${MAX_SMALLER_DIMENSION}x?`;
-        } else if (height > MAX_LARGER_DIMENSION) {
+        console.debug("Vertical video detected");
+
+        if (height > MAX_LARGER_DIMENSION) {
           size = `?x${MAX_LARGER_DIMENSION}`;
+        } else if (width > MAX_SMALLER_DIMENSION) {
+          size = `${MAX_SMALLER_DIMENSION}x?`;
         } else {
           // both dimensions are already small enough, don't rescale
           size = `${width}x${height}`;
         }
       }
+
+      console.debug(`Rescaling video to: ${size}`);
 
       ffmpeg(videoPath)
         .output(compressedVideoPath)
@@ -115,9 +121,9 @@ export const processVideoUpload = onObjectFinalized(
   {
     cpu: 2,
     region: "europe-west1",
-    timeoutSeconds: 300,
-    memory: "1GiB",
-    maxInstances: 10,
+    timeoutSeconds: 600, // 10 minutes
+    memory: "2GiB",
+    maxInstances: 5,
   },
   async (event) => {
     const fileBucket = event.data.bucket;

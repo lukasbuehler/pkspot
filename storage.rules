@@ -5,7 +5,7 @@ service firebase.storage {
     match /{allPaths=**} {
       allow read: if true;
       allow write: if request.auth.uid != null &&
-      request.resource.size < 100 * 1024 * 1024 &&
+      request.resource.size < 500 * 1024 * 1024 &&
       request.resource.metadata.customMetadata.uid == request.auth.uid;
       // Only allow uploads of any image file that's less than 100MB 
     }

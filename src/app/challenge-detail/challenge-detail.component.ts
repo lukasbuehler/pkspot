@@ -202,12 +202,6 @@ export class ChallengeDetailComponent {
         return challenge;
       }
 
-      // replace the media file ending with mp4 if it has one
-      // since the quicktime .mov files will be converted to mp4
-      if (newMedia.type === "video" && newMedia.src.endsWith(".mov")) {
-        newMedia.src = newMedia.src.replace(/\.mov$/i, ".mp4");
-      }
-
       const media: MediaSchema = {
         src: newMedia.src,
         isInStorage: true,

@@ -65,7 +65,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   @Input() required: boolean = false;
   @Input() multipleAllowed: boolean = false;
   @Input() storageFolder: StorageBucket | null = null;
-  @Input() maximumSizeInBytes: number = 100 * 1024 * 1024; // 100 MB
+  @Input() maximumSizeInBytes: number = 500 * 1024 * 1024; // 500 MB
   @Input() allowedMimeTypes: string[] | null = null;
   @Input() acceptString: string | null = null;
   @Output() changed = new EventEmitter<void>();
@@ -124,6 +124,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
 
         this.hasError = false;
         let type = file.type;
+        console.debug("file type", type);
         if (this.allowedMimeTypes && this.allowedMimeTypes.includes(type)) {
           if (
             this.maximumSizeInBytes !== null &&
@@ -208,7 +209,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
       return;
     }
 
-    const fileEnding = media.file.name.split(".").pop();
+    let fileEnding = media.file.name.split(".").pop();
 
     let filename = generateUUID();
 
@@ -254,6 +255,8 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
 
   mediaFinishedUploading(media: UploadMedia, url: string) {
     let isSized = false;
+
+    console.log("downloadUrl", url);
 
     if (
       [StorageBucket.SpotPictures, StorageBucket.ProfilePictures].includes(

@@ -156,6 +156,9 @@ export class EventPageComponent implements OnInit, OnDestroy {
     "ZkDaO5DSY7wyBQkgZMWC" as SpotId,
     "sRX9lb5lNYKGqQ5e4rcO" as SpotId,
     "SpF4Abl5qmH95xalJcIX" as SpotId,
+    "KgeGafTHPg4mgJgG00Gj" as SpotId,
+    "teekopIoaqy0CublyWrY" as SpotId,
+    "Amxf5W61oLpov55sDMGb" as SpotId,
   ];
 
   swissJamChallengeIds: Record<string, SpotId> = {
@@ -174,8 +177,21 @@ export class EventPageComponent implements OnInit, OnDestroy {
     ZoTqnbxosdeUUnngZjdN: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 15 (12) Parallel bar 180/360
     mlb5C7ws1Fkh2ILjZ2cn: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 16 (13) How can you slide me
     vRSKCWusby7bEz5amSHo: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 17 (14) Water pre
+    iftBeXgg70FyI6w2mzUI: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 20 (15) Don't hug the flag
+    Fdrag4MGr1Vhj4gv34XP: "yhRsQmaXABRQVrbtgQ7D" as SpotId, // CH 21 (16) One object many ways
+    bvbUbCwcnX9Whcrd4e0Y: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 22 (17) Pre on wood
+    RqZJxohePhQuKjWGfvF0: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 23 (18) Pre on land
+    lRXsLfDbiukLMJQedDQc: "KgeGafTHPg4mgJgG00Gj" as SpotId, // CH 24 (19) Techy climb up
+    "68QdJQOfvG8Tk5u524uS": "teekopIoaqy0CublyWrY" as SpotId, // CH 25 (20) Stone pillar pre
+    yVOJaJwArvxetV8IebI9: "teekopIoaqy0CublyWrY" as SpotId, // CH 26 (21) Team Run over tables
+    Q2x3DfAYEmnztTrJj8Dr: "teekopIoaqy0CublyWrY" as SpotId, // CH 27 (22) Tree-root swing pre
+    "9AWj4bLnIK4FPBwziR74": "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 29 (23) Running gap
+    uueZk4lnMtbovTcbF2PH: "Amxf5W61oLpov55sDMGb" as SpotId, // CH 30 (24) Lori Chill Standing Pre
+    QOxoU0WfCbvePKf2iTXq: "Amxf5W61oLpov55sDMGb" as SpotId, // CH 31 (25) Team climb
+    IiEnyvxfGL8agTR3R1oM: "EcI4adxBhMYZOXT8tPe3" as SpotId, // CH 32 (26) Side kong to pre
 
-    CnviOVVgUtkdFrdsM7bk: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 55 (?)
+    CnviOVVgUtkdFrdsM7bk: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 55 (?) Ganja bush
+    LSLNGNbkVq1Fypr9enbs: "SpF4Abl5qmH95xalJcIX" as SpotId, // CH 28 (?) Team hurdle
   };
   challenges = signal<(SpotChallenge & { number: number })[]>([]);
 
