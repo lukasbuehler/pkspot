@@ -150,6 +150,12 @@ export class ChallengeListComponent {
     return (challenge as any).number ?? index;
   }
 
+  // Helper method to get the index of a challenge in the original challenges array
+  getOriginalIndex(challenge: ChallengeType): number {
+    const challenges = this.challenges();
+    return challenges.findIndex(c => c === challenge);
+  }
+
   onChallengeClick(index: number) {
     this.challengeClickIndexEvent.emit(index);
   }

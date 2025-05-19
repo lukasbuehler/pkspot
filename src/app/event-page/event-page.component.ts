@@ -197,7 +197,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   areaPolygon = signal<PolygonSchema | null>(null);
 
-  focusZoom = 19;
+  focusZoom = 20;
 
   bounds = {
     north: 47.4,

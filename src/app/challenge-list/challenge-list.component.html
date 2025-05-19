@@ -146,7 +146,7 @@
   <div
     class="d-flex flex-column overflow-hidden challenge-card"
     matRipple
-    (click)="onChallengeClick(i)"
+    (click)="onChallengeClick(getOriginalIndex(challenge))"
     style="cursor: pointer"
   >
     <div
