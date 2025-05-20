@@ -22,44 +22,49 @@
           <h3 class="mat-title-large mb-0 text-truncate">
             {{ challenge()?.name() }}
           </h3>
-          <span i18n class="mat-label-small px-1 border rounded me-1"
-            >Challenge</span
-          >
         </div>
         <button mat-icon-button class="d-flex" (click)="shareChallenge()">
           <mat-icon>share</mat-icon>
         </button>
       </div>
 
-      <mat-chip-set
+      <div
         class="d-flex flex-row gap-2 w-100 justify-content-start align-items-center"
       >
-        @if(challenge()!.label) {
-        <mat-chip [matTooltip]="challengeLabelTooltips[challenge()!.label!]">
-          <mat-icon matChipAvatar>{{
-            challengeLabelIcons[challenge()!.label!]
-          }}</mat-icon>
-          {{ challengeLabelNames[challenge()!.label!] }}
-        </mat-chip>
-        } @if(challenge()!.participantType) {
-        <mat-chip>
-          <mat-icon matChipAvatar>{{
-            challengeParticipantTypeIcons[challenge()!.participantType!]
-          }}</mat-icon>
-          {{ challengeParticipantTypeNames[challenge()!.participantType!] }}
-        </mat-chip>
-        } @if(challenge()!.isBeginnerFriendly) {
-        <mat-chip>
-          <mat-icon matChipAvatar>interests</mat-icon>
-          <span i18n>Beginner friendly</span>
-        </mat-chip>
-        } @if(challenge()!.isWaterChallenge) {
-        <mat-chip>
-          <mat-icon matChipAvatar>water</mat-icon>
-          <span i18n>Water challenge</span>
-        </mat-chip>
-        }
-      </mat-chip-set>
+        <!-- <span i18n class="mat-label-small px-1 border rounded me-1"
+          >Challenge</span
+        > -->
+
+        <mat-chip-set
+          class="d-flex flex-row gap-2 w-100 justify-content-start align-items-center"
+        >
+          @if(challenge()!.label) {
+          <mat-chip [matTooltip]="challengeLabelTooltips[challenge()!.label!]">
+            <mat-icon matChipAvatar>{{
+              challengeLabelIcons[challenge()!.label!]
+            }}</mat-icon>
+            {{ challengeLabelNames[challenge()!.label!] }}
+          </mat-chip>
+          } @if(challenge()!.participantType) {
+          <mat-chip>
+            <mat-icon matChipAvatar>{{
+              challengeParticipantTypeIcons[challenge()!.participantType!]
+            }}</mat-icon>
+            {{ challengeParticipantTypeNames[challenge()!.participantType!] }}
+          </mat-chip>
+          } @if(challenge()!.isBeginnerFriendly) {
+          <mat-chip>
+            <mat-icon matChipAvatar>interests</mat-icon>
+            <span i18n>Beginner friendly</span>
+          </mat-chip>
+          } @if(challenge()!.isWaterChallenge) {
+          <mat-chip>
+            <mat-icon matChipAvatar>water</mat-icon>
+            <span i18n>Water challenge</span>
+          </mat-chip>
+          }
+        </mat-chip-set>
+      </div>
     </div>
 
     <!-- Release Date -->

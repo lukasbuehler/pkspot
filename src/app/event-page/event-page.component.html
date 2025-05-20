@@ -37,7 +37,7 @@
     }
   </div>
   <div [class.p-3]="isEmbedded">
-    <p>{{ venueString }}, {{ localityString }}</p>
+    <!-- <p>{{ venueString }}, {{ localityString }}</p> -->
     <p class="d-flex flex-column">
       <span>
         {{
@@ -53,7 +53,7 @@
       </span>
       } -->
     </p>
-    <p class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
       <a
         href="https://results.vertical-life.info/event/288/"
         target="_blank"
@@ -61,10 +61,10 @@
       >
         <mat-icon>checklist</mat-icon><span i18n>Smart Scorecard</span></a
       >
-      <a [href]="url" target="_blank" mat-stroked-button>
+      <!-- <a [href]="url" target="_blank" mat-stroked-button>
         <mat-icon>launch</mat-icon><span i18n>More Information</span></a
-      >
-      <button
+      > -->
+      <!-- <button
         (click)="mapsApiService.openDirectionsInMaps(markers[1].location)"
         target="_blank"
         mat-stroked-button
@@ -76,15 +76,22 @@
             spot@@directions_spot"
           >Directions</span
         >
-      </button>
-    </p>
+      </button> -->
+    </div>
   </div>
 
   <mat-menu #menu="matMenu">
-    <button mat-menu-item disabled>
+    <button
+      mat-menu-item
+      (click)="mapsApiService.openDirectionsInMaps(markers[1].location)"
+    >
+      <mat-icon>directions</mat-icon>
+      <span i18n>Directions</span>
+    </button>
+    <!-- <button mat-menu-item disabled>
       <mat-icon>report</mat-icon>
       <span i18n>Report</span>
-    </button>
+    </button> -->
     <a
       [routerLink]="['/embed']"
       [queryParams]="{ type: 'event' }"
@@ -140,12 +147,16 @@
           </span>
         </button>
 
-        <app-challenge-detail
-          @fadeInOut
+        <div
+          #scrollContainer
           class="py-3 overflow-y-auto overflow-x-hidden flex-grow-1 w-100"
-          [challenge]="selectedChallenge()!"
-          [number]="selectedChallenge()!.number"
-        ></app-challenge-detail>
+        >
+          <app-challenge-detail
+            @fadeInOut
+            [challenge]="selectedChallenge()!"
+            [number]="selectedChallenge()!.number"
+          ></app-challenge-detail>
+        </div>
         } @else {
         <app-challenge-list
           @fadeInOut
@@ -177,17 +188,18 @@
         } @case('spots') {
         <!-- Show spots -->
         @if(selectedSpot()) {
-        <app-spot-details
-          @fadeInOut
-          [spot]="selectedSpot()"
-          [editable]="false"
-          [isEditing]="false"
-          [dismissable]="true"
-          [border]="false"
-          (dismiss)="selectedSpot.set(null)"
-          [border]="false"
-          class="w-100 d-block overflow-x-hidden h-100"
-        ></app-spot-details>
+        <div #spotScrollContainer class="w-100 d-block overflow-x-hidden h-100">
+          <app-spot-details
+            @fadeInOut
+            [spot]="selectedSpot()"
+            [editable]="false"
+            [isEditing]="false"
+            [dismissable]="true"
+            [border]="false"
+            (dismiss)="selectedSpot.set(null)"
+            class="w-100 d-block overflow-x-hidden h-100"
+          ></app-spot-details>
+        </div>
         } @else {@if(spots() && spots()!.length > 0) {
         <app-spot-list
           @fadeInOut

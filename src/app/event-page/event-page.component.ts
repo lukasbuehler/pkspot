@@ -9,6 +9,7 @@ import {
   OnDestroy,
   AfterViewInit,
   effect,
+  ElementRef,
 } from "@angular/core";
 import { CountdownComponent } from "../countdown/countdown.component";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
@@ -106,6 +107,11 @@ export class ReversePipe implements PipeTransform {
 })
 export class EventPageComponent implements OnInit, OnDestroy {
   @ViewChild("spotMap") spotMap: SpotMapComponent | MapComponent | undefined;
+  @ViewChild("scrollContainer") scrollContainer:
+    | ElementRef<HTMLElement>
+    | undefined;
+  @ViewChild("spotScrollContainer")
+  spotScrollContainer?: ElementRef<HTMLElement>;
 
   metaInfoService = inject(MetaInfoService);
   locale = inject<LocaleCode>(LOCALE_ID);
@@ -329,6 +335,37 @@ export class EventPageComponent implements OnInit, OnDestroy {
     firstValueFrom(this._route.data.pipe(take(1))).then((data) => {
       if (data["routeName"].toLowerCase().includes("embed")) {
         this.isEmbedded = true;
+      }
+    });
+
+    effect(() => {
+      const selectedChallenge = this.selectedChallenge();
+      // Only scroll if the container exists
+
+      console.log(
+        "scoll container native element",
+        this.scrollContainer?.nativeElement
+      );
+
+      if (this.scrollContainer && this.scrollContainer.nativeElement) {
+        setTimeout(() => {
+          this.scrollContainer?.nativeElement.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+      }
+    });
+
+    effect(() => {
+      const selectedSpot = this.selectedSpot();
+      if (this.spotScrollContainer && this.spotScrollContainer.nativeElement) {
+        setTimeout(() => {
+          this.spotScrollContainer?.nativeElement.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
       }
     });
 

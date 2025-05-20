@@ -47,8 +47,13 @@ html {
   @include mat.chips-color($dark-theme, $color-variant: error);
 }
 
-.mdc-button__label {
+.mdc-button__label,
+.mdc-button__label span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.mdc-button mat-icon {
+  flex-shrink: 0;
 }
