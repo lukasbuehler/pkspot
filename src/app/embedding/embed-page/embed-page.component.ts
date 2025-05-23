@@ -96,9 +96,11 @@ export class EmbedPageComponent {
         url += "map/";
         break;
       case "event":
-        url += "event/";
+        url += "events/";
         url += this.eventId();
-        url += "?showHeader=" + (this.showEventHeader() ? "true" : "false");
+        if (this.showEventHeader()) {
+          url += "?showHeader=true";
+        }
         break;
     }
 

@@ -32,6 +32,7 @@
 
     min-width: 38px;
 
+    transition: border-color 0.3s, background-color 0.3s, color 0.3s;
     > span {
       font-size: larger;
       padding-left: 3px;
@@ -41,9 +42,8 @@
   > svg {
     z-index: -1;
     margin-top: -7px;
-    // background-color: white;
-    // height: 5px;
-    // width: 5px;
+
+    transition: fill 0.3s;
   }
 }
 

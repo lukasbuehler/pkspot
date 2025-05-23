@@ -34,3 +34,18 @@
     transform: scale(1.1);
   }
 }
+
+.visible-select-panel {
+  overflow: visible !important;
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: 90vw !important;
+}
+.visually-hidden-select {
+  opacity: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  left: 0;
+  top: 0;
+  z-index: 0;
+}

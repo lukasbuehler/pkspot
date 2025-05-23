@@ -1,0 +1,47 @@
+<div style="position: relative">
+  <mat-chip
+    clickable
+    (click)="openSelect(select)"
+    class="mat-elevation-z1 d-flex align-items-center"
+    [style.cursor]="'pointer'"
+    color="primary"
+    selected
+    style="background-color: #1f1f23"
+  >
+    @if(!formCtrl.value.length) {
+    {{ label }}
+    } @if (showSummary) { @if (formCtrl.value.length === options.length) {
+    {{ allLabel || "All" }}
+    } @else {
+    {{ formCtrl.value[0] ? optionNames[formCtrl.value[0] + ""] : "" }}
+    @if ((formCtrl.value.length || 0) > 1) {
+    <span class="example-additional-selection">
+      (+{{ (formCtrl.value.length || 0) - 1 }}
+      {{ formCtrl.value.length === 2 ? "other" : "others" }})
+    </span>
+    } } }
+    <mat-icon matChipAvatar>{{ icon }}</mat-icon>
+  </mat-chip>
+  <mat-form-field
+    appearance="fill"
+    class="visually-hidden-select"
+    style="visibility: hidden; height: 0"
+  >
+    <mat-select
+      #select
+      [formControl]="formCtrl"
+      [multiple]="multiple"
+      panelClass="visible-select-panel"
+    >
+      <mat-select-trigger></mat-select-trigger>
+      @for (option of options; track option) {
+      <mat-option [value]="option">
+        @if(optionIcons) {
+        <mat-icon class="me-2">{{ optionIcons[option + ""] }}</mat-icon>
+        }
+        {{ optionNames[option + ""] }}
+      </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>

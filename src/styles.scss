@@ -57,3 +57,9 @@ html {
 .mdc-button mat-icon {
   flex-shrink: 0;
 }
+
+.cdk-overlay-pane {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 90vw !important;
+}

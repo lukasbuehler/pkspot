@@ -4,7 +4,8 @@
     'pin-iconic': isIconic(),
     'pin-primary': color() === 'primary' && !isIconic(),
     'pin-secondary': color() === 'secondary' && !isIconic(),
-    'pin-tertiary': color() === 'tertiary' && !isIconic()
+    'pin-tertiary': color() === 'tertiary' && !isIconic(),
+    'pin-gray': color() === 'gray' && !isIconic(),
   }"
   [class.clickable]="clickable()"
   [style]="{ scale: size() }"

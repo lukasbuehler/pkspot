@@ -1,75 +1,31 @@
 @if(showFilterOptions()) {
-<!-- <mat-chip-set
-  class="d-flex flex-row gap-2 w-100 justify-content-start align-items-center"
->
-  <mat-chip matMenuTriggerFor="">
-    Type
-    <mat-icon style="margin-left: -2px; margin-right: -8px"
-      >arrow_drop_down</mat-icon
-    >
-  </mat-chip>
-  <mat-chip>
-    Participants
-    <mat-icon style="margin-left: -2px; margin-right: -8px"
-      >arrow_drop_down</mat-icon
-    >
-  </mat-chip>
-</mat-chip-set> -->
-<div class="d-flex flex-row gap-2">
-  <mat-form-field appearance="outline" class="flex-grow-1">
-    <mat-label i18n="challenge type label title">Type</mat-label>
-    <mat-select [formControl]="labelCtrl" multiple>
-      <mat-select-trigger>
-        @if (labelCtrl.value?.length === challengeLabels.length) {
-        <span i18n="all challenge types">All Types</span>
-        } @else {
-        {{labelCtrl.value?.[0] ? challengeLabelNames[labelCtrl.value![0]] : ''}}
-        @if ((labelCtrl.value?.length || 0) > 1) {
-        <span class="example-additional-selection" i18n>
-          (+{{ (labelCtrl.value?.length || 0) - 1 }}
-          {{ labelCtrl.value?.length === 2 ? "other" : "others" }})
-        </span>
-        } }
-      </mat-select-trigger>
-      @for (label of challengeLabels; track label) {
-      <mat-option [value]="label">
-        <mat-icon class="me-2">{{ challengeLabelIcons[label] }}</mat-icon>
-        {{ challengeLabelNames[label] }}</mat-option
-      >
-      }
-    </mat-select>
-  </mat-form-field>
+<div class="d-flex flex-row gap-2 pb-3 overflow-x-hidden">
+  <app-chip-select
+    icon="tune"
+    label="Type"
+    [options]="challengeLabels"
+    [optionNames]="challengeLabelNames"
+    [optionIcons]="challengeLabelIcons"
+    [formCtrl]="labelCtrl!"
+    allLabel="All Types"
+    i18n-allLabel="@@challenge-list.all-label"
+  ></app-chip-select>
 
-  <mat-form-field appearance="outline" class="flex-grow-1">
-    <mat-label i18n="challenge participant type title">Participants</mat-label>
-    <mat-select [formControl]="participantTypeCtrl" multiple>
-      <mat-select-trigger>
-        @if (participantTypeCtrl.value?.length ===
-        challengeParticipantTypes.length) {
-        <span i18n="all participant types">All Participants</span>
-        } @else {
-        {{participantTypeCtrl.value?.[0] ? challengeParticipantTypeNames[participantTypeCtrl.value![0]] : ''}}
-        @if ((participantTypeCtrl.value?.length || 0) > 1) {
-        <span class="example-additional-selection" i18n>
-          (+{{ (participantTypeCtrl.value?.length || 0) - 1 }}
-          {{ participantTypeCtrl.value?.length === 2 ? "other" : "others" }})
-        </span>
-        } }
-      </mat-select-trigger>
-      @for (participantType of challengeParticipantTypes; track participantType)
-      {
-      <mat-option [value]="participantType">{{
-        challengeParticipantTypeNames[participantType]
-      }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
+  <app-chip-select
+    icon="tune"
+    label="Participants"
+    [options]="challengeParticipantTypes"
+    [optionNames]="challengeParticipantTypeNames"
+    [optionIcons]="challengeParticipantTypeIcons"
+    [formCtrl]="participantTypeCtrl!"
+    allLabel="All Participants"
+    i18n-allLabel="@@challenge-list.all-label"
+  ></app-chip-select>
 </div>
-
-<mat-divider class="mb-3"></mat-divider>
 }
+
 <div class="challenge-preview-grid pb-3 pt-1">
-  @for (challenge of filteredChallenges(); track challenge; let i = $index) {
+  @for (challenge of filteredChallenges(); track challenge.id; let i = $index) {
   @if(withHrefLink()) {
   <a
     class="d-flex flex-column overflow-hidden challenge-card"

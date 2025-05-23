@@ -32,6 +32,16 @@
       fill: #ffd7f4;
     }
   }
+  .pin-gray {
+    > div {
+      border-color: #d0d0d0; // var(--mat-sys-on-tertiary-container);
+      background-color: #313131; // var(--mat-sys-tertiary-container);
+      color: #d0d0d0;
+    }
+    > svg {
+      fill: #d0d0d0;
+    }
+  }
   .pin-iconic {
     > div {
       border-color: white;

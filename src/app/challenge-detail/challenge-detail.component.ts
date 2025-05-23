@@ -112,6 +112,14 @@ export class ChallengeDetailComponent {
 
   isEditing = model<boolean>(false);
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
+  isLocalChallenge = computed<boolean>(() => {
+    const challenge = this.challenge();
+    if (!challenge) {
+      return false;
+    }
+    return !(challenge instanceof SpotChallenge);
+  });
+
   number = input<number | null>(null);
 
   userPicture = computed<StorageImage | null>(() => {

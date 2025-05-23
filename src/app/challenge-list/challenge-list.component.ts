@@ -36,12 +36,14 @@ import { MatSelectModule } from "@angular/material/select";
 import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatDividerModule } from "@angular/material/divider";
+import { ChipSelectComponent } from "../chip-select/chip-select.component";
 
 type ChallengeType =
   | SpotChallenge
   | ((SpotChallengePreview & { spot?: Spot }) & { number?: number });
 @Component({
   selector: "app-challenge-list",
+  standalone: true,
   imports: [
     NgOptimizedImage,
     RouterLink,
@@ -50,10 +52,10 @@ type ChallengeType =
     MatMenuModule,
     MatSelectModule,
     MatFormFieldModule,
-    MatSelectModule,
     FormsModule,
     ReactiveFormsModule,
     MatDividerModule,
+    ChipSelectComponent,
   ],
   templateUrl: "./challenge-list.component.html",
   styleUrl: "./challenge-list.component.scss",
@@ -81,8 +83,8 @@ export class ChallengeListComponent {
   readonly challengeParticipantTypeIcons =
     ChallengeParticipantTypeIcons as Record<string, string>;
 
-  labelCtrl = new FormControl<string[]>([]);
-  participantTypeCtrl = new FormControl<string[]>([]);
+  labelCtrl = new FormControl<string[]>([], { nonNullable: true });
+  participantTypeCtrl = new FormControl<string[]>([], { nonNullable: true });
 
   selectedLabels = model<string[]>([]);
   selectedParticipantTypes = model<string[]>([]);
@@ -90,21 +92,17 @@ export class ChallengeListComponent {
   constructor() {
     effect(() => {
       const selectedLabels: string[] = this.selectedLabels() ?? [];
-
       this.labelCtrl.setValue(selectedLabels, {
         emitEvent: false,
       });
     });
-
     effect(() => {
       const selectedParticipantTypes: string[] =
         this.selectedParticipantTypes() ?? [];
-
       this.participantTypeCtrl.setValue(selectedParticipantTypes, {
         emitEvent: false,
       });
     });
-
     this.labelCtrl.valueChanges.subscribe((value) => {
       this.selectedLabels.set(value ?? []);
     });
@@ -153,7 +151,7 @@ export class ChallengeListComponent {
   // Helper method to get the index of a challenge in the original challenges array
   getOriginalIndex(challenge: ChallengeType): number {
     const challenges = this.challenges();
-    return challenges.findIndex(c => c === challenge);
+    return challenges.findIndex((c) => c === challenge);
   }
 
   onChallengeClick(index: number) {

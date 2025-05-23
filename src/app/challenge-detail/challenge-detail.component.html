@@ -23,9 +23,11 @@
             {{ challenge()?.name() }}
           </h3>
         </div>
+        @if(!isLocalChallenge()) {
         <button mat-icon-button class="d-flex" (click)="shareChallenge()">
           <mat-icon>share</mat-icon>
         </button>
+        }
       </div>
 
       <div
@@ -115,6 +117,8 @@
     </div>
     }
 
+    <!-- Uploaded by -->
+    @if(!isLocalChallenge()) {
     <div class="pb-3 d-flex flex-row align-items-center gap-1">
       <span class="mat-title-small" i18n>Uploaded by: </span
       ><a
@@ -134,6 +138,7 @@
         {{ challenge()!.user.display_name }}
       </a>
     </div>
+    }
 
     <!-- Posts -->
     <!--<div class="pb-4">
@@ -147,7 +152,7 @@
     } 
   </div>-->
 
-    @if(authenticationService.isSignedIn) {
+    @if(!isLocalChallenge() && authenticationService.isSignedIn) {
 
     <mat-divider></mat-divider>
 

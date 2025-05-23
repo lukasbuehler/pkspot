@@ -5,7 +5,7 @@ import { MatIconModule } from "@angular/material/icon";
 
 export interface MarkerSchema {
   name?: string;
-  color?: "primary" | "secondary" | "tertiary";
+  color?: "primary" | "secondary" | "tertiary" | "gray";
   location: google.maps.LatLngLiteral;
   icons?: string[];
   number?: number;
@@ -25,7 +25,7 @@ export class MarkerComponent {
   number = input<number | null | undefined>(null);
   clickable = input<boolean>(false);
   isIconic = input<boolean>(false);
-  color = input<"primary" | "secondary" | "tertiary">("primary");
+  color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
   size = input<number>(1);
 
   isExpanded = signal<boolean>(false);

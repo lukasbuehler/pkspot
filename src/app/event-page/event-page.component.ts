@@ -10,10 +10,12 @@ import {
   AfterViewInit,
   effect,
   ElementRef,
+  PLATFORM_ID,
 } from "@angular/core";
 import { CountdownComponent } from "../countdown/countdown.component";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
+  isPlatformBrowser,
   KeyValuePipe,
   LocationStrategy,
   NgOptimizedImage,
@@ -55,6 +57,20 @@ import { ChallengeListComponent } from "../challenge-list/challenge-list.compone
 import { MatDividerModule } from "@angular/material/divider";
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 import { Pipe, PipeTransform } from "@angular/core";
+import { ChipSelectComponent } from "../chip-select/chip-select.component";
+import { FormControl } from "@angular/forms";
+import {
+  ChallengeParticipantTypeValues,
+  ChallengeParticipantTypeIcons,
+} from "../../db/schemas/SpotChallengeLabels";
+import {
+  ChallengeLabelNames,
+  ChallengeParticipantTypeNames,
+} from "../../db/models/SpotChallenge";
+import {
+  ChallengeLabelIcons,
+  ChallengeLabelValues,
+} from "../../db/schemas/SpotChallengeLabels";
 
 @Pipe({
   name: "reverse",
@@ -70,7 +86,7 @@ export class ReversePipe implements PipeTransform {
 @Component({
   selector: "app-event-page",
   imports: [
-    CountdownComponent,
+    // CountdownComponent,
     SpotMapComponent,
     // NgOptimizedImage,
     SpotListComponent,
@@ -89,6 +105,7 @@ export class ReversePipe implements PipeTransform {
     KeyValuePipe,
     MarkerComponent,
     ReversePipe,
+    ChipSelectComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -137,7 +154,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   showHeader = signal<boolean>(true);
 
-  isEmbedded = false;
+  isCompactView = false;
+  private _isEmbedded = false;
 
   eventId: string = "swissjam25";
   name: string = "Swiss Jam 2025";
@@ -315,16 +333,30 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   spots = signal<(Spot | LocalSpot)[]>([]);
 
+  platformId = inject(PLATFORM_ID);
+
   mapStyle: "roadmap" | "satellite" = "satellite";
   tabKeyVal: any;
 
   selectedLabels = signal<string[]>([]);
   selectedParticipantTypes = signal<string[]>([]);
 
+  challengeParticipantTypes = ChallengeParticipantTypeValues;
+  challengeParticipantTypeNames = ChallengeParticipantTypeNames;
+  challengeParticipantTypeIcons = ChallengeParticipantTypeIcons;
+  participantTypeCtrl = new FormControl<string[]>([], { nonNullable: true });
+  labelCtrl = new FormControl<string[]>([], { nonNullable: true });
+
+  readonly challengeLabels = ChallengeLabelValues;
+  readonly challengeLabelNames = ChallengeLabelNames;
+  readonly challengeLabelIcons = ChallengeLabelIcons;
+
   constructor() {
     this._routeSubscription = this._route.queryParams.subscribe((params) => {
       if (params["showHeader"]) {
         this.showHeader.set(params["showHeader"] === "true");
+      } else {
+        this.showHeader.set(false);
       }
 
       // if (params["mapStyle"]) {
@@ -332,20 +364,24 @@ export class EventPageComponent implements OnInit, OnDestroy {
       // }
     });
 
+    // Detect compact view (embedded or mobile)
+    this.updateCompactView = this.updateCompactView.bind(this);
+    if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
+      window.addEventListener("resize", this.updateCompactView);
+    }
+
     firstValueFrom(this._route.data.pipe(take(1))).then((data) => {
       if (data["routeName"].toLowerCase().includes("embed")) {
-        this.isEmbedded = true;
+        this._isEmbedded = true;
+        this.updateCompactView();
       }
     });
+
+    this.updateCompactView();
 
     effect(() => {
       const selectedChallenge = this.selectedChallenge();
       // Only scroll if the container exists
-
-      console.log(
-        "scoll container native element",
-        this.scrollContainer?.nativeElement
-      );
 
       if (this.scrollContainer && this.scrollContainer.nativeElement) {
         setTimeout(() => {
@@ -371,6 +407,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
     effect(() => {
       const spots = this.spots();
+      const selectedLabels = this.selectedLabels();
+      const selectedParticipantTypes = this.selectedParticipantTypes();
 
       // Load challenges for spots that have them
       const challengePromises: Promise<SpotChallenge | null>[] = Object.entries(
@@ -417,16 +455,41 @@ export class EventPageComponent implements OnInit, OnDestroy {
         );
 
         const challengeMarkers: MarkerSchema[] = [];
-        allChallenges.forEach((challenge, index) => {
-          if (challenge && challenge.location()) {
-            challengeMarkers.push({
-              name: challenge.name(),
-              location: challenge.location()!,
-              color: "primary",
-              number: index + 1,
-            });
-          }
-        });
+        allChallenges
+          // .filter((challenge) => {
+          //   return (
+          //     (!selectedLabels.length ||
+          //       (challenge &&
+          //         challenge.label &&
+          //         selectedLabels.includes(challenge.label))) &&
+          //     (!selectedParticipantTypes.length ||
+          //       (challenge &&
+          //         challenge.participantType &&
+          //         selectedParticipantTypes.includes(challenge.participantType)))
+          //   );
+          // })
+          .forEach((challenge, index) => {
+            if (challenge && challenge.location()) {
+              challengeMarkers.push({
+                name: challenge.name(),
+                location: challenge.location()!,
+                color:
+                  (!selectedLabels.length ||
+                    (challenge &&
+                      challenge.label &&
+                      selectedLabels.includes(challenge.label))) &&
+                  (!selectedParticipantTypes.length ||
+                    (challenge &&
+                      challenge.participantType &&
+                      selectedParticipantTypes.includes(
+                        challenge.participantType
+                      )))
+                    ? "primary"
+                    : "gray",
+                number: index + 1,
+              });
+            }
+          });
 
         if (challengeMarkers.length > 0) {
           this.markers = [...challengeMarkers, ...this.customMarkers];
@@ -500,6 +563,18 @@ export class EventPageComponent implements OnInit, OnDestroy {
     );
 
     this.spots.set([mainSpot]);
+  }
+
+  updateCompactView() {
+    if (!isPlatformBrowser(this.platformId) || typeof window === "undefined") {
+      return;
+    }
+
+    this.isCompactView = this._isEmbedded || window.innerWidth <= 576;
+  }
+
+  public get isEmbedded(): boolean {
+    return this._isEmbedded;
   }
 
   ngOnInit() {
@@ -628,6 +703,10 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
+      window.removeEventListener("resize", this.updateCompactView);
+    }
+
     if (this._routeSubscription) {
       this._routeSubscription.unsubscribe();
     }
@@ -666,11 +745,15 @@ export class EventPageComponent implements OnInit, OnDestroy {
       }
     } else {
       navigator.clipboard.writeText(`${this.name} - PK Spot \n${link}`);
-      this._snackbar.open("Link to spot copied to clipboard", "Dismiss", {
-        duration: 3000,
-        horizontalPosition: "center",
-        verticalPosition: "top",
-      });
+      this._snackbar.open(
+        `Link to ${this.name} event copied to clipboard`,
+        "Dismiss",
+        {
+          duration: 3000,
+          horizontalPosition: "center",
+          verticalPosition: "top",
+        }
+      );
     }
   }
 

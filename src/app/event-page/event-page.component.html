@@ -1,7 +1,7 @@
 <div
   class="h-100 d-flex flex-column gap-3"
-  [class.p-3]="!isEmbedded"
-  [style]="{ 'padding-top': isEmbedded ? '0 !important' : '1rem' }"
+  [class.p-3]="!isCompactView"
+  [style]="{ 'padding-top': isCompactView ? '0 !important' : '1rem' }"
 >
   @if(showHeader()) {
   <!-- Header image -->
@@ -18,9 +18,21 @@
 </div> -->
 
   <!-- Header info -->
-  <div class="d-flex flex-row gap-3 w-100 pt-3" [class.p-3]="isEmbedded">
-    <div class="flex-grow-1">
-      <h2 class="mat-heading-large">{{ name }}</h2>
+  <div class="d-flex flex-row gap-3 w-100 pt-3" [class.p-3]="isCompactView">
+    <div
+      class="flex-grow-1 d-flex justify-content-start align-items-center gap-5"
+    >
+      <h2 class="mat-heading-large m-0">{{ name }}</h2>
+      <h4 class="mat-title-medium m-0 d-none d-lg-block">
+        {{ venueString }}, {{ localityString }}
+      </h4>
+      <h5 class="mat-title-medium m-0 d-none d-xl-block">
+        {{
+          readableStartDate !== readableEndDate
+            ? readableStartDate + " - " + readableEndDate
+            : readableStartDate
+        }}
+      </h5>
     </div>
     @if(!isEmbedded) {
     <div class="d-flex flex-row gap-2">
@@ -36,51 +48,15 @@
     </div>
     }
   </div>
-  <div [class.p-3]="isEmbedded">
-    <!-- <p>{{ venueString }}, {{ localityString }}</p> -->
-    <p class="d-flex flex-column">
-      <span>
-        {{
-          readableStartDate !== readableEndDate
-            ? readableStartDate + " - " + readableEndDate
-            : readableStartDate
-        }}
-      </span>
-      <!-- @defer{
-      <span>
-        <span i18n>Starts in: </span>
-        <app-countdown [timestamp]="start"></app-countdown>
-      </span>
-      } -->
-    </p>
-    <div class="d-flex flex-wrap gap-2">
-      <a
-        href="https://results.vertical-life.info/event/288/"
-        target="_blank"
-        mat-stroked-button
-      >
-        <mat-icon>checklist</mat-icon><span i18n>Smart Scorecard</span></a
-      >
-      <!-- <a [href]="url" target="_blank" mat-stroked-button>
-        <mat-icon>launch</mat-icon><span i18n>More Information</span></a
-      > -->
-      <!-- <button
-        (click)="mapsApiService.openDirectionsInMaps(markers[1].location)"
-        target="_blank"
-        mat-stroked-button
-      >
-        <mat-icon>directions</mat-icon
-        ><span
-          i18n="
-            Directions to spot|The label of a button opening directions to a
-            spot@@directions_spot"
-          >Directions</span
-        >
-      </button> -->
-    </div>
-  </div>
 
   <mat-menu #menu="matMenu">
+    <a
+      href="https://results.vertical-life.info/event/288/"
+      target="_blank"
+      mat-menu-item
+    >
+      <mat-icon>checklist</mat-icon><span i18n>Smart Scorecard</span></a
+    >
     <button
       mat-menu-item
       (click)="mapsApiService.openDirectionsInMaps(markers[1].location)"
@@ -110,25 +86,24 @@
       #drawer
       [opened]="sidenavOpen()"
       class="drawer d-block overflow-x-hidden bg-transparent"
-      [class.ps-0]="isEmbedded"
-      [class.no-rounding]="isEmbedded"
+      [class.ps-0]="isCompactView"
+      [class.no-rounding]="isCompactView"
       mode="side"
       position="end"
     >
       <div
         class="h-100 w-100 drawer-container d-flex flex-column gap-0 align-items-start"
         style="border-radius: 16px"
-        [class.no-rounding]="isEmbedded"
+        [class.no-rounding]="isCompactView"
       >
-        <mat-chip-listbox
-          class="p-3"
-          (change)="tabChanged($event)"
-          [value]="tab()"
-        >
+        <mat-chip-listbox class="p-3" [value]="tab()">
           @for (tabKeyVal of (tabs | keyvalue); track $index) {
-          <mat-chip-option i18n [value]="tabKeyVal.key">{{
-            tabKeyVal.value
-          }}</mat-chip-option>
+          <mat-chip-option
+            i18n
+            [value]="tabKeyVal.key"
+            (selectionChange)="tab.set(tabKeyVal.key)"
+            >{{ tabKeyVal.value }}</mat-chip-option
+          >
           }
         </mat-chip-listbox>
 
@@ -160,7 +135,7 @@
         } @else {
         <app-challenge-list
           @fadeInOut
-          class="p-3 overflow-y-auto flex-grow-1"
+          class="px-3 overflow-y-auto flex-grow-1"
           [challenges]="challenges()"
           [withHrefLink]="false"
           [showFilterOptions]="true"
@@ -216,9 +191,9 @@
 
     <!-- Map stuff -->
     <div
-      class="h-100 d-flex w-100 overflow-hidden"
+      class="h-100 d-flex w-100 overflow-hidden position-relative"
       style="border-radius: 16px"
-      [class.no-rounding]="isEmbedded"
+      [class.no-rounding]="isCompactView"
     >
       @if(swissJamSpotIds.length > 0) { @if(spots() && spots()!.length > 0) {
       <app-map
@@ -263,6 +238,36 @@
         class="w-100 h-100 overflow-hidden d-block"
       ></app-spot-map>
       } }
+      <div
+        class="position-absolute d-flex flex-row gap-2 pb-3 overflow-x-hidden"
+        style="top: 10px; left: 10px"
+      >
+        <app-chip-select
+          icon="tune"
+          label="Type"
+          [options]="challengeLabels"
+          [optionNames]="challengeLabelNames"
+          [optionIcons]="challengeLabelIcons"
+          [formCtrl]="labelCtrl!"
+          [selected]="selectedLabels()"
+          (selectedChange)="selectedLabels.set($event)"
+          allLabel="All Types"
+          i18n-allLabel="@@challenge-list.all-label"
+        ></app-chip-select>
+
+        <app-chip-select
+          icon="tune"
+          label="Participants"
+          [options]="challengeParticipantTypes"
+          [optionNames]="challengeParticipantTypeNames"
+          [optionIcons]="challengeParticipantTypeIcons"
+          [formCtrl]="participantTypeCtrl!"
+          [selected]="selectedParticipantTypes()"
+          (selectedChange)="selectedParticipantTypes.set($event)"
+          allLabel="All Participants"
+          i18n-allLabel="@@challenge-list.all-label"
+        ></app-chip-select>
+      </div>
     </div>
 
     <div style="top: calc(50% - 36px / 2); right: 5px; position: absolute">

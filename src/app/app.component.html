@@ -45,6 +45,12 @@
       <a routerLink="/terms-of-service">Terms</a>
       <a routerLink="/privacy-policy">Policy</a>
     </span>
+    <a
+      routerLink="/impressum"
+      class="mat-body-small mb-0 pb-1"
+      style="font-size: 10px; color: lightgray"
+      >Impressum</a
+    >
     <span class="mat-body-small mb-0" style="font-size: 8px; color: lightgray"
       >©2025 Lukas Bühler
     </span>
@@ -135,8 +141,8 @@
     >
       <a routerLink="/terms-of-service">Terms</a>
       <a routerLink="/privacy-policy">Policy</a>
+      <a routerLink="/impressum">Impressum</a>
       <a routerLink="/about">About</a>
-      <a href="https://github.com/lukasbuehler/pkspot">GitHub</a>
       <span>©2025 Lukas Bühler</span>
     </div>
     }
@@ -166,14 +172,16 @@
     <a
       mat-stroked-button
       target="_blank"
-      href="https://pkspot.app/map"
+      [href]="getUnembeddedUrl()"
       class="d-none d-sm-flex"
     >
-      <mat-icon>map</mat-icon>
-      <span i18n>Open global spot map</span>
+      <mat-icon>open_in_new</mat-icon>
+      <span i18n="@@open-embedded-in-pkspot-button-label"
+        >Open this on PK Spot</span
+      >
     </a>
     <a
-      href="https://pkspot.app/"
+      [href]="getUnembeddedUrl()"
       target="_blank"
       mat-mini-fab
       class="d-flex d-sm-none"

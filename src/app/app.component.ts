@@ -326,6 +326,22 @@ export class AppComponent implements OnInit {
     });
   }
 
+  /**
+   * Returns the current URL minus '/embedded' if present.
+   * Used to open the actual site that was embedded.
+   */
+  getUnembeddedUrl(): string {
+    if (typeof window === "undefined") return "https://pkspot.app";
+    const url = new URL(window.location.href);
+    // Remove '/embedded' from the path if present
+    url.pathname = url.pathname.replace(/\/embedded(\/)?/, "/");
+    // Remove any trailing slash (except root)
+    if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+      url.pathname = url.pathname.slice(0, -1);
+    }
+    return url.toString();
+  }
+
   unauthenticatedUserMenuConfig: ButtonConfig = [
     {
       name: $localize`:@@login.nav_label:Login`,

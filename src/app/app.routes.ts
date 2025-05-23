@@ -18,6 +18,7 @@ import { EventPageComponent } from "./event-page/event-page.component";
 import { EmbeddedSpotPageComponent } from "./embedding/embedded-spot-page/embedded-spot-page.component";
 import { EmbeddedMapPageComponent } from "./embedding/embedded-map-page/embedded-map-page.component";
 import { EventsPageComponent } from "./events-page/events-page.component";
+import { ImpressumComponent } from "./impressum/impressum.component";
 
 export const routes: Routes = [
   // Home page (redirects to spot map)
@@ -85,6 +86,12 @@ export const routes: Routes = [
   // },
   {
     path: "embedded/event/:eventID",
+    redirectTo: (route) => `/embedded/events/${route.params["eventID"]}`,
+    pathMatch: "full",
+    data: { routeName: "Embedded Event" },
+  },
+  {
+    path: "embedded/events/:eventID",
     component: EventPageComponent,
     data: { routeName: "Embedded Event" },
   },
@@ -101,7 +108,12 @@ export const routes: Routes = [
     data: { routeName: "Events" },
   },
   {
-    // path: "events/:eventID",
+    path: "event/swissjam25",
+    redirectTo: "events/swissjam25",
+    pathMatch: "full",
+    data: { routeName: "Event" },
+  },
+  {
     path: "events/swissjam25",
     component: EventPageComponent,
     data: { routeName: "Event" },
@@ -208,5 +220,12 @@ export const routes: Routes = [
     data: { routeName: "Privacy Policy", acceptanceFree: true },
   },
   { path: "pp", redirectTo: "privacy-policy", pathMatch: "full" },
+  {
+    path: "impressum",
+    pathMatch: "full",
+    component: ImpressumComponent,
+    data: { routeName: "Impressum", acceptanceFree: true },
+  },
+
   { path: "**", component: NotFoundPageComponent },
 ];
