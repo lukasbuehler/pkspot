@@ -1,5 +1,5 @@
 <div
-  class="h-100 d-flex flex-column gap-3"
+  class="h-100 d-flex flex-column"
   [class.p-3]="!isCompactView"
   [style]="{ 'padding-top': isCompactView ? '0 !important' : '1rem' }"
 >
@@ -18,7 +18,7 @@
 </div> -->
 
   <!-- Header info -->
-  <div class="d-flex flex-row gap-3 w-100 pt-3" [class.p-3]="isCompactView">
+  <div class="d-flex flex-row gap-3 w-100 pb-3" [class.p-3]="isCompactView">
     <div
       class="flex-grow-1 d-flex justify-content-start align-items-center gap-5"
     >
@@ -237,14 +237,14 @@
         (markerClickEvent)="markerClick($event)"
         class="w-100 h-100 overflow-hidden d-block"
       ></app-spot-map>
-      } }
+      } } @if(!sidenavOpen()) {
       <div
-        class="position-absolute d-flex flex-row gap-2 pb-3 overflow-x-hidden"
-        style="top: 10px; left: 10px"
+        class="position-absolute d-flex flex-row flex-wrap gap-2 pb-3 overflow-x-hidden"
+        style="top: 10px; left: 10px; width: calc(100% - 20px)"
       >
         <app-chip-select
           icon="tune"
-          label="Type"
+          label="Challenge Type"
           [options]="challengeLabels"
           [optionNames]="challengeLabelNames"
           [optionIcons]="challengeLabelIcons"
@@ -252,12 +252,12 @@
           [selected]="selectedLabels()"
           (selectedChange)="selectedLabels.set($event)"
           allLabel="All Types"
-          i18n-allLabel="@@challenge-list.all-label"
+          i18n-allLabel="challenge type label"
         ></app-chip-select>
 
         <app-chip-select
           icon="tune"
-          label="Participants"
+          label="Challenge Participants"
           [options]="challengeParticipantTypes"
           [optionNames]="challengeParticipantTypeNames"
           [optionIcons]="challengeParticipantTypeIcons"
@@ -265,9 +265,10 @@
           [selected]="selectedParticipantTypes()"
           (selectedChange)="selectedParticipantTypes.set($event)"
           allLabel="All Participants"
-          i18n-allLabel="@@challenge-list.all-label"
+          i18n-allLabel="challenge participant type"
         ></app-chip-select>
       </div>
+      }
     </div>
 
     <div style="top: calc(50% - 36px / 2); right: 5px; position: absolute">

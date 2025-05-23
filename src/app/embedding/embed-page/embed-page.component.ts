@@ -100,6 +100,8 @@ export class EmbedPageComponent {
         url += this.eventId();
         if (this.showEventHeader()) {
           url += "?showHeader=true";
+        } else {
+          url += "?showHeader=false";
         }
         break;
     }

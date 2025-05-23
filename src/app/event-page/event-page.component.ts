@@ -355,8 +355,6 @@ export class EventPageComponent implements OnInit, OnDestroy {
     this._routeSubscription = this._route.queryParams.subscribe((params) => {
       if (params["showHeader"]) {
         this.showHeader.set(params["showHeader"] === "true");
-      } else {
-        this.showHeader.set(false);
       }
 
       // if (params["mapStyle"]) {
