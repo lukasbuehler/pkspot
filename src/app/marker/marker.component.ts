@@ -27,10 +27,11 @@ export class MarkerComponent {
   isIconic = input<boolean>(false);
   color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
   size = input<number>(1);
+  title = input<string | null | undefined>(null);
 
   isExpanded = signal<boolean>(false);
 
-  onClick($event: MouseEvent) {
+  onClick($event?: MouseEvent) {
     if (this.clickable()) {
       if (this.isExpanded()) {
         this.isExpanded.set(false);
@@ -38,7 +39,9 @@ export class MarkerComponent {
         this.isExpanded.set(true);
       }
     }
-    $event.stopPropagation();
+    if ($event) {
+      $event.stopPropagation();
+    }
   }
 
   onBlur() {

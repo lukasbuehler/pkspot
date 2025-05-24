@@ -86,7 +86,11 @@ export const routes: Routes = [
   // },
   {
     path: "embedded/event/:eventID",
-    redirectTo: (route) => `/embedded/events/${route.params["eventID"]}`,
+    redirectTo: (route) => {
+      const showHeader = route.queryParams["showHeader"];
+      const query = showHeader !== undefined ? `?showHeader=${showHeader}` : "";
+      return `/embedded/events/${route.params["eventID"]}${query}`;
+    },
     pathMatch: "full",
     data: { routeName: "Embedded Event" },
   },

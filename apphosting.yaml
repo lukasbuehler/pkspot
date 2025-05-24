@@ -1,10 +1,10 @@
 # Settings for Clour Run
 runConfig:
   minInstances: 1
-  maxInstances: 4
+  maxInstances: 10
   concurrency: 100
   cpu: 1 # in [1, 8]
-  memoryMiB: 512 # in [512, 32768]
+  memoryMiB: 1024 # in [512, 32768]
 
 env:
   # - variable: GOOGLE_API_KEY

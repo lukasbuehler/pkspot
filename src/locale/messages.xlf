@@ -113,11 +113,6 @@
         <source>Show geolocation</source>
       </segment>
     </unit>
-    <unit id="6044258067304510448">
-      <segment>
-        <source>Starts in: </source>
-      </segment>
-    </unit>
     <unit id="6058033902089935749">
       <segment>
         <source>Find spots and places</source>
@@ -868,16 +863,6 @@
         <source>Update Review</source>
       </segment>
     </unit>
-    <unit id="518955764655136497">
-      <segment>
-        <source>Open global spot map</source>
-      </segment>
-    </unit>
-    <unit id="927015953957235009">
-      <segment>
-        <source>More Information</source>
-      </segment>
-    </unit>
     <unit id="8755396282893693521">
       <segment>
         <source>Event spots</source>
@@ -1023,11 +1008,6 @@
     <unit id="3891461247659349800">
       <segment>
         <source>Add custom spot URL</source>
-      </segment>
-    </unit>
-    <unit id="3915449131951067233">
-      <segment>
-        <source>Challenge</source>
       </segment>
     </unit>
     <unit id="3935646276054511852">
@@ -1186,34 +1166,6 @@
         <source>Add spot</source>
       </segment>
     </unit>
-    <unit id="1107810910795488937">
-      <segment>
-        <source> (+<ph id="0" equiv="INTERPOLATION" disp="{{ (labelCtrl.value?.length || 0) - 1 }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ labelCtrl.value?.length === 2 ? &quot;other&quot; : &quot;others&quot; }}"/>) </source>
-      </segment>
-    </unit>
-    <unit id="2155832126259145609">
-      <segment>
-        <source>s</source>
-      </segment>
-    </unit>
-    <unit id="2284709915291073024">
-      <segment>
-        <source>mins.</source>
-      </segment>
-    </unit>
-    <unit id="3370839803061654054">
-      <segment>
-        <source>hours</source>
-      </segment>
-    </unit>
-    <unit id="3481736869685494304">
-      <notes>
-        <note category="description">challenge participant type title</note>
-      </notes>
-      <segment>
-        <source>Participants</source>
-      </segment>
-    </unit>
     <unit id="3724068243287682962">
       <segment>
         <source>Team</source>
@@ -1241,7 +1193,7 @@
     </unit>
     <unit id="4570725150232607497">
       <notes>
-        <note category="description">all participant types</note>
+        <note category="description">challenge participant type</note>
       </notes>
       <segment>
         <source>All Participants</source>
@@ -1264,7 +1216,7 @@
     </unit>
     <unit id="565606266379309262">
       <notes>
-        <note category="description">all challenge types</note>
+        <note category="description">challenge type label</note>
       </notes>
       <segment>
         <source>All Types</source>
@@ -1283,11 +1235,6 @@
     <unit id="7014916356457269810">
       <segment>
         <source>File mimetype is not allowed!</source>
-      </segment>
-    </unit>
-    <unit id="7036284206110282007">
-      <segment>
-        <source>days</source>
       </segment>
     </unit>
     <unit id="7095237946376271162">
@@ -1325,14 +1272,6 @@
         <source>Time</source>
       </segment>
     </unit>
-    <unit id="8650499415827640724">
-      <notes>
-        <note category="description">challenge type label title</note>
-      </notes>
-      <segment>
-        <source>Type</source>
-      </segment>
-    </unit>
     <unit id="8828059408146193176">
       <segment>
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
@@ -1343,13 +1282,68 @@
         <source>OK</source>
       </segment>
     </unit>
-    <unit id="directions_spot">
-      <notes>
-        <note category="description">The label of a button opening directions to a spot</note>
-        <note category="meaning">Directions to spot</note>
-      </notes>
+    <unit id="8981724482694536509">
       <segment>
         <source>Directions</source>
+      </segment>
+    </unit>
+    <unit id="1616102757855967475">
+      <segment>
+        <source>All</source>
+      </segment>
+    </unit>
+    <unit id="1737753151350322492">
+      <segment>
+        <source>
+          <ph id="0" equiv="PH" disp="this.label"/>
+        </source>
+      </segment>
+    </unit>
+    <unit id="187187500641108332">
+      <segment>
+        <source>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}"/>
+        </source>
+      </segment>
+    </unit>
+    <unit id="3483311644139102304">
+      <segment>
+        <source>All Event Challenges</source>
+      </segment>
+    </unit>
+    <unit id="3881818169480672345">
+      <segment>
+        <source>other</source>
+      </segment>
+    </unit>
+    <unit id="459311985687858272">
+      <segment>
+        <source>Spots</source>
+      </segment>
+    </unit>
+    <unit id="5753174679285423997">
+      <segment>
+        <source>Smart Scorecard</source>
+      </segment>
+    </unit>
+    <unit id="7457957151903874535">
+      <segment>
+        <source>Open Gym (ASVZ)</source>
+      </segment>
+    </unit>
+    <unit id="7796156979263266819">
+      <segment>
+        <source>others</source>
+      </segment>
+    </unit>
+    <unit id="challenge-list.all-label">
+      <segment>
+        <source>All Types</source>
+      </segment>
+    </unit>
+    <unit id="open-embedded-in-pkspot-button-label">
+      <segment>
+        <source>Open this on PK Spot</source>
       </segment>
     </unit>
   </file>

@@ -475,7 +475,8 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
+            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
+            equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>J’ai lu et compris les <pc id="0" equivStart="START_BOLD_TEXT"
@@ -894,12 +895,6 @@
         <target>Afficher la géolocalisation</target>
       </segment>
     </unit>
-    <unit id="6044258067304510448">
-      <segment state="initial">
-        <source>Starts in: </source>
-        <target>Commence dans : </target>
-      </segment>
-    </unit>
     <unit id="welcomeDialogTitle">
       <segment state="initial">
         <source>Welcome to PK Spot!</source>
@@ -1095,18 +1090,6 @@
         <target>Mettre à jour l&apos;avis</target>
       </segment>
     </unit>
-    <unit id="518955764655136497">
-      <segment state="initial">
-        <source>Open global spot map</source>
-        <target>Ouvrir la carte mondiale des spots</target>
-      </segment>
-    </unit>
-    <unit id="927015953957235009">
-      <segment state="initial">
-        <source>More Information</source>
-        <target>Plus d&apos;informations</target>
-      </segment>
-    </unit>
     <unit id="8755396282893693521">
       <segment state="initial">
         <source>Event spots</source>
@@ -1129,12 +1112,6 @@
       <segment state="initial">
         <source>Water feature</source>
         <target>Élément aquatique</target>
-      </segment>
-    </unit>
-    <unit id="3915449131951067233">
-      <segment state="initial">
-        <source>Challenge</source>
-        <target>Challenge</target>
       </segment>
     </unit>
     <unit id="4771468580618188841">
@@ -1532,8 +1509,8 @@
       <segment state="initial">
         <source> The Challenge will only be available starting from the release date. Before that it
           will be private to you. </source>
-        <target> Le challenge ne sera disponible qu'à partir de la date de publication. Avant cela,
-          il sera privé pour vous. </target>
+        <target> Le challenge ne sera disponible qu&apos;à partir de la date de publication. Avant
+          cela, il sera privé pour vous. </target>
       </segment>
     </unit>
     <unit id="5992560285899135152">
@@ -1566,81 +1543,25 @@
         <target>J’ajouterai un média !</target>
       </segment>
     </unit>
-    <unit id="8650499415827640724">
-      <notes>
-        <note category="description">challenge type label title</note>
-      </notes>
-      <segment state="initial">
-        <source>Type</source>
-        <target>Type</target>
-      </segment>
-    </unit>
     <unit id="565606266379309262">
       <notes>
-        <note category="description">all challenge types</note>
+        <note category="description">challenge type label</note>
       </notes>
       <segment state="initial">
         <source>All Types</source>
         <target>Tous les types</target>
       </segment>
     </unit>
-    <unit id="1107810910795488937">
-      <segment state="initial">
-        <source> (+<ph id="0" equiv="INTERPOLATION" disp="{{ (labelCtrl.value?.length || 0) - 1 }}" /> <ph
-            id="1" equiv="INTERPOLATION_1"
-            disp="{{ labelCtrl.value?.length === 2 ? &quot;other&quot; : &quot;others&quot; }}" />) </source>
-        <target> (+<ph id="0" equiv="INTERPOLATION" disp="{{ (labelCtrl.value?.length || 0) - 1 }}" /> <ph
-            id="1" equiv="INTERPOLATION_1"
-            disp="{{ labelCtrl.value?.length === 2 ? &quot;autre&quot; : &quot;autres&quot; }}" />) </target>
-      </segment>
-    </unit>
-    <unit id="3481736869685494304">
-      <notes>
-        <note category="description">challenge participant type title</note>
-      </notes>
-      <segment state="initial">
-        <source>Participants</source>
-        <target>Participants</target>
-      </segment>
-    </unit>
     <unit id="4570725150232607497">
       <notes>
-        <note category="description">all participant types</note>
+        <note category="description">challenge participant type</note>
       </notes>
       <segment state="initial">
         <source>All Participants</source>
         <target>Tous les participants</target>
       </segment>
     </unit>
-    <unit id="7036284206110282007">
-      <segment state="initial">
-        <source>days</source>
-        <target>jours</target>
-      </segment>
-    </unit>
-    <unit id="3370839803061654054">
-      <segment state="initial">
-        <source>hours</source>
-        <target>heures</target>
-      </segment>
-    </unit>
-    <unit id="2284709915291073024">
-      <segment state="initial">
-        <source>mins.</source>
-        <target>min.</target>
-      </segment>
-    </unit>
-    <unit id="2155832126259145609">
-      <segment state="initial">
-        <source>s</source>
-        <target>s</target>
-      </segment>
-    </unit>
-    <unit id="directions_spot">
-      <notes>
-        <note category="description">The label of a button opening directions to a spot</note>
-        <note category="meaning">Directions to spot</note>
-      </notes>
+    <unit id="8981724482694536509">
       <segment state="initial">
         <source>Directions</source>
         <target>Itinéraire</target>
@@ -1696,6 +1617,80 @@
       <segment state="initial">
         <source>Team</source>
         <target>Équipe</target>
+      </segment>
+    </unit>
+    <unit id="open-embedded-in-pkspot-button-label">
+      <segment state="initial">
+        <source>Open this on PK Spot</source>
+        <target>Ouvrir ceci sur PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="challenge-list.all-label">
+      <segment state="initial">
+        <source>All Types</source>
+        <target>Tous les types</target>
+      </segment>
+    </unit>
+    <unit id="1737753151350322492">
+      <segment state="initial">
+        <source>
+          <ph id="0" equiv="PH" disp="this.label" />
+        </source>
+        <target>
+          <ph id="0" equiv="PH" disp="this.label" />
+        </target>
+      </segment>
+    </unit>
+    <unit id="1616102757855967475">
+      <segment state="initial">
+        <source>All</source>
+        <target>Tous</target>
+      </segment>
+    </unit>
+    <unit id="3881818169480672345">
+      <segment state="initial">
+        <source>other</source>
+        <target>autre</target>
+      </segment>
+    </unit>
+    <unit id="7796156979263266819">
+      <segment state="initial">
+        <source>others</source>
+        <target>autres</target>
+      </segment>
+    </unit>
+    <unit id="5753174679285423997">
+      <segment state="initial">
+        <source>Smart Scorecard</source>
+        <target>Smart Scorecard</target>
+      </segment>
+    </unit>
+    <unit id="187187500641108332">
+      <segment state="initial">
+        <source>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}" />
+        </source>
+        <target>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}" />
+        </target>
+      </segment>
+    </unit>
+    <unit id="3483311644139102304">
+      <segment state="initial">
+        <source>All Event Challenges</source>
+        <target>Tous les challenges d'événement</target>
+      </segment>
+    </unit>
+    <unit id="459311985687858272">
+      <segment state="initial">
+        <source>Spots</source>
+        <target>Spots</target>
+      </segment>
+    </unit>
+    <unit id="7457957151903874535">
+      <segment state="initial">
+        <source>Open Gym (ASVZ)</source>
+        <target>Open Gym (ASVZ)</target>
       </segment>
     </unit>
   </file>

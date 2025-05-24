@@ -294,7 +294,11 @@
     [options]="{
       gmpClickable: true
     }"
-    (mapClick)="focusOnLocation(marker.location); markerClick($index)"
+    (mapClick)="
+      focusOnLocation(marker.location);
+      markerClick($index);
+      markerComp.onClick()
+    "
   ></map-advanced-marker>
   <app-marker
     #markerComp
@@ -304,6 +308,7 @@
     [number]="marker.number"
     [color]="marker.color ?? 'primary'"
     [size]="0.8"
+    [title]="marker.name"
   >
   </app-marker>
   }
