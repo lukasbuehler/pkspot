@@ -113,7 +113,7 @@ import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { StorageBucket } from "../../db/schemas/Media";
 import { Timestamp } from "@firebase/firestore";
-import { Router, RouterLink } from "@angular/router";
+import { Router } from "@angular/router";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
@@ -181,7 +181,6 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatRippleModule,
     MatSelectModule,
     LocaleMapViewComponent,
-    RouterLink,
     ChallengeListComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

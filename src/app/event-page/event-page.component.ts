@@ -366,135 +366,139 @@ export class EventPageComponent implements OnInit, OnDestroy {
     this.updateCompactView = this.updateCompactView.bind(this);
     if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
       window.addEventListener("resize", this.updateCompactView);
-    }
 
-    firstValueFrom(this._route.data.pipe(take(1))).then((data) => {
-      if (data["routeName"].toLowerCase().includes("embed")) {
-        this._isEmbedded = true;
-        this.updateCompactView();
-      }
-    });
+      firstValueFrom(this._route.data.pipe(take(1))).then((data) => {
+        if (data["routeName"].toLowerCase().includes("embed")) {
+          this._isEmbedded = true;
+          this.updateCompactView();
+        }
+      });
 
-    this.updateCompactView();
+      this.updateCompactView();
 
-    effect(() => {
-      const selectedChallenge = this.selectedChallenge();
-      // Only scroll if the container exists
+      effect(() => {
+        const selectedChallenge = this.selectedChallenge();
+        // Only scroll if the container exists
 
-      if (this.scrollContainer && this.scrollContainer.nativeElement) {
-        setTimeout(() => {
-          this.scrollContainer?.nativeElement.scrollTo({
-            top: 0,
-            behavior: "smooth",
+        if (this.scrollContainer && this.scrollContainer.nativeElement) {
+          setTimeout(() => {
+            this.scrollContainer?.nativeElement.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
           });
-        });
-      }
-    });
+        }
+      });
 
-    effect(() => {
-      const selectedSpot = this.selectedSpot();
-      if (this.spotScrollContainer && this.spotScrollContainer.nativeElement) {
-        setTimeout(() => {
-          this.spotScrollContainer?.nativeElement.scrollTo({
-            top: 0,
-            behavior: "smooth",
+      effect(() => {
+        const selectedSpot = this.selectedSpot();
+        if (
+          this.spotScrollContainer &&
+          this.spotScrollContainer.nativeElement
+        ) {
+          setTimeout(() => {
+            this.spotScrollContainer?.nativeElement.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
           });
-        });
-      }
-    });
+        }
+      });
 
-    effect(() => {
-      const spots = this.spots();
-      const selectedLabels = this.selectedLabels();
-      const selectedParticipantTypes = this.selectedParticipantTypes();
+      effect(() => {
+        const spots = this.spots();
+        const selectedLabels = this.selectedLabels();
+        const selectedParticipantTypes = this.selectedParticipantTypes();
 
-      // Load challenges for spots that have them
-      const challengePromises: Promise<SpotChallenge | null>[] = Object.entries(
-        this.swissJamChallengeIds
-      ).map(([challengeId, spotId]) => {
-        const spot = spots.find((s) => {
-          if (s instanceof Spot) {
-            return s.id === spotId;
-          } else {
-            return false;
+        // Load challenges for spots that have them
+        const challengePromises: Promise<SpotChallenge | null>[] =
+          Object.entries(this.swissJamChallengeIds).map(
+            ([challengeId, spotId]) => {
+              const spot = spots.find((s) => {
+                if (s instanceof Spot) {
+                  return s.id === spotId;
+                } else {
+                  return false;
+                }
+              });
+              if (spot && spot instanceof Spot) {
+                return this._challengeService
+                  .getSpotChallenge(spot, challengeId)
+                  .then((challenge) => {
+                    if (challenge) {
+                      return challenge;
+                    } else {
+                      return null;
+                    }
+                  })
+                  .catch(() => null);
+              }
+              return Promise.resolve(null);
+            }
+          );
+
+        Promise.all(challengePromises).then((challengeArrays) => {
+          // Flatten the array of arrays, keeping nulls for failed fetches
+          const allChallenges =
+            challengeArrays.flat() as (SpotChallenge | null)[];
+          this.challenges.set(
+            allChallenges
+              .map((c, idx) => [c, idx])
+              .filter(([c, idx]) => c instanceof SpotChallenge)
+              .map(([c, idx]) => {
+                const challenge = c as SpotChallenge;
+                // Use object spread to ensure the number property is present on the returned object
+                return {
+                  ...challenge,
+                  number: (idx as number) + 1,
+                } as SpotChallenge & { number: number };
+              })
+          );
+
+          const challengeMarkers: MarkerSchema[] = [];
+          allChallenges
+            // .filter((challenge) => {
+            //   return (
+            //     (!selectedLabels.length ||
+            //       (challenge &&
+            //         challenge.label &&
+            //         selectedLabels.includes(challenge.label))) &&
+            //     (!selectedParticipantTypes.length ||
+            //       (challenge &&
+            //         challenge.participantType &&
+            //         selectedParticipantTypes.includes(challenge.participantType)))
+            //   );
+            // })
+            .forEach((challenge, index) => {
+              if (challenge && challenge.location()) {
+                challengeMarkers.push({
+                  name: challenge.name(),
+                  location: challenge.location()!,
+                  color:
+                    (!selectedLabels.length ||
+                      (challenge &&
+                        challenge.label &&
+                        selectedLabels.includes(challenge.label))) &&
+                    (!selectedParticipantTypes.length ||
+                      (challenge &&
+                        challenge.participantType &&
+                        selectedParticipantTypes.includes(
+                          challenge.participantType
+                        )))
+                      ? "primary"
+                      : "gray",
+                  number: index + 1,
+                });
+              }
+            });
+
+          if (challengeMarkers.length > 0) {
+            this.markers = [...challengeMarkers, ...this.customMarkers];
+            this.tab.set("challenges");
           }
         });
-        if (spot && spot instanceof Spot) {
-          return this._challengeService
-            .getSpotChallenge(spot, challengeId)
-            .then((challenge) => {
-              if (challenge) {
-                return challenge;
-              } else {
-                return null;
-              }
-            })
-            .catch(() => null);
-        }
-        return Promise.resolve(null);
       });
-
-      Promise.all(challengePromises).then((challengeArrays) => {
-        // Flatten the array of arrays, keeping nulls for failed fetches
-        const allChallenges =
-          challengeArrays.flat() as (SpotChallenge | null)[];
-        this.challenges.set(
-          allChallenges
-            .map((c, idx) => [c, idx])
-            .filter(([c, idx]) => c instanceof SpotChallenge)
-            .map(([c, idx]) => {
-              const challenge = c as SpotChallenge;
-              // Use object spread to ensure the number property is present on the returned object
-              return {
-                ...challenge,
-                number: (idx as number) + 1,
-              } as SpotChallenge & { number: number };
-            })
-        );
-
-        const challengeMarkers: MarkerSchema[] = [];
-        allChallenges
-          // .filter((challenge) => {
-          //   return (
-          //     (!selectedLabels.length ||
-          //       (challenge &&
-          //         challenge.label &&
-          //         selectedLabels.includes(challenge.label))) &&
-          //     (!selectedParticipantTypes.length ||
-          //       (challenge &&
-          //         challenge.participantType &&
-          //         selectedParticipantTypes.includes(challenge.participantType)))
-          //   );
-          // })
-          .forEach((challenge, index) => {
-            if (challenge && challenge.location()) {
-              challengeMarkers.push({
-                name: challenge.name(),
-                location: challenge.location()!,
-                color:
-                  (!selectedLabels.length ||
-                    (challenge &&
-                      challenge.label &&
-                      selectedLabels.includes(challenge.label))) &&
-                  (!selectedParticipantTypes.length ||
-                    (challenge &&
-                      challenge.participantType &&
-                      selectedParticipantTypes.includes(
-                        challenge.participantType
-                      )))
-                    ? "primary"
-                    : "gray",
-                number: index + 1,
-              });
-            }
-          });
-
-        if (challengeMarkers.length > 0) {
-          this.markers = [...challengeMarkers, ...this.customMarkers];
-          this.tab.set("challenges");
-        }
-      });
-    });
+    }
 
     afterNextRender(() => {
       const promises = this.swissJamSpotIds.map((spotId) => {
@@ -590,37 +594,39 @@ export class EventPageComponent implements OnInit, OnDestroy {
         ")"
     );
 
-    firstValueFrom(
-      this.mapsApiService.isApiLoaded$.pipe(
-        filter((isLoaded) => isLoaded),
-        take(1)
-      )
-    ).then(() => {
-      this.areaPolygon.set({
-        paths: new google.maps.MVCArray<
-          google.maps.MVCArray<google.maps.LatLng>
-        >([
-          new google.maps.MVCArray<google.maps.LatLng>([
-            new google.maps.LatLng(0, -90),
-            new google.maps.LatLng(0, 90),
-            new google.maps.LatLng(90, -90),
-            new google.maps.LatLng(90, 90),
+    if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
+      firstValueFrom(
+        this.mapsApiService.isApiLoaded$.pipe(
+          filter((isLoaded) => isLoaded),
+          take(1)
+        )
+      ).then(() => {
+        this.areaPolygon.set({
+          paths: new google.maps.MVCArray<
+            google.maps.MVCArray<google.maps.LatLng>
+          >([
+            new google.maps.MVCArray<google.maps.LatLng>([
+              new google.maps.LatLng(0, -90),
+              new google.maps.LatLng(0, 90),
+              new google.maps.LatLng(90, -90),
+              new google.maps.LatLng(90, 90),
+            ]),
+            new google.maps.MVCArray<google.maps.LatLng>([
+              new google.maps.LatLng(47.39690440489847, 8.54137955373239),
+              new google.maps.LatLng(47.39922912784592, 8.54270958874722),
+              new google.maps.LatLng(47.39976970395402, 8.546988087725437),
+              new google.maps.LatLng(47.39852765134482, 8.552592984179212),
+              new google.maps.LatLng(47.39266322242201, 8.550449664195357),
+              new google.maps.LatLng(47.395861761732796, 8.546175461394029),
+            ]),
           ]),
-          new google.maps.MVCArray<google.maps.LatLng>([
-            new google.maps.LatLng(47.39690440489847, 8.54137955373239),
-            new google.maps.LatLng(47.39922912784592, 8.54270958874722),
-            new google.maps.LatLng(47.39976970395402, 8.546988087725437),
-            new google.maps.LatLng(47.39852765134482, 8.552592984179212),
-            new google.maps.LatLng(47.39266322242201, 8.550449664195357),
-            new google.maps.LatLng(47.395861761732796, 8.546175461394029),
-          ]),
-        ]),
-        strokeOpacity: 0,
-        strokeWeight: 0,
-        fillColor: "#000000",
-        fillOpacity: 0.5,
+          strokeOpacity: 0,
+          strokeWeight: 0,
+          fillColor: "#000000",
+          fillOpacity: 0.5,
+        });
       });
-    });
+    }
 
     // add the structured data for the event
     const structuredDataJson = {

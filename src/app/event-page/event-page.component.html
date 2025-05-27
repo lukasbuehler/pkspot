@@ -108,7 +108,7 @@
         </mat-chip-listbox>
 
         <mat-divider></mat-divider>
-        @switch (tab()) { @case('challenges') {
+        @defer { @switch (tab()) { @case('challenges') {
         <!-- Show challenges -->
         @if(selectedChallenge()) {
         <button
@@ -185,7 +185,7 @@
           text="Event spots"
           i18n-text
         ></app-spot-list>
-        } } } }
+        } } } } }
       </div>
     </mat-drawer>
 
@@ -195,7 +195,8 @@
       style="border-radius: 16px"
       [class.no-rounding]="isCompactView"
     >
-      @if(swissJamSpotIds.length > 0) { @if(spots() && spots()!.length > 0) {
+      @defer { @if(swissJamSpotIds.length > 0) { @if(spots() && spots()!.length
+      > 0) {
       <app-map
         @fadeInOut
         #spotMap
@@ -242,6 +243,7 @@
         class="position-absolute d-flex flex-row flex-wrap gap-2 pb-3 overflow-x-hidden"
         style="top: 10px; left: 10px; width: calc(100% - 20px)"
       >
+        @defer {
         <app-chip-select
           icon="tune"
           label="Challenge Type"
@@ -267,8 +269,9 @@
           allLabel="All Participants"
           i18n-allLabel="challenge participant type"
         ></app-chip-select>
+        }
       </div>
-      }
+      } }
     </div>
 
     <div style="top: calc(50% - 36px / 2); right: 5px; position: absolute">
@@ -292,40 +295,4 @@
       </button>
     </div>
   </mat-drawer-container>
-
-  <!-- <div class="d-flex flex-row gap-3">
-        @for(marker of markers; track marker) {
-        <span
-          class="d-flex flex-row gap-1 mat-title-small justify-content-center align-items-center"
-          ><app-marker
-            [icon]="marker.icon"
-            [color]="marker.color"
-            [size]="0.8"
-          ></app-marker>
-          {{ marker.name }}</span
-        >
-        }
-      </div> -->
-  <!-- <div class="col-md-6 col-lg-4 pb-5">
-      @if(selectedSpot()) {
-      <app-spot-details
-        @fadeInOut
-        [spot]="selectedSpot()"
-        [editable]="false"
-        [isEditing]="false"
-        [dismissable]="true"
-        [border]="true"
-        (dismiss)="selectedSpot.set(null)"
-      ></app-spot-details>
-      } @else {@if(spots?.length > 0) {
-      <app-spot-list
-        @fadeInOut
-        [spots]="spots"
-        [withHrefLink]="false"
-        (spotClickIndex)="spotClickedIndex($event)"
-        text="Event spots"
-        i18n-text
-      ></app-spot-list>
-      } }
-    </div> -->
 </div>
