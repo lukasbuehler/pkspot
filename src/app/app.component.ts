@@ -403,16 +403,16 @@ export class AppComponent implements OnInit {
         link: "/map",
         icon: "map",
       },
-      // {
-      //   name: $localize`:@@events.nav_label:Events`,
-      //   link: "/events",
-      //   icon: "calendar_month", // or event, local_activity, calendar_month
-      // },
       {
-        name: "Swiss Jam",
-        link: "/events/swissjam25",
-        icon: "local_activity",
+        name: $localize`:@@events.nav_label:Events`,
+        link: "/events",
+        icon: "calendar_month", // or event, local_activity, calendar_month
       },
+      // {
+      //   name: "Swiss Jam",
+      //   link: "/events/swissjam25",
+      //   icon: "local_activity",
+      // },
       {
         name: $localize`:About page navbar button label|A very short label for the navbar about page button:About`,
         link: "/about",

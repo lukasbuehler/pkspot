@@ -2,6 +2,7 @@ import {
   ApplicationConfig,
   importProvidersFrom,
   LOCALE_ID,
+  provideExperimentalZonelessChangeDetection,
 } from "@angular/core";
 import { environment } from "../environments/environment";
 import { provideFunctions, getFunctions } from "@angular/fire/functions";
@@ -20,6 +21,7 @@ import {
   provideClientHydration,
   BrowserModule,
   withI18nSupport,
+  withIncrementalHydration,
 } from "@angular/platform-browser";
 import { MAT_DIALOG_DEFAULT_OPTIONS } from "@angular/material/dialog";
 
@@ -48,9 +50,10 @@ export const appConfig: ApplicationConfig = {
         },
       },
     },
-    provideClientHydration(withI18nSupport()),
+    provideClientHydration(withI18nSupport(), withIncrementalHydration()),
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideAnimations(),
+    // provideExperimentalZonelessChangeDetection(),
     {
       provide: WINDOW,
       useFactory: (document: Document) => windowProvider(document),
