@@ -26,7 +26,7 @@ import {
 import { MAT_DIALOG_DEFAULT_OPTIONS } from "@angular/material/dialog";
 
 import { routes } from "./app.routes";
-import { provideRouter } from "@angular/router";
+import { provideRouter, withViewTransitions } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
 
 import { getAuth, provideAuth } from "@angular/fire/auth";
@@ -38,7 +38,7 @@ export const appConfig: ApplicationConfig = {
     provideStorage(() => getStorage()),
     provideFunctions(() => getFunctions()),
     provideAuth(() => getAuth()),
-    provideRouter(routes),
+    provideRouter(routes, withViewTransitions()),
     BrowserModule,
     GoogleMapsModule,
     {

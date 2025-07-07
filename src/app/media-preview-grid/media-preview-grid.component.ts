@@ -13,7 +13,7 @@ import {
   EventEmitter,
   inject,
   input,
-  Input,
+  Signal,
   InputSignal,
   OnInit,
   Output,
@@ -46,8 +46,9 @@ export class MediaPreviewGridComponent implements OnInit {
 
   storageService = inject(StorageService);
 
-  mediaSources = computed(() => {
+  mediaSources: Signal<string[]> = computed<string[]>(() => {
     const media = this.media();
+
     return media.map((mediaObj) => {
       if (mediaObj instanceof StorageImage) {
         return mediaObj.getSrc(400);

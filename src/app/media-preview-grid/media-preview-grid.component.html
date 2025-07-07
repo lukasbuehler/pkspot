@@ -1,8 +1,5 @@
-<div
-  *ngIf="media() && media.length > 0"
-  class="media-preview-grid"
-  cdkDropListGroup
->
+@if(media() && media().length > 0) {
+<div class="media-preview-grid" cdkDropListGroup>
   @for(mediaSrc of mediaSources(); track $index) {
   <div
     class="grid-drop-list"
@@ -36,3 +33,4 @@
   </div>
   }
 </div>
+}

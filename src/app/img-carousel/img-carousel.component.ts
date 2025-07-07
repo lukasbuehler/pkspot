@@ -20,7 +20,6 @@ import { StorageService } from "../services/firebase/storage.service";
 // Swiper
 import Swiper from "swiper";
 import { Navigation, Pagination } from "swiper/modules";
-Swiper.use([Navigation, Pagination]);
 
 import { isPlatformBrowser, NgOptimizedImage } from "@angular/common";
 import {
