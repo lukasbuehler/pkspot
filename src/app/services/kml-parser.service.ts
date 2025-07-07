@@ -1,5 +1,4 @@
 import { Inject, Injectable, LOCALE_ID } from "@angular/core";
-import firebase from "firebase/compat";
 import { BehaviorSubject, Observable, firstValueFrom } from "rxjs";
 import { Spot } from "../../db/models/Spot";
 import { MapHelpers } from "../../scripts/MapHelpers";
@@ -8,7 +7,6 @@ import { parseString } from "xml2js";
 import { SpotsService } from "./firebase/firestore/spots.service";
 import { MapsApiService } from "./maps-api.service";
 import { LocaleCode } from "../../db/models/Interfaces";
-import { locale } from "core-js";
 
 export interface KMLSetupInfo {
   name?: string;

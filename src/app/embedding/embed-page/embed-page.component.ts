@@ -4,15 +4,12 @@ import {
   inject,
   PLATFORM_ID,
   signal,
-  DOCUMENT
+  DOCUMENT,
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
-import {
-  _MatSlideToggleRequiredValidatorModule,
-  MatSlideToggleModule,
-} from "@angular/material/slide-toggle";
+import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { CodeBlockComponent } from "../../code-block/code-block.component";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { MatChipsModule } from "@angular/material/chips";
@@ -31,7 +28,6 @@ type EmbedType = "map" | "event";
   imports: [
     MatSlideToggleModule,
     FormsModule,
-    _MatSlideToggleRequiredValidatorModule,
     MatButtonModule,
     ReactiveFormsModule,
     CodeBlockComponent,
@@ -41,6 +37,7 @@ type EmbedType = "map" | "event";
     MatAutocompleteModule,
     MatInputModule,
     MatSelectModule,
+    MatSlideToggleModule,
   ],
   templateUrl: "./embed-page.component.html",
   styleUrls: ["./embed-page.component.scss"],
