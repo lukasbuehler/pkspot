@@ -2,7 +2,7 @@ import {
   ApplicationConfig,
   importProvidersFrom,
   LOCALE_ID,
-  provideExperimentalZonelessChangeDetection,
+  DOCUMENT,
 } from "@angular/core";
 import { environment } from "../environments/environment";
 import { provideFunctions, getFunctions } from "@angular/fire/functions";
@@ -28,7 +28,7 @@ import { MAT_DIALOG_DEFAULT_OPTIONS } from "@angular/material/dialog";
 import { routes } from "./app.routes";
 import { provideRouter } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
-import { DOCUMENT } from "@angular/common";
+
 import { getAuth, provideAuth } from "@angular/fire/auth";
 
 export const appConfig: ApplicationConfig = {

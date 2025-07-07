@@ -4,6 +4,7 @@ import {
   inject,
   PLATFORM_ID,
   signal,
+  DOCUMENT
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
@@ -15,7 +16,7 @@ import {
 import { CodeBlockComponent } from "../../code-block/code-block.component";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { MatChipsModule } from "@angular/material/chips";
-import { APP_BASE_HREF, DOCUMENT, isPlatformBrowser } from "@angular/common";
+import { APP_BASE_HREF, isPlatformBrowser } from "@angular/common";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { MatInputModule } from "@angular/material/input";
