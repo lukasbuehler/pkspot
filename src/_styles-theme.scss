@@ -4,7 +4,7 @@
 @mixin color($theme) {
   div.info-panel,
   div.drawer-container {
-    background-color: mat.get-theme-color($theme, surface-container-low);
+    // background-color: mat.get-theme-color($theme, surface-container-low);
   }
 
   :root,

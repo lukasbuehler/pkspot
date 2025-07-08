@@ -1,6 +1,6 @@
 import { LocaleMap, MediaType, LocaleCode } from "./Interfaces";
 import { AmenitiesMap } from "../schemas/Amenities";
-import { makeAmenitiesArray } from "./Amenities";
+import { makeAmenitiesArray, makeSmartAmenitiesArray } from "./Amenities";
 import { MapHelpers } from "../../scripts/MapHelpers";
 import { environment } from "../../environments/environment";
 import { GeoPoint } from "@firebase/firestore";
@@ -92,7 +92,20 @@ export class LocalSpot {
   type?: string;
   area?: string;
   amenities: WritableSignal<AmenitiesMap>;
-  amentitiesArray;
+  amenitiesArray: Signal<{ name?: string; icon?: string }[]>;
+  smartAmenitiesArray: Signal<
+    {
+      name?: string;
+      icon?: string;
+      priority?: "high" | "medium" | "low";
+      isNegative?: boolean;
+    }[]
+  >;
+  importantAmenitiesArray = computed(() => {
+    return this.smartAmenitiesArray().filter(
+      (amenity) => amenity.priority === "high"
+    );
+  });
 
   paths?: google.maps.LatLngLiteral[][];
 
@@ -300,12 +313,17 @@ export class LocalSpot {
 
     // Set the default amenities if they don't exist
     if (!data.amenities) data.amenities = {};
-    if (!data.amenities.indoor) data.amenities.indoor = false;
-    if (!data.amenities.outdoor) data.amenities.outdoor = false;
+    // With nullable booleans, we don't force defaults - let them remain null/undefined for unknown state
     this.amenities = signal(data.amenities);
-    this.amentitiesArray = computed(() => {
+    this.amenitiesArray = computed(() => {
       const amenities = this.amenities();
       return makeAmenitiesArray(amenities);
+    });
+
+    // Add smart amenities array that considers context and conflicts
+    this.smartAmenitiesArray = computed(() => {
+      const amenities = this.amenities();
+      return makeSmartAmenitiesArray(amenities, this.type);
     });
 
     this.paths = this._makePathsFromBounds(data.bounds ?? []);

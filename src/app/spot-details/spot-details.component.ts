@@ -35,12 +35,18 @@ import { Observable, Subscription } from "rxjs";
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import { MediaType, LocaleCode, LocaleMap } from "../../db/models/Interfaces";
 import {
+  AmenitiesMap,
   AmenityIcons,
+  AmenityNegativeIcons,
   IndoorAmenities,
   OutdoorAmenities,
   GeneralAmenities,
 } from "../../db/schemas/Amenities";
-import { AmenityNames } from "../../db/models/Amenities";
+import {
+  AmenityNames,
+  AmenityNegativeNames,
+  makeSmartAmenitiesArray,
+} from "../../db/models/Amenities";
 
 //import { MatTooltipModule } from "@angular/material/tooltip";
 
@@ -72,7 +78,13 @@ import {
   LocationStrategy,
   NgOptimizedImage,
 } from "@angular/common";
-import { MatChipListbox, MatChipsModule } from "@angular/material/chips";
+import {
+  MatChipListbox,
+  MatChipsModule,
+  MatChip,
+  MatChipSet,
+  MatChipOption,
+} from "@angular/material/chips";
 import { MatRipple, MatOption, MatRippleModule } from "@angular/material/core";
 import {
   MatCard,
@@ -115,6 +127,8 @@ import { StorageBucket } from "../../db/schemas/Media";
 import { Timestamp } from "@firebase/firestore";
 import { Router } from "@angular/router";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -128,7 +142,7 @@ export class ReversePipe implements PipeTransform {
   }
 }
 
-@Pipe({ name: "asRatingKey" })
+@Pipe({ name: "asRatingKey", standalone: true })
 export class AsRatingKeyPipe implements PipeTransform {
   transform(value: any): "1" | "2" | "3" | "4" | "5" {
     return value.toString() as "1" | "2" | "3" | "4" | "5";
@@ -156,6 +170,10 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatCardTitle,
     MatCardSubtitle,
     MatChipsModule,
+    MatChip,
+    MatChipSet,
+    MatChipListbox,
+    MatChipOption,
     MatIconButton,
     MatTooltip,
     MatIcon,
@@ -167,7 +185,6 @@ export class AsRatingKeyPipe implements PipeTransform {
     MediaUpload,
     // MatSelect,
     // MatOption,
-    MatChipListbox,
     MatCardActions,
     SpotRatingComponent,
     MatDividerModule,
@@ -182,6 +199,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatSelectModule,
     LocaleMapViewComponent,
     ChallengeListComponent,
+    SpotAmenityToggleComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -251,7 +269,9 @@ export class SpotDetailsComponent
   isSaving: boolean = false;
 
   AmenityIcons = AmenityIcons;
+  AmenityNegativeIcons = AmenityNegativeIcons;
   AmenityNames = AmenityNames;
+  AmenityNegativeNames = AmenityNegativeNames;
   IndoorAmenities = IndoorAmenities;
   OutdoorAmenities = OutdoorAmenities;
   GeneralAmenities = GeneralAmenities;
@@ -471,7 +491,7 @@ export class SpotDetailsComponent
   }
 
   addBoundsClicked() {
-    if (this.spot() instanceof LocalSpot) {
+    if (!(this.spot() instanceof Spot)) {
       console.error("the spot needs to be saved first before adding bounds");
     }
     if (!this.isEditing()) {
@@ -863,6 +883,29 @@ export class SpotDetailsComponent
     this.spot!.update((spot) => {
       if (!spot) return spot;
       spot.hideStreetview = event.checked;
+      return spot;
+    });
+  }
+
+  updateAmenityFromToggle(
+    amenityKey: keyof AmenitiesMap,
+    selected: boolean | null | undefined
+  ) {
+    this.spot!.update((spot) => {
+      if (!spot) return spot;
+
+      const amenities = spot.amenities();
+
+      // Handle indoor/outdoor mutual exclusivity
+      if (amenityKey === "indoor" && selected) {
+        amenities.outdoor = null; // Reset outdoor when indoor is selected
+      } else if (amenityKey === "outdoor" && selected) {
+        amenities.indoor = null; // Reset indoor when outdoor is selected
+      }
+
+      // Set the amenity value using nullable boolean logic
+      (amenities as any)[amenityKey] = selected ?? null;
+
       return spot;
     });
   }

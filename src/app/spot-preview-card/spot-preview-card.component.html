@@ -30,10 +30,14 @@
             [isCompact]="true"
           ></app-spot-rating>
           }
-          {{ spot()?.rating && spotAmentitiesArray().length > 0 ? "⸱" : null }}
+          {{ spot()?.rating && spotAmenitiesArray().length > 0 ? "⸱" : null }}
           <div class="d-flex flex-row align-items-center gap-1">
-            @for(amenity of spotAmentitiesArray(); track amenity) {
-            <mat-icon class="amenity-icon">{{ amenity.icon }}</mat-icon>
+            @for(amenity of spotAmenitiesArray(); track amenity) {
+            <mat-icon
+              class="amenity-icon"
+              [class.negative]="amenity.isNegative"
+              >{{ amenity.icon }}</mat-icon
+            >
             }
           </div>
         </div>

@@ -158,10 +158,44 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     private snackBar: MatSnackBar,
     private cd: ChangeDetectorRef // <-- Inject ChangeDetectorRef
   ) {
+    // Track the previous spot to detect actual changes
+    let previousSpotKey: string | null = null;
+
     effect(() => {
       const spot = this.selectedSpot();
       if (spot) {
         this.focusSpot(spot);
+
+        // Create a key for the current spot
+        const currentSpotKey =
+          "id" in spot
+            ? (spot.id as string)
+            : `local-${spot.location().lat}-${spot.location().lng}`;
+
+        // AGGRESSIVE POLYGON RESET: If spot changed and we're editing, restart the editing mode
+        if (previousSpotKey && previousSpotKey !== currentSpotKey && this.map) {
+          if (this.isEditing()) {
+            // Stop editing completely to destroy the polygon
+            this.isEditing.set(false);
+            this.cd.detectChanges();
+
+            // Force polygon recreation on the map component
+            this.map.forcePolygonRecreation();
+
+            // Wait a moment, then restart editing
+            setTimeout(() => {
+              this.isEditing.set(true);
+              this.cd.detectChanges();
+            }, 150);
+          } else {
+            // Even if not editing, force polygon recreation to clear any stale state
+            this.map.forcePolygonRecreation();
+          }
+        }
+
+        previousSpotKey = currentSpotKey;
+      } else {
+        previousSpotKey = null;
       }
     });
 
@@ -190,8 +224,6 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   isInitiated: boolean = false;
 
   ngAfterViewInit(): void {
-    // console.log("SpotMapComponent initialized");
-
     if (!this.map) {
       console.warn("Map not initialized in ngAFterViewInit!");
       return;
@@ -341,8 +373,6 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   openSpotByWhateverMeansNecessary(
     spot: LocalSpot | Spot | SpotPreviewData | SpotId
   ) {
-    console.debug("Opening spot by whatever means necessary:", spot);
-
     if (this.selectedSpot() === spot) {
       this.closeSpot();
       if (this.selectedSpot() === spot) {
@@ -467,25 +497,61 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   startEdit() {
-    this.isEditing.set(true);
+    // AGGRESSIVE POLYGON RESET: Force the polygon to be completely destroyed and recreated
+    if (this.isEditing()) {
+      // Temporarily turn off editing to destroy the polygon
+      this.isEditing.set(false);
 
-    this.uneditedSpot = this.selectedSpot()?.clone();
+      // Force change detection and polygon recreation
+      this.cd.detectChanges();
+      if (this.map) {
+        this.map.forcePolygonRecreation();
+      }
+
+      // Wait a moment, then turn editing back on
+      setTimeout(() => {
+        this.isEditing.set(true);
+        this.uneditedSpot = this.selectedSpot()?.clone();
+      }, 100);
+    } else {
+      // Normal flow - but still force polygon recreation to ensure clean state
+      if (this.map) {
+        this.map.forcePolygonRecreation();
+      }
+
+      this.isEditing.set(true);
+      this.uneditedSpot = this.selectedSpot()?.clone();
+    }
   }
 
-  saveSpot(spot: LocalSpot | Spot) {
+  async saveSpot(spot: LocalSpot | Spot) {
+    // Get the current polygon paths from the map component using the proper method
+    if (this.map && this.isEditing()) {
+      // Try the main async method first
+      let updatedPaths = await this.map.getSelectedSpotPolygonPaths();
+
+      if (updatedPaths && updatedPaths.length > 0) {
+        // Always update the spot's paths with the latest from the map
+        spot.paths = updatedPaths;
+      }
+    }
+
     this._spotMapDataManager
       .saveSpot(spot)
       .then(() => {
-        // Successfully updated
+        // Successfully updated - completely stop editing to destroy polygon
         this.isEditing.set(false);
+
+        // Force change detection and polygon destruction
+        this.cd.detectChanges();
+        if (this.map) {
+          this.map.forcePolygonRecreation();
+        }
+
         this.snackBar.open(
           $localize`Spot saved successfully`,
           $localize`Dismiss`
         );
-
-        // update the selected spot so that it is displayed in the URL
-        this.selectedSpot.set(null);
-        this.selectedSpot.set(spot);
       })
       .catch((error) => {
         this.isEditing.set(false);

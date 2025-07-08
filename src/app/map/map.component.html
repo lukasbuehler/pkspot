@@ -91,18 +91,31 @@
   >
   </map-circle>
   } @else {
+  <!-- Don't show regular polygon if this spot is selected and being edited -->
+  @if(!(isSelectedSpotBeingEdited(spot))) {
   <map-polygon
     [options]="spotPolygonOptions"
     [paths]="spot.paths![0]"
     (polygonClick)="spotClick.emit(spot)"
   ></map-polygon>
-  } } }
+  } } } }
+
+  <!-- Selected spot polygon (when editing) - uses recreation key to force re-render -->
+  @if(selectedSpot() && isEditing() && showSelectedSpotPolygon()) { @for(dummy
+  of [polygonRecreationKey()]; track polygonRecreationKey()) {
+  <map-polygon
+    #selectedSpotPolygon
+    [options]="selectedSpotPolygonEditingOptions"
+    [paths]="selectedSpotFirstPath()"
+    (polygonClick)="spotClick.emit(selectedSpot()!)"
+  ></map-polygon>
+  } }
   <!-- selected spot marker -->
-  @if(selectedSpot) { @if(selectedChallenge){ @if(isEditing()) {
+  @if(selectedSpot()) { @if(selectedChallenge){ @if(isEditing()) {
   <map-advanced-marker
     #selectedSpotChallengeMarker
     id="selectedChallengeMarker"
-    [position]="selectedChallenge.location() ?? selectedSpot.location()"
+    [position]="selectedChallenge.location() ?? selectedSpot()!.location()"
     (mapDragend)="editingChallengePositionChanged($event.latLng!)"
     [content]="selectedChallengeMarkerNode.elementRef.nativeElement"
     [zIndex]="100 + 1"
@@ -114,7 +127,7 @@
   <map-advanced-marker
     #selectedSpotChallengeMarker
     id="selectedChallengeMarker"
-    [position]="selectedChallenge.location() ?? selectedSpot.location()"
+    [position]="selectedChallenge.location() ?? selectedSpot()!.location()"
     [content]="selectedChallengeMarkerNode.elementRef.nativeElement"
     [zIndex]="100 + 1"
     [options]="{
@@ -133,7 +146,7 @@
   <map-advanced-marker
     #selectedSpotMarker
     id="selectedSpotMarker"
-    [position]="selectedSpot.location()"
+    [position]="selectedSpot()!.location()"
     [draggable]="isEditing()"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotInfoWindow"
@@ -145,9 +158,9 @@
     style="width: 200px"
   >
     <app-spot-preview-card
-      [spot]="selectedSpot"
+      [spot]="selectedSpot()"
       [hasBorder]="false"
-      (dismiss)="selectedSpot = null"
+      (dismiss)="closeSelectedSpot()"
       class="shadow-lg flex-grow-1 w-100"
     >
     </app-spot-preview-card>
@@ -168,7 +181,7 @@
   <map-advanced-marker
     #selectedSpotMarker
     id="selectedSpotMarker"
-    [position]="selectedSpot.location()"
+    [position]="selectedSpot()!.location()"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotMarkerNode.elementRef.nativeElement"
     [zIndex]="100 + 1"
@@ -180,7 +193,7 @@
   <map-advanced-marker
     #selectedSpotMarker
     id="selectedSpotMarker"
-    [position]="selectedSpot.location()"
+    [position]="selectedSpot()!.location()"
     [content]="selectedSpotMarkerNode.elementRef.nativeElement"
     [zIndex]="100 + 1"
     [options]="{
@@ -192,12 +205,12 @@
     #selectedSpotMarkerNode
     class="fade-in"
     id="selectedSpotMarkerNode"
-    [icons]="[selectedSpot.isIconic ? 'star' : 'emoji_people']"
-    [isIconic]="selectedSpot.isIconic"
+    [icons]="[selectedSpot()!.isIconic ? 'star' : 'emoji_people']"
+    [isIconic]="selectedSpot()!.isIconic"
   >
   </app-marker>
 
-  @for(challenge of selectedSpotChallenges; track $index) {
+  @for(challenge of selectedSpotChallenges(); track $index) {
   @if(challenge.location) {
   <map-advanced-marker
     #selectedSpotChallengeMarker

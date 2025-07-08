@@ -47,7 +47,9 @@
       }
     </mat-card-title>
     <mat-card-subtitle class="d-flex flex-row justify-content-between">
-      <div class="d-flex flex-column justify-content-center text-truncate">
+      <div
+        class="d-flex flex-column flex-grow-1 justify-content-center text-truncate"
+      >
         <div class="d-flex flex-row gap-1 align-items-center pb-1">
           <span class="mat-label-small px-1 border rounded me-1">Spot</span>
           @if(spot()?.rating) {
@@ -59,11 +61,18 @@
             [isCompact]="true"
           ></app-spot-rating
           >}
+          {{ spot()?.rating || spot()?.type ? "⸱" : null }}
+          <span class="mat-label-large text-nowrap text-truncate">
+            {{ spot()?.type ? capitalize(spot()?.type!) : null }}</span
+          >
           {{
-            spot()?.rating && spot()!.amentitiesArray().length > 0 ? "⸱" : null
+            (spot()?.rating || spot()?.type) &&
+            spot()!.importantAmenitiesArray().length > 0
+              ? "⸱"
+              : null
           }}
           <div class="d-flex flex-row gap-1 align-items-center">
-            @for(amenity of spot()!.amentitiesArray(); track amenity) {
+            @for(amenity of spot()!.importantAmenitiesArray(); track amenity) {
             <mat-icon class="amenity-icon" [matTooltip]="amenity.name">{{
               amenity.icon
             }}</mat-icon>
@@ -264,7 +273,8 @@
     }
 
     <!-- Freatures -->
-    @if(spot()?.amentitiesArray() && spot()!.amentitiesArray().length > 0) {
+    @if(spot()?.smartAmenitiesArray() && spot()!.smartAmenitiesArray().length >
+    0) {
     <div class="mb-4">
       <h4
         i18n="amenities header|The header for the spot features and amenities"
@@ -272,9 +282,12 @@
       >
         Features and amenities
       </h4>
+      @if(spot()?.type) {
+      <p class="mat-label-large">Type: {{ capitalize(spot()?.type!) }}</p>
+      }
       <mat-chip-set>
-        @for(amenity of spot()!.amentitiesArray(); track amenity) {
-        <mat-chip>
+        @for(amenity of spot()!.smartAmenitiesArray(); track amenity) {
+        <mat-chip [class.negative-amenity]="amenity.isNegative">
           <mat-icon matChipAvatar>{{ amenity.icon }}</mat-icon>
           {{ amenity.name }}
         </mat-chip>
@@ -480,14 +493,17 @@
       </app-locale-map-edit-field>
     </form>
 
-    <!-- Media preview grid -->
-    <app-media-preview-grid
-      [media]="spot()!.userMedia()"
-      (mediaChanged)="mediaChanged($event)"
-    ></app-media-preview-grid>
+    <div class="pb-2 pt-2">
+      <h4 class="mat-title-small" i18n>Media</h4>
+      <!-- Media preview grid -->
+      @if(spot()!.userMedia() && spot()!.userMedia().length > 0) {
+      <app-media-preview-grid
+        [media]="spot()!.userMedia()"
+        (mediaChanged)="mediaChanged($event)"
+      ></app-media-preview-grid>
+      }
 
-    <!-- Image upload  -->
-    <div class="pb-4 pt-2">
+      <!-- Image upload  -->
       <app-media-upload
         class="w-100"
         [allowedMimeTypes]="['image/jpg', 'image/jpeg', 'image/png']"
@@ -496,18 +512,18 @@
         (newMedia)="setNewMediaFromUpload($event)"
       >
       </app-media-upload>
+
+      <!-- Hide Streetview -->
+
+      <mat-slide-toggle
+        i18n
+        class="mb-4"
+        [checked]="spot()!.hideStreetview"
+        color="primary"
+        (change)="setHideStreetviewFromToggle($event)"
+        >Hide Streetview</mat-slide-toggle
+      >
     </div>
-
-    <!-- Hide Streetview -->
-
-    <mat-slide-toggle
-      i18n
-      class="mb-4"
-      [checked]="spot()!.hideStreetview"
-      color="primary"
-      (change)="setHideStreetviewFromToggle($event)"
-      >Hide Streetview</mat-slide-toggle
-    >
 
     <!-- Slug selection -->
     <div class="pb-4">
@@ -539,70 +555,6 @@
       >Iconic Spot</mat-slide-toggle
     > -->
 
-    <!-- Features and Amenities -->
-    <div class="w-100 mb-4">
-      <h4
-        i18n="amenities header|The header for the spot features and amenities"
-        class="mat-title-small"
-      >
-        Features and amenities
-      </h4>
-
-      <mat-chip-listbox>
-        <mat-chip-option
-          [selected]="spot()!.amenities().indoor"
-          (selectionChange)="
-            spot()!.amenities().indoor = $event.selected;
-            spot()!.amenities().outdoor = !$event.selected
-          "
-          ><mat-icon matChipAvatar>{{ AmenityIcons["indoor"] }}</mat-icon
-          >{{ AmenityNames["indoor"] }}</mat-chip-option
-        >
-        <mat-chip-option
-          [selected]="spot()!.amenities().outdoor"
-          (selectionChange)="
-            spot()!.amenities().outdoor = $event.selected;
-            spot()!.amenities().indoor = !$event.selected
-          "
-          ><mat-icon matChipAvatar>{{ AmenityIcons["outdoor"] }}</mat-icon
-          >{{ AmenityNames["outdoor"] }}</mat-chip-option
-        >
-      </mat-chip-listbox>
-      @if(spot()!.amenities().indoor) {
-      <mat-chip-set>
-        @for(amenity of IndoorAmenities; track amenity) {
-        <mat-chip-option
-          [selected]="spot()!.amenities()[amenity]"
-          (selectionChange)="spot()!.amenities()[amenity] = $event.selected"
-          ><mat-icon matChipAvatar>{{ AmenityIcons[amenity] }}</mat-icon
-          >{{ AmenityNames[amenity] }}</mat-chip-option
-        >
-        }
-      </mat-chip-set>
-      } @if(spot()!.amenities().outdoor) {
-      <mat-chip-set>
-        @for(amenity of OutdoorAmenities; track amenity) {
-        <mat-chip-option
-          [selected]="spot()!.amenities()[amenity]"
-          (selectionChange)="spot()!.amenities()[amenity] = $event.selected"
-          ><mat-icon matChipAvatar>{{ AmenityIcons[amenity] }}</mat-icon
-          >{{ AmenityNames[amenity] }}</mat-chip-option
-        >
-        }
-      </mat-chip-set>
-      }
-      <mat-chip-set>
-        @for(amenity of GeneralAmenities; track amenity) {
-        <mat-chip-option
-          [selected]="spot()!.amenities()[amenity]"
-          (selectionChange)="spot()!.amenities()[amenity] = $event.selected"
-          ><mat-icon matChipAvatar>{{ AmenityIcons[amenity] }}</mat-icon
-          >{{ AmenityNames[amenity] }}</mat-chip-option
-        >
-        }
-      </mat-chip-set>
-    </div>
-
     <!-- Description -->
     <h4
       class="mat-title-small"
@@ -622,6 +574,7 @@
     >
     </app-locale-map-edit-field>
 
+    <!-- Bounds -->
     <div class="my-3 d-flex justify-start">
       @if(!isNewSpot && !hasBounds()) {
       <button
@@ -635,8 +588,69 @@
       </button>
       }
     </div>
+
+    <!-- Features and Amenities -->
+    <div class="w-100 mb-4">
+      <h4
+        i18n="amenities header|The header for the spot features and amenities"
+        class="mat-title-small"
+      >
+        Features and amenities
+      </h4>
+
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames['indoor']"
+        [negativeLabel]="AmenityNegativeNames['indoor']"
+        [positiveIcon]="AmenityIcons['indoor']"
+        [negativeIcon]="AmenityNegativeIcons['indoor']"
+        [value]="spot()!.amenities()['indoor']"
+        (valueChange)="updateAmenityFromToggle('indoor', $event)"
+      ></app-spot-amenity-toggle>
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames['outdoor']"
+        [negativeLabel]="AmenityNegativeNames['outdoor']"
+        [positiveIcon]="AmenityIcons['outdoor']"
+        [negativeIcon]="AmenityNegativeIcons['outdoor']"
+        [value]="spot()!.amenities()['outdoor']"
+        (valueChange)="updateAmenityFromToggle('outdoor', $event)"
+      ></app-spot-amenity-toggle>
+
+      @for(amenity of GeneralAmenities; track amenity) {
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames[amenity]"
+        [negativeLabel]="AmenityNegativeNames[amenity]"
+        [positiveIcon]="AmenityIcons[amenity]"
+        [negativeIcon]="AmenityNegativeIcons[amenity]"
+        [value]="spot()!.amenities()[amenity]"
+        (valueChange)="updateAmenityFromToggle(amenity, $event)"
+      ></app-spot-amenity-toggle>
+      } @if(spot()!.amenities().indoor === true) { @for(amenity of
+      IndoorAmenities; track amenity) {
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames[amenity]"
+        [negativeLabel]="AmenityNegativeNames[amenity]"
+        [positiveIcon]="AmenityIcons[amenity]"
+        [negativeIcon]="AmenityNegativeIcons[amenity]"
+        [value]="spot()!.amenities()[amenity]"
+        (valueChange)="updateAmenityFromToggle(amenity, $event)"
+      ></app-spot-amenity-toggle>
+      } } @if(spot()!.amenities().outdoor === true) { @for(amenity of
+      OutdoorAmenities; track amenity) {
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames[amenity]"
+        [negativeLabel]="AmenityNegativeNames[amenity]"
+        [positiveIcon]="AmenityIcons[amenity]"
+        [negativeIcon]="AmenityNegativeIcons[amenity]"
+        [value]="spot()!.amenities()[amenity]"
+        (valueChange)="updateAmenityFromToggle(amenity, $event)"
+      ></app-spot-amenity-toggle>
+      } }
+    </div>
+
     }
   </mat-card-content>
+
+  <!-- Saving actions -->
   @if(isEditing()) {
   <mat-card-actions class="mt-3 gap-2">
     @if(editable) {

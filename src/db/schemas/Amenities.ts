@@ -1,19 +1,20 @@
 export interface AmenitiesMap {
-  entry_fee?: boolean;
-  indoor?: boolean;
-  outdoor?: boolean;
-  covered?: boolean;
-  lighting?: boolean;
-  wc?: boolean;
-  changing_room?: boolean;
-  lockers?: boolean;
-  heated?: boolean;
-  ac?: boolean;
-  drinking_water?: boolean;
-  parking_on_site?: boolean;
-  power_outlets?: boolean;
-  maybe_overgrown?: boolean;
-  water_feature?: boolean;
+  // Nullable booleans - true = has it, false = explicitly doesn't have it, null/undefined = unknown
+  entry_fee?: boolean | null;
+  indoor?: boolean | null;
+  outdoor?: boolean | null;
+  covered?: boolean | null;
+  lighting?: boolean | null;
+  wc?: boolean | null;
+  changing_room?: boolean | null;
+  lockers?: boolean | null;
+  heated?: boolean | null;
+  ac?: boolean | null;
+  drinking_water?: boolean | null;
+  parking_on_site?: boolean | null;
+  power_outlets?: boolean | null;
+  maybe_overgrown?: boolean | null;
+  water_feature?: boolean | null;
 }
 
 export const AmenitiesOrder = [
@@ -31,6 +32,7 @@ export const AmenitiesOrder = [
   "power_outlets",
   "maybe_overgrown",
   "water_feature",
+  "entry_fee",
 ] as (keyof AmenitiesMap)[];
 
 export const IndoorAmenities = [
@@ -62,7 +64,7 @@ export const AmenityIcons: { [key in keyof AmenitiesMap]: string } = {
   lighting: "lightbulb",
   wc: "wc",
   changing_room: "checkroom",
-  heated: "thermostat", // "whatshot",
+  heated: "thermostat",
   ac: "ac_unit",
   lockers: "lock",
   entry_fee: "paid",
@@ -71,4 +73,23 @@ export const AmenityIcons: { [key in keyof AmenitiesMap]: string } = {
   power_outlets: "power",
   maybe_overgrown: "grass",
   water_feature: "water",
+};
+
+// Icons for negative states
+export const AmenityNegativeIcons: { [key in keyof AmenitiesMap]: string } = {
+  covered: "umbrella",
+  outdoor: "macro_off",
+  indoor: "no_meeting_room",
+  lighting: "flashlight_off",
+  wc: "block",
+  changing_room: "block",
+  heated: "severe_cold",
+  ac: "mode_fan_off",
+  lockers: "block",
+  entry_fee: "money_off",
+  drinking_water: "format_color_reset",
+  parking_on_site: "car_crash",
+  power_outlets: "power_off",
+  maybe_overgrown: "yard",
+  water_feature: "block",
 };

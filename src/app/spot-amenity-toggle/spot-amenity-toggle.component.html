@@ -1,0 +1,24 @@
+<div class="w-100 d-flex flex-column gap-1 align-items-center">
+  <p class="mat-body-medium p-0 mb-1 w-100" i18n>
+    {{ positiveLabel() }}
+  </p>
+  <mat-button-toggle-group
+    class="mw-100"
+    [multiple]="false"
+    [value]="value() === true ? 'yes' : value() === false ? 'no' : 'dunno'"
+    (valueChange)="
+      value.set($event === 'yes' ? true : $event === 'no' ? false : null)
+    "
+    name="indoor"
+  >
+    <mat-button-toggle value="yes"
+      ><mat-icon class="me-1">{{ positiveIcon() }}</mat-icon>
+      <span i18n>Yes</span></mat-button-toggle
+    >
+    <mat-button-toggle value="no"
+      ><mat-icon class="me-1">{{ negativeIcon() }}</mat-icon>
+      <span i18n>No</span></mat-button-toggle
+    >
+    <mat-button-toggle value="dunno" i18n>Not sure</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>

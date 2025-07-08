@@ -4,12 +4,12 @@
 @mixin color($theme) {
   div.info-panel,
   .spot-search-field {
-    background-color: mat.get-theme-color($theme, surface-container-low);
-    // background-color: rgba(
-    //   mat.get-theme-color($theme, surface-container-low),
-    //   0.9
-    // );
-    // backdrop-filter: blur(15px);
+    // background-color: mat.get-theme-color($theme, surface-container-low);
+    background-color: rgba(
+      mat.get-theme-color($theme, surface-container-low),
+      0.9
+    );
+    backdrop-filter: blur(15px);
   }
 }
 

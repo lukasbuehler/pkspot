@@ -140,3 +140,17 @@ div.google-img-container {
   width: 1rem;
   font-size: 1rem;
 }
+
+// Styling for negative amenities
+.negative-amenity {
+  // Use a muted red color scheme for negative amenities
+  &.mat-mdc-chip {
+    border-color: rgba(244, 67, 54, 0.6);
+    background-color: rgba(244, 67, 54, 0.12);
+    color: rgba(244, 67, 54, 0.6);
+  }
+
+  mat-icon {
+    color: rgba(195, 47, 37, 0.8);
+  }
+}

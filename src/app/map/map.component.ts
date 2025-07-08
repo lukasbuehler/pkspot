@@ -16,8 +16,10 @@ import {
   model,
   ModelSignal,
   OnChanges,
+  SimpleChanges,
   signal,
   effect,
+  AfterViewInit,
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
@@ -88,7 +90,7 @@ export interface TilesObject {
     ]),
   ],
 })
-export class MapComponent implements OnInit, OnChanges {
+export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   @ViewChild("googleMap") googleMap: GoogleMap | undefined;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
   // @ViewChildren(MapPolygon, { read: ElementRef })
@@ -97,6 +99,8 @@ export class MapComponent implements OnInit, OnChanges {
   @ViewChild("selectedChallengeMarker") selectedChallengeMarker:
     | MapAdvancedMarker
     | undefined;
+  @ViewChild("selectedSpotPolygon", { static: false, read: MapPolygon })
+  selectedSpotPolygon: MapPolygon | undefined;
 
   // add math function to markup
   sqrt = Math.sqrt;
@@ -162,8 +166,8 @@ export class MapComponent implements OnInit, OnChanges {
   @Input() spots: (LocalSpot | Spot)[] = [];
   @Input() dots: SpotClusterDotSchema[] = [];
 
-  @Input() selectedSpot: Spot | LocalSpot | null = null;
-  @Input() selectedSpotChallenges: SpotChallengePreview[] = [];
+  selectedSpot = input<Spot | LocalSpot | null>(null);
+  selectedSpotChallenges = input<SpotChallengePreview[]>([]);
   @Input() selectedChallenge: SpotChallenge | LocalSpotChallenge | null = null;
 
   @Input() showGeolocation: boolean = false;
@@ -251,10 +255,64 @@ export class MapComponent implements OnInit, OnChanges {
     return tilesObj;
   });
 
+  /**
+   * Track changes to the selected spot for proper polygon updates
+   */
+  selectedSpotTracker = computed(() => {
+    const selectedSpot = this.selectedSpot();
+    if (!selectedSpot) return null;
+
+    // Create a unique identifier for the selected spot
+    const id = "id" in selectedSpot ? selectedSpot.id : "local";
+    const location = selectedSpot.location();
+    return {
+      id,
+      location: `${location.lat},${location.lng}`,
+    };
+  });
+
+  /**
+   * Get a unique key for the selected spot to force polygon recreation
+   */
+  selectedSpotKey = computed(() => {
+    const selectedSpot = this.selectedSpot();
+    if (!selectedSpot) {
+      return null;
+    }
+
+    // Create a unique key that changes when the spot changes
+    const id = "id" in selectedSpot ? selectedSpot.id : "local";
+    const location = selectedSpot.location();
+    const key = `${id}-${location.lat}-${location.lng}`;
+
+    return key;
+  });
+
+  /**
+   * Signal to force polygon recreation by changing the template key
+   */
+  polygonRecreationKey = signal<number>(0);
+
   constructor(
     private cdr: ChangeDetectorRef,
     public mapsApiService: MapsApiService
   ) {
+    // Effect to handle selected spot changes for polygon updates
+    effect(() => {
+      const tracker = this.selectedSpotTracker();
+      const isEditing = this.isEditing();
+
+      // Only log and update when we have a spot AND we're in editing mode
+      if (tracker && isEditing) {
+        console.log("Selected spot tracker changed during editing:", tracker);
+
+        // Use setTimeout to ensure the DOM and ViewChild are updated
+        setTimeout(() => {
+          this.updatePolygonForNewSpot();
+        }, 50);
+      }
+    });
+
     // if (this.selectedSpot) {
     //   this.selectedSpotMarkerNode = this.buildAdvancedMarkerContent(
     //     this.selectedSpot
@@ -314,8 +372,94 @@ export class MapComponent implements OnInit, OnChanges {
     }
   }
 
-  ngOnChanges() {
-    // console.log("markers in map", this.markers());
+  ngOnChanges(changes: SimpleChanges) {
+    // Check if selectedSpot has changed
+    if (changes["selectedSpot"]) {
+      console.log("Selected spot changed:", {
+        previous: changes["selectedSpot"].previousValue,
+        current: changes["selectedSpot"].currentValue,
+      });
+
+      // Force the polygon to update when spot changes
+      this.handleSelectedSpotChange();
+    }
+  }
+  /**
+   * Handle when the selected spot changes - ensure polygon state is properly reset
+   */
+  private handleSelectedSpotChange() {
+    console.log("handleSelectedSpotChange called");
+
+    // Force polygon recreation when spot changes
+    this.forcePolygonRecreation();
+  }
+
+  /**
+   * Update the polygon when a new spot is selected for editing
+   */
+  private updatePolygonForNewSpot() {
+    if (!this.isEditing() || !this.selectedSpot) {
+      return;
+    }
+
+    console.log("updatePolygonForNewSpot called for:", this.selectedSpot);
+
+    // Force change detection to ensure the ViewChild is updated
+    this.cdr.detectChanges();
+
+    // Wait a bit more for the ViewChild to be available
+    setTimeout(() => {
+      if (!this.selectedSpotPolygon?.polygon) {
+        console.log("selectedSpotPolygon not available yet, waiting longer...");
+        setTimeout(() => this.forceUpdatePolygonPaths(), 100);
+        return;
+      }
+
+      this.forceUpdatePolygonPaths();
+    }, 100);
+  }
+
+  /**
+   * Force update the polygon paths regardless of ViewChild timing issues
+   */
+  private forceUpdatePolygonPaths() {
+    if (!this.selectedSpotPolygon?.polygon || !this.selectedSpot) {
+      console.log("Cannot force update - missing polygon or spot");
+      return;
+    }
+
+    console.log("Forcing polygon paths update for spot:", this.selectedSpot);
+
+    // Clear ALL existing paths aggressively
+    const paths = this.selectedSpotPolygon.polygon.getPaths();
+    for (let i = paths.getLength() - 1; i >= 0; i--) {
+      paths.removeAt(i);
+    }
+
+    // Get the new paths for the current spot
+    const newPaths = this.selectedSpotPaths();
+    console.log("New paths to set:", newPaths);
+
+    if (newPaths.length > 0 && newPaths[0].length > 0) {
+      // Create a new path and set it
+      const newPath = new google.maps.MVCArray(
+        newPaths[0].map((point) => new google.maps.LatLng(point.lat, point.lng))
+      );
+
+      // Add the new path
+      this.selectedSpotPolygon.polygon.getPaths().push(newPath);
+
+      console.log("Successfully set new polygon paths");
+
+      // Focus the map on the new polygon
+      if (this.googleMap) {
+        const bounds = new google.maps.LatLngBounds();
+        newPaths[0].forEach((point) => bounds.extend(point));
+        this.googleMap.fitBounds(bounds);
+      }
+    } else {
+      console.warn("No valid paths to set for the new spot");
+    }
   }
 
   ngOnDestroy() {
@@ -362,6 +506,14 @@ export class MapComponent implements OnInit, OnChanges {
     return geoPoint
       ? { lat: geoPoint.latitude, lng: geoPoint.longitude }
       : null;
+  }
+
+  geopointToLatLngLiteral(geoPoint: GeoPoint): google.maps.LatLngLiteral {
+    if (!geoPoint) throw new Error("No GeoPoint provided");
+    if (!geoPoint.latitude || !geoPoint.longitude)
+      throw new Error("Invalid GeoPoint provided");
+
+    return { lat: geoPoint.latitude, lng: geoPoint.longitude };
   }
 
   getBoundsForTile(tile: { zoom: number; x: number; y: number }) {
@@ -450,6 +602,7 @@ export class MapComponent implements OnInit, OnChanges {
     draggable: false,
     clickable: true,
   };
+
   // spotPolygonLightOptions: google.maps.PolygonOptions = {
   //   fillColor: "#0036ba",
   //   strokeColor: "#b8c4ff",
@@ -461,10 +614,16 @@ export class MapComponent implements OnInit, OnChanges {
   //   clickable: true,
   // };
   spotPolygonOptions: google.maps.PolygonOptions = this.spotPolygonDarkOptions;
-  //   spotPolygonEditingOptions: google.maps.PolygonOptions = {
-  //     ...this.spotPolygonOptions,
-  //     editable: true,
-  //   };
+
+  selectedSpotPolygonEditingOptions: google.maps.PolygonOptions = {
+    ...this.spotPolygonOptions,
+    editable: true,
+    strokeColor: "#0036ba",
+    fillColor: "#b8c4ff",
+    strokeWeight: 4,
+    strokeOpacity: 0.9,
+    fillOpacity: 0.3,
+  };
 
   geolocationCircleOptions: google.maps.CircleOptions = {
     fillColor: "#0000ff",
@@ -535,9 +694,10 @@ export class MapComponent implements OnInit, OnChanges {
   }
 
   editingSpotPositionChanged(position: google.maps.LatLng) {
-    if (!this.selectedSpot) return;
+    const selectedSpot = this.selectedSpot();
+    if (!selectedSpot) return;
 
-    this.selectedSpot.location.set(position.toJSON());
+    selectedSpot.location.set(position.toJSON());
   }
 
   editingChallengePositionChanged(position: google.maps.LatLng) {
@@ -545,13 +705,220 @@ export class MapComponent implements OnInit, OnChanges {
 
     this.selectedChallenge.location.set(position.toJSON());
   }
+  showSelectedSpotPolygon(): boolean {
+    if (!this.selectedSpot || !this.isEditing()) {
+      return false;
+    }
 
-  geopointToLatLngLiteral(geoPoint: GeoPoint): google.maps.LatLngLiteral {
-    if (!geoPoint) throw new Error("No GeoPoint provided");
-    if (!geoPoint.latitude || !geoPoint.longitude)
-      throw new Error("Invalid GeoPoint provided");
+    // Show polygon editing for selected spot when editing
+    // Either if it already has bounds/paths, or if we want to add them
+    return true;
+  }
+  /**
+   * Check if a given spot is the currently selected spot and is being edited
+   */
+  isSelectedSpotBeingEdited(spot: LocalSpot | Spot): boolean {
+    if (!this.selectedSpot || !this.isEditing()) return false;
 
-    return { lat: geoPoint.latitude, lng: geoPoint.longitude };
+    // For Spot instances (with ID), compare by ID
+    if ("id" in this.selectedSpot && "id" in spot) {
+      const result = this.selectedSpot.id === spot.id;
+      return result;
+    }
+
+    // For LocalSpot instances or mixed cases, compare by location
+    // This is a fallback that should work for most cases
+    const selectedLoc = this.selectedSpot()?.location();
+    if (!selectedLoc) return false;
+    const spotLoc = spot.location();
+    const result =
+      selectedLoc.lat === spotLoc.lat && selectedLoc.lng === spotLoc.lng;
+
+    return result;
+  }
+
+  /**
+   * Debug method to check the state of the selectedSpotPolygon ViewChild
+   * Can be called from browser console for debugging
+   */
+  debugPolygonState() {
+    console.log("=== POLYGON DEBUG STATE ===");
+    console.log("selectedSpot:", this.selectedSpot);
+    console.log("isEditing():", this.isEditing());
+    console.log("showSelectedSpotPolygon():", this.showSelectedSpotPolygon());
+    console.log("selectedSpotPolygon ViewChild:", this.selectedSpotPolygon);
+    console.log(
+      "selectedSpotPolygon.polygon:",
+      this.selectedSpotPolygon?.polygon
+    );
+
+    if (this.selectedSpotPolygon?.polygon) {
+      const paths = this.selectedSpotPolygon.polygon.getPaths();
+      console.log("Polygon paths:", paths);
+
+      if (paths && paths.getLength() > 0) {
+        const firstPath = paths.getAt(0);
+        console.log("First path length:", firstPath.getLength());
+        for (let i = 0; i < firstPath.getLength(); i++) {
+          const point = firstPath.getAt(i);
+          console.log(`Point ${i}:`, { lat: point.lat(), lng: point.lng() });
+        }
+      }
+    }
+
+    console.log("=== END POLYGON DEBUG ===");
+  }
+
+  /**
+   * Debug method to check polygon state - can be called from console
+   */
+  debugPolygonStateForSpotSwitch() {
+    console.log("=== POLYGON DEBUG FOR SPOT SWITCH ===");
+    console.log("selectedSpot:", this.selectedSpot);
+    console.log("isEditing():", this.isEditing());
+    console.log("selectedSpotPolygon ViewChild:", this.selectedSpotPolygon);
+
+    if (this.selectedSpotPolygon?.polygon) {
+      const paths = this.selectedSpotPolygon.polygon.getPaths();
+      console.log("Current polygon paths count:", paths.getLength());
+
+      for (let i = 0; i < paths.getLength(); i++) {
+        const path = paths.getAt(i);
+        console.log(`Path ${i} length:`, path.getLength());
+
+        if (path.getLength() > 0) {
+          console.log(`First point of path ${i}:`, {
+            lat: path.getAt(0).lat(),
+            lng: path.getAt(0).lng(),
+          });
+        }
+      }
+    }
+
+    console.log("selectedSpotPaths():", this.selectedSpotPaths());
+    console.log("selectedSpotFirstPath():", this.selectedSpotFirstPath());
+    console.log("=== END POLYGON DEBUG ===");
+  }
+
+  /**
+   * Get the current paths of the selected spot polygon from the map component.
+   * This should be called when saving to get the updated polygon data.
+   */
+  async getSelectedSpotPolygonPaths(): Promise<
+    google.maps.LatLngLiteral[][] | null
+  > {
+    console.log("=== getSelectedSpotPolygonPaths called ===");
+
+    if (!this.selectedSpot) {
+      console.log("No selected spot, returning null");
+      return null;
+    }
+
+    if (this.isEditing()) {
+      console.log("🔄 In editing mode, trying to get live polygon paths...");
+
+      // Try to get the current paths using the waiting method
+      const livePaths = await this.waitForPolygonAndGetPaths();
+      if (livePaths && livePaths.length > 0) {
+        console.log("✅ Got live polygon paths, updating spot");
+        return livePaths;
+      }
+
+      console.log(
+        "⚠️ Could not get live polygon paths, falling back to existing paths"
+      );
+    }
+
+    // Fall back to existing paths
+    const selectedSpot = this.selectedSpot();
+    if (selectedSpot?.paths && selectedSpot.paths.length > 0) {
+      console.log("Falling back to existing spot paths");
+      return selectedSpot.paths;
+    }
+
+    if (!selectedSpot) return [];
+
+    // If no paths exist, create a default rectangular polygon around the spot location
+    const location = selectedSpot.location();
+    const offset = 0.0001; // Roughly 10 meters
+
+    const defaultPaths = [
+      [
+        { lat: location.lat - offset, lng: location.lng - offset },
+        { lat: location.lat - offset, lng: location.lng + offset },
+        { lat: location.lat + offset, lng: location.lng + offset },
+        { lat: location.lat + offset, lng: location.lng - offset },
+      ],
+    ];
+
+    console.log("Created default paths");
+    return defaultPaths;
+  }
+
+  /**
+   * Update the selected spot's paths and emit polygon change event
+   */
+  updateSelectedSpotPaths(paths: google.maps.LatLngLiteral[][]) {
+    const selectedSpot = this.selectedSpot();
+    if (!selectedSpot) return;
+
+    // Update the spot's paths
+    selectedSpot.paths = paths;
+
+    // Emit the polygon change event
+    // Check if it's a Spot (has id) vs LocalSpot (no id)
+    if ("id" in selectedSpot && selectedSpot.id) {
+      this.polygonChanged.emit({
+        spotId: selectedSpot.id as string,
+        path: paths,
+      });
+    }
+  }
+
+  /**
+   * Converts a Google Maps Polygon to an array of coordinate paths
+   */
+  private getPathFromPolygon(
+    polygon: google.maps.Polygon
+  ): google.maps.LatLngLiteral[][] {
+    const paths: google.maps.LatLngLiteral[][] = [];
+
+    // Get the first path (main polygon)
+    const path = polygon.getPath();
+    if (path) {
+      const coordinates: google.maps.LatLngLiteral[] = [];
+      for (let i = 0; i < path.getLength(); i++) {
+        const point = path.getAt(i);
+        coordinates.push({
+          lat: point.lat(),
+          lng: point.lng(),
+        });
+      }
+      if (coordinates.length > 0) {
+        paths.push(coordinates);
+      }
+    }
+
+    // Handle holes (additional paths)
+    const polygonPaths = polygon.getPaths();
+    if (polygonPaths && polygonPaths.getLength() > 1) {
+      for (let i = 1; i < polygonPaths.getLength(); i++) {
+        const holePath = polygonPaths.getAt(i);
+        const holeCoordinates: google.maps.LatLngLiteral[] = [];
+        for (let j = 0; j < holePath.getLength(); j++) {
+          const point = holePath.getAt(j);
+          holeCoordinates.push({
+            lat: point.lat(),
+            lng: point.lng(),
+          });
+        }
+        if (holeCoordinates.length > 0) {
+          paths.push(holeCoordinates);
+        }
+      }
+    }
+
+    return paths;
   }
 
   clickDot(dot: SpotClusterDotSchema) {
@@ -601,44 +968,230 @@ export class MapComponent implements OnInit, OnChanges {
     this.markerClickEvent.emit(markerIndex);
   }
 
-  // private _getPolygonBySpotId(spotId: string): MapPolygon | undefined {
-  //   console.log(this.polygonElements?.toArray());
-  //   console.log(this.spotPolygons?.toArray());
+  /**
+   * Computed signal for selected spot paths to avoid infinite change detection loops
+   */
+  selectedSpotPaths = computed(() => {
+    // Force dependency tracking on the debug signal
+    const debugInfo = this.selectedSpotDebug();
 
-  //   const elementRef = this.polygonElements.find(
-  //     (element) => element.nativeElement.id === "polygon-" + spotId
-  //   );
-  //   if (elementRef) {
-  //     const index = this.polygonElements.toArray().indexOf(elementRef);
-  //     return this.spotPolygons.toArray()[index];
-  //   }
-  //   return undefined;
-  // }
+    const selectedSpot = this.selectedSpot();
+    if (!selectedSpot) {
+      return [];
+    }
 
-  // public getPolygonPathForSpot(
-  //   spotId: string
-  // ): google.maps.LatLngLiteral[][] | undefined {
-  //   let polygon = this._getPolygonBySpotId(spotId);
+    // Always use the current stored paths when available
+    if (selectedSpot.paths && selectedSpot.paths.length > 0) {
+      return selectedSpot.paths;
+    }
 
-  //   if (polygon) {
-  //     const newPaths: google.maps.MVCArray<
-  //       google.maps.MVCArray<google.maps.LatLng>
-  //     > = polygon.getPaths();
-  //     console.log("new paths", newPaths);
+    // If no paths exist, create a default rectangular polygon around the spot location
+    const location = selectedSpot.location();
+    const offset = 0.0001; // Roughly 10 meters
 
-  //     // Convert LatLng[][] to LatLngLiteral[][]
-  //     let literalNewPaths: Array<Array<google.maps.LatLngLiteral>> = [];
-  //     literalNewPaths[0] = newPaths
-  //       .getAt(0)
-  //       .getArray()
-  //       .map((v, i, arr) => {
-  //         return { lat: v.lat(), lng: v.lng() };
-  //       });
+    const defaultPaths = [
+      [
+        { lat: location.lat - offset, lng: location.lng - offset },
+        { lat: location.lat - offset, lng: location.lng + offset },
+        { lat: location.lat + offset, lng: location.lng + offset },
+        { lat: location.lat + offset, lng: location.lng - offset },
+      ],
+    ];
 
-  //     return literalNewPaths;
-  //   } else {
-  //     console.error("No polygon found for spot with id: " + spotId);
-  //     return;
-  //   }
-  // }
+    return defaultPaths;
+  });
+
+  /**
+   * Get the first path for the template binding (safe access)
+   */
+  selectedSpotFirstPath = computed(() => {
+    const paths = this.selectedSpotPaths();
+    const firstPath = paths.length > 0 ? paths[0] : [];
+    return firstPath;
+  });
+
+  getSelectedSpotPaths(): google.maps.LatLngLiteral[][] {
+    return this.selectedSpotPaths();
+  }
+
+  ngAfterViewInit() {
+    // Expose main component for debugging if needed
+    (window as any).mapComponent = this;
+  }
+
+  /**
+   * Wait for the polygon to be fully initialized and then get its paths
+   * This handles the case where the ViewChild is available but the underlying Google Maps polygon isn't ready yet
+   */
+  async waitForPolygonAndGetPaths(
+    maxRetries: number = 10,
+    retryDelay: number = 100
+  ): Promise<google.maps.LatLngLiteral[][] | null> {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      // Force change detection to ensure ViewChild is updated
+      this.cdr.detectChanges();
+
+      if (
+        this.selectedSpotPolygon &&
+        this.selectedSpotPolygon instanceof MapPolygon
+      ) {
+        // Check if the underlying Google Maps polygon is available
+        const googlePolygon = this.selectedSpotPolygon.polygon;
+
+        if (googlePolygon && typeof googlePolygon.getPaths === "function") {
+          try {
+            const mvcPaths = googlePolygon.getPaths();
+
+            if (
+              mvcPaths &&
+              typeof mvcPaths.getLength === "function" &&
+              mvcPaths.getLength() > 0
+            ) {
+              const paths: google.maps.LatLngLiteral[][] = [];
+
+              for (let i = 0; i < mvcPaths.getLength(); i++) {
+                const mvcPath = mvcPaths.getAt(i);
+                const coordinates: google.maps.LatLngLiteral[] = [];
+
+                if (mvcPath && typeof mvcPath.getLength === "function") {
+                  for (let j = 0; j < mvcPath.getLength(); j++) {
+                    const point = mvcPath.getAt(j);
+                    coordinates.push({
+                      lat: point.lat(),
+                      lng: point.lng(),
+                    });
+                  }
+                }
+
+                if (coordinates.length > 0) {
+                  paths.push(coordinates);
+                }
+              }
+
+              if (paths.length > 0) {
+                console.log("✅ Successfully retrieved polygon paths");
+                return paths;
+              }
+            }
+          } catch (error) {
+            console.error("❌ Error getting paths:", error);
+          }
+        }
+      }
+
+      // Wait before retrying
+      if (attempt < maxRetries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      }
+    }
+
+    console.log("❌ Failed to get polygon paths after", maxRetries, "attempts");
+    return null;
+  }
+
+  /**
+   * Public method to force polygon refresh - can be called when switching spots
+   */
+  public refreshPolygonForSelectedSpot() {
+    console.log("refreshPolygonForSelectedSpot called");
+
+    if (!this.selectedSpot || !this.isEditing()) {
+      console.log("No spot selected or not in editing mode");
+      return;
+    }
+
+    console.log(
+      "Forcing polygon refresh for selected spot:",
+      this.selectedSpot
+    );
+
+    // Trigger change detection multiple times to ensure ViewChild is updated
+    this.cdr.detectChanges();
+
+    // Clear any existing polygon state aggressively
+    if (this.selectedSpotPolygon?.polygon) {
+      console.log("Clearing existing polygon state before refresh");
+      const paths = this.selectedSpotPolygon.polygon.getPaths();
+      paths.clear();
+    }
+
+    // Force another change detection cycle
+    setTimeout(() => {
+      this.cdr.detectChanges();
+
+      // Update the polygon with proper timing
+      setTimeout(() => {
+        this.forceUpdatePolygonPaths();
+      }, 150);
+    }, 50);
+  }
+
+  /**
+   * Completely reset and recreate the polygon for the current selected spot
+   * This is the most aggressive approach for ensuring clean polygon state
+   */
+  public resetPolygonForCurrentSpot() {
+    console.log("=== RESET POLYGON FOR CURRENT SPOT ===");
+    const selectedSpot = this.selectedSpot();
+    console.log("Resetting polygon for spot:", selectedSpot);
+
+    if (!selectedSpot) {
+      console.log("No selected spot, nothing to reset");
+      return;
+    }
+
+    // Clear the ViewChild reference
+    this.selectedSpotPolygon = undefined;
+    console.log("Cleared selectedSpotPolygon ViewChild");
+
+    // Force the polygon to be recreated by updating the recreation key
+    this.forcePolygonRecreation();
+
+    console.log("Polygon reset complete");
+  }
+
+  /**
+   * Force the polygon component to be completely destroyed and recreated
+   * This is needed when switching between spots to ensure no state carryover
+   */
+  forcePolygonRecreation() {
+    console.log("=== FORCE POLYGON RECREATION ===");
+    console.log("Current editing state:", this.isEditing());
+    console.log("Current selected spot:", this.selectedSpot());
+
+    // Increment the recreation key to force template re-render
+    this.polygonRecreationKey.update((key) => key + 1);
+    console.log(
+      "Updated polygon recreation key to:",
+      this.polygonRecreationKey()
+    );
+
+    // Force change detection
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Debug computed signal to trace when selectedSpot changes
+   */
+  selectedSpotDebug = computed(() => {
+    const spot = this.selectedSpot();
+    console.log("=== selectedSpotDebug computed ===");
+    console.log("selectedSpot:", spot);
+    if (spot) {
+      const id = "id" in spot ? spot.id : "local";
+      const location = spot.location();
+      const paths = spot.paths;
+      console.log(
+        `Spot ID: ${id}, Location: ${location.lat},${location.lng}, Paths:`,
+        paths
+      );
+      return { id, location, paths };
+    }
+    return null;
+  });
+
+  closeSelectedSpot() {
+    // Emit null to parent component to close the selected spot
+    this.spotClick.emit(null as any);
+  }
 }

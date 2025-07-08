@@ -115,6 +115,12 @@ export class SpotMapDataManager {
 
     console.debug("Saving spot", spot);
 
+    // If this is a LocalSpot being saved, remove any existing LocalSpots at the same location
+    // to prevent duplicates when it gets converted to a Spot
+    if (!(spot instanceof Spot)) {
+      this._removeLocalSpotsAtLocation(spot.location());
+    }
+
     let saveSpotPromise: Promise<void>;
     if (spot instanceof Spot) {
       // this spot already exists in the database
@@ -499,7 +505,7 @@ export class SpotMapDataManager {
       const loadedSpots = this._spots.get(key);
       if (!loadedSpots) continue;
 
-      allSpots.concat(loadedSpots);
+      allSpots.push(...loadedSpots);
     }
 
     return allSpots;
@@ -705,7 +711,7 @@ export class SpotMapDataManager {
    * @param newSpot The newly created spot class.
    */
   addOrUpdateNewSpotToLoadedSpotsAndUpdate(newSpot: Spot) {
-    //Get the tile coordinates to save in loaded spots
+    // First, try to find the spot by ID if it has one
     const ref = this.getReferenceToLoadedSpotById(newSpot.id);
 
     console.log("spot to update ref", ref);
@@ -716,23 +722,70 @@ export class SpotMapDataManager {
         ref.indexInTileArray
       ] = newSpot;
     } else {
-      // the spot does not exist
-
-      // get the tile coordinates for the location of the new spot
-      let tile = MapHelpers.getTileCoordinatesForLocationAndZoom(
+      // The spot doesn't exist by ID, check if there's a LocalSpot at the same location that needs to be replaced
+      const tile = MapHelpers.getTileCoordinatesForLocationAndZoom(
         newSpot.location(),
         16
       );
-      let spots = this._spots.get(getClusterTileKey(16, tile.x, tile.y));
+      const tileKey = getClusterTileKey(16, tile.x, tile.y);
+      let spots = this._spots.get(tileKey);
 
       if (spots && spots.length > 0) {
-        // There are spots loaded for this 16 tile, add the new spot to the loaded spots array
-        spots.push(newSpot);
+        // Check if there's an existing spot at the same location (for LocalSpot -> Spot conversion)
+        // Use a more precise comparison to find spots at the exact same location
+        const newSpotLocation = newSpot.location();
+        const existingSpotIndex = spots.findIndex((spot) => {
+          const spotLocation = spot.location();
+          // Use a smaller threshold for more precise matching (about 1cm accuracy)
+          const latDiff = Math.abs(spotLocation.lat - newSpotLocation.lat);
+          const lngDiff = Math.abs(spotLocation.lng - newSpotLocation.lng);
+          return latDiff < 0.0000001 && lngDiff < 0.0000001;
+        });
+
+        if (existingSpotIndex >= 0) {
+          // Replace the existing spot (likely a LocalSpot that just got saved)
+          console.debug(
+            "Replacing existing spot at same location",
+            spots[existingSpotIndex],
+            "with",
+            newSpot
+          );
+          spots[existingSpotIndex] = newSpot;
+        } else {
+          // Check if this spot ID already exists anywhere (to prevent duplicates after location changes)
+          const allLoadedSpots = this._getAllLoadedSpots();
+          const duplicateSpot = allLoadedSpots.find(
+            (spot) => spot.id === newSpot.id
+          );
+
+          if (duplicateSpot) {
+            console.debug(
+              "Spot with this ID already exists, not adding duplicate",
+              newSpot.id
+            );
+            // Update the existing spot instead
+            const duplicateRef = this.getReferenceToLoadedSpotById(newSpot.id);
+            if (
+              duplicateRef &&
+              duplicateRef.indexInTileArray >= 0 &&
+              duplicateRef.tile
+            ) {
+              this._spots.get(
+                getClusterTileKey(16, duplicateRef.tile.x, duplicateRef.tile.y)
+              )![duplicateRef.indexInTileArray] = newSpot;
+            }
+          } else {
+            // Add as a new spot
+            spots.push(newSpot);
+            console.debug("Added new spot to loaded spots", newSpot);
+          }
+        }
       } else {
         // There are no spots loaded for this 16 tile, add it to the loaded spots
         spots = [newSpot];
+        this._spots.set(tileKey, spots);
+        console.debug("Added new spot to empty tile", newSpot);
       }
-      this._spots.set(getClusterTileKey(16, tile.x, tile.y), spots);
     }
 
     // update the map to show the new spot on the loaded spots array.
@@ -742,10 +795,45 @@ export class SpotMapDataManager {
     }
   }
 
-  // /**
-  //  * This function is used if the new spot was saved and now has an id. It replaces the first spot it finds with no ID with the newSaveSpot
-  //  * @param newSavedSpot The new spot that replaces the unsaved new spot
-  //  */
+  /**
+   * Remove any LocalSpots from loaded spots that might have been added before saving.
+   * This helps prevent duplicates when a LocalSpot gets converted to a Spot.
+   * @param location The location to check for LocalSpots
+   */
+  private _removeLocalSpotsAtLocation(location: google.maps.LatLngLiteral) {
+    const tile = MapHelpers.getTileCoordinatesForLocationAndZoom(location, 16);
+    const tileKey = getClusterTileKey(16, tile.x, tile.y);
+    const spots = this._spots.get(tileKey);
+
+    if (spots && spots.length > 0) {
+      const initialLength = spots.length;
+      // Remove any spots that are LocalSpots (don't have proper IDs) at the same location
+      const filteredSpots = spots.filter((spot) => {
+        const spotLocation = spot.location();
+        const latDiff = Math.abs(spotLocation.lat - location.lat);
+        const lngDiff = Math.abs(spotLocation.lng - location.lng);
+        const isSameLocation = latDiff < 0.0000001 && lngDiff < 0.0000001;
+
+        // Keep spots that are not at the same location, or that have proper IDs
+        return !isSameLocation || (spot.id && spot.id.length > 0);
+      });
+
+      if (filteredSpots.length !== initialLength) {
+        console.debug(
+          `Removed ${
+            initialLength - filteredSpots.length
+          } LocalSpots at location`,
+          location
+        );
+        this._spots.set(tileKey, filteredSpots);
+      }
+    }
+  }
+
+  /**
+   * This function is used if the new spot was saved and now has an id. It replaces the first spot it finds with no ID with the newSaveSpot
+   * @param newSavedSpot The new spot that replaces the unsaved new spot
+   */
   // updateNewSpotIdOnLoadedSpotsAndUpdate(newSavedSpot: Spot) {
   //   if (newSavedSpot.id) {
   //     // TODO

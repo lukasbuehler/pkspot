@@ -71,4 +71,9 @@ mat-card.clickable:hover {
   height: 1rem;
   width: 1rem;
   font-size: 1rem;
+
+  // Make negative amenity icons slightly more muted
+  &.negative {
+    opacity: 0.6;
+  }
 }

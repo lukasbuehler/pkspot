@@ -24,7 +24,10 @@ import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { LocaleCode, MediaType } from "../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
 import { AmenitiesMap } from "../../db/schemas/Amenities";
-import { makeAmenitiesArray } from "../../db/models/Amenities";
+import {
+  makeAmenitiesArray,
+  makeSmartAmenitiesArray,
+} from "../../db/models/Amenities";
 import {
   StorageImage,
   StorageMedia,
@@ -52,15 +55,28 @@ export class SpotPreviewCardComponent implements OnChanges {
   imgSize = input<200 | 400 | 800>(200);
 
   spot = input<Spot | LocalSpot | SpotPreviewData | null>(null);
-  spotAmentitiesArray = computed<{ name?: string; icon?: string }[]>(() => {
+  spotAmenitiesArray = computed<
+    {
+      name?: string;
+      icon?: string;
+      priority?: "high" | "medium" | "low";
+      isNegative?: boolean;
+    }[]
+  >(() => {
     const spot = this.spot();
     if (!spot) {
       return [];
     }
     if (spot instanceof Spot || spot instanceof LocalSpot) {
-      return spot.amentitiesArray();
+      // Use smart amenities array for better context-aware display
+      return spot.importantAmenitiesArray();
     }
-    return spot.amenities ? makeAmenitiesArray(spot.amenities) : [];
+    // For SpotPreviewData, determine spot type if available
+    const spotType =
+      "type" in spot && typeof spot.type === "string" ? spot.type : undefined;
+    return spot.amenities
+      ? makeSmartAmenitiesArray(spot.amenities, spotType)
+      : [];
   });
   showInfoButton = input<boolean>(true);
   @Input() infoOnly: boolean = false;
