@@ -58,7 +58,11 @@
             "outputPath": "dist/pkspot",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js", "@angular/localize/init"],
+            "polyfills": [
+              "zone.js",
+              "@angular/localize/init",
+              "src/polyfills-node.ts"
+            ],
             "tsConfig": "tsconfig.app.json",
             "sourceMap": true,
             "assets": [
@@ -86,7 +90,10 @@
               "@firebase/remote-config",
               "@angular/fire",
               "@angular/fire/firestore",
-              "dialog-polyfill"
+              "dialog-polyfill",
+              "xml2js",
+              "sax",
+              "buffer"
             ],
             "server": "src/main.server.ts",
             "prerender": {

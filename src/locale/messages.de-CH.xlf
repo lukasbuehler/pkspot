@@ -281,6 +281,12 @@
         <target> E-Mail Adresse ändere </target>
       </segment>
     </unit>
+    <unit id="2807800733729323332">
+      <segment state="initial">
+        <source>Yes</source>
+        <target>Ja</target>
+      </segment>
+    </unit>
     <unit id="2818862099235102080">
       <segment state="initial">
         <source> Resend verification E-mail </source>
@@ -347,6 +353,12 @@
         <target>Dini E-Mail isch nonig verifiziert worde!</target>
       </segment>
     </unit>
+    <unit id="3542042671420335679">
+      <segment state="initial">
+        <source>No</source>
+        <target>Nei</target>
+      </segment>
+    </unit>
     <unit id="133789173523080152">
       <segment state="initial">
         <source>Your E-mail is verified</source>
@@ -408,6 +420,16 @@
         <target>Für die E-Mail Adresse und Passwort Kombination gits kein Benutzer.</target>
       </segment>
     </unit>
+    <unit id="7708270344948043036">
+      <segment state="initial">
+        <source>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}" />
+        </source>
+        <target>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}" />
+        </target>
+      </segment>
+    </unit>
     <unit id="7733953409417762446">
       <segment state="initial">
         <source>An unknown error has occured on sign in. Please try again.</source>
@@ -424,6 +446,12 @@
       <segment state="initial">
         <source>Create a new account</source>
         <target>Neue Account erstelle</target>
+      </segment>
+    </unit>
+    <unit id="6997602168024654529">
+      <segment state="initial">
+        <source>Not sure</source>
+        <target>Not sure</target>
       </segment>
     </unit>
     <unit id="3013055597615607317">
@@ -682,19 +710,103 @@
     </unit>
     <unit id="amenities.covered">
       <segment state="initial">
-        <source>Covered area</source>
+        <source>Covered</source>
         <target>Im Schärme</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_ac">
+      <segment state="initial">
+        <source>No AC</source>
+        <target>Kei Klima-Ahlag</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_changing_room">
+      <segment state="initial">
+        <source>No changing room</source>
+        <target>Kei Umkleidekabine</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_drinking_water">
+      <segment state="initial">
+        <source>No drinking water</source>
+        <target>Kei Trinkwasser</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_lighting">
+      <segment state="initial">
+        <source>No lighting</source>
+        <target>Nöd belüchtet</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_lockers">
+      <segment state="initial">
+        <source>No lockers</source>
+        <target>Kei Schlüssfächer</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_parking">
+      <segment state="initial">
+        <source>No parking</source>
+        <target>Kei Parkplätz</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_power_outlets">
+      <segment state="initial">
+        <source>No power outlets</source>
+        <target>Kei Steckdose</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_water_feature">
+      <segment state="initial">
+        <source>No water feature</source>
+        <target>Kein Wasser-Spot</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_wc">
+      <segment state="initial">
+        <source>No WC</source>
+        <target>Keis WC</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_covered">
+      <segment state="initial">
+        <source>Not covered</source>
+        <target>Nöd Überdacht</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_heated">
+      <segment state="initial">
+        <source>Not heated</source>
+        <target>Nöd gheizt</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_indoor">
+      <segment state="initial">
+        <source>Not indoor</source>
+        <target>Kein Innebereich</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_outdoor">
+      <segment state="initial">
+        <source>Not outdoor</source>
+        <target>Nöd Verusse</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_overgrown">
+      <segment state="initial">
+        <source>Well maintained</source>
+        <target>Guet pflegt</target>
       </segment>
     </unit>
     <unit id="amenities.outdoor">
       <segment state="initial">
-        <source>Outdoor area</source>
+        <source>Outdoor</source>
         <target>Verusse</target>
       </segment>
     </unit>
     <unit id="amenities.indoor">
       <segment state="initial">
-        <source>Indoor area</source>
+        <source>Indoor</source>
         <target>Innebereich</target>
       </segment>
     </unit>
@@ -728,6 +840,12 @@
         <target>Chostepflichtig</target>
       </segment>
     </unit>
+    <unit id="amenities.free_entry">
+      <segment state="initial">
+        <source>Free entry</source>
+        <target>Gratis</target>
+      </segment>
+    </unit>
     <unit id="amenities.drinking_water">
       <segment state="initial">
         <source>Drinking water</source>
@@ -736,7 +854,7 @@
     </unit>
     <unit id="amenities.parking_on_site">
       <segment state="initial">
-        <source>Parking on site</source>
+        <source>Parking</source>
         <target>Parkplätz</target>
       </segment>
     </unit>
@@ -748,8 +866,239 @@
     </unit>
     <unit id="amenities.maybe_overgrown">
       <segment state="initial">
-        <source>Possibly overgrown</source>
+        <source>May be overgrown</source>
         <target>Viellicht überwucheret</target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.commercial">
+      <segment state="initial">
+        <source>This is a commercial property, such as a gym or business, where access may require a
+          fee or membership. Please respect the rules and hours of operation.</source>
+        <target> Das isch es kommerziells Areal, wie z.B. es Fitnessstudio oder en Betrieb, wo für
+          de Zuegriff eventuell en Gebühr oder en Mitgliedschaft erforderlich isch. Bitte
+          respektiere d&apos;Regle und d&apos;Öffnigsziite. </target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.off-limits">
+      <segment state="initial">
+        <source>This is private property and strictly off-limits without explicit, prior permission
+          from the owner. Unauthorized access may result in legal action or injury.</source>
+        <target> Das isch es Privatgrundstück und Betrete isch streng verbote, ohni usdrücklichi,
+          vorherigi Erlaubnis vom Eigentümer. Unbefugte Zugang chan zu Verletzungen oder rechtliche
+          Strafverfahre führe. </target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.other">
+      <segment state="initial">
+        <source>The access type of this spot is not specified. Please check local regulations and
+          guidelines before visiting.</source>
+        <target> De Zugang für de Spot isch nöd spezifiziert. Bitte überprüef die lokale Regle und
+          Richtlinie, bevor du de Spot besuechsch. </target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.private">
+      <segment state="initial">
+        <source>This is private property. While some respectful practice may be tolerated,
+          permission is always recommended to avoid issues.</source>
+        <target> Das isch es Privatgrundstück. Respektvolli Verhaltenswiis chan toleriert werde,
+          aber isch es immer empfehlenswert, Erlaubnis z&apos;hole, um Probleme z&apos;vermeide. </target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.public">
+      <segment state="initial">
+        <source>This is a public spot, which is open to everyone and can be accessed freely without
+          restrictions.</source>
+        <target> Das isch en öffentlicher Spot, wo für alli zugänglich isch und frei ohne
+          Ihschränkige betrette werde cha. </target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.residential">
+      <segment state="initial">
+        <source>This is a residential area and private property. Access is generally limited to
+          residents or their guests. Please be especially mindful of noise and privacy. Training
+          here may lead to being asked to leave.</source>
+        <target> Das isch es Wohngebiet und Privatgrundstück. Der Zugang isch normalerweis uf
+          Bewohner oder ihre Gäste beschränkt. Bitte achte besonders uf Lärm und Privatsphäre.
+          Training da chan dazu führe, dass du bete wirsch, de Ort z&apos;verlah. </target>
+      </segment>
+    </unit>
+    <unit id="spot-access.commercial">
+      <segment state="initial">
+        <source>Commercial</source>
+        <target>Kommerziell</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.off-limits">
+      <segment state="initial">
+        <source>Off-Limits</source>
+        <target>Verbote</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.other">
+      <segment state="initial">
+        <source>Other</source>
+        <target>Andere</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.private">
+      <segment state="initial">
+        <source>Private</source>
+        <target>Privat</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.public">
+      <segment state="initial">
+        <source>Public</source>
+        <target>Öffentlich</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.residential">
+      <segment state="initial">
+        <source>Residential</source>
+        <target>Wohngebiet</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.natural-landscape">
+      <segment state="initial">
+        <source>This is a natural area with trees, rocks, logs, and terrain features.</source>
+        <target> Das isch es Naturgebiet. Die hend meistens Bäum, Stei, Baumstämm und meh. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.other">
+      <segment state="initial">
+        <source>This is a location that doesn&apos;t fit standard categories but offers training
+          opportunities.</source>
+        <target> Das isch en Spot, wo nöd in d&apos;Standardkategorie passt, aber trotzdem
+          Trainingsmöglichkeite bietet. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.park">
+      <segment state="initial">
+        <source>This is a public park with paths, benches, and landscaping features.</source>
+        <target> Das isch en öffentlicher Park mit z.B. Bäum, Gras, Bänkli und meh. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.parkour-gym">
+      <segment state="initial">
+        <source>This is an indoor training facility with dedicated equipment and obstacles for
+          Parkour practice.</source>
+        <target> Das isch es Indoor Trainingszentrum mit spezieller Ausrüstig und Hindernisse für
+          Parkour Training. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.parkour-park">
+      <segment state="initial">
+        <source>This is a purpose-built outdoor space with designed obstacles and structures for
+          Parkour training.</source>
+        <target> Das isch en speziell gstaltetes outdoor Park mit Hindernisse und Strukturen für
+          Parkour Training. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.playground">
+      <segment state="initial">
+        <source>This is a playground area with swings, slides, and climbing structures suitable for
+          Parkour training.</source>
+        <target> Das isch es Spielplatzareal. Die hend hüfig Schaukle, Rutschbahn und
+          Kletterstrukturen, wo für Parkour Training geeignet sind. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.roof-gap">
+      <segment state="initial">
+        <source>This is a roof gap requiring precision jumping between buildings.</source>
+        <target> Das isch en Roof-Gap, wo Präzisionssprünge zwüsche de Gebäude erfordert. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.rooftop">
+      <segment state="initial">
+        <source>This is a rooftop area with ledges, walls, and elevated structures.</source>
+        <target> Das isch es Dachareal mit Kanten, Wänd und erhöhte Strukturen. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.school">
+      <segment state="initial">
+        <source>This is a school facility with walls, benches, and architectural features for
+          practice.</source>
+        <target> Das isch es Schulareal. Die hend hüfig Mürli, Bänkli und architektonische Element
+          für s&apos;Training. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.university-campus">
+      <segment state="initial">
+        <source>This is a university campus with varied buildings, courtyards, and outdoor
+          structures.</source>
+        <target> Das isch es Universitätsgelände mit verschidene Gebäude, Innenhöfe und meh. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.urban-landscape">
+      <segment state="initial">
+        <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
+        <target> Das isch es urbanes Gebiet mit Wänd, Geländer, Treppe und architektonische Element. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type.natural-landscape">
+      <segment state="initial">
+        <source>Natural Landscape</source>
+        <target>Naturlandschaft</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.other">
+      <segment state="initial">
+        <source>Other</source>
+        <target>Anderes</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.park">
+      <segment state="initial">
+        <source>Park</source>
+        <target>Park</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.parkour-gym">
+      <segment state="initial">
+        <source>Parkour Gym</source>
+        <target>Parkour Gym</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.parkour-park">
+      <segment state="initial">
+        <source>Parkour Park</source>
+        <target>Parkour Park</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.playground">
+      <segment state="initial">
+        <source>Playground</source>
+        <target>Spielplatz</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.roof-gap">
+      <segment state="initial">
+        <source>Roof Gap</source>
+        <target>Roof Gap</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.rooftop">
+      <segment state="initial">
+        <source>Rooftop</source>
+        <target>Dach</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.school">
+      <segment state="initial">
+        <source>School</source>
+        <target>Schuel</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.university-campus">
+      <segment state="initial">
+        <source>University Campus</source>
+        <target>Universitätsgländ</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.urban-landscape">
+      <segment state="initial">
+        <source>Urban Landscape</source>
+        <target>Urbani Landschaft</target>
       </segment>
     </unit>
     <unit id="spot.locality.pretext">
@@ -874,6 +1223,12 @@
         <target>Ihbette</target>
       </segment>
     </unit>
+    <unit id="8189770288759005781">
+      <segment state="initial">
+        <source>Spot Access</source>
+        <target>Spot Zuegang</target>
+      </segment>
+    </unit>
     <unit id="5837993987248997726">
       <segment state="initial">
         <source>Embedding Preferences</source>
@@ -940,6 +1295,12 @@
       <segment state="initial">
         <source>Event in </source>
         <target>Verahstaltig i </target>
+      </segment>
+    </unit>
+    <unit id="events.nav_label">
+      <segment state="initial">
+        <source>Events</source>
+        <target>Verahstaltige</target>
       </segment>
     </unit>
     <unit id="events.title">
@@ -1099,7 +1460,7 @@
     </unit>
     <unit id="amenities.ac">
       <segment state="initial">
-        <source>Air conditioning</source>
+        <source>AC</source>
         <target>Klima Ahlag</target>
       </segment>
     </unit>
@@ -1450,6 +1811,12 @@
         <target>Paar</target>
       </segment>
     </unit>
+    <unit id="2282818303808683363">
+      <segment state="initial">
+        <source>Type and Access</source>
+        <target>Spot-Art und Zuegang</target>
+      </segment>
+    </unit>
     <unit id="7374538640222631357">
       <segment state="initial">
         <source>This challenge is still private to you!</source>
@@ -1530,6 +1897,12 @@
       <segment state="initial">
         <source>Challenge media is required!</source>
         <target>Es Challenge Video oder Bild isch notwendig!</target>
+      </segment>
+    </unit>
+    <unit id="7108681834902444510">
+      <segment state="initial">
+        <source>Spot Type</source>
+        <target>Spot-Art</target>
       </segment>
     </unit>
     <unit id="7150227608403439982">

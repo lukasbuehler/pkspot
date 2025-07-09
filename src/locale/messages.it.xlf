@@ -283,6 +283,12 @@
         <target> Cambia indirizzo E-mail </target>
       </segment>
     </unit>
+    <unit id="2807800733729323332">
+      <segment state="initial">
+        <source>Yes</source>
+        <target>Sì</target>
+      </segment>
+    </unit>
     <unit id="2818862099235102080">
       <segment state="initial">
         <source> Resend verification E-mail </source>
@@ -349,6 +355,12 @@
         <target>La tua E-mail non è stata verificata!</target>
       </segment>
     </unit>
+    <unit id="3542042671420335679">
+      <segment state="initial">
+        <source>No</source>
+        <target>No</target>
+      </segment>
+    </unit>
     <unit id="133789173523080152">
       <segment state="initial">
         <source>Your E-mail is verified</source>
@@ -411,6 +423,16 @@
         <target>L&apos;indirizzo E-mail e la password non corrispondono a nessun utente esistente.</target>
       </segment>
     </unit>
+    <unit id="7708270344948043036">
+      <segment state="initial">
+        <source>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}" />
+        </source>
+        <target>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}" />
+        </target>
+      </segment>
+    </unit>
     <unit id="7733953409417762446">
       <segment state="initial">
         <source>An unknown error has occured on sign in. Please try again.</source>
@@ -427,6 +449,12 @@
       <segment state="initial">
         <source>Create a new account</source>
         <target>Crea un nuovo account</target>
+      </segment>
+    </unit>
+    <unit id="6997602168024654529">
+      <segment state="initial">
+        <source>Not sure</source>
+        <target>Non sicuro</target>
       </segment>
     </unit>
     <unit id="3013055597615607317">
@@ -683,6 +711,237 @@
         <target>Mappa PK Spot</target>
       </segment>
     </unit>
+    <unit id="spot-access-description.commercial">
+      <segment state="initial">
+        <source>This is a commercial property, such as a gym or business, where access may require a
+          fee or membership. Please respect the rules and hours of operation.</source>
+        <target>Questa è una proprietà commerciale, come una palestra o un'attività, dove l'accesso
+          potrebbe richiedere una tassa o un abbonamento. Si prega di rispettare le regole e gli
+          orari di apertura.</target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.off-limits">
+      <segment state="initial">
+        <source>This is private property and strictly off-limits without explicit, prior permission
+          from the owner. Unauthorized access may result in legal action or injury.</source>
+        <target>Questa è proprietà privata e strettamente vietata senza permesso esplicito e
+          preventivo del proprietario. L'accesso non autorizzato può comportare azioni legali o
+          lesioni.</target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.other">
+      <segment state="initial"></segment>
+      <source>The access type of this spot is not specified. Please check local regulations and
+        guidelines before visiting.</source>
+      <target>Il tipo di accesso di questo spot non è specificato. Si prega di verificare le
+        normative e le linee guida locali prima della visita.</target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.private">
+      <segment state="initial">
+        <source>This is private property. While some respectful practice may be tolerated,
+          permission is always recommended to avoid issues.</source>
+        <target>Questa è proprietà privata. Sebbene un po' di pratica rispettosa possa essere
+          tollerata, il permesso è sempre raccomandato per evitare problemi.</target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.public">
+      <segment state="initial">
+        <source>This is a public spot, which is open to everyone and can be accessed freely without
+          restrictions.</source>
+        <target>Questo è uno spot pubblico, aperto a tutti e accessibile liberamente senza
+          restrizioni.</target>
+      </segment>
+    </unit>
+    <unit id="spot-access-description.residential">
+      <segment state="initial">
+        <source>This is a residential area and private property. Access is generally limited to
+          residents or their guests. Please be especially mindful of noise and privacy. Training
+          here may lead to being asked to leave.</source>
+        <target>Questa è una zona residenziale e proprietà privata. L'accesso è generalmente
+          limitato ai residenti o ai loro ospiti. Si prega di essere particolarmente attenti al
+          rumore e alla privacy. Allenarsi qui potrebbe portare a essere invitati ad andarsene.</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.commercial">
+      <segment state="initial">
+        <source>Commercial</source>
+        <target>Commerciale</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.off-limits">
+      <segment state="initial">
+        <source>Off-Limits</source>
+        <target>Vietato</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.other">
+      <segment state="initial">
+        <source>Other</source>
+        <target>Altro</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.private">
+      <segment state="initial">
+        <source>Private</source>
+        <target>Privato</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.public">
+      <segment state="initial">
+        <source>Public</source>
+        <target>Pubblico</target>
+      </segment>
+    </unit>
+    <unit id="spot-access.residential">
+      <segment state="initial">
+        <source>Residential</source>
+        <target>Residenziale</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.natural-landscape">
+      <segment state="initial">
+        <source>This is a natural area with trees, rocks, logs, and terrain features.</source>
+        <target>Questa è un'area naturale con alberi, rocce, tronchi e caratteristiche del terreno.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.other">
+      <segment state="initial">
+        <source>This is a location that doesn&apos;t fit standard categories but offers training
+          opportunities.</source>
+        <target>Questa è una location che non rientra nelle categorie standard ma offre opportunità
+          di allenamento.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.park">
+      <segment state="initial">
+        <source>This is a public park with paths, benches, and landscaping features.</source>
+        <target>Questo è un parco pubblico con sentieri, panchine e caratteristiche paesaggistiche.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.parkour-gym">
+      <segment state="initial">
+        <source>This is an indoor training facility with dedicated equipment and obstacles for
+          Parkour practice.</source>
+        <target>Questa è una struttura di allenamento al chiuso con attrezzature dedicate e ostacoli
+          per la pratica del Parkour.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.parkour-park">
+      <segment state="initial">
+        <source>This is a purpose-built outdoor space with designed obstacles and structures for
+          Parkour training.</source>
+        <target>Questo è uno spazio all'aperto costruito appositamente con ostacoli e strutture
+          progettate per l'allenamento di Parkour.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.playground">
+      <segment state="initial">
+        <source>This is a playground area with swings, slides, and climbing structures suitable for
+          Parkour training.</source>
+        <target>Questa è un'area giochi con altalene, scivoli e strutture da arrampicata adatte per
+          l'allenamento di Parkour.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.roof-gap">
+      <segment state="initial">
+        <source>This is a roof gap requiring precision jumping between buildings.</source>
+        <target>Questo è un gap tra tetti che richiede salti di precisione tra edifici.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.rooftop">
+      <segment state="initial">
+        <source>This is a rooftop area with ledges, walls, and elevated structures.</source>
+        <target>Questa è un'area sul tetto con sporgenze, muri e strutture elevate.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.school">
+      <segment state="initial">
+        <source>This is a school facility with walls, benches, and architectural features for
+          practice.</source>
+        <target>Questa è una struttura scolastica con muri, panchine e caratteristiche
+          architettoniche per la pratica.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.university-campus">
+      <segment state="initial">
+        <source>This is a university campus with varied buildings, courtyards, and outdoor
+          structures.</source>
+        <target>Questo è un campus universitario con vari edifici, cortili e strutture all'aperto.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.urban-landscape">
+      <segment state="initial">
+        <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
+        <target>Questa è un'area urbana con muri, ringhiere, scale ed elementi architettonici.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.natural-landscape">
+      <segment state="initial">
+        <source>Natural Landscape</source>
+        <target>Paesaggio naturale</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.other">
+      <segment state="initial">
+        <source>Other</source>
+        <target>Altro</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.park">
+      <segment state="initial">
+        <source>Park</source>
+        <target>Parco</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.parkour-gym">
+      <segment state="initial">
+        <source>Parkour Gym</source>
+        <target>Palestra di Parkour</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.parkour-park">
+      <segment state="initial">
+        <source>Parkour Park</source>
+        <target>Parco di Parkour</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.playground">
+      <segment state="initial">
+        <source>Playground</source>
+        <target>Area giochi</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.roof-gap">
+      <segment state="initial">
+        <source>Roof Gap</source>
+        <target>Gap tra tetti</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.rooftop">
+      <segment state="initial">
+        <source>Rooftop</source>
+        <target>Tetto</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.school">
+      <segment state="initial">
+        <source>School</source>
+        <target>Scuola</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.university-campus">
+      <segment state="initial">
+        <source>University Campus</source>
+        <target>Campus universitario</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.urban-landscape">
+      <segment state="initial">
+        <source>Urban Landscape</source>
+        <target>Paesaggio urbano</target>
+      </segment>
+    </unit>
     <unit id="spot.locality.pretext">
       <notes>
         <note category="description">The text before the localized location of the spot. E.g. Spot
@@ -690,24 +949,108 @@
       </notes>
       <segment state="initial">
         <source>Spot in </source>
-        <target>Spot in </target>
+        <target>Spot a </target>
       </segment>
     </unit>
     <unit id="amenities.covered">
       <segment state="initial">
-        <source>Covered area</source>
+        <source>Covered</source>
         <target>Coperto</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_ac">
+      <segment state="initial">
+        <source>No AC</source>
+        <target>Senza aria condizionata</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_changing_room">
+      <segment state="initial">
+        <source>No changing room</source>
+        <target>Senza spogliatoio</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_drinking_water">
+      <segment state="initial">
+        <source>No drinking water</source>
+        <target>Senza acqua potabile</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_lighting">
+      <segment state="initial">
+        <source>No lighting</source>
+        <target>Senza illuminazione</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_lockers">
+      <segment state="initial">
+        <source>No lockers</source>
+        <target>Senza armadietti</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_parking">
+      <segment state="initial">
+        <source>No parking</source>
+        <target>Senza parcheggio</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_power_outlets">
+      <segment state="initial">
+        <source>No power outlets</source>
+        <target>Senza prese di corrente</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_water_feature">
+      <segment state="initial">
+        <source>No water feature</source>
+        <target>Senza elemento acquatico</target>
+      </segment>
+    </unit>
+    <unit id="amenities.no_wc">
+      <segment state="initial">
+        <source>No WC</source>
+        <target>Senza WC</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_covered">
+      <segment state="initial">
+        <source>Not covered</source>
+        <target>Scoperto</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_heated">
+      <segment state="initial">
+        <source>Not heated</source>
+        <target>Non riscaldato</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_indoor">
+      <segment state="initial">
+        <source>Not indoor</source>
+        <target>Non al chiuso</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_outdoor">
+      <segment state="initial">
+        <source>Not outdoor</source>
+        <target>Non all'aperto</target>
+      </segment>
+    </unit>
+    <unit id="amenities.not_overgrown">
+      <segment state="initial">
+        <source>Well maintained</source>
+        <target>Ben mantenuto</target>
       </segment>
     </unit>
     <unit id="amenities.outdoor">
       <segment state="initial">
-        <source>Outdoor area</source>
+        <source>Outdoor</source>
         <target>All&apos;aperto</target>
       </segment>
     </unit>
     <unit id="amenities.indoor">
       <segment state="initial">
-        <source>Indoor area</source>
+        <source>Indoor</source>
         <target>Al chiuso</target>
       </segment>
     </unit>
@@ -741,6 +1084,12 @@
         <target>Tariffa d&apos;ingresso</target>
       </segment>
     </unit>
+    <unit id="amenities.free_entry">
+      <segment state="initial">
+        <source>Free entry</source>
+        <target>Gratuito</target>
+      </segment>
+    </unit>
     <unit id="amenities.drinking_water">
       <segment state="initial">
         <source>Drinking water</source>
@@ -749,7 +1098,7 @@
     </unit>
     <unit id="amenities.parking_on_site">
       <segment state="initial">
-        <source>Parking on site</source>
+        <source>Parking</source>
         <target>Parcheggio</target>
       </segment>
     </unit>
@@ -761,7 +1110,7 @@
     </unit>
     <unit id="amenities.maybe_overgrown">
       <segment state="initial">
-        <source>Possibly overgrown</source>
+        <source>May be overgrown</source>
         <target>Forse invaso dalla vegetazione</target>
       </segment>
     </unit>
@@ -877,6 +1226,12 @@
         <target>Incorpora</target>
       </segment>
     </unit>
+    <unit id="8189770288759005781">
+      <segment state="initial">
+        <source>Spot Access</source>
+        <target>Accesso allo Spot</target>
+      </segment>
+    </unit>
     <unit id="5837993987248997726">
       <segment state="initial">
         <source>Embedding Preferences</source>
@@ -943,6 +1298,12 @@
       <segment state="initial">
         <source>Event in </source>
         <target>Evento in </target>
+      </segment>
+    </unit>
+    <unit id="events.nav_label">
+      <segment state="initial">
+        <source>Events</source>
+        <target>Eventi</target>
       </segment>
     </unit>
     <unit id="events.title">
@@ -1102,7 +1463,7 @@
     </unit>
     <unit id="amenities.ac">
       <segment state="initial">
-        <source>Air conditioning</source>
+        <source>AC</source>
         <target>Aria condizionata</target>
       </segment>
     </unit>
@@ -1452,6 +1813,12 @@
         <target>Coppia</target>
       </segment>
     </unit>
+    <unit id="2282818303808683363">
+      <segment state="initial">
+        <source>Type and Access</source>
+        <target>Tipo e Accesso</target>
+      </segment>
+    </unit>
     <unit id="7374538640222631357">
       <segment state="initial">
         <source>This challenge is still private to you!</source>
@@ -1532,6 +1899,12 @@
       <segment state="initial">
         <source>Challenge media is required!</source>
         <target>È necessario aggiungere un media alla challenge!</target>
+      </segment>
+    </unit>
+    <unit id="7108681834902444510">
+      <segment state="initial">
+        <source>Spot Type</source>
+        <target>Tipo di Spot</target>
       </segment>
     </unit>
     <unit id="7150227608403439982">
@@ -1675,7 +2048,7 @@
     <unit id="3483311644139102304">
       <segment state="initial">
         <source>All Event Challenges</source>
-        <target>Tutte le challenge dell'evento</target>
+        <target>Tutte le challenge dell&apos;evento</target>
       </segment>
     </unit>
     <unit id="459311985687858272">
