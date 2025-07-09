@@ -141,7 +141,11 @@
             disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}" /> öffnen</target>
       </segment>
     </unit>
-    <unit id="2066444621746625793">
+    <unit id="spot.edit.tooltip">
+      <notes>
+        <note category="description">Tooltip for edit spot button</note>
+        <note category="meaning">edit spot tooltip</note>
+      </notes>
       <segment state="initial">
         <source>Edit this spot</source>
         <target>Diesen Spot bearbeiten</target>
@@ -153,7 +157,11 @@
         <target>Bearbeiten</target>
       </segment>
     </unit>
-    <unit id="7970470041734812503">
+    <unit id="spot.report.tooltip">
+      <notes>
+        <note category="description">Tooltip for report spot button</note>
+        <note category="meaning">report spot tooltip</note>
+      </notes>
       <segment state="initial">
         <source>Report this spot</source>
         <target>Diesen Spot melden</target>
@@ -224,19 +232,31 @@
         <target> Speichern </target>
       </segment>
     </unit>
-    <unit id="4930506384627295710">
+    <unit id="settings.title">
+      <notes>
+        <note category="description">Title of the settings page</note>
+        <note category="meaning">settings page title</note>
+      </notes>
       <segment state="initial">
         <source>Settings</source>
         <target>Einstellungen</target>
       </segment>
     </unit>
-    <unit id="5464118521750361406">
+    <unit id="settings.profile.header">
+      <notes>
+        <note category="description">Header for public profile section</note>
+        <note category="meaning">public profile section</note>
+      </notes>
       <segment state="initial">
         <source>Public profile</source>
         <target>Öffentliches Profil</target>
       </segment>
     </unit>
-    <unit id="2123282629077022668">
+    <unit id="settings.profile.description">
+      <notes>
+        <note category="description">Description of public profile section</note>
+        <note category="meaning">public profile description</note>
+      </notes>
       <segment state="initial">
         <source> You can edit your public profile here. The information on your public profile can
           be seen by everyone, even unauthenticated visitors. </source>
@@ -244,13 +264,21 @@
           öffentlichen Profil können von allen eingesehen werden, auch unauthentifizierten Benutzer. </target>
       </segment>
     </unit>
-    <unit id="7008130086784868968">
+    <unit id="settings.login.header">
+      <notes>
+        <note category="description">Header for login information section</note>
+        <note category="meaning">login information section</note>
+      </notes>
       <segment state="initial">
         <source>Login information</source>
         <target>Login Information</target>
       </segment>
     </unit>
-    <unit id="4248798592595704576">
+    <unit id="settings.login.description">
+      <notes>
+        <note category="description">Description of login information section</note>
+        <note category="meaning">login information description</note>
+      </notes>
       <segment state="initial">
         <source> Your login information. Your E-mail address here is used for your login. You can
           add the same E-mail address or a different one to your contact information. </source>
@@ -348,6 +376,36 @@
         <target>Abmelden</target>
       </segment>
     </unit>
+    <unit id="map.add_challenge.tooltip">
+      <notes>
+        <note category="description">Add a challenge</note>
+        <note category="meaning">Tooltip for add challenge button</note>
+      </notes>
+      <segment state="initial">
+        <source>Add a challenge</source>
+        <target>Eine Challenge hinzufügen</target>
+      </segment>
+    </unit>
+    <unit id="map.add_spot.tooltip">
+      <notes>
+        <note category="description">Add a new spot</note>
+        <note category="meaning">Tooltip for add spot button</note>
+      </notes>
+      <segment state="initial">
+        <source>Add a new spot</source>
+        <target>Einen neuen Spot hinzufügen</target>
+      </segment>
+    </unit>
+    <unit id="map.import_spots.tooltip">
+      <notes>
+        <note category="description">Import spots from a file</note>
+        <note category="meaning">Tooltip for import spots button</note>
+      </notes>
+      <segment state="initial">
+        <source>Import spots from a file</source>
+        <target>Spots aus einer Datei importieren</target>
+      </segment>
+    </unit>
     <unit id="3539941729807255231">
       <segment state="initial">
         <source>Your E-mail has not been verified!</source>
@@ -366,31 +424,61 @@
         <target>Deine E-Mail ist verifiziert</target>
       </segment>
     </unit>
-    <unit id="6735606153713625905">
+    <unit id="signin.email_password.header">
+      <notes>
+        <note category="description">Header for email and password section</note>
+        <note category="meaning">email password section header</note>
+      </notes>
       <segment state="initial">
         <source>E-Mail and password</source>
         <target>E-Mail und Passwort</target>
       </segment>
     </unit>
-    <unit id="947995176992343811">
+    <unit id="signin.button">
+      <notes>
+        <note category="description">Button to sign in</note>
+        <note category="meaning">sign in button</note>
+      </notes>
+      <segment state="initial">
+        <source>Sign in</source>
+        <target>Anmelden</target>
+      </segment>
+    </unit>
+    <unit id="signin.email.validation_error">
+      <notes>
+        <note category="description">Error message for invalid email</note>
+        <note category="meaning">email validation error</note>
+      </notes>
       <segment state="initial">
         <source>This E-Mail address is not valid!</source>
         <target>Diese E-Mail Adresse ist ungültig!</target>
       </segment>
     </unit>
-    <unit id="3865137547467472091">
+    <unit id="signin.password.validation_error">
+      <notes>
+        <note category="description">Error message for empty password</note>
+        <note category="meaning">password validation error</note>
+      </notes>
       <segment state="initial">
         <source>The password field is empty!</source>
         <target>Das Passwort Feld ist leer!</target>
       </segment>
     </unit>
-    <unit id="8264044238565501678">
+    <unit id="signin.forgot_password.button">
+      <notes>
+        <note category="description">Button to reset password</note>
+        <note category="meaning">forgot password button</note>
+      </notes>
       <segment state="initial">
         <source>Forgot password</source>
         <target>Passwort vergessen</target>
       </segment>
     </unit>
-    <unit id="906351267490856003">
+    <unit id="signin.no_account.message">
+      <notes>
+        <note category="description">Message for users without an account</note>
+        <note category="meaning">no account message</note>
+      </notes>
       <segment state="initial">
         <source> Don&apos;t have an account yet? Simply sign in with your Google account or sign up
           below. </source>
@@ -398,10 +486,24 @@
           unten. </target>
       </segment>
     </unit>
-    <unit id="8900043755527456150">
+    <unit id="signin.signup.button">
+      <notes>
+        <note category="description">Button to sign up</note>
+        <note category="meaning">sign up button</note>
+      </notes>
       <segment state="initial">
         <source>Sign up here</source>
         <target>Hier registrieren</target>
+      </segment>
+    </unit>
+    <unit id="signin.title">
+      <notes>
+        <note category="description">Title of the sign in page</note>
+        <note category="meaning">sign in page title</note>
+      </notes>
+      <segment state="initial">
+        <source>Sign in</source>
+        <target>Anmelden</target>
       </segment>
     </unit>
     <unit id="5726791725186220555">
@@ -502,7 +604,8 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
+            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
+            equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>Ich habe die <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
@@ -576,7 +679,11 @@
         <target>Knopf mit &apos;Navigation&apos; Grafik</target>
       </segment>
     </unit>
-    <unit id="5176788475731011723">
+    <unit id="spot.reported.message">
+      <notes>
+        <note category="description">Message shown when a spot has been reported</note>
+        <note category="meaning">spot reported message</note>
+      </notes>
       <segment state="initial">
         <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION"
             disp="{{ report.reason }}" />&quot;</source>
@@ -616,6 +723,12 @@
       <segment state="initial">
         <source>Dismiss</source>
         <target>Ignorieren</target>
+      </segment>
+    </unit>
+    <unit id="1541983925188119749">
+      <segment state="initial">
+        <source>Rating: <ph id="0" equiv="PH" disp="spot.rating" /> / 5</source>
+        <target>Bewertung: <ph id="0" equiv="PH" disp="spot.rating" /> / 5</target>
       </segment>
     </unit>
     <unit id="6957965842552679691">
@@ -1151,13 +1264,41 @@
         <target>Sprache</target>
       </segment>
     </unit>
-    <unit id="5583221507916400426">
+    <unit id="spot.ratings.header">
+      <notes>
+        <note category="description">Header for the ratings and reviews section</note>
+        <note category="meaning">ratings section header</note>
+      </notes>
       <segment state="initial">
         <source>Rating and user reviews</source>
         <target>Bewertung und user Rezensionen</target>
       </segment>
     </unit>
-    <unit id="2099100880026927677">
+    <unit id="spot.navigate.button">
+      <notes>
+        <note category="description">Button text for navigate to spot</note>
+        <note category="meaning">navigate to spot button</note>
+      </notes>
+      <segment state="initial">
+        <source>Navigate to spot</source>
+        <target>Zum Spot navigieren</target>
+      </segment>
+    </unit>
+    <unit id="spot.navigate.tooltip">
+      <notes>
+        <note category="description">Tooltip for navigate to spot button</note>
+        <note category="meaning">navigate to spot tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>Navigate to this spot</source>
+        <target>Zu diesem Spot navigieren</target>
+      </segment>
+    </unit>
+    <unit id="spot.no_reviews.message">
+      <notes>
+        <note category="description">Message shown when there are no reviews yet</note>
+        <note category="meaning">no reviews message</note>
+      </notes>
       <segment state="initial">
         <source> This spot has no reviews yet, be the first to leave one! </source>
         <target> Dieser Spot hat noch keine Rezensionen, sei die erste Person die diesen Spot
@@ -1198,7 +1339,11 @@
         <target>Was würdest du diesem Spot von eins bis fünf Sterne geben?</target>
       </segment>
     </unit>
-    <unit id="1115951775217164684">
+    <unit id="spot.review.count">
+      <notes>
+        <note category="description">Text showing the number of reviews</note>
+        <note category="meaning">review count text</note>
+      </notes>
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =0 {no reviews} =1 {1 review} other {<ph id="0"
             equiv="INTERPOLATION" /> reviews}}</source>
@@ -1333,25 +1478,41 @@
         <target>Info Stand</target>
       </segment>
     </unit>
-    <unit id="1541983925188119749">
-      <segment state="initial">
-        <source>Rating: <ph id="0" equiv="PH" disp="spot.rating" /> / 5</source>
-        <target>Bewertung: <ph id="0" equiv="PH" disp="spot.rating" /> / 5</target>
-      </segment>
-    </unit>
-    <unit id="7023259128494836441">
+    <unit id="spot.close.tooltip">
+      <notes>
+        <note category="description">Tooltip for close spot button</note>
+        <note category="meaning">close spot tooltip</note>
+      </notes>
       <segment state="initial">
         <source>Close Spot</source>
         <target>Spot schliessen</target>
       </segment>
     </unit>
-    <unit id="3427802043987444957">
+    <unit id="spot.google_maps.header">
+      <notes>
+        <note category="description">Header for the Google Maps section</note>
+        <note category="meaning">google maps section header</note>
+      </notes>
       <segment state="initial">
         <source>This spot on Google Maps®</source>
         <target>Dieser Spot auf Google Maps®</target>
       </segment>
     </unit>
-    <unit id="4433625416488305982">
+    <unit id="spot.iconic.tooltip">
+      <notes>
+        <note category="description">Tooltip for iconic spot indicator</note>
+        <note category="meaning">iconic spot tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>Iconic Spot</source>
+        <target>Ikonischer Spot</target>
+      </segment>
+    </unit>
+    <unit id="google.place.rating.label">
+      <notes>
+        <note category="description">Label for Google place rating</note>
+        <note category="meaning">google place rating label</note>
+      </notes>
       <segment state="initial">
         <source>
           <pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other"
@@ -1569,28 +1730,20 @@
         <target>Spot hinzufügen</target>
       </segment>
     </unit>
-    <unit id="5505398954394440330">
-      <segment state="initial">
-        <source>Add a new spot</source>
-        <target>Neuen Spot hinzufügen</target>
-      </segment>
-    </unit>
     <unit id="pk.spotmap.addSpot">
       <segment state="initial">
         <source>Add spot</source>
         <target>Spot hinzufügen</target>
       </segment>
     </unit>
-    <unit id="9698809509485912">
+    <unit id="spot.challenges.add_empty">
+      <notes>
+        <note category="description">Button to add a new challenge when none exist</note>
+        <note category="meaning">add challenge button empty</note>
+      </notes>
       <segment state="initial">
-        <source>Add a challenge</source>
+        <source>Add challenge</source>
         <target>Challenge hinzufügen</target>
-      </segment>
-    </unit>
-    <unit id="8641204385685223856">
-      <segment state="initial">
-        <source>Import spots from a file</source>
-        <target>Spots von Datei importieren</target>
       </segment>
     </unit>
     <unit id="801213320890707566">
@@ -1611,7 +1764,11 @@
         <target> Weiterfahren </target>
       </segment>
     </unit>
-    <unit id="1554994164801384863">
+    <unit id="signin.other_options.header">
+      <notes>
+        <note category="description">Header for other sign-in options</note>
+        <note category="meaning">other signin options header</note>
+      </notes>
       <segment state="initial">
         <source>Other sign-in options</source>
         <target>Weitere Anmelde-Optionen</target>
@@ -1629,19 +1786,51 @@
         <target>Challenges</target>
       </segment>
     </unit>
-    <unit id="1464855415523029044">
+    <unit id="spot.challenges.add">
+      <notes>
+        <note category="description">Button to add a new challenge</note>
+        <note category="meaning">add challenge button</note>
+      </notes>
       <segment state="initial">
         <source>Add challenge</source>
         <target>Challenge hinzufügen</target>
       </segment>
     </unit>
-    <unit id="4081547874744566874">
+    <unit id="spot.challenges.header">
+      <notes>
+        <note category="description">Header for the challenges section</note>
+        <note category="meaning">challenges section header</note>
+      </notes>
+      <segment state="initial">
+        <source>Challenges</source>
+        <target>Challenges</target>
+      </segment>
+    </unit>
+    <unit id="spot.challenges.header_empty">
+      <notes>
+        <note category="description">Header for challenges section when empty</note>
+        <note category="meaning">challenges section header empty</note>
+      </notes>
+      <segment state="initial">
+        <source>Challenges</source>
+        <target>Challenges</target>
+      </segment>
+    </unit>
+    <unit id="spot.challenges.no_challenges">
+      <notes>
+        <note category="description">Message shown when there are no challenges</note>
+        <note category="meaning">no challenges message</note>
+      </notes>
       <segment state="initial">
         <source> There are no challenges for this spot yet. </source>
         <target> Es gibt noch keine Challenges für diesen Spot. </target>
       </segment>
     </unit>
-    <unit id="5028777105388019087">
+    <unit id="spot.details.header">
+      <notes>
+        <note category="description">Header for the spot details section</note>
+        <note category="meaning">spot details section header</note>
+      </notes>
       <segment state="initial">
         <source>Details</source>
         <target>Details</target>
@@ -1657,13 +1846,21 @@
         <target>Beschreibung</target>
       </segment>
     </unit>
-    <unit id="471816275243265264">
+    <unit id="spot.location.header">
+      <notes>
+        <note category="description">Header for the location section</note>
+        <note category="meaning">location section header</note>
+      </notes>
       <segment state="initial">
         <source>Location</source>
         <target>Standort</target>
       </segment>
     </unit>
-    <unit id="135650503363677266">
+    <unit id="spot.edit.aria_label">
+      <notes>
+        <note category="description">Aria label for edit spot button</note>
+        <note category="meaning">edit spot aria label</note>
+      </notes>
       <segment state="initial">
         <source>Edit button with a pencil icon</source>
         <target>Beirbeiten Knopf mit einem Bleistift Bild</target>
@@ -1679,7 +1876,11 @@
         <target>Spot bearbeiten</target>
       </segment>
     </unit>
-    <unit id="187689463189065695">
+    <unit id="spot.report.aria_label">
+      <notes>
+        <note category="description">Aria label for report spot button</note>
+        <note category="meaning">report spot aria label</note>
+      </notes>
       <segment state="initial">
         <source>Report button with a warning icon</source>
         <target>Melden Knopf mit einem Warnungs Bild</target>
@@ -1695,31 +1896,61 @@
         <target>Melden</target>
       </segment>
     </unit>
-    <unit id="2208123916070421028">
+    <unit id="spot.edit.media.header">
+      <notes>
+        <note category="description">Header for media editing section</note>
+        <note category="meaning">media edit header</note>
+      </notes>
+      <segment state="initial">
+        <source>Media</source>
+        <target>Medien</target>
+      </segment>
+    </unit>
+    <unit id="spot.edit.name.header">
+      <notes>
+        <note category="description">Header for spot name editing section</note>
+        <note category="meaning">spot name edit header</note>
+      </notes>
       <segment state="initial">
         <source>Spot Name</source>
         <target>Spot Name</target>
       </segment>
     </unit>
-    <unit id="5165045713296944365">
+    <unit id="spot.edit.hide_streetview">
+      <notes>
+        <note category="description">Toggle to hide streetview</note>
+        <note category="meaning">hide streetview toggle</note>
+      </notes>
       <segment state="initial">
         <source>Hide Streetview</source>
         <target>Streetview verbergen</target>
       </segment>
     </unit>
-    <unit id="6061464576886045437">
+    <unit id="spot.edit.url.header">
+      <notes>
+        <note category="description">Header for spot URL editing section</note>
+        <note category="meaning">spot url edit header</note>
+      </notes>
       <segment state="initial">
         <source>Spot URL</source>
         <target>Spot URL</target>
       </segment>
     </unit>
-    <unit id="519327032454261783">
+    <unit id="spot.edit.url.select_label">
+      <notes>
+        <note category="description">Label for selecting preferred spot URL</note>
+        <note category="meaning">select spot url label</note>
+      </notes>
       <segment state="initial">
         <source>Select preffered spot URL</source>
         <target>Bevorzugte Spot URL auswählen</target>
       </segment>
     </unit>
-    <unit id="3891461247659349800">
+    <unit id="spot.edit.url.add_custom">
+      <notes>
+        <note category="description">Button to add custom spot URL</note>
+        <note category="meaning">add custom url button</note>
+      </notes>
       <segment state="initial">
         <source>Add custom spot URL</source>
         <target>Spot URL hinzufügen</target>
@@ -1820,7 +2051,11 @@
         <target>Paar</target>
       </segment>
     </unit>
-    <unit id="2282818303808683363">
+    <unit id="spot.edit.type_access.header">
+      <notes>
+        <note category="description">Header for type and access editing section</note>
+        <note category="meaning">type and access edit header</note>
+      </notes>
       <segment state="initial">
         <source>Type and Access</source>
         <target>Spot-Art und Zugang</target>
@@ -1982,13 +2217,21 @@
         <target>OK</target>
       </segment>
     </unit>
-    <unit id="4727551339190347889">
+    <unit id="spot.challenges.view_all">
+      <notes>
+        <note category="description">Button to view all challenges</note>
+        <note category="meaning">view all challenges button</note>
+      </notes>
       <segment state="initial">
         <source>View all challanges</source>
         <target>Alle Challenges anzeigen</target>
       </segment>
     </unit>
-    <unit id="4140025051574737361">
+    <unit id="spot.challenges.see_private">
+      <notes>
+        <note category="description">Button to see private challenges</note>
+        <note category="meaning">see private challenges button</note>
+      </notes>
       <segment state="initial">
         <source>See private challenges</source>
         <target>Private Challenges anzeigen</target>

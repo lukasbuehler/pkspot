@@ -24,12 +24,29 @@
         </div>
       </div>
       <div [ngSwitch]="selectedPoint" class="col-md-8">
-        <h1 class="mat-h1 mb-2" i18n>Settings</h1>
+        <h1
+          class="mat-h1 mb-2"
+          i18n="settings page title|Title of the settings page@@settings.title"
+        >
+          Settings
+        </h1>
         <mat-divider class="mb-3"></mat-divider>
         <div [hidden]="selectedPoint !== 'profile'">
           <!-- Basic profile properties -->
-          <h2 class="mat-h2" i18n>Public profile</h2>
-          <span class="mat-body" i18n>
+          <h2
+            class="mat-h2"
+            i18n="
+              public profile section|Header for public profile
+              section@@settings.profile.header"
+          >
+            Public profile
+          </h2>
+          <span
+            class="mat-body"
+            i18n="
+              public profile description|Description of public profile
+              section@@settings.profile.description"
+          >
             You can edit your public profile here. The information on your
             public profile can be seen by everyone, even unauthenticated
             visitors.
@@ -42,8 +59,20 @@
           ></app-edit-profile>
         </div>
         <div *ngSwitchCase="'login'">
-          <h2 class="mat-h2" i18n>Login information</h2>
-          <p class="mat-body" i18n>
+          <h2
+            class="mat-h2"
+            i18n="
+              login information section|Header for login information
+              section@@settings.login.header"
+          >
+            Login information
+          </h2>
+          <p
+            class="mat-body"
+            i18n="
+              login information description|Description of login information
+              section@@settings.login.description"
+          >
             Your login information. Your E-mail address here is used for your
             login. You can add the same E-mail address or a different one to
             your contact information.

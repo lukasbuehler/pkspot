@@ -22,7 +22,9 @@
         <mat-icon
           style="width: 24px; flex-shrink: 0"
           matTooltip="Iconic Spot"
-          i18n-matTootltip
+          i18n-matTooltip="
+            iconic spot tooltip|Tooltip for iconic spot
+            indicator@@spot.iconic.tooltip"
           >stars</mat-icon
         >
         }
@@ -36,7 +38,8 @@
       <button
         mat-icon-button
         (click)="dismissed()"
-        i18n-matTooltip
+        i18n-matTooltip="
+          close spot tooltip|Tooltip for close spot button@@spot.close.tooltip"
         matTooltip="Close Spot"
       >
         <mat-icon>close</mat-icon>
@@ -186,7 +189,11 @@
 
   @if(report) {
   <div class="report-info">
-    <span class="mat-h3 m-0" i18n
+    <span
+      class="mat-h3 m-0"
+      i18n="
+        spot reported message|Message shown when a spot has been
+        reported@@spot.reported.message"
       >This spot was reported as "{{ report.reason }}"</span
     >
   </div>
@@ -201,11 +208,25 @@
     </app-img-carousel>
     }
 
-    <h3 class="mat-title-medium" i18n>Details</h3>
+    <h3
+      class="mat-title-medium"
+      i18n="
+        spot details section header|Header for the spot details
+        section@@spot.details.header"
+    >
+      Details
+    </h3>
 
     <!-- Google place -->
     @if(googlePlace()) {
-    <h4 class="mat-title-small" i18n>This spot on Google Maps®</h4>
+    <h4
+      class="mat-title-small"
+      i18n="
+        google maps section header|Header for the Google Maps
+        section@@spot.google_maps.header"
+    >
+      This spot on Google Maps®
+    </h4>
     <a
       [href]="googlePlace()!.url"
       target="_blank"
@@ -229,7 +250,12 @@
           >
             {{ googlePlace()!.name }}
           </mat-card-title>
-          <mat-card-subtitle i18n class="d-flex flex-row gap-2 mat-title-small">
+          <mat-card-subtitle
+            i18n="
+              google place rating label|Label for Google place
+              rating@@google.place.rating.label"
+            class="d-flex flex-row gap-2 mat-title-small"
+          >
             @if(googlePlace()!.rating) { Rating:
             <app-spot-rating
               [rating1to5]="googlePlace()!.rating!"
@@ -327,7 +353,14 @@
       </h4>
       <p class="mat-body-medium">{{ spot()!.address()?.formatted }}</p>
       } @else {
-      <h4 class="mat-title-small" i18n>Location</h4>
+      <h4
+        class="mat-title-small"
+        i18n="
+          location section header|Header for the location
+          section@@spot.location.header"
+      >
+        Location
+      </h4>
       <p class="mat-body-medium">
         {{ spot()!.locationString() }}
       </p>
@@ -355,12 +388,19 @@
           mat-stroked-button
           color="primary"
           class="flex-grow-1 flex-basis-0 py-2"
-          i18n-matTootltip
+          i18n-matTooltip="
+            navigate to spot tooltip|Tooltip for navigate to spot
+            button@@spot.navigate.tooltip"
           matTooltip="Navigate to this spot"
           (click)="openDirectionsInMaps()"
         >
           <mat-icon>directions</mat-icon>
-          <span i18n="@@directions_spot_tooltip">Navigate to spot</span>
+          <span
+            i18n="
+              navigate to spot button|Button text for navigate to
+              spot@@spot.navigate.button"
+            >Navigate to spot</span
+          >
         </button>
       </div>
     </div>
@@ -371,9 +411,12 @@
     <div class="d-flex my-3 gap-2">
       <button
         mat-stroked-button
-        i18n-matTooltip
+        i18n-matTooltip="
+          edit spot tooltip|Tooltip for edit spot button@@spot.edit.tooltip"
         matTooltip="Edit this spot"
-        i18n-aria-label
+        i18n-aria-label="
+          edit spot aria label|Aria label for edit spot
+          button@@spot.edit.aria_label"
         aria-label="Edit button with a pencil icon"
         (click)="editButtonClick()"
         class="flex-grow-1 flex-basis-0"
@@ -386,9 +429,13 @@
       <button
         mat-stroked-button
         color="warn"
-        i18n-matTooltip
+        i18n-matTooltip="
+          report spot tooltip|Tooltip for report spot
+          button@@spot.report.tooltip"
         matTooltip="Report this spot"
-        i18n-aria-label
+        i18n-aria-label="
+          report spot aria label|Aria label for report spot
+          button@@spot.report.aria_label"
         aria-label="Report button with a warning icon"
         class="flex-grow-1 flex-basis-0"
         (click)="openSpotReportDialog()"
@@ -406,7 +453,14 @@
     @if(!isLocalSpot() && (spot()?.rating || authenticationService.isSignedIn))
     {
     <div class="mb-4">
-      <h4 class="mat-title-medium" i18n>Rating and user reviews</h4>
+      <h4
+        class="mat-title-medium"
+        i18n="
+          ratings section header|Header for the ratings and reviews
+          section@@spot.ratings.header"
+      >
+        Rating and user reviews
+      </h4>
       @if(spot()!.rating) {
       <div class="d-flex flex-row align-items-center mb-3">
         <div
@@ -421,7 +475,11 @@
             [showRating]="false"
           ></app-spot-rating>
           @if(spot()?.numReviews) {
-          <span class="mat-body-medium text-nowrap" i18n
+          <span
+            class="mat-body-medium text-nowrap"
+            i18n="
+              review count text|Text showing the number of
+              reviews@@spot.review.count"
             >{spot()!.numReviews, plural, =0 {no reviews} =1 {1 review} other
             {{{ spot()!.numReviews }} reviews}}</span
           >
@@ -450,7 +508,12 @@
       </div>
 
       } @else {
-      <p i18n class="mat-body-medium">
+      <p
+        i18n="
+          no reviews message|Message shown when there are no reviews
+          yet@@spot.no_reviews.message"
+        class="mat-body-medium"
+      >
         This spot has no reviews yet, be the first to leave one!
       </p>
       }
@@ -488,7 +551,14 @@
     @if(!isLocalSpot()) { @if(spot()!.topChallenges().length > 0 &&
     spotSlugOrId()) {
     <div class="pb-4">
-      <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
+      <h4
+        class="mat-title-medium mt-3"
+        i18n="
+          challenges section header|Header for the challenges
+          section@@spot.challenges.header"
+      >
+        Challenges
+      </h4>
       <app-challenge-list
         [challenges]="spot()!.topChallenges()"
         [spot]="notLocalSpotOrNull()"
@@ -496,33 +566,65 @@
       @if(spot()!.numChallenges() > spot()!.topChallenges().length) {
       <button mat-stroked-button (click)="showAllChallenges()">
         <mat-icon> read_more </mat-icon>
-        <span i18n>View all challanges</span>
+        <span
+          i18n="
+            view all challenges button|Button to view all
+            challenges@@spot.challenges.view_all"
+          >View all challanges</span
+        >
       </button>
       } @if(authenticationService.isSignedIn) {
       <button mat-stroked-button (click)="addChallenge()">
         <mat-icon>outlined_flag</mat-icon>
-        <span i18n>Add challenge</span>
+        <span
+          i18n="
+            add challenge button|Button to add a new
+            challenge@@spot.challenges.add"
+          >Add challenge</span
+        >
       </button>
       }
     </div>
     } @else { @if(authenticationService.isSignedIn) {
     <div class="mb-4 mt-2">
-      <h4 class="mat-title-medium mt-3" i18n>Challenges</h4>
-      <p class="mat-body-medium" i18n>
+      <h4
+        class="mat-title-medium mt-3"
+        i18n="
+          challenges section header empty|Header for challenges section when
+          empty@@spot.challenges.header_empty"
+      >
+        Challenges
+      </h4>
+      <p
+        class="mat-body-medium"
+        i18n="
+          no challenges message|Message shown when there are no
+          challenges@@spot.challenges.no_challenges"
+      >
         There are no challenges for this spot yet.
       </p>
 
       <div class="d-flex gap-2">
         <button mat-stroked-button (click)="addChallenge()">
           <mat-icon>outlined_flag</mat-icon>
-          <span i18n>Add challenge</span>
+          <span
+            i18n="
+              add challenge button empty|Button to add a new challenge when none
+              exist@@spot.challenges.add_empty"
+            >Add challenge</span
+          >
         </button>
 
         <!-- If the user has private challenges for this spot -->
         @if(true) {
         <button mat-stroked-button (click)="showAllChallenges()">
           <mat-icon>lock</mat-icon>
-          <span i18n>See private challenges</span>
+          <span
+            i18n="
+              see private challenges button|Button to see private
+              challenges@@spot.challenges.see_private"
+            >See private challenges</span
+          >
         </button>
         }
       </div>
@@ -535,7 +637,14 @@
     -->
 
     <!-- Spot title editing field -->
-    <h4 class="mat-title-small" i18n>Spot Name</h4>
+    <h4
+      class="mat-title-small"
+      i18n="
+        spot name edit header|Header for spot name editing
+        section@@spot.edit.name.header"
+    >
+      Spot Name
+    </h4>
     <form class="mb-3">
       <app-locale-map-edit-field
         class="w-100"
@@ -549,7 +658,14 @@
     </form>
 
     <div class="pb-2 pt-2">
-      <h4 class="mat-title-small" i18n>Media</h4>
+      <h4
+        class="mat-title-small"
+        i18n="
+          media edit header|Header for media editing
+          section@@spot.edit.media.header"
+      >
+        Media
+      </h4>
       <!-- Media preview grid -->
       @if(spot()!.userMedia() && spot()!.userMedia().length > 0) {
       <app-media-preview-grid
@@ -571,7 +687,9 @@
       <!-- Hide Streetview -->
 
       <mat-slide-toggle
-        i18n
+        i18n="
+          hide streetview toggle|Toggle to hide
+          streetview@@spot.edit.hide_streetview"
         class="mb-4"
         [checked]="spot()!.hideStreetview"
         color="primary"
@@ -582,10 +700,22 @@
 
     <!-- Slug selection -->
     <div class="pb-4">
-      <h4 class="mat-title-small" i18n>Spot URL</h4>
+      <h4
+        class="mat-title-small"
+        i18n="
+          spot url edit header|Header for spot URL editing
+          section@@spot.edit.url.header"
+      >
+        Spot URL
+      </h4>
       @if(allSpotSlugs.length > 0) {
       <mat-form-field class="w-100" appearance="outline">
-        <mat-label i18n>Select preffered spot URL</mat-label>
+        <mat-label
+          i18n="
+            select spot url label|Label for selecting preferred spot
+            URL@@spot.edit.url.select_label"
+          >Select preffered spot URL</mat-label
+        >
         <mat-select [(value)]="spotSlug">
           @for(slug of allSpotSlugs; track $index) {
           <mat-option [value]="slug">{{ slug }}</mat-option>
@@ -596,7 +726,12 @@
 
       <button mat-stroked-button>
         <mat-icon>add</mat-icon>
-        <span i18n>Add custom spot URL</span>
+        <span
+          i18n="
+            add custom url button|Button to add custom spot
+            URL@@spot.edit.url.add_custom"
+          >Add custom spot URL</span
+        >
       </button>
     </div>
 
@@ -646,7 +781,14 @@
 
     <!-- Type and Access? -->
     <div class="mb-4">
-      <h4 class="mat-title-small" i18n>Type and Access</h4>
+      <h4
+        class="mat-title-small"
+        i18n="
+          type and access edit header|Header for type and access editing
+          section@@spot.edit.type_access.header"
+      >
+        Type and Access
+      </h4>
       <div class="d-flex flex-column gap-4 align-items-stretch">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label

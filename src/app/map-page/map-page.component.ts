@@ -239,7 +239,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   speedDialButtonConfig: SpeedDialFabButtonConfig = {
     mainButton: {
       icon: "add_location",
-      tooltip: $localize`Add a new spot`,
+      tooltip: $localize`:Tooltip for add spot button|Add a new spot@@map.add_spot.tooltip:Add a new spot`,
       color: "primary",
       label: $localize`:@@pk.spotmap.addSpot:Add spot`,
       isExtended: false,
@@ -248,11 +248,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     miniButtons: [
       {
         icon: "outlined_flag",
-        tooltip: $localize`Add a challenge`,
+        tooltip: $localize`:Tooltip for add challenge button|Add a challenge@@map.add_challenge.tooltip:Add a challenge`,
       },
       {
         icon: "note_add",
-        tooltip: $localize`Import spots from a file`,
+        tooltip: $localize`:Tooltip for import spots button|Import spots from a file@@map.import_spots.tooltip:Import spots from a file`,
       },
     ],
   };
