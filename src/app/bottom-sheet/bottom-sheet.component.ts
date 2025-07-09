@@ -3,6 +3,7 @@ import {
   ElementRef,
   Input,
   Renderer2,
+  signal,
   ViewChild,
 } from "@angular/core";
 
@@ -17,6 +18,8 @@ export class BottomSheetComponent {
 
   headerHeight: number = 170;
   minimumSpeedToSlide: number = 5;
+
+  isContentAtTop = signal<boolean>(false);
 
   @ViewChild("bottomSheet", { static: true }) bottomSheet:
     | ElementRef
@@ -41,6 +44,18 @@ export class BottomSheetComponent {
     this.contentElement = this.bottomSheet?.nativeElement
       .lastChild as HTMLElement;
     console.log("contentElement", this.contentElement);
+
+    // Set up scroll listener for content to update signal
+    if (this.contentElement) {
+      this.renderer.listen(this.contentElement, "scroll", () => {
+        if (this.contentElement) {
+          this.isContentAtTop.set(this.contentElement.scrollTop === 0);
+        }
+      });
+
+      // Initial check
+      this.isContentAtTop.set(this.contentElement.scrollTop === 0);
+    }
 
     const startDrag = (event: MouseEvent | TouchEvent) => {
       if (typeof window === "undefined") return; // abort if not in browser

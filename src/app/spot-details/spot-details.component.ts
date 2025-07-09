@@ -28,6 +28,14 @@ import {
   MatProgressBarModule,
 } from "@angular/material/progress-bar";
 import { LocalSpot, Spot } from "../../db/models/Spot";
+import {
+  SpotAccessDescriptions,
+  SpotAccessIcons,
+  SpotAccessNames,
+  SpotTypesDescriptions,
+  SpotTypesIcons,
+  SpotTypesNames,
+} from "../../db/schemas/SpotTypeAndAccess";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { Post } from "../../db/models/Post";
 import { StorageService } from "../services/firebase/storage.service";
@@ -63,7 +71,7 @@ import { SpotReportDialogComponent } from "../spot-report-dialog/spot-report-dia
 import { SpotReviewDialogComponent } from "../spot-review-dialog/spot-review-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { SpotReportSchema } from "../../db/schemas/SpotReportSchema";
-import { Types, Areas, SpotAddressSchema } from "../../db/schemas/SpotSchema";
+import { SpotTypes, SpotAccess } from "../../db/schemas/SpotTypeAndAccess";
 import { MatSelect, MatSelectModule } from "@angular/material/select";
 import { MediaPreviewGridComponent } from "../media-preview-grid/media-preview-grid.component";
 import { MatInput } from "@angular/material/input";
@@ -172,8 +180,6 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatChipsModule,
     MatChip,
     MatChipSet,
-    MatChipListbox,
-    MatChipOption,
     MatIconButton,
     MatTooltip,
     MatIcon,
@@ -183,8 +189,8 @@ export class AsRatingKeyPipe implements PipeTransform {
     FormsModule,
     MediaPreviewGridComponent,
     MediaUpload,
-    // MatSelect,
-    // MatOption,
+    MatSelect,
+    MatOption,
     MatCardActions,
     SpotRatingComponent,
     MatDividerModule,
@@ -313,8 +319,15 @@ export class SpotDetailsComponent
     this.spot()?.descriptions.set(value);
   }
 
-  spotTypes = Object.values(Types);
-  spotAreas = Object.values(Areas);
+  spotTypes = Object.values(SpotTypes);
+  spotTypeNames = SpotTypesNames;
+  spotTypesIcons = SpotTypesIcons;
+  spotTypeDescriptions = SpotTypesDescriptions;
+
+  spotAccesses = Object.values(SpotAccess);
+  spotAccessNames = SpotAccessNames;
+  spotAccessIcons = SpotAccessIcons;
+  spotAccessDescriptions = SpotAccessDescriptions;
 
   newSpotImage: File | null = null;
 

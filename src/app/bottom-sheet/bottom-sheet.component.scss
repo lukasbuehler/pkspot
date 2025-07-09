@@ -36,6 +36,10 @@ div.handle-region {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  margin-left: 16px;
+  margin-right: 16px;
+
   > div.handle {
     height: 6px;
     width: 50px;
@@ -43,7 +47,17 @@ div.handle-region {
     border-radius: 3px;
   }
 
-  box-shadow: #1b1b1f 0px 6px 10px 0px;
+  // box-shadow: #1b1b1f 0px 6px 10px 0px;
   // margin-bottom: 6px;
+
+  &:not(.content-at-top) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: border-bottom 0.3s ease;
+  }
+
+  &.content-at-top {
+    border-bottom: 1px solid transparent;
+    transition: border-bottom 0.3s ease;
+  }
   z-index: 1;
 }

@@ -5,6 +5,7 @@ import { MapHelpers } from "../../scripts/MapHelpers";
 import { environment } from "../../environments/environment";
 import { GeoPoint } from "@firebase/firestore";
 import { SpotAddressSchema, SpotId, SpotSchema } from "../schemas/SpotSchema";
+import { SpotTypes, SpotAccess } from "../schemas/SpotTypeAndAccess";
 import { computed, Signal, signal, WritableSignal } from "@angular/core";
 import { SpotReviewSchema } from "../schemas/SpotReviewSchema";
 import { StorageService } from "../../app/services/firebase/storage.service";
@@ -89,8 +90,9 @@ export class LocalSpot {
 
   googlePlaceId = signal<string | undefined>(undefined);
 
-  type?: string;
-  area?: string;
+  type = signal<SpotTypes>(SpotTypes.Other);
+  access = signal<SpotAccess>(SpotAccess.Other);
+
   amenities: WritableSignal<AmenitiesMap>;
   amenitiesArray: Signal<{ name?: string; icon?: string }[]>;
   smartAmenitiesArray: Signal<
@@ -308,8 +310,8 @@ export class LocalSpot {
       this.googlePlaceId.set(data.external_references.google_maps_place_id);
     }
 
-    this.type = data.type;
-    this.area = data.area;
+    this.type.set((data.type as SpotTypes) ?? SpotTypes.Other);
+    this.access.set((data.access as SpotAccess) ?? SpotAccess.Other);
 
     // Set the default amenities if they don't exist
     if (!data.amenities) data.amenities = {};
@@ -323,7 +325,7 @@ export class LocalSpot {
     // Add smart amenities array that considers context and conflicts
     this.smartAmenitiesArray = computed(() => {
       const amenities = this.amenities();
-      return makeSmartAmenitiesArray(amenities, this.type);
+      return makeSmartAmenitiesArray(amenities, this.type());
     });
 
     this.paths = this._makePathsFromBounds(data.bounds ?? []);
@@ -368,8 +370,8 @@ export class LocalSpot {
       rating_histogram: this.ratingHistogram(),
       highlighted_reviews: this.highlightedReviews,
       address: this.address() ?? undefined,
-      type: this.type,
-      area: this.area,
+      type: this.type(),
+      access: this.access(),
       amenities: this.amenities(),
       bounds: this._makeBoundsFromPaths(this.paths ?? []),
       hide_streetview: this.hideStreetview,
