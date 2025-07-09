@@ -240,8 +240,33 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         });
     }
 
-    if (!this.selectedSpot() && !this.boundRestriction) {
-      // load the last location and zoom from memory
+    // Initialize map center and zoom based on priority:
+    // 1. Selected spot (if available)
+    // 2. Center start (if provided)
+    // 3. Bound restriction center
+    // 4. Last saved location
+    // 5. Default fallback coordinates
+
+    const selectedSpot = this.selectedSpot();
+    const centerStart = this.centerStart();
+
+    if (selectedSpot) {
+      // If we have a selected spot, focus on it
+      this.map.center = selectedSpot.location();
+      this.mapZoom = this.focusZoom();
+    } else if (centerStart) {
+      // Use the provided center start
+      this.map.center = centerStart;
+      this.mapZoom = this.focusZoom();
+    } else if (this.boundRestriction) {
+      // Use bound restriction center
+      console.debug("Using start center since we have bounds restriction");
+      this.map.center = new google.maps.LatLngBounds(this.boundRestriction)
+        .getCenter()
+        .toJSON();
+      this.mapZoom = this.focusZoom();
+    } else {
+      // Load last location from memory or use default
       this.mapsAPIService
         .loadLastLocationAndZoom()
         .then((lastLocationAndZoom) => {
@@ -250,28 +275,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
               this.map.center = lastLocationAndZoom.location;
               this.mapZoom = lastLocationAndZoom.zoom;
             } else {
-              const centerStart = this.centerStart();
-              if (centerStart) {
-                this.map.center = centerStart;
-              }
+              this.map.center = {
+                lat: 48.6270939,
+                lng: 2.4305363,
+              };
               this.mapZoom = this.startZoom;
             }
           }
         });
-    } else if (this.boundRestriction && !this.centerStart()) {
-      console.debug("Using start center since we have bounds restriction");
-
-      this.map.center = new google.maps.LatLngBounds(this.boundRestriction)
-        .getCenter()
-        .toJSON();
-    } else {
-      this.map.center = this.centerStart() ?? {
-        lat: 48.6270939,
-        lng: 2.4305363,
-      };
     }
-
-    this.mapZoom = this.focusZoom();
 
     this._visibleSpotsSubscription = this.visibleSpots$
       .pipe(
@@ -419,6 +431,13 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       (spot) => {
         if (spot) {
           this.selectedSpot.set(spot);
+          // Ensure the map focuses on the spot after it's loaded
+          // The effect will handle the focusing, but we can add a small delay to ensure map is ready
+          if (this.isInitiated) {
+            setTimeout(() => {
+              this.focusSpot(spot);
+            }, 100);
+          }
         } else {
           console.error("Spot with ID", spotId, "not found");
         }
@@ -436,8 +455,16 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     point: google.maps.LatLngLiteral,
     zoom: number = this.focusZoom()
   ) {
-    this.map?.googleMap?.panTo(point);
-    this.mapZoom = Math.max(this.mapZoom, zoom);
+    if (this.map?.googleMap) {
+      this.map.googleMap.panTo(point);
+      this.mapZoom = Math.max(this.mapZoom, zoom);
+    } else {
+      // If map is not ready yet, set the center directly
+      if (this.map) {
+        this.map.center = point;
+        this.mapZoom = Math.max(this.mapZoom, zoom);
+      }
+    }
   }
 
   focusBounds(bounds: google.maps.LatLngBounds) {

@@ -131,7 +131,6 @@ import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-pa
     ReactiveFormsModule,
     SpotDetailsComponent,
     SpotListComponent,
-    BottomSheetComponent,
     MatDividerModule,
     MatTooltipModule,
     SearchFieldComponent,

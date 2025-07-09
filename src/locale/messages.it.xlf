@@ -503,8 +503,7 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
-            equivEnd="CLOSE_BOLD_TEXT"
+          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>Ho letto e compreso i <pc id="0" equivStart="START_BOLD_TEXT"
@@ -715,9 +714,9 @@
       <segment state="initial">
         <source>This is a commercial property, such as a gym or business, where access may require a
           fee or membership. Please respect the rules and hours of operation.</source>
-        <target>Questa è una proprietà commerciale, come una palestra o un'attività, dove l'accesso
-          potrebbe richiedere una tassa o un abbonamento. Si prega di rispettare le regole e gli
-          orari di apertura.</target>
+        <target>Questa è una proprietà commerciale, come una palestra o un&apos;attività, dove
+          l&apos;accesso potrebbe richiedere una tassa o un abbonamento. Si prega di rispettare le
+          regole e gli orari di apertura.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
@@ -725,23 +724,23 @@
         <source>This is private property and strictly off-limits without explicit, prior permission
           from the owner. Unauthorized access may result in legal action or injury.</source>
         <target>Questa è proprietà privata e strettamente vietata senza permesso esplicito e
-          preventivo del proprietario. L'accesso non autorizzato può comportare azioni legali o
+          preventivo del proprietario. L&apos;accesso non autorizzato può comportare azioni legali o
           lesioni.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.other">
-      <segment state="initial"></segment>
-      <source>The access type of this spot is not specified. Please check local regulations and
-        guidelines before visiting.</source>
-      <target>Il tipo di accesso di questo spot non è specificato. Si prega di verificare le
-        normative e le linee guida locali prima della visita.</target>
+      <segment state="initial">
+        <source>The access type of this spot is not specified. Please check local regulations and
+          guidelines before visiting.</source>
+        <target>Il tipo di accesso di questo spot non è specificato. Si prega di verificare le
+          normative e le linee guida locali prima della visita.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.private">
       <segment state="initial">
         <source>This is private property. While some respectful practice may be tolerated,
           permission is always recommended to avoid issues.</source>
-        <target>Questa è proprietà privata. Sebbene un po' di pratica rispettosa possa essere
+        <target>Questa è proprietà privata. Sebbene un po&apos; di pratica rispettosa possa essere
           tollerata, il permesso è sempre raccomandato per evitare problemi.</target>
       </segment>
     </unit>
@@ -758,7 +757,7 @@
         <source>This is a residential area and private property. Access is generally limited to
           residents or their guests. Please be especially mindful of noise and privacy. Training
           here may lead to being asked to leave.</source>
-        <target>Questa è una zona residenziale e proprietà privata. L'accesso è generalmente
+        <target>Questa è una zona residenziale e proprietà privata. L&apos;accesso è generalmente
           limitato ai residenti o ai loro ospiti. Si prega di essere particolarmente attenti al
           rumore e alla privacy. Allenarsi qui potrebbe portare a essere invitati ad andarsene.</target>
       </segment>
@@ -802,7 +801,8 @@
     <unit id="spot-type-description.natural-landscape">
       <segment state="initial">
         <source>This is a natural area with trees, rocks, logs, and terrain features.</source>
-        <target>Questa è un'area naturale con alberi, rocce, tronchi e caratteristiche del terreno.</target>
+        <target>Questa è un&apos;area naturale con alberi, rocce, tronchi e caratteristiche del
+          terreno.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.other">
@@ -831,16 +831,16 @@
       <segment state="initial">
         <source>This is a purpose-built outdoor space with designed obstacles and structures for
           Parkour training.</source>
-        <target>Questo è uno spazio all'aperto costruito appositamente con ostacoli e strutture
-          progettate per l'allenamento di Parkour.</target>
+        <target>Questo è uno spazio all&apos;aperto costruito appositamente con ostacoli e strutture
+          progettate per l&apos;allenamento di Parkour.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.playground">
       <segment state="initial">
         <source>This is a playground area with swings, slides, and climbing structures suitable for
           Parkour training.</source>
-        <target>Questa è un'area giochi con altalene, scivoli e strutture da arrampicata adatte per
-          l'allenamento di Parkour.</target>
+        <target>Questa è un&apos;area giochi con altalene, scivoli e strutture da arrampicata adatte
+          per l&apos;allenamento di Parkour.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.roof-gap">
@@ -852,7 +852,7 @@
     <unit id="spot-type-description.rooftop">
       <segment state="initial">
         <source>This is a rooftop area with ledges, walls, and elevated structures.</source>
-        <target>Questa è un'area sul tetto con sporgenze, muri e strutture elevate.</target>
+        <target>Questa è un&apos;area sul tetto con sporgenze, muri e strutture elevate.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.school">
@@ -867,13 +867,14 @@
       <segment state="initial">
         <source>This is a university campus with varied buildings, courtyards, and outdoor
           structures.</source>
-        <target>Questo è un campus universitario con vari edifici, cortili e strutture all'aperto.</target>
+        <target>Questo è un campus universitario con vari edifici, cortili e strutture
+          all&apos;aperto.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.urban-landscape">
       <segment state="initial">
         <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
-        <target>Questa è un'area urbana con muri, ringhiere, scale ed elementi architettonici.</target>
+        <target>Questa è un&apos;area urbana con muri, ringhiere, scale ed elementi architettonici.</target>
       </segment>
     </unit>
     <unit id="spot-type.natural-landscape">
@@ -915,7 +916,7 @@
     <unit id="spot-type.roof-gap">
       <segment state="initial">
         <source>Roof Gap</source>
-        <target>Gap tra tetti</target>
+        <target>Roof Gap</target>
       </segment>
     </unit>
     <unit id="spot-type.rooftop">
@@ -1033,7 +1034,7 @@
     <unit id="amenities.not_outdoor">
       <segment state="initial">
         <source>Not outdoor</source>
-        <target>Non all'aperto</target>
+        <target>Non all&apos;aperto</target>
       </segment>
     </unit>
     <unit id="amenities.not_overgrown">
@@ -1226,7 +1227,11 @@
         <target>Incorpora</target>
       </segment>
     </unit>
-    <unit id="8189770288759005781">
+    <unit id="spot_access_label">
+      <notes>
+        <note category="description">Label for the spot access selection field</note>
+        <note category="meaning">Spot access label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Access</source>
         <target>Accesso allo Spot</target>
@@ -1901,7 +1906,11 @@
         <target>È necessario aggiungere un media alla challenge!</target>
       </segment>
     </unit>
-    <unit id="7108681834902444510">
+    <unit id="spot_type_label">
+      <notes>
+        <note category="description">Label for the spot type selection field</note>
+        <note category="meaning">Spot type label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Type</source>
         <target>Tipo di Spot</target>

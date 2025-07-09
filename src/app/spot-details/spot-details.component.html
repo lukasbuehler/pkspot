@@ -649,7 +649,12 @@
       <h4 class="mat-title-small" i18n>Type and Access</h4>
       <div class="d-flex flex-column gap-4 align-items-stretch">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label i18n>Spot Type</mat-label>
+          <mat-label
+            i18n="
+              Spot type label|Label for the spot type selection
+              field@@spot_type_label"
+            >Spot Type</mat-label
+          >
           <mat-select
             [value]="spot()!.type()"
             (valueChange)="spot()!.type.set($event)"
@@ -663,7 +668,12 @@
           <mat-hint>{{ spotTypeDescriptions[spot()!.type()] }}</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label i18n>Spot Access</mat-label>
+          <mat-label
+            i18n="
+              Spot access label|Label for the spot access selection
+              field@@spot_access_label"
+            >Spot Access</mat-label
+          >
           <mat-select
             [value]="spot()!.access()"
             (valueChange)="spot()!.access.set($event)"

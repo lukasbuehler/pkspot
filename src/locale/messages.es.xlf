@@ -503,8 +503,7 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
-            equivEnd="CLOSE_BOLD_TEXT"
+          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>He leído y comprendido los <pc id="0" equivStart="START_BOLD_TEXT"
@@ -1077,7 +1076,7 @@
     <unit id="spot-type.roof-gap">
       <segment state="initial">
         <source>Roof Gap</source>
-        <target>Salto entre techos</target>
+        <target>Roof Gap</target>
       </segment>
     </unit>
     <unit id="spot-type.rooftop">
@@ -1225,7 +1224,11 @@
         <target>Integrar</target>
       </segment>
     </unit>
-    <unit id="8189770288759005781">
+    <unit id="spot_access_label">
+      <notes>
+        <note category="description">Label for the spot access selection field</note>
+        <note category="meaning">Spot access label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Access</source>
         <target>Acceso al spot</target>
@@ -1900,7 +1903,11 @@
         <target>¡Se requiere media para el Challenge!</target>
       </segment>
     </unit>
-    <unit id="7108681834902444510">
+    <unit id="spot_type_label">
+      <notes>
+        <note category="description">Label for the spot type selection field</note>
+        <note category="meaning">Spot type label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Type</source>
         <target>Tipo de Spot</target>

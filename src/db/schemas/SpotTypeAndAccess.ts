@@ -38,7 +38,7 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
   [SpotTypes.NaturalLandscape]: "nature",
   [SpotTypes.UniversityCampus]: "school",
   [SpotTypes.Rooftop]: "roofing",
-  [SpotTypes.RoofGap]: "split_screen",
+  [SpotTypes.RoofGap]: "space_bar",
   [SpotTypes.Other]: "help_outline",
 };
 

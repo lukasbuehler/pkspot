@@ -106,7 +106,11 @@
         <source>Embed</source>
       </segment>
     </unit>
-    <unit id="8189770288759005781">
+    <unit id="spot_access_label">
+      <notes>
+        <note category="description">Label for the spot access selection field</note>
+        <note category="meaning">Spot access label</note>
+      </notes>
       <segment>
         <source>Spot Access</source>
       </segment>
@@ -1577,7 +1581,11 @@
         <source>Participant Type</source>
       </segment>
     </unit>
-    <unit id="7108681834902444510">
+    <unit id="spot_type_label">
+      <notes>
+        <note category="description">Label for the spot type selection field</note>
+        <note category="meaning">Spot type label</note>
+      </notes>
       <segment>
         <source>Spot Type</source>
       </segment>

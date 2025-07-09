@@ -500,8 +500,7 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
-            equivEnd="CLOSE_BOLD_TEXT"
+          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>Ich ha d&apos;<pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
@@ -931,7 +930,7 @@
     <unit id="spot-access.off-limits">
       <segment state="initial">
         <source>Off-Limits</source>
-        <target>Verbote</target>
+        <target>Zuetritt verbote</target>
       </segment>
     </unit>
     <unit id="spot-access.other">
@@ -1223,7 +1222,11 @@
         <target>Ihbette</target>
       </segment>
     </unit>
-    <unit id="8189770288759005781">
+    <unit id="spot_access_label">
+      <notes>
+        <note category="description">Label for the spot access selection field</note>
+        <note category="meaning">Spot access label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Access</source>
         <target>Spot Zuegang</target>
@@ -1899,7 +1902,11 @@
         <target>Es Challenge Video oder Bild isch notwendig!</target>
       </segment>
     </unit>
-    <unit id="7108681834902444510">
+    <unit id="spot_type_label">
+      <notes>
+        <note category="description">Label for the spot type selection field</note>
+        <note category="meaning">Spot type label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Type</source>
         <target>Spot-Art</target>

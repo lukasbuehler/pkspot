@@ -1076,7 +1076,7 @@
     <unit id="spot-type.roof-gap">
       <segment state="initial">
         <source>Roof Gap</source>
-        <target>Daksprong</target>
+        <target>Roof Gap</target>
       </segment>
     </unit>
     <unit id="spot-type.rooftop">
@@ -1225,7 +1225,11 @@
         <target>Inbedden</target>
       </segment>
     </unit>
-    <unit id="8189770288759005781">
+    <unit id="spot_access_label">
+      <notes>
+        <note category="description">Label for the spot access selection field</note>
+        <note category="meaning">Spot access label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Access</source>
         <target>Toegang tot Spot</target>
@@ -1900,7 +1904,11 @@
         <target>Challenge-media is vereist!</target>
       </segment>
     </unit>
-    <unit id="7108681834902444510">
+    <unit id="spot_type_label">
+      <notes>
+        <note category="description">Label for the spot type selection field</note>
+        <note category="meaning">Spot type label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Type</source>
         <target>Spot Type</target>

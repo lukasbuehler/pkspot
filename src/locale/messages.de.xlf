@@ -502,8 +502,7 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
-            equivEnd="CLOSE_BOLD_TEXT"
+          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>Ich habe die <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
@@ -933,7 +932,7 @@
     <unit id="spot-access.off-limits">
       <segment state="initial">
         <source>Off-Limits</source>
-        <target>Verboten</target>
+        <target>Zutritt verboten</target>
       </segment>
     </unit>
     <unit id="spot-access.other">
@@ -1008,7 +1007,7 @@
     <unit id="spot-type-description.roof-gap">
       <segment state="initial">
         <source>This is a roof gap requiring precision jumping between buildings.</source>
-        <target>Dies ist eine Dachlücke, die präzise Sprünge zwischen Gebäuden erfordert.</target>
+        <target>Dies ist ein Roof-Gap (Dacklücke), wo man von Dach zu Dach springt.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.rooftop">
@@ -1079,7 +1078,7 @@
     <unit id="spot-type.roof-gap">
       <segment state="initial">
         <source>Roof Gap</source>
-        <target>Dachlücke</target>
+        <target>Roof-Gap</target>
       </segment>
     </unit>
     <unit id="spot-type.rooftop">
@@ -1229,7 +1228,11 @@
         <target>Einbetten</target>
       </segment>
     </unit>
-    <unit id="8189770288759005781">
+    <unit id="spot_access_label">
+      <notes>
+        <note category="description">Label for the spot access selection field</note>
+        <note category="meaning">Spot access label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Access</source>
         <target>Spot Zugang</target>
@@ -1905,7 +1908,11 @@
         <target>Challenge-Medien sind erforderlich!</target>
       </segment>
     </unit>
-    <unit id="7108681834902444510">
+    <unit id="spot_type_label">
+      <notes>
+        <note category="description">Label for the spot type selection field</note>
+        <note category="meaning">Spot type label</note>
+      </notes>
       <segment state="initial">
         <source>Spot Type</source>
         <target>Spot-Art</target>
