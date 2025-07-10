@@ -463,8 +463,8 @@ export class LocalSpot {
 
   private _makePathsFromBounds(
     bounds: GeoPoint[]
-  ): Array<Array<google.maps.LatLngLiteral>> {
-    if (!bounds) return [];
+  ): Array<Array<google.maps.LatLngLiteral>> | undefined {
+    if (!bounds || bounds.length === 0) return undefined;
 
     return [
       bounds.map((point) => {

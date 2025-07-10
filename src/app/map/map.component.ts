@@ -297,12 +297,17 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     private cdr: ChangeDetectorRef,
     public mapsApiService: MapsApiService
   ) {
-    // Effect to handle selected spot changes for polygon updates
+    // Effect to handle selected spot changes and editing state changes for polygon updates
     effect(() => {
       const tracker = this.selectedSpotTracker();
       const isEditing = this.isEditing();
 
-      // Only log and update when we have a spot AND we're in editing mode
+      console.log("Effect triggered - tracker:", tracker, "isEditing:", isEditing);
+
+      // Also trigger the debug computed signals
+      this.polygonTemplateConditions();
+
+      // Only update polygon when we have a spot AND we're in editing mode
       if (tracker && isEditing) {
         console.log("Selected spot tracker changed during editing:", tracker);
 
@@ -390,8 +395,10 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   private handleSelectedSpotChange() {
     console.log("handleSelectedSpotChange called");
 
-    // Force polygon recreation when spot changes
-    this.forcePolygonRecreation();
+    // Only force polygon recreation when we're in editing mode
+    if (this.isEditing()) {
+      this.forcePolygonRecreation();
+    }
   }
 
   /**
@@ -646,7 +653,7 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   //   //     this.heatmapOptions = this.heatmapDarkOptions;
   //   this.spotCircleOptions = this.spotCircleDarkOptions;
   //   this.spotPolygonOptions = this.spotPolygonDarkOptions;
-  //   //     this.selectedSpotMarkerOptions = this.selectedSpotMarkerDarkOptions;
+ 
   // }
 
   boundsChanged() {
@@ -706,12 +713,18 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     this.selectedChallenge.location.set(position.toJSON());
   }
   showSelectedSpotPolygon(): boolean {
-    if (!this.selectedSpot || !this.isEditing()) {
+    const hasSpot = !!this.selectedSpot;
+    const isEditing = this.isEditing();
+    const result = hasSpot && isEditing;
+    
+    console.log("showSelectedSpotPolygon - hasSpot:", hasSpot, "isEditing:", isEditing, "result:", result);
+    
+    if (!hasSpot || !isEditing) {
       return false;
     }
 
-    // Show polygon editing for selected spot when editing
-    // Either if it already has bounds/paths, or if we want to add them
+    // Show polygon when in editing mode - this allows creating new bounds
+    // or editing existing bounds
     return true;
   }
   /**
@@ -829,30 +842,16 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       );
     }
 
-    // Fall back to existing paths
+    // Fall back to existing paths - DO NOT create default paths
     const selectedSpot = this.selectedSpot();
     if (selectedSpot?.paths && selectedSpot.paths.length > 0) {
       console.log("Falling back to existing spot paths");
       return selectedSpot.paths;
     }
 
-    if (!selectedSpot) return [];
-
-    // If no paths exist, create a default rectangular polygon around the spot location
-    const location = selectedSpot.location();
-    const offset = 0.0001; // Roughly 10 meters
-
-    const defaultPaths = [
-      [
-        { lat: location.lat - offset, lng: location.lng - offset },
-        { lat: location.lat - offset, lng: location.lng + offset },
-        { lat: location.lat + offset, lng: location.lng + offset },
-        { lat: location.lat + offset, lng: location.lng - offset },
-      ],
-    ];
-
-    console.log("Created default paths");
-    return defaultPaths;
+    // Return null if no paths exist - don't create default paths
+    console.log("No paths exist, returning null");
+    return null;
   }
 
   /**
@@ -864,6 +863,11 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
 
     // Update the spot's paths
     selectedSpot.paths = paths;
+
+    // Force polygon recreation to show the new paths
+    if (this.isEditing()) {
+      this.forcePolygonRecreation();
+    }
 
     // Emit the polygon change event
     // Check if it's a Spot (has id) vs LocalSpot (no id)
@@ -981,24 +985,13 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     }
 
     // Always use the current stored paths when available
-    if (selectedSpot.paths && selectedSpot.paths.length > 0) {
+    if (selectedSpot.paths && selectedSpot.paths.length > 0 && selectedSpot.paths[0] && selectedSpot.paths[0].length > 0) {
       return selectedSpot.paths;
     }
 
-    // If no paths exist, create a default rectangular polygon around the spot location
-    const location = selectedSpot.location();
-    const offset = 0.0001; // Roughly 10 meters
-
-    const defaultPaths = [
-      [
-        { lat: location.lat - offset, lng: location.lng - offset },
-        { lat: location.lat - offset, lng: location.lng + offset },
-        { lat: location.lat + offset, lng: location.lng + offset },
-        { lat: location.lat + offset, lng: location.lng - offset },
-      ],
-    ];
-
-    return defaultPaths;
+    // Return empty array if no valid paths exist - don't create default paths
+    // This ensures spots without bounds don't show polygons
+    return [];
   });
 
   /**
@@ -1006,8 +999,32 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
    */
   selectedSpotFirstPath = computed(() => {
     const paths = this.selectedSpotPaths();
-    const firstPath = paths.length > 0 ? paths[0] : [];
-    return firstPath;
+    console.log("selectedSpotFirstPath computed - paths:", paths);
+    console.log("selectedSpotFirstPath computed - isEditing:", this.isEditing());
+    console.log("selectedSpotFirstPath computed - selectedSpot:", this.selectedSpot());
+    
+    if (paths.length > 0) {
+      console.log("selectedSpotFirstPath - returning existing path:", paths[0]);
+      return paths[0];
+    }
+
+    // If we're in editing mode and no paths exist, create a default path
+    // This allows the polygon to be created and then edited
+    if (this.isEditing() && this.selectedSpot()) {
+      const location = this.selectedSpot()!.location();
+      const dist = 0.0001;
+      const defaultPath = [
+        { lat: location.lat + dist, lng: location.lng + dist },
+        { lat: location.lat - dist, lng: location.lng + dist },
+        { lat: location.lat - dist, lng: location.lng - dist },
+        { lat: location.lat + dist, lng: location.lng - dist },
+      ];
+      console.log("selectedSpotFirstPath - creating default path:", defaultPath);
+      return defaultPath;
+    }
+
+    console.log("selectedSpotFirstPath - returning empty array");
+    return [];
   });
 
   getSelectedSpotPaths(): google.maps.LatLngLiteral[][] {
@@ -1188,6 +1205,28 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       return { id, location, paths };
     }
     return null;
+  });
+
+  /**
+   * Debug computed signal to track template conditions
+   */
+  polygonTemplateConditions = computed(() => {
+    const selectedSpot = this.selectedSpot();
+    const isEditing = this.isEditing();
+    const showPolygon = this.showSelectedSpotPolygon();
+    const firstPath = this.selectedSpotFirstPath();
+    
+    const result = {
+      selectedSpot: !!selectedSpot,
+      isEditing,
+      showPolygon,
+      firstPathLength: firstPath.length,
+      polygonRecreationKey: this.polygonRecreationKey(),
+      shouldShowPolygon: !!selectedSpot && isEditing && showPolygon
+    };
+    
+    console.log("polygonTemplateConditions:", result);
+    return result;
   });
 
   closeSelectedSpot() {

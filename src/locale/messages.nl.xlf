@@ -92,11 +92,7 @@
         <target>Spot-kaart</target>
       </segment>
     </unit>
-    <unit id="6493290522598468378">
-      <notes>
-        <note category="description">A very short label for the navbar about page button</note>
-        <note category="meaning">About page navbar button label</note>
-      </notes>
+    <unit id="about_page_label">
       <segment state="initial">
         <source>About</source>
         <target>Over</target>
@@ -237,8 +233,8 @@
         <note category="meaning">settings page title</note>
       </notes>
       <segment state="initial">
-        <source>Settings</source>
-        <target>Instellingen</target>
+        <source> Settings </source>
+        <target> Instellingen </target>
       </segment>
     </unit>
     <unit id="settings.profile.header">
@@ -247,8 +243,8 @@
         <note category="meaning">public profile section</note>
       </notes>
       <segment state="initial">
-        <source>Public profile</source>
-        <target>Openbaar profiel</target>
+        <source> Public profile </source>
+        <target> Openbaar profiel </target>
       </segment>
     </unit>
     <unit id="settings.profile.description">
@@ -269,8 +265,8 @@
         <note category="meaning">login information section</note>
       </notes>
       <segment state="initial">
-        <source>Login information</source>
-        <target>Inloggegevens</target>
+        <source> Login information </source>
+        <target> Inloggegevens </target>
       </segment>
     </unit>
     <unit id="settings.login.description">
@@ -357,6 +353,12 @@
         <target>Inloggen</target>
       </segment>
     </unit>
+    <unit id="policy.short">
+      <segment state="initial">
+        <source>Policy</source>
+        <target>Policy</target>
+      </segment>
+    </unit>
     <unit id="profile.nav_label">
       <segment state="initial">
         <source>My Profile</source>
@@ -429,8 +431,8 @@
         <note category="meaning">email password section header</note>
       </notes>
       <segment state="initial">
-        <source>E-Mail and password</source>
-        <target>E-mailadres en wachtwoord</target>
+        <source> E-Mail and password </source>
+        <target> E-mailadres en wachtwoord </target>
       </segment>
     </unit>
     <unit id="signin.button">
@@ -501,8 +503,8 @@
         <note category="meaning">sign in page title</note>
       </notes>
       <segment state="initial">
-        <source>Sign in</source>
-        <target>Inloggen</target>
+        <source> Sign in </source>
+        <target> Inloggen </target>
       </segment>
     </unit>
     <unit id="5726791725186220555">
@@ -1267,8 +1269,8 @@
         <note category="meaning">ratings section header</note>
       </notes>
       <segment state="initial">
-        <source>Rating and user reviews</source>
-        <target>Beoordeling en gebruikersrecensies</target>
+        <source> Rating and user reviews </source>
+        <target> Beoordeling en gebruikersrecensies </target>
       </segment>
     </unit>
     <unit id="spot.navigate.button">
@@ -1490,8 +1492,8 @@
         <note category="meaning">google maps section header</note>
       </notes>
       <segment state="initial">
-        <source>This spot on Google Maps®</source>
-        <target>Deze spot op Google Maps®</target>
+        <source> This spot on Google Maps® </source>
+        <target> Deze spot op Google Maps® </target>
       </segment>
     </unit>
     <unit id="spot.iconic.tooltip">
@@ -1766,8 +1768,8 @@
         <note category="meaning">other signin options header</note>
       </notes>
       <segment state="initial">
-        <source>Other sign-in options</source>
-        <target>Andere aanmeldopties</target>
+        <source> Other sign-in options </source>
+        <target> Andere aanmeldopties </target>
       </segment>
     </unit>
     <unit id="3297238960219201653">
@@ -1798,8 +1800,8 @@
         <note category="meaning">challenges section header</note>
       </notes>
       <segment state="initial">
-        <source>Challenges</source>
-        <target>Challenges</target>
+        <source> Challenges </source>
+        <target> Challenges </target>
       </segment>
     </unit>
     <unit id="spot.challenges.header_empty">
@@ -1808,8 +1810,8 @@
         <note category="meaning">challenges section header empty</note>
       </notes>
       <segment state="initial">
-        <source>Challenges</source>
-        <target>Challenges</target>
+        <source> Challenges </source>
+        <target> Challenges </target>
       </segment>
     </unit>
     <unit id="spot.challenges.no_challenges">
@@ -1828,8 +1830,26 @@
         <note category="meaning">spot details section header</note>
       </notes>
       <segment state="initial">
-        <source>Details</source>
-        <target>Details</target>
+        <source> Details </source>
+        <target> Details </target>
+      </segment>
+    </unit>
+    <unit id="spot.details.spot_access_chip">
+      <segment state="initial">
+        <source>Spot Access</source>
+        <target>Toegang tot Spot</target>
+      </segment>
+    </unit>
+    <unit id="spot.details.spot_type_chip">
+      <segment state="initial">
+        <source>Spot Type</source>
+        <target>Type Spot</target>
+      </segment>
+    </unit>
+    <unit id="spot.details.type_access.header">
+      <segment state="initial">
+        <source> Spot Type and Access </source>
+        <target> Type Spot en Toegang </target>
       </segment>
     </unit>
     <unit id="1581074162625291057">
@@ -1848,8 +1868,8 @@
         <note category="meaning">location section header</note>
       </notes>
       <segment state="initial">
-        <source>Location</source>
-        <target>Locatie</target>
+        <source> Location </source>
+        <target> Locatie </target>
       </segment>
     </unit>
     <unit id="spot.edit.aria_label">
@@ -1898,8 +1918,8 @@
         <note category="meaning">media edit header</note>
       </notes>
       <segment state="initial">
-        <source>Media</source>
-        <target>Media</target>
+        <source> Media </source>
+        <target> Media </target>
       </segment>
     </unit>
     <unit id="spot.edit.name.header">
@@ -1908,8 +1928,8 @@
         <note category="meaning">spot name edit header</note>
       </notes>
       <segment state="initial">
-        <source>Spot Name</source>
-        <target>Spot Naam</target>
+        <source> Spot Name </source>
+        <target> Spot Naam </target>
       </segment>
     </unit>
     <unit id="spot.edit.hide_streetview">
@@ -1928,8 +1948,8 @@
         <note category="meaning">spot url edit header</note>
       </notes>
       <segment state="initial">
-        <source>Spot URL</source>
-        <target>Spot URL</target>
+        <source> Spot URL </source>
+        <target> Spot URL </target>
       </segment>
     </unit>
     <unit id="spot.edit.url.select_label">
@@ -2052,8 +2072,8 @@
         <note category="meaning">type and access edit header</note>
       </notes>
       <segment state="initial">
-        <source>Type and Access</source>
-        <target>Type en Toegang</target>
+        <source> Type and Access </source>
+        <target> Type en Toegang </target>
       </segment>
     </unit>
     <unit id="7374538640222631357">
@@ -2146,6 +2166,12 @@
       <segment state="initial">
         <source>Spot Type</source>
         <target>Spot Type</target>
+      </segment>
+    </unit>
+    <unit id="terms.short">
+      <segment state="initial">
+        <source>Terms</source>
+        <target>Terms</target>
       </segment>
     </unit>
     <unit id="7150227608403439982">

@@ -464,7 +464,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectSpot(spot: Spot | LocalSpot | null, updateUrl: boolean = true) {
-    console.debug("selecting spot", spot);
+    // console.debug("selecting spot", spot);
     if (!spot) {
       this.closeSpot(updateUrl);
     } else {

@@ -650,6 +650,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     const location = this.selectedSpot()?.location();
     if (!location) return;
 
+    // Enable editing mode so the polygon becomes visible and editable
+    if (!this.isEditing()) {
+      this.startEdit();
+    }
+
     // TODO fix with mercator projection (this brakes at the poles)
     const dist = 0.0001;
     let _paths: Array<Array<google.maps.LatLngLiteral>> = [
@@ -660,10 +665,17 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         { lat: location.lat + dist, lng: location.lng - dist },
       ],
     ];
-    this.selectedSpot.update((spot) => {
-      if (!spot) return spot;
-      spot.paths = _paths;
-      return spot;
-    });
+
+    // Use the map component's updateSelectedSpotPaths method to properly update the paths
+    if (this.map) {
+      this.map.updateSelectedSpotPaths(_paths);
+    } else {
+      // Fallback if map is not available
+      this.selectedSpot.update((spot) => {
+        if (!spot) return spot;
+        spot.paths = _paths;
+        return spot;
+      });
+    }
   }
 }

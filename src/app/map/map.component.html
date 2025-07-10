@@ -92,10 +92,10 @@
   </map-circle>
   } @else {
   <!-- Don't show regular polygon if this spot is selected and being edited -->
-  @if(!(isSelectedSpotBeingEdited(spot))) {
+  @if(!(isSelectedSpotBeingEdited(spot)) && spot.paths && spot.paths.length > 0 && spot.paths[0] && spot.paths[0].length > 0) {
   <map-polygon
     [options]="spotPolygonOptions"
-    [paths]="spot.paths![0]"
+    [paths]="spot.paths[0]"
     (polygonClick)="spotClick.emit(spot)"
   ></map-polygon>
   } } } }

@@ -84,11 +84,7 @@
         <source>Spot map</source>
       </segment>
     </unit>
-    <unit id="6493290522598468378">
-      <notes>
-        <note category="description">A very short label for the navbar about page button</note>
-        <note category="meaning">About page navbar button label</note>
-      </notes>
+    <unit id="about_page_label">
       <segment>
         <source>About</source>
       </segment>
@@ -316,7 +312,7 @@
         <note category="meaning">settings page title</note>
       </notes>
       <segment>
-        <source>Settings</source>
+        <source> Settings </source>
       </segment>
     </unit>
     <unit id="settings.profile.header">
@@ -325,7 +321,7 @@
         <note category="meaning">public profile section</note>
       </notes>
       <segment>
-        <source>Public profile</source>
+        <source> Public profile </source>
       </segment>
     </unit>
     <unit id="settings.profile.description">
@@ -343,7 +339,7 @@
         <note category="meaning">login information section</note>
       </notes>
       <segment>
-        <source>Login information</source>
+        <source> Login information </source>
       </segment>
     </unit>
     <unit id="settings.login.description">
@@ -431,7 +427,7 @@
         <note category="meaning">email password section header</note>
       </notes>
       <segment>
-        <source>E-Mail and password</source>
+        <source> E-Mail and password </source>
       </segment>
     </unit>
     <unit id="signin.button">
@@ -494,7 +490,7 @@
         <note category="meaning">sign in page title</note>
       </notes>
       <segment>
-        <source>Sign in</source>
+        <source> Sign in </source>
       </segment>
     </unit>
     <unit id="5726791725186220555">
@@ -666,7 +662,7 @@
         <note category="meaning">ratings section header</note>
       </notes>
       <segment>
-        <source>Rating and user reviews</source>
+        <source> Rating and user reviews </source>
       </segment>
     </unit>
     <unit id="spot.review.count">
@@ -955,6 +951,11 @@
         <source>Sign in</source>
       </segment>
     </unit>
+    <unit id="policy.short">
+      <segment>
+        <source>Policy</source>
+      </segment>
+    </unit>
     <unit id="profile.nav_label">
       <segment>
         <source>My Profile</source>
@@ -1181,7 +1182,7 @@
         <note category="meaning">google maps section header</note>
       </notes>
       <segment>
-        <source>This spot on Google Maps®</source>
+        <source> This spot on Google Maps® </source>
       </segment>
     </unit>
     <unit id="spot.iconic.tooltip">
@@ -1336,7 +1337,7 @@
         <note category="meaning">other signin options header</note>
       </notes>
       <segment>
-        <source>Other sign-in options</source>
+        <source> Other sign-in options </source>
       </segment>
     </unit>
     <unit id="1581074162625291057">
@@ -1381,7 +1382,7 @@
         <note category="meaning">media edit header</note>
       </notes>
       <segment>
-        <source>Media</source>
+        <source> Media </source>
       </segment>
     </unit>
     <unit id="spot.edit.name.header">
@@ -1390,7 +1391,7 @@
         <note category="meaning">spot name edit header</note>
       </notes>
       <segment>
-        <source>Spot Name</source>
+        <source> Spot Name </source>
       </segment>
     </unit>
     <unit id="2273032269971765958">
@@ -1404,7 +1405,7 @@
         <note category="meaning">type and access edit header</note>
       </notes>
       <segment>
-        <source>Type and Access</source>
+        <source> Type and Access </source>
       </segment>
     </unit>
     <unit id="2369409944839137310">
@@ -1497,7 +1498,7 @@
         <note category="meaning">challenges section header</note>
       </notes>
       <segment>
-        <source>Challenges</source>
+        <source> Challenges </source>
       </segment>
     </unit>
     <unit id="spot.challenges.header_empty">
@@ -1506,7 +1507,7 @@
         <note category="meaning">challenges section header empty</note>
       </notes>
       <segment>
-        <source>Challenges</source>
+        <source> Challenges </source>
       </segment>
     </unit>
     <unit id="spot.challenges.no_challenges">
@@ -1529,7 +1530,7 @@
         <note category="meaning">location section header</note>
       </notes>
       <segment>
-        <source>Location</source>
+        <source> Location </source>
       </segment>
     </unit>
     <unit id="4771468580618188841">
@@ -1543,7 +1544,22 @@
         <note category="meaning">spot details section header</note>
       </notes>
       <segment>
-        <source>Details</source>
+        <source> Details </source>
+      </segment>
+    </unit>
+    <unit id="spot.details.spot_access_chip">
+      <segment>
+        <source>Spot Access</source>
+      </segment>
+    </unit>
+    <unit id="spot.details.spot_type_chip">
+      <segment>
+        <source>Spot Type</source>
+      </segment>
+    </unit>
+    <unit id="spot.details.type_access.header">
+      <segment>
+        <source> Spot Type and Access </source>
       </segment>
     </unit>
     <unit id="5078551942621038511">
@@ -1599,7 +1615,7 @@
         <note category="meaning">spot url edit header</note>
       </notes>
       <segment>
-        <source>Spot URL</source>
+        <source> Spot URL </source>
       </segment>
     </unit>
     <unit id="6179528187219959958">
@@ -1764,6 +1780,11 @@
       </notes>
       <segment>
         <source>Spot Type</source>
+      </segment>
+    </unit>
+    <unit id="terms.short">
+      <segment>
+        <source>Terms</source>
       </segment>
     </unit>
     <unit id="7150227608403439982">

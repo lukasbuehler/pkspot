@@ -414,7 +414,7 @@ export class AppComponent implements OnInit {
       //   icon: "local_activity",
       // },
       {
-        name: $localize`:About page navbar button label|A very short label for the navbar about page button:About`,
+        name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
         link: "/about",
         icon: "info",
       },

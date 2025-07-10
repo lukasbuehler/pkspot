@@ -306,12 +306,18 @@
     <!-- Type and Acccess -->
     @if(spot()?.type() !== 'other' || spot()!.access() !== 'other') {
     <div class="mb-4">
-      <h4 class="mat-title-small">Spot Type and Access</h4>
+      <h4 class="mat-title-small" i18n="@@spot.details.type_access.header">
+        Spot Type and Access
+      </h4>
       <div class="d-flex flex-row gap-2">
         <div
           class="d-flex flex-column justify-content-start align-items-start gap-2 p-2 flex-grow-1 flex-basis-0 border rounded"
         >
-          <span class="mat-label-small px-1 border rounded">Spot Type</span>
+          <span
+            class="mat-label-small px-1 border rounded"
+            i18n="@@spot.details.spot_type_chip"
+            >Spot Type</span
+          >
           <h4 class="mat-title-medium m-0">
             <mat-icon class="me-2">{{
               spotTypesIcons[spot()!.type()]
@@ -325,7 +331,11 @@
         <div
           class="d-flex flex-column justify-content-start align-items-start gap-2 p-2 flex-grow-1 flex-basis-0 border rounded"
         >
-          <span class="mat-label-small px-1 border rounded">Spot Access</span>
+          <span
+            class="mat-label-small px-1 border rounded"
+            i18n="@@spot.details.spot_access_chip"
+            >Spot Access</span
+          >
           <h4 class="mat-title-medium m-0">
             <mat-icon class="me-2">{{
               spotAccessIcons[spot()!.access()]
