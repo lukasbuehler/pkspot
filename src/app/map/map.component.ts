@@ -302,7 +302,12 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       const tracker = this.selectedSpotTracker();
       const isEditing = this.isEditing();
 
-      console.log("Effect triggered - tracker:", tracker, "isEditing:", isEditing);
+      console.log(
+        "Effect triggered - tracker:",
+        tracker,
+        "isEditing:",
+        isEditing
+      );
 
       // Also trigger the debug computed signals
       this.polygonTemplateConditions();
@@ -653,7 +658,7 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   //   //     this.heatmapOptions = this.heatmapDarkOptions;
   //   this.spotCircleOptions = this.spotCircleDarkOptions;
   //   this.spotPolygonOptions = this.spotPolygonDarkOptions;
- 
+
   // }
 
   boundsChanged() {
@@ -716,9 +721,16 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     const hasSpot = !!this.selectedSpot;
     const isEditing = this.isEditing();
     const result = hasSpot && isEditing;
-    
-    console.log("showSelectedSpotPolygon - hasSpot:", hasSpot, "isEditing:", isEditing, "result:", result);
-    
+
+    console.log(
+      "showSelectedSpotPolygon - hasSpot:",
+      hasSpot,
+      "isEditing:",
+      isEditing,
+      "result:",
+      result
+    );
+
     if (!hasSpot || !isEditing) {
       return false;
     }
@@ -985,7 +997,12 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     }
 
     // Always use the current stored paths when available
-    if (selectedSpot.paths && selectedSpot.paths.length > 0 && selectedSpot.paths[0] && selectedSpot.paths[0].length > 0) {
+    if (
+      selectedSpot.paths &&
+      selectedSpot.paths.length > 0 &&
+      selectedSpot.paths[0] &&
+      selectedSpot.paths[0].length > 0
+    ) {
       return selectedSpot.paths;
     }
 
@@ -1000,9 +1017,15 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   selectedSpotFirstPath = computed(() => {
     const paths = this.selectedSpotPaths();
     console.log("selectedSpotFirstPath computed - paths:", paths);
-    console.log("selectedSpotFirstPath computed - isEditing:", this.isEditing());
-    console.log("selectedSpotFirstPath computed - selectedSpot:", this.selectedSpot());
-    
+    console.log(
+      "selectedSpotFirstPath computed - isEditing:",
+      this.isEditing()
+    );
+    console.log(
+      "selectedSpotFirstPath computed - selectedSpot:",
+      this.selectedSpot()
+    );
+
     if (paths.length > 0) {
       console.log("selectedSpotFirstPath - returning existing path:", paths[0]);
       return paths[0];
@@ -1019,7 +1042,10 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
         { lat: location.lat - dist, lng: location.lng - dist },
         { lat: location.lat + dist, lng: location.lng - dist },
       ];
-      console.log("selectedSpotFirstPath - creating default path:", defaultPath);
+      console.log(
+        "selectedSpotFirstPath - creating default path:",
+        defaultPath
+      );
       return defaultPath;
     }
 
@@ -1215,16 +1241,16 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     const isEditing = this.isEditing();
     const showPolygon = this.showSelectedSpotPolygon();
     const firstPath = this.selectedSpotFirstPath();
-    
+
     const result = {
       selectedSpot: !!selectedSpot,
       isEditing,
       showPolygon,
       firstPathLength: firstPath.length,
       polygonRecreationKey: this.polygonRecreationKey(),
-      shouldShowPolygon: !!selectedSpot && isEditing && showPolygon
+      shouldShowPolygon: !!selectedSpot && isEditing && showPolygon,
     };
-    
+
     console.log("polygonTemplateConditions:", result);
     return result;
   });

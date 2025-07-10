@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "serve": "ng serve",
+    "serve:ssr": "node dist/pkspot/server/server.mjs",
     "dev": "ng serve --watch --configuration=dev",
     "build": "ng build && node copy-proxy-server.js",
     "build:dev": "ng build --configuration=dev && node copy-proxy-server.js",

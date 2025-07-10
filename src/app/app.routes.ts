@@ -19,6 +19,7 @@ import { EmbeddedSpotPageComponent } from "./embedding/embedded-spot-page/embedd
 import { EmbeddedMapPageComponent } from "./embedding/embedded-map-page/embedded-map-page.component";
 import { EventsPageComponent } from "./events-page/events-page.component";
 import { ImpressumComponent } from "./impressum/impressum.component";
+import { spotResolver } from "./resolvers/spot.resolver";
 
 export const routes: Routes = [
   // Home page (redirects to spot map)
@@ -33,6 +34,7 @@ export const routes: Routes = [
       {
         path: ":spot",
         component: MapPageComponent,
+        resolve: { spot: spotResolver },
         children: [
           {
             path: "c",

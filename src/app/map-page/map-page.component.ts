@@ -282,6 +282,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     console.log("map page init");
 
+    // Check if we have resolved spot data (from resolver during SSR)
+    const resolvedSpot = this.activatedRoute.snapshot.firstChild?.data?.[
+      "spot"
+    ] as Spot | null;
+
+    if (resolvedSpot) {
+      console.log("Using resolved spot data for SSR", resolvedSpot.name());
+      // Set meta tags immediately for SSR
+      this.selectedSpot.set(resolvedSpot);
+      this.setSpotMetaTags();
+    }
+
     // Collect params from all levels in the route tree
     const spotIdOrSlug: string | null =
       this.activatedRoute.snapshot.firstChild?.paramMap.get("spot") ?? null;
@@ -293,7 +305,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       !!this.activatedRoute.snapshot.firstChild?.firstChild;
 
     this.pendingTasks.run(async () => {
-      this._handleURLParamsChange(spotIdOrSlug, showChallenges, challengeId);
+      this._handleURLParamsChange(
+        spotIdOrSlug,
+        showChallenges,
+        challengeId,
+        resolvedSpot
+      );
     });
   }
 
@@ -349,7 +366,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   _handleURLParamsChange(
     spotIdOrSlug: string | null,
     showChallenges: boolean,
-    challengeId: string | null
+    challengeId: string | null,
+    resolvedSpot: Spot | null = null
   ) {
     if (challengeId && spotIdOrSlug) {
       // open the spot on a challenge
@@ -368,7 +386,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.selectedChallenge()) this.closeChallenge();
       this.showAllChallenges.set(showChallenges);
 
-      if (this.selectedSpotIdOrSlug() !== spotIdOrSlug) {
+      // If we already have the resolved spot, use it
+      if (resolvedSpot && this.selectedSpot() !== resolvedSpot) {
+        this.selectSpot(resolvedSpot, false);
+      } else if (this.selectedSpotIdOrSlug() !== spotIdOrSlug) {
         this._getSpotIdFromSlugOrId(spotIdOrSlug).then((spotId) => {
           if (!spotId) {
             console.warn("Could not get spot id from slug or id.");
