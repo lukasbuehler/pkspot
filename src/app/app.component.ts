@@ -25,7 +25,7 @@ import { StorageService } from "./services/firebase/storage.service";
 import { GlobalVariables } from "../scripts/global";
 import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
 import { MatButtonModule, MatFabButton } from "@angular/material/button";
-import { MatIcon } from "@angular/material/icon";
+import { MatIcon, MatIconRegistry } from "@angular/material/icon";
 import {
   MatMenuTrigger,
   MatMenu,
@@ -115,8 +115,11 @@ export class AppComponent implements OnInit {
     public authService: AuthenticationService,
     public router: Router,
     public storageService: StorageService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private matIconRegistry: MatIconRegistry
   ) {
+    this.matIconRegistry.setDefaultFontSetClass("material-symbols-rounded");
+
     this.enforceAlainMode();
   }
 
