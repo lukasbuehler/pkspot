@@ -1,7 +1,8 @@
 <div class="map-container">
   <!-- The spot map, defer loading to make sure it is not loaded on the server. -->
-  @defer {
+  @if(mapsService.isApiLoaded$ | async) { @defer {
   <app-spot-map
+    @fadeInOut
     #spotMap
     id="spotMap"
     [selectedSpot]="selectedSpot()"
@@ -9,9 +10,9 @@
     [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"
     (selectedSpotChange)="selectSpot($event)"
     [centerStart]="{
-      lat: 48.6270939,
-      lng: 2.4305363,
-    }"
+          lat: 48.6270939,
+          lng: 2.4305363,
+        }"
     [(isEditing)]="isEditing"
     [(mapStyle)]="mapStyle"
     [showAmenities]="showAmenities()"
@@ -19,6 +20,32 @@
     (hightlightedSpotsChange)="highlightedSpots = $event"
     (hasGeolocationChange)="askedGeoPermission = true; hasGeolocation = $event"
   ></app-spot-map>
+  } @placeholder {
+  <div
+    class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
+  >
+    <mat-icon style="height: 50px; width: 50px; font-size: 50px">map</mat-icon>
+    <p class="mat-title-medium" i18n>Initializing map...</p>
+  </div>
+  } } @else {
+  <div
+    class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
+  >
+    <mat-icon style="height: 50px; width: 50px; font-size: 50px"
+      >location_on</mat-icon
+    >
+    <p class="mat-title-medium" i18n>Loading Google Maps® API...</p>
+    @if(mapsService.isLoading$ | async) {
+    <mat-progress-bar
+      mode="determinate"
+      [value]="mapsService.loadingProgress$ | async"
+      class="w-50"
+    >
+    </mat-progress-bar>
+    } @else {
+    <mat-progress-bar mode="indeterminate" class="w-50"></mat-progress-bar>
+    }
+  </div>
   }
 
   <div class="search-group">
@@ -33,7 +60,7 @@
     </div>
 
     @if(spotMap) {
-    <app-primary-info-panel class="flex-grow-1">
+    <app-primary-info-panel class="flex-grow-1" @fadeInOut>
       @if(selectedSpot()) { @if(selectedChallenge()) {
       <a
         mat-button
@@ -125,8 +152,10 @@
   </mat-chip-listbox>
   } -->
 
+  @if(spotMap) {
   <div class="mini-fabs">
     <button
+      @fadeInOut
       mat-mini-fab
       #mapStyleFab
       id="mapStyleFab"
@@ -145,6 +174,7 @@
     </button>
 
     <button
+      @fadeInOut
       mat-mini-fab
       #geolocationFab
       id="geolocationFab"
@@ -167,12 +197,11 @@
     </button>
 
     <!-- Show amenity markers mini FAB-->
-    <button
+    <!-- <button
       mat-mini-fab
       #amenitiesFab
       id="amenitiesFab"
       color="accent"
-      style="background-color: #055300; color: #a7f690"
       (click)="showAmenities.set(!showAmenities())"
       [disabled]="spotMap ? spotMap.mapZoom < 16 : true"
       i18n-matTootlip
@@ -185,7 +214,7 @@
       <mat-icon>
         {{ showAmenities() ? "location_off" : "location_on" }}
       </mat-icon>
-    </button>
+    </button> -->
   </div>
 
   @if(authService.isSignedIn && !isEditing()) {
@@ -211,7 +240,7 @@
     <mat-icon> add_location </mat-icon>
     <span i18n class="mdc-button__label">Add Spot</span>
   </button>
-  }
+  } }
 
   <!-- <mat-menu #searchUserMatMenu="matMenu">
     <app-user-menu-content></app-user-menu-content>

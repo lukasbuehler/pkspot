@@ -92,7 +92,8 @@
   </map-circle>
   } @else {
   <!-- Don't show regular polygon if this spot is selected and being edited -->
-  @if(!(isSelectedSpotBeingEdited(spot)) && spot.paths && spot.paths.length > 0 && spot.paths[0] && spot.paths[0].length > 0) {
+  @if(!(isSelectedSpotBeingEdited(spot)) && spot.paths && spot.paths.length > 0
+  && spot.paths[0] && spot.paths[0].length > 0) {
   <map-polygon
     [options]="spotPolygonOptions"
     [paths]="spot.paths[0]"
@@ -300,7 +301,26 @@
   }
 
   <!-- Additional Markers -->
-  @for(marker of markers(); track $index) {
+  @for(marker of markers(); track $index) { @if(zoom <= 17) {
+  <!-- show very small dot for the marker instead -->
+  <map-advanced-marker
+    [position]="marker.location"
+    [content]="markerCompTiny"
+    [options]="{
+      gmpClickable: false
+    }"
+  ></map-advanced-marker>
+  <div
+    #markerCompTiny
+    class="fade-in shadow-sm"
+    style="pointer-events: none; width: 8px; height: 8px; border-radius: 4px"
+    [ngClass]="{
+      'marker-primary-dark': marker.color === 'primary',
+      'marker-secondary-dark': marker.color === 'secondary',
+      'marker-tertiary-dark': marker.color === 'tertiary', 
+    }"
+  ></div>
+  } @else {
   <map-advanced-marker
     [position]="marker.location"
     [content]="markerComp.elementRef.nativeElement"
@@ -324,7 +344,7 @@
     [title]="marker.name"
   >
   </app-marker>
-  }
+  } }
 
   <!-- Additional Polygons -->
   @for(polygon of polygons(); track $index) {

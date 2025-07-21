@@ -79,6 +79,7 @@ import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { MetaInfoService } from "../services/meta-info.service";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { SpotSchema } from "../../../functions/src/spotHelpers";
 import { SearchFieldComponent } from "../search-field/search-field.component";
 import {
@@ -133,12 +134,14 @@ import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-pa
     SpotListComponent,
     MatDividerModule,
     MatTooltipModule,
+    MatProgressBarModule,
     SearchFieldComponent,
     ChallengeDetailComponent,
     // SpeedDialFabComponent,
     RouterLink,
     ChallengeListComponent,
     PrimaryInfoPanelComponent,
+    AsyncPipe,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -168,7 +171,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isServer: boolean;
 
-  showAmenities = signal<boolean>(false);
+  showAmenities = signal<boolean>(true);
 
   private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
