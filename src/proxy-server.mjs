@@ -104,6 +104,29 @@ function run() {
     res.sendFile(path.join(__dirname, "../browser/en/robots.txt"));
   });
 
+  // Handle index.html requests at any path depth - redirect to SSR routes
+  server.get("**/index.html", (req, res) => {
+    // Remove /index.html from the path to get the directory path
+    const pathWithoutIndex = req.path.replace(/\/index\.html$/, "");
+
+    if (pathWithoutIndex === "") {
+      // Root index.html -> redirect to root for language detection
+      res.redirect(301, "/");
+    } else {
+      // Check if path starts with a supported language
+      const pathSegments = pathWithoutIndex.split("/").filter(Boolean);
+      const firstSegment = pathSegments[0];
+
+      if (supportedLanguageCodes.includes(firstSegment)) {
+        // Path like "/en/some/path/index.html" -> redirect to "/en/some/path"
+        res.redirect(301, pathWithoutIndex);
+      } else {
+        // Path like "/some/path/index.html" -> redirect to "/some/path" for language detection
+        res.redirect(301, pathWithoutIndex || "/");
+      }
+    }
+  });
+
   // Redirect based on preffered language
   server.get("*", detectLanguage);
 
