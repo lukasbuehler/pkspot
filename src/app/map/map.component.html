@@ -206,7 +206,7 @@
     #selectedSpotMarkerNode
     class="fade-in"
     id="selectedSpotMarkerNode"
-    [icons]="[selectedSpot()!.isIconic ? 'star' : 'emoji_people']"
+    [icons]="[selectedSpot()!.isIconic ? 'star' : 'fiber_manual_record']"
     [isIconic]="selectedSpot()!.isIconic"
   >
   </app-marker>
@@ -312,7 +312,7 @@
   ></map-advanced-marker>
   <div
     #markerCompTiny
-    class="fade-in shadow-sm"
+    class="fade-in shadow-sm border"
     style="pointer-events: none; width: 8px; height: 8px; border-radius: 4px"
     [ngClass]="{
       'marker-primary-dark': marker.color === 'primary',

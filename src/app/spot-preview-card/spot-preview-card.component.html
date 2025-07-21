@@ -85,6 +85,7 @@
   @if(isCompact) { @if(media() && media().length > 0) {
   <div mat-card-sm-image class="img-container">
     <img [ngSrc]="media()[0]" fill />
+    <!-- add placeholder-->
   </div>
 
   } } @else { @if(media()) {

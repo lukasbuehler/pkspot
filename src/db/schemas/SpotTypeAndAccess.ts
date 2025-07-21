@@ -9,8 +9,10 @@ export enum SpotTypes {
   UrbanLandscape = "urban landscape",
   NaturalLandscape = "natural landscape",
   UniversityCampus = "university campus",
+  Sculpture = "palette",
   Rooftop = "rooftop",
   RoofGap = "roof gap",
+  Descent = "descent",
   Other = "other",
 }
 
@@ -23,8 +25,10 @@ export const SpotTypesNames: Record<SpotTypes, string> = {
   [SpotTypes.UrbanLandscape]: $localize`:@@spot-type.urban-landscape:Urban Landscape`,
   [SpotTypes.NaturalLandscape]: $localize`:@@spot-type.natural-landscape:Natural Landscape`,
   [SpotTypes.UniversityCampus]: $localize`:@@spot-type.university-campus:University Campus`,
+  [SpotTypes.Sculpture]: $localize`:@@spot-type.sculpture:Sculpture`,
   [SpotTypes.Rooftop]: $localize`:@@spot-type.rooftop:Rooftop`,
   [SpotTypes.RoofGap]: $localize`:@@spot-type.roof-gap:Roof Gap`,
+  [SpotTypes.Descent]: $localize`:@@spot-type.descent:Descent`,
   [SpotTypes.Other]: $localize`:@@spot-type.other:Other`,
 };
 
@@ -37,8 +41,10 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
   [SpotTypes.UrbanLandscape]: "location_city",
   [SpotTypes.NaturalLandscape]: "nature",
   [SpotTypes.UniversityCampus]: "school",
+  [SpotTypes.Sculpture]: "sculpture",
   [SpotTypes.Rooftop]: "roofing",
   [SpotTypes.RoofGap]: "space_bar",
+  [SpotTypes.Descent]: "arrow_downward",
   [SpotTypes.Other]: "help_outline",
 };
 
@@ -51,8 +57,10 @@ export const SpotTypesDescriptions: Record<SpotTypes, string> = {
   [SpotTypes.UrbanLandscape]: $localize`:@@spot-type-description.urban-landscape:This is an urban area with walls, railings, stairs, and architectural elements.`,
   [SpotTypes.NaturalLandscape]: $localize`:@@spot-type-description.natural-landscape:This is a natural area with trees, rocks, logs, and terrain features.`,
   [SpotTypes.UniversityCampus]: $localize`:@@spot-type-description.university-campus:This is a university campus with varied buildings, courtyards, and outdoor structures.`,
+  [SpotTypes.Sculpture]: $localize`:@@spot-type-description.sculpture:This is a public art installation or sculpture that can be used for Parkour practice.`,
   [SpotTypes.Rooftop]: $localize`:@@spot-type-description.rooftop:This is a rooftop area with ledges, walls, and elevated structures.`,
   [SpotTypes.RoofGap]: $localize`:@@spot-type-description.roof-gap:This is a roof gap requiring precision jumping between buildings.`,
+  [SpotTypes.Descent]: $localize`:@@spot-type-description.descent:This is a spot primarily used for descending techniques.`,
   [SpotTypes.Other]: $localize`:@@spot-type-description.other:This is a location that doesn't fit standard categories but offers training opportunities.`,
 };
 
@@ -67,7 +75,7 @@ export enum SpotAccess {
 
 export const SpotAccessNames: Record<SpotAccess, string> = {
   [SpotAccess.Public]: $localize`:@@spot-access.public:Public`,
-  [SpotAccess.Commercial]: $localize`:@@spot-access.commercial:Commercial`,
+  [SpotAccess.Commercial]: $localize`:@@spot-access.commercial:Business`,
   [SpotAccess.Residential]: $localize`:@@spot-access.residential:Residential`,
   [SpotAccess.Private]: $localize`:@@spot-access.private:Private`,
   [SpotAccess.OffLimits]: $localize`:@@spot-access.off-limits:Off-Limits`,

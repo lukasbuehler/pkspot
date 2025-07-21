@@ -1,7 +1,9 @@
 import {
   Component,
   ElementRef,
+  EventEmitter,
   Input,
+  Output,
   Renderer2,
   signal,
   ViewChild,
@@ -15,6 +17,7 @@ import {
 })
 export class BottomSheetComponent {
   @Input() title: string = "";
+  @Output() isAtTopChange = new EventEmitter<boolean>();
 
   headerHeight: number = 170;
   minimumSpeedToSlide: number = 5;
@@ -144,6 +147,7 @@ export class BottomSheetComponent {
         }
 
         this.bottomSheet.nativeElement.style.top = newTop + "px";
+        this.isAtTopChange.emit(newTop === 0);
       };
 
       const mouseMoveListener = this.renderer.listen(
@@ -218,6 +222,7 @@ export class BottomSheetComponent {
           );
 
           this.bottomSheet!.nativeElement.style.top = current + "px";
+          this.isAtTopChange.emit(current === 0);
 
           // Continue the easing if not at the target position
           if (progress < animationSteps) {

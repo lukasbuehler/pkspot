@@ -9,7 +9,6 @@ import {
   OnDestroy,
   signal,
   WritableSignal,
-  afterNextRender,
   PendingTasks,
   inject,
   effect,
@@ -19,11 +18,8 @@ import { LocalSpot, Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
 import {
   ActivatedRoute,
-  NavigationEnd,
   NavigationStart,
-  ParamMap,
   Router,
-  RouterEvent,
   RouterLink,
 } from "@angular/router";
 import {
@@ -33,20 +29,8 @@ import {
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MapsApiService } from "../services/maps-api.service";
-import {
-  BehaviorSubject,
-  catchError,
-  filter,
-  firstValueFrom,
-  of,
-  EMPTY,
-  Subscription,
-  switchMap,
-  take,
-  timeout,
-} from "rxjs";
+import { filter, Subscription } from "rxjs";
 import { animate, style, transition, trigger } from "@angular/animations";
-import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { SearchService } from "../services/search.service";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
@@ -54,24 +38,14 @@ import {
   AsyncPipe,
   isPlatformServer,
   isPlatformBrowser,
-  KeyValuePipe,
-  NgOptimizedImage,
 } from "@angular/common";
 import { StorageService } from "../services/firebase/storage.service";
 import { GlobalVariables } from "../../scripts/global";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../services/firebase/firestore/spots.service";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
-import { MatOption } from "@angular/material/core";
-import {
-  MatAutocompleteTrigger,
-  MatAutocomplete,
-} from "@angular/material/autocomplete";
-import { MatInput } from "@angular/material/input";
-import { MatIconModule, MatIcon } from "@angular/material/icon";
-import { MatMenuTrigger, MatMenu } from "@angular/material/menu";
-import { MatButtonModule, MatIconButton } from "@angular/material/button";
-import { MatFormField, MatSuffix } from "@angular/material/form-field";
+import { MatIconModule } from "@angular/material/icon";
+import { MatButtonModule } from "@angular/material/button";
 import { Title } from "@angular/platform-browser";
 import { MatDividerModule } from "@angular/material/divider";
 import { LocaleCode, SpotSlug } from "../../db/models/Interfaces";
@@ -80,7 +54,6 @@ import { MetaInfoService } from "../services/meta-info.service";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
-import { SpotSchema } from "../../../functions/src/spotHelpers";
 import { SearchFieldComponent } from "../search-field/search-field.component";
 import {
   LocalSpotChallenge,
@@ -147,7 +120,6 @@ import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-pa
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
-  @ViewChild("bottomSheet") bottomSheet: BottomSheetComponent | undefined;
 
   pendingTasks = inject(PendingTasks);
 

@@ -30,6 +30,7 @@ import { provideRouter, withViewTransitions } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
 
 import { getAuth, provideAuth } from "@angular/fire/auth";
+import { IMAGE_LOADER, ImageLoaderConfig } from "@angular/common";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -60,5 +61,11 @@ export const appConfig: ApplicationConfig = {
       deps: [DOCUMENT],
     },
     { provide: LOCALE_ID, useValue: $localize.locale ?? "en" },
+    // {
+    //   provide: IMAGE_LOADER,
+    //   useValue: (config: ImageLoaderConfig) => {
+    //     return `https://example.com/images?src=${config.src}&width=${config.width}`;
+    //   },
+    // },
   ],
 };
