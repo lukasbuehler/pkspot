@@ -223,7 +223,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   isInitiated: boolean = false;
 
-  ngAfterViewInit(): void {
+  async ngAfterViewInit(): Promise<void> {
     if (!this.map) {
       console.warn("Map not initialized in ngAFterViewInit!");
       return;
@@ -267,22 +267,34 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this.mapZoom = this.focusZoom();
     } else {
       // Load last location from memory or use default
-      this.mapsAPIService
-        .loadLastLocationAndZoom()
-        .then((lastLocationAndZoom) => {
-          if (this.map) {
-            if (lastLocationAndZoom) {
-              this.map.center = lastLocationAndZoom.location;
-              this.mapZoom = lastLocationAndZoom.zoom;
-            } else {
-              this.map.center = {
-                lat: 48.6270939,
-                lng: 2.4305363,
-              };
-              this.mapZoom = this.startZoom;
-            }
+      try {
+        const lastLocationAndZoom =
+          await this.mapsAPIService.loadLastLocationAndZoom();
+        if (this.map) {
+          if (lastLocationAndZoom) {
+            this.map.center = lastLocationAndZoom.location;
+            this.mapZoom = lastLocationAndZoom.zoom;
+          } else {
+            this.map.center = {
+              lat: 48.6270939,
+              lng: 2.4305363,
+            };
+            this.mapZoom = this.startZoom;
           }
-        });
+        }
+      } catch (error) {
+        console.warn(
+          "Failed to load last location from storage, using default:",
+          error
+        );
+        if (this.map) {
+          this.map.center = {
+            lat: 48.6270939,
+            lng: 2.4305363,
+          };
+          this.mapZoom = this.startZoom;
+        }
+      }
     }
 
     this._visibleSpotsSubscription = this.visibleSpots$

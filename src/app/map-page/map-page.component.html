@@ -9,10 +9,6 @@
     [selectedChallenge]="selectedChallenge()"
     [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"
     (selectedSpotChange)="selectSpot($event)"
-    [centerStart]="{
-          lat: 48.6270939,
-          lng: 2.4305363,
-        }"
     [(isEditing)]="isEditing"
     [(mapStyle)]="mapStyle"
     [showAmenities]="showAmenities()"

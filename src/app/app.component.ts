@@ -221,7 +221,7 @@ export class AppComponent implements OnInit {
   }
 
   maybeOpenClickWrap() {
-    const currentTermsVersion = "2";
+    const currentTermsVersion = "3";
 
     let isABot: boolean = false;
     if (typeof window !== "undefined") {

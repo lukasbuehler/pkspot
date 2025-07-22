@@ -14,9 +14,11 @@
       locale
       style="width: 64px; height: 64px"
     >
-      <mat-icon style="width: 100%; height: 100%; font-size: 52px">{{
-        hoverRating >= star ? "star" : "star_border"
-      }}</mat-icon>
+      <mat-icon
+        style="width: 100%; height: 100%; font-size: 52px"
+        [class.icon_negative]="hoverRating < star"
+        >{{ "star_rating" }}</mat-icon
+      >
     </button>
     }
   </div>
