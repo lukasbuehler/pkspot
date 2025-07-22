@@ -1,26 +1,32 @@
-<h2 mat-dialog-title i18n="@@welcomeDialogTitle">Welcome to PK Spot!</h2>
+<h2 mat-dialog-title i18n="@@welcomeDialogTitle">Welcome to PK Spot! 👋</h2>
 <mat-dialog-content>
   <p class="mat-body-medium" i18n="@@welcomeDialogText">
-    Explore spots, posts, and more from our Parkour and Freerunning community.
-    To provide our services, we need you to agree to our terms. We use
-    privacy-friendly analytics and minimize our own use of cookies. Some
-    essential third-party services, like Google Maps, may use them to function.
-    🍪
+    We're excited to have you join our Parkour and Freerunning community. Here
+    you can explore spots, share posts, and connect with other practitioners. 🤸
+  </p>
+
+  <h4 class="mat-title-medium" i18n="@@welcomeDialogSafetyHeading">
+    Our Guiding Principles: Safety & Respect
+  </h4>
+  <p class="mat-body-medium" i18n="@@welcomeDialogSafetyBody">
+    Remember that Parkour has inherent risks and you are responsible for your
+    own safety. Our spots are user-submitted and their accuracy and legality are
+    not guaranteed. Always respect property rights and local laws.
+  </p>
+
+  <h4 class="mat-title-medium" i18n="@@welcomeDialogTechHeading">
+    A Note on Privacy & Technology
+  </h4>
+  <p class="mat-body-medium" i18n="@@welcomeDialogTechBody">
+    Essential features (like Google Maps) may use cookies 🍪. To protect your
+    privacy, we use a privacy-focused, cookie-free analytics service.
   </p>
 
   <p class="mat-title-small" i18n="@@welcomeDialogButtonInfo">
-    By clicking "Agree and continue", you accept our
+    By clicking "Agree & Continue", you accept our
     <a routerLink="/terms-of-service">Terms of Service</a> and acknowledge our
-    <a routerLink="/privacy-policy">Privacy Policy</a>, which has details on all
-    technologies used.
+    <a routerLink="/privacy-policy">Privacy Policy</a>.
   </p>
-
-  <!-- <div class="d-flex flex-row justify-content-evenly">
-    <a mat-stroked-button i18n routerLink="/terms-of-service">
-      Terms of Service
-    </a>
-    <a mat-stroked-button i18n routerLink="/privacy-policy">Privacy Policy</a>
-  </div> -->
 </mat-dialog-content>
 <mat-dialog-actions
   class="d-flex flex-row flex-nowrap justify-content-end p-3 gap-5"

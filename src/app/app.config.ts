@@ -47,7 +47,7 @@ export const appConfig: ApplicationConfig = {
       useValue: {
         hasBackdrop: true,
         position: {
-          top: "50px",
+          top: "100px",
         },
       },
     },

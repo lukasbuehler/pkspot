@@ -721,6 +721,12 @@
         <target>Spot erfolgreich gespeichert</target>
       </segment>
     </unit>
+    <unit id="1512782188681945283">
+      <segment state="initial">
+        <source>Initializing map...</source>
+        <target>Karte wird initialisiert...</target>
+      </segment>
+    </unit>
     <unit id="1536087519743707362">
       <segment state="initial">
         <source>Dismiss</source>
@@ -1040,8 +1046,8 @@
     </unit>
     <unit id="spot-access.commercial">
       <segment state="initial">
-        <source>Commercial</source>
-        <target>Kommerziell</target>
+        <source>Business</source>
+        <target>Geschäft</target>
       </segment>
     </unit>
     <unit id="spot-access.off-limits">
@@ -1072,6 +1078,20 @@
       <segment state="initial">
         <source>Residential</source>
         <target>Wohngebiet</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.art">
+      <segment state="initial">
+        <source>This is an art installation or sculpture that can be used for Parkour practice.
+          Please respect the artwork and surrounding area.</source>
+        <target> Dies ist eine Kunstinstallation oder Skulptur, die für Parkour-Training genutzt
+          werden kann. Bitte respektiere das Kunstwerk und die Umgebung.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.descent">
+      <segment state="initial">
+        <source>This is a spot primarily used for descending techniques.</source>
+        <target> Dies ist ein Spot, der hauptsächlich für Abstiegstechniken genutzt wird.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.natural-landscape">
@@ -1152,6 +1172,18 @@
         <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
         <target>Dies ist ein urbanes Gebiet mit Wänden, Geländern, Treppen und architektonischen
           Elementen.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.art">
+      <segment state="initial">
+        <source>Art</source>
+        <target>Kunst</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.descent">
+      <segment state="initial">
+        <source>Descent</source>
+        <target>Descent</target>
       </segment>
     </unit>
     <unit id="spot-type.natural-landscape">
@@ -1405,8 +1437,8 @@
     </unit>
     <unit id="welcomeDialogTitle">
       <segment state="initial">
-        <source>Welcome to PK Spot!</source>
-        <target>Willkommen bei PK Spot!</target>
+        <source>Welcome to PK Spot! 👋</source>
+        <target>Willkommen bei PK Spot! 👋</target>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">
@@ -1417,10 +1449,11 @@
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
-        <source> By clicking &quot;Agree and continue&quot;, you accept our <pc id="0"
+        <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
             equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link"
             dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
-          of Service</pc> and <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link"
+          of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1"
+            equivEnd="CLOSE_LINK" type="link"
             dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy
           Policy</pc>. </source>
         <target> Beim klicken auf &apos;Zustimmen und Weiter&apos;, stimmen sie unseren <pc id="0"
@@ -1431,14 +1464,49 @@
             dispEnd="&lt;/a&gt;">Privacy Policy</pc> zu. </target>
       </segment>
     </unit>
+    <unit id="welcomeDialogSafetyBody">
+      <segment state="initial">
+        <source> Remember that Parkour has inherent risks and you are responsible for your own
+          safety. Our spots are user-submitted and their accuracy and legality are not guaranteed.
+          Always respect property rights and local laws. </source>
+        <target>
+          Denke daran, dass Parkour Riskant sein kann und du für deine eigene Sicherheit
+          verantwortlich bist. Unsere Spots sind von Nutzern eingereicht und ihre Genauigkeit und
+          Legalität sind nicht garantiert. Respektiere immer die Eigentumsrechte und lokalen
+          Gesetze.
+        </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogSafetyHeading">
+      <segment state="initial">
+        <source> Our Guiding Principles: Safety &amp; Respect </source>
+        <target> Unsere Leitprinzipien: Sicherheit &amp; Respekt </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogTechBody">
+      <segment state="initial">
+        <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
+          we use a privacy-focused, cookie-free analytics service. </source>
+        <target>
+          Essentielle Funktionen (wie Google Maps) können Cookies 🍪 verwenden. Um deine
+          Privatsphäre
+          zu schützen, verwenden wir einen datenschutzfreundlichen, cookie-freien Analytics-Dienst.
+        </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogTechHeading">
+      <segment state="initial">
+        <source> A Note on Privacy &amp; Technology </source>
+        <target> Eine Anmerkung zu Datenschutz &amp; Technologie </target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogText">
       <segment state="initial">
-        <source> Explore spots, posts, and more from our Parkour and Freerunning community. To
-          access our content, please agree to our Terms of Service and Privacy Policy. We value your
-          privacy and don&apos;t store cookies. 🍪 </source>
-        <target> Entdecke Spots, Beiträge und mehr aus unserer Parkour- und Freerunning-Community.
-          Um auf unsere Inhalte zuzugreifen, stimme bitte unseren Nutzungsbedingungen und
-          Datenschutzrichtlinien zu. Wir schätzen deine Privatsphäre und speichern keine Cookies. 🍪 </target>
+        <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you
+          can explore spots, share posts, and connect with other practitioners. 🤸 </source>
+        <target> Wir freuen uns, dass du unserer Parkour und Freerunning Community beitrittst. Hier
+          kannst du Spots erkunden, Beiträge teilen und dich mit anderen Praktizierenden
+          verbinden. 🤸 </target>
       </segment>
     </unit>
     <unit id="about.description">
@@ -2289,6 +2357,12 @@
         <target>
           <ph id="0" equiv="PH" disp="this.label" />
         </target>
+      </segment>
+    </unit>
+    <unit id="1744316082077040772">
+      <segment state="initial">
+        <source>Loading Google Maps® API...</source>
+        <target>Lade Google Maps® API...</target>
       </segment>
     </unit>
     <unit id="1616102757855967475">

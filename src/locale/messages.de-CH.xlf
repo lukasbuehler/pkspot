@@ -719,6 +719,12 @@
         <target>Spot erfolgrich gspeicheret</target>
       </segment>
     </unit>
+    <unit id="1512782188681945283">
+      <segment state="initial">
+        <source>Initializing map...</source>
+        <target>Charte wird initialisiert...</target>
+      </segment>
+    </unit>
     <unit id="1536087519743707362">
       <segment state="initial">
         <source>Dismiss</source>
@@ -1038,8 +1044,8 @@
     </unit>
     <unit id="spot-access.commercial">
       <segment state="initial">
-        <source>Commercial</source>
-        <target>Kommerziell</target>
+        <source>Business</source>
+        <target>Gschäft</target>
       </segment>
     </unit>
     <unit id="spot-access.off-limits">
@@ -1070,6 +1076,20 @@
       <segment state="initial">
         <source>Residential</source>
         <target>Wohngebiet</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.art">
+      <segment state="initial">
+        <source>This is an art installation or sculpture that can be used for Parkour practice.
+          Please respect the artwork and surrounding area.</source>
+        <target> Das isch es Kunstwerk oder Skulptur, wo für Parkour Training benutzt werde cha.
+          Bitte respektiere s&apos;Kunstwerk und d&apos;Umgebig. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.descent">
+      <segment state="initial">
+        <source>This is a spot primarily used for descending techniques.</source>
+        <target> Das isch en Spot, wo vor allem für Abstiegstechnike benutzt wird.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.natural-landscape">
@@ -1147,6 +1167,18 @@
       <segment state="initial">
         <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
         <target> Das isch es urbanes Gebiet mit Wänd, Geländer, Treppe und architektonische Element. </target>
+      </segment>
+    </unit>
+    <unit id="spot-type.art">
+      <segment state="initial">
+        <source>Art</source>
+        <target>Kunst</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.descent">
+      <segment state="initial">
+        <source>Descent</source>
+        <target>Descent</target>
       </segment>
     </unit>
     <unit id="spot-type.natural-landscape">
@@ -1399,8 +1431,8 @@
     </unit>
     <unit id="welcomeDialogTitle">
       <segment state="initial">
-        <source>Welcome to PK Spot!</source>
-        <target>Willkomme bi PK Spot!</target>
+        <source>Welcome to PK Spot! 👋</source>
+        <target>Willkomme bi PK Spot! 👋</target>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">
@@ -1411,28 +1443,68 @@
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
-        <source> By clicking &quot;Agree and continue&quot;, you accept our <pc id="0"
+        <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
             equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link"
             dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
-          of Service</pc> and <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link"
+          of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1"
+            equivEnd="CLOSE_LINK" type="link"
             dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy
           Policy</pc>. </source>
         <target> Bim klicke uf &apos;Zuestimme und Wiiter&apos; stimmsch du eusne <pc id="0"
             equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link"
             dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
-          of Service</pc> und eusere <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK"
-            type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;"
-            dispEnd="&lt;/a&gt;">Privacy Policy</pc> zue. </target>
+          of Service</pc> zue und akzeptiersch eusi <pc id="1" equivStart="START_LINK_1"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy
+          Policy</pc>. </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogSafetyBody">
+      <segment state="initial">
+        <source> Remember that Parkour has inherent risks and you are responsible for your own
+          safety. Our spots are user-submitted and their accuracy and legality are not guaranteed.
+          Always respect property rights and local laws. </source>
+        <target>
+          Bis dir bewusst, dass Parkour mit Risike verbunde isch du für dini eige Sicherheit
+          verantwortlich bisch. Eusi Spots sind vo Benutzer und ihri Gnauigkeit und Legalität sind
+          nöd garantiert.
+          Respektier immer Zuegansrecht und die lokale Regle.
+        </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogSafetyHeading">
+      <segment state="initial">
+        <source> Our Guiding Principles: Safety &amp; Respect </source>
+        <target>
+          Eusi Leitprinzipie: Sicherheit &amp; Respekt
+        </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogTechBody">
+      <segment state="initial">
+        <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
+          we use a privacy-focused, cookie-free analytics service. </source>
+        <target>
+          Wichtigi Funktione (wie Google Maps) chönd Cookies benutze. 🍪 Zum Schutz vo dinere
+          Privatsphäre verwänded mir en datenschutz-fokussierti, cookie-freie Analytik-Dienst.
+        </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogTechHeading">
+      <segment state="initial">
+        <source> A Note on Privacy &amp; Technology </source>
+        <target>
+          En Bemerkig zu Privatsphäre &amp; Technologie
+        </target>
       </segment>
     </unit>
     <unit id="welcomeDialogText">
       <segment state="initial">
-        <source> Explore spots, posts, and more from our Parkour and Freerunning community. To
-          access our content, please agree to our Terms of Service and Privacy Policy. We value your
-          privacy and don&apos;t store cookies. 🍪 </source>
-        <target> Explore spots, posts, and more from our Parkour and Freerunning community. To
-          access our content, please agree to our Terms of Service and Privacy Policy. We value your
-          privacy and don&apos;t store cookies. 🍪 </target>
+        <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you
+          can explore spots, share posts, and connect with other practitioners. 🤸 </source>
+        <target> Mir freued eus, dass du eusere Parkour und Freerunning Community biitritsch. Da
+          chasch
+          Spots entdecke, Posts teile und mit andere Praktizierende connecte. 🤸 </target>
       </segment>
     </unit>
     <unit id="about.description">
@@ -2283,6 +2355,12 @@
         <target>
           <ph id="0" equiv="PH" disp="this.label" />
         </target>
+      </segment>
+    </unit>
+    <unit id="1744316082077040772">
+      <segment state="initial">
+        <source>Loading Google Maps® API...</source>
+        <target>Google Maps® API ladt...</target>
       </segment>
     </unit>
     <unit id="1616102757855967475">
