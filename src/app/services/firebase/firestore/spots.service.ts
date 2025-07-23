@@ -158,7 +158,7 @@ export class SpotsService {
     tiles: MapTileKey[]
   ): Observable<SpotClusterTileSchema[]> {
     const observables = tiles.map((tile) => {
-      console.debug("Getting spot cluster tile: ", tile);
+      // console.debug("Getting spot cluster tile: ", tile);
 
       return new Observable<SpotClusterTileSchema[]>((observer) => {
         const unsubscribe = onSnapshot(

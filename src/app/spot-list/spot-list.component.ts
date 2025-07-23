@@ -12,9 +12,37 @@ import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { MatIconModule } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
+import {
+  transition,
+  trigger,
+  sequence,
+  style,
+  animate,
+} from "@angular/animations";
 
 @Component({
   selector: "app-spot-list",
+  animations: [
+    trigger("gridElementAnimation", [
+      transition(":enter", [
+        style({ opacity: 0, height: "0px", transform: "translateY(-300px)" }),
+        sequence([
+          animate(
+            "0.5s ease",
+            style({ height: "*", width: "*", opacity: 1, transform: "none" })
+          ),
+        ]),
+      ]),
+      transition(":leave", [
+        sequence([
+          animate(
+            "0.5s ease",
+            style({ height: 0, width: 0, opacity: 0, transform: "scale(0.0)" })
+          ),
+        ]),
+      ]),
+    ]),
+  ],
   imports: [
     SpotPreviewCardComponent,
     MatButtonToggleModule,

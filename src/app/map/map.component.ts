@@ -961,8 +961,8 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       return;
     }
 
-    if (this.zoom !== this.focusZoom()) {
-      this.setZoom(this.focusZoom());
+    if (this.zoom !== zoom) {
+      this.setZoom(zoom);
       setTimeout(() => {
         this.googleMap?.panTo(location);
       }, 200);

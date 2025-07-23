@@ -24,6 +24,7 @@
   @for(spot of highlightedSpots; track $index) { @if(withHrefLink()) {
   <a [routerLink]="['/map', spot.slug ?? spot.id]">
     <app-spot-preview-card
+      @gridElementAnimation
       [spot]="spot"
       [infoOnly]="true"
       [clickable]="true"
@@ -34,6 +35,7 @@
   </a>
   } @else {
   <app-spot-preview-card
+    @gridElementAnimation
     [spot]="spot"
     [infoOnly]="true"
     [clickable]="true"
@@ -54,6 +56,7 @@
   @for(spot of remainingSpots; track $index) { @if(withHrefLink()) {
   <a [routerLink]="['/map', getSpotIdOrSlugForSpotObj(spot)]">
     <app-spot-preview-card
+      @gridElementAnimation
       [spot]="spot"
       [infoOnly]="true"
       [clickable]="true"
@@ -64,6 +67,7 @@
     </app-spot-preview-card> </a
   >} @else {
   <app-spot-preview-card
+    @gridElementAnimation
     [spot]="spot"
     [infoOnly]="true"
     [clickable]="true"
