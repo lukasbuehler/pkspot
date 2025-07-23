@@ -22,13 +22,13 @@ export class WelcomeDialogComponent {
   ) {}
 
   onNoClick(): void {
-    this.dialogRef.close();
+    this.dialogRef.close(false); // Return false to indicate user declined
   }
 
   agreeAndContinue() {
     // store the accepted version of the terms of service in browser local storage
     localStorage.setItem("acceptedVersion", this.data.version);
-    this.dialogRef.close();
+    this.dialogRef.close(true); // Return true to indicate user agreed
     plausible("Visitor Agreed to Terms", {
       props: {},
     });

@@ -73,7 +73,6 @@ export interface TilesObject {
     MapAdvancedMarker,
     MatIconModule,
     NgClass,
-    AsyncPipe,
     MarkerComponent,
     SpotPreviewCardComponent,
   ],
@@ -362,14 +361,10 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   isApiLoadedSubscription: Subscription | null = null;
 
   ngOnInit() {
-    this.isApiLoadedSubscription = this.mapsApiService.isApiLoaded$.subscribe(
-      (isLoaded) => {
-        if (isLoaded) {
-          this.initMap();
-          this.initGeolocation();
-        }
-      }
-    );
+    if (this.mapsApiService.isApiLoaded()) {
+      this.initMap();
+      this.initGeolocation();
+    }
 
     if (this.boundRestriction) {
       this.mapOptions.restriction = {

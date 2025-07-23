@@ -29,7 +29,6 @@ import { AnyMedia, StorageImage, StorageVideo } from "../../db/models/Media";
   templateUrl: "./media-preview-grid.component.html",
   styleUrls: ["./media-preview-grid.component.scss"],
   imports: [
-    NgIf,
     CdkDropListGroup,
     CdkDropList,
     CdkDrag,

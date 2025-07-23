@@ -48,6 +48,7 @@ import { StructuredDataService } from "./services/structured-data.service";
 import { StorageImage } from "../db/models/Media";
 import { SelectLanguageDialogComponent } from "./select-language-dialog/select-language-dialog.component";
 import { firstValueFrom } from "rxjs";
+import { MapsApiService } from "./services/maps-api.service";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -117,7 +118,8 @@ export class AppComponent implements OnInit {
     public router: Router,
     public storageService: StorageService,
     private route: ActivatedRoute,
-    private matIconRegistry: MatIconRegistry
+    private matIconRegistry: MatIconRegistry,
+    private _mapsApiService: MapsApiService
   ) {
     this.matIconRegistry.setDefaultFontSetClass("material-symbols-rounded");
 
@@ -235,6 +237,11 @@ export class AppComponent implements OnInit {
 
       this.policyAccepted = acceptedVersion === currentTermsVersion;
 
+      if (this.policyAccepted) {
+        // User has already accepted terms, load Maps API immediately
+        this._mapsApiService.loadGoogleMapsApi();
+      }
+
       if (
         !this.policyAccepted &&
         !isABot &&
@@ -259,15 +266,27 @@ export class AppComponent implements OnInit {
                 console.log("acceptanceFree", acceptanceFree);
 
                 if (!acceptanceFree) {
-                  this.dialog.open(WelcomeDialogComponent, {
+                  const dialogRef = this.dialog.open(WelcomeDialogComponent, {
                     data: { version: currentTermsVersion },
                     hasBackdrop: true,
                     disableClose: true,
                   });
+
+                  // Listen for dialog close and load Maps API if user agreed
+                  dialogRef.afterClosed().subscribe((agreed: boolean) => {
+                    if (agreed) {
+                      this._mapsApiService.loadGoogleMapsApi();
+                    }
+                  });
                 } else {
                   // if the dialog was already open, close it now
                   this.dialog.closeAll();
+                  // Load Maps API since terms are already accepted or not required
+                  this._mapsApiService.loadGoogleMapsApi();
                 }
+              } else {
+                // User has already accepted current terms version, load Maps API
+                this._mapsApiService.loadGoogleMapsApi();
               }
             });
           })

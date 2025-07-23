@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, signal, Signal, WritableSignal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../environments/environment";
 import {
@@ -21,23 +21,23 @@ interface LocationAndZoom {
   providedIn: "root",
 })
 export class MapsApiService {
-  private _isApiLoaded$: BehaviorSubject<boolean> =
-    new BehaviorSubject<boolean>(false);
-  public isApiLoaded$: Observable<boolean> = this._isApiLoaded$;
+  private _isApiLoaded: WritableSignal<boolean> = signal(false);
+  public isApiLoaded: Signal<boolean> = this._isApiLoaded;
 
-  private _isLoading$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private _isLoading$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
+    false
+  );
   public isLoading$: Observable<boolean> = this._isLoading$;
 
-  private _loadingProgress$: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  private _loadingProgress$: BehaviorSubject<number> =
+    new BehaviorSubject<number>(0);
   public loadingProgress$: Observable<number> = this._loadingProgress$;
 
-  constructor(private http: HttpClient) {
-    this.loadGoogleMapsApi();
-  }
+  constructor() {}
 
   loadGoogleMapsApi() {
     // Load the Google Maps API if it is not already loaded
-    if (this._isApiLoaded$.value) return;
+    if (this.isApiLoaded()) return;
     if (this._isLoading$.value) return;
 
     if (typeof document === "undefined") return; // abort if not in browser (e.g. server-side rendering
@@ -51,25 +51,25 @@ export class MapsApiService {
       `&libraries=visualization,places&loading=async&callback=mapsCallback`;
     script.async = true;
     script.defer = true;
-    
+
     // Add script load events for progress tracking
     script.onload = () => {
       this._loadingProgress$.next(75); // Script loaded, waiting for callback
     };
-    
+
     script.onerror = () => {
       this._isLoading$.next(false);
       this._loadingProgress$.next(0);
-      console.error('Failed to load Google Maps API');
+      console.error("Failed to load Google Maps API");
     };
-    
+
     document.body.appendChild(script);
     this._loadingProgress$.next(50); // Script added to DOM
 
     // add the callback function to the global scope
     (window as any)["mapsCallback"] = () => {
       this._loadingProgress$.next(100); // API fully loaded
-      this._isApiLoaded$.next(true);
+      this._isApiLoaded.set(true);
       this._isLoading$.next(false);
     };
   }

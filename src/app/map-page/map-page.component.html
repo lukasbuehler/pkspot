@@ -1,6 +1,6 @@
 <div class="map-container">
   <!-- The spot map, defer loading to make sure it is not loaded on the server. -->
-  @if(mapsService.isApiLoaded$ | async) { @defer {
+  @if(mapsService.isApiLoaded()) { @defer {
   <app-spot-map
     @fadeInOut
     #spotMap
