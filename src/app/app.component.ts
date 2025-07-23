@@ -47,6 +47,7 @@ import { WebSite } from "schema-dts";
 import { StructuredDataService } from "./services/structured-data.service";
 import { StorageImage } from "../db/models/Media";
 import { SelectLanguageDialogComponent } from "./select-language-dialog/select-language-dialog.component";
+import { firstValueFrom } from "rxjs";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -171,6 +172,7 @@ export class AppComponent implements OnInit {
         "pkspot.app",
         "PK Spot App",
         "Parkour Spot",
+        "Parkour Spot App",
         "PKFR Spot",
         "pkfrspot.com",
       ],
@@ -239,9 +241,12 @@ export class AppComponent implements OnInit {
         this.isEmbedded() === false &&
         this.dialog.openDialogs.length === 0
       ) {
-        this.router.events
-          .pipe(filter((event) => event instanceof NavigationEnd))
-          .subscribe(() => {
+        firstValueFrom(
+          this.router.events.pipe(
+            filter((event) => event instanceof NavigationEnd)
+          )
+        )
+          .then(() => {
             this.route.firstChild?.data.subscribe((data) => {
               // open welcome dialog if the user has not accepted the terms of service
               acceptedVersion = localStorage.getItem("acceptedVersion");
@@ -265,6 +270,12 @@ export class AppComponent implements OnInit {
                 }
               }
             });
+          })
+          .catch((err) => {
+            console.error(
+              "Error from navigation when opening welcome dialog:",
+              err
+            );
           });
       }
     }
