@@ -1443,6 +1443,12 @@
         <target> Aceptar y continuar </target>
       </segment>
     </unit>
+    <unit id="welcomeDialogAboutButton">
+      <segment state="initial">
+        <source>About us</source>
+        <target>Acerca de nosotros</target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
         <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
@@ -1481,8 +1487,7 @@
         <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
           we use a privacy-focused, cookie-free analytics service. </source>
         <target> Las funciones esenciales (como Google Maps) pueden usar cookies 🍪. Para proteger
-          tu
-          privacidad, utilizamos un servicio de análisis enfocado en la privacidad y sin cookies. </target>
+          tu privacidad, utilizamos un servicio de análisis enfocado en la privacidad y sin cookies. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechHeading">
@@ -1496,8 +1501,7 @@
         <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you
           can explore spots, share posts, and connect with other practitioners. 🤸 </source>
         <target> Estamos emocionados de que te unas a nuestra comunidad de Parkour y Freerunning.
-          Aquí
-          puedes explorar spots, compartir publicaciones y conectar con otros practicantes. 🤸 </target>
+          Aquí puedes explorar spots, compartir publicaciones y conectar con otros practicantes. 🤸 </target>
       </segment>
     </unit>
     <unit id="about.description">
@@ -1753,6 +1757,13 @@
       <segment state="initial">
         <source> Save </source>
         <target> Guardar </target>
+      </segment>
+    </unit>
+    <unit id="4110209764320322600">
+      <segment state="initial">
+        <source> What should we call you? Don&apos;t worry, the display name can be changed later. </source>
+        <target> ¿Cómo te gustaría que te llamemos? No te preocupes, el nombre de visualización se
+          puede cambiar más tarde. </target>
       </segment>
     </unit>
     <unit id="4115668858470490289">

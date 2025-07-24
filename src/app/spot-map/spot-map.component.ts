@@ -589,7 +589,8 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
         this.snackBar.open(
           $localize`Spot saved successfully`,
-          $localize`Dismiss`
+          $localize`Dismiss`,
+          { duration: 5000 }
         );
       })
       .catch((error) => {

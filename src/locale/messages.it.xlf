@@ -1447,6 +1447,12 @@
         <target> Accetta e Continua </target>
       </segment>
     </unit>
+    <unit id="welcomeDialogAboutButton">
+      <segment state="initial">
+        <source>About us</source>
+        <target>Chi siamo</target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
         <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
@@ -1485,8 +1491,8 @@
         <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
           we use a privacy-focused, cookie-free analytics service. </source>
         <target> Certaines fonctionnalités essentielles (comme Google Maps) peuvent utiliser des
-          cookies 🍪. Pour protéger votre vie privée, nous utilisons un service d'analyse axé sur
-          la confidentialité et sans cookies. </target>
+          cookies 🍪. Pour protéger votre vie privée, nous utilisons un service d&apos;analyse axé
+          sur la confidentialité et sans cookies. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechHeading">
@@ -1756,6 +1762,13 @@
       <segment state="initial">
         <source> Save </source>
         <target> Salva </target>
+      </segment>
+    </unit>
+    <unit id="4110209764320322600">
+      <segment state="initial">
+        <source> What should we call you? Don&apos;t worry, the display name can be changed later. </source>
+        <target> Come ti dobbiamo chiamare? Non preoccuparti, il nome visualizzato può essere
+          cambiato in seguito. </target>
       </segment>
     </unit>
     <unit id="4115668858470490289">
@@ -2355,7 +2368,7 @@
     <unit id="1744316082077040772">
       <segment state="initial">
         <source>Loading Google Maps® API...</source>
-        <target>Caricamento dell'API di Google Maps®...</target>
+        <target>Caricamento dell&apos;API di Google Maps®...</target>
       </segment>
     </unit>
     <unit id="1616102757855967475">

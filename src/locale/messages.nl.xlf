@@ -1443,6 +1443,12 @@
         <target> Akkoord en doorgaan </target>
       </segment>
     </unit>
+    <unit id="welcomeDialogAboutButton">
+      <segment state="initial">
+        <source>About us</source>
+        <target>Over ons</target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
         <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
@@ -1468,8 +1474,7 @@
         <target> Onthoud dat Parkour inherente risico&apos;s met zich meebrengt en dat je zelf
           verantwoordelijk bent voor je eigen veiligheid. Onze spots zijn door gebruikers ingediend
           en de nauwkeurigheid en legaliteit ervan zijn niet gegarandeerd. Respecteer altijd
-          eigendomsrechten
-          en lokale wetten. </target>
+          eigendomsrechten en lokale wetten. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyHeading">
@@ -1483,8 +1488,7 @@
         <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
           we use a privacy-focused, cookie-free analytics service. </source>
         <target> Essentiële functies (zoals Google Maps) kunnen cookies gebruiken 🍪. Om je privacy
-          te
-          beschermen, gebruiken we een privacygerichte, cookie-vrije analysetool. </target>
+          te beschermen, gebruiken we een privacygerichte, cookie-vrije analysetool. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechHeading">
@@ -1498,8 +1502,8 @@
         <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you
           can explore spots, share posts, and connect with other practitioners. 🤸 </source>
         <target> We zijn blij dat je deel uitmaakt van onze Parkour- en Freerunning-gemeenschap.
-          Hier
-          kun je spots verkennen, berichten delen en verbinding maken met andere beoefenaars. 🤸 </target>
+          Hier kun je spots verkennen, berichten delen en verbinding maken met andere beoefenaars.
+          🤸 </target>
       </segment>
     </unit>
     <unit id="about.description">
@@ -1755,6 +1759,13 @@
       <segment state="initial">
         <source> Save </source>
         <target> Opslaan </target>
+      </segment>
+    </unit>
+    <unit id="4110209764320322600">
+      <segment state="initial">
+        <source> What should we call you? Don&apos;t worry, the display name can be changed later. </source>
+        <target> Wat moeten we je noemen? Maak je geen zorgen, de weergavenaam kan later worden
+          gewijzigd. </target>
       </segment>
     </unit>
     <unit id="4115668858470490289">

@@ -68,7 +68,7 @@ export const AmenityIcons: { [key in keyof AmenitiesMap]: string } = {
   ac: "ac_unit",
   lockers: "lock",
   entry_fee: "paid",
-  drinking_water: "local_drink",
+  drinking_water: "water_full",
   parking_on_site: "local_parking",
   power_outlets: "power",
   maybe_overgrown: "grass",

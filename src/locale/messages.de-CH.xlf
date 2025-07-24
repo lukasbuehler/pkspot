@@ -1441,6 +1441,12 @@
         <target> Zuestimme und Wiiter </target>
       </segment>
     </unit>
+    <unit id="welcomeDialogAboutButton">
+      <segment state="initial">
+        <source>About us</source>
+        <target>Über eus</target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
         <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
@@ -1464,38 +1470,29 @@
         <source> Remember that Parkour has inherent risks and you are responsible for your own
           safety. Our spots are user-submitted and their accuracy and legality are not guaranteed.
           Always respect property rights and local laws. </source>
-        <target>
-          Bis dir bewusst, dass Parkour mit Risike verbunde isch du für dini eige Sicherheit
+        <target> Bis dir bewusst, dass Parkour mit Risike verbunde isch du für dini eige Sicherheit
           verantwortlich bisch. Eusi Spots sind vo Benutzer und ihri Gnauigkeit und Legalität sind
-          nöd garantiert.
-          Respektier immer Zuegansrecht und die lokale Regle.
-        </target>
+          nöd garantiert. Respektier immer Zuegansrecht und die lokale Regle. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyHeading">
       <segment state="initial">
         <source> Our Guiding Principles: Safety &amp; Respect </source>
-        <target>
-          Eusi Leitprinzipie: Sicherheit &amp; Respekt
-        </target>
+        <target> Eusi Leitprinzipie: Sicherheit &amp; Respekt </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
       <segment state="initial">
         <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
           we use a privacy-focused, cookie-free analytics service. </source>
-        <target>
-          Wichtigi Funktione (wie Google Maps) chönd Cookies benutze. 🍪 Zum Schutz vo dinere
-          Privatsphäre verwänded mir en datenschutz-fokussierti, cookie-freie Analytik-Dienst.
-        </target>
+        <target> Wichtigi Funktione (wie Google Maps) chönd Cookies benutze. 🍪 Zum Schutz vo dinere
+          Privatsphäre verwänded mir en datenschutz-fokussierti, cookie-freie Analytik-Dienst. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechHeading">
       <segment state="initial">
         <source> A Note on Privacy &amp; Technology </source>
-        <target>
-          En Bemerkig zu Privatsphäre &amp; Technologie
-        </target>
+        <target> En Bemerkig zu Privatsphäre &amp; Technologie </target>
       </segment>
     </unit>
     <unit id="welcomeDialogText">
@@ -1503,8 +1500,7 @@
         <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you
           can explore spots, share posts, and connect with other practitioners. 🤸 </source>
         <target> Mir freued eus, dass du eusere Parkour und Freerunning Community biitritsch. Da
-          chasch
-          Spots entdecke, Posts teile und mit andere Praktizierende connecte. 🤸 </target>
+          chasch Spots entdecke, Posts teile und mit andere Praktizierende connecte. 🤸 </target>
       </segment>
     </unit>
     <unit id="about.description">
@@ -1760,6 +1756,13 @@
       <segment state="initial">
         <source> Save </source>
         <target> Speichere </target>
+      </segment>
+    </unit>
+    <unit id="4110209764320322600">
+      <segment state="initial">
+        <source> What should we call you? Don&apos;t worry, the display name can be changed later. </source>
+        <target> Wie sölled mir dich nenne? Kei Angst, de Ahzeigename cha später wieder gändered
+          werde. </target>
       </segment>
     </unit>
     <unit id="4115668858470490289">

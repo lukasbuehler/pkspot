@@ -41,7 +41,7 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
   [SpotTypes.UrbanLandscape]: "location_city",
   [SpotTypes.NaturalLandscape]: "nature",
   [SpotTypes.UniversityCampus]: "school",
-  [SpotTypes.Art]: "art",
+  [SpotTypes.Art]: "palette",
   [SpotTypes.Rooftop]: "roofing",
   [SpotTypes.RoofGap]: "space_bar",
   [SpotTypes.Descent]: "arrow_downward",

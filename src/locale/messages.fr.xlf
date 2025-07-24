@@ -1452,6 +1452,12 @@
         <target> Accepter et continuer </target>
       </segment>
     </unit>
+    <unit id="welcomeDialogAboutButton">
+      <segment state="initial">
+        <source>About us</source>
+        <target>À propos de nous</target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
         <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
@@ -1492,7 +1498,7 @@
         <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
           we use a privacy-focused, cookie-free analytics service. </source>
         <target> Les fonctionnalités essentielles (comme Google Maps) peuvent utiliser des cookies
-          🍪. Pour protéger votre vie privée, nous utilisons un service d'analyse axé sur la
+          🍪. Pour protéger votre vie privée, nous utilisons un service d&apos;analyse axé sur la
           confidentialité et sans cookies. </target>
       </segment>
     </unit>
@@ -1508,7 +1514,7 @@
           can explore spots, share posts, and connect with other practitioners. 🤸 </source>
         <target> Nous sommes ravis de vous accueillir dans notre communauté Parkour et Freerunning.
           Ici, vous pouvez explorer des spots, partager des publications et vous connecter avec
-          d'autres pratiquants. 🤸 </target>
+          d&apos;autres pratiquants. 🤸 </target>
       </segment>
     </unit>
     <unit id="about.description">
@@ -1764,6 +1770,13 @@
       <segment state="initial">
         <source> Save </source>
         <target> Enregistrer </target>
+      </segment>
+    </unit>
+    <unit id="4110209764320322600">
+      <segment state="initial">
+        <source> What should we call you? Don&apos;t worry, the display name can be changed later. </source>
+        <target> Que devrions-nous vous appeler ? Ne vous inquiétez pas, le nom affiché peut être
+          modifié plus tard. </target>
       </segment>
     </unit>
     <unit id="4115668858470490289">

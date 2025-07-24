@@ -1447,6 +1447,12 @@
         <target> Zustimmen und Weiter </target>
       </segment>
     </unit>
+    <unit id="welcomeDialogAboutButton">
+      <segment state="initial">
+        <source>About us</source>
+        <target>Über uns</target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
         <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
@@ -1469,12 +1475,10 @@
         <source> Remember that Parkour has inherent risks and you are responsible for your own
           safety. Our spots are user-submitted and their accuracy and legality are not guaranteed.
           Always respect property rights and local laws. </source>
-        <target>
-          Denke daran, dass Parkour Riskant sein kann und du für deine eigene Sicherheit
+        <target> Denke daran, dass Parkour Riskant sein kann und du für deine eigene Sicherheit
           verantwortlich bist. Unsere Spots sind von Nutzern eingereicht und ihre Genauigkeit und
           Legalität sind nicht garantiert. Respektiere immer die Eigentumsrechte und lokalen
-          Gesetze.
-        </target>
+          Gesetze. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyHeading">
@@ -1487,11 +1491,9 @@
       <segment state="initial">
         <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
           we use a privacy-focused, cookie-free analytics service. </source>
-        <target>
-          Essentielle Funktionen (wie Google Maps) können Cookies 🍪 verwenden. Um deine
-          Privatsphäre
-          zu schützen, verwenden wir einen datenschutzfreundlichen, cookie-freien Analytics-Dienst.
-        </target>
+        <target> Essentielle Funktionen (wie Google Maps) können Cookies 🍪 verwenden. Um deine
+          Privatsphäre zu schützen, verwenden wir einen datenschutzfreundlichen, cookie-freien
+          Analytics-Dienst. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechHeading">
@@ -1505,8 +1507,8 @@
         <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you
           can explore spots, share posts, and connect with other practitioners. 🤸 </source>
         <target> Wir freuen uns, dass du unserer Parkour und Freerunning Community beitrittst. Hier
-          kannst du Spots erkunden, Beiträge teilen und dich mit anderen Praktizierenden
-          verbinden. 🤸 </target>
+          kannst du Spots erkunden, Beiträge teilen und dich mit anderen Praktizierenden verbinden.
+          🤸 </target>
       </segment>
     </unit>
     <unit id="about.description">
@@ -1762,6 +1764,13 @@
       <segment state="initial">
         <source> Save </source>
         <target> Speichern </target>
+      </segment>
+    </unit>
+    <unit id="4110209764320322600">
+      <segment state="initial">
+        <source> What should we call you? Don&apos;t worry, the display name can be changed later. </source>
+        <target> Wie sollen wir dich nennen? Keine Sorge, der Anzeigename kann später geändert
+          werden. </target>
       </segment>
     </unit>
     <unit id="4115668858470490289">

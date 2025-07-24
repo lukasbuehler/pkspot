@@ -353,7 +353,7 @@ export class SpotMapDataManager {
                       lat: element.lat,
                       lng: element.lon,
                     },
-                    icons: ["local_drink"], // water_drop
+                    icons: ["water_full"], // local_drink, water_drop
                     name:
                       element.tags.name +
                       (element.tags.operator
@@ -378,7 +378,7 @@ export class SpotMapDataManager {
                     },
                     icons:
                       element.tags.drinking_water === "yes"
-                        ? ["local_drink"]
+                        ? ["water_full"]
                         : ["water_drop"],
                     name:
                       element.tags.name +
