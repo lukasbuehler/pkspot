@@ -48,9 +48,8 @@ import { StructuredDataService } from "./services/structured-data.service";
 import { StorageImage } from "../db/models/Media";
 import { SelectLanguageDialogComponent } from "./select-language-dialog/select-language-dialog.component";
 import { firstValueFrom } from "rxjs";
-import { MapsApiService } from "./services/maps-api.service";
-
-declare function plausible(eventName: string, options?: { props: any }): void;
+import { PlausibleService } from "./services/plausible.service";
+import { ConsentService } from "./services/consent.service";
 
 interface ButtonBase {
   name: string;
@@ -113,13 +112,27 @@ export class AppComponent implements OnInit {
   private _snackbar = inject(MatSnackBar);
   private _structuredDataService = inject(StructuredDataService);
 
+  // Inject AuthService immediately to ensure auth state restoration works
+  private _authService = inject(AuthenticationService);
+  public get authService(): AuthenticationService {
+    return this._authService;
+  }
+
+  // Lazy inject StorageService to prevent automatic Firebase Storage initialization
+  private _storageService: StorageService | null = null;
+  public get storageService(): StorageService {
+    if (!this._storageService) {
+      this._storageService = inject(StorageService);
+    }
+    return this._storageService;
+  }
+
   constructor(
-    public authService: AuthenticationService,
     public router: Router,
-    public storageService: StorageService,
     private route: ActivatedRoute,
     private matIconRegistry: MatIconRegistry,
-    private _mapsApiService: MapsApiService
+    private _plausibleService: PlausibleService,
+    private _consentService: ConsentService
   ) {
     this.matIconRegistry.setDefaultFontSetClass("material-symbols-rounded");
 
@@ -159,9 +172,7 @@ export class AppComponent implements OnInit {
         this.alainMode = false;
       }
       GlobalVariables.alainMode.next(this.alainMode);
-      if (typeof plausible !== "undefined") {
-        plausible("pageview", { props: { alainMode: this.alainMode } });
-      }
+      this._plausibleService.trackPageview({ alainMode: this.alainMode });
     }
   }
 
@@ -182,6 +193,28 @@ export class AppComponent implements OnInit {
     };
     this._structuredDataService.addStructuredData("website", json);
 
+    // Setup route events and consent dialog logic immediately (before consent)
+    this.router.events
+      .pipe(filter((event) => event instanceof RoutesRecognized))
+      .subscribe((event: RoutesRecognized) => {
+        const isEmbedded = event.url.split("/")[1] === "embedded";
+        this.isEmbedded.set(isEmbedded);
+
+        this.maybeOpenClickWrap();
+      });
+
+    // Setup auth state listener immediately for session restoration
+    // (This is now safe - only reCAPTCHA-triggering operations like sign-up require consent)
+    this.setupAuthStateListener();
+
+    if (typeof window !== "undefined") {
+      this.hasAds = (window as any)["canRunAds"] ?? false;
+    }
+  }
+
+  private setupAuthStateListener() {
+    console.log("Setting up auth state listener with consent");
+
     this.authService.authState$.subscribe(
       (user) => {
         let isAuthenticated: boolean = false;
@@ -193,35 +226,39 @@ export class AppComponent implements OnInit {
         }
 
         this.shortUserDisplayName.set(
-          this.authService?.auth?.currentUser?.displayName?.split(" ")[0] ??
-            undefined
-        );
-        this.userPhoto.set(
-          this.authService?.user?.data?.profilePicture?.getSrc(200) ?? undefined
+          // Get display name from Firestore user data if consent is granted
+          user?.data?.displayName?.split(" ")[0] ?? undefined
         );
 
-        if (typeof plausible !== "undefined") {
-          plausible("pageview", { props: { authenticated: isAuthenticated } });
+        // Only access Firestore user data if consent is granted
+        if (this._consentService.hasConsent()) {
+          this.userPhoto.set(
+            this.authService?.user?.data?.profilePicture?.getSrc(200) ??
+              undefined
+          );
+        } else {
+          this.userPhoto.set(undefined);
         }
+
+        this._plausibleService.trackPageview({
+          authenticated: isAuthenticated,
+        });
       },
       (error) => {
         console.error(error);
       }
     );
 
-    if (typeof window !== "undefined") {
-      this.hasAds = (window as any)["canRunAds"] ?? false;
-    }
-
-    // get the route name
-    this.router.events
-      .pipe(filter((event) => event instanceof RoutesRecognized))
-      .subscribe((event: RoutesRecognized) => {
-        const isEmbedded = event.url.split("/")[1] === "embedded";
-        this.isEmbedded.set(isEmbedded);
-
-        this.maybeOpenClickWrap();
-      });
+    // Listen for consent changes to update profile picture
+    this._consentService.consentGranted$.subscribe((hasConsent) => {
+      if (hasConsent && this.authService?.user?.data?.profilePicture) {
+        this.userPhoto.set(
+          this.authService.user.data.profilePicture.getSrc(200)
+        );
+      } else if (!hasConsent) {
+        this.userPhoto.set(undefined);
+      }
+    });
   }
 
   maybeOpenClickWrap() {
@@ -237,11 +274,6 @@ export class AppComponent implements OnInit {
 
       this.policyAccepted = acceptedVersion === currentTermsVersion;
 
-      if (this.policyAccepted) {
-        // User has already accepted terms, load Maps API immediately
-        this._mapsApiService.loadGoogleMapsApi();
-      }
-
       if (
         !this.policyAccepted &&
         !isABot &&
@@ -254,41 +286,61 @@ export class AppComponent implements OnInit {
           )
         )
           .then(() => {
-            this.route.firstChild?.data.subscribe((data) => {
-              // open welcome dialog if the user has not accepted the terms of service
-              acceptedVersion = localStorage.getItem("acceptedVersion");
+            // Check route data after navigation completes
+            const checkRouteData = () => {
+              const currentRoute = this.route;
+              let activeRoute = currentRoute;
 
-              if (acceptedVersion !== currentTermsVersion) {
-                // get the acceptanceFree variable from the route data
-                console.log("routeData", data);
-                const acceptanceFree = data["acceptanceFree"] || false;
+              // Navigate to the actual active route
+              while (activeRoute.firstChild) {
+                activeRoute = activeRoute.firstChild;
+              }
 
-                console.log("acceptanceFree", acceptanceFree);
+              const data = activeRoute.snapshot.data;
+              const acceptanceFree = data["acceptanceFree"] || false;
 
+              // Check again if user has accepted terms (might have changed)
+              const currentAcceptedVersion =
+                localStorage.getItem("acceptedVersion");
+
+              if (currentAcceptedVersion !== currentTermsVersion) {
                 if (!acceptanceFree) {
-                  const dialogRef = this.dialog.open(WelcomeDialogComponent, {
-                    data: { version: currentTermsVersion },
-                    hasBackdrop: true,
-                    disableClose: true,
-                  });
+                  // Only show dialog if not on an acceptance-free page
+                  if (this.dialog.openDialogs.length === 0) {
+                    const dialogRef = this.dialog.open(WelcomeDialogComponent, {
+                      data: { version: currentTermsVersion },
+                      hasBackdrop: true,
+                      disableClose: true,
+                    });
 
-                  // Listen for dialog close and load Maps API if user agreed
-                  dialogRef.afterClosed().subscribe((agreed: boolean) => {
-                    if (agreed) {
-                      this._mapsApiService.loadGoogleMapsApi();
-                    }
-                  });
+                    // Listen for dialog close and grant consent if user agreed
+                    dialogRef.afterClosed().subscribe((agreed: boolean) => {
+                      if (agreed) {
+                        this._consentService.grantConsent();
+                      }
+                    });
+                  }
                 } else {
-                  // if the dialog was already open, close it now
+                  // if the dialog was already open on acceptance-free page, close it
                   this.dialog.closeAll();
-                  // Load Maps API since terms are already accepted or not required
-                  this._mapsApiService.loadGoogleMapsApi();
+                  // Do NOT grant consent just for visiting a consent-free page
+                  // Consent should only be granted when user explicitly agrees
                 }
               } else {
-                // User has already accepted current terms version, load Maps API
-                this._mapsApiService.loadGoogleMapsApi();
+                // User has already accepted current terms version, grant consent
+                this._consentService.grantConsent();
               }
-            });
+            };
+
+            // Check route data immediately and also subscribe to route changes
+            checkRouteData();
+
+            // Also listen to route data changes for future navigation
+            this.router.events
+              .pipe(filter((event) => event instanceof NavigationEnd))
+              .subscribe(() => {
+                setTimeout(() => checkRouteData(), 100); // Small delay to ensure route data is updated
+              });
           })
           .catch((err) => {
             console.error(
@@ -420,6 +472,56 @@ export class AppComponent implements OnInit {
 
   shortUserDisplayName = signal<string | undefined>(undefined);
   userPhoto = signal<string | undefined>(undefined);
+
+  // Safe computed properties for template to prevent SSR issues
+  isSignedIn = computed(() => {
+    // Only access authService when not during SSR
+    if (typeof window === "undefined") {
+      return false;
+    }
+    try {
+      return this.authService?.isSignedIn ?? false;
+    } catch {
+      return false;
+    }
+  });
+
+  userMenuConfig = computed(() => {
+    return this.isSignedIn()
+      ? this.authenticatedUserMenuConfig
+      : this.unauthenticatedUserMenuConfig;
+  });
+
+  hasUserProfilePicture = computed(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    try {
+      return (
+        this.authService?.isSignedIn &&
+        this.authService?.user?.data?.profilePicture
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  userProfilePictureUrl = computed(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+    try {
+      if (
+        this.authService?.isSignedIn &&
+        this.authService?.user?.data?.profilePicture
+      ) {
+        return this.authService.user.data.profilePicture.getSrc(200);
+      }
+      return "";
+    } catch {
+      return "";
+    }
+  });
 
   navbarConfig = computed<NavbarButtonConfig | undefined>(() => {
     const shortUserDisplayName = this.shortUserDisplayName();

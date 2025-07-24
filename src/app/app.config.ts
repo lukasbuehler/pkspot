@@ -38,7 +38,8 @@ export const appConfig: ApplicationConfig = {
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
     provideFunctions(() => getFunctions()),
-    provideAuth(() => getAuth()),
+    // TODO: Make Auth provider consent-aware
+    // provideAuth(() => getAuth()),
     provideRouter(routes, withViewTransitions()),
     BrowserModule,
     GoogleMapsModule,
@@ -46,9 +47,6 @@ export const appConfig: ApplicationConfig = {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
       useValue: {
         hasBackdrop: true,
-        position: {
-          top: "100px",
-        },
       },
     },
     provideClientHydration(withI18nSupport(), withIncrementalHydration()),

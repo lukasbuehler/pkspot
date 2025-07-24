@@ -28,15 +28,18 @@ import { transformFirestoreData } from "../../../../scripts/Helpers";
 import { GeoPoint } from "@firebase/firestore";
 import { StorageService } from "../storage.service";
 import { AnyMedia, StorageImage } from "../../../../db/models/Media";
+import { ConsentAwareService } from "../../consent-aware.service";
 
 @Injectable({
   providedIn: "root",
 })
-export class SpotsService {
+export class SpotsService extends ConsentAwareService {
   constructor(
     private firestore: Firestore,
     private storageService: StorageService
-  ) {}
+  ) {
+    super();
+  }
 
   docRef(path: string) {
     return doc(this.firestore, path);

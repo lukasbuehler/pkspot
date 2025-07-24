@@ -177,12 +177,12 @@ export const routes: Routes = [
   {
     path: "sign-in",
     component: SignInPageComponent,
-    data: { routeName: "Sign-in", acceptanceFree: true },
+    data: { routeName: "Sign-in" },
   },
   {
     path: "sign-up",
     component: SignUpPageComponent,
-    data: { routeName: "Sign-up", acceptanceFree: true },
+    data: { routeName: "Sign-up" },
   },
   {
     path: "forgot-password",

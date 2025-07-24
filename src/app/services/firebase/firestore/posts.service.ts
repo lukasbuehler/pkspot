@@ -17,12 +17,15 @@ import { Observable } from "rxjs";
 import { Post } from "../../../../db/models/Post";
 import { Spot } from "../../../../db/models/Spot";
 import { LikeSchema } from "../../../../db/schemas/LikeSchema";
+import { ConsentAwareService } from "../../consent-aware.service";
 
 @Injectable({
   providedIn: "root",
 })
-export class PostsService {
-  constructor(private firestore: Firestore) {}
+export class PostsService extends ConsentAwareService {
+  constructor(private firestore: Firestore) {
+    super();
+  }
 
   docRef(path: string) {
     return doc(this.firestore, path);
@@ -110,24 +113,29 @@ export class PostsService {
 
   getPostsFromUser(userId: string): Observable<Record<string, Post.Schema>> {
     return new Observable<Record<string, Post.Schema>>((observer) => {
-      return onSnapshot(
-        query(
-          collection(this.firestore, "posts"),
-          where("user.uid", "==", userId),
-          limit(10)
-        ),
-        (querySnapshot) => {
-          let postSchemasMap: any = {};
-          querySnapshot.forEach((doc) => {
-            const id = doc.id;
-            postSchemasMap[id] = doc.data();
-          });
-          observer.next(postSchemasMap);
-        },
-        (error) => {
-          observer.error(error);
-        }
-      );
+      // Wait for consent before making Firestore calls
+      this.executeWhenConsent(() => {
+        return onSnapshot(
+          query(
+            collection(this.firestore, "posts"),
+            where("user.uid", "==", userId),
+            limit(10)
+          ),
+          (querySnapshot) => {
+            let postSchemasMap: any = {};
+            querySnapshot.forEach((doc) => {
+              const id = doc.id;
+              postSchemasMap[id] = doc.data();
+            });
+            observer.next(postSchemasMap);
+          },
+          (error) => {
+            observer.error(error);
+          }
+        );
+      }).catch((error) => {
+        observer.error(error);
+      });
     });
   }
 

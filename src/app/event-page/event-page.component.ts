@@ -580,6 +580,12 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Trigger Google Maps API loading since this component needs it
+    // This will fail gracefully if no consent is granted
+    if (!this.mapsApiService.isApiLoaded()) {
+      this.mapsApiService.loadGoogleMapsApi();
+    }
+    
     this.metaInfoService.setMetaTags(
       this.name,
       this.bannerImageSrc,

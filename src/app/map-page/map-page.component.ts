@@ -63,6 +63,7 @@ import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.c
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-panel.component";
+import { ConsentService } from "../services/consent.service";
 
 @Component({
   selector: "app-map-page",
@@ -162,7 +163,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private _slugsService: SlugsService,
     private router: Router,
     private _snackbar: MatSnackBar,
-    private titleService: Title
+    private titleService: Title,
+    private _consentService: ConsentService
   ) {
     this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
       (value) => {
@@ -256,6 +258,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     console.log("map page init");
+
+    // Trigger Google Maps API loading since this page needs it
+    // this.tryLoadMapsApi(); // TODO wtf
+
+    // Listen for consent changes to retry Maps API loading when consent is granted
+    this._consentService.consentGranted$.subscribe((hasConsent) => {
+      if (hasConsent && !this.mapsService.isApiLoaded()) {
+        this.tryLoadMapsApi();
+      }
+    });
 
     // Check if we have resolved spot data (from resolver during SSR)
     const resolvedSpot = this.activatedRoute.snapshot.firstChild?.data?.[
@@ -559,6 +571,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       "/assets/banner_1200x630.png",
       "Discover, Train, Share. Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world."
     );
+  }
+
+  private tryLoadMapsApi() {
+    if (!this.mapsService.isApiLoaded()) {
+      this.mapsService.loadGoogleMapsApi();
+    }
   }
 
   ngOnDestroy() {

@@ -17,28 +17,36 @@ import {
   FollowingSchema,
   UserSchema,
 } from "../../../../db/schemas/UserSchema";
+import { ConsentAwareService } from "../../consent-aware.service";
 
 @Injectable({
   providedIn: "root",
 })
-export class FollowingService {
-  constructor(private firestore: Firestore) {}
+export class FollowingService extends ConsentAwareService {
+  constructor(private firestore: Firestore) {
+    super();
+  }
 
   isFollowingUser(myUserId: string, otherUserId: string): Observable<boolean> {
     return new Observable<boolean>((obs) => {
-      return onSnapshot(
-        doc(this.firestore, "users", myUserId, "following", otherUserId),
-        (snap) => {
-          if (snap.exists()) {
-            obs.next(true);
-          } else {
-            obs.next(false);
+      // Wait for consent before making Firestore calls
+      this.executeWhenConsent(() => {
+        return onSnapshot(
+          doc(this.firestore, "users", myUserId, "following", otherUserId),
+          (snap) => {
+            if (snap.exists()) {
+              obs.next(true);
+            } else {
+              obs.next(false);
+            }
+          },
+          (err) => {
+            obs.error(err);
           }
-        },
-        (err) => {
-          obs.error(err);
-        }
-      );
+        );
+      }).catch((error) => {
+        obs.error(error);
+      });
     });
   }
 

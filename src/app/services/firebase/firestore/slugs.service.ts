@@ -11,12 +11,15 @@ import {
 } from "@angular/fire/firestore";
 import { SpotSlug } from "../../../../db/models/Interfaces";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
+import { ConsentAwareService } from "../../consent-aware.service";
 
 @Injectable({
   providedIn: "root",
 })
-export class SlugsService {
-  constructor(private firestore: Firestore) {}
+export class SlugsService extends ConsentAwareService {
+  constructor(private firestore: Firestore) {
+    super();
+  }
 
   addSpotSlug(spotId: string, slug: string): Promise<void> {
     // validate that the slug only contains alphanumeric characters and hyphens

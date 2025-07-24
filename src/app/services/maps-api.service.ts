@@ -1,4 +1,10 @@
-import { Injectable, signal, Signal, WritableSignal } from "@angular/core";
+import {
+  Injectable,
+  signal,
+  Signal,
+  WritableSignal,
+  inject,
+} from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../environments/environment";
 import {
@@ -11,6 +17,7 @@ import {
   firstValueFrom,
 } from "rxjs";
 import { ExternalImage } from "../../db/models/Media";
+import { ConsentAwareService } from "./consent-aware.service";
 
 interface LocationAndZoom {
   location: google.maps.LatLngLiteral;
@@ -20,7 +27,7 @@ interface LocationAndZoom {
 @Injectable({
   providedIn: "root",
 })
-export class MapsApiService {
+export class MapsApiService extends ConsentAwareService {
   private _isApiLoaded: WritableSignal<boolean> = signal(false);
   public isApiLoaded: Signal<boolean> = this._isApiLoaded;
 
@@ -33,9 +40,18 @@ export class MapsApiService {
     new BehaviorSubject<number>(0);
   public loadingProgress$: Observable<number> = this._loadingProgress$;
 
-  constructor() {}
+  constructor() {
+    super();
+    // Do not auto-load anything - components will explicitly request loading when needed
+  }
 
   loadGoogleMapsApi() {
+    // Check for consent before loading using inherited method
+    if (!this.hasConsent()) {
+      console.warn("Cannot load Google Maps API: User consent required");
+      return;
+    }
+
     // Load the Google Maps API if it is not already loaded
     if (this.isApiLoaded()) return;
     if (this._isLoading$.value) return;
@@ -178,54 +194,62 @@ export class MapsApiService {
   ): Promise<google.maps.places.AutocompletePrediction[]> {
     if (!input || input.length === 0) return Promise.resolve([]);
 
-    const autocompleteService = new google.maps.places.AutocompleteService();
+    // Use consent-aware execution for Places API calls
+    return this.executeWithConsent(() => {
+      const autocompleteService = new google.maps.places.AutocompleteService();
 
-    return new Promise((resolve, reject) => {
-      autocompleteService.getPlacePredictions(
-        {
-          input: input,
-          types: types,
-          locationBias: biasRect,
-          language: "en",
-        },
-        (predictions, status) => {
-          if (status !== "OK" && status !== "ZERO_RESULTS") {
-            reject(status);
-            return;
-          }
+      return new Promise<google.maps.places.AutocompletePrediction[]>(
+        (resolve, reject) => {
+          autocompleteService.getPlacePredictions(
+            {
+              input: input,
+              types: types,
+              locationBias: biasRect,
+              language: "en",
+            },
+            (predictions, status) => {
+              if (status !== "OK" && status !== "ZERO_RESULTS") {
+                reject(status);
+                return;
+              }
 
-          if (predictions) {
-            resolve(predictions);
-          } else {
-            resolve([]);
-          }
+              if (predictions) {
+                resolve(predictions);
+              } else {
+                resolve([]);
+              }
+            }
+          );
         }
       );
     });
   }
 
   getGooglePlaceById(placeId: string): Promise<google.maps.places.PlaceResult> {
-    const placesService = new google.maps.places.PlacesService(
-      document.createElement("div")
-    );
-
-    return new Promise((resolve, reject) => {
-      placesService.getDetails(
-        {
-          placeId: placeId,
-          fields: ["name", "geometry", "photos", "rating", "url"],
-        },
-        (place, status) => {
-          if (status !== "OK") {
-            reject(status);
-            return;
-          }
-
-          if (place) {
-            resolve(place);
-          }
-        }
+    // Use consent-aware execution for Places API calls
+    return this.executeWithConsent(() => {
+      const placesService = new google.maps.places.PlacesService(
+        document.createElement("div")
       );
+
+      return new Promise<google.maps.places.PlaceResult>((resolve, reject) => {
+        placesService.getDetails(
+          {
+            placeId: placeId,
+            fields: ["name", "geometry", "photos", "rating", "url"],
+          },
+          (place, status) => {
+            if (status !== "OK") {
+              reject(status);
+              return;
+            }
+
+            if (place) {
+              resolve(place);
+            }
+          }
+        );
+      });
     });
   }
 
@@ -234,28 +258,31 @@ export class MapsApiService {
     type: string = "point_of_interest",
     radius: number = 200
   ): Promise<google.maps.places.PlaceResult> {
-    const placesService = new google.maps.places.PlacesService(
-      document.createElement("div")
-    );
-
-    return new Promise((resolve, reject) => {
-      placesService.nearbySearch(
-        {
-          location: location,
-          radius: 200,
-          type: type,
-        },
-        (results, status) => {
-          if (status !== "OK") {
-            reject(status);
-            return;
-          }
-
-          if (results) {
-            resolve(results[0]);
-          }
-        }
+    // Use consent-aware execution for Places API calls
+    return this.executeWithConsent(() => {
+      const placesService = new google.maps.places.PlacesService(
+        document.createElement("div")
       );
+
+      return new Promise<google.maps.places.PlaceResult>((resolve, reject) => {
+        placesService.nearbySearch(
+          {
+            location: location,
+            radius: 200,
+            type: type,
+          },
+          (results, status) => {
+            if (status !== "OK") {
+              reject(status);
+              return;
+            }
+
+            if (results) {
+              resolve(results[0]);
+            }
+          }
+        );
+      });
     });
   }
 
@@ -274,7 +301,13 @@ export class MapsApiService {
     location: google.maps.LatLngLiteral,
     imageWidth: number = 400,
     imageHeight: number = 400
-  ): string {
+  ): string | null {
+    // Only return URL if consent is granted
+    if (!this.hasConsent()) {
+      console.warn("Cannot generate Street View URL: User consent required");
+      return null;
+    }
+
     return `https://maps.googleapis.com/maps/api/streetview?size=${imageWidth}x${imageHeight}&location=${
       location.lat
     },${location.lng}&fov=${120}&source=outdoor&key=${
@@ -282,11 +315,52 @@ export class MapsApiService {
     }`;
   }
 
-  // TODO move this to maps api service
+  // Instance method instead of static to access consent checking
+  async loadStreetviewForLocation(
+    location: google.maps.LatLngLiteral
+  ): Promise<ExternalImage | undefined> {
+    // Use consent-aware execution
+    return this.executeWithConsent(async () => {
+      // street view metadata
+      return fetch(
+        `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
+          location.lat
+        },${
+          location.lng
+        }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
+          environment.keys.firebaseConfig.apiKey
+        }`
+      )
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          if (data.status !== "ZERO_RESULTS") {
+            // street view media
+            return new ExternalImage(
+              `https://maps.googleapis.com/maps/api/streetview?size=800x800&location=${
+                location.lat
+              },${
+                location.lng
+              }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
+                environment.keys.firebaseConfig.apiKey
+              }`,
+              "streetview"
+            );
+          }
+        });
+    });
+  }
+
+  // Keep static method for backward compatibility but make it consent-aware
   static async loadStreetviewForLocation(
     location: google.maps.LatLngLiteral
   ): Promise<ExternalImage | undefined> {
-    // street view metadata
+    console.warn(
+      "Using deprecated static method - please use instance method for consent awareness"
+    );
+    // This static method should ideally be avoided in favor of the instance method
+    // but kept for backward compatibility
     return fetch(
       `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
         location.lat

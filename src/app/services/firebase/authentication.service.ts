@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import {
   GoogleAuthProvider,
   getAuth,
+  Auth,
   signInWithEmailAndPassword,
   signInWithPopup,
   User as FirebaseUser,
@@ -10,12 +11,12 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from "@angular/fire/auth";
+import { getApp } from "@angular/fire/app";
 import { BehaviorSubject, firstValueFrom } from "rxjs";
 import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
 import { UserSchema } from "../../../db/schemas/UserSchema";
-
-declare function plausible(eventName: string, options?: { props: any }): void;
+import { ConsentAwareService } from "../consent-aware.service";
 
 interface AuthServiceUser {
   uid?: string;
@@ -27,7 +28,7 @@ interface AuthServiceUser {
 @Injectable({
   providedIn: "root",
 })
-export class AuthenticationService {
+export class AuthenticationService extends ConsentAwareService {
   // Public properties
   public isSignedIn: boolean = false;
   /**
@@ -38,13 +39,84 @@ export class AuthenticationService {
   public authState$: BehaviorSubject<AuthServiceUser | null> =
     new BehaviorSubject<AuthServiceUser | null>(null);
 
-  public auth = getAuth();
+  private _auth: Auth | null = null;
+  public get auth(): Auth {
+    if (!this._auth) {
+      // Initialize Auth manually since we removed it from app config
+      const app = getApp();
+      this._auth = getAuth(app);
+    }
+    return this._auth;
+  }
+  private _authStateListenerInitialized = false;
 
   constructor(private _userService: UsersService) {
-    this.auth.onAuthStateChanged(
-      this.firebaseAuthChangeListener,
-      this.firebaseAuthChangeError
-    );
+    super();
+
+    // Check for existing session without triggering Firebase API calls
+    this._checkExistingSessionSafely();
+
+    // Setup Firebase auth state listener only after consent
+    this.executeWhenConsent(() => {
+      this._initializeAuthStateListener();
+    }).catch(() => {
+      console.log("Firebase Auth state listener waiting for consent");
+    });
+
+    // Listen for consent changes to restore pending sessions
+    this._consentService.consentGranted$.subscribe((hasConsent: boolean) => {
+      if (hasConsent) {
+        this.restorePendingSession();
+      }
+    });
+  }
+
+  private _checkExistingSessionSafely() {
+    // Check localStorage for basic session info without triggering Firebase API calls
+    if (typeof window !== "undefined") {
+      try {
+        // Check if there are Firebase Auth persistence keys in localStorage
+        const firebaseKeys = Object.keys(localStorage).filter(
+          (key) =>
+            key.startsWith("firebase:authUser:") ||
+            key.includes("firebaseLocalStorageDb")
+        );
+
+        if (firebaseKeys.length > 0) {
+          console.log(
+            "Detected existing Firebase session, will restore after consent"
+          );
+          // Set a flag that we have a potential session to restore
+          this._hasPendingSession = true;
+        }
+      } catch (error) {
+        console.warn("Could not check for existing session:", error);
+      }
+    }
+  }
+
+  private _hasPendingSession = false;
+
+  /**
+   * Call this method when consent is granted to restore any pending authentication session
+   */
+  public restorePendingSession() {
+    if (this._hasPendingSession && !this._authStateListenerInitialized) {
+      console.log("Restoring pending authentication session after consent");
+      this._initializeAuthStateListener();
+      this._hasPendingSession = false;
+    }
+  }
+
+  private _initializeAuthStateListener() {
+    if (!this._authStateListenerInitialized) {
+      this._authStateListenerInitialized = true;
+      // This call will trigger the accounts:lookup API call
+      this.auth.onAuthStateChanged(
+        this.firebaseAuthChangeListener,
+        this.firebaseAuthChangeError
+      );
+    }
   }
 
   private _currentFirebaseUser: FirebaseUser | null = null;
@@ -64,6 +136,10 @@ export class AuthenticationService {
       this.user.email = firebaseUser.email ?? undefined;
       this.user.emailVerified = firebaseUser.emailVerified;
 
+      // Send basic auth state immediately (with Firebase user data)
+      this.authState$.next(this.user);
+
+      // Fetch user data from Firestore immediately (already consent-gated by executeWhenConsent wrapper)
       this._fetchUserData(firebaseUser.uid, true);
     } else {
       // We don't have a firebase user, we are not signed in
@@ -80,22 +156,27 @@ export class AuthenticationService {
   };
 
   private _fetchUserData(uid: string, sendUpdate = true) {
-    this._userService.getUserById(uid).subscribe(
-      (_user) => {
-        if (_user) {
-          this.user.data = _user;
+    // Only fetch user data if consent is granted
+    this.executeWithConsent(() => {
+      this._userService.getUserById(uid).subscribe(
+        (_user) => {
+          if (_user) {
+            this.user.data = _user;
 
-          if (sendUpdate) {
-            this.authState$.next(this.user);
+            if (sendUpdate) {
+              this.authState$.next(this.user);
+            }
+          } else {
+            console.error("User data not found for uid", uid);
           }
-        } else {
-          console.error("User data not found for uid", uid);
+        },
+        (err) => {
+          console.error(err);
         }
-      },
-      (err) => {
-        console.error(err);
-      }
-    );
+      );
+    }).catch((err) => {
+      console.warn("User data fetch blocked due to missing consent:", err);
+    });
   }
 
   /**
@@ -111,7 +192,12 @@ export class AuthenticationService {
       return;
     }
 
-    this._fetchUserData(this.user.uid, true);
+    // Only refetch if consent is granted
+    this.executeWithConsent(() => {
+      this._fetchUserData(this.user.uid!, true);
+    }).catch((err) => {
+      console.warn("User data refetch blocked due to missing consent:", err);
+    });
   }
 
   public signInEmailPassword(email: string, password: string) {
@@ -135,11 +221,9 @@ export class AuthenticationService {
       ); // TODO check out of context
       if (!user) {
         // This is a new user!
-        if (typeof plausible !== "undefined") {
-          plausible("Create Account", {
-            props: { accountType: "Google" },
-          });
-        }
+        this.trackEventWithConsent("Create Account", {
+          props: { accountType: "Google" },
+        });
 
         if (!googleSignInResponse.user.displayName) {
           console.error("Google Sign In: No display name found");
@@ -178,13 +262,16 @@ export class AuthenticationService {
     confirmedPassword: string,
     displayName: string
   ): Promise<void> {
-    createUserWithEmailAndPassword(this.auth, email, confirmedPassword).then(
-      (firebaseAuthResponse) => {
-        if (typeof plausible !== "undefined") {
-          plausible("Create Account", {
-            props: { accountType: "Email and Password" },
-          });
-        }
+    // Ensure consent before creating account (which triggers reCAPTCHA)
+    return this.executeWithConsent(() => {
+      return createUserWithEmailAndPassword(
+        this.auth,
+        email,
+        confirmedPassword
+      ).then((firebaseAuthResponse) => {
+        this.trackEventWithConsent("Create Account", {
+          props: { accountType: "Email and Password" },
+        });
 
         if (!this._currentFirebaseUser) {
           return Promise.reject("No current firebase user found");
@@ -203,7 +290,7 @@ export class AuthenticationService {
 
         // Send verification email
         sendEmailVerification(firebaseAuthResponse.user);
-      }
-    );
+      });
+    });
   }
 }

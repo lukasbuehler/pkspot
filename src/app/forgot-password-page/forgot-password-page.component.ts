@@ -14,6 +14,8 @@ import { MatButton } from "@angular/material/button";
 import { NgIf } from "@angular/common";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
+import { RecaptchaService } from "../services/recaptcha.service";
+import { ConsentService } from "../services/consent.service";
 
 @Component({
   selector: "app-forgot-password-page",
@@ -36,13 +38,16 @@ export class ForgotPasswordPageComponent implements OnInit {
   forgotPasswordError: string = "";
 
   private _recaptchaSolved = false;
+  private _recaptchaSetupCompleted = false;
   recaptcha: firebase.default.auth.RecaptchaVerifier | null = null;
   sendingSuccessful: boolean = false;
 
   constructor(
     private _authService: AuthenticationService,
     private _formBuilder: UntypedFormBuilder,
-    private _router: Router
+    private _router: Router,
+    private _recaptchaService: RecaptchaService,
+    private _consentService: ConsentService
   ) {
     this.forgotPasswordForm = this._formBuilder.group({
       email: ["", [Validators.required, Validators.email]],
@@ -50,7 +55,19 @@ export class ForgotPasswordPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.setupForgetPasswordReCaptcha();
+    // Don't setup reCAPTCHA immediately - wait for explicit user interaction
+    // This prevents API calls during page load even if consent was previously granted
+    console.log(
+      "Forgot password component initialized, waiting for user consent interaction"
+    );
+
+    // Listen for consent changes
+    this._consentService.consentGranted$.subscribe((hasConsent) => {
+      if (hasConsent && !this._recaptchaSetupCompleted) {
+        console.log("Consent granted, setting up reCAPTCHA");
+        this.setupForgetPasswordReCaptcha();
+      }
+    });
   }
 
   get emailFieldHasError(): boolean {
@@ -62,24 +79,39 @@ export class ForgotPasswordPageComponent implements OnInit {
   }
 
   setupForgetPasswordReCaptcha() {
-    this.recaptcha = new RecaptchaVerifier(
-      this._authService.auth,
-      "reCaptchaDiv",
-      {
-        size: "invisible",
-        callback: (response: any) => {
+    if (this._recaptchaSetupCompleted) {
+      console.log("reCAPTCHA already setup, skipping");
+      return;
+    }
+
+    console.log("Setting up reCAPTCHA with consent check");
+
+    // Use the consent-aware reCAPTCHA service
+    this._recaptchaService
+      .setupInvisibleRecaptcha(
+        this._authService.auth,
+        "reCaptchaDiv",
+        (response: any) => {
           // reCAPTCHA solved, allow sign in
           this._recaptchaSolved = true;
           console.log("recaptcha solved");
           console.log(response);
         },
-        "expired-callback": () => {
+        () => {
           // Response expired. Ask user to solve reCAPTCHA again.
           console.error("Response expired");
-        },
-      }
-    );
-    this.recaptcha.render();
+        }
+      )
+      .then((recaptcha) => {
+        this.recaptcha = recaptcha;
+        this._recaptchaSetupCompleted = true;
+        this.recaptcha.render();
+        console.log("reCAPTCHA setup completed");
+      })
+      .catch((error) => {
+        console.error("Failed to setup reCAPTCHA:", error);
+        // Gracefully handle case where user hasn't granted consent
+      });
   }
 
   resetPassword(forgotPasswordFormValue: { email: string }) {

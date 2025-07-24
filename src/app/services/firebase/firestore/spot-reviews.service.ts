@@ -10,14 +10,15 @@ import {
   setDoc,
 } from "@angular/fire/firestore";
 import { SpotReviewSchema } from "../../../../db/schemas/SpotReviewSchema";
-
-declare function plausible(eventName: string, options?: { props: any }): void;
+import { ConsentAwareService } from "../../consent-aware.service";
 
 @Injectable({
   providedIn: "root",
 })
-export class SpotReviewsService {
-  constructor(private firestore: Firestore) {}
+export class SpotReviewsService extends ConsentAwareService {
+  constructor(private firestore: Firestore) {
+    super();
+  }
 
   getSpotReviewById(
     spotId: string,
@@ -64,11 +65,9 @@ export class SpotReviewsService {
     const spot_id: string = review.spot.id;
     const user_id: string = review.user.uid;
 
-    if (typeof plausible !== "undefined") {
-      plausible("Add/update Spot Review", {
-        props: { spotId: spot_id },
-      });
-    }
+    this.trackEventWithConsent("Add/update Spot Review", {
+      props: { spotId: spot_id },
+    });
 
     return setDoc(
       doc(this.firestore, "spots", spot_id, "reviews", user_id),

@@ -11,14 +11,15 @@ import {
   collectionGroup,
 } from "@angular/fire/firestore";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
-
-declare function plausible(eventName: string, options?: { props: any }): void;
+import { ConsentAwareService } from "../../consent-aware.service";
 
 @Injectable({
   providedIn: "root",
 })
-export class SpotReportsService {
-  constructor(private firestore: Firestore) {}
+export class SpotReportsService extends ConsentAwareService {
+  constructor(private firestore: Firestore) {
+    super();
+  }
 
   getSpotReportById(
     spotId: string,
@@ -64,11 +65,9 @@ export class SpotReportsService {
   addSpotReport(report: SpotReportSchema) {
     const spot_id: string = report.spot.id;
 
-    if (typeof plausible !== "undefined") {
-      plausible("Add Spot Report", {
-        props: { spotId: spot_id },
-      });
-    }
+    this.trackEventWithConsent("Add Spot Report", {
+      props: { spotId: spot_id },
+    });
 
     return addDoc(
       collection(this.firestore, "spots", spot_id, "reports"),

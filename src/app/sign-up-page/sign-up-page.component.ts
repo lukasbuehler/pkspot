@@ -17,6 +17,8 @@ import { MatFormField, MatLabel, MatHint } from "@angular/material/form-field";
 import { MatButton } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatDividerModule } from "@angular/material/divider";
+import { RecaptchaService } from "../services/recaptcha.service";
+import { ConsentService } from "../services/consent.service";
 
 @Component({
   selector: "app-sign-up-page",
@@ -46,10 +48,13 @@ export class SignUpPageComponent implements OnInit {
   constructor(
     private _authService: AuthenticationService,
     private _formBuilder: UntypedFormBuilder,
-    private _router: Router
+    private _router: Router,
+    private _recaptchaService: RecaptchaService,
+    private _consentService: ConsentService
   ) {}
 
   private _recaptchaSolved = false;
+  private _recaptchaSetupCompleted = false;
 
   ngOnInit(): void {
     this.createAccountForm = this._formBuilder.group(
@@ -78,24 +83,53 @@ export class SignUpPageComponent implements OnInit {
       }
     );
 
-    this.setupSignUpReCaptcha();
+    // Don't setup reCAPTCHA immediately - wait for explicit user interaction
+    // This prevents API calls during page load even if consent was previously granted
+    console.log(
+      "Sign-up component initialized, waiting for user consent interaction"
+    );
+
+    // Listen for consent changes
+    this._consentService.consentGranted$.subscribe((hasConsent) => {
+      if (hasConsent && !this._recaptchaSetupCompleted) {
+        console.log("Consent granted, setting up reCAPTCHA");
+        this.setupSignUpReCaptcha();
+      }
+    });
   }
 
   setupSignUpReCaptcha() {
-    const auth: Auth = this._authService.auth;
-    let recaptcha = new RecaptchaVerifier(auth, "reCaptchaDiv", {
-      size: "invisible",
-      callback: (response: any) => {
-        // reCAPTCHA solved, allow sign in
-        this._recaptchaSolved = true;
-        console.log("recaptcha solved", response);
-      },
-      "expired-callback": () => {
-        // Response expired. Ask user to solve reCAPTCHA again.
-        console.error("Response expired");
-      },
-    });
-    recaptcha.render();
+    if (this._recaptchaSetupCompleted) {
+      console.log("reCAPTCHA already setup, skipping");
+      return;
+    }
+
+    console.log("Setting up reCAPTCHA with consent check");
+
+    // Use the consent-aware reCAPTCHA service
+    this._recaptchaService
+      .setupInvisibleRecaptcha(
+        this._authService.auth,
+        "reCaptchaDiv",
+        (response: any) => {
+          // reCAPTCHA solved, allow sign in
+          this._recaptchaSolved = true;
+          console.log("recaptcha solved", response);
+        },
+        () => {
+          // Response expired. Ask user to solve reCAPTCHA again.
+          console.error("Response expired");
+        }
+      )
+      .then((recaptcha) => {
+        this._recaptchaSetupCompleted = true;
+        recaptcha.render();
+        console.log("reCAPTCHA setup completed");
+      })
+      .catch((error) => {
+        console.error("Failed to setup reCAPTCHA:", error);
+        // Gracefully handle case where user hasn't granted consent
+      });
   }
 
   tryCreateAccount(createAccountFormValue: {

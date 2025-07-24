@@ -63,3 +63,26 @@ html {
   min-width: 0 !important;
   max-width: 90vw !important;
 }
+
+/* reCAPTCHA badge positioning and clickability fix */
+.grecaptcha-badge {
+  bottom: 120px !important; /* Move up from bottom to avoid UI elements */
+}
+
+/* Target the actual clickable div inside the badge */
+.grecaptcha-badge > div {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Target any iframe inside the badge */
+.grecaptcha-badge iframe {
+  pointer-events: auto !important;
+}
+
+/* Alternative: Hide the badge entirely if preferred (only if you show the reCAPTCHA terms elsewhere) */
+/* 
+.grecaptcha-badge {
+  visibility: hidden;
+}
+*/

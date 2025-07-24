@@ -16,6 +16,7 @@ import { LocaleCode } from "../../db/models/Interfaces";
 import { OsmDataService } from "../services/osm-data.service";
 import { MapHelpers } from "../../scripts/MapHelpers";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
+import { ConsentService } from "../services/consent.service";
 
 /**
  * This interface is used to reference a spot in the loaded spots array.
@@ -34,6 +35,7 @@ interface LoadedSpotReference {
 export class SpotMapDataManager {
   _spotsService = inject(SpotsService);
   _osmDataService = inject(OsmDataService);
+  _consentService = inject(ConsentService);
 
   private _spotClusterTiles: Map<MapTileKey, SpotClusterTileSchema>;
   // private _spotClusterKeysByZoom: Map<number, Map<string, MapTileKey>>;
@@ -73,6 +75,15 @@ export class SpotMapDataManager {
     this._spots = new Map<MapTileKey, Spot[]>();
     this._markers = new Map<MapTileKey, MarkerSchema[]>();
     this._tilesLoading = new Set<MapTileKey>();
+
+    // TODO is this needed?
+    // Listen for consent changes and reload data when granted
+    // this._consentService.consentGranted$.subscribe((hasConsent) => {
+    //   if (hasConsent && this._lastVisibleTiles()) {
+    //     console.debug('Consent granted - reloading map data');
+    //     this.setVisibleTiles(this._lastVisibleTiles()!);
+    //   }
+    // });
   }
 
   // public functions
@@ -263,6 +274,12 @@ export class SpotMapDataManager {
 
   private _loadSpotsForTiles(tilesToLoad: Set<MapTileKey>) {
     if (tilesToLoad.size === 0) return;
+
+    // Only load spots if consent is granted
+    if (!this._consentService.hasConsent()) {
+      console.debug("Spot loading blocked - waiting for consent");
+      return;
+    }
 
     // add an empty array for the tiles that spots will be loaded for
     tilesToLoad.forEach((key) => this._tilesLoading.add(key));
@@ -513,6 +530,12 @@ export class SpotMapDataManager {
 
   private _loadSpotClustersForTiles(tilesToLoad: Set<MapTileKey>) {
     if (tilesToLoad.size === 0) return;
+
+    // Only load spot clusters if consent is granted
+    if (!this._consentService.hasConsent()) {
+      console.debug("Spot cluster loading blocked - waiting for consent");
+      return;
+    }
 
     // mark the cluster tiles as loading
     this.markTilesAsLoading(tilesToLoad);

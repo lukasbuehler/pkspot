@@ -12,8 +12,23 @@ import { StorageBucket } from "../../../db/schemas/Media";
   providedIn: "root",
 })
 export class StorageService {
-  storage = inject(Storage);
-  authService = inject(AuthenticationService);
+  // Lazy inject Firebase Storage to prevent immediate initialization
+  private _storage: Storage | null = null;
+  private get storage(): Storage {
+    if (!this._storage) {
+      this._storage = inject(Storage);
+    }
+    return this._storage;
+  }
+
+  // Lazy inject AuthService to prevent immediate initialization
+  private _authService: AuthenticationService | null = null;
+  private get authService(): AuthenticationService {
+    if (!this._authService) {
+      this._authService = inject(AuthenticationService);
+    }
+    return this._authService;
+  }
 
   constructor() {}
 

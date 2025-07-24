@@ -35,6 +35,7 @@ import {
 import { Subscription } from "rxjs";
 import { environment } from "../../environments/environment";
 import { MapsApiService } from "../services/maps-api.service";
+import { ConsentService } from "../services/consent.service";
 import {
   SpotClusterDotSchema,
   SpotClusterTileSchema,
@@ -294,7 +295,8 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
 
   constructor(
     private cdr: ChangeDetectorRef,
-    public mapsApiService: MapsApiService
+    public mapsApiService: MapsApiService,
+    private _consentService: ConsentService
   ) {
     // Effect to handle selected spot changes and editing state changes for polygon updates
     effect(() => {
@@ -359,11 +361,22 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   isApiLoadedSubscription: Subscription | null = null;
+  consentSubscription: Subscription | null = null;
 
   ngOnInit() {
     if (this.mapsApiService.isApiLoaded()) {
       this.initMap();
       this.initGeolocation();
+    } else {
+      // Try to load Google Maps API if consent is available
+      this.tryLoadMapsApi();
+      
+      // Listen for consent changes to load Maps API when consent is granted
+      this.consentSubscription = this._consentService.consentGranted$.subscribe((hasConsent) => {
+        if (hasConsent && !this.mapsApiService.isApiLoaded()) {
+          this.tryLoadMapsApi();
+        }
+      });
     }
 
     if (this.boundRestriction) {
@@ -375,6 +388,23 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     if (this.minZoom) {
       this.mapOptions.minZoom = this.minZoom;
     }
+  }
+
+  private tryLoadMapsApi() {
+    // Try to load Google Maps API (will fail gracefully if no consent)
+    this.mapsApiService.loadGoogleMapsApi();
+    
+    // Subscribe to API loading completion
+    if (this.isApiLoadedSubscription) {
+      this.isApiLoadedSubscription.unsubscribe();
+    }
+    
+    this.isApiLoadedSubscription = this.mapsApiService.isLoading$.subscribe((isLoading) => {
+      if (!isLoading && this.mapsApiService.isApiLoaded()) {
+        this.initMap();
+        this.initGeolocation();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -472,6 +502,8 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   ngOnDestroy() {
     if (this.isApiLoadedSubscription)
       this.isApiLoadedSubscription.unsubscribe();
+    if (this.consentSubscription)
+      this.consentSubscription.unsubscribe();
   }
 
   initMap(): void {

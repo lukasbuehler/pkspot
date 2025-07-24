@@ -11,12 +11,15 @@ import {
 } from "@angular/fire/firestore";
 import { SpotSlugSchema } from "../../../../db/schemas/SpotSlugSchema";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
+import { ConsentAwareService } from "../../consent-aware.service";
 
 @Injectable({
   providedIn: "root",
 })
-export class SlugsService {
-  constructor(private firestore: Firestore) {}
+export class SlugsService extends ConsentAwareService {
+  constructor(private firestore: Firestore) {
+    super();
+  }
 
   addEvent() {}
 

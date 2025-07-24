@@ -14,15 +14,18 @@ import { SpotChallenge } from "../../../../db/models/SpotChallenge";
 import { Spot } from "../../../../db/models/Spot";
 import { LocaleCode } from "../../../../db/models/Interfaces";
 import { removeUndefinedProperties } from "../../../../scripts/Helpers";
+import { ConsentAwareService } from "../../consent-aware.service";
 
 @Injectable({
   providedIn: "root",
 })
-export class SpotChallengesService {
+export class SpotChallengesService extends ConsentAwareService {
   private locale: LocaleCode = inject(LOCALE_ID);
   private _firestore: Firestore = inject<Firestore>(Firestore);
 
-  constructor() {}
+  constructor() {
+    super();
+  }
 
   getSpotChallengeData(
     spotId: SpotId,

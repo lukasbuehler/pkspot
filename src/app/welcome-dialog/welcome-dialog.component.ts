@@ -1,4 +1,4 @@
-import { Component, Inject } from "@angular/core";
+import { Component, Inject, inject } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import {
   MatDialogRef,
@@ -6,8 +6,8 @@ import {
   MatDialogModule,
 } from "@angular/material/dialog";
 import { RouterLink } from "@angular/router";
-
-declare function plausible(eventName: string, options?: { props: any }): void;
+import { PlausibleService } from "../services/plausible.service";
+import { ConsentService } from "../services/consent.service";
 
 @Component({
   selector: "app-welcome-dialog",
@@ -16,6 +16,9 @@ declare function plausible(eventName: string, options?: { props: any }): void;
   styleUrl: "./welcome-dialog.component.scss",
 })
 export class WelcomeDialogComponent {
+  private _plausibleService = inject(PlausibleService);
+  private _consentService = inject(ConsentService);
+
   constructor(
     public dialogRef: MatDialogRef<WelcomeDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { version: string }
@@ -28,8 +31,12 @@ export class WelcomeDialogComponent {
   agreeAndContinue() {
     // store the accepted version of the terms of service in browser local storage
     localStorage.setItem("acceptedVersion", this.data.version);
+
+    // Grant consent through the consent service
+    this._consentService.grantConsent();
+
     this.dialogRef.close(true); // Return true to indicate user agreed
-    plausible("Visitor Agreed to Terms", {
+    this._plausibleService.trackEvent("Visitor Agreed to Terms", {
       props: {},
     });
   }
