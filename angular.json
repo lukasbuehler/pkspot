@@ -93,7 +93,8 @@
               "dialog-polyfill",
               "xml2js",
               "sax",
-              "buffer"
+              "buffer",
+              "typesense"
             ],
             "server": "src/main.server.ts",
             "prerender": {
