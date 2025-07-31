@@ -14,7 +14,10 @@ export abstract class ConsentAwareService {
    * @param eventName The name of the event to track
    * @param options Optional properties to include with the event
    */
-  protected trackEventWithConsent(eventName: string, options?: { props: any }): void {
+  protected trackEventWithConsent(
+    eventName: string,
+    options?: { props: any }
+  ): void {
     if (this._consentService.hasConsent()) {
       this._plausibleService.trackEvent(eventName, options);
     }
@@ -44,5 +47,19 @@ export abstract class ConsentAwareService {
    */
   protected hasConsent(): boolean {
     return this._consentService.hasConsent();
+  }
+
+  /**
+   * Check if we're running in SSR (Server-Side Rendering)
+   */
+  protected isSSR(): boolean {
+    return this._consentService.isSSR();
+  }
+
+  /**
+   * Check if we're running in the browser
+   */
+  protected isBrowser(): boolean {
+    return this._consentService.isBrowser();
   }
 }

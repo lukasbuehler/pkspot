@@ -31,7 +31,10 @@
 <mat-dialog-actions
   class="d-flex flex-row flex-nowrap justify-content-end p-3 gap-3"
 >
-  <a href="about" mat-stroked-button i18n="@@welcomeDialogAboutButton"
+  <a
+    [routerLink]="['/about']"
+    mat-stroked-button
+    i18n="@@welcomeDialogAboutButton"
     >About us</a
   >
   <button

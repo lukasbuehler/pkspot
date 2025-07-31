@@ -96,7 +96,44 @@ function run() {
 
   server.get("/assets/*", (req, res) => {
     const __dirname = path.dirname(new URL(import.meta.url).pathname);
-    res.sendFile(path.join(__dirname, "../browser/en", req.path));
+    const assetPath = path.join(__dirname, "../browser/en", req.path);
+    console.log(`Serving asset: ${req.path} from ${assetPath}`);
+
+    // Send file with error handling
+    res.sendFile(assetPath, (err) => {
+      if (err) {
+        console.error(`Failed to serve asset ${req.path}:`, err.message);
+        res.status(404).send(`Asset not found: ${req.path}`);
+      }
+    });
+  });
+
+  // Handle language-specific asset requests (e.g., /en/assets/*)
+  server.get("/:lang/assets/*", (req, res) => {
+    const { lang } = req.params;
+    if (supportedLanguageCodes.includes(lang)) {
+      const __dirname = path.dirname(new URL(import.meta.url).pathname);
+      const assetPath = path.join(
+        __dirname,
+        `../browser/${lang}`,
+        req.path.substring(lang.length + 1)
+      );
+      console.log(
+        `Serving language-specific asset: ${req.path} from ${assetPath}`
+      );
+
+      res.sendFile(assetPath, (err) => {
+        if (err) {
+          console.error(
+            `Failed to serve language-specific asset ${req.path}:`,
+            err.message
+          );
+          res.status(404).send(`Asset not found: ${req.path}`);
+        }
+      });
+    } else {
+      res.status(404).send("Language not supported");
+    }
   });
 
   server.get("/robots.txt", (req, res) => {
