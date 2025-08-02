@@ -50,7 +50,7 @@ import { Title } from "@angular/platform-browser";
 import { MatDividerModule } from "@angular/material/divider";
 import { LocaleCode, SpotSlug } from "../../db/models/Interfaces";
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
-import { MetaInfoService } from "../services/meta-info.service";
+import { MetaTagService } from "../services/meta-tag.service";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
@@ -64,6 +64,7 @@ import { SpotChallengesService } from "../services/firebase/firestore/spot-chall
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-panel.component";
 import { ConsentService } from "../services/consent.service";
+import { RouteContentData } from "../resolvers/content.resolver";
 
 @Component({
   selector: "app-map-page",
@@ -156,7 +157,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     public authService: AuthenticationService,
     public mapsService: MapsApiService,
     public storageService: StorageService,
-    private metaInfoService: MetaInfoService,
+    private metaTagService: MetaTagService,
     private _spotsService: SpotsService,
     private _challengesService: SpotChallengesService,
     private _searchService: SearchService,
@@ -173,8 +174,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     this.isServer = isPlatformServer(platformId);
-
-    this.clearTitleAndMetaTags();
 
     effect(() => {
       // const selectedSpot = this.selectedSpot();
@@ -207,6 +206,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.selectedSpotIdOrSlug.set(spot.slug ?? spot.id);
       } else {
         this.selectedSpotIdOrSlug.set("");
+      }
+    });
+
+    // Effect to update meta tags when spot/challenge changes (for client-side navigation)
+    effect(() => {
+      const spot = this.selectedSpot();
+      const challenge = this.selectedChallenge();
+
+      if (challenge && challenge instanceof SpotChallenge) {
+        this.metaTagService.setChallengeMetaTags(challenge);
+      } else if (spot) {
+        this.metaTagService.setSpotMetaTags(spot);
+      } else {
+        this.metaTagService.setDefaultMapMetaTags();
       }
     });
   }
@@ -269,16 +282,22 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Check if we have resolved spot data (from resolver during SSR)
-    const resolvedSpot = this.activatedRoute.snapshot.firstChild?.data?.[
-      "spot"
-    ] as Spot | null;
+    // Check if we have resolved data from the resolver
+    const contentData = this.activatedRoute.snapshot.data?.["content"] as
+      | RouteContentData
+      | undefined;
 
-    if (resolvedSpot) {
-      console.log("Using resolved spot data for SSR", resolvedSpot.name());
-      // Set meta tags immediately for SSR
-      this.selectedSpot.set(resolvedSpot);
-      this.setSpotMetaTags();
+    if (contentData?.spot) {
+      console.log("Using resolved spot data for SSR", contentData.spot.name());
+      this.selectedSpot.set(contentData.spot);
+    }
+
+    if (contentData?.challenge) {
+      console.log(
+        "Using resolved challenge data for SSR",
+        contentData.challenge.name()
+      );
+      this.selectedChallenge.set(contentData.challenge);
     }
 
     // Collect params from all levels in the route tree
@@ -296,7 +315,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         spotIdOrSlug,
         showChallenges,
         challengeId,
-        resolvedSpot
+        contentData?.spot || null,
+        contentData?.challenge || null
       );
     });
   }
@@ -354,20 +374,29 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     spotIdOrSlug: string | null,
     showChallenges: boolean,
     challengeId: string | null,
-    resolvedSpot: Spot | null = null
+    resolvedSpot: Spot | null = null,
+    resolvedChallenge: SpotChallenge | null = null
   ) {
     if (challengeId && spotIdOrSlug) {
       // open the spot on a challenge
-      const selectedSpot = this.selectedSpot();
-      if (selectedSpot && selectedSpot instanceof Spot) {
-        this.loadChallengeById(selectedSpot, challengeId, false).then(() => {});
-      } else if (!selectedSpot) {
-        // load the spot by id then the challenge
+      if (resolvedChallenge) {
+        // Use resolved challenge data
+        this.selectChallenge(resolvedChallenge, false);
       } else {
-        // the spot is a local spot
-        console.error(
-          "Cannot open a challenge of a local spot, it should not have one!"
-        );
+        // Load challenge dynamically
+        const selectedSpot = this.selectedSpot();
+        if (selectedSpot && selectedSpot instanceof Spot) {
+          this.loadChallengeById(selectedSpot, challengeId, false).then(
+            () => {}
+          );
+        } else if (!selectedSpot) {
+          // load the spot by id then the challenge
+        } else {
+          // the spot is a local spot
+          console.error(
+            "Cannot open a challenge of a local spot, it should not have one!"
+          );
+        }
       }
     } else if (spotIdOrSlug) {
       if (this.selectedChallenge()) this.closeChallenge();
@@ -478,7 +507,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.closeChallenge(false);
       this.selectedSpot.set(spot);
-      this.setSpotMetaTags();
       this.spotMap?.focusSpot(spot);
 
       if (updateUrl && spot instanceof Spot) {
@@ -506,7 +534,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   closeSpot(updateUrl: boolean = true) {
-    this.clearTitleAndMetaTags();
     this.selectedSpot.set(null);
     this.closeChallenge(false);
 
@@ -521,56 +548,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (updateUrl) {
       this.updateMapURL();
     }
-  }
-
-  setSpotMetaTags() {
-    const spot = this.selectedSpot();
-
-    if (spot === null) {
-      this.clearTitleAndMetaTags();
-      console.debug("clearing meta tags");
-      return;
-    }
-    console.debug("setting meta tags for spot", spot.name());
-
-    const title: string = `${spot.name()} Spot`;
-    const image_src: string =
-      spot.previewImageSrc() ?? "/assets/banner_1200x630.png";
-
-    let description: string = "";
-    if (spot.localityString()) {
-      description =
-        $localize`:The text before the localized location of the spot. E.g. Spot in Wiedikon, Zurich, CH@@spot.locality.pretext:Spot in ` +
-        spot.localityString();
-    }
-
-    if (description) {
-      description += " - ";
-    }
-
-    if (spot.rating) {
-      description += $localize`Rating: ${spot.rating} / 5`;
-    }
-
-    if (description) {
-      description += " - ";
-    }
-
-    if (spot.description()) {
-      description += `${spot.description()}`;
-    }
-
-    this.metaInfoService.setMetaTags(title, image_src, description);
-    // console.debug("Set meta tags for spot", spot.name());
-  }
-
-  clearTitleAndMetaTags() {
-    this.titleService.setTitle($localize`:@@pk.spotmap.title:PK Spot Map`);
-    this.metaInfoService.setMetaTags(
-      $localize`:@@pk.spotmap.title:PK Spot Map`,
-      "/assets/banner_1200x630.png",
-      "Discover, Train, Share. Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world."
-    );
   }
 
   private tryLoadMapsApi() {

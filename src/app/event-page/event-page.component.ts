@@ -34,7 +34,7 @@ import {
 } from "rxjs";
 import { LocaleCode, MediaType } from "../../db/models/Interfaces";
 import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
-import { MetaInfoService } from "../services/meta-info.service";
+import { MetaTagService } from "../services/meta-tag.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute, RouterLink } from "@angular/router";
@@ -130,7 +130,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   @ViewChild("spotScrollContainer")
   spotScrollContainer?: ElementRef<HTMLElement>;
 
-  metaInfoService = inject(MetaInfoService);
+  metaTagService = inject(MetaTagService);
   locale = inject<LocaleCode>(LOCALE_ID);
   private _spotService = inject(SpotsService);
   private _challengeService = inject(SpotChallengesService);
@@ -585,8 +585,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
     if (!this.mapsApiService.isApiLoaded()) {
       this.mapsApiService.loadGoogleMapsApi();
     }
-    
-    this.metaInfoService.setMetaTags(
+
+    this.metaTagService.setMetaTags(
       this.name,
       this.bannerImageSrc,
       $localize`Event in ` +

@@ -19,30 +19,37 @@ import { EmbeddedSpotPageComponent } from "./embedding/embedded-spot-page/embedd
 import { EmbeddedMapPageComponent } from "./embedding/embedded-map-page/embedded-map-page.component";
 import { EventsPageComponent } from "./events-page/events-page.component";
 import { ImpressumComponent } from "./impressum/impressum.component";
-import { spotResolver } from "./resolvers/spot.resolver";
+import { contentResolver } from "./resolvers/content.resolver";
 
 export const routes: Routes = [
   // Home page (redirects to spot map)
-  { path: "", redirectTo: "map", pathMatch: "full" },
+  {
+    path: "",
+    redirectTo: "map",
+    pathMatch: "full",
+    resolve: { content: contentResolver },
+  },
 
   // Map page (single matcher for all map routes)
   {
     path: "map",
     component: MapPageComponent,
-    // Optionally add data if needed
+    resolve: { content: contentResolver },
     children: [
       {
         path: ":spot",
         component: MapPageComponent,
-        resolve: { spot: spotResolver },
+        resolve: { content: contentResolver },
         children: [
           {
             path: "c",
             component: MapPageComponent,
+            resolve: { content: contentResolver },
             children: [
               {
                 path: ":challenge",
                 component: MapPageComponent,
+                resolve: { content: contentResolver },
               },
             ],
           },
@@ -111,6 +118,7 @@ export const routes: Routes = [
   {
     path: "events",
     component: EventsPageComponent,
+    resolve: { content: contentResolver },
     data: { routeName: "Events" },
   },
   {
@@ -122,6 +130,7 @@ export const routes: Routes = [
   {
     path: "events/swissjam25",
     component: EventPageComponent,
+    resolve: { content: contentResolver },
     data: { routeName: "Event" },
   },
   {
@@ -167,11 +176,13 @@ export const routes: Routes = [
   {
     path: "profile",
     component: ProfilePageComponent,
+    resolve: { content: contentResolver },
     data: { routeName: "Profile" },
   },
   {
     path: "u/:userID",
     component: ProfilePageComponent,
+    resolve: { content: contentResolver },
     data: { routeName: "Profile" },
   },
   {
@@ -206,6 +217,7 @@ export const routes: Routes = [
   {
     path: "about",
     component: AboutPageComponent,
+    resolve: { content: contentResolver },
     data: { routeName: "About", acceptanceFree: true },
   },
   {
@@ -217,12 +229,14 @@ export const routes: Routes = [
   {
     path: "terms-of-service",
     component: TermsOfServiceComponent,
+    resolve: { content: contentResolver },
     data: { routeName: "Terms of Service", acceptanceFree: true },
   },
   { path: "tos", redirectTo: "terms-of-service", pathMatch: "full" },
   {
     path: "privacy-policy",
     component: PrivacyPolicyComponent,
+    resolve: { content: contentResolver },
     data: { routeName: "Privacy Policy", acceptanceFree: true },
   },
   { path: "pp", redirectTo: "privacy-policy", pathMatch: "full" },
@@ -230,6 +244,7 @@ export const routes: Routes = [
     path: "impressum",
     pathMatch: "full",
     component: ImpressumComponent,
+    resolve: { content: contentResolver },
     data: { routeName: "Impressum", acceptanceFree: true },
   },
 
