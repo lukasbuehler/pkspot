@@ -335,10 +335,12 @@ export class ChallengeDetailComponent {
       return;
     }
 
-    const url = "https://pkspot.app";
+    // Build domain-agnostic share link without locale prefix
+    const { buildAbsoluteUrlNoLocale } = await import(
+      "../../scripts/Helpers"
+    );
     // TODO use slug instead of id if available
-
-    const link = url + "/map/" + spot.id + "/c/" + challenge.id;
+    const link = buildAbsoluteUrlNoLocale(`/map/${spot.id}/c/${challenge.id}`);
 
     if (navigator["share"]) {
       try {

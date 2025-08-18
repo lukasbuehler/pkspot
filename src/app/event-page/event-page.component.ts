@@ -731,12 +731,11 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   async shareEvent() {
-    const url = "https://pkspot.app";
-    const baseUrl = this._locationStrategy.getBaseHref();
-
-    // TODO use slug instead of id if available
-
-    const link = url + "/events/" + this.eventId;
+    // Build domain-agnostic share link without locale prefix
+    const { buildAbsoluteUrlNoLocale } = await import(
+      "../../scripts/Helpers"
+    );
+    const link = buildAbsoluteUrlNoLocale(`/events/${this.eventId}`);
 
     if (navigator["share"]) {
       try {
