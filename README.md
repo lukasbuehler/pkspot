@@ -2,7 +2,7 @@
 
 **The spot for Parkour and Freerunning.**
 
-Discover spots, <strike>challenges, events, and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world.</strike>
+Discover spots, challenges, <strike>events, and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world.</strike>
 
 (Strike-through features are in development.)
 
@@ -12,49 +12,23 @@ Discover spots, <strike>challenges, events, and fellow athletes, plan training s
 
 For the detailed progress please refer to the following GitHub project: [PK Spot Updates](https://github.com/users/lukasbuehler/projects/1/views/8)
 
-| Non-binding time estimate | Features                                                                                          |
-| :------------------------ | :------------------------------------------------------------------------------------------------ |
-| Q1 2025                   | Spot Map Update leftovers: Link Google places, drinking water and WC's on map, Angular 19, French |
-| End of Q1 2025            | **Integration update**: Let websites embed PK Spots or the PK Spot map.                           |
-| Q2 2025                   | **Post Update**: Posts (Image, Video, Link), Profile pages, Link posts to spots, ...              |
-| Q3 2025                   | **Training Update**: Plan and share training sessions and jams, organize teams and groups, ...    |
-| ...                       | ...                                                                                               |
+| Non-binding time estimate | Features                                                                                                   |
+| :------------------------ | :--------------------------------------------------------------------------------------------------------- |
+| Q3 2025                   | Usability Update: Make the whole thing easier to use. And fix user sign-up, spot creation and editing bugs |
+| Q4 2025                   | **Training Update**: Plan and share training sessions and jams                                             |
+| ...                       | ...                                                                                                        |
 
 ### Past Updates
 
 | Date              | Features                                                                                                                                                                             | Last Commit                                                                                                                                                             |
 | :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q2 2025           | Added Embedding Option + Swiss Jam 25 Features (Challenges, event pages)                                                                                                             |
+| Q1 2025           | Spot Map Update leftovers: Link Google places, drinking water and WC's on map, Angular 19, French                                                                                    |
 | 27. December 2024 | **Spot map update**: Improvements to spot clustering, Highlighted spots, Spot ratings, spot features and amenities, performance improvements, more languages (Italian, Swiss-German) | [209dcbe](https://github.com/lukasbuehler/pkspot/commit/209dcbe7649289aee0813403b991e96f7c54b61b#diff-0cdfa2a1ed45e76b091a17632ec22c4c45b9642c15b03c26cd7e38756546201e) |
 | 8. September 2024 | Added locality (region, city, country) to spots                                                                                                                                      | [8170d25](https://github.com/lukasbuehler/pkspot/commit/8170d25a558ff160b39de69095f928d0a44fd5a9)                                                                       |
 | 28. August 2024   | Multilanguage (English, German), SSR, link previews, Angular 18                                                                                                                      | [504d587](https://github.com/lukasbuehler/pkspot/commit/504d58743607b84a3932c98ee9e6ef5073d77c41)                                                                       |
 | Spring 2024       | Mobile (web) UI/UX enhancements                                                                                                                                                      |                                                                                                                                                                         |
 | Spring 2024       | Spot and places full-text search                                                                                                                                                     |                                                                                                                                                                         |
-
-## Local Installation
-
-Prerequisites: Node.js and NPM (or equivalent).
-
-Install packages from this root direcory with:
-
-```
-npm install
-```
-
-Then you are ready to already build!
-
-```
-npm run build
-```
-
-To start locally developing, you need to define the development environment variables in `src/environments/`.
-Clone the `environment.production.ts` file as `environment.development.ts` and change all the variables for your development environment.
-(Without changing them, Google Maps will not work, since the key is configured to only work on the production domain, as well as other problems that might occur.)
-
-Start a development server with
-
-```
-npm run dev
-```
 
 ## Collaborating
 
@@ -64,7 +38,7 @@ after making your changes, create a pull-request with your changes.
 ### Bug reports
 
 For bug reports, please open an issue in this GitHub repository.
-Or reach out directly on Discord, or directly (e.g. E-mail [contact@lukasbuehler.ch](mailto:contact@lukasbuehler.ch))
+Or reach out on Instragram, Discord, or else via E-mail ([contact@lukasbuehler.ch](mailto:contact@lukasbuehler.ch))
 
 ### Feature requests
 
@@ -165,7 +139,9 @@ After that the language files will be updated (and possibly reformatted, which i
 
 5. Submit a pull-request with your changes on [GitHub](https://github.com/lukasbuehler/pkspot/compare)
 
-### Developing Locally
+### Local Development
+
+The Spot-Map heavily utilizes Google Maps, if you want to test using it locally, you need your own Google API Key.
 
 1. Generate your own Google API key
 2. Enter it in `keys.development.ts`
@@ -177,39 +153,20 @@ After that the language files will be updated (and possibly reformatted, which i
 npm run build
 ```
 
-#### Test Angular frontend (watch for changes)
+#### Start Frontend (and watch for changes)
 
 ```
 npm run dev
 ```
 
-#### Testing Angular SSR
+#### Start SSR server
 
 ```
-npm run build
+npm run build # build first
 npm run serve:ssr
 ```
 
-<!-- #### Testing Firebase
-
-```
-firebase experiments:enable webframeworks
-```
-
-```
-firebase emulators:start
-```
-
-#### Testing container build
-
-Using gcloud CLI, you can test the deployment to Google Cloud.
-First you need to authenticate us
-
-```
-gcloud beta code dev
-``` -->
-
-### Working with Typesense for full-text search
+<!-- ### Working with Typesense for full-text search
 
 I use the Firebase Typesense extension.
 
@@ -224,4 +181,4 @@ Add a document to the Firestore collection `typesense_sync` named `backfill` wit
 ```
 firestore_collections: ["spots"],
 trigger: true
-```
+``` -->
