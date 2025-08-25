@@ -83,10 +83,21 @@
 
         <!-- Accept Terms and conditions -->
         <div class="mt-4 d-flex flex-row justify-content-left gap-2">
-          <button mat-button routerLink="/terms-of-service" i18n>
+          <button
+            mat-button
+            routerLink="/terms-of-service"
+            i18n="
+              terms of service link text|Text of the Terms of Service link@@tos"
+          >
             Terms of Service
           </button>
-          <button mat-button routerLink="/privacy-policy" i18n>
+          <button
+            mat-button
+            routerLink="/privacy-policy"
+            i18n="
+              privacy policy link text|Text of the Privacy Policy
+              link@@privacypolicy"
+          >
             Privacy policy
           </button>
         </div>

@@ -184,10 +184,7 @@
       }
     </mat-card-subtitle>
   </mat-card-header>
-  }
-  <!-- if(!isEditing())  -->
-
-  @if(report) {
+  } @if(report) {
   <div class="report-info">
     <span
       class="mat-h3 m-0"
@@ -198,14 +195,36 @@
     >
   </div>
   }
-  <!-- @if(report) -->
 
   <mat-card-content>
     @if(!isEditing()) {
-    <!-- spot media carousel  -->
-    @if(spot()?.media() && spot()!.media().length > 0) {
-    <app-img-carousel class="mb-2 mt-1" [media]="spot()?.media()">
-    </app-img-carousel>
+    <div class="mb-4 mt-1">
+      <!-- spot media carousel  -->
+      @if(spot()?.media() && spot()!.media().length > 0) {
+      <app-img-carousel [media]="spot()?.media()"> </app-img-carousel>
+
+      <!-- if the user is signed in, show an add media button to upload new media -->
+      @if(authenticationService.isSignedIn) {
+      <button
+        matButton="outlined"
+        class="mt-3"
+        color="primary"
+        (click)="openMediaUploadDialog()"
+      >
+        <mat-icon>add_photo_alternate</mat-icon>
+        Add Media
+      </button>
+      } }
+    </div>
+
+    @if(spot()?.isEligableForHighlights() === false) {
+    <div class="border rounded d-flex flex-row gap-2 p-2 mb-3">
+      <mat-icon class="flex-shrink-0">info</mat-icon>
+      <p class="mat-body-small m-0 p-0" i18n>
+        This spot is not eligible for highlights. To be eligible, it needs at
+        least one user-submitted picture and at least one rating.
+      </p>
+    </div>
     }
 
     <h3
@@ -678,24 +697,39 @@
       </h4>
       <!-- Media preview grid -->
       @if(spot()!.userMedia() && spot()!.userMedia().length > 0) {
+      <p
+        class="mat-title-small"
+        i18n="
+          reorder media message|Message shown when there are media items to
+          reorder@@spot.edit.media.reorder"
+      >
+        You can re-order the spot media below using drag-and-drop.
+      </p>
       <app-media-preview-grid
         [media]="spot()!.userMedia()"
         (mediaChanged)="mediaChanged($event)"
       ></app-media-preview-grid>
       }
 
-      <!-- Image upload  -->
-      <app-media-upload
-        class="w-100"
-        [allowedMimeTypes]="['image/jpg', 'image/jpeg', 'image/png']"
-        [multipleAllowed]="true"
-        [storageFolder]="mediaStorageFolder"
-        (newMedia)="setNewMediaFromUpload($event)"
-      >
-      </app-media-upload>
+      <!-- Image upload -->
+      @if(!isNewSpot) {
+      <div class="w-full pb-3 pt-2">
+        <button
+          matButton="filled"
+          color="primary"
+          (click)="openMediaUploadDialog()"
+          i18n
+        >
+          Add images
+        </button>
+      </div>
+      } @else {
+      <div class="mt-2 mat-body-small" i18n>
+        Save the spot first to add images.
+      </div>
+      }
 
       <!-- Hide Streetview -->
-
       <mat-slide-toggle
         i18n="
           hide streetview toggle|Toggle to hide
@@ -907,7 +941,7 @@
   <mat-card-actions class="mt-3 gap-2">
     @if(editable) {
     <button
-      mat-stroked-button
+      matButton="outlined"
       color="warn"
       (click)="discardButtonClick()"
       class="flex-grow-1 flex-basis-0"
@@ -916,7 +950,7 @@
       Discard changes
     </button>
     <button
-      mat-stroked-button
+      matButton="filled"
       color="primary"
       (click)="saveButtonClick()"
       class="flex-grow-1 flex-basis-0"
