@@ -11,11 +11,11 @@ PK Spot is an Angular 20 application for Parkour and Freerunning that helps user
 
 1. **Install dependencies:**
    ```bash
-   npm install
-   cd functions && npm install && cd ..
+   npm install                  # Main project: ~8-22 seconds
+   cd functions && npm install && cd ..  # Functions: ~4-18 seconds
    ```
-   - Main project: ~22 seconds
-   - Functions: ~18 seconds (Node.js 18 engine requirement, but works with Node.js 20)
+   - Node.js 18 engine requirement in functions, but works with Node.js 20
+   - Expect deprecation warnings - these are non-breaking
 
 2. **Create development environment files (first-time setup):**
    - Copy and configure `src/environments/environment.development.ts` (if missing)
@@ -154,7 +154,7 @@ npm run deploy:prod:functions    # Deploy to production
 ## Quick Commands Reference
 ```bash
 # Daily development workflow
-npm install                      # Install dependencies (~22s)
+npm install                      # Install dependencies (~8-22s)
 npm run build:dev               # Development build (~30s, timeout: 5min)
 npm run dev                     # Start dev server (~33s, timeout: 5min)
 npm run serve:ssr               # Start SSR server (after build)
