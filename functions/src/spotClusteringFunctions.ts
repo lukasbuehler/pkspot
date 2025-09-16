@@ -84,6 +84,8 @@ async function _clusterAllSpots() {
             id: id as SpotId,
             isIconic: spot.is_iconic ?? false,
             imageSrc: getSpotPreviewImage(spot),
+            type: spot.type,
+            access: spot.access,
             locality: getSpotLocalityString(spot),
             location: spot.location,
           };

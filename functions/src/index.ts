@@ -28,3 +28,9 @@ export { processVideoUpload } from "./storageFunctions";
 
 // spot challenge functions
 export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
+
+// social card functions
+// export {
+//   generateSocialCards,
+//   onUserProfileUpdate,
+// } from "./socialCardFunctions";

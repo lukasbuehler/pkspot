@@ -1,8 +1,7 @@
 import { NgOptimizedImage } from "@angular/common";
-import { Component, inject, LOCALE_ID, OnInit } from "@angular/core";
+import { Component, inject, LOCALE_ID } from "@angular/core";
 import { MatCardModule } from "@angular/material/card";
 import { RouterLink } from "@angular/router";
-import { MetaInfoService } from "../services/meta-info.service";
 import { LocaleCode } from "../../db/models/Interfaces";
 
 @Component({
@@ -11,8 +10,7 @@ import { LocaleCode } from "../../db/models/Interfaces";
   templateUrl: "./events-page.component.html",
   styleUrl: "./events-page.component.scss",
 })
-export class EventsPageComponent implements OnInit {
-  metaInfoService = inject(MetaInfoService);
+export class EventsPageComponent {
   locale = inject<LocaleCode>(LOCALE_ID);
 
   start: Date = new Date("2025-05-24T09:00:00+01:00");
@@ -23,12 +21,4 @@ export class EventsPageComponent implements OnInit {
   readableEndDate: string = this.end.toLocaleDateString(this.locale, {
     dateStyle: "full",
   });
-
-  ngOnInit(): void {
-    this.metaInfoService.setMetaTags(
-      $localize`:@@events.title:Events` + " | PK Spot",
-      "/assets/banner_1200x630.png",
-      $localize`:@@events.title:Events`
-    );
-  }
 }

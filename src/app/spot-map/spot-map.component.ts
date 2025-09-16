@@ -318,7 +318,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       });
 
     // TODO this is not sufficient if the input changes
-    this.visibleMarkers.set(this.markers());
+    this.visibleMarkers.set(this.markers()); // ?????
 
     this.isInitiated = true;
   }

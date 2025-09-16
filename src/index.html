@@ -22,7 +22,6 @@
       content="https://pkspot.app/assets/banner_1200x630.png"
     />
     <meta property="og:url" content="https://pkspot.app" />
-    <!-- <meta property="fb:app_id" content="000001773503789" /> -->
     <meta property="og:site_name" content="PK Spot" />
 
     <!-- Twitter Meta -->
@@ -68,8 +67,8 @@
 
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
-    <!-- Self-hosted fonts - loaded immediately, no tracking -->
-    <link rel="stylesheet" href="https://pkspot.app/assets/fonts/fonts.css" />
+  <!-- Self-hosted fonts - load from current origin to avoid CORS in dev/prod -->
+  <link rel="stylesheet" href="assets/fonts/fonts.css" />
 
     <link rel="manifest" href="manifest.webmanifest" />
     <meta name="theme-color" content="#1f1f23" />

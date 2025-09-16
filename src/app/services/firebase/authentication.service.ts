@@ -11,6 +11,12 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from "@angular/fire/auth";
+import {
+  setPersistence,
+  indexedDBLocalPersistence,
+  browserLocalPersistence,
+  inMemoryPersistence,
+} from "@angular/fire/auth";
 import { getApp } from "@angular/fire/app";
 import { BehaviorSubject, firstValueFrom } from "rxjs";
 import { User } from "../../../db/models/User";
@@ -45,6 +51,13 @@ export class AuthenticationService extends ConsentAwareService {
       // Initialize Auth manually since we removed it from app config
       const app = getApp();
       this._auth = getAuth(app);
+
+      // Configure persistence with robust fallbacks (browser-only)
+      // This addresses cases where a browser blocks a specific storage backend
+      // and would otherwise fall back to in-memory (non-persistent) storage.
+      this._configurePersistence(this._auth).catch((err) => {
+        console.warn("Auth persistence configuration failed:", err);
+      });
     }
     return this._auth;
   }
@@ -96,6 +109,42 @@ export class AuthenticationService extends ConsentAwareService {
   }
 
   private _hasPendingSession = false;
+
+  private _persistenceConfigured = false;
+  private async _configurePersistence(auth: Auth) {
+    if (this._persistenceConfigured) return;
+    this._persistenceConfigured = true;
+
+    if (typeof window === "undefined") return; // SSR: skip
+
+    try {
+      await setPersistence(auth, indexedDBLocalPersistence);
+      console.log("Firebase Auth persistence set: indexedDBLocalPersistence");
+      return;
+    } catch (e1) {
+      console.warn(
+        "IndexedDB persistence unavailable, trying localStorage",
+        e1
+      );
+    }
+
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+      console.log("Firebase Auth persistence set: browserLocalPersistence");
+      return;
+    } catch (e2) {
+      console.warn(
+        "LocalStorage persistence unavailable, falling back to in-memory",
+        e2
+      );
+    }
+
+    // Last resort to keep app functional (not persistent across reloads)
+    await setPersistence(auth, inMemoryPersistence);
+    console.warn(
+      "Firebase Auth persistence set: inMemoryPersistence (non-persistent)"
+    );
+  }
 
   /**
    * Call this method when consent is granted to restore any pending authentication session

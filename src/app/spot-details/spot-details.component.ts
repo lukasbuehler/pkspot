@@ -601,12 +601,12 @@ export class SpotDetailsComponent
       return;
     }
 
-    const url = "https://pkspot.app";
-    const baseUrl = this._locationStrategy.getBaseHref();
-
+    // Build domain-agnostic share link without locale prefix
+    const { buildAbsoluteUrlNoLocale } = await import(
+      "../../scripts/Helpers"
+    );
     // TODO use slug instead of id if available
-
-    const link = url + "/map/" + spot.id;
+    const link = buildAbsoluteUrlNoLocale(`/map/${spot.id}`);
 
     if (navigator["share"]) {
       try {
