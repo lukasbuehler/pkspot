@@ -73,9 +73,19 @@ export function makeSmartAmenitiesArray(
     isNegative?: boolean;
   }[] = [];
 
+  // Derive a simple environment classification from amenity booleans
+  type Env = "indoor" | "outdoor" | "both" | "unknown";
+  const env: Env = (() => {
+    const ind = amenities.indoor === true;
+    const out = amenities.outdoor === true;
+    if (ind && out) return "both";
+    if (ind) return "indoor";
+    if (out) return "outdoor";
+    return "unknown";
+  })();
+
   // Handle indoor/outdoor - show what we know
   if (amenities.indoor === true && amenities.outdoor === true) {
-    // Mixed indoor/outdoor spot
     result.push(
       {
         name: AmenityNames.indoor,
@@ -102,7 +112,7 @@ export function makeSmartAmenitiesArray(
     });
   }
 
-  // Handle entry fee with context awareness
+  // Entry fee
   if (amenities.entry_fee === true) {
     result.push({
       name: AmenityNames.entry_fee,
@@ -111,65 +121,95 @@ export function makeSmartAmenitiesArray(
       isNegative: true,
     });
   } else if (amenities.entry_fee === false) {
-    // Only show "free entry" for spot types where fees are expected
-    // const feeExpectedSpots = ["parkour gym", "gym", "commercial", "private"];
-    // if (feeExpectedSpots.includes(spotType || "")) {
-    result.push({
-      name: AmenityNegativeNames.entry_fee,
-      icon: AmenityNegativeIcons.entry_fee,
-      priority: "medium",
-      isNegative: false,
-    });
-    // }
+    if (env === "indoor" || env === "both") {
+      result.push({
+        name: AmenityNegativeNames.entry_fee,
+        icon: AmenityNegativeIcons.entry_fee,
+        priority: "medium",
+        isNegative: false,
+      });
+    }
   }
 
-  // Handle other key amenities with context
+  // Context-aware amenities
   const contextSensitiveAmenities: (keyof AmenitiesMap)[] = [
     "wc",
     "drinking_water",
     "parking_on_site",
+    "lighting",
+    "power_outlets",
+    "changing_room",
+    "lockers",
+    "heated",
+    "ac",
   ];
 
-  contextSensitiveAmenities.forEach((amenityKey) => {
-    const value = amenities[amenityKey];
+  contextSensitiveAmenities.forEach((key) => {
+    const value = amenities[key];
     if (value === true) {
       result.push({
-        name: AmenityNames[amenityKey],
-        icon: AmenityIcons[amenityKey],
+        name: AmenityNames[key],
+        icon: AmenityIcons[key],
         priority: "medium",
       });
     } else if (value === false) {
-      // Only show negative info where it's contextually relevant
-      // const amenityExpectedSpots: Record<string, string[]> = {
-      //   wc: ["parkour gym", "gym", "park", "playground"],
-      //   drinking_water: ["parkour gym", "gym", "park", "playground"],
-      //   parking_on_site: ["parkour gym", "gym", "commercial"],
-      // };
+      let negativeRelevant = true;
 
-      // if (amenityExpectedSpots[amenityKey]?.includes(spotType || "")) {
-      result.push({
-        name: AmenityNegativeNames[amenityKey],
-        icon: AmenityNegativeIcons[amenityKey],
-        priority: "low",
-        isNegative: true,
-      });
-      // }
+      // Hide negatives not expected in outdoor-only spots
+      if (env === "outdoor") {
+        if (
+          key === "wc" ||
+          key === "drinking_water" ||
+          key === "power_outlets" ||
+          key === "changing_room" ||
+          key === "lockers" ||
+          key === "heated" ||
+          key === "ac"
+        ) {
+          negativeRelevant = false;
+        }
+      }
+
+      // For unknown env, treat wc/drinking_water negatives as not very informative
+      if (env === "unknown" && (key === "wc" || key === "drinking_water")) {
+        negativeRelevant = false;
+      }
+
+      // Parking negative is always relevant
+      if (key === "parking_on_site") {
+        negativeRelevant = true;
+      }
+
+      if (negativeRelevant) {
+        result.push({
+          name: AmenityNegativeNames[key],
+          icon: AmenityNegativeIcons[key],
+          priority: "low",
+          isNegative: true,
+        });
+      }
     }
   });
 
   // Add all other positive amenities
-  const amenitiesToSkip = [
+  const skip: (keyof AmenitiesMap)[] = [
     "indoor",
     "outdoor",
     "entry_fee",
     "wc",
     "drinking_water",
     "parking_on_site",
+    "lighting",
+    "power_outlets",
+    "changing_room",
+    "lockers",
+    "heated",
+    "ac",
     "maybe_overgrown",
   ];
 
   AmenitiesOrder.forEach((key) => {
-    if (amenitiesToSkip.includes(key)) return;
+    if ((skip as string[]).includes(key)) return;
     const value = amenities[key as keyof AmenitiesMap];
     if (value === true) {
       result.push({
@@ -180,11 +220,10 @@ export function makeSmartAmenitiesArray(
     }
   });
 
+  // Negative amenities that are signal-worthy regardless of env
   const negativeAmenitiesKeys: (keyof AmenitiesMap)[] = ["maybe_overgrown"];
-
-  // Add negative amenities
-  negativeAmenitiesKeys.forEach((key: keyof AmenitiesMap) => {
-    if (amenities[key] !== true) return; // Only show explicitly true values
+  negativeAmenitiesKeys.forEach((key) => {
+    if (amenities[key] !== true) return;
     result.push({
       name: AmenityNames[key],
       icon: AmenityIcons[key],

@@ -8,7 +8,6 @@ import {
 } from "@angular/material/dialog";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { NgOptimizedImage } from "@angular/common";
 import {
   AmenitiesMap,
@@ -19,8 +18,6 @@ import {
 import { AmenityNames, AmenityNegativeNames } from "../../db/models/Amenities";
 import { AmenityIcons, AmenityNegativeIcons } from "../../db/schemas/Amenities";
 import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
-
-export type EnvironmentSelection = "indoor" | "outdoor" | "both" | "unknown";
 
 export interface SpotAmenitiesDialogData {
   amenities: AmenitiesMap;
@@ -35,7 +32,6 @@ export interface SpotAmenitiesDialogData {
     MatDialogActions,
     MatButtonModule,
     MatIconModule,
-    MatButtonToggleModule,
     SpotAmenityToggleComponent,
   ],
   templateUrl: "./spot-amenities-dialog.component.html",
@@ -50,7 +46,6 @@ export class SpotAmenitiesDialogComponent {
   IndoorAmenities = IndoorAmenities;
   OutdoorAmenities = OutdoorAmenities;
 
-  envSelection: WritableSignal<EnvironmentSelection> = signal("unknown");
   amenities: WritableSignal<AmenitiesMap> = signal({});
 
   constructor(
@@ -63,40 +58,6 @@ export class SpotAmenitiesDialogComponent {
     // start from a shallow copy to avoid mutating parent until save
     const initial = { ...(data?.amenities ?? {}) } as AmenitiesMap;
     this.amenities.set(initial);
-
-    // initialize env selection from current amenities
-    const indoor = initial.indoor ?? null;
-    const outdoor = initial.outdoor ?? null;
-    if (indoor === true && outdoor === true) {
-      this.envSelection.set("both");
-    } else if (indoor === true) {
-      this.envSelection.set("indoor");
-    } else if (outdoor === true) {
-      this.envSelection.set("outdoor");
-    } else {
-      this.envSelection.set("unknown");
-    }
-  }
-
-  setEnvironment(selection: EnvironmentSelection) {
-    this.envSelection.set(selection);
-    this.amenities.update((a) => {
-      a = { ...(a ?? {}) } as AmenitiesMap;
-      if (selection === "indoor") {
-        a.indoor = true;
-        a.outdoor = false;
-      } else if (selection === "outdoor") {
-        a.indoor = false;
-        a.outdoor = true;
-      } else if (selection === "both") {
-        a.indoor = true;
-        a.outdoor = true;
-      } else {
-        a.indoor = null;
-        a.outdoor = null;
-      }
-      return a;
-    });
   }
 
   updateAmenityFromToggle(

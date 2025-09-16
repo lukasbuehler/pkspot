@@ -134,7 +134,7 @@ import { StorageBucket } from "../../db/schemas/Media";
 import { Timestamp } from "firebase/firestore";
 import { Router } from "@angular/router";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
-// import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
 // import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
 import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
 
@@ -204,7 +204,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatSelectModule,
     LocaleMapViewComponent,
     ChallengeListComponent,
-    // SpotAmenityToggleComponent,
+    MatButtonToggleModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -279,6 +279,20 @@ export class SpotDetailsComponent
   IndoorAmenities = IndoorAmenities;
   OutdoorAmenities = OutdoorAmenities;
   GeneralAmenities = GeneralAmenities;
+
+  // Environment 4-state selection derived from amenities
+  public environmentSelection = computed<
+    "indoor" | "outdoor" | "both" | "unknown"
+  >(() => {
+    const a = this.spot()?.amenities();
+    if (!a) return "unknown";
+    const indoor = a.indoor ?? null;
+    const outdoor = a.outdoor ?? null;
+    if (indoor === true && outdoor === true) return "both";
+    if (indoor === true) return "indoor";
+    if (outdoor === true) return "outdoor";
+    return "unknown";
+  });
 
   visited: boolean = false;
   bookmarked: boolean = false;
@@ -936,6 +950,51 @@ export class SpotDetailsComponent
       // Set the amenity value using nullable boolean logic
       (amenities as any)[amenityKey] = selected ?? null;
 
+      return spot;
+    });
+  }
+
+  setEnvironment(selection: "indoor" | "outdoor" | "both" | "unknown") {
+    this.spot!.update((spot) => {
+      if (!spot) return spot;
+      const a = { ...(spot.amenities() ?? {}) } as AmenitiesMap;
+      if (selection === "indoor") {
+        a.indoor = true;
+        a.outdoor = false;
+      } else if (selection === "outdoor") {
+        a.indoor = false;
+        a.outdoor = true;
+      } else if (selection === "both") {
+        a.indoor = true;
+        a.outdoor = true;
+      } else {
+        a.indoor = null;
+        a.outdoor = null;
+      }
+      spot.amenities.set(a);
+      return spot;
+    });
+  }
+
+  // Covered selection: "covered" | "not_covered" | "unknown"
+  public coveredSelection = computed<"covered" | "not_covered" | "unknown">(
+    () => {
+      const a = this.spot()?.amenities() as AmenitiesMap | undefined;
+      const covered = a?.covered ?? null;
+      if (covered === true) return "covered";
+      if (covered === false) return "not_covered";
+      return "unknown";
+    }
+  );
+
+  public setCovered(selection: "covered" | "not_covered" | "unknown") {
+    this.spot!.update((spot) => {
+      if (!spot) return spot;
+      const a = { ...(spot.amenities() ?? {}) } as AmenitiesMap;
+      if (selection === "covered") a.covered = true;
+      else if (selection === "not_covered") a.covered = false;
+      else a.covered = null;
+      spot.amenities.set(a);
       return spot;
     });
   }

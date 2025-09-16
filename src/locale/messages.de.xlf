@@ -1003,7 +1003,7 @@
     <unit id="amenities.free_entry">
       <segment state="initial">
         <source>Free entry</source>
-        <target>Gratis</target>
+        <target>Kostenlos</target>
       </segment>
     </unit>
     <unit id="amenities.drinking_water">

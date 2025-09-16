@@ -883,13 +883,70 @@
       >
         Features and amenities
       </h4>
+      <!-- Single-question flow: shown only when data is missing -->
+      @if (environmentSelection() === 'unknown' || ((environmentSelection() ===
+      'outdoor' || environmentSelection() === 'unknown') && coveredSelection()
+      === 'unknown')) {
+      <div class="env-picker mb-3 p-2 border rounded">
+        @if (environmentSelection() === 'unknown') {
+        <p class="mat-body-medium m-0 mb-1" i18n>
+          Is this an indoor or outdoor spot?
+        </p>
+        <mat-button-toggle-group
+          [value]="environmentSelection()"
+          (valueChange)="setEnvironment($event)"
+          aria-label="Environment selection"
+          class="w-100"
+        >
+          <mat-button-toggle value="indoor">
+            <mat-icon class="me-1">home</mat-icon>
+            <span i18n>Indoor</span>
+          </mat-button-toggle>
+          <mat-button-toggle value="outdoor">
+            <mat-icon class="me-1">nature_people</mat-icon>
+            <span i18n>Outdoor</span>
+          </mat-button-toggle>
+          <mat-button-toggle value="both">
+            <mat-icon class="me-1">home</mat-icon>
+            <mat-icon class="me-1">nature_people</mat-icon>
+            <span i18n>Both</span>
+          </mat-button-toggle>
+          <mat-button-toggle value="unknown">
+            <span i18n>Not sure</span>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        } @else if ((environmentSelection() === 'outdoor' ||
+        environmentSelection() === 'unknown') && coveredSelection() ===
+        'unknown') {
+        <p class="mat-body-medium m-0 mb-1" i18n>Is the area covered?</p>
+        <mat-button-toggle-group
+          [value]="coveredSelection()"
+          (valueChange)="setCovered($event)"
+          aria-label="Covered selection"
+          class="w-100"
+        >
+          <mat-button-toggle value="covered">
+            <mat-icon class="me-1">roofing</mat-icon>
+            <span i18n>Covered</span>
+          </mat-button-toggle>
+          <mat-button-toggle value="not_covered">
+            <mat-icon class="me-1">umbrella</mat-icon>
+            <span i18n>Not covered</span>
+          </mat-button-toggle>
+          <mat-button-toggle value="unknown">
+            <span i18n>Not sure</span>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        }
+      </div>
+      }
       <button
         mat-stroked-button
         color="primary"
         (click)="openSpotAmenitiesDialog()"
       >
         <mat-icon>tune</mat-icon>
-        <span i18n>Edit features and amenities</span>
+        <span i18n>Edit detailed amenities</span>
       </button>
     </div>
 
