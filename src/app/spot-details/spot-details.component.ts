@@ -36,7 +36,6 @@ import {
   SpotTypesIcons,
   SpotTypesNames,
 } from "../../db/schemas/SpotTypeAndAccess";
-import { MediaUpload } from "../media-upload/media-upload.component";
 import { Post } from "../../db/models/Post";
 import { StorageService } from "../services/firebase/storage.service";
 import { Observable, Subscription } from "rxjs";
@@ -188,7 +187,6 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatButton,
     FormsModule,
     MediaPreviewGridComponent,
-    MediaUpload,
     MatSelect,
     MatOption,
     MatCardActions,
@@ -267,8 +265,7 @@ export class SpotDetailsComponent
   @Output() saveClick: EventEmitter<Spot> = new EventEmitter<Spot>();
   @Output() discardClick: EventEmitter<void> = new EventEmitter<void>();
 
-  @ViewChild(MediaUpload)
-  mediaUploadComponent: MediaUpload | null = null;
+  // Media upload is handled in a dialog now
 
   getValueFromEventTarget = getValueFromEventTarget;
 
@@ -579,8 +576,6 @@ export class SpotDetailsComponent
       return spot;
     });
 
-    this.mediaUploadComponent?.clear();
-
     if (typeof plausible !== "undefined") {
       if (this.spot instanceof Spot) {
         plausible("Upload Spot Image", {
@@ -602,9 +597,7 @@ export class SpotDetailsComponent
     }
 
     // Build domain-agnostic share link without locale prefix
-    const { buildAbsoluteUrlNoLocale } = await import(
-      "../../scripts/Helpers"
-    );
+    const { buildAbsoluteUrlNoLocale } = await import("../../scripts/Helpers");
     // TODO use slug instead of id if available
     const link = buildAbsoluteUrlNoLocale(`/map/${spot.id}`);
 
@@ -645,6 +638,29 @@ export class SpotDetailsComponent
       plausible("Opening in Maps", { props: { spotId: spot.id } });
     }
     if (spot) this._mapsApiService.openLatLngInMaps(spot.location());
+  }
+
+  openMediaUploadDialog() {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return;
+    import("../media-upload-dialog/media-upload-dialog.component").then((m) => {
+      const ref = this.dialog.open(m.MediaUploadDialogComponent, {
+        data: {
+          spotId: spot.id,
+        },
+        width: "640px",
+      });
+
+      ref.afterClosed().subscribe(() => {
+        // Reload the spot to pick up any media appended by the dialog
+        this._spotsService
+          .getSpotById(spot.id, this.locale)
+          .then((fresh) => this.spot.set(fresh))
+          .catch((e) =>
+            console.warn("Failed to refresh spot after uploads", e)
+          );
+      });
+    });
   }
 
   openDirectionsInMaps() {

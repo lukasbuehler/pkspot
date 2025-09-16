@@ -20,6 +20,7 @@ import {
   ChangeDetectorRef,
   OnDestroy,
   signal,
+  Injector,
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
@@ -126,7 +127,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     return map;
   });
 
-  private _spotMapDataManager = new SpotMapDataManager(this.locale);
+  private _spotMapDataManager = new SpotMapDataManager(
+    this.locale,
+    inject(Injector)
+  );
 
   hightlightedSpots: SpotPreviewData[] = [];
   visibleSpots$: Observable<Spot[]> = this._spotMapDataManager.visibleSpots$;

@@ -12,6 +12,7 @@ import {
   writeBatch,
   QuerySnapshot,
   DocumentData,
+  runTransaction,
 } from "@angular/fire/firestore";
 import { Observable, forkJoin } from "rxjs";
 import { map, take } from "rxjs/operators";
@@ -28,6 +29,7 @@ import { transformFirestoreData } from "../../../../scripts/Helpers";
 import { GeoPoint } from "@firebase/firestore";
 import { StorageService } from "../storage.service";
 import { AnyMedia, StorageImage } from "../../../../db/models/Media";
+import { MediaSchema } from "../../../../db/schemas/Media";
 import { ConsentAwareService } from "../../consent-aware.service";
 
 @Injectable({
@@ -279,6 +281,23 @@ export class SpotsService extends ConsentAwareService {
 
   updateSpotMedia(spotId: SpotId, media: AnyMedia[]): Promise<void> {
     return updateDoc(doc(this.firestore, "spots", spotId), { media });
+  }
+
+  /**
+   * Append a media item to a spot's media array using a transaction, guarding against duplicates.
+   */
+  appendSpotMedia(spotId: SpotId, mediaItem: MediaSchema): Promise<void> {
+    const spotRef = doc(this.firestore, "spots", spotId);
+    return runTransaction(this.firestore, async (tx) => {
+      const snap = await tx.get(spotRef);
+      if (!snap.exists()) throw new Error("Spot not found");
+      const data = snap.data() as SpotSchema;
+      const current = (data.media ?? []) as MediaSchema[];
+      const already = current.some((m) => m.src === mediaItem.src);
+      if (already) return; // idempotent
+      const updated = [...current, mediaItem];
+      tx.update(spotRef, { media: updated });
+    });
   }
 
   _checkMediaDiffAndDeleteFromStorageIfNecessary(
