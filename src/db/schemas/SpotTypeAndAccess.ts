@@ -1,5 +1,3 @@
-import e from "express";
-
 export enum SpotTypes {
   Gym = "parkour gym",
   PkPark = "parkour park",

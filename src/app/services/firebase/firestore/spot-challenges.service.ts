@@ -9,7 +9,7 @@ import {
   getDoc,
   getDocs,
   updateDoc,
-} from "@firebase/firestore";
+} from "firebase/firestore";
 import { SpotChallenge } from "../../../../db/models/SpotChallenge";
 import { Spot } from "../../../../db/models/Spot";
 import { LocaleCode } from "../../../../db/models/Interfaces";

@@ -883,54 +883,14 @@
       >
         Features and amenities
       </h4>
-
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames['indoor']"
-        [negativeLabel]="AmenityNegativeNames['indoor']"
-        [positiveIcon]="AmenityIcons['indoor']"
-        [negativeIcon]="AmenityNegativeIcons['indoor']"
-        [value]="spot()!.amenities()['indoor']"
-        (valueChange)="updateAmenityFromToggle('indoor', $event)"
-      ></app-spot-amenity-toggle>
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames['outdoor']"
-        [negativeLabel]="AmenityNegativeNames['outdoor']"
-        [positiveIcon]="AmenityIcons['outdoor']"
-        [negativeIcon]="AmenityNegativeIcons['outdoor']"
-        [value]="spot()!.amenities()['outdoor']"
-        (valueChange)="updateAmenityFromToggle('outdoor', $event)"
-      ></app-spot-amenity-toggle>
-
-      @for(amenity of GeneralAmenities; track amenity) {
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames[amenity]"
-        [negativeLabel]="AmenityNegativeNames[amenity]"
-        [positiveIcon]="AmenityIcons[amenity]"
-        [negativeIcon]="AmenityNegativeIcons[amenity]"
-        [value]="spot()!.amenities()[amenity]"
-        (valueChange)="updateAmenityFromToggle(amenity, $event)"
-      ></app-spot-amenity-toggle>
-      } @if(spot()!.amenities().indoor === true) { @for(amenity of
-      IndoorAmenities; track amenity) {
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames[amenity]"
-        [negativeLabel]="AmenityNegativeNames[amenity]"
-        [positiveIcon]="AmenityIcons[amenity]"
-        [negativeIcon]="AmenityNegativeIcons[amenity]"
-        [value]="spot()!.amenities()[amenity]"
-        (valueChange)="updateAmenityFromToggle(amenity, $event)"
-      ></app-spot-amenity-toggle>
-      } } @if(spot()!.amenities().outdoor === true) { @for(amenity of
-      OutdoorAmenities; track amenity) {
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames[amenity]"
-        [negativeLabel]="AmenityNegativeNames[amenity]"
-        [positiveIcon]="AmenityIcons[amenity]"
-        [negativeIcon]="AmenityNegativeIcons[amenity]"
-        [value]="spot()!.amenities()[amenity]"
-        (valueChange)="updateAmenityFromToggle(amenity, $event)"
-      ></app-spot-amenity-toggle>
-      } }
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="openSpotAmenitiesDialog()"
+      >
+        <mat-icon>tune</mat-icon>
+        <span i18n>Edit features and amenities</span>
+      </button>
     </div>
 
     }

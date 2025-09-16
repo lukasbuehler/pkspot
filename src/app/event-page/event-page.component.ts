@@ -47,7 +47,7 @@ import { MatChipListboxChange, MatChipsModule } from "@angular/material/chips";
 import { MapsApiService } from "../services/maps-api.service";
 import { PolygonSchema } from "../../db/schemas/PolygonSchema";
 import { MapComponent } from "../map/map.component";
-import { GeoPoint } from "@firebase/firestore";
+import { GeoPoint } from "firebase/firestore";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { ExternalImage } from "../../db/models/Media";
@@ -732,9 +732,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   async shareEvent() {
     // Build domain-agnostic share link without locale prefix
-    const { buildAbsoluteUrlNoLocale } = await import(
-      "../../scripts/Helpers"
-    );
+    const { buildAbsoluteUrlNoLocale } = await import("../../scripts/Helpers");
     const link = buildAbsoluteUrlNoLocale(`/events/${this.eventId}`);
 
     if (navigator["share"]) {

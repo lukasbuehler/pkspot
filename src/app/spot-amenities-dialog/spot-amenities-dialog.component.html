@@ -1,0 +1,84 @@
+<h2 mat-dialog-title i18n>Features and amenities</h2>
+<mat-dialog-content class="d-flex flex-column gap-2">
+  <div class="env-picker">
+    <p class="mat-body-medium m-0" i18n>Environment</p>
+    <mat-button-toggle-group
+      [value]="envSelection()"
+      (valueChange)="setEnvironment($event)"
+      aria-label="Environment selection"
+      class="w-100"
+    >
+      <mat-button-toggle value="indoor">
+        <mat-icon class="me-1">home</mat-icon>
+        <span i18n>Indoor</span>
+      </mat-button-toggle>
+      <mat-button-toggle value="outdoor">
+        <mat-icon class="me-1">nature_people</mat-icon>
+        <span i18n>Outdoor</span>
+      </mat-button-toggle>
+      <mat-button-toggle value="both">
+        <mat-icon class="me-1">home</mat-icon>
+        <mat-icon class="me-1">nature_people</mat-icon>
+        <span i18n>Both</span>
+      </mat-button-toggle>
+      <mat-button-toggle value="unknown">
+        <span i18n>Not sure</span>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <div class="amenity-section">
+    <p class="mat-label-small" i18n>General</p>
+    <div class="d-flex flex-column gap-2">
+      @for (amenity of GeneralAmenities; track amenity) {
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames[amenity]"
+        [negativeLabel]="AmenityNegativeNames[amenity]"
+        [positiveIcon]="AmenityIcons[amenity]"
+        [negativeIcon]="AmenityNegativeIcons[amenity]"
+        [value]="amenities()[amenity]"
+        (valueChange)="updateAmenityFromToggle(amenity, $event)"
+      ></app-spot-amenity-toggle>
+      }
+    </div>
+  </div>
+
+  @if (envSelection() === 'indoor' || envSelection() === 'both') {
+  <div class="amenity-section">
+    <p class="mat-label-small" i18n>Indoor</p>
+    <div class="d-flex flex-column gap-2">
+      @for (amenity of IndoorAmenities; track amenity) {
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames[amenity]"
+        [negativeLabel]="AmenityNegativeNames[amenity]"
+        [positiveIcon]="AmenityIcons[amenity]"
+        [negativeIcon]="AmenityNegativeIcons[amenity]"
+        [value]="amenities()[amenity]"
+        (valueChange)="updateAmenityFromToggle(amenity, $event)"
+      ></app-spot-amenity-toggle>
+      }
+    </div>
+  </div>
+  } @if (envSelection() === 'outdoor' || envSelection() === 'both') {
+  <div class="amenity-section">
+    <p class="mat-label-small" i18n>Outdoor</p>
+    <div class="d-flex flex-column gap-2">
+      @for (amenity of OutdoorAmenities; track amenity) {
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames[amenity]"
+        [negativeLabel]="AmenityNegativeNames[amenity]"
+        [positiveIcon]="AmenityIcons[amenity]"
+        [negativeIcon]="AmenityNegativeIcons[amenity]"
+        [value]="amenities()[amenity]"
+        (valueChange)="updateAmenityFromToggle(amenity, $event)"
+      ></app-spot-amenity-toggle>
+      }
+    </div>
+  </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="mt-2">
+  <button mat-stroked-button (click)="cancel()" i18n>Cancel</button>
+  <button mat-flat-button color="primary" (click)="save()" i18n>Save</button>
+</mat-dialog-actions>

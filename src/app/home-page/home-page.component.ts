@@ -17,7 +17,7 @@ import { StorageService } from "../services/firebase/storage.service";
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import { DocumentChangeType } from "@angular/fire/compat/firestore";
 import { Observable, Subscription } from "rxjs";
-import { GeoPoint, Timestamp } from "@firebase/firestore";
+import { GeoPoint, Timestamp } from "firebase/firestore";
 import { MatIcon } from "@angular/material/icon";
 import { MatFabButton } from "@angular/material/button";
 import { NgIf } from "@angular/common";

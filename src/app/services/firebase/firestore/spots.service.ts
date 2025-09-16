@@ -26,7 +26,7 @@ import {
 import { SpotSchema } from "../../../../db/schemas/SpotSchema";
 import { LocaleCode } from "../../../../db/models/Interfaces";
 import { transformFirestoreData } from "../../../../scripts/Helpers";
-import { GeoPoint } from "@firebase/firestore";
+import { GeoPoint } from "firebase/firestore";
 import { StorageService } from "../storage.service";
 import { AnyMedia, StorageImage } from "../../../../db/models/Media";
 import { MediaSchema } from "../../../../db/schemas/Media";
@@ -221,6 +221,8 @@ export class SpotsService extends ConsentAwareService {
     // remove the reviews, review_histogram and review_count fields
     spotData = this._removeForbiddenFieldsFromSpotData(spotData);
 
+    // Ensure types are correct via consistent imports
+
     console.debug("Creating spot with data: ", JSON.stringify(spotData));
     return addDoc(collection(this.firestore, "spots"), spotData).then(
       (data) => {
@@ -278,6 +280,8 @@ export class SpotsService extends ConsentAwareService {
 
     return spotData;
   }
+
+  // No normalization needed when all code uses firebase/firestore types consistently
 
   updateSpotMedia(spotId: SpotId, media: AnyMedia[]): Promise<void> {
     return updateDoc(doc(this.firestore, "spots", spotId), { media });

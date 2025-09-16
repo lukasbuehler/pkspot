@@ -3,7 +3,7 @@ import { AmenitiesMap } from "../schemas/Amenities";
 import { makeAmenitiesArray, makeSmartAmenitiesArray } from "./Amenities";
 import { MapHelpers } from "../../scripts/MapHelpers";
 import { environment } from "../../environments/environment";
-import { GeoPoint } from "@firebase/firestore";
+import { GeoPoint } from "firebase/firestore";
 import { SpotAddressSchema, SpotId, SpotSchema } from "../schemas/SpotSchema";
 import { SpotTypes, SpotAccess } from "../schemas/SpotTypeAndAccess";
 import { computed, Signal, signal, WritableSignal } from "@angular/core";

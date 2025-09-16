@@ -131,11 +131,12 @@ import { locale } from "core-js";
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { StorageBucket } from "../../db/schemas/Media";
-import { Timestamp } from "@firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import { Router } from "@angular/router";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
-import { MatButtonToggleModule } from "@angular/material/button-toggle";
-import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
+// import { MatButtonToggleModule } from "@angular/material/button-toggle";
+// import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
+import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -203,7 +204,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatSelectModule,
     LocaleMapViewComponent,
     ChallengeListComponent,
-    SpotAmenityToggleComponent,
+    // SpotAmenityToggleComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -936,6 +937,25 @@ export class SpotDetailsComponent
       (amenities as any)[amenityKey] = selected ?? null;
 
       return spot;
+    });
+  }
+
+  openSpotAmenitiesDialog() {
+    const spot = this.spot();
+    if (!spot) return;
+
+    const ref = this.dialog.open(SpotAmenitiesDialogComponent, {
+      data: { amenities: spot.amenities() },
+      width: "640px",
+    });
+
+    ref.afterClosed().subscribe((updated: AmenitiesMap | undefined) => {
+      if (!updated) return;
+      this.spot!.update((s) => {
+        if (!s) return s;
+        s.amenities.set(updated);
+        return s;
+      });
     });
   }
 }

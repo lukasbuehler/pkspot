@@ -11,7 +11,7 @@ import {
   limit,
 } from "@angular/fire/firestore";
 import { Observable } from "rxjs";
-import { Timestamp } from "@firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import {
   FollowingDataSchema,
   FollowingSchema,
