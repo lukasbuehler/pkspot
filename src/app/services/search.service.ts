@@ -39,7 +39,7 @@ export class SearchService {
   }
 
   public async searchSpotsAndPlaces(query: string) {
-    let searchParams: SearchParams = { ...this.spotSearchParameters, q: query };
+    let searchParams = { q: query, ...this.spotSearchParameters };
 
     const typesenseSpotSearchResults = this.client
       .collections("spots")
