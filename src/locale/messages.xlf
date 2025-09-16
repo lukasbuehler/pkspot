@@ -61,11 +61,6 @@
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc> Discord </source>
       </segment>
     </unit>
-    <unit id="about.title">
-      <segment>
-        <source>About PK Spot</source>
-      </segment>
-    </unit>
     <unit id="lang_btn_label">
       <notes>
         <note category="description">The label of the change language button</note>
@@ -320,10 +315,10 @@
     </unit>
     <unit id="spot.locality.pretext">
       <notes>
-        <note category="description">The text before the localized location of the spot. E.g. Spot in Wiedikon, Zurich, CH</note>
+        <note category="description">The text before the localized location of the spot. E.g. Parkour spot in Wiedikon, Zurich, CH</note>
       </notes>
       <segment>
-        <source>Spot in </source>
+        <source>Parkour spot in </source>
       </segment>
     </unit>
     <unit id="settings.title">
@@ -401,6 +396,11 @@
         <source>Changing this E-mail will change your login information</source>
       </segment>
     </unit>
+    <unit id="5567404971286131139">
+      <segment>
+        <source> This spot is not eligible for highlights. To be eligible, it needs at least one user-submitted picture and at least one rating. </source>
+      </segment>
+    </unit>
     <unit id="3934298777794632654">
       <segment>
         <source> Change E-mail address </source>
@@ -424,6 +424,11 @@
     <unit id="8626615958100222841">
       <segment>
         <source> Change password </source>
+      </segment>
+    </unit>
+    <unit id="134280351162314914">
+      <segment>
+        <source>Rating: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10"/> ⭐</source>
       </segment>
     </unit>
     <unit id="1347241542439262355">
@@ -578,14 +583,22 @@
         <source>The repeated password needs to match the password entered.</source>
       </segment>
     </unit>
-    <unit id="7571375880734710634">
+    <unit id="tos">
+      <notes>
+        <note category="description">Text of the Terms of Service link</note>
+        <note category="meaning">terms of service link text</note>
+      </notes>
       <segment>
-        <source> Terms of Service </source>
+        <source>Terms of Service</source>
       </segment>
     </unit>
-    <unit id="3028950182768355353">
+    <unit id="privacypolicy">
+      <notes>
+        <note category="description">Text of the Privacy Policy link</note>
+        <note category="meaning">privacy policy link text</note>
+      </notes>
       <segment>
-        <source> Privacy policy </source>
+        <source>Privacy Policy</source>
       </segment>
     </unit>
     <unit id="3289630490580318568">
@@ -893,11 +906,6 @@
         <source>Dismiss</source>
       </segment>
     </unit>
-    <unit id="1541983925188119749">
-      <segment>
-        <source>Rating: <ph id="0" equiv="PH" disp="spot.rating"/> / 5</source>
-      </segment>
-    </unit>
     <unit id="6957965842552679691">
       <segment>
         <source>Error saving spot</source>
@@ -911,6 +919,11 @@
     <unit id="8425796083769561052">
       <segment>
         <source>What would you like to report this spot for?</source>
+      </segment>
+    </unit>
+    <unit id="8436223332064456837">
+      <segment>
+        <source><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></source>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -1021,6 +1034,15 @@
       </notes>
       <segment>
         <source>Import spots from a file</source>
+      </segment>
+    </unit>
+    <unit id="media.upload.disclaimer">
+      <notes>
+        <note category="description">Message shown before a media file is uploaded to get consent</note>
+        <note category="meaning">media upload disclaimer</note>
+      </notes>
+      <segment>
+        <source> By uploading, you confirm you own the rights or have permission to share this media. You grant PK Spot a non-exclusive, worldwide, royalty-free license to host, store, reproduce, modify (e.g., thumbnails/compression), display, and distribute this media in connection with the service. You retain ownership and can delete the media at any time, subject to copies in backups and caches. </source>
       </segment>
     </unit>
     <unit id="welcomeDialogTitle">
@@ -1206,11 +1228,6 @@
     <unit id="7629436164719717851">
       <segment>
         <source>Event in </source>
-      </segment>
-    </unit>
-    <unit id="about.description">
-      <segment>
-        <source>About PK Spot</source>
       </segment>
     </unit>
     <unit id="events.nav_label">
@@ -1435,6 +1452,15 @@
         <source> Media </source>
       </segment>
     </unit>
+    <unit id="spot.edit.media.reorder">
+      <notes>
+        <note category="description">Message shown when there are media items to reorder</note>
+        <note category="meaning">reorder media message</note>
+      </notes>
+      <segment>
+        <source> You can re-order the spot media below using drag-and-drop. </source>
+      </segment>
+    </unit>
     <unit id="spot.edit.name.header">
       <notes>
         <note category="description">Header for spot name editing section</note>
@@ -1481,6 +1507,11 @@
     <unit id="2917314929120683887">
       <segment>
         <source> Continue </source>
+      </segment>
+    </unit>
+    <unit id="3133198135717483264">
+      <segment>
+        <source>Add media</source>
       </segment>
     </unit>
     <unit id="3148120434799119252">
@@ -1593,6 +1624,11 @@
         <source>Beginner friendly</source>
       </segment>
     </unit>
+    <unit id="4828078474062395314">
+      <segment>
+        <source> Save the spot first to add images. </source>
+      </segment>
+    </unit>
     <unit id="spot.details.header">
       <notes>
         <note category="description">Header for the spot details section</note>
@@ -1673,6 +1709,11 @@
         <source> Spot URL </source>
       </segment>
     </unit>
+    <unit id="611564526184434442">
+      <segment>
+        <source> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()"/></source>
+      </segment>
+    </unit>
     <unit id="6179528187219959958">
       <segment>
         <source>Techy</source>
@@ -1747,6 +1788,11 @@
     <unit id="3724068243287682962">
       <segment>
         <source>Team</source>
+      </segment>
+    </unit>
+    <unit id="397098723873502323">
+      <segment>
+        <source>Done</source>
       </segment>
     </unit>
     <unit id="3973931101896534797">
@@ -1847,9 +1893,19 @@
         <source>I&apos;ll add media!</source>
       </segment>
     </unit>
+    <unit id="7193934719093844817">
+      <segment>
+        <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
+      </segment>
+    </unit>
     <unit id="7334091550966090385">
       <segment>
         <source>Error uploading media!</source>
+      </segment>
+    </unit>
+    <unit id="7362309544332966845">
+      <segment>
+        <source> Add images </source>
       </segment>
     </unit>
     <unit id="7374538640222631357">

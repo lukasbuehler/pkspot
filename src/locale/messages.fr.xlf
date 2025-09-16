@@ -300,6 +300,14 @@
         <target>Modifier cette adresse e-mail changera vos informations de connexion</target>
       </segment>
     </unit>
+    <unit id="5567404971286131139">
+      <segment state="initial">
+        <source> This spot is not eligible for highlights. To be eligible, it needs at least one
+          user-submitted picture and at least one rating. </source>
+        <target> Ce spot n’est pas éligible aux highlights. Pour être éligible, il doit
+          comporter au moins une photo soumise par un utilisateur et au moins une note. </target>
+      </segment>
+    </unit>
     <unit id="3934298777794632654">
       <segment state="initial">
         <source> Change E-mail address </source>
@@ -328,6 +336,12 @@
       <segment state="initial">
         <source> Change password </source>
         <target> Changer de mot de passe </target>
+      </segment>
+    </unit>
+    <unit id="134280351162314914">
+      <segment state="initial">
+        <source>Rating: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10" /> ⭐</source>
+        <target>Note: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10" /> ⭐</target>
       </segment>
     </unit>
     <unit id="1347241542439262355">
@@ -406,6 +420,26 @@
       <segment state="initial">
         <source>Import spots from a file</source>
         <target>Importer des spots à partir d’un fichier</target>
+      </segment>
+    </unit>
+    <unit id="media.upload.disclaimer">
+      <notes>
+        <note category="description">Message shown before a media file is uploaded to get consent</note>
+        <note category="meaning">media upload disclaimer</note>
+      </notes>
+      <segment state="initial">
+        <source> By uploading, you confirm you own the rights or have permission to share this
+          media. You grant PK Spot a non-exclusive, worldwide, royalty-free license to host, store,
+          reproduce, modify (e.g., thumbnails/compression), display, and distribute this media in
+          connection with the service. You retain ownership and can delete the media at any time,
+          subject to copies in backups and caches. </source>
+        <target> En téléchargeant, vous confirmez que vous possédez les droits ou que vous avez la
+          permission de partager ce média. Vous accordez à PK Spot une licence non exclusive,
+          mondiale et gratuite pour héberger, stocker, reproduire, modifier (par exemple, vignettes
+          /
+          compression), afficher et distribuer ce média en relation avec le service. Vous conservez
+          la propriété et pouvez supprimer le média à tout moment, sous réserve des copies dans les
+          sauvegardes et les caches. </target>
       </segment>
     </unit>
     <unit id="3539941729807255231">
@@ -591,15 +625,23 @@
         <target>Le mot de passe répété doit correspondre au premier mot de passe saisi.</target>
       </segment>
     </unit>
-    <unit id="7571375880734710634">
+    <unit id="tos">
+      <notes>
+        <note category="description">Text of the Terms of Service link</note>
+        <note category="meaning">terms of service link text</note>
+      </notes>
       <segment state="initial">
-        <source> Terms of Service </source>
-        <target> Conditions d’utilisation </target>
+        <source>Terms of Service</source>
+        <target>Conditions d'utilisation</target>
       </segment>
     </unit>
-    <unit id="3028950182768355353">
+    <unit id="privacypolicy">
+      <notes>
+        <note category="description">Text of the Privacy Policy link</note>
+        <note category="meaning">privacy policy link text</note>
+      </notes>
       <segment state="initial">
-        <source> Privacy policy </source>
+        <source>Privacy Policy</source>
         <target> Politique de confidentialité </target>
       </segment>
     </unit>
@@ -734,12 +776,6 @@
         <target>Ignorer</target>
       </segment>
     </unit>
-    <unit id="1541983925188119749">
-      <segment state="initial">
-        <source>Rating: <ph id="0" equiv="PH" disp="spot.rating" /> / 5</source>
-        <target>Note: <ph id="0" equiv="PH" disp="spot.rating" /> / 5</target>
-      </segment>
-    </unit>
     <unit id="6957965842552679691">
       <segment state="initial">
         <source>Error saving spot</source>
@@ -758,6 +794,14 @@
       <segment state="initial">
         <source>What would you like to report this spot for?</source>
         <target>Pour quelle raison souhaitez-vous signaler ce spot ?</target>
+      </segment>
+    </unit>
+    <unit id="8436223332064456837">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="challengeName" /> - <ph id="1" equiv="PH_1"
+            disp="spotName" /></source>
+        <target><ph id="0" equiv="PH" disp="challengeName" /> - <ph id="1" equiv="PH_1"
+            disp="spotName" /></target>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -817,12 +861,6 @@
       <segment state="initial">
         <source> Cancel </source>
         <target> Annuler </target>
-      </segment>
-    </unit>
-    <unit id="about.title">
-      <segment state="initial">
-        <source>About PK Spot</source>
-        <target>À propos de PK Spot</target>
       </segment>
     </unit>
     <unit id="pk.spotmap.title">
@@ -1260,12 +1298,12 @@
     </unit>
     <unit id="spot.locality.pretext">
       <notes>
-        <note category="description">The text before the localized location of the spot. E.g. Spot
-          in Wiedikon, Zurich, CH</note>
+        <note category="description">The text before the localized location of the spot. E.g.
+          Parkour spot in Wiedikon, Zurich, CH</note>
       </notes>
       <segment state="initial">
-        <source>Spot in </source>
-        <target>Spot à </target>
+        <source>Parkour spot in </source>
+        <target>Parkour spot à </target>
       </segment>
     </unit>
     <unit id="spot_highlights">
@@ -1517,12 +1555,6 @@
           d&apos;autres pratiquants. 🤸 </target>
       </segment>
     </unit>
-    <unit id="about.description">
-      <segment state="initial">
-        <source>About PK Spot</source>
-        <target>À propos de PK Spot</target>
-      </segment>
-    </unit>
     <unit id="7629436164719717851">
       <segment state="initial">
         <source>Event in </source>
@@ -1724,6 +1756,12 @@
         <target>Adapté aux débutants</target>
       </segment>
     </unit>
+    <unit id="4828078474062395314">
+      <segment state="initial">
+        <source> Save the spot first to add images. </source>
+        <target> Enregistrez d&apos;abord le spot pour ajouter des images. </target>
+      </segment>
+    </unit>
     <unit id="7059749880989073519">
       <segment state="initial">
         <source>Water challenge</source>
@@ -1863,6 +1901,12 @@
       <segment state="initial">
         <source>About you</source>
         <target>À propos de vous</target>
+      </segment>
+    </unit>
+    <unit id="3133198135717483264">
+      <segment state="initial">
+        <source>Add media</source>
+        <target>Ajouter des médias</target>
       </segment>
     </unit>
     <unit id="3148120434799119252">
@@ -2009,6 +2053,17 @@
         <target> Médias </target>
       </segment>
     </unit>
+    <unit id="spot.edit.media.reorder">
+      <notes>
+        <note category="description">Message shown when there are media items to reorder</note>
+        <note category="meaning">reorder media message</note>
+      </notes>
+      <segment state="initial">
+        <source> You can re-order the spot media below using drag-and-drop. </source>
+        <target> Vous pouvez réorganiser les médias du spot ci-dessous en les faisant
+          glisser-déposer. </target>
+      </segment>
+    </unit>
     <unit id="spot.edit.name.header">
       <notes>
         <note category="description">Header for spot name editing section</note>
@@ -2089,6 +2144,12 @@
         <target>Créatif</target>
       </segment>
     </unit>
+    <unit id="611564526184434442">
+      <segment state="initial">
+        <source> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()" /></source>
+        <target> à <ph id="0" equiv="PH" disp="challenge.spot.localityString()" /></target>
+      </segment>
+    </unit>
     <unit id="6179528187219959958">
       <segment state="initial">
         <source>Techy</source>
@@ -2164,6 +2225,12 @@
         <target> Type et accès </target>
       </segment>
     </unit>
+    <unit id="7362309544332966845">
+      <segment state="initial">
+        <source> Add images </source>
+        <target> Ajouter des images </target>
+      </segment>
+    </unit>
     <unit id="7374538640222631357">
       <segment state="initial">
         <source>This challenge is still private to you!</source>
@@ -2228,6 +2295,12 @@
         <target> Le challenge sera public immédiatement après son ajout. </target>
       </segment>
     </unit>
+    <unit id="397098723873502323">
+      <segment state="initial">
+        <source>Done</source>
+        <target>Terminé</target>
+      </segment>
+    </unit>
     <unit id="3973931101896534797">
       <segment state="initial">
         <source>Date</source>
@@ -2266,6 +2339,12 @@
       <segment state="initial">
         <source>I&apos;ll add media!</source>
         <target>J’ajouterai un média !</target>
+      </segment>
+    </unit>
+    <unit id="7193934719093844817">
+      <segment state="initial">
+        <source>Challenge at <ph id="0" equiv="PH" disp="spotName" /></source>
+        <target>Challenge à <ph id="0" equiv="PH" disp="spotName" /></target>
       </segment>
     </unit>
     <unit id="565606266379309262">
