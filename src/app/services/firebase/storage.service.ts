@@ -1,4 +1,4 @@
-import { inject, Injectable } from "@angular/core";
+import { inject, Injectable, Injector } from "@angular/core";
 import { Observable } from "rxjs";
 
 import { getDownloadURL, Storage } from "@angular/fire/storage";
@@ -12,11 +12,13 @@ import { StorageBucket } from "../../../db/schemas/Media";
   providedIn: "root",
 })
 export class StorageService {
+  // Keep a reference to the Injector so we can lazily resolve deps later
+  private injector = inject(Injector);
   // Lazy inject Firebase Storage to prevent immediate initialization
   private _storage: Storage | null = null;
   private get storage(): Storage {
     if (!this._storage) {
-      this._storage = inject(Storage);
+      this._storage = this.injector.get(Storage);
     }
     return this._storage;
   }
@@ -25,7 +27,7 @@ export class StorageService {
   private _authService: AuthenticationService | null = null;
   private get authService(): AuthenticationService {
     if (!this._authService) {
-      this._authService = inject(AuthenticationService);
+      this._authService = this.injector.get(AuthenticationService);
     }
     return this._authService;
   }

@@ -10,7 +10,7 @@ import {
 } from "../../db/schemas/SpotClusterTile";
 import { TilesObject } from "../map/map.component";
 import { MarkerSchema } from "../marker/marker.component";
-import { inject, signal } from "@angular/core";
+import { Injector, signal } from "@angular/core";
 import { SpotsService } from "../services/firebase/firestore/spots.service";
 import { LocaleCode } from "../../db/models/Interfaces";
 import { OsmDataService } from "../services/osm-data.service";
@@ -33,9 +33,9 @@ interface LoadedSpotReference {
  *
  */
 export class SpotMapDataManager {
-  _spotsService = inject(SpotsService);
-  _osmDataService = inject(OsmDataService);
-  _consentService = inject(ConsentService);
+  private _spotsService: SpotsService;
+  private _osmDataService: OsmDataService;
+  private _consentService: ConsentService;
 
   private _spotClusterTiles: Map<MapTileKey, SpotClusterTileSchema>;
   // private _spotClusterKeysByZoom: Map<number, Map<string, MapTileKey>>;
@@ -69,7 +69,15 @@ export class SpotMapDataManager {
   readonly divisor = 4;
   readonly defaultRating = 1.5;
 
-  constructor(readonly locale: LocaleCode, readonly debugMode: boolean = true) {
+  constructor(
+    readonly locale: LocaleCode,
+    injector: Injector,
+    readonly debugMode: boolean = true
+  ) {
+    // Resolve dependencies via the provided Injector to avoid using inject() outside DI context
+    this._spotsService = injector.get(SpotsService);
+    this._osmDataService = injector.get(OsmDataService);
+    this._consentService = injector.get(ConsentService);
     this._spotClusterTiles = new Map<MapTileKey, SpotClusterTileSchema>();
     // this._spotClusterKeysByZoom = new Map<number, Map<string, MapTileKey>>();
     this._spots = new Map<MapTileKey, Spot[]>();

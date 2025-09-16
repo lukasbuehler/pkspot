@@ -1,0 +1,12 @@
+<h2 mat-dialog-title i18n>Add media</h2>
+<div mat-dialog-content>
+  <app-media-upload
+    [allowedMimeTypes]="allowedMimeTypes"
+    [multipleAllowed]="multipleAllowed"
+    [storageFolder]="storageFolder"
+    (newMedia)="onNewMedia($event)"
+  ></app-media-upload>
+</div>
+<div mat-dialog-actions class="d-flex justify-content-end">
+  <button mat-stroked-button (click)="close()" i18n>Done</button>
+</div>

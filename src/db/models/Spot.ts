@@ -59,6 +59,11 @@ export class LocalSpot {
   readonly hasMedia: Signal<boolean>;
   readonly previewImageSrc: Signal<string>;
 
+  readonly isEligableForHighlights: Signal<boolean> = computed(() => {
+    return (
+      this.userMedia().length > 0 && this.rating !== null && this.rating > 0
+    );
+  });
   isIconic: boolean = false;
   rating: number | null = null; // from 1 to 5, set by cloud function.
   numReviews: number; // integer

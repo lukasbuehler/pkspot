@@ -1,4 +1,32 @@
 <div class="d-flex flex-column w-100">
+  <!-- Legal disclaimer shown above the uploader -->
+  <div class="mb-2 mat-body-small">
+    <span
+      i18n="
+        media upload disclaimer|Message shown before a media file is uploaded to
+        get consent@@media.upload.disclaimer"
+    >
+      By uploading, you confirm you own the rights or have permission to share
+      this media. You grant PK Spot a non-exclusive, worldwide, royalty-free
+      license to host, store, reproduce, modify (e.g., thumbnails/compression),
+      display, and distribute this media in connection with the service. You
+      retain ownership and can delete the media at any time, subject to copies
+      in backups and caches.
+    </span>
+    <a
+      routerLink="/terms-of-service"
+      class="ms-1"
+      i18n="terms of service link text|Text of the Terms of Service link@@tos"
+      >Terms of Service</a
+    >
+    <span class="mx-1">·</span>
+    <a
+      routerLink="/privacy-policy"
+      i18n="
+        privacy policy link text|Text of the Privacy Policy link@@privacypolicy"
+      >Privacy Policy</a
+    >
+  </div>
   @if(showPreview()) {
   <div class="preview-grid overflow-y-scroll pb-3">
     @for(media of mediaList(); track $index) { @if(media && media.file) {

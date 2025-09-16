@@ -10,6 +10,7 @@ import {
   ViewChild,
   WritableSignal,
 } from "@angular/core";
+import { Injector } from "@angular/core";
 import {
   Router,
   RoutesRecognized,
@@ -118,13 +119,17 @@ export class AppComponent implements OnInit {
     return this._authService;
   }
 
+  // Keep a reference to the injector captured during construction
+  private _injector = inject(Injector);
+
   // Lazy inject StorageService to prevent automatic Firebase Storage initialization
   private _storageService: StorageService | null = null;
   public get storageService(): StorageService {
     if (!this._storageService) {
-      this._storageService = inject(StorageService);
+      // Use captured Injector to lazily resolve the service without calling inject() now
+      this._storageService = this._injector.get(StorageService);
     }
-    return this._storageService;
+    return this._storageService as StorageService;
   }
 
   constructor(
