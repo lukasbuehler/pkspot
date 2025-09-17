@@ -234,3 +234,119 @@ export function makeSmartAmenitiesArray(
 
   return result.filter((val) => val !== null);
 }
+
+// ---- Centralized amenity questions config for edit flow ----
+export type QuestionValue = string;
+export interface QuestionOption {
+  value: QuestionValue;
+  label: string; // localized label
+  icon?: string; // material icon name
+  apply: (amenities: AmenitiesMap) => AmenitiesMap; // returns updated amenities
+}
+
+export interface AmenityQuestion {
+  id: string;
+  text: string; // localized question text
+  options: QuestionOption[];
+  // Determine if this question should be asked for the current state
+  isApplicable: (amenities: AmenitiesMap) => boolean;
+  // Determine if this question has already been answered
+  isAnswered: (amenities: AmenitiesMap) => boolean;
+  // Current selected value resolver for UI binding
+  getValue: (amenities: AmenitiesMap) => QuestionValue | null;
+}
+
+export const AmenityQuestions: AmenityQuestion[] = [
+  {
+    id: "environment",
+    text: $localize`:@@question.environment:Is this an indoor or outdoor spot?`,
+    options: [
+      {
+        value: "indoor",
+        label: $localize`:@@question.environment.indoor:Indoor`,
+        icon: AmenityIcons.indoor,
+        apply: (a) => ({
+          ...(a ?? {}),
+          indoor: true,
+          outdoor: false,
+        }),
+      },
+      {
+        value: "outdoor",
+        label: $localize`:@@question.environment.outdoor:Outdoor`,
+        icon: AmenityIcons.outdoor,
+        apply: (a) => ({
+          ...(a ?? {}),
+          indoor: false,
+          outdoor: true,
+        }),
+      },
+      {
+        value: "both",
+        label: $localize`:@@question.environment.both:Both`,
+        icon: "home_and_garden", // shown with two icons in UI if desired
+        apply: (a) => ({
+          ...(a ?? {}),
+          indoor: true,
+          outdoor: true,
+        }),
+      },
+      {
+        value: "unknown",
+        label: $localize`:@@generic.not_sure:Not sure`,
+        apply: (a) => ({
+          ...(a ?? {}),
+          indoor: null,
+          outdoor: null,
+        }),
+      },
+    ],
+    isApplicable: () => true,
+    // Consider answered once either indoor or outdoor is set at all (undefined -> set). Null counts as answered (user chose Not sure).
+    isAnswered: (a) => a?.indoor !== undefined || a?.outdoor !== undefined,
+    getValue: (a) => {
+      const ind = a?.indoor ?? null;
+      const out = a?.outdoor ?? null;
+      if (ind === true && out === true) return "both";
+      if (ind === true) return "indoor";
+      if (out === true) return "outdoor";
+      return "unknown";
+    },
+  },
+  {
+    id: "covered",
+    text: $localize`:@@question.covered:Is the area covered?`,
+    options: [
+      {
+        value: "covered",
+        label: $localize`:@@amenities.covered:Covered`,
+        icon: AmenityIcons.covered,
+        apply: (a) => ({ ...(a ?? {}), covered: true }),
+      },
+      {
+        value: "not_covered",
+        label: $localize`:@@amenities.not_covered:Not covered`,
+        icon: AmenityNegativeIcons.covered,
+        apply: (a) => ({ ...(a ?? {}), covered: false }),
+      },
+      {
+        value: "unknown",
+        label: $localize`:@@generic.not_sure:Not sure`,
+        apply: (a) => ({ ...(a ?? {}), covered: null }),
+      },
+    ],
+    // Ask only when the environment is outdoor or unknown
+    isApplicable: (a) => {
+      const indTrue = a?.indoor === true;
+      const outTrue = a?.outdoor === true;
+      return outTrue || (!indTrue && !outTrue);
+    },
+    isAnswered: (a) => a?.covered !== null && a?.covered !== undefined,
+    getValue: (a) => {
+      const c = a?.covered ?? null;
+      if (c === true) return "covered";
+      if (c === false) return "not_covered";
+      return "unknown";
+    },
+  },
+];

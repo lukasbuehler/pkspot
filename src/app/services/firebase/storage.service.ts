@@ -1,9 +1,14 @@
 import { inject, Injectable, Injector } from "@angular/core";
 import { Observable } from "rxjs";
-
-import { getDownloadURL, Storage } from "@angular/fire/storage";
-import { deleteObject, ref } from "@firebase/storage";
-import { uploadBytesResumable } from "@firebase/storage";
+import { getApp } from "@angular/fire/app";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
+  type FirebaseStorage,
+} from "firebase/storage";
 import { AuthenticationService } from "./authentication.service";
 import { StorageMedia } from "../../../db/models/Media";
 import { StorageBucket } from "../../../db/schemas/Media";
@@ -14,11 +19,12 @@ import { StorageBucket } from "../../../db/schemas/Media";
 export class StorageService {
   // Keep a reference to the Injector so we can lazily resolve deps later
   private injector = inject(Injector);
-  // Lazy inject Firebase Storage to prevent immediate initialization
-  private _storage: Storage | null = null;
-  private get storage(): Storage {
+  // Lazily resolve Firebase Storage without using Angular DI for Storage to avoid cycles
+  private _storage: FirebaseStorage | null = null;
+  private get storage(): FirebaseStorage {
     if (!this._storage) {
-      this._storage = this.injector.get(Storage);
+      const app = getApp();
+      this._storage = getStorage(app);
     }
     return this._storage;
   }

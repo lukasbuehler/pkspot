@@ -752,14 +752,14 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     const isEditing = this.isEditing();
     const result = hasSpot && isEditing;
 
-    console.log(
-      "showSelectedSpotPolygon - hasSpot:",
-      hasSpot,
-      "isEditing:",
-      isEditing,
-      "result:",
-      result
-    );
+    // console.log(
+    //   "showSelectedSpotPolygon - hasSpot:",
+    //   hasSpot,
+    //   "isEditing:",
+    //   isEditing,
+    //   "result:",
+    //   result
+    // );
 
     if (!hasSpot || !isEditing) {
       return false;

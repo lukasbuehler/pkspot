@@ -198,23 +198,25 @@
 
   <mat-card-content>
     @if(!isEditing()) {
-    <div class="mb-4 mt-1">
+    <div class="mb-1 mt-1">
       <!-- spot media carousel  -->
       @if(spot()?.media() && spot()!.media().length > 0) {
-      <app-img-carousel [media]="spot()?.media()"> </app-img-carousel>
+      <app-img-carousel [media]="spot()?.media()" class="mb-3">
+      </app-img-carousel>
 
+      }
       <!-- if the user is signed in, show an add media button to upload new media -->
       @if(authenticationService.isSignedIn) {
       <button
         matButton="outlined"
-        class="mt-3"
+        class="mb-3"
         color="primary"
         (click)="openMediaUploadDialog()"
       >
         <mat-icon>add_photo_alternate</mat-icon>
-        Add Media
+        <span i18n>Add Media</span>
       </button>
-      } }
+      }
     </div>
 
     @if(spot()?.isEligableForHighlights() === false) {
@@ -883,65 +885,45 @@
       >
         Features and amenities
       </h4>
-      <!-- Single-question flow: shown only when data is missing -->
-      @if (environmentSelection() === 'unknown' || ((environmentSelection() ===
-      'outdoor' || environmentSelection() === 'unknown') && coveredSelection()
-      === 'unknown')) {
-      <div class="env-picker mb-3 p-2 border rounded">
-        @if (environmentSelection() === 'unknown') {
-        <p class="mat-body-medium m-0 mb-1" i18n>
-          Is this an indoor or outdoor spot?
+      <!-- Single-question flow (config-driven): shows only when a question is applicable and unanswered -->
+      @if (nextAmenityQuestion()) {
+      <!-- <div class="env-picker mb-3 p-2 border rounded">
+          <p class="mat-body-medium m-0 mb-1">
+            {{ nextAmenityQuestion()!.text }}
+          </p>
+          <mat-button-toggle-group
+            [value]="currentQuestionValue()"
+            (valueChange)="answerAmenityQuestion(nextAmenityQuestion()!.id, $event)"
+            class="w-100"
+          >
+            @for (opt of nextAmenityQuestion()!.options; track opt.value) {
+              <mat-button-toggle [value]="opt.value">
+                @if (opt.icon) {
+                  <mat-icon class="me-1">{{ opt.icon }}</mat-icon>
+                }
+                <span>{{ opt.label }}</span>
+              </mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+        </div> -->
+
+      <div class="mb-3 p-2 border rounded">
+        <h5 class="mat-label-medium">Question</h5>
+        <p class="mat-body-medium m-0 mb-1">
+          {{ nextAmenityQuestion()!.text }}
         </p>
-        <mat-button-toggle-group
-          [value]="environmentSelection()"
-          (valueChange)="setEnvironment($event)"
-          aria-label="Environment selection"
-          class="w-100"
-        >
-          <mat-button-toggle value="indoor">
-            <mat-icon class="me-1">home</mat-icon>
-            <span i18n>Indoor</span>
-          </mat-button-toggle>
-          <mat-button-toggle value="outdoor">
-            <mat-icon class="me-1">nature_people</mat-icon>
-            <span i18n>Outdoor</span>
-          </mat-button-toggle>
-          <mat-button-toggle value="both">
-            <mat-icon class="me-1">home</mat-icon>
-            <mat-icon class="me-1">nature_people</mat-icon>
-            <span i18n>Both</span>
-          </mat-button-toggle>
-          <mat-button-toggle value="unknown">
-            <span i18n>Not sure</span>
-          </mat-button-toggle>
-        </mat-button-toggle-group>
-        } @else if ((environmentSelection() === 'outdoor' ||
-        environmentSelection() === 'unknown') && coveredSelection() ===
-        'unknown') {
-        <p class="mat-body-medium m-0 mb-1" i18n>Is the area covered?</p>
-        <mat-button-toggle-group
-          [value]="coveredSelection()"
-          (valueChange)="setCovered($event)"
-          aria-label="Covered selection"
-          class="w-100"
-        >
-          <mat-button-toggle value="covered">
-            <mat-icon class="me-1">roofing</mat-icon>
-            <span i18n>Covered</span>
-          </mat-button-toggle>
-          <mat-button-toggle value="not_covered">
-            <mat-icon class="me-1">umbrella</mat-icon>
-            <span i18n>Not covered</span>
-          </mat-button-toggle>
-          <mat-button-toggle value="unknown">
-            <span i18n>Not sure</span>
-          </mat-button-toggle>
-        </mat-button-toggle-group>
-        }
+        <div>
+          @for(opt of nextAmenityQuestion()!.options; track opt.value) {
+          <button matButton="filled" class="me-2 mb-2">
+            @if(opt.icon) {<mat-icon>{{ opt.icon }}</mat-icon
+            >} {{ opt.label }}
+          </button>
+          }
+        </div>
       </div>
       }
       <button
-        mat-stroked-button
+        matButton="outlined"
         color="primary"
         (click)="openSpotAmenitiesDialog()"
       >

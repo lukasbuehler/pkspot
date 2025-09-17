@@ -53,6 +53,9 @@ import {
   AmenityNames,
   AmenityNegativeNames,
   makeSmartAmenitiesArray,
+  AmenityQuestions,
+  type AmenityQuestion,
+  type QuestionValue,
 } from "../../db/models/Amenities";
 
 //import { MatTooltipModule } from "@angular/material/tooltip";
@@ -240,6 +243,48 @@ export class SpotDetailsComponent
     () => this.spot() !== null && !(this.spot() instanceof Spot)
   );
 
+  // Expose centralized questions for potential dynamic UI
+  AmenityQuestions = AmenityQuestions;
+
+  // Compute the next applicable unanswered question
+  public nextAmenityQuestion = computed(() => {
+    const spot = this.spot();
+    if (!spot) return null;
+    const a = spot.amenities();
+    for (const q of this.AmenityQuestions) {
+      try {
+        if (q.isApplicable(a) && !q.isAnswered(a)) return q;
+      } catch {
+        // If a question throws, skip it rather than breaking the UI
+        continue;
+      }
+    }
+    return null;
+  });
+
+  // Current selection value for the next question
+  currentQuestionValue = computed<QuestionValue | null>(() => {
+    const spot = this.spot();
+    const q = this.nextAmenityQuestion();
+    if (!spot || !q) return null;
+    return q.getValue(spot.amenities());
+  });
+
+  // Apply selection for the currently shown question
+  public answerAmenityQuestion(questionId: string, value: string) {
+    const q = this.nextAmenityQuestion();
+    const spot = this.spot();
+    if (!q || !spot) return;
+    const opt = q.options.find((o) => o.value === value);
+    if (!opt) return;
+    this.spot!.update((s) => {
+      if (!s) return s;
+      const updated = opt.apply({ ...(s.amenities() ?? {}) });
+      s.amenities.set(updated);
+      return s;
+    });
+  }
+
   spotImages = computed(() => {
     const spot = this.spot();
     if (!spot) return [];
@@ -323,9 +368,16 @@ export class SpotDetailsComponent
 
   get spotDescriptionLocaleMap(): LocaleMap {
     const spot = this.spot();
-    if (!spot || !spot.description()) return {};
-
-    return spot.descriptions()!;
+    if (!spot) return {};
+    // Ensure we return a stable object reference; if descriptions are undefined,
+    // initialize them once to an empty map to avoid identity churn that can
+    // cause repeated change detection or signal update loops in children.
+    const current = spot.descriptions();
+    if (!current) {
+      spot.descriptions.set({});
+      return {};
+    }
+    return current;
   }
   set spotDescriptionLocaleMap(value: LocaleMap) {
     this.spot()?.descriptions.set(value);

@@ -8,7 +8,6 @@ import { SpotAddressSchema, SpotId, SpotSchema } from "../schemas/SpotSchema";
 import { SpotTypes, SpotAccess } from "../schemas/SpotTypeAndAccess";
 import { computed, Signal, signal, WritableSignal } from "@angular/core";
 import { SpotReviewSchema } from "../schemas/SpotReviewSchema";
-import { StorageService } from "../../app/services/firebase/storage.service";
 import {
   getBestLocale,
   makeLocaleMapFromObject,
