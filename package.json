@@ -39,14 +39,12 @@
     "@angular/router": "^20.3.0",
     "@angular/service-worker": "^20.3.0",
     "@angular/ssr": "^20.0.5",
-    "@firebase/auth": "^1.8.2",
-    "@firebase/firestore": "^4.7.6",
-    "@firebase/storage": "^0.13.5",
     "@videogular/ngx-videogular": "^8.0.0",
     "bootstrap": "^5.3.0",
     "buffer": "^6.0.3",
     "compression": "^1.8.0",
     "express": "^4.18.2",
+    "firebase": "^11.10.0",
     "rxjs": "^7.8.1",
     "swiper": "^11.1.7",
     "timers": "^0.1.1",
@@ -56,7 +54,6 @@
     "zone.js": "^0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/core": "^20.0.5",
     "@angular/build": "^20.2.2",
     "@angular/cli": "^20.0.5",
     "@angular/compiler-cli": "^20.3.0",

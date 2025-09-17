@@ -81,13 +81,6 @@
             "scripts": [],
             "allowedCommonJsDependencies": [
               "firebase",
-              "@firebase/app",
-              "firebase/app",
-              "@firebase/database",
-              "@firebase/firestore",
-              "@firebase/functions",
-              "@firebase/performance",
-              "@firebase/remote-config",
               "@angular/fire",
               "@angular/fire/firestore",
               "dialog-polyfill",
