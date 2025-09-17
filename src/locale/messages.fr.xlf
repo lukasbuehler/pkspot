@@ -20,6 +20,12 @@
           amis et partagez vos réussites et souvenirs avec eux et le monde entier. </target>
       </segment>
     </unit>
+    <unit id="3768927257183755959">
+      <segment state="initial">
+        <source>Save</source>
+        <target>Enregistrer</target>
+      </segment>
+    </unit>
     <unit id="7411379953853971507">
       <segment state="initial">
         <source> This project is Open-Source! Our code is licensed under the <pc id="0"
@@ -304,8 +310,8 @@
       <segment state="initial">
         <source> This spot is not eligible for highlights. To be eligible, it needs at least one
           user-submitted picture and at least one rating. </source>
-        <target> Ce spot n’est pas éligible aux highlights. Pour être éligible, il doit
-          comporter au moins une photo soumise par un utilisateur et au moins une note. </target>
+        <target> Ce spot n’est pas éligible aux highlights. Pour être éligible, il doit comporter au
+          moins une photo soumise par un utilisateur et au moins une note. </target>
       </segment>
     </unit>
     <unit id="3934298777794632654">
@@ -436,10 +442,15 @@
         <target> En téléchargeant, vous confirmez que vous possédez les droits ou que vous avez la
           permission de partager ce média. Vous accordez à PK Spot une licence non exclusive,
           mondiale et gratuite pour héberger, stocker, reproduire, modifier (par exemple, vignettes
-          /
-          compression), afficher et distribuer ce média en relation avec le service. Vous conservez
-          la propriété et pouvez supprimer le média à tout moment, sous réserve des copies dans les
-          sauvegardes et les caches. </target>
+          / compression), afficher et distribuer ce média en relation avec le service. Vous
+          conservez la propriété et pouvez supprimer le média à tout moment, sous réserve des copies
+          dans les sauvegardes et les caches. </target>
+      </segment>
+    </unit>
+    <unit id="3517550046701184661">
+      <segment state="initial">
+        <source>Show less</source>
+        <target>Afficher moins</target>
       </segment>
     </unit>
     <unit id="3539941729807255231">
@@ -632,7 +643,7 @@
       </notes>
       <segment state="initial">
         <source>Terms of Service</source>
-        <target>Conditions d'utilisation</target>
+        <target>Conditions d&apos;utilisation</target>
       </segment>
     </unit>
     <unit id="privacypolicy">
@@ -676,6 +687,12 @@
       <segment state="initial">
         <source>You need to agree to the terms and conditions!</source>
         <target>Vous devez accepter les conditions d’utilisation !</target>
+      </segment>
+    </unit>
+    <unit id="1975356621924283237">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Outdoor</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -1315,6 +1332,36 @@
         <target> Points forts </target>
       </segment>
     </unit>
+    <unit id="question.covered">
+      <segment state="initial">
+        <source>Is the area covered?</source>
+        <target>La zone est-elle couverte?</target>
+      </segment>
+    </unit>
+    <unit id="question.environment">
+      <segment state="initial">
+        <source>Is this an indoor or outdoor spot?</source>
+        <target>S&apos;agit-il d&apos;un spot intérieur ou extérieur ?</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.both">
+      <segment state="initial">
+        <source>Both</source>
+        <target>Les deux</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.indoor">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Indoor</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.outdoor">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Outdoor</target>
+      </segment>
+    </unit>
     <unit id="regular_spots_text">
       <segment state="initial">
         <source>Spots</source>
@@ -1414,6 +1461,12 @@
       <segment state="initial">
         <source>What would you rate this spot from one to five stars?</source>
         <target>Quelle note donneriez-vous à ce spot, de une à cinq étoiles ?</target>
+      </segment>
+    </unit>
+    <unit id="6439365426343089851">
+      <segment state="initial">
+        <source>General</source>
+        <target>Général</target>
       </segment>
     </unit>
     <unit id="spot.review.count">
@@ -1616,6 +1669,12 @@
       <segment state="initial">
         <source>Iconic Spot</source>
         <target>Spot emblématique</target>
+      </segment>
+    </unit>
+    <unit id="generic.not_sure">
+      <segment state="initial">
+        <source>Not sure</source>
+        <target>Pas sûr</target>
       </segment>
     </unit>
     <unit id="google.place.rating.label">
@@ -1853,6 +1912,12 @@
         <target>Add Spot</target>
       </segment>
     </unit>
+    <unit id="2741210807832834277">
+      <segment state="initial">
+        <source>Edit detailed amenities</source>
+        <target>Modifier les équipements détaillés</target>
+      </segment>
+    </unit>
     <unit id="pk.spotmap.addSpot">
       <segment state="initial">
         <source>Add spot</source>
@@ -1903,7 +1968,7 @@
         <target>À propos de vous</target>
       </segment>
     </unit>
-    <unit id="3133198135717483264">
+    <unit id="add_media.label">
       <segment state="initial">
         <source>Add media</source>
         <target>Ajouter des médias</target>
@@ -2209,6 +2274,12 @@
         <target>Solo</target>
       </segment>
     </unit>
+    <unit id="2267637299863581067">
+      <segment state="initial">
+        <source>Features and amenities</source>
+        <target>Caractéristiques et équipements</target>
+      </segment>
+    </unit>
     <unit id="2273032269971765958">
       <segment state="initial">
         <source>Pair</source>
@@ -2267,6 +2338,12 @@
       <segment state="initial">
         <source>Participant Type</source>
         <target>Type de participant</target>
+      </segment>
+    </unit>
+    <unit id="8822206448271061589">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Indoor</target>
       </segment>
     </unit>
     <unit id="8828059408146193176">
@@ -2345,6 +2422,12 @@
       <segment state="initial">
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName" /></source>
         <target>Challenge à <ph id="0" equiv="PH" disp="spotName" /></target>
+      </segment>
+    </unit>
+    <unit id="7215101881367554791">
+      <segment state="initial">
+        <source>Show more</source>
+        <target>Afficher plus</target>
       </segment>
     </unit>
     <unit id="565606266379309262">

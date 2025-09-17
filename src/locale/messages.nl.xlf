@@ -20,6 +20,12 @@
           prestaties en herinneringen met hen en de wereld. </target>
       </segment>
     </unit>
+    <unit id="3768927257183755959">
+      <segment state="initial">
+        <source>Save</source>
+        <target>Opslaan</target>
+      </segment>
+    </unit>
     <unit id="7411379953853971507">
       <segment state="initial">
         <source> This project is Open-Source! Our code is licensed under the <pc id="0"
@@ -433,11 +439,17 @@
           connection with the service. You retain ownership and can delete the media at any time,
           subject to copies in backups and caches. </source>
         <target> Door te uploaden bevestig je dat je de rechten bezit of toestemming hebt om deze
-          media te
-          delen. Je verleent PK Spot een niet-exclusieve, wereldwijde, royaltyvrije licentie om deze
-          media te hosten, op te slaan, te reproduceren, te wijzigen (bijv. miniaturen/compressie),
-          weer te geven en te distribueren in verband met de dienst. Je behoudt het eigendom en kunt
-          de media op elk moment verwijderen, met uitzondering van kopieën in back-ups en caches. </target>
+          media te delen. Je verleent PK Spot een niet-exclusieve, wereldwijde, royaltyvrije
+          licentie om deze media te hosten, op te slaan, te reproduceren, te wijzigen (bijv.
+          miniaturen/compressie), weer te geven en te distribueren in verband met de dienst. Je
+          behoudt het eigendom en kunt de media op elk moment verwijderen, met uitzondering van
+          kopieën in back-ups en caches. </target>
+      </segment>
+    </unit>
+    <unit id="3517550046701184661">
+      <segment state="initial">
+        <source>Show less</source>
+        <target>Toon minder</target>
       </segment>
     </unit>
     <unit id="3539941729807255231">
@@ -674,6 +686,12 @@
       <segment state="initial">
         <source>You need to agree to the terms and conditions!</source>
         <target>Je moet akkoord gaan met de voorwaarden!</target>
+      </segment>
+    </unit>
+    <unit id="1975356621924283237">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Outdoor</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -1305,6 +1323,36 @@
         <target> Hoogtepunten </target>
       </segment>
     </unit>
+    <unit id="question.covered">
+      <segment state="initial">
+        <source>Is the area covered?</source>
+        <target>Is het gebied overdekt?</target>
+      </segment>
+    </unit>
+    <unit id="question.environment">
+      <segment state="initial">
+        <source>Is this an indoor or outdoor spot?</source>
+        <target>Is dit een binnen- of buitenspot?</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.both">
+      <segment state="initial">
+        <source>Both</source>
+        <target>Beide</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.indoor">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Indoor</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.outdoor">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Outdoor</target>
+      </segment>
+    </unit>
     <unit id="regular_spots_text">
       <segment state="initial">
         <source>Spots</source>
@@ -1404,6 +1452,12 @@
       <segment state="initial">
         <source>What would you rate this spot from one to five stars?</source>
         <target>Hoeveel sterren (van één tot vijf) zou je deze spot geven?</target>
+      </segment>
+    </unit>
+    <unit id="6439365426343089851">
+      <segment state="initial">
+        <source>General</source>
+        <target>Algemeen</target>
       </segment>
     </unit>
     <unit id="spot.review.count">
@@ -1604,6 +1658,12 @@
       <segment state="initial">
         <source>Iconic Spot</source>
         <target>Iconische Spot</target>
+      </segment>
+    </unit>
+    <unit id="generic.not_sure">
+      <segment state="initial">
+        <source>Not sure</source>
+        <target>Weet ik niet zeker</target>
       </segment>
     </unit>
     <unit id="google.place.rating.label">
@@ -1841,6 +1901,12 @@
         <target>Add Spot</target>
       </segment>
     </unit>
+    <unit id="2741210807832834277">
+      <segment state="initial">
+        <source>Edit detailed amenities</source>
+        <target>Gedetailleerde voorzieningen bewerken</target>
+      </segment>
+    </unit>
     <unit id="pk.spotmap.addSpot">
       <segment state="initial">
         <source>Add spot</source>
@@ -1891,7 +1957,7 @@
         <target>Over jou</target>
       </segment>
     </unit>
-    <unit id="3133198135717483264">
+    <unit id="add_media.label">
       <segment state="initial">
         <source>Add media</source>
         <target>Media toevoegen</target>
@@ -2195,6 +2261,12 @@
         <target>Solo</target>
       </segment>
     </unit>
+    <unit id="2267637299863581067">
+      <segment state="initial">
+        <source>Features and amenities</source>
+        <target>Kenmerken en voorzieningen</target>
+      </segment>
+    </unit>
     <unit id="2273032269971765958">
       <segment state="initial">
         <source>Pair</source>
@@ -2253,6 +2325,12 @@
       <segment state="initial">
         <source>Participant Type</source>
         <target>Deelnemertype</target>
+      </segment>
+    </unit>
+    <unit id="8822206448271061589">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Indoor</target>
       </segment>
     </unit>
     <unit id="8828059408146193176">
@@ -2331,6 +2409,12 @@
       <segment state="initial">
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName" /></source>
         <target>Challenge op <ph id="0" equiv="PH" disp="spotName" /></target>
+      </segment>
+    </unit>
+    <unit id="7215101881367554791">
+      <segment state="initial">
+        <source>Show more</source>
+        <target>Meer weergeven</target>
       </segment>
     </unit>
     <unit id="565606266379309262">
