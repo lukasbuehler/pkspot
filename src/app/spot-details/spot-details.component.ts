@@ -71,7 +71,8 @@ import { MapsApiService } from "../services/maps-api.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { SpotReportDialogComponent } from "../spot-report-dialog/spot-report-dialog.component";
 import { SpotReviewDialogComponent } from "../spot-review-dialog/spot-review-dialog.component";
-import { MatDialog } from "@angular/material/dialog";
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { Inject } from "@angular/core";
 import { SpotReportSchema } from "../../db/schemas/SpotReportSchema";
 import { SpotTypes, SpotAccess } from "../../db/schemas/SpotTypeAndAccess";
 import { MatSelect, MatSelectModule } from "@angular/material/select";
@@ -208,6 +209,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     LocaleMapViewComponent,
     ChallengeListComponent,
     MatButtonToggleModule,
+    MatDialogModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -369,19 +371,16 @@ export class SpotDetailsComponent
   get spotDescriptionLocaleMap(): LocaleMap {
     const spot = this.spot();
     if (!spot) return {};
-    // Ensure we return a stable object reference; if descriptions are undefined,
-    // initialize them once to an empty map to avoid identity churn that can
-    // cause repeated change detection or signal update loops in children.
+    // Return a stable object reference without mutating signals during render
     const current = spot.descriptions();
-    if (!current) {
-      spot.descriptions.set({});
-      return {};
-    }
-    return current;
+    return current ?? this._EMPTY_LOCALE_MAP;
   }
   set spotDescriptionLocaleMap(value: LocaleMap) {
     this.spot()?.descriptions.set(value);
   }
+
+  // Stable empty LocaleMap to avoid identity churn in templates when descriptions are unset
+  private readonly _EMPTY_LOCALE_MAP = Object.freeze({}) as LocaleMap;
 
   spotTypes = Object.values(SpotTypes);
   spotTypeNames = SpotTypesNames;
@@ -433,7 +432,7 @@ export class SpotDetailsComponent
 
   constructor(
     public authenticationService: AuthenticationService,
-    public dialog: MatDialog,
+    @Inject(MatDialog) public dialog: MatDialog,
     private _locationStrategy: LocationStrategy,
     private _router: Router,
     private _element: ElementRef,

@@ -118,12 +118,12 @@ After that the language files will be updated (and possibly reformatted, which i
        },
        "architect": {
            "build": {
-           "builder": "@angular-devkit/build-angular:application",
-           "options": {
-               "localize": ["en", "de", "de-CH", "xx-XX"], // add you language here too
-               ...
-           }
-           ...
+              "builder": "@angular/build:application",
+              "options": {
+                  "localize": ["en", "de", "de-CH", "xx-XX"], // add you language here too
+                  ...
+              }
+              ...
            }
            ...
        }

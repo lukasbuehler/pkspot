@@ -39,7 +39,7 @@ export class ForgotPasswordPageComponent implements OnInit {
 
   private _recaptchaSolved = false;
   private _recaptchaSetupCompleted = false;
-  recaptcha: firebase.default.auth.RecaptchaVerifier | null = null;
+  recaptcha: RecaptchaVerifier | null = null;
   sendingSuccessful: boolean = false;
 
   constructor(
@@ -105,7 +105,12 @@ export class ForgotPasswordPageComponent implements OnInit {
       .then((recaptcha) => {
         this.recaptcha = recaptcha;
         this._recaptchaSetupCompleted = true;
-        this.recaptcha.render();
+        if (
+          this.recaptcha &&
+          typeof (this.recaptcha as any).render === "function"
+        ) {
+          (this.recaptcha as any).render();
+        }
         console.log("reCAPTCHA setup completed");
       })
       .catch((error) => {

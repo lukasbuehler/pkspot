@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject, Injector } from "@angular/core";
 import {
   Firestore,
   doc,
@@ -36,10 +36,13 @@ import { ConsentAwareService } from "../../consent-aware.service";
   providedIn: "root",
 })
 export class SpotsService extends ConsentAwareService {
-  constructor(
-    private firestore: Firestore,
-    private storageService: StorageService
-  ) {
+  private _injector = inject(Injector);
+  private get storageService(): StorageService {
+    // Lazily resolve to avoid circular DI during construction
+    return this._injector.get(StorageService);
+  }
+
+  constructor(private firestore: Firestore) {
     super();
   }
 
