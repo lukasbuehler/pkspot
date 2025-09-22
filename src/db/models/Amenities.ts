@@ -65,7 +65,6 @@ export function makeSmartAmenitiesArray(
   isNegative?: boolean;
 }[] {
   if (!amenities) return [];
-
   const result: {
     name?: string;
     icon?: string;
@@ -341,11 +340,176 @@ export const AmenityQuestions: AmenityQuestion[] = [
       const outTrue = a?.outdoor === true;
       return outTrue || (!indTrue && !outTrue);
     },
-    isAnswered: (a) => a?.covered !== null && a?.covered !== undefined,
+    // Null (Not sure) counts as answered; only undefined means unanswered
+    isAnswered: (a) => a?.covered !== undefined,
     getValue: (a) => {
       const c = a?.covered ?? null;
       if (c === true) return "covered";
       if (c === false) return "not_covered";
+      return "unknown";
+    },
+  },
+  {
+    id: "lighting",
+    text: $localize`:@@question.lighting:Is there lighting available?`,
+    options: [
+      {
+        value: "lighting_yes",
+        label: $localize`:@@amenities.lighting:Lighting`,
+        icon: AmenityIcons.lighting,
+        apply: (a) => ({ ...(a ?? {}), lighting: true }),
+      },
+      {
+        value: "lighting_no",
+        label: $localize`:@@amenities.no_lighting:No lighting`,
+        icon: AmenityNegativeIcons.lighting,
+        apply: (a) => ({ ...(a ?? {}), lighting: false }),
+      },
+      {
+        value: "unknown",
+        label: $localize`:@@generic.not_sure:Not sure`,
+        apply: (a) => ({ ...(a ?? {}), lighting: null }),
+      },
+    ],
+    isApplicable: () => true,
+    // Null (Not sure) counts as answered; only undefined means unanswered
+    isAnswered: (a) => a?.lighting !== undefined,
+    getValue: (a) => {
+      const v = a?.lighting ?? null;
+      if (v === true) return "lighting_yes";
+      if (v === false) return "lighting_no";
+      return "unknown";
+    },
+  },
+  {
+    id: "maybe_overgrown",
+    text: $localize`:@@question.maybe_overgrown:Can it sometimes be overgrown?`,
+    options: [
+      {
+        value: "overgrown_yes",
+        label: $localize`:@@amenities.maybe_overgrown:May be overgrown`,
+        icon: AmenityIcons.maybe_overgrown,
+        apply: (a) => ({ ...(a ?? {}), maybe_overgrown: true }),
+      },
+      {
+        value: "overgrown_no",
+        label: $localize`:@@amenities.not_overgrown:Well maintained`,
+        icon: AmenityNegativeIcons.maybe_overgrown,
+        apply: (a) => ({ ...(a ?? {}), maybe_overgrown: false }),
+      },
+      {
+        value: "unknown",
+        label: $localize`:@@generic.not_sure:Not sure`,
+        apply: (a) => ({ ...(a ?? {}), maybe_overgrown: null }),
+      },
+    ],
+    // Only ask if at least partially outdoor (overgrowth irrelevant strictly indoors)
+    // Ask if marked outdoor or environment not decided yet (both indoor & outdoor unset)
+    isApplicable: (a) =>
+      !!a?.outdoor || (a?.indoor === undefined && a?.outdoor === undefined),
+    // Null (Not sure) counts as answered; only undefined means unanswered
+    isAnswered: (a) => a?.maybe_overgrown !== undefined,
+    getValue: (a) => {
+      const v = a?.maybe_overgrown ?? null;
+      if (v === true) return "overgrown_yes";
+      if (v === false) return "overgrown_no";
+      return "unknown";
+    },
+  },
+  {
+    id: "water_feature",
+    text: $localize`:@@question.water_feature:Is there a water feature (fountain, river, lake etc.)?`,
+    options: [
+      {
+        value: "water_feature_yes",
+        label: $localize`:@@amenities.water_feature:Water feature`,
+        icon: AmenityIcons.water_feature,
+        apply: (a) => ({ ...(a ?? {}), water_feature: true }),
+      },
+      {
+        value: "water_feature_no",
+        label: $localize`:@@amenities.no_water_feature:No water feature`,
+        icon: AmenityNegativeIcons.water_feature,
+        apply: (a) => ({ ...(a ?? {}), water_feature: false }),
+      },
+      {
+        value: "unknown",
+        label: $localize`:@@generic.not_sure:Not sure`,
+        apply: (a) => ({ ...(a ?? {}), water_feature: null }),
+      },
+    ],
+    isApplicable: () => true,
+    // Null (Not sure) counts as answered; only undefined means unanswered
+    isAnswered: (a) => a?.water_feature !== undefined,
+    getValue: (a) => {
+      const v = a?.water_feature ?? null;
+      if (v === true) return "water_feature_yes";
+      if (v === false) return "water_feature_no";
+      return "unknown";
+    },
+  },
+  {
+    id: "wc",
+    text: $localize`:@@question.wc:Are toilets (WC) available?`,
+    options: [
+      {
+        value: "wc_yes",
+        label: $localize`:@@amenities.wc:WC`,
+        icon: AmenityIcons.wc,
+        apply: (a) => ({ ...(a ?? {}), wc: true }),
+      },
+      {
+        value: "wc_no",
+        label: $localize`:@@amenities.no_wc:No WC`,
+        icon: AmenityNegativeIcons.wc,
+        apply: (a) => ({ ...(a ?? {}), wc: false }),
+      },
+      {
+        value: "unknown",
+        label: $localize`:@@generic.not_sure:Not sure`,
+        apply: (a) => ({ ...(a ?? {}), wc: null }),
+      },
+    ],
+    // Ask if not definitively outdoor-only (since outdoor-only WC absence common, but still ask after some core outdoor questions?) -> keep simple: always
+    isApplicable: () => true,
+    // Null (Not sure) counts as answered; only undefined means unanswered
+    isAnswered: (a) => a?.wc !== undefined,
+    getValue: (a) => {
+      const v = a?.wc ?? null;
+      if (v === true) return "wc_yes";
+      if (v === false) return "wc_no";
+      return "unknown";
+    },
+  },
+  {
+    id: "drinking_water",
+    text: $localize`:@@question.drinking_water:Is there drinking water available right at the spot?`,
+    options: [
+      {
+        value: "drinking_water_yes",
+        label: $localize`:@@amenities.drinking_water:Drinking water`,
+        icon: AmenityIcons.drinking_water,
+        apply: (a) => ({ ...(a ?? {}), drinking_water: true }),
+      },
+      {
+        value: "drinking_water_no",
+        label: $localize`:@@amenities.no_drinking_water:No drinking water`,
+        icon: AmenityNegativeIcons.drinking_water,
+        apply: (a) => ({ ...(a ?? {}), drinking_water: false }),
+      },
+      {
+        value: "unknown",
+        label: $localize`:@@generic.not_sure:Not sure`,
+        apply: (a) => ({ ...(a ?? {}), drinking_water: null }),
+      },
+    ],
+    isApplicable: () => true,
+    // Null (Not sure) counts as answered; only undefined means unanswered
+    isAnswered: (a) => a?.drinking_water !== undefined,
+    getValue: (a) => {
+      const v = a?.drinking_water ?? null;
+      if (v === true) return "drinking_water_yes";
+      if (v === false) return "drinking_water_no";
       return "unknown";
     },
   },

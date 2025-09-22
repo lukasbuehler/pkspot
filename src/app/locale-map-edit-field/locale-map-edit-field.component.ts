@@ -125,7 +125,12 @@ export class LocaleMapEditFieldComponent {
   addTranslation() {
     // open a dialog with an autocomplete for the user to select a language
     const dialogRef = this.dialog.open(SelectLanguageDialogComponent, {
-      data: { locale: null },
+      data: {
+        locale: null,
+        mode: "add",
+        availableLocales: this.localeKeys(),
+        excludeLocales: this.localeKeys(),
+      },
       hasBackdrop: true,
       maxWidth: "95vw",
       width: "400px",

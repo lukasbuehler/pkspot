@@ -214,7 +214,7 @@
         (click)="openMediaUploadDialog()"
       >
         <mat-icon>add_photo_alternate</mat-icon>
-        <span i18n>Add Media</span>
+        <span i18n="@@add_media.label">Add Media</span>
       </button>
       }
     </div>
@@ -700,7 +700,7 @@
       <!-- Media preview grid -->
       @if(spot()!.userMedia() && spot()!.userMedia().length > 0) {
       <p
-        class="mat-title-small"
+        class="mat-body-medium"
         i18n="
           reorder media message|Message shown when there are media items to
           reorder@@spot.edit.media.reorder"
@@ -720,9 +720,9 @@
           matButton="filled"
           color="primary"
           (click)="openMediaUploadDialog()"
-          i18n
         >
-          Add images
+          <mat-icon>add_photo_alternate</mat-icon>
+          <span i18n="@@add_media.label">Add Media</span>
         </button>
       </div>
       } @else {
@@ -887,25 +887,6 @@
       </h4>
       <!-- Single-question flow (config-driven): shows only when a question is applicable and unanswered -->
       @if (nextAmenityQuestion()) {
-      <!-- <div class="env-picker mb-3 p-2 border rounded">
-          <p class="mat-body-medium m-0 mb-1">
-            {{ nextAmenityQuestion()!.text }}
-          </p>
-          <mat-button-toggle-group
-            [value]="currentQuestionValue()"
-            (valueChange)="answerAmenityQuestion(nextAmenityQuestion()!.id, $event)"
-            class="w-100"
-          >
-            @for (opt of nextAmenityQuestion()!.options; track opt.value) {
-              <mat-button-toggle [value]="opt.value">
-                @if (opt.icon) {
-                  <mat-icon class="me-1">{{ opt.icon }}</mat-icon>
-                }
-                <span>{{ opt.label }}</span>
-              </mat-button-toggle>
-            }
-          </mat-button-toggle-group>
-        </div> -->
 
       <div class="mb-3 p-2 border rounded">
         <h5 class="mat-label-medium">Question</h5>
@@ -914,7 +895,17 @@
         </p>
         <div>
           @for(opt of nextAmenityQuestion()!.options; track opt.value) {
-          <button matButton="filled" class="me-2 mb-2">
+          <button
+            matButton="filled"
+            class="me-2 mb-2"
+            [color]="
+              currentQuestionValue() === opt.value ? 'primary' : undefined
+            "
+            [attr.aria-pressed]="currentQuestionValue() === opt.value"
+            (click)="
+              answerAmenityQuestion(nextAmenityQuestion()!.id, opt.value)
+            "
+          >
             @if(opt.icon) {<mat-icon>{{ opt.icon }}</mat-icon
             >} {{ opt.label }}
           </button>
@@ -922,6 +913,22 @@
         </div>
       </div>
       }
+
+      <!-- Read-only display of currently shown amenities -->
+      <div class="mb-3">
+        @if(spot()?.smartAmenitiesArray() &&
+        spot()!.smartAmenitiesArray().length > 0) {
+        <h5 class="mat-label-medium" i18n>Shown amenities</h5>
+        <mat-chip-set>
+          @for(amenity of spot()!.smartAmenitiesArray(); track amenity) {
+          <mat-chip [class.negative-amenity]="amenity.isNegative">
+            <mat-icon matChipAvatar>{{ amenity.icon }}</mat-icon>
+            {{ amenity.name }}
+          </mat-chip>
+          }
+        </mat-chip-set>
+        }
+      </div>
       <button
         matButton="outlined"
         color="primary"

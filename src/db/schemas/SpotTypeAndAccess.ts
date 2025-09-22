@@ -11,6 +11,8 @@ export enum SpotTypes {
   Rooftop = "rooftop",
   RoofGap = "roof gap",
   Descent = "descent",
+  Monument = "monument",
+  Water = "water",
   Other = "other",
 }
 
@@ -27,6 +29,8 @@ export const SpotTypesNames: Record<SpotTypes, string> = {
   [SpotTypes.Rooftop]: $localize`:@@spot-type.rooftop:Rooftop`,
   [SpotTypes.RoofGap]: $localize`:@@spot-type.roof-gap:Roof Gap`,
   [SpotTypes.Descent]: $localize`:@@spot-type.descent:Descent`,
+  [SpotTypes.Monument]: $localize`:@@spot-type.monument:Monument`,
+  [SpotTypes.Water]: $localize`:@@spot-type.water:Water Spot`,
   [SpotTypes.Other]: $localize`:@@spot-type.other:Other`,
 };
 
@@ -43,6 +47,8 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
   [SpotTypes.Rooftop]: "roofing",
   [SpotTypes.RoofGap]: "space_bar",
   [SpotTypes.Descent]: "arrow_downward",
+  [SpotTypes.Monument]: "museum", // representative icon
+  [SpotTypes.Water]: "water",
   [SpotTypes.Other]: "help_outline",
 };
 
@@ -59,6 +65,8 @@ export const SpotTypesDescriptions: Record<SpotTypes, string> = {
   [SpotTypes.Rooftop]: $localize`:@@spot-type-description.rooftop:This is a rooftop area with ledges, walls, and elevated structures.`,
   [SpotTypes.RoofGap]: $localize`:@@spot-type-description.roof-gap:This is a roof gap requiring precision jumping between buildings.`,
   [SpotTypes.Descent]: $localize`:@@spot-type-description.descent:This is a spot primarily used for descending techniques.`,
+  [SpotTypes.Monument]: $localize`:@@spot-type-description.monument:This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.`,
+  [SpotTypes.Water]: $localize`:@@spot-type-description.water:This spot centers around water (fountain, riverbank, lakeside structure, etc.) offering unique movement or aesthetic value. Surfaces may be slippery—use caution.`,
   [SpotTypes.Other]: $localize`:@@spot-type-description.other:This is a location that doesn't fit standard categories but offers training opportunities.`,
 };
 
