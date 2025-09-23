@@ -119,26 +119,27 @@ export class AuthenticationService extends ConsentAwareService {
 
     if (typeof window === "undefined") return; // SSR: skip
 
-    // Many environments (iOS/Safari/3rd-party cookie blockers) break IndexedDB;
-    // prefer localStorage first for more resilience, then IndexedDB, then memory.
+    // Prefer IndexedDB first for best durability and multi-tab behavior.
+    // Fall back to localStorage for environments where IndexedDB is blocked,
+    // then in-memory as a last resort.
     try {
-      await setPersistence(auth, browserLocalPersistence);
-      console.log("Firebase Auth persistence set: browserLocalPersistence");
+      await setPersistence(auth, indexedDBLocalPersistence);
+      console.log("Firebase Auth persistence set: indexedDBLocalPersistence");
       return;
     } catch (e1) {
       console.warn(
-        "localStorage persistence unavailable, trying indexedDB",
+        "IndexedDB persistence unavailable, trying localStorage",
         e1
       );
     }
 
     try {
-      await setPersistence(auth, indexedDBLocalPersistence);
-      console.log("Firebase Auth persistence set: indexedDBLocalPersistence");
+      await setPersistence(auth, browserLocalPersistence);
+      console.log("Firebase Auth persistence set: browserLocalPersistence");
       return;
     } catch (e2) {
       console.warn(
-        "IndexedDB persistence unavailable, falling back to in-memory",
+        "localStorage persistence unavailable, falling back to in-memory",
         e2
       );
     }

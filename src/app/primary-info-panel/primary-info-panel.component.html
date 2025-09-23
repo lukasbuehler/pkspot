@@ -13,7 +13,11 @@
   </div>
 </div>
 } @else {
-<app-bottom-sheet class="flex-grow-1">
+<app-bottom-sheet
+  class="flex-grow-1"
+  (isAtTopChange)="onSheetTopChange($event)"
+  (openProgressChange)="onSheetProgressChange($event)"
+>
   <ng-container *ngTemplateOutlet="projectedContent"></ng-container>
 </app-bottom-sheet>
 }

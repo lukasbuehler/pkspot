@@ -18,6 +18,7 @@ import {
 export class BottomSheetComponent {
   @Input() title: string = "";
   @Output() isAtTopChange = new EventEmitter<boolean>();
+  @Output() openProgressChange = new EventEmitter<number>(); // 0 = bottom (closed), 1 = top (open)
 
   headerHeight: number = 140;
   minimumSpeedToSlide: number = 5;
@@ -48,6 +49,21 @@ export class BottomSheetComponent {
       .lastChild as HTMLElement;
     console.log("contentElement", this.contentElement);
 
+    // Emit initial open/closed state and progress to parent
+    if (this.bottomSheet) {
+      const el = this.bottomSheet.nativeElement as HTMLElement;
+      const height = el.clientHeight;
+      const alwaysVisibleHeight = height - this.headerHeight;
+      const top = el.offsetTop;
+      const atTop = top === 0;
+      const progress =
+        alwaysVisibleHeight > 0
+          ? 1 - Math.min(Math.max(top / alwaysVisibleHeight, 0), 1)
+          : 0;
+      this.isAtTopChange.emit(atTop);
+      this.openProgressChange.emit(progress);
+    }
+
     // Set up scroll listener for content to update signal
     if (this.contentElement) {
       this.renderer.listen(this.contentElement, "scroll", () => {
@@ -69,7 +85,7 @@ export class BottomSheetComponent {
       let height = this.bottomSheet.nativeElement.clientHeight;
       let alwaysVisibleHeight = height - this.headerHeight;
 
-      let animationSteps = 300;
+      let animationSteps = 500;
 
       let topHeightOffset = 0;
       let bottomHeightOffset = alwaysVisibleHeight;
@@ -148,6 +164,11 @@ export class BottomSheetComponent {
 
         this.bottomSheet.nativeElement.style.top = newTop + "px";
         this.isAtTopChange.emit(newTop === 0);
+        const progress =
+          alwaysVisibleHeight > 0
+            ? 1 - Math.min(Math.max(newTop / alwaysVisibleHeight, 0), 1)
+            : 0;
+        this.openProgressChange.emit(progress);
       };
 
       const mouseMoveListener = this.renderer.listen(
@@ -211,21 +232,27 @@ export class BottomSheetComponent {
         let start: number = 0;
         const step = (timestamp: number) => {
           if (!start) start = timestamp;
-          let progress = timestamp - start;
+          let timeProgress = timestamp - start;
 
           // Calculate the current position
           let current = this.easeOutCubic(
-            progress,
+            timeProgress,
             offset,
             distance,
             animationSteps
           );
 
           this.bottomSheet!.nativeElement.style.top = current + "px";
-          this.isAtTopChange.emit(current === 0);
+          // consider near-zero as top to avoid off-by-fractional pixels
+          this.isAtTopChange.emit(Math.abs(current) < 0.5);
+          const progress =
+            alwaysVisibleHeight > 0
+              ? 1 - Math.min(Math.max(current / alwaysVisibleHeight, 0), 1)
+              : 0;
+          this.openProgressChange.emit(progress);
 
           // Continue the easing if not at the target position
-          if (progress < animationSteps) {
+          if (timeProgress < animationSteps) {
             window.requestAnimationFrame(step);
           }
         };
