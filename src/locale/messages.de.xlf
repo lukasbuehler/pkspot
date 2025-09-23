@@ -178,6 +178,12 @@
         <target> Melden </target>
       </segment>
     </unit>
+    <unit id="6377092763030946894">
+      <segment state="initial">
+        <source>Custom URL added</source>
+        <target> Benutzerdefinierte URL hinzugefügt </target>
+      </segment>
+    </unit>
     <unit id="6417858746273147766">
       <notes>
         <note category="description">Placeholder of the spot name in the edit form</note>
@@ -222,6 +228,12 @@
       <segment state="initial">
         <source> Discard changes </source>
         <target> Verwerfen </target>
+      </segment>
+    </unit>
+    <unit id="8482930840277475324">
+      <segment state="initial">
+        <source>Failed to add custom URL</source>
+        <target>Fehler beim Hinzufügen der benutzerdefinierten URL</target>
       </segment>
     </unit>
     <unit id="8486228314424763172">
@@ -466,6 +478,12 @@
         <target>Nein</target>
       </segment>
     </unit>
+    <unit id="1315161140061795296">
+      <segment state="initial">
+        <source>lowercase letters, numbers, and hyphens only</source>
+        <target>Nur Kleinbuchstaben, Zahlen und Bindestriche</target>
+      </segment>
+    </unit>
     <unit id="133789173523080152">
       <segment state="initial">
         <source>Your E-mail is verified</source>
@@ -594,6 +612,12 @@
         <target>Lieber anmelden?</target>
       </segment>
     </unit>
+    <unit id="6964548934732214977">
+      <segment state="initial">
+        <source> Only lowercase letters, numbers, and hyphens are allowed. </source>
+        <target> Es sind nur Kleinbuchstaben, Zahlen und Bindestriche erlaubt. </target>
+      </segment>
+    </unit>
     <unit id="6969445338945867053">
       <segment state="initial">
         <source>Create a new account</source>
@@ -699,6 +723,12 @@
       <segment state="initial">
         <source>Could not create account!</source>
         <target>Account konnte nicht erstellt werden.</target>
+      </segment>
+    </unit>
+    <unit id="3637006077361642270">
+      <segment state="initial">
+        <source>Shown amenities</source>
+        <target>Annehmlichkeiten anzeigen</target>
       </segment>
     </unit>
     <unit id="share_spot_tooltip">
@@ -819,6 +849,12 @@
             disp="spotName" /></source>
         <target><ph id="0" equiv="PH" disp="challengeName" /> - <ph id="1" equiv="PH_1"
             disp="spotName" /></target>
+      </segment>
+    </unit>
+    <unit id="8450335284128633458">
+      <segment state="initial">
+        <source>Failed to link Google Place</source>
+        <target>Fehler beim Hinzufügen des Google Place</target>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -1150,6 +1186,16 @@
         <target> Dies ist ein Spot, der hauptsächlich für Abstiegstechniken genutzt wird.</target>
       </segment>
     </unit>
+    <unit id="spot-type-description.monument">
+      <segment state="initial">
+        <source>This location is a monument, historical ruin, stone marker, or culturally
+          significant structure. Please be respectful and cautious while training here.</source>
+        <target>
+          Dieser Ort ist ein Denkmal, eine historische Ruine, ein Steindenkmal oder eine kulturell
+          bedeutende Struktur. Bitte sei respektvoll und vorsichtig beim Training hier.
+        </target>
+      </segment>
+    </unit>
     <unit id="spot-type-description.natural-landscape">
       <segment state="initial">
         <source>This is a natural area with trees, rocks, logs, and terrain features.</source>
@@ -1230,6 +1276,17 @@
           Elementen.</target>
       </segment>
     </unit>
+    <unit id="spot-type-description.water">
+      <segment state="initial">
+        <source>This spot centers around water (fountain, riverbank, lakeside structure, etc.)
+          offering unique movement or aesthetic value. Surfaces may be slippery—use caution.</source>
+        <target>
+          Dieser Spot dreht sich um Wasser (Brunnen, Flussufer, Seeuferstruktur, etc.) und bietet
+          einzigartige Bewegungs- oder ästhetische Werte. Die Oberflächen können rutschig sein—
+          sei vorsichtig.
+        </target>
+      </segment>
+    </unit>
     <unit id="spot-type.art">
       <segment state="initial">
         <source>Art</source>
@@ -1240,6 +1297,12 @@
       <segment state="initial">
         <source>Descent</source>
         <target>Descent</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.monument">
+      <segment state="initial">
+        <source>Monument</source>
+        <target>Monument</target>
       </segment>
     </unit>
     <unit id="spot-type.natural-landscape">
@@ -1308,6 +1371,12 @@
         <target>Urbane Landschaft</target>
       </segment>
     </unit>
+    <unit id="spot-type.water">
+      <segment state="initial">
+        <source>Water Spot</source>
+        <target>Wasser Spot</target>
+      </segment>
+    </unit>
     <unit id="spot.locality.pretext">
       <notes>
         <note category="description">The text before the localized location of the spot. E.g.
@@ -1333,6 +1402,12 @@
         <target>Ist dieser Spot überdacht?</target>
       </segment>
     </unit>
+    <unit id="question.drinking_water">
+      <segment state="initial">
+        <source>Is there drinking water available right at the spot?</source>
+        <target>Gibt es Trinkwasser direkt beim Spot?</target>
+      </segment>
+    </unit>
     <unit id="question.environment">
       <segment state="initial">
         <source>Is this an indoor or outdoor spot?</source>
@@ -1355,6 +1430,30 @@
       <segment state="initial">
         <source>Outdoor</source>
         <target>Outdoor</target>
+      </segment>
+    </unit>
+    <unit id="question.lighting">
+      <segment state="initial">
+        <source>Is there lighting available?</source>
+        <target>Ist dieser Spot beleuchtet?</target>
+      </segment>
+    </unit>
+    <unit id="question.maybe_overgrown">
+      <segment state="initial">
+        <source>Can it sometimes be overgrown?</source>
+        <target>Ist dieser Spot möglicherweise überwuchert?</target>
+      </segment>
+    </unit>
+    <unit id="question.water_feature">
+      <segment state="initial">
+        <source>Is there a water feature (fountain, river, lake etc.)?</source>
+        <target>Gibt es ein Wasser-Element an diesem Spot? Z.B. einen Brunnen, Fluss, See, etc.</target>
+      </segment>
+    </unit>
+    <unit id="question.wc">
+      <segment state="initial">
+        <source>Are toilets (WC) available?</source>
+        <target>Gibt es Toiletten an diesem Spot?</target>
       </segment>
     </unit>
     <unit id="regular_spots_text">
@@ -1672,27 +1771,11 @@
         <target>Nicht sicher</target>
       </segment>
     </unit>
-    <unit id="google.place.rating.label">
-      <notes>
-        <note category="description">Label for Google place rating</note>
-        <note category="meaning">google place rating label</note>
-      </notes>
+    <unit id="5087122090521808199">
       <segment state="initial">
-        <source>
-          <pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other"
-            dispStart="@if(googlePlace()!.rating) {" dispEnd="}"> Rating: <pc id="1"
-              equivStart="START_TAG_APP_SPOT_RATING" equivEnd="CLOSE_TAG_APP_SPOT_RATING"
-              type="other"
-              dispStart="&lt;app-spot-rating [rating1to5]=&quot;googlePlace()!.rating!&quot; [showEmptyStars]=&quot;false&quot; [isCompact]=&quot;true&quot; &gt;"
-              dispEnd="&lt;/app-spot-rating&gt;" /></pc>
-        </source>
+        <source>Rating:</source>
         <target>
-          <pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other"
-            dispStart="@if(googlePlace().rating) {" dispEnd="}"> Bwertung: <pc id="1"
-              equivStart="START_TAG_APP_SPOT_RATING" equivEnd="CLOSE_TAG_APP_SPOT_RATING"
-              type="other"
-              dispStart="&lt;app-spot-rating [rating1to5]=&quot;googlePlace().rating&quot; [showEmptyStars]=&quot;false&quot; [isCompact]=&quot;true&quot; &gt;"
-              dispEnd="&lt;/app-spot-rating&gt;" /></pc>
+          Bewertung:
         </target>
       </segment>
     </unit>
@@ -1840,6 +1923,16 @@
         <target>Medien</target>
       </segment>
     </unit>
+    <unit id="2114926278043068343">
+      <segment state="initial">
+        <source> Add an editable boundary for this spot. After adding, you can adjust the polygon
+          shape on the map. </source>
+        <target>
+          Füge eine bearbeitbares Areal für diesen Spot hinzu. Nach dem Hinzufügen kannst du die
+          Polygonform auf der Karte anpassen.
+        </target>
+      </segment>
+    </unit>
     <unit id="2159130950882492111">
       <notes>
         <note category="description">cancel button label</note>
@@ -1911,6 +2004,12 @@
       <segment state="initial">
         <source>Edit detailed amenities</source>
         <target>Annehmlichkeiten bearbeiten</target>
+      </segment>
+    </unit>
+    <unit id="2781971407154812080">
+      <segment state="initial">
+        <source>Unlinked Google Place</source>
+        <target>Google Place Verknüpfung wurde entfernt</target>
       </segment>
     </unit>
     <unit id="pk.spotmap.addSpot">
@@ -2164,10 +2263,6 @@
       </segment>
     </unit>
     <unit id="spot.edit.url.add_custom">
-      <notes>
-        <note category="description">Button to add custom spot URL</note>
-        <note category="meaning">add custom url button</note>
-      </notes>
       <segment state="initial">
         <source>Add custom spot URL</source>
         <target>Spot URL hinzufügen</target>
@@ -2290,12 +2385,6 @@
         <target> Spot-Art und Zugang </target>
       </segment>
     </unit>
-    <unit id="7362309544332966845">
-      <segment state="initial">
-        <source> Add images </source>
-        <target> Bilder hinzufügen </target>
-      </segment>
-    </unit>
     <unit id="7374538640222631357">
       <segment state="initial">
         <source>This challenge is still private to you!</source>
@@ -2350,6 +2439,12 @@
             equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other"
             dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;"
             dispEnd="&lt;/mat-slide-toggle&gt;" /></target>
+      </segment>
+    </unit>
+    <unit id="8890858578819685573">
+      <segment state="initial">
+        <source>Failed to unlink Google Place</source>
+        <target>Google Place Verknüpfung konnte nicht entfernt werden</target>
       </segment>
     </unit>
     <unit id="501118076159295384">
@@ -2536,16 +2631,40 @@
         <target>Lade Google Maps® API...</target>
       </segment>
     </unit>
+    <unit id="1603041043712955298">
+      <segment state="initial">
+        <source>Temporarily closed</source>
+        <target>Vorübergehend geschlossen</target>
+      </segment>
+    </unit>
+    <unit id="1608155773786279707">
+      <segment state="initial">
+        <source>Linked Google Place</source>
+        <target>Verknüpfter Google Place</target>
+      </segment>
+    </unit>
     <unit id="1616102757855967475">
       <segment state="initial">
         <source>All</source>
         <target>Alle</target>
       </segment>
     </unit>
+    <unit id="1634758098784005644">
+      <segment state="initial">
+        <source>Loading Google Place…</source>
+        <target>Lade Google Place…</target>
+      </segment>
+    </unit>
     <unit id="3881818169480672345">
       <segment state="initial">
         <source>other</source>
         <target>anderes</target>
+      </segment>
+    </unit>
+    <unit id="7772746290400709115">
+      <segment state="initial">
+        <source>Search Google Places near this spot</source>
+        <target>Suche Google Places in der Nähe dieses Spots</target>
       </segment>
     </unit>
     <unit id="7796156979263266819">
@@ -2580,6 +2699,12 @@
       <segment state="initial">
         <source>Spots</source>
         <target>Spots</target>
+      </segment>
+    </unit>
+    <unit id="4658982717700339898">
+      <segment state="initial">
+        <source>Unlink</source>
+        <target>Verknüpfung aufheben</target>
       </segment>
     </unit>
     <unit id="7457957151903874535">
