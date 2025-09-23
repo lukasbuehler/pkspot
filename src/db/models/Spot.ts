@@ -5,7 +5,12 @@ import { MapHelpers } from "../../scripts/MapHelpers";
 import { environment } from "../../environments/environment";
 import { GeoPoint } from "firebase/firestore";
 import { SpotAddressSchema, SpotId, SpotSchema } from "../schemas/SpotSchema";
-import { SpotTypes, SpotAccess } from "../schemas/SpotTypeAndAccess";
+import {
+  SpotTypes,
+  SpotAccess,
+  parseSpotAccess,
+  parseSpotType,
+} from "../schemas/SpotTypeAndAccess";
 import { computed, Signal, signal, WritableSignal } from "@angular/core";
 import { SpotReviewSchema } from "../schemas/SpotReviewSchema";
 import {
@@ -314,8 +319,9 @@ export class LocalSpot {
       this.googlePlaceId.set(data.external_references.google_maps_place_id);
     }
 
-    this.type.set((data.type as SpotTypes) ?? SpotTypes.Other);
-    this.access.set((data.access as SpotAccess) ?? SpotAccess.Other);
+    // Coerce raw strings from DB to known enums with fallback to Other
+    this.type.set(parseSpotType(data.type ?? null));
+    this.access.set(parseSpotAccess(data.access ?? null));
 
     // Set the default amenities if they don't exist
     if (!data.amenities) data.amenities = {};

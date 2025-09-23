@@ -105,3 +105,33 @@ export const SpotAccessDescriptions: Record<SpotAccess, string> = {
   [SpotAccess.OffLimits]: $localize`:@@spot-access-description.off-limits:This is private property and strictly off-limits without explicit, prior permission from the owner. Unauthorized access may result in legal action or injury.`,
   [SpotAccess.Other]: $localize`:@@spot-access-description.other:The access type of this spot is not specified. Please check local regulations and guidelines before visiting.`,
 };
+
+// Helper: parse arbitrary string to SpotTypes with fallback to Other
+export function parseSpotType(raw?: string | null): SpotTypes {
+  if (!raw) return SpotTypes.Other;
+  const value = String(raw).trim().toLowerCase();
+  // Build lookup of normalized enum values
+  const typeMap: Record<string, SpotTypes> = Object.values(SpotTypes).reduce(
+    (acc, v) => {
+      acc[String(v).toLowerCase()] = v as SpotTypes;
+      return acc;
+    },
+    {} as Record<string, SpotTypes>
+  );
+  // Backward-compatibility aliases (extend as needed)
+  if (value === "memorial") return SpotTypes.Monument;
+  return typeMap[value] ?? SpotTypes.Other;
+}
+
+// Helper: parse arbitrary string to SpotAccess with fallback to Other
+export function parseSpotAccess(raw?: string | null): SpotAccess {
+  if (!raw) return SpotAccess.Other;
+  const value = String(raw).trim().toLowerCase();
+  const accessMap: Record<string, SpotAccess> = Object.values(
+    SpotAccess
+  ).reduce((acc, v) => {
+    acc[String(v).toLowerCase()] = v as SpotAccess;
+    return acc;
+  }, {} as Record<string, SpotAccess>);
+  return accessMap[value] ?? SpotAccess.Other;
+}
