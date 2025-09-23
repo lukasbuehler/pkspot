@@ -238,8 +238,8 @@
       Details
     </h3>
 
-    <!-- Google place -->
-    @if(googlePlace()) {
+    <!-- Google place (reusable component) -->
+    @if(spot()?.googlePlaceId()) {
     <h4
       class="mat-title-small"
       i18n="
@@ -248,50 +248,7 @@
     >
       This spot on Google Maps®
     </h4>
-    <a
-      [href]="googlePlace()!.url"
-      target="_blank"
-      rel="noopener noreferrer"
-      style="text-decoration: none; color: inherit"
-    >
-      <mat-card
-        matRipple
-        class="mat-elevation-z0 clickable border rounded d-flex flex-row mb-4 overflow-hidden"
-        style="height: 80px"
-      >
-        @if(googlePlace()!.photo_url) {
-        <div mat-card-sm-image class="google-img-container">
-          <img [ngSrc]="googlePlace()!.photo_url!" fill />
-        </div>
-        }
-        <mat-card-header class="pb-2">
-          <mat-card-title
-            class="text-truncate mw-100 pt-2 mat-title-medium"
-            style="font-size: 1.1rem"
-          >
-            {{ googlePlace()!.name }}
-          </mat-card-title>
-          <mat-card-subtitle
-            i18n="
-              google place rating label|Label for Google place
-              rating@@google.place.rating.label"
-            class="d-flex flex-row gap-2 mat-title-small"
-          >
-            @if(googlePlace()!.rating) { Rating:
-            <app-spot-rating
-              [rating1to5]="googlePlace()!.rating!"
-              [showEmptyStars]="false"
-              [isCompact]="true"
-            ></app-spot-rating>
-            }
-
-            <!-- <span class="text-truncate" style="flex-shrink: 1">
-            {{ spotLocality }}
-          </span> -->
-          </mat-card-subtitle>
-        </mat-card-header>
-      </mat-card>
-    </a>
+    <app-google-place-preview [placeId]="spot()!.googlePlaceId()" />
     }
 
     <!-- Freatures -->
@@ -800,6 +757,88 @@
       [(localeMap)]="spotDescriptionLocaleMap"
     >
     </app-locale-map-edit-field>
+
+    <!-- Google Places Linking -->
+    <div class="w-100 mb-4">
+      <h4 class="mat-title-small">Google Places</h4>
+      @if(!isNewSpot) {
+      <div class="d-flex flex-column gap-2">
+        @if(spot()?.googlePlaceId()) {
+        <div class="d-flex flex-column gap-2">
+          <app-google-place-preview [placeId]="spot()!.googlePlaceId()" />
+          <div>
+            <button
+              mat-stroked-button
+              color="warn"
+              (click)="unlinkPlace()"
+              [disabled]="unlinkingPlace()"
+            >
+              <mat-icon>link_off</mat-icon>
+              <span i18n>Unlink</span>
+            </button>
+          </div>
+        </div>
+        }
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label i18n>Search Google Places near this spot</mat-label>
+          <input
+            matInput
+            [value]="placeSearch.value"
+            (input)="
+              placeSearch.setValue($any($event.target).value);
+              searchPlaces($any($event.target).value)
+            "
+            [placeholder]="
+              googlePlace() ? googlePlace()!.name : 'Type to search'
+            "
+          />
+        </mat-form-field>
+
+        @if(placePredictions.length > 0) {
+        <div class="border rounded p-1">
+          @for(pred of placePredictions; track pred.place_id) {
+          <button
+            class="w-100 d-flex flex-row align-items-center justify-content-between text-start"
+            mat-button
+            (click)="linkPlace(pred)"
+            [disabled]="linkingPlace()"
+          >
+            <span class="text-truncate">
+              <mat-icon class="me-1">place</mat-icon
+              >{{ pred.structured_formatting.main_text }}
+              <span class="mat-label-small text-secondary"
+                >— {{ pred.structured_formatting.secondary_text }}</span
+              >
+            </span>
+            <mat-icon>link</mat-icon>
+          </button>
+          }
+        </div>
+        } @else if (nearbyPlaceResults.length > 0 && (!placeSearch.value ||
+        placeSearch.value.length === 0)) {
+        <div class="border rounded p-1">
+          @for(res of nearbyPlaceResults; track res.place_id) {
+          <button
+            class="w-100 d-flex flex-row align-items-center justify-content-between text-start"
+            mat-button
+            (click)="linkPlaceResult(res)"
+            [disabled]="linkingPlace() || !res.place_id"
+          >
+            <span class="text-truncate">
+              <mat-icon class="me-1">place</mat-icon
+              >{{ res.name }} @if(res.vicinity) {<span
+                class="mat-label-small text-secondary"
+                >— {{ res.vicinity }}</span
+              >}
+            </span>
+            <mat-icon>link</mat-icon>
+          </button>
+          }
+        </div>
+        }
+      </div>
+      }
+    </div>
 
     <!-- Bounds -->
     <div class="my-3 d-flex justify-start">

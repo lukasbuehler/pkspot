@@ -27,6 +27,7 @@ import { SpotSchema } from "../../../../db/schemas/SpotSchema";
 import { LocaleCode } from "../../../../db/models/Interfaces";
 import { transformFirestoreData } from "../../../../scripts/Helpers";
 import { GeoPoint } from "firebase/firestore";
+import { deleteField } from "firebase/firestore";
 import { StorageService } from "../storage.service";
 import { AnyMedia, StorageImage } from "../../../../db/models/Media";
 import { MediaSchema } from "../../../../db/schemas/Media";
@@ -288,6 +289,21 @@ export class SpotsService extends ConsentAwareService {
 
   updateSpotMedia(spotId: SpotId, media: AnyMedia[]): Promise<void> {
     return updateDoc(doc(this.firestore, "spots", spotId), { media });
+  }
+
+  /**
+   * Set or clear the Google Maps Place ID on a spot without overwriting other external references.
+   */
+  setGoogleMapsPlaceId(spotId: SpotId, placeId: string | null): Promise<void> {
+    const spotRef = doc(this.firestore, "spots", spotId);
+    if (placeId === null) {
+      return updateDoc(spotRef, {
+        "external_references.google_maps_place_id": deleteField(),
+      } as any);
+    }
+    return updateDoc(spotRef, {
+      "external_references.google_maps_place_id": placeId,
+    } as any);
   }
 
   /**

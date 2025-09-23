@@ -12,7 +12,6 @@ import {
   AfterViewInit,
   Pipe,
   PipeTransform,
-  CUSTOM_ELEMENTS_SCHEMA,
   Signal,
   signal,
   input,
@@ -143,6 +142,7 @@ import { ChallengeListComponent } from "../challenge-list/challenge-list.compone
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 // import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
 import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
+import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -203,7 +203,6 @@ export class AsRatingKeyPipe implements PipeTransform {
     KeyValuePipe,
     ReversePipe,
     AsRatingKeyPipe,
-    NgOptimizedImage,
     MatSlideToggle,
     LocaleMapEditFieldComponent,
     MatRippleModule,
@@ -214,8 +213,10 @@ export class AsRatingKeyPipe implements PipeTransform {
     ChallengeListComponent,
     MatButtonToggleModule,
     MatDialogModule,
+    // New reusable Google Place preview
+    GooglePlacePreviewComponent,
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  schemas: [],
 })
 export class SpotDetailsComponent
   implements OnInit, AfterViewInit, OnChanges, OnDestroy
@@ -461,6 +462,130 @@ export class SpotDetailsComponent
     | undefined
   >(undefined);
 
+  // Google Places linking state (edit mode only)
+  placeSearch = new UntypedFormControl("");
+  placePredictions: google.maps.places.AutocompletePrediction[] = [];
+  nearbyPlaceResults: google.maps.places.PlaceResult[] = [];
+  linkingPlace = signal<boolean>(false);
+  unlinkingPlace = signal<boolean>(false);
+
+  async searchPlaces(query: string) {
+    const spot = this.spot();
+    if (!this._mapsApiService.isApiLoaded()) {
+      // try to load if consent allows
+      this._mapsApiService.loadGoogleMapsApi();
+    }
+    let biasRect: google.maps.LatLngBoundsLiteral | undefined;
+    if (spot) {
+      const loc = spot.location();
+      const d = 0.01; // ~1km bias box
+      biasRect = {
+        south: loc.lat - d,
+        west: loc.lng - d,
+        north: loc.lat + d,
+        east: loc.lng + d,
+      };
+    }
+    try {
+      if (!query || query.trim().length === 0) {
+        // No query: seed with nearby places (sorted by distance)
+        if (spot) {
+          this.nearbyPlaceResults =
+            await this._mapsApiService.getNearbyPlacesByDistance(
+              spot.location(),
+              "establishment",
+              5
+            );
+        } else {
+          this.nearbyPlaceResults = [];
+        }
+        this.placePredictions = [];
+        return;
+      }
+      // With query: use autocomplete filtered by name, biased to location, cap to 5
+      const preds = await this._mapsApiService.autocompletePlaceSearch(
+        query,
+        ["establishment"],
+        biasRect
+      );
+      this.placePredictions = preds.slice(0, 5);
+    } catch (e) {
+      console.warn("Place autocomplete failed", e);
+      this.placePredictions = [];
+      this.nearbyPlaceResults = [];
+    }
+  }
+
+  private async _preloadNearbyPlaces() {
+    const spot = this.spot();
+    if (!spot) return;
+    try {
+      this.nearbyPlaceResults =
+        await this._mapsApiService.getNearbyPlacesByDistance(
+          spot.location(),
+          "establishment",
+          5
+        );
+    } catch (e) {
+      console.warn("Failed to preload nearby places", e);
+      this.nearbyPlaceResults = [];
+    }
+  }
+
+  async linkPlace(pred: google.maps.places.AutocompletePrediction) {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return;
+    if (!pred.place_id) return;
+    this.linkingPlace.set(true);
+    try {
+      await this._spotsService.setGoogleMapsPlaceId(spot.id, pred.place_id);
+      // Refresh the spot to pick up the new place id
+      const fresh = await this._spotsService.getSpotById(spot.id, this.locale);
+      this.spot.set(fresh);
+      this.placeSearch.setValue("");
+      this.placePredictions = [];
+      this._loadGooglePlaceDataForSpot();
+      this._snackbar.open($localize`Linked Google Place`, undefined, {
+        duration: 2000,
+      });
+    } catch (e) {
+      console.error("Failed to link Google Place", e);
+      this._snackbar.open($localize`Failed to link Google Place`, undefined, {
+        duration: 2500,
+      });
+    } finally {
+      this.linkingPlace.set(false);
+    }
+  }
+
+  async linkPlaceResult(res: google.maps.places.PlaceResult) {
+    if (!res.place_id) return;
+    // Wrap the place_id in an object compatible with linkPlace signature
+    await this.linkPlace({ place_id: res.place_id } as any);
+  }
+
+  async unlinkPlace() {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return;
+    this.unlinkingPlace.set(true);
+    try {
+      await this._spotsService.setGoogleMapsPlaceId(spot.id, null);
+      const fresh = await this._spotsService.getSpotById(spot.id, this.locale);
+      this.spot.set(fresh);
+      this.googlePlace.set(undefined);
+      this._snackbar.open($localize`Unlinked Google Place`, undefined, {
+        duration: 2000,
+      });
+    } catch (e) {
+      console.error("Failed to unlink Google Place", e);
+      this._snackbar.open($localize`Failed to unlink Google Place`, undefined, {
+        duration: 2500,
+      });
+    } finally {
+      this.unlinkingPlace.set(false);
+    }
+  }
+
   get isNewSpot() {
     return !(this.spot() instanceof Spot);
   }
@@ -503,6 +628,8 @@ export class SpotDetailsComponent
 
       if (spot instanceof Spot) {
         this._loadGooglePlaceDataForSpot();
+        // Preload nearby place suggestions (closest first) for quick linking
+        this._preloadNearbyPlaces();
 
         const currentId = spot.id;
         this._slugService.getAllSlugsForASpot(currentId).then((slugs) => {
