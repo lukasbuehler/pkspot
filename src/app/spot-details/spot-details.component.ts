@@ -27,6 +27,8 @@ import {
   MatProgressBar,
   MatProgressBarModule,
 } from "@angular/material/progress-bar";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
 import { LocalSpot, Spot } from "../../db/models/Spot";
 import {
   SpotAccessDescriptions,
@@ -206,6 +208,8 @@ export class AsRatingKeyPipe implements PipeTransform {
     LocaleMapEditFieldComponent,
     MatRippleModule,
     MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
     LocaleMapViewComponent,
     ChallengeListComponent,
     MatButtonToggleModule,
@@ -345,6 +349,8 @@ export class SpotDetailsComponent
   bookmarked: boolean = false;
 
   allSpotSlugs: string[] = [];
+  newSlug: string = "";
+  addingSlug = signal<boolean>(false);
 
   get spotNameLocaleMap(): LocaleMap {
     const spot = this.spot();
@@ -366,6 +372,41 @@ export class SpotDetailsComponent
     const spot = this.spot();
     if (!spot || this.isLocalSpot()) return;
     (spot as Spot).slug = value;
+  }
+
+  canAddSlug(): boolean {
+    const list = this.allSpotSlugs;
+    return Array.isArray(list) ? list.length < 1 : true;
+  }
+
+  async addSlug() {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return;
+    const slug = (this.newSlug || "").trim().toLowerCase();
+    if (!slug) return;
+    this.addingSlug.set(true);
+    try {
+      await this._slugService.addSpotSlug(spot.id, slug);
+      this.allSpotSlugs = await this._slugService.getAllSlugsForASpot(spot.id);
+      this.spot.update((s) => {
+        if (s instanceof Spot) s.slug = slug;
+        return s;
+      });
+      this.newSlug = "";
+      this._snackbar.open($localize`Custom URL added`, undefined, {
+        duration: 2000,
+      });
+      // Redirect to the canonical slug URL
+      void this._router.navigate(["/s", slug]);
+    } catch (e: any) {
+      this._snackbar.open(
+        e?.message || e || $localize`Failed to add custom URL`,
+        undefined,
+        { duration: 3000 }
+      );
+    } finally {
+      this.addingSlug.set(false);
+    }
   }
 
   get spotDescriptionLocaleMap(): LocaleMap {
@@ -455,11 +496,21 @@ export class SpotDetailsComponent
     effect(() => {
       const spot = this.spot();
 
+      // Reset slug-related UI state on spot change to avoid stale state
+      this.allSpotSlugs = [];
+      this.newSlug = "";
+      this.addingSlug.set(false);
+
       if (spot instanceof Spot) {
         this._loadGooglePlaceDataForSpot();
 
-        this._slugService.getAllSlugsForASpot(spot.id).then((slugs) => {
-          this.allSpotSlugs = slugs;
+        const currentId = spot.id;
+        this._slugService.getAllSlugsForASpot(currentId).then((slugs) => {
+          // Apply only if still on the same spot to avoid race conditions
+          const latest = this.spot();
+          if (latest instanceof Spot && latest.id === currentId) {
+            this.allSpotSlugs = slugs;
+          }
         });
       }
     });
@@ -664,8 +715,10 @@ export class SpotDetailsComponent
 
     // Build domain-agnostic share link without locale prefix
     const { buildAbsoluteUrlNoLocale } = await import("../../scripts/Helpers");
-    // TODO use slug instead of id if available
-    const link = buildAbsoluteUrlNoLocale(`/map/${spot.id}`);
+    const idOrSlug = spot.slug ?? spot.id;
+    const link = buildAbsoluteUrlNoLocale(
+      spot.slug ? `/s/${idOrSlug}` : `/map/${idOrSlug}`
+    );
 
     if (navigator["share"]) {
       try {

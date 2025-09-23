@@ -7,7 +7,7 @@
 <mat-card
   matRipple
   [matRippleDisabled]="!clickable"
-  class="pt-0 bg-transparent"
+  class="pt-0 bg-transparent d-block"
   [class.border]="border"
   [class.clickable]="clickable"
   style="box-shadow: none"
@@ -196,7 +196,7 @@
   </div>
   }
 
-  <mat-card-content>
+  <mat-card-content class="pt-0">
     @if(!isEditing()) {
     <div class="mb-1 mt-1">
       <!-- spot media carousel  -->
@@ -667,6 +667,34 @@
     /////////////////////////////////////////////////   
     -->
 
+    <!-- Saving actions -->
+    @if(isEditing()) {
+    <mat-card-actions class="mb-3 gap-2">
+      @if(editable) {
+      <button
+        matButton="outlined"
+        color="warn"
+        (click)="discardButtonClick()"
+        class="flex-grow-1 flex-basis-0"
+        i18n="
+          Discard changes button label|Label of the button to discard changes
+        "
+      >
+        Discard changes
+      </button>
+      <button
+        matButton="filled"
+        color="primary"
+        (click)="saveButtonClick()"
+        class="flex-grow-1 flex-basis-0"
+        i18n="Save changes button label|Label of the button to save changes"
+      >
+        Save changes
+      </button>
+      }
+    </mat-card-actions>
+    }
+
     <!-- Spot title editing field -->
     <h4
       class="mat-title-small"
@@ -742,43 +770,6 @@
         (change)="setHideStreetviewFromToggle($event)"
         >Hide Streetview</mat-slide-toggle
       >
-    </div>
-
-    <!-- Slug selection -->
-    <div class="pb-4">
-      <h4
-        class="mat-title-small"
-        i18n="
-          spot url edit header|Header for spot URL editing
-          section@@spot.edit.url.header"
-      >
-        Spot URL
-      </h4>
-      @if(allSpotSlugs.length > 0) {
-      <mat-form-field class="w-100" appearance="outline">
-        <mat-label
-          i18n="
-            select spot url label|Label for selecting preferred spot
-            URL@@spot.edit.url.select_label"
-          >Select preffered spot URL</mat-label
-        >
-        <mat-select [(value)]="spotSlug">
-          @for(slug of allSpotSlugs; track $index) {
-          <mat-option [value]="slug">{{ slug }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      }
-
-      <button mat-stroked-button>
-        <mat-icon>add</mat-icon>
-        <span
-          i18n="
-            add custom url button|Button to add custom spot
-            URL@@spot.edit.url.add_custom"
-          >Add custom spot URL</span
-        >
-      </button>
     </div>
 
     <!-- Iconic -->
@@ -939,32 +930,95 @@
       </button>
     </div>
 
+    <!-- Slug selection -->
+    <div class="pb-4">
+      <h4
+        class="mat-title-small"
+        i18n="
+          spot url edit header|Header for spot URL editing
+          section@@spot.edit.url.header"
+      >
+        Spot URL
+      </h4>
+      @if(allSpotSlugs.length > 0) {
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label
+          i18n="
+            select spot url label|Label for selecting preferred spot
+            URL@@spot.edit.url.select_label"
+          >Select preffered spot URL</mat-label
+        >
+        <mat-select [(value)]="spotSlug">
+          @for(slug of allSpotSlugs; track $index) {
+          <mat-option [value]="slug">{{ slug }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      }
+      <div class="d-flex align-center gap-2">
+        <mat-form-field class="flex-1" appearance="outline">
+          <mat-label i18n="@@spot.edit.url.add_custom"
+            >Add custom spot URL</mat-label
+          >
+          <input
+            matInput
+            placeholder="my-cool-spot"
+            [(ngModel)]="newSlug"
+            #slugCtrl="ngModel"
+            pattern="^[a-z0-9-]+$"
+            [disabled]="!canAddSlug()"
+          />
+          <mat-hint i18n>lowercase letters, numbers, and hyphens only</mat-hint>
+          <mat-error
+            *ngIf="slugCtrl.invalid && (slugCtrl.dirty || slugCtrl.touched)"
+            i18n
+          >
+            Only lowercase letters, numbers, and hyphens are allowed.
+          </mat-error>
+        </mat-form-field>
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="addSlug()"
+          [disabled]="
+            !canAddSlug() || !newSlug || slugCtrl.invalid || addingSlug()
+          "
+        >
+          <mat-icon>add</mat-icon>
+          <span i18n>Add</span>
+        </button>
+      </div>
+    </div>
+
+    }
+
+    <!-- Saving actions -->
+    @if(isEditing()) {
+    <mat-card-actions class="mt-3 gap-2">
+      @if(editable) {
+      <button
+        matButton="outlined"
+        color="warn"
+        (click)="discardButtonClick()"
+        class="flex-grow-1 flex-basis-0"
+        i18n="
+          Discard changes button label|Label of the button to discard changes
+        "
+      >
+        Discard changes
+      </button>
+      <button
+        matButton="filled"
+        color="primary"
+        (click)="saveButtonClick()"
+        class="flex-grow-1 flex-basis-0"
+        i18n="Save changes button label|Label of the button to save changes"
+      >
+        Save changes
+      </button>
+      }
+    </mat-card-actions>
     }
   </mat-card-content>
-
-  <!-- Saving actions -->
-  @if(isEditing()) {
-  <mat-card-actions class="mt-3 gap-2">
-    @if(editable) {
-    <button
-      matButton="outlined"
-      color="warn"
-      (click)="discardButtonClick()"
-      class="flex-grow-1 flex-basis-0"
-      i18n="Discard changes button label|Label of the button to discard changes"
-    >
-      Discard changes
-    </button>
-    <button
-      matButton="filled"
-      color="primary"
-      (click)="saveButtonClick()"
-      class="flex-grow-1 flex-basis-0"
-      i18n="Save changes button label|Label of the button to save changes"
-    >
-      Save changes
-    </button>
-    }
-  </mat-card-actions>
-  } }
+  }
 </mat-card>

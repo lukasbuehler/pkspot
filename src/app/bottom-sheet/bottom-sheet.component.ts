@@ -19,7 +19,7 @@ export class BottomSheetComponent {
   @Input() title: string = "";
   @Output() isAtTopChange = new EventEmitter<boolean>();
 
-  headerHeight: number = 170;
+  headerHeight: number = 140;
   minimumSpeedToSlide: number = 5;
 
   isContentAtTop = signal<boolean>(false);
@@ -69,7 +69,7 @@ export class BottomSheetComponent {
       let height = this.bottomSheet.nativeElement.clientHeight;
       let alwaysVisibleHeight = height - this.headerHeight;
 
-      let animationSteps = 500;
+      let animationSteps = 300;
 
       let topHeightOffset = 0;
       let bottomHeightOffset = alwaysVisibleHeight;

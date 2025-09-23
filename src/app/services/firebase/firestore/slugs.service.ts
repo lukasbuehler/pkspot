@@ -9,7 +9,7 @@ import {
   setDoc,
   where,
 } from "@angular/fire/firestore";
-import { SpotSlug } from "../../../../db/models/Interfaces";
+import { SpotSlugSchema } from "../../../../db/schemas/SpotSlugSchema";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 
@@ -27,30 +27,50 @@ export class SlugsService extends ConsentAwareService {
       return Promise.reject(
         "The slug must only contain lowercase alphanumeric characters and hyphens."
       );
+    const slugDocRef = doc(this.firestore, "spot_slugs", slug);
+    // Ensure this spot doesn't already have a slug
+    const q = query(
+      collection(this.firestore, "spot_slugs"),
+      where("spot_id", "==", spotId)
+    );
 
-    const data: SpotSlug = {
-      spotId: spotId,
-    };
-
-    return setDoc(doc(this.firestore, "spot_slugs", slug), data);
+    return getDocs(q)
+      .then((snap) => {
+        if ((snap?.size ?? 0) > 0) {
+          return Promise.reject("A custom URL already exists for this spot.");
+        }
+      })
+      .then(() => getDoc(slugDocRef))
+      .then((snap) => {
+        if (snap.exists()) {
+          // If already mapped to same spot, treat as success; otherwise reject to avoid overwrite
+          const existing = snap.data() as any;
+          const existingSpotId: string | undefined = existing.spot_id;
+          if (existingSpotId === spotId) return; // no-op
+          return Promise.reject(
+            "This URL is already taken. Please choose another."
+          );
+        }
+        const data: SpotSlugSchema = {
+          spot_id: spotId,
+        };
+        return setDoc(slugDocRef, data);
+      });
   }
 
   getAllSlugsForASpot(spotId: string): Promise<string[]> {
-    console.log("getting all slugs for a spot");
     return getDocs(
       query(
         collection(this.firestore, "spot_slugs"),
-        where("spotId", "==", spotId)
+        where("spot_id", "==", spotId)
       )
     ).then((snap) => {
-      if (snap.size == 0) {
-        return [];
-      }
-      return snap.docs.map((data) => data.id);
+      if (!snap || snap.size === 0) return [];
+      return snap.docs.map((d) => d.id);
     });
   }
 
-  getSpotIdFromSpotSlug(slug: SpotSlug): Promise<SpotId> {
+  getSpotIdFromSpotSlug(slug: string): Promise<SpotId> {
     const slugString: string = slug.toString();
 
     return getDoc(doc(this.firestore, "spot_slugs", slugString))
@@ -58,9 +78,9 @@ export class SlugsService extends ConsentAwareService {
         if (!snap.exists()) {
           return Promise.reject("No spot found for this slug.");
         }
-        return snap.data() as SpotSlug;
+        return snap.data() as any;
       })
-      .then((data) => data.spotId as SpotId);
+      .then((data) => data.spot_id as SpotId);
   }
 
   getSpotIdFromSpotSlugHttp(slug: string): Promise<SpotId> {
@@ -72,7 +92,8 @@ export class SlugsService extends ConsentAwareService {
         if (!data.fields) {
           return Promise.reject("No spot found for this slug.");
         }
-        return data.fields.spotId.stringValue as SpotId;
+        const fields: any = data.fields;
+        return fields.spot_id.stringValue as SpotId;
       });
   }
 }
