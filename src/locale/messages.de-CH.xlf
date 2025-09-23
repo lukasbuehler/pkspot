@@ -681,8 +681,7 @@
       <segment state="initial">
         <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
             equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-            of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT"
-            equivEnd="CLOSE_BOLD_TEXT"
+          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
             type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
           both.</source>
         <target>Ich ha d&apos;<pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
@@ -1272,10 +1271,8 @@
       <segment state="initial">
         <source>This spot centers around water (fountain, riverbank, lakeside structure, etc.)
           offering unique movement or aesthetic value. Surfaces may be slippery—use caution.</source>
-        <target>
-          Das isch en Spot bi dems sich um Wasser dreht (Brunne, Fluss-Ufer, Gebäude am See, etc.)
-          Vorsicht, cha rutschig sii.
-        </target>
+        <target> Das isch en Spot bi dems sich um Wasser dreht (Brunne, Fluss-Ufer, Gebäude am See,
+          etc.) Vorsicht, cha rutschig sii. </target>
       </segment>
     </unit>
     <unit id="spot-type.art">
@@ -1757,14 +1754,6 @@
       <segment state="initial">
         <source>Not sure</source>
         <target>Nöd sicher</target>
-      </segment>
-    </unit>
-    <unit id="5087122090521808199">
-      <segment state="initial">
-        <source>Rating:</source>
-        <target>
-          Bewertig:
-        </target>
       </segment>
     </unit>
     <unit id="4323470180912194028">
@@ -2430,16 +2419,14 @@
     <unit id="8890858578819685573">
       <segment state="initial">
         <source>Failed to unlink Google Place</source>
-        <target>S'Entferne vo de Google Place Verchnüpfig isch fehlgschlage.</target>
+        <target>S&apos;Entferne vo de Google Place Verchnüpfig isch fehlgschlage.</target>
       </segment>
     </unit>
     <unit id="501118076159295384">
       <segment state="initial">
-        <source> The Challenge will only be available starting from the release date. Before that
-          it
+        <source> The Challenge will only be available starting from the release date. Before that it
           will be private to you. </source>
-        <target> Die Challenge wird erst abem Veröffentlichigs-Datum verfüegbar sii. Vorher isch
-          sie
+        <target> Die Challenge wird erst abem Veröffentlichigs-Datum verfüegbar sii. Vorher isch sie
           privat für dich. </target>
       </segment>
     </unit>
@@ -2702,5 +2689,4 @@
       </segment>
     </unit>
   </file>
-
 </xliff>
