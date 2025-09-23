@@ -1,0 +1,47 @@
+<h2 mat-dialog-title i18n>Add Custom URL for '{{ data.spotName }}'</h2>
+<mat-dialog-content>
+  <p i18n class="mb-3">
+    Create a custom URL slug for this spot. Once set, users will be able to access this spot using a friendly URL like "pkspot.app/s/your-slug".
+  </p>
+  
+  <mat-form-field class="w-100" appearance="outline">
+    <mat-label i18n>Custom URL slug</mat-label>
+    <input
+      matInput
+      placeholder="my-awesome-spot"
+      [(ngModel)]="data.newSlug"
+      [attr.aria-describedby]="getSlugValidationError() ? 'slug-error' : null"
+      cdkFocusInitial
+    />
+    <mat-hint i18n>Only lowercase letters, numbers and hyphens allowed</mat-hint>
+    @if(getSlugValidationError()) {
+      <mat-error id="slug-error">{{ getSlugValidationError() }}</mat-error>
+    }
+  </mat-form-field>
+
+  @if(data.newSlug && isValidSlug(data.newSlug)) {
+    <div class="preview-url mt-2 p-2 rounded" style="background-color: #f5f5f5;">
+      <small class="text-muted">Preview URL: </small>
+      <strong>pkspot.app/s/{{ data.newSlug }}</strong>
+    </div>
+  }
+
+  <p class="mt-3 text-muted" style="font-size: 0.875rem;" i18n>
+    Note: URL slugs are assigned on a first-come-first-serve basis and cannot be changed once set.
+  </p>
+</mat-dialog-content>
+
+<mat-dialog-actions class="d-flex justify-content-between p-3">
+  <button mat-button (click)="onCancel()" i18n>
+    Cancel
+  </button>
+  <button
+    [disabled]="!data.newSlug || !isValidSlug(data.newSlug)"
+    mat-flat-button
+    color="primary"
+    (click)="onAdd()"
+    i18n
+  >
+    Add URL
+  </button>
+</mat-dialog-actions>

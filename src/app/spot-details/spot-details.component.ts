@@ -131,6 +131,7 @@ import {
 import { AnyMedia, ExternalImage, StorageImage } from "../../db/models/Media";
 import { languageCodes } from "../../scripts/Languages";
 import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
+import { AddSlugDialogComponent, AddSlugDialogData } from "../add-slug-dialog/add-slug-dialog.component";
 import { locale } from "core-js";
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
@@ -897,6 +898,76 @@ export class SpotDetailsComponent
             isUpdate: isUpdate,
           },
         });
+      });
+  }
+
+  openAddSlugDialog() {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) {
+      console.error("Cannot add slug to a spot that hasn't been saved yet");
+      return;
+    }
+
+    if (!this.authenticationService.isSignedIn) {
+      console.error("User must be signed in to add a custom URL");
+      return;
+    }
+
+    const dialogData: AddSlugDialogData = {
+      spotName: spot.name(),
+      newSlug: ''
+    };
+
+    const dialogRef = this.dialog.open(AddSlugDialogComponent, {
+      data: dialogData,
+      width: '500px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && typeof result === 'string') {
+        this.addSlugToSpot(result);
+      }
+    });
+  }
+
+  private addSlugToSpot(slug: string) {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return;
+
+    this._slugService.addSpotSlug(spot.id, slug)
+      .then(() => {
+        // Successfully added slug
+        this._snackbar.open(
+          $localize`Custom URL "${slug}" added successfully!`,
+          "Dismiss",
+          {
+            duration: 4000,
+            horizontalPosition: "center",
+            verticalPosition: "top",
+          }
+        );
+        
+        // Refresh the list of slugs
+        this._slugService.getAllSlugsForASpot(spot.id).then((slugs) => {
+          this.allSpotSlugs = slugs;
+        });
+
+        // Set this as the current slug if it's the first one
+        if (this.allSpotSlugs.length === 0) {
+          spot.slug = slug;
+        }
+      })
+      .catch((error) => {
+        console.error("Error adding slug:", error);
+        this._snackbar.open(
+          $localize`Failed to add custom URL. This URL may already be taken.`,
+          "Dismiss",
+          {
+            duration: 5000,
+            horizontalPosition: "center",
+            verticalPosition: "top",
+          }
+        );
       });
   }
 
