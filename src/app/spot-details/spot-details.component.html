@@ -28,9 +28,12 @@
           >stars</mat-icon
         >
         }
-        <span [matTooltip]="spot()!.name()" class="text-truncate d-block">{{
-          spot()!.name()
-        }}</span>
+        <span
+          [@fadeSlideOnChange]="nameAnimKey()"
+          [matTooltip]="spot()!.name()"
+          class="text-truncate d-block"
+          >{{ spot()!.name() }}</span
+        >
       </span>
 
       <!-- dismiss button -->
@@ -56,14 +59,20 @@
         <div class="d-flex flex-row gap-1 align-items-center pb-1">
           <span class="mat-label-small px-1 border rounded me-1">Spot</span>
           @if(spot()?.rating) {
-          <app-spot-rating
-            class="flex-shrink-0"
-            [rating1to5]="spot()!.rating"
-            [showNumReviews]="true"
-            [numReviews]="spot()!.numReviews"
-            [isCompact]="true"
-          ></app-spot-rating
-          >}
+          <span class="d-flex align-items-center gap-1 flex-shrink-0">
+            <app-fancy-counter
+              [number]="spot()!.rating!"
+              [decimals]="1"
+            ></app-fancy-counter>
+            <app-spot-rating
+              [rating1to5]="spot()!.rating"
+              [showNumReviews]="true"
+              [numReviews]="spot()!.numReviews"
+              [isCompact]="true"
+              [showRating]="false"
+            ></app-spot-rating>
+          </span>
+          }
           {{
             spot()?.rating && spot()!.importantAmenitiesArray().length > 0
               ? "⸱"
@@ -85,7 +94,10 @@
               : null
           }}
           @if(spot()?.type() && spot()?.type()! !== 'other') {
-          <span class="mat-label-large text-nowrap text-truncate">
+          <span
+            class="mat-label-large text-nowrap text-truncate"
+            [@fadeSlideOnChange]="typeAnimKey()"
+          >
             <!-- <mat-icon class="amenity-icon me-1">{{
               spotTypesIcons[spot()!.type()]
             }}</mat-icon
@@ -102,7 +114,10 @@
               : null
           }}
           @if(spot()?.access() && spot()?.access()! !== 'other') {
-          <span class="mat-label-large text-nowrap text-truncate">
+          <span
+            class="mat-label-large text-nowrap text-truncate"
+            [@fadeSlideOnChange]="accessAnimKey()"
+          >
             <!-- <mat-icon class="amenity-icon me-1">{{
               spotAccessIcons[spot()!.access()]
             }}</mat-icon
@@ -240,15 +255,17 @@
 
     <!-- Google place (reusable component) -->
     @if(spot()?.googlePlaceId()) {
-    <h4
-      class="mat-title-small"
-      i18n="
-        google maps section header|Header for the Google Maps
-        section@@spot.google_maps.header"
-    >
-      This spot on Google Maps®
-    </h4>
-    <app-google-place-preview [placeId]="spot()!.googlePlaceId()" />
+    <div class="mb-4">
+      <h4
+        class="mat-title-small"
+        i18n="
+          google maps section header|Header for the Google Maps
+          section@@spot.google_maps.header"
+      >
+        This spot on Google Maps®
+      </h4>
+      <app-google-place-preview [placeId]="spot()!.googlePlaceId()" />
+    </div>
     }
 
     <!-- Freatures -->
@@ -275,6 +292,7 @@
     <!-- Spot Description -->
     @if(spot()?.description()) {
     <app-locale-map-view
+      [@fadeSlideOnChange]="spot()!.descriptions() | json"
       title="Description"
       i18n-title="description header|The header for the spot description"
       [localeMap]="spot()!.descriptions()"
@@ -454,9 +472,12 @@
         <div
           class="d-flex flex-column align-items-center justify-content-center gap-1 pe-4"
         >
-          <span class="mat-headline-large mb-0">{{
-            spot()!.rating!.toFixed(1)
-          }}</span>
+          <span class="mat-headline-large mb-0">
+            <app-fancy-counter
+              [number]="spot()!.rating!"
+              [decimals]="1"
+            ></app-fancy-counter>
+          </span>
           <app-spot-rating
             [rating1to5]="spot()!.rating"
             [showNumReviews]="false"
@@ -841,17 +862,23 @@
     </div>
 
     <!-- Bounds -->
-    <div class="my-3 d-flex justify-start">
+    <div class="my-3 d-flex flex-column align-start gap-1">
       @if(!isNewSpot && !hasBounds()) {
-      <button
-        mat-stroked-button
-        (click)="addBoundsClicked()"
-        i18n="
-          Add bounds button label|Label of the button to add bounds to a spot
-        "
-      >
-        Add bounds
-      </button>
+      <div class="mat-body-small text-secondary" i18n>
+        Add an editable boundary for this spot. After adding, you can adjust the
+        polygon shape on the map.
+      </div>
+      <div>
+        <button
+          mat-stroked-button
+          (click)="addBoundsClicked()"
+          i18n="
+            Add bounds button label|Label of the button to add bounds to a spot
+          "
+        >
+          Add bounds
+        </button>
+      </div>
       }
     </div>
 

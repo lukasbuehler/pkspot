@@ -342,6 +342,103 @@ export class LocalSpot {
   }
 
   /**
+   * Apply new server data to this LocalSpot by updating signals in place.
+   * This allows live updates (snapshots) without replacing object references.
+   */
+  public applyFromSchema(data: SpotSchema): void {
+    // Names and descriptions
+    this.names.set(makeLocaleMapFromObject(data.name));
+
+    const newLocation = {
+      lat: data.location.latitude,
+      lng: data.location.longitude,
+    };
+    this.location.set(newLocation);
+
+    const descMap = data.description
+      ? makeLocaleMapFromObject(data.description)
+      : undefined;
+    this.descriptions.set(descMap);
+
+    // Keep current description locale if still present; otherwise fallback
+    const descriptionLocales: LocaleCode[] = Object.keys(descMap ?? {}) as any;
+    if (
+      descriptionLocales.length > 0 &&
+      !descriptionLocales.includes(this.descriptionLocale())
+    ) {
+      const descLocale = getBestLocale(descriptionLocales, this.locale);
+      this.descriptionLocale.set(descLocale);
+    }
+
+    // Media
+    const userMediaArr: AnyMedia[] | undefined = data.media
+      ? data.media.map((m) => makeAnyMediaFromMediaSchema(m))
+      : undefined;
+    this.userMedia.set(userMediaArr ?? []);
+
+    // Settings and computed fields
+    this.hideStreetview = data.hide_streetview ?? false;
+    // Do not mutate _streetview here; it is derived separately
+
+    this.isIconic = data.is_iconic ?? false;
+    this.rating = data.rating ?? null;
+    this.numReviews = data.num_reviews ?? 0;
+    this.ratingHistogram.set(
+      data.rating_histogram ?? { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    );
+
+    // Highlighted reviews and top challenges
+    (this as any).highlightedReviews = data.highlighted_reviews;
+    this.topChallenges.set(
+      data.top_challenges?.map((d) => {
+        const best = getBestLocale(Object.keys(d.name), this.locale);
+        const name = d.name[best]!.text;
+        const media: AnyMedia = makeAnyMediaFromMediaSchema(d.media);
+        const newData: SpotChallengePreview = {
+          name: signal(name),
+          id: d.id,
+          media: signal(media),
+        };
+        if (d.location) {
+          newData.location = {
+            lat: d.location.latitude,
+            lng: d.location.longitude,
+          };
+        } else {
+          newData.location = newLocation;
+        }
+        if (d.label as ChallengeLabel)
+          newData.label = d.label as ChallengeLabel;
+        if (d.participant_type as ChallengeParticipantType)
+          newData.participantType =
+            d.participant_type as ChallengeParticipantType;
+        return newData;
+      }) ?? []
+    );
+    this.numChallenges.set(data.num_challenges ?? 0);
+
+    this.address.set(data.address ?? null);
+
+    // External references
+    if (data.external_references?.google_maps_place_id) {
+      this.googlePlaceId.set(data.external_references.google_maps_place_id);
+    } else {
+      this.googlePlaceId.set(undefined);
+    }
+
+    // Type & access (with robust parsing)
+    this.type.set(parseSpotType(data.type ?? null));
+    this.access.set(parseSpotAccess(data.access ?? null));
+
+    // Amenities
+    if (!data.amenities) data.amenities = {};
+    this.amenities.set(data.amenities);
+
+    // Bounds
+    this.paths = this._makePathsFromBounds(data.bounds ?? []);
+  }
+
+  /**
    * Returns the spot's data in the format of the SpotSchema interface.
    * @returns SpotSchema
    */
@@ -511,6 +608,14 @@ export class Spot extends LocalSpot {
     if (_data.slug) {
       this.slug = _data.slug;
     }
+  }
+
+  /**
+   * Apply new server data and update slug too.
+   */
+  public override applyFromSchema(data: SpotSchema): void {
+    super.applyFromSchema(data);
+    this.slug = data.slug ?? null;
   }
 
   public override clone(): Spot {

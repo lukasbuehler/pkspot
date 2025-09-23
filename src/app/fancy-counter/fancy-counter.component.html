@@ -7,7 +7,7 @@
         decrementMinus: getMinusIfIncrementing(number, false)
       }
     }"
-    *ngFor="let digit of ('' + number).split('')"
+    *ngFor="let digit of displayString.split('')"
     class="digit-container"
     >{{ digit }}</span
   >

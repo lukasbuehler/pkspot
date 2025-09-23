@@ -67,7 +67,13 @@ import {
 } from "../../scripts/Helpers";
 import { UntypedFormControl, FormsModule } from "@angular/forms";
 import { map, startWith } from "rxjs/operators";
-import { trigger, transition, style, animate } from "@angular/animations";
+import {
+  trigger,
+  transition,
+  style,
+  animate,
+  keyframes,
+} from "@angular/animations";
 import { MapsApiService } from "../services/maps-api.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { SpotReportDialogComponent } from "../spot-report-dialog/spot-report-dialog.component";
@@ -89,6 +95,7 @@ import {
   KeyValuePipe,
   LocationStrategy,
   NgOptimizedImage,
+  JsonPipe,
 } from "@angular/common";
 import {
   MatChipListbox,
@@ -143,6 +150,7 @@ import { MatButtonToggleModule } from "@angular/material/button-toggle";
 // import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
 import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
 import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
+import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -175,6 +183,39 @@ export class AsRatingKeyPipe implements PipeTransform {
         [style({ height: "{{startHeight}}px" }), animate(".3s ease")],
         { params: { startHeight: 0 } }
       ),
+    ]),
+    // Fade/slide when bound value changes
+    trigger("fadeSlideOnChange", [
+      transition("* => *", [
+        style({ opacity: 0, transform: "translateY(-2px)" }),
+        animate("180ms ease", style({ opacity: 1, transform: "none" })),
+      ]),
+    ]),
+    // Pulse container slightly on value change (e.g., rating)
+    trigger("pulseOnChange", [
+      transition("* => *", [
+        animate(
+          "220ms ease",
+          keyframes([
+            style({ transform: "scale(1)", offset: 0 }),
+            style({ transform: "scale(1.06)", offset: 0.35 }),
+            style({ transform: "scale(1)", offset: 1 }),
+          ])
+        ),
+      ]),
+    ]),
+    // Per-item list animation for enter/leave
+    trigger("listItem", [
+      transition(":enter", [
+        style({ opacity: 0, transform: "translateY(4px)" }),
+        animate("140ms ease-out", style({ opacity: 1, transform: "none" })),
+      ]),
+      transition(":leave", [
+        animate(
+          "100ms ease-in",
+          style({ opacity: 0, transform: "translateY(-4px)" })
+        ),
+      ]),
     ]),
   ],
   imports: [
@@ -215,6 +256,10 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatDialogModule,
     // New reusable Google Place preview
     GooglePlacePreviewComponent,
+    // Fancy number animation for rating
+    FancyCounterComponent,
+    // For change-detection-friendly stringification in animation binding
+    JsonPipe,
   ],
   schemas: [],
 })
@@ -469,6 +514,19 @@ export class SpotDetailsComponent
   linkingPlace = signal<boolean>(false);
   unlinkingPlace = signal<boolean>(false);
 
+  // Animation keys to force transitions on content changes
+  nameAnimKey = signal<number>(0);
+  typeAnimKey = signal<number>(0);
+  accessAnimKey = signal<number>(0);
+
+  private _lastNameValue: string | null = null;
+  private _lastTypeValue: string | null = null;
+  private _lastAccessValue: string | null = null;
+
+  // Live updates subscription for the current Spot
+  private _spotSnapshotSub: Subscription | null = null;
+  private _lastSubscribedSpotId: string | null = null;
+
   async searchPlaces(query: string) {
     const spot = this.spot();
     if (!this._mapsApiService.isApiLoaded()) {
@@ -539,12 +597,8 @@ export class SpotDetailsComponent
     this.linkingPlace.set(true);
     try {
       await this._spotsService.setGoogleMapsPlaceId(spot.id, pred.place_id);
-      // Refresh the spot to pick up the new place id
-      const fresh = await this._spotsService.getSpotById(spot.id, this.locale);
-      this.spot.set(fresh);
       this.placeSearch.setValue("");
       this.placePredictions = [];
-      this._loadGooglePlaceDataForSpot();
       this._snackbar.open($localize`Linked Google Place`, undefined, {
         duration: 2000,
       });
@@ -570,8 +624,6 @@ export class SpotDetailsComponent
     this.unlinkingPlace.set(true);
     try {
       await this._spotsService.setGoogleMapsPlaceId(spot.id, null);
-      const fresh = await this._spotsService.getSpotById(spot.id, this.locale);
-      this.spot.set(fresh);
       this.googlePlace.set(undefined);
       this._snackbar.open($localize`Unlinked Google Place`, undefined, {
         duration: 2000,
@@ -627,8 +679,10 @@ export class SpotDetailsComponent
       this.addingSlug.set(false);
 
       if (spot instanceof Spot) {
+        // Ensure live updates subscription for this spot id
+        this._subscribeToLiveSpot(spot);
+        // Load Google Place preview and nearby places
         this._loadGooglePlaceDataForSpot();
-        // Preload nearby place suggestions (closest first) for quick linking
         this._preloadNearbyPlaces();
 
         const currentId = spot.id;
@@ -639,6 +693,43 @@ export class SpotDetailsComponent
             this.allSpotSlugs = slugs;
           }
         });
+      } else {
+        // Not a persisted spot: stop any live subscription
+        this._unsubscribeFromLiveSpot();
+      }
+    });
+
+    // Reactively (re)load Google Place preview whenever the place id changes
+    effect(() => {
+      const s = this.spot();
+      const placeId = s instanceof Spot ? s.googlePlaceId() : undefined;
+      if (placeId) {
+        this._loadGooglePlaceDataForSpot();
+      } else {
+        this.googlePlace.set(undefined);
+      }
+    });
+
+    // Kick animations when name/type/access change
+    effect(() => {
+      const n = this.spot()?.name() ?? null;
+      if (n !== this._lastNameValue) {
+        this._lastNameValue = n;
+        this.nameAnimKey.update((v) => v + 1);
+      }
+    });
+    effect(() => {
+      const t = this.spot()?.type() ?? null;
+      if (t !== this._lastTypeValue) {
+        this._lastTypeValue = t;
+        this.typeAnimKey.update((v) => v + 1);
+      }
+    });
+    effect(() => {
+      const a = this.spot()?.access() ?? null;
+      if (a !== this._lastAccessValue) {
+        this._lastAccessValue = a;
+        this.accessAnimKey.update((v) => v + 1);
       }
     });
   }
@@ -686,6 +777,7 @@ export class SpotDetailsComponent
 
   ngOnDestroy(): void {
     this._structuredDataService.removeStructuredData("spot");
+    this._unsubscribeFromLiveSpot();
   }
 
   private _filterCountries(value: string): any[] {
@@ -896,16 +988,8 @@ export class SpotDetailsComponent
         },
         width: "640px",
       });
-
-      ref.afterClosed().subscribe(() => {
-        // Reload the spot to pick up any media appended by the dialog
-        this._spotsService
-          .getSpotById(spot.id, this.locale)
-          .then((fresh) => this.spot.set(fresh))
-          .catch((e) =>
-            console.warn("Failed to refresh spot after uploads", e)
-          );
-      });
+      // Live snapshot will reflect any media changes; no manual refresh needed
+      ref.afterClosed().subscribe(() => void 0);
     });
   }
 
@@ -1247,5 +1331,34 @@ export class SpotDetailsComponent
         return s;
       });
     });
+  }
+
+  // -- Private helpers -----------------------------------------------------
+  private _subscribeToLiveSpot(spot: Spot) {
+    if (this._lastSubscribedSpotId === spot.id && this._spotSnapshotSub) return;
+    this._unsubscribeFromLiveSpot();
+    this._lastSubscribedSpotId = spot.id;
+    this._spotSnapshotSub = this._spotsService
+      .getSpotById$(spot.id, this.locale)
+      .subscribe({
+        next: (incoming: Spot) => {
+          const current = this.spot();
+          if (current instanceof Spot && current.id === incoming.id) {
+            // Apply general fields from schema
+            current.applyFromSchema(incoming.data());
+            // data() does not include external_references; ensure place id is preserved
+            current.googlePlaceId.set(incoming.googlePlaceId());
+          }
+        },
+        error: (err) => console.warn("Live spot update error", err),
+      });
+  }
+
+  private _unsubscribeFromLiveSpot() {
+    if (this._spotSnapshotSub) {
+      this._spotSnapshotSub.unsubscribe();
+      this._spotSnapshotSub = null;
+    }
+    this._lastSubscribedSpotId = null;
   }
 }

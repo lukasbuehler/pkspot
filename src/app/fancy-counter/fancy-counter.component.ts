@@ -4,6 +4,7 @@ import { NgFor } from "@angular/common";
 
 @Component({
   selector: "app-fancy-counter",
+  standalone: true,
   templateUrl: "./fancy-counter.component.html",
   styleUrls: ["./fancy-counter.component.scss"],
   animations: [
@@ -41,6 +42,7 @@ import { NgFor } from "@angular/common";
 export class FancyCounterComponent implements OnInit {
   private _number: number = 0;
   previousNumber: number = 0;
+  @Input() decimals: number | null = null; // when set, display number with fixed decimals
 
   @Input() set number(newNumber: number) {
     this.previousNumber = this._number;
@@ -54,6 +56,16 @@ export class FancyCounterComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {}
+
+  get displayString(): string {
+    if (this.decimals === null || this.decimals === undefined) {
+      return "" + this._number;
+    }
+    if (Number.isFinite(this._number)) {
+      return this._number.toFixed(this.decimals);
+    }
+    return "" + this._number;
+  }
 
   getMinusIfIncrementing(newNumber: number, enterAnimation: boolean) {
     // We want to return a minus if we are incrementing

@@ -6,6 +6,7 @@ import {
   computed,
   inject,
   signal,
+  LOCALE_ID,
 } from "@angular/core";
 import { CommonModule, NgOptimizedImage } from "@angular/common";
 import {
@@ -32,9 +33,11 @@ import { MapsApiService } from "../services/maps-api.service";
     NgOptimizedImage,
   ],
   templateUrl: "./google-place-preview.component.html",
+  styleUrls: ["./google-place-preview.component.scss"],
 })
 export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
   private _maps = inject(MapsApiService);
+  private _locale: string = inject(LOCALE_ID);
 
   @Input() placeId?: string | null;
   // Always render in standard (non-dense) layout
@@ -67,15 +70,53 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
   });
 
   todayHoursText = computed<string | null>(() => {
-    const oh = this.place()?.opening_hours as any;
-    const weekdayText: string[] | undefined = oh?.weekday_text as any;
-    if (!weekdayText || weekdayText.length === 0) return null;
-    // Find entry matching today's day name to avoid locale ordering ambiguity
-    const dayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
-    const match = weekdayText.find((line) =>
-      line.toLowerCase().startsWith(dayName.toLowerCase())
-    );
-    return match ?? weekdayText[0] ?? null;
+    const p = this.place();
+    const oh: any = p?.opening_hours as any;
+    const periods: any[] | undefined = oh?.periods as any;
+    if (!periods || periods.length === 0) return null;
+
+    const now = new Date();
+    const today = now.getDay(); // 0 (Sun) - 6 (Sat)
+    const fmtTime = new Intl.DateTimeFormat(this._locale, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    const fmtWeekday = new Intl.DateTimeFormat(this._locale, {
+      weekday: "long",
+    });
+
+    // Collect today's opening intervals
+    const todays = periods.filter((per: any) => per?.open?.day === today);
+    if (!todays || todays.length === 0) return null;
+
+    const intervals: string[] = [];
+    for (const per of todays) {
+      const open = per?.open;
+      const close = per?.close;
+      if (!open?.time || !close?.time) continue;
+
+      const openH = parseInt(open.time.slice(0, 2), 10);
+      const openM = parseInt(open.time.slice(2) || "0", 10);
+      const closeH = parseInt(close.time.slice(0, 2), 10);
+      const closeM = parseInt(close.time.slice(2) || "0", 10);
+
+      // Build dates for formatting; handle overnight by adding a day when close.day != open.day
+      const openDate = new Date(now);
+      openDate.setHours(openH, openM, 0, 0);
+      const closeDate = new Date(now);
+      closeDate.setHours(closeH, closeM, 0, 0);
+      if (close?.day !== undefined && close.day !== today) {
+        // closes next day
+        closeDate.setDate(closeDate.getDate() + 1);
+      }
+
+      intervals.push(
+        `${fmtTime.format(openDate)}–${fmtTime.format(closeDate)}`
+      );
+    }
+
+    const dayLabel = fmtWeekday.format(now);
+    return `${dayLabel}: ${intervals.join(", ")}`;
   });
 
   openStatusText = computed<string | null>(() => {
@@ -88,6 +129,11 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
     const now = new Date();
     const today = now.getDay(); // 0 (Sun) - 6 (Sat)
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const fmtTime = new Intl.DateTimeFormat(this._locale, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
     // Helper to parse "HHMM" -> minutes
     const toMinutes = (hhmm: string | undefined): number | null => {
@@ -115,11 +161,10 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
           : nowMinutes;
       if (effectiveNow >= openM && effectiveNow < effectiveClose) {
         // Open now
-        const ch = Math.floor(closeM / 60)
-          .toString()
-          .padStart(2, "0");
-        const cm = (closeM % 60).toString().padStart(2, "0");
-        return `Open now until ${ch}:${cm}`;
+        const closeDate = new Date(now);
+        closeDate.setHours(Math.floor(closeM / 60), closeM % 60, 0, 0);
+        if (closesTomorrow) closeDate.setDate(closeDate.getDate() + 1);
+        return `Open now until ${fmtTime.format(closeDate)}`;
       }
     }
     // Not open now; find the next opening today
@@ -129,11 +174,9 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
       .sort((a: any, b: any) => a.time! - b.time!);
     if (upcoming.length > 0) {
       const t = upcoming[0].time!;
-      const h = Math.floor(t / 60)
-        .toString()
-        .padStart(2, "0");
-      const m = (t % 60).toString().padStart(2, "0");
-      return `Opens at ${h}:${m}`;
+      const openDate = new Date(now);
+      openDate.setHours(Math.floor(t / 60), t % 60, 0, 0);
+      return `Opens at ${fmtTime.format(openDate)}`;
     }
     return null;
   });
