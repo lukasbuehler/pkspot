@@ -20,6 +20,12 @@
           teile deine Erfolge und Erinnerungen mit ihnen und der Welt. </target>
       </segment>
     </unit>
+    <unit id="3768927257183755959">
+      <segment state="initial">
+        <source>Save</source>
+        <target>Speichern</target>
+      </segment>
+    </unit>
     <unit id="7411379953853971507">
       <segment state="initial">
         <source> This project is Open-Source! Our code is licensed under the <pc id="0"
@@ -442,6 +448,12 @@
           Ausnahme von Kopien in Backups und Caches. </target>
       </segment>
     </unit>
+    <unit id="3517550046701184661">
+      <segment state="initial">
+        <source>Show less</source>
+        <target>Weniger anzeigen</target>
+      </segment>
+    </unit>
     <unit id="3539941729807255231">
       <segment state="initial">
         <source>Your E-mail has not been verified!</source>
@@ -675,6 +687,12 @@
       <segment state="initial">
         <source>You need to agree to the terms and conditions!</source>
         <target>Du musst den Terms and Conditions zustimmen.</target>
+      </segment>
+    </unit>
+    <unit id="1975356621924283237">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Outdoor</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -1003,7 +1021,7 @@
     <unit id="amenities.free_entry">
       <segment state="initial">
         <source>Free entry</source>
-        <target>Gratis</target>
+        <target>Kostenlos</target>
       </segment>
     </unit>
     <unit id="amenities.drinking_water">
@@ -1309,6 +1327,36 @@
         <target> Highlights </target>
       </segment>
     </unit>
+    <unit id="question.covered">
+      <segment state="initial">
+        <source>Is the area covered?</source>
+        <target>Ist dieser Spot überdacht?</target>
+      </segment>
+    </unit>
+    <unit id="question.environment">
+      <segment state="initial">
+        <source>Is this an indoor or outdoor spot?</source>
+        <target>Ist dies ein Indoor oder Outdoor Spot?</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.both">
+      <segment state="initial">
+        <source>Both</source>
+        <target>Beides</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.indoor">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Indoor</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.outdoor">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Outdoor</target>
+      </segment>
+    </unit>
     <unit id="regular_spots_text">
       <segment state="initial">
         <source>Spots</source>
@@ -1409,6 +1457,12 @@
       <segment state="initial">
         <source>What would you rate this spot from one to five stars?</source>
         <target>Was würdest du diesem Spot von eins bis fünf Sterne geben?</target>
+      </segment>
+    </unit>
+    <unit id="6439365426343089851">
+      <segment state="initial">
+        <source>General</source>
+        <target>Generell</target>
       </segment>
     </unit>
     <unit id="spot.review.count">
@@ -1610,6 +1664,12 @@
       <segment state="initial">
         <source>Iconic Spot</source>
         <target>Ikonischer Spot</target>
+      </segment>
+    </unit>
+    <unit id="generic.not_sure">
+      <segment state="initial">
+        <source>Not sure</source>
+        <target>Nicht sicher</target>
       </segment>
     </unit>
     <unit id="google.place.rating.label">
@@ -1847,6 +1907,12 @@
         <target>Spot hinzufügen</target>
       </segment>
     </unit>
+    <unit id="2741210807832834277">
+      <segment state="initial">
+        <source>Edit detailed amenities</source>
+        <target>Annehmlichkeiten bearbeiten</target>
+      </segment>
+    </unit>
     <unit id="pk.spotmap.addSpot">
       <segment state="initial">
         <source>Add spot</source>
@@ -1897,7 +1963,7 @@
         <target>Über dich</target>
       </segment>
     </unit>
-    <unit id="3133198135717483264">
+    <unit id="add_media.label">
       <segment state="initial">
         <source>Add media</source>
         <target>Medien hinzufügen</target>
@@ -2202,6 +2268,12 @@
         <target>Solo</target>
       </segment>
     </unit>
+    <unit id="2267637299863581067">
+      <segment state="initial">
+        <source>Features and amenities</source>
+        <target>Eigenschaften und Annehmlichkeiten</target>
+      </segment>
+    </unit>
     <unit id="2273032269971765958">
       <segment state="initial">
         <source>Pair</source>
@@ -2260,6 +2332,12 @@
       <segment state="initial">
         <source>Participant Type</source>
         <target>Teilnehmer-Typ</target>
+      </segment>
+    </unit>
+    <unit id="8822206448271061589">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Indoor</target>
       </segment>
     </unit>
     <unit id="8828059408146193176">
@@ -2338,6 +2416,12 @@
       <segment state="initial">
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName" /></source>
         <target>Challenge bei <ph id="0" equiv="PH" disp="spotName" /></target>
+      </segment>
+    </unit>
+    <unit id="7215101881367554791">
+      <segment state="initial">
+        <source>Show more</source>
+        <target>Mehr anzeigen</target>
       </segment>
     </unit>
     <unit id="565606266379309262">

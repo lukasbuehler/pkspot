@@ -1,9 +1,12 @@
-import { inject, Injectable, Injector } from "@angular/core";
+import { Injectable, Optional } from "@angular/core";
 import { Observable } from "rxjs";
-
-import { getDownloadURL, Storage } from "@angular/fire/storage";
-import { deleteObject, ref } from "@firebase/storage";
-import { uploadBytesResumable } from "@firebase/storage";
+import {
+  Storage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
+} from "@angular/fire/storage";
 import { AuthenticationService } from "./authentication.service";
 import { StorageMedia } from "../../../db/models/Media";
 import { StorageBucket } from "../../../db/schemas/Media";
@@ -12,27 +15,13 @@ import { StorageBucket } from "../../../db/schemas/Media";
   providedIn: "root",
 })
 export class StorageService {
-  // Keep a reference to the Injector so we can lazily resolve deps later
-  private injector = inject(Injector);
-  // Lazy inject Firebase Storage to prevent immediate initialization
-  private _storage: Storage | null = null;
-  private get storage(): Storage {
-    if (!this._storage) {
-      this._storage = this.injector.get(Storage);
-    }
-    return this._storage;
-  }
+  // Inject AngularFire Storage and Auth like Firestore services do
+  constructor(
+    @Optional() private storage: Storage | null,
+    private authService: AuthenticationService
+  ) {}
 
-  // Lazy inject AuthService to prevent immediate initialization
-  private _authService: AuthenticationService | null = null;
-  private get authService(): AuthenticationService {
-    if (!this._authService) {
-      this._authService = this.injector.get(AuthenticationService);
-    }
-    return this._authService;
-  }
-
-  constructor() {}
+  private readonly isBrowser = typeof window !== "undefined";
 
   uploadObs: Observable<string> | null = null;
 
@@ -53,6 +42,16 @@ export class StorageService {
     filename?: string,
     fileEnding?: string // e.g "jpg", "png", "mp4"
   ): Promise<string> {
+    if (!this.isBrowser) {
+      return Promise.reject(
+        "Firebase Storage is not available on the server (SSR)"
+      );
+    }
+    if (!this.storage) {
+      return Promise.reject(
+        "Firebase Storage service is not available (did you provideStorage()?)"
+      );
+    }
     let uploadRef = ref(
       this.storage,
       `${location}/${filename}${fileEnding ? "." + fileEnding : ""}`
@@ -117,6 +116,16 @@ export class StorageService {
     bucketOrSrc: StorageBucket | string,
     filename?: string
   ): Promise<void> {
+    if (!this.isBrowser) {
+      return Promise.reject(
+        "Firebase Storage delete is not available on the server (SSR)"
+      );
+    }
+    if (!this.storage) {
+      return Promise.reject(
+        "Firebase Storage service is not available (did you provideStorage()?)"
+      );
+    }
     if (filename === undefined) {
       return deleteObject(ref(this.storage, bucketOrSrc as string));
     }

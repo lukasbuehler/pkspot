@@ -17,7 +17,7 @@ import {
   browserLocalPersistence,
   inMemoryPersistence,
 } from "@angular/fire/auth";
-import { getApp } from "@angular/fire/app";
+import { FirebaseApp } from "@angular/fire/app";
 import { BehaviorSubject, firstValueFrom } from "rxjs";
 import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
@@ -48,9 +48,8 @@ export class AuthenticationService extends ConsentAwareService {
   private _auth: Auth | null = null;
   public get auth(): Auth {
     if (!this._auth) {
-      // Initialize Auth manually since we removed it from app config
-      const app = getApp();
-      this._auth = getAuth(app);
+      // Initialize Auth with the injected Firebase app
+      this._auth = getAuth(this._firebaseApp);
 
       // Configure persistence with robust fallbacks (browser-only)
       // This addresses cases where a browser blocks a specific storage backend
@@ -63,7 +62,10 @@ export class AuthenticationService extends ConsentAwareService {
   }
   private _authStateListenerInitialized = false;
 
-  constructor(private _userService: UsersService) {
+  constructor(
+    private _userService: UsersService,
+    private _firebaseApp: FirebaseApp
+  ) {
     super();
 
     // Check for existing session without triggering Firebase API calls
@@ -117,24 +119,26 @@ export class AuthenticationService extends ConsentAwareService {
 
     if (typeof window === "undefined") return; // SSR: skip
 
+    // Many environments (iOS/Safari/3rd-party cookie blockers) break IndexedDB;
+    // prefer localStorage first for more resilience, then IndexedDB, then memory.
     try {
-      await setPersistence(auth, indexedDBLocalPersistence);
-      console.log("Firebase Auth persistence set: indexedDBLocalPersistence");
+      await setPersistence(auth, browserLocalPersistence);
+      console.log("Firebase Auth persistence set: browserLocalPersistence");
       return;
     } catch (e1) {
       console.warn(
-        "IndexedDB persistence unavailable, trying localStorage",
+        "localStorage persistence unavailable, trying indexedDB",
         e1
       );
     }
 
     try {
-      await setPersistence(auth, browserLocalPersistence);
-      console.log("Firebase Auth persistence set: browserLocalPersistence");
+      await setPersistence(auth, indexedDBLocalPersistence);
+      console.log("Firebase Auth persistence set: indexedDBLocalPersistence");
       return;
     } catch (e2) {
       console.warn(
-        "LocalStorage persistence unavailable, falling back to in-memory",
+        "IndexedDB persistence unavailable, falling back to in-memory",
         e2
       );
     }

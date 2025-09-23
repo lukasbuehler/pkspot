@@ -1,5 +1,5 @@
 import { MediaType } from "./Interfaces";
-import { DocumentReference, GeoPoint, Timestamp } from "@firebase/firestore";
+import { DocumentReference, GeoPoint, Timestamp } from "firebase/firestore";
 import { UserReferenceSchema } from "../schemas/UserSchema";
 import { MediaSchema } from "../schemas/Media";
 

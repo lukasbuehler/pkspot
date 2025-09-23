@@ -76,14 +76,22 @@ export class LocaleMapEditFieldComponent {
 
   languages = languageCodes;
 
-  localeKeys: Signal<LocaleCode[]> = computed(
-    () => Object.keys(this.localeMap() ?? {}) as LocaleCode[]
-  );
+  localeKeys: Signal<LocaleCode[]> = computed(() => {
+    const localeMap = this.localeMap();
+    console.log("localeMap", localeMap);
+
+    const localeKeys = Object.keys(localeMap ?? {}) as LocaleCode[];
+    console.log("localeKeys", localeKeys);
+
+    return localeKeys;
+  });
   shownLocales: Signal<LocaleCode[]> = computed(() => {
     const isExpanded = this.isExpanded();
     const localeMap = this.localeMap() ?? {};
     const localeKeys = this.localeKeys();
     const bestLocale = this.bestLocale();
+
+    console.log("localeKeys", localeKeys);
 
     if (localeKeys.length === 0) {
       return [];
@@ -117,7 +125,12 @@ export class LocaleMapEditFieldComponent {
   addTranslation() {
     // open a dialog with an autocomplete for the user to select a language
     const dialogRef = this.dialog.open(SelectLanguageDialogComponent, {
-      data: { locale: null },
+      data: {
+        locale: null,
+        mode: "add",
+        availableLocales: this.localeKeys(),
+        excludeLocales: this.localeKeys(),
+      },
       hasBackdrop: true,
       maxWidth: "95vw",
       width: "400px",
@@ -126,14 +139,23 @@ export class LocaleMapEditFieldComponent {
     });
 
     dialogRef.afterClosed().subscribe((locale: LocaleCode | null) => {
+      console.log("Selected locale: ", locale);
+
       if (locale) {
         this.localeMap.update((val) => {
-          return { ...val, [locale]: { text: "", provider: "user" } };
+          const newVal = {
+            ...(val ?? {}),
+            [locale]: { text: "", provider: "user" },
+          };
+          console.log("newVal", newVal);
+          return newVal;
         });
+        // Expand only after we actually added a locale
+        this.isExpanded.set(true);
+      } else {
+        console.error("No locale selected");
       }
     });
-
-    this.isExpanded.set(true);
   }
 
   removeTranslation(locale: LocaleCode) {

@@ -26,7 +26,7 @@ import { LocalSpot, Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { ActivatedRoute } from "@angular/router";
-import { GeoPoint } from "@firebase/firestore";
+import { GeoPoint } from "firebase/firestore";
 import { firstValueFrom, Observable, retry, Subscription } from "rxjs";
 import { MapHelpers } from "../../scripts/MapHelpers";
 import { AuthenticationService } from "../services/firebase/authentication.service";

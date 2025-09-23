@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { RecaptchaVerifier, Auth } from "@firebase/auth";
+import { RecaptchaVerifier, Auth } from "firebase/auth";
 import { ConsentAwareService } from "./consent-aware.service";
 
 @Injectable({

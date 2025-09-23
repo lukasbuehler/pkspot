@@ -20,6 +20,12 @@
           Erfolg und Erinnerunge mit ihne und de Welt. </target>
       </segment>
     </unit>
+    <unit id="3768927257183755959">
+      <segment state="initial">
+        <source>Save</source>
+        <target>Speichere</target>
+      </segment>
+    </unit>
     <unit id="7411379953853971507">
       <segment state="initial">
         <source> This project is Open-Source! Our code is licensed under the <pc id="0"
@@ -303,8 +309,8 @@
       <segment state="initial">
         <source> This spot is not eligible for highlights. To be eligible, it needs at least one
           user-submitted picture and at least one rating. </source>
-        <target> De Spot cha nöd i de Highlights erschine. Defür bruchts mindestens eis Bild
-          vome Benutzer und mindestens ei Bewertig. </target>
+        <target> De Spot cha nöd i de Highlights erschine. Defür bruchts mindestens eis Bild vome
+          Benutzer und mindestens ei Bewertig. </target>
       </segment>
     </unit>
     <unit id="3934298777794632654">
@@ -432,12 +438,18 @@
           reproduce, modify (e.g., thumbnails/compression), display, and distribute this media in
           connection with the service. You retain ownership and can delete the media at any time,
           subject to copies in backups and caches. </source>
-        <target> Mit em Ufelade bestätigsch du, dass du d'Recht hesch oder d'Erlaubnis hesch,
-          die Medie z'teile. Du gewährsch PK Spot en nöd-exklusivi, weltwiiti, kostelosi Lizenz,
-          zum die Medie z'hoste, speichere, reproduziere, modifiziere (z.B. Thumbnails/Kompression),
-          aazeige und vertreile im Zämmehang mit dem Service. Du behaltisch s'Eigentum und chasch
-          die
-          Medie jederziit lösche, absgseh vo allfällige Kopie i Backups und Caches. </target>
+        <target> Mit em Ufelade bestätigsch du, dass du d&apos;Recht hesch oder d&apos;Erlaubnis
+          hesch, die Medie z&apos;teile. Du gewährsch PK Spot en nöd-exklusivi, weltwiiti, kostelosi
+          Lizenz, zum die Medie z&apos;hoste, speichere, reproduziere, modifiziere (z.B.
+          Thumbnails/Kompression), aazeige und vertreile im Zämmehang mit dem Service. Du behaltisch
+          s&apos;Eigentum und chasch die Medie jederziit lösche, absgseh vo allfällige Kopie i
+          Backups und Caches. </target>
+      </segment>
+    </unit>
+    <unit id="3517550046701184661">
+      <segment state="initial">
+        <source>Show less</source>
+        <target>Weniger ahzeige</target>
       </segment>
     </unit>
     <unit id="3539941729807255231">
@@ -672,6 +684,12 @@
       <segment state="initial">
         <source>You need to agree to the terms and conditions!</source>
         <target>Du musch d&quot;Terms and Conditions&quot; ahneh.</target>
+      </segment>
+    </unit>
+    <unit id="1975356621924283237">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Verusse</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -1303,6 +1321,36 @@
         <target> Highlights </target>
       </segment>
     </unit>
+    <unit id="question.covered">
+      <segment state="initial">
+        <source>Is the area covered?</source>
+        <target>Isch de Spot überdacht?</target>
+      </segment>
+    </unit>
+    <unit id="question.environment">
+      <segment state="initial">
+        <source>Is this an indoor or outdoor spot?</source>
+        <target>Isch das en Indoor- oder Outdoor-Spot?</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.both">
+      <segment state="initial">
+        <source>Both</source>
+        <target>Beides</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.indoor">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Indoor</target>
+      </segment>
+    </unit>
+    <unit id="question.environment.outdoor">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Outdoor</target>
+      </segment>
+    </unit>
     <unit id="regular_spots_text">
       <segment state="initial">
         <source>Spots</source>
@@ -1402,6 +1450,12 @@
       <segment state="initial">
         <source>What would you rate this spot from one to five stars?</source>
         <target>Was würsche dem Spot geh vo 1 bis 5 Stern?</target>
+      </segment>
+    </unit>
+    <unit id="6439365426343089851">
+      <segment state="initial">
+        <source>General</source>
+        <target>Generell</target>
       </segment>
     </unit>
     <unit id="spot.review.count">
@@ -1601,6 +1655,12 @@
       <segment state="initial">
         <source>Iconic Spot</source>
         <target>Ikonische Spot</target>
+      </segment>
+    </unit>
+    <unit id="generic.not_sure">
+      <segment state="initial">
+        <source>Not sure</source>
+        <target>Nöd sicher</target>
       </segment>
     </unit>
     <unit id="google.place.rating.label">
@@ -1838,6 +1898,12 @@
         <target>Spot hinzuefüege</target>
       </segment>
     </unit>
+    <unit id="2741210807832834277">
+      <segment state="initial">
+        <source>Edit detailed amenities</source>
+        <target>Ahnemlichkeite bearbeite</target>
+      </segment>
+    </unit>
     <unit id="pk.spotmap.addSpot">
       <segment state="initial">
         <source>Add spot</source>
@@ -1888,7 +1954,7 @@
         <target>Über dich</target>
       </segment>
     </unit>
-    <unit id="3133198135717483264">
+    <unit id="add_media.label">
       <segment state="initial">
         <source>Add media</source>
         <target>Medie hinzuefüege</target>
@@ -2193,6 +2259,12 @@
         <target>Solo</target>
       </segment>
     </unit>
+    <unit id="2267637299863581067">
+      <segment state="initial">
+        <source>Features and amenities</source>
+        <target>Eigeschafte und Ahnemlichkeite</target>
+      </segment>
+    </unit>
     <unit id="2273032269971765958">
       <segment state="initial">
         <source>Pair</source>
@@ -2251,6 +2323,12 @@
       <segment state="initial">
         <source>Participant Type</source>
         <target>Teilnehmer</target>
+      </segment>
+    </unit>
+    <unit id="8822206448271061589">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Dinne</target>
       </segment>
     </unit>
     <unit id="8828059408146193176">
@@ -2329,6 +2407,12 @@
       <segment state="initial">
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName" /></source>
         <target>Challenge bim <ph id="0" equiv="PH" disp="spotName" /></target>
+      </segment>
+    </unit>
+    <unit id="7215101881367554791">
+      <segment state="initial">
+        <source>Show more</source>
+        <target>Meh ahzeige</target>
       </segment>
     </unit>
     <unit id="565606266379309262">

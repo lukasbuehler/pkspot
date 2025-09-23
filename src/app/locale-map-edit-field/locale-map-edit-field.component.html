@@ -2,7 +2,7 @@
   @for(locale of shownLocales(); track $index) {
   <div @fadeInOut class="d-flex flex-row gap-2 align-items-start pb-2">
     <mat-form-field style="width: 100%" appearance="outline">
-      <mat-label>{{ languages[locale]?.name_native ?? locale }}</mat-label>
+      <mat-label>{{ languages[locale].name_native ?? locale }}</mat-label>
 
       @if(isTextArea()) {
       <textarea
@@ -27,12 +27,13 @@
       <mat-icon>delete</mat-icon>
     </button>
   </div>
-  } @if(isExpanded()) {
+  } @if(localeKeys().length > 1) { @if(isExpanded()) {
   <button mat-button (click)="isExpanded.set(false)">
-    <mat-icon> expand_less </mat-icon>Show less</button
-  >} @else { @if(localeKeys().length > 1) {
+    <mat-icon> expand_less </mat-icon><span i18n>Show less</span>
+  </button>
+  } @else {
   <button mat-button (click)="isExpanded.set(true)">
-    <mat-icon>expand_more</mat-icon>Show more
+    <mat-icon>expand_more</mat-icon><span i18n>Show more</span>
   </button>
   } }
   <button mat-button (click)="addTranslation()">

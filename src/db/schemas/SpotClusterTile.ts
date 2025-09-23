@@ -1,4 +1,4 @@
-import { GeoPoint } from "@firebase/firestore";
+import { GeoPoint } from "firebase/firestore";
 import { SpotPreviewData } from "./SpotPreviewData";
 
 export interface SpotClusterDotSchema {

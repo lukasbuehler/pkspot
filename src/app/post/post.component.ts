@@ -5,7 +5,7 @@ import { AuthenticationService } from "../services/firebase/authentication.servi
 import { MapHelpers } from "../../scripts/MapHelpers";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router, RouterLink } from "@angular/router";
-import { Timestamp } from "@firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import { humanTimeSince } from "../../scripts/Helpers";
 import { MatMenuTrigger, MatMenu, MatMenuItem } from "@angular/material/menu";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";

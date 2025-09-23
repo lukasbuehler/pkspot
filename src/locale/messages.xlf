@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">
   <file id="ngi18n" original="ng.template">
     <unit id="1940752772695642659">
@@ -13,17 +13,27 @@
     </unit>
     <unit id="3733695846697223562">
       <segment>
-        <source> Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world. </source>
+        <source> Discover spots and fellow athletes, plan training sessions with your friends and
+          share achievements and memories with them and the world. </source>
+      </segment>
+    </unit>
+    <unit id="3768927257183755959">
+      <segment>
+        <source>Save</source>
       </segment>
     </unit>
     <unit id="7411379953853971507">
       <segment>
-        <source> This project is Open-Source! Our code is licensed under the <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">MIT License</pc>. </source>
+        <source> This project is Open-Source! Our code is licensed under the <pc id="0"
+            equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;"
+            dispEnd="&lt;/b&gt;">MIT License</pc>. </source>
       </segment>
     </unit>
     <unit id="1563251428514246752">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc> View License </source>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc>
+          View License </source>
       </segment>
     </unit>
     <unit id="3687194426938367329">
@@ -53,12 +63,15 @@
     </unit>
     <unit id="8062277427231117545">
       <segment>
-        <source> Join our community of Parkour and Freerunning enthusiasts! Contribute your ideas, report bugs, and provide feedback to help us improve this platform together! </source>
+        <source> Join our community of Parkour and Freerunning enthusiasts! Contribute your ideas,
+          report bugs, and provide feedback to help us improve this platform together! </source>
       </segment>
     </unit>
     <unit id="5825310972408482968">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc> Discord </source>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc>
+          Discord </source>
       </segment>
     </unit>
     <unit id="lang_btn_label">
@@ -125,32 +138,39 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment>
-        <source>This is a commercial property, such as a gym or business, where access may require a fee or membership. Please respect the rules and hours of operation.</source>
+        <source>This is a commercial property, such as a gym or business, where access may require a
+          fee or membership. Please respect the rules and hours of operation.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
       <segment>
-        <source>This is private property and strictly off-limits without explicit, prior permission from the owner. Unauthorized access may result in legal action or injury.</source>
+        <source>This is private property and strictly off-limits without explicit, prior permission
+          from the owner. Unauthorized access may result in legal action or injury.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.other">
       <segment>
-        <source>The access type of this spot is not specified. Please check local regulations and guidelines before visiting.</source>
+        <source>The access type of this spot is not specified. Please check local regulations and
+          guidelines before visiting.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.private">
       <segment>
-        <source>This is private property. While some respectful practice may be tolerated, permission is always recommended to avoid issues.</source>
+        <source>This is private property. While some respectful practice may be tolerated,
+          permission is always recommended to avoid issues.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.public">
       <segment>
-        <source>This is a public spot, which is open to everyone and can be accessed freely without restrictions.</source>
+        <source>This is a public spot, which is open to everyone and can be accessed freely without
+          restrictions.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.residential">
       <segment>
-        <source>This is a residential area and private property. Access is generally limited to residents or their guests. Please be especially mindful of noise and privacy. Training here may lead to being asked to leave.</source>
+        <source>This is a residential area and private property. Access is generally limited to
+          residents or their guests. Please be especially mindful of noise and privacy. Training
+          here may lead to being asked to leave.</source>
       </segment>
     </unit>
     <unit id="spot-access.commercial">
@@ -185,7 +205,8 @@
     </unit>
     <unit id="spot-type-description.art">
       <segment>
-        <source>This is an art installation or sculpture that can be used for Parkour practice. Please respect the artwork and surrounding area.</source>
+        <source>This is an art installation or sculpture that can be used for Parkour practice.
+          Please respect the artwork and surrounding area.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.descent">
@@ -200,7 +221,8 @@
     </unit>
     <unit id="spot-type-description.other">
       <segment>
-        <source>This is a location that doesn&apos;t fit standard categories but offers training opportunities.</source>
+        <source>This is a location that doesn&apos;t fit standard categories but offers training
+          opportunities.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.park">
@@ -210,17 +232,20 @@
     </unit>
     <unit id="spot-type-description.parkour-gym">
       <segment>
-        <source>This is an indoor training facility with dedicated equipment and obstacles for Parkour practice.</source>
+        <source>This is an indoor training facility with dedicated equipment and obstacles for
+          Parkour practice.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.parkour-park">
       <segment>
-        <source>This is a purpose-built outdoor space with designed obstacles and structures for Parkour training.</source>
+        <source>This is a purpose-built outdoor space with designed obstacles and structures for
+          Parkour training.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.playground">
       <segment>
-        <source>This is a playground area with swings, slides, and climbing structures suitable for Parkour training.</source>
+        <source>This is a playground area with swings, slides, and climbing structures suitable for
+          Parkour training.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.roof-gap">
@@ -235,12 +260,14 @@
     </unit>
     <unit id="spot-type-description.school">
       <segment>
-        <source>This is a school facility with walls, benches, and architectural features for practice.</source>
+        <source>This is a school facility with walls, benches, and architectural features for
+          practice.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.university-campus">
       <segment>
-        <source>This is a university campus with varied buildings, courtyards, and outdoor structures.</source>
+        <source>This is a university campus with varied buildings, courtyards, and outdoor
+          structures.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.urban-landscape">
@@ -315,7 +342,8 @@
     </unit>
     <unit id="spot.locality.pretext">
       <notes>
-        <note category="description">The text before the localized location of the spot. E.g. Parkour spot in Wiedikon, Zurich, CH</note>
+        <note category="description">The text before the localized location of the spot. E.g.
+          Parkour spot in Wiedikon, Zurich, CH</note>
       </notes>
       <segment>
         <source>Parkour spot in </source>
@@ -345,7 +373,8 @@
         <note category="meaning">public profile description</note>
       </notes>
       <segment>
-        <source> You can edit your public profile here. The information on your public profile can be seen by everyone, even unauthenticated visitors. </source>
+        <source> You can edit your public profile here. The information on your public profile can
+          be seen by everyone, even unauthenticated visitors. </source>
       </segment>
     </unit>
     <unit id="settings.login.header">
@@ -363,7 +392,8 @@
         <note category="meaning">login information description</note>
       </notes>
       <segment>
-        <source> Your login information. Your E-mail address here is used for your login. You can add the same E-mail address or a different one to your contact information. </source>
+        <source> Your login information. Your E-mail address here is used for your login. You can
+          add the same E-mail address or a different one to your contact information. </source>
       </segment>
     </unit>
     <unit id="6815507474406960450">
@@ -374,6 +404,11 @@
     <unit id="5830520205989474611">
       <segment>
         <source>E-mail address</source>
+      </segment>
+    </unit>
+    <unit id="3517550046701184661">
+      <segment>
+        <source>Show less</source>
       </segment>
     </unit>
     <unit id="3539941729807255231">
@@ -398,7 +433,8 @@
     </unit>
     <unit id="5567404971286131139">
       <segment>
-        <source> This spot is not eligible for highlights. To be eligible, it needs at least one user-submitted picture and at least one rating. </source>
+        <source> This spot is not eligible for highlights. To be eligible, it needs at least one
+          user-submitted picture and at least one rating. </source>
       </segment>
     </unit>
     <unit id="3934298777794632654">
@@ -428,7 +464,7 @@
     </unit>
     <unit id="134280351162314914">
       <segment>
-        <source>Rating: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10"/> ⭐</source>
+        <source>Rating: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10" /> ⭐</source>
       </segment>
     </unit>
     <unit id="1347241542439262355">
@@ -497,7 +533,8 @@
         <note category="meaning">no account message</note>
       </notes>
       <segment>
-        <source> Don&apos;t have an account yet? Simply sign in with your Google account or sign up below. </source>
+        <source> Don&apos;t have an account yet? Simply sign in with your Google account or sign up
+          below. </source>
       </segment>
     </unit>
     <unit id="signin.signup.button">
@@ -535,7 +572,9 @@
     </unit>
     <unit id="7708270344948043036">
       <segment>
-        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}"/> </source>
+        <source>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}" />
+        </source>
       </segment>
     </unit>
     <unit id="7733953409417762446">
@@ -603,7 +642,11 @@
     </unit>
     <unit id="3289630490580318568">
       <segment>
-        <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to both.</source>
+        <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
+            equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
+          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
+            type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
+          both.</source>
       </segment>
     </unit>
     <unit id="1267967133679326155">
@@ -619,6 +662,11 @@
     <unit id="1948163304836345687">
       <segment>
         <source>You need to agree to the terms and conditions!</source>
+      </segment>
+    </unit>
+    <unit id="1975356621924283237">
+      <segment>
+        <source>Outdoor</source>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -668,7 +716,8 @@
         <note category="meaning">spot reported message</note>
       </notes>
       <segment>
-        <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</source>
+        <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION"
+            disp="{{ report.reason }}" />&quot;</source>
       </segment>
     </unit>
     <unit id="8126459137636028145">
@@ -704,7 +753,8 @@
         <note category="meaning">review count text</note>
       </notes>
       <segment>
-        <source>{VAR_PLURAL, plural, =0 {no reviews} =1 {1 review} other {<ph id="0" equiv="INTERPOLATION"/> reviews}}</source>
+        <source>{VAR_PLURAL, plural, =0 {no reviews} =1 {1 review} other {<ph id="0"
+            equiv="INTERPOLATION" /> reviews}}</source>
       </segment>
     </unit>
     <unit id="spot.navigate.button">
@@ -776,7 +826,8 @@
         <note category="meaning">Open in maps button</note>
       </notes>
       <segment>
-        <source>Open in <ph id="0" equiv="INTERPOLATION" disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}"/></source>
+        <source>Open in <ph id="0" equiv="INTERPOLATION"
+            disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}" /></source>
       </segment>
     </unit>
     <unit id="spot.edit.tooltip">
@@ -868,6 +919,31 @@
         <source> Highlights </source>
       </segment>
     </unit>
+    <unit id="question.covered">
+      <segment>
+        <source>Is the area covered?</source>
+      </segment>
+    </unit>
+    <unit id="question.environment">
+      <segment>
+        <source>Is this an indoor or outdoor spot?</source>
+      </segment>
+    </unit>
+    <unit id="question.environment.both">
+      <segment>
+        <source>Both</source>
+      </segment>
+    </unit>
+    <unit id="question.environment.indoor">
+      <segment>
+        <source>Indoor</source>
+      </segment>
+    </unit>
+    <unit id="question.environment.outdoor">
+      <segment>
+        <source>Outdoor</source>
+      </segment>
+    </unit>
     <unit id="regular_spots_text">
       <segment>
         <source>Spots</source>
@@ -878,7 +954,8 @@
         <note category="description">The text in the spot list panel if no spots are found/displayed</note>
       </notes>
       <segment>
-        <source> There are no highlighted spots for this area, zoom in on dots in the map to discover other spots. </source>
+        <source> There are no highlighted spots for this area, zoom in on dots in the map to
+          discover other spots. </source>
       </segment>
     </unit>
     <unit id="8011758699583016596">
@@ -913,7 +990,8 @@
     </unit>
     <unit id="6024008212258429928">
       <segment>
-        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}"/>&apos;</source>
+        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}" />
+          &apos;</source>
       </segment>
     </unit>
     <unit id="8425796083769561052">
@@ -923,7 +1001,8 @@
     </unit>
     <unit id="8436223332064456837">
       <segment>
-        <source><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></source>
+        <source><ph id="0" equiv="PH" disp="challengeName" /> - <ph id="1" equiv="PH_1"
+            disp="spotName" /></source>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -963,7 +1042,8 @@
     </unit>
     <unit id="4411046525037051458">
       <segment>
-        <source> Note: Spot reports are public and will be displayed on the spot itself together with your profile and user name. </source>
+        <source> Note: Spot reports are public and will be displayed on the spot itself together
+          with your profile and user name. </source>
       </segment>
     </unit>
     <unit id="2330577642930707695">
@@ -976,12 +1056,18 @@
     </unit>
     <unit id="9074160907730350759">
       <segment>
-        <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
+        <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}" />
+          &apos;</source>
       </segment>
     </unit>
     <unit id="6435282697411612190">
       <segment>
         <source>What would you rate this spot from one to five stars?</source>
+      </segment>
+    </unit>
+    <unit id="6439365426343089851">
+      <segment>
+        <source>General</source>
       </segment>
     </unit>
     <unit id="5207635742003539443">
@@ -1042,7 +1128,11 @@
         <note category="meaning">media upload disclaimer</note>
       </notes>
       <segment>
-        <source> By uploading, you confirm you own the rights or have permission to share this media. You grant PK Spot a non-exclusive, worldwide, royalty-free license to host, store, reproduce, modify (e.g., thumbnails/compression), display, and distribute this media in connection with the service. You retain ownership and can delete the media at any time, subject to copies in backups and caches. </source>
+        <source> By uploading, you confirm you own the rights or have permission to share this
+          media. You grant PK Spot a non-exclusive, worldwide, royalty-free license to host, store,
+          reproduce, modify (e.g., thumbnails/compression), display, and distribute this media in
+          connection with the service. You retain ownership and can delete the media at any time,
+          subject to copies in backups and caches. </source>
       </segment>
     </unit>
     <unit id="welcomeDialogTitle">
@@ -1052,7 +1142,9 @@
     </unit>
     <unit id="welcomeDialogSafetyBody">
       <segment>
-        <source> Remember that Parkour has inherent risks and you are responsible for your own safety. Our spots are user-submitted and their accuracy and legality are not guaranteed. Always respect property rights and local laws. </source>
+        <source> Remember that Parkour has inherent risks and you are responsible for your own
+          safety. Our spots are user-submitted and their accuracy and legality are not guaranteed.
+          Always respect property rights and local laws. </source>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyHeading">
@@ -1062,7 +1154,8 @@
     </unit>
     <unit id="welcomeDialogTechBody">
       <segment>
-        <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy, we use a privacy-focused, cookie-free analytics service. </source>
+        <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
+          we use a privacy-focused, cookie-free analytics service. </source>
       </segment>
     </unit>
     <unit id="welcomeDialogTechHeading">
@@ -1072,7 +1165,8 @@
     </unit>
     <unit id="welcomeDialogText">
       <segment>
-        <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you can explore spots, share posts, and connect with other practitioners. 🤸 </source>
+        <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you
+          can explore spots, share posts, and connect with other practitioners. 🤸 </source>
       </segment>
     </unit>
     <unit id="welcomeDialogAboutButton">
@@ -1082,7 +1176,13 @@
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment>
-        <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. </source>
+        <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
+            equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy
+          Policy</pc>. </source>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">
@@ -1266,13 +1366,25 @@
         <source>Info stand</source>
       </segment>
     </unit>
+    <unit id="generic.not_sure">
+      <segment>
+        <source>Not sure</source>
+      </segment>
+    </unit>
     <unit id="google.place.rating.label">
       <notes>
         <note category="description">Label for Google place rating</note>
         <note category="meaning">google place rating label</note>
       </notes>
       <segment>
-        <source><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if(googlePlace()!.rating) {" dispEnd="}"> Rating: <pc id="1" equivStart="START_TAG_APP_SPOT_RATING" equivEnd="CLOSE_TAG_APP_SPOT_RATING" type="other" dispStart="&lt;app-spot-rating [rating1to5]=&quot;googlePlace()!.rating!&quot; [showEmptyStars]=&quot;false&quot; [isCompact]=&quot;true&quot; &gt;" dispEnd="&lt;/app-spot-rating&gt;"/></pc></source>
+        <source>
+          <pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other"
+            dispStart="@if(googlePlace()!.rating) {" dispEnd="}"> Rating: <pc id="1"
+              equivStart="START_TAG_APP_SPOT_RATING" equivEnd="CLOSE_TAG_APP_SPOT_RATING"
+              type="other"
+              dispStart="&lt;app-spot-rating [rating1to5]=&quot;googlePlace()!.rating!&quot; [showEmptyStars]=&quot;false&quot; [isCompact]=&quot;true&quot; &gt;"
+              dispEnd="&lt;/app-spot-rating&gt;" /></pc>
+        </source>
       </segment>
     </unit>
     <unit id="6019314900948916795">
@@ -1432,7 +1544,8 @@
     </unit>
     <unit id="2085915950119931041">
       <segment>
-        <source>The goal of this challenge is to be creative. This challenge may also be more open to interpretation.</source>
+        <source>The goal of this challenge is to be creative. This challenge may also be more open
+          to interpretation.</source>
       </segment>
     </unit>
     <unit id="2159130950882492111">
@@ -1470,6 +1583,11 @@
         <source> Spot Name </source>
       </segment>
     </unit>
+    <unit id="2267637299863581067">
+      <segment>
+        <source>Features and amenities</source>
+      </segment>
+    </unit>
     <unit id="2273032269971765958">
       <segment>
         <source>Pair</source>
@@ -1486,7 +1604,8 @@
     </unit>
     <unit id="2369409944839137310">
       <segment>
-        <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
+        <source>A core challenge of this spot. An essential challenge for anyone seeking to master
+          this spot.</source>
       </segment>
     </unit>
     <unit id="2496518471623524249">
@@ -1504,12 +1623,17 @@
         <source>Add Spot</source>
       </segment>
     </unit>
+    <unit id="2741210807832834277">
+      <segment>
+        <source>Edit detailed amenities</source>
+      </segment>
+    </unit>
     <unit id="2917314929120683887">
       <segment>
         <source> Continue </source>
       </segment>
     </unit>
-    <unit id="3133198135717483264">
+    <unit id="add_media.label">
       <segment>
         <source>Add media</source>
       </segment>
@@ -1711,7 +1835,7 @@
     </unit>
     <unit id="611564526184434442">
       <segment>
-        <source> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()"/></source>
+        <source> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()" /></source>
       </segment>
     </unit>
     <unit id="6179528187219959958">
@@ -1802,7 +1926,9 @@
     </unit>
     <unit id="4020018249666121252">
       <segment>
-        <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </source>
+        <source> All Challenges of <ph id="0" equiv="INTERPOLATION"
+            disp="{{ selectedSpot()!.name() }}" />
+        </source>
       </segment>
     </unit>
     <unit id="4077520913910941990">
@@ -1838,7 +1964,8 @@
     </unit>
     <unit id="501118076159295384">
       <segment>
-        <source> The Challenge will only be available starting from the release date. Before that it will be private to you. </source>
+        <source> The Challenge will only be available starting from the release date. Before that it
+          will be private to you. </source>
       </segment>
     </unit>
     <unit id="5442876463654189578">
@@ -1895,7 +2022,12 @@
     </unit>
     <unit id="7193934719093844817">
       <segment>
-        <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
+        <source>Challenge at <ph id="0" equiv="PH" disp="spotName" /></source>
+      </segment>
+    </unit>
+    <unit id="7215101881367554791">
+      <segment>
+        <source>Show more</source>
       </segment>
     </unit>
     <unit id="7334091550966090385">
@@ -1915,7 +2047,11 @@
     </unit>
     <unit id="7408374932533578639">
       <segment>
-        <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}"/>, at <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}"/>. </source>
+        <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION"
+            disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}" />,
+          at <ph id="1" equiv="INTERPOLATION_1"
+            disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}" />
+          . </source>
       </segment>
     </unit>
     <unit id="8387795974331999553">
@@ -1928,9 +2064,17 @@
         <source>Time</source>
       </segment>
     </unit>
+    <unit id="8822206448271061589">
+      <segment>
+        <source>Indoor</source>
+      </segment>
+    </unit>
     <unit id="8828059408146193176">
       <segment>
-        <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
+        <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE"
+            equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other"
+            dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;"
+            dispEnd="&lt;/mat-slide-toggle&gt;" /></source>
       </segment>
     </unit>
     <unit id="8998179362936748717">
@@ -1950,7 +2094,9 @@
     </unit>
     <unit id="1737753151350322492">
       <segment>
-        <source><ph id="0" equiv="PH" disp="this.label"/></source>
+        <source>
+          <ph id="0" equiv="PH" disp="this.label" />
+        </source>
       </segment>
     </unit>
     <unit id="1744316082077040772">
@@ -1960,7 +2106,9 @@
     </unit>
     <unit id="187187500641108332">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}"/></source>
+        <source>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}" />
+        </source>
       </segment>
     </unit>
     <unit id="3483311644139102304">

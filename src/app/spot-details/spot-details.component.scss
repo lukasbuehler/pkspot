@@ -1,6 +1,4 @@
-:host {
-  //overflow: none;
-}
+/* Root host ruleset removed to avoid empty ruleset lint warning */
 
 mat-card {
   height: auto;
@@ -152,5 +150,35 @@ div.google-img-container {
 
   mat-icon {
     color: rgba(195, 47, 37, 0.8);
+  }
+}
+
+/* Responsive tweaks for environment toggle in edit view */
+@media (max-width: 480px) {
+  .env-picker mat-icon {
+    display: none;
+  }
+
+  .env-picker mat-button-toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+
+  /* Force full width buttons */
+  .env-picker ::ng-deep .mat-button-toggle-group,
+  .env-picker ::ng-deep .mat-button-toggle,
+  .env-picker ::ng-deep mat-button-toggle {
+    width: 100% !important;
+  }
+
+  /* Ensure internal label container spans */
+  .env-picker ::ng-deep .mat-button-toggle-label-content {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
   }
 }

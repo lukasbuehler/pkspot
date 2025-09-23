@@ -1,0 +1,30 @@
+.env-picker {
+  margin-bottom: 8px;
+}
+
+.amenity-section {
+  margin-top: 8px;
+}
+
+mat-dialog-content {
+  max-height: 70vh;
+}
+
+/* Responsive tweaks for mobile: make environment toggle more compact */
+@media (max-width: 480px) {
+  .env-picker mat-icon {
+    display: none; /* remove icons to save horizontal space */
+  }
+
+  .env-picker mat-button-toggle-group {
+    display: flex;
+    flex-direction: column; /* stack vertically */
+    gap: 6px;
+    width: 100%;
+  }
+
+  .env-picker mat-button-toggle-group .mat-button-toggle,
+  .env-picker mat-button-toggle-group mat-button-toggle {
+    width: 100%; /* full width buttons */
+  }
+}

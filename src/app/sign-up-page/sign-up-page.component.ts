@@ -9,7 +9,7 @@ import {
 } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthenticationService } from "../services/firebase/authentication.service";
-import { Auth, RecaptchaVerifier } from "@firebase/auth";
+import { Auth, RecaptchaVerifier } from "firebase/auth";
 import { NgIf, NgOptimizedImage } from "@angular/common";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatInput } from "@angular/material/input";
@@ -123,7 +123,10 @@ export class SignUpPageComponent implements OnInit {
       )
       .then((recaptcha) => {
         this._recaptchaSetupCompleted = true;
-        recaptcha.render();
+        // Guard against null and SSR; render may be undefined in some contexts
+        if (recaptcha && typeof (recaptcha as any).render === "function") {
+          (recaptcha as any).render();
+        }
         console.log("reCAPTCHA setup completed");
       })
       .catch((error) => {

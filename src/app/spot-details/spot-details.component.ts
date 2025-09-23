@@ -53,6 +53,9 @@ import {
   AmenityNames,
   AmenityNegativeNames,
   makeSmartAmenitiesArray,
+  AmenityQuestions,
+  type AmenityQuestion,
+  type QuestionValue,
 } from "../../db/models/Amenities";
 
 //import { MatTooltipModule } from "@angular/material/tooltip";
@@ -68,7 +71,8 @@ import { MapsApiService } from "../services/maps-api.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { SpotReportDialogComponent } from "../spot-report-dialog/spot-report-dialog.component";
 import { SpotReviewDialogComponent } from "../spot-review-dialog/spot-review-dialog.component";
-import { MatDialog } from "@angular/material/dialog";
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { Inject } from "@angular/core";
 import { SpotReportSchema } from "../../db/schemas/SpotReportSchema";
 import { SpotTypes, SpotAccess } from "../../db/schemas/SpotTypeAndAccess";
 import { MatSelect, MatSelectModule } from "@angular/material/select";
@@ -131,11 +135,12 @@ import { locale } from "core-js";
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { StorageBucket } from "../../db/schemas/Media";
-import { Timestamp } from "@firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import { Router } from "@angular/router";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
-import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
+// import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
+import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -203,7 +208,8 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatSelectModule,
     LocaleMapViewComponent,
     ChallengeListComponent,
-    SpotAmenityToggleComponent,
+    MatButtonToggleModule,
+    MatDialogModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
@@ -238,6 +244,48 @@ export class SpotDetailsComponent
   isLocalSpot = computed(
     () => this.spot() !== null && !(this.spot() instanceof Spot)
   );
+
+  // Expose centralized questions for potential dynamic UI
+  AmenityQuestions = AmenityQuestions;
+
+  // Compute the next applicable unanswered question
+  public nextAmenityQuestion = computed(() => {
+    const spot = this.spot();
+    if (!spot) return null;
+    const a = spot.amenities();
+    for (const q of this.AmenityQuestions) {
+      try {
+        if (q.isApplicable(a) && !q.isAnswered(a)) return q;
+      } catch {
+        // If a question throws, skip it rather than breaking the UI
+        continue;
+      }
+    }
+    return null;
+  });
+
+  // Current selection value for the next question
+  currentQuestionValue = computed<QuestionValue | null>(() => {
+    const spot = this.spot();
+    const q = this.nextAmenityQuestion();
+    if (!spot || !q) return null;
+    return q.getValue(spot.amenities());
+  });
+
+  // Apply selection for the currently shown question
+  public answerAmenityQuestion(questionId: string, value: string) {
+    const q = this.nextAmenityQuestion();
+    const spot = this.spot();
+    if (!q || !spot) return;
+    const opt = q.options.find((o) => o.value === value);
+    if (!opt) return;
+    this.spot!.update((s) => {
+      if (!s) return s;
+      const updated = opt.apply({ ...(s.amenities() ?? {}) });
+      s.amenities.set(updated);
+      return s;
+    });
+  }
 
   spotImages = computed(() => {
     const spot = this.spot();
@@ -279,6 +327,20 @@ export class SpotDetailsComponent
   OutdoorAmenities = OutdoorAmenities;
   GeneralAmenities = GeneralAmenities;
 
+  // Environment 4-state selection derived from amenities
+  public environmentSelection = computed<
+    "indoor" | "outdoor" | "both" | "unknown"
+  >(() => {
+    const a = this.spot()?.amenities();
+    if (!a) return "unknown";
+    const indoor = a.indoor ?? null;
+    const outdoor = a.outdoor ?? null;
+    if (indoor === true && outdoor === true) return "both";
+    if (indoor === true) return "indoor";
+    if (outdoor === true) return "outdoor";
+    return "unknown";
+  });
+
   visited: boolean = false;
   bookmarked: boolean = false;
 
@@ -308,13 +370,17 @@ export class SpotDetailsComponent
 
   get spotDescriptionLocaleMap(): LocaleMap {
     const spot = this.spot();
-    if (!spot || !spot.description()) return {};
-
-    return spot.descriptions()!;
+    if (!spot) return {};
+    // Return a stable object reference without mutating signals during render
+    const current = spot.descriptions();
+    return current ?? this._EMPTY_LOCALE_MAP;
   }
   set spotDescriptionLocaleMap(value: LocaleMap) {
     this.spot()?.descriptions.set(value);
   }
+
+  // Stable empty LocaleMap to avoid identity churn in templates when descriptions are unset
+  private readonly _EMPTY_LOCALE_MAP = Object.freeze({}) as LocaleMap;
 
   spotTypes = Object.values(SpotTypes);
   spotTypeNames = SpotTypesNames;
@@ -366,7 +432,7 @@ export class SpotDetailsComponent
 
   constructor(
     public authenticationService: AuthenticationService,
-    public dialog: MatDialog,
+    @Inject(MatDialog) public dialog: MatDialog,
     private _locationStrategy: LocationStrategy,
     private _router: Router,
     private _element: ElementRef,
@@ -936,6 +1002,70 @@ export class SpotDetailsComponent
       (amenities as any)[amenityKey] = selected ?? null;
 
       return spot;
+    });
+  }
+
+  setEnvironment(selection: "indoor" | "outdoor" | "both" | "unknown") {
+    this.spot!.update((spot) => {
+      if (!spot) return spot;
+      const a = { ...(spot.amenities() ?? {}) } as AmenitiesMap;
+      if (selection === "indoor") {
+        a.indoor = true;
+        a.outdoor = false;
+      } else if (selection === "outdoor") {
+        a.indoor = false;
+        a.outdoor = true;
+      } else if (selection === "both") {
+        a.indoor = true;
+        a.outdoor = true;
+      } else {
+        a.indoor = null;
+        a.outdoor = null;
+      }
+      spot.amenities.set(a);
+      return spot;
+    });
+  }
+
+  // Covered selection: "covered" | "not_covered" | "unknown"
+  public coveredSelection = computed<"covered" | "not_covered" | "unknown">(
+    () => {
+      const a = this.spot()?.amenities() as AmenitiesMap | undefined;
+      const covered = a?.covered ?? null;
+      if (covered === true) return "covered";
+      if (covered === false) return "not_covered";
+      return "unknown";
+    }
+  );
+
+  public setCovered(selection: "covered" | "not_covered" | "unknown") {
+    this.spot!.update((spot) => {
+      if (!spot) return spot;
+      const a = { ...(spot.amenities() ?? {}) } as AmenitiesMap;
+      if (selection === "covered") a.covered = true;
+      else if (selection === "not_covered") a.covered = false;
+      else a.covered = null;
+      spot.amenities.set(a);
+      return spot;
+    });
+  }
+
+  openSpotAmenitiesDialog() {
+    const spot = this.spot();
+    if (!spot) return;
+
+    const ref = this.dialog.open(SpotAmenitiesDialogComponent, {
+      data: { amenities: spot.amenities() },
+      width: "640px",
+    });
+
+    ref.afterClosed().subscribe((updated: AmenitiesMap | undefined) => {
+      if (!updated) return;
+      this.spot!.update((s) => {
+        if (!s) return s;
+        s.amenities.set(updated);
+        return s;
+      });
     });
   }
 }
