@@ -3,15 +3,32 @@ import {
   importProvidersFrom,
   LOCALE_ID,
   DOCUMENT,
+  PLATFORM_ID,
+  inject,
 } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { environment } from "../environments/environment";
-import { provideFunctions, getFunctions } from "@angular/fire/functions";
+import {
+  provideFunctions,
+  getFunctions as ngfGetFunctions,
+} from "@angular/fire/functions";
 import { GoogleMapsModule } from "@angular/google-maps";
 
 import { provideAnimations } from "@angular/platform-browser/animations";
-import { provideStorage, getStorage } from "@angular/fire/storage";
-import { provideFirestore, getFirestore } from "@angular/fire/firestore";
-import { provideFirebaseApp, initializeApp } from "@angular/fire/app";
+import {
+  provideStorage,
+  Storage,
+  getStorage as ngfGetStorage,
+} from "@angular/fire/storage";
+import {
+  provideFirestore,
+  getFirestore as ngfGetFirestore,
+} from "@angular/fire/firestore";
+import {
+  provideFirebaseApp,
+  initializeApp,
+  FirebaseApp,
+} from "@angular/fire/app";
 import {
   withInterceptorsFromDi,
   provideHttpClient,
@@ -35,9 +52,18 @@ import { IMAGE_LOADER, ImageLoaderConfig } from "@angular/common";
 export const appConfig: ApplicationConfig = {
   providers: [
     provideFirebaseApp(() => initializeApp(environment.keys.firebaseConfig)),
-    provideFirestore(() => getFirestore()),
-    provideStorage(() => getStorage()),
-    provideFunctions(() => getFunctions()),
+    // Bind Firestore/Storage/Functions to the injected FirebaseApp to enforce init ordering
+    provideFirestore(() => ngfGetFirestore(inject(FirebaseApp))),
+    // Only initialize Storage on the browser; use AngularFire's getStorage to avoid registration issues
+    provideStorage(() => {
+      const platformId = inject(PLATFORM_ID);
+      if (!isPlatformBrowser(platformId)) {
+        return null as unknown as Storage;
+      }
+      // Prefer AngularFire's getStorage which is aware of Angular zones/injection context
+      return ngfGetStorage(inject(FirebaseApp));
+    }),
+    provideFunctions(() => ngfGetFunctions(inject(FirebaseApp))),
     // TODO: Make Auth provider consent-aware
     // provideAuth(() => getAuth()),
     provideRouter(routes, withViewTransitions()),

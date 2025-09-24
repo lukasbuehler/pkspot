@@ -1,4 +1,4 @@
-import { GeoPoint, Timestamp } from "@firebase/firestore";
+import { GeoPoint, Timestamp } from "firebase/firestore";
 import { LocaleMap } from "../models/Interfaces";
 import { MediaSchema } from "../schemas/Media";
 import { SpotPreviewData } from "./SpotPreviewData";

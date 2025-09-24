@@ -7,7 +7,7 @@
 <mat-card
   matRipple
   [matRippleDisabled]="!clickable"
-  class="pt-0 bg-transparent"
+  class="pt-0 bg-transparent d-block"
   [class.border]="border"
   [class.clickable]="clickable"
   style="box-shadow: none"
@@ -28,9 +28,12 @@
           >stars</mat-icon
         >
         }
-        <span [matTooltip]="spot()!.name()" class="text-truncate d-block">{{
-          spot()!.name()
-        }}</span>
+        <span
+          [@fadeSlideOnChange]="nameAnimKey()"
+          [matTooltip]="spot()!.name()"
+          class="text-truncate d-block"
+          >{{ spot()!.name() }}</span
+        >
       </span>
 
       <!-- dismiss button -->
@@ -56,14 +59,20 @@
         <div class="d-flex flex-row gap-1 align-items-center pb-1">
           <span class="mat-label-small px-1 border rounded me-1">Spot</span>
           @if(spot()?.rating) {
-          <app-spot-rating
-            class="flex-shrink-0"
-            [rating1to5]="spot()!.rating"
-            [showNumReviews]="true"
-            [numReviews]="spot()!.numReviews"
-            [isCompact]="true"
-          ></app-spot-rating
-          >}
+          <span class="d-flex align-items-center gap-1 flex-shrink-0">
+            <app-fancy-counter
+              [number]="spot()!.rating!"
+              [decimals]="1"
+            ></app-fancy-counter>
+            <app-spot-rating
+              [rating1to5]="spot()!.rating"
+              [showNumReviews]="true"
+              [numReviews]="spot()!.numReviews"
+              [isCompact]="true"
+              [showRating]="false"
+            ></app-spot-rating>
+          </span>
+          }
           {{
             spot()?.rating && spot()!.importantAmenitiesArray().length > 0
               ? "⸱"
@@ -85,7 +94,10 @@
               : null
           }}
           @if(spot()?.type() && spot()?.type()! !== 'other') {
-          <span class="mat-label-large text-nowrap text-truncate">
+          <span
+            class="mat-label-large text-nowrap text-truncate"
+            [@fadeSlideOnChange]="typeAnimKey()"
+          >
             <!-- <mat-icon class="amenity-icon me-1">{{
               spotTypesIcons[spot()!.type()]
             }}</mat-icon
@@ -102,7 +114,10 @@
               : null
           }}
           @if(spot()?.access() && spot()?.access()! !== 'other') {
-          <span class="mat-label-large text-nowrap text-truncate">
+          <span
+            class="mat-label-large text-nowrap text-truncate"
+            [@fadeSlideOnChange]="accessAnimKey()"
+          >
             <!-- <mat-icon class="amenity-icon me-1">{{
               spotAccessIcons[spot()!.access()]
             }}</mat-icon
@@ -196,25 +211,27 @@
   </div>
   }
 
-  <mat-card-content>
+  <mat-card-content class="pt-0">
     @if(!isEditing()) {
-    <div class="mb-4 mt-1">
+    <div class="mb-1 mt-1">
       <!-- spot media carousel  -->
       @if(spot()?.media() && spot()!.media().length > 0) {
-      <app-img-carousel [media]="spot()?.media()"> </app-img-carousel>
+      <app-img-carousel [media]="spot()?.media()" class="mb-3">
+      </app-img-carousel>
 
+      }
       <!-- if the user is signed in, show an add media button to upload new media -->
       @if(authenticationService.isSignedIn) {
       <button
         matButton="outlined"
-        class="mt-3"
+        class="mb-3"
         color="primary"
         (click)="openMediaUploadDialog()"
       >
         <mat-icon>add_photo_alternate</mat-icon>
-        Add Media
+        <span i18n="@@add_media.label">Add Media</span>
       </button>
-      } }
+      }
     </div>
 
     @if(spot()?.isEligableForHighlights() === false) {
@@ -236,60 +253,19 @@
       Details
     </h3>
 
-    <!-- Google place -->
-    @if(googlePlace()) {
-    <h4
-      class="mat-title-small"
-      i18n="
-        google maps section header|Header for the Google Maps
-        section@@spot.google_maps.header"
-    >
-      This spot on Google Maps®
-    </h4>
-    <a
-      [href]="googlePlace()!.url"
-      target="_blank"
-      rel="noopener noreferrer"
-      style="text-decoration: none; color: inherit"
-    >
-      <mat-card
-        matRipple
-        class="mat-elevation-z0 clickable border rounded d-flex flex-row mb-4 overflow-hidden"
-        style="height: 80px"
+    <!-- Google place (reusable component) -->
+    @if(spot()?.googlePlaceId()) {
+    <div class="mb-4">
+      <h4
+        class="mat-title-small"
+        i18n="
+          google maps section header|Header for the Google Maps
+          section@@spot.google_maps.header"
       >
-        @if(googlePlace()!.photo_url) {
-        <div mat-card-sm-image class="google-img-container">
-          <img [ngSrc]="googlePlace()!.photo_url!" fill />
-        </div>
-        }
-        <mat-card-header class="pb-2">
-          <mat-card-title
-            class="text-truncate mw-100 pt-2 mat-title-medium"
-            style="font-size: 1.1rem"
-          >
-            {{ googlePlace()!.name }}
-          </mat-card-title>
-          <mat-card-subtitle
-            i18n="
-              google place rating label|Label for Google place
-              rating@@google.place.rating.label"
-            class="d-flex flex-row gap-2 mat-title-small"
-          >
-            @if(googlePlace()!.rating) { Rating:
-            <app-spot-rating
-              [rating1to5]="googlePlace()!.rating!"
-              [showEmptyStars]="false"
-              [isCompact]="true"
-            ></app-spot-rating>
-            }
-
-            <!-- <span class="text-truncate" style="flex-shrink: 1">
-            {{ spotLocality }}
-          </span> -->
-          </mat-card-subtitle>
-        </mat-card-header>
-      </mat-card>
-    </a>
+        This spot on Google Maps®
+      </h4>
+      <app-google-place-preview [placeId]="spot()!.googlePlaceId()" />
+    </div>
     }
 
     <!-- Freatures -->
@@ -316,6 +292,7 @@
     <!-- Spot Description -->
     @if(spot()?.description()) {
     <app-locale-map-view
+      [@fadeSlideOnChange]="spot()!.descriptions() | json"
       title="Description"
       i18n-title="description header|The header for the spot description"
       [localeMap]="spot()!.descriptions()"
@@ -495,9 +472,12 @@
         <div
           class="d-flex flex-column align-items-center justify-content-center gap-1 pe-4"
         >
-          <span class="mat-headline-large mb-0">{{
-            spot()!.rating!.toFixed(1)
-          }}</span>
+          <span class="mat-headline-large mb-0">
+            <app-fancy-counter
+              [number]="spot()!.rating!"
+              [decimals]="1"
+            ></app-fancy-counter>
+          </span>
           <app-spot-rating
             [rating1to5]="spot()!.rating"
             [showNumReviews]="false"
@@ -665,6 +645,34 @@
     /////////////////////////////////////////////////   
     -->
 
+    <!-- Saving actions -->
+    @if(isEditing()) {
+    <mat-card-actions class="mb-3 gap-2">
+      @if(editable) {
+      <button
+        matButton="outlined"
+        color="warn"
+        (click)="discardButtonClick()"
+        class="flex-grow-1 flex-basis-0"
+        i18n="
+          Discard changes button label|Label of the button to discard changes
+        "
+      >
+        Discard changes
+      </button>
+      <button
+        matButton="filled"
+        color="primary"
+        (click)="saveButtonClick()"
+        class="flex-grow-1 flex-basis-0"
+        i18n="Save changes button label|Label of the button to save changes"
+      >
+        Save changes
+      </button>
+      }
+    </mat-card-actions>
+    }
+
     <!-- Spot title editing field -->
     <h4
       class="mat-title-small"
@@ -698,7 +706,7 @@
       <!-- Media preview grid -->
       @if(spot()!.userMedia() && spot()!.userMedia().length > 0) {
       <p
-        class="mat-title-small"
+        class="mat-body-medium"
         i18n="
           reorder media message|Message shown when there are media items to
           reorder@@spot.edit.media.reorder"
@@ -718,9 +726,9 @@
           matButton="filled"
           color="primary"
           (click)="openMediaUploadDialog()"
-          i18n
         >
-          Add images
+          <mat-icon>add_photo_alternate</mat-icon>
+          <span i18n="@@add_media.label">Add Media</span>
         </button>
       </div>
       } @else {
@@ -740,43 +748,6 @@
         (change)="setHideStreetviewFromToggle($event)"
         >Hide Streetview</mat-slide-toggle
       >
-    </div>
-
-    <!-- Slug selection -->
-    <div class="pb-4">
-      <h4
-        class="mat-title-small"
-        i18n="
-          spot url edit header|Header for spot URL editing
-          section@@spot.edit.url.header"
-      >
-        Spot URL
-      </h4>
-      @if(allSpotSlugs.length > 0) {
-      <mat-form-field class="w-100" appearance="outline">
-        <mat-label
-          i18n="
-            select spot url label|Label for selecting preferred spot
-            URL@@spot.edit.url.select_label"
-          >Select preffered spot URL</mat-label
-        >
-        <mat-select [(value)]="spotSlug">
-          @for(slug of allSpotSlugs; track $index) {
-          <mat-option [value]="slug">{{ slug }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      }
-
-      <button mat-stroked-button>
-        <mat-icon>add</mat-icon>
-        <span
-          i18n="
-            add custom url button|Button to add custom spot
-            URL@@spot.edit.url.add_custom"
-          >Add custom spot URL</span
-        >
-      </button>
     </div>
 
     <!-- Iconic -->
@@ -808,18 +779,106 @@
     >
     </app-locale-map-edit-field>
 
+    <!-- Google Places Linking -->
+    <div class="w-100 mb-4">
+      <h4 class="mat-title-small">Google Places</h4>
+      @if(!isNewSpot) {
+      <div class="d-flex flex-column gap-2">
+        @if(spot()?.googlePlaceId()) {
+        <div class="d-flex flex-column gap-2">
+          <app-google-place-preview [placeId]="spot()!.googlePlaceId()" />
+          <div>
+            <button
+              mat-stroked-button
+              color="warn"
+              (click)="unlinkPlace()"
+              [disabled]="unlinkingPlace()"
+            >
+              <mat-icon>link_off</mat-icon>
+              <span i18n>Unlink</span>
+            </button>
+          </div>
+        </div>
+        }
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label i18n>Search Google Places near this spot</mat-label>
+          <input
+            matInput
+            [value]="placeSearch.value"
+            (input)="
+              placeSearch.setValue($any($event.target).value);
+              searchPlaces($any($event.target).value)
+            "
+            [placeholder]="
+              googlePlace() ? googlePlace()!.name : 'Type to search'
+            "
+          />
+        </mat-form-field>
+
+        @if(placePredictions.length > 0) {
+        <div class="border rounded p-1">
+          @for(pred of placePredictions; track pred.place_id) {
+          <button
+            class="w-100 d-flex flex-row align-items-center justify-content-between text-start"
+            mat-button
+            (click)="linkPlace(pred)"
+            [disabled]="linkingPlace()"
+          >
+            <span class="text-truncate">
+              <mat-icon class="me-1">place</mat-icon
+              >{{ pred.structured_formatting.main_text }}
+              <span class="mat-label-small text-secondary"
+                >— {{ pred.structured_formatting.secondary_text }}</span
+              >
+            </span>
+            <mat-icon>link</mat-icon>
+          </button>
+          }
+        </div>
+        } @else if (nearbyPlaceResults.length > 0 && (!placeSearch.value ||
+        placeSearch.value.length === 0)) {
+        <div class="border rounded p-1">
+          @for(res of nearbyPlaceResults; track res.place_id) {
+          <button
+            class="w-100 d-flex flex-row align-items-center justify-content-between text-start"
+            mat-button
+            (click)="linkPlaceResult(res)"
+            [disabled]="linkingPlace() || !res.place_id"
+          >
+            <span class="text-truncate">
+              <mat-icon class="me-1">place</mat-icon
+              >{{ res.name }} @if(res.vicinity) {<span
+                class="mat-label-small text-secondary"
+                >— {{ res.vicinity }}</span
+              >}
+            </span>
+            <mat-icon>link</mat-icon>
+          </button>
+          }
+        </div>
+        }
+      </div>
+      }
+    </div>
+
     <!-- Bounds -->
-    <div class="my-3 d-flex justify-start">
+    <div class="my-3 d-flex flex-column align-start gap-1">
       @if(!isNewSpot && !hasBounds()) {
-      <button
-        mat-stroked-button
-        (click)="addBoundsClicked()"
-        i18n="
-          Add bounds button label|Label of the button to add bounds to a spot
-        "
-      >
-        Add bounds
-      </button>
+      <div class="mat-body-small text-secondary" i18n>
+        Add an editable boundary for this spot. After adding, you can adjust the
+        polygon shape on the map.
+      </div>
+      <div>
+        <button
+          mat-stroked-button
+          (click)="addBoundsClicked()"
+          i18n="
+            Add bounds button label|Label of the button to add bounds to a spot
+          "
+        >
+          Add bounds
+        </button>
+      </div>
       }
     </div>
 
@@ -883,82 +942,149 @@
       >
         Features and amenities
       </h4>
+      <!-- Single-question flow (config-driven): shows only when a question is applicable and unanswered -->
+      @if (nextAmenityQuestion()) {
 
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames['indoor']"
-        [negativeLabel]="AmenityNegativeNames['indoor']"
-        [positiveIcon]="AmenityIcons['indoor']"
-        [negativeIcon]="AmenityNegativeIcons['indoor']"
-        [value]="spot()!.amenities()['indoor']"
-        (valueChange)="updateAmenityFromToggle('indoor', $event)"
-      ></app-spot-amenity-toggle>
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames['outdoor']"
-        [negativeLabel]="AmenityNegativeNames['outdoor']"
-        [positiveIcon]="AmenityIcons['outdoor']"
-        [negativeIcon]="AmenityNegativeIcons['outdoor']"
-        [value]="spot()!.amenities()['outdoor']"
-        (valueChange)="updateAmenityFromToggle('outdoor', $event)"
-      ></app-spot-amenity-toggle>
+      <div class="mb-3 p-2 border rounded">
+        <h5 class="mat-label-medium">Question</h5>
+        <p class="mat-body-medium m-0 mb-1">
+          {{ nextAmenityQuestion()!.text }}
+        </p>
+        <div>
+          @for(opt of nextAmenityQuestion()!.options; track opt.value) {
+          <button
+            matButton="filled"
+            class="me-2 mb-2"
+            [color]="
+              currentQuestionValue() === opt.value ? 'primary' : undefined
+            "
+            [attr.aria-pressed]="currentQuestionValue() === opt.value"
+            (click)="
+              answerAmenityQuestion(nextAmenityQuestion()!.id, opt.value)
+            "
+          >
+            @if(opt.icon) {<mat-icon>{{ opt.icon }}</mat-icon
+            >} {{ opt.label }}
+          </button>
+          }
+        </div>
+      </div>
+      }
 
-      @for(amenity of GeneralAmenities; track amenity) {
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames[amenity]"
-        [negativeLabel]="AmenityNegativeNames[amenity]"
-        [positiveIcon]="AmenityIcons[amenity]"
-        [negativeIcon]="AmenityNegativeIcons[amenity]"
-        [value]="spot()!.amenities()[amenity]"
-        (valueChange)="updateAmenityFromToggle(amenity, $event)"
-      ></app-spot-amenity-toggle>
-      } @if(spot()!.amenities().indoor === true) { @for(amenity of
-      IndoorAmenities; track amenity) {
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames[amenity]"
-        [negativeLabel]="AmenityNegativeNames[amenity]"
-        [positiveIcon]="AmenityIcons[amenity]"
-        [negativeIcon]="AmenityNegativeIcons[amenity]"
-        [value]="spot()!.amenities()[amenity]"
-        (valueChange)="updateAmenityFromToggle(amenity, $event)"
-      ></app-spot-amenity-toggle>
-      } } @if(spot()!.amenities().outdoor === true) { @for(amenity of
-      OutdoorAmenities; track amenity) {
-      <app-spot-amenity-toggle
-        [positiveLabel]="AmenityNames[amenity]"
-        [negativeLabel]="AmenityNegativeNames[amenity]"
-        [positiveIcon]="AmenityIcons[amenity]"
-        [negativeIcon]="AmenityNegativeIcons[amenity]"
-        [value]="spot()!.amenities()[amenity]"
-        (valueChange)="updateAmenityFromToggle(amenity, $event)"
-      ></app-spot-amenity-toggle>
-      } }
+      <!-- Read-only display of currently shown amenities -->
+      <div class="mb-3">
+        @if(spot()?.smartAmenitiesArray() &&
+        spot()!.smartAmenitiesArray().length > 0) {
+        <h5 class="mat-label-medium" i18n>Shown amenities</h5>
+        <mat-chip-set>
+          @for(amenity of spot()!.smartAmenitiesArray(); track amenity) {
+          <mat-chip [class.negative-amenity]="amenity.isNegative">
+            <mat-icon matChipAvatar>{{ amenity.icon }}</mat-icon>
+            {{ amenity.name }}
+          </mat-chip>
+          }
+        </mat-chip-set>
+        }
+      </div>
+      <button
+        matButton="outlined"
+        color="primary"
+        (click)="openSpotAmenitiesDialog()"
+      >
+        <mat-icon>tune</mat-icon>
+        <span i18n>Edit detailed amenities</span>
+      </button>
+    </div>
+
+    <!-- Slug selection -->
+    <div class="pb-4">
+      <h4
+        class="mat-title-small"
+        i18n="
+          spot url edit header|Header for spot URL editing
+          section@@spot.edit.url.header"
+      >
+        Spot URL
+      </h4>
+      @if(allSpotSlugs.length > 0) {
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label
+          i18n="
+            select spot url label|Label for selecting preferred spot
+            URL@@spot.edit.url.select_label"
+          >Select preffered spot URL</mat-label
+        >
+        <mat-select [(value)]="spotSlug">
+          @for(slug of allSpotSlugs; track $index) {
+          <mat-option [value]="slug">{{ slug }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      }
+      <div class="d-flex align-center gap-2">
+        <mat-form-field class="flex-1" appearance="outline">
+          <mat-label i18n="@@spot.edit.url.add_custom"
+            >Add custom spot URL</mat-label
+          >
+          <input
+            matInput
+            placeholder="my-cool-spot"
+            [(ngModel)]="newSlug"
+            #slugCtrl="ngModel"
+            pattern="^[a-z0-9-]+$"
+            [disabled]="!canAddSlug()"
+          />
+          <mat-hint i18n>lowercase letters, numbers, and hyphens only</mat-hint>
+          <mat-error
+            *ngIf="slugCtrl.invalid && (slugCtrl.dirty || slugCtrl.touched)"
+            i18n
+          >
+            Only lowercase letters, numbers, and hyphens are allowed.
+          </mat-error>
+        </mat-form-field>
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="addSlug()"
+          [disabled]="
+            !canAddSlug() || !newSlug || slugCtrl.invalid || addingSlug()
+          "
+        >
+          <mat-icon>add</mat-icon>
+          <span i18n>Add</span>
+        </button>
+      </div>
     </div>
 
     }
-  </mat-card-content>
 
-  <!-- Saving actions -->
-  @if(isEditing()) {
-  <mat-card-actions class="mt-3 gap-2">
-    @if(editable) {
-    <button
-      matButton="outlined"
-      color="warn"
-      (click)="discardButtonClick()"
-      class="flex-grow-1 flex-basis-0"
-      i18n="Discard changes button label|Label of the button to discard changes"
-    >
-      Discard changes
-    </button>
-    <button
-      matButton="filled"
-      color="primary"
-      (click)="saveButtonClick()"
-      class="flex-grow-1 flex-basis-0"
-      i18n="Save changes button label|Label of the button to save changes"
-    >
-      Save changes
-    </button>
+    <!-- Saving actions -->
+    @if(isEditing()) {
+    <mat-card-actions class="mt-3 gap-2">
+      @if(editable) {
+      <button
+        matButton="outlined"
+        color="warn"
+        (click)="discardButtonClick()"
+        class="flex-grow-1 flex-basis-0"
+        i18n="
+          Discard changes button label|Label of the button to discard changes
+        "
+      >
+        Discard changes
+      </button>
+      <button
+        matButton="filled"
+        color="primary"
+        (click)="saveButtonClick()"
+        class="flex-grow-1 flex-basis-0"
+        i18n="Save changes button label|Label of the button to save changes"
+      >
+        Save changes
+      </button>
+      }
+    </mat-card-actions>
     }
-  </mat-card-actions>
-  } }
+  </mat-card-content>
+  }
 </mat-card>

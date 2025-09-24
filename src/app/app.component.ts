@@ -400,8 +400,9 @@ export class AppComponent implements OnInit {
     // open language dialog
     const dialogRef = this.dialog.open(SelectLanguageDialogComponent, {
       data: {
-        locale: currentLocale,
-        availableLocales: this.availableLanguageCodes,
+        locale: currentLocale as LocaleCode,
+        supportedUiLocales: this.availableLanguageCodes,
+        mode: "ui",
       },
       width: "400px",
       maxWidth: "90vw",

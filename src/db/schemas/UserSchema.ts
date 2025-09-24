@@ -1,4 +1,4 @@
-import { DocumentReference, Timestamp } from "@firebase/firestore";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export interface UserSchema {
   display_name?: string;

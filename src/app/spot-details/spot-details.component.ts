@@ -12,7 +12,6 @@ import {
   AfterViewInit,
   Pipe,
   PipeTransform,
-  CUSTOM_ELEMENTS_SCHEMA,
   Signal,
   signal,
   input,
@@ -27,6 +26,8 @@ import {
   MatProgressBar,
   MatProgressBarModule,
 } from "@angular/material/progress-bar";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
 import { LocalSpot, Spot } from "../../db/models/Spot";
 import {
   SpotAccessDescriptions,
@@ -53,6 +54,9 @@ import {
   AmenityNames,
   AmenityNegativeNames,
   makeSmartAmenitiesArray,
+  AmenityQuestions,
+  type AmenityQuestion,
+  type QuestionValue,
 } from "../../db/models/Amenities";
 
 //import { MatTooltipModule } from "@angular/material/tooltip";
@@ -63,12 +67,19 @@ import {
 } from "../../scripts/Helpers";
 import { UntypedFormControl, FormsModule } from "@angular/forms";
 import { map, startWith } from "rxjs/operators";
-import { trigger, transition, style, animate } from "@angular/animations";
+import {
+  trigger,
+  transition,
+  style,
+  animate,
+  keyframes,
+} from "@angular/animations";
 import { MapsApiService } from "../services/maps-api.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { SpotReportDialogComponent } from "../spot-report-dialog/spot-report-dialog.component";
 import { SpotReviewDialogComponent } from "../spot-review-dialog/spot-review-dialog.component";
-import { MatDialog } from "@angular/material/dialog";
+import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { Inject } from "@angular/core";
 import { SpotReportSchema } from "../../db/schemas/SpotReportSchema";
 import { SpotTypes, SpotAccess } from "../../db/schemas/SpotTypeAndAccess";
 import { MatSelect, MatSelectModule } from "@angular/material/select";
@@ -84,6 +95,7 @@ import {
   KeyValuePipe,
   LocationStrategy,
   NgOptimizedImage,
+  JsonPipe,
 } from "@angular/common";
 import {
   MatChipListbox,
@@ -131,11 +143,14 @@ import { locale } from "core-js";
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { StorageBucket } from "../../db/schemas/Media";
-import { Timestamp } from "@firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import { Router } from "@angular/router";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
-import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
+// import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
+import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
+import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
+import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -169,6 +184,39 @@ export class AsRatingKeyPipe implements PipeTransform {
         { params: { startHeight: 0 } }
       ),
     ]),
+    // Fade/slide when bound value changes
+    trigger("fadeSlideOnChange", [
+      transition("* => *", [
+        style({ opacity: 0, transform: "translateY(-2px)" }),
+        animate("180ms ease", style({ opacity: 1, transform: "none" })),
+      ]),
+    ]),
+    // Pulse container slightly on value change (e.g., rating)
+    trigger("pulseOnChange", [
+      transition("* => *", [
+        animate(
+          "220ms ease",
+          keyframes([
+            style({ transform: "scale(1)", offset: 0 }),
+            style({ transform: "scale(1.06)", offset: 0.35 }),
+            style({ transform: "scale(1)", offset: 1 }),
+          ])
+        ),
+      ]),
+    ]),
+    // Per-item list animation for enter/leave
+    trigger("listItem", [
+      transition(":enter", [
+        style({ opacity: 0, transform: "translateY(4px)" }),
+        animate("140ms ease-out", style({ opacity: 1, transform: "none" })),
+      ]),
+      transition(":leave", [
+        animate(
+          "100ms ease-in",
+          style({ opacity: 0, transform: "translateY(-4px)" })
+        ),
+      ]),
+    ]),
   ],
   imports: [
     MatCard,
@@ -196,16 +244,24 @@ export class AsRatingKeyPipe implements PipeTransform {
     KeyValuePipe,
     ReversePipe,
     AsRatingKeyPipe,
-    NgOptimizedImage,
     MatSlideToggle,
     LocaleMapEditFieldComponent,
     MatRippleModule,
     MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
     LocaleMapViewComponent,
     ChallengeListComponent,
-    SpotAmenityToggleComponent,
+    MatButtonToggleModule,
+    MatDialogModule,
+    // New reusable Google Place preview
+    GooglePlacePreviewComponent,
+    // Fancy number animation for rating
+    FancyCounterComponent,
+    // For change-detection-friendly stringification in animation binding
+    JsonPipe,
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  schemas: [],
 })
 export class SpotDetailsComponent
   implements OnInit, AfterViewInit, OnChanges, OnDestroy
@@ -238,6 +294,48 @@ export class SpotDetailsComponent
   isLocalSpot = computed(
     () => this.spot() !== null && !(this.spot() instanceof Spot)
   );
+
+  // Expose centralized questions for potential dynamic UI
+  AmenityQuestions = AmenityQuestions;
+
+  // Compute the next applicable unanswered question
+  public nextAmenityQuestion = computed(() => {
+    const spot = this.spot();
+    if (!spot) return null;
+    const a = spot.amenities();
+    for (const q of this.AmenityQuestions) {
+      try {
+        if (q.isApplicable(a) && !q.isAnswered(a)) return q;
+      } catch {
+        // If a question throws, skip it rather than breaking the UI
+        continue;
+      }
+    }
+    return null;
+  });
+
+  // Current selection value for the next question
+  currentQuestionValue = computed<QuestionValue | null>(() => {
+    const spot = this.spot();
+    const q = this.nextAmenityQuestion();
+    if (!spot || !q) return null;
+    return q.getValue(spot.amenities());
+  });
+
+  // Apply selection for the currently shown question
+  public answerAmenityQuestion(questionId: string, value: string) {
+    const q = this.nextAmenityQuestion();
+    const spot = this.spot();
+    if (!q || !spot) return;
+    const opt = q.options.find((o) => o.value === value);
+    if (!opt) return;
+    this.spot!.update((s) => {
+      if (!s) return s;
+      const updated = opt.apply({ ...(s.amenities() ?? {}) });
+      s.amenities.set(updated);
+      return s;
+    });
+  }
 
   spotImages = computed(() => {
     const spot = this.spot();
@@ -279,10 +377,26 @@ export class SpotDetailsComponent
   OutdoorAmenities = OutdoorAmenities;
   GeneralAmenities = GeneralAmenities;
 
+  // Environment 4-state selection derived from amenities
+  public environmentSelection = computed<
+    "indoor" | "outdoor" | "both" | "unknown"
+  >(() => {
+    const a = this.spot()?.amenities();
+    if (!a) return "unknown";
+    const indoor = a.indoor ?? null;
+    const outdoor = a.outdoor ?? null;
+    if (indoor === true && outdoor === true) return "both";
+    if (indoor === true) return "indoor";
+    if (outdoor === true) return "outdoor";
+    return "unknown";
+  });
+
   visited: boolean = false;
   bookmarked: boolean = false;
 
   allSpotSlugs: string[] = [];
+  newSlug: string = "";
+  addingSlug = signal<boolean>(false);
 
   get spotNameLocaleMap(): LocaleMap {
     const spot = this.spot();
@@ -306,15 +420,54 @@ export class SpotDetailsComponent
     (spot as Spot).slug = value;
   }
 
+  canAddSlug(): boolean {
+    const list = this.allSpotSlugs;
+    return Array.isArray(list) ? list.length < 1 : true;
+  }
+
+  async addSlug() {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return;
+    const slug = (this.newSlug || "").trim().toLowerCase();
+    if (!slug) return;
+    this.addingSlug.set(true);
+    try {
+      await this._slugService.addSpotSlug(spot.id, slug);
+      this.allSpotSlugs = await this._slugService.getAllSlugsForASpot(spot.id);
+      this.spot.update((s) => {
+        if (s instanceof Spot) s.slug = slug;
+        return s;
+      });
+      this.newSlug = "";
+      this._snackbar.open($localize`Custom URL added`, undefined, {
+        duration: 2000,
+      });
+      // Redirect to the canonical slug URL
+      void this._router.navigate(["/s", slug]);
+    } catch (e: any) {
+      this._snackbar.open(
+        e?.message || e || $localize`Failed to add custom URL`,
+        undefined,
+        { duration: 3000 }
+      );
+    } finally {
+      this.addingSlug.set(false);
+    }
+  }
+
   get spotDescriptionLocaleMap(): LocaleMap {
     const spot = this.spot();
-    if (!spot || !spot.description()) return {};
-
-    return spot.descriptions()!;
+    if (!spot) return {};
+    // Return a stable object reference without mutating signals during render
+    const current = spot.descriptions();
+    return current ?? this._EMPTY_LOCALE_MAP;
   }
   set spotDescriptionLocaleMap(value: LocaleMap) {
     this.spot()?.descriptions.set(value);
   }
+
+  // Stable empty LocaleMap to avoid identity churn in templates when descriptions are unset
+  private readonly _EMPTY_LOCALE_MAP = Object.freeze({}) as LocaleMap;
 
   spotTypes = Object.values(SpotTypes);
   spotTypeNames = SpotTypesNames;
@@ -354,6 +507,137 @@ export class SpotDetailsComponent
     | undefined
   >(undefined);
 
+  // Google Places linking state (edit mode only)
+  placeSearch = new UntypedFormControl("");
+  placePredictions: google.maps.places.AutocompletePrediction[] = [];
+  nearbyPlaceResults: google.maps.places.PlaceResult[] = [];
+  linkingPlace = signal<boolean>(false);
+  unlinkingPlace = signal<boolean>(false);
+
+  // Animation keys to force transitions on content changes
+  nameAnimKey = signal<number>(0);
+  typeAnimKey = signal<number>(0);
+  accessAnimKey = signal<number>(0);
+
+  private _lastNameValue: string | null = null;
+  private _lastTypeValue: string | null = null;
+  private _lastAccessValue: string | null = null;
+
+  // Live updates subscription for the current Spot
+  private _spotSnapshotSub: Subscription | null = null;
+  private _lastSubscribedSpotId: string | null = null;
+
+  async searchPlaces(query: string) {
+    const spot = this.spot();
+    if (!this._mapsApiService.isApiLoaded()) {
+      // try to load if consent allows
+      this._mapsApiService.loadGoogleMapsApi();
+    }
+    let biasRect: google.maps.LatLngBoundsLiteral | undefined;
+    if (spot) {
+      const loc = spot.location();
+      const d = 0.01; // ~1km bias box
+      biasRect = {
+        south: loc.lat - d,
+        west: loc.lng - d,
+        north: loc.lat + d,
+        east: loc.lng + d,
+      };
+    }
+    try {
+      if (!query || query.trim().length === 0) {
+        // No query: seed with nearby places (sorted by distance)
+        if (spot) {
+          this.nearbyPlaceResults =
+            await this._mapsApiService.getNearbyPlacesByDistance(
+              spot.location(),
+              "establishment",
+              5
+            );
+        } else {
+          this.nearbyPlaceResults = [];
+        }
+        this.placePredictions = [];
+        return;
+      }
+      // With query: use autocomplete filtered by name, biased to location, cap to 5
+      const preds = await this._mapsApiService.autocompletePlaceSearch(
+        query,
+        ["establishment"],
+        biasRect
+      );
+      this.placePredictions = preds.slice(0, 5);
+    } catch (e) {
+      console.warn("Place autocomplete failed", e);
+      this.placePredictions = [];
+      this.nearbyPlaceResults = [];
+    }
+  }
+
+  private async _preloadNearbyPlaces() {
+    const spot = this.spot();
+    if (!spot) return;
+    try {
+      this.nearbyPlaceResults =
+        await this._mapsApiService.getNearbyPlacesByDistance(
+          spot.location(),
+          "establishment",
+          5
+        );
+    } catch (e) {
+      console.warn("Failed to preload nearby places", e);
+      this.nearbyPlaceResults = [];
+    }
+  }
+
+  async linkPlace(pred: google.maps.places.AutocompletePrediction) {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return;
+    if (!pred.place_id) return;
+    this.linkingPlace.set(true);
+    try {
+      await this._spotsService.setGoogleMapsPlaceId(spot.id, pred.place_id);
+      this.placeSearch.setValue("");
+      this.placePredictions = [];
+      this._snackbar.open($localize`Linked Google Place`, undefined, {
+        duration: 2000,
+      });
+    } catch (e) {
+      console.error("Failed to link Google Place", e);
+      this._snackbar.open($localize`Failed to link Google Place`, undefined, {
+        duration: 2500,
+      });
+    } finally {
+      this.linkingPlace.set(false);
+    }
+  }
+
+  async linkPlaceResult(res: google.maps.places.PlaceResult) {
+    if (!res.place_id) return;
+    // Wrap the place_id in an object compatible with linkPlace signature
+    await this.linkPlace({ place_id: res.place_id } as any);
+  }
+
+  async unlinkPlace() {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return;
+    this.unlinkingPlace.set(true);
+    try {
+      await this._spotsService.setGoogleMapsPlaceId(spot.id, null);
+      this.googlePlace.set(undefined);
+      this._snackbar.open($localize`Unlinked Google Place`, undefined, {
+        duration: 2000,
+      });
+    } catch (e) {
+      console.error("Failed to unlink Google Place", e);
+      this._snackbar.open($localize`Failed to unlink Google Place`, undefined, {
+        duration: 2500,
+      });
+    } finally {
+      this.unlinkingPlace.set(false);
+    }
+  }
+
   get isNewSpot() {
     return !(this.spot() instanceof Spot);
   }
@@ -366,7 +650,7 @@ export class SpotDetailsComponent
 
   constructor(
     public authenticationService: AuthenticationService,
-    public dialog: MatDialog,
+    @Inject(MatDialog) public dialog: MatDialog,
     private _locationStrategy: LocationStrategy,
     private _router: Router,
     private _element: ElementRef,
@@ -389,12 +673,63 @@ export class SpotDetailsComponent
     effect(() => {
       const spot = this.spot();
 
-      if (spot instanceof Spot) {
-        this._loadGooglePlaceDataForSpot();
+      // Reset slug-related UI state on spot change to avoid stale state
+      this.allSpotSlugs = [];
+      this.newSlug = "";
+      this.addingSlug.set(false);
 
-        this._slugService.getAllSlugsForASpot(spot.id).then((slugs) => {
-          this.allSpotSlugs = slugs;
+      if (spot instanceof Spot) {
+        // Ensure live updates subscription for this spot id
+        this._subscribeToLiveSpot(spot);
+        // Load Google Place preview and nearby places
+        this._loadGooglePlaceDataForSpot();
+        this._preloadNearbyPlaces();
+
+        const currentId = spot.id;
+        this._slugService.getAllSlugsForASpot(currentId).then((slugs) => {
+          // Apply only if still on the same spot to avoid race conditions
+          const latest = this.spot();
+          if (latest instanceof Spot && latest.id === currentId) {
+            this.allSpotSlugs = slugs;
+          }
         });
+      } else {
+        // Not a persisted spot: stop any live subscription
+        this._unsubscribeFromLiveSpot();
+      }
+    });
+
+    // Reactively (re)load Google Place preview whenever the place id changes
+    effect(() => {
+      const s = this.spot();
+      const placeId = s instanceof Spot ? s.googlePlaceId() : undefined;
+      if (placeId) {
+        this._loadGooglePlaceDataForSpot();
+      } else {
+        this.googlePlace.set(undefined);
+      }
+    });
+
+    // Kick animations when name/type/access change
+    effect(() => {
+      const n = this.spot()?.name() ?? null;
+      if (n !== this._lastNameValue) {
+        this._lastNameValue = n;
+        this.nameAnimKey.update((v) => v + 1);
+      }
+    });
+    effect(() => {
+      const t = this.spot()?.type() ?? null;
+      if (t !== this._lastTypeValue) {
+        this._lastTypeValue = t;
+        this.typeAnimKey.update((v) => v + 1);
+      }
+    });
+    effect(() => {
+      const a = this.spot()?.access() ?? null;
+      if (a !== this._lastAccessValue) {
+        this._lastAccessValue = a;
+        this.accessAnimKey.update((v) => v + 1);
       }
     });
   }
@@ -442,6 +777,7 @@ export class SpotDetailsComponent
 
   ngOnDestroy(): void {
     this._structuredDataService.removeStructuredData("spot");
+    this._unsubscribeFromLiveSpot();
   }
 
   private _filterCountries(value: string): any[] {
@@ -598,8 +934,10 @@ export class SpotDetailsComponent
 
     // Build domain-agnostic share link without locale prefix
     const { buildAbsoluteUrlNoLocale } = await import("../../scripts/Helpers");
-    // TODO use slug instead of id if available
-    const link = buildAbsoluteUrlNoLocale(`/map/${spot.id}`);
+    const idOrSlug = spot.slug ?? spot.id;
+    const link = buildAbsoluteUrlNoLocale(
+      spot.slug ? `/s/${idOrSlug}` : `/map/${idOrSlug}`
+    );
 
     if (navigator["share"]) {
       try {
@@ -650,16 +988,8 @@ export class SpotDetailsComponent
         },
         width: "640px",
       });
-
-      ref.afterClosed().subscribe(() => {
-        // Reload the spot to pick up any media appended by the dialog
-        this._spotsService
-          .getSpotById(spot.id, this.locale)
-          .then((fresh) => this.spot.set(fresh))
-          .catch((e) =>
-            console.warn("Failed to refresh spot after uploads", e)
-          );
-      });
+      // Live snapshot will reflect any media changes; no manual refresh needed
+      ref.afterClosed().subscribe(() => void 0);
     });
   }
 
@@ -937,5 +1267,98 @@ export class SpotDetailsComponent
 
       return spot;
     });
+  }
+
+  setEnvironment(selection: "indoor" | "outdoor" | "both" | "unknown") {
+    this.spot!.update((spot) => {
+      if (!spot) return spot;
+      const a = { ...(spot.amenities() ?? {}) } as AmenitiesMap;
+      if (selection === "indoor") {
+        a.indoor = true;
+        a.outdoor = false;
+      } else if (selection === "outdoor") {
+        a.indoor = false;
+        a.outdoor = true;
+      } else if (selection === "both") {
+        a.indoor = true;
+        a.outdoor = true;
+      } else {
+        a.indoor = null;
+        a.outdoor = null;
+      }
+      spot.amenities.set(a);
+      return spot;
+    });
+  }
+
+  // Covered selection: "covered" | "not_covered" | "unknown"
+  public coveredSelection = computed<"covered" | "not_covered" | "unknown">(
+    () => {
+      const a = this.spot()?.amenities() as AmenitiesMap | undefined;
+      const covered = a?.covered ?? null;
+      if (covered === true) return "covered";
+      if (covered === false) return "not_covered";
+      return "unknown";
+    }
+  );
+
+  public setCovered(selection: "covered" | "not_covered" | "unknown") {
+    this.spot!.update((spot) => {
+      if (!spot) return spot;
+      const a = { ...(spot.amenities() ?? {}) } as AmenitiesMap;
+      if (selection === "covered") a.covered = true;
+      else if (selection === "not_covered") a.covered = false;
+      else a.covered = null;
+      spot.amenities.set(a);
+      return spot;
+    });
+  }
+
+  openSpotAmenitiesDialog() {
+    const spot = this.spot();
+    if (!spot) return;
+
+    const ref = this.dialog.open(SpotAmenitiesDialogComponent, {
+      data: { amenities: spot.amenities() },
+      width: "640px",
+    });
+
+    ref.afterClosed().subscribe((updated: AmenitiesMap | undefined) => {
+      if (!updated) return;
+      this.spot!.update((s) => {
+        if (!s) return s;
+        s.amenities.set(updated);
+        return s;
+      });
+    });
+  }
+
+  // -- Private helpers -----------------------------------------------------
+  private _subscribeToLiveSpot(spot: Spot) {
+    if (this._lastSubscribedSpotId === spot.id && this._spotSnapshotSub) return;
+    this._unsubscribeFromLiveSpot();
+    this._lastSubscribedSpotId = spot.id;
+    this._spotSnapshotSub = this._spotsService
+      .getSpotById$(spot.id, this.locale)
+      .subscribe({
+        next: (incoming: Spot) => {
+          const current = this.spot();
+          if (current instanceof Spot && current.id === incoming.id) {
+            // Apply general fields from schema
+            current.applyFromSchema(incoming.data());
+            // data() does not include external_references; ensure place id is preserved
+            current.googlePlaceId.set(incoming.googlePlaceId());
+          }
+        },
+        error: (err) => console.warn("Live spot update error", err),
+      });
+  }
+
+  private _unsubscribeFromLiveSpot() {
+    if (this._spotSnapshotSub) {
+      this._spotSnapshotSub.unsubscribe();
+      this._spotSnapshotSub = null;
+    }
+    this._lastSubscribedSpotId = null;
   }
 }

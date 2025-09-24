@@ -66,6 +66,7 @@ export class LocaleMapViewComponent {
       data: {
         locale: currentLocale,
         availableLocales: availbleLocales,
+        mode: "view",
       },
     });
 

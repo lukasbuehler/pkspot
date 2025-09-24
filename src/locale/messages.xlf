@@ -16,6 +16,11 @@
         <source> Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world. </source>
       </segment>
     </unit>
+    <unit id="3768927257183755959">
+      <segment>
+        <source>Save</source>
+      </segment>
+    </unit>
     <unit id="7411379953853971507">
       <segment>
         <source> This project is Open-Source! Our code is licensed under the <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">MIT License</pc>. </source>
@@ -193,6 +198,11 @@
         <source>This is a spot primarily used for descending techniques.</source>
       </segment>
     </unit>
+    <unit id="spot-type-description.monument">
+      <segment>
+        <source>This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.</source>
+      </segment>
+    </unit>
     <unit id="spot-type-description.natural-landscape">
       <segment>
         <source>This is a natural area with trees, rocks, logs, and terrain features.</source>
@@ -248,6 +258,11 @@
         <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
       </segment>
     </unit>
+    <unit id="spot-type-description.water">
+      <segment>
+        <source>This spot centers around water (fountain, riverbank, lakeside structure, etc.) offering unique movement or aesthetic value. Surfaces may be slippery—use caution.</source>
+      </segment>
+    </unit>
     <unit id="spot-type.art">
       <segment>
         <source>Art</source>
@@ -256,6 +271,11 @@
     <unit id="spot-type.descent">
       <segment>
         <source>Descent</source>
+      </segment>
+    </unit>
+    <unit id="spot-type.monument">
+      <segment>
+        <source>Monument</source>
       </segment>
     </unit>
     <unit id="spot-type.natural-landscape">
@@ -311,6 +331,11 @@
     <unit id="spot-type.urban-landscape">
       <segment>
         <source>Urban Landscape</source>
+      </segment>
+    </unit>
+    <unit id="spot-type.water">
+      <segment>
+        <source>Water Spot</source>
       </segment>
     </unit>
     <unit id="spot.locality.pretext">
@@ -376,6 +401,11 @@
         <source>E-mail address</source>
       </segment>
     </unit>
+    <unit id="3517550046701184661">
+      <segment>
+        <source>Show less</source>
+      </segment>
+    </unit>
     <unit id="3539941729807255231">
       <segment>
         <source>Your E-mail has not been verified!</source>
@@ -384,6 +414,11 @@
     <unit id="3542042671420335679">
       <segment>
         <source>No</source>
+      </segment>
+    </unit>
+    <unit id="1315161140061795296">
+      <segment>
+        <source>lowercase letters, numbers, and hyphens only</source>
       </segment>
     </unit>
     <unit id="133789173523080152">
@@ -548,6 +583,11 @@
         <source>Sign in instead?</source>
       </segment>
     </unit>
+    <unit id="6964548934732214977">
+      <segment>
+        <source> Only lowercase letters, numbers, and hyphens are allowed. </source>
+      </segment>
+    </unit>
     <unit id="6969445338945867053">
       <segment>
         <source>Create a new account</source>
@@ -621,9 +661,19 @@
         <source>You need to agree to the terms and conditions!</source>
       </segment>
     </unit>
+    <unit id="1975356621924283237">
+      <segment>
+        <source>Outdoor</source>
+      </segment>
+    </unit>
     <unit id="3601523967492159201">
       <segment>
         <source>Could not create account!</source>
+      </segment>
+    </unit>
+    <unit id="3637006077361642270">
+      <segment>
+        <source>Shown amenities</source>
       </segment>
     </unit>
     <unit id="share_spot_tooltip">
@@ -810,6 +860,11 @@
         <source> Report </source>
       </segment>
     </unit>
+    <unit id="6377092763030946894">
+      <segment>
+        <source>Custom URL added</source>
+      </segment>
+    </unit>
     <unit id="6417858746273147766">
       <notes>
         <note category="description">Placeholder of the spot name in the edit form</note>
@@ -851,6 +906,11 @@
         <source> Discard changes </source>
       </segment>
     </unit>
+    <unit id="8482930840277475324">
+      <segment>
+        <source>Failed to add custom URL</source>
+      </segment>
+    </unit>
     <unit id="8486228314424763172">
       <notes>
         <note category="description">Label of the button to save changes</note>
@@ -866,6 +926,56 @@
       </notes>
       <segment>
         <source> Highlights </source>
+      </segment>
+    </unit>
+    <unit id="question.covered">
+      <segment>
+        <source>Is the area covered?</source>
+      </segment>
+    </unit>
+    <unit id="question.drinking_water">
+      <segment>
+        <source>Is there drinking water available right at the spot?</source>
+      </segment>
+    </unit>
+    <unit id="question.environment">
+      <segment>
+        <source>Is this an indoor or outdoor spot?</source>
+      </segment>
+    </unit>
+    <unit id="question.environment.both">
+      <segment>
+        <source>Both</source>
+      </segment>
+    </unit>
+    <unit id="question.environment.indoor">
+      <segment>
+        <source>Indoor</source>
+      </segment>
+    </unit>
+    <unit id="question.environment.outdoor">
+      <segment>
+        <source>Outdoor</source>
+      </segment>
+    </unit>
+    <unit id="question.lighting">
+      <segment>
+        <source>Is there lighting available?</source>
+      </segment>
+    </unit>
+    <unit id="question.maybe_overgrown">
+      <segment>
+        <source>Can it sometimes be overgrown?</source>
+      </segment>
+    </unit>
+    <unit id="question.water_feature">
+      <segment>
+        <source>Is there a water feature (fountain, river, lake etc.)?</source>
+      </segment>
+    </unit>
+    <unit id="question.wc">
+      <segment>
+        <source>Are toilets (WC) available?</source>
       </segment>
     </unit>
     <unit id="regular_spots_text">
@@ -926,6 +1036,11 @@
         <source><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></source>
       </segment>
     </unit>
+    <unit id="8450335284128633458">
+      <segment>
+        <source>Failed to link Google Place</source>
+      </segment>
+    </unit>
     <unit id="3278358550418950949">
       <segment>
         <source> Duplicate </source>
@@ -982,6 +1097,11 @@
     <unit id="6435282697411612190">
       <segment>
         <source>What would you rate this spot from one to five stars?</source>
+      </segment>
+    </unit>
+    <unit id="6439365426343089851">
+      <segment>
+        <source>General</source>
       </segment>
     </unit>
     <unit id="5207635742003539443">
@@ -1266,13 +1386,9 @@
         <source>Info stand</source>
       </segment>
     </unit>
-    <unit id="google.place.rating.label">
-      <notes>
-        <note category="description">Label for Google place rating</note>
-        <note category="meaning">google place rating label</note>
-      </notes>
+    <unit id="generic.not_sure">
       <segment>
-        <source><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if(googlePlace()!.rating) {" dispEnd="}"> Rating: <pc id="1" equivStart="START_TAG_APP_SPOT_RATING" equivEnd="CLOSE_TAG_APP_SPOT_RATING" type="other" dispStart="&lt;app-spot-rating [rating1to5]=&quot;googlePlace()!.rating!&quot; [showEmptyStars]=&quot;false&quot; [isCompact]=&quot;true&quot; &gt;" dispEnd="&lt;/app-spot-rating&gt;"/></pc></source>
+        <source>Not sure</source>
       </segment>
     </unit>
     <unit id="6019314900948916795">
@@ -1435,6 +1551,11 @@
         <source>The goal of this challenge is to be creative. This challenge may also be more open to interpretation.</source>
       </segment>
     </unit>
+    <unit id="2114926278043068343">
+      <segment>
+        <source> Add an editable boundary for this spot. After adding, you can adjust the polygon shape on the map. </source>
+      </segment>
+    </unit>
     <unit id="2159130950882492111">
       <notes>
         <note category="description">cancel button label</note>
@@ -1468,6 +1589,11 @@
       </notes>
       <segment>
         <source> Spot Name </source>
+      </segment>
+    </unit>
+    <unit id="2267637299863581067">
+      <segment>
+        <source>Features and amenities</source>
       </segment>
     </unit>
     <unit id="2273032269971765958">
@@ -1504,12 +1630,22 @@
         <source>Add Spot</source>
       </segment>
     </unit>
+    <unit id="2741210807832834277">
+      <segment>
+        <source>Edit detailed amenities</source>
+      </segment>
+    </unit>
+    <unit id="2781971407154812080">
+      <segment>
+        <source>Unlinked Google Place</source>
+      </segment>
+    </unit>
     <unit id="2917314929120683887">
       <segment>
         <source> Continue </source>
       </segment>
     </unit>
-    <unit id="3133198135717483264">
+    <unit id="add_media.label">
       <segment>
         <source>Add media</source>
       </segment>
@@ -1555,10 +1691,6 @@
       </segment>
     </unit>
     <unit id="spot.edit.url.add_custom">
-      <notes>
-        <note category="description">Button to add custom spot URL</note>
-        <note category="meaning">add custom url button</note>
-      </notes>
       <segment>
         <source>Add custom spot URL</source>
       </segment>
@@ -1898,14 +2030,14 @@
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
       </segment>
     </unit>
+    <unit id="7215101881367554791">
+      <segment>
+        <source>Show more</source>
+      </segment>
+    </unit>
     <unit id="7334091550966090385">
       <segment>
         <source>Error uploading media!</source>
-      </segment>
-    </unit>
-    <unit id="7362309544332966845">
-      <segment>
-        <source> Add images </source>
       </segment>
     </unit>
     <unit id="7374538640222631357">
@@ -1928,9 +2060,19 @@
         <source>Time</source>
       </segment>
     </unit>
+    <unit id="8822206448271061589">
+      <segment>
+        <source>Indoor</source>
+      </segment>
+    </unit>
     <unit id="8828059408146193176">
       <segment>
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
+      </segment>
+    </unit>
+    <unit id="8890858578819685573">
+      <segment>
+        <source>Failed to unlink Google Place</source>
       </segment>
     </unit>
     <unit id="8998179362936748717">
@@ -1943,9 +2085,24 @@
         <source>Directions</source>
       </segment>
     </unit>
+    <unit id="1603041043712955298">
+      <segment>
+        <source>Temporarily closed</source>
+      </segment>
+    </unit>
+    <unit id="1608155773786279707">
+      <segment>
+        <source>Linked Google Place</source>
+      </segment>
+    </unit>
     <unit id="1616102757855967475">
       <segment>
         <source>All</source>
+      </segment>
+    </unit>
+    <unit id="1634758098784005644">
+      <segment>
+        <source>Loading Google Place…</source>
       </segment>
     </unit>
     <unit id="1737753151350322492">
@@ -1978,6 +2135,11 @@
         <source>Spots</source>
       </segment>
     </unit>
+    <unit id="4658982717700339898">
+      <segment>
+        <source>Unlink</source>
+      </segment>
+    </unit>
     <unit id="5753174679285423997">
       <segment>
         <source>Smart Scorecard</source>
@@ -1986,6 +2148,11 @@
     <unit id="7457957151903874535">
       <segment>
         <source>Open Gym (ASVZ)</source>
+      </segment>
+    </unit>
+    <unit id="7772746290400709115">
+      <segment>
+        <source>Search Google Places near this spot</source>
       </segment>
     </unit>
     <unit id="7796156979263266819">

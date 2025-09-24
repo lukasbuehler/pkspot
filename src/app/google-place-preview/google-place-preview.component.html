@@ -1,0 +1,73 @@
+@if (place()) {
+<a
+  [href]="place()!.url"
+  target="_blank"
+  rel="noopener noreferrer"
+  style="text-decoration: none; color: inherit"
+>
+  <mat-card
+    matRipple
+    class="mat-elevation-z0 clickable border rounded d-flex flex-row mb-2 overflow-hidden"
+    style="height: 90px"
+  >
+    @if(photoUrl()) {
+    <div mat-card-sm-image class="google-img-container">
+      <img [ngSrc]="photoUrl()!" fill />
+    </div>
+    }
+    <mat-card-header class="pb-2 overflow-hidden">
+      <mat-card-title
+        class="text-truncate mw-100 pt-2 mat-title-medium"
+        style="font-size: 1.1rem"
+      >
+        {{ place()!.name }}
+      </mat-card-title>
+      <mat-card-subtitle class="d-flex flex-row gap-2 mat-title-small">
+        <div class="d-flex flex-column gap-1">
+          <div class="d-flex flex-row gap-2 mat-title-small">
+            @if(closedTemporarily()) {
+            <span class="mat-label-small text-warn" i18n
+              >Temporarily closed</span
+            >
+            } @if(place()!.rating) {
+            <app-spot-rating
+              [rating1to5]="place()!.rating!"
+              [showEmptyStars]="false"
+              [isCompact]="true"
+            />
+
+            }
+          </div>
+          <div class="d-flex flex-row gap-2">
+            @if(openStatusText()) {
+            <span class="text-truncate mat-label-medium">{{
+              openStatusText()!
+            }}</span>
+            } @if(todayHoursText()) {
+            <span
+              class="text-truncate mat-label-medium"
+              [title]="todayHoursText()!"
+            >
+              {{ todayHoursText()! }}
+            </span>
+            }
+          </div>
+        </div>
+      </mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+</a>
+} @else if (loading()) {
+<p class="mat-body-small" i18n>Loading Google Place…</p>
+} @else if (error()) {
+<p class="mat-body-small text-warn">{{ error() }}</p>
+}
+
+<style>
+  .google-img-container {
+    position: relative;
+    width: 120px;
+    height: 100%;
+    flex: 0 0 120px;
+  }
+</style>

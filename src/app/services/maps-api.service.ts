@@ -189,7 +189,7 @@ export class MapsApiService extends ConsentAwareService {
 
   autocompletePlaceSearch(
     input: string,
-    types: string[],
+    types?: string[],
     biasRect?: google.maps.LatLngBoundsLiteral
   ): Promise<google.maps.places.AutocompletePrediction[]> {
     if (!input || input.length === 0) return Promise.resolve([]);
@@ -198,13 +198,38 @@ export class MapsApiService extends ConsentAwareService {
     return this.executeWithConsent(() => {
       const autocompleteService = new google.maps.places.AutocompleteService();
 
+      // Normalize and sanitize types: for Autocomplete, allowed include
+      // 'establishment', 'geocode', 'address', '(regions)', '(cities)'.
+      // 'establishment' cannot be mixed with other types. If invalid values
+      // are provided, fall back to a single safe type or omit.
+      const allowed = new Set([
+        "establishment",
+        "geocode",
+        "address",
+        "(regions)",
+        "(cities)",
+      ]);
+      let normalizedTypes: string[] | undefined = undefined;
+      if (Array.isArray(types) && types.length > 0) {
+        const filtered = types.filter((t) => allowed.has(t));
+        if (filtered.includes("establishment")) {
+          normalizedTypes = ["establishment"];
+        } else if (filtered.length > 0) {
+          // Autocomplete supports a single type or specific collections; choose first valid
+          normalizedTypes = [filtered[0]];
+        } else {
+          normalizedTypes = undefined;
+        }
+      }
+
       return new Promise<google.maps.places.AutocompletePrediction[]>(
         (resolve, reject) => {
           autocompleteService.getPlacePredictions(
             {
               input: input,
-              types: types,
-              locationBias: biasRect,
+              types: normalizedTypes as any,
+              // Use bounds to bias results instead of locationBias to avoid API differences
+              bounds: biasRect as any,
               language: "en",
             },
             (predictions, status) => {
@@ -236,7 +261,15 @@ export class MapsApiService extends ConsentAwareService {
         placesService.getDetails(
           {
             placeId: placeId,
-            fields: ["name", "geometry", "photos", "rating", "url"],
+            fields: [
+              "name",
+              "geometry",
+              "photos",
+              "rating",
+              "url",
+              "opening_hours",
+              "business_status",
+            ],
           },
           (place, status) => {
             if (status !== "OK") {
@@ -388,5 +421,39 @@ export class MapsApiService extends ConsentAwareService {
           );
         }
       });
+  }
+
+  /**
+   * Fetch nearby places sorted by distance from a given location.
+   * Returns up to maxResults places (default 5).
+   */
+  getNearbyPlacesByDistance(
+    location: google.maps.LatLngLiteral,
+    type: string = "establishment",
+    maxResults: number = 5
+  ): Promise<google.maps.places.PlaceResult[]> {
+    return this.executeWithConsent(() => {
+      const placesService = new google.maps.places.PlacesService(
+        document.createElement("div")
+      );
+      return new Promise<google.maps.places.PlaceResult[]>(
+        (resolve, reject) => {
+          placesService.nearbySearch(
+            {
+              location,
+              rankBy: google.maps.places.RankBy.DISTANCE,
+              type: type as any,
+            } as any,
+            (results, status) => {
+              if (status !== "OK" && status !== "ZERO_RESULTS") {
+                reject(status);
+                return;
+              }
+              resolve((results ?? []).slice(0, Math.max(0, maxResults)));
+            }
+          );
+        }
+      );
+    });
   }
 }

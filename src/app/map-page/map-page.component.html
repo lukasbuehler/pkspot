@@ -56,7 +56,12 @@
     </div>
 
     @if(spotMap) {
-    <app-primary-info-panel class="flex-grow-1" @fadeInOut>
+    <app-primary-info-panel
+      class="flex-grow-1"
+      @fadeInOut
+      (bottomSheetOpenChange)="bottomSheetOpen.set($event)"
+      (bottomSheetProgressChange)="bottomSheetProgress.set($event)"
+    >
       @if(selectedSpot()) { @if(selectedChallenge()) {
       <a
         mat-button
@@ -213,7 +218,8 @@
     </button> -->
   </div>
 
-  @if(authService.isSignedIn && !isEditing()) {
+  @if( authService.isSignedIn && !isEditing() && !(isHandset() &&
+  (bottomSheetOpen() || bottomSheetProgress() > 0)) ) {
   <!-- Add / import spots speed dial-->
   <!-- <app-speed-dial-fab
     #createSpotSpeedDial

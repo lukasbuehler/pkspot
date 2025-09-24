@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import {
   Firestore,
   doc,
@@ -20,7 +20,9 @@ import { ConsentAwareService } from "../../consent-aware.service";
   providedIn: "root",
 })
 export class UsersService extends ConsentAwareService {
-  constructor(private firestore: Firestore) {
+  firestore = inject(Firestore);
+
+  constructor() {
     super();
   }
 

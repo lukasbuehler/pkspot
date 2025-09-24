@@ -17,7 +17,7 @@ import {
   browserLocalPersistence,
   inMemoryPersistence,
 } from "@angular/fire/auth";
-import { getApp } from "@angular/fire/app";
+import { FirebaseApp } from "@angular/fire/app";
 import { BehaviorSubject, firstValueFrom } from "rxjs";
 import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
@@ -48,9 +48,8 @@ export class AuthenticationService extends ConsentAwareService {
   private _auth: Auth | null = null;
   public get auth(): Auth {
     if (!this._auth) {
-      // Initialize Auth manually since we removed it from app config
-      const app = getApp();
-      this._auth = getAuth(app);
+      // Initialize Auth with the injected Firebase app
+      this._auth = getAuth(this._firebaseApp);
 
       // Configure persistence with robust fallbacks (browser-only)
       // This addresses cases where a browser blocks a specific storage backend
@@ -63,7 +62,10 @@ export class AuthenticationService extends ConsentAwareService {
   }
   private _authStateListenerInitialized = false;
 
-  constructor(private _userService: UsersService) {
+  constructor(
+    private _userService: UsersService,
+    private _firebaseApp: FirebaseApp
+  ) {
     super();
 
     // Check for existing session without triggering Firebase API calls
@@ -117,6 +119,9 @@ export class AuthenticationService extends ConsentAwareService {
 
     if (typeof window === "undefined") return; // SSR: skip
 
+    // Prefer IndexedDB first for best durability and multi-tab behavior.
+    // Fall back to localStorage for environments where IndexedDB is blocked,
+    // then in-memory as a last resort.
     try {
       await setPersistence(auth, indexedDBLocalPersistence);
       console.log("Firebase Auth persistence set: indexedDBLocalPersistence");
@@ -134,7 +139,7 @@ export class AuthenticationService extends ConsentAwareService {
       return;
     } catch (e2) {
       console.warn(
-        "LocalStorage persistence unavailable, falling back to in-memory",
+        "localStorage persistence unavailable, falling back to in-memory",
         e2
       );
     }

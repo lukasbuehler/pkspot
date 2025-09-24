@@ -1,4 +1,4 @@
-import { GeoPoint } from "@firebase/firestore";
+import { GeoPoint } from "firebase/firestore";
 import { SpotId } from "../schemas/SpotSchema";
 import { AmenitiesMap } from "./Amenities";
 

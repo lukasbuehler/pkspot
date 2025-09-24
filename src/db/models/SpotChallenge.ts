@@ -12,7 +12,7 @@ import { LocaleCode, LocaleMap } from "./Interfaces";
 import { Spot } from "./Spot";
 import { User } from "./User";
 import { UserReferenceSchema } from "../schemas/UserSchema";
-import { GeoPoint, Timestamp } from "@firebase/firestore";
+import { GeoPoint, Timestamp } from "firebase/firestore";
 import { AuthenticationService } from "../../app/services/firebase/authentication.service";
 import { AnyMedia } from "./Media";
 import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";

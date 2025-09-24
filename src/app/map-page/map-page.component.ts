@@ -65,6 +65,7 @@ import { ChallengeListComponent } from "../challenge-list/challenge-list.compone
 import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-panel.component";
 import { ConsentService } from "../services/consent.service";
 import { RouteContentData } from "../resolvers/content.resolver";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 
 @Component({
   selector: "app-map-page",
@@ -146,9 +147,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   isServer: boolean;
 
   showAmenities = signal<boolean>(true);
+  bottomSheetOpen = signal<boolean>(false);
+  bottomSheetProgress = signal<number>(0);
 
   private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
+  isHandset = signal(false);
 
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
@@ -165,7 +169,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private _snackbar: MatSnackBar,
     private titleService: Title,
-    private _consentService: ConsentService
+    private _consentService: ConsentService,
+    private breakpointObserver: BreakpointObserver
   ) {
     this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
       (value) => {
@@ -174,6 +179,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     this.isServer = isPlatformServer(platformId);
+
+    // Track handset layout to infer when the bottom sheet is visible
+    this.isHandset = signal(false);
+    if (typeof window !== "undefined") {
+      this.isHandset.set(window.matchMedia("(max-width: 599px)").matches);
+    }
+    this.breakpointObserver.observe([Breakpoints.Handset]).subscribe((res) => {
+      this.isHandset.set(res.matches);
+    });
 
     effect(() => {
       // const selectedSpot = this.selectedSpot();

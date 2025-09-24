@@ -1,0 +1,56 @@
+<h2 mat-dialog-title i18n>Features and amenities</h2>
+<mat-dialog-content class="d-flex flex-column gap-2">
+  <div class="amenity-section">
+    <p class="mat-label-small" i18n>General</p>
+    <div class="d-flex flex-column gap-2">
+      @for (amenity of GeneralAmenities; track amenity) {
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames[amenity]"
+        [negativeLabel]="AmenityNegativeNames[amenity]"
+        [positiveIcon]="AmenityIcons[amenity]"
+        [negativeIcon]="AmenityNegativeIcons[amenity]"
+        [value]="amenities()[amenity]"
+        (valueChange)="updateAmenityFromToggle(amenity, $event)"
+      ></app-spot-amenity-toggle>
+      }
+    </div>
+  </div>
+
+  <!-- Always show indoor amenity toggles; environment selection now lives outside this dialog -->
+  <div class="amenity-section">
+    <p class="mat-label-small" i18n>Indoor</p>
+    <div class="d-flex flex-column gap-2">
+      @for (amenity of IndoorAmenities; track amenity) {
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames[amenity]"
+        [negativeLabel]="AmenityNegativeNames[amenity]"
+        [positiveIcon]="AmenityIcons[amenity]"
+        [negativeIcon]="AmenityNegativeIcons[amenity]"
+        [value]="amenities()[amenity]"
+        (valueChange)="updateAmenityFromToggle(amenity, $event)"
+      ></app-spot-amenity-toggle>
+      }
+    </div>
+  </div>
+  <!-- Always show outdoor amenity toggles; environment selection now lives outside this dialog -->
+  <div class="amenity-section">
+    <p class="mat-label-small" i18n>Outdoor</p>
+    <div class="d-flex flex-column gap-2">
+      @for (amenity of OutdoorAmenities; track amenity) {
+      <app-spot-amenity-toggle
+        [positiveLabel]="AmenityNames[amenity]"
+        [negativeLabel]="AmenityNegativeNames[amenity]"
+        [positiveIcon]="AmenityIcons[amenity]"
+        [negativeIcon]="AmenityNegativeIcons[amenity]"
+        [value]="amenities()[amenity]"
+        (valueChange)="updateAmenityFromToggle(amenity, $event)"
+      ></app-spot-amenity-toggle>
+      }
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="mt-2">
+  <button mat-stroked-button (click)="cancel()" i18n>Cancel</button>
+  <button mat-flat-button color="primary" (click)="save()" i18n>Save</button>
+</mat-dialog-actions>

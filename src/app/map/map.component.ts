@@ -40,7 +40,7 @@ import {
   SpotClusterDotSchema,
   SpotClusterTileSchema,
 } from "../../db/schemas/SpotClusterTile.js";
-import { GeoPoint } from "@firebase/firestore";
+import { GeoPoint } from "firebase/firestore";
 import { AsyncPipe, NgClass } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { trigger, transition, style, animate } from "@angular/animations";
@@ -370,13 +370,15 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     } else {
       // Try to load Google Maps API if consent is available
       this.tryLoadMapsApi();
-      
+
       // Listen for consent changes to load Maps API when consent is granted
-      this.consentSubscription = this._consentService.consentGranted$.subscribe((hasConsent) => {
-        if (hasConsent && !this.mapsApiService.isApiLoaded()) {
-          this.tryLoadMapsApi();
+      this.consentSubscription = this._consentService.consentGranted$.subscribe(
+        (hasConsent) => {
+          if (hasConsent && !this.mapsApiService.isApiLoaded()) {
+            this.tryLoadMapsApi();
+          }
         }
-      });
+      );
     }
 
     if (this.boundRestriction) {
@@ -393,18 +395,20 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   private tryLoadMapsApi() {
     // Try to load Google Maps API (will fail gracefully if no consent)
     this.mapsApiService.loadGoogleMapsApi();
-    
+
     // Subscribe to API loading completion
     if (this.isApiLoadedSubscription) {
       this.isApiLoadedSubscription.unsubscribe();
     }
-    
-    this.isApiLoadedSubscription = this.mapsApiService.isLoading$.subscribe((isLoading) => {
-      if (!isLoading && this.mapsApiService.isApiLoaded()) {
-        this.initMap();
-        this.initGeolocation();
+
+    this.isApiLoadedSubscription = this.mapsApiService.isLoading$.subscribe(
+      (isLoading) => {
+        if (!isLoading && this.mapsApiService.isApiLoaded()) {
+          this.initMap();
+          this.initGeolocation();
+        }
       }
-    });
+    );
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -502,8 +506,7 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   ngOnDestroy() {
     if (this.isApiLoadedSubscription)
       this.isApiLoadedSubscription.unsubscribe();
-    if (this.consentSubscription)
-      this.consentSubscription.unsubscribe();
+    if (this.consentSubscription) this.consentSubscription.unsubscribe();
   }
 
   initMap(): void {
@@ -749,14 +752,14 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     const isEditing = this.isEditing();
     const result = hasSpot && isEditing;
 
-    console.log(
-      "showSelectedSpotPolygon - hasSpot:",
-      hasSpot,
-      "isEditing:",
-      isEditing,
-      "result:",
-      result
-    );
+    // console.log(
+    //   "showSelectedSpotPolygon - hasSpot:",
+    //   hasSpot,
+    //   "isEditing:",
+    //   isEditing,
+    //   "result:",
+    //   result
+    // );
 
     if (!hasSpot || !isEditing) {
       return false;
