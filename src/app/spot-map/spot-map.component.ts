@@ -96,7 +96,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @Output() hasGeolocationChange = new EventEmitter<boolean>();
   @Output() visibleSpotsChange = new EventEmitter<Spot[]>();
   @Output() hightlightedSpotsChange = new EventEmitter<SpotPreviewData[]>();
-  @Output() markerClickEvent = new EventEmitter<number>();
+  @Output() markerClickEvent = new EventEmitter<
+    number | { marker: any; index?: number }
+  >();
 
   uneditedSpot?: Spot | LocalSpot;
 
@@ -353,6 +355,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (this.selectedSpot()) {
       this.closeSpot();
     }
+  }
+
+  // Normalize passthrough for map marker click events
+  onMarkerClickFromMap(evt: number | { marker: any; index?: number }) {
+    // Simply forward; the Output already supports both shapes
+    this.markerClickEvent.emit(evt);
   }
 
   focusOnGeolocation() {

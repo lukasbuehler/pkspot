@@ -244,6 +244,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       });
   }
 
+  // Normalize passthrough for map marker click events (template is shared with non-refactored component)
+  onMarkerClickFromMap(evt: any) {
+    this.markerClickEvent.emit(evt);
+  }
+
   isInitiated: boolean = false;
 
   async ngAfterViewInit(): Promise<void> {

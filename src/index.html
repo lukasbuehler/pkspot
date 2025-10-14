@@ -67,8 +67,31 @@
 
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
-  <!-- Self-hosted fonts - load from current origin to avoid CORS in dev/prod -->
-  <link rel="stylesheet" href="assets/fonts/fonts.css" />
+    <!-- Preload critical variable icon/text fonts to reduce layout shifts -->
+    <link
+      rel="preload"
+      href="assets/fonts/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      href="assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="assets/fonts/Roboto/Roboto-Italic-VariableFont_wdth,wght.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <!-- Load font stylesheet (kept small so okay render-blocking; could be media=print swap pattern if needed) -->
+    <link rel="stylesheet" href="assets/fonts/fonts.css" />
 
     <link rel="manifest" href="manifest.webmanifest" />
     <meta name="theme-color" content="#1f1f23" />
@@ -92,6 +115,7 @@
     <noscript i18n
       >Please enable JavaScript to continue using this application.</noscript
     >
-    <script src="assets/js/prebid-ads.js"></script>
+    <!-- Load ad / bidding script async & after interactive to avoid blocking critical path -->
+    <script src="assets/js/prebid-ads.js" async defer></script>
   </body>
 </html>

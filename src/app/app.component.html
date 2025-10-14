@@ -196,29 +196,6 @@
 </div>
 }
 
-<!-- User FAB -->
-<!-- <button
-  mat-fab
-  color="primary"
-  class="profile-icon-button login-fab d-none d-md-block"
-  [matMenuTriggerFor]="userMenu"
->
-  @if (!authService.isSignedIn) {
-  <mat-icon>person_outline</mat-icon>
-  }
-  <img
-    *ngIf="authService.isSignedIn && authService.user?.data?.profilePicture"
-    [ngSrc]="
-      storageService.getSpotMediaURL(
-        authService.user.data.profilePicture,
-        200
-      )
-    "
-    width="56"
-    height="56"
-  />
-</button> -->
-
 <mat-menu #userMenu="matMenu" id="userMenu">
   @for(button of (authService.isSignedIn ? authenticatedUserMenuConfig :
   unauthenticatedUserMenuConfig); track button) { @if(button.link) {

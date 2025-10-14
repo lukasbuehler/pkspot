@@ -245,14 +245,22 @@ export class SpotMapDataManager {
     // get the spot clusters for these tiles
     const dots: SpotClusterDotSchema[] = [];
     const spots: SpotPreviewData[] = [];
+    const missingTileKeys: MapTileKey[] = [];
     tilesZObj.tiles.forEach((tile) => {
       const key = getClusterTileKey(tilesZObj.zoom, tile.x, tile.y);
-      if (this._spotClusterTiles.has(key)) {
-        const spotCluster = this._spotClusterTiles.get(key)!;
+      const spotCluster = this._spotClusterTiles.get(key);
+      if (spotCluster) {
         dots.push(...spotCluster.dots);
         spots.push(...spotCluster.spots);
+      } else {
+        missingTileKeys.push(key);
       }
     });
+
+    // When none of the requested tiles are available yet, keep the previous state
+    if (dots.length === 0 && missingTileKeys.length > 0) {
+      return;
+    }
 
     // sort the spots by rating, and if they have media
     spots.sort((a, b) => {
@@ -637,61 +645,94 @@ export class SpotMapDataManager {
       return tilesObj;
     }
 
-    const tiles: { x: number; y: number }[] = [];
+    const tileCountTarget = 1 << targetZoom;
+    const normalizeX = (value: number) => {
+      const mod = value % tileCountTarget;
+      return mod < 0 ? mod + tileCountTarget : mod;
+    };
+    const clampY = (value: number) => {
+      if (value < 0) return 0;
+      const max = tileCountTarget - 1;
+      return value > max ? max : value;
+    };
+
+    const tilesMap = new Map<string, { x: number; y: number }>();
+    const addTile = (x: number, y: number) => {
+      const normalizedX = normalizeX(x);
+      const clampedY = clampY(y);
+      const key = `${normalizedX},${clampedY}`;
+      if (!tilesMap.has(key)) {
+        tilesMap.set(key, { x: normalizedX, y: clampedY });
+      }
+    };
+
     let tileSw = tilesObj.sw;
     let tileNe = tilesObj.ne;
 
     if (shift < 0) {
-      shift = -shift;
-      tileSw = {
-        x: tileSw.x >> shift, // divide shift times by 2
-        y: tileSw.y >> shift,
-      };
-      tileNe = {
-        x: tileNe.x >> shift,
-        y: tileNe.y >> shift,
-      };
+      // Zooming OUT (from higher zoom to lower zoom)
+      const factor = 1 << -shift;
 
       tilesObj.tiles.forEach((tile) => {
-        tile = {
-          x: tile.x >> shift,
-          y: tile.y >> shift,
-        };
+        addTile(Math.floor(tile.x / factor), Math.floor(tile.y / factor));
+      });
 
-        if (
-          !tiles.some(
-            (existingTile) =>
-              existingTile.x === tile.x && existingTile.y === tile.y
-          )
-        ) {
-          tiles.push(tile);
+      tileSw = {
+        x: Math.floor(tileSw.x / factor),
+        y: Math.floor(tileSw.y / factor),
+      };
+      tileNe = {
+        x: Math.floor(tileNe.x / factor),
+        y: Math.floor(tileNe.y / factor),
+      };
+
+      const xRange = this._enumerateXRange(tileSw.x, tileNe.x, targetZoom);
+      const yMin = Math.min(tileSw.y, tileNe.y);
+      const yMax = Math.max(tileSw.y, tileNe.y);
+      xRange.forEach((x: number) => {
+        for (let y = yMin; y <= yMax; y++) {
+          addTile(x, y);
         }
       });
     } else {
-      // shift > 0
+      // Zooming IN (from lower zoom to higher zoom)
+      const factor = 1 << shift;
+
+      tilesObj.tiles.forEach((tile) => {
+        const baseX = (tile.x << shift) % tileCountTarget;
+        const baseY = tile.y << shift;
+        for (let dx = 0; dx < factor; dx++) {
+          const childX = (baseX + dx) % tileCountTarget;
+          for (let dy = 0; dy < factor; dy++) {
+            addTile(childX, baseY + dy);
+          }
+        }
+      });
 
       tileSw = {
-        x: tileSw.x << shift, // multiply shift times by 2
+        x: (tileSw.x << shift) % tileCountTarget,
         y: tileSw.y << shift,
       };
       tileNe = {
-        x: tileNe.x << shift,
-        y: tileNe.y << shift,
+        x: ((tileNe.x << shift) + (factor - 1)) % tileCountTarget,
+        y: (tileNe.y << shift) + (factor - 1),
       };
-
-      // since we are zooming out here we need to add all the tiles that are in the new zoom level
-      for (let x = tileSw.x; x <= tileNe.x; x++) {
-        for (let y = tileNe.y; y <= tileSw.y; y++) {
-          tiles.push({ x: x, y: y });
-        }
-      }
     }
+
+    const tiles = Array.from(tilesMap.values());
+    tiles.sort((a, b) => (a.x === b.x ? a.y - b.y : a.x - b.x));
 
     const newTilesObj: TilesObject = {
       zoom: targetZoom,
-      sw: tileSw,
-      ne: tileNe,
-      tiles: tiles,
+      sw: {
+        x: normalizeX(tileSw.x),
+        y: clampY(tileSw.y),
+      },
+      ne: {
+        x: normalizeX(tileNe.x),
+        y: clampY(tileNe.y),
+      },
+      tiles,
     };
 
     return newTilesObj;
@@ -699,6 +740,27 @@ export class SpotMapDataManager {
 
   isTileLoading(tileKey: MapTileKey): boolean {
     return this._tilesLoading.has(tileKey);
+  }
+
+  private _enumerateXRange(start: number, end: number, zoom: number): number[] {
+    const tileCount = 1 << zoom;
+    const normalize = (value: number) => {
+      const mod = value % tileCount;
+      return mod < 0 ? mod + tileCount : mod;
+    };
+
+    const from = normalize(start);
+    const to = normalize(end);
+    const range: number[] = [from];
+
+    let current = from;
+    const safetyLimit = tileCount + 1;
+    while (current !== to && range.length <= safetyLimit) {
+      current = (current + 1) % tileCount;
+      range.push(current);
+    }
+
+    return range;
   }
 
   markTilesAsLoading(tileKeys: MapTileKey[] | Set<MapTileKey>) {
