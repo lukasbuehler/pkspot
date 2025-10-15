@@ -2,6 +2,8 @@ import { Component, computed, input, output } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { MarkerComponent } from "../../marker/marker.component";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { AmenityIcons } from "../../../db/schemas/Amenities";
+import { getImportantAmenities } from "../../../db/models/Amenities";
 
 /**
  * Component for rendering a single highlight marker on the map.
@@ -17,6 +19,11 @@ import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
  * - Uses OPTIONAL_AND_HIDES_LOWER_PRIORITY to hide lower priority markers
  * - Priority is based on spot rating (higher rating = higher priority)
  * - Markers are offset so the location is at the bottom (like selected spot)
+ *
+ * Icon Selection:
+ * - Shows amenity icons (e.g., house + dollar sign for indoor spots with entry fee)
+ * - Falls back to star_circle for iconic spots
+ * - Falls back to star if no amenities are set
  *
  * @example
  * ```html
@@ -39,7 +46,7 @@ import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
       #markerContent
       class="fade-in"
       style="pointer-events: none"
-      [icons]="['star']"
+      [icons]="markerIcons()"
       [number]="getRoundedRating()"
       [color]="'primary'"
       [size]="0.8"
@@ -129,4 +136,38 @@ export class HighlightMarkerComponent {
     const rating = this.spot().rating;
     return rating ? Math.round(rating * 10) / 10 : null;
   }
+
+  /**
+   * Computed marker icons based on spot amenities and iconic status.
+   * Uses the centralized getImportantAmenities function to ensure consistency
+   * with spot details and spot preview cards.
+   * Priority:
+   * 1. Show 'stars' icon for iconic spots (matching spot details)
+   * 2. Show amenity icons (indoor, outdoor, entry_fee) if available
+   * 3. Fall back to star if no amenities are set
+   */
+  markerIcons = computed<string[]>(() => {
+    const spot = this.spot();
+
+    // If iconic, always show 'stars' icon (matches spot details)
+    if (spot.isIconic) {
+      return ["stars"];
+    }
+
+    // If no amenities, fall back to star
+    if (!spot.amenities) {
+      return ["star"];
+    }
+
+    // Get important amenities using centralized logic
+    const importantAmenities = getImportantAmenities(spot.amenities, spot.type);
+
+    // Extract icons from important amenities
+    const icons: string[] = importantAmenities
+      .filter((amenity) => amenity.icon)
+      .map((amenity) => amenity.icon!);
+
+    // If we have icons, return them, otherwise fall back to star
+    return icons.length > 0 ? icons : ["star"];
+  });
 }

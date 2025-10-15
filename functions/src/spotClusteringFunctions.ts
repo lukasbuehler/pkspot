@@ -82,12 +82,14 @@ async function _clusterAllSpots() {
           spotForTile = {
             name: getSpotName(spot, "en"),
             id: id as SpotId,
+            slug: spot.slug,
             isIconic: spot.is_iconic ?? false,
             imageSrc: getSpotPreviewImage(spot),
             type: spot.type,
             access: spot.access,
             locality: getSpotLocalityString(spot),
             location: spot.location,
+            amenities: spot.amenities,
           };
 
           if (spot.rating) {

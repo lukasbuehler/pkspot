@@ -232,7 +232,9 @@ export class SpotMapDataManager {
         existingPreview.name !== previewData.name ||
         existingPreview.rating !== previewData.rating ||
         existingPreview.imageSrc !== previewData.imageSrc ||
-        existingPreview.locality !== previewData.locality;
+        existingPreview.locality !== previewData.locality ||
+        JSON.stringify(existingPreview.amenities) !==
+          JSON.stringify(previewData.amenities);
 
       if (!hasChanged) {
         return existingPreview; // Return cached version

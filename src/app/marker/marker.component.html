@@ -1,8 +1,7 @@
 <div
   class="pin-marker"
   [ngClass]="{
-    'pin-iconic': isIconic(),
-    'pin-primary': color() === 'primary' && !isIconic(),
+    'pin-primary': color() === 'primary' || !isIconic(),
     'pin-secondary': color() === 'secondary' && !isIconic(),
     'pin-tertiary': color() === 'tertiary' && !isIconic(),
     'pin-gray': color() === 'gray' && !isIconic(),

@@ -42,6 +42,7 @@ import { MapsApiService } from "../services/maps-api.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { AsyncPipe, isPlatformServer } from "@angular/common";
 import { SpotsService } from "../services/firebase/firestore/spots.service";
+import { SlugsService } from "../services/firebase/firestore/slugs.service";
 import { LocaleCode } from "../../db/models/Interfaces";
 import { MarkerSchema } from "../marker/marker.component";
 import { OsmDataService } from "../services/osm-data.service";
@@ -159,6 +160,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
     private _spotsService: SpotsService,
+    private _slugsService: SlugsService,
     private authService: AuthenticationService,
     private mapsAPIService: MapsApiService,
     private snackBar: MatSnackBar,
@@ -420,12 +422,18 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (spot instanceof Spot) {
       this.selectedSpot.set(spot);
     }
-    let spotId: SpotId;
+    let spotIdOrSlug: SpotId | string;
 
     if (typeof spot === "string") {
-      spotId = spot;
+      spotIdOrSlug = spot;
     } else if ("id" in spot) {
-      spotId = spot.id as SpotId;
+      // For SpotPreviewData, prefer slug if available
+      if ("slug" in spot && spot.slug) {
+        spotIdOrSlug = spot.slug;
+      } else {
+        spotIdOrSlug = spot.id as SpotId;
+      }
+
       if ("location" in spot) {
         if (spot.location instanceof GeoPoint) {
           this.focusPoint({
@@ -441,22 +449,56 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.openSpotById(spotId);
+    this.openSpotById(spotIdOrSlug);
   }
 
-  openSpotById(spotId: SpotId) {
-    if (!spotId) {
-      console.error("No spot ID provided to open spot by ID");
+  openSpotById(spotIdOrSlug: SpotId | string) {
+    if (!spotIdOrSlug) {
+      console.error("No spot ID or slug provided to open spot");
       return;
     }
 
-    // console.log("Opening spot by ID", spotId);
+    // Check if it's a slug by looking for typical slug patterns
+    // Slugs are typically lowercase with hyphens, IDs are alphanumeric
+    const isLikelySlug = /^[a-z0-9-]+$/.test(spotIdOrSlug);
+
+    if (isLikelySlug) {
+      // Try to resolve slug to ID first
+      this._slugsService
+        .getSpotIdFromSpotSlug(spotIdOrSlug)
+        .then((spotId) => {
+          return firstValueFrom(
+            this._spotsService.getSpotById$(spotId, this.locale)
+          );
+        })
+        .then((spot) => {
+          if (spot) {
+            this.selectedSpot.set(spot);
+            if (this.isInitiated) {
+              setTimeout(() => {
+                this.focusSpot(spot);
+              }, 100);
+            }
+          } else {
+            console.error("Spot with slug", spotIdOrSlug, "not found");
+          }
+        })
+        .catch((error) => {
+          console.error("Error resolving slug or fetching spot:", error);
+          // Fallback: try as ID anyway
+          this._fetchSpotById(spotIdOrSlug as SpotId);
+        });
+    } else {
+      // It's an ID, fetch directly
+      this._fetchSpotById(spotIdOrSlug as SpotId);
+    }
+  }
+
+  private _fetchSpotById(spotId: SpotId) {
     firstValueFrom(this._spotsService.getSpotById$(spotId, this.locale)).then(
       (spot) => {
         if (spot) {
           this.selectedSpot.set(spot);
-          // Ensure the map focuses on the spot after it's loaded
-          // The effect will handle the focusing, but we can add a small delay to ensure map is ready
           if (this.isInitiated) {
             setTimeout(() => {
               this.focusSpot(spot);

@@ -63,7 +63,6 @@ import {
       [color]="marker().color || 'primary'"
       [size]="getMarkerSize()"
       [title]="marker().name"
-      [isIconic]="isIconicMarker()"
       [clickable]="marker().clickable || false"
       (click)="onMarkerClick()"
     ></app-marker>

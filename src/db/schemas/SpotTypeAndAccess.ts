@@ -1,5 +1,7 @@
 export enum SpotTypes {
-  Gym = "parkour gym",
+  ParkourGym = "parkour gym",
+  TrampolinePark = "trampoline park",
+  GymnasticsGym = "gymnastics gym",
   PkPark = "parkour park",
   Playground = `playground`,
   School = "school",
@@ -13,11 +15,14 @@ export enum SpotTypes {
   Descent = "descent",
   Monument = "monument",
   Water = "water",
+  Garage = "garage",
   Other = "other",
 }
 
 export const SpotTypesNames: Record<SpotTypes, string> = {
-  [SpotTypes.Gym]: $localize`:@@spot-type.parkour-gym:Parkour Gym`,
+  [SpotTypes.ParkourGym]: $localize`:@@spot-type.parkour-gym:Parkour Gym`,
+  [SpotTypes.TrampolinePark]: $localize`:@@spot-type.trampoline-park:Trampoline Park`,
+  [SpotTypes.GymnasticsGym]: $localize`:@@spot-type.gymnastics-gym:Gymnastics Gym`,
   [SpotTypes.PkPark]: $localize`:@@spot-type.parkour-park:Parkour Park`,
   [SpotTypes.Playground]: $localize`:@@spot-type.playground:Playground`,
   [SpotTypes.School]: $localize`:@@spot-type.school:School`,
@@ -31,11 +36,14 @@ export const SpotTypesNames: Record<SpotTypes, string> = {
   [SpotTypes.Descent]: $localize`:@@spot-type.descent:Descent`,
   [SpotTypes.Monument]: $localize`:@@spot-type.monument:Monument`,
   [SpotTypes.Water]: $localize`:@@spot-type.water:Water Spot`,
+  [SpotTypes.Garage]: $localize`:@@spot-type.garage:Garage`,
   [SpotTypes.Other]: $localize`:@@spot-type.other:Other`,
 };
 
 export const SpotTypesIcons: Record<SpotTypes, string> = {
-  [SpotTypes.Gym]: "fitness_center",
+  [SpotTypes.ParkourGym]: "fitness_center",
+  [SpotTypes.TrampolinePark]: "falling",
+  [SpotTypes.GymnasticsGym]: "sports_gymnastics",
   [SpotTypes.PkPark]: "castle",
   [SpotTypes.Playground]: "child_care",
   [SpotTypes.School]: "school",
@@ -47,13 +55,16 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
   [SpotTypes.Rooftop]: "roofing",
   [SpotTypes.RoofGap]: "space_bar",
   [SpotTypes.Descent]: "arrow_downward",
-  [SpotTypes.Monument]: "museum", // representative icon
+  [SpotTypes.Monument]: "museum",
   [SpotTypes.Water]: "water",
+  [SpotTypes.Garage]: "local_parking",
   [SpotTypes.Other]: "help_outline",
 };
 
 export const SpotTypesDescriptions: Record<SpotTypes, string> = {
-  [SpotTypes.Gym]: $localize`:@@spot-type-description.parkour-gym:This is an indoor training facility with dedicated equipment and obstacles for Parkour practice.`,
+  [SpotTypes.ParkourGym]: $localize`:@@spot-type-description.parkour-gym:This is an indoor training facility with dedicated equipment and obstacles for Parkour practice.`,
+  [SpotTypes.TrampolinePark]: $localize`:@@spot-type-description.trampoline-park:This is a trampoline park facility that has aerial training areas.`,
+  [SpotTypes.GymnasticsGym]: $localize`:@@spot-type-description.gymnastics-gym:This is a gymnastics facility with mats, bars, beams, and tumbling equipment suitable for acrobatic training.`,
   [SpotTypes.PkPark]: $localize`:@@spot-type-description.parkour-park:This is a purpose-built outdoor space with designed obstacles and structures for Parkour training.`,
   [SpotTypes.Playground]: $localize`:@@spot-type-description.playground:This is a playground area with swings, slides, and climbing structures suitable for Parkour training.`,
   [SpotTypes.School]: $localize`:@@spot-type-description.school:This is a school facility with walls, benches, and architectural features for practice.`,
@@ -67,6 +78,7 @@ export const SpotTypesDescriptions: Record<SpotTypes, string> = {
   [SpotTypes.Descent]: $localize`:@@spot-type-description.descent:This is a spot primarily used for descending techniques.`,
   [SpotTypes.Monument]: $localize`:@@spot-type-description.monument:This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.`,
   [SpotTypes.Water]: $localize`:@@spot-type-description.water:This spot centers around water (fountain, riverbank, lakeside structure, etc.) offering unique movement or aesthetic value. Surfaces may be slippery—use caution.`,
+  [SpotTypes.Garage]: $localize`:@@spot-type-description.garage:This is a parking garage or car park with ramps, columns, and concrete structures suitable for training.`,
   [SpotTypes.Other]: $localize`:@@spot-type-description.other:This is a location that doesn't fit standard categories but offers training opportunities.`,
 };
 

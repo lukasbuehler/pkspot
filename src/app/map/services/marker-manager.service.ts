@@ -225,7 +225,7 @@ export class MarkerManagerService {
         type: "spot",
         location: spot.location(),
         name: spot.name(),
-        icons: [spot.isIconic ? "star" : "fiber_manual_record"],
+        icons: [spot.isIconic ? "stars" : "fiber_manual_record"],
         data: spot,
       });
     });
@@ -321,7 +321,7 @@ export class MarkerManagerService {
         type: "selected-spot",
         location: spot.location(),
         name: spot.name(),
-        icons: [spot.isIconic ? "star" : "fiber_manual_record"],
+        icons: [spot.isIconic ? "stars" : "fiber_manual_record"],
         draggable: isEditing,
         data: spot,
       });

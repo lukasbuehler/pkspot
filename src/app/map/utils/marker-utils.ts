@@ -153,7 +153,7 @@ export class MarkerUtils {
       type,
       location: spot.location(),
       name: spot.name(),
-      icons: [spot.isIconic ? "star" : "fiber_manual_record"],
+      icons: [spot.isIconic ? "star_circle" : "fiber_manual_record"],
       color: "primary",
       zIndex: type === "selected-spot" ? 1000 : 100,
       clickable: true,

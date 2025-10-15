@@ -104,11 +104,22 @@ export function makeSmartAmenitiesArray(
       priority: "high",
     });
   } else if (amenities.outdoor === true) {
-    result.push({
-      name: AmenityNames.outdoor,
-      icon: AmenityIcons.outdoor,
-      priority: "high",
-    });
+    // For outdoor spots, show covered status if explicitly true
+    // Otherwise show outdoor icon (don't show negative "not covered")
+    if (amenities.covered === true) {
+      result.push({
+        name: AmenityNames.covered,
+        icon: AmenityIcons.covered,
+        priority: "high",
+      });
+    } else {
+      // If covered is false or unknown, just show outdoor
+      result.push({
+        name: AmenityNames.outdoor,
+        icon: AmenityIcons.outdoor,
+        priority: "high",
+      });
+    }
   }
 
   // Entry fee
@@ -117,7 +128,7 @@ export function makeSmartAmenitiesArray(
       name: AmenityNames.entry_fee,
       icon: AmenityIcons.entry_fee,
       priority: "high",
-      isNegative: true,
+      // Not marking as negative since it's important information to show
     });
   } else if (amenities.entry_fee === false) {
     if (env === "indoor" || env === "both") {
@@ -194,6 +205,7 @@ export function makeSmartAmenitiesArray(
   const skip: (keyof AmenitiesMap)[] = [
     "indoor",
     "outdoor",
+    "covered",
     "entry_fee",
     "wc",
     "drinking_water",
@@ -232,6 +244,28 @@ export function makeSmartAmenitiesArray(
   });
 
   return result.filter((val) => val !== null);
+}
+
+/**
+ * Get important (high-priority) amenities for display in compact views
+ * like spot preview cards and highlight markers.
+ * Shows: indoor/outdoor status, covered (if outdoor and true), and paid entry fee.
+ * Does not show negative amenities (free entry is assumed).
+ */
+export function getImportantAmenities(
+  amenities: AmenitiesMap,
+  spotType?: string
+): {
+  name?: string;
+  icon?: string;
+  priority?: "high" | "medium" | "low";
+  isNegative?: boolean;
+}[] {
+  const smartAmenities = makeSmartAmenitiesArray(amenities, spotType);
+  // Filter to high priority AND exclude negative amenities
+  return smartAmenities.filter(
+    (amenity) => amenity.priority === "high" && !amenity.isNegative
+  );
 }
 
 // ---- Centralized amenity questions config for edit flow ----

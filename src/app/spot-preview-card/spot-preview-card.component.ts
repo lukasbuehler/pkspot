@@ -27,6 +27,7 @@ import { AmenitiesMap } from "../../db/schemas/Amenities";
 import {
   makeAmenitiesArray,
   makeSmartAmenitiesArray,
+  getImportantAmenities,
 } from "../../db/models/Amenities";
 import {
   StorageImage,
@@ -68,14 +69,14 @@ export class SpotPreviewCardComponent implements OnChanges {
       return [];
     }
     if (spot instanceof Spot || spot instanceof LocalSpot) {
-      // Use smart amenities array for better context-aware display
+      // Use important amenities array (high-priority only)
       return spot.importantAmenitiesArray();
     }
-    // For SpotPreviewData, determine spot type if available
+    // For SpotPreviewData, use the centralized helper function
     const spotType =
       "type" in spot && typeof spot.type === "string" ? spot.type : undefined;
     return spot.amenities
-      ? makeSmartAmenitiesArray(spot.amenities, spotType)
+      ? getImportantAmenities(spot.amenities, spotType)
       : [];
   });
   showInfoButton = input<boolean>(true);
