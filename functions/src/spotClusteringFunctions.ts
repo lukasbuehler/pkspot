@@ -82,15 +82,31 @@ async function _clusterAllSpots() {
           spotForTile = {
             name: getSpotName(spot, "en"),
             id: id as SpotId,
-            slug: spot.slug,
             isIconic: spot.is_iconic ?? false,
             imageSrc: getSpotPreviewImage(spot),
-            type: spot.type,
-            access: spot.access,
             locality: getSpotLocalityString(spot),
-            location: spot.location,
-            amenities: spot.amenities,
           };
+
+          // Only add optional fields if they are defined
+          if (spot.slug !== undefined) {
+            spotForTile.slug = spot.slug;
+          }
+
+          if (spot.location !== undefined) {
+            spotForTile.location = spot.location;
+          }
+
+          if (spot.type !== undefined) {
+            spotForTile.type = spot.type;
+          }
+
+          if (spot.access !== undefined) {
+            spotForTile.access = spot.access;
+          }
+
+          if (spot.amenities !== undefined) {
+            spotForTile.amenities = spot.amenities;
+          }
 
           if (spot.rating) {
             spotForTile.rating = spot.rating;
