@@ -6,6 +6,7 @@
   [spots]="(visibleSpots$ | async) ?? []"
   [dots]="(visibleDots$ | async) ?? []"
   [highlightedSpots]="(visibleHighlightedSpots$ | async) ?? []"
+  [markers]="visibleMarkers()"
   [selectedSpot]="selectedSpot()"
   [selectedChallenge]="selectedChallenge()"
   [selectedSpotChallenges]="selectedSpotChallenges()"

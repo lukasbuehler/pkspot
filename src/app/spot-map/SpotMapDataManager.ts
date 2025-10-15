@@ -43,6 +43,15 @@ export class SpotMapDataManager {
   private _markers: Map<MapTileKey, MarkerSchema[]>;
   private _tilesLoading: Set<MapTileKey>;
 
+  /**
+   * Cache for SpotPreviewData objects to maintain reference stability.
+   *
+   * This prevents unnecessary object recreation when transitioning between zoom levels,
+   * which improves performance and ensures Angular's change detection works efficiently
+   * with track-by-id in @for loops.
+   */
+  private _spotPreviewCache: Map<SpotId, SpotPreviewData> = new Map();
+
   private _visibleSpotsBehaviorSubject = new BehaviorSubject<Spot[]>([]);
   private _visibleDotsBehaviorSubject = new BehaviorSubject<
     SpotClusterDotSchema[]
@@ -64,7 +73,8 @@ export class SpotMapDataManager {
   private _lastVisibleTiles = signal<TilesObject | null>(null);
 
   readonly spotZoom = 16;
-  readonly markerZoom = 12;
+  readonly amenityMarkerZoom = 14; // Load amenity markers at zoom 14 for efficient caching
+  readonly amenityMarkerDisplayZoom = 16; // Display amenity markers at zoom 16+
   readonly clusterZooms = [4, 8, 12];
   readonly divisor = 4;
   readonly defaultRating = 1.5;
@@ -72,7 +82,7 @@ export class SpotMapDataManager {
   constructor(
     readonly locale: LocaleCode,
     injector: Injector,
-    readonly debugMode: boolean = true
+    readonly debugMode: boolean = false
   ) {
     // Resolve dependencies via the provided Injector to avoid using inject() outside DI context
     this._spotsService = injector.get(SpotsService);
@@ -96,27 +106,40 @@ export class SpotMapDataManager {
 
   // public functions
 
+  /**
+   * Clear the SpotPreviewData cache.
+   * Useful for memory management or when you need to force refresh of all preview data.
+   */
+  clearPreviewCache(): void {
+    this._spotPreviewCache.clear();
+  }
+
+  // public functions
+
   setVisibleTiles(visibleTilesObj: TilesObject) {
     // update the visible tiles
     this._lastVisibleTiles.set(visibleTilesObj);
 
     const zoom = visibleTilesObj.zoom;
 
+    // Load amenity markers at zoom >= 14 (amenityMarkerZoom) for efficient caching
+    // But they will only be displayed at zoom >= 16 (amenityMarkerDisplayZoom)
+    if (zoom >= this.amenityMarkerZoom) {
+      const markerTilesToLoad: Set<MapTileKey> =
+        this._getMarkerTilesToLoad(visibleTilesObj);
+      this._loadMarkersForTiles(markerTilesToLoad);
+    }
+
     if (zoom >= this.spotZoom) {
       // show spots and markers
       this._showCachedSpotsAndMarkersForTiles(visibleTilesObj);
 
-      // now determine the missing information and load spots and markers for it
+      // now determine the missing information and load spots for it
       const spotTilesToLoad16: Set<MapTileKey> =
         this._getSpotTilesToLoad(visibleTilesObj);
-      const markerTilesToLoad16: Set<MapTileKey> =
-        this._getMarkerTilesToLoad(visibleTilesObj);
 
       // load spots for missing tiles
       this._loadSpotsForTiles(spotTilesToLoad16);
-
-      // load markers for missing tiles
-      this._loadMarkersForTiles(markerTilesToLoad16);
     } else {
       // show spot clusters
       this._showCachedSpotClustersForTiles(visibleTilesObj);
@@ -140,9 +163,12 @@ export class SpotMapDataManager {
       this._removeLocalSpotsAtLocation(spot.location());
     }
 
-    let saveSpotPromise: Promise<void>;
+    let saveSpotPromise: Promise<void | SpotId>;
+
     if (spot instanceof Spot) {
-      // this spot already exists in the database
+      // Invalidate cache entry for this spot since data is changing
+      this._spotPreviewCache.delete(spot.id);
+
       saveSpotPromise = this._spotsService.updateSpot(
         spot.id,
         spot.data(),
@@ -168,6 +194,57 @@ export class SpotMapDataManager {
   // private functions
 
   /**
+   * Get or create a cached SpotPreviewData object for the given spot.
+   *
+   * This method maintains object reference stability across zoom transitions by:
+   * 1. Returning existing cached objects when spot data hasn't changed
+   * 2. Only creating new objects when relevant display properties change
+   * 3. Automatically caching new/updated preview data
+   *
+   * This optimization prevents unnecessary re-renders in Angular components
+   * and ensures stable track-by-id behavior in @for loops.
+   *
+   * @param spot - The full Spot object to create/retrieve preview data for
+   * @returns Cached or newly created SpotPreviewData
+   */
+  private _getOrCreateSpotPreview(spot: Spot): SpotPreviewData {
+    const existingPreview = this._spotPreviewCache.get(spot.id);
+
+    // Create preview data structure
+    const previewData: SpotPreviewData = {
+      name: spot.name(),
+      id: spot.id,
+      slug: spot.slug ?? undefined,
+      location: spot.data().location,
+      type: spot.type(),
+      access: spot.access(),
+      locality: spot.localityString(),
+      imageSrc: spot.previewImageSrc(),
+      isIconic: spot.isIconic,
+      rating: spot.rating ?? undefined,
+      amenities: spot.amenities(),
+    };
+
+    // If we have an existing cached version, check if it needs updating
+    if (existingPreview) {
+      // Check if any relevant properties have changed
+      const hasChanged =
+        existingPreview.name !== previewData.name ||
+        existingPreview.rating !== previewData.rating ||
+        existingPreview.imageSrc !== previewData.imageSrc ||
+        existingPreview.locality !== previewData.locality;
+
+      if (!hasChanged) {
+        return existingPreview; // Return cached version
+      }
+    }
+
+    // Cache and return the new preview data
+    this._spotPreviewCache.set(spot.id, previewData);
+    return previewData;
+  }
+
+  /**
    * Set the spots and markers behavior subjects to the cached data we have
    * loaded.
    * @param tiles
@@ -184,18 +261,13 @@ export class SpotMapDataManager {
     // get the tiles object for the spot zoom
     const tiles16 = this._transformTilesObjectToZoom(tiles, this.spotZoom);
 
-    // get the spots and markers for these tiles
+    // get the spots for these tiles
     const spots: Spot[] = [];
-    const markers: MarkerSchema[] = [];
     tiles16.tiles.forEach((tile) => {
       const key = getClusterTileKey(tiles16.zoom, tile.x, tile.y);
       if (this._spots.has(key)) {
         const tileSpots = this._spots.get(key)!;
         spots.push(...tileSpots);
-      }
-      if (this._markers.has(key)) {
-        const tileMarkers = this._markers.get(key)!;
-        markers.push(...tileMarkers);
       }
     });
 
@@ -219,8 +291,26 @@ export class SpotMapDataManager {
       return 0;
     });
 
+    // Extract highlighted spots (rated or iconic) at zoom 16+
+    // Use cache to maintain object reference stability for Angular's change detection
+    const highlightedSpots: SpotPreviewData[] = spots
+      .filter((spot) => (spot.rating ?? 0) > 0 || spot.isIconic)
+      .map((spot) => this._getOrCreateSpotPreview(spot));
+
+    // Only show amenity markers at zoom >= 16 (amenityMarkerDisplayZoom) to maintain performance
+    const markers: MarkerSchema[] = [];
+    if (tiles.zoom >= this.amenityMarkerDisplayZoom) {
+      tiles16.tiles.forEach((tile) => {
+        const key = getClusterTileKey(tiles16.zoom, tile.x, tile.y);
+        if (this._markers.has(key)) {
+          const tileMarkers = this._markers.get(key)!;
+          markers.push(...tileMarkers);
+        }
+      });
+    }
+
     this._visibleDotsBehaviorSubject.next([]);
-    this._visibleHighlightedSpotsBehaviorSubject.next([]);
+    this._visibleHighlightedSpotsBehaviorSubject.next(highlightedSpots);
     this._visibleSpotsBehaviorSubject.next(spots);
     this._visibleMarkersBehaviorSubject.next(markers);
   }
@@ -234,15 +324,27 @@ export class SpotMapDataManager {
       return;
     }
 
-    // get the tiles object for the cluster zoom
+    // Get the tiles object for the cluster zoom
+    // If zoom is below the minimum cluster zoom (4), clamp it to the minimum
     const tilesZ =
       this.clusterZooms
         .filter((zoom) => zoom <= tiles.zoom)
         .sort((a, b) => b - a)[0] ?? this.clusterZooms[0];
 
-    const tilesZObj = this._transformTilesObjectToZoom(tiles, tilesZ);
+    // For zooms below the minimum cluster zoom (e.g., 2 or 3), we still want to use
+    // the minimum cluster zoom data (4) but keep the actual zoom for viewport calculations
+    const effectiveZoom = Math.max(tiles.zoom, this.clusterZooms[0]);
+    const tilesForClusters =
+      effectiveZoom === tiles.zoom
+        ? tiles
+        : { ...tiles, zoom: this.clusterZooms[0] };
 
-    // get the spot clusters for these tiles
+    const tilesZObj = this._transformTilesObjectToZoom(
+      tilesForClusters,
+      tilesZ
+    );
+
+    // Collect spot clusters for visible tiles at cluster zoom level
     const dots: SpotClusterDotSchema[] = [];
     const spots: SpotPreviewData[] = [];
     const missingTileKeys: MapTileKey[] = [];
@@ -251,7 +353,16 @@ export class SpotMapDataManager {
       const spotCluster = this._spotClusterTiles.get(key);
       if (spotCluster) {
         dots.push(...spotCluster.dots);
-        spots.push(...spotCluster.spots);
+        // Use cache to reuse existing preview objects when available
+        spotCluster.spots.forEach((spotPreview) => {
+          const cached = this._spotPreviewCache.get(spotPreview.id);
+          if (cached) {
+            spots.push(cached);
+          } else {
+            this._spotPreviewCache.set(spotPreview.id, spotPreview);
+            spots.push(spotPreview);
+          }
+        });
       } else {
         missingTileKeys.push(key);
       }
@@ -282,8 +393,11 @@ export class SpotMapDataManager {
       return 0;
     });
 
-    this._visibleSpotsBehaviorSubject.next([]);
+    // Don't show amenity markers in cluster view (zoom < 16) for performance
+    // Amenity markers are only displayed at amenityMarkerDisplayZoom (16) and above
     this._visibleMarkersBehaviorSubject.next([]);
+
+    this._visibleSpotsBehaviorSubject.next([]);
     this._visibleDotsBehaviorSubject.next(dots);
     this._visibleHighlightedSpotsBehaviorSubject.next(spots);
   }
@@ -344,8 +458,6 @@ export class SpotMapDataManager {
       const tile12 = getClusterTileKey(zoom - 4, x >> 4, y >> 4);
       if (!tiles12.has(tile12)) tiles12.add(tile12);
     });
-
-    // console.debug("Loading markers for tiles", tiles12);
 
     // add an empty array for the tiles that water markers will be loaded for
     tiles12.forEach((tileKey) => {
@@ -410,17 +522,19 @@ export class SpotMapDataManager {
                     );
                   return { marker: marker, tile: tileCoords16 };
                 } else if (element.tags.amenity === "toilets") {
+                  const isFree = element.tags.fee === "no";
+                  const isPaid = element.tags.fee === "yes";
+
                   const marker: MarkerSchema = {
                     location: {
                       lat: element.lat,
                       lng: element.lon,
                     },
-                    icons:
-                      element.tags.fee === "yes"
-                        ? ["wc", "paid"]
-                        : element.tags.fee === "no"
-                        ? ["wc", "money_off"]
-                        : ["wc"],
+                    icons: isPaid
+                      ? ["wc", "paid"]
+                      : isFree
+                      ? ["wc", "money_off"]
+                      : ["wc"],
                     name:
                       element.tags.name +
                       (element.tags.fee ? ` Fee: ${element.tags.charge}` : "") +
@@ -431,6 +545,7 @@ export class SpotMapDataManager {
                         ? `Opening hours: ${element.tags.opening_hours}`
                         : ""),
                     color: "tertiary",
+                    priority: isFree ? 350 : isPaid ? 250 : 300, // Free toilets > unknown > paid
                   };
                   const tileCoords16 =
                     MapHelpers.getTileCoordinatesForLocationAndZoom(
@@ -506,17 +621,27 @@ export class SpotMapDataManager {
   ): Set<MapTileKey> {
     let zoom = visibleTilesObj.zoom;
 
-    // transform the visible tiles to the zoom level of the spot clusters
-    // get the tiles object for the cluster zoom
+    // Transform the visible tiles to the zoom level of the spot clusters
+    // Get the tiles object for the cluster zoom
     const tilesZ =
       this.clusterZooms
         .filter((zoom) => zoom <= visibleTilesObj.zoom)
         .sort((a, b) => b - a)[0] ?? this.clusterZooms[0];
 
-    visibleTilesObj = this._transformTilesObjectToZoom(visibleTilesObj, tilesZ);
+    // For zooms below the minimum cluster zoom (e.g., 2 or 3), clamp to minimum
+    const effectiveZoom = Math.max(visibleTilesObj.zoom, this.clusterZooms[0]);
+    const tilesForClusters =
+      effectiveZoom === visibleTilesObj.zoom
+        ? visibleTilesObj
+        : { ...visibleTilesObj, zoom: this.clusterZooms[0] };
 
-    const missingTiles = [...visibleTilesObj.tiles]
-      .map((tile) => getClusterTileKey(visibleTilesObj.zoom, tile.x, tile.y))
+    const transformedTiles = this._transformTilesObjectToZoom(
+      tilesForClusters,
+      tilesZ
+    );
+
+    const missingTiles = [...transformedTiles.tiles]
+      .map((tile) => getClusterTileKey(transformedTiles.zoom, tile.x, tile.y))
       .filter((tileKey) => !this._spotClusterTiles.has(tileKey));
 
     const tilesToLoad = new Set(
@@ -807,7 +932,6 @@ export class SpotMapDataManager {
     // First, try to find the spot by ID if it has one
     const ref = this.getReferenceToLoadedSpotById(newSpot.id);
 
-    console.log("spot to update ref", ref);
     if (ref?.spot && ref.indexInTileArray >= 0 && ref.tile) {
       // The spot exists and should be updated
       // Update the spot

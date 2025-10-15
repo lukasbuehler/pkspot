@@ -1,4 +1,4 @@
-import { NgClass, DecimalPipe } from "@angular/common";
+import { NgClass } from "@angular/common";
 import {
   Component,
   ElementRef,
@@ -21,7 +21,7 @@ export interface MarkerSchema {
 
 @Component({
   selector: "app-marker",
-  imports: [MatIconModule, NgClass, MatRippleModule, DecimalPipe],
+  imports: [MatIconModule, NgClass, MatRippleModule],
   templateUrl: "./marker.component.html",
   styleUrl: "./marker.component.scss",
 })
