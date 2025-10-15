@@ -1,10 +1,13 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
   Input,
+  OnDestroy,
   Output,
   Renderer2,
+  inject,
   signal,
   ViewChild,
 } from "@angular/core";
@@ -15,273 +18,355 @@ import {
   styleUrls: ["./bottom-sheet.component.scss"],
   standalone: true,
 })
-export class BottomSheetComponent {
-  @Input() title: string = "";
+export class BottomSheetComponent implements AfterViewInit, OnDestroy {
+  @Input() title = "";
   @Output() isAtTopChange = new EventEmitter<boolean>();
   @Output() openProgressChange = new EventEmitter<number>(); // 0 = bottom (closed), 1 = top (open)
 
-  headerHeight: number = 140;
-  minimumSpeedToSlide: number = 5;
+  headerHeight = 140;
+  minimumSpeedToSlide = 5;
 
   isContentAtTop = signal<boolean>(false);
 
-  @ViewChild("bottomSheet", { static: true }) bottomSheet:
-    | ElementRef
+  @ViewChild("bottomSheet", { static: true }) bottomSheet?:
+    | ElementRef<HTMLElement>
+    | undefined;
+  @ViewChild("handleRegion", { static: true }) handleRegion?:
+    | ElementRef<HTMLElement>
+    | undefined;
+  @ViewChild("contentEl", { static: true }) contentRef?:
+    | ElementRef<HTMLElement>
     | undefined;
 
-  contentElement: HTMLElement | undefined;
+  private renderer = inject(Renderer2);
+  private contentElement?: HTMLElement;
+  private destroyListeners: (() => void)[] = [];
+  private activePointerId: number | null = null;
+  private lastEmittedProgress = Number.NaN;
+  private lastIsAtTop: boolean | null = null;
+  private readonly dragExcludeSelector =
+    "input, select, textarea, [contenteditable='true'], [data-drag-exclude], [data-sheet-drag='false']";
 
-  constructor(private renderer: Renderer2) {}
-
-  ngAfterViewInit() {
-    this.renderer.listen(
-      this.bottomSheet?.nativeElement,
-      "dragstart",
-      (event: DragEvent) => {
-        event.preventDefault();
-      }
-    );
-
-    console.log("bottomSheet", this.bottomSheet);
-    console.log("bottomSheet.nativeElement", this.bottomSheet?.nativeElement);
-
-    this.contentElement = this.bottomSheet?.nativeElement
-      .lastChild as HTMLElement;
-    console.log("contentElement", this.contentElement);
-
-    // Emit initial open/closed state and progress to parent
-    if (this.bottomSheet) {
-      const el = this.bottomSheet.nativeElement as HTMLElement;
-      const height = el.clientHeight;
-      const alwaysVisibleHeight = height - this.headerHeight;
-      const top = el.offsetTop;
-      const atTop = top === 0;
-      const progress =
-        alwaysVisibleHeight > 0
-          ? 1 - Math.min(Math.max(top / alwaysVisibleHeight, 0), 1)
-          : 0;
-      this.isAtTopChange.emit(atTop);
-      this.openProgressChange.emit(progress);
+  ngAfterViewInit(): void {
+    const sheetEl = this.bottomSheet?.nativeElement;
+    if (!sheetEl) {
+      return;
     }
 
-    // Set up scroll listener for content to update signal
-    if (this.contentElement) {
-      this.renderer.listen(this.contentElement, "scroll", () => {
-        if (this.contentElement) {
-          this.isContentAtTop.set(this.contentElement.scrollTop === 0);
-        }
-      });
+    this.addListener(sheetEl, "dragstart", (event: Event) => {
+      (event as DragEvent).preventDefault();
+    });
 
-      // Initial check
+    if (this.handleRegion) {
+      this.renderer.setStyle(
+        this.handleRegion.nativeElement,
+        "touch-action",
+        "none"
+      );
+    }
+
+    this.contentElement =
+      (this.contentRef?.nativeElement as HTMLElement | undefined) ??
+      (sheetEl.lastElementChild as HTMLElement | undefined);
+
+    const height = sheetEl.clientHeight;
+    const alwaysVisibleHeight = Math.max(height - this.headerHeight, 0);
+    const top = sheetEl.offsetTop;
+    this.emitSheetState(top, alwaysVisibleHeight);
+
+    if (this.contentElement) {
+      this.addListener(this.contentElement, "scroll", () => {
+        if (!this.contentElement) return;
+        this.isContentAtTop.set(this.contentElement.scrollTop === 0);
+      });
       this.isContentAtTop.set(this.contentElement.scrollTop === 0);
     }
 
-    const startDrag = (event: MouseEvent | TouchEvent) => {
-      if (typeof window === "undefined") return; // abort if not in browser
-      if (!this.bottomSheet || !this.contentElement) return;
+    const startDrag = (event: PointerEvent) => {
+      if (typeof window === "undefined") return;
+      if (!this.contentElement) return;
+      if (this.activePointerId !== null) return;
 
-      let lastY = 0;
+      this.activePointerId = event.pointerId;
+
+      let lastY = event.pageY;
       let speed = 0;
-      let height = this.bottomSheet.nativeElement.clientHeight;
-      let alwaysVisibleHeight = height - this.headerHeight;
-
-      let animationSteps = 500;
-
-      let topHeightOffset = 0;
-      let bottomHeightOffset = alwaysVisibleHeight;
+      const animationDurationMs = 500;
+      const alwaysVisible = Math.max(
+        sheetEl.clientHeight - this.headerHeight,
+        0
+      );
+      const topHeightOffset = 0;
+      const bottomHeightOffset = alwaysVisible;
+      let hasPointerCapture = false;
 
       let isScrollableUp = false;
-      let target: HTMLElement = event.target as HTMLElement;
+      let target: HTMLElement | null = event.target as HTMLElement | null;
 
-      let isAtTop: boolean = this.bottomSheet.nativeElement.offsetTop === 0;
-
+      const isAtTop = sheetEl.offsetTop === 0;
       if (isAtTop) {
         while (target) {
-          if (target === this.bottomSheet.nativeElement) break;
+          if (target === sheetEl) break;
           if (
             target.clientHeight !== 0 &&
             target.scrollHeight > target.clientHeight + 2
           ) {
-            // the + 2 is for borders i assume, had to put it in
-
-            // now check if a scrollable element is at the top
-            const scrollOffsetToTop = target.scrollTop;
-
-            if (scrollOffsetToTop !== 0) {
+            if (target.scrollTop !== 0) {
               isScrollableUp = true;
               break;
             }
           }
-          target = target.parentElement as HTMLElement;
+          target = target.parentElement;
         }
       }
 
-      let clientY =
-        event.type === "touchstart"
-          ? (event as TouchEvent).touches[0].clientY
-          : (event as MouseEvent).clientY;
-      let shiftY = clientY - this.bottomSheet.nativeElement.offsetTop;
-
-      // Track initial Y for minimum drag distance
-      let initialY = clientY;
+      const clientY = event.clientY;
+      const shiftY = clientY - sheetEl.offsetTop;
+      const initialY = clientY;
       let hasDragged = false;
-      const minDragDistance = 10; // px
+      const minDragDistance = 10;
 
-      const moveAt = (moveEvent: TouchEvent | MouseEvent) => {
-        if (!this.bottomSheet || !this.contentElement) return;
-
-        let pageY =
-          window.TouchEvent && moveEvent instanceof TouchEvent
-            ? moveEvent.touches[0].pageY
-            : (moveEvent as MouseEvent).pageY;
-
-        // Check if drag distance exceeded threshold
-        if (!hasDragged && Math.abs(pageY - initialY) > minDragDistance) {
-          hasDragged = true;
-        }
-
-        const isScrollingUp = pageY - shiftY >= 0;
-        if (isScrollingUp && isScrollableUp) {
-          // don't move the sheet when the user is scrolling up, and the content can scroll up
-          this.contentElement.style.overflowY = "scroll";
+      const moveAt = (moveEvent: PointerEvent) => {
+        if (moveEvent.pointerId !== this.activePointerId) {
           return;
         }
 
-        // Calculate speed
+        const pageY = moveEvent.pageY;
+
+        if (!hasDragged) {
+          const distance = Math.abs(pageY - initialY);
+          if (distance <= minDragDistance) {
+            return;
+          }
+
+          hasDragged = true;
+
+          if (!hasPointerCapture) {
+            try {
+              sheetEl.setPointerCapture(this.activePointerId!);
+              hasPointerCapture = true;
+            } catch {
+              // ignore
+            }
+          }
+        }
+
+        moveEvent.preventDefault();
+
+        const isScrollingUp = pageY - shiftY >= 0;
+        if (isScrollingUp && isScrollableUp) {
+          this.contentElement!.style.overflowY = "scroll";
+          return;
+        }
+
         speed = pageY - lastY;
         lastY = pageY;
 
         let newTop = pageY - shiftY;
-
         if (newTop < 0) newTop = 0;
-        if (newTop > alwaysVisibleHeight) newTop = alwaysVisibleHeight;
+        if (newTop > alwaysVisible) newTop = alwaysVisible;
 
         if (newTop === 0) {
-          this.contentElement.style.overflowY = "scroll";
+          this.contentElement!.style.overflowY = "scroll";
         } else {
-          this.contentElement.style.overflowY = "hidden";
+          this.contentElement!.style.overflowY = "hidden";
         }
 
-        this.bottomSheet.nativeElement.style.top = newTop + "px";
-        this.isAtTopChange.emit(newTop === 0);
-        const progress =
-          alwaysVisibleHeight > 0
-            ? 1 - Math.min(Math.max(newTop / alwaysVisibleHeight, 0), 1)
-            : 0;
-        this.openProgressChange.emit(progress);
+        sheetEl.style.top = `${newTop}px`;
+        this.emitSheetState(newTop, alwaysVisible);
       };
 
-      const mouseMoveListener = this.renderer.listen(
-        "document",
-        "mousemove",
-        moveAt
-      );
-      const touchMoveListener = this.renderer.listen(
-        "document",
-        "touchmove",
-        moveAt
-      );
-
-      const stopDrag = (event: MouseEvent | TouchEvent) => {
-        if (!this.bottomSheet || !this.contentElement) return;
-
-        mouseMoveListener();
-        touchMoveListener();
-
-        let pageY =
-          event.type === "touchend"
-            ? (event as TouchEvent).changedTouches[0].pageY
-            : (event as MouseEvent).pageY;
-
-        let targetOffset = bottomHeightOffset; // default closed
-
-        // Calculate the distance to the target position
-        let offset = this.bottomSheet.nativeElement.offsetTop;
-
-        let middlePoint = (bottomHeightOffset - topHeightOffset) / 2;
-
-        // Only trigger slide if drag distance exceeded threshold
-        if (!hasDragged) {
-          // Not a real drag, do nothing (don't close/open)
+      const stopDrag = (stopEvent: PointerEvent) => {
+        if (stopEvent.pointerId !== this.activePointerId) {
           return;
         }
 
-        // the user let go, decide where to slide the sheet to
-        if (Math.abs(speed) > this.minimumSpeedToSlide) {
-          if (speed > 0) {
-            targetOffset = bottomHeightOffset;
-            this.contentElement.style.overflowY = "hidden";
-          } else {
-            targetOffset = topHeightOffset;
-            this.contentElement.style.overflowY = "scroll";
-          }
-        } else {
-          // decide the next sheet position based on the offset
-          if (offset > middlePoint) {
-            targetOffset = bottomHeightOffset;
-            this.contentElement.style.overflowY = "hidden";
-          } else {
-            targetOffset = topHeightOffset;
-            this.contentElement.style.overflowY = "scroll";
+        removePointerMove();
+        removePointerUp();
+        removePointerCancel();
+
+        if (hasPointerCapture) {
+          try {
+            sheetEl.releasePointerCapture(this.activePointerId);
+          } catch {
+            // ignore failures
           }
         }
 
-        let distance = targetOffset - offset;
+        const offset = sheetEl.offsetTop;
+        const middlePoint = (bottomHeightOffset - topHeightOffset) / 2;
 
-        // Start the easing
-        let start: number = 0;
+        if (!hasDragged) {
+          this.activePointerId = null;
+          return;
+        }
+
+        let targetOffset = bottomHeightOffset;
+
+        if (Math.abs(speed) > this.minimumSpeedToSlide) {
+          if (speed > 0) {
+            targetOffset = bottomHeightOffset;
+            this.contentElement!.style.overflowY = "hidden";
+          } else {
+            targetOffset = topHeightOffset;
+            this.contentElement!.style.overflowY = "scroll";
+          }
+        } else {
+          if (offset > middlePoint) {
+            targetOffset = bottomHeightOffset;
+            this.contentElement!.style.overflowY = "hidden";
+          } else {
+            targetOffset = topHeightOffset;
+            this.contentElement!.style.overflowY = "scroll";
+          }
+        }
+
+        const distance = targetOffset - offset;
+
+        let start = 0;
         const step = (timestamp: number) => {
           if (!start) start = timestamp;
-          let timeProgress = timestamp - start;
+          const timeProgress = timestamp - start;
 
-          // Calculate the current position
-          let current = this.easeOutCubic(
+          const current = this.easeOutCubic(
             timeProgress,
             offset,
             distance,
-            animationSteps
+            animationDurationMs
           );
 
-          this.bottomSheet!.nativeElement.style.top = current + "px";
-          // consider near-zero as top to avoid off-by-fractional pixels
-          this.isAtTopChange.emit(Math.abs(current) < 0.5);
-          const progress =
-            alwaysVisibleHeight > 0
-              ? 1 - Math.min(Math.max(current / alwaysVisibleHeight, 0), 1)
-              : 0;
-          this.openProgressChange.emit(progress);
+          sheetEl.style.top = `${current}px`;
+          this.emitSheetState(current, alwaysVisible);
 
-          // Continue the easing if not at the target position
-          if (timeProgress < animationSteps) {
+          if (timeProgress < animationDurationMs) {
             window.requestAnimationFrame(step);
+          } else {
+            sheetEl.style.top = `${targetOffset}px`;
+            this.emitSheetState(targetOffset, alwaysVisible);
           }
         };
         window.requestAnimationFrame(step);
+
+        this.activePointerId = null;
       };
 
-      this.renderer.listen("document", "mouseup", stopDrag);
-      this.renderer.listen("document", "touchend", stopDrag);
-      //   this.renderer.listen("document", "mouseleave", stopDrag);
-      //   this.renderer.listen("window", "blur", stopDrag);
+      const removePointerMove = this.renderer.listen(
+        sheetEl,
+        "pointermove",
+        moveAt
+      );
+      const removePointerUp = this.renderer.listen(
+        sheetEl,
+        "pointerup",
+        stopDrag
+      );
+      const removePointerCancel = this.renderer.listen(
+        sheetEl,
+        "pointercancel",
+        stopDrag
+      );
     };
 
-    if (!this.bottomSheet) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!this.shouldStartDrag(event, sheetEl)) {
+        return;
+      }
+      startDrag(event);
+    };
 
-    this.renderer.listen(
-      this.bottomSheet.nativeElement,
-      "mousedown",
-      startDrag
-    );
-    this.renderer.listen(
-      this.bottomSheet.nativeElement,
-      "touchstart",
-      startDrag
-    );
+    this.addListener(sheetEl, "pointerdown", (event) => {
+      handlePointerDown(event as PointerEvent);
+    });
+
+    if (this.handleRegion) {
+      this.addListener(
+        this.handleRegion.nativeElement,
+        "pointerdown",
+        (event) => {
+          event.stopPropagation();
+          handlePointerDown(event as PointerEvent);
+        }
+      );
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroyListeners.forEach((fn) => fn());
+    this.destroyListeners = [];
+  }
+
+  private shouldStartDrag(event: PointerEvent, sheetEl: HTMLElement): boolean {
+    if (this.activePointerId !== null) {
+      return false;
+    }
+
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return false;
+    }
+
+    const target = event.target instanceof HTMLElement ? event.target : null;
+
+    if (target && this.isHandleTarget(target)) {
+      return true;
+    }
+
+    if (target && this.isDragExcludedTarget(target)) {
+      return false;
+    }
+
+    if (target && !sheetEl.contains(target)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private isHandleTarget(target: HTMLElement): boolean {
+    return !!this.handleRegion?.nativeElement.contains(target);
+  }
+
+  private isDragExcludedTarget(target: HTMLElement): boolean {
+    return target.closest(this.dragExcludeSelector) !== null;
   }
 
   easeOutCubic(t: number, b: number, c: number, d: number): number {
     t /= d;
     t--;
     return c * (t * t * t + 1) + b;
+  }
+
+  private addListener(
+    target: HTMLElement,
+    eventName: string,
+    handler: (event: Event) => void
+  ) {
+    const remove = this.renderer.listen(target, eventName, handler);
+    this.destroyListeners.push(remove);
+    return remove;
+  }
+
+  private emitSheetState(top: number, alwaysVisibleHeight: number) {
+    const clampedTop = Math.max(0, Math.min(alwaysVisibleHeight, top));
+    const atTop = Math.abs(clampedTop) < 0.5;
+    if (this.lastIsAtTop !== atTop) {
+      this.lastIsAtTop = atTop;
+      this.isAtTopChange.emit(atTop);
+    }
+
+    const progress =
+      alwaysVisibleHeight > 0
+        ? 1 - Math.min(Math.max(clampedTop / alwaysVisibleHeight, 0), 1)
+        : 0;
+
+    const isTerminalProgress = progress <= 0.001 || progress >= 0.999;
+
+    if (
+      Number.isNaN(this.lastEmittedProgress) ||
+      Math.abs(progress - this.lastEmittedProgress) > 0.01 ||
+      isTerminalProgress
+    ) {
+      this.lastEmittedProgress = progress;
+      this.openProgressChange.emit(progress);
+    }
   }
 }

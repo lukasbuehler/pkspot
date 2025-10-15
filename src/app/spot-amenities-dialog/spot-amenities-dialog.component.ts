@@ -18,6 +18,7 @@ import {
 import { AmenityNames, AmenityNegativeNames } from "../../db/models/Amenities";
 import { AmenityIcons, AmenityNegativeIcons } from "../../db/schemas/Amenities";
 import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
+import { SpotEnvironmentToggleComponent } from "../spot-environment-toggle/spot-environment-toggle.component";
 
 export interface SpotAmenitiesDialogData {
   amenities: AmenitiesMap;
@@ -33,6 +34,7 @@ export interface SpotAmenitiesDialogData {
     MatButtonModule,
     MatIconModule,
     SpotAmenityToggleComponent,
+    SpotEnvironmentToggleComponent,
   ],
   templateUrl: "./spot-amenities-dialog.component.html",
   styleUrl: "./spot-amenities-dialog.component.scss",
@@ -67,6 +69,18 @@ export class SpotAmenitiesDialogComponent {
     this.amenities.update((a) => {
       a = { ...(a ?? {}) } as AmenitiesMap;
       (a as any)[amenityKey] = value ?? null;
+      return a;
+    });
+  }
+
+  updateEnvironment(values: {
+    indoor: boolean | null;
+    outdoor: boolean | null;
+  }) {
+    this.amenities.update((a) => {
+      a = { ...(a ?? {}) } as AmenitiesMap;
+      a.indoor = values.indoor;
+      a.outdoor = values.outdoor;
       return a;
     });
   }

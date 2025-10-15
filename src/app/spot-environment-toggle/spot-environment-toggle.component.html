@@ -1,0 +1,25 @@
+<div class="w-100 d-flex flex-column gap-1 align-items-center">
+  <p class="mat-body-medium p-0 mb-1 w-100" i18n>Indoor / Outdoor</p>
+  <mat-button-toggle-group
+    class="environment-toggle-group"
+    [multiple]="false"
+    [value]="getCurrentSelection()"
+    (valueChange)="onSelectionChange($event)"
+    name="environment"
+  >
+    <mat-button-toggle value="indoor">
+      <mat-icon class="me-1">{{ AmenityIcons.indoor }}</mat-icon>
+      <span i18n>Indoor</span>
+    </mat-button-toggle>
+    <mat-button-toggle value="outdoor">
+      <mat-icon class="me-1">{{ AmenityIcons.outdoor }}</mat-icon>
+      <span i18n>Outdoor</span>
+    </mat-button-toggle>
+    <mat-button-toggle value="both">
+      <mat-icon class="me-1">{{ AmenityIcons.indoor }}</mat-icon>
+      <mat-icon class="me-1">{{ AmenityIcons.outdoor }}</mat-icon>
+      <span i18n>Both</span>
+    </mat-button-toggle>
+    <mat-button-toggle value="unknown" i18n>Not sure</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>

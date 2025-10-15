@@ -58,14 +58,25 @@
 
   }
 
-  <!-- Cluster Markers -->
+  <!-- Highlight markers: rated/iconic spots shown at all zoom levels -->
+  @for (spot of getVisibleHighlightedSpots(); track spot.id) {
+  <app-highlight-marker
+    [spot]="spot"
+    [zIndex]="getHighlightZIndex(spot)"
+    (markerClick)="onHighlightedSpotClick($event)"
+  ></app-highlight-marker>
+  }
+
+  <!-- Cluster Markers (dots) - DISABLED: now using heatmap only -->
+  <!-- 
+  @if(!shouldShowHeatmap()) {
   @for (dot of dots; track $index) {
   <div
     #smallDot
     class="small-dot-marker"
     [ngClass]="{
-      'marker-primary-dark': isDarkMode,
-      'marker-primary-light': !isDarkMode
+      'marker-primary-dark': resolvedDarkMode(),
+      'marker-primary-light': !resolvedDarkMode()
     }"
     [style]="{
       height: 12 + sqrt(dot.weight) * 2 + 'px',
@@ -78,6 +89,16 @@
     (mapClick)="clickDot(dot)"
     [zIndex]="dot.weight"
   ></map-advanced-marker>
+  }
+  }
+  -->
+
+  <!-- Heatmap Layer - show from zoom 2 until spots appear at zoom 16 -->
+  @if(shouldShowHeatmap()) {
+  <map-heatmap-layer
+    [data]="heatmapData()"
+    [options]="heatmapOptions()"
+  ></map-heatmap-layer>
   }
 
   <!-- only display the bounds when close enough (zoom >= 16) -->
@@ -116,7 +137,7 @@
   <map-advanced-marker
     #selectedSpotChallengeMarker
     id="selectedChallengeMarker"
-    [position]="selectedChallenge.location() ?? selectedSpot()!.location()"
+    [position]="selectedChallenge.location()"
     (mapDragend)="editingChallengePositionChanged($event.latLng!)"
     [content]="selectedChallengeMarkerNode.elementRef.nativeElement"
     [zIndex]="100 + 1"
@@ -128,7 +149,7 @@
   <map-advanced-marker
     #selectedSpotChallengeMarker
     id="selectedChallengeMarker"
-    [position]="selectedChallenge.location() ?? selectedSpot()!.location()"
+    [position]="selectedChallenge.location()"
     [content]="selectedChallengeMarkerNode.elementRef.nativeElement"
     [zIndex]="100 + 1"
     [options]="{
@@ -151,7 +172,7 @@
     [draggable]="isEditing()"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotInfoWindow"
-    [zIndex]="100000 + 1"
+    [zIndex]="6000"
   ></map-advanced-marker>
   <div
     #selectedSpotInfoWindow
@@ -185,7 +206,7 @@
     [position]="selectedSpot()!.location()"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotMarkerNode.elementRef.nativeElement"
-    [zIndex]="100 + 1"
+    [zIndex]="6000"
     [options]="{
       gmpDraggable: true
     }"
@@ -196,7 +217,7 @@
     id="selectedSpotMarker"
     [position]="selectedSpot()!.location()"
     [content]="selectedSpotMarkerNode.elementRef.nativeElement"
-    [zIndex]="100 + 1"
+    [zIndex]="6000"
     [options]="{
       gmpDraggable: false
     }"
@@ -206,7 +227,7 @@
     #selectedSpotMarkerNode
     class="fade-in"
     id="selectedSpotMarkerNode"
-    [icons]="[selectedSpot()!.isIconic ? 'star' : 'fiber_manual_record']"
+    [icons]="[selectedSpot()!.isIconic ? 'stars' : 'fiber_manual_record']"
     [isIconic]="selectedSpot()!.isIconic"
   >
   </app-marker>
@@ -225,8 +246,8 @@
     id="selectedSpotChallengeMarkerNode"
     class="small-dot-marker"
     [ngClass]="{
-      'marker-primary-dark': isDarkMode,
-      'marker-primary-light': !isDarkMode
+      'marker-primary-dark': resolvedDarkMode(),
+      'marker-primary-light': !resolvedDarkMode()
     }"
     [style]="{
       height: 15 + 'px',
@@ -300,51 +321,15 @@
   ></map-circle>
   }
 
-  <!-- Additional Markers -->
-  @for(marker of markers(); track $index) { @if(zoom <= 17) {
-  <!-- show very small dot for the marker instead -->
-  <map-advanced-marker
-    [position]="marker.location"
-    [content]="markerCompTiny"
-    [options]="{
-      gmpClickable: false
-    }"
-  ></map-advanced-marker>
-  <div
-    #markerCompTiny
-    class="fade-in shadow-sm border"
-    style="pointer-events: none; width: 8px; height: 8px; border-radius: 4px"
-    [ngClass]="{
-      'marker-primary-dark': marker.color === 'primary',
-      'marker-secondary-dark': marker.color === 'secondary',
-      'marker-tertiary-dark': marker.color === 'tertiary', 
-    }"
-  ></div>
-  } @else {
-  <map-advanced-marker
-    [position]="marker.location"
-    [content]="markerComp.elementRef.nativeElement"
-    [options]="{
-      gmpClickable: true
-    }"
-    (mapClick)="
-      focusOnLocation(marker.location);
-      markerClick($index);
-      markerComp.onClick()
-    "
-  ></map-advanced-marker>
-  <app-marker
-    #markerComp
-    class="fade-in"
-    style="pointer-events: none"
-    [icons]="marker.icons"
-    [number]="marker.number"
-    [color]="marker.color ?? 'primary'"
-    [size]="0.8"
-    [title]="marker.name"
-  >
-  </app-marker>
-  } }
+  <!-- Additional Markers (amenities, custom markers, etc.) -->
+  @for(marker of markers(); track $index) {
+  <app-custom-marker
+    [marker]="marker"
+    [index]="$index"
+    [zoom]="zoom"
+    (markerClick)="markerClick($event)"
+  ></app-custom-marker>
+  }
 
   <!-- Additional Polygons -->
   @for(polygon of polygons(); track $index) {

@@ -9,6 +9,8 @@
     }
   },
   "projects": {
-    "default": "parkour-base-project"
+    "default": "parkour-base-project",
+    "prod": "parkour-base-project",
+    "test": "pkfrspot"
   }
 }

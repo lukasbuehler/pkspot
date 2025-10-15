@@ -829,4 +829,14 @@ export class EventPageComponent implements OnInit, OnDestroy {
       this.tab.set(selectedTab);
     }
   }
+
+  // Normalize marker click event from map components (can be number or object)
+  onMarkerClickFromMap(event: number | { marker: any; index?: number }) {
+    const index = typeof event === "number" ? event : event?.index;
+    if (typeof index === "number") {
+      this.markerClick(index);
+    } else {
+      console.warn("markerClickEvent payload missing index", event);
+    }
+  }
 }

@@ -36,6 +36,7 @@ div.handle-region {
   display: flex;
   justify-content: center;
   align-items: center;
+  touch-action: none;
 
   margin-left: 16px;
   margin-right: 16px;

@@ -213,7 +213,7 @@
         (spotClick)="selectSpot($event)"
         (mapClick)="deselectSpot()"
         [showSpotPreview]="!sidenavOpen()"
-        (markerClickEvent)="markerClick($event)"
+        (markerClickEvent)="onMarkerClickFromMap($event)"
         class="w-100 h-100 overflow-hidden d-block"
       ></app-map>
       } } @else { @if(spots() && spots()!.length > 0) {
@@ -235,7 +235,7 @@
         [selectedSpot]="selectedSpot()"
         [showSpotPreview]="!sidenavOpen()"
         (selectedSpotChange)="selectedSpot.set($event)"
-        (markerClickEvent)="markerClick($event)"
+        (markerClickEvent)="onMarkerClickFromMap($event)"
         class="w-100 h-100 overflow-hidden d-block"
       ></app-spot-map>
       } } @if(!sidenavOpen()) {

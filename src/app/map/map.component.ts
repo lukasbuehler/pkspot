@@ -31,6 +31,7 @@ import {
   MapCircle,
   MapAdvancedMarker,
   MapRectangle,
+  MapHeatmapLayer,
 } from "@angular/google-maps";
 import { Subscription } from "rxjs";
 import { environment } from "../../environments/environment";
@@ -54,6 +55,36 @@ import {
   SpotChallengePreview,
 } from "../../db/models/SpotChallenge";
 import { AnyMedia } from "../../db/models/Media";
+import { ThemeService } from "../services/theme.service";
+import { HighlightMarkerComponent } from "./components/highlight-marker.component";
+import { CustomMarkerComponent } from "./components/custom-marker.component";
+
+function enumerateTileRangeX(
+  start: number,
+  end: number,
+  zoom: number
+): number[] {
+  const tileCount = 1 << zoom;
+  const normalize = (value: number) => {
+    const mod = value % tileCount;
+    return mod < 0 ? mod + tileCount : mod;
+  };
+
+  const from = normalize(start);
+  const to = normalize(end);
+  const range: number[] = [];
+
+  range.push(from);
+
+  let current = from;
+  const safetyLimit = tileCount + 1;
+  while (current !== to && range.length <= safetyLimit) {
+    current = (current + 1) % tileCount;
+    range.push(current);
+  }
+
+  return range;
+}
 
 export interface TilesObject {
   zoom: number;
@@ -72,10 +103,13 @@ export interface TilesObject {
     MapPolygon,
     MapRectangle,
     MapAdvancedMarker,
+    MapHeatmapLayer,
     MatIconModule,
     NgClass,
     MarkerComponent,
     SpotPreviewCardComponent,
+    HighlightMarkerComponent,
+    CustomMarkerComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -104,14 +138,18 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
 
   // add math function to markup
   sqrt = Math.sqrt;
+  Math = Math; // expose Math for template usage
 
   focusZoom = input<number>(17);
   isDebug = input<boolean>(false);
   showSpotPreview = input<boolean>(false);
   isEditing = input<boolean>(false);
 
-  isDarkMode = input<boolean>(true); // should be false if mapStyle is roadmap and the dark map is used
+  // Deprecated: use global theme via ThemeService instead. Kept for backward-compat; if bound, it overrides global.
+  isDarkMode = input<boolean | null | undefined>(null);
   markers: InputSignal<MarkerSchema[]> = input<MarkerSchema[]>([]);
+  // Optional parallel spot IDs for markers to allow opening a spot on marker click.
+  @Input() markerSpotIds: (SpotId | null)[] | null = null;
 
   private _center: google.maps.LatLngLiteral = {
     lat: 48.6270939,
@@ -164,7 +202,63 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   @Output() markerClickEvent = new EventEmitter<number>();
 
   @Input() spots: (LocalSpot | Spot)[] = [];
-  @Input() dots: SpotClusterDotSchema[] = [];
+
+  private readonly _dotsSignal = signal<SpotClusterDotSchema[]>([]);
+  private readonly _highlightedSpotsSignal = signal<SpotPreviewData[]>([]);
+
+  @Input()
+  set dots(value: SpotClusterDotSchema[] | null | undefined) {
+    this._dotsSignal.set(value ? [...value] : []);
+  }
+  get dots(): SpotClusterDotSchema[] {
+    return this._dotsSignal();
+  }
+
+  @Input()
+  set highlightedSpots(value: SpotPreviewData[] | null | undefined) {
+    this._highlightedSpotsSignal.set(value ? [...value] : []);
+  }
+  get highlightedSpots(): SpotPreviewData[] {
+    return this._highlightedSpotsSignal();
+  }
+  // Optional mapping from marker index -> SpotId to open spot directly on marker click.
+
+  /**
+   * Get highlighted spots for display, excluding the currently selected spot.
+   *
+   * Note: This method intentionally does NOT filter by viewport bounds to prevent
+   * DOM element destruction/recreation issues. When markers are filtered by bounds,
+   * Angular removes and recreates components as they enter/leave the viewport,
+   * causing Advanced Markers to lose their HTML content references.
+   *
+   * Google Maps efficiently handles off-screen markers natively, and the
+   * SpotMapDataManager already filters spots by visible tiles, so additional
+   * bounds filtering here is unnecessary and problematic.
+   *
+   * @returns Array of SpotPreviewData to display as highlight markers
+   */
+  getVisibleHighlightedSpots(): SpotPreviewData[] {
+    const spots = this._highlightedSpotsSignal();
+    if (spots.length === 0) {
+      return spots;
+    }
+
+    const selectedSpot = this.selectedSpot();
+    const selectedSpotId =
+      selectedSpot && "id" in selectedSpot ? selectedSpot.id : null;
+
+    // Only filter out the selected spot - don't filter by bounds
+    if (selectedSpotId) {
+      return spots.filter((spot) => spot.id !== selectedSpotId);
+    }
+
+    return spots;
+  }
+
+  getHighlightZIndex(spot: SpotPreviewData): number {
+    const rating = spot.rating ?? 0;
+    return 1000 + Math.round(rating * 10);
+  }
 
   selectedSpot = input<Spot | LocalSpot | null>(null);
   selectedSpotChallenges = input<SpotChallengePreview[]>([]);
@@ -223,7 +317,7 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       this._previouslyVisibleTiles &&
       this._previouslyVisibleTiles.tiles?.length > 0
     ) {
-      // abort if the neTile and swTile are the same as before
+      // Abort if the neTile and swTile are the same as before
       const prevNeTile = this._previouslyVisibleTiles.ne;
       const prevSwTile = this._previouslyVisibleTiles.sw;
 
@@ -245,11 +339,16 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       ne: neTile,
       sw: swTile,
     };
-    for (let x = swTile.x; x <= neTile.x; x++) {
-      for (let y = neTile.y; y <= swTile.y; y++) {
-        tilesObj.tiles.push({ x: x, y: y });
+
+    const xRange = enumerateTileRangeX(swTile.x, neTile.x, zoom);
+    const yMin = Math.min(swTile.y, neTile.y);
+    const yMax = Math.max(swTile.y, neTile.y);
+
+    xRange.forEach((x) => {
+      for (let y = yMin; y <= yMax; y++) {
+        tilesObj.tiles.push({ x, y });
       }
-    }
+    });
 
     this._previouslyVisibleTiles = tilesObj;
     return tilesObj;
@@ -296,7 +395,8 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   constructor(
     private cdr: ChangeDetectorRef,
     public mapsApiService: MapsApiService,
-    private _consentService: ConsentService
+    private _consentService: ConsentService,
+    private theme: ThemeService
   ) {
     // Effect to handle selected spot changes and editing state changes for polygon updates
     effect(() => {
@@ -359,6 +459,68 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     //   }
     // });
   }
+
+  // Resolve dark mode: prefer explicit input when provided, else use global ThemeService with mapStyle
+  resolvedDarkMode = computed<boolean>(() => {
+    const explicit = this.isDarkMode();
+    if (typeof explicit === "boolean") return explicit;
+    return this.theme.isDark(this.mapStyle());
+  });
+
+  // Heatmap configuration - show heatmap from zoom 2+ until spots appear at zoom 16
+  // Never show dots, only heatmap for cluster visualization
+  shouldShowHeatmap = computed(() => {
+    const z = this._zoom();
+    const hasDots = this._dotsSignal().length > 0;
+    return z >= 2 && z < 16 && hasDots;
+  });
+
+  // Build heatmap data from dots with weighted lat/lng
+  heatmapData = computed<google.maps.visualization.WeightedLocation[]>(() => {
+    const dots = this._dotsSignal();
+    if (!dots || dots.length === 0) {
+      return [];
+    }
+    return dots.map((dot) => ({
+      location: new google.maps.LatLng(
+        dot.location.latitude,
+        dot.location.longitude
+      ),
+      weight: dot.weight || 1,
+    }));
+  });
+
+  heatmapOptions = computed<google.maps.visualization.HeatmapLayerOptions>(
+    () => {
+      // Scale radius based on zoom level for better visualization
+      const z = this._zoom();
+      const baseRadius = z < 6 ? 10 : z < 10 ? 15 : 20;
+
+      return this.resolvedDarkMode()
+        ? {
+            radius: baseRadius + z,
+            gradient: [
+              "rgba(184,196,255,0)",
+              "rgba(184,196,255,1)",
+              "rgba(43, 81, 213,1)",
+            ],
+            dissipating: true,
+            maxIntensity: 2,
+            opacity: 0.6,
+          }
+        : {
+            radius: baseRadius + z,
+            gradient: [
+              "rgba(43, 81, 213,0)",
+              "rgba(43, 81, 213,1)",
+              "rgba(184,196,255,1)",
+            ],
+            dissipating: true,
+            maxIntensity: 2,
+            opacity: 0.6,
+          };
+    }
+  );
 
   isApiLoadedSubscription: Subscription | null = null;
   consentSubscription: Subscription | null = null;
@@ -979,6 +1141,11 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
+  onHighlightedSpotClick(spot: SpotPreviewData) {
+    console.log("Highlighted spot clicked:", spot);
+    this.spotClick.emit(spot);
+  }
+
   focusOnLocation(
     location: google.maps.LatLngLiteral | google.maps.LatLng,
     zoom: number = this.focusZoom()
@@ -1012,6 +1179,10 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
 
   markerClick(markerIndex: number) {
     this.markerClickEvent.emit(markerIndex);
+    // If we have a mapped spot id, emit spotClick too so parent can open it directly
+    if (this.markerSpotIds && this.markerSpotIds[markerIndex]) {
+      this.spotClick.emit(this.markerSpotIds[markerIndex]!);
+    }
   }
 
   /**

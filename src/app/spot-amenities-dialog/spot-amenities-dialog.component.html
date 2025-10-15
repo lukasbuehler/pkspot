@@ -1,5 +1,17 @@
 <h2 mat-dialog-title i18n>Features and amenities</h2>
 <mat-dialog-content class="d-flex flex-column gap-2">
+  <!-- Environment Selection (Indoor/Outdoor) -->
+  <div class="amenity-section">
+    <p class="mat-label-small" i18n>Environment</p>
+    <div class="d-flex flex-column gap-2">
+      <app-spot-environment-toggle
+        [indoor]="amenities().indoor"
+        [outdoor]="amenities().outdoor"
+        (environmentChange)="updateEnvironment($event)"
+      ></app-spot-environment-toggle>
+    </div>
+  </div>
+
   <div class="amenity-section">
     <p class="mat-label-small" i18n>General</p>
     <div class="d-flex flex-column gap-2">
