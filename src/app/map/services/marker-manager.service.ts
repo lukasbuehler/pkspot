@@ -82,14 +82,14 @@ export class MarkerManagerService {
     "selected-spot": {
       defaultColor: "primary",
       defaultIcons: ["star", "fiber_manual_record"],
-      defaultZIndex: 1000,
+      defaultZIndex: 6000, // Higher than highlights (1000-5000)
       clickable: true,
       draggable: true,
     },
     "selected-challenge": {
       defaultColor: "primary",
       defaultIcons: ["flag"],
-      defaultZIndex: 1001,
+      defaultZIndex: 6001, // Higher than selected spot
       clickable: true,
       draggable: true,
     },

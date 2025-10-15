@@ -172,7 +172,7 @@
     [draggable]="isEditing()"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotInfoWindow"
-    [zIndex]="100000 + 1"
+    [zIndex]="6000"
   ></map-advanced-marker>
   <div
     #selectedSpotInfoWindow
@@ -206,7 +206,7 @@
     [position]="selectedSpot()!.location()"
     (mapDragend)="editingSpotPositionChanged($event.latLng!)"
     [content]="selectedSpotMarkerNode.elementRef.nativeElement"
-    [zIndex]="100 + 1"
+    [zIndex]="6000"
     [options]="{
       gmpDraggable: true
     }"
@@ -217,7 +217,7 @@
     id="selectedSpotMarker"
     [position]="selectedSpot()!.location()"
     [content]="selectedSpotMarkerNode.elementRef.nativeElement"
-    [zIndex]="100 + 1"
+    [zIndex]="6000"
     [options]="{
       gmpDraggable: false
     }"
