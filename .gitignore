@@ -1,6 +1,11 @@
 .angular
 .DS_Store
 
+# TypeScript compiled output (should only be in dist folders)
+src/**/*.js
+src/**/*.js.map
+scripts/horizn-import/output/
+
 # Logs
 logs
 *.log
@@ -120,6 +125,11 @@ Thumbs.db
 .firebase
 *-debug.log
 .runtimeconfig.json
+
+# Import script sensitive data (DO NOT COMMIT!)
+scripts/**/serviceAccountKey.json
+scripts/horizn-import/data/
+scripts/horizn-import/dist/
 
 # TODO remove when merging tauri stuff in
 src-tauri*

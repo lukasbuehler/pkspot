@@ -1,0 +1,19 @@
+[
+  {
+    "name": "Example Parkour Park",
+    "description": "A great spot with rails and walls",
+    "latitude": 52.520008,
+    "longitude": 13.404954,
+    "city_name": "Berlin",
+    "country_code": "DE",
+    "street_address": "Example Street 123",
+    "postal_code": "10115",
+    "pictures": [
+      "spots_pics/example_image_01.jpg",
+      "spots_pics/example_image_02.jpg"
+    ],
+    "tags_moves": ["precision", "rail", "wall"],
+    "tags_area": ["parkour_park", "outdoor"],
+    "tags_warnings": ["crowded"]
+  }
+]

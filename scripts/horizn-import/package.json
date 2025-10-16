@@ -1,0 +1,22 @@
+{
+  "name": "horizn-import",
+  "version": "2.0.0",
+  "description": "TypeScript-based import system for Horizn parkour spot data",
+  "main": "dist/import.js",
+  "scripts": {
+    "build": "tsc",
+    "validate": "npm run build && node dist/validate.js",
+    "test": "npm run build && node dist/import.js --test --spots-only",
+    "dry-run": "npm run build && node dist/import.js --dry-run",
+    "import": "npm run build && node dist/import.js",
+    "import:spots": "npm run build && node dist/import.js --spots-only",
+    "import:images": "npm run build && node dist/upload-images.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
