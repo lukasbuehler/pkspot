@@ -9,6 +9,7 @@ import { googleAPIKey } from "./secrets";
 import { SpotSchema } from "./spotHelpers";
 import { SpotReviewSchema } from "../../src/db/schemas/SpotReviewSchema";
 import { LocaleCode } from "../../src/db/models/Interfaces";
+import { onSchedule } from "firebase-functions/scheduler";
 
 type AddressType = {
   sublocality?: string;
@@ -168,6 +169,66 @@ export const updateAllSpotAddresses = onDocumentCreated(
 
     // delete the run document
     return event.data?.ref.delete();
+  }
+);
+
+export const clusterAllSpotsOnSchedule = onSchedule(
+  "every day 02:00", // UTC?
+  async () => {
+    const apiKey = googleAPIKey.value();
+    const snapshot = await admin
+      .firestore()
+      .collection("spots")
+      .where("address", "==", null)
+      .get();
+
+    for (const docSnapshot of snapshot.docs) {
+      const currentSpot = docSnapshot.data() as SpotSchema;
+      if (currentSpot.address) {
+        continue;
+      }
+
+      const coordinates = currentSpot.location;
+      const latitude = coordinates?.latitude;
+      const longitude = coordinates?.longitude;
+
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        console.warn(
+          "Skipping spot without usable coordinates",
+          docSnapshot.id,
+          coordinates
+        );
+        continue;
+      }
+
+      try {
+        const [freshAddress] = await updateSpotAddressFromLocation(
+          coordinates,
+          apiKey
+        );
+        const hasDetails =
+          freshAddress.formatted ||
+          freshAddress.country ||
+          freshAddress.locality ||
+          freshAddress.sublocality;
+
+        if (!hasDetails) {
+          console.warn("Reverse geocoding yielded no address", docSnapshot.id);
+          continue;
+        }
+
+        await docSnapshot.ref.update({ address: freshAddress });
+        console.log("Stored address for spot", docSnapshot.id);
+      } catch (error: unknown) {
+        console.error(
+          "Unable to update address for spot",
+          docSnapshot.id,
+          error
+        );
+      }
+    }
+
+    console.info("Nightly missing-address backfill completed");
   }
 );
 

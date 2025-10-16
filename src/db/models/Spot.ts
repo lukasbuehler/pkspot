@@ -472,11 +472,11 @@ export class LocalSpot {
       description: this.descriptions(),
       media: mediaSchema,
       is_iconic: this.isIconic,
-      rating: this.rating ?? undefined,
+      rating: this.rating ?? undefined, // undefined will be removed
       num_reviews: this.numReviews,
       rating_histogram: this.ratingHistogram(),
       highlighted_reviews: this.highlightedReviews,
-      address: this.address() ?? undefined,
+      address: this.address() ?? null,
       type: this.type(),
       access: this.access(),
       amenities: this.amenities(),

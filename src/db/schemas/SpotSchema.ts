@@ -54,7 +54,7 @@ export interface SpotSchema {
   };
   highlighted_reviews?: SpotReviewSchema[]; // max 3 reviews
 
-  address?: SpotAddressSchema;
+  address: SpotAddressSchema | null;
 
   external_references?: {
     google_maps_place_id?: string;

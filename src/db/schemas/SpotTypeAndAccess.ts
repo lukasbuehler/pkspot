@@ -57,7 +57,7 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
   [SpotTypes.Descent]: "arrow_downward",
   [SpotTypes.Monument]: "museum",
   [SpotTypes.Water]: "water",
-  [SpotTypes.Garage]: "local_parking",
+  [SpotTypes.Garage]: "garage_door",
   [SpotTypes.Other]: "help_outline",
 };
 
