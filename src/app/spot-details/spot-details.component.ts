@@ -488,7 +488,8 @@ export class SpotDetailsComponent
   filteredCountries: Observable<any[]>;
   stateCtrl = new UntypedFormControl();
 
-  report: SpotReportSchema | null = null;
+  report = signal<SpotReportSchema | null>(null);
+  private _latestReportRequestSpotId: string | null = null;
 
   automaticallyDetermineAddress: boolean = true;
 
@@ -772,7 +773,7 @@ export class SpotDetailsComponent
 
     this.startHeight = this._element.nativeElement.clientHeight;
 
-    this.loadReportForSpot();
+    void this.loadReportForSpot();
   }
 
   ngOnDestroy(): void {
@@ -1002,13 +1003,42 @@ export class SpotDetailsComponent
     if (spot) this._mapsApiService.openDirectionsInMaps(spot.location());
   }
 
-  loadReportForSpot() {
-    // TODO
-    // const spot = this.spot();
-    // if (!(spot instanceof Spot)) return;
-    // this._spotReportsService.getSpotReportsBySpotId(spot.id).then((reports) => {
-    //   this.report = reports[0] || null;
-    // });
+  private _resetReportState(): void {
+    if (this.report() !== null) {
+      this.report.set(null);
+    }
+  }
+
+  async loadReportForSpot(): Promise<void> {
+    const spot = this.spot();
+
+    if (!(spot instanceof Spot)) {
+      this._latestReportRequestSpotId = null;
+      this._resetReportState();
+      return;
+    }
+
+    const spotId = spot.id;
+    this._latestReportRequestSpotId = spotId;
+
+    try {
+      const reports = await this._spotReportsService.getSpotReportsBySpotId(
+        spotId
+      );
+
+      if (this._latestReportRequestSpotId !== spotId) {
+        // Spot changed while we were loading; ignore stale data
+        return;
+      }
+
+      const nextReport = reports.at(0) ?? null;
+      this.report.set(nextReport);
+    } catch (error) {
+      console.warn("Failed to load report for spot", spotId, error);
+      if (this._latestReportRequestSpotId === spotId) {
+        this._resetReportState();
+      }
+    }
   }
 
   private _loadGooglePlaceDataForSpot() {
