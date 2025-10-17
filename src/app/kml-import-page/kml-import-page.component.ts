@@ -286,6 +286,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
               kmlSpot.spot.location.lat,
               kmlSpot.spot.location.lng
             ),
+            address: null,
           },
           this.locale
         );

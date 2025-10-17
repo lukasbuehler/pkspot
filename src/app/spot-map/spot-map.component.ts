@@ -580,6 +580,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
             center_coordinates.lat,
             center_coordinates.lng
           ),
+          address: null,
         },
         this.locale as LocaleCode
       )

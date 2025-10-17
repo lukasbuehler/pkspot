@@ -522,6 +522,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
           fr: { text: "Spot principal", provider: "user" },
           it: { text: "Spot principale", provider: "user" },
         },
+        address: null,
         bounds: [
           new GeoPoint(47.397237163433424, 8.54852286554543),
           new GeoPoint(47.39727438598336, 8.548373942307316),
