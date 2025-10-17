@@ -81,32 +81,18 @@
           </mat-form-field>
         </div>
 
-        <!-- Accept Terms and conditions -->
-        <div class="mt-4 d-flex flex-row justify-content-left gap-2">
-          <button
-            mat-button
-            routerLink="/terms-of-service"
-            i18n="
-              terms of service link text|Text of the Terms of Service link@@tos"
-          >
-            Terms of Service
-          </button>
-          <button
-            mat-button
-            routerLink="/privacy-policy"
-            i18n="
-              privacy policy link text|Text of the Privacy Policy
-              link@@privacypolicy"
-          >
-            Privacy policy
-          </button>
-        </div>
-
         <div class="mt-4 d-flex flex-row align-items-center">
           <mat-checkbox class="mr-3" formControlName="agreeCheck" required
-            ><span class="mat-body" style="white-space: normal" i18n
-              >I have read and understood the <b>Terms of Service</b> and the
-              <b>Privacy Policy</b> and agree to both.</span
+            ><span
+              class="mat-body"
+              style="white-space: normal"
+              i18n="
+                terms of service sign up text|Text of the Terms of Service sign
+                up text@@tos-signup"
+              >By creating an account, you agree to our
+              <a routerLink="/terms-of-service">Terms of Service</a> and confirm
+              you will contribute content under the license terms described
+              within.</span
             >
           </mat-checkbox>
         </div>

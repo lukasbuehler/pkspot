@@ -6,26 +6,12 @@
         media upload disclaimer|Message shown before a media file is uploaded to
         get consent@@media.upload.disclaimer"
     >
-      By uploading, you confirm you own the rights or have permission to share
-      this media. You grant PK Spot a non-exclusive, worldwide, royalty-free
-      license to host, store, reproduce, modify (e.g., thumbnails/compression),
-      display, and distribute this media in connection with the service. You
-      retain ownership and can delete the media at any time, subject to copies
-      in backups and caches.
+      By uploading, you agree to our
+      <a routerLink="/terms-of-service">Terms of Service</a>. You confirm you
+      own this content or have the right to share it. You grant PK Spot the
+      license it needs to operate the service and agree to make your
+      contribution available to the community under a Creative Commons license.
     </span>
-    <a
-      routerLink="/terms-of-service"
-      class="ms-1"
-      i18n="terms of service link text|Text of the Terms of Service link@@tos"
-      >Terms of Service</a
-    >
-    <span class="mx-1">·</span>
-    <a
-      routerLink="/privacy-policy"
-      i18n="
-        privacy policy link text|Text of the Privacy Policy link@@privacypolicy"
-      >Privacy Policy</a
-    >
   </div>
   @if(showPreview()) {
   <div class="preview-grid overflow-y-scroll pb-3">
