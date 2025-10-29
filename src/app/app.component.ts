@@ -35,11 +35,11 @@ import {
   MatMenuModule,
 } from "@angular/material/menu";
 import { MatToolbar } from "@angular/material/toolbar";
-import { NavRailContentComponent } from "./nav-rail-content/nav-rail-content.component";
-import { Mat3NavButtonComponent } from "./mat3-nav-button/mat3-nav-button.component";
-import { NavRailComponent } from "./nav-rail/nav-rail.component";
-import { NavRailContainerComponent } from "./nav-rail-container/nav-rail-container.component";
-import { WelcomeDialogComponent } from "./welcome-dialog/welcome-dialog.component";
+import { NavRailContentComponent } from "./components/nav-rail-content/nav-rail-content.component";
+import { Mat3NavButtonComponent } from "./components/mat3-nav-button/mat3-nav-button.component";
+import { NavRailComponent } from "./components/nav-rail/nav-rail.component";
+import { NavRailContainerComponent } from "./components/nav-rail-container/nav-rail-container.component";
+import { WelcomeDialogComponent } from "./components/welcome-dialog/welcome-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { languageCodes } from "../scripts/Languages";
 import { LocaleCode } from "../db/models/Interfaces";
