@@ -5,14 +5,15 @@
 @use "@angular/material" as mat;
 
 // Custom component styles
-@use "./../app/mat3-nav-button/mat3-nav-button.component-theme" as
+@use "./../app/components/mat3-nav-button/mat3-nav-button.component-theme" as
   mat3-nav-button;
-@use "./../app/bottom-sheet/bottom-sheet.component-theme" as bottom-sheet;
-@use "./../app/about-page/about-page.component-theme" as about-page;
-@use "./../app/nav-rail/nav-rail.component-theme" as nav-rail;
-@use "./../app/map-page/map-page.component-theme" as map-page;
-@use "./../app/map/map.component-theme" as map-component;
-@use "./../app/marker/marker.component-theme" as marker;
+@use "./../app/components/bottom-sheet/bottom-sheet.component-theme" as
+  bottom-sheet;
+@use "./../app/components/about-page/about-page.component-theme" as about-page;
+@use "./../app/components/nav-rail/nav-rail.component-theme" as nav-rail;
+@use "./../app/components/map-page/map-page.component-theme" as map-page;
+@use "./../app/components/map/map.component-theme" as map-component;
+@use "./../app/components/marker/marker.component-theme" as marker;
 @use "./../app/app.component-theme" as app;
 @use "../styles-theme" as styles;
 

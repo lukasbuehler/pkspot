@@ -17,13 +17,13 @@ import { MatFormField, MatSuffix } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { SearchResponse } from "typesense/lib/Typesense/Documents";
-import { SpotSchema } from "../../db/schemas/SpotSchema";
+import { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { AsyncPipe } from "@angular/common";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatOptionModule } from "@angular/material/core";
-import { SearchService } from "../services/search.service";
+import { SearchService } from "../../services/search.service";
 import { MatInputModule } from "@angular/material/input";
-import { LocaleCode } from "../../db/models/Interfaces";
+import { LocaleCode } from "../../../db/models/Interfaces";
 
 @Component({
   selector: "app-search-field",

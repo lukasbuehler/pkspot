@@ -47,7 +47,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebSite } from "schema-dts";
 import { StructuredDataService } from "./services/structured-data.service";
 import { StorageImage } from "../db/models/Media";
-import { SelectLanguageDialogComponent } from "./select-language-dialog/select-language-dialog.component";
+import { SelectLanguageDialogComponent } from "./components/select-language-dialog/select-language-dialog.component";
 import { firstValueFrom } from "rxjs";
 import { PlausibleService } from "./services/plausible.service";
 import { ConsentService } from "./services/consent.service";
@@ -267,7 +267,7 @@ export class AppComponent implements OnInit {
   }
 
   maybeOpenClickWrap() {
-    const currentTermsVersion = "4";
+    const currentTermsVersion = this._consentService.CURRENT_TERMS_VERSION;
 
     let isABot: boolean = false;
     if (typeof window !== "undefined") {

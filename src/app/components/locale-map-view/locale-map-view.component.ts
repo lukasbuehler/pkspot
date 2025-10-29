@@ -10,7 +10,7 @@ import { LocaleCode, LocaleMap } from "../../../db/models/Interfaces";
 import { languageCodes } from "../../../scripts/Languages";
 import { getBestLocale } from "../../../scripts/LanguageHelpers";
 import { MatDialog } from "@angular/material/dialog";
-import { SelectLanguageDialogComponent } from "../../select-language-dialog/select-language-dialog.component";
+import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 

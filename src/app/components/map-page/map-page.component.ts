@@ -54,7 +54,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
-import { SearchFieldComponent } from "../../search-field/search-field.component";
+import { SearchFieldComponent } from "../search-field/search-field.component";
 import {
   LocalSpotChallenge,
   SpotChallenge,

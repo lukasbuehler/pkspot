@@ -16,6 +16,9 @@ export class ConsentService {
   private _consentGranted$ = new BehaviorSubject<boolean>(false);
   private _platformId = inject(PLATFORM_ID);
 
+  // constant for current terms version
+  public CURRENT_TERMS_VERSION = "4";
+
   constructor() {
     // Check consent status on initialization
     this.checkConsentStatus();
@@ -40,13 +43,12 @@ export class ConsentService {
    */
   private checkConsentStatus(): void {
     if (isPlatformBrowser(this._platformId)) {
-      const currentTermsVersion = "3";
       const acceptedVersion = localStorage.getItem("acceptedVersion");
-      const hasConsent = acceptedVersion === currentTermsVersion;
+      const hasConsent = acceptedVersion === this.CURRENT_TERMS_VERSION;
 
       console.log("ConsentService: Checking consent status", {
         acceptedVersion,
-        currentTermsVersion,
+        CURRENT_TERMS_VERSION: this.CURRENT_TERMS_VERSION,
         hasConsent,
         platform: "browser",
       });

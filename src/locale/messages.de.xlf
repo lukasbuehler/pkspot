@@ -1689,9 +1689,7 @@
         <target> Gemeinschaft &amp; Beiträge </target>
       </segment>
     </unit>
-    <target> Community &amp; Contribution </target>
-    </segment>
-    </unit>
+
     <unit id="welcomeDialogSafetyBody">
       <segment state="initial">
         <source> Remember that Parkour has inherent risks and you are responsible for your own

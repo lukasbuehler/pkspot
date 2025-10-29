@@ -20,7 +20,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { languageCodes } from "../../../scripts/Languages";
-import { SelectLanguageDialogComponent } from "../../select-language-dialog/select-language-dialog.component";
+import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { getBestLocale } from "../../../scripts/LanguageHelpers";
 

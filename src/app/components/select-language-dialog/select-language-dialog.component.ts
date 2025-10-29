@@ -12,12 +12,12 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from "@angular/material/dialog";
-import { LocaleCode } from "../../db/models/Interfaces";
+import { LocaleCode } from "../../../db/models/Interfaces";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
-import { languageCodes } from "../../scripts/Languages";
+import { languageCodes } from "../../../scripts/Languages";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { map, Observable, startWith } from "rxjs";
 import { AsyncPipe } from "@angular/common";
