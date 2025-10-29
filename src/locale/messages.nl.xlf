@@ -2,8 +2,12 @@
   <file id="ngi18n" original="ng.template">
     <unit id="187187500641108332">
       <segment state="initial">
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}"/></source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}"/></target>
+        <source>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}" />
+        </source>
+        <target>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}" />
+        </target>
       </segment>
     </unit>
     <unit id="1940752772695642659">
@@ -20,8 +24,10 @@
     </unit>
     <unit id="3733695846697223562">
       <segment state="initial">
-        <source> Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world. </source>
-        <target> Ontdek spots en mede-atleten, plan trainingssessies met je vrienden en deel prestaties en herinneringen met hen en de wereld. </target>
+        <source> Discover spots and fellow athletes, plan training sessions with your friends and
+          share achievements and memories with them and the world. </source>
+        <target> Ontdek spots en mede-atleten, plan trainingssessies met je vrienden en deel
+          prestaties en herinneringen met hen en de wereld. </target>
       </segment>
     </unit>
     <unit id="3768927257183755959">
@@ -32,14 +38,22 @@
     </unit>
     <unit id="7411379953853971507">
       <segment state="initial">
-        <source> This project is Open-Source! Our code is licensed under the <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">MIT License</pc>. </source>
-        <target> Dit project is open-source! Onze code is gelicentieerd onder de <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">MIT-licentie</pc>. </target>
+        <source> This project is Open-Source! Our code is licensed under the <pc id="0"
+            equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;"
+            dispEnd="&lt;/b&gt;">MIT License</pc>. </source>
+        <target> Dit project is open-source! Onze code is gelicentieerd onder de <pc id="0"
+            equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;"
+            dispEnd="&lt;/b&gt;">MIT-licentie</pc>. </target>
       </segment>
     </unit>
     <unit id="1563251428514246752">
       <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc> View License </source>
-        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc> Licentie bekijken </target>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc>
+          View License </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc>
+          Licentie bekijken </target>
       </segment>
     </unit>
     <unit id="6511882108366913037">
@@ -68,14 +82,20 @@
     </unit>
     <unit id="8062277427231117545">
       <segment state="initial">
-        <source> Join our community of Parkour and Freerunning enthusiasts! Contribute your ideas, report bugs, and provide feedback to help us improve this platform together! </source>
-        <target> Word lid van onze gemeenschap van parkour- en freerunningliefhebbers! Draag je ideeën bij, meld bugs en geef feedback om ons te helpen dit platform samen te verbeteren! </target>
+        <source> Join our community of Parkour and Freerunning enthusiasts! Contribute your ideas,
+          report bugs, and provide feedback to help us improve this platform together! </source>
+        <target> Word lid van onze gemeenschap van parkour- en freerunningliefhebbers! Draag je
+          ideeën bij, meld bugs en geef feedback om ons te helpen dit platform samen te verbeteren! </target>
       </segment>
     </unit>
     <unit id="5825310972408482968">
       <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc> Discord </source>
-        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc> Discord </target>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc>
+          Discord </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc>
+          Discord </target>
       </segment>
     </unit>
     <unit id="spot_map_label">
@@ -126,8 +146,10 @@
         <note category="meaning">Open in maps button</note>
       </notes>
       <segment state="initial">
-        <source>Open in <ph id="0" equiv="INTERPOLATION" disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}"/></source>
-        <target>Openen in <ph id="0" equiv="INTERPOLATION" disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}"/></target>
+        <source>Open in <ph id="0" equiv="INTERPOLATION"
+            disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}" /></source>
+        <target>Openen in <ph id="0" equiv="INTERPOLATION"
+            disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}" /></target>
       </segment>
     </unit>
     <unit id="spot.edit.tooltip">
@@ -259,8 +281,10 @@
         <note category="meaning">public profile description</note>
       </notes>
       <segment state="initial">
-        <source> You can edit your public profile here. The information on your public profile can be seen by everyone, even unauthenticated visitors. </source>
-        <target> Je kunt hier je openbare profiel bewerken. De informatie op je openbare profiel kan door iedereen worden gezien, zelfs niet-geregistreerde bezoekers. </target>
+        <source> You can edit your public profile here. The information on your public profile can
+          be seen by everyone, even unauthenticated visitors. </source>
+        <target> Je kunt hier je openbare profiel bewerken. De informatie op je openbare profiel kan
+          door iedereen worden gezien, zelfs niet-geregistreerde bezoekers. </target>
       </segment>
     </unit>
     <unit id="settings.login.header">
@@ -279,8 +303,10 @@
         <note category="meaning">login information description</note>
       </notes>
       <segment state="initial">
-        <source> Your login information. Your E-mail address here is used for your login. You can add the same E-mail address or a different one to your contact information. </source>
-        <target> Dit zijn je inloggegevens. Het e-mailadres dat je hier opgeeft, wordt gebruikt voor je login. Je kunt hetzelfde of een ander e-mailadres toevoegen aan je contactgegevens. </target>
+        <source> Your login information. Your E-mail address here is used for your login. You can
+          add the same E-mail address or a different one to your contact information. </source>
+        <target> Dit zijn je inloggegevens. Het e-mailadres dat je hier opgeeft, wordt gebruikt voor
+          je login. Je kunt hetzelfde of een ander e-mailadres toevoegen aan je contactgegevens. </target>
       </segment>
     </unit>
     <unit id="6815507474406960450">
@@ -303,8 +329,10 @@
     </unit>
     <unit id="5567404971286131139">
       <segment state="initial">
-        <source> This spot is not eligible for highlights. To be eligible, it needs at least one user-submitted picture and at least one rating. </source>
-        <target> Deze spot komt niet in aanmerking voor highlights. Om in aanmerking te komen, is minimaal één door de gebruiker ingediende foto en minimaal één beoordeling nodig. </target>
+        <source> This spot is not eligible for highlights. To be eligible, it needs at least one
+          user-submitted picture and at least one rating. </source>
+        <target> Deze spot komt niet in aanmerking voor highlights. Om in aanmerking te komen, is
+          minimaal één door de gebruiker ingediende foto en minimaal één beoordeling nodig. </target>
       </segment>
     </unit>
     <unit id="3934298777794632654">
@@ -339,8 +367,8 @@
     </unit>
     <unit id="134280351162314914">
       <segment state="initial">
-        <source>Rating: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10"/> ⭐</source>
-        <target>Beoordeling: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10"/> ⭐</target>
+        <source>Rating: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10" /> ⭐</source>
+        <target>Beoordeling: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10" /> ⭐</target>
       </segment>
     </unit>
     <unit id="1347241542439262355">
@@ -427,8 +455,19 @@
         <note category="meaning">media upload disclaimer</note>
       </notes>
       <segment state="initial">
-        <source> By uploading, you confirm you own the rights or have permission to share this media. You grant PK Spot a non-exclusive, worldwide, royalty-free license to host, store, reproduce, modify (e.g., thumbnails/compression), display, and distribute this media in connection with the service. You retain ownership and can delete the media at any time, subject to copies in backups and caches. </source>
-        <target> Door te uploaden bevestig je dat je de rechten bezit of toestemming hebt om deze media te delen. Je verleent PK Spot een niet-exclusieve, wereldwijde, royaltyvrije licentie om deze media te hosten, op te slaan, te reproduceren, te wijzigen (bijv. miniaturen/compressie), weer te geven en te distribueren in verband met de dienst. Je behoudt het eigendom en kunt de media op elk moment verwijderen, met uitzondering van kopieën in back-ups en caches. </target>
+        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc>. You confirm you own this content or have the right to share it. You grant
+          PK Spot the license it needs to operate the service and agree to make your contribution
+          available to the community under a Creative Commons license. </source>
+        <target> Door te uploaden ga je akkoord met onze <pc id="0" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc>. Je bevestigt dat je eigenaar bent van deze inhoud of het recht hebt deze
+          te delen. Je verleent PK Spot de licentie die nodig is om de dienst uit te voeren en gaat
+          ermee akkoord je bijdrage beschikbaar te stellen aan de gemeenschap onder een Creative
+          Commons-licentie. </target>
       </segment>
     </unit>
     <unit id="3517550046701184661">
@@ -517,8 +556,10 @@
         <note category="meaning">no account message</note>
       </notes>
       <segment state="initial">
-        <source> Don&apos;t have an account yet? Simply sign in with your Google account or sign up below. </source>
-        <target> Heb je nog geen account? Log gewoon in met je Google-account of registreer je hieronder. </target>
+        <source> Don&apos;t have an account yet? Simply sign in with your Google account or sign up
+          below. </source>
+        <target> Heb je nog geen account? Log gewoon in met je Google-account of registreer je
+          hieronder. </target>
       </segment>
     </unit>
     <unit id="signin.signup.button">
@@ -561,14 +602,19 @@
     </unit>
     <unit id="7708270344948043036">
       <segment state="initial">
-        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}"/> </source>
-        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}"/> </target>
+        <source>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}" />
+        </source>
+        <target>
+          <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}" />
+        </target>
       </segment>
     </unit>
     <unit id="7733953409417762446">
       <segment state="initial">
         <source>An unknown error has occured on sign in. Please try again.</source>
-        <target>Er is een onbekende fout opgetreden bij het inloggen. Probeer het alstublieft opnieuw.</target>
+        <target>Er is een onbekende fout opgetreden bij het inloggen. Probeer het alstublieft
+          opnieuw.</target>
       </segment>
     </unit>
     <unit id="7323901917278002498">
@@ -629,32 +675,6 @@
       <segment state="initial">
         <source>The repeated password needs to match the password entered.</source>
         <target>Het herhaalde wachtwoord moet overeenkomen met het ingevoerde wachtwoord.</target>
-      </segment>
-    </unit>
-    <unit id="tos">
-      <notes>
-        <note category="description">Text of the Terms of Service link</note>
-        <note category="meaning">terms of service link text</note>
-      </notes>
-      <segment state="initial">
-        <source>Terms of Service</source>
-        <target>Servicevoorwaarden</target>
-      </segment>
-    </unit>
-    <unit id="privacypolicy">
-      <notes>
-        <note category="description">Text of the Privacy Policy link</note>
-        <note category="meaning">privacy policy link text</note>
-      </notes>
-      <segment state="initial">
-        <source>Privacy Policy</source>
-        <target> Privacybeleid </target>
-      </segment>
-    </unit>
-    <unit id="3289630490580318568">
-      <segment state="initial">
-        <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to both.</source>
-        <target>Ik heb de <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Servicevoorwaarden</pc> en het <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">privacybeleid</pc> gelezen en begrepen, en ga met beide akkoord.</target>
       </segment>
     </unit>
     <unit id="1267967133679326155">
@@ -739,8 +759,10 @@
         <note category="meaning">spot reported message</note>
       </notes>
       <segment state="initial">
-        <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</source>
-        <target>Deze spot is gemeld als &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</target>
+        <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION"
+            disp="{{ report.reason }}" />&quot;</source>
+        <target>Deze spot is gemeld als &quot;<ph id="0" equiv="INTERPOLATION"
+            disp="{{ report.reason }}" />&quot;</target>
       </segment>
     </unit>
     <unit id="6807040359477339777">
@@ -797,8 +819,10 @@
     </unit>
     <unit id="6024008212258429928">
       <segment state="initial">
-        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}"/>&apos;</source>
-        <target>Spot melden: &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}"/> &apos;</target>
+        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}" />
+          &apos;</source>
+        <target>Spot melden: &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}" />
+          &apos;</target>
       </segment>
     </unit>
     <unit id="8425796083769561052">
@@ -809,8 +833,10 @@
     </unit>
     <unit id="8436223332064456837">
       <segment state="initial">
-        <source><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></source>
-        <target><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></target>
+        <source><ph id="0" equiv="PH" disp="challengeName" /> - <ph id="1" equiv="PH_1"
+            disp="spotName" /></source>
+        <target><ph id="0" equiv="PH" disp="challengeName" /> - <ph id="1" equiv="PH_1"
+            disp="spotName" /></target>
       </segment>
     </unit>
     <unit id="8450335284128633458">
@@ -863,8 +889,10 @@
     </unit>
     <unit id="4411046525037051458">
       <segment state="initial">
-        <source> Note: Spot reports are public and will be displayed on the spot itself together with your profile and user name. </source>
-        <target> Opmerking: Spot-meldingen zijn openbaar en worden bij de spot zelf getoond, samen met je profiel en gebruikersnaam. </target>
+        <source> Note: Spot reports are public and will be displayed on the spot itself together
+          with your profile and user name. </source>
+        <target> Opmerking: Spot-meldingen zijn openbaar en worden bij de spot zelf getoond, samen
+          met je profiel en gebruikersnaam. </target>
       </segment>
     </unit>
     <unit id="2330577642930707695">
@@ -1046,38 +1074,52 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment state="initial">
-        <source>This is a commercial property, such as a gym or business, where access may require a fee or membership. Please respect the rules and hours of operation.</source>
-        <target>Dit is een commercieel pand, zoals een sportschool of bedrijf, waar toegang een vergoeding of lidmaatschap kan vereisen. Respecteer de regels en openingstijden.</target>
+        <source>This is a commercial property, such as a gym or business, where access may require a
+          fee or membership. Please respect the rules and hours of operation.</source>
+        <target>Dit is een commercieel pand, zoals een sportschool of bedrijf, waar toegang een
+          vergoeding of lidmaatschap kan vereisen. Respecteer de regels en openingstijden.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
       <segment state="initial">
-        <source>This is private property and strictly off-limits without explicit, prior permission from the owner. Unauthorized access may result in legal action or injury.</source>
-        <target>Dit is privé-eigendom en strikt verboden zonder expliciete, voorafgaande toestemming van de eigenaar. Ongeautoriseerde toegang kan resulteren in juridische stappen of letsel.</target>
+        <source>This is private property and strictly off-limits without explicit, prior permission
+          from the owner. Unauthorized access may result in legal action or injury.</source>
+        <target>Dit is privé-eigendom en strikt verboden zonder expliciete, voorafgaande toestemming
+          van de eigenaar. Ongeautoriseerde toegang kan resulteren in juridische stappen of letsel.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.other">
       <segment state="initial">
-        <source>The access type of this spot is not specified. Please check local regulations and guidelines before visiting.</source>
-        <target>Het toegangstype van deze spot is niet gespecificeerd. Controleer lokale regelgeving en richtlijnen voordat je een bezoek brengt.</target>
+        <source>The access type of this spot is not specified. Please check local regulations and
+          guidelines before visiting.</source>
+        <target>Het toegangstype van deze spot is niet gespecificeerd. Controleer lokale regelgeving
+          en richtlijnen voordat je een bezoek brengt.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.private">
       <segment state="initial">
-        <source>This is private property. While some respectful practice may be tolerated, permission is always recommended to avoid issues.</source>
-        <target>Dit is privé-eigendom. Hoewel respectvol trainen mogelijk wordt getolereerd, wordt toestemming altijd aanbevolen om problemen te voorkomen.</target>
+        <source>This is private property. While some respectful practice may be tolerated,
+          permission is always recommended to avoid issues.</source>
+        <target>Dit is privé-eigendom. Hoewel respectvol trainen mogelijk wordt getolereerd, wordt
+          toestemming altijd aanbevolen om problemen te voorkomen.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.public">
       <segment state="initial">
-        <source>This is a public spot, which is open to everyone and can be accessed freely without restrictions.</source>
-        <target>Dit is een openbare spot, die voor iedereen toegankelijk is en vrij kan worden betreden zonder beperkingen.</target>
+        <source>This is a public spot, which is open to everyone and can be accessed freely without
+          restrictions.</source>
+        <target>Dit is een openbare spot, die voor iedereen toegankelijk is en vrij kan worden
+          betreden zonder beperkingen.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.residential">
       <segment state="initial">
-        <source>This is a residential area and private property. Access is generally limited to residents or their guests. Please be especially mindful of noise and privacy. Training here may lead to being asked to leave.</source>
-        <target>Dit is een woongebied en privé-eigendom. Toegang is over het algemeen beperkt tot bewoners of hun gasten. Wees vooral bewust van geluid en privacy. Trainen hier kan ertoe leiden dat je wordt gevraagd om te vertrekken.</target>
+        <source>This is a residential area and private property. Access is generally limited to
+          residents or their guests. Please be especially mindful of noise and privacy. Training
+          here may lead to being asked to leave.</source>
+        <target>Dit is een woongebied en privé-eigendom. Toegang is over het algemeen beperkt tot
+          bewoners of hun gasten. Wees vooral bewust van geluid en privacy. Trainen hier kan ertoe
+          leiden dat je wordt gevraagd om te vertrekken.</target>
       </segment>
     </unit>
     <unit id="spot-access.commercial">
@@ -1118,8 +1160,10 @@
     </unit>
     <unit id="spot-type-description.art">
       <segment state="initial">
-        <source>This is an art installation or sculpture that can be used for Parkour practice. Please respect the artwork and surrounding area.</source>
-        <target>Dit is een kunstinstallatie of sculptuur die kan worden gebruikt voor parkourtraining. Respecteer alstublieft het kunstwerk en de omgeving.</target>
+        <source>This is an art installation or sculpture that can be used for Parkour practice.
+          Please respect the artwork and surrounding area.</source>
+        <target>Dit is een kunstinstallatie of sculptuur die kan worden gebruikt voor
+          parkourtraining. Respecteer alstublieft het kunstwerk en de omgeving.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.descent">
@@ -1128,10 +1172,28 @@
         <target>Dit is een spot die voornamelijk wordt gebruikt voor afdaaltechnieken.</target>
       </segment>
     </unit>
+    <unit id="spot-type-description.garage">
+      <segment state="initial">
+        <source>This is a parking garage or car park with ramps, columns, and concrete structures
+          suitable for training.</source>
+        <target>This is a parking garage or car park with ramps, columns, and concrete structures
+          suitable for training.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.gymnastics-gym">
+      <segment state="initial">
+        <source>This is a gymnastics facility with mats, bars, beams, and tumbling equipment
+          suitable for acrobatic training.</source>
+        <target>This is a gymnastics facility with mats, bars, beams, and tumbling equipment
+          suitable for acrobatic training.</target>
+      </segment>
+    </unit>
     <unit id="spot-type-description.monument">
       <segment state="initial">
-        <source>This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.</source>
-        <target>Deze locatie is een monument, historische ruïne, steenmarkering of cultureel belangrijke structuur. Wees respectvol en voorzichtig tijdens het trainen hier.</target>
+        <source>This location is a monument, historical ruin, stone marker, or culturally
+          significant structure. Please be respectful and cautious while training here.</source>
+        <target>Deze locatie is een monument, historische ruïne, steenmarkering of cultureel
+          belangrijke structuur. Wees respectvol en voorzichtig tijdens het trainen hier.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.natural-landscape">
@@ -1142,8 +1204,10 @@
     </unit>
     <unit id="spot-type-description.other">
       <segment state="initial">
-        <source>This is a location that doesn&apos;t fit standard categories but offers training opportunities.</source>
-        <target>Dit is een locatie die niet in standaardcategorieën past maar trainingsmogelijkheden biedt.</target>
+        <source>This is a location that doesn&apos;t fit standard categories but offers training
+          opportunities.</source>
+        <target>Dit is een locatie die niet in standaardcategorieën past maar trainingsmogelijkheden
+          biedt.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.park">
@@ -1154,20 +1218,26 @@
     </unit>
     <unit id="spot-type-description.parkour-gym">
       <segment state="initial">
-        <source>This is an indoor training facility with dedicated equipment and obstacles for Parkour practice.</source>
-        <target>Dit is een overdekte trainingsfaciliteit met specifieke uitrusting en obstakels voor parkourtraining.</target>
+        <source>This is an indoor training facility with dedicated equipment and obstacles for
+          Parkour practice.</source>
+        <target>Dit is een overdekte trainingsfaciliteit met specifieke uitrusting en obstakels voor
+          parkourtraining.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.parkour-park">
       <segment state="initial">
-        <source>This is a purpose-built outdoor space with designed obstacles and structures for Parkour training.</source>
-        <target>Dit is een speciaal gebouwde buitenruimte met ontworpen obstakels en structuren voor parkourtraining.</target>
+        <source>This is a purpose-built outdoor space with designed obstacles and structures for
+          Parkour training.</source>
+        <target>Dit is een speciaal gebouwde buitenruimte met ontworpen obstakels en structuren voor
+          parkourtraining.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.playground">
       <segment state="initial">
-        <source>This is a playground area with swings, slides, and climbing structures suitable for Parkour training.</source>
-        <target>Dit is een speeltuingebied met schommels, glijbanen en klimstructuren geschikt voor parkourtraining.</target>
+        <source>This is a playground area with swings, slides, and climbing structures suitable for
+          Parkour training.</source>
+        <target>Dit is een speeltuingebied met schommels, glijbanen en klimstructuren geschikt voor
+          parkourtraining.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.roof-gap">
@@ -1184,26 +1254,40 @@
     </unit>
     <unit id="spot-type-description.school">
       <segment state="initial">
-        <source>This is a school facility with walls, benches, and architectural features for practice.</source>
-        <target>Dit is een schoolfaciliteit met muren, banken en architecturale kenmerken voor training.</target>
+        <source>This is a school facility with walls, benches, and architectural features for
+          practice.</source>
+        <target>Dit is een schoolfaciliteit met muren, banken en architecturale kenmerken voor
+          training.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.trampoline-park">
+      <segment state="initial">
+        <source>This is a trampoline park facility that has aerial training areas.</source>
+        <target>This is a trampoline park facility that has aerial training areas.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.university-campus">
       <segment state="initial">
-        <source>This is a university campus with varied buildings, courtyards, and outdoor structures.</source>
-        <target>Dit is een universiteitscampus met gevarieerde gebouwen, binnenplaatsen en buitenstructuren.</target>
+        <source>This is a university campus with varied buildings, courtyards, and outdoor
+          structures.</source>
+        <target>Dit is een universiteitscampus met gevarieerde gebouwen, binnenplaatsen en
+          buitenstructuren.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.urban-landscape">
       <segment state="initial">
         <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
-        <target>Dit is een stedelijk gebied met muren, leuningen, trappen en architecturale elementen.</target>
+        <target>Dit is een stedelijk gebied met muren, leuningen, trappen en architecturale
+          elementen.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.water">
       <segment state="initial">
-        <source>This spot centers around water (fountain, riverbank, lakeside structure, etc.) offering unique movement or aesthetic value. Surfaces may be slippery—use caution.</source>
-        <target>Deze spot draait om water (fontein, rivierbank, structuur aan het meer, enz.) en biedt een unieke bewegings- of esthetische waarde. Oppervlakken kunnen glad zijn — wees voorzichtig.</target>
+        <source>This spot centers around water (fountain, riverbank, lakeside structure, etc.)
+          offering unique movement or aesthetic value. Surfaces may be slippery—use caution.</source>
+        <target>Deze spot draait om water (fontein, rivierbank, structuur aan het meer, enz.) en
+          biedt een unieke bewegings- of esthetische waarde. Oppervlakken kunnen glad zijn — wees
+          voorzichtig.</target>
       </segment>
     </unit>
     <unit id="spot-type.art">
@@ -1216,6 +1300,18 @@
       <segment state="initial">
         <source>Descent</source>
         <target>Afdaling</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.garage">
+      <segment state="initial">
+        <source>Garage</source>
+        <target>Garage</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.gymnastics-gym">
+      <segment state="initial">
+        <source>Gymnastics Gym</source>
+        <target>Gymnastics Gym</target>
       </segment>
     </unit>
     <unit id="spot-type.monument">
@@ -1278,6 +1374,12 @@
         <target>School</target>
       </segment>
     </unit>
+    <unit id="spot-type.trampoline-park">
+      <segment state="initial">
+        <source>Trampoline Park</source>
+        <target>Trampoline Park</target>
+      </segment>
+    </unit>
     <unit id="spot-type.university-campus">
       <segment state="initial">
         <source>University Campus</source>
@@ -1298,7 +1400,8 @@
     </unit>
     <unit id="spot.locality.pretext">
       <notes>
-        <note category="description">The text before the localized location of the spot. E.g. Parkour spot in Wiedikon, Zurich, CH</note>
+        <note category="description">The text before the localized location of the spot. E.g.
+          Parkour spot in Wiedikon, Zurich, CH</note>
       </notes>
       <segment state="initial">
         <source>Parkour spot in </source>
@@ -1385,8 +1488,10 @@
         <note category="description">The text in the spot list panel if no spots are found/displayed</note>
       </notes>
       <segment state="initial">
-        <source> There are no highlighted spots for this area, zoom in on dots in the map to discover other spots. </source>
-        <target> Er zijn geen hoogtepunten voor dit gebied. Zoom in op de punten op de kaart om andere spots te ontdekken. </target>
+        <source> There are no highlighted spots for this area, zoom in on dots in the map to
+          discover other spots. </source>
+        <target> Er zijn geen hoogtepunten voor dit gebied. Zoom in op de punten op de kaart om
+          andere spots te ontdekken. </target>
       </segment>
     </unit>
     <unit id="lang_btn_label">
@@ -1461,8 +1566,16 @@
     </unit>
     <unit id="9074160907730350759">
       <segment state="initial">
-        <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
-        <target>Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}"/>&apos; evalueren</target>
+        <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}" />
+          &apos;</source>
+        <target>Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}" />&apos;
+          evalueren</target>
+      </segment>
+    </unit>
+    <unit id="9180110319941008393">
+      <segment state="initial">
+        <source>Environment</source>
+        <target>Omgeving</target>
       </segment>
     </unit>
     <unit id="6435282697411612190">
@@ -1483,8 +1596,10 @@
         <note category="meaning">review count text</note>
       </notes>
       <segment state="initial">
-        <source>{VAR_PLURAL, plural, =0 {no reviews} =1 {1 review} other {<ph id="0" equiv="INTERPOLATION"/> reviews}}</source>
-        <target>{VAR_PLURAL, plural, =0 {geen recensies} =1 {1 recensie} other {<ph id="0" equiv="INTERPOLATION"/> recensies}}</target>
+        <source>{VAR_PLURAL, plural, =0 {no reviews} =1 {1 review} other {<ph id="0"
+            equiv="INTERPOLATION" /> reviews}}</source>
+        <target>{VAR_PLURAL, plural, =0 {geen recensies} =1 {1 recensie} other {<ph id="0"
+            equiv="INTERPOLATION" /> recensies}}</target>
       </segment>
     </unit>
     <unit id="address_title">
@@ -1557,14 +1672,48 @@
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
-        <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. </source>
-        <target> Door door te gaan, ga je akkoord met onze <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;"> servicevoorwaarden</pc> en ons <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;"> privacybeleid</pc>. </target>
+        <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0"
+            equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy
+          Policy</pc>. </source>
+        <target> Door door te gaan, ga je akkoord met onze <pc id="0" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">
+          servicevoorwaarden</pc> en ons <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK"
+            type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;"
+            dispEnd="&lt;/a&gt;"> privacybeleid</pc>. </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogCommunityBody">
+      <segment state="initial">
+        <source> PK Spot is built by the community. By contributing content, you grant us the
+          license needed to operate the service, as detailed in our Terms of Service. We then share
+          the combined spot data back to the public under a protective, non-commercial license (CC
+          BY-NC-SA 4.0) to keep it an open resource for everyone. </source>
+        <target> PK Spot is built by the community. By contributing content, you grant us the
+          license needed to operate the service, as detailed in our Terms of Service. We then share
+          the combined spot data back to the public under a protective, non-commercial license (CC
+          BY-NC-SA 4.0) to keep it an open resource for everyone. </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogCommunityHeading">
+      <segment state="initial">
+        <source> Community &amp; Contribution </source>
+        <target> Community &amp; Contribution </target>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyBody">
       <segment state="initial">
-        <source> Remember that Parkour has inherent risks and you are responsible for your own safety. Our spots are user-submitted and their accuracy and legality are not guaranteed. Always respect property rights and local laws. </source>
-        <target> Onthoud dat Parkour inherente risico&apos;s met zich meebrengt en dat je zelf verantwoordelijk bent voor je eigen veiligheid. Onze spots zijn door gebruikers ingediend en de nauwkeurigheid en legaliteit ervan zijn niet gegarandeerd. Respecteer altijd eigendomsrechten en lokale wetten. </target>
+        <source> Remember that Parkour has inherent risks and you are responsible for your own
+          safety. Our spots are user-submitted and their accuracy and legality are not guaranteed.
+          Always respect property rights and local laws. </source>
+        <target> Onthoud dat Parkour inherente risico&apos;s met zich meebrengt en dat je zelf
+          verantwoordelijk bent voor je eigen veiligheid. Onze spots zijn door gebruikers ingediend
+          en de nauwkeurigheid en legaliteit ervan zijn niet gegarandeerd. Respecteer altijd
+          eigendomsrechten en lokale wetten. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyHeading">
@@ -1575,8 +1724,10 @@
     </unit>
     <unit id="welcomeDialogTechBody">
       <segment state="initial">
-        <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy, we use a privacy-focused, cookie-free analytics service. </source>
-        <target> Essentiële functies (zoals Google Maps) kunnen cookies gebruiken 🍪. Om je privacy te beschermen, gebruiken we een privacygerichte, cookie-vrije analysetool. </target>
+        <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
+          we use a privacy-focused, cookie-free analytics service. </source>
+        <target> Essentiële functies (zoals Google Maps) kunnen cookies gebruiken 🍪. Om je privacy
+          te beschermen, gebruiken we een privacygerichte, cookie-vrije analysetool. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechHeading">
@@ -1587,8 +1738,11 @@
     </unit>
     <unit id="welcomeDialogText">
       <segment state="initial">
-        <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you can explore spots, share posts, and connect with other practitioners. 🤸 </source>
-        <target> We zijn blij dat je deel uitmaakt van onze Parkour- en Freerunning-gemeenschap. Hier kun je spots verkennen, berichten delen en verbinding maken met andere beoefenaars. 🤸 </target>
+        <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you
+          can explore spots, share posts, and connect with other practitioners. 🤸 </source>
+        <target> We zijn blij dat je deel uitmaakt van onze Parkour- en Freerunning-gemeenschap.
+          Hier kun je spots verkennen, berichten delen en verbinding maken met andere beoefenaars.
+          🤸 </target>
       </segment>
     </unit>
     <unit id="7629436164719717851">
@@ -1806,8 +1960,10 @@
     </unit>
     <unit id="2114926278043068343">
       <segment state="initial">
-        <source> Add an editable boundary for this spot. After adding, you can adjust the polygon shape on the map. </source>
-        <target> Voeg een bewerkbare begrenzing toe voor deze spot. Na het toevoegen kun je de vorm van het polygoon op de kaart aanpassen. </target>
+        <source> Add an editable boundary for this spot. After adding, you can adjust the polygon
+          shape on the map. </source>
+        <target> Voeg een bewerkbare begrenzing toe voor deze spot. Na het toevoegen kun je de vorm
+          van het polygoon op de kaart aanpassen. </target>
       </segment>
     </unit>
     <unit id="2159130950882492111">
@@ -1843,7 +1999,8 @@
     <unit id="4110209764320322600">
       <segment state="initial">
         <source> What should we call you? Don&apos;t worry, the display name can be changed later. </source>
-        <target> Wat moeten we je noemen? Maak je geen zorgen, de weergavenaam kan later worden gewijzigd. </target>
+        <target> Wat moeten we je noemen? Maak je geen zorgen, de weergavenaam kan later worden
+          gewijzigd. </target>
       </segment>
     </unit>
     <unit id="4115668858470490289">
@@ -2182,8 +2339,8 @@
     </unit>
     <unit id="611564526184434442">
       <segment state="initial">
-        <source> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()"/></source>
-        <target> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()"/></target>
+        <source> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()" /></source>
+        <target> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()" /></target>
       </segment>
     </unit>
     <unit id="6179528187219959958">
@@ -2212,8 +2369,10 @@
     </unit>
     <unit id="2085915950119931041">
       <segment state="initial">
-        <source>The goal of this challenge is to be creative. This challenge may also be more open to interpretation.</source>
-        <target>Het doel van deze Challenge is om creatief te zijn. Deze Challenge kan ook meer openstaan voor interpretatie.</target>
+        <source>The goal of this challenge is to be creative. This challenge may also be more open
+          to interpretation.</source>
+        <target>Het doel van deze Challenge is om creatief te zijn. Deze Challenge kan ook meer
+          openstaan voor interpretatie.</target>
       </segment>
     </unit>
     <unit id="3420095157187102720">
@@ -2236,8 +2395,10 @@
     </unit>
     <unit id="2369409944839137310">
       <segment state="initial">
-        <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
-        <target>Een core Challenge van deze Spot. Een essentiële Challenge voor iedereen die deze Spot wil beheersen.</target>
+        <source>A core challenge of this spot. An essential challenge for anyone seeking to master
+          this spot.</source>
+        <target>Een core Challenge van deze Spot. Een essentiële Challenge voor iedereen die deze
+          Spot wil beheersen.</target>
       </segment>
     </unit>
     <unit id="3935646276054511852">
@@ -2276,8 +2437,16 @@
     </unit>
     <unit id="7408374932533578639">
       <segment state="initial">
-        <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}"/>, at <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}"/>. </source>
-        <target> Deze challenge wordt vrijgegeven op <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}"/>, om <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}"/> . </target>
+        <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION"
+            disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}" />,
+          at <ph id="1" equiv="INTERPOLATION_1"
+            disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}" />
+          . </source>
+        <target> Deze challenge wordt vrijgegeven op <ph id="0" equiv="INTERPOLATION"
+            disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}" />,
+          om <ph id="1" equiv="INTERPOLATION_1"
+            disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}" />
+          . </target>
       </segment>
     </unit>
     <unit id="5442876463654189578">
@@ -2306,8 +2475,14 @@
     </unit>
     <unit id="8828059408146193176">
       <segment state="initial">
-        <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
-        <target> Publicatiedatum <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></target>
+        <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE"
+            equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other"
+            dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;"
+            dispEnd="&lt;/mat-slide-toggle&gt;" /></source>
+        <target> Publicatiedatum <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE"
+            equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other"
+            dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;"
+            dispEnd="&lt;/mat-slide-toggle&gt;" /></target>
       </segment>
     </unit>
     <unit id="8890858578819685573">
@@ -2318,8 +2493,10 @@
     </unit>
     <unit id="501118076159295384">
       <segment state="initial">
-        <source> The Challenge will only be available starting from the release date. Before that it will be private to you. </source>
-        <target> De challenge is pas beschikbaar vanaf de publicatiedatum. Daarvoor is deze privé voor jou. </target>
+        <source> The Challenge will only be available starting from the release date. Before that it
+          will be private to you. </source>
+        <target> De challenge is pas beschikbaar vanaf de publicatiedatum. Daarvoor is deze privé
+          voor jou. </target>
       </segment>
     </unit>
     <unit id="5992560285899135152">
@@ -2368,6 +2545,24 @@
         <target>Voorwaarden</target>
       </segment>
     </unit>
+    <unit id="tos-signup">
+      <notes>
+        <note category="description">Text of the Terms of Service sign up text</note>
+        <note category="meaning">terms of service sign up text</note>
+      </notes>
+      <segment state="initial">
+        <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc> and confirm you will contribute content under the license terms described
+          within.</source>
+        <target>By creating an account, you agree to our <pc id="0" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc> and confirm you will contribute content under the license terms described
+          within.</target>
+      </segment>
+    </unit>
     <unit id="7150227608403439982">
       <segment state="initial">
         <source>I&apos;ll add media!</source>
@@ -2376,8 +2571,8 @@
     </unit>
     <unit id="7193934719093844817">
       <segment state="initial">
-        <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
-        <target>Challenge op <ph id="0" equiv="PH" disp="spotName"/></target>
+        <source>Challenge at <ph id="0" equiv="PH" disp="spotName" /></source>
+        <target>Challenge op <ph id="0" equiv="PH" disp="spotName" /></target>
       </segment>
     </unit>
     <unit id="7215101881367554791">
@@ -2416,6 +2611,12 @@
         <target>Route</target>
       </segment>
     </unit>
+    <unit id="6251586038459969294">
+      <segment state="initial">
+        <source>Both</source>
+        <target>Both</target>
+      </segment>
+    </unit>
     <unit id="6299599810982807013">
       <segment state="initial">
         <source>All Challenges of </source>
@@ -2424,8 +2625,12 @@
     </unit>
     <unit id="4020018249666121252">
       <segment state="initial">
-        <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </source>
-        <target> Alle challenges van <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </target>
+        <source> All Challenges of <ph id="0" equiv="INTERPOLATION"
+            disp="{{ selectedSpot()!.name() }}" />
+        </source>
+        <target> Alle challenges van <ph id="0" equiv="INTERPOLATION"
+            disp="{{ selectedSpot()!.name() }}" />
+        </target>
       </segment>
     </unit>
     <unit id="7014916356457269810">
@@ -2486,8 +2691,12 @@
     </unit>
     <unit id="1737753151350322492">
       <segment state="initial">
-        <source><ph id="0" equiv="PH" disp="this.label"/></source>
-        <target><ph id="0" equiv="PH" disp="this.label"/></target>
+        <source>
+          <ph id="0" equiv="PH" disp="this.label" />
+        </source>
+        <target>
+          <ph id="0" equiv="PH" disp="this.label" />
+        </target>
       </segment>
     </unit>
     <unit id="1744316082077040772">
@@ -2530,6 +2739,12 @@
       <segment state="initial">
         <source>others</source>
         <target>others</target>
+      </segment>
+    </unit>
+    <unit id="4644751492278611655">
+      <segment state="initial">
+        <source>Indoor / Outdoor</source>
+        <target>Indoor / Outdoor</target>
       </segment>
     </unit>
     <unit id="4658982717700339898">

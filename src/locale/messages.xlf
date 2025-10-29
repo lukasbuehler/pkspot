@@ -198,6 +198,16 @@
         <source>This is a spot primarily used for descending techniques.</source>
       </segment>
     </unit>
+    <unit id="spot-type-description.garage">
+      <segment>
+        <source>This is a parking garage or car park with ramps, columns, and concrete structures suitable for training.</source>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.gymnastics-gym">
+      <segment>
+        <source>This is a gymnastics facility with mats, bars, beams, and tumbling equipment suitable for acrobatic training.</source>
+      </segment>
+    </unit>
     <unit id="spot-type-description.monument">
       <segment>
         <source>This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.</source>
@@ -248,6 +258,11 @@
         <source>This is a school facility with walls, benches, and architectural features for practice.</source>
       </segment>
     </unit>
+    <unit id="spot-type-description.trampoline-park">
+      <segment>
+        <source>This is a trampoline park facility that has aerial training areas.</source>
+      </segment>
+    </unit>
     <unit id="spot-type-description.university-campus">
       <segment>
         <source>This is a university campus with varied buildings, courtyards, and outdoor structures.</source>
@@ -271,6 +286,16 @@
     <unit id="spot-type.descent">
       <segment>
         <source>Descent</source>
+      </segment>
+    </unit>
+    <unit id="spot-type.garage">
+      <segment>
+        <source>Garage</source>
+      </segment>
+    </unit>
+    <unit id="spot-type.gymnastics-gym">
+      <segment>
+        <source>Gymnastics Gym</source>
       </segment>
     </unit>
     <unit id="spot-type.monument">
@@ -321,6 +346,11 @@
     <unit id="spot-type.school">
       <segment>
         <source>School</source>
+      </segment>
+    </unit>
+    <unit id="spot-type.trampoline-park">
+      <segment>
+        <source>Trampoline Park</source>
       </segment>
     </unit>
     <unit id="spot-type.university-campus">
@@ -621,29 +651,6 @@
     <unit id="5261342889229534364">
       <segment>
         <source>The repeated password needs to match the password entered.</source>
-      </segment>
-    </unit>
-    <unit id="tos">
-      <notes>
-        <note category="description">Text of the Terms of Service link</note>
-        <note category="meaning">terms of service link text</note>
-      </notes>
-      <segment>
-        <source>Terms of Service</source>
-      </segment>
-    </unit>
-    <unit id="privacypolicy">
-      <notes>
-        <note category="description">Text of the Privacy Policy link</note>
-        <note category="meaning">privacy policy link text</note>
-      </notes>
-      <segment>
-        <source>Privacy Policy</source>
-      </segment>
-    </unit>
-    <unit id="3289630490580318568">
-      <segment>
-        <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to both.</source>
       </segment>
     </unit>
     <unit id="1267967133679326155">
@@ -1094,6 +1101,11 @@
         <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
       </segment>
     </unit>
+    <unit id="9180110319941008393">
+      <segment>
+        <source>Environment</source>
+      </segment>
+    </unit>
     <unit id="6435282697411612190">
       <segment>
         <source>What would you rate this spot from one to five stars?</source>
@@ -1162,7 +1174,7 @@
         <note category="meaning">media upload disclaimer</note>
       </notes>
       <segment>
-        <source> By uploading, you confirm you own the rights or have permission to share this media. You grant PK Spot a non-exclusive, worldwide, royalty-free license to host, store, reproduce, modify (e.g., thumbnails/compression), display, and distribute this media in connection with the service. You retain ownership and can delete the media at any time, subject to copies in backups and caches. </source>
+        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
       </segment>
     </unit>
     <unit id="welcomeDialogTitle">
@@ -1203,6 +1215,16 @@
     <unit id="welcomeDialogButtonInfo">
       <segment>
         <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. </source>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogCommunityBody">
+      <segment>
+        <source> PK Spot is built by the community. By contributing content, you grant us the license needed to operate the service, as detailed in our Terms of Service. We then share the combined spot data back to the public under a protective, non-commercial license (CC BY-NC-SA 4.0) to keep it an open resource for everyone. </source>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogCommunityHeading">
+      <segment>
+        <source> Community &amp; Contribution </source>
       </segment>
     </unit>
     <unit id="agreeAndContinueLabel">
@@ -1991,6 +2013,11 @@
         <source> The Challenge will be public right away after it is added. </source>
       </segment>
     </unit>
+    <unit id="6251586038459969294">
+      <segment>
+        <source>Both</source>
+      </segment>
+    </unit>
     <unit id="6299599810982807013">
       <segment>
         <source>All Challenges of </source>
@@ -2018,6 +2045,15 @@
     <unit id="terms.short">
       <segment>
         <source>Terms</source>
+      </segment>
+    </unit>
+    <unit id="tos-signup">
+      <notes>
+        <note category="description">Text of the Terms of Service sign up text</note>
+        <note category="meaning">terms of service sign up text</note>
+      </notes>
+      <segment>
+        <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you will contribute content under the license terms described within.</source>
       </segment>
     </unit>
     <unit id="7150227608403439982">
@@ -2133,6 +2169,11 @@
     <unit id="459311985687858272">
       <segment>
         <source>Spots</source>
+      </segment>
+    </unit>
+    <unit id="4644751492278611655">
+      <segment>
+        <source>Indoor / Outdoor</source>
       </segment>
     </unit>
     <unit id="4658982717700339898">

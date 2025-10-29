@@ -445,17 +445,18 @@
         <note category="meaning">media upload disclaimer</note>
       </notes>
       <segment state="initial">
-        <source> By uploading, you confirm you own the rights or have permission to share this
-          media. You grant PK Spot a non-exclusive, worldwide, royalty-free license to host, store,
-          reproduce, modify (e.g., thumbnails/compression), display, and distribute this media in
-          connection with the service. You retain ownership and can delete the media at any time,
-          subject to copies in backups and caches. </source>
-        <target> Mit em Ufelade bestätigsch du, dass du d&apos;Recht hesch oder d&apos;Erlaubnis
-          hesch, die Medie z&apos;teile. Du gewährsch PK Spot en nöd-exklusivi, weltwiiti, kostelosi
-          Lizenz, zum die Medie z&apos;hoste, speichere, reproduziere, modifiziere (z.B.
-          Thumbnails/Kompression), aazeige und vertreile im Zämmehang mit dem Service. Du behaltisch
-          s&apos;Eigentum und chasch die Medie jederziit lösche, absgseh vo allfällige Kopie i
-          Backups und Caches. </target>
+        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc>. You confirm you own this content or have the right to share it. You grant
+          PK Spot the license it needs to operate the service and agree to make your contribution
+          available to the community under a Creative Commons license. </source>
+        <target>Mitem Ufelade stimmsch du eusne <pc id="0" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc> zue. Du bestätigsch, dass dir de Inhalt ghört oder du s'Recht hesch de
+          z'teile. Du gisch PK Spot d'Lizenz wo mir bruched zum de Service z'betriibe und stimmsch
+          zue din Biitrag de Community bereit z'stelle undere enere Creative Commons Lizenz. </target>
       </segment>
     </unit>
     <unit id="3517550046701184661">
@@ -655,40 +656,6 @@
       <segment state="initial">
         <source>The repeated password needs to match the password entered.</source>
         <target>S&apos;wiederholte Passwort muss dem ersten entspreche.</target>
-      </segment>
-    </unit>
-    <unit id="tos">
-      <notes>
-        <note category="description">Text of the Terms of Service link</note>
-        <note category="meaning">terms of service link text</note>
-      </notes>
-      <segment state="initial">
-        <source>Terms of Service</source>
-        <target>Terms of Service</target>
-      </segment>
-    </unit>
-    <unit id="privacypolicy">
-      <notes>
-        <note category="description">Text of the Privacy Policy link</note>
-        <note category="meaning">privacy policy link text</note>
-      </notes>
-      <segment state="initial">
-        <source>Privacy Policy</source>
-        <target>Privacy Policy</target>
-      </segment>
-    </unit>
-    <unit id="3289630490580318568">
-      <segment state="initial">
-        <source>I have read and understood the <pc id="0" equivStart="START_BOLD_TEXT"
-            equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms
-          of Service</pc> and the <pc id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
-            type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Privacy Policy</pc> and agree to
-          both.</source>
-        <target>Ich ha d&apos;<pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT"
-            type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">Terms of Service</pc> und die <pc
-            id="1" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt"
-            dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">privacy declaration</pc> glese und verstande
-          und stimme beide zu.</target>
       </segment>
     </unit>
     <unit id="1267967133679326155">
@@ -1182,6 +1149,24 @@
         <target> Das isch en Spot, wo vor allem für Abstiegstechnike benutzt wird.</target>
       </segment>
     </unit>
+    <unit id="spot-type-description.garage">
+      <segment state="initial">
+        <source>This is a parking garage or car park with ramps, columns, and concrete structures
+          suitable for training.</source>
+        <target>Das isch es Parkhuus oder Parkplatz mit Rampe, Süle, und Betonstrukture, wo zum
+          Trainiere brucht werde chönd.</target>
+      </segment>
+    </unit>
+    <unit id="spot-type-description.gymnastics-gym">
+      <segment state="initial">
+        <source>This is a gymnastics facility with mats, bars, beams, and tumbling equipment
+          suitable for acrobatic training.</source>
+        <target>
+          Das isch e Turnhalle mit Matte, Barre, Balke und Fall-Usrüstig wo für akrobatischs
+          Training geignet isch.
+        </target>
+      </segment>
+    </unit>
     <unit id="spot-type-description.monument">
       <segment state="initial">
         <source>This location is a monument, historical ruin, stone marker, or culturally
@@ -1254,6 +1239,12 @@
           für s&apos;Training. </target>
       </segment>
     </unit>
+    <unit id="spot-type-description.trampoline-park">
+      <segment state="initial">
+        <source>This is a trampoline park facility that has aerial training areas.</source>
+        <target>Das isch en Trampolin-Park mit Sprungbereiche.</target>
+      </segment>
+    </unit>
     <unit id="spot-type-description.university-campus">
       <segment state="initial">
         <source>This is a university campus with varied buildings, courtyards, and outdoor
@@ -1285,6 +1276,18 @@
       <segment state="initial">
         <source>Descent</source>
         <target>Descent</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.garage">
+      <segment state="initial">
+        <source>Garage</source>
+        <target>Garage</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.gymnastics-gym">
+      <segment state="initial">
+        <source>Gymnastics Gym</source>
+        <target>Turnhalle</target>
       </segment>
     </unit>
     <unit id="spot-type.monument">
@@ -1345,6 +1348,12 @@
       <segment state="initial">
         <source>School</source>
         <target>Schuel</target>
+      </segment>
+    </unit>
+    <unit id="spot-type.trampoline-park">
+      <segment state="initial">
+        <source>Trampoline Park</source>
+        <target>Trampolin-Park</target>
       </segment>
     </unit>
     <unit id="spot-type.university-campus">
@@ -1539,6 +1548,14 @@
             disp="{{ review.spot?.name }}" />&apos;</target>
       </segment>
     </unit>
+    <unit id="9180110319941008393">
+      <segment state="initial">
+        <source>Environment</source>
+        <target>
+          Umgebig
+        </target>
+      </segment>
+    </unit>
     <unit id="6435282697411612190">
       <segment state="initial">
         <source>What would you rate this spot from one to five stars?</source>
@@ -1647,6 +1664,26 @@
             equivEnd="CLOSE_LINK" type="link"
             dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy
           Policy</pc>. </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogCommunityBody">
+      <segment state="initial">
+        <source> PK Spot is built by the community. By contributing content, you grant us the
+          license needed to operate the service, as detailed in our Terms of Service. We then share
+          the combined spot data back to the public under a protective, non-commercial license (CC
+          BY-NC-SA 4.0) to keep it an open resource for everyone. </source>
+        <target> PK Spot lebt vo de Comminity. Mitem biitrege vo Inhalt gwährsch du eus d'Lizenz wo
+          mir bruched zum de Service betriibe, wie i euse Terms of Service beschriibe.
+          Mir teiled denn die zämegstellte Spot-Date wieder mit de Öffentlichkeit unter enere
+          schützende, non-kommerzielle Lizenz (CC BY-NC-SA 4.0),
+          dass es en offeni Ressource bliibt für alli.
+        </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogCommunityHeading">
+      <segment state="initial">
+        <source> Community &amp; Contribution </source>
+        <target> Community &amp; Mitwirkig </target>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyBody">
@@ -2476,6 +2513,24 @@
         <target>Terms</target>
       </segment>
     </unit>
+    <unit id="tos-signup">
+      <notes>
+        <note category="description">Text of the Terms of Service sign up text</note>
+        <note category="meaning">terms of service sign up text</note>
+      </notes>
+      <segment state="initial">
+        <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc> and confirm you will contribute content under the license terms described
+          within.</source>
+        <target>Bim erstelle vome Account, stimmsch du eusne <pc id="0" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms
+          of Service</pc> zue und bestätisch, dass du Inhalt unter de darin beschriibne
+          Lizenzbedingige biitreisch. </target>
+      </segment>
+    </unit>
     <unit id="7150227608403439982">
       <segment state="initial">
         <source>I&apos;ll add media!</source>
@@ -2516,6 +2571,12 @@
       <segment state="initial">
         <source>Directions</source>
         <target>Wegbeschribig</target>
+      </segment>
+    </unit>
+    <unit id="6251586038459969294">
+      <segment state="initial">
+        <source>Both</source>
+        <target>Beides</target>
       </segment>
     </unit>
     <unit id="6299599810982807013">
@@ -2674,6 +2735,12 @@
       <segment state="initial">
         <source>Spots</source>
         <target>Spots</target>
+      </segment>
+    </unit>
+    <unit id="4644751492278611655">
+      <segment state="initial">
+        <source>Indoor / Outdoor</source>
+        <target>Dinne / Dusse</target>
       </segment>
     </unit>
     <unit id="4658982717700339898">
