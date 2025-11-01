@@ -12,6 +12,7 @@ import { SpotId } from "../../db/schemas/SpotSchema";
 
 export type ContentType =
   | "spot"
+  | "spotEditHistory"
   | "challenge"
   | "event"
   | "user"
@@ -101,6 +102,8 @@ function determineContentType(route: ActivatedRouteSnapshot): ContentType {
   // Determine content type based on path patterns
   if (fullPath.includes("map") && getParamFromRouteTree(route, "challenge")) {
     return "challenge";
+  } else if (fullPath.includes("map") && fullPath.includes("edits")) {
+    return "spotEditHistory";
   } else if (fullPath.includes("map") && getParamFromRouteTree(route, "spot")) {
     return "spot";
   } else if (fullPath.includes("map")) {
@@ -174,6 +177,8 @@ async function resolveSpotContent(
         // Fall back to spot meta tags
         services.metaTagService.setSpotMetaTags(spot);
       }
+    } else if (result.contentType === "spotEditHistory") {
+      services.metaTagService.setSpotMetaTags(spot);
     } else {
       // Set spot meta tags
       services.metaTagService.setSpotMetaTags(spot);

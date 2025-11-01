@@ -56,6 +56,23 @@ service cloud.firestore {
         allow write: if request.auth.uid != null 
           && request.auth.uid == request.resource.data.user.uid;
       }
+
+      match /edits/{editId}
+      {
+        allow read: if true; // edits are publicly readable
+        allow create: if request.auth.uid != null 
+          && request.auth.uid == request.resource.data.user.uid;
+        allow update, delete: if false;
+
+        match /votes/{userId}
+        {
+          allow read: if true;
+          allow create, update: if request.auth.uid != null 
+            && request.auth.uid == userId
+            && request.auth.uid == request.resource.data.user.uid;
+          allow delete: if false;
+        }
+      }
     }
 
     match /spot_clusters/{cluster}
@@ -63,6 +80,7 @@ service cloud.firestore {
         allow read: if true;
         allow write: if false;
     }
+
 
     match /spot_slugs/{slug} {
       allow read: if true;

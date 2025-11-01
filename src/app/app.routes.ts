@@ -42,6 +42,11 @@ export const routes: Routes = [
         resolve: { content: contentResolver },
         children: [
           {
+            path: "edits",
+            component: MapPageComponent,
+            resolve: { content: contentResolver },
+          },
+          {
             path: "c",
             component: MapPageComponent,
             resolve: { content: contentResolver },

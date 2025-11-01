@@ -152,7 +152,7 @@ import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { StorageBucket } from "../../../db/schemas/Media";
 import { Timestamp } from "firebase/firestore";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 // import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
@@ -268,6 +268,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     FancyCounterComponent,
     // For change-detection-friendly stringification in animation binding
     JsonPipe,
+    RouterLink,
   ],
   schemas: [],
 })
@@ -819,11 +820,19 @@ export class SpotDetailsComponent
       this.isEditing.set(true);
     }
   }
+
+  editHistoryButtonClick() {
+    if (this.authenticationService.isSignedIn) {
+      // TODO Open the edit history view
+    }
+  }
+
   saveButtonClick() {
     this.isSaving = true;
 
     this.saveClick.emit(this.spot() as Spot);
   }
+
   discardButtonClick() {
     this.discardClick.emit();
     this.isEditing.set(false);

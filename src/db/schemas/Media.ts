@@ -1,9 +1,11 @@
 import { MediaType } from "../models/Interfaces";
+import { UserReferenceSchema } from "./UserSchema";
 
 export interface MediaSchema {
   type: MediaType;
   src: string;
-  uid?: string;
+  uid?: string; // old
+  user?: UserReferenceSchema;
   isInStorage: boolean;
   origin?: "user" | "streetview" | "other";
 }

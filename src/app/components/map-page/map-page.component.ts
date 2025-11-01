@@ -66,6 +66,7 @@ import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-pa
 import { ConsentService } from "../../services/consent.service";
 import { RouteContentData } from "../../resolvers/content.resolver";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { SpotEditDetailsComponent } from "../spot-edit-details/spot-edit-details.component";
 
 @Component({
   selector: "app-map-page",
@@ -118,6 +119,7 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
     ChallengeListComponent,
     PrimaryInfoPanelComponent,
     AsyncPipe,
+    SpotEditDetailsComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -130,6 +132,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
   showAllChallenges: WritableSignal<boolean> = signal(false);
   allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
+  showSpotEditHistory: WritableSignal<boolean> = signal(false);
 
   isEditing: WritableSignal<boolean> = signal(false);
   mapStyle: "roadmap" | "satellite" | null = null;
@@ -190,8 +193,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     effect(() => {
-      // const selectedSpot = this.selectedSpot();
-      const challenge = this.selectedChallenge();
+      // Read all relevant routing state signals so URL stays in sync
+      this.selectedSpot();
+      this.selectedChallenge();
+      this.showAllChallenges();
+      this.showSpotEditHistory();
 
       this.updateMapURL();
     });
@@ -314,21 +320,59 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedChallenge.set(contentData.challenge);
     }
 
-    // Collect params from all levels in the route tree
-    const spotIdOrSlug: string | null =
-      this.activatedRoute.snapshot.firstChild?.paramMap.get("spot") ?? null;
-    const challengeId: string | null =
-      this.activatedRoute.snapshot.firstChild?.firstChild?.firstChild?.paramMap.get(
-        "challenge"
-      ) ?? null;
-    const showChallenges =
-      !!this.activatedRoute.snapshot.firstChild?.firstChild;
+    // Parse URL to handle the edits route correctly since Angular router
+    // might interpret /map/:spot/edits as /map/:spot where :spot="edits"
+    const urlParts = this.router.url.split("/").filter((segment) => segment);
+    // urlParts will be like ['map', 'spotId', 'edits'] or ['map', 'spotId', 'c', 'challengeId']
+
+    let spotIdOrSlug: string | null = null;
+    let showChallenges = false;
+    let challengeId: string | null = null;
+    let showEditHistory = false;
+
+    if (urlParts.length >= 2 && urlParts[0] === "map") {
+      const potentialSpot = decodeURIComponent(urlParts[1]);
+
+      if (urlParts.length === 2) {
+        // /map/:spot
+        spotIdOrSlug = potentialSpot;
+      } else if (urlParts.length >= 3) {
+        const nextSegment = urlParts[2].split("?")[0];
+
+        if (nextSegment === "c") {
+          // /map/:spot/c or /map/:spot/c/:challenge
+          spotIdOrSlug = potentialSpot;
+          showChallenges = true;
+          if (urlParts.length >= 4) {
+            challengeId = decodeURIComponent(urlParts[3].split("?")[0]);
+          }
+        } else if (nextSegment === "edits") {
+          // /map/:spot/edits
+          spotIdOrSlug = potentialSpot;
+          showEditHistory = true;
+        } else {
+          // Might be /map/:spot where :spot is actually a multi-part ID like "edits"
+          // Check if the potential spot looks like a real spot ID (not a known reserved word)
+          spotIdOrSlug = potentialSpot;
+        }
+      }
+    }
+
+    console.log("DEBUG ngOnInit URL parsing:", {
+      url: this.router.url,
+      urlParts,
+      spotIdOrSlug,
+      showChallenges,
+      challengeId,
+      showEditHistory,
+    });
 
     this.pendingTasks.run(async () => {
       this._handleURLParamsChange(
         spotIdOrSlug,
         showChallenges,
         challengeId,
+        showEditHistory,
         contentData?.spot || null,
         contentData?.challenge || null
       );
@@ -369,16 +413,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             return;
           }
           const match = navEvent.url.match(
-            /^\/map(?:\/([^\/]+))?(?:\/(c)(?:\/([^\/]+))?)?/
+            /^\/map(?:\/([^\/]+))?(?:\/(c)(?:\/([^\/]+))?)?(\/(edits)(?:\/)?)?/
           );
           const spotIdOrSlug = match?.[1] ?? null;
           const showChallenges = !!match?.[2];
           const challengeId = match?.[3] ?? null;
+          const showEditHistory = !!match?.[4];
 
           this._handleURLParamsChange(
             spotIdOrSlug,
             showChallenges,
-            challengeId
+            challengeId,
+            showEditHistory
           );
         });
     }
@@ -388,6 +434,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     spotIdOrSlug: string | null,
     showChallenges: boolean,
     challengeId: string | null,
+    showEditHistory: boolean,
     resolvedSpot: Spot | null = null,
     resolvedChallenge: SpotChallenge | null = null
   ) {
@@ -415,6 +462,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     } else if (spotIdOrSlug) {
       if (this.selectedChallenge()) this.closeChallenge();
       this.showAllChallenges.set(showChallenges);
+      this.showSpotEditHistory.set(showEditHistory);
 
       // If we already have the resolved spot, use it
       if (resolvedSpot && this.selectedSpot() !== resolvedSpot) {
@@ -481,6 +529,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   updateMapURL() {
     const selectedSpot = this.selectedSpot();
     const selectedChallenge = this.selectedChallenge();
+    const showEditHistory = this.showSpotEditHistory();
 
     const urlTree = this.router.createUrlTree(
       selectedChallenge &&
@@ -493,6 +542,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             "c",
             selectedChallenge.id,
           ]
+        : selectedSpot && selectedSpot instanceof Spot && showEditHistory
+        ? ["/map", selectedSpot.slug ?? selectedSpot.id, "edits"]
         : selectedSpot &&
           selectedSpot instanceof Spot &&
           this.showAllChallenges()
@@ -533,6 +584,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!challenge) {
       return this.closeChallenge(updateUrl);
     } else {
+      this.showSpotEditHistory.set(false);
       this.selectedChallenge.set(challenge);
 
       if (updateUrl) {
@@ -549,6 +601,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   closeSpot(updateUrl: boolean = true) {
     this.selectedSpot.set(null);
+    this.showSpotEditHistory.set(false);
     this.closeChallenge(false);
 
     if (updateUrl) {

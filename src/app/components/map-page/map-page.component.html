@@ -90,19 +90,22 @@
         [(isEditing)]="isEditing"
       ></app-challenge-detail>
       } @else if(showAllChallenges()) {
-      <a
-        mat-button
-        [routerLink]="['/map', selectedSpotIdOrSlug()]"
-        class="text-truncate"
-      >
-        <mat-icon>arrow_back_ios</mat-icon>
-        <span class="d-flex flex-row align-items-center gap-2">
-          <span>{{ selectedSpot()!.name() }}</span>
-          <span i18n class="mat-label-small px-1 border rounded me-1"
-            >Spot</span
-          >
-        </span>
-      </a>
+      <div class="px-2">
+        <a
+          mat-button
+          [routerLink]="['/map', selectedSpotIdOrSlug()]"
+          class="text-truncate"
+        >
+          <mat-icon>arrow_back_ios</mat-icon>
+          <span class="d-flex flex-row align-items-center gap-2">
+            <span>{{ selectedSpot()!.name() }}</span>
+            <span i18n class="mat-label-small px-1 border rounded me-1"
+              >Spot</span
+            >
+          </span>
+        </a>
+      </div>
+
       <div class="px-3 d-flex flex-column gap-2" @slideInOut>
         <h4 class="mat-title-medium mt-2" i18n>
           All Challenges of {{ selectedSpot()!.name() }}
@@ -113,7 +116,30 @@
           [showFilterOptions]="true"
         ></app-challenge-list>
       </div>
-      } @else {
+      } @else if(showSpotEditHistory()) {
+      <div class="px-2">
+        <a
+          mat-button
+          [routerLink]="['/map', selectedSpotIdOrSlug()]"
+          class="text-truncate"
+        >
+          <mat-icon>arrow_back_ios</mat-icon>
+          <span class="d-flex flex-row gap-2 align-items-center">
+            <span>
+              {{ selectedSpot()!.name() }}
+            </span>
+            <span i18n class="mat-label-small px-1 border rounded me-1"
+              >Spot</span
+            >
+          </span>
+        </a>
+      </div>
+
+      <app-spot-edit-details
+        @slideInOut
+        class="d-block"
+      ></app-spot-edit-details>
+      }@else {
       <app-spot-details
         @fadeInOut
         #spotDetail
