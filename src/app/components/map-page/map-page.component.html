@@ -135,10 +135,16 @@
         </a>
       </div>
 
-      <app-spot-edit-details
-        @slideInOut
-        class="d-block"
-      ></app-spot-edit-details>
+      <div class="p-3">
+        @for(spotEdit of spotEdits; track $index) {
+        <app-spot-edit-details
+          @slideInOut
+          class="d-block"
+          [spotEdit]="spotEdit"
+        ></app-spot-edit-details>
+        }
+      </div>
+
       }@else {
       <app-spot-details
         @fadeInOut

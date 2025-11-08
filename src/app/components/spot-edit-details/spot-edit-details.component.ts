@@ -1,6 +1,7 @@
-import { Component } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 
 @Component({
   selector: "app-spot-edit-details",
@@ -8,4 +9,6 @@ import { MatIconModule } from "@angular/material/icon";
   templateUrl: "./spot-edit-details.component.html",
   styleUrl: "./spot-edit-details.component.scss",
 })
-export class SpotEditDetailsComponent {}
+export class SpotEditDetailsComponent {
+  spotEdit = input<SpotEditSchema>();
+}

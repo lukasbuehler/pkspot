@@ -67,6 +67,8 @@ import { ConsentService } from "../../services/consent.service";
 import { RouteContentData } from "../../resolvers/content.resolver";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { SpotEditDetailsComponent } from "../spot-edit-details/spot-edit-details.component";
+import { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
+import { Timestamp } from "firebase/firestore";
 
 @Component({
   selector: "app-map-page",
@@ -156,6 +158,22 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
   isHandset = signal(false);
+
+  spotEdits: SpotEditSchema[] = [
+    {
+      approved: false,
+      timestamp: new Timestamp(new Date().getTime() / 1000 - 3600, 0),
+      likes: 0,
+      user: {
+        uid: "user-1",
+        display_name: "Lukas Bühler",
+      },
+      data: {
+        access: "public",
+      },
+      type: "CREATE",
+    },
+  ];
 
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
