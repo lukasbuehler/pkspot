@@ -135,14 +135,19 @@
         </a>
       </div>
 
-      <div class="p-3">
+      <div class="p-3" @slideInOut>
         @for(spotEdit of spotEdits; track $index) {
         <app-spot-edit-details
-          @slideInOut
           class="d-block"
           [spotEdit]="spotEdit"
         ></app-spot-edit-details>
         }
+
+        <!-- Add the spot source and license information -->
+        <p class="mat-body-medium m-0 mt-2">
+          <strong>Source:</strong>
+          {{ selectedSpot()!.source() ?? earlyPKSpotSource }}
+        </p>
       </div>
 
       }@else {

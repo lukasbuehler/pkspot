@@ -77,4 +77,6 @@ export interface SpotSchema {
   slug?: string;
 
   hide_streetview?: boolean;
+
+  source?: string;
 }

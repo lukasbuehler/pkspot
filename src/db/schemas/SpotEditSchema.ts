@@ -26,4 +26,5 @@ export interface SpotEditSchema {
   approved: boolean;
   user: UserReferenceSchema;
   data: SpotEditDataSchema;
+  prevData?: SpotEditDataSchema;
 }

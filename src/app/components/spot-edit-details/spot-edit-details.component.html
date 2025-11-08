@@ -3,40 +3,55 @@
   class="border rounded p-3 mb-2 d-flex flex-row align-items-center gap-2 overflow-hidden"
 >
   <div class="d-flex flex-column gap-1 flex-grow-1 overflow-hidden">
-    <div class="d-flex flex-row gap-3 align-items-center">
-      <span class="mat-title-medium text-truncate">{{
-        spotEdit()!.user.display_name
-      }}</span
-      ><span class="mat-label-large text-truncate">{{
-        spotEdit()!.timestamp.toString()
-      }}</span>
+    <div
+      class="d-flex flex-row gap-3 align-items-center justify-content-between"
+    >
+      <div class="d-flex flex-column gap-1">
+        <span class="mat-label-small">
+          @if(spotEdit()!.type === 'CREATE') { Created Spot } @else { Updated
+          Spot }
+        </span>
+        <span class="mat-label-medium text-truncate">{{
+          spotEdit()!.getTimestampString()
+        }}</span>
+      </div>
+      <app-profile-button [user]="spotEdit()!.user"></app-profile-button>
     </div>
-    <div class="d-flex flex-row">
-      <span class="mat-body-medium">Added 'has lighting'</span>
-    </div>
-  </div>
-  <div class="d-flex flex-column align-items-center gap-1">
-    <div class="d-flex flex-row">
-      <button
-        mat-icon-button
-        class="d-flex justify-content-center align-items-center"
-      >
-        <mat-icon>thumb_up</mat-icon>
-      </button>
-      <button
-        mat-icon-button
-        class="d-flex justify-content-center align-items-center"
-      >
-        <mat-icon>thumb_down</mat-icon>
-      </button>
-      <!-- <button
+    <div
+      class="d-flex flex-row gap-2 align-items-start justify-content-between"
+    >
+      <div class="d-flex flex-column gap-1 overflow-hidden pt-2">
+        <div
+          class="mat-body-small"
+          [innerHTML]="spotEdit()!.getEditDetailsHTML()"
+        ></div>
+      </div>
+      @if(false) {
+      <div class="d-flex flex-column align-items-center gap-1">
+        <div class="d-flex flex-row">
+          <button
+            mat-icon-button
+            class="d-flex justify-content-center align-items-center"
+          >
+            <mat-icon>thumb_up</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="d-flex justify-content-center align-items-center"
+          >
+            <mat-icon>thumb_down</mat-icon>
+          </button>
+          <!-- <button
       mat-icon-button
       class="d-flex justify-content-center align-items-center"
     >
       <mat-icon>report</mat-icon>
     </button> -->
+        </div>
+        <span class="mat-body-small">{{ spotEdit()!.likes }} likes</span>
+      </div>
+      }
     </div>
-    <span class="mat-body-small">{{ spotEdit()!.likes }} likes</span>
   </div>
 </div>
 }

@@ -102,6 +102,8 @@ export class LocalSpot {
   type = signal<SpotTypes>(SpotTypes.Other);
   access = signal<SpotAccess>(SpotAccess.Other);
 
+  source = signal<string | undefined>(undefined);
+
   amenities: WritableSignal<AmenitiesMap>;
   amenitiesArray: Signal<{ name?: string; icon?: string }[]>;
   smartAmenitiesArray: Signal<

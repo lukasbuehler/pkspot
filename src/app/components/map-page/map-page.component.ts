@@ -48,7 +48,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { Title } from "@angular/platform-browser";
 import { MatDividerModule } from "@angular/material/divider";
-import { LocaleCode, SpotSlug } from "../../../db/models/Interfaces";
+import { LocaleCode, MediaType, SpotSlug } from "../../../db/models/Interfaces";
 import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { MatChipsModule } from "@angular/material/chips";
@@ -67,8 +67,8 @@ import { ConsentService } from "../../services/consent.service";
 import { RouteContentData } from "../../resolvers/content.resolver";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { SpotEditDetailsComponent } from "../spot-edit-details/spot-edit-details.component";
-import { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 import { Timestamp } from "firebase/firestore";
+import { SpotEdit } from "../../../db/models/SpotEdit";
 
 @Component({
   selector: "app-map-page",
@@ -159,21 +159,42 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _routerSubscription?: Subscription;
   isHandset = signal(false);
 
-  spotEdits: SpotEditSchema[] = [
-    {
+  spotEdits: SpotEdit[] = [
+    new SpotEdit("1", {
       approved: false,
       timestamp: new Timestamp(new Date().getTime() / 1000 - 3600, 0),
       likes: 0,
       user: {
-        uid: "user-1",
+        uid: "rh6V9SoyxpWJ1axNAiyfzkPptsy2",
         display_name: "Lukas Bühler",
+        profile_picture:
+          "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/profile_pictures%2Frh6V9SoyxpWJ1axNAiyfzkPptsy2_400x400?alt=media&token=2653f4f8-7f33-4b25-af97-137532539c2a",
       },
       data: {
         access: "public",
+        amenities: {
+          ac: true,
+          covered: false,
+          water_feature: null,
+          lighting: undefined,
+        },
+        name: {
+          en: "New Spot Name",
+        },
+        slug: "spot-slug",
+        media: [
+          {
+            type: MediaType.Image,
+            isInStorage: true,
+            src: "src ",
+          },
+        ],
       },
       type: "CREATE",
-    },
+    }),
   ];
+
+  earlyPKSpotSource: string = $localize`:@@map.spot.source.earlyPKSpot:Early PK Spot Community Contribution`;
 
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
