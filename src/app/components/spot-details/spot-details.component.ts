@@ -159,6 +159,7 @@ import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
 import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
+import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -604,9 +605,22 @@ export class SpotDetailsComponent
     const spot = this.spot();
     if (!(spot instanceof Spot)) return;
     if (!pred.place_id) return;
+    if (!this.authenticationService.user?.uid) return;
     this.linkingPlace.set(true);
     try {
-      await this._spotsService.setGoogleMapsPlaceId(spot.id, pred.place_id);
+      const userReference: UserReferenceSchema = {
+        uid: this.authenticationService.user.uid,
+        display_name:
+          this.authenticationService.user.data?.displayName ?? "User",
+        profile_picture:
+          this.authenticationService.user.data?.profilePicture?.baseSrc ??
+          undefined,
+      };
+      await this._spotsService.updateSpotExternalReferenceEdit(
+        spot.id,
+        { google_maps_place_id: pred.place_id },
+        userReference
+      );
       this.placeSearch.setValue("");
       this.placePredictions = [];
       this._snackbar.open($localize`Linked Google Place`, undefined, {
@@ -631,9 +645,24 @@ export class SpotDetailsComponent
   async unlinkPlace() {
     const spot = this.spot();
     if (!(spot instanceof Spot)) return;
+    if (!this.authenticationService.user?.uid) return;
     this.unlinkingPlace.set(true);
     try {
-      await this._spotsService.setGoogleMapsPlaceId(spot.id, null);
+      const userReference: UserReferenceSchema = {
+        uid: this.authenticationService.user.uid,
+        display_name:
+          this.authenticationService.user.data?.displayName ?? "User",
+        profile_picture:
+          this.authenticationService.user.data?.profilePicture?.baseSrc ??
+          undefined,
+      };
+      // To unlink, we need to send an edit that will clear the google_maps_place_id
+      // The cloud function will need to handle this appropriately
+      await this._spotsService.updateSpotExternalReferenceEdit(
+        spot.id,
+        { google_maps_place_id: null as any }, // null to indicate deletion
+        userReference
+      );
       this.googlePlace.set(undefined);
       this._snackbar.open($localize`Unlinked Google Place`, undefined, {
         duration: 2000,
@@ -921,9 +950,21 @@ export class SpotDetailsComponent
           true
         );
       }
-      if (spot instanceof Spot) {
-        // if possible, already save the uploaded media
-        this._spotsService.updateSpotMedia(spot.id, spot.userMedia());
+      if (spot instanceof Spot && this.authenticationService.user?.uid) {
+        // if possible, already save the uploaded media via a spot edit
+        const userReference: UserReferenceSchema = {
+          uid: this.authenticationService.user.uid,
+          display_name:
+            this.authenticationService.user.data?.displayName ?? "User",
+          profile_picture:
+            this.authenticationService.user.data?.profilePicture?.baseSrc ??
+            undefined,
+        };
+        this._spotsService.updateSpotMediaEdit(
+          spot.id,
+          spot.userMedia(),
+          userReference
+        );
       }
 
       console.debug("Spot after adding media", spot);

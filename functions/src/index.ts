@@ -14,6 +14,9 @@ export {
 // spot functions
 export { updateAllSpotAddresses, computeRatingOnWrite } from "./spotFunctions";
 
+// spot edit functions
+export { applySpotEditOnCreate } from "./spotEditFunctions";
+
 // spot clustering functions
 export {
   clusterAllSpotsOnRun,

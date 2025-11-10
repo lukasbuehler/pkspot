@@ -136,7 +136,7 @@
       </div>
 
       <div class="p-3" @slideInOut>
-        @for(spotEdit of spotEdits; track $index) {
+        @for(spotEdit of spotEdits(); track $index) {
         <app-spot-edit-details
           class="d-block"
           [spotEdit]="spotEdit"

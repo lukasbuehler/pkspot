@@ -22,8 +22,8 @@ export type SpotEditDataSchema = Partial<
 export interface SpotEditSchema {
   type: "CREATE" | "UPDATE";
   timestamp: Timestamp;
-  likes: number;
-  approved: boolean;
+  likes?: number;
+  approved?: boolean;
   user: UserReferenceSchema;
   data: SpotEditDataSchema;
   prevData?: SpotEditDataSchema;

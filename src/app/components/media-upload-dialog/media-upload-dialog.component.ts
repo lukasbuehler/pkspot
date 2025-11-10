@@ -13,6 +13,7 @@ import { SpotId } from "../../../db/schemas/SpotSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 
 export interface MediaUploadDialogData {
   spotId: SpotId;
@@ -69,8 +70,19 @@ export class MediaUploadDialogComponent {
       isInStorage: true,
     };
 
+    const userReference: UserReferenceSchema = {
+      uid: this._auth.user.uid!,
+      display_name: this._auth.user.data?.displayName,
+      profile_picture:
+        this._auth.user.data?.profilePicture?.baseSrc ?? undefined,
+    };
+
     try {
-      await this._spotsService.appendSpotMedia(this.data.spotId, mediaItem);
+      await this._spotsService.appendSpotMediaEdit(
+        this.data.spotId,
+        mediaItem,
+        userReference
+      );
     } catch (e) {
       console.error("Failed to append media to spot:", e);
     }

@@ -17,6 +17,8 @@ import { OsmDataService } from "../../services/osm-data.service";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { ConsentService } from "../../services/consent.service";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 
 /**
  * This interface is used to reference a spot in the loaded spots array.
@@ -36,6 +38,7 @@ export class SpotMapDataManager {
   private _spotsService: SpotsService;
   private _osmDataService: OsmDataService;
   private _consentService: ConsentService;
+  private _authService: AuthenticationService;
 
   private _spotClusterTiles: Map<MapTileKey, SpotClusterTileSchema>;
   // private _spotClusterKeysByZoom: Map<number, Map<string, MapTileKey>>;
@@ -88,6 +91,7 @@ export class SpotMapDataManager {
     this._spotsService = injector.get(SpotsService);
     this._osmDataService = injector.get(OsmDataService);
     this._consentService = injector.get(ConsentService);
+    this._authService = injector.get(AuthenticationService);
     this._spotClusterTiles = new Map<MapTileKey, SpotClusterTileSchema>();
     // this._spotClusterKeysByZoom = new Map<number, Map<string, MapTileKey>>();
     this._spots = new Map<MapTileKey, Spot[]>();
@@ -152,43 +156,29 @@ export class SpotMapDataManager {
     }
   }
 
-  saveSpot(spot: Spot | LocalSpot): Promise<void> {
-    if (!spot) return Promise.reject("No spot provided");
-
-    console.debug("Saving spot", spot);
-
-    // If this is a LocalSpot being saved, remove any existing LocalSpots at the same location
-    // to prevent duplicates when it gets converted to a Spot
-    if (!(spot instanceof Spot)) {
-      this._removeLocalSpotsAtLocation(spot.location());
+  async saveSpot(spot: Spot | LocalSpot): Promise<SpotId> {
+    // Ensure user is authenticated
+    if (!this._authService.isSignedIn || !this._authService.user?.uid) {
+      throw new Error("User not authenticated");
     }
 
-    let saveSpotPromise: Promise<void | SpotId>;
+    const userReference = {
+      uid: this._authService.user.uid,
+      display_name: this._authService.user.data?.displayName || "",
+    };
 
     if (spot instanceof Spot) {
-      // Invalidate cache entry for this spot since data is changing
-      this._spotPreviewCache.delete(spot.id);
-
-      saveSpotPromise = this._spotsService.updateSpot(
-        spot.id,
-        spot.data(),
-        this.locale
-      );
+      // Existing spot - create an UPDATE edit
+      const spotId = spot.id as SpotId;
+      await this._spotsService.updateSpotEdit(spotId, spot as any, userReference);
+      return spotId;
     } else {
-      // this is a new (client / local) spot
-      saveSpotPromise = this._spotsService
-        .createSpot(spot.data())
-        .then((id: SpotId) => {
-          // replace the LocalSpot with a Spot
-          spot = new Spot(id, spot.data(), this.locale);
-          return;
-        });
+      // New spot - use the proper flow: create spot document first (server-side ID),
+      // then create a CREATE edit for it
+      const spotData = spot as any;
+      const spotId = await this._spotsService.createSpotWithEdit(spotData, userReference);
+      return spotId;
     }
-
-    return saveSpotPromise.then(() => {
-      this.addOrUpdateNewSpotToLoadedSpotsAndUpdate(spot as Spot);
-      return Promise.resolve();
-    });
   }
 
   // private functions

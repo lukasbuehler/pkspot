@@ -9,16 +9,22 @@ service cloud.firestore {
       allow read: if true;
 
       // TODO: In the future there should be a voting feature for changes on spots.
-      // for now every authenticated user can write for every spot.
-      allow write: if request.auth.uid != null &&
-        (resource == null || resource.data == null ?
-           !request.resource.data.keys().hasAny(['rating', 'num_reviews', 'rating_histogram', 'highlighted_reviews']) :
-           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['rating', 'num_reviews', 'rating_histogram', 'highlighted_reviews']))
-           && (request.resource.data.keys().hasAny(['slug']) ? exists(/databases/$(database)/documents/spot_slugs/$(request.resource.data.slug)) : true);
+      // Only authenticated users can create new empty spot placeholders.
+      // All actual spot data must go through the edits system.
+      // The cloud function will populate the spot when processing the CREATE edit.
+      // Updates are disabled - changes must go through the edits system
+      allow create: if request.auth.uid != null 
+        && request.resource.data.keys().size() == 0;
+      allow update, delete: if false;
+      // allow write: if request.auth.uid != null &&
+      //   (resource == null || resource.data == null ?
+      //      !request.resource.data.keys().hasAny(['rating', 'num_reviews', 'rating_histogram', 'highlighted_reviews']) :
+      //      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['rating', 'num_reviews', 'rating_histogram', 'highlighted_reviews']))
+      //      && (request.resource.data.keys().hasAny(['slug']) ? exists(/databases/$(database)/documents/spot_slugs/$(request.resource.data.slug)) : true);
 
       match /reviews/{userId} {
         allow read: if true;
-        allow create: if request.auth.uid != null 
+        allow create: if request.uth.uid != null 
           && request.auth.uid == userId
           && request.auth.uid == request.resource.data.user.uid
           && !exists(/databases/$(database)/documents/spots/$(spotId)/reviews/$(userId))

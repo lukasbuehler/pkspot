@@ -8,12 +8,7 @@ import { SpotEdit } from "../../../db/models/SpotEdit";
 
 @Component({
   selector: "app-spot-edit-details",
-  imports: [
-    MatButtonModule,
-    MatIconModule,
-    KeyValuePipe,
-    ProfileButtonComponent,
-  ],
+  imports: [MatButtonModule, MatIconModule, ProfileButtonComponent],
   templateUrl: "./spot-edit-details.component.html",
   styleUrl: "./spot-edit-details.component.scss",
 })

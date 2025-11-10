@@ -36,6 +36,7 @@ import {
 import { LocalSpot } from "../../../db/models/Spot";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { GeoPoint } from "firebase/firestore";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import { MatDivider } from "@angular/material/divider";
 import {
@@ -68,6 +69,7 @@ import { locale } from "core-js";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { MarkerSchema } from "../marker/marker.component";
+import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 
 @Component({
   selector: "app-kml-import-page",
@@ -142,6 +144,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     public kmlParserService: KmlParserService,
     private _formBuilder: UntypedFormBuilder,
     private _spotsService: SpotsService,
+    private _authService: AuthenticationService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -278,7 +281,23 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     this.stepperHorizontal.next();
 
     firstValueFrom(this.kmlParserService.spotsToImport$).then((kmlSpots) => {
-      const spotsData: SpotSchema[] = kmlSpots.map((kmlSpot: KMLSpot) => {
+      // Check if user is authenticated
+      if (!this._authService.isSignedIn || !this._authService.user.uid) {
+        console.error("User must be authenticated to import spots");
+        this._spotImportFailed();
+        return;
+      }
+
+      // Create user reference for the edits
+      const userReference: UserReferenceSchema = {
+        uid: this._authService.user.uid,
+        display_name: this._authService.user.data?.displayName ?? "User",
+        profile_picture:
+          this._authService.user.data?.profilePicture?.baseSrc ?? undefined,
+      };
+
+      // Create spot edits for each KML spot
+      const spotEditPromises = kmlSpots.map((kmlSpot: KMLSpot) => {
         const spot = new LocalSpot(
           {
             name: { [this.locale]: kmlSpot.spot.name.trim() },
@@ -290,16 +309,23 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
           },
           this.locale
         );
-        return spot.data();
+
+        // Create a new spot with edit (server-side ID generation)
+        return this._spotsService.createSpotWithEdit(
+          spot.data(),
+          userReference
+        );
       });
 
-      this._spotsService.createMultipleSpots(spotsData).then(
+      // Wait for all spots to be created
+      Promise.all(spotEditPromises).then(
         () => {
-          // saving successful
+          // all spots created successfully
           this._spotImportSuccessful();
         },
         (error) => {
-          // saving failed
+          // spot creation failed
+          console.error("Failed to create spots:", error);
           this._spotImportFailed();
         }
       );
