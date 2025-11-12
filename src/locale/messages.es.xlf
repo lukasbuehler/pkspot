@@ -351,6 +351,16 @@
         <target>Contraseña</target>
       </segment>
     </unit>
+    <unit id="1433932376397571385">
+      <notes>
+        <note category="description">Label of the button to view the edit history of the spot</note>
+        <note category="meaning">Edit history button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Edit History</source>
+        <target>Historial de edición</target>
+      </segment>
+    </unit>
     <unit id="8626615958100222841">
       <segment state="initial">
         <source> Change password </source>
@@ -439,6 +449,12 @@
       <segment state="initial">
         <source>Import spots from a file</source>
         <target>Importar spots desde un archivo</target>
+      </segment>
+    </unit>
+    <unit id="map.spot.source.earlyPKSpot">
+      <segment state="initial">
+        <source>Early PK Spot Community Contribution</source>
+        <target>Contribución de la comunidad Early PK Spot</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -1549,6 +1565,12 @@
         <target>Evaluar el spot «<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}" />»</target>
       </segment>
     </unit>
+    <unit id="9160510009013134726">
+      <segment state="initial">
+        <source>Unfollow</source>
+        <target>Dejar de seguir</target>
+      </segment>
+    </unit>
     <unit id="9180110319941008393">
       <segment state="initial">
         <source>Environment</source>
@@ -1676,12 +1698,6 @@
           BY-NC-SA 4.0) to keep it an open resource for everyone. </target>
       </segment>
     </unit>
-    <unit id="welcomeDialogCommunityHeading">
-      <segment state="initial">
-        <source> Community &amp; Contribution </source>
-        <target> Community &amp; Contribution </target>
-      </segment>
-    </unit>
     <unit id="welcomeDialogCommunityBody">
       <segment state="initial">
         <source> PK Spot is built by the community. By contributing content, you grant us the
@@ -1692,6 +1708,12 @@
           license needed to operate the service, as detailed in our Terms of Service. We then share
           the combined spot data back to the public under a protective, non-commercial license (CC
           BY-NC-SA 4.0) to keep it an open resource for everyone. </target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogCommunityHeading">
+      <segment state="initial">
+        <source> Community &amp; Contribution </source>
+        <target> Community &amp; Contribution </target>
       </segment>
     </unit>
     <unit id="welcomeDialogCommunityHeading">
@@ -1744,6 +1766,112 @@
         <target>Evento en </target>
       </segment>
     </unit>
+    <unit id="editProfile.biography">
+      <notes>
+        <note category="description">Label for biography field</note>
+        <note category="meaning">biography label</note>
+      </notes>
+      <segment state="initial">
+        <source>Biography</source>
+        <target>Biografía</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.biographyPlaceholder">
+      <notes>
+        <note category="description">Placeholder text for biography</note>
+        <note category="meaning">biography placeholder</note>
+      </notes>
+      <segment state="initial">
+        <source>Write your Bio here...</source>
+        <target>Escribe tu biografía aquí...</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.croppedPicture">
+      <notes>
+        <note category="description">Label for cropped profile picture</note>
+        <note category="meaning">cropped profile picture</note>
+      </notes>
+      <segment state="initial">
+        <source> Your cropped profile picture </source>
+        <target> Tu foto de perfil recortada </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.currentPicture">
+      <notes>
+        <note category="description">Label for current profile picture</note>
+        <note category="meaning">current profile picture</note>
+      </notes>
+      <segment state="initial">
+        <source> Your current profile picture </source>
+        <target> Tu foto de perfil actual </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.displayName">
+      <notes>
+        <note category="description">Label for display name field</note>
+        <note category="meaning">display name label</note>
+      </notes>
+      <segment state="initial">
+        <source>Display Name</source>
+        <target>Nombre de visualización</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.readyToUpload">
+      <notes>
+        <note category="description">Status message</note>
+        <note category="meaning">ready to upload</note>
+      </notes>
+      <segment state="initial">
+        <source> Ready to upload </source>
+        <target> Listo para subir </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.selectPicture">
+      <notes>
+        <note category="description">Button to select profile picture</note>
+        <note category="meaning">select profile picture button</note>
+      </notes>
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">image</pc> Select
+          Profile Picture </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">image</pc>
+          Seleccionar Foto de Perfil </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.startDate">
+      <notes>
+        <note category="description">Label for start date field</note>
+        <note category="meaning">start date label</note>
+      </notes>
+      <segment state="initial">
+        <source>Start Date</source>
+        <target>Fecha de inicio</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.startDateHint">
+      <notes>
+        <note category="description">Hint text for start date</note>
+        <note category="meaning">start date hint</note>
+      </notes>
+      <segment state="initial">
+        <source>This is the date you started practicing Parkour and Freerunning. It will be rounded
+          to full years after one year or more so don&apos;t sweat it.</source>
+        <target>Esta es la fecha en que comenzaste a practicar Parkour y Freerunning. Se redondeará
+          a años completos después de un año o más, así que no te preocupes.</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.uploadAndSave">
+      <notes>
+        <note category="description">Button to upload and save profile picture</note>
+        <note category="meaning">upload and save button</note>
+      </notes>
+      <segment state="initial">
+        <source> Upload and save </source>
+        <target> Subir y guardar </target>
+      </segment>
+    </unit>
     <unit id="events.nav_label">
       <segment state="initial">
         <source>Events</source>
@@ -1757,6 +1885,12 @@
       <segment state="initial">
         <source>Events</source>
         <target>Eventos</target>
+      </segment>
+    </unit>
+    <unit id="6018246591673612412">
+      <segment state="initial">
+        <source>Follow</source>
+        <target>Seguir</target>
       </segment>
     </unit>
     <unit id="6019314900948916795">
@@ -1831,6 +1965,22 @@
         <target>Idioma</target>
       </segment>
     </unit>
+    <unit id="28674972039900875">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
+            dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Public License:</pc> This
+          spot&apos;s data is made available under the <pc id="1" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
+            dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </source>
+        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
+            dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Licencia Pública:</pc> Los datos de
+          este spot están disponibles bajo la licencia <pc id="1" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
+            dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc>. </target>
+      </segment>
+    </unit>
     <unit id="7855274718891325217">
       <segment state="initial">
         <source>Show Event header</source>
@@ -1871,6 +2021,56 @@
       <segment state="initial">
         <source>Create Account</source>
         <target>Crear cuenta</target>
+      </segment>
+    </unit>
+    <unit id="crop.cancel">
+      <notes>
+        <note category="description">Cancel action</note>
+        <note category="meaning">cancel button</note>
+      </notes>
+      <segment state="initial">
+        <source> Cancel </source>
+        <target> Cancelar </target>
+      </segment>
+    </unit>
+    <unit id="crop.instruction">
+      <notes>
+        <note category="description">Instruction to crop the image</note>
+        <note category="meaning">crop image instruction</note>
+      </notes>
+      <segment state="initial">
+        <source> Crop the image above </source>
+        <target> Recorta la imagen de arriba </target>
+      </segment>
+    </unit>
+    <unit id="crop.preview">
+      <notes>
+        <note category="description">Preview heading</note>
+        <note category="meaning">crop image preview</note>
+      </notes>
+      <segment state="initial">
+        <source> Preview </source>
+        <target> Vista previa </target>
+      </segment>
+    </unit>
+    <unit id="crop.processing">
+      <notes>
+        <note category="description">Label shown while processing</note>
+        <note category="meaning">processing label</note>
+      </notes>
+      <segment state="initial">
+        <source>Processing...</source>
+        <target>Procesando...</target>
+      </segment>
+    </unit>
+    <unit id="crop.saveCropped">
+      <notes>
+        <note category="description">Button to save the cropped image</note>
+        <note category="meaning">save cropped image button</note>
+      </notes>
+      <segment state="initial">
+        <source>Save Cropped Image</source>
+        <target>Guardar imagen recortada</target>
       </segment>
     </unit>
     <unit id="add_review_label">
@@ -2288,6 +2488,26 @@
         <target>Seleccionar URL del Spot preferida</target>
       </segment>
     </unit>
+    <unit id="spot.edit_history.aria_label">
+      <notes>
+        <note category="description">Aria label for edit history button</note>
+        <note category="meaning">edit history aria label</note>
+      </notes>
+      <segment state="initial">
+        <source>Edit history button with a history icon</source>
+        <target>Botón de historial de edición con un icono de historial</target>
+      </segment>
+    </unit>
+    <unit id="spot.edit_history.tooltip">
+      <notes>
+        <note category="description">Tooltip for edit history button</note>
+        <note category="meaning">edit history tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>View edit history of this spot</source>
+        <target>Ver el historial de edición de este spot</target>
+      </segment>
+    </unit>
     <unit id="spot.edit.url.add_custom">
       <segment state="initial">
         <source>Add custom spot URL</source>
@@ -2372,6 +2592,21 @@
       <segment state="initial">
         <source>This challenge is for fun! </source>
         <target>¡Este Challenge es para divertirse! </target>
+      </segment>
+    </unit>
+    <unit id="5176605689144016167">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
+            dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding
+          this content on your website, you are responsible for obtaining user consent for
+          third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent
+          banner or terms that users agree to before viewing embedded content. </source>
+        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
+            dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Importante:</pc> Al incrustar
+          este contenido en tu sitio web, eres responsable de obtener el consentimiento del usuario
+          para servicios de terceros (Google Maps, análisis, etc.). Asegúrate de que tu sitio tenga
+          un banner de consentimiento claro o términos que los usuarios acepten antes de ver
+          contenido incrustado. </target>
       </segment>
     </unit>
     <unit id="2369409944839137310">
@@ -2484,6 +2719,12 @@
       <segment state="initial">
         <source> The Challenge will be public right away after it is added. </source>
         <target> El Challenge será público inmediatamente después de ser añadido. </target>
+      </segment>
+    </unit>
+    <unit id="3959902123742995673">
+      <segment state="initial">
+        <source>Could not sign in with Google!</source>
+        <target>¡No se pudo iniciar sesión con Google!</target>
       </segment>
     </unit>
     <unit id="397098723873502323">

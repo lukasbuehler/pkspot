@@ -486,6 +486,15 @@
         <source>Password</source>
       </segment>
     </unit>
+    <unit id="1433932376397571385">
+      <notes>
+        <note category="description">Label of the button to view the edit history of the spot</note>
+        <note category="meaning">Edit history button label</note>
+      </notes>
+      <segment>
+        <source>Edit History</source>
+      </segment>
+    </unit>
     <unit id="8626615958100222841">
       <segment>
         <source> Change password </source>
@@ -1101,6 +1110,11 @@
         <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
       </segment>
     </unit>
+    <unit id="9160510009013134726">
+      <segment>
+        <source>Unfollow</source>
+      </segment>
+    </unit>
     <unit id="9180110319941008393">
       <segment>
         <source>Environment</source>
@@ -1166,6 +1180,11 @@
       </notes>
       <segment>
         <source>Import spots from a file</source>
+      </segment>
+    </unit>
+    <unit id="map.spot.source.earlyPKSpot">
+      <segment>
+        <source>Early PK Spot Community Contribution</source>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -1372,6 +1391,96 @@
         <source>Event in </source>
       </segment>
     </unit>
+    <unit id="editProfile.biography">
+      <notes>
+        <note category="description">Label for biography field</note>
+        <note category="meaning">biography label</note>
+      </notes>
+      <segment>
+        <source>Biography</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.biographyPlaceholder">
+      <notes>
+        <note category="description">Placeholder text for biography</note>
+        <note category="meaning">biography placeholder</note>
+      </notes>
+      <segment>
+        <source>Write your Bio here...</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.croppedPicture">
+      <notes>
+        <note category="description">Label for cropped profile picture</note>
+        <note category="meaning">cropped profile picture</note>
+      </notes>
+      <segment>
+        <source> Your cropped profile picture </source>
+      </segment>
+    </unit>
+    <unit id="editProfile.currentPicture">
+      <notes>
+        <note category="description">Label for current profile picture</note>
+        <note category="meaning">current profile picture</note>
+      </notes>
+      <segment>
+        <source> Your current profile picture </source>
+      </segment>
+    </unit>
+    <unit id="editProfile.displayName">
+      <notes>
+        <note category="description">Label for display name field</note>
+        <note category="meaning">display name label</note>
+      </notes>
+      <segment>
+        <source>Display Name</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.readyToUpload">
+      <notes>
+        <note category="description">Status message</note>
+        <note category="meaning">ready to upload</note>
+      </notes>
+      <segment>
+        <source> Ready to upload </source>
+      </segment>
+    </unit>
+    <unit id="editProfile.selectPicture">
+      <notes>
+        <note category="description">Button to select profile picture</note>
+        <note category="meaning">select profile picture button</note>
+      </notes>
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">image</pc> Select Profile Picture </source>
+      </segment>
+    </unit>
+    <unit id="editProfile.startDate">
+      <notes>
+        <note category="description">Label for start date field</note>
+        <note category="meaning">start date label</note>
+      </notes>
+      <segment>
+        <source>Start Date</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.startDateHint">
+      <notes>
+        <note category="description">Hint text for start date</note>
+        <note category="meaning">start date hint</note>
+      </notes>
+      <segment>
+        <source>This is the date you started practicing Parkour and Freerunning. It will be rounded to full years after one year or more so don&apos;t sweat it.</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.uploadAndSave">
+      <notes>
+        <note category="description">Button to upload and save profile picture</note>
+        <note category="meaning">upload and save button</note>
+      </notes>
+      <segment>
+        <source> Upload and save </source>
+      </segment>
+    </unit>
     <unit id="events.nav_label">
       <segment>
         <source>Events</source>
@@ -1413,6 +1522,11 @@
         <source>Not sure</source>
       </segment>
     </unit>
+    <unit id="6018246591673612412">
+      <segment>
+        <source>Follow</source>
+      </segment>
+    </unit>
     <unit id="6019314900948916795">
       <segment>
         <source>WC</source>
@@ -1430,6 +1544,11 @@
     <unit id="2826581353496868063">
       <segment>
         <source>Language</source>
+      </segment>
+    </unit>
+    <unit id="28674972039900875">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Public License:</pc> This spot&apos;s data is made available under the <pc id="1" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;" dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </source>
       </segment>
     </unit>
     <unit id="3304972143698843178">
@@ -1475,6 +1594,51 @@
     <unit id="create_acc.nav_label">
       <segment>
         <source>Create Account</source>
+      </segment>
+    </unit>
+    <unit id="crop.cancel">
+      <notes>
+        <note category="description">Cancel action</note>
+        <note category="meaning">cancel button</note>
+      </notes>
+      <segment>
+        <source> Cancel </source>
+      </segment>
+    </unit>
+    <unit id="crop.instruction">
+      <notes>
+        <note category="description">Instruction to crop the image</note>
+        <note category="meaning">crop image instruction</note>
+      </notes>
+      <segment>
+        <source> Crop the image above </source>
+      </segment>
+    </unit>
+    <unit id="crop.preview">
+      <notes>
+        <note category="description">Preview heading</note>
+        <note category="meaning">crop image preview</note>
+      </notes>
+      <segment>
+        <source> Preview </source>
+      </segment>
+    </unit>
+    <unit id="crop.processing">
+      <notes>
+        <note category="description">Label shown while processing</note>
+        <note category="meaning">processing label</note>
+      </notes>
+      <segment>
+        <source>Processing...</source>
+      </segment>
+    </unit>
+    <unit id="crop.saveCropped">
+      <notes>
+        <note category="description">Button to save the cropped image</note>
+        <note category="meaning">save cropped image button</note>
+      </notes>
+      <segment>
+        <source>Save Cropped Image</source>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -1817,6 +1981,11 @@
         <source>This challenge is for fun! </source>
       </segment>
     </unit>
+    <unit id="5176605689144016167">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
+      </segment>
+    </unit>
     <unit id="spot.edit.hide_streetview">
       <notes>
         <note category="description">Toggle to hide streetview</note>
@@ -1833,6 +2002,24 @@
       </notes>
       <segment>
         <source>Select preffered spot URL</source>
+      </segment>
+    </unit>
+    <unit id="spot.edit_history.aria_label">
+      <notes>
+        <note category="description">Aria label for edit history button</note>
+        <note category="meaning">edit history aria label</note>
+      </notes>
+      <segment>
+        <source>Edit history button with a history icon</source>
+      </segment>
+    </unit>
+    <unit id="spot.edit_history.tooltip">
+      <notes>
+        <note category="description">Tooltip for edit history button</note>
+        <note category="meaning">edit history tooltip</note>
+      </notes>
+      <segment>
+        <source>View edit history of this spot</source>
       </segment>
     </unit>
     <unit id="5354481455147566182">
@@ -1942,6 +2129,11 @@
     <unit id="3724068243287682962">
       <segment>
         <source>Team</source>
+      </segment>
+    </unit>
+    <unit id="3959902123742995673">
+      <segment>
+        <source>Could not sign in with Google!</source>
       </segment>
     </unit>
     <unit id="397098723873502323">

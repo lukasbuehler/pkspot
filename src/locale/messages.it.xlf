@@ -351,6 +351,16 @@
         <target>Password</target>
       </segment>
     </unit>
+    <unit id="1433932376397571385">
+      <notes>
+        <note category="description">Label of the button to view the edit history of the spot</note>
+        <note category="meaning">Edit history button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Edit History</source>
+        <target>Cronologia modifiche</target>
+      </segment>
+    </unit>
     <unit id="8626615958100222841">
       <segment state="initial">
         <source> Change password </source>
@@ -439,6 +449,12 @@
       <segment state="initial">
         <source>Import spots from a file</source>
         <target>Importa spot da un file</target>
+      </segment>
+    </unit>
+    <unit id="map.spot.source.earlyPKSpot">
+      <segment state="initial">
+        <source>Early PK Spot Community Contribution</source>
+        <target>Contributo della comunità Early PK Spot</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -1554,6 +1570,12 @@
             disp="{{ review.spot?.name }}" />&apos;</target>
       </segment>
     </unit>
+    <unit id="9160510009013134726">
+      <segment state="initial">
+        <source>Unfollow</source>
+        <target>Non seguire</target>
+      </segment>
+    </unit>
     <unit id="9180110319941008393">
       <segment state="initial">
         <source>Environment</source>
@@ -1732,6 +1754,112 @@
         <target>Evento in </target>
       </segment>
     </unit>
+    <unit id="editProfile.biography">
+      <notes>
+        <note category="description">Label for biography field</note>
+        <note category="meaning">biography label</note>
+      </notes>
+      <segment state="initial">
+        <source>Biography</source>
+        <target>Biografia</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.biographyPlaceholder">
+      <notes>
+        <note category="description">Placeholder text for biography</note>
+        <note category="meaning">biography placeholder</note>
+      </notes>
+      <segment state="initial">
+        <source>Write your Bio here...</source>
+        <target>Scrivi la tua biografia qui...</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.croppedPicture">
+      <notes>
+        <note category="description">Label for cropped profile picture</note>
+        <note category="meaning">cropped profile picture</note>
+      </notes>
+      <segment state="initial">
+        <source> Your cropped profile picture </source>
+        <target> La tua foto di profilo ritagliata </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.currentPicture">
+      <notes>
+        <note category="description">Label for current profile picture</note>
+        <note category="meaning">current profile picture</note>
+      </notes>
+      <segment state="initial">
+        <source> Your current profile picture </source>
+        <target> La tua foto di profilo attuale </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.displayName">
+      <notes>
+        <note category="description">Label for display name field</note>
+        <note category="meaning">display name label</note>
+      </notes>
+      <segment state="initial">
+        <source>Display Name</source>
+        <target>Nome visualizzato</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.readyToUpload">
+      <notes>
+        <note category="description">Status message</note>
+        <note category="meaning">ready to upload</note>
+      </notes>
+      <segment state="initial">
+        <source> Ready to upload </source>
+        <target> Pronto per il caricamento </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.selectPicture">
+      <notes>
+        <note category="description">Button to select profile picture</note>
+        <note category="meaning">select profile picture button</note>
+      </notes>
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">image</pc> Select
+          Profile Picture </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">image</pc>
+          Seleziona Foto di Profilo </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.startDate">
+      <notes>
+        <note category="description">Label for start date field</note>
+        <note category="meaning">start date label</note>
+      </notes>
+      <segment state="initial">
+        <source>Start Date</source>
+        <target>Start Date</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.startDateHint">
+      <notes>
+        <note category="description">Hint text for start date</note>
+        <note category="meaning">start date hint</note>
+      </notes>
+      <segment state="initial">
+        <source>This is the date you started practicing Parkour and Freerunning. It will be rounded
+          to full years after one year or more so don&apos;t sweat it.</source>
+        <target>This is the date you started practicing Parkour and Freerunning. It will be rounded
+          to full years after one year or more so don&apos;t sweat it.</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.uploadAndSave">
+      <notes>
+        <note category="description">Button to upload and save profile picture</note>
+        <note category="meaning">upload and save button</note>
+      </notes>
+      <segment state="initial">
+        <source> Upload and save </source>
+        <target> Upload and save </target>
+      </segment>
+    </unit>
     <unit id="events.nav_label">
       <segment state="initial">
         <source>Events</source>
@@ -1745,6 +1873,12 @@
       <segment state="initial">
         <source>Events</source>
         <target>Eventi</target>
+      </segment>
+    </unit>
+    <unit id="6018246591673612412">
+      <segment state="initial">
+        <source>Follow</source>
+        <target>Follow</target>
       </segment>
     </unit>
     <unit id="6019314900948916795">
@@ -1819,6 +1953,22 @@
         <target>Lingua</target>
       </segment>
     </unit>
+    <unit id="28674972039900875">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
+            dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Public License:</pc> This
+          spot&apos;s data is made available under the <pc id="1" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
+            dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </source>
+        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
+            dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Public License:</pc> This
+          spot&apos;s data is made available under the <pc id="1" equivStart="START_LINK"
+            equivEnd="CLOSE_LINK" type="link"
+            dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
+            dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </target>
+      </segment>
+    </unit>
     <unit id="7855274718891325217">
       <segment state="initial">
         <source>Show Event header</source>
@@ -1859,6 +2009,56 @@
       <segment state="initial">
         <source>Create Account</source>
         <target>Crea account</target>
+      </segment>
+    </unit>
+    <unit id="crop.cancel">
+      <notes>
+        <note category="description">Cancel action</note>
+        <note category="meaning">cancel button</note>
+      </notes>
+      <segment state="initial">
+        <source> Cancel </source>
+        <target> Cancel </target>
+      </segment>
+    </unit>
+    <unit id="crop.instruction">
+      <notes>
+        <note category="description">Instruction to crop the image</note>
+        <note category="meaning">crop image instruction</note>
+      </notes>
+      <segment state="initial">
+        <source> Crop the image above </source>
+        <target> Crop the image above </target>
+      </segment>
+    </unit>
+    <unit id="crop.preview">
+      <notes>
+        <note category="description">Preview heading</note>
+        <note category="meaning">crop image preview</note>
+      </notes>
+      <segment state="initial">
+        <source> Preview </source>
+        <target> Preview </target>
+      </segment>
+    </unit>
+    <unit id="crop.processing">
+      <notes>
+        <note category="description">Label shown while processing</note>
+        <note category="meaning">processing label</note>
+      </notes>
+      <segment state="initial">
+        <source>Processing...</source>
+        <target>Processing...</target>
+      </segment>
+    </unit>
+    <unit id="crop.saveCropped">
+      <notes>
+        <note category="description">Button to save the cropped image</note>
+        <note category="meaning">save cropped image button</note>
+      </notes>
+      <segment state="initial">
+        <source>Save Cropped Image</source>
+        <target>Save Cropped Image</target>
       </segment>
     </unit>
     <unit id="add_review_label">
@@ -2276,6 +2476,26 @@
         <target>Seleziona Spot URL preferito</target>
       </segment>
     </unit>
+    <unit id="spot.edit_history.aria_label">
+      <notes>
+        <note category="description">Aria label for edit history button</note>
+        <note category="meaning">edit history aria label</note>
+      </notes>
+      <segment state="initial">
+        <source>Edit history button with a history icon</source>
+        <target>Edit history button with a history icon</target>
+      </segment>
+    </unit>
+    <unit id="spot.edit_history.tooltip">
+      <notes>
+        <note category="description">Tooltip for edit history button</note>
+        <note category="meaning">edit history tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>View edit history of this spot</source>
+        <target>View edit history of this spot</target>
+      </segment>
+    </unit>
     <unit id="spot.edit.url.add_custom">
       <segment state="initial">
         <source>Add custom spot URL</source>
@@ -2360,6 +2580,20 @@
       <segment state="initial">
         <source>This challenge is for fun! </source>
         <target>Questo Challenge è per divertimento! </target>
+      </segment>
+    </unit>
+    <unit id="5176605689144016167">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
+            dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding
+          this content on your website, you are responsible for obtaining user consent for
+          third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent
+          banner or terms that users agree to before viewing embedded content. </source>
+        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
+            dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding
+          this content on your website, you are responsible for obtaining user consent for
+          third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent
+          banner or terms that users agree to before viewing embedded content. </target>
       </segment>
     </unit>
     <unit id="2369409944839137310">
@@ -2472,6 +2706,12 @@
       <segment state="initial">
         <source> The Challenge will be public right away after it is added. </source>
         <target> La challenge sarà pubblica subito dopo essere stata aggiunta. </target>
+      </segment>
+    </unit>
+    <unit id="3959902123742995673">
+      <segment state="initial">
+        <source>Could not sign in with Google!</source>
+        <target>Could not sign in with Google!</target>
       </segment>
     </unit>
     <unit id="397098723873502323">
