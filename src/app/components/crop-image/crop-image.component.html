@@ -1,0 +1,83 @@
+<div class="crop-container">
+  <mat-card class="crop-card">
+    <mat-card-content class="crop-content">
+      <div class="cropper-wrapper">
+        <image-cropper
+          [imageBase64]="imageSource"
+          [maintainAspectRatio]="true"
+          [aspectRatio]="1"
+          [cropperMinHeight]="100"
+          format="png"
+          (imageCropped)="imageCroppedEventHandler($event)"
+          [roundCropper]="true"
+        ></image-cropper>
+      </div>
+
+      <div class="preview-section mt-4">
+        <h4
+          class="mat-subtitle-2"
+          i18n="crop image preview|Preview heading@@crop.preview"
+        >
+          Preview
+        </h4>
+        @if (croppedImage) {
+        <img
+          [src]="croppedImage"
+          alt="Cropped preview"
+          class="cropped-preview"
+        />
+        } @else {
+        <div class="cropped-preview placeholder">
+          <mat-icon>image</mat-icon>
+          <p
+            class="mat-caption"
+            i18n="
+              crop image instruction|Instruction to crop the
+              image@@crop.instruction"
+          >
+            Crop the image above
+          </p>
+        </div>
+        }
+      </div>
+    </mat-card-content>
+
+    <div class="crop-actions">
+      <button
+        mat-stroked-button
+        (click)="cancelCrop()"
+        [disabled]="isProcessing"
+        i18n="cancel button|Cancel action@@crop.cancel"
+      >
+        Cancel
+      </button>
+      <button
+        mat-flat-button
+        color="accent"
+        (click)="saveCroppedImage()"
+        [disabled]="!croppedImage || isProcessing"
+      >
+        @if (isProcessing) {
+        <span class="d-flex flex-row">
+          <mat-icon class="me-2">hourglass_empty</mat-icon>
+          <span
+            i18n="
+              processing label|Label shown while processing@@crop.processing"
+            >Processing...</span
+          >
+        </span>
+        } @else {
+        <span class="d-flex flex-row">
+          <mat-icon class="me-2">check</mat-icon>
+          <span
+            i18n="
+              save cropped image button|Button to save the cropped
+              image@@crop.saveCropped"
+            >Save Cropped Image</span
+          >
+        </span>
+        }
+      </button>
+    </div>
+  </mat-card>
+</div>

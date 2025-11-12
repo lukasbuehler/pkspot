@@ -41,6 +41,7 @@ import {
   withIncrementalHydration,
 } from "@angular/platform-browser";
 import { MAT_DIALOG_DEFAULT_OPTIONS } from "@angular/material/dialog";
+import { provideNativeDateAdapter } from "@angular/material/core";
 
 import { routes } from "./app.routes";
 import { provideRouter, withViewTransitions } from "@angular/router";
@@ -75,6 +76,7 @@ export const appConfig: ApplicationConfig = {
         hasBackdrop: true,
       },
     },
+    provideNativeDateAdapter(),
     provideClientHydration(withI18nSupport(), withIncrementalHydration()),
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideAnimations(),

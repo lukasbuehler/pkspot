@@ -1,59 +1,155 @@
-.profile-pic {
-  width: 10em;
-  height: 10em;
-  border-radius: 50%;
-  background-color: lightgrey;
+:host {
+  display: block;
 }
 
-.followingSpinner {
-  margin-top: 6px;
-}
-::ng-deep .followingSpinner circle {
-  stroke: white;
-}
-
-.profileButtonRow {
-  width: 100%;
-  gap: 5px;
-
-  @media (min-width: 576px) {
-    flex-direction: row;
-
-    button {
-      flex-grow: 1;
-      flex-basis: 0;
-    }
-  }
-  @media (max-width: 575px) {
-    flex-direction: column;
-  }
-}
-
-.profileCardContainer {
+.profile-page {
   display: flex;
+  justify-content: center;
+  padding: clamp(24px, 5vw, 48px) clamp(16px, 6vw, 72px);
+}
+
+.profile-grid {
+  width: min(1120px, 100%);
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 960px) {
+  .profile-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.profile-primary,
+.profile-secondary {
+  display: grid;
+  gap: 24px;
+}
+
+.profile-overview__card {
+  overflow: hidden;
+}
+
+.profile-overview__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   align-items: center;
+}
 
-  @media (max-width: 767px) {
-    flex-direction: column;
-
-    .profile-pic {
-      margin-bottom: 24px;
-    }
-
-    .profileInfoContainer {
-      align-items: center;
-    }
-  }
-  @media (min-width: 768px) {
+@media (min-width: 768px) {
+  .profile-overview__content {
     flex-direction: row;
-    justify-content: left;
-
-    .profile-pic {
-      margin-right: 48px;
-    }
-
-    .profileInfoContainer {
-      align-items: left;
-    }
+    align-items: flex-start;
   }
+}
+
+.profile-overview__avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: var(--mat-sys-color-secondary-container, #e8def8);
+  color: var(--mat-sys-color-on-secondary-container, #1d192b);
+}
+
+.profile-overview__avatar--placeholder {
+  display: grid;
+  place-items: center;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.profile-overview__details {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+
+.profile-overview__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-overview__name {
+  flex: 1 1 auto;
+}
+
+.profile-overview__tenure,
+.profile-overview__metric {
+  margin: 0;
+}
+
+.profile-overview__metric {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.profile-overview__metric-value {
+  font-weight: 600;
+}
+
+.profile-overview__actions {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 560px) {
+  .profile-overview__actions {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
+
+.profile-overview__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.profile-overview__action-spinner {
+  --mdc-circular-progress-active-indicator-color: currentColor;
+}
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-section__placeholder {
+  margin: 0;
+  color: var(--mat-sys-color-on-surface-variant, rgba(255, 255, 255, 0.7));
+}
+
+.profile-bio__text {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.profile-section__header.mat-mdc-card-header {
+  padding: 20px 24px 0;
+}
+
+.profile-section__header .mat-mdc-card-title {
+  margin: 0 0 8px;
+}
+
+.profile-section__content.mat-mdc-card-content {
+  padding: 12px 24px 24px;
+  margin: 0;
+}
+
+.profile-section__content.profile-section__content--with-divider.mat-mdc-card-content {
+  padding-top: 16px;
+}
+
+.profile-state {
+  display: grid;
+  place-items: center;
+  min-height: 260px;
+  text-align: center;
 }

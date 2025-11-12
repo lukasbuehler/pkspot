@@ -14,13 +14,13 @@ import { StorageService } from "../../services/firebase/storage.service";
 import { MatButton } from "@angular/material/button";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { MatChipSet, MatChip } from "@angular/material/chips";
-import { NgIf } from "@angular/common";
 import {
   MatCard,
   MatCardContent,
   MatCardHeader,
   MatCardTitle,
 } from "@angular/material/card";
+import { MatDivider } from "@angular/material/divider";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FollowingService } from "../../services/firebase/firestore/following.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
@@ -34,7 +34,6 @@ import { PostsService } from "../../services/firebase/firestore/posts.service";
     MatProgressSpinner,
     MatCard,
     MatCardContent,
-    NgIf,
     MatChipSet,
     MatChip,
     FancyCounterComponent,
@@ -42,6 +41,7 @@ import { PostsService } from "../../services/firebase/firestore/posts.service";
     RouterLink,
     MatCardHeader,
     MatCardTitle,
+    MatDivider,
   ],
 })
 export class ProfilePageComponent implements OnInit {

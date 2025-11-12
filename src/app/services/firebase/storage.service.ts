@@ -97,14 +97,21 @@ export class StorageService {
         },
         () => {
           // Handle successful uploads on complete
-          // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+          // Generate a public URL without token (since our Storage rules allow public read access)
+          // Format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media
 
-          const downloadUrl = getDownloadURL(uploadTask.snapshot.ref).then(
-            (url) =>
-              url.replace(/\.MP4\?/, ".mp4?").replace(/\.mov\?/i, ".mp4?")
-          );
+          const bucket = this.storage!.app.options.storageBucket;
+          const fullPath = uploadTask.snapshot.ref.fullPath;
+          const encodedPath = encodeURIComponent(fullPath);
 
-          resolve(downloadUrl);
+          const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
+
+          // Normalize extensions (consistent formatting)
+          const normalizedUrl = publicUrl
+            .replace(/\.MP4\?/, ".mp4?")
+            .replace(/\.mov\?/i, ".mp4?");
+
+          resolve(normalizedUrl);
         }
       );
     });

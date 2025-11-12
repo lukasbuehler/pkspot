@@ -1,126 +1,193 @@
-<div class="container">
-  @if(isLoading) {
-  <div class="row">
-    <div class="p-5 col-md-12 d-flex justify-content-center">
-      <mat-spinner></mat-spinner>
-    </div>
+<div class="profile-page">
+  @if (isLoading) {
+  <div class="profile-state" aria-live="polite">
+    <mat-spinner
+      diameter="48"
+      strokeWidth="4"
+      aria-label="Loading profile"
+    ></mat-spinner>
   </div>
-  } @else { @if(user) {
-  <div class="row d-lg-flex flex-row">
-    <div class="col-lg-8 pt-4">
-      <mat-card class="mat-elevation-z0 border rounded text-left">
-        <mat-card-content class="p-4">
-          <div class="profileCardContainer">
+  } @else { @if (user) {
+  <div class="profile-grid">
+    <section class="profile-primary" aria-label="Profile overview">
+      <mat-card class="profile-overview__card mat-elevation-z1">
+        <mat-card-content>
+          <div class="profile-overview__content">
+            @if (profilePicture) {
             <img
-              *ngIf="profilePicture"
-              class="profile-pic"
+              class="profile-overview__avatar"
               [src]="profilePicture"
-              alt=""
+              [alt]="
+                user.displayName
+                  ? user.displayName + ' profile picture'
+                  : 'Profile picture'
+              "
             />
+            } @else {
             <div
-              class="profileInfoContainer d-flex flex-column justify-content-center flex-grow-1 w-100 text-center"
+              class="profile-overview__avatar profile-overview__avatar--placeholder mat-display-small"
+              aria-hidden="true"
             >
-              <div class="d-flex justify-content-between">
-                <h1 class="mat-h1 mb-2 flex-full text-left">
+              {{ user.displayName ? user.displayName.charAt(0) : "?" }}
+            </div>
+            }
+
+            <div class="profile-overview__details">
+              <div class="profile-overview__heading">
+                <span class="mat-headline-small profile-overview__name">
                   {{ user.displayName }}
-                </h1>
-                <mat-chip-set class="d-flex pb-2 ml-3">
-                  <mat-chip color="accent" *ngIf="isMyProfile">You</mat-chip>
-                  <mat-chip *ngIf="!isMyProfile && false">Follows you</mat-chip>
+                </span>
+                <mat-chip-set aria-label="Profile status">
+                  @if (isMyProfile) {
+                  <mat-chip color="primary" class="mat-label-large"
+                    >You</mat-chip
+                  >
+                  }
                 </mat-chip-set>
               </div>
-              <div class="d-md-flex flex-row justify-content-between">
-                <h3 *ngIf="false" class="mat-h3 text-left mb-2">
-                  Member of <strong>Team name</strong>
-                </h3>
-                <h3 *ngIf="user.startTimeDiffString" class="mat-h3 mb-2">
-                  Freerunner since {{ user.startTimeDiffString }}
-                </h3>
-              </div>
-              <h3 class="mat-h3">
-                <strong>
+
+              @if (user.startTimeDiffString) {
+              <p class="mat-body-large profile-overview__tenure">
+                Freerunner since {{ user.startTimeDiffString }}
+              </p>
+              }
+
+              <div class="profile-overview__metric mat-title-medium">
+                <span class="profile-overview__metric-value">
                   <app-fancy-counter
                     [number]="user.followerCount || 0"
-                  ></app-fancy-counter
-                ></strong>
+                  ></app-fancy-counter>
+                </span>
                 Follower{{ user.followerCount === 1 ? "" : "s" }}
-              </h3>
-              <div *ngIf="!isMyProfile" class="profileButtonRow d-flex">
+              </div>
+
+              @if (!isMyProfile) {
+              <div
+                class="profile-overview__actions"
+                aria-label="Profile actions"
+              >
                 <button
-                  mat-flat-button
-                  [color]="isFollowing ? 'primary' : 'accent'"
-                  class="d-flex justify-content-center align-items-center align-middle"
+                  [matButton]="isFollowing ? 'outlined' : 'filled'"
+                  color="primary"
+                  class="profile-overview__action"
                   (click)="followButtonClick()"
                 >
+                  @if (loadingFollowing) {
                   <mat-spinner
-                    *ngIf="loadingFollowing"
-                    diameter="24"
-                    class="float-left followingSpinner mr-2"
+                    diameter="20"
+                    strokeWidth="3"
+                    class="profile-overview__action-spinner"
+                    aria-label="Updating follow status"
                   ></mat-spinner>
-                  {{ isFollowing ? "Unfollow" : "Follow" }}
+                  } @if(isFollowing) {
+                  <span i18n>Unfollow</span>
+                  } @else {
+                  <span i18n>Follow</span>
+                  }
                 </button>
-                <button mat-stroked-button color="default">Contact</button>
-                <button mat-stroked-button color="default">Block</button>
-              </div>
-              <div *ngIf="isMyProfile" class="profileButtonRow d-flex">
-                <button
-                  mat-flat-button
+                <!-- <button
+                  mat-stroked-button
                   color="primary"
+                  class="profile-overview__action"
+                >
+                  Contact
+                </button> -->
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  class="profile-overview__action"
+                >
+                  Block
+                </button>
+              </div>
+              } @else {
+              <div
+                class="profile-overview__actions"
+                aria-label="Profile management actions"
+              >
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  class="profile-overview__action"
                   (click)="viewFollowers()"
                 >
                   Followers
                 </button>
                 <button
-                  mat-flat-button
+                  mat-stroked-button
                   color="primary"
+                  class="profile-overview__action"
                   (click)="viewFollowing()"
                 >
                   Following
                 </button>
                 <button
                   mat-stroked-button
-                  color="default"
+                  color="accent"
+                  class="profile-overview__action"
                   routerLink="/settings/profile"
                 >
                   Edit Profile
                 </button>
               </div>
+              }
             </div>
           </div>
         </mat-card-content>
       </mat-card>
-    </div>
-    <div class="col-lg-4 pt-4 text-left">
-      <mat-card class="mat-elevation-z0 border h-100">
-        <mat-card-header>
-          <mat-card-title>Biography</mat-card-title>
-        </mat-card-header>
-        <mat-card-content sytle="text-align: left;">{{
-          user.biography
-        }}</mat-card-content>
-      </mat-card>
-    </div>
-  </div>
-  <!-- <div class="row" *ngIf="user && !isLoading">
-    <div class="col-lg-6 pt-3 p-5 text-left order-lg-last">
-      <h3 class="mat-h2">Biography</h3>
-      <p class="mat-body">...</p>
-      <h3 class="mat-h2">Badges</h3>
-    </div>
-     <div class="col-lg-6 pt-3 order-lg-first">
-      <app-post-collection
-        [title]="'Posts from ' + user.displayName"
-        [loading]="postsFromUserLoading"
-        [posts]="postsFromUser"
-      ></app-post-collection>
-    </div> 
-  </div> -->
 
+      <mat-card class="profile-section mat-elevation-z1">
+        <mat-card-header class="profile-section__header">
+          <mat-card-title class="mat-title-small">Posts</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="profile-section__content">
+          <p class="mat-body-medium profile-section__placeholder">
+            Posts from {{ user.displayName || "this athlete" }} will appear here
+            soon.
+          </p>
+        </mat-card-content>
+      </mat-card>
+    </section>
+
+    <section class="profile-secondary" aria-label="Additional profile details">
+      <mat-card class="profile-section mat-elevation-z1">
+        <mat-card-header class="profile-section__header">
+          <mat-card-title class="mat-title-small">Biography</mat-card-title>
+        </mat-card-header>
+        <mat-divider></mat-divider>
+        <mat-card-content
+          class="profile-section__content profile-section__content--with-divider"
+        >
+          @if (user.biography) {
+          <p class="mat-body-medium profile-bio__text">
+            {{ user.biography }}
+          </p>
+          } @else {
+          <p class="mat-body-medium profile-section__placeholder">
+            This runner has not added a biography yet.
+          </p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="profile-section mat-elevation-z1">
+        <mat-card-header class="profile-section__header">
+          <mat-card-title class="mat-title-small"
+            >More coming soon</mat-card-title
+          >
+        </mat-card-header>
+        <mat-card-content class="profile-section__content">
+          <p class="mat-body-medium profile-section__placeholder">
+            Highlights, achievements, and other stats will live here in a future
+            update.
+          </p>
+        </mat-card-content>
+      </mat-card>
+    </section>
+  </div>
   } @else {
-  <div class="row">
-    <div class="p-5 col-md-12 d-flex justify-content-center">
-      <p>This user does not exist!</p>
-    </div>
+  <div class="profile-state" aria-live="polite">
+    <p class="mat-body-medium">This user does not exist!</p>
   </div>
   } }
 </div>
