@@ -31,12 +31,27 @@ export class MarkerComponent {
   icons = input<string[] | null | undefined>(null);
   // Can be number or pre-formatted string (e.g., rating with one decimal)
   number = input<number | string | null | undefined>(null);
+  // If true, always show 1 decimal place (for ratings); if false, only show decimals for non-integers (for challenge numbers)
+  isRating = input<boolean>(false);
 
   // Format number with dot decimal (not comma) for consistent display
   formattedNumber = computed(() => {
     const val = this.number();
     if (val === null || val === undefined) return null;
     if (typeof val === "string") return val;
+
+    // If this is a rating, always show 1 decimal place
+    if (this.isRating()) {
+      return val.toLocaleString("en-US", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      });
+    }
+
+    // For challenge numbers: integers stay as-is, decimals show 1 place
+    if (Number.isInteger(val)) {
+      return val.toString();
+    }
     // Force en-US locale to always get dot decimal separator
     return val.toLocaleString("en-US", {
       minimumFractionDigits: 1,

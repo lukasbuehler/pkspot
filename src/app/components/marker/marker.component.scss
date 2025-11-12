@@ -18,9 +18,7 @@
   align-items: center;
   background: transparent;
   > div {
-    padding: 5px;
-    // padding-right: 8px;
-    // padding-left: 8px;
+    padding: 5px 10px;
     display: flex;
     flex-direction: row;
     border-style: solid;
@@ -33,9 +31,20 @@
     min-width: 38px;
 
     transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+
+    &.has-icons:not(.icons-only) {
+      padding-left: 10px;
+      padding-right: 5px;
+    }
+
+    &.icons-only {
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+
     > span {
       font-size: larger;
-      padding-left: 3px;
+      padding: 0;
     }
   }
   > svg {

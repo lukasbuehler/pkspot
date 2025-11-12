@@ -13,7 +13,11 @@
   matRipple
   [matRippleDisabled]="!clickable()"
 >
-  <div class="mat-label-large d-flex flex-row align-items-center gap-1">
+  <div
+    class="mat-label-large d-flex flex-row align-items-center gap-1"
+    [class.has-icons]="icons()"
+    [class.icons-only]="icons() && !formattedNumber()"
+  >
     @if(formattedNumber()) {
     <span class="d-inline-block">{{ formattedNumber() }}</span>
     } @if(icons()) { @for(icon of icons()!; track icon) {

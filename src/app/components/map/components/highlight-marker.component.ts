@@ -48,6 +48,7 @@ import { getImportantAmenities } from "../../../../db/models/Amenities";
       style="pointer-events: none"
       [icons]="markerIcons()"
       [number]="getRoundedRating()"
+      [isRating]="true"
       [color]="'primary'"
       [size]="0.8"
       [title]="spot().name"
