@@ -44,6 +44,7 @@ export class SignUpPageComponent implements OnInit {
   createAccountForm: UntypedFormGroup | undefined;
   signUpError: string = "";
   isInviteOnly: boolean = true;
+  isSubmitting: boolean = false;
 
   constructor(
     private _authService: AuthenticationService,
@@ -143,6 +144,14 @@ export class SignUpPageComponent implements OnInit {
     agreeCheck: boolean;
     inviteCode: string;
   }) {
+    // Guard against double submissions
+    if (this.isSubmitting) {
+      console.warn(
+        "Account creation already in progress, ignoring duplicate submission"
+      );
+      return;
+    }
+
     let displayName = createAccountFormValue.displayName;
     let email = createAccountFormValue.email;
     const password = createAccountFormValue.password;
@@ -172,6 +181,9 @@ export class SignUpPageComponent implements OnInit {
   }
 
   private _createAccount(email: string, password: string, displayName: string) {
+    this.isSubmitting = true;
+    this.signUpError = "";
+
     this._authService
       .createAccount(email, password, displayName)
       .then(() => {
@@ -182,10 +194,22 @@ export class SignUpPageComponent implements OnInit {
       .catch((err) => {
         console.error("Cannot create account!", err);
         this.signUpError = $localize`Could not create account!`;
+        this.isSubmitting = false;
       });
   }
 
   trySignInGoogle() {
+    // Guard against double submissions
+    if (this.isSubmitting) {
+      console.warn(
+        "Sign-in already in progress, ignoring duplicate submission"
+      );
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.signUpError = "";
+
     this._authService
       .signInGoogle()
       .then(() => {
@@ -193,6 +217,8 @@ export class SignUpPageComponent implements OnInit {
       })
       .catch((err) => {
         console.error(err);
+        this.signUpError = $localize`Could not sign in with Google!`;
+        this.isSubmitting = false;
       });
   }
 }

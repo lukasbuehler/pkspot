@@ -108,7 +108,7 @@
             mat-flat-button
             color="accent"
             type="submit"
-            (click)="tryCreateAccount(createAccountForm!.value)"
+            [disabled]="isSubmitting"
           >
             <mat-icon>person_add</mat-icon>
             <span i18n>Create Account</span>

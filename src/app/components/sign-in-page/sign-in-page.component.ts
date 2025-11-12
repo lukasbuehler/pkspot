@@ -39,7 +39,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 export class SignInPageComponent implements OnInit {
   signInForm?: UntypedFormGroup;
   signInError: string = "";
-
+  isSubmitting: boolean = false;
   constructor(
     private _authService: AuthenticationService,
     private _formBuilder: UntypedFormBuilder,
@@ -67,10 +67,22 @@ export class SignInPageComponent implements OnInit {
   }
 
   trySignIn(signInFormValue: { email: string; password: string }) {
+    // Guard against double submissions
+    if (this.isSubmitting) {
+      console.warn(
+        "Sign-in already in progress, ignoring duplicate submission"
+      );
+      return;
+    }
+
     let email = signInFormValue.email;
     let password = signInFormValue.password;
 
     email = String(email).toLowerCase().trim();
+
+    this.isSubmitting = true;
+    this.signInError = "";
+
     this._authService.signInEmailPassword(email, password).then(
       (res) => {
         // login and return the user to where they were or to the home page if
@@ -95,11 +107,23 @@ export class SignInPageComponent implements OnInit {
             this.signInError = $localize`An unknown error has occured on sign in. Please try again.`;
             break;
         }
+        this.isSubmitting = false;
       }
     );
   }
 
   trySignInGoogle() {
+    // Guard against double submissions
+    if (this.isSubmitting) {
+      console.warn(
+        "Sign-in already in progress, ignoring duplicate submission"
+      );
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.signInError = "";
+
     this._authService
       .signInGoogle()
       .then(() => {
@@ -107,6 +131,8 @@ export class SignInPageComponent implements OnInit {
       })
       .catch((err) => {
         console.error(err);
+        this.signInError = $localize`Could not sign in with Google!`;
+        this.isSubmitting = false;
       });
   }
 }

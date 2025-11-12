@@ -24,7 +24,6 @@
         [formGroup]="signInForm"
         class="d-flex flex-column"
         (ngSubmit)="trySignIn(signInForm.value)"
-        (submit)="trySignIn(signInForm.value)"
       >
         <mat-form-field appearance="outline">
           <mat-label>E-Mail</mat-label>
@@ -54,11 +53,7 @@
         </div>
 
         <div class="mt-3 d-flex flex-row-reverse justify-content-between">
-          <button
-            mat-flat-button
-            type="submit"
-            (click)="trySignIn(signInForm.value)"
-          >
+          <button mat-flat-button type="submit" [disabled]="isSubmitting">
             <mat-icon>login</mat-icon>
             <span i18n="sign in button|Button to sign in@@signin.button"
               >Sign in</span

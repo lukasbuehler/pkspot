@@ -62,6 +62,11 @@ export class AuthenticationService extends ConsentAwareService {
   }
   private _authStateListenerInitialized = false;
 
+  // Guard against concurrent account creation attempts
+  private _isCreatingAccount = false;
+  // Guard against concurrent Google sign-in attempts
+  private _isSigningInWithGoogle = false;
+
   constructor(
     private _userService: UsersService,
     private _firebaseApp: FirebaseApp
@@ -259,44 +264,62 @@ export class AuthenticationService extends ConsentAwareService {
   }
 
   public async signInGoogle(): Promise<void> {
-    let googleAuthProvider = new GoogleAuthProvider();
-    googleAuthProvider.addScope("email");
-    googleAuthProvider.addScope("profile");
+    // Guard against concurrent Google sign-in attempts
+    if (this._isSigningInWithGoogle) {
+      console.warn(
+        "Google sign-in already in progress, rejecting duplicate request"
+      );
+      return Promise.reject(
+        new Error(
+          "Google sign-in is already in progress. Please wait for the first attempt to complete."
+        )
+      );
+    }
 
-    let googleSignInResponse = await signInWithPopup(
-      this.auth,
-      googleAuthProvider
-    );
+    this._isSigningInWithGoogle = true;
 
-    // check if the user exists in the database
     try {
-      let user: User | null = await firstValueFrom(
-        this._userService.getUserById(googleSignInResponse.user.uid)
-      ); // TODO check out of context
-      if (!user) {
-        // This is a new user!
-        this.trackEventWithConsent("Create Account", {
-          props: { accountType: "Google" },
-        });
+      let googleAuthProvider = new GoogleAuthProvider();
+      googleAuthProvider.addScope("email");
+      googleAuthProvider.addScope("profile");
 
-        if (!googleSignInResponse.user.displayName) {
-          console.error("Google Sign In: No display name found");
-          return;
-        }
+      let googleSignInResponse = await signInWithPopup(
+        this.auth,
+        googleAuthProvider
+      );
 
-        // create a database entry for the user
-        this._userService.addUser(
-          googleSignInResponse.user.uid,
-          googleSignInResponse.user.displayName,
-          {
-            verified_email: googleSignInResponse.user.emailVerified, // TODO check
-            settings: this._defaultUserSettings,
+      // check if the user exists in the database
+      try {
+        let user: User | null = await firstValueFrom(
+          this._userService.getUserById(googleSignInResponse.user.uid)
+        ); // TODO check out of context
+        if (!user) {
+          // This is a new user!
+          this.trackEventWithConsent("Create Account", {
+            props: { accountType: "Google" },
+          });
+
+          if (!googleSignInResponse.user.displayName) {
+            console.error("Google Sign In: No display name found");
+            return;
           }
-        );
+
+          // create a database entry for the user
+          this._userService.addUser(
+            googleSignInResponse.user.uid,
+            googleSignInResponse.user.displayName,
+            {
+              verified_email: googleSignInResponse.user.emailVerified, // TODO check
+              settings: this._defaultUserSettings,
+            }
+          );
+        }
+      } catch (error) {
+        // user does not exist
+        console.error(error);
       }
-    } catch (error) {
-      // user does not exist
-      console.error(error);
+    } finally {
+      this._isSigningInWithGoogle = false;
     }
   }
 
@@ -316,35 +339,57 @@ export class AuthenticationService extends ConsentAwareService {
     confirmedPassword: string,
     displayName: string
   ): Promise<void> {
-    // Ensure consent before creating account (which triggers reCAPTCHA)
-    return this.executeWithConsent(() => {
-      return createUserWithEmailAndPassword(
-        this.auth,
-        email,
-        confirmedPassword
-      ).then((firebaseAuthResponse) => {
-        this.trackEventWithConsent("Create Account", {
-          props: { accountType: "Email and Password" },
+    // Guard against concurrent account creation attempts
+    if (this._isCreatingAccount) {
+      console.warn(
+        "Account creation already in progress, rejecting duplicate request"
+      );
+      return Promise.reject(
+        new Error(
+          "Account creation is already in progress. Please wait for the first attempt to complete."
+        )
+      );
+    }
+
+    this._isCreatingAccount = true;
+
+    try {
+      // Ensure consent before creating account (which triggers reCAPTCHA)
+      return await this.executeWithConsent(() => {
+        return createUserWithEmailAndPassword(
+          this.auth,
+          email,
+          confirmedPassword
+        ).then((firebaseAuthResponse) => {
+          this.trackEventWithConsent("Create Account", {
+            props: { accountType: "Email and Password" },
+          });
+
+          if (!this._currentFirebaseUser) {
+            return Promise.reject("No current firebase user found");
+          }
+
+          // Set the user chose Display name
+          updateProfile(this._currentFirebaseUser, {
+            displayName: displayName,
+          });
+
+          // create a database entry for the user
+          this._userService.addUser(
+            firebaseAuthResponse.user.uid,
+            displayName,
+            {
+              verified_email: false,
+              settings: this._defaultUserSettings,
+            }
+          );
+
+          // Send verification email
+          sendEmailVerification(firebaseAuthResponse.user);
         });
-
-        if (!this._currentFirebaseUser) {
-          return Promise.reject("No current firebase user found");
-        }
-
-        // Set the user chose Display name
-        updateProfile(this._currentFirebaseUser, {
-          displayName: displayName,
-        });
-
-        // create a database entry for the user
-        this._userService.addUser(firebaseAuthResponse.user.uid, displayName, {
-          verified_email: false,
-          settings: this._defaultUserSettings,
-        });
-
-        // Send verification email
-        sendEmailVerification(firebaseAuthResponse.user);
       });
-    });
+    } finally {
+      this._isCreatingAccount = false;
+    }
   }
 }
