@@ -43,13 +43,21 @@ export class ConsentService {
    */
   private checkConsentStatus(): void {
     if (isPlatformBrowser(this._platformId)) {
+      // Check if we're on an embedded page - if so, auto-grant consent
+      // (embedder is responsible for obtaining consent)
+      const isEmbedded =
+        window.self !== window.top ||
+        window.location.pathname.includes("/embedded/");
+
       const acceptedVersion = localStorage.getItem("acceptedVersion");
-      const hasConsent = acceptedVersion === this.CURRENT_TERMS_VERSION;
+      const hasConsent =
+        isEmbedded || acceptedVersion === this.CURRENT_TERMS_VERSION;
 
       console.log("ConsentService: Checking consent status", {
         acceptedVersion,
         CURRENT_TERMS_VERSION: this.CURRENT_TERMS_VERSION,
         hasConsent,
+        isEmbedded,
         platform: "browser",
       });
 
