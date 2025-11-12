@@ -9,11 +9,13 @@ import { MediaUpload } from "../media-upload/media-upload.component";
 import { StorageBucket, MediaSchema } from "../../../db/schemas/Media";
 import { MediaType } from "../../../db/models/Interfaces";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
+import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
+import { createUserReference } from "../../../scripts/Helpers";
 
 export interface MediaUploadDialogData {
   spotId: SpotId;
@@ -35,7 +37,7 @@ export interface MediaUploadDialogData {
   templateUrl: "./media-upload-dialog.component.html",
 })
 export class MediaUploadDialogComponent {
-  private _spotsService = inject(SpotsService);
+  private _spotEditsService = inject(SpotEditsService);
   private _auth = inject(AuthenticationService);
 
   storageFolder: StorageBucket;
@@ -70,15 +72,10 @@ export class MediaUploadDialogComponent {
       isInStorage: true,
     };
 
-    const userReference: UserReferenceSchema = {
-      uid: this._auth.user.uid!,
-      display_name: this._auth.user.data?.displayName,
-      profile_picture:
-        this._auth.user.data?.profilePicture?.baseSrc ?? undefined,
-    };
+    const userReference = createUserReference(this._auth.user.data!);
 
     try {
-      await this._spotsService.appendSpotMediaEdit(
+      await this._spotEditsService.appendSpotMediaEdit(
         this.data.spotId,
         mediaItem,
         userReference

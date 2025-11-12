@@ -120,6 +120,7 @@ import {
 import { create } from "core-js/core/object";
 import { MatDividerModule } from "@angular/material/divider";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
+import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { SpotReportsService } from "../../services/firebase/firestore/spot-reports.service";
 import { PostsService } from "../../services/firebase/firestore/posts.service";
 import { SpotReviewSchema } from "../../../db/schemas/SpotReviewSchema";
@@ -160,6 +161,7 @@ import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amen
 import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
+import { createUserReference } from "../../../scripts/Helpers";
 
 declare function plausible(eventName: string, options?: { props: any }): void;
 
@@ -608,15 +610,8 @@ export class SpotDetailsComponent
     if (!this.authenticationService.user?.uid) return;
     this.linkingPlace.set(true);
     try {
-      const userReference: UserReferenceSchema = {
-        uid: this.authenticationService.user.uid,
-        display_name:
-          this.authenticationService.user.data?.displayName ?? "User",
-        profile_picture:
-          this.authenticationService.user.data?.profilePicture?.baseSrc ??
-          undefined,
-      };
-      await this._spotsService.updateSpotExternalReferenceEdit(
+      const userReference = createUserReference(this.authenticationService.user.data!);
+      await this._spotEditsService.updateSpotExternalReferenceEdit(
         spot.id,
         { google_maps_place_id: pred.place_id },
         userReference
@@ -648,17 +643,10 @@ export class SpotDetailsComponent
     if (!this.authenticationService.user?.uid) return;
     this.unlinkingPlace.set(true);
     try {
-      const userReference: UserReferenceSchema = {
-        uid: this.authenticationService.user.uid,
-        display_name:
-          this.authenticationService.user.data?.displayName ?? "User",
-        profile_picture:
-          this.authenticationService.user.data?.profilePicture?.baseSrc ??
-          undefined,
-      };
+      const userReference = createUserReference(this.authenticationService.user.data!);
       // To unlink, we need to send an edit that will clear the google_maps_place_id
       // The cloud function will need to handle this appropriately
-      await this._spotsService.updateSpotExternalReferenceEdit(
+      await this._spotEditsService.updateSpotExternalReferenceEdit(
         spot.id,
         { google_maps_place_id: null as any }, // null to indicate deletion
         userReference
@@ -694,6 +682,7 @@ export class SpotDetailsComponent
     private _router: Router,
     private _element: ElementRef,
     private _spotsService: SpotsService,
+    private _spotEditsService: SpotEditsService,
     private _spotReportsService: SpotReportsService,
     private _spotReviewsService: SpotReviewsService,
     private _slugService: SlugsService,
@@ -952,15 +941,8 @@ export class SpotDetailsComponent
       }
       if (spot instanceof Spot && this.authenticationService.user?.uid) {
         // if possible, already save the uploaded media via a spot edit
-        const userReference: UserReferenceSchema = {
-          uid: this.authenticationService.user.uid,
-          display_name:
-            this.authenticationService.user.data?.displayName ?? "User",
-          profile_picture:
-            this.authenticationService.user.data?.profilePicture?.baseSrc ??
-            undefined,
-        };
-        this._spotsService.updateSpotMediaEdit(
+        const userReference = createUserReference(this.authenticationService.user.data!);
+        this._spotEditsService.updateSpotMediaEdit(
           spot.id,
           spot.userMedia(),
           userReference

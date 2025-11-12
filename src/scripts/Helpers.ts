@@ -7,6 +7,8 @@ import {
   StorageVideo,
 } from "../db/models/Media";
 import { MediaSchema } from "../db/schemas/Media";
+import { UserReferenceSchema } from "../db/schemas/UserSchema";
+import { User } from "../db/models/User";
 
 export function getValueFromEventTarget(
   eventTarget: EventTarget | null | undefined
@@ -236,3 +238,132 @@ export function buildAbsoluteUrlNoLocale(path: string): string {
   const origin = window.location.origin;
   return `${origin}${normalizedPath}`;
 }
+
+/**
+ * Clean data for Firestore by:
+ * 1. Removing forbidden fields (those that should not be user-editable)
+ * 2. Removing undefined values (Firestore doesn't accept them)
+ * 3. Converting class instances to plain objects
+ *
+ * @param data - The data to clean
+ * @param forbiddenFields - Array of field names to remove
+ * @returns Cleaned data suitable for Firestore
+ */
+export function cleanDataForFirestore(
+  data: any,
+  forbiddenFields?: string[]
+): any {
+  if (data === null || data === undefined) {
+    return data;
+  }
+
+  // First pass: remove forbidden fields if specified
+  if (forbiddenFields && forbiddenFields.length > 0) {
+    const cleaned: any = { ...data };
+    for (const field of forbiddenFields) {
+      delete cleaned[field];
+    }
+    data = cleaned;
+  }
+
+  // Second pass: clean for Firestore (remove undefined, convert instances)
+  return _cleanObjectForFirestore(data);
+}
+
+/**
+ * Recursively clean an object for Firestore serialization.
+ * Removes undefined values and converts class instances to plain objects.
+ * Filters out functions, getters, and Signal properties.
+ * Preserves special Firestore types like GeoPoint and Timestamp.
+ *
+ * @param data - The data to clean
+ * @returns Cleaned data
+ */
+function _cleanObjectForFirestore(data: any): any {
+  if (data === null || data === undefined) {
+    return data;
+  }
+
+  // Leave Firestore special types as-is (check for common ones)
+  // GeoPoint and Timestamp are from firebase/firestore
+  if (
+    data._type === "GeoPoint" ||
+    data._type === "Timestamp" ||
+    data instanceof Date
+  ) {
+    return data;
+  }
+
+  if (typeof data === "object") {
+    // Handle objects with toJSON method
+    if (data.toJSON && typeof data.toJSON === "function") {
+      return _cleanObjectForFirestore(data.toJSON());
+    }
+
+    // Handle arrays
+    if (Array.isArray(data)) {
+      return data.map((item) => _cleanObjectForFirestore(item));
+    }
+
+    // Handle plain objects and class instances
+    const cleaned: any = {};
+    
+    // Get all properties from the object (including inherited ones)
+    for (const key of Object.keys(data)) {
+      const value = data[key];
+      
+      // Skip undefined values - Firestore doesn't accept them
+      if (value === undefined) {
+        continue;
+      }
+      
+      // Skip functions (including methods and getters that return functions)
+      if (typeof value === "function") {
+        continue;
+      }
+      
+      // Skip Signal objects (they have a specific structure)
+      // Signals are Angular reactive values and should not be serialized
+      if (value && typeof value === "object" && (value._value !== undefined || value._signal !== undefined || value.isSignal === true)) {
+        continue;
+      }
+      
+      cleaned[key] = _cleanObjectForFirestore(value);
+    }
+    
+    return cleaned;
+  }
+
+  return data;
+}
+
+/**
+ * Create a UserReferenceSchema from a User object.
+ * Properly formats the profile picture URL with the 200x200 size.
+ * 
+ * @param user - The User object to create a reference from
+ * @returns UserReferenceSchema with uid, display_name, and profile_picture (if available)
+ */
+export function createUserReference(user: User): UserReferenceSchema {
+  const reference: UserReferenceSchema = {
+    uid: user.uid,
+    display_name: user.displayName || "",
+  };
+
+  // Add profile picture if available
+  if (user.data?.profile_picture) {
+    try {
+      // Create a StorageImage to properly format the profile picture URL with size
+      const profileImage = new StorageImage(user.data.profile_picture);
+      reference.profile_picture = profileImage.getSrc(200); // 200x200 size for profile pictures
+    } catch (error) {
+      // If profile picture URL is invalid for StorageImage, use as-is
+      console.warn("Invalid profile picture URL format:", error);
+      reference.profile_picture = user.data.profile_picture;
+    }
+  }
+
+  return reference;
+}
+
+

@@ -1,16 +1,17 @@
 <a
   [routerLink]="['/u', user()!.uid]"
   matButton="outlined"
-  style="padding-left: 3px"
+  [style.padding-left]="user()!.profile_picture ? '3px' : null"
 >
   <!-- <mat-icon>person</mat-icon> -->
+  @if(user()!.profile_picture) {
   <img
-    [ngSrc]="user()!.profile_picture ?? ''"
-    [alt]="user()!.display_name?.charAt(0)"
+    [ngSrc]="user()!.profile_picture!"
     width="30"
     height="30"
     class="rounded-circle me-2"
   />
+  }
   <span class="mat-title-small text-truncate" style="vertical-align: middle">{{
     user()!.display_name
   }}</span>

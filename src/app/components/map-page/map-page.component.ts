@@ -69,6 +69,7 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { SpotEditDetailsComponent } from "../spot-edit-details/spot-edit-details.component";
 import { Timestamp } from "firebase/firestore";
 import { SpotEdit } from "../../../db/models/SpotEdit";
+import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 
 @Component({
   selector: "app-map-page",
@@ -179,7 +180,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private _snackbar: MatSnackBar,
     private titleService: Title,
     private _consentService: ConsentService,
-    private breakpointObserver: BreakpointObserver
+    private breakpointObserver: BreakpointObserver,
+    private _spotEditsService: SpotEditsService
   ) {
     this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
       (value) => {
@@ -246,6 +248,39 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.metaTagService.setSpotMetaTags(spot);
       } else {
         this.metaTagService.setDefaultMapMetaTags();
+      }
+    });
+
+    // Effect to load spot edits when showSpotEditHistory changes
+    effect(() => {
+      const showEditHistory = this.showSpotEditHistory();
+      const spot = this.selectedSpot();
+
+      if (showEditHistory && spot instanceof Spot) {
+        // Load edits for this spot
+        this._spotEditsService.getSpotEditsBySpotId$(spot.id).subscribe({
+          next: (editsWithIds) => {
+            // Convert to SpotEdit instances with proper IDs
+            let spotEdits = editsWithIds.map(
+              (item) => new SpotEdit(item.id, item.schema)
+            );
+            // Sort by timestamp descending (newest first)
+            spotEdits.sort((a, b) => {
+              const timeA = a.timestamp instanceof Timestamp ? a.timestamp.toMillis() : 0;
+              const timeB = b.timestamp instanceof Timestamp ? b.timestamp.toMillis() : 0;
+              return timeB - timeA;
+            });
+            this.spotEdits.set(spotEdits);
+            console.log("Loaded spot edits:", spotEdits);
+          },
+          error: (err) => {
+            console.error("Error loading spot edits:", err);
+            this.spotEdits.set([]);
+          },
+        });
+      } else {
+        // Clear edits if not showing edit history
+        this.spotEdits.set([]);
       }
     });
   }
@@ -508,13 +543,34 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async loadSpotById(spotId: SpotId, updateUrl: boolean = true): Promise<Spot> {
     console.debug("loading spot by id", spotId);
-    const spot: Spot = await this._spotsService.getSpotByIdHttp(
-      spotId,
-      this.locale
-    );
-    this.selectSpot(spot, updateUrl);
-
-    return spot;
+    
+    // Retry loading the spot if it's not yet populated by the cloud function
+    let lastError: any;
+    const maxAttempts = 15;
+    const delayMs = 200;
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const spot: Spot = await this._spotsService.getSpotByIdHttp(
+          spotId,
+          this.locale
+        );
+        this.selectSpot(spot, updateUrl);
+        return spot;
+      } catch (error) {
+        lastError = error;
+        console.debug(`Attempt ${attempt + 1}/${maxAttempts} to load spot failed, retrying...`, error);
+        
+        // Wait before next attempt
+        if (attempt < maxAttempts - 1) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+    }
+    
+    // All attempts failed
+    console.error("Failed to load spot after retries:", lastError);
+    throw lastError;
   }
 
   async loadChallengeById(

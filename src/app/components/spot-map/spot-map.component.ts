@@ -25,7 +25,7 @@ import {
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { GeoPoint } from "firebase/firestore";
 import { firstValueFrom, Observable, retry, Subscription } from "rxjs";
 import { MapHelpers } from "../../../scripts/MapHelpers";
@@ -67,6 +67,8 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @ViewChild("map") map: MapComponent | undefined;
 
   osmDataService = inject(OsmDataService);
+
+  private _router = inject(Router);
 
   selectedSpot = model<Spot | LocalSpot | null>(null); // input and output signal
   selectedSpotChallenges = model<SpotChallengePreview[]>([]);
@@ -631,8 +633,8 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     }
 
     this._spotMapDataManager
-      .saveSpot(spot)
-      .then(() => {
+      .saveSpot(spot, this.uneditedSpot)
+      .then(async (spotId) => {
         // Successfully updated - completely stop editing to destroy polygon
         this.isEditing.set(false);
 
@@ -647,6 +649,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           $localize`Dismiss`,
           { duration: 5000 }
         );
+
+        // For new spots, load and select them in the data manager instead of navigating
+        if (spot instanceof LocalSpot) {
+          const savedSpot = await this._spotMapDataManager.loadAndAddSpotById(spotId);
+          if (savedSpot) {
+            this.selectedSpot.set(savedSpot);
+            // The spot will now appear on the map as it's loaded into the data manager
+          }
+        }
       })
       .catch((error) => {
         this.isEditing.set(false);

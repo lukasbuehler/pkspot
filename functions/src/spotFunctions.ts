@@ -172,7 +172,7 @@ export const updateAllSpotAddresses = onDocumentCreated(
   }
 );
 
-export const clusterAllSpotsOnSchedule = onSchedule(
+export const updateAllEmptyAddressesOnSchedule = onSchedule(
   "every day 02:00", // UTC?
   async () => {
     const apiKey = googleAPIKey.value();

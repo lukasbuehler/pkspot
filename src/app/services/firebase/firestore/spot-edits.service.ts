@@ -11,11 +11,19 @@ import {
   collectionGroup,
   updateDoc,
   onSnapshot,
+  Timestamp,
 } from "@angular/fire/firestore";
 import { Observable } from "rxjs";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
-import { removeUndefinedProperties } from "../../../../scripts/Helpers";
+import {
+  removeUndefinedProperties,
+  cleanDataForFirestore,
+} from "../../../../scripts/Helpers";
+import { SpotId, SpotSchema } from "../../../../db/schemas/SpotSchema";
+import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
+import { AnyMedia } from "../../../../db/models/Media";
+import { MediaSchema } from "../../../../db/schemas/Media";
 
 @Injectable({
   providedIn: "root",
@@ -28,14 +36,14 @@ export class SpotEditsService extends ConsentAwareService {
   }
 
   getSpotEditById(spotId: string, editId: string): Promise<SpotEditSchema> {
-    return getDoc(
-      doc(this.firestore, "spots", spotId, "edits", editId)
-    ).then((snap) => {
-      if (!snap.exists()) {
-        return Promise.reject("No edit found for this edit id.");
+    return getDoc(doc(this.firestore, "spots", spotId, "edits", editId)).then(
+      (snap) => {
+        if (!snap.exists()) {
+          return Promise.reject("No edit found for this edit id.");
+        }
+        return snap.data() as SpotEditSchema;
       }
-      return snap.data() as SpotEditSchema;
-    });
+    );
   }
 
   getSpotEditsBySpotId(spotId: string): Promise<SpotEditSchema[]> {
@@ -89,24 +97,31 @@ export class SpotEditsService extends ConsentAwareService {
     });
   }
 
-  getSpotEditsBySpotId$(spotId: string): Observable<SpotEditSchema[]> {
+  getSpotEditsBySpotId$(
+    spotId: string
+  ): Observable<Array<{ id: string; schema: SpotEditSchema }>> {
     console.debug("Getting all edits for spot: ", spotId);
 
-    return new Observable<SpotEditSchema[]>((observer) => {
-      return onSnapshot(
-        query(collection(this.firestore, "spots", spotId, "edits")),
-        (snap) => {
-          const edits = snap.docs.map((data) => data.data() as SpotEditSchema);
-          observer.next(edits);
-        },
-        (error) => {
-          observer.error({
-            msg: "Error! There was a problem loading edits for this spot.",
-            debug: error,
-          });
-        }
-      );
-    });
+    return new Observable<Array<{ id: string; schema: SpotEditSchema }>>(
+      (observer) => {
+        return onSnapshot(
+          query(collection(this.firestore, "spots", spotId, "edits")),
+          (snap) => {
+            const edits = snap.docs.map((data) => ({
+              id: data.id,
+              schema: data.data() as SpotEditSchema,
+            }));
+            observer.next(edits);
+          },
+          (error) => {
+            observer.error({
+              msg: "Error! There was a problem loading edits for this spot.",
+              debug: error,
+            });
+          }
+        );
+      }
+    );
   }
 
   getSpotEditsByUserId$(userId: string): Observable<SpotEditSchema[]> {
@@ -165,18 +180,219 @@ export class SpotEditsService extends ConsentAwareService {
   approveSpotEdit(spotId: string, editId: string): Promise<void> {
     console.log("approving edit", editId);
 
-    return updateDoc(
-      doc(this.firestore, "spots", spotId, "edits", editId),
-      { approved: true }
-    );
+    return updateDoc(doc(this.firestore, "spots", spotId, "edits", editId), {
+      approved: true,
+    });
   }
 
   rejectSpotEdit(spotId: string, editId: string): Promise<void> {
     console.log("rejecting edit", editId);
 
-    return updateDoc(
-      doc(this.firestore, "spots", spotId, "edits", editId),
-      { approved: false }
+    return updateDoc(doc(this.firestore, "spots", spotId, "edits", editId), {
+      approved: false,
+    });
+  }
+
+  /**
+   * Remove forbidden fields from spot data that should not be in edits.
+   * These are metadata, computed, and system fields that should only be set by cloud functions.
+   */
+  private _removeForbiddenFieldsFromSpotData(
+    spotData: Partial<SpotSchema>
+  ): Partial<SpotSchema> {
+    // Only these fields are allowed in spot edits according to SpotEditDataSchema
+    const fieldsToRemove: (keyof SpotSchema)[] = [
+      // Metadata fields (should not be in edits)
+      "rating",
+      "num_reviews",
+      "rating_histogram",
+      "highlighted_reviews",
+      // Computed fields (calculated server-side)
+      "tile_coordinates",
+      "is_iconic",
+      "address",
+      "top_challenges",
+      "num_challenges",
+      // System fields
+      "isMiniSpot",
+      "time_created",
+      "time_updated",
+      "isReported",
+      "reportReason",
+    ];
+    return cleanDataForFirestore(
+      spotData,
+      fieldsToRemove as string[]
+    ) as Partial<SpotSchema>;
+  }
+
+  /**
+   * Update spot media via a spot edit (UPDATE type).
+   * This creates an edit that will be processed by the cloud function.
+   *
+   * @param spotId - The ID of the spot
+   * @param media - The new media array
+   * @param userReference - The user making the edit
+   * @returns Promise<string> - The ID of the created edit
+   */
+  updateSpotMediaEdit(
+    spotId: SpotId,
+    media: AnyMedia[],
+    userReference: UserReferenceSchema
+  ): Promise<string> {
+    // Convert AnyMedia to MediaSchema using the getData() method
+    const mediaSchema: SpotSchema["media"] = media.map((mediaObj) =>
+      mediaObj.getData()
     );
+
+    const editData = {
+      type: "UPDATE" as const,
+      timestamp: Timestamp.now(),
+      likes: 0,
+      approved: false,
+      user: userReference,
+      data: { media: mediaSchema },
+    };
+    return this.addSpotEdit(spotId, editData);
+  }
+
+  /**
+   * Update spot external references (e.g., Google Maps Place ID) via a spot edit.
+   *
+   * @param spotId - The ID of the spot
+   * @param externalReferences - The external references to update
+   * @param userReference - The user making the edit
+   * @returns Promise<string> - The ID of the created edit
+   */
+  updateSpotExternalReferenceEdit(
+    spotId: SpotId,
+    externalReferences: Partial<SpotSchema["external_references"]>,
+    userReference: UserReferenceSchema
+  ): Promise<string> {
+    const editData = {
+      type: "UPDATE" as const,
+      timestamp: Timestamp.now(),
+      likes: 0,
+      approved: false,
+      user: userReference,
+      data: { external_references: externalReferences },
+    };
+    return this.addSpotEdit(spotId, editData);
+  }
+
+  /**
+   * Append a media item to a spot via a spot edit.
+   *
+   * @param spotId - The ID of the spot
+   * @param mediaItem - The media item to append
+   * @param userReference - The user making the edit
+   * @returns Promise<string> - The ID of the created edit
+   */
+  appendSpotMediaEdit(
+    spotId: SpotId,
+    mediaItem: MediaSchema,
+    userReference: UserReferenceSchema
+  ): Promise<string> {
+    const editData = {
+      type: "UPDATE" as const,
+      timestamp: Timestamp.now(),
+      likes: 0,
+      approved: false,
+      user: userReference,
+      data: { media: [mediaItem] }, // Note: Cloud function will need to handle appending
+    };
+    return this.addSpotEdit(spotId, editData);
+  }
+
+  /**
+   * Create a new spot with a CREATE edit.
+   * This is the proper flow for new spot creation:
+   * 1. Create the spot document (let Firestore generate the ID)
+   * 2. Create a CREATE edit subcollection entry
+   * 3. The cloud function processes the edit and applies the data to the spot
+   *
+   * @param spotData - The data for the new spot
+   * @param userReference - The user creating the spot
+   * @returns Promise<SpotId> - The ID of the created spot
+   */
+  async createSpotWithEdit(
+    spotData: Partial<SpotSchema>,
+    userReference: UserReferenceSchema
+  ): Promise<SpotId> {
+    // Clean and filter the data before creating the edit
+    spotData = this._removeForbiddenFieldsFromSpotData(spotData);
+    spotData = cleanDataForFirestore(spotData) as Partial<SpotSchema>;
+
+    console.debug("Creating new spot with edit:", JSON.stringify(spotData));
+
+    // Create an empty spot document (let Firestore generate the ID)
+    const newSpotRef = await addDoc(collection(this.firestore, "spots"), {});
+
+    const spotId = newSpotRef.id as SpotId;
+    console.log("Created spot document with ID:", spotId);
+
+    // Now create the CREATE edit
+    await this.createSpotEdit(spotId, spotData, userReference);
+    console.log("Created spot edit for ID:", spotId);
+
+    return spotId;
+  }
+
+  /**
+   * Create a new spot edit for a new spot (CREATE type).
+   * The spot edit will be processed by the cloud function and create the actual spot.
+   *
+   * @param spotId - The ID for the new spot (can be generated)
+   * @param spotData - The data for the new spot
+   * @param userReference - The user creating the spot
+   * @returns Promise<string> - The ID of the created edit
+   */
+  createSpotEdit(
+    spotId: SpotId,
+    spotData: Partial<SpotSchema>,
+    userReference: UserReferenceSchema
+  ): Promise<string> {
+    const editData = {
+      type: "CREATE" as const,
+      timestamp: Timestamp.now(),
+      user: userReference,
+      data: spotData,
+    };
+    return this.addSpotEdit(spotId, editData);
+  }
+
+  /**
+   * Create a spot edit for an existing spot (UPDATE type).
+   * The spot edit will be processed by the cloud function and update the actual spot.
+   *
+   * @param spotId - The ID of the spot to update
+   * @param spotUpdateData - The partial data to update
+   * @param userReference - The user making the edit
+   * @param prevData - Optional: the previous data before the change
+   * @returns Promise<string> - The ID of the created edit
+   */
+  createSpotUpdateEdit(
+    spotId: SpotId,
+    spotUpdateData: Partial<SpotSchema>,
+    userReference: UserReferenceSchema,
+    prevData?: Partial<SpotSchema>
+  ): Promise<string> {
+    spotUpdateData = this._removeForbiddenFieldsFromSpotData(spotUpdateData);
+    // Clean the data to remove undefined values and convert class instances
+    spotUpdateData = cleanDataForFirestore(
+      spotUpdateData
+    ) as Partial<SpotSchema>;
+    if (prevData) {
+      prevData = cleanDataForFirestore(prevData) as Partial<SpotSchema>;
+    }
+
+    const editData = {
+      type: "UPDATE" as const,
+      timestamp: Timestamp.now(),
+      user: userReference,
+      data: spotUpdateData,
+      prevData: prevData,
+    };
+    return this.addSpotEdit(spotId, editData);
   }
 }

@@ -1,6 +1,6 @@
 import { BehaviorSubject, firstValueFrom } from "rxjs";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
-import { SpotId } from "../../../db/schemas/SpotSchema";
+import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
 import {
   MapTileKey,
   getClusterTileKey,
@@ -12,9 +12,11 @@ import { TilesObject } from "../map/map.component";
 import { MarkerSchema } from "../marker/marker.component";
 import { Injector, signal } from "@angular/core";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
+import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { OsmDataService } from "../../services/osm-data.service";
 import { MapHelpers } from "../../../scripts/MapHelpers";
+import { createUserReference } from "../../../scripts/Helpers";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { ConsentService } from "../../services/consent.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -36,6 +38,7 @@ interface LoadedSpotReference {
  */
 export class SpotMapDataManager {
   private _spotsService: SpotsService;
+  private _spotEditsService: SpotEditsService;
   private _osmDataService: OsmDataService;
   private _consentService: ConsentService;
   private _authService: AuthenticationService;
@@ -89,6 +92,7 @@ export class SpotMapDataManager {
   ) {
     // Resolve dependencies via the provided Injector to avoid using inject() outside DI context
     this._spotsService = injector.get(SpotsService);
+    this._spotEditsService = injector.get(SpotEditsService);
     this._osmDataService = injector.get(OsmDataService);
     this._consentService = injector.get(ConsentService);
     this._authService = injector.get(AuthenticationService);
@@ -116,6 +120,28 @@ export class SpotMapDataManager {
    */
   clearPreviewCache(): void {
     this._spotPreviewCache.clear();
+  }
+
+  /**
+   * Load and add a specific spot by ID to the data manager.
+   * This allows newly created spots to appear on the map without a page reload.
+   */
+  async loadAndAddSpotById(spotId: SpotId): Promise<Spot | null> {
+    try {
+      const spot = await firstValueFrom(
+        this._spotsService.getSpotById$(spotId, this.locale)
+      );
+      
+      if (spot) {
+        // Add the spot to the data manager's internal cache
+        this._addLoadedSpots([spot]);
+        return spot;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Failed to load spot ${spotId}:`, error);
+      return null;
+    }
   }
 
   // public functions
@@ -156,29 +182,182 @@ export class SpotMapDataManager {
     }
   }
 
-  async saveSpot(spot: Spot | LocalSpot): Promise<SpotId> {
+  async saveSpot(
+    spot: Spot | LocalSpot,
+    originalSpot?: Spot | LocalSpot
+  ): Promise<SpotId> {
     // Ensure user is authenticated
     if (!this._authService.isSignedIn || !this._authService.user?.uid) {
       throw new Error("User not authenticated");
     }
 
-    const userReference = {
-      uid: this._authService.user.uid,
-      display_name: this._authService.user.data?.displayName || "",
-    };
+    // Create user reference with properly formatted profile picture URL
+    const userReference = createUserReference(this._authService.user.data!);
 
     if (spot instanceof Spot) {
-      // Existing spot - create an UPDATE edit
+      // Existing spot - create an UPDATE edit with only changed fields
       const spotId = spot.id as SpotId;
-      await this._spotsService.updateSpotEdit(spotId, spot as any, userReference);
+      const currentData = spot.data();
+      
+      // Compute diff if we have the original data
+      let diffData: Partial<SpotSchema> = currentData;
+      if (originalSpot && originalSpot instanceof Spot) {
+        const originalData = originalSpot.data();
+        diffData = this._computeDataDiff(originalData, currentData) as Partial<SpotSchema>;
+        console.debug("Computed diff for update:", diffData);
+      }
+      
+      await this._spotEditsService.createSpotUpdateEdit(
+        spotId,
+        diffData,
+        userReference,
+        originalSpot?.data()
+      );
       return spotId;
     } else {
       // New spot - use the proper flow: create spot document first (server-side ID),
       // then create a CREATE edit for it
-      const spotData = spot as any;
-      const spotId = await this._spotsService.createSpotWithEdit(spotData, userReference);
+      const spotData = spot.data();
+      const spotId = await this._spotEditsService.createSpotWithEdit(
+        spotData,
+        userReference
+      );
       return spotId;
     }
+  }
+
+  /**
+   * Compute a diff between original and current data, returning only changed fields.
+   * This ensures that edits only contain fields that were actually modified.
+   * For nested objects, only includes properties that actually changed.
+   * 
+   * @param originalData - The original spot data before editing
+   * @param currentData - The current/new spot data after editing
+   * @returns A partial object containing only the fields that changed
+   */
+  private _computeDataDiff(
+    originalData: Partial<any>,
+    currentData: Partial<any>
+  ): Partial<any> {
+    const diff: Partial<any> = {};
+
+    // Iterate through current data keys
+    for (const key of Object.keys(currentData)) {
+      const originalValue = originalData[key];
+      const currentValue = currentData[key];
+
+      // Check if the field changed
+      if (!this._deepEqual(originalValue, currentValue)) {
+        // For nested objects, create a partial object with only changed properties
+        if (
+          typeof currentValue === "object" &&
+          currentValue !== null &&
+          !Array.isArray(currentValue) &&
+          !(currentValue instanceof Date) &&
+          currentValue._latitude === undefined && // not a GeoPoint
+          currentValue.seconds === undefined // not a Timestamp
+        ) {
+          // This is a plain object - compute the diff for nested properties
+          const nestedDiff = this._computeNestedDiff(originalValue || {}, currentValue);
+          if (Object.keys(nestedDiff).length > 0) {
+            diff[key] = nestedDiff;
+          }
+        } else {
+          // For primitives, arrays, and special types (GeoPoint, Timestamp, Date), use as-is
+          diff[key] = currentValue;
+        }
+      }
+    }
+
+    return diff;
+  }
+
+  /**
+   * Compute a diff for nested objects, returning only properties that changed.
+   * Used for objects like amenities where we only want to include changed properties.
+   */
+  private _computeNestedDiff(originalObj: any, currentObj: any): any {
+    const diff: any = {};
+
+    // Get all unique keys from both objects
+    const keysA = Object.keys(originalObj);
+    const keysB = Object.keys(currentObj);
+    const allKeys = new Set([...keysA, ...keysB]);
+
+    // For each key, compare and only include if changed
+    for (const key of allKeys) {
+      const originalValue = originalObj[key];
+      const currentValue = currentObj[key];
+
+      if (!this._deepEqual(originalValue, currentValue)) {
+        diff[key] = currentValue;
+      }
+    }
+
+    return diff;
+  }
+
+  /**
+   * Deep equality comparison for various data types including GeoPoint, Timestamp, etc.
+   * Recursively compares nested objects and arrays up to any depth.
+   * Handles sparse objects (with undefined/null properties) correctly.
+   */
+  private _deepEqual(a: any, b: any): boolean {
+    // Handle same reference
+    if (a === b) return true;
+
+    // Handle null/undefined explicitly - treat undefined and null as equivalent for deep equality
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+
+    // Handle primitive types
+    if (typeof a !== "object" || typeof b !== "object") return false;
+
+    // Handle GeoPoint (Firebase Firestore type)
+    if (
+      a._latitude !== undefined &&
+      b._latitude !== undefined
+    ) {
+      return a._latitude === b._latitude && a._longitude === b._longitude;
+    }
+
+    // Handle Timestamp (Firebase Firestore type)
+    if (a.seconds !== undefined && b.seconds !== undefined) {
+      return a.seconds === b.seconds && a.nanoseconds === b.nanoseconds;
+    }
+
+    // Handle Date objects
+    if (a instanceof Date && b instanceof Date) {
+      return a.getTime() === b.getTime();
+    }
+
+    // Handle arrays
+    if (Array.isArray(a) && Array.isArray(b)) {
+      if (a.length !== b.length) return false;
+      return a.every((item, index) => this._deepEqual(item, b[index]));
+    }
+
+    // Handle plain objects (including nested objects like AmenitiesMap)
+    // First check if both are arrays or both are objects
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+
+    // Get all unique keys from both objects to handle sparse objects
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+    const allKeys = new Set([...keysA, ...keysB]);
+
+    // For each key that exists in either object, compare the values
+    for (const key of allKeys) {
+      const valueA = a[key];
+      const valueB = b[key];
+
+      // Recursively compare values (this handles nested objects)
+      if (!this._deepEqual(valueA, valueB)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   // private functions

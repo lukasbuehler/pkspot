@@ -1,7 +1,13 @@
 import { SpotSchema } from "../db/schemas/SpotSchema";
+import {
+  TILE_SIZE,
+  mercatorProjection as sharedMercatorProjection,
+  getUnroundedTileCoordinatesForLocationAndZoom as sharedGetUnroundedTileCoordinatesForLocationAndZoom,
+  getTileCoordinatesForLocationAndZoom as sharedGetTileCoordinatesForLocationAndZoom,
+  computeTileCoordinates,
+} from "./TileCoordinateHelpers";
 
 export namespace MapHelpers {
-  const TILE_SIZE = 256;
 
   export function getBoundsForTile(
     zoom: number,
@@ -30,16 +36,7 @@ export namespace MapHelpers {
     x: number;
     y: number;
   } {
-    var siny = Math.sin((latLng.lat * Math.PI) / 180);
-
-    // Truncating to 0.9999 effectively limits latitude to 89.189. This is
-    // about a third of a tile past the edge of the world tile.
-    siny = Math.min(Math.max(siny, -0.9999), 0.9999);
-
-    return {
-      x: TILE_SIZE * (0.5 + latLng.lng / 360),
-      y: TILE_SIZE * (0.5 - Math.log((1 + siny) / (1 - siny)) / (4 * Math.PI)),
-    };
+    return sharedMercatorProjection(latLng.lat, latLng.lng);
   }
 
   export function inverseMercatorProjection(
@@ -62,27 +59,18 @@ export namespace MapHelpers {
     latLng: google.maps.LatLngLiteral,
     zoom: number
   ): { x: number; y: number } {
-    var scale = 1 << zoom; // 2^zoom
-
-    var worldCoordinate = mercatorProjection(latLng);
-
-    return {
-      x: (worldCoordinate.x * scale) / TILE_SIZE,
-      y: (worldCoordinate.y * scale) / TILE_SIZE,
-    };
+    return sharedGetUnroundedTileCoordinatesForLocationAndZoom(
+      latLng.lat,
+      latLng.lng,
+      zoom
+    );
   }
 
   export function getTileCoordinatesForLocationAndZoom(
     latLng: google.maps.LatLngLiteral,
     zoom: number
   ): { x: number; y: number } {
-    var unroundedTileCoordinates =
-      getUnroundedTileCoordinatesForLocationAndZoom(latLng, zoom);
-
-    return {
-      x: Math.floor(unroundedTileCoordinates.x),
-      y: Math.floor(unroundedTileCoordinates.y),
-    };
+    return sharedGetTileCoordinatesForLocationAndZoom(latLng.lat, latLng.lng, zoom);
   }
 
   export function getHumanReadableCoordinates(
@@ -117,47 +105,6 @@ export namespace MapHelpers {
   export function getTileCoordinates(
     location: google.maps.LatLngLiteral
   ): SpotSchema["tile_coordinates"] {
-    let tile_coordinates_16: { x: number; y: number } =
-      MapHelpers.getTileCoordinatesForLocationAndZoom(location, 16);
-    let tile_coordinates: SpotSchema["tile_coordinates"] = {
-      z16: tile_coordinates_16,
-      z2: {
-        x: 0,
-        y: 0,
-      },
-      z4: {
-        x: 0,
-        y: 0,
-      },
-      z6: {
-        x: 0,
-        y: 0,
-      },
-      z8: {
-        x: 0,
-        y: 0,
-      },
-      z10: {
-        x: 0,
-        y: 0,
-      },
-      z12: {
-        x: 0,
-        y: 0,
-      },
-      z14: {
-        x: 0,
-        y: 0,
-      },
-    };
-
-    for (let zoom = 16; zoom >= 2; zoom -= 2) {
-      (tile_coordinates as any)[`z${zoom}`] = {
-        x: tile_coordinates_16.x >> (16 - zoom),
-        y: tile_coordinates_16.y >> (16 - zoom),
-      };
-    }
-
-    return tile_coordinates;
+    return computeTileCoordinates(location.lat, location.lng);
   }
 }

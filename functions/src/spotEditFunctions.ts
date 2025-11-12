@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 
 interface SpotEditSchema {
   type: "CREATE" | "UPDATE";
@@ -45,15 +46,43 @@ export const applySpotEditOnCreate = onDocumentCreated(
 
       // For CREATE edits, update the existing (initially empty) spot document with the data
       if (editData.type === "CREATE") {
-        const createData = {
+        const createData: any = {
           ...editData.data,
-          // Enforce correct metadata - overwrite what client set to prevent abuse
-          created_by: editData.user.uid,
-          created_at: admin.firestore.FieldValue.serverTimestamp(),
-          updated_at: admin.firestore.FieldValue.serverTimestamp(),
-          likes: 0,
-          num_reviews: 0,
+          // Set source to pkspot for user-created spots
+          source: "pkspot",
+          // Initialize is_iconic to false (will be computed by scheduled function)
+          is_iconic: false,
         };
+
+        // Ensure location is a proper GeoPoint if it exists and compute tile coordinates
+        if (createData.location) {
+          let latitude: number;
+          let longitude: number;
+
+          // If location is already a GeoPoint, keep it; otherwise convert it
+          if (
+            createData.location._latitude === undefined &&
+            createData.location.latitude !== undefined
+          ) {
+            // It's a plain object with latitude/longitude, convert to GeoPoint
+            latitude = createData.location.latitude;
+            longitude = createData.location.longitude;
+            createData.location = new admin.firestore.GeoPoint(latitude, longitude);
+          } else if (createData.location._latitude !== undefined) {
+            // It's already a GeoPoint, extract coordinates
+            latitude = createData.location._latitude;
+            longitude = createData.location._longitude;
+          } else {
+            console.error("Invalid location format for spot", spotId);
+            throw new Error("Invalid location format");
+          }
+
+          // Compute tile coordinates for the location
+          createData.tile_coordinates = computeTileCoordinates(
+            latitude,
+            longitude
+          );
+        }
 
         await spotRef.update(createData);
         console.log(
@@ -62,37 +91,71 @@ export const applySpotEditOnCreate = onDocumentCreated(
       }
       // For UPDATE edits, merge the changes into the existing spot
       else if (editData.type === "UPDATE") {
+        // Extract fields that need special merge logic
+        const { media, external_references, amenities, ...regularData } =
+          editData.data;
+
         let updateData: any = {
-          ...editData.data,
+          ...regularData,
           updated_at: admin.firestore.FieldValue.serverTimestamp(),
         };
 
+        // Ensure location is a proper GeoPoint if it exists and compute tile coordinates
+        if (updateData.location) {
+          let latitude: number;
+          let longitude: number;
+
+          // If location is already a GeoPoint, keep it; otherwise convert it
+          if (
+            updateData.location._latitude === undefined &&
+            updateData.location.latitude !== undefined
+          ) {
+            // It's a plain object with latitude/longitude, convert to GeoPoint
+            latitude = updateData.location.latitude;
+            longitude = updateData.location.longitude;
+            updateData.location = new admin.firestore.GeoPoint(latitude, longitude);
+          } else if (updateData.location._latitude !== undefined) {
+            // It's already a GeoPoint, extract coordinates
+            latitude = updateData.location._latitude;
+            longitude = updateData.location._longitude;
+          } else {
+            console.error("Invalid location format for spot", spotId);
+            throw new Error("Invalid location format");
+          }
+
+          // Compute tile coordinates for the new location
+          updateData.tile_coordinates = computeTileCoordinates(
+            latitude,
+            longitude
+          );
+        }
+
         // Special handling for media: append instead of replace
-        if (editData.data.media && Array.isArray(editData.data.media)) {
+        if (media && Array.isArray(media)) {
           const spotSnapshot = await spotRef.get();
           if (spotSnapshot.exists) {
             const currentMedia = (spotSnapshot.data() as any)["media"] || [];
             // Append new media items to existing ones, avoiding duplicates
-            const newMedia = editData.data.media.filter(
+            const newMedia = media.filter(
               (newItem: any) =>
                 !currentMedia.some((item: any) => item.src === newItem.src)
             );
             updateData.media = [...currentMedia, ...newMedia];
           } else {
             // Spot doesn't exist yet, just set the media
-            updateData.media = editData.data.media;
+            updateData.media = media;
           }
         }
 
         // Handle external references: merge instead of replace
-        if (editData.data.external_references) {
+        if (external_references) {
           const spotSnapshot = await spotRef.get();
           if (spotSnapshot.exists) {
             const spotData = spotSnapshot.data() as any;
             const currentRefs = spotData["external_references"] || {};
             updateData.external_references = {
               ...currentRefs,
-              ...editData.data.external_references,
+              ...external_references,
             };
             // If a value is explicitly null, delete the field
             Object.keys(updateData.external_references).forEach((key) => {
@@ -103,7 +166,30 @@ export const applySpotEditOnCreate = onDocumentCreated(
             });
           } else {
             // Spot doesn't exist yet
-            updateData.external_references = editData.data.external_references;
+            updateData.external_references = external_references;
+          }
+        }
+
+        // Handle amenities: merge instead of replace
+        if (amenities) {
+          const spotSnapshot = await spotRef.get();
+          if (spotSnapshot.exists) {
+            const spotData = spotSnapshot.data() as any;
+            const currentAmenities = spotData["amenities"] || {};
+            updateData.amenities = {
+              ...currentAmenities,
+              ...amenities,
+            };
+            // If a value is explicitly null, delete the field
+            Object.keys(updateData.amenities).forEach((key) => {
+              if (updateData.amenities[key] === null) {
+                updateData.amenities[key] =
+                  admin.firestore.FieldValue.delete() as any;
+              }
+            });
+          } else {
+            // Spot doesn't exist yet
+            updateData.amenities = amenities;
           }
         }
 

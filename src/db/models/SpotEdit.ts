@@ -1,6 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import { SpotEditSchema } from "../schemas/SpotEditSchema";
 import { languageCodes } from "../../scripts/Languages";
+import { LocaleMap } from "./Interfaces";
 
 export class SpotEdit implements SpotEditSchema {
   readonly id: string;
@@ -49,16 +50,18 @@ export class SpotEdit implements SpotEditSchema {
         keyOrder.indexOf(keyA as never) - keyOrder.indexOf(keyB as never)
     );
     sortedEntries.forEach(([key, value]) => {
-      let message: string;
+      let message: string = "";
       switch (key) {
         case "name":
-          const nameEntries = Object.entries(value as Record<string, string>);
+          const nameEntries = Object.entries(value as LocaleMap);
           const nameList = nameEntries
-            .map(([locale, name]) => {
-              const langInfo = languageCodes[locale];
-              return `<li>${langInfo.name_native}${
-                langInfo.emoji ?? ""
-              }: '${name}'</li>`;
+            .map(([locale, value]) => {
+              if (value) {
+                const langInfo = languageCodes[locale];
+                return `<li>${langInfo.name_native}${langInfo.emoji ?? ""}: '${
+                  value.text
+                }'</li>`;
+              }
             })
             .join(", ");
           message = isCreate
@@ -78,7 +81,14 @@ export class SpotEdit implements SpotEditSchema {
           message = isCreate ? "Set location.</br>" : "Updated location.</br>";
           break;
         case "media":
-          message = isCreate ? "Added media.</br>" : "Updated media.</br>";
+          if (
+            value &&
+            Array.isArray(value) &&
+            value.length === 0 &&
+            !isCreate
+          ) {
+            message = isCreate ? "Added media.</br>" : "Updated media.</br>";
+          }
           break;
         case "bounds":
           message = isCreate ? "Set bounds.</br>" : "Updated bounds.</br>";
@@ -104,9 +114,11 @@ export class SpotEdit implements SpotEditSchema {
               return `<li>${label} ${emoji}</li>`;
             })
             .join("");
-          message = isCreate
-            ? `Set amenities: <ul>${amenitiesList}</ul>`
-            : `Updated amenities: <ul>${amenitiesList}</ul>`;
+          if (amenitiesList.length > 0) {
+            message = isCreate
+              ? `Set amenities: <ul>${amenitiesList}</ul>`
+              : `Updated amenities: <ul>${amenitiesList}</ul>`;
+          }
           break;
         case "external_references":
           message = isCreate
@@ -114,7 +126,9 @@ export class SpotEdit implements SpotEditSchema {
             : "Updated external references.</br>";
           break;
         default:
-          message = `Set '${key}' to '${value}'.</br>`;
+          if (value) {
+            message = `Set '${key}' to '${value}'.</br>`;
+          }
       }
 
       detailString += message;

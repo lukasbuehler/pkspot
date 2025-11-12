@@ -1,4 +1,3 @@
-import { DocumentReference, Timestamp } from "firebase/firestore";
 import { humanTimeSince } from "../../scripts/Helpers";
 import { UserSchema, UserSettingsSchema } from "../schemas/UserSchema";
 import { StorageImage } from "./Media";

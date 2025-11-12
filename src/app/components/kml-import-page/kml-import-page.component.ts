@@ -35,6 +35,7 @@ import {
 } from "../regex-input/regex-input.component";
 import { LocalSpot } from "../../../db/models/Spot";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
+import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { GeoPoint } from "firebase/firestore";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
@@ -70,6 +71,7 @@ import { LocaleCode } from "../../../db/models/Interfaces";
 import { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { MarkerSchema } from "../marker/marker.component";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
+import { createUserReference } from "../../../scripts/Helpers";
 
 @Component({
   selector: "app-kml-import-page",
@@ -143,7 +145,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     @Inject(LOCALE_ID) public locale: LocaleCode,
     public kmlParserService: KmlParserService,
     private _formBuilder: UntypedFormBuilder,
-    private _spotsService: SpotsService,
+    private _spotEditsService: SpotEditsService,
     private _authService: AuthenticationService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -289,12 +291,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       }
 
       // Create user reference for the edits
-      const userReference: UserReferenceSchema = {
-        uid: this._authService.user.uid,
-        display_name: this._authService.user.data?.displayName ?? "User",
-        profile_picture:
-          this._authService.user.data?.profilePicture?.baseSrc ?? undefined,
-      };
+      const userReference = createUserReference(this._authService.user.data!);
 
       // Create spot edits for each KML spot
       const spotEditPromises = kmlSpots.map((kmlSpot: KMLSpot) => {
@@ -311,7 +308,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         );
 
         // Create a new spot with edit (server-side ID generation)
-        return this._spotsService.createSpotWithEdit(
+        return this._spotEditsService.createSpotWithEdit(
           spot.data(),
           userReference
         );

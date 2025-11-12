@@ -12,7 +12,11 @@ export {
 } from "./postFunctions";
 
 // spot functions
-export { updateAllSpotAddresses, computeRatingOnWrite } from "./spotFunctions";
+export {
+  updateAllSpotAddresses,
+  computeRatingOnWrite,
+  updateAllEmptyAddressesOnSchedule,
+} from "./spotFunctions";
 
 // spot edit functions
 export { applySpotEditOnCreate } from "./spotEditFunctions";
