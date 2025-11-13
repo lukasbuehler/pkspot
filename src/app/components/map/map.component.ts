@@ -774,6 +774,7 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     clickableIcons: false,
     gestureHandling: "greedy",
     disableDefaultUI: true,
+    tilt: 0,
   };
 
   spotCircleDarkOptions: google.maps.CircleOptions = {
@@ -935,17 +936,23 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
    * Check if a given spot is the currently selected spot and is being edited
    */
   isSelectedSpotBeingEdited(spot: LocalSpot | Spot): boolean {
-    if (!this.selectedSpot || !this.isEditing()) return false;
+    const selectedSpot = this.selectedSpot();
+    if (!selectedSpot || !this.isEditing()) return false;
+
+    // First check: same object reference
+    if (selectedSpot === spot) {
+      return true;
+    }
 
     // For Spot instances (with ID), compare by ID
-    if ("id" in this.selectedSpot && "id" in spot) {
-      const result = this.selectedSpot.id === spot.id;
-      return result;
+    if ("id" in selectedSpot && "id" in spot) {
+      const result = selectedSpot.id === spot.id;
+      if (result) return true;
     }
 
     // For LocalSpot instances or mixed cases, compare by location
     // This is a fallback that should work for most cases
-    const selectedLoc = this.selectedSpot()?.location();
+    const selectedLoc = selectedSpot?.location();
     if (!selectedLoc) return false;
     const spotLoc = spot.location();
     const result =
@@ -1048,9 +1055,10 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
 
     // Fall back to existing paths - DO NOT create default paths
     const selectedSpot = this.selectedSpot();
-    if (selectedSpot?.paths && selectedSpot.paths.length > 0) {
+    const paths = selectedSpot?.paths();
+    if (paths && paths.length > 0) {
       console.log("Falling back to existing spot paths");
-      return selectedSpot.paths;
+      return paths;
     }
 
     // Return null if no paths exist - don't create default paths
@@ -1065,8 +1073,8 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     const selectedSpot = this.selectedSpot();
     if (!selectedSpot) return;
 
-    // Update the spot's paths
-    selectedSpot.paths = paths;
+    // Update the spot's paths signal
+    selectedSpot.paths.set(paths);
 
     // Force polygon recreation to show the new paths
     if (this.isEditing()) {
@@ -1198,13 +1206,9 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     }
 
     // Always use the current stored paths when available
-    if (
-      selectedSpot.paths &&
-      selectedSpot.paths.length > 0 &&
-      selectedSpot.paths[0] &&
-      selectedSpot.paths[0].length > 0
-    ) {
-      return selectedSpot.paths;
+    const paths = selectedSpot.paths();
+    if (paths && paths.length > 0 && paths[0] && paths[0].length > 0) {
+      return paths;
     }
 
     // Return empty array if no valid paths exist - don't create default paths
@@ -1232,10 +1236,11 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       return paths[0];
     }
 
-    // If we're in editing mode and no paths exist, create a default path
-    // This allows the polygon to be created and then edited
-    if (this.isEditing() && this.selectedSpot()) {
-      const location = this.selectedSpot()!.location();
+    // If we're in editing mode and no paths exist, only create a default path
+    // if the spot doesn't already have bounds (i.e., we're creating new bounds)
+    const selectedSpot = this.selectedSpot();
+    if (this.isEditing() && selectedSpot && !selectedSpot.hasBounds()) {
+      const location = selectedSpot.location();
       const dist = 0.0001;
       const defaultPath = [
         { lat: location.lat + dist, lng: location.lng + dist },
@@ -1424,7 +1429,7 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     if (spot) {
       const id = "id" in spot ? spot.id : "local";
       const location = spot.location();
-      const paths = spot.paths;
+      const paths = spot.paths();
       console.log(
         `Spot ID: ${id}, Location: ${location.lat},${location.lng}, Paths:`,
         paths

@@ -120,7 +120,7 @@ export class LocalSpot {
     );
   });
 
-  paths?: google.maps.LatLngLiteral[][];
+  paths = signal<google.maps.LatLngLiteral[][] | undefined>(undefined);
 
   constructor(data: SpotSchema, readonly locale: LocaleCode) {
     this.names = signal(makeLocaleMapFromObject(data.name));
@@ -340,7 +340,7 @@ export class LocalSpot {
       return makeSmartAmenitiesArray(amenities, this.type());
     });
 
-    this.paths = this._makePathsFromBounds(data.bounds ?? []);
+    this.paths.set(this._makePathsFromBounds(data.bounds ?? []));
   }
 
   /**
@@ -437,7 +437,9 @@ export class LocalSpot {
     this.amenities.set(data.amenities);
 
     // Bounds
-    this.paths = this._makePathsFromBounds(data.bounds ?? []);
+    console.debug(`[Spot.applyFromSchema] Received bounds:`, data.bounds);
+    this.paths.set(this._makePathsFromBounds(data.bounds ?? []));
+    console.debug(`[Spot.applyFromSchema] Updated paths to:`, this.paths());
   }
 
   /**
@@ -482,7 +484,7 @@ export class LocalSpot {
       type: this.type(),
       access: this.access(),
       amenities: this.amenities(),
-      bounds: this._makeBoundsFromPaths(this.paths ?? []),
+      bounds: this._makeBoundsFromPaths(this.paths() ?? []),
       hide_streetview: this.hideStreetview,
     };
 
@@ -525,9 +527,10 @@ export class LocalSpot {
     this.descriptions.set(descriptions);
   }
 
-  public hasBounds() {
-    return !!(this.paths && this.paths.length > 0 && this.paths[0].length > 0);
-  }
+  readonly hasBounds = computed(() => {
+    const paths = this.paths();
+    return !!(paths && paths.length > 0 && paths[0].length > 0);
+  });
 
   public getMediaByIndex(index: number): Media {
     return this.media()[index];
@@ -573,16 +576,29 @@ export class LocalSpot {
   private _makePathsFromBounds(
     bounds: GeoPoint[]
   ): Array<Array<google.maps.LatLngLiteral>> | undefined {
-    if (!bounds || bounds.length === 0) return undefined;
+    if (!bounds || bounds.length === 0) {
+      console.debug(`[_makePathsFromBounds] No bounds provided`);
+      return undefined;
+    }
 
-    return [
+    const paths = [
       bounds.map((point) => {
+        // GeoPoint can have either 'latitude'/'longitude' or '_latitude'/'_longitude'
+        const lat = (point as any).latitude ?? (point as any)._latitude;
+        const lng = (point as any).longitude ?? (point as any)._longitude;
+        console.debug(
+          `[_makePathsFromBounds] Converting GeoPoint:`,
+          point,
+          `to {lat: ${lat}, lng: ${lng}}`
+        );
         return {
-          lat: point.latitude || point.latitude,
-          lng: point.longitude || point.longitude,
+          lat,
+          lng,
         };
       }),
     ];
+    console.debug(`[_makePathsFromBounds] Created paths:`, paths);
+    return paths;
   }
 
   private _makeBoundsFromPaths(

@@ -102,7 +102,7 @@
   }
 
   <!-- only display the bounds when close enough (zoom >= 16) -->
-  @if (zoom >= 16) { @for(spot of spots; track $index) { @if(!spot?.hasBounds())
+  @if (zoom >= 16) { @for(spot of spots; track $index) { @if(!isSelectedSpotBeingEdited(spot)) { @if(!spot?.hasBounds())
   {
   <map-circle
     [center]="spot.location()"
@@ -113,14 +113,14 @@
   </map-circle>
   } @else {
   <!-- Don't show regular polygon if this spot is selected and being edited -->
-  @if(!(isSelectedSpotBeingEdited(spot)) && spot.paths && spot.paths.length > 0
-  && spot.paths[0] && spot.paths[0].length > 0) {
+  @let paths = spot.paths(); @if(paths
+  && paths.length > 0 && paths[0] && paths[0].length > 0) {
   <map-polygon
     [options]="spotPolygonOptions"
-    [paths]="spot.paths[0]"
+    [paths]="paths[0]"
     (polygonClick)="spotClick.emit(spot)"
   ></map-polygon>
-  } } } }
+  } } } } }
 
   <!-- Selected spot polygon (when editing) - uses recreation key to force re-render -->
   @if(selectedSpot() && isEditing() && showSelectedSpotPolygon()) { @for(dummy

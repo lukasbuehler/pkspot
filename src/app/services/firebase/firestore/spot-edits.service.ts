@@ -150,6 +150,14 @@ export class SpotEditsService extends ConsentAwareService {
   addSpotEdit(spotId: string, edit: SpotEditSchema): Promise<string> {
     const cleanEdit = removeUndefinedProperties(edit) as SpotEditSchema;
 
+    // Check if the edit data is empty - if so, don't create an edit
+    if (!cleanEdit.data || Object.keys(cleanEdit.data).length === 0) {
+      console.warn("Skipping empty edit for spot", spotId);
+      return Promise.reject(
+        new Error("Cannot create an edit with no data changes")
+      );
+    }
+
     this.trackEventWithConsent("Add Spot Edit", {
       props: { spotId: spotId },
     });

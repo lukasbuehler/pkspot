@@ -30,6 +30,18 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
   },
 
+  // Posts
+  // { path: "feed", component: HomePageComponent, data: { routeName: "Feed" } },
+  // {
+  //   path: "p/:postId",
+  //   redirectTo: "post/:postId",
+  // },
+  // {
+  //   path: "post/:postId",
+  //   component: PostPageComponent,
+  //   data: { routeName: "Post" },
+  // },
+
   // Map page (single matcher for all map routes)
   {
     path: "map",
@@ -144,18 +156,6 @@ export const routes: Routes = [
     pathMatch: "full",
     data: { routeName: "Event" },
   },
-
-  // Posts
-  // { path: "posts", component: HomePageComponent, data: { routeName: "Posts" } },
-  // {
-  //   path: "p/:postId",
-  //   redirectTo: "post/:postId",
-  // },
-  // {
-  //   path: "post/:postId",
-  //   component: PostPageComponent,
-  //   data: { routeName: "Post" },
-  // },
 
   // Community, Groups, Teams, Sessions
   //   {

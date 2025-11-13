@@ -89,16 +89,6 @@
           Discord </target>
       </segment>
     </unit>
-    <unit id="spot_map_label">
-      <notes>
-        <note category="description">A very short label for the navbar spot map label</note>
-        <note category="meaning">Spot map navbar button label</note>
-      </notes>
-      <segment state="initial">
-        <source>Spot map</source>
-        <target>Spot Karte</target>
-      </segment>
-    </unit>
     <unit id="about_page_label">
       <segment state="initial">
         <source>About</source>
@@ -358,7 +348,7 @@
       </notes>
       <segment state="initial">
         <source>Edit History</source>
-        <target>Bearbeitungsverlauf</target>
+        <target>Velauf</target>
       </segment>
     </unit>
     <unit id="8626615958100222841">
@@ -455,6 +445,16 @@
       <segment state="initial">
         <source>Early PK Spot Community Contribution</source>
         <target>Früher PK Spot Gemeinschaftsbeitrag</target>
+      </segment>
+    </unit>
+    <unit id="map_label">
+      <notes>
+        <note category="description">A very short label for the navbar map label</note>
+        <note category="meaning">Map navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Map</source>
+        <target>Karte</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -1069,11 +1069,13 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment state="initial">
-        <source>This is a commercial property, such as a gym or business, where access may require a
-          fee or membership. Please respect the rules and hours of operation.</source>
-        <target>Dies ist ein kommerzieller Ort, wie ein Fitnessstudio oder Geschäft, bei dem der
-          Zugang eine Gebühr oder Mitgliedschaft erfordern kann. Bitte respektiere die Regeln und
-          Öffnungszeiten.</target>
+        <source>This is a commercial facility that requires membership or paid entry. You must be a
+          member or pay a fee to access this spot. Please respect the facility&apos;s rules and
+          hours of operation.</source>
+        <target>Dies ist eine kommerzielle Einrichtung, die eine Mitgliedschaft oder bezahlten
+          Eintritt
+          erfordert. Du musst Mitglied sein oder eine Gebühr zahlen, um diesen Spot zu betreten.
+          Bitte respektiere die Regeln und Öffnungszeiten der Einrichtung.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
@@ -1121,8 +1123,8 @@
     </unit>
     <unit id="spot-access.commercial">
       <segment state="initial">
-        <source>Business</source>
-        <target>Geschäft</target>
+        <source>Membership/Fee</source>
+        <target>Mitgliedschaft / Gebühr</target>
       </segment>
     </unit>
     <unit id="spot-access.off-limits">
@@ -1864,12 +1866,6 @@
         <target> Hochladen und speichern </target>
       </segment>
     </unit>
-    <unit id="events.nav_label">
-      <segment state="initial">
-        <source>Events</source>
-        <target>Events</target>
-      </segment>
-    </unit>
     <unit id="events.title">
       <notes>
         <note category="description">:</note>
@@ -1967,8 +1963,8 @@
             dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </source>
         <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
             dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Öffentliche Lizenz:</pc> Die Daten
-          dieses Spots stehen unter der <pc id="1" equivStart="START_LINK"
-            equivEnd="CLOSE_LINK" type="link"
+          dieses Spots stehen unter der <pc id="1" equivStart="START_LINK" equivEnd="CLOSE_LINK"
+            type="link"
             dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
             dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> Lizenz zur Verfügung. </target>
       </segment>

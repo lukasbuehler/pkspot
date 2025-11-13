@@ -89,16 +89,6 @@
           Discord </target>
       </segment>
     </unit>
-    <unit id="spot_map_label">
-      <notes>
-        <note category="description">A very short label for the navbar spot map label</note>
-        <note category="meaning">Spot map navbar button label</note>
-      </notes>
-      <segment state="initial">
-        <source>Spot map</source>
-        <target>Mapa Spot</target>
-      </segment>
-    </unit>
     <unit id="about_page_label">
       <segment state="initial">
         <source>About</source>
@@ -455,6 +445,16 @@
       <segment state="initial">
         <source>Early PK Spot Community Contribution</source>
         <target>Contribución de la comunidad Early PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="map_label">
+      <notes>
+        <note category="description">A very short label for the navbar map label</note>
+        <note category="meaning">Map navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Map</source>
+        <target>Mapa</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -1067,10 +1067,12 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment state="initial">
-        <source>This is a commercial property, such as a gym or business, where access may require a
-          fee or membership. Please respect the rules and hours of operation.</source>
-        <target>Esta es una propiedad comercial, como un gimnasio o negocio, donde el acceso puede
-          requerir una tarifa o membresía. Por favor respeta las reglas y horarios de operación.</target>
+        <source>This is a commercial facility that requires membership or paid entry. You must be a
+          member or pay a fee to access this spot. Please respect the facility&apos;s rules and
+          hours of operation.</source>
+        <target>Esta es una instalación comercial que requiere membresía o entrada pagada. Debes ser
+          miembro o pagar una tarifa para acceder a este spot. Por favor, respeta las reglas y
+          horarios de operación de la instalación.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
@@ -1118,8 +1120,8 @@
     </unit>
     <unit id="spot-access.commercial">
       <segment state="initial">
-        <source>Business</source>
-        <target> Negocio</target>
+        <source>Membership/Fee</source>
+        <target>Membresía / Tarifa</target>
       </segment>
     </unit>
     <unit id="spot-access.off-limits">
@@ -1870,12 +1872,6 @@
       <segment state="initial">
         <source> Upload and save </source>
         <target> Subir y guardar </target>
-      </segment>
-    </unit>
-    <unit id="events.nav_label">
-      <segment state="initial">
-        <source>Events</source>
-        <target>Eventos</target>
       </segment>
     </unit>
     <unit id="events.title">

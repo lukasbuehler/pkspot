@@ -88,16 +88,6 @@
           Discord </target>
       </segment>
     </unit>
-    <unit id="spot_map_label">
-      <notes>
-        <note category="description">A very short label for the navbar spot map label</note>
-        <note category="meaning">Spot map navbar button label</note>
-      </notes>
-      <segment state="initial">
-        <source>Spot map</source>
-        <target>Spot Charte</target>
-      </segment>
-    </unit>
     <unit id="about_page_label">
       <segment state="initial">
         <source>About</source>
@@ -356,7 +346,7 @@
       </notes>
       <segment state="initial">
         <source>Edit History</source>
-        <target>Vergangeni Ahpassige</target>
+        <target>Verlauf</target>
       </segment>
     </unit>
     <unit id="8626615958100222841">
@@ -453,6 +443,16 @@
       <segment state="initial">
         <source>Early PK Spot Community Contribution</source>
         <target>Frühe PK Spot Community Biitrag</target>
+      </segment>
+    </unit>
+    <unit id="map_label">
+      <notes>
+        <note category="description">A very short label for the navbar map label</note>
+        <note category="meaning">Map navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Map</source>
+        <target>Charte</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -811,8 +811,8 @@
     </unit>
     <unit id="6024008212258429928">
       <segment state="initial">
-        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION"
-            disp="{{ data!.spot.name }}" /> &apos;</source>
+        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}" />
+          &apos;</source>
         <target>Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}" />&apos;
           melde</target>
       </segment>
@@ -1066,12 +1066,13 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment state="initial">
-        <source>This is a commercial property, such as a gym or business, where access may require
-          a
-          fee or membership. Please respect the rules and hours of operation.</source>
-        <target> Das isch es kommerziells Areal, wie z.B. es Fitnessstudio oder en Betrieb, wo für
-          de Zuegriff eventuell en Gebühr oder en Mitgliedschaft erforderlich isch. Bitte
-          respektiere d&apos;Regle und d&apos;Öffnigsziite. </target>
+        <source>This is a commercial facility that requires membership or paid entry. You must be a
+          member or pay a fee to access this spot. Please respect the facility&apos;s rules and
+          hours of operation.</source>
+        <target> Das ish e kommerzielli Ihrichtig wo en Mitgliedschaft oder chostepflichtige Ihtritt
+          benötigt.
+          Du musch es Mitglied sii oder zahle zum i de Spot zcho. Bitte respektier d'Regle und
+          Öffnigsziite.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
@@ -1119,8 +1120,8 @@
     </unit>
     <unit id="spot-access.commercial">
       <segment state="initial">
-        <source>Business</source>
-        <target>Gschäft</target>
+        <source>Membership/Fee</source>
+        <target>Mitgliedschaft / Ihtritt</target>
       </segment>
     </unit>
     <unit id="spot-access.off-limits">
@@ -1271,8 +1272,7 @@
     <unit id="spot-type-description.urban-landscape">
       <segment state="initial">
         <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
-        <target> Das isch es urbanes Gebiet mit Wänd, Geländer, Treppe und architektonische
-          Element. </target>
+        <target> Das isch es urbanes Gebiet mit Wänd, Geländer, Treppe und architektonische Element. </target>
       </segment>
     </unit>
     <unit id="spot-type-description.water">
@@ -1403,8 +1403,7 @@
     </unit>
     <unit id="spot_highlights">
       <notes>
-        <note category="description">Title for the spot highlights, spots is clear from the
-          context</note>
+        <note category="description">Title for the spot highlights, spots is clear from the context</note>
       </notes>
       <segment state="initial">
         <source> Highlights </source>
@@ -1479,8 +1478,7 @@
     </unit>
     <unit id="no_spots_text">
       <notes>
-        <note category="description">The text in the spot list panel if no spots are
-          found/displayed</note>
+        <note category="description">The text in the spot list panel if no spots are found/displayed</note>
       </notes>
       <segment state="initial">
         <source> There are no highlighted spots for this area, zoom in on dots in the map to
@@ -1561,8 +1559,8 @@
     </unit>
     <unit id="9074160907730350759">
       <segment state="initial">
-        <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION"
-            disp="{{ review.spot.name }}" /> &apos;</source>
+        <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}" />
+          &apos;</source>
         <target>Bewertig für Spot &apos;<ph id="0" equiv="INTERPOLATION"
             disp="{{ review.spot?.name }}" />&apos;</target>
       </segment>
@@ -1728,8 +1726,7 @@
       <segment state="initial">
         <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy,
           we use a privacy-focused, cookie-free analytics service. </source>
-        <target> Wichtigi Funktione (wie Google Maps) chönd Cookies benutze. 🍪 Zum Schutz vo
-          dinere
+        <target> Wichtigi Funktione (wie Google Maps) chönd Cookies benutze. 🍪 Zum Schutz vo dinere
           Privatsphäre verwänded mir en datenschutz-fokussierti, cookie-freie Analytik-Dienst. </target>
       </segment>
     </unit>
@@ -1741,8 +1738,7 @@
     </unit>
     <unit id="welcomeDialogText">
       <segment state="initial">
-        <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here
-          you
+        <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you
           can explore spots, share posts, and connect with other practitioners. 🤸 </source>
         <target> Mir freued eus, dass du eusere Parkour und Freerunning Community biitritsch. Da
           chasch Spots entdecke, Posts teile und mit andere Praktizierende connecte. 🤸 </target>
@@ -1846,9 +1842,9 @@
       <segment state="initial">
         <source>This is the date you started practicing Parkour and Freerunning. It will be rounded
           to full years after one year or more so don&apos;t sweat it.</source>
-        <target>Das isch s
-          Datum, wo du ahgfange hesch Parkour und Freerunning z'trainiere. Es wird uf volli Jahr
-          abgerundet, wenns meh als es Jahr isch, drum keis Problem wenns nöd gnau weisch.</target>
+        <target>Das isch s Datum, wo du ahgfange hesch Parkour und Freerunning z&apos;trainiere. Es
+          wird uf volli Jahr abgerundet, wenns meh als es Jahr isch, drum keis Problem wenns nöd
+          gnau weisch.</target>
       </segment>
     </unit>
     <unit id="editProfile.uploadAndSave">
@@ -1859,12 +1855,6 @@
       <segment state="initial">
         <source> Upload and save </source>
         <target> Ufelade und speichere </target>
-      </segment>
-    </unit>
-    <unit id="events.nav_label">
-      <segment state="initial">
-        <source>Events</source>
-        <target>Verahstaltige</target>
       </segment>
     </unit>
     <unit id="events.title">
@@ -1956,15 +1946,13 @@
     </unit>
     <unit id="28674972039900875">
       <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
-            type="other"
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
             dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Public License:</pc> This
           spot&apos;s data is made available under the <pc id="1" equivStart="START_LINK"
             equivEnd="CLOSE_LINK" type="link"
             dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
             dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </source>
-        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
-            type="other"
+        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
             dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Öffentlichi Lizenz:</pc> Die Date
           vo dem Spot sind verfüegbar under de <pc id="1" equivStart="START_LINK"
             equivEnd="CLOSE_LINK" type="link"
@@ -2496,7 +2484,7 @@
       </notes>
       <segment state="initial">
         <source>View edit history of this spot</source>
-        <target>Editierverlauf von däm Spot aaluege</target>
+        <target>Bearbeitigsverlauf von däm Spot aaluege</target>
       </segment>
     </unit>
     <unit id="spot.edit.url.add_custom">
@@ -2562,8 +2550,7 @@
     <unit id="3998090677451328461">
       <segment state="initial">
         <source>This is a sketchy or mental challenge that requires physical and emotional control</source>
-        <target>Das isch en sketchy oder mental ahspruchsvolli Challenge wo physischi und
-          emotionali
+        <target>Das isch en sketchy oder mental ahspruchsvolli Challenge wo physischi und emotionali
           Kontrolle benötigt.</target>
       </segment>
     </unit>
@@ -2589,14 +2576,12 @@
     </unit>
     <unit id="5176605689144016167">
       <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
-            type="other"
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
             dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding
           this content on your website, you are responsible for obtaining user consent for
           third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent
           banner or terms that users agree to before viewing embedded content. </source>
-        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
-            type="other"
+        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
             dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Wichtig:</pc> Wenn du de Inhalt
           uf dinere Website ihbettisch, bisch du verantwortlich dafür, d&apos;Zuestimmig vo Benutzer
           für Drittanbieter-Dienste ihz&apos;hole (Google Maps, Analytik, usw.). Stell sicher, dass
@@ -2704,11 +2689,9 @@
     </unit>
     <unit id="501118076159295384">
       <segment state="initial">
-        <source> The Challenge will only be available starting from the release date. Before that
-          it
+        <source> The Challenge will only be available starting from the release date. Before that it
           will be private to you. </source>
-        <target> Die Challenge wird erst abem Veröffentlichigs-Datum verfüegbar sii. Vorher isch
-          sie
+        <target> Die Challenge wird erst abem Veröffentlichigs-Datum verfüegbar sii. Vorher isch sie
           privat für dich. </target>
       </segment>
     </unit>
@@ -3007,5 +2990,4 @@
       </segment>
     </unit>
   </file>
-
 </xliff>

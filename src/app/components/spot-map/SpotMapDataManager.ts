@@ -131,7 +131,7 @@ export class SpotMapDataManager {
       const spot = await firstValueFrom(
         this._spotsService.getSpotById$(spotId, this.locale)
       );
-      
+
       if (spot) {
         // Add the spot to the data manager's internal cache
         this._addLoadedSpots([spot]);
@@ -198,15 +198,18 @@ export class SpotMapDataManager {
       // Existing spot - create an UPDATE edit with only changed fields
       const spotId = spot.id as SpotId;
       const currentData = spot.data();
-      
+
       // Compute diff if we have the original data
       let diffData: Partial<SpotSchema> = currentData;
       if (originalSpot && originalSpot instanceof Spot) {
         const originalData = originalSpot.data();
-        diffData = this._computeDataDiff(originalData, currentData) as Partial<SpotSchema>;
+        diffData = this._computeDataDiff(
+          originalData,
+          currentData
+        ) as Partial<SpotSchema>;
         console.debug("Computed diff for update:", diffData);
       }
-      
+
       await this._spotEditsService.createSpotUpdateEdit(
         spotId,
         diffData,
@@ -230,7 +233,7 @@ export class SpotMapDataManager {
    * Compute a diff between original and current data, returning only changed fields.
    * This ensures that edits only contain fields that were actually modified.
    * For nested objects, only includes properties that actually changed.
-   * 
+   *
    * @param originalData - The original spot data before editing
    * @param currentData - The current/new spot data after editing
    * @returns A partial object containing only the fields that changed
@@ -258,7 +261,10 @@ export class SpotMapDataManager {
           currentValue.seconds === undefined // not a Timestamp
         ) {
           // This is a plain object - compute the diff for nested properties
-          const nestedDiff = this._computeNestedDiff(originalValue || {}, currentValue);
+          const nestedDiff = this._computeNestedDiff(
+            originalValue || {},
+            currentValue
+          );
           if (Object.keys(nestedDiff).length > 0) {
             diff[key] = nestedDiff;
           }
@@ -314,10 +320,7 @@ export class SpotMapDataManager {
     if (typeof a !== "object" || typeof b !== "object") return false;
 
     // Handle GeoPoint (Firebase Firestore type)
-    if (
-      a._latitude !== undefined &&
-      b._latitude !== undefined
-    ) {
+    if (a._latitude !== undefined && b._latitude !== undefined) {
       return a._latitude === b._latitude && a._longitude === b._longitude;
     }
 
@@ -873,7 +876,26 @@ export class SpotMapDataManager {
       if (!this._spots.has(key)) {
         this._spots.set(key, []);
       }
-      this._spots.get(key)!.push(spot);
+
+      // Check if spot already exists in this tile
+      const spotsInTile = this._spots.get(key)!;
+      const existingSpotIndex = spotsInTile.findIndex(
+        (existingSpot) => existingSpot.id === spot.id
+      );
+
+      if (existingSpotIndex !== -1) {
+        // Spot already exists - update it with new data from Firestore
+        // This ensures that bounds and other changes persist to the local copy
+        console.debug(
+          `[_addLoadedSpots] Updating existing spot ${spot.id} with new data from Firestore`
+        );
+        console.debug(`[_addLoadedSpots] New spot data:`, spot.data());
+        spotsInTile[existingSpotIndex].applyFromSchema(spot.data());
+      } else {
+        // New spot - add it
+        console.debug(`[_addLoadedSpots] Adding new spot ${spot.id}`);
+        spotsInTile.push(spot);
+      }
     });
 
     const _lastVisibleTiles = this._lastVisibleTiles();

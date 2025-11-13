@@ -218,7 +218,7 @@ export class AppComponent implements OnInit {
   }
 
   private setupAuthStateListener() {
-    console.log("Setting up auth state listener with consent");
+    // console.log("Setting up auth state listener with consent");
 
     this.authService.authState$.subscribe(
       (user) => {
@@ -535,24 +535,19 @@ export class AppComponent implements OnInit {
 
     return [
       // {
-      //   name: "Posts",
-      //   link: "/posts",
+      //   name: "Feed",
+      //   link: "/feed",
       //   icon: "question_answer",
       // },
       {
-        name: $localize`:Spot map navbar button label|A very short label for the navbar spot map label@@spot_map_label:Spot map`,
+        name: $localize`:Map navbar button label|A very short label for the navbar map label@@map_label:Map`,
         link: "/map",
         icon: "map",
       },
-      {
-        name: $localize`:@@events.nav_label:Events`,
-        link: "/events",
-        icon: "calendar_month", // or event, local_activity, calendar_month
-      },
       // {
-      //   name: "Swiss Jam",
-      //   link: "/events/swissjam25",
-      //   icon: "local_activity",
+      //   name: $localize`:@@train.nav_label:Train`,
+      //   link: "/train",
+      //   icon: "sprint", // "directions_run", fast_forward,  "exercise"
       // },
       {
         name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,

@@ -93,7 +93,7 @@ export enum SpotAccess {
 
 export const SpotAccessNames: Record<SpotAccess, string> = {
   [SpotAccess.Public]: $localize`:@@spot-access.public:Public`,
-  [SpotAccess.Commercial]: $localize`:@@spot-access.commercial:Business`,
+  [SpotAccess.Commercial]: $localize`:@@spot-access.commercial:Membership/Fee`,
   [SpotAccess.Residential]: $localize`:@@spot-access.residential:Residential`,
   [SpotAccess.Private]: $localize`:@@spot-access.private:Private`,
   [SpotAccess.OffLimits]: $localize`:@@spot-access.off-limits:Off-Limits`,
@@ -111,7 +111,7 @@ export const SpotAccessIcons: Record<SpotAccess, string> = {
 
 export const SpotAccessDescriptions: Record<SpotAccess, string> = {
   [SpotAccess.Public]: $localize`:@@spot-access-description.public:This is a public spot, which is open to everyone and can be accessed freely without restrictions.`,
-  [SpotAccess.Commercial]: $localize`:@@spot-access-description.commercial:This is a commercial property, such as a gym or business, where access may require a fee or membership. Please respect the rules and hours of operation.`,
+  [SpotAccess.Commercial]: $localize`:@@spot-access-description.commercial:This is a commercial facility that requires membership or paid entry. You must be a member or pay a fee to access this spot. Please respect the facility's rules and hours of operation.`,
   [SpotAccess.Residential]: $localize`:@@spot-access-description.residential:This is a residential area and private property. Access is generally limited to residents or their guests. Please be especially mindful of noise and privacy. Training here may lead to being asked to leave.`,
   [SpotAccess.Private]: $localize`:@@spot-access-description.private:This is private property. While some respectful practice may be tolerated, permission is always recommended to avoid issues.`,
   [SpotAccess.OffLimits]: $localize`:@@spot-access-description.off-limits:This is private property and strictly off-limits without explicit, prior permission from the owner. Unauthorized access may result in legal action or injury.`,

@@ -89,16 +89,6 @@
           Discord </target>
       </segment>
     </unit>
-    <unit id="spot_map_label">
-      <notes>
-        <note category="description">A very short label for the navbar spot map label</note>
-        <note category="meaning">Spot map navbar button label</note>
-      </notes>
-      <segment state="initial">
-        <source>Spot map</source>
-        <target>Carte Spot</target>
-      </segment>
-    </unit>
     <unit id="about_page_label">
       <segment state="initial">
         <source>About</source>
@@ -454,6 +444,16 @@
       <segment state="initial">
         <source>Early PK Spot Community Contribution</source>
         <target>Contribution de la communauté Early PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="map_label">
+      <notes>
+        <note category="description">A very short label for the navbar map label</note>
+        <note category="meaning">Map navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Map</source>
+        <target>Carte</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -1069,11 +1069,12 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment state="initial">
-        <source>This is a commercial property, such as a gym or business, where access may require a
-          fee or membership. Please respect the rules and hours of operation.</source>
-        <target>Il s&apos;agit d&apos;une propriété commerciale, comme une salle de sport ou une
-          entreprise, où l&apos;accès peut nécessiter des frais ou un abonnement. Veuillez respecter
-          les règles et les heures d&apos;ouverture.</target>
+        <source>This is a commercial facility that requires membership or paid entry. You must be a
+          member or pay a fee to access this spot. Please respect the facility&apos;s rules and
+          hours of operation.</source>
+        <target>Il s&apos;agit d&apos;une installation commerciale qui nécessite une adhésion ou
+          une entrée payante. Vous devez être membre ou payer des frais pour accéder à ce spot.
+          Veuillez respecter les règles et les heures d&apos;ouverture de l&apos;installation.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
@@ -1122,8 +1123,8 @@
     </unit>
     <unit id="spot-access.commercial">
       <segment state="initial">
-        <source>Business</source>
-        <target>Commercial</target>
+        <source>Membership/Fee</source>
+        <target>Adhésion / Frais</target>
       </segment>
     </unit>
     <unit id="spot-access.off-limits">
@@ -1810,7 +1811,7 @@
       </notes>
       <segment state="initial">
         <source>Display Name</source>
-        <target>Nom d'affichage</target>
+        <target>Nom d&apos;affichage</target>
       </segment>
     </unit>
     <unit id="editProfile.readyToUpload">
@@ -1856,8 +1857,8 @@
         <source>This is the date you started practicing Parkour and Freerunning. It will be rounded
           to full years after one year or more so don&apos;t sweat it.</source>
         <target>Ceci est la date à laquelle tu as commencé à pratiquer le Parkour et le Freerunning.
-          Elle sera arrondie
-          à des années complètes après un an ou plus, alors ne t'inquiète pas.</target>
+          Elle sera arrondie à des années complètes après un an ou plus, alors ne t&apos;inquiète
+          pas.</target>
       </segment>
     </unit>
     <unit id="editProfile.uploadAndSave">
@@ -1868,12 +1869,6 @@
       <segment state="initial">
         <source> Upload and save </source>
         <target> Télécharger et enregistrer </target>
-      </segment>
-    </unit>
-    <unit id="events.nav_label">
-      <segment state="initial">
-        <source>Events</source>
-        <target>Événements</target>
       </segment>
     </unit>
     <unit id="events.title">
@@ -2038,7 +2033,7 @@
       </notes>
       <segment state="initial">
         <source> Crop the image above </source>
-        <target> Recadre l'image ci-dessus </target>
+        <target> Recadre l&apos;image ci-dessus </target>
       </segment>
     </unit>
     <unit id="crop.preview">
@@ -2068,7 +2063,7 @@
       </notes>
       <segment state="initial">
         <source>Save Cropped Image</source>
-        <target>Enregistrer l'image recadrée</target>
+        <target>Enregistrer l&apos;image recadrée</target>
       </segment>
     </unit>
     <unit id="add_review_label">
@@ -2494,7 +2489,7 @@
       </notes>
       <segment state="initial">
         <source>Edit history button with a history icon</source>
-        <target>Bouton d'historique des modifications avec une icône d'historique</target>
+        <target>Bouton d&apos;historique des modifications avec une icône d&apos;historique</target>
       </segment>
     </unit>
     <unit id="spot.edit_history.tooltip">
@@ -2504,7 +2499,7 @@
       </notes>
       <segment state="initial">
         <source>View edit history of this spot</source>
-        <target>Voir l'historique des modifications de ce spot</target>
+        <target>Voir l&apos;historique des modifications de ce spot</target>
       </segment>
     </unit>
     <unit id="spot.edit.url.add_custom">
@@ -2603,10 +2598,10 @@
           banner or terms that users agree to before viewing embedded content. </source>
         <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other"
             dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important :</pc> Lors de
-          l'intégration de ce contenu sur votre site web, vous êtes responsable d'obtenir le
-          consentement de l'utilisateur pour les services tiers (Google Maps, analyses, etc.).
-          Assurez-vous que votre site a une bannière de consentement claire ou des conditions que
-          les utilisateurs acceptent avant de voir le contenu intégré. </target>
+          l&apos;intégration de ce contenu sur votre site web, vous êtes responsable d&apos;obtenir
+          le consentement de l&apos;utilisateur pour les services tiers (Google Maps, analyses,
+          etc.). Assurez-vous que votre site a une bannière de consentement claire ou des conditions
+          que les utilisateurs acceptent avant de voir le contenu intégré. </target>
       </segment>
     </unit>
     <unit id="2369409944839137310">

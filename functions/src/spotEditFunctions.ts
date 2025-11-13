@@ -67,7 +67,10 @@ export const applySpotEditOnCreate = onDocumentCreated(
             // It's a plain object with latitude/longitude, convert to GeoPoint
             latitude = createData.location.latitude;
             longitude = createData.location.longitude;
-            createData.location = new admin.firestore.GeoPoint(latitude, longitude);
+            createData.location = new admin.firestore.GeoPoint(
+              latitude,
+              longitude
+            );
           } else if (createData.location._latitude !== undefined) {
             // It's already a GeoPoint, extract coordinates
             latitude = createData.location._latitude;
@@ -113,7 +116,10 @@ export const applySpotEditOnCreate = onDocumentCreated(
             // It's a plain object with latitude/longitude, convert to GeoPoint
             latitude = updateData.location.latitude;
             longitude = updateData.location.longitude;
-            updateData.location = new admin.firestore.GeoPoint(latitude, longitude);
+            updateData.location = new admin.firestore.GeoPoint(
+              latitude,
+              longitude
+            );
           } else if (updateData.location._latitude !== undefined) {
             // It's already a GeoPoint, extract coordinates
             latitude = updateData.location._latitude;

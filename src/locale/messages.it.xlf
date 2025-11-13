@@ -89,16 +89,6 @@
           Discord </target>
       </segment>
     </unit>
-    <unit id="spot_map_label">
-      <notes>
-        <note category="description">A very short label for the navbar spot map label</note>
-        <note category="meaning">Spot map navbar button label</note>
-      </notes>
-      <segment state="initial">
-        <source>Spot map</source>
-        <target>Mappa spot</target>
-      </segment>
-    </unit>
     <unit id="about_page_label">
       <segment state="initial">
         <source>About</source>
@@ -455,6 +445,16 @@
       <segment state="initial">
         <source>Early PK Spot Community Contribution</source>
         <target>Contributo della comunità Early PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="map_label">
+      <notes>
+        <note category="description">A very short label for the navbar map label</note>
+        <note category="meaning">Map navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Map</source>
+        <target>Mappa</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -907,11 +907,13 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment state="initial">
-        <source>This is a commercial property, such as a gym or business, where access may require a
-          fee or membership. Please respect the rules and hours of operation.</source>
-        <target>Questa è una proprietà commerciale, come una palestra o un&apos;attività, dove
-          l&apos;accesso potrebbe richiedere una tassa o un abbonamento. Si prega di rispettare le
-          regole e gli orari di apertura.</target>
+        <source>This is a commercial facility that requires membership or paid entry. You must be a
+          member or pay a fee to access this spot. Please respect the facility&apos;s rules and
+          hours of operation.</source>
+        <target>Questa è una struttura commerciale che richiede l&apos;iscrizione o l&apos;ingresso
+          a
+          pagamento. Devi essere un membro o pagare una quota per accedere a questo spot. Si prega
+          di rispettare le regole e gli orari di apertura della struttura.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
@@ -959,8 +961,8 @@
     </unit>
     <unit id="spot-access.commercial">
       <segment state="initial">
-        <source>Business</source>
-        <target>Negozio</target>
+        <source>Membership/Fee</source>
+        <target>Abbonamento / Quota</target>
       </segment>
     </unit>
     <unit id="spot-access.off-limits">
@@ -1858,12 +1860,6 @@
       <segment state="initial">
         <source> Upload and save </source>
         <target> Upload and save </target>
-      </segment>
-    </unit>
-    <unit id="events.nav_label">
-      <segment state="initial">
-        <source>Events</source>
-        <target>Eventi</target>
       </segment>
     </unit>
     <unit id="events.title">

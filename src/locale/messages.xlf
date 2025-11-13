@@ -75,15 +75,6 @@
         <source>Language</source>
       </segment>
     </unit>
-    <unit id="spot_map_label">
-      <notes>
-        <note category="description">A very short label for the navbar spot map label</note>
-        <note category="meaning">Spot map navbar button label</note>
-      </notes>
-      <segment>
-        <source>Spot map</source>
-      </segment>
-    </unit>
     <unit id="about_page_label">
       <segment>
         <source>About</source>
@@ -130,7 +121,7 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment>
-        <source>This is a commercial property, such as a gym or business, where access may require a fee or membership. Please respect the rules and hours of operation.</source>
+        <source>This is a commercial facility that requires membership or paid entry. You must be a member or pay a fee to access this spot. Please respect the facility&apos;s rules and hours of operation.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
@@ -160,7 +151,7 @@
     </unit>
     <unit id="spot-access.commercial">
       <segment>
-        <source>Business</source>
+        <source>Membership/Fee</source>
       </segment>
     </unit>
     <unit id="spot-access.off-limits">
@@ -1187,6 +1178,15 @@
         <source>Early PK Spot Community Contribution</source>
       </segment>
     </unit>
+    <unit id="map_label">
+      <notes>
+        <note category="description">A very short label for the navbar map label</note>
+        <note category="meaning">Map navbar button label</note>
+      </notes>
+      <segment>
+        <source>Map</source>
+      </segment>
+    </unit>
     <unit id="media.upload.disclaimer">
       <notes>
         <note category="description">Message shown before a media file is uploaded to get consent</note>
@@ -1479,11 +1479,6 @@
       </notes>
       <segment>
         <source> Upload and save </source>
-      </segment>
-    </unit>
-    <unit id="events.nav_label">
-      <segment>
-        <source>Events</source>
       </segment>
     </unit>
     <unit id="events.title">

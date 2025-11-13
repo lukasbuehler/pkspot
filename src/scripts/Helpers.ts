@@ -234,7 +234,7 @@ export function buildAbsoluteUrlNoLocale(path: string): string {
   if (typeof window === "undefined") {
     // On SSR return a root-relative path; caller can prepend origin if needed.
     return normalizedPath;
-    }
+  }
   const origin = window.location.origin;
   return `${origin}${normalizedPath}`;
 }
@@ -307,30 +307,36 @@ function _cleanObjectForFirestore(data: any): any {
 
     // Handle plain objects and class instances
     const cleaned: any = {};
-    
+
     // Get all properties from the object (including inherited ones)
     for (const key of Object.keys(data)) {
       const value = data[key];
-      
+
       // Skip undefined values - Firestore doesn't accept them
       if (value === undefined) {
         continue;
       }
-      
+
       // Skip functions (including methods and getters that return functions)
       if (typeof value === "function") {
         continue;
       }
-      
+
       // Skip Signal objects (they have a specific structure)
       // Signals are Angular reactive values and should not be serialized
-      if (value && typeof value === "object" && (value._value !== undefined || value._signal !== undefined || value.isSignal === true)) {
+      if (
+        value &&
+        typeof value === "object" &&
+        (value._value !== undefined ||
+          value._signal !== undefined ||
+          value.isSignal === true)
+      ) {
         continue;
       }
-      
+
       cleaned[key] = _cleanObjectForFirestore(value);
     }
-    
+
     return cleaned;
   }
 
@@ -340,7 +346,7 @@ function _cleanObjectForFirestore(data: any): any {
 /**
  * Create a UserReferenceSchema from a User object.
  * Properly formats the profile picture URL with the 200x200 size.
- * 
+ *
  * @param user - The User object to create a reference from
  * @returns UserReferenceSchema with uid, display_name, and profile_picture (if available)
  */
@@ -365,5 +371,3 @@ export function createUserReference(user: User): UserReferenceSchema {
 
   return reference;
 }
-
-

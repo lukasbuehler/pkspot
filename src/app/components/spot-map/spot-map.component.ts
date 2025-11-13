@@ -628,7 +628,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
       if (updatedPaths && updatedPaths.length > 0) {
         // Always update the spot's paths with the latest from the map
-        spot.paths = updatedPaths;
+        spot.paths.set(updatedPaths);
       }
     }
 
@@ -650,13 +650,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           { duration: 5000 }
         );
 
-        // For new spots, load and select them in the data manager instead of navigating
-        if (spot instanceof LocalSpot) {
-          const savedSpot = await this._spotMapDataManager.loadAndAddSpotById(spotId);
-          if (savedSpot) {
-            this.selectedSpot.set(savedSpot);
-            // The spot will now appear on the map as it's loaded into the data manager
-          }
+        // Reload the spot from Firebase to get the latest data (including bounds that were just saved)
+        const savedSpot = await this._spotMapDataManager.loadAndAddSpotById(
+          spotId
+        );
+        if (savedSpot) {
+          this.selectedSpot.set(savedSpot);
+          // Update uneditedSpot backup with the fresh data from Firebase
+          this.uneditedSpot = savedSpot.clone();
+          // The spot will now appear on the map with the latest bounds
         }
       })
       .catch((error) => {
@@ -752,7 +754,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       // Fallback if map is not available
       this.selectedSpot.update((spot) => {
         if (!spot) return spot;
-        spot.paths = _paths;
+        spot.paths.set(_paths);
         return spot;
       });
     }

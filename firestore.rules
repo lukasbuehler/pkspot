@@ -24,7 +24,7 @@ service cloud.firestore {
 
       match /reviews/{userId} {
         allow read: if true;
-        allow create: if request.uth.uid != null 
+        allow create: if request.auth.uid != null 
           && request.auth.uid == userId
           && request.auth.uid == request.resource.data.user.uid
           && !exists(/databases/$(database)/documents/spots/$(spotId)/reviews/$(userId))

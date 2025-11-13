@@ -98,16 +98,6 @@
           Discord </target>
       </segment>
     </unit>
-    <unit id="spot_map_label">
-      <notes>
-        <note category="description">A very short label for the navbar spot map label</note>
-        <note category="meaning">Spot map navbar button label</note>
-      </notes>
-      <segment state="initial">
-        <source>Spot map</source>
-        <target>Spot-kaart</target>
-      </segment>
-    </unit>
     <unit id="about_page_label">
       <segment state="initial">
         <source>About</source>
@@ -463,6 +453,16 @@
       <segment state="initial">
         <source>Early PK Spot Community Contribution</source>
         <target>Vroege PK Spot Gemeenschapsbijdrage</target>
+      </segment>
+    </unit>
+    <unit id="map_label">
+      <notes>
+        <note category="description">A very short label for the navbar map label</note>
+        <note category="meaning">Map navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Map</source>
+        <target>Kaart</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -1090,10 +1090,13 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment state="initial">
-        <source>This is a commercial property, such as a gym or business, where access may require a
-          fee or membership. Please respect the rules and hours of operation.</source>
-        <target>Dit is een commercieel pand, zoals een sportschool of bedrijf, waar toegang een
-          vergoeding of lidmaatschap kan vereisen. Respecteer de regels en openingstijden.</target>
+        <source>This is a commercial facility that requires membership or paid entry. You must be a
+          member or pay a fee to access this spot. Please respect the facility&apos;s rules and
+          hours of operation.</source>
+        <target>Dit is een commerciële faciliteit die lidmaatschap of betaalde toegang vereist. Je
+          moet
+          lid zijn of een vergoeding betalen om deze spot te betreden. Respecteer alstublieft de
+          regels en openingstijden van de faciliteit.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
@@ -1140,8 +1143,8 @@
     </unit>
     <unit id="spot-access.commercial">
       <segment state="initial">
-        <source>Business</source>
-        <target>Commercieel</target>
+        <source>Membership/Fee</source>
+        <target>Lidmaatschap / Toegangsprijs</target>
       </segment>
     </unit>
     <unit id="spot-access.off-limits">
@@ -1877,12 +1880,6 @@
       <segment state="initial">
         <source> Upload and save </source>
         <target> Uploaden en opslaan </target>
-      </segment>
-    </unit>
-    <unit id="events.nav_label">
-      <segment state="initial">
-        <source>Events</source>
-        <target>Evenementen</target>
       </segment>
     </unit>
     <unit id="events.title">
