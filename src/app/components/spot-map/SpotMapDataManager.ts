@@ -8,7 +8,7 @@ import {
   SpotClusterDotSchema,
   SpotClusterTileSchema,
 } from "../../../db/schemas/SpotClusterTile";
-import { TilesObject } from "../map/map.component";
+import { TilesObject } from "../google-map-2d/google-map-2d.component";
 import { MarkerSchema } from "../marker/marker.component";
 import { Injector, signal } from "@angular/core";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";

@@ -30,7 +30,10 @@ import { GeoPoint } from "firebase/firestore";
 import { firstValueFrom, Observable, retry, Subscription } from "rxjs";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { MapComponent, TilesObject } from "../map/map.component";
+import {
+  MapComponent,
+  TilesObject,
+} from "../google-map-2d/google-map-2d.component";
 import {
   MapTileKey,
   getClusterTileKey,

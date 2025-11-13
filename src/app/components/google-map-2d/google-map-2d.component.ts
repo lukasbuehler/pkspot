@@ -95,8 +95,8 @@ export interface TilesObject {
 
 @Component({
   selector: "app-map",
-  templateUrl: "./map.component.html",
-  styleUrls: ["./map.component.scss"],
+  templateUrl: "./google-map-2d.component.html",
+  styleUrls: ["./google-map-2d.component.scss"],
   imports: [
     GoogleMap,
     MapCircle,
