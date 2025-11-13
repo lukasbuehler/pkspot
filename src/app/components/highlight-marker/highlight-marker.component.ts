@@ -1,9 +1,9 @@
 import { Component, computed, input, output } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
-import { MarkerComponent } from "../../marker/marker.component";
-import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
-import { AmenityIcons } from "../../../../db/schemas/Amenities";
-import { getImportantAmenities } from "../../../../db/models/Amenities";
+import { MarkerComponent } from "../marker/marker.component";
+import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { AmenityIcons } from "../../../db/schemas/Amenities";
+import { getImportantAmenities } from "../../../db/models/Amenities";
 
 /**
  * Component for rendering a single highlight marker on the map.

@@ -56,8 +56,8 @@ import {
 } from "../../../db/models/SpotChallenge";
 import { AnyMedia } from "../../../db/models/Media";
 import { ThemeService } from "../../services/theme.service";
-import { HighlightMarkerComponent } from "./components/highlight-marker.component";
-import { CustomMarkerComponent } from "./components/custom-marker.component";
+import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.component";
+import { CustomMarkerComponent } from "../custom-marker/custom-marker.component";
 
 function enumerateTileRangeX(
   start: number,

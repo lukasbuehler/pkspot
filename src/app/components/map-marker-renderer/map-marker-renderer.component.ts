@@ -8,11 +8,11 @@ import {
 } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { NgClass } from "@angular/common";
-import { MarkerComponent } from "../../marker/marker.component";
+import { MarkerComponent } from "../marker/marker.component";
 import {
   EnhancedMarkerSchema,
   MarkerRenderOptions,
-} from "../services/marker-manager.service";
+} from "../../services/marker-manager.service";
 
 /**
  * Component responsible for rendering individual markers on the map

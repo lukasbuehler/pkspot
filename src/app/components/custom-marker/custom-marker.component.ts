@@ -1,6 +1,6 @@
 import { Component, computed, input, output } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
-import { MarkerComponent, MarkerSchema } from "../../marker/marker.component";
+import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
 import { NgClass } from "@angular/common";
 
 /**

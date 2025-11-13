@@ -1,11 +1,11 @@
 import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
-import { MarkerSchema } from "../../marker/marker.component";
-import { Spot, LocalSpot } from "../../../../db/models/Spot";
-import { SpotClusterDotSchema } from "../../../../db/schemas/SpotClusterTile";
-import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
-import { PolygonSchema } from "../../../../db/schemas/PolygonSchema";
-import { TilesObject } from "../map.component";
+import { MarkerSchema } from "../components/marker/marker.component";
+import { Spot, LocalSpot } from "../../db/models/Spot";
+import { SpotClusterDotSchema } from "../../db/schemas/SpotClusterTile";
+import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
+import { PolygonSchema } from "../../db/schemas/PolygonSchema";
+import { TilesObject } from "../components/map/map.component";
 
 /**
  * Enhanced marker schema with rendering metadata

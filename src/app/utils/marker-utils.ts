@@ -1,4 +1,4 @@
-import { MarkerSchema } from "../../marker/marker.component";
+import { MarkerSchema } from "../components/marker/marker.component";
 import {
   EnhancedMarkerSchema,
   MarkerType,
