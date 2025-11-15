@@ -39,9 +39,10 @@
           <!-- Steps -->
           <!-- Select step -->
           <mat-step [stepControl]="uploadFormGroup!" state="select">
-            <ng-template matStepLabel
-              ><span class="d-none d-md-block">Select</span></ng-template
-            >
+            <ng-template matStepLabel>
+              @if(responsive.isDesktop()) {<span>Select</span>
+              }
+            </ng-template>
             <form class="pt-3 px-3" [formGroup]="uploadFormGroup!">
               <h3 class="mat-h3">Please select a KML file.</h3>
               <app-media-upload
@@ -69,12 +70,14 @@
 
           <!-- Setup step -->
           <mat-step [stepControl]="setupFormGroup!" state="setup">
-            <ng-template matStepLabel
-              ><span class="d-none d-md-block">Import Setup</span></ng-template
-            >
+            <ng-template matStepLabel>
+              @if(responsive.isDesktop()) {<span>Import Setup</span>
+              }
+            </ng-template>
             <form class="px-3" [formGroup]="setupFormGroup!">
-              <div class="container d-lg-block mt-3">
+              <div class="mt-3">
                 <div class="row">
+                  @if(responsive.isDesktop()) {
                   <div class="col-md-6">
                     <div class="kml-preview" *ngIf="kmlParserService.setupInfo">
                       <h2 class="mat-h2">Preview</h2>
@@ -202,6 +205,7 @@
                       No folders in KML file.
                     </p>
                   </div>
+                  }
                 </div>
               </div>
 
@@ -223,9 +227,10 @@
           </mat-step>
 
           <mat-step state="verify">
-            <ng-template matStepLabel
-              ><span class="d-none d-md-block">Verify</span></ng-template
-            >
+            <ng-template matStepLabel>
+              @if(responsive.isDesktop()) {<span>Verify</span>
+              }
+            </ng-template>
             <div class="container">
               <div class="row">
                 <div class="col-md-5 verify-acc-col">
@@ -307,14 +312,16 @@
             </div>
           </mat-step>
           <mat-step [editable]="false" state="save">
-            <ng-template matStepLabel
-              ><span class="d-none d-md-block">Save</span></ng-template
-            >
+            <ng-template matStepLabel>
+              @if(responsive.isDesktop()) {<span>Save</span>
+              }
+            </ng-template>
           </mat-step>
           <mat-step [editable]="false" state="done">
-            <ng-template matStepLabel
-              ><span class="d-none d-md-block">Done</span></ng-template
-            >
+            <ng-template matStepLabel>
+              @if(responsive.isDesktop()) {<span>Done</span>
+              }
+            </ng-template>
             <p>You are now done.</p>
             <div>
               <button mat-button matStepperPrevious>Back</button>

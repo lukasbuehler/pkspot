@@ -194,11 +194,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Track handset layout to infer when the bottom sheet is visible
     this.isHandset = signal(false);
     if (typeof window !== "undefined") {
-      this.isHandset.set(window.matchMedia("(max-width: 599px)").matches);
+      this.isHandset.set(window.matchMedia("(max-width: 959.98px)").matches);
     }
-    this.breakpointObserver.observe([Breakpoints.Handset]).subscribe((res) => {
-      this.isHandset.set(res.matches);
-    });
+    this.breakpointObserver
+      .observe([Breakpoints.XSmall, Breakpoints.Small])
+      .subscribe((res) => {
+        this.isHandset.set(!res.matches);
+      });
 
     effect(() => {
       // Read all relevant routing state signals so URL stays in sync
@@ -266,8 +268,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             );
             // Sort by timestamp descending (newest first)
             spotEdits.sort((a, b) => {
-              const timeA = a.timestamp instanceof Timestamp ? a.timestamp.toMillis() : 0;
-              const timeB = b.timestamp instanceof Timestamp ? b.timestamp.toMillis() : 0;
+              const timeA =
+                a.timestamp instanceof Timestamp ? a.timestamp.toMillis() : 0;
+              const timeB =
+                b.timestamp instanceof Timestamp ? b.timestamp.toMillis() : 0;
               return timeB - timeA;
             });
             this.spotEdits.set(spotEdits);
@@ -543,12 +547,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async loadSpotById(spotId: SpotId, updateUrl: boolean = true): Promise<Spot> {
     console.debug("loading spot by id", spotId);
-    
+
     // Retry loading the spot if it's not yet populated by the cloud function
     let lastError: any;
     const maxAttempts = 15;
     const delayMs = 200;
-    
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         const spot: Spot = await this._spotsService.getSpotByIdHttp(
@@ -559,15 +563,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         return spot;
       } catch (error) {
         lastError = error;
-        console.debug(`Attempt ${attempt + 1}/${maxAttempts} to load spot failed, retrying...`, error);
-        
+        console.debug(
+          `Attempt ${
+            attempt + 1
+          }/${maxAttempts} to load spot failed, retrying...`,
+          error
+        );
+
         // Wait before next attempt
         if (attempt < maxAttempts - 1) {
-          await new Promise(resolve => setTimeout(resolve, delayMs));
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
         }
       }
     }
-    
+
     // All attempts failed
     console.error("Failed to load spot after retries:", lastError);
     throw lastError;

@@ -6,12 +6,12 @@ div.map-container {
 
 app-spot-map {
   display: block;
-  @media (min-width: 768px) {
+  @media (min-width: 960px) {
     // desktop (large screen)
     width: calc(100% + 400px);
     height: 100%;
   }
-  @media (max-width: 767px) {
+  @media (max-width: 959.98px) {
     // mobile
     margin-top: -100px;
     width: 100%;
@@ -41,7 +41,7 @@ app-spot-map {
 
   pointer-events: none;
 
-  @media (min-width: 768px) {
+  @media (min-width: 960px) {
     top: 0px;
     right: 100px;
     left: 100px;
@@ -70,12 +70,12 @@ app-spot-map {
   position: absolute;
   z-index: 1;
 
-  @media (max-width: 599px) {
+  @media (max-width: 959.98px) {
     // small screen
     bottom: calc(140px + 20px);
     right: 20px;
   }
-  @media (min-width: 600px) {
+  @media (min-width: 960px) {
     // desktop (large screen)
     bottom: calc(30px);
     right: 20px;
@@ -125,12 +125,12 @@ div.search-group {
   overflow: hidden;
   // padding-bottom: 20px; // to not hide the Google logo of Google Maps
 
-  @media (max-width: 599px) {
+  @media (max-width: 959.98px) {
     // small screen
     width: 100%;
     top: 0px;
   }
-  @media (min-width: 600px) {
+  @media (min-width: 960px) {
     background: transparent;
     width: 420px;
   }
@@ -197,24 +197,30 @@ app-primary-info-panel {
   z-index: 1;
   right: 20px;
   gap: 15px;
-  @media (max-width: 767px) {
+  @media (max-width: 959.98px) {
     top: 100px;
   }
-  @media (min-width: 768px) {
+  @media (min-width: 960px) {
     top: 20px;
   }
 }
 
 mat-chip-listbox.search-option-chips {
   position: absolute;
-  @media (max-width: 767px) {
+  @media (max-width: 959.98px) {
     // mobile
     top: 75px;
-    left: 30px;
+    left: 20px;
   }
-  @media (min-width: 768px) {
+  @media (min-width: 960px) {
     // desktop (large screen)
-    left: 430px;
+    left: 420px;
     top: 10px;
+  }
+  @media (min-width: 1200px) {
+    left: 500px;
+  }
+  @media (min-width: 1400px) {
+    left: 600px;
   }
 }

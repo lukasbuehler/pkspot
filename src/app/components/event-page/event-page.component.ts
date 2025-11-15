@@ -24,6 +24,7 @@ import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
+import { ResponsiveService } from "../../services/responsive.service";
 import {
   filter,
   firstValueFrom,
@@ -132,6 +133,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   metaTagService = inject(MetaTagService);
   locale = inject<LocaleCode>(LOCALE_ID);
+  responsive = inject(ResponsiveService);
   private _spotService = inject(SpotsService);
   private _challengeService = inject(SpotChallengesService);
   private _route = inject(ActivatedRoute);

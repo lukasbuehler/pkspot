@@ -1,5 +1,6 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { ResponsiveService } from "../../services/responsive.service";
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -37,6 +38,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
   ],
 })
 export class SignInPageComponent implements OnInit {
+  readonly responsive = inject(ResponsiveService);
   signInForm?: UntypedFormGroup;
   signInError: string = "";
   isSubmitting: boolean = false;

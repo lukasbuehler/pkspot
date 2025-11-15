@@ -23,6 +23,7 @@ import {
 import { filter } from "rxjs/operators";
 import { AuthenticationService } from "./services/firebase/authentication.service";
 import { StorageService } from "./services/firebase/storage.service";
+import { ResponsiveService } from "./services/responsive.service";
 import { GlobalVariables } from "../scripts/global";
 import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
 import { MatButtonModule, MatFabButton } from "@angular/material/button";
@@ -112,6 +113,7 @@ export class AppComponent implements OnInit {
   readonly dialog = inject(MatDialog);
   private _snackbar = inject(MatSnackBar);
   private _structuredDataService = inject(StructuredDataService);
+  readonly responsive = inject(ResponsiveService);
 
   // Inject AuthService immediately to ensure auth state restoration works
   private _authService = inject(AuthenticationService);

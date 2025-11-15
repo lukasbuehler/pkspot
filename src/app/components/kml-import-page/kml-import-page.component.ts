@@ -7,6 +7,7 @@ import {
   LOCALE_ID,
   OnInit,
   ViewChild,
+  inject,
 } from "@angular/core";
 import {
   UntypedFormBuilder,
@@ -38,6 +39,7 @@ import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { GeoPoint } from "firebase/firestore";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { ResponsiveService } from "../../services/responsive.service";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import { MatDivider } from "@angular/material/divider";
 import {
@@ -119,6 +121,7 @@ import { createUserReference } from "../../../scripts/Helpers";
   ],
 })
 export class KmlImportPageComponent implements OnInit, AfterViewInit {
+  readonly responsive = inject(ResponsiveService);
   @ViewChild("stepperHorizontal") stepperHorizontal: MatStepper | undefined;
   @ViewChild("spotMap") spotMap: SpotMapComponent | undefined;
 

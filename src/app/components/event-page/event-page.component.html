@@ -23,9 +23,11 @@
       class="flex-grow-1 d-flex justify-content-start align-items-center gap-5"
     >
       <h2 class="mat-heading-large m-0">{{ name }}</h2>
-      <h4 class="mat-title-medium m-0 d-none d-lg-block">
+      @if(responsive.isDesktop()) {
+      <h4 class="mat-title-medium m-0">
         {{ venueString }}, {{ localityString }}
       </h4>
+      }
       <h5 class="mat-title-medium m-0 d-none d-xl-block">
         {{
           readableStartDate !== readableEndDate

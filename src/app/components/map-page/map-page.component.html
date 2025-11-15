@@ -46,8 +46,8 @@
 
   <div class="search-group">
     <div class="d-flex flex-row gap-3">
-      @if(alainMode) {
-      <div class="spacer d-block d-md-none" style="width: 56px"></div>
+      @if(alainMode && isHandset()) {
+      <div class="spacer" style="width: 56px"></div>
       }
       <app-search-field
         class="w-100 mat-elevation-z3"
@@ -181,15 +181,16 @@
   </div>
 
   <!-- Search option chips -->
-  <!-- @if(authService.isSignedIn && !isEditing()) {
+  @if(authService.isSignedIn && !isEditing()) {
   <mat-chip-listbox class="search-option-chips">
     <mat-chip-option color="">Unvisited</mat-chip-option>
     <mat-chip-option color="primary" leadingIcon="flag"
       >Visited</mat-chip-option
     >
   </mat-chip-listbox>
-  } -->
+  }
 
+  <!-- FAB buttons -->
   @if(spotMap) {
   <div class="mini-fabs">
     <button

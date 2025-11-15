@@ -529,6 +529,13 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     if (this.mapsApiService.isApiLoaded()) {
       this.initMap();
       this.initGeolocation();
+
+      this.googleMap?.fitBounds(this.googleMap!.getBounds()!, {
+        bottom: 0,
+        right: 300,
+        left: 300,
+        top: 0,
+      });
     } else {
       // Try to load Google Maps API if consent is available
       this.tryLoadMapsApi();
