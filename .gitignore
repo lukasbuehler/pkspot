@@ -135,3 +135,5 @@ scripts/horizn-import/dist/
 src-tauri*
 
 *.rest
+
+/.apphosting/

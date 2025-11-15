@@ -54,15 +54,7 @@
                 "inlineCritical": false
               }
             },
-            "localize": [
-              "en",
-              "de",
-              "de-CH",
-              "it",
-              "fr",
-              "es",
-              "nl"
-            ],
+            "localize": ["en", "de", "de-CH", "it", "fr", "es", "nl"],
             "outputPath": "dist/pkspot",
             "index": "src/index.html",
             "browser": "src/main.ts",
@@ -98,10 +90,6 @@
               "typesense"
             ],
             "server": "src/main.server.ts",
-            "prerender": {
-              "routesFile": "routes.txt",
-              "discoverRoutes": false
-            },
             "ssr": {
               "entry": "server.ts"
             }
@@ -115,9 +103,7 @@
                 }
               ],
               "optimization": false,
-              "localize": [
-                "de"
-              ],
+              "localize": ["de"],
               "baseHref": "/de/"
             },
             "staging": {
@@ -199,10 +185,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }
@@ -210,9 +193,7 @@
   },
   "cli": {
     "analytics": "5ba466b0-10a6-4c49-9de2-9bed548e9520",
-    "schematicCollections": [
-      "angular-eslint"
-    ]
+    "schematicCollections": ["angular-eslint"]
   },
   "schematics": {
     "@schematics/angular:component": {
