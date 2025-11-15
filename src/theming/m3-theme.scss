@@ -12,7 +12,8 @@
 @use "./../app/components/about-page/about-page.component-theme" as about-page;
 @use "./../app/components/nav-rail/nav-rail.component-theme" as nav-rail;
 @use "./../app/components/map-page/map-page.component-theme" as map-page;
-@use "./../app/components/map/map.component-theme" as map-component;
+@use "./../app/components/google-map-2d/google-map-2d.component-theme" as
+  map-component;
 @use "./../app/components/marker/marker.component-theme" as marker;
 @use "./../app/app.component-theme" as app;
 @use "../styles-theme" as styles;
