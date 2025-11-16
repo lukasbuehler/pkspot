@@ -57,6 +57,23 @@
     <mat-label i18n="report comment label">Comment</mat-label>
     <textarea matInput rows="3" [(ngModel)]="dialogData.comment"></textarea>
   </mat-form-field>
+
+  @if (!isAuthenticated()) {
+  <mat-form-field class="w-100" appearance="outline">
+    <mat-label i18n="reporter email label">Your Email</mat-label>
+    <input
+      matInput
+      type="email"
+      [(ngModel)]="reporterEmail"
+      placeholder="your-email@example.com"
+      i18n-placeholder="reporter email placeholder"
+      required
+    />
+  </mat-form-field>
+  <p class="mat-caption" i18n="email notice">
+    We'll only use your email to contact you about this report.
+  </p>
+  }
 </mat-dialog-content>
 <mat-dialog-actions class="d-flex justify-content-end p-3">
   <button matButton="outlined" (click)="onNoClick()" i18n="cancel button label">
@@ -65,10 +82,17 @@
   <button
     matButton="filled"
     color="warn"
-    (click)="onNoClick()"
-    i18n="report button label|"
-    [disabled]="!dialogData.reason"
+    (click)="submitReport()"
+    [disabled]="
+      !dialogData.reason ||
+      isSubmitting() ||
+      (!isAuthenticated() && !reporterEmail())
+    "
   >
-    Report
+    @if (isSubmitting()) {
+    <span i18n="submitting label">Submitting...</span>
+    } @else {
+    <span i18n="report button label">Report</span>
+    }
   </button>
 </mat-dialog-actions>

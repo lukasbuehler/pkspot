@@ -293,7 +293,6 @@ export class LocalSpot {
           newData.participantType =
             data.participant_type as ChallengeParticipantType;
 
-        console.log("newData", newData, data);
         return newData;
       }) ?? []
     );
@@ -437,9 +436,7 @@ export class LocalSpot {
     this.amenities.set(data.amenities);
 
     // Bounds
-    console.debug(`[Spot.applyFromSchema] Received bounds:`, data.bounds);
     this.paths.set(this._makePathsFromBounds(data.bounds ?? []));
-    console.debug(`[Spot.applyFromSchema] Updated paths to:`, this.paths());
   }
 
   /**

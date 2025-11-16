@@ -886,14 +886,10 @@ export class SpotMapDataManager {
       if (existingSpotIndex !== -1) {
         // Spot already exists - update it with new data from Firestore
         // This ensures that bounds and other changes persist to the local copy
-        console.debug(
-          `[_addLoadedSpots] Updating existing spot ${spot.id} with new data from Firestore`
-        );
-        console.debug(`[_addLoadedSpots] New spot data:`, spot.data());
+
         spotsInTile[existingSpotIndex].applyFromSchema(spot.data());
       } else {
         // New spot - add it
-        console.debug(`[_addLoadedSpots] Adding new spot ${spot.id}`);
         spotsInTile.push(spot);
       }
     });

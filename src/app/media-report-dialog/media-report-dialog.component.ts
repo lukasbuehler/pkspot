@@ -8,7 +8,6 @@ import {
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
-  MatDialogClose,
   MatDialogContent,
   MatDialogRef,
   MatDialogTitle,
@@ -21,9 +20,11 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { NgOptimizedImage } from "@angular/common";
 import { ExternalImage, StorageImage } from "../../db/models/Media";
-import { ProfileButtonComponent } from "../components/profile-button/profile-button.component";
 import { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { UsersService } from "../services/firebase/firestore/users.service";
+import { MediaReportsService } from "../services/firebase/firestore/media-reports.service";
+import { AuthenticationService } from "../services/firebase/authentication.service";
+import { firstValueFrom } from "rxjs";
 
 @Component({
   selector: "app-media-report-dialog",
@@ -31,14 +32,12 @@ import { UsersService } from "../services/firebase/firestore/users.service";
     MatDialogTitle,
     MatDialogContent,
     MatDialogActions,
-    MatDialogClose,
     MatButtonModule,
     MatRadioModule,
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
     NgOptimizedImage,
-    ProfileButtonComponent,
   ],
   templateUrl: "./media-report-dialog.component.html",
   styleUrl: "./media-report-dialog.component.scss",
@@ -48,10 +47,20 @@ export class MediaReportDialogComponent implements AfterViewInit {
     inject<MatDialogRef<MediaReportDialogComponent>>(MatDialogRef);
   public locale = inject<LocaleCode>(LOCALE_ID);
   private _usersService = inject(UsersService);
+  private _mediaReportsService = inject(MediaReportsService);
+  private _authService = inject(AuthenticationService);
 
   userReference = signal<UserReferenceSchema | null | undefined>(null);
+  isSubmitting = signal(false);
+  isAuthenticated = signal(false);
+  reporterEmail = signal("");
 
   ngAfterViewInit() {
+    // Check if user is authenticated
+    firstValueFrom(this._authService.authState$).then((user) => {
+      this.isAuthenticated.set(!!user?.uid);
+    });
+
     // Load user reference from storage or authentication service
     const userId = this.dialogData.media.userId;
     if (userId) {
@@ -82,10 +91,35 @@ export class MediaReportDialogComponent implements AfterViewInit {
   }
 
   submitReport(): void {
-    // Implement report submission logic here
+    if (!this.dialogData.reason) {
+      return;
+    }
 
-    // TODO
+    // For unauthenticated users, email is required
+    if (!this.isAuthenticated() && !this.reporterEmail()) {
+      console.warn("Email is required for unauthenticated reports");
+      return;
+    }
 
-    this.dialogRef.close();
+    this.isSubmitting.set(true);
+
+    this._mediaReportsService
+      .submitMediaReport(
+        this.dialogData.media,
+        this.dialogData.reason,
+        this.dialogData.comment,
+        !this.isAuthenticated() ? this.reporterEmail() : undefined,
+        this.locale
+      )
+      .then(() => {
+        // Show success message (you can add a snackbar here if desired)
+        console.log("Media report submitted successfully");
+        this.dialogRef.close(true);
+      })
+      .catch((error) => {
+        console.error("Error submitting media report:", error);
+        this.isSubmitting.set(false);
+        // Optionally show an error message to the user
+      });
   }
 }

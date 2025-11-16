@@ -209,9 +209,10 @@ export class SwiperDialogComponent implements AfterViewInit {
   }
 
   onReportClick(): void {
+    const currentIndex = this.swiper?.activeIndex ?? this.data.index;
     const mediaDialogRef = this.dialog.open(MediaReportDialogComponent, {
       data: {
-        media: this.data.media[this.data.index],
+        media: this.data.media[currentIndex],
         reason: "",
         comment: "",
       },
