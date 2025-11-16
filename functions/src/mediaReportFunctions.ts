@@ -59,10 +59,9 @@ export const onMediaReportCreate = onDocumentCreated(
         return;
       } // Create Discord embed message
       const reporterName =
-        (reportData.user as any).display_name ||
-        (reportData.user as any).email ||
-        (reportData.user as any).uid ||
-        "Anonymous";
+        ((reportData.user as any).display_name ||
+          (reportData.user as any).uid ||
+          "Unauthenticated") + ` (${(reportData.user as any).email})`;
 
       const embed = {
         title: "🚨 New Media Report",

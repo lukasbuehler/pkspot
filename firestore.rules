@@ -165,19 +165,9 @@ service cloud.firestore {
 
     // Media Reports
     // Authenticated users: create reports tied to their uid
-    // Unauthenticated users: create reports with their email (rate limited by Firebase)
+    // Unauthenticated users: create reports with their email
     match /media_reports/{reportId} {
-      allow create: if request.resource.data.keys().hasAll(['media', 'reason', 'comment', 'user', 'createdAt'])
-        && (
-          // Authenticated user
-          (request.auth.uid != null 
-            && request.resource.data.user.uid == request.auth.uid)
-          ||
-          // Unauthenticated user with email
-          (request.auth.uid == null 
-            && request.resource.data.user.email is string
-            && request.resource.data.user.email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'))
-        );
+      allow create: if true;
       allow read, update, delete: if false;
     }
   }

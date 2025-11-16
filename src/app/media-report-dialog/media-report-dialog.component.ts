@@ -15,7 +15,12 @@ import {
 import { LocaleCode } from "../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
 import { MatRadioModule } from "@angular/material/radio";
-import { FormsModule } from "@angular/forms";
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { NgOptimizedImage } from "@angular/common";
@@ -25,6 +30,7 @@ import { UsersService } from "../services/firebase/firestore/users.service";
 import { MediaReportsService } from "../services/firebase/firestore/media-reports.service";
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import { firstValueFrom } from "rxjs";
+import { isEmailValid } from "../../scripts/Helpers";
 
 @Component({
   selector: "app-media-report-dialog",
@@ -34,7 +40,7 @@ import { firstValueFrom } from "rxjs";
     MatDialogActions,
     MatButtonModule,
     MatRadioModule,
-    FormsModule,
+    ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     NgOptimizedImage,
@@ -49,16 +55,44 @@ export class MediaReportDialogComponent implements AfterViewInit {
   private _usersService = inject(UsersService);
   private _mediaReportsService = inject(MediaReportsService);
   private _authService = inject(AuthenticationService);
+  private _fb = inject(FormBuilder);
 
   userReference = signal<UserReferenceSchema | null | undefined>(null);
   isSubmitting = signal(false);
   isAuthenticated = signal(false);
-  reporterEmail = signal("");
+
+  reportForm: FormGroup;
+  public dialogData: any = inject<{
+    media: StorageImage | ExternalImage;
+  }>(MAT_DIALOG_DATA);
+
+  constructor() {
+    this.reportForm = this._fb.group({
+      reason: ["", Validators.required],
+      comment: [""],
+      reporterEmail: [""],
+    });
+  }
 
   ngAfterViewInit() {
     // Check if user is authenticated
     firstValueFrom(this._authService.authState$).then((user) => {
       this.isAuthenticated.set(!!user?.uid);
+      // Update email field validators based on auth status
+      const emailControl = this.reportForm.get("reporterEmail");
+      if (!user?.uid) {
+        // Unauthenticated: email is required and must be valid
+        emailControl?.setValidators([
+          Validators.required,
+          Validators.pattern(
+            /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+          ),
+        ]);
+      } else {
+        // Authenticated: email not required
+        emailControl?.clearValidators();
+      }
+      emailControl?.updateValueAndValidity();
     });
 
     // Load user reference from storage or authentication service
@@ -80,46 +114,33 @@ export class MediaReportDialogComponent implements AfterViewInit {
     }
   }
 
-  public dialogData: any = inject<{
-    media: StorageImage | ExternalImage;
-    reason: string;
-    comment: string;
-  }>(MAT_DIALOG_DATA);
-
   onNoClick(): void {
     this.dialogRef.close();
   }
 
   submitReport(): void {
-    if (!this.dialogData.reason) {
+    if (!this.reportForm.valid) {
       return;
     }
 
-    // For unauthenticated users, email is required
-    if (!this.isAuthenticated() && !this.reporterEmail()) {
-      console.warn("Email is required for unauthenticated reports");
-      return;
-    }
-
+    const { reason, comment, reporterEmail } = this.reportForm.value;
     this.isSubmitting.set(true);
 
     this._mediaReportsService
       .submitMediaReport(
         this.dialogData.media,
-        this.dialogData.reason,
-        this.dialogData.comment,
-        !this.isAuthenticated() ? this.reporterEmail() : undefined,
+        reason,
+        comment,
+        !this.isAuthenticated() ? reporterEmail : undefined,
         this.locale
       )
       .then(() => {
-        // Show success message (you can add a snackbar here if desired)
         console.log("Media report submitted successfully");
         this.dialogRef.close(true);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error("Error submitting media report:", error);
         this.isSubmitting.set(false);
-        // Optionally show an error message to the user
       });
   }
 }
