@@ -577,7 +577,6 @@ export class LocalSpot {
     bounds: GeoPoint[]
   ): Array<Array<google.maps.LatLngLiteral>> | undefined {
     if (!bounds || bounds.length === 0) {
-      console.debug(`[_makePathsFromBounds] No bounds provided`);
       return undefined;
     }
 
@@ -586,18 +585,13 @@ export class LocalSpot {
         // GeoPoint can have either 'latitude'/'longitude' or '_latitude'/'_longitude'
         const lat = (point as any).latitude ?? (point as any)._latitude;
         const lng = (point as any).longitude ?? (point as any)._longitude;
-        console.debug(
-          `[_makePathsFromBounds] Converting GeoPoint:`,
-          point,
-          `to {lat: ${lat}, lng: ${lng}}`
-        );
+
         return {
           lat,
           lng,
         };
       }),
     ];
-    console.debug(`[_makePathsFromBounds] Created paths:`, paths);
     return paths;
   }
 

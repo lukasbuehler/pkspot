@@ -1,0 +1,74 @@
+<h2 mat-dialog-title i18n="media report title">Report Media</h2>
+<mat-dialog-content>
+  <div
+    class="d-flex justify-content-center align-items-center flex-column mb-3 gap-3"
+  >
+    <div
+      class="rounded bg-black"
+      style="width: 200px; height: 200px; position: relative"
+    >
+      <img
+        [ngSrc]="dialogData.media.getSrc(200)"
+        alt="Image to report"
+        style="object-fit: contain"
+        priority
+        fill
+      />
+    </div>
+    <!-- <div>
+      <p>
+        @if(userReference()) {
+        <span i18n class="mat-title-medium me-2">Uploaded by:</span>
+        <app-profile-button [user]="userReference()"></app-profile-button>}
+      </p>
+    </div> -->
+  </div>
+  <p class="mat-body-large" i18n>Please select the reason for this report:</p>
+  <mat-radio-group
+    color="warn"
+    class="d-flex flex-column mb-3"
+    [(ngModel)]="dialogData.reason"
+  >
+    <mat-radio-button value="copyright infringement" i18n="">
+      <span class="mat-body-large">
+        Copyright infringement: This is my content and I did not give permission
+        for it to be used here.</span
+      >
+    </mat-radio-button>
+
+    <mat-radio-button value="person did not consent" i18n
+      ><span class="mat-body-large"
+        >I'm visible and have a problem with it.</span
+      ></mat-radio-button
+    >
+    <mat-radio-button value="tos violation" i18n
+      ><span class="mat-body-large"
+        >This picture violates the terms of service in other ways (nudity,
+        violence, etc.)</span
+      ></mat-radio-button
+    >
+
+    <mat-radio-button value="other" i18n
+      ><span class="mat-body-large">Other</span></mat-radio-button
+    >
+  </mat-radio-group>
+
+  <mat-form-field class="w-100" appearance="outline">
+    <mat-label i18n="report comment label">Comment</mat-label>
+    <textarea matInput rows="3" [(ngModel)]="dialogData.comment"></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions class="d-flex justify-content-end p-3">
+  <button matButton="outlined" (click)="onNoClick()" i18n="cancel button label">
+    Cancel
+  </button>
+  <button
+    matButton="filled"
+    color="warn"
+    (click)="onNoClick()"
+    i18n="report button label|"
+    [disabled]="!dialogData.reason"
+  >
+    Report
+  </button>
+</mat-dialog-actions>

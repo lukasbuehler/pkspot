@@ -13,8 +13,13 @@ import {
 } from "@angular/fire/firestore";
 import { Observable } from "rxjs";
 import { User } from "../../../../db/models/User";
-import { UserSchema } from "../../../../db/schemas/UserSchema";
+import {
+  UserReferenceSchema,
+  UserSchema,
+} from "../../../../db/schemas/UserSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
+import { getDoc } from "firebase/firestore";
+import { StorageImage } from "../../../../db/models/Media";
 
 @Injectable({
   providedIn: "root",
@@ -62,6 +67,35 @@ export class UsersService extends ConsentAwareService {
       }).catch((error) => {
         observer.error(error);
       });
+    });
+  }
+
+  getUserRefernceById(
+    userId: string
+  ): Promise<UserReferenceSchema | null | undefined> {
+    if (!this.firestore) {
+      return Promise.reject(new Error("Firestore not initialized"));
+    }
+    if (!userId) {
+      return Promise.reject(new Error("User ID is required"));
+    }
+
+    const firestore = this.firestore;
+    return this.executeWhenConsent(() => {
+      return getDoc(doc(firestore, "users", userId));
+    }).then((snap) => {
+      if (snap.exists()) {
+        const data = snap.data() as UserSchema;
+        const userRef: UserReferenceSchema = {
+          uid: snap.id,
+          display_name: data.display_name,
+          profile_picture: data.profile_picture
+            ? new StorageImage(data.profile_picture).getSrc(200)
+            : undefined,
+        };
+        return userRef;
+      }
+      return null;
     });
   }
 

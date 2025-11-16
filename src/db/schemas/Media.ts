@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 import { MediaType } from "../models/Interfaces";
 import { UserReferenceSchema } from "./UserSchema";
 
@@ -8,6 +9,7 @@ export interface MediaSchema {
   user?: UserReferenceSchema;
   isInStorage: boolean;
   origin?: "user" | "streetview" | "other";
+  timestamp?: Timestamp;
 }
 
 export enum StorageBucket {
