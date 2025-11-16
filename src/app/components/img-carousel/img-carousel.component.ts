@@ -6,6 +6,8 @@ import {
   Inject,
   PLATFORM_ID,
   inject,
+  signal,
+  computed,
 } from "@angular/core";
 import { MatRippleModule } from "@angular/material/core";
 import { MatButtonModule, MatIconButton } from "@angular/material/button";
@@ -90,6 +92,7 @@ export class ImgCarouselComponent {
       <!-- scrollbar -->
       <!-- <div class="swiper-scrollbar"></div> -->
 
+      @if (canReportCurrentMedia()) {
       <button
         mat-icon-button
         style="position: absolute; top: 10px; left: 10px; z-index: 1; background-color: #00000080;"
@@ -97,6 +100,7 @@ export class ImgCarouselComponent {
       >
         <mat-icon>report</mat-icon>
       </button>
+      }
       <button
         mat-icon-button
         style="position: absolute; top: 10px; right: 10px; z-index: 1; background-color: #00000080;"
@@ -144,8 +148,18 @@ export class ImgCarouselComponent {
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class SwiperDialogComponent implements AfterViewInit {
-  swiper: Swiper | null = null;
+  swiper: Swiper | undefined;
   isBroswer: boolean = false;
+  activeSlideIndex = signal<number>(0);
+
+  canReportCurrentMedia = computed(() => {
+    const index = this.activeSlideIndex();
+    const media = this.data.media?.[index];
+    if (!media) return false;
+    // Hide report button for street view media
+    console.log("media", media);
+    return media.userId !== "streetview";
+  });
 
   dialog = inject(MatDialog);
 
@@ -201,6 +215,14 @@ export class SwiperDialogComponent implements AfterViewInit {
       if (this.data.index && this.swiper) {
         this.swiper.slideTo(this.data.index, 0, false);
       }
+
+      // Update active slide index when swiper slide changes
+      this.swiper?.on("slideChange", () => {
+        this.activeSlideIndex.set(this.swiper?.activeIndex ?? 0);
+      });
+
+      // Set initial index
+      this.activeSlideIndex.set(this.data.index ?? 0);
     }
   }
 
