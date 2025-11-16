@@ -5,7 +5,7 @@ import { Spot, LocalSpot } from "../../db/models/Spot";
 import { SpotClusterDotSchema } from "../../db/schemas/SpotClusterTile";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { PolygonSchema } from "../../db/schemas/PolygonSchema";
-import { TilesObject } from "../components/map/map.component";
+import { TilesObject } from "../components/google-map-2d/google-map-2d.component";
 
 /**
  * Enhanced marker schema with rendering metadata

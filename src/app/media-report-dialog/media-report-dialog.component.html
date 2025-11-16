@@ -1,0 +1,95 @@
+<h2 mat-dialog-title i18n="media report title">Report Media</h2>
+<mat-dialog-content>
+  <div
+    class="d-flex justify-content-center align-items-center flex-column mb-3 gap-3"
+  >
+    <div
+      class="rounded bg-black"
+      style="width: 200px; height: 200px; position: relative"
+    >
+      <img
+        [ngSrc]="dialogData.media.getSrc(200)"
+        alt="Image to report"
+        style="object-fit: contain"
+        priority
+        fill
+      />
+    </div>
+  </div>
+  <p class="mat-body-large" i18n>Please select the reason for this report:</p>
+  <form [formGroup]="reportForm">
+    <mat-radio-group
+      color="warn"
+      class="d-flex flex-column mb-3"
+      formControlName="reason"
+    >
+      <mat-radio-button value="copyright infringement" i18n="">
+        <span class="mat-body-large">
+          Copyright infringement: This is my content and I did not give
+          permission for it to be used here.</span
+        >
+      </mat-radio-button>
+
+      <mat-radio-button value="person did not consent" i18n
+        ><span class="mat-body-large"
+          >I'm visible and have a problem with it.</span
+        ></mat-radio-button
+      >
+      <mat-radio-button value="tos violation" i18n
+        ><span class="mat-body-large"
+          >This picture violates the terms of service in other ways (nudity,
+          violence, etc.)</span
+        ></mat-radio-button
+      >
+
+      <mat-radio-button value="other" i18n
+        ><span class="mat-body-large">Other</span></mat-radio-button
+      >
+    </mat-radio-group>
+
+    <mat-form-field class="w-100" appearance="outline">
+      <mat-label i18n="report comment label">Comment</mat-label>
+      <textarea matInput rows="3" formControlName="comment"></textarea>
+    </mat-form-field>
+
+    @if (!isAuthenticated()) {
+    <mat-form-field class="w-100" appearance="outline">
+      <mat-label i18n="reporter email label">Your Email</mat-label>
+      <input
+        matInput
+        type="email"
+        formControlName="reporterEmail"
+        placeholder="your-email@example.com"
+        i18n-placeholder="reporter email placeholder"
+      />
+      @if (reportForm.get('reporterEmail')?.hasError('required')) {
+      <mat-error i18n="email required error">Email is required</mat-error>
+      } @if (reportForm.get('reporterEmail')?.hasError('pattern')) {
+      <mat-error i18n="email invalid error"
+        >Please enter a valid email</mat-error
+      >
+      }
+    </mat-form-field>
+    <p class="mat-caption" i18n="email notice">
+      We'll only use your email to contact you about this report.
+    </p>
+    }
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions class="d-flex justify-content-end p-3">
+  <button matButton="outlined" (click)="onNoClick()" i18n="cancel button label">
+    Cancel
+  </button>
+  <button
+    matButton="filled"
+    color="warn"
+    (click)="submitReport()"
+    [disabled]="!reportForm.valid || isSubmitting()"
+  >
+    @if (isSubmitting()) {
+    <span i18n="submitting label">Submitting...</span>
+    } @else {
+    <span i18n="report button label">Report</span>
+    }
+  </button>
+</mat-dialog-actions>

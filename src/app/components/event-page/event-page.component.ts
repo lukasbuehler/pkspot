@@ -46,7 +46,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatChipListboxChange, MatChipsModule } from "@angular/material/chips";
 import { MapsApiService } from "../../services/maps-api.service";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
-import { MapComponent } from "../map/map.component";
+import { MapComponent } from "../google-map-2d/google-map-2d.component";
 import { GeoPoint } from "firebase/firestore";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { MatSidenavModule } from "@angular/material/sidenav";
