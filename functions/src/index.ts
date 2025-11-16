@@ -36,6 +36,9 @@ export { processVideoUpload } from "./storageFunctions";
 // spot challenge functions
 export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
 
+// media report functions
+export { onMediaReportCreate } from "./mediaReportFunctions";
+
 // social card functions
 // export {
 //   generateSocialCards,

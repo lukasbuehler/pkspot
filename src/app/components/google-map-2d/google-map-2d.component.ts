@@ -403,20 +403,11 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       const tracker = this.selectedSpotTracker();
       const isEditing = this.isEditing();
 
-      console.log(
-        "Effect triggered - tracker:",
-        tracker,
-        "isEditing:",
-        isEditing
-      );
-
       // Also trigger the debug computed signals
       this.polygonTemplateConditions();
 
       // Only update polygon when we have a spot AND we're in editing mode
       if (tracker && isEditing) {
-        console.log("Selected spot tracker changed during editing:", tracker);
-
         // Use setTimeout to ensure the DOM and ViewChild are updated
         setTimeout(() => {
           this.updatePolygonForNewSpot();
@@ -973,16 +964,6 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
    * Can be called from browser console for debugging
    */
   debugPolygonState() {
-    console.log("=== POLYGON DEBUG STATE ===");
-    console.log("selectedSpot:", this.selectedSpot);
-    console.log("isEditing():", this.isEditing());
-    console.log("showSelectedSpotPolygon():", this.showSelectedSpotPolygon());
-    console.log("selectedSpotPolygon ViewChild:", this.selectedSpotPolygon);
-    console.log(
-      "selectedSpotPolygon.polygon:",
-      this.selectedSpotPolygon?.polygon
-    );
-
     if (this.selectedSpotPolygon?.polygon) {
       const paths = this.selectedSpotPolygon.polygon.getPaths();
       console.log("Polygon paths:", paths);
@@ -996,8 +977,6 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
         }
       }
     }
-
-    console.log("=== END POLYGON DEBUG ===");
   }
 
   /**
@@ -1038,8 +1017,6 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   async getSelectedSpotPolygonPaths(): Promise<
     google.maps.LatLngLiteral[][] | null
   > {
-    console.log("=== getSelectedSpotPolygonPaths called ===");
-
     if (!this.selectedSpot) {
       console.log("No selected spot, returning null");
       return null;
@@ -1228,18 +1205,8 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
    */
   selectedSpotFirstPath = computed(() => {
     const paths = this.selectedSpotPaths();
-    console.log("selectedSpotFirstPath computed - paths:", paths);
-    console.log(
-      "selectedSpotFirstPath computed - isEditing:",
-      this.isEditing()
-    );
-    console.log(
-      "selectedSpotFirstPath computed - selectedSpot:",
-      this.selectedSpot()
-    );
 
     if (paths.length > 0) {
-      console.log("selectedSpotFirstPath - returning existing path:", paths[0]);
       return paths[0];
     }
 
@@ -1255,14 +1222,10 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
         { lat: location.lat - dist, lng: location.lng - dist },
         { lat: location.lat + dist, lng: location.lng - dist },
       ];
-      console.log(
-        "selectedSpotFirstPath - creating default path:",
-        defaultPath
-      );
+
       return defaultPath;
     }
 
-    console.log("selectedSpotFirstPath - returning empty array");
     return [];
   });
 
@@ -1387,9 +1350,7 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
    * This is the most aggressive approach for ensuring clean polygon state
    */
   public resetPolygonForCurrentSpot() {
-    console.log("=== RESET POLYGON FOR CURRENT SPOT ===");
     const selectedSpot = this.selectedSpot();
-    console.log("Resetting polygon for spot:", selectedSpot);
 
     if (!selectedSpot) {
       console.log("No selected spot, nothing to reset");
@@ -1398,12 +1359,9 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
 
     // Clear the ViewChild reference
     this.selectedSpotPolygon = undefined;
-    console.log("Cleared selectedSpotPolygon ViewChild");
 
     // Force the polygon to be recreated by updating the recreation key
     this.forcePolygonRecreation();
-
-    console.log("Polygon reset complete");
   }
 
   /**
@@ -1431,16 +1389,11 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
    */
   selectedSpotDebug = computed(() => {
     const spot = this.selectedSpot();
-    console.log("=== selectedSpotDebug computed ===");
-    console.log("selectedSpot:", spot);
     if (spot) {
       const id = "id" in spot ? spot.id : "local";
       const location = spot.location();
       const paths = spot.paths();
-      console.log(
-        `Spot ID: ${id}, Location: ${location.lat},${location.lng}, Paths:`,
-        paths
-      );
+
       return { id, location, paths };
     }
     return null;
@@ -1464,7 +1417,6 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       shouldShowPolygon: !!selectedSpot && isEditing && showPolygon,
     };
 
-    console.log("polygonTemplateConditions:", result);
     return result;
   });
 

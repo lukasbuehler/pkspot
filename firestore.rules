@@ -162,5 +162,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // Media Reports
+    // Authenticated users: create reports tied to their uid
+    // Unauthenticated users: create reports with their email
+    match /media_reports/{reportId} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
   }
 }
