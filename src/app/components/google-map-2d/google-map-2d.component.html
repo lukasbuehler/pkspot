@@ -102,8 +102,8 @@
   }
 
   <!-- only display the bounds when close enough (zoom >= 16) -->
-  @if (zoom >= 16) { @for(spot of spots; track $index) { @if(!isSelectedSpotBeingEdited(spot)) { @if(!spot?.hasBounds())
-  {
+  @if (zoom >= 16) { @for(spot of spots; track $index) {
+  @if(!isSelectedSpotBeingEdited(spot)) { @if(!spot?.hasBounds()) {
   <map-circle
     [center]="spot.location()"
     [radius]="10"
@@ -113,8 +113,8 @@
   </map-circle>
   } @else {
   <!-- Don't show regular polygon if this spot is selected and being edited -->
-  @let paths = spot.paths(); @if(paths
-  && paths.length > 0 && paths[0] && paths[0].length > 0) {
+  @let paths = spot.paths(); @if(paths && paths.length > 0 && paths[0] &&
+  paths[0].length > 0) {
   <map-polygon
     [options]="spotPolygonOptions"
     [paths]="paths[0]"
@@ -256,8 +256,8 @@
   ></div>
   } } } }
 
-  <!-- <map-advanced-marker
-    *ngIf="selectedSpot"
+  <!-- @if(selectedSpot) {
+  <map-advanced-marker
     #selectedSpotMarker
     className="'spot-marker'"
     id="selectedSpotMarker"
@@ -266,7 +266,8 @@
     "
     [position]="selectedSpot.location"
     (mapDragend)="editingSpotPositionChanged($event.latLng)"
-  ></map-advanced-marker> -->
+  ></map-advanced-marker>
+  } -->
 
   <!-- Highlighted spot markers
   @for(spot of highlightedSpots; track spot) {

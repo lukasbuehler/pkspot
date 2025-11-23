@@ -1,5 +1,5 @@
+@if(post) {
 <mat-card
-  *ngIf="post"
   class="text-left border rounded mat-elevation-z0"
   ng-class="{mat-elevation-z0: !showCard}"
 >
@@ -16,28 +16,19 @@
   </mat-card-header>
 
   <!-- Media display -->
-  <div
-    *ngIf="post.mediaSrc"
-    #matCardMedia
-    id="matCardMedia"
-    class="mat-card-media"
-  >
+  @if(post.mediaSrc) {
+  <div #matCardMedia id="matCardMedia" class="mat-card-media">
     <!-- (resized)="onResized($event)" -->
-    <img
-      *ngIf="post.mediaSrc && post.mediaIsImage"
-      src="{{ post.mediaSrc }}"
-      [alt]="post.title + ' Image'"
-    />
-    <vg-player
-      #videoPlayer
-      *ngIf="!post.mediaIsImage && post.mediaSrc"
-      class="mat-card-video fill"
-    >
+    @if(post.mediaSrc && post.mediaIsImage) {
+    <img src="{{ post.mediaSrc }}" [alt]="post.title + ' Image'" />
+    } @if(!post.mediaIsImage && post.mediaSrc) {
+    <vg-player #videoPlayer class="mat-card-video fill">
       <!-- <video [vgMedia]="media" #media id="singleVideo" preload="auto" controls>
         <source [src]="post.mediaSrc" type="video/mp4" />
       </video> -->
     </vg-player>
-    <div *ngIf="false" class="youtube-video-container">
+    } @if(false) {
+    <div class="youtube-video-container">
       <!-- TODO ng optimized image -->
       <iframe
         title="YouTube Embed"
@@ -46,10 +37,13 @@
         allowfullscreen
       ></iframe>
     </div>
+    }
   </div>
+  }
 
   <!-- Location display -->
-  <span *ngIf="post.location" class="location-text">
+  @if(post.location) {
+  <span class="location-text">
     <a
       [routerLink]="
         '/map?lat=' + post.location.lat + '&lng=' + post.location.lng + '&z=19'
@@ -57,11 +51,12 @@
       >{{ getLocationDisplayCoordinates(post.location) }}</a
     >
   </span>
+  }
 
   <!-- Spot display -->
+  @if(post.spot && (post.spot?.ref || post.spot?.spot_location)) {
   <a
     class="spot-container-link"
-    *ngIf="post.spot && (post.spot?.ref || post.spot?.spot_location)"
     [routerLink]="
       post.spot.ref
         ? '/map/' + post.spot.ref.id
@@ -90,6 +85,7 @@
       </div>
     </div>
   </a>
+  }
 
   <mat-card-content class="text-left">{{ post.body }}</mat-card-content>
   <mat-card-actions>
@@ -102,16 +98,18 @@
       ></strong>
     </div>
 
-    <div *ngIf="false" class="mr-2">
+    @if(false) {
+    <div class="mr-2">
       <button mat-icon-button>
         <mat-icon>comment</mat-icon>
       </button>
       <span>{{ 0 }}</span>
     </div>
-
-    <button *ngIf="false" mat-icon-button>
+    } @if(false) {
+    <button mat-icon-button>
       <mat-icon>share</mat-icon>
     </button>
+    }
 
     <div class="spacer"></div>
 
@@ -120,36 +118,29 @@
     </button>
   </mat-card-actions>
 </mat-card>
+}
 
 <mat-menu #postMenu="matMenu">
   <button mat-menu-item>
     <mat-icon>info</mat-icon>
     <span>More Information</span>
   </button>
-  <button *ngIf="post?.location || post?.spot" mat-menu-item routerLink="/map">
+  @if(post?.location || post?.spot) {
+  <button mat-menu-item routerLink="/map">
     <mat-icon>place</mat-icon>
     <span>Open on Map</span>
   </button>
-  <button
-    *ngIf="
-      currentlyAuthenticatedUserId &&
-      post?.user?.uid !== currentlyAuthenticatedUserId
-    "
-    mat-menu-item
-  >
+  } @if( currentlyAuthenticatedUserId && post?.user?.uid !==
+  currentlyAuthenticatedUserId ) {
+  <button mat-menu-item>
     <mat-icon>report</mat-icon>
     <span i18n>Report post</span>
   </button>
-  <button
-    *ngIf="
-      currentlyAuthenticatedUserId &&
-      post?.user?.uid === currentlyAuthenticatedUserId
-    "
-    mat-menu-item
-    (click)="deletePost()"
-    color="warn"
-  >
+  } @if( currentlyAuthenticatedUserId && post?.user?.uid ===
+  currentlyAuthenticatedUserId ) {
+  <button mat-menu-item (click)="deletePost()" color="warn">
     <mat-icon>delete</mat-icon>
     <span>Delete post</span>
   </button>
+  }
 </mat-menu>

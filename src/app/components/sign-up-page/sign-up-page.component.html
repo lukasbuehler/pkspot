@@ -99,9 +99,11 @@
 
         <div id="reCaptchaDiv" class="d-flex justify-content-center"></div>
 
-        <div *ngIf="signUpError" class="mt-3 alert alert-danger">
+        @if(signUpError) {
+        <div class="mt-3 alert alert-danger">
           {{ signUpError }}
         </div>
+        }
 
         <div class="mt-5 mb-5 d-flex flex-row justify-content-center">
           <button

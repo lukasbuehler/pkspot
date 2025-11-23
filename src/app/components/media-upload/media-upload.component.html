@@ -74,12 +74,16 @@
         [multiple]="multipleAllowed"
       />
       <mat-icon matSuffix>cloud_upload</mat-icon>
-      <!-- <mat-hint *ngIf="!hasError || formGroup.get('input')?.invalid">{{
+      <!-- @if(!hasError || formGroup.get('input')?.invalid) {
+      <mat-hint>{{
         uploadFile
           ? "Size: " + uploadFileSizeString + ", Type: " + uploadFile.type
           : "Click to select a file"
-      }}</mat-hint> -->
-      <mat-error *ngIf="hasError">{{ errorMessage }}</mat-error>
+      }}</mat-hint>
+      } -->
+      @if(hasError) {
+      <mat-error>{{ errorMessage }}</mat-error>
+      }
     </mat-form-field>
   </div>
 </div>

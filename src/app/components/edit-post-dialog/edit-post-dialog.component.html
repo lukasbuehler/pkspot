@@ -46,10 +46,12 @@
                 mediaLink.id
               : "Enter a media link"
           }}</mat-hint>
-          <mat-error *ngIf="linkInputFormControl.hasError('invalid')"
+          @if(linkInputFormControl.hasError('invalid')) {
+          <mat-error
             >The {{ mediaLink.platform ? mediaLink.platform : "media" }} link is
             not valid!</mat-error
           >
+          }
         </mat-form-field>
       </mat-tab>
     </mat-tab-group>
@@ -77,22 +79,18 @@
         (optionSelected)="selectSpot($event.option.value)"
         [displayWith]="getSpotNameFromId"
       >
-        <mat-option
-          class="spotAutocompleteOption"
-          *ngFor="let spot of filteredSpots"
-          [value]="spot.id"
-        >
-          <img
-            *ngIf="spot.hasMedia()"
-            [src]="spot.previewImageSrc()"
-            alt="Img"
-          />
+        @for(spot of filteredSpots; track spot.id) {
+        <mat-option class="spotAutocompleteOption" [value]="spot.id">
+          @if(spot.hasMedia()) {
+          <img [src]="spot.previewImageSrc()" alt="Img" />
+          }
           <span>{{ spot.name() }}</span> |
           <small
             >Location: {{ spot.location().lat }},
             {{ spot.location().lng }}</small
           >
         </mat-option>
+        }
       </mat-autocomplete>
       <mat-hint>{{
         postSpot ? "Spot ID: " + postSpot.id : "No spot selected"

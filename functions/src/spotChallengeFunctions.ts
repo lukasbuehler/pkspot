@@ -17,24 +17,24 @@ export const setTopChallengesForSpotOnWrite = onDocumentWritten(
           .filter((doc) => {
             // only keep if the release date is in the past if it has one
             const data = doc.data();
-            const releaseDate: Timestamp | null = data.release_date ?? null;
+            const releaseDate: Timestamp | null = data["release_date"] ?? null;
             const isReleased =
               !releaseDate || Date.now() >= releaseDate.toDate().getTime();
-            const hasMedia = !!data.media;
+            const hasMedia = !!data["media"];
 
             return isReleased && hasMedia;
           })
           .sort((docA, docB) => {
             const a = docA.data();
             const b = docB.data();
-            return b.num_posts - a.num_posts;
+            return b["num_posts"] - a["num_posts"];
           })
           .sort((docA, docB) => {
             const a = docA.data();
             const b = docB.data();
-            if (a.is_completed && !b.is_completed) {
+            if (a["is_completed"] && !b["is_completed"]) {
               return -1;
-            } else if (!a.is_completed && b.is_completed) {
+            } else if (!a["is_completed"] && b["is_completed"]) {
               return 1;
             }
             return 0;
@@ -43,9 +43,9 @@ export const setTopChallengesForSpotOnWrite = onDocumentWritten(
             const data = doc.data();
             return {
               id: doc.id,
-              name: data.name,
-              media: data.media,
-              location: data.location ?? undefined,
+              name: data["name"],
+              media: data["media"],
+              location: data["location"] ?? undefined,
             };
           })
           .slice(0, 3); // Get top 3 challenges

@@ -17,7 +17,7 @@ async function _getFrameFromVideo(
   const thumbnailPath = join(os.tmpdir(), `thumb_${uuid}.png`); // <-- use uuid
 
   await new Promise<void>((resolve, reject) => {
-    ffmpeg(videoPath)
+    (ffmpeg as any)(videoPath)
       .outputOptions("-pred mixed")
       .screenshots({
         timestamps: [time],
@@ -38,14 +38,14 @@ async function _compressVideo(
   const compressedVideoPath = join(os.tmpdir(), `comp_${uuid}.mp4`);
 
   return new Promise<string>((resolve, reject) => {
-    ffmpeg.ffprobe(videoPath, (err, data) => {
+    ffmpeg.ffprobe(videoPath, (err: any, data: any) => {
       if (err) {
         reject(err);
         return;
       }
 
       const videoStream = data.streams.find(
-        (stream) => stream.codec_type === "video"
+        (stream: any) => stream.codec_type === "video"
       );
       if (!videoStream) {
         reject(new Error("No video stream found"));
@@ -55,11 +55,11 @@ async function _compressVideo(
       let width = videoStream.width;
       let height = videoStream.height;
       let rotation = 0;
-      if (videoStream.tags && videoStream.tags.rotate) {
-        rotation = parseInt(videoStream.tags.rotate, 10) || 0;
-      } else if (videoStream.side_data_list) {
+      if (videoStream["tags"] && videoStream["tags"]["rotate"]) {
+        rotation = parseInt(videoStream["tags"]["rotate"], 10) || 0;
+      } else if (videoStream["side_data_list"]) {
         // Some ffprobe versions put rotation here
-        const rotationData = videoStream.side_data_list.find(
+        const rotationData = videoStream["side_data_list"].find(
           (d: any) => d.rotation !== undefined
         );
         if (rotationData) rotation = rotationData.rotation;
@@ -108,7 +108,7 @@ async function _compressVideo(
 
       console.debug(`Rescaling video to: ${size}`);
 
-      let command = ffmpeg(videoPath)
+      let command = (ffmpeg as any)(videoPath)
         .output(compressedVideoPath)
         .format("mp4")
         .videoCodec("libx265")
@@ -126,7 +126,7 @@ async function _compressVideo(
 
       command
         .on("end", () => resolve(compressedVideoPath))
-        .on("error", (err) => {
+        .on("error", (err: Error) => {
           console.error("FFmpeg error:", err);
           reject(err);
         })

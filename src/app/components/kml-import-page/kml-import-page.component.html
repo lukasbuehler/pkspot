@@ -79,7 +79,8 @@
                 <div class="row">
                   @if(responsive.isDesktop()) {
                   <div class="col-md-6">
-                    <div class="kml-preview" *ngIf="kmlParserService.setupInfo">
+                    @if(kmlParserService.setupInfo) {
+                    <div class="kml-preview">
                       <h2 class="mat-h2">Preview</h2>
                       <div class="px-3">
                         <h3 class="mat-h3">
@@ -102,13 +103,11 @@
                         </p>
                       </div>
                     </div>
+                    }
 
                     <h2 class="mat-h2">Import Settings</h2>
-                    <mat-form-field
-                      class="w-100"
-                      appearance="outline"
-                      *ngIf="kmlParserService.setupInfo"
-                    >
+                    @if(kmlParserService.setupInfo) {
+                    <mat-form-field class="w-100" appearance="outline">
                       <mat-label>Language</mat-label>
                       <input
                         type="text"
@@ -134,6 +133,7 @@
                         >help_outline</mat-icon
                       >
                     </mat-form-field>
+                    }
 
                     <div class="mt-2">
                       <mat-slide-toggle
@@ -163,47 +163,42 @@
                           matTooltip="You can provide a regular expression that will be applied to every imported spot name. The first capturing group will be used as the new spot name. Spot names that don't produce any matches will need to be checked by you on step 4. Visit https://regexr.com/ for help."
                           >help_outline</mat-icon
                         >
-                        <mat-hint *ngIf="!regex.errorState && !regex.disabled"
+                        @if(!regex?.errorState && !regex?.disabled) {
+                        <mat-hint
                           >The first capturing group is used as the spot
                           name.</mat-hint
                         >
-                        <mat-error *ngIf="regex.errorState">{{
-                          regex.getErrorMessage()
-                        }}</mat-error>
+                        } @if(regex?.errorState) {
+                        <mat-error>{{ regex.getErrorMessage() }}</mat-error>
+                        }
                       </mat-form-field>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <h2 class="mat-h2">Folders to import</h2>
-                    <span
-                      *ngIf="kmlParserService.setupInfo?.folders"
-                      class="example-list-section"
-                    >
+                    @if(kmlParserService.setupInfo?.folders) {
+                    <span class="example-list-section">
                       <ul class="checkbox-list">
                         @for(folder of kmlParserService.setupInfo?.folders;
                         track folder) {
                         <li>
+                          @if(folder) {
                           <mat-checkbox
-                            *ngIf="folder"
                             color="accent"
                             [checked]="folder.import"
                             (change)="folder.import = $event.checked"
                           >
                             {{ folder.name }} ({{ folder.spotCount }} Spots)
                           </mat-checkbox>
+                          }
                         </li>
                         }
                       </ul>
                     </span>
-                    <p
-                      *ngIf="
-                        !kmlParserService.setupInfo?.folders ||
-                        (kmlParserService.setupInfo?.folders)!.length === 0
-                      "
-                      class="mat-body"
-                    >
-                      No folders in KML file.
-                    </p>
+                    } @if( !kmlParserService.setupInfo?.folders ||
+                    (kmlParserService.setupInfo?.folders)!.length === 0 ) {
+                    <p class="mat-body">No folders in KML file.</p>
+                    }
                   </div>
                   }
                 </div>
@@ -217,7 +212,7 @@
                   mat-flat-button
                   class="float-right"
                   color="accent"
-                  [disabled]="setupFormGroup?.invalid || regex.errorState"
+                  [disabled]="setupFormGroup?.invalid || regex?.errorState"
                   (click)="continueToVerification()"
                 >
                   Continue
@@ -275,7 +270,8 @@
                   </mat-accordion>
                 </div>
                 <div class="col-md-7">
-                  <div *ngIf="selectedVerificationSpot" class="p-2">
+                  @if(selectedVerificationSpot) {
+                  <div class="p-2">
                     <h3 class="mat-h2">
                       {{ selectedVerificationSpot.spot.name }}
                     </h3>
@@ -296,6 +292,7 @@
                       ></app-spot-map>
                     </div>
                   </div>
+                  }
                 </div>
               </div>
               <div class="pt-3 d-flex flex-row justify-content-between">

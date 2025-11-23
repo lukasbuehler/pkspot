@@ -2,12 +2,8 @@
   {{ data.type === "followers" ? "Followers" : "Following" }}
 </h1>
 
-<table
-  mat-table
-  *ngIf="data.followUsers && data.followUsers.length > 0"
-  [dataSource]="data.followUsers"
-  class="w-100"
->
+@if(data.followUsers && data.followUsers.length > 0) {
+<table mat-table [dataSource]="data.followUsers" class="w-100">
   <ng-container matColumnDef="user">
     <th mat-header-cell *matHeaderCellDef>User</th>
     <td mat-cell *matCellDef="let followUser">
@@ -40,29 +36,26 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 </table>
-
-<p
-  *ngIf="data.followUsers && data.followUsers.length === 0"
-  class="text-center"
->
+} @if(data.followUsers && data.followUsers.length === 0) {
+<p class="text-center">
   {{
     data.type === "followers"
       ? "You have no followers."
       : "You don't follow anyone."
   }}
 </p>
+}
 
 <div class="d-flex justify-content-center pt-3">
-  <mat-spinner *ngIf="isLoading" color="primary" [diameter]="32"></mat-spinner>
+  @if(isLoading) {
+  <mat-spinner color="primary" [diameter]="32"></mat-spinner>
+  }
 </div>
 
 <div class="d-flex justify-content-center py-2">
-  <button
-    *ngIf="!isLoading && !hasLoadedAll"
-    mat-raised-button
-    color="accent"
-    (click)="loadMoreFollowing()"
-  >
+  @if(!isLoading && !hasLoadedAll) {
+  <button mat-raised-button color="accent" (click)="loadMoreFollowing()">
     Load More
   </button>
+  }
 </div>

@@ -3,8 +3,8 @@
     <div class="row">
       <div class="col-md-4">
         <div class="menu d-flex flex-column rounded border mb-5">
+          @for(menuPoint of menuPoints; track menuPoint.id) {
           <button
-            *ngFor="let menuPoint of menuPoints"
             mat-button
             (click)="openMenuPoint(menuPoint.id)"
             class="menuButton"
@@ -21,6 +21,7 @@
             >
             <span>{{ menuPoint.name }}</span>
           </button>
+          }
         </div>
       </div>
       <div [ngSwitch]="selectedPoint" class="col-md-8">
@@ -89,20 +90,21 @@
                   [value]="emailAddress"
                   (keyup)="emailAddress = emailInput.value"
                 />
+                @if(!authService.user?.emailVerified) {
                 <mat-icon
-                  *ngIf="!authService.user?.emailVerified"
                   matSuffix
                   i18n-matTooltip
                   matTooltip="Your E-mail has not been verified!"
                   >warning</mat-icon
                 >
+                } @if(authService.user?.emailVerified) {
                 <mat-icon
-                  *ngIf="authService.user?.emailVerified"
                   matSuffix
                   i18n-matTooltip
                   matTooltip="Your E-mail is verified"
                   >verified</mat-icon
                 >
+                }
                 <mat-hint i18n
                   >Changing this E-mail will change your login
                   information</mat-hint
@@ -118,8 +120,8 @@
               >
                 Change E-mail address
               </button>
+              @if(!authService.user?.emailVerified) {
               <button
-                *ngIf="!authService.user?.emailVerified"
                 mat-flat-button
                 class="mt-3 mb-1"
                 color="accent"
@@ -128,6 +130,7 @@
               >
                 Resend verification E-mail
               </button>
+              }
             </div>
             <div class="my-4">
               <h3 class="mat-h3" i18n>Password</h3>
@@ -181,8 +184,8 @@
     </div>
   </div>
 </div>
+@if(hasChanges) {
 <app-speed-dial-fab
-  *ngIf="hasChanges"
   #saveSpeedDial
   id="saveSpeedDial"
   [buttonConfig]="speedDialButtonConfig"
@@ -191,3 +194,4 @@
   (mainFabClick)="saveAllChanges()"
   (miniFabClick)="miniFabPressed()"
 ></app-speed-dial-fab>
+}

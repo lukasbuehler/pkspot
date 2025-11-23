@@ -124,6 +124,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   readonly responsive = inject(ResponsiveService);
   @ViewChild("stepperHorizontal") stepperHorizontal: MatStepper | undefined;
   @ViewChild("spotMap") spotMap: SpotMapComponent | undefined;
+  @ViewChild("regex") regex: RegexInputComponent | undefined;
 
   uploadFormGroup?: UntypedFormGroup;
   setupFormGroup?: UntypedFormGroup;

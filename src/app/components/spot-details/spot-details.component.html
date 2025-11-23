@@ -1,8 +1,9 @@
-<!-- <mat-progress-bar
-  *ngIf="isSaving"
+<!-- @if(isSaving) {
+<mat-progress-bar
   color="accent"
   mode="indeterminate"
-></mat-progress-bar> -->
+></mat-progress-bar>
+} -->
 
 <mat-card
   matRipple
@@ -1072,12 +1073,11 @@
             [disabled]="!canAddSlug()"
           />
           <mat-hint i18n>lowercase letters, numbers, and hyphens only</mat-hint>
-          <mat-error
-            *ngIf="slugCtrl.invalid && (slugCtrl.dirty || slugCtrl.touched)"
-            i18n
-          >
+          @if(slugCtrl.invalid && (slugCtrl.dirty || slugCtrl.touched)) {
+          <mat-error i18n>
             Only lowercase letters, numbers, and hyphens are allowed.
           </mat-error>
+          }
         </mat-form-field>
         <button
           mat-stroked-button

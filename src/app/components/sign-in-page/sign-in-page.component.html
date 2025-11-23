@@ -28,29 +28,33 @@
         <mat-form-field appearance="outline">
           <mat-label>E-Mail</mat-label>
           <input matInput type="email" formControlName="email" />
+          @if(emailFieldHasError) {
           <mat-error
-            *ngIf="emailFieldHasError"
             i18n="
               email validation error|Error message for invalid
               email@@signin.email.validation_error"
             >This E-Mail address is not valid!</mat-error
           >
+          }
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Password</mat-label>
           <input matInput type="password" formControlName="password" />
+          @if(passwordFieldHasError) {
           <mat-error
-            *ngIf="passwordFieldHasError"
             i18n="
               password validation error|Error message for empty
               password@@signin.password.validation_error"
             >The password field is empty!</mat-error
           >
+          }
         </mat-form-field>
 
-        <div *ngIf="signInError" class="mt-3 alert alert-danger" color="">
+        @if(signInError) {
+        <div class="mt-3 alert alert-danger" color="">
           {{ signInError }}
         </div>
+        }
 
         <div class="mt-3 d-flex flex-row-reverse justify-content-between">
           <button mat-flat-button type="submit" [disabled]="isSubmitting">

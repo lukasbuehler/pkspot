@@ -1,6 +1,7 @@
 <div class="home-page-container">
   <mat-tab-group mat-align-tabs="center" class="home-page-tabs">
-    <mat-tab *ngIf="authService.isSignedIn" label="Updates">
+    @if(authService.isSignedIn) {
+    <mat-tab label="Updates">
       <div class="container p-0">
         <div class="row posts">
           <div class="col-12 col-md-8 offset-md-2 col-lg-6 offset-lg-3 p-0">
@@ -14,6 +15,7 @@
         </div>
       </div>
     </mat-tab>
+    }
     <mat-tab label="Top posts">
       <div class="container p-0">
         <div class="row posts">
@@ -30,12 +32,8 @@
   </mat-tab-group>
 </div>
 
-<button
-  *ngIf="authService.isSignedIn"
-  mat-fab
-  #createFab
-  id="createFab"
-  (click)="createPost()"
->
+@if(authService.isSignedIn) {
+<button mat-fab #createFab id="createFab" (click)="createPost()">
   <mat-icon aria-label="Button with pen to create a post">create</mat-icon>
 </button>
+}

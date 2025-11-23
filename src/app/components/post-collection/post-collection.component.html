@@ -1,21 +1,16 @@
 <div [@postCollectionAnimation] class="collection-container pt-3">
-  <h2 *ngIf="title" class="mat-h2 mb-0 mt-3 text-center">
+  @if(title) {
+  <h2 class="mat-h2 mb-0 mt-3 text-center">
     {{ title }}
   </h2>
-  <app-post
-    [@postAnimation]
-    *ngFor="let post of posts"
-    [post]="post"
-    class="app-post mt-2"
-  ></app-post>
-  <p
-    *ngIf="(!posts || posts.length === 0) && !loading"
-    class="noPostsText"
-    class="text-center"
-  >
-    No posts
-  </p>
+  } @for(post of posts; track post.id) {
+  <app-post [@postAnimation] [post]="post" class="app-post mt-2"></app-post>
+  } @if((!posts || posts.length === 0) && !loading) {
+  <p class="noPostsText" class="text-center">No posts</p>
+  }
   <div class="spinner">
-    <mat-spinner *ngIf="loading" color="accent" [diameter]="50"></mat-spinner>
+    @if(loading) {
+    <mat-spinner color="accent" [diameter]="50"></mat-spinner>
+    }
   </div>
 </div>

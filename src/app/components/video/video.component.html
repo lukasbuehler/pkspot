@@ -4,12 +4,13 @@
   controls
   [poster]="media()?.getPreviewImageSrc()"
 ></video>
-<!-- <vg-player
+<!-- @if(!post.mediaIsImage && post.mediaSrc) {
+<vg-player
 #videoPlayer
-*ngIf="!post.mediaIsImage && post.mediaSrc"
 class="mat-card-video fill"
 >
 <video [vgMedia]="media" #media id="singleVideo" preload="auto" controls>
   <source [src]="post.mediaSrc" type="video/mp4" />
 </video>
-</vg-player> -->
+</vg-player>
+} -->

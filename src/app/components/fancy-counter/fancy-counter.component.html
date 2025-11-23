@@ -1,4 +1,5 @@
 <span class="counter">
+  @for(digit of displayString.split(''); track $index) {
   <span
     [@digitChange]="{
       value: number,
@@ -7,8 +8,8 @@
         decrementMinus: getMinusIfIncrementing(number, false)
       }
     }"
-    *ngFor="let digit of displayString.split('')"
     class="digit-container"
     >{{ digit }}</span
   >
+  }
 </span>

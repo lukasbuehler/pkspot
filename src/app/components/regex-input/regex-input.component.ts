@@ -74,9 +74,6 @@ export function regexValidator(): ValidatorFn {
   providers: [
     { provide: MatFormFieldControl, useExisting: RegexInputComponent },
   ],
-  host: {
-    "(change)": "_onChange($event.target.value)",
-  },
   imports: [FormsModule, ReactiveFormsModule],
 })
 export class RegexInputComponent

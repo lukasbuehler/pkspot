@@ -18,7 +18,7 @@
     >
       @for(locale of filteredOptions | async; track locale) {
       <mat-option [value]="locale">
-        <!-- <img *ngIf="spot.hasMedia()" [src]="spot.previewImageSrc()" alt="Img" /> -->
+        <!-- @if(spot.hasMedia()) { <img [src]="spot.previewImageSrc()" alt="Img" /> } -->
         <span
           >{{ languages[locale].emoji ?? "" }}
           {{ languages[locale].name_native ?? data.locale }}</span
