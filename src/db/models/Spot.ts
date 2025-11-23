@@ -140,6 +140,8 @@ export class LocalSpot {
       return MapHelpers.getHumanReadableCoordinates(this.location());
     });
 
+    this.source = signal<string | undefined>(data.source ?? undefined);
+
     this.descriptions = signal(
       data.description ? makeLocaleMapFromObject(data.description) : undefined
     );

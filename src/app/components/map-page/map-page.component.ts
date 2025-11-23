@@ -12,6 +12,7 @@ import {
   PendingTasks,
   inject,
   effect,
+  computed,
 } from "@angular/core";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -162,8 +163,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   spotEdits: WritableSignal<SpotEdit[]> = signal([]);
 
-  earlyPKSpotSource: string = $localize`:@@map.spot.source.earlyPKSpot:Early PK Spot Community Contribution`;
-
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -266,8 +265,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             );
             // Sort by timestamp descending (newest first)
             spotEdits.sort((a, b) => {
-              const timeA = a.timestamp instanceof Timestamp ? a.timestamp.toMillis() : 0;
-              const timeB = b.timestamp instanceof Timestamp ? b.timestamp.toMillis() : 0;
+              const timeA =
+                a.timestamp instanceof Timestamp ? a.timestamp.toMillis() : 0;
+              const timeB =
+                b.timestamp instanceof Timestamp ? b.timestamp.toMillis() : 0;
               return timeB - timeA;
             });
             this.spotEdits.set(spotEdits);
@@ -284,6 +285,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
   }
+
+  /**
+   * Get a nice display text for the source field
+   */
+  getSourceDisplayText(source: string | undefined): string {
+    const earlyPKSpotSource = $localize`:@@map.spot.source.earlyPKSpot:Early PK Spot Community Contribution`;
+    if (!source) {
+      return earlyPKSpotSource;
+    }
+
+    // Map specific sources to nice display names
+    const sourceMap: Record<string, string> = {
+      "horizn-app": "Horizn Community",
+      pkspot: "PK Spot Community",
+    };
+
+    return sourceMap[source] || source;
+  }
+
+  spotSourceDisplayText = computed(() => {
+    const spot = this.selectedSpot();
+    if (!spot) return "";
+    return this.getSourceDisplayText(spot.source());
+  });
 
   // Speed dial FAB //////////////////////////////////////////////////////////
 
@@ -543,12 +568,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async loadSpotById(spotId: SpotId, updateUrl: boolean = true): Promise<Spot> {
     console.debug("loading spot by id", spotId);
-    
+
     // Retry loading the spot if it's not yet populated by the cloud function
     let lastError: any;
     const maxAttempts = 15;
     const delayMs = 200;
-    
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         const spot: Spot = await this._spotsService.getSpotByIdHttp(
@@ -559,15 +584,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         return spot;
       } catch (error) {
         lastError = error;
-        console.debug(`Attempt ${attempt + 1}/${maxAttempts} to load spot failed, retrying...`, error);
-        
+        console.debug(
+          `Attempt ${
+            attempt + 1
+          }/${maxAttempts} to load spot failed, retrying...`,
+          error
+        );
+
         // Wait before next attempt
         if (attempt < maxAttempts - 1) {
-          await new Promise(resolve => setTimeout(resolve, delayMs));
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
         }
       }
     }
-    
+
     // All attempts failed
     console.error("Failed to load spot after retries:", lastError);
     throw lastError;
