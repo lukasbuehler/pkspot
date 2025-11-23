@@ -39,6 +39,8 @@ import {
   AsyncPipe,
   isPlatformServer,
   isPlatformBrowser,
+  NgComponentOutlet,
+  NgTemplateOutlet,
 } from "@angular/common";
 import { StorageService } from "../../services/firebase/storage.service";
 import { GlobalVariables } from "../../../scripts/global";
@@ -71,6 +73,9 @@ import { SpotEditDetailsComponent } from "../spot-edit-details/spot-edit-details
 import { Timestamp } from "firebase/firestore";
 import { SpotEdit } from "../../../db/models/SpotEdit";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
+import { MatSidenavModule } from "@angular/material/sidenav";
+import { ResponsiveService } from "../../services/responsive.service";
+import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 
 @Component({
   selector: "app-map-page",
@@ -124,6 +129,9 @@ import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.s
     PrimaryInfoPanelComponent,
     AsyncPipe,
     SpotEditDetailsComponent,
+    MatSidenavModule,
+    NgTemplateOutlet,
+    BottomSheetComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -131,6 +139,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     null;
 
   pendingTasks = inject(PendingTasks);
+  responsiveService = inject(ResponsiveService);
 
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
@@ -156,6 +165,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   showAmenities = signal<boolean>(true);
   bottomSheetOpen = signal<boolean>(false);
   bottomSheetProgress = signal<number>(0);
+
+  sidenavOpen = signal<boolean>(true);
+
+  toggleSidenav() {
+    this.sidenavOpen.update((open) => !open);
+  }
 
   private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;

@@ -1,4 +1,5 @@
 @if(!isEmbedded()) {
+<!-- is not embedded  -->
 <app-nav-rail-container>
   @if(responsive.isDesktop()) {
   <app-nav-rail class="mat-elevation-z3">
@@ -65,7 +66,7 @@
 
     @if(!alainMode) {
     <!-- Bottom navigation bar -->
-    @if(responsive.isMobile()) {
+    @if(responsive.isNotDesktop()) {
     <mat-toolbar class="mat-elevation-z1">
       @for (button of navbarConfig(); track button) { @if(button.link) {
       <a [routerLink]="button.link" tabindex="-1">
@@ -137,7 +138,7 @@
 
     <!-- Terms and Privacy -->
 
-    @if(!policyAccepted || !userId) { @if(responsive.isMobile()) {
+    @if((!policyAccepted || !userId) && responsive.isNotDesktop()) {
     <div
       class="mat-body-small justify-content-around align-items-center flex-row mb-0 py-1 gap-3 px-3"
       style="
@@ -153,11 +154,12 @@
       <a routerLink="/about" i18n="@@about_page_label">About</a>
       <span>©2025 Lukas Bühler</span>
     </div>
-    } }
+    }
   </app-nav-rail-content>
 </app-nav-rail-container>
 
 } @else {
+<!-- is embedded -->
 <div class="d-flex flex-column h-100">
   <div
     class="w-100 text-center d-flex flex-row align-items-center justify-content-between flex-shrink-1 p-3"

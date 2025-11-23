@@ -1,4 +1,114 @@
-<div class="map-container">
+<ng-template #sidebarContent>
+  @if(selectedSpot()) { @if(selectedChallenge()) {
+  <a
+    mat-button
+    [routerLink]="[
+      '/map',
+      selectedSpotIdOrSlug(),
+      showAllChallenges() ? 'c' : ''
+    ]"
+    class="text-truncate"
+  >
+    <mat-icon>arrow_back_ios</mat-icon>
+    <span class="d-flex flex-row gap-2 align-items-center">
+      <span>
+        @if(showAllChallenges()) {<span i18n>All Challenges of </span
+        >{{ selectedSpot()!.name() }}}
+      </span>
+      <span i18n class="mat-label-small px-1 border rounded me-1">Spot</span>
+    </span>
+  </a>
+  <app-challenge-detail
+    @slideInOut
+    class="d-block"
+    [(challenge)]="selectedChallenge"
+    [(isEditing)]="isEditing"
+  ></app-challenge-detail>
+  } @else if(showAllChallenges()) {
+  <div class="px-2">
+    <a
+      mat-button
+      [routerLink]="['/map', selectedSpotIdOrSlug()]"
+      class="text-truncate"
+    >
+      <mat-icon>arrow_back_ios</mat-icon>
+      <span class="d-flex flex-row align-items-center gap-2">
+        <span>{{ selectedSpot()!.name() }}</span>
+        <span i18n class="mat-label-small px-1 border rounded me-1">Spot</span>
+      </span>
+    </a>
+  </div>
+
+  <div class="px-3 d-flex flex-column gap-2" @slideInOut>
+    <h4 class="mat-title-medium mt-2" i18n>
+      All Challenges of {{ selectedSpot()!.name() }}
+    </h4>
+    <app-challenge-list
+      class="w-100"
+      [challenges]="allSpotChallenges()"
+      [showFilterOptions]="true"
+    ></app-challenge-list>
+  </div>
+  } @else if(showSpotEditHistory()) {
+  <div class="px-2">
+    <a
+      mat-button
+      [routerLink]="['/map', selectedSpotIdOrSlug()]"
+      class="text-truncate"
+    >
+      <mat-icon>arrow_back_ios</mat-icon>
+      <span class="d-flex flex-row gap-2 align-items-center">
+        <span>
+          {{ selectedSpot()!.name() }}
+        </span>
+        <span i18n class="mat-label-small px-1 border rounded me-1">Spot</span>
+      </span>
+    </a>
+  </div>
+
+  <div class="p-3" @slideInOut>
+    @for(spotEdit of spotEdits(); track $index) {
+    <app-spot-edit-details
+      class="d-block"
+      [spotEdit]="spotEdit"
+    ></app-spot-edit-details>
+    }
+
+    <p class="mat-body-medium m-0 mt-2">
+      <strong>Source:</strong>
+      {{ spotSourceDisplayText() }}
+    </p>
+  </div>
+
+  }@else {
+  <app-spot-details
+    @fadeInOut
+    #spotDetail
+    class="d-block"
+    [spot]="selectedSpot()"
+    [(challenge)]="selectedChallenge"
+    [border]="false"
+    [dismissable]="true"
+    [infoOnly]="false"
+    [editable]="true"
+    [isEditing]="isEditing()"
+    (isEditingChange)="$event ? spotMap!.startEdit() : spotMap!.discardEdit()"
+    (dismiss)="closeSpot()"
+    (addBoundsClick)="spotMap!.addBounds()"
+    (focusClick)="spotMap!.focusSpot(selectedSpot()!)"
+    (saveClick)="spotMap!.saveSpot($event)"
+  ></app-spot-details>
+  } } @else {
+  <app-spot-list
+    class="px-3 d-block"
+    @fadeInOut
+    [spots]="visibleSpots"
+    [highlightedSpots]="highlightedSpots"
+  ></app-spot-list>
+  }
+</ng-template>
+
+<ng-template #mapContent>
   <!-- The spot map, defer loading to make sure it is not loaded on the server. -->
   @if(mapsService.isApiLoaded()) { @defer {
   <app-spot-map
@@ -42,152 +152,6 @@
     <mat-progress-bar mode="indeterminate" class="w-50"></mat-progress-bar>
     }
   </div>
-  }
-
-  <div class="search-group">
-    <div class="d-flex flex-row gap-3">
-      @if(alainMode && isHandset()) {
-      <div class="spacer" style="width: 56px"></div>
-      }
-      <app-search-field
-        class="w-100 mat-elevation-z3"
-        (spotSelected)="openSpotOrGooglePlace($event)"
-      ></app-search-field>
-    </div>
-
-    @if(spotMap) {
-    <app-primary-info-panel
-      class="flex-grow-1"
-      @fadeInOut
-      (bottomSheetOpenChange)="bottomSheetOpen.set($event)"
-      (bottomSheetProgressChange)="bottomSheetProgress.set($event)"
-    >
-      @if(selectedSpot()) { @if(selectedChallenge()) {
-      <a
-        mat-button
-        [routerLink]="[
-          '/map',
-          selectedSpotIdOrSlug(),
-          showAllChallenges() ? 'c' : ''
-        ]"
-        class="text-truncate"
-      >
-        <mat-icon>arrow_back_ios</mat-icon>
-        <span class="d-flex flex-row gap-2 align-items-center">
-          <span>
-            @if(showAllChallenges()) {<span i18n>All Challenges of </span
-            >{{ selectedSpot()!.name() }}}
-          </span>
-          <span i18n class="mat-label-small px-1 border rounded me-1"
-            >Spot</span
-          >
-        </span>
-      </a>
-      <app-challenge-detail
-        @slideInOut
-        class="d-block"
-        [(challenge)]="selectedChallenge"
-        [(isEditing)]="isEditing"
-      ></app-challenge-detail>
-      } @else if(showAllChallenges()) {
-      <div class="px-2">
-        <a
-          mat-button
-          [routerLink]="['/map', selectedSpotIdOrSlug()]"
-          class="text-truncate"
-        >
-          <mat-icon>arrow_back_ios</mat-icon>
-          <span class="d-flex flex-row align-items-center gap-2">
-            <span>{{ selectedSpot()!.name() }}</span>
-            <span i18n class="mat-label-small px-1 border rounded me-1"
-              >Spot</span
-            >
-          </span>
-        </a>
-      </div>
-
-      <div class="px-3 d-flex flex-column gap-2" @slideInOut>
-        <h4 class="mat-title-medium mt-2" i18n>
-          All Challenges of {{ selectedSpot()!.name() }}
-        </h4>
-        <app-challenge-list
-          class="w-100"
-          [challenges]="allSpotChallenges()"
-          [showFilterOptions]="true"
-        ></app-challenge-list>
-      </div>
-      } @else if(showSpotEditHistory()) {
-      <div class="px-2">
-        <a
-          mat-button
-          [routerLink]="['/map', selectedSpotIdOrSlug()]"
-          class="text-truncate"
-        >
-          <mat-icon>arrow_back_ios</mat-icon>
-          <span class="d-flex flex-row gap-2 align-items-center">
-            <span>
-              {{ selectedSpot()!.name() }}
-            </span>
-            <span i18n class="mat-label-small px-1 border rounded me-1"
-              >Spot</span
-            >
-          </span>
-        </a>
-      </div>
-
-      <div class="p-3" @slideInOut>
-        @for(spotEdit of spotEdits(); track $index) {
-        <app-spot-edit-details
-          class="d-block"
-          [spotEdit]="spotEdit"
-        ></app-spot-edit-details>
-        }
-
-        <!-- Add the spot source and license information -->
-        <p class="mat-body-medium m-0 mt-2">
-          <strong>Source:</strong>
-          {{ spotSourceDisplayText() }}
-        </p>
-      </div>
-
-      }@else {
-      <app-spot-details
-        @fadeInOut
-        #spotDetail
-        class="d-block"
-        [spot]="selectedSpot()"
-        [(challenge)]="selectedChallenge"
-        [border]="false"
-        [dismissable]="true"
-        [infoOnly]="false"
-        [editable]="true"
-        [isEditing]="isEditing()"
-        (isEditingChange)="$event ? spotMap.startEdit() : spotMap.discardEdit()"
-        (dismiss)="closeSpot()"
-        (addBoundsClick)="spotMap.addBounds()"
-        (focusClick)="spotMap.focusSpot(selectedSpot()!)"
-        (saveClick)="spotMap.saveSpot($event)"
-      ></app-spot-details>
-      } } @else {
-      <app-spot-list
-        class="px-3 d-block"
-        @fadeInOut
-        [spots]="visibleSpots"
-        [highlightedSpots]="highlightedSpots"
-      ></app-spot-list>
-      }
-    </app-primary-info-panel>
-    }
-  </div>
-
-  <!-- Search option chips -->
-  @if(authService.isSignedIn && !isEditing()) {
-  <mat-chip-listbox class="search-option-chips">
-    <mat-chip-option color="">Unvisited</mat-chip-option>
-    <mat-chip-option color="primary" leadingIcon="flag"
-      >Visited</mat-chip-option
-    >
-  </mat-chip-listbox>
   }
 
   <!-- FAB buttons -->
@@ -281,8 +245,98 @@
     <span i18n class="mdc-button__label">Add Spot</span>
   </button>
   } }
+</ng-template>
 
+@if(responsiveService.isNotMobile()){
+<div class="h-8 w-100 d-flex flex-row p-3 gap-3 surface-container-low">
+  <div class="flex-grow-1 overflow-hidden" style="border-radius: 16px">
+    <app-search-field
+      class="w-100 mat-elevation-z3"
+      (spotSelected)="openSpotOrGooglePlace($event)"
+    ></app-search-field>
+  </div>
+  <div class="flex-grow-1 d-flex justify-content-start align-items-center">
+    <!-- Search option chips -->
+    @if(authService.isSignedIn && !isEditing()) {
+    <mat-chip-listbox class="search-option-chips">
+      <mat-chip-option color="">Unvisited</mat-chip-option>
+      <mat-chip-option color="primary" leadingIcon="flag"
+        >Visited</mat-chip-option
+      >
+    </mat-chip-listbox>
+    }
+  </div>
+</div>
+
+<mat-drawer-container style="height: calc(100% - 88px)" class="bg-transparent">
+  <mat-drawer
+    [opened]="sidenavOpen()"
+    position="start"
+    mode="side"
+    class="bg-transparent px-3"
+  >
+    <div class="info-panel py-3" style="border-radius: 16px">
+      <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
+    </div>
+  </mat-drawer>
+
+  <div
+    class="overflow-hidden position-relative h-100"
+    [style]="sidenavOpen() ? 'border-radius: 16px 0px 0px 0px' : ''"
+  >
+    <ng-container *ngTemplateOutlet="mapContent"></ng-container>
+  </div>
   <!-- <mat-menu #searchUserMatMenu="matMenu">
     <app-user-menu-content></app-user-menu-content>
   </mat-menu> -->
+
+  <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">
+    <button
+      mat-icon-button
+      (click)="toggleSidenav()"
+      class="d-flex border justify-content-center align-items-center p-0"
+      style="
+        background-color: var(--mat-bottom-sheet-container-background-color);
+        border-color: var(
+          --mat-icon-button-icon-color,
+          var(--mat-sys-on-surface-variant)
+        ) !important;
+        border-width: 0.8px !important;
+      "
+    >
+      @if(sidenavOpen()) {
+      <mat-icon>chevron_left</mat-icon>
+      } @else {
+      <mat-icon>chevron_right</mat-icon>}
+    </button>
+  </div>
+</mat-drawer-container>
+} @else {
+<div class="position-relative flex-grow-1">
+  <ng-container
+    *ngTemplateOutlet="mapContent"
+    class="position-absolute flex-grow-1"
+  ></ng-container>
+
+  <div class="d-flex flex-row gap-3 position-absolute top-0 start-0 end-0 p-2">
+    @if(alainMode && isHandset()) {
+    <div class="spacer" style="width: 56px"></div>
+    }
+    <app-search-field
+      class="w-100 mat-elevation-z3 overflow-hidden"
+      style="border-radius: 16px"
+      (spotSelected)="openSpotOrGooglePlace($event)"
+    ></app-search-field>
+  </div>
+
+  <app-bottom-sheet
+    class="d-flex h-100"
+    @fadeInOut
+    (isAtTopChange)="bottomSheetOpen.set($event)"
+    (openProgressChange)="bottomSheetProgress.set($event)"
+  >
+    <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
+  </app-bottom-sheet>
 </div>
+
+}

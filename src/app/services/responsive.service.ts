@@ -63,6 +63,11 @@ export class ResponsiveService {
    */
   readonly isNotTablet = computed(() => !this.isTablet());
 
+  /**
+   * True if screen is NOT desktop (mobile or tablet)
+   */
+  readonly isNotDesktop = computed(() => !this.isDesktop());
+
   constructor() {
     this.setupBreakpointListener();
   }

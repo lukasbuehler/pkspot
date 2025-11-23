@@ -1,22 +1,13 @@
-::ng-deep app-map-page,
-div.map-container {
+:host {
   height: 100%;
   position: relative;
+  display: block;
 }
 
 app-spot-map {
-  display: block;
-  @media (min-width: 960px) {
-    // desktop (large screen)
-    width: calc(100% + 400px);
-    height: 100%;
-  }
-  @media (max-width: 959.98px) {
-    // mobile
-    margin-top: -100px;
-    width: 100%;
-    height: calc(100% + 100px);
-  }
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 .map-container {
@@ -65,6 +56,10 @@ app-spot-map {
   top: 20px;
 }
 
+::ng-deep .mat-drawer-inner-container {
+  overflow-x: hidden !important;
+}
+
 #saveBoundsEditFab,
 #createSpotSpeedDial {
   position: absolute;
@@ -105,78 +100,6 @@ mat-card {
   }
 }
 
-#map {
-  height: 100%;
-  width: 100%;
-}
-
-div.search-group {
-  pointer-events: none;
-  position: absolute;
-  top: 0px;
-  z-index: 2;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  left: 0px;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
-  overflow: hidden;
-  // padding-bottom: 20px; // to not hide the Google logo of Google Maps
-
-  @media (max-width: 959.98px) {
-    // small screen
-    width: 100%;
-    top: 0px;
-  }
-  @media (min-width: 960px) {
-    background: transparent;
-    width: 420px;
-  }
-  @media (min-width: 1200px) {
-    width: 500px;
-  }
-  @media (min-width: 1400px) {
-    width: 600px;
-  }
-
-  app-search-field,
-  mat-form-field,
-  app-bottom-sheet {
-    overflow-y: auto;
-    overflow-x: hidden;
-    pointer-events: all;
-    border-radius: 16px;
-    width: 100%;
-    margin-bottom: 10px;
-
-    ::ng-deep mat-card {
-      border-radius: 28px;
-    }
-
-    transition: height 0.3s ease-in-out;
-  }
-}
-
-app-primary-info-panel {
-  margin-left: -10px;
-  margin-right: -10px;
-  width: calc(100% + 20px) !important;
-}
-
-.profile-icon-button {
-  padding: 0px;
-  margin-right: 5px;
-  overflow: clip;
-  border-radius: 50%;
-
-  img {
-    width: 100%;
-    height: 100%;
-  }
-}
-
 ::ng-deep .mat-mdc-form-field-icon-suffix {
   display: flex;
   flex-direction: row;
@@ -205,22 +128,22 @@ app-primary-info-panel {
   }
 }
 
-mat-chip-listbox.search-option-chips {
-  position: absolute;
-  @media (max-width: 959.98px) {
-    // mobile
-    top: 75px;
-    left: 20px;
-  }
-  @media (min-width: 960px) {
-    // desktop (large screen)
-    left: 420px;
-    top: 10px;
-  }
-  @media (min-width: 1200px) {
-    left: 500px;
-  }
-  @media (min-width: 1400px) {
-    left: 600px;
-  }
-}
+// mat-chip-listbox.search-option-chips {
+//   position: absolute;
+//   @media (max-width: 959.98px) {
+//     // mobile
+//     top: 75px;
+//     left: 20px;
+//   }
+//   @media (min-width: 960px) {
+//     // desktop (large screen)
+//     left: 420px;
+//     top: 10px;
+//   }
+//   @media (min-width: 1200px) {
+//     left: 500px;
+//   }
+//   @media (min-width: 1400px) {
+//     left: 600px;
+//   }
+// }

@@ -9,10 +9,11 @@ import {
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { CommonModule } from "@angular/common";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
+import { MatSidenavModule } from "@angular/material/sidenav";
 
 @Component({
   selector: "app-primary-info-panel",
-  imports: [CommonModule, BottomSheetComponent],
+  imports: [CommonModule, BottomSheetComponent, MatSidenavModule],
   templateUrl: "./primary-info-panel.component.html",
   styleUrls: ["./primary-info-panel.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
