@@ -8,7 +8,7 @@
 import * as admin from "firebase-admin";
 import * as fs from "fs";
 import * as path from "path";
-import { SpotSchema } from "../../src/db/schemas/SpotSchema";
+import { SpotSchema, SpotId } from "../../src/db/schemas/SpotSchema";
 import { MediaSchema } from "../../src/db/schemas/Media";
 import {
   HoriznSpotData,
@@ -18,9 +18,9 @@ import {
   SpotIdMappingEntry,
   SpotIdMappingFile,
 } from "./types";
-import { transformHoriznSpot, getHoriznImages } from "./spotTransformer";
-import { uploadSpotImages } from "./storageUploader";
+import { transformHoriznSpot } from "./spotTransformer";
 import { checkForDuplicate } from "./duplicateChecker";
+import { SpotServiceAdapter } from "./spotService";
 
 /**
  * Imports a single Horizn spot to Firestore
@@ -33,7 +33,7 @@ import { checkForDuplicate } from "./duplicateChecker";
  * 5. Write to Firestore (or skip if dry run)
  *
  * @param horiznSpot - Raw Horizn spot data
- * @param db - Firestore instance
+ * @param spotService - Strongly-typed spot service
  * @param bucket - Storage bucket
  * @param config - Import configuration
  * @returns ImportResult with success/failure details
@@ -41,22 +41,18 @@ import { checkForDuplicate } from "./duplicateChecker";
 async function importSingleSpot(
   spotIndex: number,
   horiznSpot: HoriznSpotData,
-  db: admin.firestore.Firestore,
-  bucket: any, // Firebase Storage Bucket type
+  spotService: SpotServiceAdapter,
   config: ImportConfig
 ): Promise<ImportResult> {
   const spotName = horiznSpot.name || "Unknown";
-  const shouldUploadImages = config.uploadImages !== false;
-  const imageFiles = getHoriznImages(horiznSpot);
 
   try {
     // Check for duplicate spots
     const duplicateCheck = await checkForDuplicate(
-      db,
+      spotService,
       spotName,
       horiznSpot.latitude,
-      horiznSpot.longitude,
-      config.collectionName
+      horiznSpot.longitude
     );
 
     if (duplicateCheck.isDuplicate) {
@@ -67,68 +63,33 @@ async function importSingleSpot(
         skipReason: `Duplicate found (ID: ${duplicateCheck.duplicateId}, ${duplicateCheck.distance}m away)`,
         duplicateId: duplicateCheck.duplicateId,
         spotIndex,
-        imageFiles,
       };
     }
 
     // Transform to SpotSchema format
     const spotDoc = transformHoriznSpot(horiznSpot, config);
 
-    let mediaSchemas: MediaSchema[] = [];
-
-    if (shouldUploadImages && imageFiles.length > 0) {
-      mediaSchemas = await uploadSpotImages(
-        imageFiles,
-        config.imagesFolderPath,
-        bucket,
-        config.storageBucketFolder,
-        config.importerUserId
-      );
-    } else if (!shouldUploadImages && imageFiles.length > 0) {
-      console.log("  ↷ Image upload skipped (spots-only mode)");
-    }
-
-    // Create complete spot document
-    const completeSpotDoc: SpotSchema = {
-      ...spotDoc,
-      media:
-        shouldUploadImages && mediaSchemas.length > 0
-          ? mediaSchemas
-          : undefined,
-    };
+    // Create spot document with empty media array (copyright issue - no media import)
+    const completeSpotDoc: SpotSchema = { ...spotDoc, media: [] };
 
     // Write to Firestore (unless dry run)
     if (config.dryRun) {
-      console.log(
-        `  ✓ [DRY RUN] Would create spot with ${
-          shouldUploadImages ? mediaSchemas.length : 0
-        } images`
-      );
+      console.log(`  ✓ [DRY RUN] Would create spot`);
       return {
         success: true,
         spotName,
-        imagesUploaded: shouldUploadImages ? mediaSchemas.length : 0,
         spotIndex,
-        imageFiles,
       };
     }
 
-    const docRef = await db
-      .collection(config.collectionName)
-      .add(completeSpotDoc);
-    console.log(
-      `  ✓ Created spot ID: ${docRef.id} with ${
-        shouldUploadImages ? mediaSchemas.length : 0
-      } images`
-    );
+    const spotId = await spotService.addSpot(completeSpotDoc);
+    console.log(`  ✓ Created spot ID: ${spotId}`);
 
     return {
       success: true,
       spotName,
-      spotId: docRef.id,
-      imagesUploaded: shouldUploadImages ? mediaSchemas.length : 0,
+      spotId: spotId as string,
       spotIndex,
-      imageFiles,
     };
   } catch (error: any) {
     console.error(`  ✗ Error: ${error.message}`);
@@ -137,7 +98,6 @@ async function importSingleSpot(
       spotName,
       error: error.message,
       spotIndex,
-      imageFiles,
     };
   }
 }
@@ -171,21 +131,14 @@ function writeSpotIdMapping(
       status,
       skipReason: result?.skipReason,
       error: result?.error,
-      imageFiles: result?.imageFiles || getHoriznImages(spot),
-      imagesUploaded: result?.imagesUploaded,
     };
   });
 
   const mapping: SpotIdMappingFile = {
     generatedAt: new Date().toISOString(),
     dryRun: Boolean(config.dryRun),
-    uploadImages: config.uploadImages !== false,
     entries: mappingEntries,
   };
-
-  if (config.uploadImages !== false) {
-    mapping.lastUploadRunAt = new Date().toISOString();
-  }
 
   fs.mkdirSync(path.dirname(config.spotIdMapPath), { recursive: true });
   fs.writeFileSync(
@@ -201,7 +154,7 @@ function writeSpotIdMapping(
  *
  * @param spots - Array of Horizn spots to process
  * @param startIdx - Starting index in the array
- * @param db - Firestore instance
+ * @param spotService - Strongly-typed spot service
  * @param bucket - Storage bucket
  * @param config - Import configuration
  * @returns Array of ImportResult objects
@@ -209,8 +162,7 @@ function writeSpotIdMapping(
 async function processBatch(
   spots: HoriznSpotData[],
   startIdx: number,
-  db: admin.firestore.Firestore,
-  bucket: any, // Firebase Storage Bucket type
+  spotService: SpotServiceAdapter,
   config: ImportConfig
 ): Promise<ImportResult[]> {
   const batch = spots.slice(startIdx, startIdx + config.batchSize);
@@ -227,7 +179,7 @@ async function processBatch(
   const promises = batch.map(async (spot, idx) => {
     const spotNum = startIdx + idx + 1;
     console.log(`\n[${spotNum}/${totalSpots}] ${spot.name}`);
-    return importSingleSpot(startIdx + idx, spot, db, bucket, config);
+    return importSingleSpot(startIdx + idx, spot, spotService, config);
   });
 
   return Promise.all(promises);
@@ -264,13 +216,6 @@ export async function runImport(config: ImportConfig): Promise<void> {
     throw new Error(`JSON file not found: ${config.jsonFilePath}`);
   }
 
-  if (
-    config.uploadImages !== false &&
-    (!config.imagesFolderPath || !fs.existsSync(config.imagesFolderPath))
-  ) {
-    throw new Error(`Images folder not found: ${config.imagesFolderPath}`);
-  }
-
   if (!config.storageBucket || config.storageBucket.includes("YOUR-PROJECT")) {
     throw new Error("Please configure storageBucket in the config!");
   }
@@ -289,11 +234,10 @@ export async function runImport(config: ImportConfig): Promise<void> {
 
   const db = admin.firestore();
   const bucket = admin.storage().bucket();
+  const spotService = new SpotServiceAdapter(db, config.collectionName);
 
   console.log("✓ Firebase Admin initialized");
   console.log(`✓ Collection: ${config.collectionName}`);
-  console.log(`✓ Storage folder: ${config.storageBucketFolder}`);
-  console.log(`✓ Importer user ID: ${config.importerUserId}`);
   if (config.dryRun) {
     console.log("⚠️  DRY RUN MODE - No data will be written!");
   }
@@ -301,9 +245,6 @@ export async function runImport(config: ImportConfig): Promise<void> {
     console.log(
       `⚠️  Testing mode: Only importing first ${config.maxSpots} spots`
     );
-  }
-  if (config.uploadImages === false) {
-    console.log("⚠️  Spots-only mode: Uploading of images is disabled");
   }
   console.log("");
 
@@ -326,8 +267,7 @@ export async function runImport(config: ImportConfig): Promise<void> {
     const batchResults = await processBatch(
       spotsToImport,
       i,
-      db,
-      bucket,
+      spotService,
       config
     );
     results.push(...batchResults);
@@ -346,10 +286,6 @@ export async function runImport(config: ImportConfig): Promise<void> {
   const successful = results.filter((r) => r.success && !r.skipped);
   const skipped = results.filter((r) => r.skipped);
   const failed = results.filter((r) => !r.success);
-  const totalImages = successful.reduce(
-    (sum, r) => sum + (r.imagesUploaded || 0),
-    0
-  );
 
   console.log(`✓ Successfully imported: ${successful.length} spots`);
   console.log(`↷ Skipped (duplicates): ${skipped.length} spots`);
@@ -365,12 +301,6 @@ export async function runImport(config: ImportConfig): Promise<void> {
     failed.forEach((r) => {
       console.log(`   - ${r.spotName}: ${r.error}`);
     });
-  }
-
-  if (config.uploadImages === false) {
-    console.log("📸 Total images uploaded: 0 (skipped in spots-only mode)");
-  } else {
-    console.log(`📸 Total images uploaded: ${totalImages}`);
   }
 
   console.log("\n✨ Import complete!");

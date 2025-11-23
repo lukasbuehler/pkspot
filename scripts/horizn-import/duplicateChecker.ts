@@ -6,7 +6,8 @@
  */
 
 import * as admin from "firebase-admin";
-import { SpotSchema } from "../../src/db/schemas/SpotSchema";
+import { SpotSchema, SpotId } from "../../src/db/schemas/SpotSchema";
+import { SpotServiceAdapter } from "./spotService";
 
 // Distance threshold in meters for considering spots as duplicates
 const DUPLICATE_DISTANCE_THRESHOLD = 50; // 50 meters
@@ -44,8 +45,33 @@ function calculateDistance(
  * Normalizes a string for comparison
  * Converts to lowercase and removes special characters
  */
-function normalizeString(str: string): string {
-  return str
+function normalizeString(str: string | Record<string, any> | any): string {
+  let textValue = "";
+
+  // Handle LocaleMap objects: { en: { text: "Name", provider: "...", timestamp: ... } }
+  if (typeof str === "object" && str !== null) {
+    // Get the first available locale value
+    const firstLocale = Object.values(str)[0];
+    if (
+      firstLocale &&
+      typeof firstLocale === "object" &&
+      "text" in firstLocale
+    ) {
+      textValue = (firstLocale as any).text;
+    } else if (typeof firstLocale === "string") {
+      // Handle legacy format: { en: "Name" }
+      textValue = firstLocale;
+    }
+  } else if (typeof str === "string") {
+    textValue = str;
+  }
+
+  // Ensure we have a string
+  if (typeof textValue !== "string" || !textValue) {
+    return "";
+  }
+
+  return textValue
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]/g, "");
@@ -61,41 +87,32 @@ function normalizeString(str: string): string {
  *    b. If within 50m threshold, check name similarity
  *    c. If names are similar, consider it a duplicate
  *
- * @param db - Firestore database instance
+ * @param spotService - Strongly-typed spot service adapter
  * @param spotName - Name of the spot to check
  * @param latitude - Latitude of the spot
  * @param longitude - Longitude of the spot
- * @param collectionName - Firestore collection name
  * @returns Object with isDuplicate flag and duplicate spot ID if found
  */
 export async function checkForDuplicate(
-  db: admin.firestore.Firestore,
+  spotService: SpotServiceAdapter,
   spotName: string,
   latitude: number,
-  longitude: number,
-  collectionName: string
-): Promise<{ isDuplicate: boolean; duplicateId?: string; distance?: number }> {
+  longitude: number
+): Promise<{ isDuplicate: boolean; duplicateId?: SpotId; distance?: number }> {
   // Query spots in the general area (rough filter)
   const latRange = 0.01; // ~1.1km at equator
   const lngRange = 0.01;
 
-  const nearbySpots = await db
-    .collection(collectionName)
-    .where(
-      "location",
-      ">=",
-      new admin.firestore.GeoPoint(latitude - latRange, longitude - lngRange)
-    )
-    .where(
-      "location",
-      "<=",
-      new admin.firestore.GeoPoint(latitude + latRange, longitude + lngRange)
-    )
-    .get();
+  const nearbySpots = await spotService.getSpotsInBounds(
+    latitude - latRange,
+    latitude + latRange,
+    longitude - lngRange,
+    longitude + lngRange
+  );
 
   // Check each nearby spot for exact distance match
-  for (const doc of nearbySpots.docs) {
-    const spotData = doc.data() as SpotSchema;
+  for (const spot of nearbySpots) {
+    const spotData = spot.data;
     const existingLat = spotData.location.latitude;
     const existingLng = spotData.location.longitude;
 
@@ -106,29 +123,14 @@ export async function checkForDuplicate(
       existingLng
     );
 
-    // If within distance threshold, check name similarity
+    // If within distance threshold, it's a duplicate
+    // Physical location is the primary identifier for spots
     if (distance < DUPLICATE_DISTANCE_THRESHOLD) {
-      // Get name in any locale
-      const existingName =
-        typeof spotData.name === "object"
-          ? Object.values(spotData.name)[0]
-          : spotData.name;
-
-      const normalizedExisting = normalizeString(existingName);
-      const normalizedNew = normalizeString(spotName);
-
-      // Check if names are very similar (allow minor differences)
-      if (
-        normalizedExisting === normalizedNew ||
-        normalizedExisting.includes(normalizedNew) ||
-        normalizedNew.includes(normalizedExisting)
-      ) {
-        return {
-          isDuplicate: true,
-          duplicateId: doc.id,
-          distance: Math.round(distance),
-        };
-      }
+      return {
+        isDuplicate: true,
+        duplicateId: spot.id,
+        distance: Math.round(distance),
+      };
     }
   }
 

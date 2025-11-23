@@ -85,7 +85,14 @@ function buildDescription(
     return undefined;
   }
 
-  return { [defaultLocale]: fullDescription };
+  // LocaleMap format: { [locale]: { text: string, provider: string, timestamp?: Date } }
+  return {
+    [defaultLocale]: {
+      text: fullDescription,
+      provider: "horizn-import",
+      timestamp: new Date(),
+    },
+  };
 }
 
 /**
@@ -135,17 +142,28 @@ export function transformHoriznSpot(
     throw new Error("Missing required fields: name, latitude, or longitude");
   }
 
+  // Use default locale (English) for all imports
+  const locale = config.defaultLocale;
+
   // Build the base spot document with required fields
+  // LocaleMap format: { [locale]: { text: string, provider: string, timestamp?: Date } }
   const spotDoc: any = {
-    name: { [config.defaultLocale]: name },
+    name: {
+      [locale]: {
+        text: name,
+        provider: "horizn-import",
+        timestamp: new Date(),
+      },
+    },
     location: new GeoPoint(latitude, longitude),
     tile_coordinates: calculateTileCoordinates(latitude, longitude),
     time_created: Timestamp.now(),
     time_updated: Timestamp.now(),
+    source: "horizn-app", // Mark this spot as imported from Horizn
   };
 
-  // Add optional description
-  const description = buildDescription(horiznSpot, config.defaultLocale);
+  // Add optional description (using detected locale)
+  const description = buildDescription(horiznSpot, locale);
   if (description) {
     spotDoc.description = description;
   }
@@ -177,19 +195,4 @@ export function transformHoriznSpot(
   }
 
   return spotDoc;
-}
-
-/**
- * Extracts image filenames from Horizn spot data
- * Removes the 'spots_pics/' prefix to get just the filename
- *
- * @param horiznSpot - Horizn spot data
- * @returns Array of image filenames
- */
-export function getHoriznImages(horiznSpot: HoriznSpotData): string[] {
-  if (!horiznSpot.pictures || !Array.isArray(horiznSpot.pictures)) {
-    return [];
-  }
-
-  return horiznSpot.pictures.map((path) => path.replace("spots_pics/", ""));
 }

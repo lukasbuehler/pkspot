@@ -5,12 +5,10 @@
   "main": "dist/import.js",
   "scripts": {
     "build": "tsc",
-    "validate": "npm run build && node dist/validate.js",
-    "test": "npm run build && node dist/import.js --test --spots-only",
-    "dry-run": "npm run build && node dist/import.js --dry-run",
-    "import": "npm run build && node dist/import.js",
-    "import:spots": "npm run build && node dist/import.js --spots-only",
-    "import:images": "npm run build && node dist/upload-images.js"
+    "validate": "npm run build && node dist/scripts/horizn-import/validate.js",
+    "import": "npm run build && node dist/scripts/horizn-import/interactive-import.js",
+    "import:test": "npm run build && node dist/scripts/horizn-import/interactive-import.js --test",
+    "import:dry": "npm run build && node dist/scripts/horizn-import/interactive-import.js --test --dry-run"
   },
   "dependencies": {
     "firebase-admin": "^12.0.0"
