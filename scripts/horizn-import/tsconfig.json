@@ -10,11 +10,10 @@
     "skipLibCheck": true,
     "strict": false,
     "outDir": "./dist",
-    "baseUrl": "../..",
     "declaration": false,
     "declarationMap": false,
     "sourceMap": false
   },
-  "include": ["./**/*.ts"],
-  "exclude": ["node_modules", "dist", "../../src/**/*", "../../node_modules"]
+  "include": ["./*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

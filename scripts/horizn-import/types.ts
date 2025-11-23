@@ -36,12 +36,6 @@ export interface ImportConfig {
   // Path to Horizn JSON data file
   jsonFilePath: string;
 
-  // Path to folder containing Horizn images
-  imagesFolderPath: string;
-
-  // Firebase Storage folder to upload images to
-  storageBucketFolder: string;
-
   // Firestore collection name
   collectionName: string;
 
@@ -60,9 +54,6 @@ export interface ImportConfig {
   // Dry run mode - validate without writing to database
   dryRun?: boolean;
 
-  // Whether to upload images during the import (default: true)
-  uploadImages?: boolean;
-
   // Path to write the spot ID mapping output
   spotIdMapPath?: string;
 }
@@ -73,14 +64,12 @@ export interface ImportConfig {
 export interface ImportResult {
   success: boolean;
   spotName: string;
-  spotId?: string;
+  spotId?: string; // String representation of SpotId
   error?: string;
-  imagesUploaded?: number;
   skipped?: boolean;
   skipReason?: string;
   spotIndex: number;
-  imageFiles: string[];
-  duplicateId?: string;
+  duplicateId?: string; // String representation of SpotId
 }
 
 export type ImportStatus = "success" | "skipped" | "failed";
@@ -93,14 +82,10 @@ export interface SpotIdMappingEntry {
   status: ImportStatus;
   skipReason?: string;
   error?: string;
-  imageFiles: string[];
-  imagesUploaded?: number;
 }
 
 export interface SpotIdMappingFile {
   generatedAt: string;
   dryRun: boolean;
-  uploadImages: boolean;
-  lastUploadRunAt?: string;
   entries: SpotIdMappingEntry[];
 }
