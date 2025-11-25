@@ -32,7 +32,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { MapsApiService } from "../../services/maps-api.service";
 import { filter, Subscription } from "rxjs";
 import { animate, style, transition, trigger } from "@angular/animations";
-import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { SearchService } from "../../services/search.service";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
@@ -76,6 +76,7 @@ import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.s
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
+import { ChipSelectComponent } from "../chip-select/chip-select.component";
 
 @Component({
   selector: "app-map-page",
@@ -132,6 +133,7 @@ import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
     MatSidenavModule,
     NgTemplateOutlet,
     BottomSheetComponent,
+    ChipSelectComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -168,13 +170,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   sidenavOpen = signal<boolean>(true);
 
+  filterCtrl = new FormControl<string[]>([], { nonNullable: true });
+  selectedFilters = signal<string[]>([]);
+
   toggleSidenav() {
     this.sidenavOpen.update((open) => !open);
   }
 
   private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
-  isHandset = signal(false);
 
   spotEdits: WritableSignal<SpotEdit[]> = signal([]);
 
@@ -204,17 +208,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     this.isServer = isPlatformServer(platformId);
-
-    // Track handset layout to infer when the bottom sheet is visible
-    this.isHandset = signal(false);
-    if (typeof window !== "undefined") {
-      this.isHandset.set(window.matchMedia("(max-width: 959.98px)").matches);
-    }
-    this.breakpointObserver
-      .observe([Breakpoints.XSmall, Breakpoints.Small])
-      .subscribe((res) => {
-        this.isHandset.set(!res.matches);
-      });
 
     effect(() => {
       // Read all relevant routing state signals so URL stays in sync

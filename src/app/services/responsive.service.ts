@@ -1,5 +1,17 @@
-import { Injectable, signal, computed, effect, inject } from "@angular/core";
+import {
+  Injectable,
+  signal,
+  computed,
+  effect,
+  inject,
+  PLATFORM_ID,
+  Optional,
+  Inject,
+} from "@angular/core";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { isPlatformBrowser } from "@angular/common";
+import { REQUEST } from "../../express.token";
+import { Request } from "express";
 
 /**
  * Responsive view mode based on screen size breakpoints
@@ -25,24 +37,33 @@ export type ViewMode = "mobile" | "tablet" | "desktop";
 @Injectable({ providedIn: "root" })
 export class ResponsiveService {
   private breakpointObserver = inject(BreakpointObserver);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
+  private request = inject(REQUEST, { optional: true }) as Request | null;
+
+  /**
+   * Tracks whether breakpoints have been determined
+   * False during SSR and initial browser render until first breakpoint detection
+   */
+  readonly isInitialized = signal(!this.isBrowser); // True for SSR (we use UA), false for browser until first breakpoint
 
   /**
    * Mobile view: < 600px (xs & sm breakpoints)
    * Typical devices: phones
    */
-  readonly isMobile = signal(false);
+  readonly isMobile = signal(this.detectInitialMobile());
 
   /**
    * Tablet view: 600px - 959px (md breakpoint)
    * Typical devices: tablets, large phones
    */
-  readonly isTablet = signal(false);
+  readonly isTablet = signal(this.detectInitialTablet());
 
   /**
    * Desktop view: >= 960px (lg & xl breakpoints)
    * Typical devices: desktops, laptops
    */
-  readonly isDesktop = signal(false);
+  readonly isDesktop = signal(this.detectInitialDesktop());
 
   /**
    * Current view mode
@@ -69,7 +90,71 @@ export class ResponsiveService {
   readonly isNotDesktop = computed(() => !this.isDesktop());
 
   constructor() {
-    this.setupBreakpointListener();
+    // Only setup breakpoint listener in browser environment
+    if (this.isBrowser) {
+      this.setupBreakpointListener();
+    }
+  }
+
+  /**
+   * Detect if device is mobile from User-Agent during SSR or window size in browser
+   */
+  private detectInitialMobile(): boolean {
+    if (this.isBrowser) {
+      // In browser, detect immediately using window.innerWidth
+      if (typeof window !== 'undefined') {
+        return window.innerWidth < 600;
+      }
+      return false;
+    }
+    return this.isMobileUserAgent();
+  }
+
+  /**
+   * Detect if device is tablet from User-Agent during SSR or window size in browser
+   */
+  private detectInitialTablet(): boolean {
+    if (this.isBrowser) {
+      // In browser, detect immediately using window.innerWidth
+      if (typeof window !== 'undefined') {
+        return window.innerWidth >= 600 && window.innerWidth < 960;
+      }
+      return false;
+    }
+    return this.isTabletUserAgent();
+  }
+
+  /**
+   * Detect if device is desktop from User-Agent during SSR or window size in browser
+   */
+  private detectInitialDesktop(): boolean {
+    if (this.isBrowser) {
+      // In browser, detect immediately using window.innerWidth
+      if (typeof window !== 'undefined') {
+        return window.innerWidth >= 960;
+      }
+      return true; // Fallback to desktop if window is not available
+    }
+    // Default to desktop if not mobile or tablet
+    return !this.isMobileUserAgent() && !this.isTabletUserAgent();
+  }
+
+  /**
+   * Check if User-Agent indicates a mobile device
+   */
+  private isMobileUserAgent(): boolean {
+    if (!this.request) return false;
+    const ua = this.request.headers["user-agent"] || "";
+    return /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  }
+
+  /**
+   * Check if User-Agent indicates a tablet device
+   */
+  private isTabletUserAgent(): boolean {
+    if (!this.request) return false;
+    const ua = this.request.headers["user-agent"] || "";
+    return /iPad|Android(?!.*Mobile)/i.test(ua);
   }
 
   private setupBreakpointListener() {
@@ -93,6 +178,11 @@ export class ResponsiveService {
         this.isMobile.set(isMobile);
         this.isTablet.set(isTablet);
         this.isDesktop.set(isDesktop);
+        
+        // Mark as initialized after first emission
+        if (!this.isInitialized()) {
+          this.isInitialized.set(true);
+        }
       });
   }
 }

@@ -220,8 +220,8 @@
     </button> -->
   </div>
 
-  @if( authService.isSignedIn && !isEditing() && !(isHandset() &&
-  (bottomSheetOpen() || bottomSheetProgress() > 0)) ) {
+  @if( authService.isSignedIn && !isEditing() && !(responsiveService.isMobile()
+  && (bottomSheetOpen() || bottomSheetProgress() > 0)) ) {
   <!-- Add / import spots speed dial-->
   <!-- <app-speed-dial-fab
     #createSpotSpeedDial
@@ -257,14 +257,39 @@
   </div>
   <div class="flex-grow-1 d-flex justify-content-start align-items-center">
     <!-- Search option chips -->
-    @if(authService.isSignedIn && !isEditing()) {
     <mat-chip-listbox class="search-option-chips">
+      @if(authService.isSignedIn && !isEditing()) {
+      <mat-chip-option color="">Saved</mat-chip-option>
       <mat-chip-option color="">Unvisited</mat-chip-option>
       <mat-chip-option color="primary" leadingIcon="flag"
         >Visited</mat-chip-option
       >
+      }
     </mat-chip-listbox>
-    }
+
+    <app-chip-select
+      class="ms-2"
+      icon="tune"
+      label="Filter"
+      [options]="['parkour', 'dry', 'light', 'indoor']"
+      [optionNames]="{
+        parkour: 'For Parkour',
+        dry: 'Dry Spots',
+        light: 'Spots with Lighting',
+        indoor: 'Indoor Spots'
+      }"
+      [optionIcons]="{
+        parkour: 'run',
+        dry: 'roof',
+        light: 'lightbulb',
+        indoor: 'home'
+      }"
+      [formCtrl]="filterCtrl!"
+      [selected]="selectedFilters()"
+      (selectedChange)="selectedFilters.set($event)"
+      allLabel="All Spots"
+      i18n-allLabel="challenge type label"
+    ></app-chip-select>
   </div>
 </div>
 
@@ -273,53 +298,55 @@
     [opened]="sidenavOpen()"
     position="start"
     mode="side"
-    class="bg-transparent px-3"
+    class="bg-transparent ps-3 pb-3 me-3"
   >
-    <div class="info-panel py-3" style="border-radius: 16px">
+    <div class="info-panel py-3 h-100" style="border-radius: 16px">
       <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
     </div>
   </mat-drawer>
 
-  <div
-    class="overflow-hidden position-relative h-100"
-    [style]="sidenavOpen() ? 'border-radius: 16px 0px 0px 0px' : ''"
-  >
-    <ng-container *ngTemplateOutlet="mapContent"></ng-container>
-  </div>
-  <!-- <mat-menu #searchUserMatMenu="matMenu">
-    <app-user-menu-content></app-user-menu-content>
-  </mat-menu> -->
-
-  <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">
-    <button
-      mat-icon-button
-      (click)="toggleSidenav()"
-      class="d-flex border justify-content-center align-items-center p-0"
-      style="
-        background-color: var(--mat-bottom-sheet-container-background-color);
-        border-color: var(
-          --mat-icon-button-icon-color,
-          var(--mat-sys-on-surface-variant)
-        ) !important;
-        border-width: 0.8px !important;
-      "
+  <div class="overflow-hidden position-relative h-100 pe-3 pb-3 ms-3">
+    <div
+      style="border-radius: 16px"
+      class="position-relative overflow-hidden h-100 w-100"
     >
-      @if(sidenavOpen()) {
-      <mat-icon>chevron_left</mat-icon>
-      } @else {
-      <mat-icon>chevron_right</mat-icon>}
-    </button>
+      <ng-container *ngTemplateOutlet="mapContent"></ng-container>
+
+      <!-- sidenav toggle button -->
+      <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">
+        <button
+          mat-icon-button
+          (click)="toggleSidenav()"
+          class="d-flex border justify-content-center align-items-center p-0"
+          style="
+            background-color: var(
+              --mat-bottom-sheet-container-background-color
+            );
+            border-color: var(
+              --mat-icon-button-icon-color,
+              var(--mat-sys-on-surface-variant)
+            ) !important;
+            border-width: 0.8px !important;
+          "
+        >
+          @if(sidenavOpen()) {
+          <mat-icon>chevron_left</mat-icon>
+          } @else {
+          <mat-icon>chevron_right</mat-icon>}
+        </button>
+      </div>
+    </div>
   </div>
 </mat-drawer-container>
 } @else {
-<div class="position-relative flex-grow-1">
+<div class="position-relative flex-grow-1 h-100">
   <ng-container
     *ngTemplateOutlet="mapContent"
     class="position-absolute flex-grow-1"
   ></ng-container>
 
   <div class="d-flex flex-row gap-3 position-absolute top-0 start-0 end-0 p-2">
-    @if(alainMode && isHandset()) {
+    @if(alainMode && responsiveService.isMobile()) {
     <div class="spacer" style="width: 56px"></div>
     }
     <app-search-field
@@ -330,7 +357,8 @@
   </div>
 
   <app-bottom-sheet
-    class="d-flex h-100"
+    class="d-flex"
+    style="top: 72px; bottom: 0; position: absolute; width: 100%"
     @fadeInOut
     (isAtTopChange)="bottomSheetOpen.set($event)"
     (openProgressChange)="bottomSheetProgress.set($event)"
