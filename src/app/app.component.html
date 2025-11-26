@@ -1,9 +1,9 @@
 @if(!isEmbedded()) {
 <!-- is not embedded  -->
 <app-nav-rail-container>
-  @defer (when responsive.isInitialized()) {
-    @if(responsive.viewMode() === 'desktop') {
-    <app-nav-rail class="mat-elevation-z3">
+  @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
+  'desktop') {
+  <app-nav-rail class="mat-elevation-z3">
     <a
       routerLink="/"
       class="text-decoration-none text-center text-light text-wrap p-2 logo"
@@ -58,8 +58,7 @@
       >©2025 Lukas Bühler
     </span>
   </app-nav-rail>
-    }
-  }
+  } }
   <app-nav-rail-content class="flex-col">
     <!-- This is where the pages content gets displayed -->
     <div class="main-content flex-grow-1">
@@ -68,9 +67,9 @@
 
     @if(!alainMode) {
     <!-- Bottom navigation bar -->
-    @defer (when responsive.isInitialized()) {
-      @if(responsive.viewMode() === 'mobile' || responsive.viewMode() === 'tablet') {
-      <mat-toolbar class="mat-elevation-z1">
+    @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
+    'mobile' || responsive.viewMode() === 'tablet') {
+    <mat-toolbar class="mat-elevation-z1">
       @for (button of navbarConfig(); track button) { @if(button.link) {
       <a [routerLink]="button.link" tabindex="-1">
         <app-mat3-nav-button
@@ -93,9 +92,7 @@
       ></app-mat3-nav-button>
       } }
     </mat-toolbar>
-      }
-    }
-    } @else {
+    } } } @else {
     <!-- Menu button -->
     <button
       mat-fab
@@ -143,9 +140,10 @@
 
     <!-- Terms and Privacy -->
 
-    @defer (when responsive.isInitialized()) {
-      @if((!policyAccepted || !userId) && (responsive.viewMode() === 'mobile' || responsive.viewMode() === 'tablet')) {
-      <div
+    @defer (when responsive.isInitialized()) { @if((!policyAccepted || !userId)
+    && (responsive.viewMode() === 'mobile' || responsive.viewMode() ===
+    'tablet')) {
+    <div
       class="mat-body-small justify-content-around align-items-center flex-row mb-0 py-1 gap-3 px-3"
       style="
         background-color: #1f1f23;
@@ -160,8 +158,7 @@
       <a routerLink="/about" i18n="@@about_page_label">About</a>
       <span>©2025 Lukas Bühler</span>
     </div>
-      }
-    }
+    } }
   </app-nav-rail-content>
 </app-nav-rail-container>
 

@@ -102,7 +102,7 @@ export class ResponsiveService {
   private detectInitialMobile(): boolean {
     if (this.isBrowser) {
       // In browser, detect immediately using window.innerWidth
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         return window.innerWidth < 600;
       }
       return false;
@@ -116,7 +116,7 @@ export class ResponsiveService {
   private detectInitialTablet(): boolean {
     if (this.isBrowser) {
       // In browser, detect immediately using window.innerWidth
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         return window.innerWidth >= 600 && window.innerWidth < 960;
       }
       return false;
@@ -130,7 +130,7 @@ export class ResponsiveService {
   private detectInitialDesktop(): boolean {
     if (this.isBrowser) {
       // In browser, detect immediately using window.innerWidth
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         return window.innerWidth >= 960;
       }
       return true; // Fallback to desktop if window is not available
@@ -178,7 +178,7 @@ export class ResponsiveService {
         this.isMobile.set(isMobile);
         this.isTablet.set(isTablet);
         this.isDesktop.set(isDesktop);
-        
+
         // Mark as initialized after first emission
         if (!this.isInitialized()) {
           this.isInitialized.set(true);
