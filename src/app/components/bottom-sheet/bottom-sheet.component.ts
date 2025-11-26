@@ -3,7 +3,6 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Input,
   OnDestroy,
   Output,
   Renderer2,
@@ -19,12 +18,14 @@ import {
   standalone: true,
 })
 export class BottomSheetComponent implements AfterViewInit, OnDestroy {
-  @Input() title = "";
   @Output() isAtTopChange = new EventEmitter<boolean>();
   @Output() openProgressChange = new EventEmitter<number>(); // 0 = bottom (closed), 1 = top (open)
 
   headerHeight = 140;
   minimumSpeedToSlide = 5;
+
+  private readonly animationDurationMs = 500;
+  private readonly minDragDistance = 10;
 
   isContentAtTop = signal<boolean>(false);
 
@@ -42,10 +43,92 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private contentElement?: HTMLElement;
   private destroyListeners: (() => void)[] = [];
   private activePointerId: number | null = null;
+  private activeTouchId: number | null = null;
   private lastEmittedProgress = Number.NaN;
   private lastIsAtTop: boolean | null = null;
   private readonly dragExcludeSelector =
     "input, select, textarea, [contenteditable='true'], [data-drag-exclude], [data-sheet-drag='false']";
+
+  // ─── Shared drag helpers ───────────────────────────────────────────
+
+  private getAlwaysVisible(sheetEl: HTMLElement): number {
+    return Math.max(sheetEl.clientHeight - this.headerHeight, 0);
+  }
+
+  private checkScrollableUp(
+    target: HTMLElement | null,
+    sheetEl: HTMLElement
+  ): boolean {
+    if (sheetEl.offsetTop !== 0) return false;
+    let el = target;
+    while (el) {
+      if (el === sheetEl) break;
+      if (
+        el.clientHeight !== 0 &&
+        el.scrollHeight > el.clientHeight + 2 &&
+        el.scrollTop !== 0
+      ) {
+        return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
+
+  private calculateTargetOffset(
+    speed: number,
+    currentOffset: number,
+    alwaysVisible: number
+  ): { targetOffset: number; overflowY: "scroll" | "hidden" } {
+    const middlePoint = alwaysVisible / 2;
+
+    if (Math.abs(speed) > this.minimumSpeedToSlide) {
+      // Flick gesture - use speed direction
+      return speed > 0
+        ? { targetOffset: alwaysVisible, overflowY: "hidden" }
+        : { targetOffset: 0, overflowY: "scroll" };
+    } else {
+      // Slow drag - snap to nearest
+      return currentOffset > middlePoint
+        ? { targetOffset: alwaysVisible, overflowY: "hidden" }
+        : { targetOffset: 0, overflowY: "scroll" };
+    }
+  }
+
+  private animateToPosition(
+    sheetEl: HTMLElement,
+    fromOffset: number,
+    targetOffset: number,
+    alwaysVisible: number
+  ): void {
+    const distance = targetOffset - fromOffset;
+    let start = 0;
+
+    const step = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const timeProgress = timestamp - start;
+
+      const current = this.easeOutCubic(
+        timeProgress,
+        fromOffset,
+        distance,
+        this.animationDurationMs
+      );
+
+      sheetEl.style.top = `${current}px`;
+      this.emitSheetState(current, alwaysVisible);
+
+      if (timeProgress < this.animationDurationMs) {
+        window.requestAnimationFrame(step);
+      } else {
+        sheetEl.style.top = `${targetOffset}px`;
+        this.emitSheetState(targetOffset, alwaysVisible);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }
+
+  // ─── Lifecycle ─────────────────────────────────────────────────────
 
   ngAfterViewInit(): void {
     const sheetEl = this.bottomSheet?.nativeElement;
@@ -91,70 +174,39 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
       let lastY = event.pageY;
       let speed = 0;
-      const animationDurationMs = 500;
-      const alwaysVisible = Math.max(
-        sheetEl.clientHeight - this.headerHeight,
-        0
-      );
-      const topHeightOffset = 0;
-      const bottomHeightOffset = alwaysVisible;
+      const alwaysVisible = this.getAlwaysVisible(sheetEl);
       let hasPointerCapture = false;
+      const isScrollableUp = this.checkScrollableUp(
+        event.target as HTMLElement,
+        sheetEl
+      );
 
-      let isScrollableUp = false;
-      let target: HTMLElement | null = event.target as HTMLElement | null;
-
-      const isAtTop = sheetEl.offsetTop === 0;
-      if (isAtTop) {
-        while (target) {
-          if (target === sheetEl) break;
-          if (
-            target.clientHeight !== 0 &&
-            target.scrollHeight > target.clientHeight + 2
-          ) {
-            if (target.scrollTop !== 0) {
-              isScrollableUp = true;
-              break;
-            }
-          }
-          target = target.parentElement;
-        }
-      }
-
-      const clientY = event.clientY;
-      const shiftY = clientY - sheetEl.offsetTop;
-      const initialY = clientY;
+      const shiftY = event.clientY - sheetEl.offsetTop;
+      const initialY = event.clientY;
       let hasDragged = false;
-      const minDragDistance = 10;
 
       const moveAt = (moveEvent: PointerEvent) => {
-        if (moveEvent.pointerId !== this.activePointerId) {
-          return;
-        }
+        if (moveEvent.pointerId !== this.activePointerId) return;
 
         const pageY = moveEvent.pageY;
 
         if (!hasDragged) {
-          const distance = Math.abs(pageY - initialY);
-          if (distance <= minDragDistance) {
-            return;
-          }
+          if (Math.abs(pageY - initialY) <= this.minDragDistance) return;
 
           hasDragged = true;
-
           if (!hasPointerCapture) {
             try {
               sheetEl.setPointerCapture(this.activePointerId!);
               hasPointerCapture = true;
             } catch {
-              // ignore
+              /* ignore */
             }
           }
         }
 
         moveEvent.preventDefault();
 
-        const isScrollingUp = pageY - shiftY >= 0;
-        if (isScrollingUp && isScrollableUp) {
+        if (pageY - shiftY >= 0 && isScrollableUp) {
           this.contentElement!.style.overflowY = "scroll";
           return;
         }
@@ -162,24 +214,15 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         speed = pageY - lastY;
         lastY = pageY;
 
-        let newTop = pageY - shiftY;
-        if (newTop < 0) newTop = 0;
-        if (newTop > alwaysVisible) newTop = alwaysVisible;
-
-        if (newTop === 0) {
-          this.contentElement!.style.overflowY = "scroll";
-        } else {
-          this.contentElement!.style.overflowY = "hidden";
-        }
-
+        let newTop = Math.max(0, Math.min(pageY - shiftY, alwaysVisible));
+        this.contentElement!.style.overflowY =
+          newTop === 0 ? "scroll" : "hidden";
         sheetEl.style.top = `${newTop}px`;
         this.emitSheetState(newTop, alwaysVisible);
       };
 
       const stopDrag = (stopEvent: PointerEvent) => {
-        if (stopEvent.pointerId !== this.activePointerId) {
-          return;
-        }
+        if (stopEvent.pointerId !== this.activePointerId) return;
 
         removePointerMove();
         removePointerUp();
@@ -189,64 +232,23 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           try {
             sheetEl.releasePointerCapture(this.activePointerId);
           } catch {
-            // ignore failures
+            /* ignore */
           }
         }
-
-        const offset = sheetEl.offsetTop;
-        const middlePoint = (bottomHeightOffset - topHeightOffset) / 2;
 
         if (!hasDragged) {
           this.activePointerId = null;
           return;
         }
 
-        let targetOffset = bottomHeightOffset;
-
-        if (Math.abs(speed) > this.minimumSpeedToSlide) {
-          if (speed > 0) {
-            targetOffset = bottomHeightOffset;
-            this.contentElement!.style.overflowY = "hidden";
-          } else {
-            targetOffset = topHeightOffset;
-            this.contentElement!.style.overflowY = "scroll";
-          }
-        } else {
-          if (offset > middlePoint) {
-            targetOffset = bottomHeightOffset;
-            this.contentElement!.style.overflowY = "hidden";
-          } else {
-            targetOffset = topHeightOffset;
-            this.contentElement!.style.overflowY = "scroll";
-          }
-        }
-
-        const distance = targetOffset - offset;
-
-        let start = 0;
-        const step = (timestamp: number) => {
-          if (!start) start = timestamp;
-          const timeProgress = timestamp - start;
-
-          const current = this.easeOutCubic(
-            timeProgress,
-            offset,
-            distance,
-            animationDurationMs
-          );
-
-          sheetEl.style.top = `${current}px`;
-          this.emitSheetState(current, alwaysVisible);
-
-          if (timeProgress < animationDurationMs) {
-            window.requestAnimationFrame(step);
-          } else {
-            sheetEl.style.top = `${targetOffset}px`;
-            this.emitSheetState(targetOffset, alwaysVisible);
-          }
-        };
-        window.requestAnimationFrame(step);
-
+        const offset = sheetEl.offsetTop;
+        const { targetOffset, overflowY } = this.calculateTargetOffset(
+          speed,
+          offset,
+          alwaysVisible
+        );
+        this.contentElement!.style.overflowY = overflowY;
+        this.animateToPosition(sheetEl, offset, targetOffset, alwaysVisible);
         this.activePointerId = null;
       };
 
@@ -268,6 +270,10 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     };
 
     const handlePointerDown = (event: PointerEvent) => {
+      // Skip touch - handled separately with native touch events for smooth dragging
+      if (event.pointerType === "touch") {
+        return;
+      }
       if (!this.shouldStartDrag(event, sheetEl)) {
         return;
       }
@@ -288,6 +294,178 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         }
       );
     }
+
+    // Touch events - use native events with {passive: false} to enable preventDefault
+    this.setupTouchHandling(sheetEl);
+  }
+
+  private setupTouchHandling(sheetEl: HTMLElement): void {
+    let lastY = 0;
+    let speed = 0;
+    let shiftY = 0;
+    let initialY = 0;
+    let hasDragged = false;
+    let isScrollableUp = false;
+    let alwaysVisible = 0;
+    let removeTouchMove: (() => void) | null = null;
+    let removeTouchEnd: (() => void) | null = null;
+    let removeTouchCancel: (() => void) | null = null;
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (this.activeTouchId !== null) return;
+      if (!this.contentElement) return;
+
+      const touch = event.touches[0];
+      if (!touch) return;
+
+      const target = event.target as HTMLElement | null;
+      if (target && this.isDragExcludedTarget(target)) return;
+      if (target && !sheetEl.contains(target)) return;
+
+      this.activeTouchId = touch.identifier;
+      lastY = touch.pageY;
+      initialY = touch.clientY;
+      shiftY = touch.clientY - sheetEl.offsetTop;
+      hasDragged = false;
+      speed = 0;
+      alwaysVisible = this.getAlwaysVisible(sheetEl);
+      isScrollableUp = this.checkScrollableUp(target, sheetEl);
+
+      removeTouchMove = this.addTouchListener(
+        sheetEl,
+        "touchmove",
+        handleTouchMove,
+        { passive: false }
+      );
+      removeTouchEnd = this.addTouchListener(
+        sheetEl,
+        "touchend",
+        handleTouchEnd,
+        { passive: true }
+      );
+      removeTouchCancel = this.addTouchListener(
+        sheetEl,
+        "touchcancel",
+        handleTouchEnd,
+        { passive: true }
+      );
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const touch = this.findTouch(event.changedTouches, this.activeTouchId);
+      if (!touch) return;
+
+      const pageY = touch.pageY;
+
+      if (!hasDragged) {
+        if (Math.abs(pageY - initialY) <= this.minDragDistance) return;
+
+        // If sheet is at top and content can scroll up, allow native scroll
+        if (sheetEl.offsetTop === 0 && isScrollableUp && pageY > initialY) {
+          this.cleanupTouchListeners(
+            removeTouchMove,
+            removeTouchEnd,
+            removeTouchCancel
+          );
+          this.activeTouchId = null;
+          return;
+        }
+
+        hasDragged = true;
+      }
+
+      event.preventDefault();
+
+      if (pageY - shiftY >= 0 && isScrollableUp) {
+        this.contentElement!.style.overflowY = "scroll";
+        return;
+      }
+
+      speed = pageY - lastY;
+      lastY = pageY;
+
+      let newTop = Math.max(0, Math.min(pageY - shiftY, alwaysVisible));
+      this.contentElement!.style.overflowY = newTop === 0 ? "scroll" : "hidden";
+      sheetEl.style.top = `${newTop}px`;
+      this.emitSheetState(newTop, alwaysVisible);
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      const touch = this.findTouch(event.changedTouches, this.activeTouchId);
+      if (!touch) return;
+
+      this.cleanupTouchListeners(
+        removeTouchMove,
+        removeTouchEnd,
+        removeTouchCancel
+      );
+
+      if (!hasDragged) {
+        this.activeTouchId = null;
+        return;
+      }
+
+      const offset = sheetEl.offsetTop;
+      const { targetOffset, overflowY } = this.calculateTargetOffset(
+        speed,
+        offset,
+        alwaysVisible
+      );
+      this.contentElement!.style.overflowY = overflowY;
+      this.animateToPosition(sheetEl, offset, targetOffset, alwaysVisible);
+      this.activeTouchId = null;
+    };
+
+    this.addTouchListener(sheetEl, "touchstart", handleTouchStart, {
+      passive: true,
+    });
+
+    if (this.handleRegion) {
+      this.addTouchListener(
+        this.handleRegion.nativeElement,
+        "touchstart",
+        (event: TouchEvent) => {
+          event.stopPropagation();
+          handleTouchStart(event);
+        },
+        { passive: true }
+      );
+    }
+  }
+
+  private findTouch(touches: TouchList, id: number | null): Touch | null {
+    if (id === null) return null;
+    for (let i = 0; i < touches.length; i++) {
+      if (touches[i].identifier === id) {
+        return touches[i];
+      }
+    }
+    return null;
+  }
+
+  private cleanupTouchListeners(
+    removeTouchMove: (() => void) | null,
+    removeTouchEnd: (() => void) | null,
+    removeTouchCancel: (() => void) | null
+  ): void {
+    removeTouchMove?.();
+    removeTouchEnd?.();
+    removeTouchCancel?.();
+  }
+
+  private addTouchListener(
+    target: HTMLElement,
+    eventName: string,
+    handler: (event: TouchEvent) => void,
+    options: AddEventListenerOptions
+  ): () => void {
+    target.addEventListener(eventName, handler as EventListener, options);
+    const remove = () =>
+      target.removeEventListener(eventName, handler as EventListener, options);
+    if (eventName === "touchstart") {
+      this.destroyListeners.push(remove);
+    }
+    return remove;
   }
 
   ngOnDestroy(): void {
@@ -329,7 +507,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     return target.closest(this.dragExcludeSelector) !== null;
   }
 
-  easeOutCubic(t: number, b: number, c: number, d: number): number {
+  private easeOutCubic(t: number, b: number, c: number, d: number): number {
     t /= d;
     t--;
     return c * (t * t * t + 1) + b;

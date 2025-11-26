@@ -1,3 +1,4 @@
+import { signal, WritableSignal } from "@angular/core";
 import { MediaSchema, StorageBucket } from "../schemas/Media";
 import { MediaType } from "./Interfaces";
 
@@ -195,8 +196,20 @@ export class StorageVideo extends StorageMedia {
 export class StorageImage extends StorageMedia {
   readonly sizes = [200, 400, 800];
 
-  constructor(src: string, userId?: string, origin?: "user" | "other") {
+  /**
+   * Tracks whether the resized versions of this image are still being processed.
+   * When true, the image should show a loading placeholder.
+   */
+  readonly isProcessing: WritableSignal<boolean> = signal(false);
+
+  constructor(
+    src: string,
+    userId?: string,
+    origin?: "user" | "other",
+    isProcessing: boolean = false
+  ) {
     super(src, MediaType.Image, userId, origin);
+    this.isProcessing.set(isProcessing);
   }
 
   getSrc(size: number): string {
@@ -206,6 +219,32 @@ export class StorageImage extends StorageMedia {
       );
     }
     return this._makeSrc(this.filename + `_${size}x${size}`, this.extension);
+  }
+
+  /**
+   * Returns the original unprocessed source URL.
+   * This can be used as a fallback while resized versions are being processed.
+   */
+  getOriginalSrc(): string {
+    return this._makeSrc(this.filename, this.extension);
+  }
+
+  /**
+   * Checks if the resized image at the specified size is available.
+   * Uses a HEAD request to avoid downloading the full image.
+   * Updates the isProcessing signal accordingly.
+   */
+  async checkAvailability(size: number = 400): Promise<boolean> {
+    const src = this.getSrc(size);
+    try {
+      const response = await fetch(src, { method: "HEAD" });
+      const isAvailable = response.ok;
+      this.isProcessing.set(!isAvailable);
+      return isAvailable;
+    } catch {
+      this.isProcessing.set(true);
+      return false;
+    }
   }
 
   override getPreviewImageSrc(): string {

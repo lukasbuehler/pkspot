@@ -610,7 +610,9 @@ export class SpotDetailsComponent
     if (!this.authenticationService.user?.uid) return;
     this.linkingPlace.set(true);
     try {
-      const userReference = createUserReference(this.authenticationService.user.data!);
+      const userReference = createUserReference(
+        this.authenticationService.user.data!
+      );
       await this._spotEditsService.updateSpotExternalReferenceEdit(
         spot.id,
         { google_maps_place_id: pred.place_id },
@@ -643,7 +645,9 @@ export class SpotDetailsComponent
     if (!this.authenticationService.user?.uid) return;
     this.unlinkingPlace.set(true);
     try {
-      const userReference = createUserReference(this.authenticationService.user.data!);
+      const userReference = createUserReference(
+        this.authenticationService.user.data!
+      );
       // To unlink, we need to send an edit that will clear the google_maps_place_id
       // The cloud function will need to handle this appropriately
       await this._spotEditsService.updateSpotExternalReferenceEdit(
@@ -932,16 +936,20 @@ export class SpotDetailsComponent
           return spot;
         }
 
+        // Mark as processing since resized versions won't be ready immediately
         spot.addMedia(
           media.src,
           media.type,
           this.authenticationService.user.uid,
-          true
+          true,
+          true // isProcessing = true for newly uploaded images
         );
       }
       if (spot instanceof Spot && this.authenticationService.user?.uid) {
         // if possible, already save the uploaded media via a spot edit
-        const userReference = createUserReference(this.authenticationService.user.data!);
+        const userReference = createUserReference(
+          this.authenticationService.user.data!
+        );
         this._spotEditsService.updateSpotMediaEdit(
           spot.id,
           spot.userMedia(),

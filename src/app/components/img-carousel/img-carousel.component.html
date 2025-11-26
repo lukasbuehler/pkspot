@@ -6,7 +6,21 @@
     style="cursor: pointer"
     (click)="imageClick($index)"
   >
-    <img [ngSrc]="mediaObj.getPreviewImageSrc()" fill priority />
+    @if (isImageProcessing($index, mediaObj)) {
+    <!-- Show processing placeholder while resized image isn't ready -->
+    <div class="processing-overlay">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+    } @if (!imageLoadErrors().has($index)) {
+    <img
+      [ngSrc]="mediaObj.getPreviewImageSrc()"
+      fill
+      priority
+      (error)="onImageError($event, $index, mediaObj)"
+      (load)="onImageLoad($index, mediaObj)"
+      [class.hidden]="isImageProcessing($index, mediaObj)"
+    />
+    }
   </div>
   } }
 </div>

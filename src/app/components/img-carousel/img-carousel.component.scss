@@ -33,11 +33,29 @@
       transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
       transform: scale(1);
       filter: brightness(1);
+
+      &.hidden {
+        opacity: 0;
+      }
     }
     :hover {
       filter: brightness(1.2);
       transform: scale(1.1);
       transition: filter 0.2s ease-in-out, transform 0.2s ease-in-out;
+    }
+
+    .processing-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 20px;
+      z-index: 1;
     }
   }
 }

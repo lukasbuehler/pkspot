@@ -539,12 +539,13 @@ export class LocalSpot {
     src: string,
     type: MediaType,
     uid: string,
-    isFromStorage: boolean
+    isFromStorage: boolean,
+    isProcessing: boolean = false
   ) {
     let media: AnyMedia | undefined;
     if (isFromStorage) {
       if (type === MediaType.Image) {
-        media = new StorageImage(src, uid, "user");
+        media = new StorageImage(src, uid, "user", isProcessing);
       } else if (type === MediaType.Video) {
         media = new StorageVideo(src, uid, "user");
       } else {
