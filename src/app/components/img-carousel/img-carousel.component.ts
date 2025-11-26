@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   Input,
   CUSTOM_ELEMENTS_SCHEMA,
@@ -32,20 +33,94 @@ import {
   StorageVideo,
 } from "../../../db/models/Media";
 import { MediaReportDialogComponent } from "../../media-report-dialog/media-report-dialog.component";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 
 @Component({
   selector: "app-img-carousel",
-  imports: [MatRippleModule, NgOptimizedImage],
+  imports: [MatRippleModule, NgOptimizedImage, MatProgressSpinnerModule],
   templateUrl: "./img-carousel.component.html",
   styleUrl: "./img-carousel.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImgCarouselComponent {
   @Input() media: AnyMedia[] | undefined;
+
+  /** Tracks images that failed to load and are being retried */
+  imageLoadErrors = signal<Set<number>>(new Set());
+  /** Tracks the retry count for each image index */
+  private retryCountMap = new Map<number, number>();
+  private readonly MAX_RETRIES = 10;
+  private readonly RETRY_DELAY_MS = 3000;
 
   constructor(
     public dialog: MatDialog,
     public storageService: StorageService
   ) {}
+
+  /**
+   * Called when an image fails to load.
+   * For StorageImages, this likely means the resized version isn't ready yet.
+   */
+  onImageError(event: Event, index: number, mediaObj: AnyMedia): void {
+    if (!(mediaObj instanceof StorageImage)) return;
+
+    const currentRetries = this.retryCountMap.get(index) ?? 0;
+    if (currentRetries >= this.MAX_RETRIES) {
+      console.warn(`Max retries reached for image at index ${index}`);
+      return;
+    }
+
+    // Mark this image as having an error (shows spinner)
+    mediaObj.isProcessing.set(true);
+    this.imageLoadErrors.update((set) => {
+      const newSet = new Set(set);
+      newSet.add(index);
+      return newSet;
+    });
+
+    // Schedule a retry
+    this.retryCountMap.set(index, currentRetries + 1);
+    setTimeout(() => {
+      this.retryImage(index, mediaObj);
+    }, this.RETRY_DELAY_MS);
+  }
+
+  /**
+   * Retries loading an image by resetting its error state.
+   */
+  private retryImage(index: number, mediaObj: StorageImage): void {
+    // Clear the error to trigger a reload
+    this.imageLoadErrors.update((set) => {
+      const newSet = new Set(set);
+      newSet.delete(index);
+      return newSet;
+    });
+  }
+
+  /**
+   * Called when an image successfully loads.
+   */
+  onImageLoad(index: number, mediaObj: AnyMedia): void {
+    if (mediaObj instanceof StorageImage) {
+      mediaObj.isProcessing.set(false);
+    }
+    this.retryCountMap.delete(index);
+    this.imageLoadErrors.update((set) => {
+      const newSet = new Set(set);
+      newSet.delete(index);
+      return newSet;
+    });
+  }
+
+  /**
+   * Returns true if the image at the given index is currently being processed/loading.
+   */
+  isImageProcessing(index: number, mediaObj: AnyMedia): boolean {
+    if (mediaObj instanceof StorageImage) {
+      return mediaObj.isProcessing();
+    }
+    return false;
+  }
 
   imageClick(index: number) {
     this.openImageViewer(index);
