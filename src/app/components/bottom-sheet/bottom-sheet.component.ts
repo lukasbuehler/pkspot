@@ -80,6 +80,29 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Checks if any scrollable ancestor can scroll down (content below viewport)
+   */
+  private checkScrollableDown(
+    target: HTMLElement | null,
+    sheetEl: HTMLElement
+  ): boolean {
+    if (this.currentOffset !== 0) return false;
+    let el = target;
+    while (el) {
+      if (el === sheetEl) break;
+      if (
+        el.clientHeight !== 0 &&
+        el.scrollHeight > el.clientHeight + 2 &&
+        el.scrollTop < el.scrollHeight - el.clientHeight - 2
+      ) {
+        return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
+
+  /**
    * Determines the target position based on velocity or distance.
    * @param velocity - Velocity in pixels per millisecond (positive = down, negative = up)
    * @param currentOffset - Current top offset of the sheet
@@ -340,6 +363,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     let startY = 0;
     let hasDragged = false;
     let isScrollableUp = false;
+    let isScrollableDown = false;
     let alwaysVisible = 0;
     let removeTouchMove: (() => void) | null = null;
     let removeTouchEnd: (() => void) | null = null;
@@ -365,6 +389,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       hasDragged = false;
       alwaysVisible = this.getAlwaysVisible(sheetEl);
       isScrollableUp = this.checkScrollableUp(target, sheetEl);
+      isScrollableDown = this.checkScrollableDown(target, sheetEl);
 
       // Prevent content scrolling during drag if sheet is not fully open
       if (this.currentOffset !== 0) {
@@ -400,15 +425,22 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       if (!hasDragged) {
         if (Math.abs(pageY - initialY) <= this.minDragDistance) return;
 
-        // If sheet is at top and content can scroll up, allow native scroll
-        if (this.currentOffset === 0 && isScrollableUp && pageY > initialY) {
-          this.cleanupTouchListeners(
-            removeTouchMove,
-            removeTouchEnd,
-            removeTouchCancel
-          );
-          this.activeTouchId = null;
-          return;
+        // If sheet is fully open and content is scrollable, allow native scroll
+        // pageY > initialY means swiping down (scrolling up in content)
+        // pageY < initialY means swiping up (scrolling down in content)
+        if (this.currentOffset === 0) {
+          if (
+            (isScrollableUp && pageY > initialY) ||
+            (isScrollableDown && pageY < initialY)
+          ) {
+            this.cleanupTouchListeners(
+              removeTouchMove,
+              removeTouchEnd,
+              removeTouchCancel
+            );
+            this.activeTouchId = null;
+            return;
+          }
         }
 
         hasDragged = true;
