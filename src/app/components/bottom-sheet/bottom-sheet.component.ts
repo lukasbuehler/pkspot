@@ -22,10 +22,11 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   @Output() openProgressChange = new EventEmitter<number>(); // 0 = bottom (closed), 1 = top (open)
 
   headerHeight = 140;
-  minimumSpeedToSlide = 5;
 
   private readonly animationDurationMs = 500;
   private readonly minDragDistance = 10;
+  // Velocity threshold in pixels per millisecond for flick gestures
+  private readonly flickVelocityThreshold = 0.5;
 
   isContentAtTop = signal<boolean>(false);
 
@@ -46,6 +47,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private activeTouchId: number | null = null;
   private lastEmittedProgress = Number.NaN;
   private lastIsAtTop: boolean | null = null;
+  // Track current offset internally to avoid reading offsetTop (layout thrashing)
+  private currentOffset = 0;
   private readonly dragExcludeSelector =
     "input, select, textarea, [contenteditable='true'], [data-drag-exclude], [data-sheet-drag='false']";
 
@@ -59,7 +62,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     target: HTMLElement | null,
     sheetEl: HTMLElement
   ): boolean {
-    if (sheetEl.offsetTop !== 0) return false;
+    // Use tracked offset instead of reading offsetTop
+    if (this.currentOffset !== 0) return false;
     let el = target;
     while (el) {
       if (el === sheetEl) break;
@@ -75,20 +79,29 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     return false;
   }
 
+  /**
+   * Determines the target position based on velocity or distance.
+   * @param velocity - Velocity in pixels per millisecond (positive = down, negative = up)
+   * @param currentOffset - Current top offset of the sheet
+   * @param alwaysVisible - The height that remains visible when sheet is "closed"
+   */
   private calculateTargetOffset(
-    speed: number,
+    velocity: number,
     currentOffset: number,
     alwaysVisible: number
   ): { targetOffset: number; overflowY: "scroll" | "hidden" } {
     const middlePoint = alwaysVisible / 2;
 
-    if (Math.abs(speed) > this.minimumSpeedToSlide) {
-      // Flick gesture - use speed direction
-      return speed > 0
+    // Check if velocity exceeds flick threshold
+    if (Math.abs(velocity) > this.flickVelocityThreshold) {
+      // Flick gesture - use velocity direction
+      // Positive velocity = dragging down = close sheet
+      // Negative velocity = dragging up = open sheet
+      return velocity > 0
         ? { targetOffset: alwaysVisible, overflowY: "hidden" }
         : { targetOffset: 0, overflowY: "scroll" };
     } else {
-      // Slow drag - snap to nearest
+      // Slow drag - snap to nearest position based on current offset
       return currentOffset > middlePoint
         ? { targetOffset: alwaysVisible, overflowY: "hidden" }
         : { targetOffset: 0, overflowY: "scroll" };
@@ -115,12 +128,14 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         this.animationDurationMs
       );
 
+      this.currentOffset = current;
       sheetEl.style.top = `${current}px`;
       this.emitSheetState(current, alwaysVisible);
 
       if (timeProgress < this.animationDurationMs) {
         window.requestAnimationFrame(step);
       } else {
+        this.currentOffset = targetOffset;
         sheetEl.style.top = `${targetOffset}px`;
         this.emitSheetState(targetOffset, alwaysVisible);
       }
@@ -173,7 +188,6 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.activePointerId = event.pointerId;
 
       let lastY = event.pageY;
-      let speed = 0;
       const alwaysVisible = this.getAlwaysVisible(sheetEl);
       let hasPointerCapture = false;
       const isScrollableUp = this.checkScrollableUp(
@@ -183,6 +197,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
       const shiftY = event.clientY - sheetEl.offsetTop;
       const initialY = event.clientY;
+      const startTime = performance.now();
+      const startY = event.pageY;
       let hasDragged = false;
 
       const moveAt = (moveEvent: PointerEvent) => {
@@ -211,10 +227,10 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           return;
         }
 
-        speed = pageY - lastY;
         lastY = pageY;
 
         let newTop = Math.max(0, Math.min(pageY - shiftY, alwaysVisible));
+        this.currentOffset = newTop;
         this.contentElement!.style.overflowY =
           newTop === 0 ? "scroll" : "hidden";
         sheetEl.style.top = `${newTop}px`;
@@ -241,9 +257,17 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           return;
         }
 
-        const offset = sheetEl.offsetTop;
+        // Calculate velocity based on total distance and time
+        const endTime = performance.now();
+        const endY = stopEvent.pageY;
+        const deltaTime = endTime - startTime;
+        const deltaY = endY - startY;
+        // Velocity in px/ms (positive = down, negative = up)
+        const velocity = deltaTime > 0 ? deltaY / deltaTime : 0;
+
+        const offset = this.currentOffset;
         const { targetOffset, overflowY } = this.calculateTargetOffset(
-          speed,
+          velocity,
           offset,
           alwaysVisible
         );
@@ -301,9 +325,10 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
   private setupTouchHandling(sheetEl: HTMLElement): void {
     let lastY = 0;
-    let speed = 0;
     let shiftY = 0;
     let initialY = 0;
+    let startTime = 0;
+    let startY = 0;
     let hasDragged = false;
     let isScrollableUp = false;
     let alwaysVisible = 0;
@@ -325,9 +350,10 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.activeTouchId = touch.identifier;
       lastY = touch.pageY;
       initialY = touch.clientY;
+      startTime = performance.now();
+      startY = touch.pageY;
       shiftY = touch.clientY - sheetEl.offsetTop;
       hasDragged = false;
-      speed = 0;
       alwaysVisible = this.getAlwaysVisible(sheetEl);
       isScrollableUp = this.checkScrollableUp(target, sheetEl);
 
@@ -361,7 +387,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         if (Math.abs(pageY - initialY) <= this.minDragDistance) return;
 
         // If sheet is at top and content can scroll up, allow native scroll
-        if (sheetEl.offsetTop === 0 && isScrollableUp && pageY > initialY) {
+        if (this.currentOffset === 0 && isScrollableUp && pageY > initialY) {
           this.cleanupTouchListeners(
             removeTouchMove,
             removeTouchEnd,
@@ -381,10 +407,10 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      speed = pageY - lastY;
       lastY = pageY;
 
       let newTop = Math.max(0, Math.min(pageY - shiftY, alwaysVisible));
+      this.currentOffset = newTop;
       this.contentElement!.style.overflowY = newTop === 0 ? "scroll" : "hidden";
       sheetEl.style.top = `${newTop}px`;
       this.emitSheetState(newTop, alwaysVisible);
@@ -405,9 +431,17 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      const offset = sheetEl.offsetTop;
+      // Calculate velocity based on total distance and time
+      const endTime = performance.now();
+      const endY = touch.pageY;
+      const deltaTime = endTime - startTime;
+      const deltaY = endY - startY;
+      // Velocity in px/ms (positive = down, negative = up)
+      const velocity = deltaTime > 0 ? deltaY / deltaTime : 0;
+
+      const offset = this.currentOffset;
       const { targetOffset, overflowY } = this.calculateTargetOffset(
-        speed,
+        velocity,
         offset,
         alwaysVisible
       );
