@@ -13,12 +13,17 @@ div.sheet {
   z-index: 3;
   border-radius: 28px 28px 0px 0px !important;
   position: absolute;
-  top: calc(100% - $sheet-header-height);
+  // Base position at top - we use transform to offset
+  top: 0;
 
   height: 100%;
   width: 100%;
 
   pointer-events: visible;
+
+  // GPU acceleration for smooth dragging
+  will-change: transform;
+  // Initial closed position set via JS after calculating alwaysVisible
 
   > * {
     position: relative;

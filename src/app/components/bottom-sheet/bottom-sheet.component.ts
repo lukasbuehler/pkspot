@@ -129,14 +129,14 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       );
 
       this.currentOffset = current;
-      sheetEl.style.top = `${current}px`;
+      sheetEl.style.transform = `translateY(${current}px)`;
       this.emitSheetState(current, alwaysVisible);
 
       if (timeProgress < this.animationDurationMs) {
         window.requestAnimationFrame(step);
       } else {
         this.currentOffset = targetOffset;
-        sheetEl.style.top = `${targetOffset}px`;
+        sheetEl.style.transform = `translateY(${targetOffset}px)`;
         this.emitSheetState(targetOffset, alwaysVisible);
       }
     };
@@ -169,10 +169,14 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
     const height = sheetEl.clientHeight;
     const alwaysVisibleHeight = Math.max(height - this.headerHeight, 0);
-    const top = sheetEl.offsetTop;
-    this.emitSheetState(top, alwaysVisibleHeight);
+    // Initialize to closed position (offset by alwaysVisible)
+    this.currentOffset = alwaysVisibleHeight;
+    sheetEl.style.transform = `translateY(${alwaysVisibleHeight}px)`;
+    this.emitSheetState(alwaysVisibleHeight, alwaysVisibleHeight);
 
     if (this.contentElement) {
+      // Start with scroll disabled since sheet is closed
+      this.contentElement.style.overflowY = "hidden";
       this.addListener(this.contentElement, "scroll", () => {
         if (!this.contentElement) return;
         this.isContentAtTop.set(this.contentElement.scrollTop === 0);
@@ -195,11 +199,16 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         sheetEl
       );
 
-      const shiftY = event.clientY - sheetEl.offsetTop;
+      const shiftY = event.clientY - this.currentOffset;
       const initialY = event.clientY;
       const startTime = performance.now();
       const startY = event.pageY;
       let hasDragged = false;
+
+      // Prevent content scrolling during drag if sheet is not fully open
+      if (this.currentOffset !== 0) {
+        this.contentElement!.style.overflowY = "hidden";
+      }
 
       const moveAt = (moveEvent: PointerEvent) => {
         if (moveEvent.pointerId !== this.activePointerId) return;
@@ -233,7 +242,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         this.currentOffset = newTop;
         this.contentElement!.style.overflowY =
           newTop === 0 ? "scroll" : "hidden";
-        sheetEl.style.top = `${newTop}px`;
+        sheetEl.style.transform = `translateY(${newTop}px)`;
         this.emitSheetState(newTop, alwaysVisible);
       };
 
@@ -352,10 +361,15 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       initialY = touch.clientY;
       startTime = performance.now();
       startY = touch.pageY;
-      shiftY = touch.clientY - sheetEl.offsetTop;
+      shiftY = touch.clientY - this.currentOffset;
       hasDragged = false;
       alwaysVisible = this.getAlwaysVisible(sheetEl);
       isScrollableUp = this.checkScrollableUp(target, sheetEl);
+
+      // Prevent content scrolling during drag if sheet is not fully open
+      if (this.currentOffset !== 0) {
+        this.contentElement!.style.overflowY = "hidden";
+      }
 
       removeTouchMove = this.addTouchListener(
         sheetEl,
@@ -412,7 +426,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       let newTop = Math.max(0, Math.min(pageY - shiftY, alwaysVisible));
       this.currentOffset = newTop;
       this.contentElement!.style.overflowY = newTop === 0 ? "scroll" : "hidden";
-      sheetEl.style.top = `${newTop}px`;
+      sheetEl.style.transform = `translateY(${newTop}px)`;
       this.emitSheetState(newTop, alwaysVisible);
     };
 
