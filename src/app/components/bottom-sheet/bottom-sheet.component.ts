@@ -396,20 +396,22 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         this.contentElement!.style.overflowY = "hidden";
       }
 
+      // Attach move/end listeners to document so we receive events even if
+      // touch started on a button or other interactive element
       removeTouchMove = this.addTouchListener(
-        sheetEl,
+        document.documentElement,
         "touchmove",
         handleTouchMove,
         { passive: false }
       );
       removeTouchEnd = this.addTouchListener(
-        sheetEl,
+        document.documentElement,
         "touchend",
         handleTouchEnd,
         { passive: true }
       );
       removeTouchCancel = this.addTouchListener(
-        sheetEl,
+        document.documentElement,
         "touchcancel",
         handleTouchEnd,
         { passive: true }
