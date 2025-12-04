@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, inject, OnDestroy, OnInit } from "@angular/core";
 import {
   MatDialog,
   MatDialogConfig,
@@ -25,6 +25,7 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FollowingService } from "../../services/firebase/firestore/following.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { PostsService } from "../../services/firebase/firestore/posts.service";
+import { StructuredDataService } from "../../services/structured-data.service";
 
 @Component({
   selector: "app-profile-page",
@@ -44,7 +45,9 @@ import { PostsService } from "../../services/firebase/firestore/posts.service";
     MatDivider,
   ],
 })
-export class ProfilePageComponent implements OnInit {
+export class ProfilePageComponent implements OnInit, OnDestroy {
+  private _structuredDataService = inject(StructuredDataService);
+
   userId: string = "";
   user: User | null = null;
   isLoading: boolean = false;
@@ -137,6 +140,11 @@ export class ProfilePageComponent implements OnInit {
 
         this.user = user;
         this.isLoading = false;
+
+        // Add structured data for this user profile
+        const personData =
+          this._structuredDataService.generateUserPersonData(user);
+        this._structuredDataService.addStructuredData("profile", personData);
 
         // Load the profile picture of this user
         if (this.user.profilePicture) {
@@ -305,5 +313,9 @@ export class ProfilePageComponent implements OnInit {
         },
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this._structuredDataService.removeStructuredData("profile");
   }
 }

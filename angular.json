@@ -69,8 +69,7 @@
               "src/favicon.ico",
               "src/assets",
               "src/manifest.webmanifest",
-              "src/robots.txt",
-              "src/sitemap.xml"
+              "src/robots.txt"
             ],
             "styles": [
               "node_modules/swiper/swiper-bundle.css",

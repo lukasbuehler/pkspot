@@ -39,6 +39,12 @@ export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
 // media report functions
 export { onMediaReportCreate } from "./mediaReportFunctions";
 
+// sitemap functions
+export {
+  generateSitemapOnSchedule,
+  generateSitemapManual,
+} from "./sitemapFunctions";
+
 // social card functions
 // export {
 //   generateSocialCards,

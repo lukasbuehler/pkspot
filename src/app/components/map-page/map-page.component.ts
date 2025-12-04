@@ -71,6 +71,7 @@ import { SpotEditDetailsComponent } from "../spot-edit-details/spot-edit-details
 import { Timestamp } from "firebase/firestore";
 import { SpotEdit } from "../../../db/models/SpotEdit";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
+import { StructuredDataService } from "../../services/structured-data.service";
 
 @Component({
   selector: "app-map-page",
@@ -131,6 +132,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     null;
 
   pendingTasks = inject(PendingTasks);
+  private _structuredDataService = inject(StructuredDataService);
 
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
@@ -147,7 +149,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   hasGeolocation: boolean = false;
 
   visibleSpots: Spot[] = [];
-  highlightedSpots: SpotPreviewData[] = [];
+  private _highlightedSpots: SpotPreviewData[] = [];
+
+  /**
+   * Highlighted spots shown on the map. Setting this also updates
+   * structured data for SEO.
+   */
+  get highlightedSpots(): SpotPreviewData[] {
+    return this._highlightedSpots;
+  }
+  set highlightedSpots(spots: SpotPreviewData[]) {
+    this._highlightedSpots = spots;
+    this._updateHighlightedSpotsStructuredData(spots);
+  }
 
   alainMode: boolean = false;
 
@@ -715,10 +729,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Updates the structured data for highlighted spots when they change.
+   * This helps search engines understand the notable parkour spots in the area.
+   */
+  private _updateHighlightedSpotsStructuredData(spots: SpotPreviewData[]) {
+    if (spots.length > 0) {
+      const itemList = this._structuredDataService.generateSpotItemList(
+        spots,
+        $localize`:@@map.highlighted_spots.structured_data_name:Featured Parkour Spots`
+      );
+      this._structuredDataService.addStructuredData(
+        "highlighted-spots",
+        itemList
+      );
+    } else {
+      this._structuredDataService.removeStructuredData("highlighted-spots");
+    }
+  }
+
   ngOnDestroy() {
     console.debug("destroying map page");
     this.closeSpot();
     this._routerSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();
+    this._structuredDataService.removeStructuredData("highlighted-spots");
   }
 }

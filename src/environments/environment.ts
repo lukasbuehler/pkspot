@@ -1,6 +1,7 @@
 export const environment = {
   name: "Default",
   production: false,
+  baseUrl: "https://pkspot.app",
   mapId: "",
   keys: {
     firebaseConfig: {
