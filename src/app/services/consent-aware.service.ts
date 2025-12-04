@@ -1,25 +1,25 @@
 import { Injectable, inject } from "@angular/core";
 import { ConsentService } from "./consent.service";
-import { PlausibleService } from "./plausible.service";
+import { AnalyticsService } from "./analytics.service";
 
 @Injectable()
 export abstract class ConsentAwareService {
   protected _consentService = inject(ConsentService);
-  protected _plausibleService = inject(PlausibleService);
+  protected _analyticsService = inject(AnalyticsService);
 
   constructor() {}
 
   /**
    * Track an event only if consent has been granted
    * @param eventName The name of the event to track
-   * @param options Optional properties to include with the event
+   * @param properties Optional properties to include with the event
    */
   protected trackEventWithConsent(
     eventName: string,
-    options?: { props: any }
+    properties?: Record<string, unknown>
   ): void {
     if (this._consentService.hasConsent()) {
-      this._plausibleService.trackEvent(eventName, options);
+      this._analyticsService.trackEvent(eventName, properties);
     }
   }
 

@@ -162,8 +162,7 @@ import { GooglePlacePreviewComponent } from "../google-place-preview/google-plac
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { createUserReference } from "../../../scripts/Helpers";
-
-declare function plausible(eventName: string, options?: { props: any }): void;
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Pipe({ name: "reverse", standalone: true })
 export class ReversePipe implements PipeTransform {
@@ -281,6 +280,7 @@ export class SpotDetailsComponent
   public locale: LocaleCode = inject(LOCALE_ID);
   private _challengeService = inject(SpotChallengesService);
   private _structuredDataService = inject(StructuredDataService);
+  private _analyticsService = inject(AnalyticsService);
 
   spot = model<Spot | LocalSpot | null>(null);
   notLocalSpotOrNull = computed(() => {
@@ -961,12 +961,11 @@ export class SpotDetailsComponent
       return spot;
     });
 
-    if (typeof plausible !== "undefined") {
-      if (this.spot instanceof Spot) {
-        plausible("Upload Spot Image", {
-          props: { spotId: this.spot.id },
-        });
-      }
+    const currentSpot = this.spot();
+    if (currentSpot instanceof Spot) {
+      this._analyticsService.trackEvent("Upload Spot Image", {
+        spotId: currentSpot.id,
+      });
     }
   }
 
@@ -1016,15 +1015,13 @@ export class SpotDetailsComponent
       );
     }
 
-    if (typeof plausible !== "undefined") {
-      plausible("Share Spot", { props: { spotId: spot.id } });
-    }
+    this._analyticsService.trackEvent("Share Spot", { spotId: spot.id });
   }
 
   openSpotInMaps() {
     const spot = this.spot();
-    if (typeof plausible !== "undefined" && spot instanceof Spot) {
-      plausible("Opening in Maps", { props: { spotId: spot.id } });
+    if (spot instanceof Spot) {
+      this._analyticsService.trackEvent("Opening in Maps", { spotId: spot.id });
     }
     if (spot) this._mapsApiService.openLatLngInMaps(spot.location());
   }
@@ -1046,8 +1043,8 @@ export class SpotDetailsComponent
 
   openDirectionsInMaps() {
     const spot = this.spot();
-    if (typeof plausible !== "undefined" && spot instanceof Spot) {
-      plausible("Opening in Google Maps", { props: { spotId: spot.id } });
+    if (spot instanceof Spot) {
+      this._analyticsService.trackEvent("Opening in Google Maps", { spotId: spot.id });
     }
 
     if (spot) this._mapsApiService.openDirectionsInMaps(spot.location());
