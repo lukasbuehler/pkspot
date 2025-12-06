@@ -426,7 +426,7 @@ export class SpotMapDataManager {
   private _showCachedSpotsAndMarkersForTiles(tiles: TilesObject) {
     // assume the zoom is larger or equal to 16
     if (tiles.zoom < this.spotZoom) {
-      console.error(
+      console.warn(
         "the zoom is less than 16, this function should not be called"
       );
       return;

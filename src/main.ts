@@ -22,25 +22,31 @@ if (apiKey && host) {
     capture_pageleave: true,
     disable_session_recording: true,
     persistence: "localStorage",
-    // Enable debug mode in development
-    debug: !environment.production,
+    // Disable debug mode to suppress PostHog console logs
+    debug: false,
     // Strip locale prefix from URLs for cleaner analytics grouping
-    sanitize_properties: (properties, _event) => {
+    before_send: (event) => {
+      // Handle null event case
+      if (!event) {
+        return event;
+      }
       // Remove locale prefix from pathname (e.g., /en/map → /map)
-      if (properties["$pathname"]) {
-        properties["$pathname"] = properties["$pathname"].replace(
+      if (event.properties && event.properties["$pathname"]) {
+        event.properties["$pathname"] = event.properties["$pathname"].replace(
           /^\/(en|de|de-CH|fr|it|es|nl)(\/|$)/,
           "/"
         );
       }
       // Also clean the current_url if present
-      if (properties["$current_url"]) {
-        properties["$current_url"] = properties["$current_url"].replace(
+      if (event.properties && event.properties["$current_url"]) {
+        event.properties["$current_url"] = event.properties[
+          "$current_url"
+        ].replace(
           /^(https?:\/\/[^/]+)\/(en|de|de-CH|fr|it|es|nl)(\/|$)/,
           "$1/"
         );
       }
-      return properties;
+      return event;
     },
   });
 }
