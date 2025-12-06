@@ -1,6 +1,7 @@
 export const environment = {
   name: "Production",
   production: true,
+  baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   keys: {
     firebaseConfig: {

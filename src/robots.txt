@@ -1,3 +1,6 @@
 # Allow all crawlers
 User-agent: *
 Allow: /
+
+# Sitemap location (generated nightly)
+Sitemap: https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml

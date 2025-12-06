@@ -127,7 +127,6 @@ import { SpotReviewSchema } from "../../../db/schemas/SpotReviewSchema";
 import { SpotReviewsService } from "../../services/firebase/firestore/spot-reviews.service";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
 import { StructuredDataService } from "../../services/structured-data.service";
-import { Place } from "schema-dts";
 import {
   MatSlideToggle,
   MatSlideToggleChange,
@@ -769,28 +768,9 @@ export class SpotDetailsComponent
   ngOnInit() {
     // add structured data for place
     if (this.spot instanceof Spot) {
-      const placeData: Place = {
-        "@type": "Place",
-        name: this.spot.name(),
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: this.spot.location().lat,
-          longitude: this.spot.location().lng,
-        },
-        keywords: "parkour,spot",
-        image: this.spot.hasMedia() ? this.spot.previewImageSrc() : undefined,
-      };
-
-      const address = this.spot.address();
-      if (address) {
-        placeData.address = {
-          "@type": "PostalAddress",
-          streetAddress: address.formatted,
-          addressLocality: address.locality,
-          addressCountry: address.country?.code,
-        };
-      }
-
+      const placeData = this._structuredDataService.generateSpotPlaceData(
+        this.spot
+      );
       this._structuredDataService.addStructuredData("spot", placeData);
     }
   }
