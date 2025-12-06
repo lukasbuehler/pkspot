@@ -18,5 +18,9 @@ export const environment = {
       host: "",
       apiKey: "",
     },
+    posthog: {
+      apiKey: "",
+      host: "",
+    },
   },
 };

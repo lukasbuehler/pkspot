@@ -6,7 +6,7 @@ import {
   MatDialogModule,
 } from "@angular/material/dialog";
 import { RouterLink } from "@angular/router";
-import { PlausibleService } from "../../services/plausible.service";
+import { AnalyticsService } from "../../services/analytics.service";
 import { ConsentService } from "../../services/consent.service";
 
 @Component({
@@ -16,7 +16,7 @@ import { ConsentService } from "../../services/consent.service";
   styleUrl: "./welcome-dialog.component.scss",
 })
 export class WelcomeDialogComponent {
-  private _plausibleService = inject(PlausibleService);
+  private _analyticsService = inject(AnalyticsService);
   private _consentService = inject(ConsentService);
 
   constructor(
@@ -36,8 +36,6 @@ export class WelcomeDialogComponent {
     this._consentService.grantConsent();
 
     this.dialogRef.close(true); // Return true to indicate user agreed
-    this._plausibleService.trackEvent("Visitor Agreed to Terms", {
-      props: {},
-    });
+    this._analyticsService.trackEvent("Visitor Agreed to Terms");
   }
 }

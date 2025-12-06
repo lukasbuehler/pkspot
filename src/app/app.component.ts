@@ -49,7 +49,7 @@ import { StructuredDataService } from "./services/structured-data.service";
 import { StorageImage } from "../db/models/Media";
 import { SelectLanguageDialogComponent } from "./components/select-language-dialog/select-language-dialog.component";
 import { firstValueFrom } from "rxjs";
-import { PlausibleService } from "./services/plausible.service";
+import { AnalyticsService } from "./services/analytics.service";
 import { ConsentService } from "./services/consent.service";
 
 interface ButtonBase {
@@ -136,7 +136,7 @@ export class AppComponent implements OnInit {
     public router: Router,
     private route: ActivatedRoute,
     private matIconRegistry: MatIconRegistry,
-    private _plausibleService: PlausibleService,
+    private _analyticsService: AnalyticsService,
     private _consentService: ConsentService
   ) {
     this.matIconRegistry.setDefaultFontSetClass("material-symbols-rounded");
@@ -177,7 +177,7 @@ export class AppComponent implements OnInit {
         this.alainMode = false;
       }
       GlobalVariables.alainMode.next(this.alainMode);
-      this._plausibleService.trackPageview({ alainMode: this.alainMode });
+      this._analyticsService.trackEvent("Page View", { alainMode: this.alainMode });
     }
   }
 
@@ -245,7 +245,7 @@ export class AppComponent implements OnInit {
           this.userPhoto.set(undefined);
         }
 
-        this._plausibleService.trackPageview({
+        this._analyticsService.trackEvent("User Authenticated", {
           authenticated: isAuthenticated,
         });
       },

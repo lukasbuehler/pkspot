@@ -63,8 +63,7 @@ import {
   MatSlideToggleModule,
 } from "@angular/material/slide-toggle";
 import { MatSelectModule } from "@angular/material/select";
-
-declare function plausible(eventName: string, options?: { props: any }): void;
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-challenge-detail",
@@ -99,6 +98,7 @@ export class ChallengeDetailComponent {
   private _challengeService = inject(SpotChallengesService);
   authenticationService = inject(AuthenticationService);
   private _snackbar = inject(MatSnackBar);
+  private _analyticsService = inject(AnalyticsService);
   locale = inject<string>(LOCALE_ID);
 
   Date = Date;
@@ -370,9 +370,7 @@ export class ChallengeDetailComponent {
       );
     }
 
-    if (typeof plausible !== "undefined") {
-      plausible("Share Challenge", { props: { spotId: spot.id } });
-    }
+    this._analyticsService.trackEvent("Share Challenge", { spotId: spot.id });
   }
 
   onReleaseDateToggleChange(event: MatSlideToggleChange) {
