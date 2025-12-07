@@ -198,13 +198,16 @@ export class LocalSpot {
       return media.length > 0;
     });
 
-    if (!data.hide_streetview && !this.hasMedia()) {
-      MapsApiService.loadStreetviewForLocation(this.location()).then(
-        (streetview) => {
-          this._streetview.set(streetview);
-        }
-      );
-    }
+    // Note: Streetview loading is now instance-method only and requires
+    // dependency injection. This functionality can be added to components that
+    // have access to the MapsApiService instance.
+    // if (!data.hide_streetview && !this.hasMedia()) {
+    //   MapsApiService.loadStreetviewForLocation(this.location()).then(
+    //     (streetview) => {
+    //       this._streetview.set(streetview);
+    //     }
+    //   );
+    // }
 
     this.previewImageSrc = computed(() => {
       const previewSize = 200;

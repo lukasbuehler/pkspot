@@ -65,21 +65,19 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       this.spotSearchControl.valueChanges.subscribe((query) => {
         if (query) {
           this._searchService.searchSpotsAndPlaces(query).then((results) => {
+            // Limit places to 3 and spots to 5
+            if (results.places) {
+              results.places = results.places.slice(0, 3);
+            }
+            if (results.spots && results.spots.hits) {
+              results.spots.hits = results.spots.hits.slice(0, 5);
+            }
             this.spotAndPlaceSearchResults$.next(results);
             console.log("results", results);
           });
         } else {
           this.spotAndPlaceSearchResults$.next(null);
         }
-
-        //   this.mapsService
-        //     .autocompletePlaceSearch(query, ["geocode"])
-        //     .then((results) => {
-        //       this.spotAndPlaceSearchResults$.next({
-        //         places: results,
-        //         spots: null,
-        //       });
-        //     });
       });
   }
 

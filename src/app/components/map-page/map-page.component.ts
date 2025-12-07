@@ -574,10 +574,37 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openGooglePlaceById(id: string) {
-    this.mapsService.getGooglePlaceById(id).then((place) => {
-      if (!place?.geometry?.viewport) return;
-      this.spotMap?.focusBounds(place.geometry.viewport);
-    });
+    console.log("[DEBUG openGooglePlaceById] Opening place with id:", id);
+    this.mapsService
+      .getGooglePlaceById(id)
+      .then((place) => {
+        console.log("[DEBUG openGooglePlaceById] Got place:", place);
+        if (!place?.location) {
+          console.warn("[DEBUG openGooglePlaceById] No location found");
+          return;
+        }
+
+        // Calculate appropriate zoom based on place type
+        const zoomLevel = this.mapsService.getZoomForPlaceType(place);
+        console.log(
+          "[DEBUG openGooglePlaceById] Calculated zoom level:",
+          zoomLevel
+        );
+
+        // Convert LatLng to LatLngLiteral - location is a LatLng object with functions
+        const lat = (place.location as any).lat();
+        const lng = (place.location as any).lng();
+        const locationLiteral: google.maps.LatLngLiteral = { lat, lng };
+        console.log(
+          "[DEBUG openGooglePlaceById] Location literal:",
+          locationLiteral
+        );
+        console.log("[DEBUG openGooglePlaceById] spotMap:", this.spotMap);
+        this.spotMap?.focusPoint(locationLiteral, zoomLevel);
+      })
+      .catch((err) => {
+        console.error("[DEBUG openGooglePlaceById] Error fetching place:", err);
+      });
   }
 
   async loadSpotById(spotId: SpotId, updateUrl: boolean = true): Promise<Spot> {

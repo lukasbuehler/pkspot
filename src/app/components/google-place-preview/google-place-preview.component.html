@@ -1,6 +1,6 @@
 @if (place()) {
 <a
-  [href]="place()!.url"
+  [href]="place()!.websiteURI"
   target="_blank"
   rel="noopener noreferrer"
   style="text-decoration: none; color: inherit"
@@ -20,7 +20,7 @@
         class="text-truncate mw-100 pt-2 mat-title-medium"
         style="font-size: 1.1rem"
       >
-        {{ place()!.name }}
+        {{ place()!.displayName }}
       </mat-card-title>
       <mat-card-subtitle class="d-flex flex-row gap-2 mat-title-small">
         <div class="d-flex flex-column gap-1">

@@ -27,23 +27,14 @@
       class="spotAutocompleteOption"
       [value]="{ type: 'spot', id: hit.document.id }"
     >
-      <!-- <img
-              *ngIf="spot.previewImage"
-              [src]="spot.previewImage"
-              alt="Img"
-            /> -->
-      <!-- TODO FIX -->
       <span>{{ getSpotName(hit.document) }}</span>
-      <!-- <small
-              >Location: {{ spot.location.lat }}, {{ spot.location.lng }}</small
-            > -->
     </mat-option>
     } @if(((spotAndPlaceSearchResults$ | async)?.spots?.hits?.length ?? 0) > 0)
     {
     <div class="pt-2"></div>
     } @if(((spotAndPlaceSearchResults$ | async)?.places?.length ?? 0) > 0) {
     <div>
-      <p class="mat-label-medium ps-3 pt-1 mb-1">Places</p>
+      <p class="mat-label-medium ps-3 pt-1 mb-1">Google Places</p>
       <mat-divider></mat-divider>
     </div>
     } @for(place of (spotAndPlaceSearchResults$ | async)?.places; track $index)

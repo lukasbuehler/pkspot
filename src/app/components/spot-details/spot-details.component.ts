@@ -522,7 +522,7 @@ export class SpotDetailsComponent
   // Google Places linking state (edit mode only)
   placeSearch = new UntypedFormControl("");
   placePredictions: google.maps.places.AutocompletePrediction[] = [];
-  nearbyPlaceResults: google.maps.places.PlaceResult[] = [];
+  nearbyPlaceResults: google.maps.places.Place[] = [];
   linkingPlace = signal<boolean>(false);
   unlinkingPlace = signal<boolean>(false);
 
@@ -563,7 +563,7 @@ export class SpotDetailsComponent
           this.nearbyPlaceResults =
             await this._mapsApiService.getNearbyPlacesByDistance(
               spot.location(),
-              "establishment",
+              "restaurant",
               5
             );
         } else {
@@ -572,13 +572,14 @@ export class SpotDetailsComponent
         this.placePredictions = [];
         return;
       }
-      // With query: use autocomplete filtered by name, biased to location, cap to 5
+      // With query: use autocomplete filtered by name, biased to location, show only top 1 result
       const preds = await this._mapsApiService.autocompletePlaceSearch(
         query,
         ["establishment"],
         biasRect
       );
-      this.placePredictions = preds.slice(0, 5);
+      // Show only the top Google result before nearby places
+      this.placePredictions = preds.slice(0, 1);
     } catch (e) {
       console.warn("Place autocomplete failed", e);
       this.placePredictions = [];
@@ -593,7 +594,7 @@ export class SpotDetailsComponent
       this.nearbyPlaceResults =
         await this._mapsApiService.getNearbyPlacesByDistance(
           spot.location(),
-          "establishment",
+          "restaurant",
           5
         );
     } catch (e) {
@@ -632,10 +633,10 @@ export class SpotDetailsComponent
     }
   }
 
-  async linkPlaceResult(res: google.maps.places.PlaceResult) {
-    if (!res.place_id) return;
+  async linkPlaceResult(res: google.maps.places.Place) {
+    if (!res.id) return;
     // Wrap the place_id in an object compatible with linkPlace signature
-    await this.linkPlace({ place_id: res.place_id } as any);
+    await this.linkPlace({ place_id: res.id } as any);
   }
 
   async unlinkPlace() {
@@ -1024,7 +1025,9 @@ export class SpotDetailsComponent
   openDirectionsInMaps() {
     const spot = this.spot();
     if (spot instanceof Spot) {
-      this._analyticsService.trackEvent("Opening in Google Maps", { spotId: spot.id });
+      this._analyticsService.trackEvent("Opening in Google Maps", {
+        spotId: spot.id,
+      });
     }
 
     if (spot) this._mapsApiService.openDirectionsInMaps(spot.location());
@@ -1079,11 +1082,11 @@ export class SpotDetailsComponent
       .then((place) => {
         const photoUrl = this._mapsApiService.getPhotoURLOfGooglePlace(place);
         this.googlePlace.set({
-          name: place.name ?? "",
-          rating: place.rating,
+          name: place.displayName ?? "",
+          rating: place.rating ?? undefined,
           photo_url: photoUrl ?? undefined,
-          opening_hours: place.opening_hours,
-          url: place.url,
+          opening_hours: place.regularOpeningHours,
+          url: place.websiteURI ?? undefined,
         });
       });
   }

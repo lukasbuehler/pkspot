@@ -854,6 +854,9 @@
 
         @if(placePredictions.length > 0) {
         <div class="border rounded p-1">
+          <div class="text-secondary mat-label-small ps-2 py-1">
+            Google Places
+          </div>
           @for(pred of placePredictions; track pred.place_id) {
           <button
             class="w-100 d-flex flex-row align-items-center justify-content-between text-start"
@@ -872,22 +875,21 @@
           </button>
           }
         </div>
-        } @else if (nearbyPlaceResults.length > 0 && (!placeSearch.value ||
-        placeSearch.value.length === 0)) {
+        } @if (nearbyPlaceResults.length > 0) {
         <div class="border rounded p-1">
-          @for(res of nearbyPlaceResults; track res.place_id) {
+          <div class="text-secondary mat-label-small ps-2 py-1">
+            @if(placeSearch.value && placeSearch.value.length > 0) { Nearby
+            Places } @else { Suggested Places }
+          </div>
+          @for(res of nearbyPlaceResults; track res.id) {
           <button
             class="w-100 d-flex flex-row align-items-center justify-content-between text-start"
             mat-button
             (click)="linkPlaceResult(res)"
-            [disabled]="linkingPlace() || !res.place_id"
+            [disabled]="linkingPlace() || !res.id"
           >
             <span class="text-truncate">
-              <mat-icon class="me-1">place</mat-icon
-              >{{ res.name }} @if(res.vicinity) {<span
-                class="mat-label-small text-secondary"
-                >— {{ res.vicinity }}</span
-              >}
+              <mat-icon class="me-1">place</mat-icon>{{ res.displayName }}
             </span>
             <mat-icon>link</mat-icon>
           </button>

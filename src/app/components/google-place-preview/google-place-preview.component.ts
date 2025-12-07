@@ -44,7 +44,7 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
 
   loading = signal(false);
   error = signal<string | null>(null);
-  place = signal<google.maps.places.PlaceResult | null>(null);
+  place = signal<google.maps.places.Place | null>(null);
 
   photoUrl = computed(() => {
     const p = this.place();
@@ -57,73 +57,175 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
   });
 
   closedTemporarily = computed<boolean>(() => {
-    const status = (this.place() as any)?.business_status as string | undefined;
+    const status = this.place()?.businessStatus as string | undefined;
     return status === "CLOSED_TEMPORARILY";
   });
 
   isOpenNow = computed<undefined | boolean>(() => {
-    const oh = this.place()?.opening_hours as any;
-    try {
-      if (oh && typeof oh.isOpen === "function") return !!oh.isOpen(new Date());
-    } catch {}
-    return undefined;
+    const p = this.place();
+    const oh: any = p?.regularOpeningHours as any;
+    if (!oh) return undefined;
+
+    const periods: any[] | undefined = oh?.Eg; // periods is stored in 'Eg'
+    if (!periods || periods.length === 0) return undefined;
+
+    const now = new Date();
+    const today = now.getDay(); // 0 (Sun) - 6 (Sat)
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Each period has Fg (open) and Eg (close) objects
+    // Fg.Fg = day, Fg.Gg = hours, Fg.Hg = minutes
+    const todays = periods.filter((per: any) => per?.Fg?.Fg === today); // Fg.Fg = day
+
+    for (const per of todays) {
+      const openH = per?.Fg?.Gg ?? 0; // Fg.Gg = open hours
+      const openM = per?.Fg?.Hg ?? 0; // Fg.Hg = open minutes
+      const closeH = per?.Eg?.Gg ?? 0; // Eg.Gg = close hours
+      const closeM = per?.Eg?.Hg ?? 0; // Eg.Hg = close minutes
+
+      const openMinutes = openH * 60 + (openM || 0);
+      const closeMinutes = closeH * 60 + (closeM || 0);
+
+      // Handle overnight close
+      const closeDay = per?.Eg?.Fg;
+      const closesTomorrow = closeDay !== undefined && closeDay !== today;
+      const effectiveClose = closesTomorrow
+        ? 24 * 60 + closeMinutes
+        : closeMinutes;
+      const effectiveNow =
+        closesTomorrow && nowMinutes < openMinutes
+          ? nowMinutes + 24 * 60
+          : nowMinutes;
+
+      if (effectiveNow >= openMinutes && effectiveNow < effectiveClose) {
+        return true; // Open now
+      }
+    }
+    return false; // Not open now
   });
 
   todayHoursText = computed<string | null>(() => {
     const p = this.place();
-    const oh: any = p?.opening_hours as any;
-    const periods: any[] | undefined = oh?.periods as any;
-    if (!periods || periods.length === 0) return null;
+    const oh: any = p?.regularOpeningHours as any;
+    const periods: any[] | undefined = oh?.Eg; // periods is stored in 'Eg'
+    if (!periods || periods.length === 0) {
+      return null;
+    }
 
     const now = new Date();
     const today = now.getDay(); // 0 (Sun) - 6 (Sat)
+
     const fmtTime = new Intl.DateTimeFormat(this._locale, {
       hour: "numeric",
       minute: "2-digit",
     });
     const fmtWeekday = new Intl.DateTimeFormat(this._locale, {
-      weekday: "long",
+      weekday: "short",
     });
 
-    // Collect today's opening intervals
-    const todays = periods.filter((per: any) => per?.open?.day === today);
-    if (!todays || todays.length === 0) return null;
+    // Each period has Fg (open) and Eg (close) objects
+    // Fg.Fg = day, Fg.Gg = hours, Fg.Hg = minutes
+    const todays = periods.filter((per: any) => per?.Fg?.Fg === today); // Fg.Fg = day
+
+    if (!todays || todays.length === 0) {
+      // No hours today - find next opening day
+      for (let i = 1; i < 7; i++) {
+        const nextDay = (today + i) % 7;
+        const nextDayPeriods = periods.filter(
+          (per: any) => per?.Fg?.Fg === nextDay
+        );
+        if (nextDayPeriods.length > 0) {
+          const nextDate = new Date(now);
+          nextDate.setDate(nextDate.getDate() + i);
+          const nextDayLabel = fmtWeekday.format(nextDate);
+          const firstPeriod = nextDayPeriods[0];
+          const openH = firstPeriod?.Fg?.Gg ?? 0; // Fg.Gg = open hours
+          const openM = firstPeriod?.Fg?.Hg ?? 0; // Fg.Hg = open minutes
+          const openDate = new Date(now);
+          openDate.setHours(openH, openM, 0, 0);
+          return $localize`Closed · Opens ${nextDayLabel}. ${fmtTime.format(
+            openDate
+          )}`;
+        }
+      }
+      return $localize`Closed`;
+    }
 
     const intervals: string[] = [];
+    let maxCloseH = 0;
+    let maxCloseM = 0;
+
     for (const per of todays) {
-      const open = per?.open;
-      const close = per?.close;
-      if (!open?.time || !close?.time) continue;
+      const openH = per?.Fg?.Gg; // Fg.Gg = open hours
+      const openM = per?.Fg?.Hg ?? 0; // Fg.Hg = open minutes
+      const closeH = per?.Eg?.Gg ?? 0; // Eg.Gg = close hours
+      const closeM = per?.Eg?.Hg ?? 0; // Eg.Hg = close minutes
 
-      const openH = parseInt(open.time.slice(0, 2), 10);
-      const openM = parseInt(open.time.slice(2) || "0", 10);
-      const closeH = parseInt(close.time.slice(0, 2), 10);
-      const closeM = parseInt(close.time.slice(2) || "0", 10);
+      if (openH === undefined || openH === null) {
+        continue;
+      }
 
-      // Build dates for formatting; handle overnight by adding a day when close.day != open.day
+      // Track the latest closing time
+      if (closeH > maxCloseH || (closeH === maxCloseH && closeM > maxCloseM)) {
+        maxCloseH = closeH;
+        maxCloseM = closeM;
+      }
+
+      // Build dates for formatting
       const openDate = new Date(now);
       openDate.setHours(openH, openM, 0, 0);
       const closeDate = new Date(now);
       closeDate.setHours(closeH, closeM, 0, 0);
-      if (close?.day !== undefined && close.day !== today) {
-        // closes next day
+
+      // Handle overnight close (close day may be different)
+      if (per?.Eg?.Fg !== undefined && per?.Eg?.Fg !== today) {
         closeDate.setDate(closeDate.getDate() + 1);
       }
 
-      intervals.push(
-        `${fmtTime.format(openDate)}–${fmtTime.format(closeDate)}`
-      );
+      const interval = `${fmtTime.format(openDate)}–${fmtTime.format(
+        closeDate
+      )}`;
+      intervals.push(interval);
     }
 
-    const dayLabel = fmtWeekday.format(now);
-    return `${dayLabel}: ${intervals.join(", ")}`;
+    // Check if place is closed now (past closing time for today)
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const maxCloseMinutes = maxCloseH * 60 + maxCloseM;
+    const isClosedNow = nowMinutes >= maxCloseMinutes;
+
+    // If no valid intervals were found despite finding today's periods, treat as closed
+    if (intervals.length === 0 || isClosedNow) {
+      // No valid hours today or closed now - find next opening day
+      for (let i = 1; i < 7; i++) {
+        const nextDay = (today + i) % 7;
+        const nextDayPeriods = periods.filter(
+          (per: any) => per?.Fg?.Fg === nextDay
+        );
+        if (nextDayPeriods.length > 0) {
+          const nextDate = new Date(now);
+          nextDate.setDate(nextDate.getDate() + i);
+          const nextDayLabel = fmtWeekday.format(nextDate);
+          const firstPeriod = nextDayPeriods[0];
+          const openH = firstPeriod?.Fg?.Gg ?? 0; // Fg.Gg = open hours
+          const openM = firstPeriod?.Fg?.Hg ?? 0; // Fg.Hg = open minutes
+          const openDate = new Date(now);
+          openDate.setHours(openH, openM, 0, 0);
+          return $localize`Closed · Opens ${nextDayLabel}. ${fmtTime.format(
+            openDate
+          )}`;
+        }
+      }
+      return $localize`Closed`;
+    }
+
+    return intervals.join(", ");
   });
 
   openStatusText = computed<string | null>(() => {
     const p = this.place();
     if (!p) return null;
-    const oh: any = p.opening_hours as any;
-    const periods: any[] | undefined = oh?.periods as any;
+    const oh: any = p.regularOpeningHours as any;
+    const periods: any[] | undefined = oh?.Eg; // periods is stored in 'Eg'
     if (!periods || periods.length === 0) return null;
 
     const now = new Date();
@@ -135,47 +237,59 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
       minute: "2-digit",
     });
 
-    // Helper to parse "HHMM" -> minutes
-    const toMinutes = (hhmm: string | undefined): number | null => {
-      if (!hhmm || hhmm.length < 3) return null;
-      const hh = parseInt(hhmm.slice(0, 2), 10);
-      const mm = parseInt(hhmm.slice(2), 10) || 0;
-      if (isNaN(hh) || isNaN(mm)) return null;
-      return hh * 60 + mm;
-    };
+    // Each period has Fg (open) and Eg (close) objects
+    // Fg.Fg = day, Fg.Gg = hours, Fg.Hg = minutes
+    const todays = periods.filter((per: any) => per?.Fg?.Fg === today); // Fg.Fg = day
 
-    // Gather today's periods
-    const todays = periods.filter((per: any) => per?.open?.day === today);
     // Try to find an active period first
     for (const per of todays) {
-      const openM = toMinutes(per?.open?.time);
-      const closeM = toMinutes(per?.close?.time);
-      if (openM === null || closeM === null) continue;
-      // Handle overnight close (close day may roll over)
-      const closesTomorrow =
-        per?.close?.day !== undefined && per?.close?.day !== today;
-      const effectiveClose = closesTomorrow ? 24 * 60 + closeM : closeM;
+      const openH = per?.Fg?.Gg ?? 0; // Fg.Gg = open hours
+      const openM = per?.Fg?.Hg ?? 0; // Fg.Hg = open minutes
+      const closeH = per?.Eg?.Gg ?? 0; // Eg.Gg = close hours
+      const closeM = per?.Eg?.Hg ?? 0; // Eg.Hg = close minutes
+
+      const openMinutes = openH * 60 + openM;
+      const closeMinutes = closeH * 60 + closeM;
+
+      // Handle overnight close
+      const closeDay = per?.Eg?.Fg;
+      const closesTomorrow = closeDay !== undefined && closeDay !== today;
+      const effectiveClose = closesTomorrow
+        ? 24 * 60 + closeMinutes
+        : closeMinutes;
       const effectiveNow =
-        closesTomorrow && nowMinutes < openM
+        closesTomorrow && nowMinutes < openMinutes
           ? nowMinutes + 24 * 60
           : nowMinutes;
-      if (effectiveNow >= openM && effectiveNow < effectiveClose) {
+
+      if (effectiveNow >= openMinutes && effectiveNow < effectiveClose) {
         // Open now
         const closeDate = new Date(now);
-        closeDate.setHours(Math.floor(closeM / 60), closeM % 60, 0, 0);
+        closeDate.setHours(closeH, closeM, 0, 0);
         if (closesTomorrow) closeDate.setDate(closeDate.getDate() + 1);
         return `Open now until ${fmtTime.format(closeDate)}`;
       }
     }
+
     // Not open now; find the next opening today
     const upcoming = todays
-      .map((per: any) => ({ time: toMinutes(per?.open?.time) }))
-      .filter((x: any) => x.time !== null && x.time! > nowMinutes)
-      .sort((a: any, b: any) => a.time! - b.time!);
+      .filter((per: any) => {
+        const openH = per?.Fg?.Gg ?? 0;
+        const openM = per?.Fg?.Hg ?? 0;
+        const openMinutes = openH * 60 + openM;
+        return openMinutes > nowMinutes;
+      })
+      .sort((a: any, b: any) => {
+        const aM = (a?.Fg?.Gg ?? 0) * 60 + (a?.Fg?.Hg ?? 0);
+        const bM = (b?.Fg?.Gg ?? 0) * 60 + (b?.Fg?.Hg ?? 0);
+        return aM - bM;
+      });
+
     if (upcoming.length > 0) {
-      const t = upcoming[0].time!;
+      const openH = upcoming[0]?.Fg?.Gg ?? 0;
+      const openM = upcoming[0]?.Fg?.Hg ?? 0;
       const openDate = new Date(now);
-      openDate.setHours(Math.floor(t / 60), t % 60, 0, 0);
+      openDate.setHours(openH, openM, 0, 0);
       return `Opens at ${fmtTime.format(openDate)}`;
     }
     return null;
