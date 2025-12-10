@@ -1,5 +1,11 @@
 import { signal, WritableSignal } from "@angular/core";
-import { MediaSchema, StorageBucket } from "../schemas/Media";
+import {
+  MediaSchema,
+  StorageBucket,
+  parseStorageMediaUrl,
+  buildStorageMediaUrl,
+  type ParsedStorageMediaUrl,
+} from "../schemas/Media";
 import { MediaType } from "./Interfaces";
 
 /**
@@ -82,6 +88,13 @@ export class ExternalVideo extends Media {
  * A file that is stored in Firebase Storage.
  */
 export abstract class StorageMedia extends Media {
+  readonly uriBeforeBucket: string;
+  readonly bucket: StorageBucket;
+  readonly filename: string;
+  readonly extension: string;
+  readonly options: string;
+  private readonly parsed: ParsedStorageMediaUrl;
+
   constructor(
     src: string,
     type: MediaType,
@@ -89,36 +102,37 @@ export abstract class StorageMedia extends Media {
     origin?: "user" | "other"
   ) {
     super(src, type, userId, origin);
-    const regexp = new RegExp(
-      /(https?:\/\/[\w.-]+\/v0\/b\/[\w-.]+\/o\/)([\w\_]+)(?:\%2F|\/)([\w_-]+).?(\w+)?\?([\w-=&]+)/
-    );
-    const match = regexp.exec(src);
-    if (match === null) {
-      throw new Error("Invalid src format for StorageMedia: " + src);
-    }
+    this.parsed = parseStorageMediaUrl(src);
 
-    // Regex match groups:
-    this.uriBeforeBucket = match[1] ?? "";
-    this.bucket = (match[2] as StorageBucket) ?? "";
-    this.filename = match[3] ?? "";
-    this.extension = match[4] ?? "";
-    this.options = match[5] ?? "";
+    this.uriBeforeBucket = this.parsed.uriBeforeBucket;
+    this.bucket = this.parsed.bucket;
+    this.filename = this.parsed.filename;
+    this.extension = this.parsed.extension;
+    this.options = this.parsed.options;
   }
-
-  readonly uriBeforeBucket: string;
-  readonly bucket: StorageBucket;
-  readonly filename: string;
-  readonly extension: string;
-  readonly options: string;
 
   protected _makeSrc(
     filename: string = this.filename,
     extension: string = this.extension
   ): string {
-    return `${this.uriBeforeBucket}${this.bucket}%2F${filename}${
-      extension ? "." + extension : ""
-    }?${this.options}
-`;
+    return buildStorageMediaUrl(
+      this.parsed,
+      undefined,
+      filename === this.filename && extension === this.extension
+        ? undefined
+        : `_${filename.replace(this.filename, "")}`
+    );
+  }
+
+  /**
+   * Internal method to build a src with a custom filename prefix and/or size suffix.
+   * This is used to create URLs for resized images or compressed videos.
+   */
+  protected _makeSrcWithPrefixAndSuffix(
+    filenamePrefix?: string,
+    sizeSuffix?: string
+  ): string {
+    return buildStorageMediaUrl(this.parsed, filenamePrefix, sizeSuffix);
   }
 
   override getData(): MediaSchema {
@@ -175,8 +189,25 @@ export class StorageVideo extends StorageMedia {
     );
   }
 
+  /**
+   * Creates a StorageVideo instance from a MediaSchema.
+   * Useful when working with data from the database that needs to be hydrated into the Media class.
+   */
+  static fromSchema(schema: MediaSchema): StorageVideo {
+    if (schema.type !== MediaType.Video || !schema.isInStorage) {
+      throw new Error(
+        "Schema must be a video type and stored in Firebase Storage"
+      );
+    }
+    return new StorageVideo(
+      schema.src,
+      schema.uid,
+      schema.origin as "user" | "other"
+    );
+  }
+
   getVideoSrc(): string {
-    return this._makeSrc(this.compressedPrefix + this.filename);
+    return this._makeSrcWithPrefixAndSuffix(this.compressedPrefix);
   }
 
   override getPreviewImageSrc(): string {
@@ -212,13 +243,30 @@ export class StorageImage extends StorageMedia {
     this.isProcessing.set(isProcessing);
   }
 
+  /**
+   * Creates a StorageImage instance from a MediaSchema.
+   * Useful when working with data from the database that needs to be hydrated into the Media class.
+   */
+  static fromSchema(schema: MediaSchema): StorageImage {
+    if (schema.type !== MediaType.Image || !schema.isInStorage) {
+      throw new Error(
+        "Schema must be an image type and stored in Firebase Storage"
+      );
+    }
+    return new StorageImage(
+      schema.src,
+      schema.uid,
+      schema.origin as "user" | "other"
+    );
+  }
+
   getSrc(size: number): string {
     if (!this.sizes.includes(size)) {
       throw new Error(
         `Size ${size} not supported. Supported sizes are: ${this.sizes}`
       );
     }
-    return this._makeSrc(this.filename + `_${size}x${size}`, this.extension);
+    return this._makeSrcWithPrefixAndSuffix(undefined, `_${size}x${size}`);
   }
 
   /**

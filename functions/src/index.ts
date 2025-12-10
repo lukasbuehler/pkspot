@@ -13,10 +13,16 @@ export {
 
 // spot functions
 export {
-  updateAllSpotAddresses,
-  computeRatingOnWrite,
-  updateAllEmptyAddressesOnSchedule,
+  updateSpotFieldsOnWrite,
+  updateAllSpotsWithTypesenseFields,
 } from "./spotFunctions";
+
+export {
+  updateAllSpotAddresses,
+  // updateAllEmptyAddressesOnSchedule,
+} from "./spotAddressFunctions";
+
+export { computeRatingOnWrite } from "./spotRatingFunctions";
 
 // spot edit functions
 export { applySpotEditOnCreate } from "./spotEditFunctions";

@@ -79,4 +79,9 @@ export interface SpotSchema {
   hide_streetview?: boolean;
 
   source?: string;
+
+  // Typesense helper fields
+  amenities_true?: string[];
+  amenities_false?: string[];
+  thumbnail_url?: string;
 }

@@ -199,8 +199,7 @@ export class LocalSpot {
     });
 
     // Note: Streetview loading is now instance-method only and requires
-    // dependency injection. This functionality can be added to components that
-    // have access to the MapsApiService instance.
+    // dependency injection.
     // if (!data.hide_streetview && !this.hasMedia()) {
     //   MapsApiService.loadStreetviewForLocation(this.location()).then(
     //     (streetview) => {
