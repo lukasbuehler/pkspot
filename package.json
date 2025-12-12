@@ -73,6 +73,7 @@
     "@types/node": "^22.12.0",
     "@types/xml2js": "^0.4.9",
     "angular-eslint": "20.3.0",
+    "baseline-browser-mapping": "^2.9.6",
     "eslint": "^9.35.0",
     "events": "^3.3.0",
     "firebase-tools": "^14.27.0",
