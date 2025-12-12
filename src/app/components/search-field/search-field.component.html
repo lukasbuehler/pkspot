@@ -28,8 +28,7 @@
       [value]="{ type: 'spot', id: hit.document.id }"
     >
       <div
-        class="d-flex flex-row align-items-center justify-content-start gap-2"
-        style="width: calc(400px - 2 * 16px)"
+        class="d-flex flex-row align-items-center justify-content-start gap-2 pe-3"
       >
         <div class="p-1">
           @if(hit.document.thumbnail_url) {
@@ -39,13 +38,12 @@
             alt=""
             width="50px"
             height="50px"
-            style="margin-left: -16px"
           />
           } @else {
           <!-- spacer -->
           <div
             class="rounded border d-flex justify-content-center align-items-center"
-            style="margin-left: -16px; width: 50px; height: 50px"
+            style="width: 50px; height: 50px"
           >
             <mat-icon>location_on</mat-icon>
           </div>
@@ -75,21 +73,28 @@
             }
           </div>
           <div
-            class="mat-label-medium d-flex flex-row gap-2 align-items-center"
+            class="mat-label-medium d-flex flex-row gap-2 align-items-center overflow-hidden"
           >
             @if(hit.document.type) {
-            <span class="d-flex flex-row gap-1 align-items-center">
+            <span
+              class="d-flex flex-row gap-1 align-items-center overflow-hidden"
+            >
               <mat-icon class="typeOrAccesIcon">{{
                 getSpotTypeIcon(hit.document.type)
               }}</mat-icon>
-              <span>{{ getSpotTypeName(hit.document.type) }}</span></span
+              <span class="text-truncate">{{
+                getSpotTypeName(hit.document.type)
+              }}</span></span
             >
             } @if(hit.document.access) {
-            <span class="d-flex flex-row gap-1 align-items-center"
+            <span
+              class="d-flex flex-row gap-1 align-items-center overflow-hidden"
               ><mat-icon class="typeOrAccesIcon">{{
                 getSpotAccessIcon(hit.document.access)
               }}</mat-icon>
-              <span>{{ getSpotAccessName(hit.document.access) }}</span></span
+              <span class="text-truncate">{{
+                getSpotAccessName(hit.document.access)
+              }}</span></span
             >}
           </div>
         </div>
@@ -124,7 +129,7 @@
       <div class="d-flex flex-row align-items-center p-1 gap-2">
         <div
           class="rounded border d-flex justify-content-center align-items-center"
-          style="margin-left: -16px; width: 50px; height: 50px"
+          style="width: 50px; height: 50px"
         >
           <mat-icon>{{ getPlaceIcon(place.types) }}</mat-icon>
         </div>

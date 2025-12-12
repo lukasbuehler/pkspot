@@ -24,7 +24,7 @@ export class SearchService {
   });
 
   spotSearchParameters = {
-    query_by: "name_search,description_search",
+    query_by: "name_search,description_search,address.formatted",
     sort_by: "_text_match:desc",
     per_page: 5,
     page: 1,
