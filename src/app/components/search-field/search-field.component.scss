@@ -19,3 +19,13 @@
   background-color: transparent;
   width: 100%;
 }
+
+::ng-deep .mat-mdc-option .mat-icon {
+  margin-right: 0px !important;
+}
+
+mat-icon.typeOrAccesIcon {
+  font-size: inherit;
+  width: inherit;
+  height: inherit;
+}

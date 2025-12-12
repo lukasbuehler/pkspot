@@ -18,12 +18,28 @@ import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { SearchResponse } from "typesense/lib/Typesense/Documents";
 import { SpotSchema } from "../../../db/schemas/SpotSchema";
-import { AsyncPipe } from "@angular/common";
+import { AsyncPipe, NgOptimizedImage } from "@angular/common";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatOptionModule } from "@angular/material/core";
 import { SearchService } from "../../services/search.service";
 import { MatInputModule } from "@angular/material/input";
 import { LocaleCode } from "../../../db/models/Interfaces";
+import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
+import {
+  SpotTypes,
+  SpotTypesIcons,
+  SpotTypesNames,
+  SpotAccess,
+  SpotAccessIcons,
+  SpotAccessNames,
+  parseSpotType,
+  parseSpotAccess,
+} from "../../../db/schemas/SpotTypeAndAccess";
+import {
+  AmenitiesMap,
+  AmenityIcons,
+  GeneralAmenities,
+} from "../../../db/schemas/Amenities";
 
 @Component({
   selector: "app-search-field",
@@ -38,6 +54,8 @@ import { LocaleCode } from "../../../db/models/Interfaces";
     MatOptionModule,
     MatSuffix,
     AsyncPipe,
+    // NgOptimizedImage,
+    SpotRatingComponent,
   ],
   templateUrl: "./search-field.component.html",
   styleUrl: "./search-field.component.scss",
@@ -108,5 +126,97 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     } else {
       return $localize`Unnamed Spot`;
     }
+  }
+
+  /**
+   * Maps Google Places types to Material Design icons
+   * Returns the appropriate icon name based on place type
+   */
+  getPlaceIcon(placeTypes: string[] | undefined): string {
+    if (!placeTypes || placeTypes.length === 0) {
+      return "location_on";
+    }
+
+    const type = placeTypes[0].toLowerCase();
+
+    // Map common Google Places types to Material icons
+    const typeIconMap: Record<string, string> = {
+      // Countries and regions
+      country: "public",
+      // Administrative areas
+      administrative_area_level_1: "map",
+      administrative_area_level_2: "location_city",
+      administrative_area_level_3: "location_city",
+      administrative_area_level_4: "location_city",
+      administrative_area_level_5: "location_city",
+      // Cities and towns
+      locality: "location_city",
+      // Streets and postal
+      route: "directions",
+      street_address: "home",
+      postal_code: "mail",
+      // Landmarks and attractions
+      point_of_interest: "star",
+      establishment: "business",
+      // Default
+      default: "location_on",
+    };
+
+    return typeIconMap[type] || typeIconMap["default"];
+  }
+
+  /**
+   * Get the localized name for a spot type
+   */
+  getSpotTypeIcon(typeString?: string): string {
+    if (!typeString) return SpotTypesIcons[SpotTypes.Other];
+    const type = parseSpotType(typeString);
+    return SpotTypesIcons[type];
+  }
+
+  /**
+   * Get the localized name for a spot type
+   */
+  getSpotTypeName(typeString?: string): string {
+    if (!typeString) return SpotTypesNames[SpotTypes.Other];
+    const type = parseSpotType(typeString);
+    return SpotTypesNames[type];
+  }
+
+  /**
+   * Get the localized name for a spot access type
+   */
+  getSpotAccessIcon(accessString?: string): string {
+    if (!accessString) return SpotAccessIcons[SpotAccess.Other];
+    const access = parseSpotAccess(accessString);
+    return SpotAccessIcons[access];
+  }
+
+  /**
+   * Get the localized name for a spot access type
+   */
+  getSpotAccessName(accessString?: string): string {
+    if (!accessString) return SpotAccessNames[SpotAccess.Other];
+    const access = parseSpotAccess(accessString);
+    return SpotAccessNames[access];
+  }
+
+  /**
+   * Get important amenities to display (only those with true value)
+   */
+  getImportantAmenities(
+    amenities?: AmenitiesMap
+  ): { key: keyof AmenitiesMap; icon: string }[] {
+    if (!amenities) return [];
+
+    // Get amenities that are explicitly true
+    const importantAmenities = GeneralAmenities.filter(
+      (key) => amenities[key] === true
+    ).map((key) => ({
+      key,
+      icon: AmenityIcons[key] || "info",
+    }));
+
+    return importantAmenities;
   }
 }

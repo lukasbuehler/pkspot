@@ -440,12 +440,28 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       }
 
       if ("location" in spot) {
-        if (spot.location instanceof GeoPoint) {
-          this.focusPoint({
-            lat: spot.location.latitude,
-            lng: spot.location.longitude,
-          });
-        } else if (typeof spot.location !== "undefined") {
+        if (
+          spot.location instanceof GeoPoint ||
+          typeof spot.location === "object"
+        ) {
+          try {
+            spot.location = spot.location as GeoPoint;
+
+            this.focusPoint({
+              lat: spot.location.latitude,
+              lng: spot.location.longitude,
+            });
+          } catch (error) {
+            console.error(
+              "error focusing spot location (seems not to be GeoPoint even though it should be):",
+              error
+            );
+          }
+        } else if (
+          typeof spot.location === "function" ||
+          typeof spot.location !== "undefined"
+        ) {
+          console.log("function location:", spot.location);
           this.focusPoint(spot.location());
         }
       }

@@ -190,13 +190,6 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       (this.contentRef?.nativeElement as HTMLElement | undefined) ??
       (sheetEl.lastElementChild as HTMLElement | undefined);
 
-    const height = sheetEl.clientHeight;
-    const alwaysVisibleHeight = Math.max(height - this.headerHeight, 0);
-    // Initialize to closed position (offset by alwaysVisible)
-    this.currentOffset = alwaysVisibleHeight;
-    sheetEl.style.transform = `translateY(${alwaysVisibleHeight}px)`;
-    this.emitSheetState(alwaysVisibleHeight, alwaysVisibleHeight);
-
     if (this.contentElement) {
       // Start with scroll disabled since sheet is closed
       this.contentElement.style.overflowY = "hidden";
@@ -206,6 +199,17 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       });
       this.isContentAtTop.set(this.contentElement.scrollTop === 0);
     }
+
+    // Defer height calculation to next microtask to ensure layout is fully computed
+    // This prevents the sheet from starting 10px too high due to incomplete measurements at init
+    Promise.resolve().then(() => {
+      const height = sheetEl.clientHeight;
+      const alwaysVisibleHeight = Math.max(height - this.headerHeight, 0);
+      // Initialize to closed position (offset by alwaysVisible)
+      this.currentOffset = alwaysVisibleHeight;
+      sheetEl.style.transform = `translateY(${alwaysVisibleHeight}px)`;
+      this.emitSheetState(alwaysVisibleHeight, alwaysVisibleHeight);
+    });
 
     const startDrag = (event: PointerEvent) => {
       if (typeof window === "undefined") return;

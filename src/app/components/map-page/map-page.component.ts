@@ -584,7 +584,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
 
-        // Calculate appropriate zoom based on place type
+        // Try to use viewport bounds if available (preferred for proper framing)
+        const viewport = (place as any).viewport as
+          | google.maps.LatLngBounds
+          | undefined;
+        if (viewport) {
+          console.log(
+            "[DEBUG openGooglePlaceById] Using viewport bounds for place"
+          );
+          this.spotMap?.focusBounds(viewport);
+          return;
+        }
+
+        // Fallback: Calculate appropriate zoom based on place type
         const zoomLevel = this.mapsService.getZoomForPlaceType(place);
         console.log(
           "[DEBUG openGooglePlaceById] Calculated zoom level:",

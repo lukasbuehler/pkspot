@@ -231,7 +231,7 @@ export class MapsApiService extends ConsentAwareService {
                   value: placePrediction.text.text || "",
                 },
               ],
-              types: [],
+              types: placePrediction.types || [],
               matched_substrings: [],
               getPlacePrediction: () => {
                 return placePrediction;
@@ -261,6 +261,7 @@ export class MapsApiService extends ConsentAwareService {
           "businessStatus",
           "regularOpeningHours",
           "types",
+          "viewport",
         ],
       });
 
