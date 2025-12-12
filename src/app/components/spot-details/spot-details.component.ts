@@ -127,7 +127,6 @@ import { SpotReviewSchema } from "../../../db/schemas/SpotReviewSchema";
 import { SpotReviewsService } from "../../services/firebase/firestore/spot-reviews.service";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
 import { StructuredDataService } from "../../services/structured-data.service";
-import { Place } from "schema-dts";
 import {
   MatSlideToggle,
   MatSlideToggleChange,
@@ -162,8 +161,8 @@ import { GooglePlacePreviewComponent } from "../google-place-preview/google-plac
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { createUserReference } from "../../../scripts/Helpers";
-
-declare function plausible(eventName: string, options?: { props: any }): void;
+import { AnalyticsService } from "../../services/analytics.service";
+import { MetaTagService } from "../../services/meta-tag.service";
 
 @Pipe({ name: "reverse", standalone: true })
 export class ReversePipe implements PipeTransform {
@@ -281,6 +280,8 @@ export class SpotDetailsComponent
   public locale: LocaleCode = inject(LOCALE_ID);
   private _challengeService = inject(SpotChallengesService);
   private _structuredDataService = inject(StructuredDataService);
+  private _metaTagService = inject(MetaTagService);
+  private _analyticsService = inject(AnalyticsService);
 
   spot = model<Spot | LocalSpot | null>(null);
   notLocalSpotOrNull = computed(() => {
@@ -523,7 +524,7 @@ export class SpotDetailsComponent
   // Google Places linking state (edit mode only)
   placeSearch = new UntypedFormControl("");
   placePredictions: google.maps.places.AutocompletePrediction[] = [];
-  nearbyPlaceResults: google.maps.places.PlaceResult[] = [];
+  nearbyPlaceResults: google.maps.places.Place[] = [];
   linkingPlace = signal<boolean>(false);
   unlinkingPlace = signal<boolean>(false);
 
@@ -564,7 +565,7 @@ export class SpotDetailsComponent
           this.nearbyPlaceResults =
             await this._mapsApiService.getNearbyPlacesByDistance(
               spot.location(),
-              "establishment",
+              "restaurant",
               5
             );
         } else {
@@ -573,13 +574,14 @@ export class SpotDetailsComponent
         this.placePredictions = [];
         return;
       }
-      // With query: use autocomplete filtered by name, biased to location, cap to 5
+      // With query: use autocomplete filtered by name, biased to location, show only top 1 result
       const preds = await this._mapsApiService.autocompletePlaceSearch(
         query,
         ["establishment"],
         biasRect
       );
-      this.placePredictions = preds.slice(0, 5);
+      // Show only the top Google result before nearby places
+      this.placePredictions = preds.slice(0, 1);
     } catch (e) {
       console.warn("Place autocomplete failed", e);
       this.placePredictions = [];
@@ -594,7 +596,7 @@ export class SpotDetailsComponent
       this.nearbyPlaceResults =
         await this._mapsApiService.getNearbyPlacesByDistance(
           spot.location(),
-          "establishment",
+          "restaurant",
           5
         );
     } catch (e) {
@@ -633,10 +635,10 @@ export class SpotDetailsComponent
     }
   }
 
-  async linkPlaceResult(res: google.maps.places.PlaceResult) {
-    if (!res.place_id) return;
+  async linkPlaceResult(res: google.maps.places.Place) {
+    if (!res.id) return;
     // Wrap the place_id in an object compatible with linkPlace signature
-    await this.linkPlace({ place_id: res.place_id } as any);
+    await this.linkPlace({ place_id: res.id } as any);
   }
 
   async unlinkPlace() {
@@ -767,31 +769,16 @@ export class SpotDetailsComponent
   }
 
   ngOnInit() {
-    // add structured data for place
+    // add structured data and meta tags for place
     if (this.spot instanceof Spot) {
-      const placeData: Place = {
-        "@type": "Place",
-        name: this.spot.name(),
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: this.spot.location().lat,
-          longitude: this.spot.location().lng,
-        },
-        keywords: "parkour,spot",
-        image: this.spot.hasMedia() ? this.spot.previewImageSrc() : undefined,
-      };
-
-      const address = this.spot.address();
-      if (address) {
-        placeData.address = {
-          "@type": "PostalAddress",
-          streetAddress: address.formatted,
-          addressLocality: address.locality,
-          addressCountry: address.country?.code,
-        };
-      }
-
+      const placeData = this._structuredDataService.generateSpotPlaceData(
+        this.spot
+      );
       this._structuredDataService.addStructuredData("spot", placeData);
+
+      // Set meta tags with canonical URL (use slug if available, otherwise ID)
+      const canonicalPath = `/map/${this.spot.slug ?? this.spot.id}`;
+      this._metaTagService.setSpotMetaTags(this.spot, canonicalPath);
     }
   }
 
@@ -961,12 +948,11 @@ export class SpotDetailsComponent
       return spot;
     });
 
-    if (typeof plausible !== "undefined") {
-      if (this.spot instanceof Spot) {
-        plausible("Upload Spot Image", {
-          props: { spotId: this.spot.id },
-        });
-      }
+    const currentSpot = this.spot();
+    if (currentSpot instanceof Spot) {
+      this._analyticsService.trackEvent("Upload Spot Image", {
+        spotId: currentSpot.id,
+      });
     }
   }
 
@@ -1016,15 +1002,13 @@ export class SpotDetailsComponent
       );
     }
 
-    if (typeof plausible !== "undefined") {
-      plausible("Share Spot", { props: { spotId: spot.id } });
-    }
+    this._analyticsService.trackEvent("Share Spot", { spotId: spot.id });
   }
 
   openSpotInMaps() {
     const spot = this.spot();
-    if (typeof plausible !== "undefined" && spot instanceof Spot) {
-      plausible("Opening in Maps", { props: { spotId: spot.id } });
+    if (spot instanceof Spot) {
+      this._analyticsService.trackEvent("Opening in Maps", { spotId: spot.id });
     }
     if (spot) this._mapsApiService.openLatLngInMaps(spot.location());
   }
@@ -1046,8 +1030,10 @@ export class SpotDetailsComponent
 
   openDirectionsInMaps() {
     const spot = this.spot();
-    if (typeof plausible !== "undefined" && spot instanceof Spot) {
-      plausible("Opening in Google Maps", { props: { spotId: spot.id } });
+    if (spot instanceof Spot) {
+      this._analyticsService.trackEvent("Opening in Google Maps", {
+        spotId: spot.id,
+      });
     }
 
     if (spot) this._mapsApiService.openDirectionsInMaps(spot.location());
@@ -1102,11 +1088,11 @@ export class SpotDetailsComponent
       .then((place) => {
         const photoUrl = this._mapsApiService.getPhotoURLOfGooglePlace(place);
         this.googlePlace.set({
-          name: place.name ?? "",
-          rating: place.rating,
+          name: place.displayName ?? "",
+          rating: place.rating ?? undefined,
           photo_url: photoUrl ?? undefined,
-          opening_hours: place.opening_hours,
-          url: place.url,
+          opening_hours: place.regularOpeningHours,
+          url: place.websiteURI ?? undefined,
         });
       });
   }

@@ -10,6 +10,8 @@ import { MapsApiService } from "./maps-api.service";
 export class SearchService {
   constructor(private _mapsService: MapsApiService) {}
 
+  readonly TYPESENSE_COLLECTION_SPOTS = "spots_v2";
+
   private readonly client: SearchClient = new SearchClient({
     nodes: [
       {
@@ -22,9 +24,9 @@ export class SearchService {
   });
 
   spotSearchParameters = {
-    query_by: "description,name",
-    sort_by: "_text_match:desc",
-    per_page: 10,
+    query_by: "name_search,description_search,address.formatted",
+    sort_by: "rating:desc",
+    per_page: 5,
     page: 1,
   };
 
@@ -42,7 +44,7 @@ export class SearchService {
     let searchParams = { q: query, ...this.spotSearchParameters };
 
     const typesenseSpotSearchResults = this.client
-      .collections("spots")
+      .collections(this.TYPESENSE_COLLECTION_SPOTS)
       .documents()
       .search(searchParams, {});
 
@@ -56,7 +58,7 @@ export class SearchService {
       googlePlacesSearchResults,
     ]);
 
-    console.log("bothResults:", bothResults);
+    // console.log("bothResults:", bothResults);
 
     if (bothResults[0].status === "rejected") {
       console.error("typesense error:", bothResults[0].reason);

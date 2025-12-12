@@ -77,6 +77,7 @@ import { MatSidenavModule } from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { ChipSelectComponent } from "../chip-select/chip-select.component";
+import { StructuredDataService } from "../../services/structured-data.service";
 
 @Component({
   selector: "app-map-page",
@@ -127,7 +128,7 @@ import { ChipSelectComponent } from "../chip-select/chip-select.component";
     // SpeedDialFabComponent,
     RouterLink,
     ChallengeListComponent,
-    PrimaryInfoPanelComponent,
+    // PrimaryInfoPanelComponent,
     AsyncPipe,
     SpotEditDetailsComponent,
     MatSidenavModule,
@@ -142,6 +143,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   pendingTasks = inject(PendingTasks);
   responsiveService = inject(ResponsiveService);
+  private _structuredDataService = inject(StructuredDataService);
 
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
@@ -158,7 +160,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   hasGeolocation: boolean = false;
 
   visibleSpots: Spot[] = [];
-  highlightedSpots: SpotPreviewData[] = [];
+  private _highlightedSpots: SpotPreviewData[] = [];
+
+  /**
+   * Highlighted spots shown on the map. Setting this also updates
+   * structured data for SEO.
+   */
+  get highlightedSpots(): SpotPreviewData[] {
+    return this._highlightedSpots;
+  }
+  set highlightedSpots(spots: SpotPreviewData[]) {
+    this._highlightedSpots = spots;
+    this._updateHighlightedSpotsStructuredData(spots);
+  }
 
   alainMode: boolean = false;
 
@@ -570,10 +584,49 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openGooglePlaceById(id: string) {
-    this.mapsService.getGooglePlaceById(id).then((place) => {
-      if (!place?.geometry?.viewport) return;
-      this.spotMap?.focusBounds(place.geometry.viewport);
-    });
+    console.log("[DEBUG openGooglePlaceById] Opening place with id:", id);
+    this.mapsService
+      .getGooglePlaceById(id)
+      .then((place) => {
+        console.log("[DEBUG openGooglePlaceById] Got place:", place);
+        if (!place?.location) {
+          console.warn("[DEBUG openGooglePlaceById] No location found");
+          return;
+        }
+
+        // Try to use viewport bounds if available (preferred for proper framing)
+        const viewport = (place as any).viewport as
+          | google.maps.LatLngBounds
+          | undefined;
+        if (viewport) {
+          console.log(
+            "[DEBUG openGooglePlaceById] Using viewport bounds for place"
+          );
+          this.spotMap?.focusBounds(viewport);
+          return;
+        }
+
+        // Fallback: Calculate appropriate zoom based on place type
+        const zoomLevel = this.mapsService.getZoomForPlaceType(place);
+        console.log(
+          "[DEBUG openGooglePlaceById] Calculated zoom level:",
+          zoomLevel
+        );
+
+        // Convert LatLng to LatLngLiteral - location is a LatLng object with functions
+        const lat = (place.location as any).lat();
+        const lng = (place.location as any).lng();
+        const locationLiteral: google.maps.LatLngLiteral = { lat, lng };
+        console.log(
+          "[DEBUG openGooglePlaceById] Location literal:",
+          locationLiteral
+        );
+        console.log("[DEBUG openGooglePlaceById] spotMap:", this.spotMap);
+        this.spotMap?.focusPoint(locationLiteral, zoomLevel);
+      })
+      .catch((err) => {
+        console.error("[DEBUG openGooglePlaceById] Error fetching place:", err);
+      });
   }
 
   async loadSpotById(spotId: SpotId, updateUrl: boolean = true): Promise<Spot> {
@@ -725,10 +778,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Updates the structured data for highlighted spots when they change.
+   * This helps search engines understand the notable parkour spots in the area.
+   */
+  private _updateHighlightedSpotsStructuredData(spots: SpotPreviewData[]) {
+    if (spots.length > 0) {
+      const itemList = this._structuredDataService.generateSpotItemList(
+        spots,
+        $localize`:@@map.highlighted_spots.structured_data_name:Featured Parkour Spots`
+      );
+      this._structuredDataService.addStructuredData(
+        "highlighted-spots",
+        itemList
+      );
+    } else {
+      this._structuredDataService.removeStructuredData("highlighted-spots");
+    }
+  }
+
   ngOnDestroy() {
     console.debug("destroying map page");
     this.closeSpot();
     this._routerSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();
+    this._structuredDataService.removeStructuredData("highlighted-spots");
   }
 }

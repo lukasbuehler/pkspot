@@ -187,7 +187,7 @@ export class MapsApiService extends ConsentAwareService {
     );
   }
 
-  autocompletePlaceSearch(
+  async autocompletePlaceSearch(
     input: string,
     types?: string[],
     biasRect?: google.maps.LatLngBoundsLiteral
@@ -195,139 +195,112 @@ export class MapsApiService extends ConsentAwareService {
     if (!input || input.length === 0) return Promise.resolve([]);
 
     // Use consent-aware execution for Places API calls
-    return this.executeWithConsent(() => {
-      const autocompleteService = new google.maps.places.AutocompleteService();
+    return this.executeWithConsent(async () => {
+      // Use new AutocompleteSuggestion API instead of deprecated AutocompleteService
+      const request: google.maps.places.AutocompleteRequest = {
+        input: input,
+        language: "en",
+      };
 
-      // Normalize and sanitize types: for Autocomplete, allowed include
-      // 'establishment', 'geocode', 'address', '(regions)', '(cities)'.
-      // 'establishment' cannot be mixed with other types. If invalid values
-      // are provided, fall back to a single safe type or omit.
-      const allowed = new Set([
-        "establishment",
-        "geocode",
-        "address",
-        "(regions)",
-        "(cities)",
-      ]);
-      let normalizedTypes: string[] | undefined = undefined;
-      if (Array.isArray(types) && types.length > 0) {
-        const filtered = types.filter((t) => allowed.has(t));
-        if (filtered.includes("establishment")) {
-          normalizedTypes = ["establishment"];
-        } else if (filtered.length > 0) {
-          // Autocomplete supports a single type or specific collections; choose first valid
-          normalizedTypes = [filtered[0]];
-        } else {
-          normalizedTypes = undefined;
-        }
+      // Add location bias if provided
+      if (biasRect) {
+        request.locationBias = biasRect;
       }
 
-      return new Promise<google.maps.places.AutocompletePrediction[]>(
-        (resolve, reject) => {
-          autocompleteService.getPlacePredictions(
-            {
-              input: input,
-              types: normalizedTypes as any,
-              // Use bounds to bias results instead of locationBias to avoid API differences
-              bounds: biasRect as any,
-              language: "en",
-            },
-            (predictions, status) => {
-              if (status !== "OK" && status !== "ZERO_RESULTS") {
-                reject(status);
-                return;
-              }
+      // Note: The new API doesn't support type filtering in the same way.
+      // We'll filter results client-side after fetching suggestions.
 
-              if (predictions) {
-                resolve(predictions);
-              } else {
-                resolve([]);
-              }
-            }
-          );
-        }
-      );
-    });
-  }
-
-  getGooglePlaceById(placeId: string): Promise<google.maps.places.PlaceResult> {
-    // Use consent-aware execution for Places API calls
-    return this.executeWithConsent(() => {
-      const placesService = new google.maps.places.PlacesService(
-        document.createElement("div")
-      );
-
-      return new Promise<google.maps.places.PlaceResult>((resolve, reject) => {
-        placesService.getDetails(
-          {
-            placeId: placeId,
-            fields: [
-              "name",
-              "geometry",
-              "photos",
-              "rating",
-              "url",
-              "opening_hours",
-              "business_status",
-            ],
-          },
-          (place, status) => {
-            if (status !== "OK") {
-              reject(status);
-              return;
-            }
-
-            if (place) {
-              resolve(place);
-            }
-          }
+      const { suggestions } =
+        await google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+          request
         );
-      });
+
+      // Convert new suggestions format to legacy AutocompletePrediction format
+      // for backward compatibility
+      const predictions: google.maps.places.AutocompletePrediction[] =
+        suggestions
+          .filter((s) => s.placePrediction)
+          .map((suggestion) => {
+            const placePrediction = suggestion.placePrediction!;
+            return {
+              place_id: placePrediction.placeId || "",
+              description: placePrediction.text.text || "",
+              terms: [
+                {
+                  offset: 0,
+                  value: placePrediction.text.text || "",
+                },
+              ],
+              types: placePrediction.types || [],
+              matched_substrings: [],
+              getPlacePrediction: () => {
+                return placePrediction;
+              },
+            } as any;
+          });
+
+      return predictions;
     });
   }
 
-  getGooglePlaceByLocation(
+  async getGooglePlaceById(placeId: string): Promise<google.maps.places.Place> {
+    // Use consent-aware execution for Places API calls
+    return this.executeWithConsent(async () => {
+      const place = new google.maps.places.Place({
+        id: placeId,
+        requestedLanguage: "en",
+      });
+
+      await place.fetchFields({
+        fields: [
+          "displayName",
+          "location",
+          "photos",
+          "rating",
+          "websiteURI",
+          "businessStatus",
+          "regularOpeningHours",
+          "types",
+          "viewport",
+        ],
+      });
+
+      return place;
+    });
+  }
+
+  async getGooglePlaceByLocation(
     location: google.maps.LatLngLiteral,
     type: string = "point_of_interest",
     radius: number = 200
-  ): Promise<google.maps.places.PlaceResult> {
+  ): Promise<google.maps.places.Place | null> {
     // Use consent-aware execution for Places API calls
-    return this.executeWithConsent(() => {
-      const placesService = new google.maps.places.PlacesService(
-        document.createElement("div")
-      );
+    return this.executeWithConsent(async () => {
+      const request: google.maps.places.SearchNearbyRequest = {
+        fields: ["displayName", "location", "businessStatus"],
+        locationRestriction: {
+          center: location,
+          radius: radius,
+        },
+        includedPrimaryTypes: [type],
+        maxResultCount: 1,
+      };
 
-      return new Promise<google.maps.places.PlaceResult>((resolve, reject) => {
-        placesService.nearbySearch(
-          {
-            location: location,
-            radius: 200,
-            type: type,
-          },
-          (results, status) => {
-            if (status !== "OK") {
-              reject(status);
-              return;
-            }
-
-            if (results) {
-              resolve(results[0]);
-            }
-          }
-        );
-      });
+      const { places } = await google.maps.places.Place.searchNearby(request);
+      return places.length > 0 ? places[0] : null;
     });
   }
 
   getPhotoURLOfGooglePlace(
-    place: google.maps.places.PlaceResult,
+    place: google.maps.places.Place,
     maxWidth: number = 200,
     maxHeight: number = 200
   ): string | null {
-    let photos = place.photos;
+    // Get photos from the Place object using the new API structure
+    const photos = place.photos;
     if (!photos || photos.length === 0) return null;
 
-    return photos[0].getUrl({ maxWidth: maxWidth, maxHeight: maxHeight });
+    return photos[0].getURI({ maxWidth: maxWidth, maxHeight: maxHeight });
   }
 
   getStaticStreetViewImageForLocation(
@@ -385,75 +358,70 @@ export class MapsApiService extends ConsentAwareService {
     });
   }
 
-  // Keep static method for backward compatibility but make it consent-aware
-  static async loadStreetviewForLocation(
-    location: google.maps.LatLngLiteral
-  ): Promise<ExternalImage | undefined> {
-    console.warn(
-      "Using deprecated static method - please use instance method for consent awareness"
+  /**
+   * Calculate appropriate zoom level based on place type.
+   * Returns higher zoom (more zoomed in) for smaller/more specific places,
+   * and lower zoom (more zoomed out) for larger/broader areas.
+   */
+  getZoomForPlaceType(place: google.maps.places.Place): number {
+    const types = (place as any).types as string[] | undefined;
+    if (!types || types.length === 0) return 16; // default zoom
+
+    // Check for specific place types that should have more detailed zoom
+    const detailedTypes = [
+      "restaurant",
+      "cafe",
+      "bar",
+      "store",
+      "shopping_mall",
+      "point_of_interest",
+      "premise",
+      "street_address",
+      "locality",
+    ];
+
+    const isDetailedType = types.some((t) =>
+      detailedTypes.some((dt) => t.includes(dt))
     );
-    // This static method should ideally be avoided in favor of the instance method
-    // but kept for backward compatibility
-    return fetch(
-      `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
-        location.lat
-      },${
-        location.lng
-      }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-        environment.keys.firebaseConfig.apiKey
-      }`
-    )
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        if (data.status !== "ZERO_RESULTS") {
-          // street view media
-          return new ExternalImage(
-            `https://maps.googleapis.com/maps/api/streetview?size=800x800&location=${
-              location.lat
-            },${
-              location.lng
-            }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-              environment.keys.firebaseConfig.apiKey
-            }`,
-            "streetview"
-          );
-        }
-      });
+
+    // Broader place types
+    const broaderTypes = [
+      "administrative_area_level_1",
+      "country",
+      "postal_code",
+    ];
+    const isBroaderType = types.some((t) =>
+      broaderTypes.some((bt) => t.includes(bt))
+    );
+
+    if (isDetailedType) return 18; // High zoom for specific places
+    if (isBroaderType) return 10; // Low zoom for countries/states
+    return 15; // Medium zoom default
   }
 
   /**
    * Fetch nearby places sorted by distance from a given location.
    * Returns up to maxResults places (default 5).
    */
-  getNearbyPlacesByDistance(
+  async getNearbyPlacesByDistance(
     location: google.maps.LatLngLiteral,
-    type: string = "establishment",
+    type: string = "restaurant",
     maxResults: number = 5
-  ): Promise<google.maps.places.PlaceResult[]> {
-    return this.executeWithConsent(() => {
-      const placesService = new google.maps.places.PlacesService(
-        document.createElement("div")
-      );
-      return new Promise<google.maps.places.PlaceResult[]>(
-        (resolve, reject) => {
-          placesService.nearbySearch(
-            {
-              location,
-              rankBy: google.maps.places.RankBy.DISTANCE,
-              type: type as any,
-            } as any,
-            (results, status) => {
-              if (status !== "OK" && status !== "ZERO_RESULTS") {
-                reject(status);
-                return;
-              }
-              resolve((results ?? []).slice(0, Math.max(0, maxResults)));
-            }
-          );
-        }
-      );
+  ): Promise<google.maps.places.Place[]> {
+    return this.executeWithConsent(async () => {
+      const request: google.maps.places.SearchNearbyRequest = {
+        fields: ["displayName", "location", "businessStatus"],
+        locationRestriction: {
+          center: location,
+          radius: 50000, // 50km radius for distance-based search
+        },
+        includedPrimaryTypes: [type],
+        maxResultCount: maxResults,
+        rankPreference: google.maps.places.SearchNearbyRankPreference.DISTANCE,
+      };
+
+      const { places } = await google.maps.places.Place.searchNearby(request);
+      return places;
     });
   }
 }

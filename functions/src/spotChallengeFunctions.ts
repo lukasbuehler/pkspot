@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import { SpotChallengeSchema } from "../../src/db/schemas/SpotChallengeSchema";
 
 export const setTopChallengesForSpotOnWrite = onDocumentWritten(
   "spots/{spotId}/challenges/{challengeId}",
@@ -16,8 +17,8 @@ export const setTopChallengesForSpotOnWrite = onDocumentWritten(
         const topChallenges = snapshot.docs
           .filter((doc) => {
             // only keep if the release date is in the past if it has one
-            const data = doc.data();
-            const releaseDate: Timestamp | null = data["release_date"] ?? null;
+            const data = doc.data() as SpotChallengeSchema;
+            const releaseDate: Timestamp | null = data.release_date ?? null;
             const isReleased =
               !releaseDate || Date.now() >= releaseDate.toDate().getTime();
             const hasMedia = !!data["media"];
@@ -25,14 +26,14 @@ export const setTopChallengesForSpotOnWrite = onDocumentWritten(
             return isReleased && hasMedia;
           })
           .sort((docA, docB) => {
-            const a = docA.data();
-            const b = docB.data();
-            return b["num_posts"] - a["num_posts"];
+            const a = docA.data() as SpotChallengeSchema;
+            const b = docB.data() as SpotChallengeSchema;
+            return (b.num_posts ?? 0) - (a.num_posts ?? 0);
           })
           .sort((docA, docB) => {
-            const a = docA.data();
-            const b = docB.data();
-            if (a["is_completed"] && !b["is_completed"]) {
+            const a = docA.data() as SpotChallengeSchema;
+            const b = docB.data() as SpotChallengeSchema;
+            if (a.is_completed && !b.is_completed) {
               return -1;
             } else if (!a["is_completed"] && b["is_completed"]) {
               return 1;

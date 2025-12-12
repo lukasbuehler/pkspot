@@ -12,6 +12,7 @@ export interface MetaTagData {
   title: string;
   description: string;
   image: string;
+  canonical?: string;
 }
 
 @Injectable({
@@ -27,7 +28,12 @@ export class MetaTagService {
     this.isServer = isPlatformServer(this.platformId);
   }
 
-  public setMetaTags(title: string, image_src: string, description: string) {
+  public setMetaTags(
+    title: string,
+    image_src: string,
+    description: string,
+    canonicalUrl?: string
+  ) {
     image_src = image_src.trim();
 
     // Title
@@ -64,12 +70,34 @@ export class MetaTagService {
       name: "twitter:description",
       content: description,
     });
+
+    // Canonical URL
+    if (canonicalUrl) {
+      this.setCanonicalUrl(canonicalUrl);
+    }
   }
 
   /**
-   * Sets meta tags for a spot
+   * Sets the canonical URL for the current page
    */
-  public setSpotMetaTags(spot: Spot | LocalSpot): void {
+  public setCanonicalUrl(url: string): void {
+    // Remove existing canonical tag if present
+    const existingCanonical = document.querySelector('link[rel="canonical"]');
+    if (existingCanonical) {
+      existingCanonical.remove();
+    }
+
+    // Add new canonical tag
+    const link = document.createElement("link");
+    link.rel = "canonical";
+    link.href = url;
+    document.head.appendChild(link);
+  }
+
+  /**
+   * Sets meta tags for a spot with canonical URL
+   */
+  public setSpotMetaTags(spot: Spot | LocalSpot, canonicalPath?: string): void {
     const title = spot.name();
     const image =
       spot.previewImageSrc() ?? "https://pkspot.app/assets/banner_1200x630.png";
@@ -99,14 +127,19 @@ export class MetaTagService {
       description += spot.description();
     }
 
-    this.setMetaTags(title, image, description);
+    // Build canonical URL using slug if available
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+    this.setMetaTags(title, image, description, canonical);
   }
 
   /**
-   * Sets meta tags for a challenge
+   * Sets meta tags for a challenge with canonical URL
    */
   public setChallengeMetaTags(
-    challenge: SpotChallenge | LocalSpotChallenge
+    challenge: SpotChallenge | LocalSpotChallenge,
+    canonicalPath?: string
   ): void {
     const spotName = challenge.spot.name();
     const challengeName = challenge.name();
@@ -137,13 +170,16 @@ export class MetaTagService {
       }
     }
 
-    this.setMetaTags(title, image, description);
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+    this.setMetaTags(title, image, description, canonical);
   }
 
   /**
-   * Sets meta tags for an event
+   * Sets meta tags for an event with canonical URL
    */
-  public setEventMetaTags(event: any): void {
+  public setEventMetaTags(event: any, canonicalPath?: string): void {
     // TODO: Replace 'any' with proper Event type when you have it
     const title = event.name || "Event";
     const image =
@@ -151,80 +187,110 @@ export class MetaTagService {
     const description =
       event.description || "Join us for this exciting parkour event!";
 
-    this.setMetaTags(title, image, description);
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+    this.setMetaTags(title, image, description, canonical);
   }
 
   /**
-   * Sets meta tags for a user profile
+   * Sets meta tags for a user profile with canonical URL
    */
-  public setUserMetaTags(user: any): void {
+  public setUserMetaTags(user: any, canonicalPath?: string): void {
     // TODO: Replace 'any' with proper User type when you have it
     const title = `${user.displayName || user.name || "User"} - PK Spot`;
     const image =
       user.profilePicture || "https://pkspot.app/assets/banner_1200x630.png";
+    const displayName = user.displayName || "this user";
+    const possessive = displayName.endsWith("s")
+      ? `${displayName}'`
+      : `${displayName}'s`;
     const description =
-      user.bio ||
-      `Check out ${user.displayName || "this user"}'s profile on PK Spot.`;
+      user.bio || `Check out ${possessive} profile on PK Spot.`;
 
-    this.setMetaTags(title, image, description);
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+    this.setMetaTags(title, image, description, canonical);
   }
 
   /**
-   * Sets meta tags for a post
+   * Sets meta tags for a post with canonical URL
    */
-  public setPostMetaTags(post: any): void {
+  public setPostMetaTags(post: any, canonicalPath?: string): void {
     // TODO: Replace 'any' with proper Post type when you have it
     const title = post.title || "Post - PK Spot";
     const image = post.image || "https://pkspot.app/assets/banner_1200x630.png";
     const description =
       post.description || post.content || "Check out this post on PK Spot.";
 
-    this.setMetaTags(title, image, description);
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+    this.setMetaTags(title, image, description, canonical);
   }
 
   /**
-   * Sets meta tags for static pages
+   * Sets meta tags for static pages with canonical URL
    */
   public setStaticPageMetaTags(
     pageTitle: string,
     pageDescription: string,
-    pageImage?: string
+    pageImage?: string,
+    canonicalPath?: string
   ): void {
     const title = `${pageTitle} - PK Spot`;
     const image = pageImage || "https://pkspot.app/assets/banner_1200x630.png";
     const description = pageDescription;
 
-    this.setMetaTags(title, image, description);
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+    this.setMetaTags(title, image, description, canonical);
   }
 
   /**
-   * Sets default map meta tags
+   * Sets default map meta tags with canonical URL
    */
-  public setDefaultMapMetaTags(): void {
+  public setDefaultMapMetaTags(canonicalPath?: string): void {
     const title = $localize`:@@pk.spotmap.title:PK Spot Map`;
     const description =
       "Discover, Train, Share. Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world.";
     const image = "/assets/banner_1200x630.png";
 
-    this.setMetaTags(title, image, description);
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+    this.setMetaTags(title, image, description, canonical);
   }
 
   /**
-   * Sets default home page meta tags
+   * Sets default home page meta tags with canonical URL
    */
-  public setHomeMetaTags(): void {
+  public setHomeMetaTags(canonicalPath?: string): void {
     const title = "PK Spot - Discover, Train, Share";
     const description =
       "The ultimate platform for parkour and freerunning enthusiasts. Discover spots, plan training sessions, and share your achievements with the community.";
     const image = "/assets/banner_1200x630.png";
 
-    this.setMetaTags(title, image, description);
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+    this.setMetaTags(title, image, description, canonical);
   }
 
   /**
    * Generic method to set meta tags from data object
    */
   public setMetaTagsFromData(data: MetaTagData): void {
-    this.setMetaTags(data.title, data.image, data.description);
+    this.setMetaTags(data.title, data.image, data.description, data.canonical);
+  }
+
+  /**
+   * Builds a full canonical URL from a path
+   */
+  private buildCanonicalUrl(path: string): string {
+    // Use the default locale (en) for canonical URLs to avoid duplicate content signals
+    return `https://pkspot.app/en${path}`;
   }
 }

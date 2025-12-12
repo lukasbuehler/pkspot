@@ -1,6 +1,6 @@
 <section id="privacy-policy" class="p-5">
   <h1>PK Spot - Privacy Policy</h1>
-  <p><em>Last Updated: 12. August 2025</em></p>
+  <p><em>Last Updated: 7. December 2025</em></p>
 
   <p>
     Your privacy is important to us. This Privacy Policy explains how PK Spot
@@ -46,14 +46,15 @@
       <strong>Legitimate Interests:</strong> To ensure the security and
       functionality of our website, analyze traffic with privacy-respecting
       tools, and protect against spam (Art. 6(1)(f) GDPR). In particular, we use
-      <strong>Plausible Analytics</strong> on the basis of our legitimate
+      <strong>PostHog Analytics</strong> on the basis of our legitimate
       interests in measuring the reach and performance of our website and in
-      improving the user experience. Plausible is a privacy-friendly analytics
-      service that does not use cookies and collects only aggregated,
-      non-identifying usage data. You can object to processing based on
-      legitimate interests at any time by contacting us (see Impressum). If your
-      browser or device blocks analytics or has strict tracking prevention
-      enabled, we respect that.
+      improving the user experience. PostHog is configured with privacy-friendly
+      settings: we use the EU data center (eu.i.posthog.com), respect the
+      browser's "Do Not Track" setting, use localStorage instead of cookies, and
+      only create person profiles for identified (logged-in) users. You can
+      object to processing based on legitimate interests at any time by
+      contacting us (see Impressum). If your browser or device blocks analytics
+      or has strict tracking prevention enabled, we respect that.
     </li>
     <li>
       <strong>Consent:</strong> When you agree to our terms and policies upon
@@ -114,13 +115,13 @@
         <td style="border: 1px solid #ddd; padding: 8px">
           <strong>Website Analytics</strong>
         </td>
+        <td style="border: 1px solid #ddd; padding: 8px">PostHog (EU)</td>
         <td style="border: 1px solid #ddd; padding: 8px">
-          Plausible Analytics
-        </td>
-        <td style="border: 1px solid #ddd; padding: 8px">
-          To measure website traffic and improve our services. Plausible is a
-          privacy-focused tool that <strong>does not use cookies</strong> and
-          collects only aggregated, anonymous data.
+          To measure website traffic and improve our services. PostHog is
+          configured with privacy-friendly settings: data is stored in the EU,
+          we respect "Do Not Track" browser settings, use localStorage instead
+          of cookies, and only create person profiles for identified (logged-in)
+          users.
         </td>
       </tr>
       <tr>
@@ -183,11 +184,11 @@
 
   <h2>6. International Data Transfers</h2>
   <p>
-    Our service providers (Plausible, Google) may process data outside of
-    Switzerland. Plausible's servers are in the EU, which has an adequate level
-    of data protection. For data transfers to Google in the USA, we rely on
-    appropriate safeguards, such as the Swiss-U.S. Data Privacy Framework, to
-    ensure your data is protected.
+    Our service providers (PostHog, Google) may process data outside of
+    Switzerland. PostHog is configured to use servers in the EU
+    (eu.i.posthog.com), which has an adequate level of data protection. For data
+    transfers to Google in the USA, we rely on appropriate safeguards, such as
+    the Swiss-U.S. Data Privacy Framework, to ensure your data is protected.
   </p>
 
   <h2>7. Data Retention and User Rights</h2>

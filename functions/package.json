@@ -11,7 +11,7 @@
     "logs": "firebase functions:log"
   },
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "lib/functions/src/index.js",
   "devDependencies": {
@@ -29,8 +29,8 @@
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@google-cloud/secret-manager": "^6.1.1",
-    "firebase-admin": "^13.2.0",
-    "firebase-functions": "^6.3.2",
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^6.0.0",
     "fluent-ffmpeg": "^2.1.3"
   }
 }

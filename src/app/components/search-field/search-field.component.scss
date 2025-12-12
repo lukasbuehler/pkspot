@@ -2,6 +2,7 @@
   height: 56px;
   overflow: hidden;
   border: none;
+  // width: 100%;
 
   ::ng-deep .mat-mdc-form-field-subscript-wrapper,
   ::ng-deep .mdc-line-ripple {
@@ -17,5 +18,34 @@
 
 :host {
   background-color: transparent;
+  width: 100%;
+  // display: block;
+  // position: relative;
+}
+
+::ng-deep .mat-mdc-option .mat-icon {
+  margin-right: 0px !important;
+}
+
+mat-icon.typeOrAccesIcon {
+  font-size: inherit;
+  width: inherit;
+  height: inherit;
+}
+
+::ng-deep .mat-mdc-autocomplete-panel {
+  border-radius: 16px !important;
+}
+
+::ng-deep .spot-autocomplete-panel {
+  min-width: auto !important;
+}
+
+::ng-deep mat-option.spotAutocompleteOption {
+  padding: 0px !important;
+}
+
+::ng-deep mat-option .mdc-list-item__primary-text {
+  overflow: hidden;
   width: 100%;
 }

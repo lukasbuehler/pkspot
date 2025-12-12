@@ -1,8 +1,8 @@
 // import { GeoPoint } from "@firebase/firestore";
 import { LocaleCode } from "../../src/db/models/Interfaces";
-import { AnyMedia } from "../../src/db/models/Media";
+// import { AnyMedia } from "../../src/db/models/Media";
 import { SpotSchema as DbSpotSchema } from "../../src/db/schemas/SpotSchema";
-import { makeAnyMediaFromMediaSchema } from "../../src/scripts/Helpers";
+import { getMediaPreviewImageUrl } from "../../src/db/schemas/Media";
 
 export type SpotSchema = DbSpotSchema;
 export type PartialSpotSchema = Partial<SpotSchema>;
@@ -97,12 +97,18 @@ export function getSpotName(
 }
 
 export function getSpotPreviewImage(spotSchema: PartialSpotSchema): string {
-  const media: AnyMedia[] | undefined = spotSchema.media?.map((mediaSchema) =>
-    makeAnyMediaFromMediaSchema(mediaSchema)
-  );
+  if (spotSchema.media && spotSchema.media.length > 0) {
+    // Get the first image in the media array
+    const firstImage = spotSchema.media.find(
+      (mediaSchema) => mediaSchema.isInStorage && mediaSchema.type === "image"
+    );
 
-  if (media && media.length > 0) {
-    return media[0].getPreviewImageSrc();
+    if (firstImage) {
+      return getMediaPreviewImageUrl(firstImage);
+    }
+
+    // Fallback to first media item if no image found
+    return getMediaPreviewImageUrl(spotSchema.media[0]);
   }
 
   return "";

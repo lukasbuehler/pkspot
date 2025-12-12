@@ -1,0 +1,50 @@
+{
+  "name": "spots_v2",
+  "fields": [
+    { "name": "name", "type": "object", "optional": true, "index": false },
+    {
+      "name": "description",
+      "type": "object",
+      "optional": true,
+      "index": false
+    },
+    { "name": "name_search", "type": "string[]", "optional": true },
+    { "name": "description_search", "type": "string[]", "optional": true },
+    { "name": "thumbnail_url", "type": "string", "optional": true },
+    { "name": "address.formatted", "type": "string", "optional": true },
+    {
+      "name": "address.locality",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "address.country.code",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "amenities_true",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "amenities_false",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    { "name": "type", "type": "string", "facet": true, "optional": true },
+    { "name": "access", "type": "string", "facet": true, "optional": true },
+
+    { "name": "rating", "type": "float", "optional": false },
+    { "name": "location", "type": "geopoint" },
+
+    { "name": "id", "type": "string" },
+    { "name": "_force_sync", "type": "int64", "optional": true, "index": false }
+  ],
+  "default_sorting_field": "rating",
+  "enable_nested_fields": true
+}
