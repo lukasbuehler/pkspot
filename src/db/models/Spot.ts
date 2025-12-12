@@ -63,14 +63,22 @@ export class LocalSpot {
   readonly hasMedia: Signal<boolean>;
   readonly previewImageSrc: Signal<string>;
 
-  readonly isEligableForHighlights: Signal<boolean> = computed(() => {
+  isEligableForHighlights: Signal<boolean> = computed(() => {
     return (
-      this.userMedia().length > 0 && this.rating !== null && this.rating > 0
+      this.userMedia().length > 0 && this.hasRating()
     );
   });
   isIconic: boolean = false;
-  rating: number | null = null; // from 1 to 5, set by cloud function.
+  rating: number = 0; // from 0-5, where 0 means no rating. Default is 0, 1-5 set by cloud function.
   numReviews: number; // integer
+
+  /**
+   * Returns true if the spot has a rating (rating > 0).
+   * Treats 0 as no rating (null/undefined equivalent).
+   */
+  hasRating(): boolean {
+    return this.rating > 0;
+  }
   ratingHistogram: WritableSignal<{
     "1": number;
     "2": number;
@@ -230,7 +238,7 @@ export class LocalSpot {
     });
 
     this.isIconic = data.is_iconic ?? false;
-    this.rating = data.rating ?? null;
+    this.rating = data.rating ?? 0;
     this.numReviews = data.num_reviews ?? 0;
     this.ratingHistogram = signal(
       data.rating_histogram ?? {
@@ -386,7 +394,7 @@ export class LocalSpot {
     // Do not mutate _streetview here; it is derived separately
 
     this.isIconic = data.is_iconic ?? false;
-    this.rating = data.rating ?? null;
+    this.rating = data.rating ?? 0;
     this.numReviews = data.num_reviews ?? 0;
     this.ratingHistogram.set(
       data.rating_histogram ?? { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
@@ -477,7 +485,7 @@ export class LocalSpot {
       description: this.descriptions(),
       media: mediaSchema,
       is_iconic: this.isIconic,
-      rating: this.rating ?? undefined, // undefined will be removed
+      rating: this.rating || undefined, // 0 will be removed (0 means no rating)
       num_reviews: this.numReviews,
       rating_histogram: this.ratingHistogram(),
       highlighted_reviews: this.highlightedReviews,
@@ -645,7 +653,7 @@ export class Spot extends LocalSpot {
       locality: this.localityString(),
       imageSrc: this.previewImageSrc(),
       isIconic: this.isIconic,
-      rating: this.rating ?? undefined,
+      rating: this.rating || undefined,
       amenities: this.amenities(),
     };
   }

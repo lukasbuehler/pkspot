@@ -199,8 +199,8 @@ async function _clusterAllSpots() {
             return {
               ...spot,
               score: spot.isIconic
-                ? Math.max(spot.rating ?? 1, iconicScore)
-                : spot.rating ?? 2,
+                ? Math.max(spot.rating || 1, iconicScore)
+                : spot.rating || 2,
             };
           })
           .sort((a, b) => b.score - a.score)

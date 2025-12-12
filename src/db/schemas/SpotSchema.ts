@@ -43,7 +43,7 @@ export interface SpotSchema {
   num_challenges?: number; // integer
 
   is_iconic?: boolean;
-  rating?: number; // from 1 to 5, set by cloud function.
+  rating?: number; // from 0-5, where 0 means no rating. Default is 0, 1-5 set by cloud function.
   num_reviews?: number; // integer
   rating_histogram?: {
     1: number;
@@ -84,4 +84,6 @@ export interface SpotSchema {
   amenities_true?: string[];
   amenities_false?: string[];
   thumbnail_url?: string;
+  name_search?: string[];
+  description_search?: string[];
 }

@@ -108,29 +108,6 @@ export const getAddressAndLocaleFromGeopoint = async (
 };
 
 /**
- * Update the address of a spot when the location changes.
- * This function is triggered when a spot is written (created, updated or deleted).
- */
-// export const updateSpotAddressOnWrite = functions.firestore.onDocumentWritten(
-//   "spots/{spotId}",
-//   async (event) => {
-//     // if the location of the spot has changed, call Googles reverse geocoding to get the address.
-//     if (
-//       !(event.data?.before?.data()?.location as GeoPoint).isEqual(
-//         event.data?.after?.data()?.location
-//       )
-//     ) {
-//       const location = event.data?.after?.data()?.location as GeoPoint;
-
-//       const address = await updateSpotAddressFromLocation(location);
-
-//       return event.data?.after?.ref.update({ address: address });
-//     }
-//     return;
-//   }
-// );
-
-/**
  * Update the addresses of all existing spots.
  */
 export const updateAllSpotAddresses = onDocumentCreated(
@@ -166,63 +143,3 @@ export const updateAllSpotAddresses = onDocumentCreated(
     return event.data?.ref.delete();
   }
 );
-
-// export const updateAllEmptyAddressesOnSchedule = onSchedule(
-//   "every day 02:00", // UTC?
-//   async () => {
-//     const apiKey = googleAPIKey.value();
-//     const snapshot = await admin
-//       .firestore()
-//       .collection("spots")
-//       .where("address", "==", null)
-//       .get();
-
-//     for (const docSnapshot of snapshot.docs) {
-//       const currentSpot = docSnapshot.data() as SpotSchema;
-//       if (currentSpot.address) {
-//         continue;
-//       }
-
-//       const coordinates = currentSpot.location;
-//       const latitude = coordinates?.latitude;
-//       const longitude = coordinates?.longitude;
-
-//       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-//         console.warn(
-//           "Skipping spot without usable coordinates",
-//           docSnapshot.id,
-//           coordinates
-//         );
-//         continue;
-//       }
-
-//       try {
-//         const [freshAddress] = await updateSpotAddressFromLocation(
-//           coordinates,
-//           apiKey
-//         );
-//         const hasDetails =
-//           freshAddress.formatted ||
-//           freshAddress.country ||
-//           freshAddress.locality ||
-//           freshAddress.sublocality;
-
-//         if (!hasDetails) {
-//           console.warn("Reverse geocoding yielded no address", docSnapshot.id);
-//           continue;
-//         }
-
-//         await docSnapshot.ref.update({ address: freshAddress });
-//         console.log("Stored address for spot", docSnapshot.id);
-//       } catch (error: unknown) {
-//         console.error(
-//           "Unable to update address for spot",
-//           docSnapshot.id,
-//           error
-//         );
-//       }
-//     }
-
-//     console.info("Nightly missing-address backfill completed");
-//   }
-// );

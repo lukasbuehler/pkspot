@@ -56,8 +56,10 @@
       <div
         class="d-flex flex-column flex-grow-1 justify-content-center text-truncate"
       >
+        @if(spot()?.rating || spot()!.importantAmenitiesArray().length > 0 ||
+        spot()?.type() !== "other" || spot()?.access() !== "other") {
         <div class="d-flex flex-row gap-1 align-items-center pb-1">
-          <span class="mat-label-small px-1 border rounded me-1">Spot</span>
+          <!-- <span class="mat-label-small px-1 border rounded me-1">Spot</span> -->
           @if(spot()?.rating) {
           <span class="d-flex align-items-center gap-1 flex-shrink-0">
             <app-fancy-counter
@@ -126,8 +128,7 @@
             {{ spotAccessNames[spot()!.access()] }}</span
           >}
         </div>
-
-        @if(spot()?.address()) {
+        } @if(spot()?.address()) {
         <span class="text-truncate">{{ spot()!.localityString() }}</span>
         }
       </div>

@@ -60,6 +60,41 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
     }
   }
 
+  //// 4. name_search
+
+  if (spotData.name && Object.keys(spotData.name).length > 0) {
+    const nameSearch: string[] = [];
+    Object.values(spotData.name).forEach((nameMap) => {
+      if (typeof nameMap === "string") {
+        nameSearch.push(nameMap);
+      } else if ("text" in nameMap) {
+        nameSearch.push(nameMap.text);
+      }
+    });
+    spotDataToUpdate.name_search = nameSearch;
+  }
+
+  //// 5. description_search
+
+  if (spotData.description && Object.keys(spotData.description).length > 0) {
+    const descriptionSearch: string[] = [];
+    Object.values(spotData.description).forEach((descriptionMap) => {
+      if (typeof descriptionMap === "string") {
+        descriptionSearch.push(descriptionMap);
+      } else if ("text" in descriptionMap) {
+        descriptionSearch.push(descriptionMap.text);
+      }
+    });
+    spotDataToUpdate.description_search = descriptionSearch;
+  }
+
+  //// 6. Set rating to zero if not set
+  if (spotData.rating === undefined || spotData.rating === null) {
+    spotDataToUpdate.rating = 0;
+  }
+
+  //// Return the fields to update
+
   return spotDataToUpdate;
 };
 
@@ -77,9 +112,14 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
 
     let spotDataToUpdate: Partial<SpotSchema> = {};
 
-    //// 1. Update the address if the location changed
+    //// 1. Update the address if the location changed OR if there is no address yet.
     // if the location of the spot has changed, call Googles reverse geocoding to get the address.
-    if (!(beforeData.location as GeoPoint).isEqual(afterData.location)) {
+    if (
+      beforeData === undefined ||
+      beforeData.location === undefined ||
+      !(beforeData.location as GeoPoint).isEqual(afterData.location) ||
+      !afterData.address
+    ) {
       const location = afterData.location as GeoPoint;
 
       try {
