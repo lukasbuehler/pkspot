@@ -1229,6 +1229,44 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   ngAfterViewInit() {
     // Expose main component for debugging if needed
     (window as any).mapComponent = this;
+
+    // Position Google Maps logo above bottom sheet by finding the element with "Google Maps" title
+    // and adjusting its parent's bottom position since the API doesn't provide padding options
+    this.positionGoogleMapsLogo();
+  }
+
+  /**
+   * Finds the Google Maps logo element by its title attribute and adjusts its parent's
+   * bottom position to account for the bottom sheet (150px).
+   */
+  private positionGoogleMapsLogo(): void {
+    // Use a small delay to ensure the logo is fully rendered
+    setTimeout(() => {
+      // Get the native Google Map instance
+      const googleMapInstance = this.googleMap?.googleMap;
+      const mapContainer = googleMapInstance?.getDiv();
+      if (!mapContainer) return;
+
+      // Find the element with "Google Maps" in the title
+      const logoElements = mapContainer.querySelectorAll(
+        '[title*="Google Maps"]'
+      );
+      console.log("Found Google Maps logo elements:", logoElements);
+
+      if (logoElements.length > 0) {
+        logoElements.forEach((element: Element) => {
+          // Get the parent element that we need to adjust
+          const parent = element.parentElement;
+          if (parent) {
+            parent.classList.add("gm-logo");
+            // Force reflow to ensure animation plays
+            void parent.offsetHeight;
+            // Add animate class to trigger the fade-in animation
+            parent.classList.add("gm-logo-animate");
+          }
+        });
+      }
+    }, 2500); // Delay to ensure map is fully rendered
   }
 
   /**

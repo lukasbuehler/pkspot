@@ -44,3 +44,27 @@
     opacity: 1;
   }
 }
+
+::ng-deep .gm-logo {
+  opacity: 0;
+}
+
+::ng-deep .gm-logo.gm-logo-animate {
+  animation: gmLogoFadeIn 0.6s ease-in-out forwards;
+}
+
+@keyframes gmLogoFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Moves the Google Logo and Copyright text up */
+::ng-deep .gmnoprint a,
+::ng-deep .gmnoprint span,
+::ng-deep .gm-style-cc,
+::ng-deep div.gm-logo {
+  @media (max-width: 599px) {
+    bottom: 140px !important;
+  }
+}
