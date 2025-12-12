@@ -56,6 +56,17 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
     }
   });
 
+  url = computed<string | null>(() => {
+    const p = this.place();
+    console.log("place:", p);
+    if (!p) return null;
+    if (p.googleMapsURI) {
+      console.log("Using googleMapsURI for place URL", p.googleMapsURI);
+      return p.googleMapsURI;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${p.displayName}&query_place_id=${p.id}`;
+  });
+
   closedTemporarily = computed<boolean>(() => {
     const status = this.place()?.businessStatus as string | undefined;
     return status === "CLOSED_TEMPORARILY";
