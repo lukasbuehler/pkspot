@@ -31,7 +31,7 @@ import { firstValueFrom, Observable, retry, Subscription } from "rxjs";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
-  MapComponent,
+  GoogleMap2dComponent,
   TilesObject,
 } from "../google-map-2d/google-map-2d.component";
 import {
@@ -63,13 +63,14 @@ import { AnyMedia } from "../../../db/models/Media";
   selector: "app-spot-map",
   templateUrl: "./spot-map.component.html",
   styleUrls: ["./spot-map.component.scss"],
-  imports: [MapComponent, MatSnackBarModule, AsyncPipe],
+  imports: [GoogleMap2dComponent, MatSnackBarModule, AsyncPipe],
   animations: [],
 })
 export class SpotMapComponent implements AfterViewInit, OnDestroy {
-  @ViewChild("map") map: MapComponent | undefined;
+  @ViewChild("map") map: GoogleMap2dComponent | undefined;
 
   osmDataService = inject(OsmDataService);
+  mapsApiService = inject(MapsApiService);
 
   private _router = inject(Router);
 
@@ -150,6 +151,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this._spotMapDataManager.visibleAmenityMarkers$;
 
   visibleMarkers = signal<MarkerSchema[]>([]);
+
+  headingIsNotNorth: Signal<boolean> = computed(() => {
+    if (!this.map) return false;
+    return this.map.headingIsNotNorth();
+  });
 
   private _visibleSpotsSubscription: Subscription | undefined;
   private _visibleHighlightedSpotsSubscription: Subscription | undefined;
@@ -375,6 +381,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     this.map.useGeolocation();
     this.map.focusOnGeolocation();
+  }
+
+  resetMapOrientation() {
+    if (!this.map) return;
+
+    this.map.resetMapOrientation();
   }
 
   /**

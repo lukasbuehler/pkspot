@@ -199,6 +199,23 @@
       </mat-icon>
     </button>
 
+    @if(spotMap.headingIsNotNorth()) {
+    <button
+      @fadeInOut
+      mat-mini-fab
+      #geolocationFab
+      id="geolocationFab"
+      color="primary"
+      (click)="spotMap ? spotMap.resetMapOrientation() : null"
+      i18n-matTootlip
+      matTooltip="Reset map orientation to north"
+      matTooltipPosition="left"
+      matTooltipShowDelay="500"
+    >
+      <mat-icon> north </mat-icon>
+    </button>
+    }
+
     <!-- Show amenity markers mini FAB-->
     <!-- <button
       mat-mini-fab

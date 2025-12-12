@@ -199,7 +199,7 @@
     >
       @defer { @if(swissJamSpotIds.length > 0) { @if(spots() && spots()!.length
       > 0) {
-      <app-map
+      <app-google-map-2d
         @fadeInOut
         #spotMap
         id="spotMap"
@@ -217,7 +217,7 @@
         [showSpotPreview]="!sidenavOpen()"
         (markerClickEvent)="onMarkerClickFromMap($event)"
         class="w-100 h-100 overflow-hidden d-block"
-      ></app-map>
+      ></app-google-map-2d>
       } } @else { @if(spots() && spots()!.length > 0) {
       <app-spot-map
         @fadeInOut

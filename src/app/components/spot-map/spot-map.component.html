@@ -1,4 +1,5 @@
-<app-map
+@if(mapsApiService.isApiLoaded()) {
+<app-google-map-2d
   #map
   id="map"
   [zoom]="mapZoom"
@@ -26,4 +27,5 @@
   (centerChange)="mapCenter = $event"
   (hasGeolocationChange)="hasGeolocationChange.emit($event)"
   (markerClickEvent)="onMarkerClickFromMap($event)"
-></app-map>
+></app-google-map-2d>
+}

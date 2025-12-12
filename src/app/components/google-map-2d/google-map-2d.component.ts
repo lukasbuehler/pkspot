@@ -94,7 +94,7 @@ export interface TilesObject {
 }
 
 @Component({
-  selector: "app-map",
+  selector: "app-google-map-2d",
   templateUrl: "./google-map-2d.component.html",
   styleUrls: ["./google-map-2d.component.scss"],
   imports: [
@@ -124,7 +124,7 @@ export interface TilesObject {
     ]),
   ],
 })
-export class MapComponent implements OnInit, OnChanges, AfterViewInit {
+export class GoogleMap2dComponent implements OnInit, OnChanges, AfterViewInit {
   @ViewChild("googleMap") googleMap: GoogleMap | undefined;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
   // @ViewChildren(MapPolygon, { read: ElementRef })
@@ -144,6 +144,8 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   isDebug = input<boolean>(false);
   showSpotPreview = input<boolean>(false);
   isEditing = input<boolean>(false);
+
+  headingIsNotNorth = signal<boolean>(false);
 
   // Deprecated: use global theme via ThemeService instead. Kept for backward-compat; if bound, it overrides global.
   isDarkMode = input<boolean | null | undefined>(null);
@@ -258,6 +260,10 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
   getHighlightZIndex(spot: SpotPreviewData): number {
     const rating = spot.rating ?? 0;
     return 1000 + Math.round(rating * 10);
+  }
+
+  resetMapOrientation() {
+    // this.googleMap?.setHeading(0);
   }
 
   selectedSpot = input<Spot | LocalSpot | null>(null);
@@ -437,6 +443,12 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
       }
 
       this.visibleTilesChange.emit(visibleTiles);
+
+      if (this.googleMap) {
+        this.googleMap.headingChanged.subscribe(() => {
+          this.headingIsNotNorth.set(this.googleMap!.getHeading() !== 0);
+        });
+      }
     });
 
     // effect(() => {
@@ -518,15 +530,7 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
 
   ngOnInit() {
     if (this.mapsApiService.isApiLoaded()) {
-      this.initMap();
       this.initGeolocation();
-
-      this.googleMap?.fitBounds(this.googleMap!.getBounds()!, {
-        bottom: 0,
-        right: 300,
-        left: 300,
-        top: 0,
-      });
     } else {
       // Try to load Google Maps API if consent is available
       this.tryLoadMapsApi();
@@ -564,7 +568,6 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     this.isApiLoadedSubscription = this.mapsApiService.isLoading$.subscribe(
       (isLoading) => {
         if (!isLoading && this.mapsApiService.isApiLoaded()) {
-          this.initMap();
           this.initGeolocation();
         }
       }
@@ -669,39 +672,6 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     if (this.consentSubscription) this.consentSubscription.unsubscribe();
   }
 
-  initMap(): void {
-    // this.geolocationMarkerOptions = {
-    //   gmpDraggable: false,
-    //   gmpClickable: false,
-    //   //   icon: {
-    //   //     url: "assets/icons/geolocation-16x16.png",
-    //   //     scaledSize: new google.maps.Size(16, 16),
-    //   //     anchor: new google.maps.Point(8, 8),
-    //   //   },
-    //   zIndex: 1000,
-    // };
-    // this.primaryDotMarkerOptions = {
-    //   gmpDraggable: false,
-    //   gmpClickable: false,
-    //   //   opacity: 0.8,
-    //   //   icon: {
-    //   //     url: "assets/icons/circle-primary-16x16.png",
-    //   //     scaledSize: new google.maps.Size(16, 16),
-    //   //     anchor: new google.maps.Point(8, 8),
-    //   //   },
-    // };
-    // this.teriaryDotMarkerOptions = {
-    //   gmpDraggable: false,
-    //   gmpClickable: false,
-    //   //   opacity: 0.8,
-    //   //   icon: {
-    //   //     url: "assets/icons/circle-tertiary-16x16.png",
-    //   //     scaledSize: new google.maps.Size(16, 16),
-    //   //     anchor: new google.maps.Point(8, 8),
-    //   //   },
-    // };
-  }
-
   private _geoPointToLatLng(
     geoPoint: GeoPoint
   ): google.maps.LatLngLiteral | null {
@@ -773,6 +743,8 @@ export class MapComponent implements OnInit, OnChanges, AfterViewInit {
     gestureHandling: "greedy",
     disableDefaultUI: true,
     tilt: 0,
+    renderingType: google.maps.RenderingType.VECTOR,
+    headingInteractionEnabled: true,
   };
 
   spotCircleDarkOptions: google.maps.CircleOptions = {

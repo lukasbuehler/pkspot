@@ -47,7 +47,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatChipListboxChange, MatChipsModule } from "@angular/material/chips";
 import { MapsApiService } from "../../services/maps-api.service";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
-import { MapComponent } from "../google-map-2d/google-map-2d.component";
+import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
 import { GeoPoint } from "firebase/firestore";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { MatSidenavModule } from "@angular/material/sidenav";
@@ -98,7 +98,7 @@ export class ReversePipe implements PipeTransform {
     SpotDetailsComponent,
     MatMenuModule,
     MatChipsModule,
-    MapComponent,
+    GoogleMap2dComponent,
     MatSidenavModule,
     ChallengeListComponent,
     MatDividerModule,
@@ -124,7 +124,10 @@ export class ReversePipe implements PipeTransform {
   styleUrl: "./event-page.component.scss",
 })
 export class EventPageComponent implements OnInit, OnDestroy {
-  @ViewChild("spotMap") spotMap: SpotMapComponent | MapComponent | undefined;
+  @ViewChild("spotMap") spotMap:
+    | SpotMapComponent
+    | GoogleMap2dComponent
+    | undefined;
   @ViewChild("scrollContainer") scrollContainer:
     | ElementRef<HTMLElement>
     | undefined;
@@ -779,7 +782,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
       this.selectedSpot.set(spot);
       if (this.spotMap instanceof SpotMapComponent) {
         this.spotMap?.focusSpot(spot);
-      } else if (this.spotMap instanceof MapComponent) {
+      } else if (this.spotMap instanceof GoogleMap2dComponent) {
         this.spotMap?.focusOnLocation(spot.location());
       }
     }
@@ -794,7 +797,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
       if (this.spotMap instanceof SpotMapComponent && this.spotMap.map) {
         this.spotMap.map.focusOnLocation(location);
-      } else if (this.spotMap instanceof MapComponent) {
+      } else if (this.spotMap instanceof GoogleMap2dComponent) {
         this.spotMap.focusOnLocation(location);
       }
     }
