@@ -61,7 +61,7 @@ html {
 .cdk-overlay-pane {
   width: auto !important;
   min-width: 0 !important;
-  max-width: 90vw !important;
+  max-width: min(90vw, 100%) !important;
 }
 
 /* reCAPTCHA badge positioning and clickability fix */

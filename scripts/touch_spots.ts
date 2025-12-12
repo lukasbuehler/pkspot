@@ -8,7 +8,7 @@ const app = admin.initializeApp({
 
 async function touchAllSpots() {
   const db = admin.firestore();
-  const spotsRef = db.collection("spots");
+  const spotsRef = db.collection("spots").where("media", ">", []);
   const batchSize = 400; // Batch limit is 500
 
   let lastDoc = null;

@@ -14,7 +14,7 @@
     #spotAutocomplete="matAutocomplete"
     [autoActiveFirstOption]="true"
     (optionSelected)="optionSelected($event)"
-    class="mt-2 rounded"
+    class="mt-2"
   >
     @if(((spotAndPlaceSearchResults$ | async)?.spots?.hits?.length ?? 0) > 0) {
     <div>
@@ -33,7 +33,7 @@
         <div class="p-1">
           @if(hit.document.thumbnail_url) {
           <img
-            [src]="hit.document.thumbnail_url || '#'"
+            [ngSrc]="hit.document.thumbnail_url || '#'"
             class="rounded"
             alt=""
             width="50px"
@@ -98,6 +98,7 @@
             >}
           </div>
         </div>
+        <div></div>
         <span
           class="mat-title-small d-flex flex-row"
           style="flex-shrink: 0; max-width: 100px"

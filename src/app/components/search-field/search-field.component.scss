@@ -33,6 +33,10 @@ mat-icon.typeOrAccesIcon {
   height: inherit;
 }
 
+::ng-deep .mat-mdc-autocomplete-panel {
+  border-radius: 16px !important;
+}
+
 ::ng-deep .spot-autocomplete-panel {
   min-width: auto !important;
 }

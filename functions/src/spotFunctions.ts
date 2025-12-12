@@ -115,9 +115,9 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
     //// 1. Update the address if the location changed OR if there is no address yet.
     // if the location of the spot has changed, call Googles reverse geocoding to get the address.
     if (
-      beforeData === undefined ||
-      beforeData.location === undefined ||
-      !(beforeData.location as GeoPoint).isEqual(afterData.location) ||
+      (!(beforeData === undefined || beforeData.location === undefined) &&
+        beforeData.location["isEqual"] &&
+        !(beforeData.location as GeoPoint).isEqual(afterData.location)) ||
       !afterData.address
     ) {
       const location = afterData.location as GeoPoint;
@@ -140,7 +140,10 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
       ..._addTypesenseFields(afterData),
     };
 
-    return event.data?.after?.ref.update(spotDataToUpdate);
+    if (Object.keys(spotDataToUpdate).length > 0) {
+      return event.data?.after?.ref.update(spotDataToUpdate);
+    }
+    return null;
   }
 );
 

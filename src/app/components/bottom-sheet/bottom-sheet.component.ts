@@ -51,11 +51,51 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private currentOffset = 0;
   private readonly dragExcludeSelector =
     "input, select, textarea, [contenteditable='true'], [data-drag-exclude], [data-sheet-drag='false']";
+  private resizeObserver: ResizeObserver | null = null;
+  private lastRecordedHeight = 0;
+  private mutationObserver: MutationObserver | null = null;
 
   // ─── Shared drag helpers ───────────────────────────────────────────
 
   private getAlwaysVisible(sheetEl: HTMLElement): number {
     return Math.max(sheetEl.clientHeight - this.headerHeight, 0);
+  }
+
+  /**
+   * Recalculates the sheet's position after a layout change (e.g., auth state change affecting navbar).
+   * This ensures the sheet stays properly positioned when the available space changes.
+   */
+  private recalculateSheetPosition(sheetEl: HTMLElement): void {
+    const newHeight = sheetEl.clientHeight;
+    const newAlwaysVisible = Math.max(newHeight - this.headerHeight, 0);
+
+    // If size hasn't changed, no need to recalculate
+    if (newAlwaysVisible === this.lastRecordedHeight) {
+      return;
+    }
+
+    const oldAlwaysVisible = this.lastRecordedHeight;
+    this.lastRecordedHeight = newAlwaysVisible;
+
+    // Calculate the offset change (difference in available space)
+    const offsetDelta = newAlwaysVisible - oldAlwaysVisible;
+
+    // If sheet is closed, update the offset by the delta
+    // If sheet is open (currentOffset = 0), keep it open
+    if (this.currentOffset > 0) {
+      // Sheet is closed or partially open - shift by the delta
+      const newOffset = Math.max(
+        0,
+        Math.min(this.currentOffset + offsetDelta, newAlwaysVisible)
+      );
+      this.currentOffset = newOffset;
+      sheetEl.style.transform = `translateY(${newOffset}px)`;
+      this.emitSheetState(newOffset, newAlwaysVisible);
+    } else {
+      // Sheet is fully open - keep it open
+      sheetEl.style.transform = `translateY(0px)`;
+      this.emitSheetState(0, newAlwaysVisible);
+    }
   }
 
   private checkScrollableUp(
@@ -205,11 +245,45 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     Promise.resolve().then(() => {
       const height = sheetEl.clientHeight;
       const alwaysVisibleHeight = Math.max(height - this.headerHeight, 0);
+      this.lastRecordedHeight = alwaysVisibleHeight;
       // Initialize to closed position (offset by alwaysVisible)
       this.currentOffset = alwaysVisibleHeight;
       sheetEl.style.transform = `translateY(${alwaysVisibleHeight}px)`;
       this.emitSheetState(alwaysVisibleHeight, alwaysVisibleHeight);
     });
+
+    // Set up ResizeObserver to handle layout changes (e.g., when nav bar appears/disappears)
+    // This handles cases where the page layout changes after initial render (e.g., auth state changes)
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.recalculateSheetPosition(sheetEl);
+      });
+      this.resizeObserver.observe(sheetEl, { box: "border-box" });
+    }
+
+    // Also listen to window resize in case ResizeObserver doesn't catch it
+    // (e.g., when parent layout changes due to CSS or nav bar appearance)
+    const handleWindowResize = () => {
+      this.recalculateSheetPosition(sheetEl);
+    };
+    this.addListener(window as any, "resize", handleWindowResize);
+
+    // Also set up a MutationObserver to detect DOM changes in the parent that might affect layout
+    // (e.g., nav bar being added/removed)
+    if (typeof MutationObserver !== "undefined" && sheetEl.parentElement) {
+      this.mutationObserver = new MutationObserver(() => {
+        // Use a small delay to allow layout to settle
+        setTimeout(() => {
+          this.recalculateSheetPosition(sheetEl);
+        }, 50);
+      });
+      this.mutationObserver.observe(sheetEl.parentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class", "style"],
+      });
+    }
 
     const startDrag = (event: PointerEvent) => {
       if (typeof window === "undefined") return;
@@ -557,6 +631,14 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyListeners.forEach((fn) => fn());
     this.destroyListeners = [];
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = null;
+    }
   }
 
   private shouldStartDrag(event: PointerEvent, sheetEl: HTMLElement): boolean {

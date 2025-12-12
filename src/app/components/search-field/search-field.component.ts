@@ -54,7 +54,7 @@ import {
     MatOptionModule,
     MatSuffix,
     AsyncPipe,
-    // NgOptimizedImage,
+    NgOptimizedImage,
     SpotRatingComponent,
   ],
   templateUrl: "./search-field.component.html",
