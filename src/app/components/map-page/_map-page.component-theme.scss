@@ -3,12 +3,13 @@
 
 @mixin color($theme) {
   div.info-panel,
-  .spot-search-field {
+  .spot-search-field,
+  .glass {
     // background-color: mat.get-theme-color($theme, surface-container-low);
     background-color: rgba(
       mat.get-theme-color($theme, surface-container-low),
-      0.9
-    );
+      0.8
+    ) !important;
     backdrop-filter: blur(10px);
   }
 }

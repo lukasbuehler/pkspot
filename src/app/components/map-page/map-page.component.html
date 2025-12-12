@@ -264,27 +264,29 @@
   } }
 </ng-template>
 
-@if(responsiveService.isNotMobile()){
-<div class="h-8 w-100 d-flex flex-row p-3 gap-3 surface-container-low">
-  <div class="flex-grow-1 overflow-hidden" style="border-radius: 16px">
-    <app-search-field
-      class="w-100 mat-elevation-z3"
-      (spotSelected)="openSpotOrGooglePlace($event)"
-    ></app-search-field>
-  </div>
-  <div class="flex-grow-1 d-flex justify-content-start align-items-center">
-    <!-- Search option chips -->
-    <mat-chip-listbox class="search-option-chips">
-      @if(authService.isSignedIn && !isEditing()) {
-      <mat-chip-option color="">Saved</mat-chip-option>
-      <mat-chip-option color="">Unvisited</mat-chip-option>
-      <mat-chip-option color="primary" leadingIcon="flag"
-        >Visited</mat-chip-option
-      >
-      }
-    </mat-chip-listbox>
+<ng-template
+  #chips
+  class="flex-grow-1 d-flex justify-content-start align-items-center"
+>
+  <!-- Search option chips -->
+  <mat-chip-listbox class="search-option-chips">
+    @if(authService.isSignedIn && !isEditing()) {
+    <mat-chip-option class="glass"
+      ><mat-icon matChipAvatar>bookmark</mat-icon>Saved</mat-chip-option
+    >
 
-    <app-chip-select
+    <mat-chip-option class="glass" leadingIcon="flag"
+      ><mat-icon matChipAvatar>flag</mat-icon>Visited</mat-chip-option
+    >
+    }<mat-chip-option class="glass"
+      ><mat-icon matChipAvatar>steps</mat-icon>For Parkour</mat-chip-option
+    >
+    <mat-chip-option class="glass"
+      ><mat-icon matChipAvatar>rainy</mat-icon>Dry</mat-chip-option
+    >
+  </mat-chip-listbox>
+
+  <!-- <app-chip-select
       class="ms-2"
       icon="tune"
       label="Filter"
@@ -306,8 +308,18 @@
       (selectedChange)="selectedFilters.set($event)"
       allLabel="All Spots"
       i18n-allLabel="challenge type label"
-    ></app-chip-select>
+    ></app-chip-select> -->
+</ng-template>
+
+@if(responsiveService.isNotMobile()){
+<div class="h-8 w-100 d-flex flex-row p-3 gap-3 surface-container-low">
+  <div class="flex-grow-1 overflow-hidden" style="border-radius: 16px">
+    <app-search-field
+      class="w-100 mat-elevation-z3"
+      (spotSelected)="openSpotOrGooglePlace($event)"
+    ></app-search-field>
   </div>
+  <ng-container *ngTemplateOutlet="chips"></ng-container>
 </div>
 
 <mat-drawer-container style="height: calc(100% - 88px)" class="bg-transparent">
@@ -362,15 +374,20 @@
     class="position-absolute flex-grow-1"
   ></ng-container>
 
-  <div class="d-flex flex-row gap-3 position-absolute top-0 start-0 end-0 p-2">
-    @if(alainMode && responsiveService.isMobile()) {
-    <div class="spacer" style="width: 56px"></div>
-    }
-    <app-search-field
-      class="w-100 mat-elevation-z3 overflow-hidden"
-      style="border-radius: 16px"
-      (spotSelected)="openSpotOrGooglePlace($event)"
-    ></app-search-field>
+  <div
+    class="position-absolute top-0 start-0 end-0 p-2 d-flex flex-column gap-1"
+  >
+    <div class="d-flex flex-row gap-3">
+      @if(alainMode && responsiveService.isMobile()) {
+      <div class="spacer" style="width: 56px"></div>
+      }
+      <app-search-field
+        class="w-100 mat-elevation-z3 overflow-hidden"
+        style="border-radius: 16px"
+        (spotSelected)="openSpotOrGooglePlace($event)"
+      ></app-search-field>
+    </div>
+    <ng-container *ngTemplateOutlet="chips"></ng-container>
   </div>
 
   <app-bottom-sheet

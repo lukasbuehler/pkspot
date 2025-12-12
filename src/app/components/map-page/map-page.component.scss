@@ -120,33 +120,13 @@ mat-card {
   z-index: 1;
   right: 20px;
   gap: 15px;
-  @media (max-width: 959.98px) {
-    top: 100px;
+  @media (max-width: 599.99px) {
+    top: 124px;
   }
-  @media (min-width: 960px) {
+  @media (min-width: 600px) {
     top: 20px;
   }
 }
-
-// mat-chip-listbox.search-option-chips {
-//   position: absolute;
-//   @media (max-width: 959.98px) {
-//     // mobile
-//     top: 75px;
-//     left: 20px;
-//   }
-//   @media (min-width: 960px) {
-//     // desktop (large screen)
-//     left: 420px;
-//     top: 10px;
-//   }
-//   @media (min-width: 1200px) {
-//     left: 500px;
-//   }
-//   @media (min-width: 1400px) {
-//     left: 600px;
-//   }
-// }
 
 mat-drawer {
   width: calc(100% - (80px + 5px * 2));
@@ -158,4 +138,13 @@ mat-drawer {
   @media (min-width: 1200px) {
     width: 33.33%;
   }
+}
+
+mat-chip-option {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+::ng-deep .mat-mdc-standard-chip .mdc-evolution-chip__action--primary::before {
+  border: none !important;
 }
