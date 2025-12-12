@@ -134,6 +134,9 @@
                 }
               ],
               "optimization": true,
+              "security": {
+                "autoCsp": true
+              },
               "budgets": [
                 {
                   "type": "initial",
@@ -146,6 +149,19 @@
                   "maximumError": "4kb"
                 }
               ]
+            },
+            "dev-optim": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ],
+              "optimization": true,
+              "sourceMap": false,
+              "security": {
+                "autoCsp": true
+              }
             }
           },
           "defaultConfiguration": "production"
@@ -161,6 +177,9 @@
             },
             "production": {
               "buildTarget": "pkspot:build:production"
+            },
+            "dev-optim": {
+              "buildTarget": "pkspot:build:dev-optim"
             }
           },
           "defaultConfiguration": "dev"

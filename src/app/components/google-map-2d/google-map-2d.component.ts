@@ -124,7 +124,7 @@ export interface TilesObject {
     ]),
   ],
 })
-export class GoogleMap2dComponent implements OnInit, OnChanges, AfterViewInit {
+export class GoogleMap2dComponent implements OnChanges, AfterViewInit {
   @ViewChild("googleMap") googleMap: GoogleMap | undefined;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
   // @ViewChildren(MapPolygon, { read: ElementRef })
@@ -263,7 +263,14 @@ export class GoogleMap2dComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   resetMapOrientation() {
-    // this.googleMap?.setHeading(0);
+    if (!this.googleMap) return;
+
+    this.googleMap?.fitBounds(this.googleMap.getBounds()!, {
+      bottom: -100,
+      top: -100,
+      left: -100,
+      right: -100,
+    });
   }
 
   selectedSpot = input<Spot | LocalSpot | null>(null);
@@ -528,22 +535,17 @@ export class GoogleMap2dComponent implements OnInit, OnChanges, AfterViewInit {
   isApiLoadedSubscription: Subscription | null = null;
   consentSubscription: Subscription | null = null;
 
-  ngOnInit() {
-    if (this.mapsApiService.isApiLoaded()) {
-      this.initGeolocation();
-    } else {
-      // Try to load Google Maps API if consent is available
-      this.tryLoadMapsApi();
-
-      // Listen for consent changes to load Maps API when consent is granted
-      this.consentSubscription = this._consentService.consentGranted$.subscribe(
-        (hasConsent) => {
-          if (hasConsent && !this.mapsApiService.isApiLoaded()) {
-            this.tryLoadMapsApi();
-          }
-        }
-      );
+  ngAfterViewInit() {
+    if (!this.mapsApiService.isApiLoaded()) {
+      console.error("Google Maps API is not loaded!");
+      return;
     }
+    if (!this.googleMap) {
+      console.error("GoogleMap component is not available!");
+      return;
+    }
+
+    this.initGeolocation();
 
     if (this.boundRestriction) {
       this.mapOptions.restriction = {
@@ -554,24 +556,6 @@ export class GoogleMap2dComponent implements OnInit, OnChanges, AfterViewInit {
     if (this.minZoom) {
       this.mapOptions.minZoom = this.minZoom;
     }
-  }
-
-  private tryLoadMapsApi() {
-    // Try to load Google Maps API (will fail gracefully if no consent)
-    this.mapsApiService.loadGoogleMapsApi();
-
-    // Subscribe to API loading completion
-    if (this.isApiLoadedSubscription) {
-      this.isApiLoadedSubscription.unsubscribe();
-    }
-
-    this.isApiLoadedSubscription = this.mapsApiService.isLoading$.subscribe(
-      (isLoading) => {
-        if (!isLoading && this.mapsApiService.isApiLoaded()) {
-          this.initGeolocation();
-        }
-      }
-    );
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -1203,11 +1187,6 @@ export class GoogleMap2dComponent implements OnInit, OnChanges, AfterViewInit {
 
   getSelectedSpotPaths(): google.maps.LatLngLiteral[][] {
     return this.selectedSpotPaths();
-  }
-
-  ngAfterViewInit() {
-    // Expose main component for debugging if needed
-    (window as any).mapComponent = this;
   }
 
   /**
