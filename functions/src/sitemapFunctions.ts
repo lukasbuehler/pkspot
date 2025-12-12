@@ -36,7 +36,8 @@ interface UserData {
  */
 function generateSitemapXml(
   spots: { id: string; slug?: string; data: PartialSpotSchema }[],
-  users: { id: string; data: UserData }[]
+  users: { id: string; data: UserData }[],
+  slugMap: Map<string, string> // Maps slug -> spot_id
 ): string {
   const now = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
 
@@ -58,8 +59,10 @@ function generateSitemapXml(
 
   // Add spot pages with hreflang
   for (const spot of spots) {
-    const spotPath = spot.slug || spot.id;
-    const path = `/map/${encodeURIComponent(spotPath)}`;
+    // Check if this spot has a slug
+    const slug = Array.from(slugMap.entries()).find(
+      ([_, spotId]) => spotId === spot.id
+    )?.[0];
 
     // Get the spot's last update time if available, otherwise use now
     const lastmod = spot.data.time_updated
@@ -82,7 +85,38 @@ function generateSitemapXml(
       }
     }
 
-    xml += generateUrlWithHreflang(path, lastmod, "weekly", "0.8", imageXml);
+    // If a slug exists, add it as the primary URL with higher priority
+    if (slug) {
+      const slugPath = `/map/${encodeURIComponent(slug)}`;
+      xml += generateUrlWithHreflang(
+        slugPath,
+        lastmod,
+        "weekly",
+        "0.9", // Higher priority for slug-based URL
+        imageXml
+      );
+
+      // Also add ID-based URL with lower priority, with canonical link to slug version
+      const idPath = `/map/${spot.id}`;
+      xml += generateUrlWithHreflangWithCanonical(
+        idPath,
+        lastmod,
+        "weekly",
+        "0.6", // Lower priority
+        imageXml,
+        `${BASE_URL}/en${slugPath}` // Canonical URL points to slug version
+      );
+    } else {
+      // No slug, use ID as main URL
+      const idPath = `/map/${spot.id}`;
+      xml += generateUrlWithHreflang(
+        idPath,
+        lastmod,
+        "weekly",
+        "0.8",
+        imageXml
+      );
+    }
   }
 
   // Add user profile pages with hreflang
@@ -104,6 +138,58 @@ function generateSitemapXml(
   }
 
   xml += `</urlset>`;
+  return xml;
+}
+
+/**
+ * Generates a URL entry with hreflang annotations and canonical link
+ */
+function generateUrlWithHreflangWithCanonical(
+  path: string,
+  lastmod: string,
+  changefreq: string,
+  priority: string,
+  additionalXml: string = "",
+  canonicalUrl: string
+): string {
+  let xml = "";
+
+  // Generate one <url> entry per locale
+  for (const locale of SUPPORTED_LOCALES) {
+    const fullUrl = `${BASE_URL}/${locale}${path}`;
+
+    xml += `  <url>
+    <loc>${fullUrl}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+`;
+
+    // Add canonical link pointing to the preferred version (slug-based URL)
+    xml += `    <xhtml:link rel="canonical" href="${canonicalUrl}"/>
+`;
+
+    // Add hreflang links to all alternate language versions
+    for (const altLocale of SUPPORTED_LOCALES) {
+      const altUrl = `${BASE_URL}/${altLocale}${path}`;
+      const hreflangCode = getHreflangCode(altLocale);
+      xml += `    <xhtml:link rel="alternate" hreflang="${hreflangCode}" href="${altUrl}"/>
+`;
+    }
+
+    // Add x-default pointing to the default locale
+    xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/${DEFAULT_LOCALE}${path}"/>
+`;
+
+    // Add any additional XML (like images)
+    if (additionalXml) {
+      xml += additionalXml;
+    }
+
+    xml += `  </url>
+`;
+  }
+
   return xml;
 }
 
@@ -186,6 +272,7 @@ async function _generateAndUploadSitemap(): Promise<{
   userCount: number;
   staticPageCount: number;
   totalUrls: number;
+  slugCount: number;
   url: string;
 }> {
   const db = admin.firestore();
@@ -209,6 +296,20 @@ async function _generateAndUploadSitemap(): Promise<{
 
   console.log(`Fetched ${spots.length} spots`);
 
+  // Fetch all spot slugs
+  console.log("Fetching spot slugs from Firestore...");
+  const slugsSnapshot = await db.collection("spot_slugs").get();
+  const slugMap = new Map<string, string>(); // Maps slug -> spot_id
+
+  slugsSnapshot.forEach((doc) => {
+    const data = doc.data() as { spot_id: string };
+    if (data.spot_id) {
+      slugMap.set(doc.id, data.spot_id);
+    }
+  });
+
+  console.log(`Fetched ${slugMap.size} spot slugs`);
+
   // Fetch all users (only public profiles with display names)
   console.log("Fetching all users from Firestore...");
   const usersSnapshot = await db.collection("users").get();
@@ -228,7 +329,7 @@ async function _generateAndUploadSitemap(): Promise<{
   console.log(`Fetched ${users.length} users with public profiles`);
 
   // Generate sitemap XML
-  const sitemapXml = generateSitemapXml(spots, users);
+  const sitemapXml = generateSitemapXml(spots, users, slugMap);
 
   // Upload to Firebase Storage with public access
   const file = bucket.file("sitemap.xml");
@@ -245,14 +346,24 @@ async function _generateAndUploadSitemap(): Promise<{
 
   const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/sitemap.xml`;
 
-  // Calculate total URLs (each page × number of locales)
-  const totalUrls =
-    (STATIC_PAGES.length + spots.length + users.length) *
-    SUPPORTED_LOCALES.length;
+  // Calculate total URLs
+  // Static pages: 1 per locale
+  // Spots with slug: 2 URLs per spot (slug + id) per locale
+  // Spots without slug: 1 URL per spot per locale
+  // Users: 1 per user per locale
+  const spotsWithSlugs = Array.from(slugMap.values()).filter((spotId) =>
+    spots.some((s) => s.id === spotId)
+  ).length;
+  const spotsWithoutSlugs = spots.length - spotsWithSlugs;
+  const spotUrlCount =
+    (spotsWithSlugs * 2 + spotsWithoutSlugs) * SUPPORTED_LOCALES.length;
+  const staticPageUrls = STATIC_PAGES.length * SUPPORTED_LOCALES.length;
+  const userUrls = users.length * SUPPORTED_LOCALES.length;
+  const totalUrls = staticPageUrls + spotUrlCount + userUrls;
 
   console.log(`Sitemap uploaded successfully to ${publicUrl}`);
   console.log(
-    `Total URLs in sitemap: ${totalUrls} (${STATIC_PAGES.length} static + ${spots.length} spots + ${users.length} users) × ${SUPPORTED_LOCALES.length} locales`
+    `Total URLs in sitemap: ${totalUrls} (${STATIC_PAGES.length} static + ${spots.length} spots (${spotsWithSlugs} with slugs) + ${users.length} users) × ${SUPPORTED_LOCALES.length} locales`
   );
 
   return {
@@ -260,6 +371,7 @@ async function _generateAndUploadSitemap(): Promise<{
     spotCount: spots.length,
     userCount: users.length,
     staticPageCount: STATIC_PAGES.length,
+    slugCount: slugMap.size,
     totalUrls: totalUrls,
     url: publicUrl,
   };

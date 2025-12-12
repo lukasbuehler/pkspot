@@ -587,10 +587,13 @@ export class EventPageComponent implements OnInit, OnDestroy {
       this.mapsApiService.loadGoogleMapsApi();
     }
 
-    this.metaTagService.setMetaTags(
-      this.name,
-      this.bannerImageSrc,
-      $localize`Event in ` +
+    // Set meta tags with canonical URL
+    const canonicalPath = `/events/${this.eventId}`;
+    const eventData = {
+      name: this.name,
+      image: this.bannerImageSrc,
+      description:
+        $localize`Event in ` +
         this.localityString +
         ", (" +
         (this.start.toLocaleDateString() === this.end.toLocaleDateString()
@@ -598,8 +601,9 @@ export class EventPageComponent implements OnInit, OnDestroy {
           : this.start.toLocaleDateString() +
             " - " +
             this.end.toLocaleDateString()) +
-        ")"
-    );
+        ")",
+    };
+    this.metaTagService.setEventMetaTags(eventData, canonicalPath);
 
     if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
       // Use effect to wait for Maps API to load

@@ -162,6 +162,7 @@ import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component"
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { createUserReference } from "../../../scripts/Helpers";
 import { AnalyticsService } from "../../services/analytics.service";
+import { MetaTagService } from "../../services/meta-tag.service";
 
 @Pipe({ name: "reverse", standalone: true })
 export class ReversePipe implements PipeTransform {
@@ -279,6 +280,7 @@ export class SpotDetailsComponent
   public locale: LocaleCode = inject(LOCALE_ID);
   private _challengeService = inject(SpotChallengesService);
   private _structuredDataService = inject(StructuredDataService);
+  private _metaTagService = inject(MetaTagService);
   private _analyticsService = inject(AnalyticsService);
 
   spot = model<Spot | LocalSpot | null>(null);
@@ -767,12 +769,16 @@ export class SpotDetailsComponent
   }
 
   ngOnInit() {
-    // add structured data for place
+    // add structured data and meta tags for place
     if (this.spot instanceof Spot) {
       const placeData = this._structuredDataService.generateSpotPlaceData(
         this.spot
       );
       this._structuredDataService.addStructuredData("spot", placeData);
+
+      // Set meta tags with canonical URL (use slug if available, otherwise ID)
+      const canonicalPath = `/map/${this.spot.slug ?? this.spot.id}`;
+      this._metaTagService.setSpotMetaTags(this.spot, canonicalPath);
     }
   }
 
