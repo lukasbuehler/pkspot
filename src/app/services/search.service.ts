@@ -3,6 +3,8 @@ import { SearchClient } from "typesense";
 import { SearchParams } from "typesense/lib/Typesense/Documents";
 import { environment } from "../../environments/environment";
 import { MapsApiService } from "./maps-api.service";
+import { AmenitiesMap } from "../../db/schemas/Amenities";
+import { SpotAccess, SpotTypes } from "../../db/schemas/SpotTypeAndAccess";
 
 @Injectable({
   providedIn: "root",
@@ -38,6 +40,93 @@ export class SearchService {
     // Search for events
     // Search for posts
     // TODO: Implement this
+  }
+
+  public async searchDrySpotsInBounds(
+    bounds: google.maps.LatLngBounds,
+    num_spots: number = 100
+  ) {
+    return this.searchSpotsInBounds(
+      bounds,
+      num_spots,
+      [SpotTypes.ParkourGym, SpotTypes.PkPark],
+      undefined,
+      ["covered", "indoor"],
+      ["outdoor"]
+    );
+  }
+
+  public searchSpotsForParkourInBounds(
+    bounds: google.maps.LatLngBounds,
+    num_spots: number = 100
+  ) {
+    return this.searchSpotsInBounds(bounds, num_spots, [
+      SpotTypes.ParkourGym,
+      SpotTypes.GymnasticsGym,
+      SpotTypes.TrampolinePark,
+      SpotTypes.Garage,
+      SpotTypes.Other,
+    ]);
+  }
+
+  public async searchSpotsInBounds(
+    bounds: google.maps.LatLngBounds,
+    num_spots: number = 100,
+    types?: SpotTypes[],
+    accesses?: SpotAccess[],
+    amenities_true?: (keyof AmenitiesMap)[],
+    amenities_false?: (keyof AmenitiesMap)[]
+  ) {
+    const latLongPairList: string[] = [
+      // northeast
+      bounds.getNorthEast().lat(),
+      bounds.getNorthEast().lng(),
+
+      // southeast
+      bounds.getSouthWest().lat(),
+      bounds.getNorthEast().lng(),
+
+      // southwest
+      bounds.getSouthWest().lat(),
+      bounds.getSouthWest().lng(),
+
+      // northwest
+      bounds.getNorthEast().lat(),
+      bounds.getSouthWest().lng(),
+    ].map((num) => (Math.round(num * 1000) / 1000).toString());
+
+    let filterByString: string = `location:(${latLongPairList.join(", ")})`;
+
+    if (types && types.length > 0) {
+      filterByString += `,type:=[${types.join(", ")}]`;
+    }
+
+    if (accesses && accesses.length > 0) {
+      filterByString += `,access:=[${accesses.join(", ")}]`;
+    }
+
+    if (amenities_true && amenities_true.length > 0) {
+      filterByString += `,amenities_true:=[${amenities_true.join(", ")}]`;
+    }
+
+    if (amenities_false && amenities_false.length > 0) {
+      filterByString += `,amenities_false:=[${amenities_false.join(", ")}]`;
+    }
+
+    const typesenseSpotSearchResults = await this.client
+      .collections(this.TYPESENSE_COLLECTION_SPOTS)
+      .documents()
+      .search(
+        {
+          filter_by: filterByString,
+          sort_by: "rating:desc",
+          per_page: num_spots,
+          page: 1,
+        },
+        {}
+      );
+
+    return typesenseSpotSearchResults;
   }
 
   public async searchSpotsAndPlaces(query: string) {
