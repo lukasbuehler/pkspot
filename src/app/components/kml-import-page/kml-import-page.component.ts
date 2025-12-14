@@ -64,7 +64,7 @@ import {
   MatHint,
   MatError,
 } from "@angular/material/form-field";
-import { NgIf, AsyncPipe } from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 import { MatButton } from "@angular/material/button";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { MatIcon } from "@angular/material/icon";
@@ -95,7 +95,6 @@ import { createUserReference } from "../../../scripts/Helpers";
     ReactiveFormsModule,
     MediaUpload,
     MatButton,
-    NgIf,
     MatFormField,
     MatLabel,
     MatInput,

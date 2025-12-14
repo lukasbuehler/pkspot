@@ -14,7 +14,7 @@ import {
 import { Post } from "../../../db/models/Post";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { PostComponent } from "../post/post.component";
-import { NgIf, NgFor } from "@angular/common";
+// Removed NgIf/NgFor (unused) to silence compiler warning
 
 @Component({
   selector: "app-post-collection",
@@ -42,7 +42,7 @@ import { NgIf, NgFor } from "@angular/common";
       ]),
     ]),
   ],
-  imports: [NgIf, NgFor, PostComponent, MatProgressSpinner],
+  imports: [PostComponent, MatProgressSpinner],
 })
 export class PostCollectionComponent implements OnInit {
   @Input() posts: Post.Class[] = [];

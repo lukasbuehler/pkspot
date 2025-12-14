@@ -5,12 +5,13 @@ import {
   setDoc,
   deleteDoc,
   collection,
-  onSnapshot,
+  collectionData,
+  docData,
   query,
   orderBy,
   limit,
 } from "@angular/fire/firestore";
-import { Observable } from "rxjs";
+import { map, Observable } from "rxjs";
 import { Timestamp } from "firebase/firestore";
 import {
   FollowingDataSchema,
@@ -29,21 +30,17 @@ export class FollowingService extends ConsentAwareService {
 
   isFollowingUser(myUserId: string, otherUserId: string): Observable<boolean> {
     return new Observable<boolean>((obs) => {
-      // Wait for consent before making Firestore calls
       this.executeWhenConsent(() => {
-        return onSnapshot(
+        const obs$ = docData(
           doc(this.firestore, "users", myUserId, "following", otherUserId),
-          (snap) => {
-            if (snap.exists()) {
-              obs.next(true);
-            } else {
-              obs.next(false);
-            }
-          },
-          (err) => {
-            obs.error(err);
-          }
-        );
+          { idField: "id" }
+        ).pipe(map((d) => !!d));
+
+        const sub = obs$.subscribe({
+          next: (v) => obs.next(v),
+          error: (e) => obs.error(e),
+        });
+        return () => sub.unsubscribe();
       }).catch((error) => {
         obs.error(error);
       });
@@ -55,19 +52,16 @@ export class FollowingService extends ConsentAwareService {
     otherUserId: string
   ): Observable<boolean> {
     return new Observable<boolean>((obs) => {
-      return onSnapshot(
+      const obs$ = docData(
         doc(this.firestore, "users", myUserId, "followers", otherUserId),
-        (snap) => {
-          if (snap.exists()) {
-            obs.next(true);
-          } else {
-            obs.next(false);
-          }
-        },
-        (err) => {
-          obs.error(err);
-        }
-      );
+        { idField: "id" }
+      ).pipe(map((d) => !!d));
+
+      const sub = obs$.subscribe({
+        next: (v) => obs.next(v),
+        error: (e) => obs.error(e),
+      });
+      return () => sub.unsubscribe();
     });
   }
 
@@ -126,55 +120,35 @@ export class FollowingService extends ConsentAwareService {
     userId: string,
     chunkSize: number = 20
   ): Observable<FollowingSchema[]> {
-    return new Observable<FollowingSchema[]>((obs) => {
-      return onSnapshot(
-        query(
-          collection(this.firestore, `users/${userId}/followers`),
-          orderBy("start_following", "desc"),
-          limit(chunkSize)
-        ),
-        (snap) => {
-          const followers = snap.docs.map((doc) => {
-            const data = doc.data() as FollowingSchema;
-            return {
-              ...data,
-              uid: doc.id,
-            };
-          });
-          obs.next(followers);
-        },
-        (err) => {
-          obs.error(err);
-        }
-      );
-    });
+    return collectionData(
+      query(
+        collection(this.firestore, `users/${userId}/followers`),
+        orderBy("start_following", "desc"),
+        limit(chunkSize)
+      ),
+      { idField: "uid" }
+    ).pipe(
+      map((arr: any[]) =>
+        arr.map((d) => ({ ...(d as FollowingSchema), uid: (d as any).uid }))
+      )
+    );
   }
 
   getFollowingsOfUser(
     userId: string,
     chunkSize: number = 20
   ): Observable<FollowingSchema[]> {
-    return new Observable<FollowingSchema[]>((obs) => {
-      return onSnapshot(
-        query(
-          collection(this.firestore, `users/${userId}/following`),
-          orderBy("start_following", "desc"),
-          limit(chunkSize)
-        ),
-        (snap) => {
-          const followers = snap.docs.map((doc) => {
-            const data = doc.data() as FollowingSchema;
-            return {
-              ...data,
-              uid: doc.id,
-            };
-          });
-          obs.next(followers);
-        },
-        (err) => {
-          obs.error(err);
-        }
-      );
-    });
+    return collectionData(
+      query(
+        collection(this.firestore, `users/${userId}/following`),
+        orderBy("start_following", "desc"),
+        limit(chunkSize)
+      ),
+      { idField: "uid" }
+    ).pipe(
+      map((arr: any[]) =>
+        arr.map((d) => ({ ...(d as FollowingSchema), uid: (d as any).uid }))
+      )
+    );
   }
 }

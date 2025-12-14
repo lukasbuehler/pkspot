@@ -134,7 +134,6 @@ import { StructuredDataService } from "../../services/structured-data.service";
     MatSidenavModule,
     NgTemplateOutlet,
     BottomSheetComponent,
-    ChipSelectComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -359,10 +358,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setVisibleSpots(spots: Spot[]) {
     if (!spots || spots.length === 0) {
+      console.debug(
+        "[dbg] setVisibleSpots -> empty (prev length)",
+        this.visibleSpots?.length
+      );
       this.visibleSpots = [];
       return;
     }
 
+    console.debug(
+      "[dbg] setVisibleSpots -> prev length",
+      this.visibleSpots?.length,
+      "new length",
+      spots.length,
+      new Error().stack
+    );
     this.visibleSpots = spots;
   }
 

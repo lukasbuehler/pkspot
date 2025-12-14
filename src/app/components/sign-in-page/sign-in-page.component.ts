@@ -11,7 +11,7 @@ import {
 import { Router, RouterLink } from "@angular/router";
 import { MatDivider } from "@angular/material/divider";
 import { MatButton } from "@angular/material/button";
-import { NgIf, NgOptimizedImage } from "@angular/common";
+import { NgOptimizedImage } from "@angular/common";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
@@ -27,7 +27,6 @@ import { MatTooltipModule } from "@angular/material/tooltip";
     MatFormField,
     MatLabel,
     MatInput,
-    NgIf,
     MatError,
     MatButton,
     RouterLink,

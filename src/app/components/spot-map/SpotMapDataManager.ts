@@ -9,15 +9,18 @@ import {
   SpotClusterTileSchema,
 } from "../../../db/schemas/SpotClusterTile";
 import { TilesObject } from "../google-map-2d/google-map-2d.component";
+import { VisibleViewport } from "../maps/map-base";
 import { MarkerSchema } from "../marker/marker.component";
 import { Injector, signal } from "@angular/core";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
+import { SpotClusterService } from "../../services/spot-cluster.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { OsmDataService } from "../../services/osm-data.service";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { createUserReference } from "../../../scripts/Helpers";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { GeoPoint } from "firebase/firestore";
 import { ConsentService } from "../../services/consent.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
@@ -44,6 +47,7 @@ export class SpotMapDataManager {
   private _authService: AuthenticationService;
 
   private _spotClusterTiles: Map<MapTileKey, SpotClusterTileSchema>;
+  private _spotClusterService: SpotClusterService | null;
   // private _spotClusterKeysByZoom: Map<number, Map<string, MapTileKey>>;
   private _spots: Map<MapTileKey, Spot[]>;
   private _markers: Map<MapTileKey, MarkerSchema[]>;
@@ -101,6 +105,12 @@ export class SpotMapDataManager {
     this._spots = new Map<MapTileKey, Spot[]>();
     this._markers = new Map<MapTileKey, MarkerSchema[]>();
     this._tilesLoading = new Set<MapTileKey>();
+    // Optional cluster service (Typesense + Supercluster) resolved lazily
+    try {
+      this._spotClusterService = injector.get(SpotClusterService);
+    } catch (e) {
+      this._spotClusterService = null as any;
+    }
 
     // TODO is this needed?
     // Listen for consent changes and reload data when granted
@@ -152,6 +162,176 @@ export class SpotMapDataManager {
 
     const zoom = visibleTilesObj.zoom;
 
+    // If we have the SpotClusterService available and the zoom is >= 10,
+    // prefer Typesense + client-side Supercluster clustering for viewport-driven loading.
+    if (this._spotClusterService && zoom >= 10 && zoom < 16) {
+      const tileZoom = 12; // base tile zoom for fetching/caching
+
+      const neBounds = MapHelpers.getBoundsForTile(
+        visibleTilesObj.zoom,
+        visibleTilesObj.ne.x,
+        visibleTilesObj.ne.y
+      );
+      const swBounds = MapHelpers.getBoundsForTile(
+        visibleTilesObj.zoom,
+        visibleTilesObj.sw.x,
+        visibleTilesObj.sw.y
+      );
+
+      const north = neBounds.north;
+      const east = neBounds.east;
+      const south = swBounds.south;
+      const west = swBounds.west;
+
+      // Compute tile coordinates at the tileZoom that cover the current viewport
+      const neTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
+        { lat: north, lng: east },
+        tileZoom
+      );
+      const swTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
+        { lat: south, lng: west },
+        tileZoom
+      );
+
+      const xRange = this._enumerateXRange(swTile.x, neTile.x, tileZoom);
+      const yMin = Math.min(swTile.y, neTile.y);
+      const yMax = Math.max(swTile.y, neTile.y);
+
+      const tileCoords: { x: number; y: number }[] = [];
+      xRange.forEach((x) => {
+        for (let y = yMin; y <= yMax; y++) {
+          tileCoords.push({ x, y });
+        }
+      });
+
+      // Fetch points for all tiles (tile-level caching + in-flight dedupe in service)
+      Promise.all(
+        tileCoords.map((t) =>
+          this._spotClusterService!.getPointsForTile(tileZoom, t.x, t.y)
+        )
+      )
+        .then((results) => {
+          // Flatten and dedupe points by id
+          const allPoints: any[] = ([] as any[]).concat(...results);
+          const byId = new Map<string, any>();
+          for (const p of allPoints) {
+            if (!p || !p.id) continue;
+            if (!byId.has(p.id)) byId.set(p.id, p);
+          }
+
+          const uniquePoints = Array.from(byId.values());
+
+          // Build viewport object for clustering
+          const viewport = { zoom, bbox: { north, south, west, east } } as any;
+
+          // Cluster the merged points for the current viewport
+          const { clusters, points } =
+            this._spotClusterService!.clusterPointsForViewport(
+              uniquePoints,
+              viewport
+            );
+
+          const dots: SpotClusterDotSchema[] = clusters.map((c: any) => {
+            const [lng, lat] = c.geometry?.coordinates || [0, 0];
+            const props = c.properties || {};
+
+            if (props.cluster === true) {
+              return {
+                location: {
+                  latitude: Number(lat),
+                  longitude: Number(lng),
+                } as any,
+                weight: Number(props.point_count) || 1,
+                spot_id: null,
+                cluster_id: props.cluster_id,
+              } as any;
+            }
+
+            return {
+              location: {
+                latitude: Number(lat),
+                longitude: Number(lng),
+              } as any,
+              weight: Number(props.weight) || 1,
+              spot_id: props.id ?? null,
+            } as SpotClusterDotSchema;
+          });
+
+          this._visibleDotsBehaviorSubject.next(dots);
+
+          // Top-N previews from unique points
+          try {
+            const topN = 4;
+            const sorted = points
+              .slice()
+              .filter((p: any) => p && (p.location || (p.lat && p.lng)))
+              .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0))
+              .slice(0, topN);
+
+            const previews: SpotPreviewData[] = sorted.map((p: any) => {
+              let lat = null as number | null;
+              let lng = null as number | null;
+              if (Array.isArray(p.location) && p.location.length >= 2) {
+                lat = Number(p.location[0]);
+                lng = Number(p.location[1]);
+              } else if (p.lat && p.lng) {
+                lat = Number(p.lat);
+                lng = Number(p.lng);
+              } else if (p.location && typeof p.location === "object") {
+                lat = Number(p.location.latitude ?? p.location.lat ?? 0);
+                lng = Number(p.location.longitude ?? p.location.lng ?? 0);
+              }
+
+              const nameField = p.name ?? p.title ?? p.display_name ?? "";
+              let displayName: string = "";
+              if (typeof nameField === "string") displayName = nameField;
+              else if (typeof nameField === "object") {
+                displayName =
+                  (nameField as any)[this.locale] ??
+                  Object.values(nameField)[0] ??
+                  "";
+              }
+
+              const imageSrc = p.thumbnail_url ?? p.image_src ?? "";
+
+              const preview: SpotPreviewData = {
+                id: (p.id as any) ?? (p.document?.id as any) ?? "",
+                name: displayName,
+                slug: p.slug ?? undefined,
+                location:
+                  lat !== null && lng !== null
+                    ? new GeoPoint(lat, lng)
+                    : undefined,
+                type: p.type ?? undefined,
+                access: p.access ?? undefined,
+                locality: p.address?.locality ?? "",
+                imageSrc: imageSrc || "",
+                isIconic: !!p.isIconic || !!p.is_iconic,
+                rating: p.rating ?? undefined,
+                amenities: p.amenities ?? undefined,
+              } as SpotPreviewData;
+
+              return preview;
+            });
+
+            this._visibleHighlightedSpotsBehaviorSubject.next(previews);
+          } catch (err) {
+            console.error(
+              "Error building previews from Typesense points:",
+              err
+            );
+            this._visibleHighlightedSpotsBehaviorSubject.next([]);
+          }
+
+          // For this flow we don't populate full Spot objects via tiles here
+          this._visibleSpotsBehaviorSubject.next([]);
+        })
+        .catch((err) => console.error("Cluster load error (tiles):", err));
+
+      // We don't continue with tile-based loading when using Typesense clusters
+      return;
+    }
+
     // Load amenity markers at zoom >= 14 (amenityMarkerZoom) for efficient caching
     // But they will only be displayed at zoom >= 16 (amenityMarkerDisplayZoom)
     if (zoom >= this.amenityMarkerZoom) {
@@ -180,6 +360,40 @@ export class SpotMapDataManager {
 
       this._loadSpotClustersForTiles(spotClusterTilesToLoad);
     }
+  }
+
+  /**
+   * New API: accept a viewport (bbox + zoom) and convert to TilesObject
+   * for backward compatibility with the existing tile-based loading logic.
+   */
+  setVisibleViewport(viewport: VisibleViewport) {
+    const zoom = viewport.zoom;
+
+    const ne = { lat: viewport.bbox.north, lng: viewport.bbox.east };
+    const sw = { lat: viewport.bbox.south, lng: viewport.bbox.west };
+
+    const neTile = MapHelpers.getTileCoordinatesForLocationAndZoom(ne, zoom);
+    const swTile = MapHelpers.getTileCoordinatesForLocationAndZoom(sw, zoom);
+
+    const tilesObj: TilesObject = {
+      zoom: zoom,
+      tiles: [],
+      ne: neTile,
+      sw: swTile,
+    };
+
+    const xRange = this._enumerateXRange(swTile.x, neTile.x, zoom);
+    const yMin = Math.min(swTile.y, neTile.y);
+    const yMax = Math.max(swTile.y, neTile.y);
+
+    xRange.forEach((x) => {
+      for (let y = yMin; y <= yMax; y++) {
+        tilesObj.tiles.push({ x, y });
+      }
+    });
+
+    // reuse existing tile-based handling
+    this.setVisibleTiles(tilesObj);
   }
 
   async saveSpot(
@@ -863,195 +1077,6 @@ export class SpotMapDataManager {
       .catch((err) => console.error(err));
   }
 
-  private _addLoadedSpots(spots: Spot[]) {
-    if (!spots || spots.length === 0) {
-      return;
-    }
-
-    spots.forEach((spot: Spot) => {
-      if (!spot.tileCoordinates) return;
-
-      const spotTile = spot.tileCoordinates.z16;
-      const key: MapTileKey = getClusterTileKey(16, spotTile.x, spotTile.y);
-      if (!this._spots.has(key)) {
-        this._spots.set(key, []);
-      }
-
-      // Check if spot already exists in this tile
-      const spotsInTile = this._spots.get(key)!;
-      const existingSpotIndex = spotsInTile.findIndex(
-        (existingSpot) => existingSpot.id === spot.id
-      );
-
-      if (existingSpotIndex !== -1) {
-        // Spot already exists - update it with new data from Firestore
-        // This ensures that bounds and other changes persist to the local copy
-
-        spotsInTile[existingSpotIndex].applyFromSchema(spot.data());
-      } else {
-        // New spot - add it
-        spotsInTile.push(spot);
-      }
-    });
-
-    const _lastVisibleTiles = this._lastVisibleTiles();
-    if (_lastVisibleTiles) {
-      this._showCachedSpotsAndMarkersForTiles(_lastVisibleTiles);
-    }
-  }
-
-  private _addLoadedMarkers(markers: MarkerSchema[]) {}
-
-  private _addLoadedSpotClusters(spotClusters: SpotClusterTileSchema[]) {
-    if (!spotClusters || spotClusters.length === 0) {
-      return;
-    }
-
-    spotClusters.forEach((spotCluster) => {
-      const key: MapTileKey = getClusterTileKey(
-        spotCluster.zoom,
-        spotCluster.x,
-        spotCluster.y
-      );
-      this._spotClusterTiles.set(key, spotCluster);
-    });
-
-    const _lastVisibleTiles = this._lastVisibleTiles();
-    if (_lastVisibleTiles) {
-      this._showCachedSpotClustersForTiles(_lastVisibleTiles);
-    }
-
-    //   const { zoom, x, y } = data;
-    //   if (zoom % this.divisor !== 0) {
-    //     console.warn(
-    //       `Zoom level is not divisible by ${this.divisor}, skipping insertion.`
-    //     );
-    //     return;
-    //   }
-
-    //   // 2. make the cluster key
-    //   const tileKey = getClusterTileKey(zoom, x, y);
-
-    //   // 3. insert into all clusters
-    //   // make an additional check if we are re-inserting a cluster
-    //   if (this.debugMode && this._spotClusters.has(tileKey)) {
-    //     console.warn(`Cluster already exists for ${tileKey}`);
-    //     return;
-    //   }
-    //   this._spotClusters.set(tileKey, data);
-
-    //   // 4. insert the tile key into the clusters by zoom map with the zoom level
-    //   if (!this._spotClusterKeysByZoom.has(zoom)) {
-    //     this._spotClusterKeysByZoom.set(zoom, new Map());
-    //   }
-    //   this._spotClusterKeysByZoom.get(zoom).set(`${x},${y}`, tileKey);
-  }
-
-  ////////// helpers
-
-  private _transformTilesObjectToZoom(
-    tilesObj: TilesObject,
-    targetZoom: number
-  ): TilesObject {
-    let shift = targetZoom - tilesObj.zoom;
-
-    if (shift === 0) {
-      return tilesObj;
-    }
-
-    const tileCountTarget = 1 << targetZoom;
-    const normalizeX = (value: number) => {
-      const mod = value % tileCountTarget;
-      return mod < 0 ? mod + tileCountTarget : mod;
-    };
-    const clampY = (value: number) => {
-      if (value < 0) return 0;
-      const max = tileCountTarget - 1;
-      return value > max ? max : value;
-    };
-
-    const tilesMap = new Map<string, { x: number; y: number }>();
-    const addTile = (x: number, y: number) => {
-      const normalizedX = normalizeX(x);
-      const clampedY = clampY(y);
-      const key = `${normalizedX},${clampedY}`;
-      if (!tilesMap.has(key)) {
-        tilesMap.set(key, { x: normalizedX, y: clampedY });
-      }
-    };
-
-    let tileSw = tilesObj.sw;
-    let tileNe = tilesObj.ne;
-
-    if (shift < 0) {
-      // Zooming OUT (from higher zoom to lower zoom)
-      const factor = 1 << -shift;
-
-      tilesObj.tiles.forEach((tile) => {
-        addTile(Math.floor(tile.x / factor), Math.floor(tile.y / factor));
-      });
-
-      tileSw = {
-        x: Math.floor(tileSw.x / factor),
-        y: Math.floor(tileSw.y / factor),
-      };
-      tileNe = {
-        x: Math.floor(tileNe.x / factor),
-        y: Math.floor(tileNe.y / factor),
-      };
-
-      const xRange = this._enumerateXRange(tileSw.x, tileNe.x, targetZoom);
-      const yMin = Math.min(tileSw.y, tileNe.y);
-      const yMax = Math.max(tileSw.y, tileNe.y);
-      xRange.forEach((x: number) => {
-        for (let y = yMin; y <= yMax; y++) {
-          addTile(x, y);
-        }
-      });
-    } else {
-      // Zooming IN (from lower zoom to higher zoom)
-      const factor = 1 << shift;
-
-      tilesObj.tiles.forEach((tile) => {
-        const baseX = (tile.x << shift) % tileCountTarget;
-        const baseY = tile.y << shift;
-        for (let dx = 0; dx < factor; dx++) {
-          const childX = (baseX + dx) % tileCountTarget;
-          for (let dy = 0; dy < factor; dy++) {
-            addTile(childX, baseY + dy);
-          }
-        }
-      });
-
-      tileSw = {
-        x: (tileSw.x << shift) % tileCountTarget,
-        y: tileSw.y << shift,
-      };
-      tileNe = {
-        x: ((tileNe.x << shift) + (factor - 1)) % tileCountTarget,
-        y: (tileNe.y << shift) + (factor - 1),
-      };
-    }
-
-    const tiles = Array.from(tilesMap.values());
-    tiles.sort((a, b) => (a.x === b.x ? a.y - b.y : a.x - b.x));
-
-    const newTilesObj: TilesObject = {
-      zoom: targetZoom,
-      sw: {
-        x: normalizeX(tileSw.x),
-        y: clampY(tileSw.y),
-      },
-      ne: {
-        x: normalizeX(tileNe.x),
-        y: clampY(tileNe.y),
-      },
-      tiles,
-    };
-
-    return newTilesObj;
-  }
-
   isTileLoading(tileKey: MapTileKey): boolean {
     return this._tilesLoading.has(tileKey);
   }
@@ -1077,10 +1102,139 @@ export class SpotMapDataManager {
     return range;
   }
 
+  /**
+   * Transform a TilesObject from its current zoom to a target zoom by either
+   * grouping (when zooming out) or expanding (when zooming in) tiles.
+   */
+  private _transformTilesObjectToZoom(
+    tilesObj: TilesObject,
+    targetZoom: number
+  ): TilesObject {
+    if (!tilesObj) return tilesObj;
+    const shift = targetZoom - tilesObj.zoom;
+    if (shift === 0) return tilesObj;
+
+    const normalizeX = (x: number, zoom: number) => {
+      const tileCount = 1 << zoom;
+      const mod = x % tileCount;
+      return mod < 0 ? mod + tileCount : mod;
+    };
+
+    const clampY = (y: number, zoom: number) => {
+      const max = (1 << zoom) - 1;
+      if (y < 0) return 0;
+      if (y > max) return max;
+      return y;
+    };
+
+    const tilesMap = new Map<string, { x: number; y: number }>();
+
+    const addTile = (x: number, y: number) => {
+      const nx = normalizeX(x, targetZoom);
+      const ny = clampY(y, targetZoom);
+      const k = `${nx},${ny}`;
+      if (!tilesMap.has(k)) tilesMap.set(k, { x: nx, y: ny });
+    };
+
+    let tileSw = tilesObj.sw;
+    let tileNe = tilesObj.ne;
+
+    if (shift < 0) {
+      // Zooming OUT: group child tiles into parent tiles
+      const factor = 1 << -shift;
+      tilesObj.tiles.forEach((tile) => {
+        addTile(Math.floor(tile.x / factor), Math.floor(tile.y / factor));
+      });
+
+      tileSw = {
+        x: Math.floor(tileSw.x / (1 << -shift)),
+        y: Math.floor(tileSw.y / (1 << -shift)),
+      };
+      tileNe = {
+        x: Math.floor(tileNe.x / (1 << -shift)),
+        y: Math.floor(tileNe.y / (1 << -shift)),
+      };
+    } else {
+      // Zooming IN: expand each tile into `factor`^2 child tiles
+      const factor = 1 << shift;
+      const tileCountTarget = 1 << targetZoom;
+      tilesObj.tiles.forEach((tile) => {
+        const baseX = (tile.x << shift) % tileCountTarget;
+        const baseY = tile.y << shift;
+        for (let dx = 0; dx < factor; dx++) {
+          for (let dy = 0; dy < factor; dy++) {
+            addTile(baseX + dx, baseY + dy);
+          }
+        }
+      });
+
+      tileSw = {
+        x: (tileSw.x << shift) % tileCountTarget,
+        y: tileSw.y << shift,
+      };
+      tileNe = {
+        x: ((tileNe.x << shift) + (factor - 1)) % tileCountTarget,
+        y: (tileNe.y << shift) + (factor - 1),
+      };
+    }
+
+    const tiles = Array.from(tilesMap.values());
+    tiles.sort((a, b) => (a.x === b.x ? a.y - b.y : a.x - b.x));
+
+    const newTilesObj: TilesObject = {
+      zoom: targetZoom,
+      sw: {
+        x: normalizeX(tileSw.x, targetZoom),
+        y: clampY(tileSw.y, targetZoom),
+      },
+      ne: {
+        x: normalizeX(tileNe.x, targetZoom),
+        y: clampY(tileNe.y, targetZoom),
+      },
+      tiles,
+    };
+
+    return newTilesObj;
+  }
+
   markTilesAsLoading(tileKeys: MapTileKey[] | Set<MapTileKey>) {
     tileKeys.forEach((tileKey) => {
       this._tilesLoading.add(tileKey);
     });
+  }
+
+  /**
+   * Add loaded Spot objects into the internal cache keyed by their z16 tile.
+   */
+  private _addLoadedSpots(spots: Spot[]) {
+    if (!spots || spots.length === 0) {
+      return;
+    }
+
+    spots.forEach((spot: Spot) => {
+      if (!spot.tileCoordinates) return;
+
+      const spotTile = spot.tileCoordinates.z16;
+      const key: MapTileKey = getClusterTileKey(16, spotTile.x, spotTile.y);
+      if (!this._spots.has(key)) {
+        this._spots.set(key, []);
+      }
+
+      const spotsInTile = this._spots.get(key)!;
+      const existingSpotIndex = spotsInTile.findIndex((s) => s.id === spot.id);
+      if (existingSpotIndex !== -1) {
+        // Update existing spot
+        spotsInTile[existingSpotIndex].applyFromSchema(spot.data());
+      } else {
+        // Add new spot
+        spotsInTile.push(spot);
+      }
+    });
+
+    const _lastVisibleTiles = this._lastVisibleTiles();
+    if (_lastVisibleTiles) {
+      this._showCachedSpotsAndMarkersForTiles(_lastVisibleTiles);
+    }
   }
 
   /////////////////////
@@ -1110,6 +1264,26 @@ export class SpotMapDataManager {
       return loadedSpotRef;
     } else {
       return null;
+    }
+  }
+
+  private _addLoadedSpotClusters(spotClusters: SpotClusterTileSchema[]) {
+    if (!spotClusters || spotClusters.length === 0) {
+      return;
+    }
+
+    spotClusters.forEach((spotCluster) => {
+      const key: MapTileKey = getClusterTileKey(
+        spotCluster.zoom,
+        spotCluster.x,
+        spotCluster.y
+      );
+      this._spotClusterTiles.set(key, spotCluster);
+    });
+
+    const _lastVisibleTiles = this._lastVisibleTiles();
+    if (_lastVisibleTiles) {
+      this._showCachedSpotClustersForTiles(_lastVisibleTiles);
     }
   }
 

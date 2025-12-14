@@ -11,7 +11,7 @@ import {
   ReactiveFormsModule,
 } from "@angular/forms";
 import { humanFileSize } from "../../../scripts/Helpers";
-import { NgIf, NgOptimizedImage } from "@angular/common";
+import { NgOptimizedImage } from "@angular/common";
 import { MatInput } from "@angular/material/input";
 import {
   MatFormField,
@@ -51,7 +51,6 @@ export interface UploadMedia {
     MatLabel,
     MatInput,
     MatSuffix,
-    NgIf,
     // MatHint,
     MatError,
     MatProgressBarModule,

@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router } from "@angular/router";
-import { NgFor, NgClass, NgSwitch, NgSwitchCase, NgIf } from "@angular/common";
+import { NgClass, NgSwitch, NgSwitchCase } from "@angular/common";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EditProfileComponent } from "../edit-profile/edit-profile.component";
 import {
@@ -26,7 +26,6 @@ import { MatButton } from "@angular/material/button";
   templateUrl: "./settings-page.component.html",
   styleUrls: ["./settings-page.component.scss"],
   imports: [
-    NgFor,
     MatButton,
     NgClass,
     MatIcon,
@@ -38,7 +37,7 @@ import { MatButton } from "@angular/material/button";
     MatFormField,
     MatLabel,
     MatInput,
-    NgIf,
+
     MatSuffix,
     MatTooltip,
     MatHint,

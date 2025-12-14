@@ -34,6 +34,7 @@ import {
   GoogleMap2dComponent,
   TilesObject,
 } from "../google-map-2d/google-map-2d.component";
+import { VisibleViewport } from "../maps/map-base";
 import {
   MapTileKey,
   getClusterTileKey,
@@ -401,6 +402,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (!visibleTilesObj) return;
 
     this._spotMapDataManager.setVisibleTiles(visibleTilesObj);
+  }
+
+  visibleViewportChanged(viewport: VisibleViewport): void {
+    if (!viewport) return;
+    this._spotMapDataManager.setVisibleViewport(viewport);
   }
 
   mapBoundsChanged(bounds: google.maps.LatLngBounds, zoom: number) {

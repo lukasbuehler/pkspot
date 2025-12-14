@@ -10,7 +10,7 @@ import {
 import { Router, RouterLink } from "@angular/router";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { Auth, RecaptchaVerifier } from "firebase/auth";
-import { NgIf, NgOptimizedImage } from "@angular/common";
+import { NgOptimizedImage } from "@angular/common";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatHint } from "@angular/material/form-field";
@@ -34,7 +34,6 @@ import { ConsentService } from "../../services/consent.service";
     MatInput,
     MatHint,
     MatCheckbox,
-    NgIf,
     MatIconModule,
     NgOptimizedImage,
     MatDividerModule,

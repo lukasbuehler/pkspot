@@ -20,7 +20,7 @@ import {
   MatRowDef,
   MatRow,
 } from "@angular/material/table";
-import { NgIf } from "@angular/common";
+// NgIf removed (unused) to silence compiler warning
 import { FollowingService } from "../../services/firebase/firestore/following.service.js";
 import { FollowingDataSchema } from "../../../db/schemas/UserSchema";
 
@@ -52,7 +52,6 @@ export class FollowDurationPipe implements PipeTransform {
   styleUrls: ["./follow-list.component.scss"],
   imports: [
     MatDialogTitle,
-    NgIf,
     MatTable,
     MatColumnDef,
     MatHeaderCellDef,

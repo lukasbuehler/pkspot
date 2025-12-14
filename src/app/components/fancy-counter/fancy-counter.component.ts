@@ -1,6 +1,5 @@
 import { animate, style, transition, trigger } from "@angular/animations";
 import { Component, Input, OnInit } from "@angular/core";
-import { NgFor } from "@angular/common";
 
 @Component({
   selector: "app-fancy-counter",
@@ -37,7 +36,7 @@ import { NgFor } from "@angular/common";
       ),
     ]),
   ],
-  imports: [NgFor],
+  imports: [],
 })
 export class FancyCounterComponent implements OnInit {
   private _number: number = 0;

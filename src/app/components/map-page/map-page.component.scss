@@ -65,12 +65,12 @@ app-spot-map {
   position: absolute;
   z-index: 1;
 
-  @media (max-width: 959.98px) {
+  @media (max-width: 599.99px) {
     // small screen
-    bottom: calc(140px + 20px);
+    bottom: calc(140px + 30px);
     right: 20px;
   }
-  @media (min-width: 960px) {
+  @media (min-width: 600px) {
     // desktop (large screen)
     bottom: calc(30px);
     right: 20px;

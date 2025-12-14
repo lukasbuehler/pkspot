@@ -21,6 +21,7 @@
   [showSpotPreview]="showSpotPreview()"
   (boundsChange)="mapBoundsChanged($event, mapZoom)"
   (visibleTilesChange)="visibleTilesChanged($event)"
+  (visibleViewportChange)="visibleViewportChanged($event)"
   (zoomChange)="zoomChanged($event)"
   (mapClick)="isClickable() ? mapClick($event) : null"
   (spotClick)="isClickable() ? openSpotByWhateverMeansNecessary($event) : null"

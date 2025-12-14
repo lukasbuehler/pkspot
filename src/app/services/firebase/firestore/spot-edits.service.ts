@@ -10,9 +10,11 @@ import {
   where,
   collectionGroup,
   updateDoc,
-  onSnapshot,
+  collectionData,
+  docData,
   Timestamp,
 } from "@angular/fire/firestore";
+import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
@@ -75,26 +77,14 @@ export class SpotEditsService extends ConsentAwareService {
 
   getSpotEditById$(spotId: string, editId: string): Observable<SpotEditSchema> {
     console.debug("Getting edit with id: ", editId);
-
-    return new Observable<SpotEditSchema>((observer) => {
-      return onSnapshot(
-        doc(this.firestore, "spots", spotId, "edits", editId),
-        (snap) => {
-          if (snap.exists()) {
-            const data = snap.data() as SpotEditSchema;
-            observer.next(data);
-          } else {
-            observer.error("No edit found for this edit id.");
-          }
-        },
-        (error) => {
-          observer.error({
-            msg: "Error! There was a problem loading this edit.",
-            debug: error,
-          });
-        }
-      );
-    });
+    return docData(doc(this.firestore, "spots", spotId, "edits", editId), {
+      idField: "id",
+    }).pipe(
+      map((d: any) => {
+        if (!d) throw new Error("No edit found for this edit id.");
+        return d as SpotEditSchema;
+      })
+    );
   }
 
   getSpotEditsBySpotId$(
@@ -102,49 +92,29 @@ export class SpotEditsService extends ConsentAwareService {
   ): Observable<Array<{ id: string; schema: SpotEditSchema }>> {
     console.debug("Getting all edits for spot: ", spotId);
 
-    return new Observable<Array<{ id: string; schema: SpotEditSchema }>>(
-      (observer) => {
-        return onSnapshot(
-          query(collection(this.firestore, "spots", spotId, "edits")),
-          (snap) => {
-            const edits = snap.docs.map((data) => ({
-              id: data.id,
-              schema: data.data() as SpotEditSchema,
-            }));
-            observer.next(edits);
-          },
-          (error) => {
-            observer.error({
-              msg: "Error! There was a problem loading edits for this spot.",
-              debug: error,
-            });
-          }
-        );
-      }
+    return collectionData(
+      query(collection(this.firestore, "spots", spotId, "edits")),
+      { idField: "id" }
+    ).pipe(
+      map((arr: any[]) =>
+        arr.map((d) => ({
+          id: (d as any).id,
+          schema: d as any as SpotEditSchema,
+        }))
+      )
     );
   }
 
   getSpotEditsByUserId$(userId: string): Observable<SpotEditSchema[]> {
     console.debug("Getting all edits for user: ", userId);
 
-    return new Observable<SpotEditSchema[]>((observer) => {
-      return onSnapshot(
-        query(
-          collectionGroup(this.firestore, "edits"),
-          where("user.uid", "==", userId)
-        ),
-        (snap) => {
-          const edits = snap.docs.map((data) => data.data() as SpotEditSchema);
-          observer.next(edits);
-        },
-        (error) => {
-          observer.error({
-            msg: "Error! There was a problem loading edits for this user.",
-            debug: error,
-          });
-        }
-      );
-    });
+    return collectionData(
+      query(
+        collectionGroup(this.firestore, "edits"),
+        where("user.uid", "==", userId)
+      ),
+      { idField: "id" }
+    ).pipe(map((arr: any[]) => arr.map((d) => d as SpotEditSchema)));
   }
 
   addSpotEdit(spotId: string, edit: SpotEditSchema): Promise<string> {

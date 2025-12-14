@@ -6,11 +6,12 @@ import {
   updateDoc,
   deleteDoc,
   collection,
-  onSnapshot,
+  docData,
   query,
   orderBy,
   limit,
 } from "@angular/fire/firestore";
+import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { User } from "../../../../db/models/User";
 import {
@@ -48,22 +49,17 @@ export class UsersService extends ConsentAwareService {
 
   getUserById(userId: string): Observable<User | null> {
     return new Observable<User | null>((observer) => {
-      // Wait for consent before making Firestore calls
       this.executeWhenConsent(() => {
-        return onSnapshot(
-          doc(this.firestore, "users", userId),
-          (snap) => {
-            if (snap.exists()) {
-              let user = new User(snap.id, snap.data() as UserSchema);
-              observer.next(user);
-            } else {
-              observer.next(null);
-            }
-          },
-          (err) => {
-            observer.error(err);
-          }
+        const obs$ = docData(doc(this.firestore, "users", userId), {
+          idField: "id",
+        }).pipe(
+          map((d: any) => (d ? new User((d as any).id, d as UserSchema) : null))
         );
+        const sub = obs$.subscribe({
+          next: (v) => observer.next(v),
+          error: (e) => observer.error(e),
+        });
+        return () => sub.unsubscribe();
       }).catch((error) => {
         observer.error(error);
       });

@@ -20,7 +20,6 @@ import { Observable, Subscription } from "rxjs";
 import { GeoPoint, Timestamp } from "firebase/firestore";
 import { MatIcon } from "@angular/material/icon";
 import { MatFabButton } from "@angular/material/button";
-import { NgIf } from "@angular/common";
 import { MatTabGroup, MatTab } from "@angular/material/tabs";
 import { PostsService } from "../../services/firebase/firestore/posts.service";
 
@@ -30,7 +29,6 @@ import { PostsService } from "../../services/firebase/firestore/posts.service";
   styleUrls: ["./home-page.component.scss"],
   imports: [
     MatTabGroup,
-    NgIf,
     MatTab,
     PostCollectionComponent,
     MatFabButton,

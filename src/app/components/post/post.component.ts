@@ -20,14 +20,13 @@ import {
   MatCardContent,
   MatCardActions,
 } from "@angular/material/card";
-import { NgIf } from "@angular/common";
+// NgIf removed (unused) to silence compiler warning
 
 @Component({
   selector: "app-post",
   templateUrl: "./post.component.html",
   styleUrls: ["./post.component.scss"],
   imports: [
-    NgIf,
     MatCard,
     MatCardHeader,
     MatCardTitle,

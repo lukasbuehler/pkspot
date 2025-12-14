@@ -47,6 +47,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
 import { MapHelpers } from "../../../scripts/MapHelpers";
+import { MapBase, VisibleViewport } from "../maps/map-base";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import {
@@ -124,7 +125,10 @@ export interface TilesObject {
     ]),
   ],
 })
-export class GoogleMap2dComponent implements OnChanges, AfterViewInit {
+export class GoogleMap2dComponent
+  extends MapBase
+  implements OnChanges, AfterViewInit
+{
   @ViewChild("googleMap") googleMap: GoogleMap | undefined;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
   // @ViewChildren(MapPolygon, { read: ElementRef })
@@ -139,6 +143,11 @@ export class GoogleMap2dComponent implements OnChanges, AfterViewInit {
   // add math function to markup
   sqrt = Math.sqrt;
   Math = Math; // expose Math for template usage
+  // Expose the global Google namespace to the template to satisfy Angular's
+  // template type-checker where expressions reference `google.maps.*`.
+  // Use `any` because the global may be undefined at build-time.
+  readonly google: any =
+    typeof window !== "undefined" ? (window as any).google : undefined;
 
   focusZoom = input<number>(17);
   isDebug = input<boolean>(false);
@@ -184,6 +193,14 @@ export class GoogleMap2dComponent implements OnChanges, AfterViewInit {
     this.zoomChange.emit(this._zoom());
   }
 
+  setCenter(center: google.maps.LatLngLiteral): void {
+    this.center = center;
+  }
+
+  onViewportChanged(_viewport: VisibleViewport): void {
+    // default no-op. Implementations may override this to react to viewport changes.
+  }
+
   getAndEmitChangedZoom() {
     if (!this.googleMap) return;
     this._zoom.set(this.googleMap.getZoom()!);
@@ -192,6 +209,7 @@ export class GoogleMap2dComponent implements OnChanges, AfterViewInit {
 
   @Output() boundsChange = new EventEmitter<google.maps.LatLngBounds>();
   @Output() visibleTilesChange = new EventEmitter<TilesObject>();
+  @Output() visibleViewportChange = new EventEmitter<VisibleViewport>();
   @Output() mapClick = new EventEmitter<google.maps.LatLngLiteral>();
   @Output() spotClick = new EventEmitter<
     LocalSpot | Spot | SpotPreviewData | SpotId
@@ -411,6 +429,7 @@ export class GoogleMap2dComponent implements OnChanges, AfterViewInit {
     private _consentService: ConsentService,
     private theme: ThemeService
   ) {
+    super();
     // Effect to handle selected spot changes and editing state changes for polygon updates
     effect(() => {
       const tracker = this.selectedSpotTracker();
@@ -451,6 +470,20 @@ export class GoogleMap2dComponent implements OnChanges, AfterViewInit {
 
       this.visibleTilesChange.emit(visibleTiles);
 
+      // Emit a viewport (bbox + zoom) for consumers that prefer bbox-driven loading
+      const bounds = this.boundsToRender();
+      const zoom = this.googleMap?.getZoom();
+      if (bounds && typeof zoom === "number") {
+        const b = bounds.toJSON();
+        const viewport: VisibleViewport = {
+          zoom,
+          bbox: { north: b.north, south: b.south, west: b.west, east: b.east },
+        };
+        this.visibleViewportChange.emit(viewport);
+        // Allow subclasses or external consumers to react
+        this.onViewportChanged(viewport);
+      }
+
       if (this.googleMap) {
         this.googleMap.headingChanged.subscribe(() => {
           this.headingIsNotNorth.set(this.googleMap!.getHeading() !== 0);
@@ -475,14 +508,6 @@ export class GoogleMap2dComponent implements OnChanges, AfterViewInit {
     const explicit = this.isDarkMode();
     if (typeof explicit === "boolean") return explicit;
     return this.theme.isDark(this.mapStyle());
-  });
-
-  // Heatmap configuration - show heatmap from zoom 2+ until spots appear at zoom 16
-  // Never show dots, only heatmap for cluster visualization
-  shouldShowHeatmap = computed(() => {
-    const z = this._zoom();
-    const hasDots = this._dotsSignal().length > 0;
-    return z >= 2 && z < 16 && hasDots;
   });
 
   // Build heatmap data from dots with weighted lat/lng
@@ -1207,7 +1232,6 @@ export class GoogleMap2dComponent implements OnChanges, AfterViewInit {
       const logoElements = mapContainer.querySelectorAll(
         '[title*="Google Maps"]'
       );
-      console.log("Found Google Maps logo elements:", logoElements);
 
       if (logoElements.length > 0) {
         logoElements.forEach((element: Element) => {

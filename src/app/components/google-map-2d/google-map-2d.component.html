@@ -64,12 +64,7 @@
     [zIndex]="getHighlightZIndex(spot)"
     (markerClick)="onHighlightedSpotClick($event)"
   ></app-highlight-marker>
-  }
-
-  <!-- Cluster Markers (dots) - DISABLED: now using heatmap only -->
-  <!-- 
-  @if(!shouldShowHeatmap()) {
-  @for (dot of dots; track $index) {
+  } @if(zoom < 16) { @for (dot of dots; track $index) {
   <div
     #smallDot
     class="small-dot-marker"
@@ -88,17 +83,10 @@
     (mapClick)="clickDot(dot)"
     [zIndex]="dot.weight"
   ></map-advanced-marker>
-  }
-  }
-  -->
+  } }
 
   <!-- Heatmap Layer - show from zoom 2 until spots appear at zoom 16 -->
-  @if(shouldShowHeatmap()) {
-  <map-heatmap-layer
-    [data]="heatmapData()"
-    [options]="heatmapOptions()"
-  ></map-heatmap-layer>
-  }
+  <!-- heatmap disabled: using cluster dots instead -->
 
   <!-- only display the bounds when close enough (zoom >= 16) -->
   @if (zoom >= 16) { @for(spot of spots; track $index) {
@@ -322,14 +310,14 @@
   }
 
   <!-- Additional Markers (amenities, custom markers, etc.) -->
-  @for(marker of markers(); track $index) {
+  @if(zoom >= 16) { @for(marker of markers(); track $index) {
   <app-custom-marker
     [marker]="marker"
     [index]="$index"
     [zoom]="zoom"
     (markerClick)="markerClick($event)"
   ></app-custom-marker>
-  }
+  } }
 
   <!-- Additional Polygons -->
   @for(polygon of polygons(); track $index) {

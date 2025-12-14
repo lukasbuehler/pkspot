@@ -113,20 +113,71 @@ export class SearchService {
       filterByString += `,amenities_false:=[${amenities_false.join(", ")}]`;
     }
 
-    const typesenseSpotSearchResults = await this.client
+    const MAX_PER_PAGE = 250;
+    const perPage = Math.min(MAX_PER_PAGE, Math.max(1, num_spots));
+
+    // Fetch first page to learn total found and to return early when small
+    const firstPage = await this.client
       .collections(this.TYPESENSE_COLLECTION_SPOTS)
       .documents()
       .search(
         {
+          q: "*",
           filter_by: filterByString,
           sort_by: "rating:desc",
-          per_page: num_spots,
+          per_page: perPage,
           page: 1,
         },
         {}
       );
 
-    return typesenseSpotSearchResults;
+    let allHits: any[] = (firstPage && (firstPage as any).hits) || [];
+    const found: number =
+      (firstPage && (firstPage as any).found) || allHits.length;
+
+    // If we already satisfied the requested number or there's nothing more, return
+    if (allHits.length >= num_spots || found <= perPage) {
+      // Trim to num_spots just in case
+      (firstPage as any).hits = allHits.slice(0, num_spots);
+      return firstPage;
+    }
+
+    const remainingToFetch = Math.min(num_spots, found) - allHits.length;
+    const remainingPages = Math.ceil(remainingToFetch / perPage);
+
+    // Build requests for remaining pages (pages 2..)
+    const pageRequests: Promise<any>[] = [];
+    for (let i = 2; i <= 1 + remainingPages; i++) {
+      pageRequests.push(
+        this.client
+          .collections(this.TYPESENSE_COLLECTION_SPOTS)
+          .documents()
+          .search(
+            {
+              q: "*",
+              filter_by: filterByString,
+              sort_by: "rating:desc",
+              per_page: perPage,
+              page: i,
+            },
+            {}
+          )
+      );
+    }
+
+    const settled = await Promise.allSettled(pageRequests);
+    for (const res of settled) {
+      if (res.status === "fulfilled" && res.value && res.value.hits) {
+        allHits.push(...res.value.hits);
+      }
+    }
+
+    // Build a merged result object similar to Typesense response shape
+    const mergedResult = { ...(firstPage as any) } as any;
+    mergedResult.hits = allHits.slice(0, num_spots);
+    mergedResult.found = found;
+
+    return mergedResult;
   }
 
   public async searchSpotsAndPlaces(query: string) {

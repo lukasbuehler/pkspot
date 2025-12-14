@@ -4,7 +4,8 @@ import {
   doc,
   addDoc,
   collection,
-  onSnapshot,
+  collectionData,
+  docData,
   DocumentChangeType,
   where,
   query,
@@ -12,8 +13,10 @@ import {
   limit,
   deleteDoc,
   setDoc,
+  getDoc,
 } from "@angular/fire/firestore";
 import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 import { Post } from "../../../../db/models/Post";
 import { Spot } from "../../../../db/models/Spot";
 import { LikeSchema } from "../../../../db/schemas/LikeSchema";
@@ -65,74 +68,71 @@ export class PostsService extends ConsentAwareService {
     const twentyFourHoursInMilliSeconds = 24 * 60 * 60 * 1000;
     const yesterday = new Date(Date.now() - twentyFourHoursInMilliSeconds);
 
-    return new Observable<any>((observer) => {
-      return onSnapshot(
-        query(
-          collection(this.firestore, "posts"),
-          orderBy("like_count", "desc"),
-          orderBy("time_posted", "desc"),
-          limit(10) // TODO pagination
-        ),
-        (querySnapshot) => {
-          const postSchemasMap: any = {};
-          querySnapshot.forEach((doc) => {
-            const id = doc.id;
-            postSchemasMap[id] = doc.data();
-          });
-          observer.next(postSchemasMap);
-        },
-        (err) => {
-          observer.error(err);
-        }
-      );
-    });
+    return collectionData(
+      query(
+        collection(this.firestore, "posts"),
+        orderBy("like_count", "desc"),
+        orderBy("time_posted", "desc"),
+        limit(10)
+      ),
+      { idField: "id" }
+    ).pipe(
+      map((arr: any[]) => {
+        const postSchemasMap: any = {};
+        arr.forEach((doc) => {
+          postSchemasMap[doc.id] = doc;
+        });
+        return postSchemasMap;
+      })
+    );
   }
 
   getPostsFromSpot(spot: Spot): Observable<Post.Schema> {
-    return new Observable<Post.Schema>((observer) => {
-      return onSnapshot(
-        query(
-          collection(this.firestore, "posts"),
-          where("spot.ref", "==", this.docRef("spots/" + spot.id)),
-          limit(10)
-        ),
-        (querySnapshot) => {
-          let postSchemasMap: any = {};
-          querySnapshot.forEach((doc) => {
-            const id = doc.id;
-            postSchemasMap[id] = doc.data();
-          });
-          observer.next(postSchemasMap);
-        },
-        (error) => {
-          observer.error(error);
-        }
-      );
-    });
+    return collectionData(
+      query(
+        collection(this.firestore, "posts"),
+        where("spot.ref", "==", this.docRef("spots/" + spot.id)),
+        limit(10)
+      ),
+      { idField: "id" }
+    ).pipe(
+      map((arr: any[]) => {
+        const postSchemasMap: any = {};
+        arr.forEach((doc) => {
+          postSchemasMap[doc.id] = doc;
+        });
+        return postSchemasMap;
+      })
+    );
   }
 
   getPostsFromUser(userId: string): Observable<Record<string, Post.Schema>> {
+    // Wait for consent before making Firestore calls
     return new Observable<Record<string, Post.Schema>>((observer) => {
-      // Wait for consent before making Firestore calls
       this.executeWhenConsent(() => {
-        return onSnapshot(
+        const obs$ = collectionData(
           query(
             collection(this.firestore, "posts"),
             where("user.uid", "==", userId),
             limit(10)
           ),
-          (querySnapshot) => {
-            let postSchemasMap: any = {};
-            querySnapshot.forEach((doc) => {
-              const id = doc.id;
-              postSchemasMap[id] = doc.data();
+          { idField: "id" }
+        ).pipe(
+          map((arr: any[]) => {
+            const postSchemasMap: any = {};
+            arr.forEach((doc) => {
+              postSchemasMap[doc.id] = doc;
             });
-            observer.next(postSchemasMap);
-          },
-          (error) => {
-            observer.error(error);
-          }
+            return postSchemasMap;
+          })
         );
+
+        const sub = obs$.subscribe({
+          next: (v) => observer.next(v as Record<string, Post.Schema>),
+          error: (e) => observer.error(e),
+        });
+
+        return () => sub.unsubscribe();
       }).catch((error) => {
         observer.error(error);
       });
@@ -148,19 +148,12 @@ export class PostsService extends ConsentAwareService {
 
   userHasLikedPost(postId: string, userId: string): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
-      return onSnapshot(
-        doc(this.firestore, `posts/${postId}/likes/${userId}`),
-        (snap) => {
-          if (snap.exists()) {
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        },
-        (error) => {
-          reject(error);
-        }
-      );
+      // Use a single-shot getDoc instead of a listener
+      getDoc(doc(this.firestore, `posts/${postId}/likes/${userId}`))
+        .then((snap) => {
+          resolve((snap as any)?.exists ? (snap as any).exists() : !!snap);
+        })
+        .catch((err) => reject(err));
     });
   }
 

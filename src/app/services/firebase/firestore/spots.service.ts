@@ -5,7 +5,8 @@ import {
   addDoc,
   getDoc,
   collection,
-  onSnapshot,
+  collectionData,
+  docData,
   where,
   query,
   updateDoc,
@@ -102,27 +103,14 @@ export class SpotsService extends ConsentAwareService {
 
   getSpotById$(spotId: SpotId, locale: LocaleCode): Observable<Spot> {
     console.debug("Getting spot with id: ", spotId);
-
-    return new Observable<Spot>((observer) => {
-      return onSnapshot(
-        doc(this.firestore, "spots", spotId),
-        (snap) => {
-          if (snap.exists()) {
-            const data = snap.data() as SpotSchema;
-            let spot = new Spot(snap.id as SpotId, data, locale);
-            observer.next(spot);
-          } else {
-            observer.error({ msg: "Error! This Spot does not exist." });
-          }
-        },
-        (error) => {
-          observer.error({
-            msg: "Error! There was a problem loading this spot.",
-            debug: error,
-          });
-        }
-      );
-    });
+    return docData(doc(this.firestore, "spots", spotId), {
+      idField: "id",
+    }).pipe(
+      map((d: any) => {
+        if (!d) throw new Error("Error! This Spot does not exist.");
+        return new Spot(spotId, d as SpotSchema, locale);
+      })
+    );
   }
 
   getSpotsForTileKeys(
@@ -140,24 +128,26 @@ export class SpotsService extends ConsentAwareService {
     const observables = tiles.map((tile) => {
       // console.debug("Getting spots for tile: ", tile);
 
-      return new Observable<Spot[]>((observer) => {
-        const unsubscribe = onSnapshot(
-          query(
-            collection(this.firestore, "spots"),
-            where("tile_coordinates.z16.x", "==", tile.x),
-            where("tile_coordinates.z16.y", "==", tile.y)
-          ),
-          (snap) => {
-            observer.next(this._parseSpots(snap, locale));
-          },
-          (error) => {
-            observer.error(error);
-          }
-        );
-        return () => {
-          unsubscribe();
-        };
-      }).pipe(take(1));
+      return collectionData(
+        query(
+          collection(this.firestore, "spots"),
+          where("tile_coordinates.z16.x", "==", tile.x),
+          where("tile_coordinates.z16.y", "==", tile.y)
+        ),
+        { idField: "id" }
+      ).pipe(
+        take(1),
+        map((arr: any[]) =>
+          arr.map(
+            (docObj) =>
+              new Spot(
+                (docObj as any).id as SpotId,
+                docObj as SpotSchema,
+                locale
+              )
+          )
+        )
+      );
     });
 
     return forkJoin(observables).pipe(
@@ -177,27 +167,17 @@ export class SpotsService extends ConsentAwareService {
     tiles: MapTileKey[]
   ): Observable<SpotClusterTileSchema[]> {
     const observables = tiles.map((tile) => {
-      // console.debug("Getting spot cluster tile: ", tile);
-
-      return new Observable<SpotClusterTileSchema[]>((observer) => {
-        const unsubscribe = onSnapshot(
-          doc(this.firestore, "spot_clusters", tile),
-          (snap) => {
-            if (snap.exists()) {
-              observer.next([snap.data() as SpotClusterTileSchema]);
-            } else {
-              observer.next([]);
-            }
-          },
-          (error) => {
-            console.error(error);
-            observer.error(error);
-          }
-        );
-        return () => {
-          unsubscribe();
-        };
-      }).pipe(take(1));
+      // Use AngularFire docData to get typed doc observable and take one emission
+      return docData(doc(this.firestore, "spot_clusters", tile), {
+        idField: "id",
+      }).pipe(
+        take(1),
+        map((d: any) => {
+          if (!d) return [] as SpotClusterTileSchema[];
+          // docData returns the document data — convert to the expected array shape
+          return [d as SpotClusterTileSchema];
+        })
+      );
     });
 
     return forkJoin(observables).pipe(

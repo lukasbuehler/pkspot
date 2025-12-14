@@ -18,7 +18,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { SearchResponse } from "typesense/lib/Typesense/Documents";
 import { SpotSchema } from "../../../db/schemas/SpotSchema";
-import { AsyncPipe, NgOptimizedImage } from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatOptionModule } from "@angular/material/core";
 import { SearchService } from "../../services/search.service";
@@ -54,7 +54,6 @@ import {
     MatOptionModule,
     MatSuffix,
     AsyncPipe,
-    NgOptimizedImage,
     SpotRatingComponent,
   ],
   templateUrl: "./search-field.component.html",
@@ -91,7 +90,6 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
               results.spots.hits = results.spots.hits.slice(0, 5);
             }
             this.spotAndPlaceSearchResults$.next(results);
-            console.log("results", results);
           });
         } else {
           this.spotAndPlaceSearchResults$.next(null);

@@ -11,7 +11,6 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { RecaptchaVerifier, sendPasswordResetEmail } from "firebase/auth";
 import { MatIcon } from "@angular/material/icon";
 import { MatButton } from "@angular/material/button";
-import { NgIf } from "@angular/common";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
 import { RecaptchaService } from "../../services/recaptcha.service";
@@ -27,7 +26,6 @@ import { ConsentService } from "../../services/consent.service";
     MatFormField,
     MatLabel,
     MatInput,
-    NgIf,
     MatError,
     MatButton,
     MatIcon,
