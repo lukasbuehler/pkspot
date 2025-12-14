@@ -12,6 +12,7 @@ import { TilesObject } from "../google-map-2d/google-map-2d.component";
 import { VisibleViewport } from "../maps/map-base";
 import { MarkerSchema } from "../marker/marker.component";
 import { Injector, signal } from "@angular/core";
+import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotClusterService } from "../../services/spot-cluster.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
@@ -24,6 +25,12 @@ import { GeoPoint } from "firebase/firestore";
 import { ConsentService } from "../../services/consent.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
+
+export enum SpotFilterMode {
+  None = "none",
+  ForParkour = "for_parkour",
+  Dry = "dry",
+}
 
 /**
  * This interface is used to reference a spot in the loaded spots array.
@@ -72,6 +79,15 @@ export class SpotMapDataManager {
   private _visibleHighlightedSpotsBehaviorSubject = new BehaviorSubject<
     SpotPreviewData[]
   >([]);
+
+  // Single-select filter mode for showing special filter pins on the map.
+  public spotFilterMode = signal<SpotFilterMode>(SpotFilterMode.None);
+
+  /**
+   * Spot filter modes for showing single-select filter pins on the map.
+   * When set to other than `None` the highlighted pins are replaced by the
+   * filtered pins according to the selected mode.
+   */
 
   public visibleSpots$ = this._visibleSpotsBehaviorSubject.asObservable();
   public visibleDots$ = this._visibleDotsBehaviorSubject.asObservable();
@@ -632,6 +648,27 @@ export class SpotMapDataManager {
     return previewData;
   }
 
+  private _spotMatchesFilter(spot: Spot, mode: SpotFilterMode): boolean {
+    switch (mode) {
+      case SpotFilterMode.ForParkour: {
+        const parkourTypes = [
+          SpotTypes.ParkourGym,
+          SpotTypes.GymnasticsGym,
+          SpotTypes.TrampolinePark,
+          SpotTypes.Garage,
+          SpotTypes.Other,
+        ];
+        return parkourTypes.includes(spot.type());
+      }
+      case SpotFilterMode.Dry: {
+        const amenities = spot.amenities() ?? {};
+        return !!(amenities.covered || amenities.indoor);
+      }
+      default:
+        return false;
+    }
+  }
+
   /**
    * Set the spots and markers behavior subjects to the cached data we have
    * loaded.
@@ -680,10 +717,23 @@ export class SpotMapDataManager {
     });
 
     // Extract highlighted spots (rated or iconic) at zoom 16+
+    // Build highlighted or filtered spots depending on active filter mode
     // Use cache to maintain object reference stability for Angular's change detection
-    const highlightedSpots: SpotPreviewData[] = spots
-      .filter((spot) => (spot.rating ?? 0) > 0 || spot.isIconic)
-      .map((spot) => this._getOrCreateSpotPreview(spot));
+    const activeFilter = this.spotFilterMode
+      ? this.spotFilterMode()
+      : SpotFilterMode.None;
+    let highlightedSpots: SpotPreviewData[] = [];
+
+    if (activeFilter === SpotFilterMode.None) {
+      highlightedSpots = spots
+        .filter((spot) => (spot.rating ?? 0) > 0 || spot.isIconic)
+        .map((spot) => this._getOrCreateSpotPreview(spot));
+    } else {
+      // When a filter is active, replace highlights with the filter pins only
+      highlightedSpots = spots
+        .filter((spot) => this._spotMatchesFilter(spot, activeFilter))
+        .map((spot) => this._getOrCreateSpotPreview(spot));
+    }
 
     // Only show amenity markers at zoom >= 16 (amenityMarkerDisplayZoom) to maintain performance
     const markers: MarkerSchema[] = [];

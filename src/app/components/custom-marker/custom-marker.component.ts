@@ -1,4 +1,5 @@
 import { Component, computed, input, output } from "@angular/core";
+import { trigger, transition, style, animate } from "@angular/animations";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
 import { NgClass } from "@angular/common";
@@ -24,12 +25,31 @@ import { NgClass } from "@angular/common";
   selector: "app-custom-marker",
   standalone: true,
   imports: [MapAdvancedMarker, MarkerComponent, NgClass],
+  animations: [
+    trigger("fadeInOut", [
+      transition(":enter", [
+        style({ opacity: 0, transform: "translateY(20%) scale(0.9)" }),
+        animate(
+          "0.22s ease-out",
+          style({ opacity: 1, transform: "translateY(50%) scale(1)" })
+        ),
+      ]),
+      transition(":leave", [
+        style({ opacity: 1, transform: "translateY(50%) scale(1)" }),
+        animate(
+          "0.18s ease-in",
+          style({ opacity: 0, transform: "translateY(20%) scale(0.9)" })
+        ),
+      ]),
+    ]),
+  ],
   template: `
     @if(useDotMode()) {
     <!-- Small dot marker for low zoom -->
     <div
       #dotElement
-      class="fade-in shadow-sm border"
+      [@fadeInOut]
+      class="shadow-sm border"
       style="width: 8px; height: 8px; border-radius: 4px"
       [ngClass]="{
         'marker-primary-dark': marker().color === 'primary',
@@ -47,7 +67,7 @@ import { NgClass } from "@angular/common";
     <!-- Full marker for high zoom -->
     <app-marker
       #markerContent
-      class="fade-in"
+      [@fadeInOut]
       style="pointer-events: none"
       [icons]="marker().icons"
       [number]="marker().number"

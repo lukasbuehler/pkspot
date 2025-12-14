@@ -2,7 +2,15 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { getStorage } from "firebase-admin/storage";
-import { PartialSpotSchema, getSpotName } from "./spotHelpers";
+import {
+  PartialSpotSchema,
+  getSpotName,
+  getSpotPreviewImage,
+} from "./spotHelpers";
+import {
+  buildStorageMediaUrl,
+  parseStorageMediaUrl,
+} from "../../src/db/schemas/Media";
 
 const BASE_URL = "https://pkspot.app";
 const BUCKET_NAME = "parkour-base-project.appspot.com";
@@ -73,16 +81,14 @@ function generateSitemapXml(
 
     // Get image info for this spot
     let imageXml = "";
-    if (spot.data.media && spot.data.media.length > 0) {
-      const firstImage = spot.data.media[0];
-      if (firstImage.type === "image" && firstImage.src) {
-        const spotName = getSpotName(spot.data, "en");
-        imageXml = `
+    const previewImageUrl = getSpotPreviewImage(spot.data);
+    if (previewImageUrl) {
+      const spotName = getSpotName(spot.data, "en");
+      imageXml = `
     <image:image>
-      <image:loc>${escapeXml(firstImage.src)}</image:loc>
+      <image:loc>${escapeXml(previewImageUrl)}</image:loc>
       <image:title>${escapeXml(spotName)}</image:title>
     </image:image>`;
-      }
     }
 
     // If a slug exists, add it as the primary URL with higher priority
@@ -127,9 +133,13 @@ function generateSitemapXml(
     let imageXml = "";
     if (user.data.profile_picture) {
       const userName = user.data.display_name || "User";
+      const mediaSrc = buildStorageMediaUrl(
+        parseStorageMediaUrl(user.data.profile_picture)
+      );
       imageXml = `
+
     <image:image>
-      <image:loc>${escapeXml(user.data.profile_picture)}</image:loc>
+      <image:loc>${escapeXml(mediaSrc)}</image:loc>
       <image:title>${escapeXml(userName)}</image:title>
     </image:image>`;
     }

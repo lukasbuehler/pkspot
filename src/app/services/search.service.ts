@@ -211,9 +211,58 @@ export class SearchService {
       );
     }
 
+    const spotsResult =
+      bothResults[0].status === "fulfilled" ? bothResults[0].value : null;
+
+    // If we have typesense hits, attach a simple SpotPreview-like `preview` object
+    if (spotsResult && Array.isArray((spotsResult as any).hits)) {
+      (spotsResult as any).hits = (spotsResult as any).hits.map((hit: any) => {
+        try {
+          const doc = hit.document || {};
+          const rawName = doc.name;
+          let displayName = "";
+          if (!rawName) displayName = "Unnamed Spot";
+          else if (typeof rawName === "string") displayName = rawName;
+          else if (typeof rawName === "object") {
+            const locales = Object.keys(rawName);
+            if (locales.length === 0) displayName = "Unnamed Spot";
+            else {
+              const candidate = rawName[locales[0]];
+              if (typeof candidate === "string") displayName = candidate;
+              else if (candidate && typeof candidate.text === "string")
+                displayName = candidate.text;
+              else displayName = JSON.stringify(candidate) || "Unnamed Spot";
+            }
+          }
+
+          const preview = {
+            name: displayName,
+            id: doc.id || hit.document?.id || "",
+            slug: doc.slug || undefined,
+            location:
+              doc.location && doc.location.latitude && doc.location.longitude
+                ? doc.location
+                : undefined,
+            type: doc.type,
+            access: doc.access,
+            locality: doc.address?.locality || "",
+            imageSrc: doc.thumbnail_url || doc.image_url || "",
+            isIconic: !!doc.is_iconic,
+            rating: doc.rating ?? undefined,
+            amenities: doc.amenities || undefined,
+          } as any;
+
+          // attach preview to the hit so UI can use it without guessing shape
+          hit.preview = preview;
+        } catch (err) {
+          // ignore mapping errors
+        }
+        return hit;
+      });
+    }
+
     return {
-      spots:
-        bothResults[0].status === "fulfilled" ? bothResults[0].value : null,
+      spots: spotsResult,
       places:
         bothResults[1].status === "fulfilled" ? bothResults[1].value : null,
     };

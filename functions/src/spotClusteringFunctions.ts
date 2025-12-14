@@ -10,7 +10,21 @@ import {
   getSpotName,
   getSpotPreviewImage,
 } from "./spotHelpers";
+import { MapHelpers } from "../../src/scripts/MapHelpers";
 import { SpotId } from "../../src/db/schemas/SpotSchema";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const Supercluster = require("supercluster");
+
+function tileToBBox(
+  zoom: number,
+  x: number,
+  y: number
+): [number, number, number, number] {
+  // Reuse client-side MapHelpers to compute bounds for tile and convert to bbox
+  const bounds = MapHelpers.getBoundsForTile(zoom, x, y);
+  // MapHelpers returns { south, west, north, east }
+  return [bounds.west, bounds.south, bounds.east, bounds.north];
+}
 
 interface ClusterTileDot {
   location: GeoPoint;
@@ -146,45 +160,62 @@ async function _clusterAllSpots() {
       }
     );
 
-    // actual clustering
+    // Use Supercluster to aggregate z12 dots into higher-level clusters (z8, z4)
+    // Build GeoJSON-like features from z12 dots
+    const allDotsFeatures: any[] = [];
+    clusterTiles.forEach((tile) => {
+      tile.dots.forEach((d) => {
+        allDotsFeatures.push({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [d.location.longitude, d.location.latitude],
+          },
+          properties: {
+            weight: d.weight || 1,
+            spot_id: d.spot_id || null,
+          },
+        });
+      });
+    });
+
+    const superIndex = new Supercluster({ radius: 60, maxZoom: 12 });
+    try {
+      superIndex.load(allDotsFeatures);
+    } catch (err) {
+      console.error("supercluster load failed", err);
+    }
+
     for (let zoom = 8; zoom >= 4; zoom -= 4) {
-      // for each z cluster tile to compute in the map
       for (let [tileKey, smallerTileKeys] of clusterTilesMap[
         zoom as 8 | 4
       ].entries()) {
         const firstSmallerTile = clusterTiles.get(smallerTileKeys[0])!;
 
-        // cluster the dots
-        const clusterDots: ClusterTileDot[] = smallerTileKeys
-          .map((key) => {
-            return (clusterTiles.get(key) as SpotClusterTile).dots;
-          })
-          .map((dots) => {
-            const totalWeight = dots.reduce((acc, dot) => acc + dot.weight, 0);
-            return dots.reduce(
-              (acc, dot) => {
-                let newLatitude =
-                  acc.location.latitude +
-                  (dot.weight * dot.location.latitude) / totalWeight;
-                let newLongitude =
-                  acc.location.longitude +
-                  (dot.weight * dot.location.longitude) / totalWeight;
+        // compute desired bbox for this aggregated tile
+        const tileX = firstSmallerTile.x >> (zoom === 8 ? 4 : 8);
+        const tileY = firstSmallerTile.y >> (zoom === 8 ? 4 : 8);
+        const bbox = tileToBBox(zoom, tileX, tileY);
 
-                // Wrap around latitude [-90, 90], longitude around [-180, 180]
-                newLatitude = ((((newLatitude + 90) % 180) + 180) % 180) - 90;
-                newLongitude =
-                  ((((newLongitude + 180) % 360) + 360) % 360) - 180;
+        // ask supercluster for clusters in this bbox at the target zoom
+        const clusters = superIndex.getClusters(bbox, zoom);
 
-                const newGeopoint = new GeoPoint(newLatitude, newLongitude);
-                acc.location = newGeopoint;
-                acc.weight += dot.weight;
-                return acc;
-              },
-              { location: new GeoPoint(0, 0), weight: 0 }
-            );
-          });
+        const clusterDots: ClusterTileDot[] = clusters.map((c: any) => {
+          const coords = c.geometry.coordinates;
+          const weight =
+            c.properties && c.properties.point_count
+              ? c.properties.point_count
+              : c.properties && c.properties.weight
+              ? c.properties.weight
+              : 1;
+          return {
+            location: new GeoPoint(coords[1], coords[0]),
+            weight,
+            spot_id: c.properties && c.properties.spot_id,
+          } as ClusterTileDot;
+        });
 
-        // only add the best spots to the cluster tile
+        // only add the best spots to the cluster tile (reuse previous selection logic)
         const numberOfClusterSpots = 1;
         const iconicScore = 4;
         const clusterSpots: SpotPreviewData[] = smallerTileKeys
@@ -210,8 +241,8 @@ async function _clusterAllSpots() {
         // set the cluster tile
         clusterTiles.set(tileKey, {
           zoom: zoom,
-          x: firstSmallerTile.x >> 4,
-          y: firstSmallerTile.y >> 4,
+          x: firstSmallerTile.x >> (zoom === 8 ? 4 : 8),
+          y: firstSmallerTile.y >> (zoom === 8 ? 4 : 8),
           dots: clusterDots,
           spots: clusterSpots,
         });

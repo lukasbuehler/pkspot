@@ -6,6 +6,7 @@ import {
   input,
   output,
 } from "@angular/core";
+import { trigger, transition, style, animate } from "@angular/animations";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { NgClass } from "@angular/common";
 import { MarkerComponent } from "../marker/marker.component";
@@ -20,6 +21,24 @@ import {
  */
 @Component({
   selector: "app-map-marker-renderer",
+  animations: [
+    trigger("fadeInOut", [
+      transition(":enter", [
+        style({ opacity: 0, transform: "translateY(20%) scale(0.9)" }),
+        animate(
+          "0.25s ease-out",
+          style({ opacity: 1, transform: "translateY(50%) scale(1)" })
+        ),
+      ]),
+      transition(":leave", [
+        style({ opacity: 1, transform: "translateY(50%) scale(1)" }),
+        animate(
+          "0.18s ease-in",
+          style({ opacity: 0, transform: "translateY(20%) scale(0.9)" })
+        ),
+      ]),
+    ]),
+  ],
   template: `
     <!-- Small dot marker for low zoom levels -->
     @if (renderOptions().showDots && !renderOptions().showFull) {
@@ -33,10 +52,12 @@ import {
       [zIndex]="marker().zIndex || 0"
       (mapClick)="onMarkerClick()"
       (mapDragend)="onMarkerDragEnd($event)"
+      @fadeInOut
     ></map-advanced-marker>
     <div
       #dotElement
       class="marker-dot"
+      [@fadeInOut]
       [ngClass]="getDotClasses()"
       [style]="getDotStyles()"
     ></div>
@@ -54,10 +75,12 @@ import {
       [zIndex]="marker().zIndex || 0"
       (mapClick)="onMarkerClick()"
       (mapDragend)="onMarkerDragEnd($event)"
+      @fadeInOut
     ></map-advanced-marker>
     <app-marker
       #markerComponent
       class="fade-in"
+      [@fadeInOut]
       [icons]="marker().icons"
       [number]="marker().number"
       [color]="marker().color || 'primary'"

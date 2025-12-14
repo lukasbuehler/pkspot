@@ -31,9 +31,9 @@
         class="d-flex flex-row align-items-center justify-content-start gap-2 pe-3"
       >
         <div class="p-1">
-          @if(hit.document.thumbnail_url) {
+          @if(hit.preview?.imageSrc || hit.document.thumbnail_url) {
           <img
-            [src]="hit.document.thumbnail_url || '#'"
+            [src]="hit.preview?.imageSrc || hit.document.thumbnail_url || '#'"
             class="rounded"
             alt=""
             width="50px"
@@ -56,16 +56,17 @@
         >
           <div class="d-flex flex-row gap-2 align-items-center min-w-0">
             <span class="mat-title-medium text-truncate">{{
-              getSpotName(hit.document)
+              getSpotName(hit.preview || hit.document)
             }}</span>
-            @if(hit.document.rating && hit.document.rating > 0) {
+            @if((hit.preview?.rating ?? hit.document.rating) &&
+            (hit.preview?.rating ?? hit.document.rating) > 0) {
             <app-spot-rating
               class="mat-title-small"
-              [rating1to5]="hit.document.rating!"
+              [rating1to5]="hit.preview?.rating ?? hit.document.rating"
               [isCompact]="true"
             ></app-spot-rating>
-            } @for(amenity of getImportantAmenities(hit.document.amenities);
-            track amenity.key) {
+            } @for(amenity of getImportantAmenities(hit.preview?.amenities ||
+            hit.document.amenities); track amenity.key) {
             <mat-icon
               class="mat-title-small typeOrAccesIcon"
               [title]="amenity.key"

@@ -71,9 +71,12 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   private _spotSearchSubscription?: Subscription;
 
   spotSearchControl = new FormControl();
+  // Use a loose result type to allow runtime-attached `preview` property
   spotAndPlaceSearchResults$ = new BehaviorSubject<{
     places: google.maps.places.AutocompletePrediction[] | null;
-    spots: SearchResponse<Partial<SpotSchema & { id: string }>> | null;
+    // Typesense SearchResponse is kept at runtime, but we allow `any` here
+    // so the template can access runtime-attached `preview` safely.
+    spots: any | null;
   } | null>(null);
 
   ngOnInit() {
@@ -111,19 +114,37 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   }
 
   getSpotName(spot: Partial<SpotSchema & { id: string }>): string {
-    const spotName = spot.name as Record<LocaleCode, string | { text: string }>;
-    const nameLocales = Object.keys(spotName);
-    const localeToShow: LocaleCode = nameLocales.includes(this.locale)
-      ? (this.locale as LocaleCode)
-      : (Object.keys(spotName)[0] as LocaleCode);
+    const rawName: any = (spot as any)?.name;
 
-    if (typeof spotName[localeToShow] === "string") {
-      return spotName[localeToShow];
-    } else if (typeof spotName[localeToShow] === "object") {
-      return spotName[localeToShow].text;
-    } else {
-      return $localize`Unnamed Spot`;
+    if (!rawName) return $localize`Unnamed Spot`;
+
+    // If the name is already a string, return it
+    if (typeof rawName === "string") return rawName;
+
+    // If the name is an object keyed by locale codes, try to pick the best one
+    if (typeof rawName === "object") {
+      const nameLocales = Object.keys(rawName);
+      if (nameLocales.length === 0) return $localize`Unnamed Spot`;
+
+      const localeToShow: LocaleCode = nameLocales.includes(this.locale)
+        ? (this.locale as LocaleCode)
+        : (nameLocales[0] as LocaleCode);
+
+      const candidate = rawName[localeToShow];
+
+      if (typeof candidate === "string") return candidate;
+      if (candidate && typeof candidate.text === "string")
+        return candidate.text;
+
+      // Fallback: try to find any string-ish value in the object
+      for (const k of nameLocales) {
+        const v = rawName[k];
+        if (typeof v === "string") return v;
+        if (v && typeof v.text === "string") return v.text;
+      }
     }
+
+    return $localize`Unnamed Spot`;
   }
 
   /**
