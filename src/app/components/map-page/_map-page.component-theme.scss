@@ -2,15 +2,20 @@
 @use "@angular/material" as mat;
 
 @mixin color($theme) {
-  div.info-panel,
   .spot-search-field,
   .glass {
     // background-color: mat.get-theme-color($theme, surface-container-low);
     background-color: rgba(
-      mat.get-theme-color($theme, surface-container-low),
+      mat.get-theme-color($theme, surface-container-high),
       0.8
     ) !important;
     backdrop-filter: blur(10px);
+  }
+
+  mat-drawer,
+  .mat-drawer,
+  .mat-drawer-inner-container {
+    background-color: mat.get-theme-color($theme, surface-container-low);
   }
 }
 

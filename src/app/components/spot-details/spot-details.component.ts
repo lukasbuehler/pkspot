@@ -733,6 +733,17 @@ export class SpotDetailsComponent
       }
     });
 
+    // Attempt to load streetview for spots when Maps API is available.
+    effect(() => {
+      const spot = this.spot();
+      const apiLoaded = this._mapsApiService.isApiLoaded();
+
+      if (spot instanceof Spot && apiLoaded) {
+        // Fire-and-forget: Spot.loadStreetview will no-op if not needed.
+        void spot.loadStreetview(this._mapsApiService);
+      }
+    });
+
     // Reactively (re)load Google Place preview whenever the place id changes
     effect(() => {
       const s = this.spot();

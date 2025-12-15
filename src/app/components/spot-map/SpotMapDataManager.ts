@@ -762,20 +762,23 @@ export class SpotMapDataManager {
       return;
     }
 
-    // Get the tiles object for the cluster zoom
-    // If zoom is below the minimum cluster zoom (4), clamp it to the minimum
+    // Get the tiles object for the cluster zoom. Choose the closest cluster zoom
+    // at or below the current zoom; if none exists (zoom < min cluster zoom)
+    // fall back to the minimum cluster zoom.
     const tilesZ =
       this.clusterZooms
-        .filter((zoom) => zoom <= tiles.zoom)
+        .filter((z) => z <= tiles.zoom)
         .sort((a, b) => b - a)[0] ?? this.clusterZooms[0];
 
-    // For zooms below the minimum cluster zoom (e.g., 2 or 3), we still want to use
-    // the minimum cluster zoom data (4) but keep the actual zoom for viewport calculations
+    // For zooms below the minimum cluster zoom (e.g., 2 or 3), we must *transform*
+    // the tile coordinates from the current zoom to the minimum cluster zoom so
+    // x/y coordinates match the declared zoom. Previously we only replaced the
+    // zoom number while leaving tile x/y untouched which produced invalid keys.
     const effectiveZoom = Math.max(tiles.zoom, this.clusterZooms[0]);
     const tilesForClusters =
       effectiveZoom === tiles.zoom
         ? tiles
-        : { ...tiles, zoom: this.clusterZooms[0] };
+        : this._transformTilesObjectToZoom(tiles, this.clusterZooms[0]);
 
     const tilesZObj = this._transformTilesObjectToZoom(
       tilesForClusters,
@@ -1059,19 +1062,23 @@ export class SpotMapDataManager {
   ): Set<MapTileKey> {
     let zoom = visibleTilesObj.zoom;
 
-    // Transform the visible tiles to the zoom level of the spot clusters
-    // Get the tiles object for the cluster zoom
+    // Transform the visible tiles to the zoom level of the spot clusters.
+    // Choose the nearest cluster zoom at or below the current zoom; if the
+    // current zoom is below the minimum cluster zoom, transform the tile
+    // coordinates to the minimum cluster zoom so x/y match the zoom value.
     const tilesZ =
       this.clusterZooms
-        .filter((zoom) => zoom <= visibleTilesObj.zoom)
+        .filter((z) => z <= visibleTilesObj.zoom)
         .sort((a, b) => b - a)[0] ?? this.clusterZooms[0];
 
-    // For zooms below the minimum cluster zoom (e.g., 2 or 3), clamp to minimum
     const effectiveZoom = Math.max(visibleTilesObj.zoom, this.clusterZooms[0]);
     const tilesForClusters =
       effectiveZoom === visibleTilesObj.zoom
         ? visibleTilesObj
-        : { ...visibleTilesObj, zoom: this.clusterZooms[0] };
+        : this._transformTilesObjectToZoom(
+            visibleTilesObj,
+            this.clusterZooms[0]
+          );
 
     const transformedTiles = this._transformTilesObjectToZoom(
       tilesForClusters,

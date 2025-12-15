@@ -304,7 +304,7 @@ export class GoogleMap2dComponent
     west: number;
     east: number;
   } | null = null;
-  @Input() minZoom: number = 4;
+  @Input() minZoom: number | null = null;
 
   mapStyle = input<"roadmap" | "satellite">("roadmap");
   polygons = input<PolygonSchema[]>([]);
@@ -330,17 +330,24 @@ export class GoogleMap2dComponent
     const zoom = this.googleMap?.getZoom(); // this needs to be getZoom because _zoom is still outdated if panning
     const boundsToRender = this.boundsToRender();
 
-    if (!boundsToRender || !zoom) {
+    if (!boundsToRender || typeof zoom !== "number") {
       return null;
     }
 
+    // Use an integer zoom for tile calculations. Google Maps may report
+    // fractional zoom levels during smooth zooming; tile systems expect
+    // integer zooms. Flooring the zoom ensures consistent tile keys and
+    // allows the cluster logic to handle zooms below the minimum cluster
+    // zoom (e.g., 2 or 3) by mapping them to the cluster zoom levels.
+    const intZoom = Math.max(0, Math.floor(zoom));
+
     const neTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
       boundsToRender.getNorthEast().toJSON(),
-      zoom
+      intZoom
     );
     const swTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
       boundsToRender.getSouthWest().toJSON(),
-      zoom
+      intZoom
     );
 
     // if the previously visible tiles are empty, we need to render the new tiles
@@ -353,7 +360,7 @@ export class GoogleMap2dComponent
       const prevSwTile = this._previouslyVisibleTiles.sw;
 
       if (
-        this._previouslyVisibleTiles.zoom === zoom &&
+        this._previouslyVisibleTiles.zoom === intZoom &&
         prevNeTile.x === neTile.x &&
         prevNeTile.y === neTile.y &&
         prevSwTile.x === swTile.x &&
@@ -365,13 +372,13 @@ export class GoogleMap2dComponent
 
     // make an array of all the tiles between (and including) the NE and SW tiles
     const tilesObj: TilesObject = {
-      zoom: zoom,
+      zoom: intZoom,
       tiles: [],
       ne: neTile,
       sw: swTile,
     };
 
-    const xRange = enumerateTileRangeX(swTile.x, neTile.x, zoom);
+    const xRange = enumerateTileRangeX(swTile.x, neTile.x, intZoom);
     const yMin = Math.min(swTile.y, neTile.y);
     const yMax = Math.max(swTile.y, neTile.y);
 
@@ -1113,6 +1120,17 @@ export class GoogleMap2dComponent
         dot.location.longitude
       );
       this.focusOnLocation(location, this.zoom + 4);
+    }
+  }
+
+  onDotMapClick(el: HTMLElement | null | undefined, $event?: unknown) {
+    try {
+      el?.focus();
+    } catch (e) {
+      // ignore
+    }
+    if ($event && typeof ($event as any).stopPropagation === "function") {
+      ($event as any).stopPropagation();
     }
   }
 

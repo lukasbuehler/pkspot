@@ -14,6 +14,7 @@ import {
   effect,
   computed,
 } from "@angular/core";
+import { Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
@@ -90,7 +91,7 @@ import { StructuredDataService } from "../../services/structured-data.service";
         animate("0.3s ease-out", style({ opacity: 1, scale: 1 })),
       ]),
       transition(":leave", [
-        style({ opacity: 1, scale: 1, position: "absolute" }),
+        style({ opacity: 1, scale: 1, position: "static" }),
         animate("0.3s ease-in", style({ opacity: 0, scale: 1 })),
       ]),
     ]),
@@ -182,6 +183,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   bottomSheetProgress = signal<number>(0);
 
   sidenavOpen = signal<boolean>(true);
+  sidebarContentIsScrolling = signal<boolean>(false);
+
+  // References and listeners for sidebar/bottom-sheet scrolling
+  private _sidebarScrollEl?: HTMLElement | null;
+  private _sidebarScrollListener?: (e: Event) => void;
+  private _bottomSheetContentEl?: HTMLElement | null;
+  private _bottomSheetContentListener?: (e: Event) => void;
 
   filterCtrl = new FormControl<string[]>([], { nonNullable: true });
   selectedFilters = signal<string[]>([]);
@@ -208,6 +216,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private _searchService: SearchService,
     private _slugsService: SlugsService,
     private router: Router,
+    private _location: Location,
     private _snackbar: MatSnackBar,
     private titleService: Title,
     private _consentService: ConsentService,
@@ -527,6 +536,54 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             showEditHistory
           );
         });
+
+      // Setup scroll listeners for the sidebar (desktop) and bottom-sheet (mobile)
+      try {
+        const drawerInner = document.querySelector(
+          ".mat-drawer-inner-container"
+        ) as HTMLElement | null;
+        if (drawerInner) {
+          this._sidebarScrollEl = drawerInner;
+          this._sidebarScrollListener = () => {
+            this.sidebarContentIsScrolling.set(
+              !!(this._sidebarScrollEl && this._sidebarScrollEl.scrollTop > 0)
+            );
+          };
+          this._sidebarScrollEl.addEventListener(
+            "scroll",
+            this._sidebarScrollListener,
+            { passive: true }
+          );
+          this.sidebarContentIsScrolling.set(
+            this._sidebarScrollEl.scrollTop > 0
+          );
+        }
+
+        const bottomContent = document.querySelector(
+          "app-bottom-sheet #contentEl"
+        ) as HTMLElement | null;
+        if (bottomContent) {
+          this._bottomSheetContentEl = bottomContent;
+          this._bottomSheetContentListener = () => {
+            this.sidebarContentIsScrolling.set(
+              !!(
+                this._bottomSheetContentEl &&
+                this._bottomSheetContentEl.scrollTop > 0
+              )
+            );
+          };
+          this._bottomSheetContentEl.addEventListener(
+            "scroll",
+            this._bottomSheetContentListener,
+            { passive: true }
+          );
+          this.sidebarContentIsScrolling.set(
+            this._bottomSheetContentEl.scrollTop > 0
+          );
+        }
+      } catch (e) {
+        console.warn("Could not attach sidebar scroll listeners:", e);
+      }
     }
   }
 
@@ -724,8 +781,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (currentUrl === newUrl) {
       return;
-    } else if (currentUrl.startsWith("/map")) {
-      this.router.navigateByUrl(newUrl);
+    } else if (currentUrl.includes("/map")) {
+      // Update the browser URL without triggering a router navigation
+      // This avoids causing a navigation cycle / full page refresh.
+      try {
+        this._location.replaceState(newUrl);
+      } catch (err) {
+        // Fallback to router navigation if Location fails for any reason
+        this.router.navigateByUrl(newUrl);
+      }
     }
     // If not on /map, do not update the URL
   }
@@ -737,11 +801,51 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.closeChallenge(false);
       this.selectedSpot.set(spot);
+      // When a new spot is selected, jump the sidebar/bottom-sheet content to top
+      this.resetSidebarContentToTop();
+      this.resetBottomSheetContentToTop();
       this.spotMap?.focusSpot(spot);
 
       if (updateUrl && spot instanceof Spot) {
         this.updateMapURL();
       }
+    }
+  }
+
+  /**
+   * Scroll the desktop sidebar content to the top.
+   * If the material drawer inner container isn't cached yet we attempt to find it.
+   */
+  resetSidebarContentToTop(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const el =
+      this._sidebarScrollEl ||
+      (document.querySelector(
+        ".mat-drawer-inner-container"
+      ) as HTMLElement | null);
+
+    if (el) {
+      el.scrollTo({ top: 0 });
+      this.sidebarContentIsScrolling.set(false);
+    }
+  }
+
+  /**
+   * Scroll the bottom-sheet content to the top.
+   */
+  resetBottomSheetContentToTop(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const el =
+      this._bottomSheetContentEl ||
+      (document.querySelector(
+        "app-bottom-sheet #contentEl"
+      ) as HTMLElement | null);
+
+    if (el) {
+      el.scrollTo({ top: 0 });
+      this.sidebarContentIsScrolling.set(false);
     }
   }
 
@@ -813,5 +917,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._routerSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();
     this._structuredDataService.removeStructuredData("highlighted-spots");
+    try {
+      if (this._sidebarScrollEl && this._sidebarScrollListener) {
+        this._sidebarScrollEl.removeEventListener(
+          "scroll",
+          this._sidebarScrollListener as EventListener
+        );
+      }
+      if (this._bottomSheetContentEl && this._bottomSheetContentListener) {
+        this._bottomSheetContentEl.removeEventListener(
+          "scroll",
+          this._bottomSheetContentListener as EventListener
+        );
+      }
+    } catch (e) {
+      console.warn("Error removing scroll listeners:", e);
+    }
   }
 }

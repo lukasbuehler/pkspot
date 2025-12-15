@@ -92,7 +92,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   @Input() showGeolocation: boolean = true;
   @Input() showSatelliteToggle: boolean = false;
-  @Input() minZoom: number = 4; // 2 is not working - Idea: Allow zooming out to 2, will use zoom 4 cluster data as fallback
+  @Input() minZoom: number | null = null; // If null, no enforced min zoom; cluster logic will handle low zooms
   @Input() boundRestriction: {
     north: number;
     south: number;

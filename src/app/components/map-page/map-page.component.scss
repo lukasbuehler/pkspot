@@ -128,7 +128,9 @@ mat-card {
   }
 }
 
-mat-drawer {
+mat-drawer,
+.search-field-container {
+  border-radius: 0px;
   width: calc(100% - (80px + 5px * 2));
 
   @media (min-width: 768px) {
@@ -140,11 +142,12 @@ mat-drawer {
   }
 }
 
-mat-chip-option {
+mat-chip-option,
+mat-chip {
   border-radius: 20px;
   overflow: hidden;
 }
 
-::ng-deep .mat-mdc-standard-chip .mdc-evolution-chip__action--primary::before {
+::ng-deep .glass .mdc-evolution-chip__action--primary::before {
   border: none !important;
 }

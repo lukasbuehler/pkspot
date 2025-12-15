@@ -264,12 +264,9 @@
   } }
 </ng-template>
 
-<ng-template
-  #chips
-  class="flex-grow-1 d-flex justify-content-start align-items-center"
->
+<ng-template #chips class="position-relative">
   <!-- Search option chips -->
-  <mat-chip-listbox class="search-option-chips">
+  <mat-chip-listbox class="search-option-chips" @fadeInOut>
     @if(authService.isSignedIn && !isEditing()) {
     <mat-chip-option class="glass"
       ><mat-icon matChipAvatar>bookmark</mat-icon>Saved</mat-chip-option
@@ -312,58 +309,54 @@
 </ng-template>
 
 @if(responsiveService.isNotMobile()){
-<div class="h-8 w-100 d-flex flex-row p-3 gap-3 surface-container-low">
-  <div class="flex-grow-1 overflow-hidden" style="border-radius: 16px">
-    <app-search-field
-      class="w-100 mat-elevation-z3"
-      (spotSelected)="openSpotOrGooglePlace($event)"
-    ></app-search-field>
-  </div>
+<div
+  class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
+  style="z-index: 100"
+>
+  <app-search-field
+    class="position-relative w-100 mat-elevation-z3 overflow-hidden"
+    style="border-radius: 16px"
+    (spotSelected)="openSpotOrGooglePlace($event)"
+  ></app-search-field>
+  @if(!sidebarContentIsScrolling() || !sidenavOpen()) {
   <ng-container *ngTemplateOutlet="chips"></ng-container>
+  }
 </div>
 
-<mat-drawer-container style="height: calc(100% - 88px)" class="bg-transparent">
+<mat-drawer-container class="h-100 bg-transparent">
   <mat-drawer
     [opened]="sidenavOpen()"
     position="start"
     mode="side"
-    class="bg-transparent ps-3 pb-3 me-3"
+    class="bg-transparent info-panel"
   >
-    <div class="info-panel py-3 h-100" style="border-radius: 16px">
-      <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
-    </div>
+    <div style="height: 130px"></div>
+    <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
   </mat-drawer>
 
-  <div class="overflow-hidden position-relative h-100 pe-3 pb-3 ms-3">
-    <div
-      style="border-radius: 16px"
-      class="position-relative overflow-hidden h-100 w-100"
-    >
-      <ng-container *ngTemplateOutlet="mapContent"></ng-container>
+  <div class="position-relative overflow-hidden h-100 w-100">
+    <ng-container *ngTemplateOutlet="mapContent"></ng-container>
 
-      <!-- sidenav toggle button -->
-      <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">
-        <button
-          mat-icon-button
-          (click)="toggleSidenav()"
-          class="d-flex border justify-content-center align-items-center p-0"
-          style="
-            background-color: var(
-              --mat-bottom-sheet-container-background-color
-            );
-            border-color: var(
-              --mat-icon-button-icon-color,
-              var(--mat-sys-on-surface-variant)
-            ) !important;
-            border-width: 0.8px !important;
-          "
-        >
-          @if(sidenavOpen()) {
-          <mat-icon>chevron_left</mat-icon>
-          } @else {
-          <mat-icon>chevron_right</mat-icon>}
-        </button>
-      </div>
+    <!-- sidenav toggle button -->
+    <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">
+      <button
+        mat-icon-button
+        (click)="toggleSidenav()"
+        class="d-flex border justify-content-center align-items-center p-0"
+        style="
+          background-color: var(--mat-bottom-sheet-container-background-color);
+          border-color: var(
+            --mat-icon-button-icon-color,
+            var(--mat-sys-on-surface-variant)
+          ) !important;
+          border-width: 0.8px !important;
+        "
+      >
+        @if(sidenavOpen()) {
+        <mat-icon>chevron_left</mat-icon>
+        } @else {
+        <mat-icon>chevron_right</mat-icon>}
+      </button>
     </div>
   </div>
 </mat-drawer-container>

@@ -51,6 +51,8 @@ import { NgClass } from "@angular/common";
       [@fadeInOut]
       class="shadow-sm border"
       style="width: 8px; height: 8px; border-radius: 4px"
+      tabindex="0"
+      role="button"
       [ngClass]="{
         'marker-primary-dark': marker().color === 'primary',
         'marker-secondary-dark': marker().color === 'secondary',
@@ -61,7 +63,7 @@ import { NgClass } from "@angular/common";
       [position]="marker().location"
       [content]="dotElement"
       [options]="dotMarkerOptions()"
-      (mapClick)="markerClick.emit(index())"
+      (mapClick)="onDotMapClick(dotElement, $event)"
     />
     } @else {
     <!-- Full marker for high zoom -->
@@ -74,13 +76,13 @@ import { NgClass } from "@angular/common";
       [color]="marker().color ?? 'primary'"
       [size]="0.8"
       [title]="marker().name"
-      (click)="onMarkerContentClick()"
+      (click)="onMarkerContentClick(markerContent)"
     />
     <map-advanced-marker
       [position]="marker().location"
       [content]="markerContent.elementRef.nativeElement"
       [options]="fullMarkerOptions()"
-      (mapClick)="onMarkerContentClick()"
+      (mapClick)="onMarkerContentClick(markerContent, $event)"
     />
     }
   `,
@@ -188,7 +190,27 @@ export class CustomMarkerComponent {
   /**
    * Handle marker click events
    */
-  onMarkerContentClick(): void {
-    this.markerClick.emit(this.index());
+  /** Focus-only handlers for amenity markers/dots */
+  onDotMapClick(el: HTMLElement | null | undefined, $event?: unknown): void {
+    try {
+      el?.focus();
+    } catch (e) {
+      // ignore
+    }
+    if ($event && typeof ($event as any).stopPropagation === "function") {
+      ($event as any).stopPropagation();
+    }
+  }
+
+  onMarkerContentClick(markerContent?: any, $event?: unknown): void {
+    if (!markerContent) return;
+    try {
+      markerContent?.elementRef?.nativeElement?.focus();
+    } catch (e) {
+      // ignore
+    }
+    if ($event && typeof ($event as any).stopPropagation === "function") {
+      ($event as any).stopPropagation();
+    }
   }
 }

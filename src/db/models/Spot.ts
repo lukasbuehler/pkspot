@@ -64,9 +64,7 @@ export class LocalSpot {
   readonly previewImageSrc: Signal<string>;
 
   isEligableForHighlights: Signal<boolean> = computed(() => {
-    return (
-      this.userMedia().length > 0 && this.hasRating()
-    );
+    return this.userMedia().length > 0 && this.hasRating();
   });
   isIconic: boolean = false;
   rating: number = 0; // from 0-5, where 0 means no rating. Default is 0, 1-5 set by cloud function.
@@ -576,6 +574,29 @@ export class LocalSpot {
     this.userMedia.update((userMedia) => {
       return [...userMedia, media];
     });
+  }
+
+  /**
+   * Attempts to load a Street View image for this spot using the provided
+   * MapsApiService. If a streetview image is found it will be appended to
+   * the spot's media via the internal `_streetview` signal.
+   */
+  public async loadStreetview(mapsApiService: MapsApiService): Promise<void> {
+    if (this.hideStreetview) return;
+
+    // If the spot already has user media or a streetview, skip loading
+    if (this.hasMedia()) return;
+
+    try {
+      const sv = await mapsApiService.loadStreetviewForLocation(
+        this.location()
+      );
+      if (sv) {
+        this._streetview.set(sv);
+      }
+    } catch (err) {
+      console.warn("Failed to load streetview for spot", err);
+    }
   }
 
   public clone(): LocalSpot {
