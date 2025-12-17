@@ -18,8 +18,9 @@ if (apiKey && host) {
     defaults: "2025-11-30",
     // Disable DNT respect for testing - you can re-enable later
     respect_dnt: true,
-    capture_pageview: true,
-    capture_pageleave: true,
+    // Disable PostHog automatic pageview capture — we'll send manual pageviews
+    capture_pageview: false,
+    capture_pageleave: false,
     disable_session_recording: true,
     persistence: "localStorage",
     // Disable debug mode to suppress PostHog console logs
@@ -29,6 +30,17 @@ if (apiKey && host) {
       // Handle null event case
       if (!event) {
         return event;
+      }
+      // Drop events from obvious bots/crawlers
+      try {
+        if (typeof navigator !== "undefined") {
+          const ua = navigator.userAgent || "";
+          if (/bot|googlebot|crawler|spider|robot|crawling/i.test(ua)) {
+            return null;
+          }
+        }
+      } catch (e) {
+        // ignore
       }
       // Remove locale prefix from pathname (e.g., /en/map → /map)
       if (event.properties && event.properties["$pathname"]) {
@@ -49,6 +61,16 @@ if (apiKey && host) {
       return event;
     },
   });
+
+  // Register initial super-properties so autocaptured pageviews include them
+  try {
+    const accepted =
+      typeof window !== "undefined" &&
+      !!localStorage.getItem("acceptedVersion");
+    posthog.register({ authenticated: false, consent_granted: accepted });
+  } catch (e) {
+    // ignore
+  }
 }
 
 if (environment.production) {

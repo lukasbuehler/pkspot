@@ -179,7 +179,9 @@ export class AppComponent implements OnInit {
         this.alainMode = false;
       }
       GlobalVariables.alainMode.next(this.alainMode);
-      this._analyticsService.trackEvent("Page View", { alainMode: this.alainMode });
+      this._analyticsService.trackEvent("Page View", {
+        alainMode: this.alainMode,
+      });
     }
   }
 
@@ -214,9 +216,238 @@ export class AppComponent implements OnInit {
     // (This is now safe - only reCAPTCHA-triggering operations like sign-up require consent)
     this.setupAuthStateListener();
 
+    // Track when consent is granted so we can correlate accepters vs non-accepters
+    this._consentService.consentGranted$.subscribe((granted) => {
+      try {
+        if (granted) {
+          // set person + super-properties for consent so future events are labeled
+          const version = this._consentService.CURRENT_TERMS_VERSION;
+          this._analyticsService.setConsentProperties(true, version);
+
+          this._analyticsService.trackEvent("Consent Granted", {
+            source: "welcome_dialog_or_flow",
+            accepted_version: version,
+          });
+
+          // If we're currently tracking engagement for a page, start sending pings
+          if (this._engagement) {
+            this._engagement.startPingsIfNeeded();
+          }
+        }
+      } catch (err) {
+        console.error("AppComponent: error tracking consent change", err);
+      }
+    });
+
     if (typeof window !== "undefined") {
       this.hasAds = (window as any)["canRunAds"] ?? false;
     }
+
+    // Manual pageview + engaged-time tracking (disable autocapture to avoid race conditions)
+    let initialPageviewSent = false;
+
+    // Engagement helper object to manage timers and handlers per-page
+    this._engagement = {
+      visibleStart: null as number | null,
+      totalVisibleMs: 0,
+      pingIntervalId: null as any,
+      visibilityHandler: null as any,
+      beforeUnloadHandler: null as any,
+      pingIntervalMs: 15000,
+
+      startPingsIfNeeded: () => {
+        // start periodic pings only if consent granted
+        try {
+          if (!this._consentService.hasConsent()) return;
+          // Do not start pings during SSR where `document`/`window` are not available
+          if (typeof document === "undefined" || typeof window === "undefined")
+            return;
+          if (this._engagement.pingIntervalId) return;
+          this._engagement.pingIntervalId = setInterval(() => {
+            try {
+              if (document.visibilityState === "visible") {
+                // increment by configured interval
+                this._engagement.totalVisibleMs +=
+                  this._engagement.pingIntervalMs;
+                this._analyticsService.trackEvent("Engaged Ping", {
+                  increment_seconds: Math.round(
+                    this._engagement.pingIntervalMs / 1000
+                  ),
+                  path: window.location ? window.location.pathname : "",
+                  authenticated: this.isSignedIn(),
+                  consent_granted: this._consentService.hasConsent(),
+                  source: "engaged_ping",
+                });
+              }
+            } catch (e) {
+              console.error("Error during engaged ping", e);
+            }
+          }, this._engagement.pingIntervalMs);
+        } catch (e) {
+          console.error("Failed to start engagement pings", e);
+        }
+      },
+
+      stopPings: () => {
+        if (this._engagement.pingIntervalId) {
+          clearInterval(this._engagement.pingIntervalId);
+          this._engagement.pingIntervalId = null;
+        }
+      },
+
+      cleanupHandlers: () => {
+        try {
+          if (
+            typeof document !== "undefined" &&
+            this._engagement.visibilityHandler
+          ) {
+            document.removeEventListener(
+              "visibilitychange",
+              this._engagement.visibilityHandler
+            );
+            this._engagement.visibilityHandler = null;
+          }
+          if (
+            typeof window !== "undefined" &&
+            this._engagement.beforeUnloadHandler
+          ) {
+            window.removeEventListener(
+              "beforeunload",
+              this._engagement.beforeUnloadHandler
+            );
+            this._engagement.beforeUnloadHandler = null;
+          }
+        } catch (e) {
+          // ignore
+        }
+      },
+
+      finalizeAndSend: (path?: string) => {
+        try {
+          // accumulate any currently visible time
+          const now = Date.now();
+          if (this._engagement.visibleStart) {
+            this._engagement.totalVisibleMs +=
+              now - this._engagement.visibleStart;
+            this._engagement.visibleStart = null;
+          }
+
+          const seconds = Math.round(this._engagement.totalVisibleMs / 1000);
+          if (seconds > 0) {
+            const currentPath =
+              path ??
+              (typeof window !== "undefined" ? window.location.pathname : "");
+            this._analyticsService.trackEvent("Session Duration", {
+              path: currentPath,
+              duration_seconds: seconds,
+              authenticated: this.isSignedIn(),
+              consent_granted: this._consentService.hasConsent(),
+              source: "manual",
+            });
+          }
+
+          // reset totals
+          this._engagement.totalVisibleMs = 0;
+          this._engagement.stopPings();
+          this._engagement.cleanupHandlers();
+        } catch (e) {
+          console.error("Failed to finalize engagement", e);
+        }
+      },
+    } as any;
+
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        const nav = event as NavigationEnd;
+
+        const send = () => {
+          try {
+            const isBrowser =
+              typeof window !== "undefined" && typeof document !== "undefined";
+            const url = isBrowser
+              ? window.location.href
+              : nav.urlAfterRedirects;
+            const authenticated = this.isSignedIn();
+            const consentGranted = this._consentService.hasConsent();
+            const acceptedVersion = isBrowser
+              ? localStorage.getItem("acceptedVersion")
+              : null;
+
+            // finalize previous page's engagement before starting new
+            this._engagement.finalizeAndSend();
+
+            // Emit manual pageview
+            this._analyticsService.trackEvent("Page View", {
+              path: nav.urlAfterRedirects,
+              current_url: url,
+              authenticated: authenticated,
+              consent_granted: consentGranted,
+              accepted_version: acceptedVersion,
+              source: "manual",
+            });
+
+            // Start new engagement tracking for this page (browser-only)
+            if (isBrowser && document.visibilityState === "visible") {
+              this._engagement.visibleStart = Date.now();
+            } else {
+              this._engagement.visibleStart = null;
+            }
+
+            // visibility handler (browser-only)
+            if (isBrowser) {
+              this._engagement.visibilityHandler = () => {
+                if (document.visibilityState === "hidden") {
+                  if (this._engagement.visibleStart) {
+                    this._engagement.totalVisibleMs +=
+                      Date.now() - this._engagement.visibleStart;
+                    this._engagement.visibleStart = null;
+                  }
+                } else {
+                  this._engagement.visibleStart = Date.now();
+                }
+              };
+              document.addEventListener(
+                "visibilitychange",
+                this._engagement.visibilityHandler
+              );
+
+              // beforeunload handler to try and send final duration
+              this._engagement.beforeUnloadHandler = () => {
+                this._engagement.finalizeAndSend(nav.urlAfterRedirects);
+              };
+              window.addEventListener(
+                "beforeunload",
+                this._engagement.beforeUnloadHandler,
+                { capture: false }
+              );
+            }
+
+            // start periodic pings if consent already granted (browser-only)
+            if (this._consentService.hasConsent() && isBrowser) {
+              this._engagement.startPingsIfNeeded();
+            }
+          } catch (e) {
+            console.error("Failed to send manual pageview", e);
+          }
+        };
+
+        if (!initialPageviewSent) {
+          // wait until auth state is restored to get correct `authenticated` flag
+          firstValueFrom(this.authService.authState$.pipe())
+            .then(() => {
+              send();
+              initialPageviewSent = true;
+            })
+            .catch(() => {
+              // even if auth retrieval fails, still send a pageview
+              send();
+              initialPageviewSent = true;
+            });
+        } else {
+          send();
+        }
+      });
   }
 
   private setupAuthStateListener() {
@@ -480,6 +711,9 @@ export class AppComponent implements OnInit {
 
   shortUserDisplayName = signal<string | undefined>(undefined);
   userPhoto = signal<string | undefined>(undefined);
+
+  // Engagement tracking state (initialized in ngOnInit)
+  private _engagement: any = null;
 
   // Safe computed properties for template to prevent SSR issues
   isSignedIn = computed(() => {

@@ -36,6 +36,11 @@ export class WelcomeDialogComponent {
     this._consentService.grantConsent();
 
     this.dialogRef.close(true); // Return true to indicate user agreed
-    this._analyticsService.trackEvent("Visitor Agreed to Terms");
+
+    // Track consent grant with version info
+    this._analyticsService.trackEvent("Visitor Agreed to Terms", {
+      version: this.data.version,
+      method: "welcome_dialog",
+    });
   }
 }
