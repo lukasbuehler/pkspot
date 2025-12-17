@@ -13,6 +13,7 @@ import {
   inject,
   effect,
   computed,
+  NgZone,
 } from "@angular/core";
 import { Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -143,6 +144,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   pendingTasks = inject(PendingTasks);
   responsiveService = inject(ResponsiveService);
+  private ngZone = inject(NgZone);
   private _structuredDataService = inject(StructuredDataService);
 
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
@@ -184,6 +186,22 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   sidenavOpen = signal<boolean>(true);
   sidebarContentIsScrolling = signal<boolean>(false);
+
+  // Height of the top spacer in the sidebar/bottom-sheet to match chip listbox
+  // Default to expected fallback (72 chip + 100 padding)
+  chipsSpacerHeight = signal<number>(172);
+
+  // ResizeObserver for chips height measurement
+  private _chipsResizeObserver: ResizeObserver | null = null;
+  private _chipsMutationObserver: MutationObserver | null = null;
+  private _chipsUpdateRaf: number | null = null;
+  // Flag to coalesce measurements into a single scheduled RAF
+  private _measureScheduled: boolean = false;
+  private _chipsWindowResizeListener: (() => void) | null = null;
+  // Last measured width of the chips container — used to avoid re-measuring when width didn't change
+  private _lastMeasuredWidth: number | null = null;
+  // Last applied final height to avoid redundant updates across callbacks
+  private _lastFinalHeight = this.chipsSpacerHeight();
 
   // References and listeners for sidebar/bottom-sheet scrolling
   private _sidebarScrollEl?: HTMLElement | null;
@@ -581,6 +599,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             this._bottomSheetContentEl.scrollTop > 0
           );
         }
+
+        // Measure the chip listbox height and keep the top spacer in sync
+        try {
+          // Move logic into a reusable method so we can re-run it on breakpoint changes
+          this._attachChipsMeasurement();
+
+          // Measurement attached once on view init. We do not re-attach
+          // repeatedly from a reactive effect to avoid periodic re-runs.
+        } catch (e) {
+          console.warn("Could not attach chips measurement:", e);
+        }
       } catch (e) {
         console.warn("Could not attach sidebar scroll listeners:", e);
       }
@@ -598,10 +627,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (challengeId && spotIdOrSlug) {
       // open the spot on a challenge
       if (resolvedChallenge) {
-        // Use resolved challenge data
         this.selectChallenge(resolvedChallenge, false);
       } else {
-        // Load challenge dynamically
         const selectedSpot = this.selectedSpot();
         if (selectedSpot && selectedSpot instanceof Spot) {
           this.loadChallengeById(selectedSpot, challengeId, false).then(
@@ -794,6 +821,162 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // If not on /map, do not update the URL
   }
 
+  /**
+   * Find all chip listbox elements, pick the visible one and attach observers.
+   * This is re-run when the responsive view changes so mobile/desktop variants
+   * are handled correctly.
+   */
+  private _attachChipsMeasurement(): void {
+    try {
+      // Clean up any existing observers
+      if (this._chipsResizeObserver) {
+        try {
+          this._chipsResizeObserver.disconnect();
+        } catch (e) {
+          // ignore
+        }
+        this._chipsResizeObserver = null;
+      }
+      if (this._chipsMutationObserver) {
+        try {
+          this._chipsMutationObserver.disconnect();
+        } catch (e) {
+          // ignore
+        }
+        this._chipsMutationObserver = null;
+      }
+      if (this._chipsWindowResizeListener) {
+        try {
+          window.removeEventListener("resize", this._chipsWindowResizeListener);
+        } catch (e) {
+          // ignore
+        }
+        this._chipsWindowResizeListener = null;
+      }
+      const chipsEls = Array.from(
+        document.querySelectorAll(".search-option-chips")
+      ) as HTMLElement[];
+
+      if (!chipsEls || chipsEls.length === 0) {
+        // No chip elements present — nothing to measure until resize.
+        return;
+      }
+
+      // Choose the best candidate: first visible element (has layout)
+      const pickVisible = () => {
+        for (const el of chipsEls) {
+          if (
+            el.offsetHeight > 0 ||
+            el.getClientRects().length > 0 ||
+            el.offsetParent !== null
+          ) {
+            return el;
+          }
+        }
+        return chipsEls[0];
+      };
+
+      const measureAndSet = (el: HTMLElement, source: string = "unknown") => {
+        const measured =
+          el.offsetHeight || Math.ceil(el.getBoundingClientRect().height || 0);
+        // console.debug(
+        //   "[map-page] measured chips height:",
+        //   measured,
+        //   "source:",
+        //   source,
+        //   new Error().stack?.split("\n").slice(1, 4)
+        // );
+        const final = measured > 0 ? Math.ceil(measured) + 100 : 72 + 100;
+
+        // Compute a rounded width to detect wrapping/width changes (that's the real trigger for height changes)
+        let width = Math.round(
+          el.getBoundingClientRect().width || el.offsetWidth || 0
+        );
+
+        // If width and final haven't changed, skip (but update timestamp so throttling knows a measurement happened)
+        if (
+          width === this._lastMeasuredWidth &&
+          final === this._lastFinalHeight
+        ) {
+          return measured > 0;
+        }
+
+        // update last knowns immediately to prevent thrash
+        this._lastMeasuredWidth = width;
+        this._lastFinalHeight = final;
+
+        if (this._chipsUpdateRaf) {
+          cancelAnimationFrame(this._chipsUpdateRaf);
+          this._chipsUpdateRaf = null;
+        }
+        // Update via RAF; coalesce multiple events with a simple flag
+        this._chipsUpdateRaf = requestAnimationFrame(() => {
+          this._chipsUpdateRaf = null;
+          // Avoid unnecessary ngZone.run if value already matches
+          if (this.chipsSpacerHeight() === final) return;
+          this.ngZone.run(() => this.chipsSpacerHeight.set(final));
+        });
+
+        return measured > 0;
+      };
+
+      // Schedule a measurement using RAF coalescing (no timeouts or cooldowns)
+      const scheduleMeasure = (source: string = "unknown") => {
+        console.debug("[map-page] scheduleMeasure called, source:", source);
+        if (this._measureScheduled) return;
+        this._measureScheduled = true;
+        if (this._chipsUpdateRaf) {
+          cancelAnimationFrame(this._chipsUpdateRaf);
+          this._chipsUpdateRaf = null;
+        }
+        this._chipsUpdateRaf = requestAnimationFrame(() => {
+          this._measureScheduled = false;
+          this._chipsUpdateRaf = null;
+          const candidate = pickVisible();
+          if (candidate) measureAndSet(candidate, source);
+        });
+      };
+
+      // Single initial measurement on next RAF (avoid recursive retries)
+      const el = pickVisible();
+      requestAnimationFrame(() => {
+        if (el) measureAndSet(el, "initial");
+      });
+
+      // Only measure on window resize (user requested). Use RAF coalescing.
+      try {
+        if (this._chipsWindowResizeListener) {
+          try {
+            window.removeEventListener(
+              "resize",
+              this._chipsWindowResizeListener
+            );
+          } catch (e) {
+            /* ignore */
+          }
+          this._chipsWindowResizeListener = null;
+        }
+
+        this._chipsWindowResizeListener = () =>
+          scheduleMeasure("window-resize");
+
+        window.addEventListener("resize", this._chipsWindowResizeListener, {
+          passive: true,
+        });
+      } catch (e) {
+        // ignore
+      }
+
+      // If no candidate has height yet, observe mutations to retry when DOM changes
+      const visibleNow = chipsEls.some(
+        (e) => e.offsetHeight > 0 || e.getClientRects().length > 0
+      );
+      // Do not observe mutations — only react to window resize per user request.
+    } catch (e) {
+      console.warn("[map-page] error in _attachChipsMeasurement", e);
+    }
+  }
+
   selectSpot(spot: Spot | LocalSpot | null, updateUrl: boolean = true) {
     // console.debug("selecting spot", spot);
     if (!spot) {
@@ -929,6 +1112,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           "scroll",
           this._bottomSheetContentListener as EventListener
         );
+      }
+      if (this._chipsResizeObserver) {
+        try {
+          this._chipsResizeObserver.disconnect();
+        } catch (e) {
+          // ignore
+        }
+        this._chipsResizeObserver = null;
+      }
+      if (this._chipsMutationObserver) {
+        try {
+          this._chipsMutationObserver.disconnect();
+        } catch (e) {
+          // ignore
+        }
+        this._chipsMutationObserver = null;
+      }
+      if (this._chipsWindowResizeListener) {
+        try {
+          window.removeEventListener("resize", this._chipsWindowResizeListener);
+        } catch (e) {
+          // ignore
+        }
+        this._chipsWindowResizeListener = null;
       }
     } catch (e) {
       console.warn("Error removing scroll listeners:", e);

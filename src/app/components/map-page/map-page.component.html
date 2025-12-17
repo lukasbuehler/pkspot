@@ -269,17 +269,37 @@
   <mat-chip-listbox class="search-option-chips" @fadeInOut>
     @if(authService.isSignedIn && !isEditing()) {
     <mat-chip-option class="glass"
-      ><mat-icon matChipAvatar>bookmark</mat-icon>Saved</mat-chip-option
+      ><mat-icon matChipAvatar>bookmark</mat-icon
+      ><span i18n="Saved spots label for spot chips@@saved_spots_chip_label"
+        >Saved</span
+      ></mat-chip-option
     >
 
     <mat-chip-option class="glass" leadingIcon="flag"
-      ><mat-icon matChipAvatar>flag</mat-icon>Visited</mat-chip-option
+      ><mat-icon matChipAvatar>flag</mat-icon
+      ><span i18n="Visited spots label for spot chips@@visited_spots_chip_label"
+        >Visited</span
+      ></mat-chip-option
     >
     }<mat-chip-option class="glass"
-      ><mat-icon matChipAvatar>steps</mat-icon>For Parkour</mat-chip-option
+      ><mat-icon matChipAvatar>steps</mat-icon
+      ><span
+        i18n="
+          'For Parkour' spots label for spot chips@@for_parkour_spots_chip_label"
+        >For Parkour</span
+      ></mat-chip-option
     >
     <mat-chip-option class="glass"
-      ><mat-icon matChipAvatar>rainy</mat-icon>Dry</mat-chip-option
+      ><mat-icon matChipAvatar>rainy</mat-icon
+      ><span i18n="Dry spots label for spot chips@@dry_spots_chip_label"
+        >Dry</span
+      ></mat-chip-option
+    >
+    <mat-chip-option class="glass"
+      ><mat-icon matChipAvatar>home</mat-icon
+      ><span i18n="Indoor spots label for spot chips@@indoor_spots_chip_label"
+        >Indoor</span
+      ></mat-chip-option
     >
   </mat-chip-listbox>
 
@@ -330,7 +350,7 @@
     mode="side"
     class="bg-transparent info-panel"
   >
-    <div style="height: 130px"></div>
+    <div [style.height.px]="chipsSpacerHeight()"></div>
     <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
   </mat-drawer>
 
