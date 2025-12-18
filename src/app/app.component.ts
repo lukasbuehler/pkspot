@@ -459,6 +459,19 @@ export class AppComponent implements OnInit {
         if (user && user.uid) {
           if (user.uid !== this.userId) {
             this.userId = user.uid;
+            // Inform analytics about the identified user
+            try {
+              const props: Record<string, unknown> = {};
+              if (user?.data?.displayName)
+                props["display_name"] = user.data.displayName;
+              if (user?.email) props["email"] = user.email;
+              this._analyticsService.identifyUser(user.uid, props);
+              if (Object.keys(props).length > 0) {
+                this._analyticsService.setUserProperties(props);
+              }
+            } catch (e) {
+              console.error("Failed to identify user in analytics", e);
+            }
           }
           isAuthenticated = true;
         }
@@ -481,6 +494,14 @@ export class AppComponent implements OnInit {
         this._analyticsService.trackEvent("User Authenticated", {
           authenticated: isAuthenticated,
         });
+        // If the user logged out, reset analytics identity
+        if (!isAuthenticated) {
+          try {
+            this._analyticsService.resetUser();
+          } catch (e) {
+            console.error("Failed to reset analytics user", e);
+          }
+        }
       },
       (error) => {
         console.error(error);

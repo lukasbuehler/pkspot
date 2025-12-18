@@ -76,15 +76,15 @@ export class AnalyticsService {
     }
 
     posthog.capture(eventName, properties);
-    try {
-      console.debug(
-        "AnalyticsService.trackEvent -> sent",
-        eventName,
-        properties
-      );
-    } catch (e) {
-      // ignore console errors
-    }
+    // try {
+    //   console.debug(
+    //     "AnalyticsService.trackEvent -> sent",
+    //     eventName,
+    //     properties
+    //   );
+    // } catch (e) {
+    //   // ignore console errors
+    // }
   }
 
   /**
@@ -96,27 +96,27 @@ export class AnalyticsService {
     if (!this.isAvailable()) {
       return;
     }
-    try {
-      console.debug("AnalyticsService.identifyUser ->", { userId, properties });
-    } catch (e) {}
+    // try {
+    //   console.debug("AnalyticsService.identifyUser ->", { userId, properties });
+    // } catch (e) {}
     posthog.identify(userId, properties);
 
     // Mark subsequent events/pageviews as authenticated for PostHog
     try {
       // super-properties that are sent with autocaptured events
-      try {
-        console.debug(
-          "AnalyticsService.identifyUser -> register authenticated:true"
-        );
-      } catch (e) {}
+      // try {
+      //   console.debug(
+      //     "AnalyticsService.identifyUser -> register authenticated:true"
+      //   );
+      // } catch (e) {}
       posthog.register({ authenticated: true });
       // also set person properties if person profiles are enabled
       if (posthog.people && typeof posthog.people.set === "function") {
-        try {
-          console.debug(
-            "AnalyticsService.identifyUser -> people.set authenticated:true"
-          );
-        } catch (e) {}
+        // try {
+        //   console.debug(
+        //     "AnalyticsService.identifyUser -> people.set authenticated:true"
+        //   );
+        // } catch (e) {}
         posthog.people.set({ authenticated: true });
       }
     } catch (e) {
@@ -135,25 +135,25 @@ export class AnalyticsService {
     if (!this.isAvailable()) {
       return;
     }
-    try {
-      console.debug("AnalyticsService.resetUser -> reset");
-    } catch (e) {}
+    // try {
+    //   console.debug("AnalyticsService.resetUser -> reset");
+    // } catch (e) {}
     posthog.reset();
 
     // Make sure future events are marked unauthenticated
     try {
-      try {
-        console.debug(
-          "AnalyticsService.resetUser -> register authenticated:false"
-        );
-      } catch (e) {}
+      // try {
+      //   console.debug(
+      //     "AnalyticsService.resetUser -> register authenticated:false"
+      //   );
+      // } catch (e) {}
       posthog.register({ authenticated: false });
       if (posthog.people && typeof posthog.people.set === "function") {
-        try {
-          console.debug(
-            "AnalyticsService.resetUser -> people.set authenticated:false"
-          );
-        } catch (e) {}
+        // try {
+        //   console.debug(
+        //     "AnalyticsService.resetUser -> people.set authenticated:false"
+        //   );
+        // } catch (e) {}
         posthog.people.set({ authenticated: false });
       }
     } catch (e) {
@@ -172,12 +172,12 @@ export class AnalyticsService {
   ): void {
     if (!this.isAvailable()) return;
     try {
-      try {
-        console.debug("AnalyticsService.setConsentProperties ->", {
-          consentGranted,
-          acceptedVersion,
-        });
-      } catch (e) {}
+      // try {
+      //   console.debug("AnalyticsService.setConsentProperties ->", {
+      //     consentGranted,
+      //     acceptedVersion,
+      //   });
+      // } catch (e) {}
       posthog.register({
         consent_granted: consentGranted,
         accepted_version: acceptedVersion ?? null,
@@ -187,12 +187,12 @@ export class AnalyticsService {
           consent_granted: consentGranted,
         };
         if (acceptedVersion) props["accepted_version"] = acceptedVersion;
-        try {
-          console.debug(
-            "AnalyticsService.setConsentProperties -> people.set",
-            props
-          );
-        } catch (e) {}
+        // try {
+        //   console.debug(
+        //     "AnalyticsService.setConsentProperties -> people.set",
+        //     props
+        //   );
+        // } catch (e) {}
         posthog.people.set(props);
       }
     } catch (e) {
@@ -221,9 +221,9 @@ export class AnalyticsService {
     if (!this.isAvailable()) {
       return;
     }
-    try {
-      console.debug("AnalyticsService.optOut -> opt_out_capturing");
-    } catch (e) {}
+    // try {
+    //   console.debug("AnalyticsService.optOut -> opt_out_capturing");
+    // } catch (e) {}
     posthog.opt_out_capturing();
   }
 
@@ -234,9 +234,9 @@ export class AnalyticsService {
     if (!this.isAvailable()) {
       return;
     }
-    try {
-      console.debug("AnalyticsService.optIn -> opt_in_capturing");
-    } catch (e) {}
+    // try {
+    //   console.debug("AnalyticsService.optIn -> opt_in_capturing");
+    // } catch (e) {}
     posthog.opt_in_capturing();
   }
 
