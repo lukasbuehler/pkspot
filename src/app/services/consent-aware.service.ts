@@ -1,4 +1,9 @@
-import { Injectable, inject } from "@angular/core";
+import {
+  Injectable,
+  Injector,
+  inject,
+  runInInjectionContext,
+} from "@angular/core";
 import { ConsentService } from "./consent.service";
 import { AnalyticsService } from "./analytics.service";
 
@@ -6,6 +11,7 @@ import { AnalyticsService } from "./analytics.service";
 export abstract class ConsentAwareService {
   protected _consentService = inject(ConsentService);
   protected _analyticsService = inject(AnalyticsService);
+  protected injector = inject(Injector);
 
   constructor() {}
 
@@ -30,7 +36,9 @@ export abstract class ConsentAwareService {
    * @returns Promise that resolves with the function result or rejects if no consent
    */
   protected executeWithConsent<T>(fn: () => T | Promise<T>): Promise<T> {
-    return this._consentService.executeWithConsent(fn);
+    return runInInjectionContext(this.injector, () => {
+      return this._consentService.executeWithConsent(fn);
+    });
   }
 
   /**
@@ -39,7 +47,9 @@ export abstract class ConsentAwareService {
    * @returns Promise that resolves with the function result
    */
   protected executeWhenConsent<T>(fn: () => T | Promise<T>): Promise<T> {
-    return this._consentService.executeWhenConsent(fn);
+    return runInInjectionContext(this.injector, () => {
+      return this._consentService.executeWhenConsent(fn);
+    });
   }
 
   /**

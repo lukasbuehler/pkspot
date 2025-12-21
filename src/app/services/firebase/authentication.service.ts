@@ -1,4 +1,9 @@
-import { Injectable } from "@angular/core";
+import {
+  inject,
+  Injectable,
+  Injector,
+  runInInjectionContext,
+} from "@angular/core";
 import {
   GoogleAuthProvider,
   getAuth,
@@ -45,19 +50,10 @@ export class AuthenticationService extends ConsentAwareService {
   public authState$: BehaviorSubject<AuthServiceUser | null> =
     new BehaviorSubject<AuthServiceUser | null>(null);
 
-  private _auth: Auth | null = null;
-  public get auth(): Auth {
-    if (!this._auth) {
-      // Initialize Auth with the injected Firebase app
-      this._auth = getAuth(this._firebaseApp);
+  private _injector = inject(Injector);
 
-      // Configure persistence with robust fallbacks (browser-only)
-      // This addresses cases where a browser blocks a specific storage backend
-      // and would otherwise fall back to in-memory (non-persistent) storage.
-      this._configurePersistence(this._auth).catch((err) => {
-        console.warn("Auth persistence configuration failed:", err);
-      });
-    }
+  private _auth: Auth;
+  public get auth() {
     return this._auth;
   }
   private _authStateListenerInitialized = false;
@@ -72,6 +68,15 @@ export class AuthenticationService extends ConsentAwareService {
     private _firebaseApp: FirebaseApp
   ) {
     super();
+
+    this._auth = getAuth(this._firebaseApp);
+
+    // Configure persistence with robust fallbacks (browser-only)
+    // This addresses cases where a browser blocks a specific storage backend
+    // and would otherwise fall back to in-memory (non-persistent) storage.
+    this._configurePersistence(this._auth).catch((err) => {
+      console.warn("Auth persistence configuration failed:", err);
+    });
 
     // Check for existing session without triggering Firebase API calls
     this._checkExistingSessionSafely();
@@ -128,8 +133,11 @@ export class AuthenticationService extends ConsentAwareService {
     // Fall back to localStorage for environments where IndexedDB is blocked,
     // then in-memory as a last resort.
     try {
-      await setPersistence(auth, indexedDBLocalPersistence);
-      console.log("Firebase Auth persistence set: indexedDBLocalPersistence");
+      await runInInjectionContext(this.injector, async () => {
+        await this._auth.setPersistence(indexedDBLocalPersistence);
+        console.log("Firebase Auth persistence set: indexedDBLocalPersistence");
+      });
+
       return;
     } catch (e1) {
       console.warn(
@@ -139,8 +147,10 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     try {
-      await setPersistence(auth, browserLocalPersistence);
-      console.log("Firebase Auth persistence set: browserLocalPersistence");
+      await runInInjectionContext(this.injector, async () => {
+        await this._auth.setPersistence(browserLocalPersistence);
+        console.log("Firebase Auth persistence set: browserLocalPersistence");
+      });
       return;
     } catch (e2) {
       console.warn(
@@ -150,10 +160,12 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     // Last resort to keep app functional (not persistent across reloads)
-    await setPersistence(auth, inMemoryPersistence);
-    console.warn(
-      "Firebase Auth persistence set: inMemoryPersistence (non-persistent)"
-    );
+    await runInInjectionContext(this.injector, async () => {
+      await this._auth.setPersistence(inMemoryPersistence);
+      console.warn(
+        "Firebase Auth persistence set: inMemoryPersistence (non-persistent)"
+      );
+    });
   }
 
   /**
@@ -339,6 +351,10 @@ export class AuthenticationService extends ConsentAwareService {
     confirmedPassword: string,
     displayName: string
   ): Promise<void> {
+    if (!this.auth) {
+      return Promise.reject("Auth service not initialized");
+    }
+
     // Guard against concurrent account creation attempts
     if (this._isCreatingAccount) {
       console.warn(
@@ -357,7 +373,7 @@ export class AuthenticationService extends ConsentAwareService {
       // Ensure consent before creating account (which triggers reCAPTCHA)
       return await this.executeWithConsent(() => {
         return createUserWithEmailAndPassword(
-          this.auth,
+          this.auth!,
           email,
           confirmedPassword
         ).then((firebaseAuthResponse) => {

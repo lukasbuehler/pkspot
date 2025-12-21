@@ -134,9 +134,7 @@
                 }
               ],
               "optimization": true,
-              "security": {
-                "autoCsp": true
-              },
+
               "budgets": [
                 {
                   "type": "initial",
@@ -158,10 +156,7 @@
                 }
               ],
               "optimization": true,
-              "sourceMap": false,
-              "security": {
-                "autoCsp": true
-              }
+              "sourceMap": false
             }
           },
           "defaultConfiguration": "production"

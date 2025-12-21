@@ -77,6 +77,8 @@ export class SearchService {
     amenities_true?: (keyof AmenitiesMap)[],
     amenities_false?: (keyof AmenitiesMap)[]
   ) {
+    console.log("Searching spots in bounds:", bounds.toJSON());
+
     const latLongPairList: string[] = [
       // northeast
       bounds.getNorthEast().lat(),

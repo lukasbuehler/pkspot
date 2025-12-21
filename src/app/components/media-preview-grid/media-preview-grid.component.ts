@@ -48,15 +48,17 @@ export class MediaPreviewGridComponent implements OnInit {
   mediaSources: Signal<string[]> = computed<string[]>(() => {
     const media = this.media();
 
-    return media.map((mediaObj) => {
-      if (mediaObj instanceof StorageImage) {
-        return mediaObj.getSrc(400);
-      } else if (mediaObj instanceof StorageVideo) {
-        return mediaObj.getPreviewImageSrc();
-      } else {
-        return mediaObj.src;
-      }
-    });
+    return media
+      .map((mediaObj) => {
+        if (mediaObj instanceof StorageImage) {
+          return mediaObj.getSrc(400);
+        } else if (mediaObj instanceof StorageVideo) {
+          return mediaObj.getPreviewImageSrc();
+        } else {
+          return mediaObj.src;
+        }
+      })
+      .filter((src) => !!src) as string[];
   });
 
   constructor() {}

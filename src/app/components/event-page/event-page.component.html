@@ -9,12 +9,14 @@
   class="header w-100"
   style="height: 200px; overflow: hidden; position: relative"
 >
+@if(bannerImageSrc) {
   <img
     [ngSrc]="bannerImageSrc"
     alt="Swiss Jam header image"
     fill
     style="object-fit: cover"
   />
+  }
 </div> -->
 
   <!-- Header info -->
@@ -149,7 +151,7 @@
         </app-challenge-list>
         } } @case('event') {
         <div class="d-flex flex-column gap-3 p-3 overflow-y-auto">
-          @for(marker of customMarkers | reverse; track marker) {
+          @for(marker of customMarkers | reverse; track $index) {
           <div
             class="d-flex flex-row justify-content-start gap-2 align-items-center p-2"
           >

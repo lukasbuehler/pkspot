@@ -168,6 +168,7 @@ export class SpotsService extends ConsentAwareService {
   ): Observable<SpotClusterTileSchema[]> {
     const observables = tiles.map((tile) => {
       // Use AngularFire docData to get typed doc observable and take one emission
+      console.debug("Getting spot cluster tile for tile: ", tile);
       return docData(doc(this.firestore, "spot_clusters", tile), {
         idField: "id",
       }).pipe(

@@ -224,7 +224,7 @@
           <mat-form-field appearance="outline">
             <mat-label i18n>Label</mat-label>
             <mat-select [(ngModel)]="challenge()!.label" name="label">
-              @for (label of challengeLabels; track label) {
+              @for (label of challengeLabels; track $index) {
               <mat-option [value]="label"
                 ><mat-icon>{{ challengeLabelIcons[label] }}</mat-icon>
                 {{ challengeLabelNames[label] }}</mat-option
@@ -238,8 +238,8 @@
               [(ngModel)]="challenge()!.participantType"
               name="participantType"
             >
-              @for (participantType of challengeParticipantTypes; track
-              participantType) {
+              @for (participantType of challengeParticipantTypes; track $index)
+              {
               <mat-option [value]="participantType">
                 <mat-icon
                   >{{ challengeParticipantTypeIcons[participantType] }}

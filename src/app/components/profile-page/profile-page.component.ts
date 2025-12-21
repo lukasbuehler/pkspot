@@ -165,7 +165,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         let myUserId = this._authService.user.uid;
         if (myUserId) {
           this.loadingFollowing = true;
-          this._followingService.isFollowingUser(myUserId, userId).subscribe(
+          this._followingService.isFollowingUser$(myUserId, userId).subscribe(
             (isFollowing) => {
               this.loadingFollowing = false;
               this.isFollowing = isFollowing;

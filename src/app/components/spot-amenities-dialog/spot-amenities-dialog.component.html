@@ -15,7 +15,7 @@
   <div class="amenity-section">
     <p class="mat-label-small" i18n>General</p>
     <div class="d-flex flex-column gap-2">
-      @for (amenity of GeneralAmenities; track amenity) {
+      @for (amenity of GeneralAmenities; track $index) {
       <app-spot-amenity-toggle
         [positiveLabel]="AmenityNames[amenity]"
         [negativeLabel]="AmenityNegativeNames[amenity]"
@@ -32,7 +32,7 @@
   <div class="amenity-section">
     <p class="mat-label-small" i18n>Indoor</p>
     <div class="d-flex flex-column gap-2">
-      @for (amenity of IndoorAmenities; track amenity) {
+      @for (amenity of IndoorAmenities; track $index) {
       <app-spot-amenity-toggle
         [positiveLabel]="AmenityNames[amenity]"
         [negativeLabel]="AmenityNegativeNames[amenity]"
@@ -48,7 +48,7 @@
   <div class="amenity-section">
     <p class="mat-label-small" i18n>Outdoor</p>
     <div class="d-flex flex-column gap-2">
-      @for (amenity of OutdoorAmenities; track amenity) {
+      @for (amenity of OutdoorAmenities; track $index) {
       <app-spot-amenity-toggle
         [positiveLabel]="AmenityNames[amenity]"
         [negativeLabel]="AmenityNegativeNames[amenity]"

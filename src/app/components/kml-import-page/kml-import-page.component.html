@@ -116,7 +116,7 @@
                         [matAutocomplete]="auto"
                         required
                       /><mat-autocomplete #auto="matAutocomplete">
-                        @for(lang of languages; track lang) {
+                        @for(lang of languages; track $index) {
                         <mat-option
                           [value]="lang"
                           (onSelectionChange)="
@@ -180,7 +180,7 @@
                     <span class="example-list-section">
                       <ul class="checkbox-list">
                         @for(folder of kmlParserService.setupInfo?.folders;
-                        track folder) {
+                        track $index) {
                         <li>
                           @if(folder) {
                           <mat-checkbox
@@ -238,7 +238,7 @@
                       </mat-expansion-panel-header>
                       <div>
                         @for(spot of kmlParserService.spotsToImport$ | async;
-                        track spot) {
+                        track $index) {
                         <button
                           mat-flat-button
                           class="text-truncate"
@@ -256,7 +256,7 @@
                       </mat-expansion-panel-header>
                       <div>
                         @for(spot of kmlParserService.spotsNotToImport$ | async;
-                        track spot) {
+                        track $index) {
                         <button
                           mat-flat-button
                           class="text-truncate"

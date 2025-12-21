@@ -53,7 +53,7 @@ export class ConsentService {
       const hasConsent =
         isEmbedded || acceptedVersion === this.CURRENT_TERMS_VERSION;
 
-      console.log("ConsentService: Checking consent status", {
+      console.debug("ConsentService: Checking consent status", {
         acceptedVersion,
         CURRENT_TERMS_VERSION: this.CURRENT_TERMS_VERSION,
         hasConsent,

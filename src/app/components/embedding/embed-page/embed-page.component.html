@@ -8,7 +8,7 @@
     <div class="col-md-6">
       <h3 class="mat-title-large" i18n>Embed Type</h3>
       <mat-chip-listbox class="pb-3">
-        @for(embedType of embedTypes; track embedType) {
+        @for(embedType of embedTypes; track $index) {
         <mat-chip-option
           value="{{ embedType }}"
           [selected]="tab() == embedType"
@@ -32,7 +32,7 @@
           <mat-label i18n>Language</mat-label>
           <mat-select [(ngModel)]="embedLanguage">
             <mat-option value="auto">Automatic</mat-option>
-            @for(code of supportedLanguageCodes; track code) {
+            @for(code of supportedLanguageCodes; track $index) {
             <mat-option [value]="code"
               >{{ languages[code].name_native }} ({{ code }})</mat-option
             >

@@ -34,7 +34,7 @@
       panelClass="visible-select-panel"
     >
       <mat-select-trigger></mat-select-trigger>
-      @for (option of options; track option) {
+      @for (option of options; track $index) {
       <mat-option [value]="option">
         @if(optionIcons) {
         <mat-icon class="me-2">{{ optionIcons[option + ""] }}</mat-icon>

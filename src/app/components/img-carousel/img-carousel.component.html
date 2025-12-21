@@ -11,9 +11,9 @@
     <div class="processing-overlay">
       <mat-spinner diameter="40"></mat-spinner>
     </div>
-    } @if (!imageLoadErrors().has($index)) {
+    } @if (!imageLoadErrors().has($index) && mediaObj.getPreviewImageSrc()) {
     <img
-      [ngSrc]="mediaObj.getPreviewImageSrc()"
+      [ngSrc]="mediaObj.getPreviewImageSrc()!"
       fill
       priority
       (error)="onImageError($event, $index, mediaObj)"

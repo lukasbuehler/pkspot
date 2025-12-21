@@ -17,7 +17,7 @@
         priority
       />
     </a>
-    @for (button of navbarConfig(); track button) { @if(button.spacerBefore) {
+    @for (button of navbarConfig(); track $index) { @if(button.spacerBefore) {
     <div class="spacer"></div>
     } @if(button.link) {
     <a [routerLink]="button.link" tabindex="-1">
@@ -70,7 +70,7 @@
     @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
     'mobile' || responsive.viewMode() === 'tablet') {
     <mat-toolbar class="mat-elevation-z1">
-      @for (button of navbarConfig(); track button) { @if(button.link) {
+      @for (button of navbarConfig(); track $index) { @if(button.link) {
       <a [routerLink]="button.link" tabindex="-1">
         <app-mat3-nav-button
           [icon]="button.icon"
@@ -105,7 +105,7 @@
       <mat-icon>menu</mat-icon>
     </button>
     <mat-menu #mainMenu="matMenu">
-      @for(button of navbarConfig(); track button) { @if(button.link) {
+      @for(button of navbarConfig(); track $index) { @if(button.link) {
       <a [routerLink]="button.link">
         <button mat-menu-item>
           <mat-icon>{{ button.icon }}</mat-icon>
@@ -212,7 +212,7 @@
 
 <mat-menu #userMenu="matMenu" id="userMenu">
   @for(button of (authService.isSignedIn ? authenticatedUserMenuConfig :
-  unauthenticatedUserMenuConfig); track button) { @if(button.link) {
+  unauthenticatedUserMenuConfig); track $index) { @if(button.link) {
   <a [routerLink]="button.link">
     <button mat-menu-item>
       <mat-icon>{{ button.icon }}</mat-icon>

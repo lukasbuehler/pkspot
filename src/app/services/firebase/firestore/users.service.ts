@@ -1,4 +1,4 @@
-import { inject, Injectable } from "@angular/core";
+import { inject, Injectable, runInInjectionContext } from "@angular/core";
 import {
   Firestore,
   doc,
@@ -48,18 +48,23 @@ export class UsersService extends ConsentAwareService {
   }
 
   getUserById(userId: string): Observable<User | null> {
+    console.debug("UsersService: Fetching user by ID:", userId);
     return new Observable<User | null>((observer) => {
       this.executeWhenConsent(() => {
-        const obs$ = docData(doc(this.firestore, "users", userId), {
-          idField: "id",
-        }).pipe(
-          map((d: any) => (d ? new User((d as any).id, d as UserSchema) : null))
-        );
-        const sub = obs$.subscribe({
-          next: (v) => observer.next(v),
-          error: (e) => observer.error(e),
+        return runInInjectionContext(this.injector, () => {
+          const obs$ = docData(doc(this.firestore, "users", userId), {
+            idField: "id",
+          }).pipe(
+            map((d: any) =>
+              d ? new User((d as any).id, d as UserSchema) : null
+            )
+          );
+          const sub = obs$.subscribe({
+            next: (v) => observer.next(v),
+            error: (e) => observer.error(e),
+          });
+          return () => sub.unsubscribe();
         });
-        return () => sub.unsubscribe();
       }).catch((error) => {
         observer.error(error);
       });

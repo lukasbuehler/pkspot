@@ -1,7 +1,7 @@
 <button class="button-container" routerLinkActive="active">
   @if(image()) {
   <div class="image">
-    <img [ngSrc]="image()" width="24" height="24" class="rounded-circle" />
+    <img [ngSrc]="image()!" width="24" height="24" class="rounded-circle" />
   </div>
   } @else {<mat-icon>{{ icon }}</mat-icon
   >}

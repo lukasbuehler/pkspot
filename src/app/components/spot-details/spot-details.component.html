@@ -83,7 +83,7 @@
           }}
           @if(spot()!.importantAmenitiesArray().length > 0) {
           <div class="d-flex flex-row gap-1 align-items-center">
-            @for(amenity of spot()!.importantAmenitiesArray(); track amenity) {
+            @for(amenity of spot()!.importantAmenitiesArray(); track $index) {
             <mat-icon class="amenity-icon" [matTooltip]="amenity.name">{{
               amenity.icon
             }}</mat-icon>
@@ -281,7 +281,7 @@
         Features and amenities
       </h4>
       <mat-chip-set>
-        @for(amenity of spot()!.smartAmenitiesArray(); track amenity) {
+        @for(amenity of spot()!.smartAmenitiesArray(); track $index) {
         <mat-chip [class.negative-amenity]="amenity.isNegative">
           <mat-icon matChipAvatar>{{ amenity.icon }}</mat-icon>
           {{ amenity.name }}
@@ -524,7 +524,7 @@
         @if(spot()?.normalizedRatingHistogram()) {
         <div class="flex-grow-1 hist-grid-container">
           @for(item of spot()!.normalizedRatingHistogram() | keyvalue | reverse;
-          track item) {
+          track $index) {
           <!-- row -->
           <div class="grid-item mat-label-medium">
             {{ item.key }}
@@ -859,7 +859,7 @@
           <div class="text-secondary mat-label-small ps-2 py-1">
             Google Places
           </div>
-          @for(pred of placePredictions; track pred.place_id) {
+          @for(pred of placePredictions; track $index) {
           <button
             class="w-100 d-flex flex-row align-items-center justify-content-between text-start"
             mat-button
@@ -883,7 +883,7 @@
             @if(placeSearch.value && placeSearch.value.length > 0) { Nearby
             Places } @else { Suggested Places }
           </div>
-          @for(res of nearbyPlaceResults; track res.id) {
+          @for(res of nearbyPlaceResults; track $index) {
           <button
             class="w-100 d-flex flex-row align-items-center justify-content-between text-start"
             mat-button
@@ -992,7 +992,7 @@
           {{ nextAmenityQuestion()!.text }}
         </p>
         <div>
-          @for(opt of nextAmenityQuestion()!.options; track opt.value) {
+          @for(opt of nextAmenityQuestion()!.options; track $index) {
           <button
             matButton="filled"
             class="me-2 mb-2"
@@ -1018,7 +1018,7 @@
         spot()!.smartAmenitiesArray().length > 0) {
         <h5 class="mat-label-medium" i18n>Shown amenities</h5>
         <mat-chip-set>
-          @for(amenity of spot()!.smartAmenitiesArray(); track amenity) {
+          @for(amenity of spot()!.smartAmenitiesArray(); track $index) {
           <mat-chip [class.negative-amenity]="amenity.isNegative">
             <mat-icon matChipAvatar>{{ amenity.icon }}</mat-icon>
             {{ amenity.name }}

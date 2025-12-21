@@ -16,7 +16,7 @@
       [autoActiveFirstOption]="true"
       [displayWith]="getLanguageNameFromLocale"
     >
-      @for(locale of filteredOptions | async; track locale) {
+      @for(locale of filteredOptions | async; track $index) {
       <mat-option [value]="locale">
         <!-- @if(spot.hasMedia()) { <img [src]="spot.previewImageSrc()" alt="Img" /> } -->
         <span

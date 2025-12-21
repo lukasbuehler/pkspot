@@ -84,6 +84,11 @@ export class ForgotPasswordPageComponent implements OnInit {
 
     console.log("Setting up reCAPTCHA with consent check");
 
+    if (this._authService.auth === null) {
+      console.error("Auth service not initialized");
+      return;
+    }
+
     // Use the consent-aware reCAPTCHA service
     this._recaptchaService
       .setupInvisibleRecaptcha(
@@ -118,6 +123,11 @@ export class ForgotPasswordPageComponent implements OnInit {
   }
 
   resetPassword(forgotPasswordFormValue: { email: string }) {
+    if (!this._authService.auth) {
+      console.error("Auth service not initialized");
+      return;
+    }
+
     console.log("resetting password");
 
     if (this.sendingSuccessful) {

@@ -47,9 +47,6 @@ import { routes } from "./app.routes";
 import { provideRouter, withViewTransitions } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
 
-import { getAuth, provideAuth } from "@angular/fire/auth";
-import { IMAGE_LOADER, ImageLoaderConfig } from "@angular/common";
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideFirebaseApp(() => initializeApp(environment.keys.firebaseConfig)),

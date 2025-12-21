@@ -5,7 +5,6 @@ import {
   addDoc,
   collection,
   collectionData,
-  docData,
   DocumentChangeType,
   where,
   query,

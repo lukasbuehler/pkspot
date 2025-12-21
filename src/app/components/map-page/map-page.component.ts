@@ -147,6 +147,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private ngZone = inject(NgZone);
   private _structuredDataService = inject(StructuredDataService);
 
+  searchResultSpots: WritableSignal<Spot[]> = signal([]);
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
   showAllChallenges: WritableSignal<boolean> = signal(false);
@@ -773,6 +774,39 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectChallenge(challenge, updateUrl);
 
     return challenge;
+  }
+
+  filterChipChanged(selectedChip: string) {
+    const bounds = this.spotMap?.bounds;
+    if (!bounds) {
+      console.error("No bounds available when applying spot search filter");
+      return;
+    }
+
+    switch (selectedChip) {
+      case "saved":
+        break;
+      case "visited":
+        break;
+      case "parkour":
+        // Search for spots for parkour
+        console.log("Searching for parkour spots in bounds:", bounds);
+
+        this._searchService
+          .searchSpotsForParkourInBounds(bounds)
+          .then((spots) => {
+            console.log(spots);
+          })
+          .catch((err) => {
+            console.error("Error searching for parkour spots:", err);
+          });
+
+        break;
+      case "dry":
+        break;
+      case "indoor":
+        break;
+    }
   }
 
   updateMapURL() {

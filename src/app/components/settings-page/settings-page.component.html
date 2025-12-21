@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col-md-4">
         <div class="menu d-flex flex-column rounded border mb-5">
-          @for(menuPoint of menuPoints; track menuPoint.id) {
+          @for(menuPoint of menuPoints; track $index) {
           <button
             mat-button
             (click)="openMenuPoint(menuPoint.id)"

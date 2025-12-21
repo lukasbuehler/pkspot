@@ -28,9 +28,16 @@ export class FollowingService extends ConsentAwareService {
     super();
   }
 
-  isFollowingUser(myUserId: string, otherUserId: string): Observable<boolean> {
+  isFollowingUser$(myUserId: string, otherUserId: string): Observable<boolean> {
     return new Observable<boolean>((obs) => {
       this.executeWhenConsent(() => {
+        console.debug(
+          "FollowingService: Checking if user",
+          myUserId,
+          "is following user",
+          otherUserId
+        );
+
         const obs$ = docData(
           doc(this.firestore, "users", myUserId, "following", otherUserId),
           { idField: "id" }
@@ -47,22 +54,21 @@ export class FollowingService extends ConsentAwareService {
     });
   }
 
-  userIsFollowingYou(
+  userIsFollowingYou$(
     myUserId: string,
     otherUserId: string
   ): Observable<boolean> {
-    return new Observable<boolean>((obs) => {
-      const obs$ = docData(
-        doc(this.firestore, "users", myUserId, "followers", otherUserId),
-        { idField: "id" }
-      ).pipe(map((d) => !!d));
+    console.debug(
+      "FollowingService: Checking if user",
+      otherUserId,
+      "is following user",
+      myUserId
+    );
 
-      const sub = obs$.subscribe({
-        next: (v) => obs.next(v),
-        error: (e) => obs.error(e),
-      });
-      return () => sub.unsubscribe();
-    });
+    return docData(
+      doc(this.firestore, "users", myUserId, "followers", otherUserId),
+      { idField: "id" }
+    ).pipe(map((d) => !!d));
   }
 
   followUser(

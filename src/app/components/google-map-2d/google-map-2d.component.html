@@ -14,7 +14,7 @@
 >
   @if(isDebug()) {
   <!-- rectangles for each tile -->
-  @for(tile of visibleTiles()?.tiles; track tile) {
+  @for(tile of visibleTiles()?.tiles; track $index) {
   <map-rectangle
     [bounds]="
       getBoundsForTile({ zoom: visibleTiles()!.zoom, x: tile.x, y: tile.y })
@@ -113,7 +113,7 @@
 
   <!-- Selected spot polygon (when editing) - uses recreation key to force re-render -->
   @if(selectedSpot() && isEditing() && showSelectedSpotPolygon()) { @for(dummy
-  of [polygonRecreationKey()]; track polygonRecreationKey()) {
+  of [polygonRecreationKey()]; track $index) {
   <map-polygon
     #selectedSpotPolygon
     [options]="selectedSpotPolygonEditingOptions"
@@ -259,7 +259,7 @@
   } -->
 
   <!-- Highlighted spot markers
-  @for(spot of highlightedSpots; track spot) {
+  @for(spot of highlightedSpots; track $index) {
   <map-advanced-marker
     #selectedSpotMarker
     id="selectedSpotMarker"

@@ -7,13 +7,14 @@
       class="rounded bg-black"
       style="width: 200px; height: 200px; position: relative"
     >
+      @if(dialogData.media.getSrc(200)) {
       <img
         [ngSrc]="dialogData.media.getSrc(200)"
         alt="Image to report"
         style="object-fit: contain"
         priority
         fill
-      />
+      />}
     </div>
   </div>
   <p class="mat-body-large" i18n>Please select the reason for this report:</p>

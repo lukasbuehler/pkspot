@@ -32,7 +32,7 @@
           }
           {{ spot()?.rating && spotAmenitiesArray().length > 0 ? "⸱" : null }}
           <div class="d-flex flex-row align-items-center gap-1">
-            @for(amenity of spotAmenitiesArray(); track amenity) {
+            @for(amenity of spotAmenitiesArray(); track $index) {
             <mat-icon
               class="amenity-icon"
               [class.negative]="amenity.isNegative"
@@ -82,13 +82,13 @@
       <mat-icon>share</mat-icon>
     </button>
   </div> -->
-  @if(isCompact) { @if(media() && media().length > 0) {
+  @if(isCompact) { @if(media() && media().length > 0 && media()[0]) {
   <div mat-card-sm-image class="img-container">
     <img [ngSrc]="media()[0]" fill />
     <!-- add placeholder-->
   </div>
 
-  } } @else { @if(media()) {
+  } } @else { @if(media() && media().length > 0 && media()[0]) {
   <div class="img-container">
     <img [ngSrc]="media()[0]" fill priority />
     <!-- @if(showInfoButton()) {

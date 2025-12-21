@@ -15,7 +15,7 @@
 >
   @if(isDebug()) {
   <!-- Debug rectangles for each tile -->
-  @for(tile of visibleTiles()?.tiles; track tile) {
+  @for(tile of visibleTiles()?.tiles; track $index) {
   <map-rectangle
     [bounds]="getBoundsForTile({ zoom: visibleTiles()!.zoom, x: tile.x, y: tile.y })"
     [options]="{
@@ -54,7 +54,7 @@
   }
 
   <!-- NEW: Render all markers using the unified marker renderer -->
-  @for (marker of visibleMarkers(); track marker.id) {
+  @for (marker of visibleMarkers(); track $index) {
   <app-map-marker-renderer
     [marker]="marker"
     [zoom]="_zoom()"
