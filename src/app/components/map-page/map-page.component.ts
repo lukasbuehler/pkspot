@@ -32,7 +32,13 @@ import {
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MapsApiService } from "../../services/maps-api.service";
-import { filter, Subscription } from "rxjs";
+import {
+  filter,
+  firstValueFrom,
+  lastValueFrom,
+  Subscription,
+  take,
+} from "rxjs";
 import { animate, style, transition, trigger } from "@angular/animations";
 import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { SearchService } from "../../services/search.service";
@@ -80,6 +86,7 @@ import { ResponsiveService } from "../../services/responsive.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { ChipSelectComponent } from "../chip-select/chip-select.component";
 import { StructuredDataService } from "../../services/structured-data.service";
+import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
 
 @Component({
   selector: "app-map-page",
@@ -136,6 +143,7 @@ import { StructuredDataService } from "../../services/structured-data.service";
     MatSidenavModule,
     NgTemplateOutlet,
     BottomSheetComponent,
+    ResizeObserverDirective,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -189,15 +197,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   sidebarContentIsScrolling = signal<boolean>(false);
 
   // Height of the top spacer in the sidebar/bottom-sheet to match chip listbox
-  // Default to expected fallback (72 chip + 100 padding)
-  chipsSpacerHeight = signal<number>(172);
+  // Default to expected fallback (32 chip + 100 padding)
+  chipsSpacerHeight = signal<number>(132);
 
   // ResizeObserver for chips height measurement
   private _chipsResizeObserver: ResizeObserver | null = null;
-  private _chipsMutationObserver: MutationObserver | null = null;
   private _chipsUpdateRaf: number | null = null;
-  // Flag to coalesce measurements into a single scheduled RAF
-  private _measureScheduled: boolean = false;
+  // Direct immediate measure helper (bypasses RAF coalescing)
+  private _chipsDirectMeasure: (() => void) | null = null;
   private _chipsWindowResizeListener: (() => void) | null = null;
   // Last measured width of the chips container — used to avoid re-measuring when width didn't change
   private _lastMeasuredWidth: number | null = null;
@@ -219,6 +226,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
+  private _breakpointSubscription?: Subscription;
 
   spotEdits: WritableSignal<SpotEdit[]> = signal([]);
 
@@ -558,58 +566,65 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       // Setup scroll listeners for the sidebar (desktop) and bottom-sheet (mobile)
       try {
-        const drawerInner = document.querySelector(
-          ".mat-drawer-inner-container"
-        ) as HTMLElement | null;
-        if (drawerInner) {
-          this._sidebarScrollEl = drawerInner;
-          this._sidebarScrollListener = () => {
-            this.sidebarContentIsScrolling.set(
-              !!(this._sidebarScrollEl && this._sidebarScrollEl.scrollTop > 0)
-            );
-          };
-          this._sidebarScrollEl.addEventListener(
-            "scroll",
-            this._sidebarScrollListener,
-            { passive: true }
-          );
-          this.sidebarContentIsScrolling.set(
-            this._sidebarScrollEl.scrollTop > 0
-          );
-        }
-
-        const bottomContent = document.querySelector(
-          "app-bottom-sheet #contentEl"
-        ) as HTMLElement | null;
-        if (bottomContent) {
-          this._bottomSheetContentEl = bottomContent;
-          this._bottomSheetContentListener = () => {
-            this.sidebarContentIsScrolling.set(
-              !!(
-                this._bottomSheetContentEl &&
-                this._bottomSheetContentEl.scrollTop > 0
-              )
-            );
-          };
-          this._bottomSheetContentEl.addEventListener(
-            "scroll",
-            this._bottomSheetContentListener,
-            { passive: true }
-          );
-          this.sidebarContentIsScrolling.set(
-            this._bottomSheetContentEl.scrollTop > 0
-          );
-        }
+        this._attachSidebarScrollListeners();
 
         // Measure the chip listbox height and keep the top spacer in sync
         try {
           // Move logic into a reusable method so we can re-run it on breakpoint changes
           this._attachChipsMeasurement();
 
+          // Trigger an immediate measurement now that the view is initialized.
+          // Call the installed window-resize listener (it schedules a measurement).
+          try {
+            // Wait for Angular to stabilize so projected/async chip elements are present
+            try {
+              this.ngZone.onStable.pipe(take(1)).subscribe(() => {
+                try {
+                  if (!this._chipsWindowResizeListener) {
+                    // In case the listener wasn't installed, re-run attachment once more
+                    this._attachChipsMeasurement();
+                  }
+                  // Run the usual scheduled measurement and also a direct immediate measure
+                  this._chipsWindowResizeListener?.();
+                  this._chipsDirectMeasure?.();
+                } catch (e) {
+                  /* ignore */
+                }
+              });
+            } catch (e) {
+              // Fallback to setTimeout if onStable isn't available for some reason
+              setTimeout(() => {
+                try {
+                  if (this._chipsWindowResizeListener)
+                    this._chipsWindowResizeListener();
+                } catch (e) {
+                  /* ignore */
+                }
+              }, 50);
+            }
+          } catch (e) {
+            /* ignore */
+          }
+
           // Measurement attached once on view init. We do not re-attach
           // repeatedly from a reactive effect to avoid periodic re-runs.
         } catch (e) {
           console.warn("Could not attach chips measurement:", e);
+        }
+        // React to breakpoint/layout changes and re-attach measurement
+        try {
+          this._breakpointSubscription = this.breakpointObserver
+            .observe([Breakpoints.Handset, Breakpoints.Tablet, Breakpoints.Web])
+            .subscribe(() => {
+              try {
+                this._attachChipsMeasurement();
+                this._attachSidebarScrollListeners();
+              } catch (e) {
+                /* ignore */
+              }
+            });
+        } catch (e) {
+          /* ignore */
         }
       } catch (e) {
         console.warn("Could not attach sidebar scroll listeners:", e);
@@ -861,153 +876,97 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * are handled correctly.
    */
   private _attachChipsMeasurement(): void {
+    // Measurement handled by standalone ResizeObserver directive.
+    // Keep this method as a noop to avoid changing callers that may re-attach
+    // on breakpoint changes. All measurement logic has been moved to the directive.
+    return;
+  }
+
+  /**
+   * Attach or re-attach scroll listeners for sidebar and bottom-sheet.
+   * This is called on init and on breakpoint/layout changes so we handle
+   * the case where the sidenav is not present on mobile and appears again.
+   */
+  private _attachSidebarScrollListeners(): void {
     try {
-      // Clean up any existing observers
-      if (this._chipsResizeObserver) {
+      // Clean up existing listeners first
+      if (this._sidebarScrollEl && this._sidebarScrollListener) {
         try {
-          this._chipsResizeObserver.disconnect();
+          this._sidebarScrollEl.removeEventListener(
+            "scroll",
+            this._sidebarScrollListener as EventListener
+          );
         } catch (e) {
-          // ignore
+          /* ignore */
         }
-        this._chipsResizeObserver = null;
+        this._sidebarScrollEl = undefined;
+        this._sidebarScrollListener = undefined;
       }
-      if (this._chipsMutationObserver) {
+
+      if (this._bottomSheetContentEl && this._bottomSheetContentListener) {
         try {
-          this._chipsMutationObserver.disconnect();
+          this._bottomSheetContentEl.removeEventListener(
+            "scroll",
+            this._bottomSheetContentListener as EventListener
+          );
         } catch (e) {
-          // ignore
+          /* ignore */
         }
-        this._chipsMutationObserver = null;
-      }
-      if (this._chipsWindowResizeListener) {
-        try {
-          window.removeEventListener("resize", this._chipsWindowResizeListener);
-        } catch (e) {
-          // ignore
-        }
-        this._chipsWindowResizeListener = null;
-      }
-      const chipsEls = Array.from(
-        document.querySelectorAll(".search-option-chips")
-      ) as HTMLElement[];
-
-      if (!chipsEls || chipsEls.length === 0) {
-        // No chip elements present — nothing to measure until resize.
-        return;
+        this._bottomSheetContentEl = undefined;
+        this._bottomSheetContentListener = undefined;
       }
 
-      // Choose the best candidate: first visible element (has layout)
-      const pickVisible = () => {
-        for (const el of chipsEls) {
-          if (
-            el.offsetHeight > 0 ||
-            el.getClientRects().length > 0 ||
-            el.offsetParent !== null
-          ) {
-            return el;
-          }
-        }
-        return chipsEls[0];
-      };
+      // Try to attach sidebar (desktop) listener
+      const drawerInner = document.querySelector(
+        ".mat-drawer-inner-container"
+      ) as HTMLElement | null;
+      if (drawerInner) {
+        this._sidebarScrollEl = drawerInner;
+        this._sidebarScrollListener = () => {
+          this.sidebarContentIsScrolling.set(
+            !!(this._sidebarScrollEl && this._sidebarScrollEl.scrollTop > 0)
+          );
+        };
+        this._sidebarScrollEl.addEventListener("scroll", this._sidebarScrollListener, { passive: true });
+        this.sidebarContentIsScrolling.set(this._sidebarScrollEl.scrollTop > 0);
+      } else {
+        this.sidebarContentIsScrolling.set(false);
+      }
 
-      const measureAndSet = (el: HTMLElement, source: string = "unknown") => {
-        const measured =
-          el.offsetHeight || Math.ceil(el.getBoundingClientRect().height || 0);
-        // console.debug(
-        //   "[map-page] measured chips height:",
-        //   measured,
-        //   "source:",
-        //   source,
-        //   new Error().stack?.split("\n").slice(1, 4)
-        // );
-        const final = measured > 0 ? Math.ceil(measured) + 100 : 72 + 100;
-
-        // Compute a rounded width to detect wrapping/width changes (that's the real trigger for height changes)
-        let width = Math.round(
-          el.getBoundingClientRect().width || el.offsetWidth || 0
+      // Try to attach bottom-sheet (mobile) listener
+      const bottomContent = document.querySelector(
+        "app-bottom-sheet #contentEl"
+      ) as HTMLElement | null;
+      if (bottomContent) {
+        this._bottomSheetContentEl = bottomContent;
+        this._bottomSheetContentListener = () => {
+          this.sidebarContentIsScrolling.set(
+            !!(
+              this._bottomSheetContentEl &&
+              this._bottomSheetContentEl.scrollTop > 0
+            )
+          );
+        };
+        this._bottomSheetContentEl.addEventListener(
+          "scroll",
+          this._bottomSheetContentListener,
+          { passive: true }
         );
-
-        // If width and final haven't changed, skip (but update timestamp so throttling knows a measurement happened)
-        if (
-          width === this._lastMeasuredWidth &&
-          final === this._lastFinalHeight
-        ) {
-          return measured > 0;
-        }
-
-        // update last knowns immediately to prevent thrash
-        this._lastMeasuredWidth = width;
-        this._lastFinalHeight = final;
-
-        if (this._chipsUpdateRaf) {
-          cancelAnimationFrame(this._chipsUpdateRaf);
-          this._chipsUpdateRaf = null;
-        }
-        // Update via RAF; coalesce multiple events with a simple flag
-        this._chipsUpdateRaf = requestAnimationFrame(() => {
-          this._chipsUpdateRaf = null;
-          // Avoid unnecessary ngZone.run if value already matches
-          if (this.chipsSpacerHeight() === final) return;
-          this.ngZone.run(() => this.chipsSpacerHeight.set(final));
-        });
-
-        return measured > 0;
-      };
-
-      // Schedule a measurement using RAF coalescing (no timeouts or cooldowns)
-      const scheduleMeasure = (source: string = "unknown") => {
-        console.debug("[map-page] scheduleMeasure called, source:", source);
-        if (this._measureScheduled) return;
-        this._measureScheduled = true;
-        if (this._chipsUpdateRaf) {
-          cancelAnimationFrame(this._chipsUpdateRaf);
-          this._chipsUpdateRaf = null;
-        }
-        this._chipsUpdateRaf = requestAnimationFrame(() => {
-          this._measureScheduled = false;
-          this._chipsUpdateRaf = null;
-          const candidate = pickVisible();
-          if (candidate) measureAndSet(candidate, source);
-        });
-      };
-
-      // Single initial measurement on next RAF (avoid recursive retries)
-      const el = pickVisible();
-      requestAnimationFrame(() => {
-        if (el) measureAndSet(el, "initial");
-      });
-
-      // Only measure on window resize (user requested). Use RAF coalescing.
-      try {
-        if (this._chipsWindowResizeListener) {
-          try {
-            window.removeEventListener(
-              "resize",
-              this._chipsWindowResizeListener
-            );
-          } catch (e) {
-            /* ignore */
-          }
-          this._chipsWindowResizeListener = null;
-        }
-
-        this._chipsWindowResizeListener = () =>
-          scheduleMeasure("window-resize");
-
-        window.addEventListener("resize", this._chipsWindowResizeListener, {
-          passive: true,
-        });
-      } catch (e) {
-        // ignore
+        this.sidebarContentIsScrolling.set(this._bottomSheetContentEl.scrollTop > 0);
       }
-
-      // If no candidate has height yet, observe mutations to retry when DOM changes
-      const visibleNow = chipsEls.some(
-        (e) => e.offsetHeight > 0 || e.getClientRects().length > 0
-      );
-      // Do not observe mutations — only react to window resize per user request.
     } catch (e) {
-      console.warn("[map-page] error in _attachChipsMeasurement", e);
+      console.warn("Could not attach sidebar scroll listeners:", e);
+    }
+  }
+
+  // Handler invoked by the ResizeObserver directive attached to the chips container.
+  onChipsContainerResize(rect: DOMRectReadOnly) {
+    const measuredHeight = rect?.height ?? 0;
+    const finalHeight =
+      measuredHeight > 0 ? Math.ceil(measuredHeight) + 100 : 132;
+
+    if (this.chipsSpacerHeight() !== finalHeight) {
+      this.chipsSpacerHeight.set(finalHeight);
     }
   }
 
@@ -1154,14 +1113,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           // ignore
         }
         this._chipsResizeObserver = null;
-      }
-      if (this._chipsMutationObserver) {
-        try {
-          this._chipsMutationObserver.disconnect();
-        } catch (e) {
-          // ignore
-        }
-        this._chipsMutationObserver = null;
       }
       if (this._chipsWindowResizeListener) {
         try {
