@@ -1,3 +1,5 @@
+<ng-template #image> </ng-template>
+
 <mat-card
   matRipple
   [matRippleDisabled]="!clickable"
@@ -82,28 +84,16 @@
       <mat-icon>share</mat-icon>
     </button>
   </div> -->
-  @if(isCompact) { @if(media() && media().length > 0 && media()[0]) {
-  <div mat-card-sm-image class="img-container">
-    <img [ngSrc]="media()[0]" fill />
-    <!-- add placeholder-->
-  </div>
-
-  } } @else { @if(media() && media().length > 0 && media()[0]) {
-  <div class="img-container">
+  <div
+    [attr.mat-card-sm-image]="isCompact ? '' : null"
+    class="img-container"
+    [class.isCompact]="isCompact"
+  >
+    @if(media() && media().length > 0 && media()[0]) {
     <img [ngSrc]="media()[0]" fill priority />
-    <!-- @if(showInfoButton()) {
-    <button
-      mat-icon-button
-      style="
-        position: absolute;
-        right: 5px;
-        bottom: 5px;
-        background-color: var(--mat-bottom-sheet-container-background-color);
-      "
-      (click)="onClick()"
-    >
-      <mat-icon>info</mat-icon></button
-    >} -->
+    } @else {
+    <!-- image placeholder-->
+    <img [ngSrc]="fallbackImgSrc" fill />
+    }
   </div>
-  } }
 </mat-card>

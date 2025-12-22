@@ -25,6 +25,7 @@ import { GeoPoint } from "firebase/firestore";
 import { ConsentService } from "../../services/consent.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
+import { getBestLocale } from "../../../scripts/LanguageHelpers";
 
 export enum SpotFilterMode {
   None = "none",
@@ -242,8 +243,44 @@ export class SpotMapDataManager {
           // Top-N previews from unique points
           try {
             const topN = 4;
-            const sorted = points
-              .slice()
+            let filteredPoints = points.slice();
+
+            // Filter points to precise viewport if available
+            // This prevents highlight markers from appearing outside the visible map area
+            if (this._currentViewport) {
+              const { north, south, east, west } = this._currentViewport.bbox;
+
+              // Helper to get lat/lng from a point (duplicate logic from map function below, could be extracted)
+              const getLatLng = (p: any) => {
+                let lat = 0;
+                let lng = 0;
+                if (Array.isArray(p.location) && p.location.length >= 2) {
+                  lat = Number(p.location[0]);
+                  lng = Number(p.location[1]);
+                } else if (p.lat && p.lng) {
+                  lat = Number(p.lat);
+                  lng = Number(p.lng);
+                } else if (p.location && typeof p.location === "object") {
+                  lat = Number(p.location.latitude ?? p.location.lat ?? 0);
+                  lng = Number(p.location.longitude ?? p.location.lng ?? 0);
+                }
+                return { lat, lng };
+              };
+
+              filteredPoints = filteredPoints.filter((p) => {
+                const { lat, lng } = getLatLng(p);
+                // Check lat bounds
+                if (lat > north || lat < south) return false;
+
+                // Check lng bounds regarding wrap around?
+                // Simple box check for now as standard maps usually don't wrap weirdly in local views
+                // Ideally use MapsHelpers for wrap-around safe check if mostly needed
+                // But for filtering visual noise, standard check is usually sufficient
+                return lng <= east && lng >= west;
+              });
+            }
+
+            const sorted = filteredPoints
               .filter((p: any) => p && (p.location || (p.lat && p.lng)))
               .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0))
               .slice(0, topN);
@@ -263,16 +300,86 @@ export class SpotMapDataManager {
               }
 
               const nameField = p.name ?? p.title ?? p.display_name ?? "";
-              let displayName: string = "";
-              if (typeof nameField === "string") displayName = nameField;
-              else if (typeof nameField === "object") {
-                displayName =
-                  (nameField as any)[this.locale] ??
-                  Object.values(nameField)[0] ??
-                  "";
+              let displayName: string = "Unnamed Spot";
+
+              if (typeof nameField === "string") {
+                displayName = nameField;
+              } else if (
+                typeof nameField === "object" &&
+                nameField !== null &&
+                Object.keys(nameField).length > 0
+              ) {
+                const availableLocales = Object.keys(nameField) as any[];
+                const bestLocale = getBestLocale(
+                  availableLocales,
+                  this.locale as any
+                );
+                const val = (nameField as any)[bestLocale];
+
+                if (typeof val === "string") {
+                  displayName = val;
+                } else if (val && typeof val === "object" && "text" in val) {
+                  displayName = val.text;
+                }
               }
 
               const imageSrc = p.thumbnail_url ?? p.image_src ?? "";
+
+              let localityString = "";
+              if (p.address) {
+                if (p.address.sublocality) {
+                  localityString += p.address.sublocality + ", ";
+                }
+                if (p.address.locality) {
+                  localityString += p.address.locality + ", ";
+                }
+                if (p.address.country && p.address.country.code) {
+                  localityString += p.address.country.code.toUpperCase();
+                }
+              }
+              // removing trailing comma and space if present (though logic above handles it mostly by appending,
+              // but let's be safe or just leave trailing comma?
+              // Spot.ts logic: "sublocality, locality, GB".
+              // If country is missing: "sublocality, locality, " -> might want to trim.
+              // Actually Spot.ts result logic:
+              /*
+                  if (address?.sublocality) { str += address.sublocality + ", "; }
+                  if (address?.locality) { str += address.locality + ", "; }
+                  if (address?.country) { str += address.country.code.toUpperCase(); }
+              */
+              // If proper formatted address is desired, we might want to trim trailing separateors if country is missing.
+              // Let's copy Spot.ts logic exactly first.
+
+              // Reconstruct AmenitiesMap from separate arrays if needed
+              let amenities = p.amenities;
+              if (
+                !amenities &&
+                ((p.amenities_true && Array.isArray(p.amenities_true)) ||
+                  (p.amenities_false && Array.isArray(p.amenities_false)))
+              ) {
+                amenities = {};
+                if (p.amenities_true) {
+                  p.amenities_true.forEach((key: string) => {
+                    amenities[key] = true;
+                  });
+                }
+                if (p.amenities_false) {
+                  p.amenities_false.forEach((key: string) => {
+                    amenities[key] = false;
+                  });
+                }
+              }
+
+              // Robust isIconic check
+              let isIconic = false;
+              const rawIsIconic = p.isIconic ?? p.is_iconic;
+              if (typeof rawIsIconic === "boolean") {
+                isIconic = rawIsIconic;
+              } else if (typeof rawIsIconic === "string") {
+                isIconic = rawIsIconic.toLowerCase() === "true";
+              } else if (typeof rawIsIconic === "number") {
+                isIconic = rawIsIconic === 1;
+              }
 
               const preview: SpotPreviewData = {
                 id: (p.id as any) ?? (p.document?.id as any) ?? "",
@@ -284,11 +391,11 @@ export class SpotMapDataManager {
                     : undefined,
                 type: p.type ?? undefined,
                 access: p.access ?? undefined,
-                locality: p.address?.locality ?? "",
+                locality: localityString,
                 imageSrc: imageSrc || "",
-                isIconic: !!p.isIconic || !!p.is_iconic,
+                isIconic: isIconic,
                 rating: p.rating ?? undefined,
-                amenities: p.amenities ?? undefined,
+                amenities: amenities ?? undefined,
               } as SpotPreviewData;
 
               return preview;
@@ -342,11 +449,15 @@ export class SpotMapDataManager {
     }
   }
 
+  private _currentViewport: VisibleViewport | null = null;
+
   /**
    * New API: accept a viewport (bbox + zoom) and convert to TilesObject
    * for backward compatibility with the existing tile-based loading logic.
    */
   setVisibleViewport(viewport: VisibleViewport) {
+    this._currentViewport = viewport; // Store exact viewport for precise filtering
+
     const zoom = viewport.zoom;
 
     const ne = { lat: viewport.bbox.north, lng: viewport.bbox.east };
