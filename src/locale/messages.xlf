@@ -403,6 +403,14 @@
         <source> Login information </source>
       </segment>
     </unit>
+    <unit id="saved_spots_chip_label">
+      <notes>
+        <note category="description">Saved spots label for spot chips</note>
+      </notes>
+      <segment>
+        <source>Saved</source>
+      </segment>
+    </unit>
     <unit id="settings.login.description">
       <notes>
         <note category="description">Description of login information section</note>
@@ -435,6 +443,11 @@
     <unit id="3542042671420335679">
       <segment>
         <source>No</source>
+      </segment>
+    </unit>
+    <unit id="3599528462269889129">
+      <segment>
+        <source>Closed · Opens <ph id="0" equiv="PH" disp="nextDayLabel"/>. <ph id="1" equiv="PH_1" disp="fmtTime.format( openDate )"/></source>
       </segment>
     </unit>
     <unit id="1315161140061795296">
@@ -499,6 +512,14 @@
     <unit id="1347241542439262355">
       <segment>
         <source>General settings</source>
+      </segment>
+    </unit>
+    <unit id="1388168313047050333">
+      <notes>
+        <note category="description">email notice</note>
+      </notes>
+      <segment>
+        <source> We&apos;ll only use your email to contact you about this report. </source>
       </segment>
     </unit>
     <unit id="5223089976416033243">
@@ -658,6 +679,11 @@
         <source>Create Account</source>
       </segment>
     </unit>
+    <unit id="6454977624040653568">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">This picture violates the terms of service in other ways (nudity, violence, etc.)</pc></source>
+      </segment>
+    </unit>
     <unit id="6464436780502674570">
       <segment>
         <source>Password and repeated password don&apos;t match</source>
@@ -710,6 +736,14 @@
         <source>Directions to spot</source>
       </segment>
     </unit>
+    <unit id="dry_spots_chip_label">
+      <notes>
+        <note category="description">Dry spots label for spot chips</note>
+      </notes>
+      <segment>
+        <source>Dry</source>
+      </segment>
+    </unit>
     <unit id="directions_spot_aria_label">
       <notes>
         <note category="description">The aria label of the directions spot icon button</note>
@@ -735,6 +769,19 @@
       </notes>
       <segment>
         <source> Description </source>
+      </segment>
+    </unit>
+    <unit id="8134695558272106554">
+      <notes>
+        <note category="description">email invalid error</note>
+      </notes>
+      <segment>
+        <source>Please enter a valid email</source>
+      </segment>
+    </unit>
+    <unit id="6772316127315505952">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Other</pc></source>
       </segment>
     </unit>
     <unit id="6807040359477339777">
@@ -1023,6 +1070,14 @@
         <source>Dismiss</source>
       </segment>
     </unit>
+    <unit id="6946913675153584317">
+      <notes>
+        <note category="description">media report title</note>
+      </notes>
+      <segment>
+        <source>Report Media</source>
+      </segment>
+    </unit>
     <unit id="6957965842552679691">
       <segment>
         <source>Error saving spot</source>
@@ -1162,6 +1217,11 @@
       </notes>
       <segment>
         <source>Add a new spot</source>
+      </segment>
+    </unit>
+    <unit id="map.highlighted_spots.structured_data_name">
+      <segment>
+        <source>Featured Parkour Spots</source>
       </segment>
     </unit>
     <unit id="map.import_spots.tooltip">
@@ -1512,9 +1572,25 @@
         <source>Info stand</source>
       </segment>
     </unit>
+    <unit id="for_parkour_spots_chip_label">
+      <notes>
+        <note category="description">&apos;For Parkour&apos; spots label for spot chips</note>
+      </notes>
+      <segment>
+        <source>For Parkour</source>
+      </segment>
+    </unit>
     <unit id="generic.not_sure">
       <segment>
         <source>Not sure</source>
+      </segment>
+    </unit>
+    <unit id="indoor_spots_chip_label">
+      <notes>
+        <note category="description">Indoor spots label for spot chips</note>
+      </notes>
+      <segment>
+        <source>Indoor</source>
       </segment>
     </unit>
     <unit id="6018246591673612412">
@@ -1574,6 +1650,11 @@
     <unit id="7855274718891325217">
       <segment>
         <source>Show Event header</source>
+      </segment>
+    </unit>
+    <unit id="7860418101283165917">
+      <segment>
+        <source>Closed</source>
       </segment>
     </unit>
     <unit id="822217384326702238">
@@ -1657,6 +1738,14 @@
         <source>Update Review</source>
       </segment>
     </unit>
+    <unit id="visited_spots_chip_label">
+      <notes>
+        <note category="description">Visited spots label for spot chips</note>
+      </notes>
+      <segment>
+        <source>Visited</source>
+      </segment>
+    </unit>
     <unit id="8755396282893693521">
       <segment>
         <source>Event spots</source>
@@ -1725,6 +1814,14 @@
     <unit id="2043725857486133673">
       <segment>
         <source>Sketchy</source>
+      </segment>
+    </unit>
+    <unit id="204562474612147063">
+      <notes>
+        <note category="description">reporter email label</note>
+      </notes>
+      <segment>
+        <source>Your Email</source>
       </segment>
     </unit>
     <unit id="2085915950119931041">
@@ -1804,6 +1901,14 @@
     <unit id="250704833554562493">
       <segment>
         <source>Unnamed Challenge</source>
+      </segment>
+    </unit>
+    <unit id="2662644497259948010">
+      <notes>
+        <note category="description">report comment label</note>
+      </notes>
+      <segment>
+        <source>Comment</source>
       </segment>
     </unit>
     <unit id="2736531674722915416">
@@ -1937,6 +2042,11 @@
         <source>Beginner friendly</source>
       </segment>
     </unit>
+    <unit id="4819326588611894685">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span &gt;"> Copyright infringement: This is my content and I did not give permission for it to be used here.</pc></source>
+      </segment>
+    </unit>
     <unit id="4828078474062395314">
       <segment>
         <source> Save the spot first to add images. </source>
@@ -2024,6 +2134,11 @@
       </notes>
       <segment>
         <source>Report</source>
+      </segment>
+    </unit>
+    <unit id="5355398899123190235">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">I&apos;m visible and have a problem with it.</pc></source>
       </segment>
     </unit>
     <unit id="5451766476743569122">
@@ -2200,6 +2315,11 @@
         <source> The Challenge will be public right away after it is added. </source>
       </segment>
     </unit>
+    <unit id="5996977642855652872">
+      <segment>
+        <source>Please select the reason for this report:</source>
+      </segment>
+    </unit>
     <unit id="6251586038459969294">
       <segment>
         <source>Both</source>
@@ -2283,6 +2403,14 @@
         <source>Time</source>
       </segment>
     </unit>
+    <unit id="8552587679160911578">
+      <notes>
+        <note category="description">email required error</note>
+      </notes>
+      <segment>
+        <source>Email is required</source>
+      </segment>
+    </unit>
     <unit id="8822206448271061589">
       <segment>
         <source>Indoor</source>
@@ -2306,6 +2434,14 @@
     <unit id="8981724482694536509">
       <segment>
         <source>Directions</source>
+      </segment>
+    </unit>
+    <unit id="8981818401286656238">
+      <notes>
+        <note category="description">reporter email placeholder</note>
+      </notes>
+      <segment>
+        <source>your-email@example.com</source>
       </segment>
     </unit>
     <unit id="1603041043712955298">
@@ -2346,6 +2482,14 @@
     <unit id="3483311644139102304">
       <segment>
         <source>All Event Challenges</source>
+      </segment>
+    </unit>
+    <unit id="3493126540529865490">
+      <notes>
+        <note category="description">submitting label</note>
+      </notes>
+      <segment>
+        <source>Submitting...</source>
       </segment>
     </unit>
     <unit id="3881818169480672345">
