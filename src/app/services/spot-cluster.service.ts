@@ -3,6 +3,7 @@ import Supercluster from "supercluster";
 import { SearchService } from "./search.service";
 import { VisibleViewport } from "../components/maps/map-base";
 import { MapHelpers } from "../../scripts/MapHelpers";
+import { SpotClusterDotSchema } from "../../db/schemas/SpotClusterTile";
 
 export interface ClusterPoint {
   id: string;
@@ -11,107 +12,92 @@ export interface ClusterPoint {
   [k: string]: any;
 }
 
+export interface ClusterResult {
+  clusters: Supercluster.ClusterFeature<any>[];
+  points: ClusterPoint[];
+}
+
 @Injectable({ providedIn: "root" })
 export class SpotClusterService {
-  private _supercluster: Supercluster | null = null;
-  private _cache = new Map<
-    string,
-    { timestamp: number; clusters: any[]; points: ClusterPoint[] }
-  >();
-  private _inFlight = new Map<
-    string,
-    Promise<{ clusters: any[]; points: ClusterPoint[] }>
-  >();
-  // Per-tile cache and in-flight maps to avoid re-querying Typesense for overlapping viewports
+  // Caches
   private _tileCache = new Map<
     string,
     { timestamp: number; points: ClusterPoint[] }
   >();
   private _tileInFlight = new Map<string, Promise<ClusterPoint[]>>();
-  private readonly CACHE_TTL_MS = 30 * 1000; // 30s cache
+
+  private readonly CACHE_TTL_MS = 60 * 1000; // 1 minute cache for tiles
 
   constructor(private _searchService: SearchService) {}
 
-  private _buildGeoJSONPoints(points: ClusterPoint[]) {
-    return points.map((p) => ({
-      type: "Feature",
-      properties: { ...p },
-      geometry: { type: "Point", coordinates: [p.lng, p.lat] },
-    }));
+  /**
+   * Main entry point: Get clusters for a specific viewport.
+   * This method abstract away the tiling logic.
+   */
+  public async getClustersForViewport(
+    viewport: VisibleViewport,
+    zoom: number
+  ): Promise<ClusterResult> {
+    // 1. Calculate which tiles cover this viewport
+    // We use a fixed "fetching zoom" (e.g. 12) to cache data efficiently
+    // This allows panning around without re-fetching everything if we stay in same tiles
+    const fetchZoom = 12;
+
+    // Don't fetch if zoom is too low (server-side clustering should handle < 10 or so in a real app,
+    // but here we just follow existing logic or return empty if very far out)
+    if (zoom < 4) return { clusters: [], points: [] };
+
+    // Identify tiles at fetchZoom that cover the viewport
+    const tilesToFetch = this._getTilesCoveringViewport(viewport, fetchZoom);
+
+    // 2. Fetch points for these tiles (parallel)
+    const pointsArrays = await Promise.all(
+      tilesToFetch.map((t) => this.getPointsForTile(fetchZoom, t.x, t.y))
+    );
+
+    // 3. Deduplicate points (because a spot might be on the edge or logic overlap)
+    const uniquePoints = this._deduplicatePoints(pointsArrays.flat());
+
+    // 4. Cluster using Supercluster
+    return this.clusterPointsForViewport(uniquePoints, viewport, zoom);
   }
 
   /**
-   * Fetch raw spot points for a specific tile (by tile zoom/x/y) and cache results.
-   * This reduces the number of Typesense queries when panning/zooming within the
-   * same base tiles — higher-zoom tiles inside the same tile will reuse the cached points.
+   * Fetch raw spot points for a specific tile.
+   * Handles caching and in-flight request deduplication.
    */
   public async getPointsForTile(
     tileZoom: number,
     x: number,
     y: number,
-    maxSpots: number = 250
+    maxSpots: number = 250 // Per tile max
   ): Promise<ClusterPoint[]> {
     const key = `tile:${tileZoom}:${x}:${y}`;
 
+    // Check cache
     const cached = this._tileCache.get(key);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
       return cached.points;
     }
 
-    const existing = this._tileInFlight.get(key);
-    if (existing) return existing;
+    // Check in-flight
+    const existingPromise = this._tileInFlight.get(key);
+    if (existingPromise) return existingPromise;
 
-    const promise = (async () => {
-      // Compute bbox for the tile
-      const bounds = MapHelpers.getBoundsForTile(tileZoom, x, y);
-
-      const boundsNE = new google.maps.LatLng(bounds.north, bounds.east);
-      const boundsSW = new google.maps.LatLng(bounds.south, bounds.west);
-      const latLngBounds = new google.maps.LatLngBounds(boundsSW, boundsNE);
-
-      const typesenseResult = await this._searchService.searchSpotsInBounds(
-        latLngBounds,
-        maxSpots
-      );
-      const hits = (typesenseResult && (typesenseResult as any).hits) || [];
-
-      const points: ClusterPoint[] = hits
-        .map((h: any) => h.document)
-        .filter((doc: any) => doc && doc.location)
-        .map((doc: any) => {
-          let lat = 0;
-          let lng = 0;
-          if (Array.isArray(doc.location) && doc.location.length >= 2) {
-            lat = Number(doc.location[0]);
-            lng = Number(doc.location[1]);
-          } else if (typeof doc.location === "object") {
-            lat = Number(
-              (doc.location as any).latitude ?? (doc.location as any).lat ?? 0
-            );
-            lng = Number(
-              (doc.location as any).longitude ?? (doc.location as any).lng ?? 0
-            );
-          }
-
-          return {
-            id: String(doc.id),
-            lat,
-            lng,
-            ...doc,
-          } as ClusterPoint;
-        })
-        .filter(
-          (p: ClusterPoint) => Number.isFinite(p.lat) && Number.isFinite(p.lng)
-        );
-
-      this._tileCache.set(key, { timestamp: Date.now(), points });
-      return points;
-    })();
+    // Fetch
+    const promise = this._fetchTilePoints(tileZoom, x, y, maxSpots)
+      .then((points) => {
+        this._tileCache.set(key, { timestamp: Date.now(), points });
+        return points;
+      })
+      .catch((err) => {
+        console.error(`Failed to fetch tile ${key}`, err);
+        return [];
+      });
 
     this._tileInFlight.set(key, promise);
     try {
-      const res = await promise;
-      return res;
+      return await promise;
     } finally {
       this._tileInFlight.delete(key);
     }
@@ -119,141 +105,137 @@ export class SpotClusterService {
 
   /**
    * Cluster an array of points for a given viewport using Supercluster.
+   * Made public for testing or if external manual clustering is needed.
    */
   public clusterPointsForViewport(
     points: ClusterPoint[],
-    viewport: VisibleViewport
-  ): { clusters: any[]; points: ClusterPoint[] } {
-    const geojson = this._buildGeoJSONPoints(points);
+    viewport: VisibleViewport,
+    zoom: number
+  ): ClusterResult {
     const index = new Supercluster({ radius: 60, maxZoom: 20 });
-    index.load(geojson as any);
 
-    const bbox = [
+    const geojson = points.map((p) => ({
+      type: "Feature" as const,
+      properties: { ...p },
+      geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+    }));
+
+    index.load(geojson);
+
+    // Supercluster expects bbox in [west, south, east, north]
+    const bbox: [number, number, number, number] = [
       viewport.bbox.west,
       viewport.bbox.south,
       viewport.bbox.east,
       viewport.bbox.north,
-    ] as [number, number, number, number];
-    const clusters = index.getClusters(
-      bbox,
-      Math.max(0, Math.floor(viewport.zoom))
-    );
+    ];
+
+    const clusters = index.getClusters(bbox, Math.floor(zoom));
+
     return { clusters, points };
   }
 
-  /**
-   * Query Typesense for spots inside viewport bounds and return clusters
-   * using Supercluster. Returns an object with `clusters` and `points`.
-   */
-  public async getClustersForViewport(
+  // --- Private Helpers ---
+
+  private async _fetchTilePoints(
+    z: number,
+    x: number,
+    y: number,
+    maxSpots: number
+  ): Promise<ClusterPoint[]> {
+    const bounds = MapHelpers.getBoundsForTile(z, x, y);
+    const boundsNE = new google.maps.LatLng(bounds.north, bounds.east);
+    const boundsSW = new google.maps.LatLng(bounds.south, bounds.west);
+    const latLngBounds = new google.maps.LatLngBounds(boundsSW, boundsNE);
+
+    const typesenseResult = await this._searchService.searchSpotsInBounds(
+      latLngBounds,
+      maxSpots
+    );
+    const hits = (typesenseResult && (typesenseResult as any).hits) || [];
+
+    return hits
+      .map((h: any) => h.document)
+      .filter((doc: any) => doc && doc.location)
+      .map((doc: any) => this._mapDocumentToClusterPoint(doc))
+      .filter(
+        (p: ClusterPoint) => Number.isFinite(p.lat) && Number.isFinite(p.lng)
+      );
+  }
+
+  private _mapDocumentToClusterPoint(doc: any): ClusterPoint {
+    let lat = 0;
+    let lng = 0;
+
+    if (Array.isArray(doc.location) && doc.location.length >= 2) {
+      lat = Number(doc.location[0]);
+      lng = Number(doc.location[1]);
+    } else if (typeof doc.location === "object") {
+      lat = Number(doc.location.latitude ?? doc.location.lat ?? 0);
+      lng = Number(doc.location.longitude ?? doc.location.lng ?? 0);
+    }
+
+    return {
+      id: String(doc.id),
+      lat,
+      lng,
+      ...doc,
+    };
+  }
+
+  private _getTilesCoveringViewport(
     viewport: VisibleViewport,
-    maxSpots: number = 2000
-  ): Promise<{ clusters: any[]; points: ClusterPoint[] }> {
-    // Build a stable cache key by quantizing center and span
-    const centerLat = (viewport.bbox.north + viewport.bbox.south) / 2;
-    const centerLng = (viewport.bbox.east + viewport.bbox.west) / 2;
-    const spanLat = Math.abs(viewport.bbox.north - viewport.bbox.south);
-    const spanLng = Math.abs(viewport.bbox.east - viewport.bbox.west);
+    zoom: number
+  ): { x: number; y: number }[] {
+    const ne = { lat: viewport.bbox.north, lng: viewport.bbox.east };
+    const sw = { lat: viewport.bbox.south, lng: viewport.bbox.west };
 
-    const q = (v: number, decimals = 3) =>
-      Math.round(v * Math.pow(10, decimals)) / Math.pow(10, decimals);
-    const key = `${Math.floor(viewport.zoom)}|${q(centerLat)}|${q(
-      centerLng
-    )}|${q(spanLat)}|${q(spanLng)}`;
+    const neTile = MapHelpers.getTileCoordinatesForLocationAndZoom(ne, zoom);
+    const swTile = MapHelpers.getTileCoordinatesForLocationAndZoom(sw, zoom);
 
-    // Return cached result if still fresh
-    const cached = this._cache.get(key);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
-      return { clusters: cached.clusters, points: cached.points };
+    const tiles: { x: number; y: number }[] = [];
+
+    // Handle wrap around if needed (simple version for now)
+    const xRange = this._enumerateXRange(swTile.x, neTile.x, zoom);
+    const yMin = Math.min(swTile.y, neTile.y);
+    const yMax = Math.max(swTile.y, neTile.y);
+
+    xRange.forEach((x) => {
+      for (let y = yMin; y <= yMax; y++) {
+        tiles.push({ x, y });
+      }
+    });
+    return tiles;
+  }
+
+  private _enumerateXRange(start: number, end: number, zoom: number): number[] {
+    const tileCount = 1 << zoom;
+    const normalize = (val: number) =>
+      ((val % tileCount) + tileCount) % tileCount;
+    const from = normalize(start);
+    const to = normalize(end);
+
+    const range: number[] = [];
+    let current = from;
+    let safety = 0;
+    while (current !== to && safety < tileCount + 10) {
+      range.push(current);
+      current = (current + 1) % tileCount;
+      safety++;
     }
+    range.push(to);
+    return range;
+  }
 
-    // Return existing in-flight promise if present
-    const existing = this._inFlight.get(key);
-    if (existing) return existing;
-
-    // Construct google.maps.LatLngBounds-like object for SearchService
-    const boundsNE = new google.maps.LatLng(
-      viewport.bbox.north,
-      viewport.bbox.east
-    );
-    const boundsSW = new google.maps.LatLng(
-      viewport.bbox.south,
-      viewport.bbox.west
-    );
-    const bounds = new google.maps.LatLngBounds(boundsSW, boundsNE);
-
-    const promise = (async () => {
-      const typesenseResult = await this._searchService.searchSpotsInBounds(
-        bounds,
-        maxSpots
-      );
-
-      // Typesense returns hits in `hits` array; each hit has `document` with fields.
-      const hits = (typesenseResult && (typesenseResult as any).hits) || [];
-
-      const points: ClusterPoint[] = hits
-        .map((h: any) => h.document)
-        .filter((doc: any) => doc && doc.location)
-        .map((doc: any) => {
-          // Typesense `geopoint` is typically returned as an object with lat/lng or array
-          let lat = 0;
-          let lng = 0;
-          if (Array.isArray(doc.location) && doc.location.length >= 2) {
-            lat = Number(doc.location[0]);
-            lng = Number(doc.location[1]);
-          } else if (typeof doc.location === "object") {
-            lat = Number(
-              (doc.location as any).latitude ?? (doc.location as any).lat ?? 0
-            );
-            lng = Number(
-              (doc.location as any).longitude ?? (doc.location as any).lng ?? 0
-            );
-          }
-
-          return {
-            id: String(doc.id),
-            lat,
-            lng,
-            ...doc,
-          } as ClusterPoint;
-        })
-        .filter(
-          (p: ClusterPoint) => Number.isFinite(p.lat) && Number.isFinite(p.lng)
-        );
-
-      // Build geojson features and create a supercluster index
-      const geojson = this._buildGeoJSONPoints(points);
-
-      // Recreate supercluster per request (safe for small result sets)
-      const index = new Supercluster({ radius: 60, maxZoom: 20 });
-      index.load(geojson as any);
-
-      // Supercluster expects bbox in [west, south, east, north]
-      const bbox = [
-        viewport.bbox.west,
-        viewport.bbox.south,
-        viewport.bbox.east,
-        viewport.bbox.north,
-      ] as [number, number, number, number];
-
-      // Use viewport.zoom for clustering level
-      const clusters = index.getClusters(
-        bbox,
-        Math.max(0, Math.floor(viewport.zoom))
-      );
-
-      // cache result
-      this._cache.set(key, { timestamp: Date.now(), clusters, points });
-
-      return { clusters, points };
-    })();
-
-    this._inFlight.set(key, promise);
-    try {
-      const res = await promise;
-      return res;
-    } finally {
-      this._inFlight.delete(key);
+  private _deduplicatePoints(points: ClusterPoint[]): ClusterPoint[] {
+    const seen = new Set<string>();
+    const unique: ClusterPoint[] = [];
+    for (const p of points) {
+      if (!seen.has(p.id)) {
+        seen.add(p.id);
+        unique.push(p);
+      }
     }
+    return unique;
   }
 }

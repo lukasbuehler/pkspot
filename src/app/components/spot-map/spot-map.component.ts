@@ -51,7 +51,6 @@ import { LocaleCode } from "../../../db/models/Interfaces";
 import { MarkerSchema } from "../marker/marker.component";
 import { OsmDataService } from "../../services/osm-data.service";
 import { SpotMapDataManager } from "./SpotMapDataManager";
-import { distinctUntilChanged } from "rxjs/operators";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import {
   LocalSpotChallenge,
@@ -143,13 +142,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   );
 
   hightlightedSpots: SpotPreviewData[] = [];
-  visibleSpots$: Observable<Spot[]> = this._spotMapDataManager.visibleSpots$;
-  visibleDots$: Observable<SpotClusterDotSchema[]> =
-    this._spotMapDataManager.visibleDots$;
-  visibleHighlightedSpots$: Observable<SpotPreviewData[]> =
-    this._spotMapDataManager.visibleHighlightedSpots$;
-  visibleAmenityMarkers$: Observable<MarkerSchema[]> =
-    this._spotMapDataManager.visibleAmenityMarkers$;
+  visibleSpots = this._spotMapDataManager.visibleSpots;
+  visibleDots = this._spotMapDataManager.visibleDots;
+  visibleHighlightedSpots = this._spotMapDataManager.visibleHighlightedSpots;
+  visibleAmenityMarkers = this._spotMapDataManager.visibleAmenityMarkers;
 
   visibleMarkers = signal<MarkerSchema[]>([]);
 
@@ -157,10 +153,6 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (!this.map) return false;
     return this.map.headingIsNotNorth();
   });
-
-  private _visibleSpotsSubscription: Subscription | undefined;
-  private _visibleHighlightedSpotsSubscription: Subscription | undefined;
-  private _visibleMarkersSubscription: Subscription | undefined;
 
   // previous tile coordinates used to check if the visible tiles have changed
   private _previousTileZoom: 4 | 8 | 12 | 16 | undefined;
@@ -199,17 +191,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
             this.isEditing.set(false);
             this.cd.detectChanges();
 
-            // Force polygon recreation on the map component
-            this.map.forcePolygonRecreation();
-
             // Wait a moment, then restart editing
             setTimeout(() => {
               this.isEditing.set(true);
               this.cd.detectChanges();
             }, 150);
-          } else {
-            // Even if not editing, force polygon recreation to clear any stale state
-            this.map.forcePolygonRecreation();
           }
         }
 
@@ -222,22 +208,27 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const showAmenities = this.showAmenities();
       const inputMarkers = this.markers();
+      const amenityMarkers = this.visibleAmenityMarkers();
 
       if (showAmenities) {
-        this._visibleMarkersSubscription =
-          this.visibleAmenityMarkers$.subscribe((markers) => {
-            if (!markers || markers.length === 0) {
-              this.visibleMarkers.set(inputMarkers);
-              return;
-            }
-            this.visibleMarkers.set(markers.concat(inputMarkers));
-          });
+        if (!amenityMarkers || amenityMarkers.length === 0) {
+          this.visibleMarkers.set(inputMarkers);
+          return;
+        }
+        this.visibleMarkers.set(amenityMarkers.concat(inputMarkers));
       } else {
         this.visibleMarkers.set(inputMarkers);
-        if (this._visibleMarkersSubscription) {
-          this._visibleMarkersSubscription.unsubscribe();
-        }
       }
+    });
+
+    effect(() => {
+      const spots = this.visibleSpots();
+      this.visibleSpotsChange.emit(spots);
+    });
+
+    effect(() => {
+      const highlightedSpots = this.visibleHighlightedSpots();
+      this.hightlightedSpotsChange.emit(highlightedSpots);
     });
   }
 
@@ -317,43 +308,13 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    this._visibleSpotsSubscription = this.visibleSpots$
-      .pipe(
-        distinctUntilChanged(
-          (prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)
-        )
-      )
-      .subscribe((spots) => {
-        this.visibleSpotsChange.emit(spots);
-      });
-
-    this._visibleHighlightedSpotsSubscription = this.visibleHighlightedSpots$
-      .pipe(
-        distinctUntilChanged(
-          (prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)
-        )
-      )
-      .subscribe((highlightedSpots) => {
-        this.hightlightedSpotsChange.emit(highlightedSpots);
-      });
-
     // TODO this is not sufficient if the input changes
     this.visibleMarkers.set(this.markers()); // ?????
 
     this.isInitiated = true;
   }
 
-  ngOnDestroy(): void {
-    if (this._visibleSpotsSubscription) {
-      this._visibleSpotsSubscription.unsubscribe();
-    }
-    if (this._visibleHighlightedSpotsSubscription) {
-      this._visibleHighlightedSpotsSubscription.unsubscribe();
-    }
-    if (this._visibleMarkersSubscription) {
-      this._visibleMarkersSubscription.unsubscribe();
-    }
-  }
+  ngOnDestroy(): void {}
 
   // Map events ///////////////////////////////////////////////////////////////
 
@@ -630,16 +591,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   startEdit() {
-    // AGGRESSIVE POLYGON RESET: Force the polygon to be completely destroyed and recreated
     if (this.isEditing()) {
       // Temporarily turn off editing to destroy the polygon
       this.isEditing.set(false);
-
-      // Force change detection and polygon recreation
-      this.cd.detectChanges();
-      if (this.map) {
-        this.map.forcePolygonRecreation();
-      }
 
       // Wait a moment, then turn editing back on
       setTimeout(() => {
@@ -647,11 +601,6 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         this.uneditedSpot = this.selectedSpot()?.clone();
       }, 100);
     } else {
-      // Normal flow - but still force polygon recreation to ensure clean state
-      if (this.map) {
-        this.map.forcePolygonRecreation();
-      }
-
       this.isEditing.set(true);
       this.uneditedSpot = this.selectedSpot()?.clone();
     }
@@ -675,27 +624,30 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         // Successfully updated - completely stop editing to destroy polygon
         this.isEditing.set(false);
 
-        // Force change detection and polygon destruction
-        this.cd.detectChanges();
-        if (this.map) {
-          this.map.forcePolygonRecreation();
-        }
-
         this.snackBar.open(
           $localize`Spot saved successfully`,
           $localize`Dismiss`,
           { duration: 5000 }
         );
 
-        // Reload the spot from Firebase to get the latest data (including bounds that were just saved)
-        const savedSpot = await this._spotMapDataManager.loadAndAddSpotById(
-          spotId
-        );
-        if (savedSpot) {
-          this.selectedSpot.set(savedSpot);
-          // Update uneditedSpot backup with the fresh data from Firebase
-          this.uneditedSpot = savedSpot.clone();
-          // The spot will now appear on the map with the latest bounds
+        if ("id" in spot && spot.id) {
+          // If it's an existing spot, update the local cache immediately to avoid stale data from potential race conditions
+          this._spotMapDataManager.addOrUpdateNewSpotToLoadedSpotsAndUpdate(
+            spot as Spot
+          );
+          this.selectedSpot.set(spot as Spot);
+          this.uneditedSpot = (spot as Spot).clone();
+        } else {
+          // For new spots, we need to load the full object from the server (to get ID, timestamps, etc)
+          const savedSpot = await this._spotMapDataManager.loadAndAddSpotById(
+            spotId
+          );
+          if (savedSpot) {
+            this.selectedSpot.set(savedSpot);
+            // Update uneditedSpot backup with the fresh data from Firebase
+            this.uneditedSpot = savedSpot.clone();
+            // The spot will now appear on the map with the latest bounds
+          }
         }
       })
       .catch((error) => {

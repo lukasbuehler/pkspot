@@ -1,4 +1,4 @@
-import { BehaviorSubject, firstValueFrom } from "rxjs";
+import { firstValueFrom } from "rxjs";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
 import {
@@ -11,7 +11,7 @@ import {
 import { TilesObject } from "../google-map-2d/google-map-2d.component";
 import { VisibleViewport } from "../maps/map-base";
 import { MarkerSchema } from "../marker/marker.component";
-import { Injector, signal } from "@angular/core";
+import { Injector, signal, computed } from "@angular/core";
 import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotClusterService } from "../../services/spot-cluster.service";
@@ -69,16 +69,10 @@ export class SpotMapDataManager {
    */
   private _spotPreviewCache: Map<SpotId, SpotPreviewData> = new Map();
 
-  private _visibleSpotsBehaviorSubject = new BehaviorSubject<Spot[]>([]);
-  private _visibleDotsBehaviorSubject = new BehaviorSubject<
-    SpotClusterDotSchema[]
-  >([]);
-  private _visibleMarkersBehaviorSubject = new BehaviorSubject<MarkerSchema[]>(
-    []
-  );
-  private _visibleHighlightedSpotsBehaviorSubject = new BehaviorSubject<
-    SpotPreviewData[]
-  >([]);
+  private _visibleSpots = signal<Spot[]>([]);
+  private _visibleDots = signal<SpotClusterDotSchema[]>([]);
+  private _visibleAmenityMarkers = signal<MarkerSchema[]>([]);
+  private _visibleHighlightedSpots = signal<SpotPreviewData[]>([]);
 
   // Single-select filter mode for showing special filter pins on the map.
   public spotFilterMode = signal<SpotFilterMode>(SpotFilterMode.None);
@@ -89,12 +83,10 @@ export class SpotMapDataManager {
    * filtered pins according to the selected mode.
    */
 
-  public visibleSpots$ = this._visibleSpotsBehaviorSubject.asObservable();
-  public visibleDots$ = this._visibleDotsBehaviorSubject.asObservable();
-  public visibleAmenityMarkers$ =
-    this._visibleMarkersBehaviorSubject.asObservable();
-  public visibleHighlightedSpots$ =
-    this._visibleHighlightedSpotsBehaviorSubject.asObservable();
+  public visibleSpots = this._visibleSpots.asReadonly();
+  public visibleDots = this._visibleDots.asReadonly();
+  public visibleAmenityMarkers = this._visibleAmenityMarkers.asReadonly();
+  public visibleHighlightedSpots = this._visibleHighlightedSpots.asReadonly();
 
   private _lastVisibleTiles = signal<TilesObject | null>(null);
 
@@ -213,40 +205,12 @@ export class SpotMapDataManager {
       const yMin = Math.min(swTile.y, neTile.y);
       const yMax = Math.max(swTile.y, neTile.y);
 
-      const tileCoords: { x: number; y: number }[] = [];
-      xRange.forEach((x) => {
-        for (let y = yMin; y <= yMax; y++) {
-          tileCoords.push({ x, y });
-        }
-      });
-
-      // Fetch points for all tiles (tile-level caching + in-flight dedupe in service)
-      Promise.all(
-        tileCoords.map((t) =>
-          this._spotClusterService!.getPointsForTile(tileZoom, t.x, t.y)
-        )
+      // Use the new service method that handles fetching and clustering
+      this._spotClusterService!.getClustersForViewport(
+        { zoom, bbox: { north, south, west, east } },
+        zoom
       )
-        .then((results) => {
-          // Flatten and dedupe points by id
-          const allPoints: any[] = ([] as any[]).concat(...results);
-          const byId = new Map<string, any>();
-          for (const p of allPoints) {
-            if (!p || !p.id) continue;
-            if (!byId.has(p.id)) byId.set(p.id, p);
-          }
-
-          const uniquePoints = Array.from(byId.values());
-
-          // Build viewport object for clustering
-          const viewport = { zoom, bbox: { north, south, west, east } } as any;
-
-          // Cluster the merged points for the current viewport
-          const { clusters, points } =
-            this._spotClusterService!.clusterPointsForViewport(
-              uniquePoints,
-              viewport
-            );
-
+        .then(({ clusters, points }) => {
           const dots: SpotClusterDotSchema[] = clusters.map((c: any) => {
             const [lng, lat] = c.geometry?.coordinates || [0, 0];
             const props = c.properties || {};
@@ -273,7 +237,7 @@ export class SpotMapDataManager {
             } as SpotClusterDotSchema;
           });
 
-          this._visibleDotsBehaviorSubject.next(dots);
+          this._visibleDots.set(dots);
 
           // Top-N previews from unique points
           try {
@@ -330,17 +294,17 @@ export class SpotMapDataManager {
               return preview;
             });
 
-            this._visibleHighlightedSpotsBehaviorSubject.next(previews);
+            this._visibleHighlightedSpots.set(previews);
           } catch (err) {
             console.error(
               "Error building previews from Typesense points:",
               err
             );
-            this._visibleHighlightedSpotsBehaviorSubject.next([]);
+            this._visibleHighlightedSpots.set([]);
           }
 
           // For this flow we don't populate full Spot objects via tiles here
-          this._visibleSpotsBehaviorSubject.next([]);
+          this._visibleSpots.set([]);
         })
         .catch((err) => console.error("Cluster load error (tiles):", err));
 
@@ -747,10 +711,10 @@ export class SpotMapDataManager {
       });
     }
 
-    this._visibleDotsBehaviorSubject.next([]);
-    this._visibleHighlightedSpotsBehaviorSubject.next(highlightedSpots);
-    this._visibleSpotsBehaviorSubject.next(spots);
-    this._visibleMarkersBehaviorSubject.next(markers);
+    this._visibleDots.set([]);
+    this._visibleHighlightedSpots.set(highlightedSpots);
+    this._visibleSpots.set(spots);
+    this._visibleAmenityMarkers.set(markers);
   }
 
   private _showCachedSpotClustersForTiles(tiles: TilesObject) {
@@ -836,11 +800,11 @@ export class SpotMapDataManager {
 
     // Don't show amenity markers in cluster view (zoom < 16) for performance
     // Amenity markers are only displayed at amenityMarkerDisplayZoom (16) and above
-    this._visibleMarkersBehaviorSubject.next([]);
+    this._visibleAmenityMarkers.set([]);
 
-    this._visibleSpotsBehaviorSubject.next([]);
-    this._visibleDotsBehaviorSubject.next(dots);
-    this._visibleHighlightedSpotsBehaviorSubject.next(spots);
+    this._visibleSpots.set([]);
+    this._visibleDots.set(dots);
+    this._visibleHighlightedSpots.set(spots);
   }
 
   private _loadSpotsForTiles(tilesToLoad: Set<MapTileKey>) {

@@ -112,15 +112,14 @@
   } } } } }
 
   <!-- Selected spot polygon (when editing) - uses recreation key to force re-render -->
-  @if(selectedSpot() && isEditing() && showSelectedSpotPolygon()) { @for(dummy
-  of [polygonRecreationKey()]; track $index) {
-  <map-polygon
-    #selectedSpotPolygon
-    [options]="selectedSpotPolygonEditingOptions"
-    [paths]="selectedSpotFirstPath()"
-    (polygonClick)="spotClick.emit(selectedSpot()!)"
-  ></map-polygon>
-  } }
+  @if(selectedSpot() && isEditing() && showSelectedSpotPolygon()) {
+    <map-polygon
+      #selectedSpotPolygon
+      [options]="selectedSpotPolygonEditingOptions"
+      [paths]="selectedSpotFirstPath()"
+      (polygonClick)="spotClick.emit(selectedSpot()!)"
+    ></map-polygon>
+  }
   <!-- selected spot marker -->
   @if(selectedSpot()) { @if(selectedChallenge){ @if(isEditing()) {
   <map-advanced-marker

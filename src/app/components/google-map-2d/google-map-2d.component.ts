@@ -428,7 +428,6 @@ export class GoogleMap2dComponent
   /**
    * Signal to force polygon recreation by changing the template key
    */
-  polygonRecreationKey = signal<number>(0);
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -443,13 +442,14 @@ export class GoogleMap2dComponent
       const isEditing = this.isEditing();
 
       // Also trigger the debug computed signals
-      this.polygonTemplateConditions();
+      // Also trigger the debug computed signals
+      // this.polygonTemplateConditions();
 
       // Only update polygon when we have a spot AND we're in editing mode
       if (tracker && isEditing) {
         // Use setTimeout to ensure the DOM and ViewChild are updated
         setTimeout(() => {
-          this.updatePolygonForNewSpot();
+
         }, 50);
       }
     });
@@ -599,90 +599,11 @@ export class GoogleMap2dComponent
         previous: changes["selectedSpot"].previousValue,
         current: changes["selectedSpot"].currentValue,
       });
-
-      // Force the polygon to update when spot changes
-      this.handleSelectedSpotChange();
     }
   }
-  /**
-   * Handle when the selected spot changes - ensure polygon state is properly reset
-   */
-  private handleSelectedSpotChange() {
-    console.debug("handleSelectedSpotChange called");
+  
 
-    // Only force polygon recreation when we're in editing mode
-    if (this.isEditing()) {
-      this.forcePolygonRecreation();
-    }
-  }
 
-  /**
-   * Update the polygon when a new spot is selected for editing
-   */
-  private updatePolygonForNewSpot() {
-    if (!this.isEditing() || !this.selectedSpot) {
-      return;
-    }
-
-    console.log("updatePolygonForNewSpot called for:", this.selectedSpot);
-
-    // Force change detection to ensure the ViewChild is updated
-    this.cdr.detectChanges();
-
-    // Wait a bit more for the ViewChild to be available
-    setTimeout(() => {
-      if (!this.selectedSpotPolygon?.polygon) {
-        console.log("selectedSpotPolygon not available yet, waiting longer...");
-        setTimeout(() => this.forceUpdatePolygonPaths(), 100);
-        return;
-      }
-
-      this.forceUpdatePolygonPaths();
-    }, 100);
-  }
-
-  /**
-   * Force update the polygon paths regardless of ViewChild timing issues
-   */
-  private forceUpdatePolygonPaths() {
-    if (!this.selectedSpotPolygon?.polygon || !this.selectedSpot) {
-      console.log("Cannot force update - missing polygon or spot");
-      return;
-    }
-
-    console.log("Forcing polygon paths update for spot:", this.selectedSpot);
-
-    // Clear ALL existing paths aggressively
-    const paths = this.selectedSpotPolygon.polygon.getPaths();
-    for (let i = paths.getLength() - 1; i >= 0; i--) {
-      paths.removeAt(i);
-    }
-
-    // Get the new paths for the current spot
-    const newPaths = this.selectedSpotPaths();
-    console.log("New paths to set:", newPaths);
-
-    if (newPaths.length > 0 && newPaths[0].length > 0) {
-      // Create a new path and set it
-      const newPath = new google.maps.MVCArray(
-        newPaths[0].map((point) => new google.maps.LatLng(point.lat, point.lng))
-      );
-
-      // Add the new path
-      this.selectedSpotPolygon.polygon.getPaths().push(newPath);
-
-      console.log("Successfully set new polygon paths");
-
-      // Focus the map on the new polygon
-      if (this.googleMap) {
-        const bounds = new google.maps.LatLngBounds();
-        newPaths[0].forEach((point) => bounds.extend(point));
-        this.googleMap.fitBounds(bounds);
-      }
-    } else {
-      console.warn("No valid paths to set for the new spot");
-    }
-  }
 
   ngOnDestroy() {
     if (this.isApiLoadedSubscription)
@@ -1050,11 +971,7 @@ export class GoogleMap2dComponent
     // Update the spot's paths signal
     selectedSpot.paths.set(paths);
 
-    // Force polygon recreation to show the new paths
-    if (this.isEditing()) {
-      this.forcePolygonRecreation();
-    }
-
+    
     // Emit the polygon change event
     // Check if it's a Spot (has id) vs LocalSpot (no id)
     if ("id" in selectedSpot && selectedSpot.id) {
@@ -1337,81 +1254,13 @@ export class GoogleMap2dComponent
     return null;
   }
 
-  /**
-   * Public method to force polygon refresh - can be called when switching spots
-   */
-  public refreshPolygonForSelectedSpot() {
-    console.log("refreshPolygonForSelectedSpot called");
 
-    if (!this.selectedSpot || !this.isEditing()) {
-      console.log("No spot selected or not in editing mode");
-      return;
-    }
-
-    console.log(
-      "Forcing polygon refresh for selected spot:",
-      this.selectedSpot
-    );
-
-    // Trigger change detection multiple times to ensure ViewChild is updated
-    this.cdr.detectChanges();
-
-    // Clear any existing polygon state aggressively
-    if (this.selectedSpotPolygon?.polygon) {
-      console.log("Clearing existing polygon state before refresh");
-      const paths = this.selectedSpotPolygon.polygon.getPaths();
-      paths.clear();
-    }
-
-    // Force another change detection cycle
-    setTimeout(() => {
-      this.cdr.detectChanges();
-
-      // Update the polygon with proper timing
-      setTimeout(() => {
-        this.forceUpdatePolygonPaths();
-      }, 150);
-    }, 50);
-  }
 
   /**
    * Completely reset and recreate the polygon for the current selected spot
    * This is the most aggressive approach for ensuring clean polygon state
    */
-  public resetPolygonForCurrentSpot() {
-    const selectedSpot = this.selectedSpot();
 
-    if (!selectedSpot) {
-      console.log("No selected spot, nothing to reset");
-      return;
-    }
-
-    // Clear the ViewChild reference
-    this.selectedSpotPolygon = undefined;
-
-    // Force the polygon to be recreated by updating the recreation key
-    this.forcePolygonRecreation();
-  }
-
-  /**
-   * Force the polygon component to be completely destroyed and recreated
-   * This is needed when switching between spots to ensure no state carryover
-   */
-  forcePolygonRecreation() {
-    console.log("=== FORCE POLYGON RECREATION ===");
-    console.log("Current editing state:", this.isEditing());
-    console.log("Current selected spot:", this.selectedSpot());
-
-    // Increment the recreation key to force template re-render
-    this.polygonRecreationKey.update((key) => key + 1);
-    console.log(
-      "Updated polygon recreation key to:",
-      this.polygonRecreationKey()
-    );
-
-    // Force change detection
-    this.cdr.detectChanges();
-  }
 
   /**
    * Debug computed signal to trace when selectedSpot changes
@@ -1442,7 +1291,7 @@ export class GoogleMap2dComponent
       isEditing,
       showPolygon,
       firstPathLength: firstPath.length,
-      polygonRecreationKey: this.polygonRecreationKey(),
+      // polygonRecreationKey: this.polygonRecreationKey(),
       shouldShowPolygon: !!selectedSpot && isEditing && showPolygon,
     };
 
