@@ -20,7 +20,6 @@ import { MatIconModule } from "@angular/material/icon";
 import { SpotChallengesService } from "../../services/firebase/firestore/spot-challenges.service";
 
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
-import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
   AnyMedia,

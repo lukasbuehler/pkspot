@@ -550,7 +550,7 @@ export class SpotDetailsComponent
     let biasRect: google.maps.LatLngBoundsLiteral | undefined;
     if (spot) {
       const loc = spot.location();
-      const d = 0.01; // ~1km bias box
+      const d = 0.001; // ~100m bias box
       biasRect = {
         south: loc.lat - d,
         west: loc.lng - d,
@@ -565,7 +565,7 @@ export class SpotDetailsComponent
           this.nearbyPlaceResults =
             await this._mapsApiService.getNearbyPlacesByDistance(
               spot.location(),
-              "restaurant",
+              undefined,
               5
             );
         } else {
@@ -577,7 +577,7 @@ export class SpotDetailsComponent
       // With query: use autocomplete filtered by name, biased to location, show only top 1 result
       const preds = await this._mapsApiService.autocompletePlaceSearch(
         query,
-        ["establishment"],
+        undefined,
         biasRect
       );
       // Show only the top Google result before nearby places
@@ -590,19 +590,19 @@ export class SpotDetailsComponent
   }
 
   private async _preloadNearbyPlaces() {
-    const spot = this.spot();
-    if (!spot) return;
-    try {
-      this.nearbyPlaceResults =
-        await this._mapsApiService.getNearbyPlacesByDistance(
-          spot.location(),
-          "restaurant",
-          5
-        );
-    } catch (e) {
-      console.warn("Failed to preload nearby places", e);
-      this.nearbyPlaceResults = [];
-    }
+    // const spot = this.spot();
+    // if (!spot) return;
+    // try {
+    //   this.nearbyPlaceResults =
+    //     await this._mapsApiService.getNearbyPlacesByDistance(
+    //       spot.location(),
+    //       undefined,
+    //       5
+    //     );
+    // } catch (e) {
+    //   console.warn("Failed to preload nearby places", e);
+    //   this.nearbyPlaceResults = [];
+    // }
   }
 
   async linkPlace(pred: google.maps.places.AutocompletePrediction) {
@@ -715,9 +715,6 @@ export class SpotDetailsComponent
       if (spot instanceof Spot) {
         // Ensure live updates subscription for this spot id
         this._subscribeToLiveSpot(spot);
-        // Load Google Place preview and nearby places
-        this._loadGooglePlaceDataForSpot();
-        this._preloadNearbyPlaces();
 
         const currentId = spot.id;
         this._slugService.getAllSlugsForASpot(currentId).then((slugs) => {
@@ -745,15 +742,15 @@ export class SpotDetailsComponent
     });
 
     // Reactively (re)load Google Place preview whenever the place id changes
-    effect(() => {
-      const s = this.spot();
-      const placeId = s instanceof Spot ? s.googlePlaceId() : undefined;
-      if (placeId) {
-        this._loadGooglePlaceDataForSpot();
-      } else {
-        this.googlePlace.set(undefined);
-      }
-    });
+    // effect(() => {
+    //   const s = this.spot();
+    //   const placeId = s instanceof Spot ? s.googlePlaceId() : undefined;
+    //   if (placeId) {
+    //     this._loadGooglePlaceDataForSpot();
+    //   } else {
+    //     this.googlePlace.set(undefined);
+    //   }
+    // });
 
     // Kick animations when name/type/access change
     effect(() => {
@@ -1088,25 +1085,25 @@ export class SpotDetailsComponent
     }
   }
 
-  private _loadGooglePlaceDataForSpot() {
-    if (!this.spot()?.googlePlaceId()) {
-      this.googlePlace.set(undefined);
-      return;
-    }
+  // private _loadGooglePlaceDataForSpot() {
+  //   if (!this.spot()?.googlePlaceId()) {
+  //     this.googlePlace.set(undefined);
+  //     return;
+  //   }
 
-    this._mapsApiService
-      .getGooglePlaceById(this.spot()!.googlePlaceId()!)
-      .then((place) => {
-        const photoUrl = this._mapsApiService.getPhotoURLOfGooglePlace(place);
-        this.googlePlace.set({
-          name: place.displayName ?? "",
-          rating: place.rating ?? undefined,
-          photo_url: photoUrl ?? undefined,
-          opening_hours: place.regularOpeningHours,
-          url: place.websiteURI ?? undefined,
-        });
-      });
-  }
+  //   this._mapsApiService
+  //     .getGooglePlaceById(this.spot()!.googlePlaceId()!)
+  //     .then((place) => {
+  //       const photoUrl = this._mapsApiService.getPhotoURLOfGooglePlace(place);
+  //       this.googlePlace.set({
+  //         name: place.displayName ?? "",
+  //         rating: place.rating ?? undefined,
+  //         photo_url: photoUrl ?? undefined,
+  //         opening_hours: place.regularOpeningHours,
+  //         url: place.websiteURI ?? undefined,
+  //       });
+  //     });
+  // }
 
   hasBounds() {
     return this.spot()?.hasBounds();

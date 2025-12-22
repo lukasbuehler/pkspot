@@ -76,7 +76,7 @@ export class SearchService {
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
     amenities_false?: (keyof AmenitiesMap)[]
-  ) {
+  ): Promise<{ hits: any[]; found: number }> {
     console.log("Searching spots in bounds:", bounds.toJSON());
 
     const latLongPairList: string[] = [
@@ -139,9 +139,10 @@ export class SearchService {
 
     // If we already satisfied the requested number or there's nothing more, return
     if (allHits.length >= num_spots || found <= perPage) {
-      // Trim to num_spots just in case
-      (firstPage as any).hits = allHits.slice(0, num_spots);
-      return firstPage;
+      return {
+        hits: allHits.slice(0, num_spots),
+        found: found,
+      };
     }
 
     const remainingToFetch = Math.min(num_spots, found) - allHits.length;

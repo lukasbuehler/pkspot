@@ -7,6 +7,8 @@ import {
   inject,
   signal,
   LOCALE_ID,
+  effect,
+  input,
 } from "@angular/core";
 import { CommonModule, NgOptimizedImage } from "@angular/common";
 import {
@@ -18,6 +20,8 @@ import {
 import { MatRipple } from "@angular/material/core";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { MapsApiService } from "../../services/maps-api.service";
+import { MatIconModule } from "@angular/material/icon";
+import { MatButtonModule } from "@angular/material/button";
 
 @Component({
   selector: "app-google-place-preview",
@@ -31,15 +35,17 @@ import { MapsApiService } from "../../services/maps-api.service";
     MatRipple,
     SpotRatingComponent,
     NgOptimizedImage,
+    MatIconModule,
+    MatButtonModule,
   ],
   templateUrl: "./google-place-preview.component.html",
   styleUrls: ["./google-place-preview.component.scss"],
 })
-export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
+export class GooglePlacePreviewComponent implements OnDestroy {
   private _maps = inject(MapsApiService);
   private _locale: string = inject(LOCALE_ID);
 
-  @Input() placeId?: string | null;
+  placeId = input<string | null | undefined>(undefined);
   // Always render in standard (non-dense) layout
 
   loading = signal(false);
@@ -54,6 +60,13 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
     } catch {
       return null;
     }
+  });
+
+  websiteUrl = computed<string | null>(() => {
+    const p = this.place();
+    if (!p) return null;
+    console.log("Website URL:", p.websiteURI);
+    return p.websiteURI ?? null;
   });
 
   url = computed<string | null>(() => {
@@ -306,14 +319,21 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
     return null;
   });
 
-  ngOnChanges(): void {
-    void this.loadDetails();
+  constructor() {
+    effect(() => {
+      const isApiLoaded = this._maps.isApiLoaded();
+      const id = this.placeId();
+
+      if (isApiLoaded) {
+        this._loadDetails();
+      }
+    });
   }
 
   ngOnDestroy(): void {}
 
-  private async loadDetails() {
-    const id = this.placeId ?? undefined;
+  private async _loadDetails() {
+    const id = this.placeId();
     if (!id) {
       this.place.set(null);
       return;
@@ -323,22 +343,26 @@ export class GooglePlacePreviewComponent implements OnChanges, OnDestroy {
       this.place.set(null);
       return;
     }
+
     if (!this._maps.isApiLoaded()) {
       this._maps.loadGoogleMapsApi();
-    }
-    this.loading.set(true);
-    this.error.set(null);
-    try {
-      const details = await this._maps.getGooglePlaceById(id);
-      this.place.set(details);
-    } catch (e: any) {
-      console.warn("Failed to load Google Place details", e);
-      this.error.set(
-        typeof e === "string" ? e : e?.message ?? "Failed to load"
-      );
-      this.place.set(null);
-    } finally {
       this.loading.set(false);
+      this.error.set("Google Maps API not loaded");
+      return;
+    } else {
+      try {
+        this.loading.set(true);
+        const details = await this._maps.getGooglePlaceById(id);
+        this.place.set(details);
+      } catch (e: any) {
+        console.warn("Failed to load Google Place details", e);
+        this.error.set(
+          typeof e === "string" ? e : e?.message ?? "Failed to load"
+        );
+        this.place.set(null);
+      } finally {
+        this.loading.set(false);
+      }
     }
   }
 }

@@ -281,7 +281,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           });
       } else {
         this.allSpotChallenges.set([]);
-        console.log("clearing all challenges");
+        console.debug("clearing all challenges");
       }
     });
 
@@ -426,7 +426,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Initialization ///////////////////////////////////////////////////////////
 
   ngOnInit() {
-    console.log("map page init");
+    console.debug("map page init");
 
     // Trigger Google Maps API loading since this page needs it
     // this.tryLoadMapsApi(); // TODO wtf
@@ -444,15 +444,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       | undefined;
 
     if (contentData?.spot) {
-      console.log("Using resolved spot data for SSR", contentData.spot.name());
+      // console.debug("Using resolved spot data for SSR", contentData.spot.name());
       this.selectedSpot.set(contentData.spot);
     }
 
     if (contentData?.challenge) {
-      console.log(
-        "Using resolved challenge data for SSR",
-        contentData.challenge.name()
-      );
+      // console.debug(
+      //   "Using resolved challenge data for SSR",
+      //   contentData.challenge.name()
+      // );
       this.selectedChallenge.set(contentData.challenge);
     }
 
@@ -494,7 +494,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    console.log("DEBUG ngOnInit URL parsing:", {
+    console.debug("DEBUG ngOnInit URL parsing:", {
       url: this.router.url,
       urlParts,
       spotIdOrSlug,
@@ -694,13 +694,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openGooglePlaceById(id: string) {
-    console.log("[DEBUG openGooglePlaceById] Opening place with id:", id);
+    console.debug("[DEBUG openGooglePlaceById] Opening place with id:", id);
     this.mapsService
       .getGooglePlaceById(id)
       .then((place) => {
-        console.log("[DEBUG openGooglePlaceById] Got place:", place);
+        console.debug("[DEBUG openGooglePlaceById] Got place:", place);
         if (!place?.location) {
-          console.warn("[DEBUG openGooglePlaceById] No location found");
+          console.warn("[WARN openGooglePlaceById] No location found");
           return;
         }
 
@@ -709,7 +709,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           | google.maps.LatLngBounds
           | undefined;
         if (viewport) {
-          console.log(
+          console.debug(
             "[DEBUG openGooglePlaceById] Using viewport bounds for place"
           );
           this.spotMap?.focusBounds(viewport);
@@ -718,7 +718,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Fallback: Calculate appropriate zoom based on place type
         const zoomLevel = this.mapsService.getZoomForPlaceType(place);
-        console.log(
+        console.debug(
           "[DEBUG openGooglePlaceById] Calculated zoom level:",
           zoomLevel
         );
@@ -727,15 +727,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         const lat = (place.location as any).lat();
         const lng = (place.location as any).lng();
         const locationLiteral: google.maps.LatLngLiteral = { lat, lng };
-        console.log(
+        console.debug(
           "[DEBUG openGooglePlaceById] Location literal:",
           locationLiteral
         );
-        console.log("[DEBUG openGooglePlaceById] spotMap:", this.spotMap);
+        console.debug("[DEBUG openGooglePlaceById] spotMap:", this.spotMap);
         this.spotMap?.focusPoint(locationLiteral, zoomLevel);
       })
       .catch((err) => {
-        console.error("[DEBUG openGooglePlaceById] Error fetching place:", err);
+        console.error("[ERROR openGooglePlaceById] Error fetching place:", err);
       });
   }
 
@@ -927,7 +927,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             !!(this._sidebarScrollEl && this._sidebarScrollEl.scrollTop > 0)
           );
         };
-        this._sidebarScrollEl.addEventListener("scroll", this._sidebarScrollListener, { passive: true });
+        this._sidebarScrollEl.addEventListener(
+          "scroll",
+          this._sidebarScrollListener,
+          { passive: true }
+        );
         this.sidebarContentIsScrolling.set(this._sidebarScrollEl.scrollTop > 0);
       } else {
         this.sidebarContentIsScrolling.set(false);
@@ -952,7 +956,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           this._bottomSheetContentListener,
           { passive: true }
         );
-        this.sidebarContentIsScrolling.set(this._bottomSheetContentEl.scrollTop > 0);
+        this.sidebarContentIsScrolling.set(
+          this._bottomSheetContentEl.scrollTop > 0
+        );
       }
     } catch (e) {
       console.warn("Could not attach sidebar scroll listeners:", e);

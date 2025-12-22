@@ -244,6 +244,15 @@ export class MapsApiService extends ConsentAwareService {
   }
 
   async getGooglePlaceById(placeId: string): Promise<google.maps.places.Place> {
+    if (!this._isApiLoaded()) {
+      return Promise.reject(new Error("Google Maps API is not loaded yet."));
+    }
+    if (!placeId || placeId.length === 0) {
+      return Promise.reject(new Error("Invalid place ID."));
+    }
+
+    console.debug("Fetching Google Place by ID:", placeId);
+
     // Use consent-aware execution for Places API calls
     return this.executeWithConsent(async () => {
       const place = new google.maps.places.Place({
@@ -274,6 +283,9 @@ export class MapsApiService extends ConsentAwareService {
     type: string = "point_of_interest",
     radius: number = 200
   ): Promise<google.maps.places.Place | null> {
+    console.log("Searching for Google Place at location:", location);
+    return Promise.reject(new Error("Not implemented"));
+
     // Use consent-aware execution for Places API calls
     return this.executeWithConsent(async () => {
       const request: google.maps.places.SearchNearbyRequest = {
@@ -408,6 +420,9 @@ export class MapsApiService extends ConsentAwareService {
     type: string = "restaurant",
     maxResults: number = 5
   ): Promise<google.maps.places.Place[]> {
+    console.log("Fetching nearby places by distance:", location, type);
+    return Promise.reject(new Error("Not implemented"));
+
     return this.executeWithConsent(async () => {
       const request: google.maps.places.SearchNearbyRequest = {
         fields: ["displayName", "location", "businessStatus"],

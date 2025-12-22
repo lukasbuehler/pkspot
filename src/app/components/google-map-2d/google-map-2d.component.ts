@@ -595,7 +595,7 @@ export class GoogleMap2dComponent
   ngOnChanges(changes: SimpleChanges) {
     // Check if selectedSpot has changed
     if (changes["selectedSpot"]) {
-      console.log("Selected spot changed:", {
+      console.debug("Selected spot changed:", {
         previous: changes["selectedSpot"].previousValue,
         current: changes["selectedSpot"].currentValue,
       });
@@ -608,7 +608,7 @@ export class GoogleMap2dComponent
    * Handle when the selected spot changes - ensure polygon state is properly reset
    */
   private handleSelectedSpotChange() {
-    console.log("handleSelectedSpotChange called");
+    console.debug("handleSelectedSpotChange called");
 
     // Only force polygon recreation when we're in editing mode
     if (this.isEditing()) {
@@ -846,30 +846,30 @@ export class GoogleMap2dComponent
     if (!this.googleMap) return;
     const bounds = this.googleMap.getBounds()!;
 
-    if (this.isDebug()) {
-      // set the bounds to render
-      // TODO remove: for debugging set it to half the actual bounds now
-      const boundsCenter = bounds.getCenter();
-      const halvedBoundsLiteral: google.maps.LatLngBoundsLiteral = {
-        north:
-          boundsCenter.lat() +
-          (bounds.getNorthEast().lat() - boundsCenter.lat()) / 2,
-        south:
-          boundsCenter.lat() +
-          (bounds.getSouthWest().lat() - boundsCenter.lat()) / 2,
-        east:
-          boundsCenter.lng() +
-          (bounds.getNorthEast().lng() - boundsCenter.lng()) / 2,
-        west:
-          boundsCenter.lng() +
-          (bounds.getSouthWest().lng() - boundsCenter.lng()) / 2,
-      };
+    // if (this.isDebug()) {
+    //   // set the bounds to render
+    //   // TODO remove: for debugging set it to half the actual bounds now
+    //   const boundsCenter = bounds.getCenter();
+    //   const halvedBoundsLiteral: google.maps.LatLngBoundsLiteral = {
+    //     north:
+    //       boundsCenter.lat() +
+    //       (bounds.getNorthEast().lat() - boundsCenter.lat()) / 2,
+    //     south:
+    //       boundsCenter.lat() +
+    //       (bounds.getSouthWest().lat() - boundsCenter.lat()) / 2,
+    //     east:
+    //       boundsCenter.lng() +
+    //       (bounds.getNorthEast().lng() - boundsCenter.lng()) / 2,
+    //     west:
+    //       boundsCenter.lng() +
+    //       (bounds.getSouthWest().lng() - boundsCenter.lng()) / 2,
+    //   };
 
-      const halvedBounds = new google.maps.LatLngBounds(halvedBoundsLiteral);
-      this.boundsToRender.set(halvedBounds);
-    } else {
-      this.boundsToRender.set(bounds);
-    }
+    //   const halvedBounds = new google.maps.LatLngBounds(halvedBoundsLiteral);
+    //   this.boundsToRender.set(halvedBounds);
+    // } else {
+    this.boundsToRender.set(bounds);
+    // }
 
     this.boundsChange.emit(this.boundsToRender() ?? undefined);
   }

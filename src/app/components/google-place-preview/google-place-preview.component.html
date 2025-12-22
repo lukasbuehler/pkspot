@@ -52,7 +52,12 @@
     </mat-card-header>
   </mat-card>
 </a>
-} @else if (loading()) {
+@if(websiteUrl()) {
+<a [href]="websiteUrl()!" matButton="outlined">
+  <mat-icon>language</mat-icon>
+  Website
+</a>
+} } @else if (loading()) {
 <p class="mat-body-small" i18n>Loading Google Place…</p>
 } @else if (error()) {
 <p class="mat-body-small text-warn">{{ error() }}</p>
