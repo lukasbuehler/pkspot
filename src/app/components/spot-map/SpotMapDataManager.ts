@@ -75,6 +75,18 @@ export class SpotMapDataManager {
   private _visibleAmenityMarkers = signal<MarkerSchema[]>([]);
   private _visibleHighlightedSpots = signal<SpotPreviewData[]>([]);
 
+  /**
+   * Manually set highlighted spots that persist across viewport changes.
+   * When filter mode is active, these are shown instead of the automatic highlights.
+   */
+  private _manualHighlightedSpots = signal<SpotPreviewData[]>([]);
+
+  /**
+   * Cache for filtered spots to maintain stable object references and prevent re-rendering.
+   * Keyed by spot ID for efficient lookup and merging.
+   */
+  private _filteredSpotsCache: Map<SpotId, SpotPreviewData> = new Map();
+
   // Single-select filter mode for showing special filter pins on the map.
   public spotFilterMode = signal<SpotFilterMode>(SpotFilterMode.None);
 
@@ -160,6 +172,62 @@ export class SpotMapDataManager {
     } catch (error) {
       console.error(`Failed to load spot ${spotId}:`, error);
       return null;
+    }
+  }
+
+  /**
+   * Manually set the highlighted spots, for example from a search result.
+   * These spots persist across viewport changes when a filter mode is active.
+   * Uses caching to maintain stable object references and prevent flickering.
+   */
+  setManualHighlightedSpots(spots: SpotPreviewData[]) {
+    // Merge new spots with existing cache to maintain stable references
+    const mergedSpots: SpotPreviewData[] = [];
+    const newSpotIds = new Set<SpotId>();
+
+    for (const spot of spots) {
+      const id = spot.id as SpotId;
+      newSpotIds.add(id);
+
+      // Check if we already have this spot in cache
+      const cachedSpot = this._filteredSpotsCache.get(id);
+      if (cachedSpot) {
+        // Reuse cached object reference to prevent re-render
+        mergedSpots.push(cachedSpot);
+      } else {
+        // Add new spot to cache
+        this._filteredSpotsCache.set(id, spot);
+        mergedSpots.push(spot);
+      }
+    }
+
+    // Check if the content has actually changed before updating signals
+    const currentSpots = this._visibleHighlightedSpots();
+    const currentIds = new Set(currentSpots.map((s) => s.id));
+
+    // Compare: same size and same IDs means no change
+    const hasChanged =
+      currentSpots.length !== mergedSpots.length ||
+      mergedSpots.some((s) => !currentIds.has(s.id));
+
+    if (hasChanged) {
+      this._manualHighlightedSpots.set(mergedSpots);
+      this._visibleHighlightedSpots.set(mergedSpots);
+    }
+  }
+
+  /**
+   * Clear the manual highlighted spots and cache (used when filter is deactivated).
+   */
+  clearManualHighlightedSpots() {
+    this._manualHighlightedSpots.set([]);
+    this._filteredSpotsCache.clear();
+  }
+
+  refresh() {
+    const tiles = this._lastVisibleTiles();
+    if (tiles) {
+      this.setVisibleTiles(tiles);
     }
   }
 
@@ -401,13 +469,24 @@ export class SpotMapDataManager {
               return preview;
             });
 
-            this._visibleHighlightedSpots.set(previews);
+            // Only set highlighted spots if no filter is active.
+            // When filter mode is on, preserve the manual highlights set by setManualHighlightedSpots().
+            const activeFilter = this.spotFilterMode
+              ? this.spotFilterMode()
+              : SpotFilterMode.None;
+            if (activeFilter === SpotFilterMode.None) {
+              this._visibleHighlightedSpots.set(previews);
+            }
+            // When filter is active, _visibleHighlightedSpots retains the manual highlights
           } catch (err) {
             console.error(
               "Error building previews from Typesense points:",
               err
             );
-            this._visibleHighlightedSpots.set([]);
+            // Only clear highlights if no filter is active
+            if (this.spotFilterMode() === SpotFilterMode.None) {
+              this._visibleHighlightedSpots.set([]);
+            }
           }
 
           // For this flow we don't populate full Spot objects via tiles here
@@ -823,8 +902,17 @@ export class SpotMapDataManager {
     }
 
     this._visibleDots.set([]);
-    this._visibleHighlightedSpots.set(highlightedSpots);
-    this._visibleSpots.set(spots);
+
+    if (activeFilter === SpotFilterMode.None) {
+      this._visibleHighlightedSpots.set(highlightedSpots);
+      this._visibleSpots.set(spots);
+    } else {
+      // In filter mode, highlighted spots are set manually (e.g. by search results)
+      // so we don't overwrite them with cached data.
+      // We also hide regular spots.
+      this._visibleSpots.set(spots); // Keep spots for circles/polygons
+    }
+
     this._visibleAmenityMarkers.set(markers);
   }
 
@@ -915,7 +1003,10 @@ export class SpotMapDataManager {
 
     this._visibleSpots.set([]);
     this._visibleDots.set(dots);
-    this._visibleHighlightedSpots.set(spots);
+    // Only set highlights if no filter is active (preserve filtered results)
+    if (this.spotFilterMode() === SpotFilterMode.None) {
+      this._visibleHighlightedSpots.set(spots);
+    }
   }
 
   private _loadSpotsForTiles(tilesToLoad: Set<MapTileKey>) {

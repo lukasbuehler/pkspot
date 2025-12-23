@@ -18,6 +18,10 @@ import {
 import { Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
+import {
+  SpotMapDataManager,
+  SpotFilterMode,
+} from "../spot-map/SpotMapDataManager";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import {
   ActivatedRoute,
@@ -220,6 +224,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   filterCtrl = new FormControl<string[]>([], { nonNullable: true });
   selectedFilters = signal<string[]>([]);
 
+  /**
+   * Tracks the currently selected filter chip for URL sync.
+   */
+  selectedFilter = signal<string>("");
+
   toggleSidenav() {
     this.sidenavOpen.update((open) => !open);
   }
@@ -264,6 +273,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedChallenge();
       this.showAllChallenges();
       this.showSpotEditHistory();
+      this.selectedFilter(); // Include filter in URL sync
 
       this.updateMapURL();
     });
@@ -502,6 +512,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         contentData?.challenge || null
       );
     });
+
+    // Read filter from URL query params and apply if present
+    const filterParam =
+      this.activatedRoute.snapshot.queryParamMap.get("filter");
+    if (filterParam) {
+      // Defer to allow spotMap to be initialized
+      setTimeout(() => {
+        this.filterChipChanged(filterParam);
+      }, 100);
+    }
   }
 
   async _getSpotIdFromSlugOrId(spotIdOrSlug: string): Promise<SpotId | null> {
@@ -780,7 +800,65 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return challenge;
   }
 
+  /**
+   * Tracks the currently active filter type for re-searching on pan.
+   */
+  private _activeFilter: string = "";
+
+  /**
+   * Handle filter bounds change - re-run the filter search for the new bounds.
+   */
+  onFilterBoundsChange(bounds: google.maps.LatLngBounds): void {
+    if (!this._activeFilter || !this.spotMap) return;
+
+    switch (this._activeFilter) {
+      case "parkour":
+        this._searchService
+          .searchSpotsForParkourInBounds(bounds)
+          .then((result) => {
+            const hits = result.hits || [];
+            const previews: SpotPreviewData[] = hits
+              .filter((h: any) => !!h)
+              .map((hit: any) =>
+                this._searchService.getSpotPreviewFromHit(hit)
+              );
+            if (this.spotMap) {
+              this.spotMap.setFilteredSpots(previews);
+            }
+          });
+        break;
+      case "dry":
+        this._searchService.searchDrySpotsInBounds(bounds).then((result) => {
+          const hits = result.hits || [];
+          const previews: SpotPreviewData[] = hits
+            .filter((h: any) => !!h)
+            .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+          if (this.spotMap) {
+            this.spotMap.setFilteredSpots(previews);
+          }
+        });
+        break;
+    }
+  }
+
   filterChipChanged(selectedChip: string) {
+    // Update the selectedFilter signal for URL sync and chip binding
+    this.selectedFilter.set(selectedChip || "");
+
+    if (!selectedChip || selectedChip.length === 0) {
+      this._activeFilter = "";
+      this.highlightedSpots = [];
+      this.visibleSpots = [];
+      if (this.spotMap) {
+        // Clear filter mode using the signal - this triggers sync effect in SpotMapComponent
+        this.spotMap.spotFilterMode.set(SpotFilterMode.None);
+      }
+      return;
+    }
+
+    // Track the active filter for re-searching on pan
+    this._activeFilter = selectedChip;
+
     const bounds = this.spotMap?.bounds;
     if (!bounds) {
       console.error("No bounds available when applying spot search filter");
@@ -798,8 +876,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this._searchService
           .searchSpotsForParkourInBounds(bounds)
-          .then((spots) => {
-            console.log(spots);
+          .then((result) => {
+            const hits = result.hits || [];
+            console.log("Found parkour spots:", hits);
+
+            // Map hits to SpotPreviewData
+            const previews: SpotPreviewData[] = hits
+              .filter((h: any) => !!h)
+              .map((hit: any) =>
+                this._searchService.getSpotPreviewFromHit(hit)
+              );
+
+            if (this.spotMap) {
+              this.spotMap.spotFilterMode.set(SpotFilterMode.ForParkour);
+              this.spotMap.setFilteredSpots(previews);
+            }
           })
           .catch((err) => {
             console.error("Error searching for parkour spots:", err);
@@ -807,6 +898,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
         break;
       case "dry":
+        this._searchService.searchDrySpotsInBounds(bounds).then((result) => {
+          const hits = result.hits || [];
+          console.log("Found dry spots:", hits);
+
+          // Map hits to SpotPreviewData
+          const previews: SpotPreviewData[] = hits
+            .filter((h: any) => !!h)
+            .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+
+          if (this.spotMap) {
+            this.spotMap.spotFilterMode.set(SpotFilterMode.Dry);
+            this.spotMap.setFilteredSpots(previews);
+          }
+        });
         break;
       case "indoor":
         break;
@@ -817,6 +922,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const selectedSpot = this.selectedSpot();
     const selectedChallenge = this.selectedChallenge();
     const showEditHistory = this.showSpotEditHistory();
+    const activeFilter = this.selectedFilter();
+
+    // Build query params - only include filter if set
+    const queryParams: { filter?: string } = {};
+    if (activeFilter) {
+      queryParams.filter = activeFilter;
+    }
 
     const urlTree = this.router.createUrlTree(
       selectedChallenge &&
@@ -837,7 +949,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         ? ["/map", selectedSpot.slug ?? selectedSpot.id, "c"]
         : selectedSpot && selectedSpot instanceof Spot
         ? ["/map", selectedSpot.slug ?? selectedSpot.id]
-        : ["/map"]
+        : ["/map"],
+      { queryParams }
     );
     const currentUrl = this.router.url;
     const newUrl = this.router.serializeUrl(urlTree);
@@ -975,6 +1088,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       // When a new spot is selected, jump the sidebar/bottom-sheet content to top
       this.resetSidebarContentToTop();
       this.resetBottomSheetContentToTop();
+
+      this._openInfoPanel();
+
       this.spotMap?.focusSpot(spot);
 
       if (updateUrl && spot instanceof Spot) {
@@ -1020,12 +1136,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private _openInfoPanel() {
+    if (this.responsiveService.isNotMobile()) {
+      this.sidenavOpen.set(true);
+    }
+  }
+
   selectChallenge(challenge: SpotChallenge, updateUrl: boolean = true) {
     if (!challenge) {
       return this.closeChallenge(updateUrl);
     } else {
       this.showSpotEditHistory.set(false);
       this.selectedChallenge.set(challenge);
+
+      // also open the info panel
+      this._openInfoPanel();
 
       if (updateUrl) {
         this.updateMapURL();

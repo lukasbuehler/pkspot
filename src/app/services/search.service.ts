@@ -5,6 +5,8 @@ import { environment } from "../../environments/environment";
 import { MapsApiService } from "./maps-api.service";
 import { AmenitiesMap } from "../../db/schemas/Amenities";
 import { SpotAccess, SpotTypes } from "../../db/schemas/SpotTypeAndAccess";
+import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
+import { GeoPoint } from "firebase/firestore";
 
 @Injectable({
   providedIn: "root",
@@ -32,6 +34,105 @@ export class SearchService {
     page: 1,
   };
 
+  public getSpotPreviewFromHit(hit: any): SpotPreviewData {
+    try {
+      const doc = hit.document || hit;
+      const rawName = doc.name;
+      let displayName = "";
+      if (!rawName) displayName = "Unnamed Spot";
+      else if (typeof rawName === "string") displayName = rawName;
+      else if (typeof rawName === "object") {
+        const locales = Object.keys(rawName);
+        if (locales.length === 0) displayName = "Unnamed Spot";
+        else {
+          const candidate = rawName[locales[0]];
+          if (typeof candidate === "string") displayName = candidate;
+          else if (candidate && typeof candidate.text === "string")
+            displayName = candidate.text;
+          else displayName = JSON.stringify(candidate) || "Unnamed Spot";
+        }
+      }
+
+      let location: GeoPoint | undefined = undefined;
+      if (doc.location) {
+        if (Array.isArray(doc.location) && doc.location.length >= 2) {
+          location = new GeoPoint(doc.location[0], doc.location[1]);
+        } else if (doc.location.latitude && doc.location.longitude) {
+          location = new GeoPoint(
+            doc.location.latitude,
+            doc.location.longitude
+          );
+        }
+      }
+
+      // Build a complete locality string matching the cluster logic
+      let localityString = "";
+      if (doc.address) {
+        if (doc.address.sublocality) {
+          localityString += doc.address.sublocality + ", ";
+        }
+        if (doc.address.locality) {
+          localityString += doc.address.locality + ", ";
+        }
+        if (doc.address.country && doc.address.country.code) {
+          localityString += doc.address.country.code.toUpperCase();
+        }
+      }
+      // Trim trailing comma and space if country is missing
+      localityString = localityString.replace(/, $/, "");
+
+      // Reconstruct AmenitiesMap from separate arrays if needed (matching cluster logic)
+      let amenities = doc.amenities;
+      if (
+        !amenities &&
+        ((doc.amenities_true && Array.isArray(doc.amenities_true)) ||
+          (doc.amenities_false && Array.isArray(doc.amenities_false)))
+      ) {
+        amenities = {};
+        if (doc.amenities_true) {
+          doc.amenities_true.forEach((key: string) => {
+            amenities[key] = true;
+          });
+        }
+        if (doc.amenities_false) {
+          doc.amenities_false.forEach((key: string) => {
+            amenities[key] = false;
+          });
+        }
+      }
+
+      // Robust isIconic check (matching cluster logic)
+      let isIconic = false;
+      const rawIsIconic = doc.isIconic ?? doc.is_iconic;
+      if (typeof rawIsIconic === "boolean") {
+        isIconic = rawIsIconic;
+      } else if (typeof rawIsIconic === "string") {
+        isIconic = rawIsIconic.toLowerCase() === "true";
+      } else if (typeof rawIsIconic === "number") {
+        isIconic = rawIsIconic === 1;
+      }
+
+      const preview: SpotPreviewData = {
+        name: displayName,
+        id: doc.id || hit.document?.id || "",
+        slug: doc.slug || undefined,
+        location: location,
+        type: doc.type,
+        access: doc.access,
+        locality: localityString,
+        imageSrc: doc.thumbnail_url || doc.image_url || "",
+        isIconic: isIconic,
+        rating: doc.rating ?? undefined,
+        amenities: amenities || undefined,
+      } as SpotPreviewData;
+
+      return preview;
+    } catch (err) {
+      console.error("Error mapping hit to preview:", err);
+      return {} as SpotPreviewData;
+    }
+  }
+
   public async searchEverything(query: string) {
     // Search for spots
     // Search for places
@@ -49,10 +150,14 @@ export class SearchService {
     return this.searchSpotsInBounds(
       bounds,
       num_spots,
-      [SpotTypes.ParkourGym, SpotTypes.PkPark],
+      [
+        SpotTypes.ParkourGym,
+        SpotTypes.Garage,
+        SpotTypes.GymnasticsGym,
+        SpotTypes.TrampolinePark,
+      ],
       undefined,
-      ["covered", "indoor"],
-      ["outdoor"]
+      ["covered", "indoor"]
     );
   }
 
@@ -62,10 +167,7 @@ export class SearchService {
   ) {
     return this.searchSpotsInBounds(bounds, num_spots, [
       SpotTypes.ParkourGym,
-      SpotTypes.GymnasticsGym,
-      SpotTypes.TrampolinePark,
-      SpotTypes.Garage,
-      SpotTypes.Other,
+      SpotTypes.PkPark,
     ]);
   }
 
@@ -100,19 +202,19 @@ export class SearchService {
     let filterByString: string = `location:(${latLongPairList.join(", ")})`;
 
     if (types && types.length > 0) {
-      filterByString += `,type:=[${types.join(", ")}]`;
+      filterByString += ` && type:=[${types.join(", ")}]`;
     }
 
     if (accesses && accesses.length > 0) {
-      filterByString += `,access:=[${accesses.join(", ")}]`;
+      filterByString += ` && access:=[${accesses.join(", ")}]`;
     }
 
     if (amenities_true && amenities_true.length > 0) {
-      filterByString += `,amenities_true:=[${amenities_true.join(", ")}]`;
+      filterByString += ` && amenities_true:=[${amenities_true.join(", ")}]`;
     }
 
     if (amenities_false && amenities_false.length > 0) {
-      filterByString += `,amenities_false:=[${amenities_false.join(", ")}]`;
+      filterByString += ` && amenities_false:=[${amenities_false.join(", ")}]`;
     }
 
     const MAX_PER_PAGE = 250;
@@ -220,46 +322,7 @@ export class SearchService {
     // If we have typesense hits, attach a simple SpotPreview-like `preview` object
     if (spotsResult && Array.isArray((spotsResult as any).hits)) {
       (spotsResult as any).hits = (spotsResult as any).hits.map((hit: any) => {
-        try {
-          const doc = hit.document || {};
-          const rawName = doc.name;
-          let displayName = "";
-          if (!rawName) displayName = "Unnamed Spot";
-          else if (typeof rawName === "string") displayName = rawName;
-          else if (typeof rawName === "object") {
-            const locales = Object.keys(rawName);
-            if (locales.length === 0) displayName = "Unnamed Spot";
-            else {
-              const candidate = rawName[locales[0]];
-              if (typeof candidate === "string") displayName = candidate;
-              else if (candidate && typeof candidate.text === "string")
-                displayName = candidate.text;
-              else displayName = JSON.stringify(candidate) || "Unnamed Spot";
-            }
-          }
-
-          const preview = {
-            name: displayName,
-            id: doc.id || hit.document?.id || "",
-            slug: doc.slug || undefined,
-            location:
-              doc.location && doc.location.latitude && doc.location.longitude
-                ? doc.location
-                : undefined,
-            type: doc.type,
-            access: doc.access,
-            locality: doc.address?.locality || "",
-            imageSrc: doc.thumbnail_url || doc.image_url || "",
-            isIconic: !!doc.is_iconic,
-            rating: doc.rating ?? undefined,
-            amenities: doc.amenities || undefined,
-          } as any;
-
-          // attach preview to the hit so UI can use it without guessing shape
-          hit.preview = preview;
-        } catch (err) {
-          // ignore mapping errors
-        }
+        hit.preview = this.getSpotPreviewFromHit(hit);
         return hit;
       });
     }

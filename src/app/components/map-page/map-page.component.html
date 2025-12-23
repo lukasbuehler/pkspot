@@ -125,6 +125,7 @@
     (visibleSpotsChange)="setVisibleSpots($event)"
     (hightlightedSpotsChange)="highlightedSpots = $event"
     (hasGeolocationChange)="askedGeoPermission = true; hasGeolocation = $event"
+    (filterBoundsChange)="onFilterBoundsChange($event)"
   ></app-spot-map>
   } @placeholder {
   <div
@@ -272,6 +273,7 @@
     (resize)="onChipsContainerResize($event)"
     @fadeInOut
     (change)="filterChipChanged($event.value)"
+    [value]="selectedFilter()"
     [multiple]="false"
   >
     @if(authService.isSignedIn && !isEditing()) {

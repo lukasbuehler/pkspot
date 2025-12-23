@@ -49,7 +49,7 @@ import { getImportantAmenities } from "../../../db/models/Amenities";
       [icons]="markerIcons()"
       [number]="getRoundedRating()"
       [isRating]="true"
-      [color]="'primary'"
+      [color]="color()"
       [size]="0.8"
       [title]="spot().name"
     />
@@ -93,6 +93,9 @@ export class HighlightMarkerComponent {
 
   /** Base Z-index for marker layering */
   zIndex = input<number>(0);
+
+  /** Color of the marker */
+  color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
 
   /** Emitted when the marker is clicked */
   markerClick = output<SpotPreviewData>();

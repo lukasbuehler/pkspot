@@ -448,9 +448,7 @@ export class GoogleMap2dComponent
       // Only update polygon when we have a spot AND we're in editing mode
       if (tracker && isEditing) {
         // Use setTimeout to ensure the DOM and ViewChild are updated
-        setTimeout(() => {
-
-        }, 50);
+        setTimeout(() => {}, 50);
       }
     });
 
@@ -601,9 +599,6 @@ export class GoogleMap2dComponent
       });
     }
   }
-  
-
-
 
   ngOnDestroy() {
     if (this.isApiLoadedSubscription)
@@ -971,7 +966,6 @@ export class GoogleMap2dComponent
     // Update the spot's paths signal
     selectedSpot.paths.set(paths);
 
-    
     // Emit the polygon change event
     // Check if it's a Spot (has id) vs LocalSpot (no id)
     if ("id" in selectedSpot && selectedSpot.id) {
@@ -1254,13 +1248,10 @@ export class GoogleMap2dComponent
     return null;
   }
 
-
-
   /**
    * Completely reset and recreate the polygon for the current selected spot
    * This is the most aggressive approach for ensuring clean polygon state
    */
-
 
   /**
    * Debug computed signal to trace when selectedSpot changes

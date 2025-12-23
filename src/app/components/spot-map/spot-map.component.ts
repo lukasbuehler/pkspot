@@ -50,7 +50,7 @@ import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { MarkerSchema } from "../marker/marker.component";
 import { OsmDataService } from "../../services/osm-data.service";
-import { SpotMapDataManager } from "./SpotMapDataManager";
+import { SpotMapDataManager, SpotFilterMode } from "./SpotMapDataManager";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import {
   LocalSpotChallenge,
@@ -63,7 +63,7 @@ import { AnyMedia } from "../../../db/models/Media";
   selector: "app-spot-map",
   templateUrl: "./spot-map.component.html",
   styleUrls: ["./spot-map.component.scss"],
-  imports: [GoogleMap2dComponent, MatSnackBarModule, AsyncPipe],
+  imports: [GoogleMap2dComponent, MatSnackBarModule],
   animations: [],
 })
 export class SpotMapComponent implements AfterViewInit, OnDestroy {
@@ -106,6 +106,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @Output() markerClickEvent = new EventEmitter<
     number | { marker: any; index?: number }
   >();
+  /**
+   * Emits when map bounds change while a filter is active.
+   * Parent component should re-run the filter search for the new bounds.
+   */
+  @Output() filterBoundsChange = new EventEmitter<google.maps.LatLngBounds>();
 
   uneditedSpot?: Spot | LocalSpot;
 
@@ -141,6 +146,19 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     inject(Injector)
   );
 
+  /**
+   * Filter mode for showing special filter pins on the map.
+   * Parent components can set this to filter the highlighted spots.
+   */
+  spotFilterMode = model<SpotFilterMode>(SpotFilterMode.None);
+
+  /**
+   * @deprecated Use spotFilterMode signal and setFilteredSpots() instead
+   */
+  public get spotMapData() {
+    return this._spotMapDataManager;
+  }
+
   hightlightedSpots: SpotPreviewData[] = [];
   visibleSpots = this._spotMapDataManager.visibleSpots;
   visibleDots = this._spotMapDataManager.visibleDots;
@@ -160,6 +178,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   private _previousNorthEastTile: google.maps.Point | undefined;
   private _visibleTiles: Set<MapTileKey> = new Set<MapTileKey>();
   private _visibleTilesObj: TilesObject | undefined;
+
+  // Debounce timer for filter bounds change to prevent rapid search requests
+  private _filterBoundsDebounceTimer: any = null;
 
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
@@ -229,6 +250,17 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const highlightedSpots = this.visibleHighlightedSpots();
       this.hightlightedSpotsChange.emit(highlightedSpots);
+    });
+
+    // Sync the spotFilterMode signal with the data manager
+    effect(() => {
+      const filterMode = this.spotFilterMode();
+      this._spotMapDataManager.spotFilterMode.set(filterMode);
+      // When filter is cleared, also clear manual highlights
+      if (filterMode === SpotFilterMode.None) {
+        this._spotMapDataManager.clearManualHighlightedSpots();
+        this._spotMapDataManager.refresh();
+      }
     });
   }
 
@@ -370,6 +402,14 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this._spotMapDataManager.setVisibleViewport(viewport);
   }
 
+  /**
+   * Set the filtered spots to display on the map.
+   * Use this method along with the spotFilterMode signal to show filter results.
+   */
+  setFilteredSpots(spots: SpotPreviewData[]): void {
+    this._spotMapDataManager.setManualHighlightedSpots(spots);
+  }
+
   mapBoundsChanged(bounds: google.maps.LatLngBounds, zoom: number) {
     // update the local bounds variable
     this.bounds = bounds;
@@ -385,6 +425,19 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           });
         }
       }
+    }
+
+    // If a filter is active, notify parent to re-run the filter search (debounced)
+    if (this.spotFilterMode() !== SpotFilterMode.None) {
+      // Clear any pending debounce timer
+      if (this._filterBoundsDebounceTimer) {
+        clearTimeout(this._filterBoundsDebounceTimer);
+      }
+      // Debounce the filter bounds change to prevent rapid search requests
+      this._filterBoundsDebounceTimer = setTimeout(() => {
+        this.filterBoundsChange.emit(bounds);
+        this._filterBoundsDebounceTimer = null;
+      }, 300);
     }
   }
 
