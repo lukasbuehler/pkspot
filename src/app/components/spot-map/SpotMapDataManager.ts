@@ -26,12 +26,10 @@ import { ConsentService } from "../../services/consent.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { getBestLocale } from "../../../scripts/LanguageHelpers";
+import { SpotFilterMode, SPOT_FILTER_CONFIGS } from "./spot-filter-config";
 
-export enum SpotFilterMode {
-  None = "none",
-  ForParkour = "for_parkour",
-  Dry = "dry",
-}
+// Re-export SpotFilterMode for backward compatibility with existing imports
+export { SpotFilterMode } from "./spot-filter-config";
 
 /**
  * This interface is used to reference a spot in the loaded spots array.
@@ -813,24 +811,8 @@ export class SpotMapDataManager {
   }
 
   private _spotMatchesFilter(spot: Spot, mode: SpotFilterMode): boolean {
-    switch (mode) {
-      case SpotFilterMode.ForParkour: {
-        const parkourTypes = [
-          SpotTypes.ParkourGym,
-          SpotTypes.GymnasticsGym,
-          SpotTypes.TrampolinePark,
-          SpotTypes.Garage,
-          SpotTypes.Other,
-        ];
-        return parkourTypes.includes(spot.type());
-      }
-      case SpotFilterMode.Dry: {
-        const amenities = spot.amenities() ?? {};
-        return !!(amenities.covered || amenities.indoor);
-      }
-      default:
-        return false;
-    }
+    const config = SPOT_FILTER_CONFIGS.get(mode);
+    return config?.matchesSpot(spot) ?? false;
   }
 
   /**

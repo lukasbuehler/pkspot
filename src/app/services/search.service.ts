@@ -7,6 +7,10 @@ import { AmenitiesMap } from "../../db/schemas/Amenities";
 import { SpotAccess, SpotTypes } from "../../db/schemas/SpotTypeAndAccess";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { GeoPoint } from "firebase/firestore";
+import {
+  SpotFilterMode,
+  SPOT_FILTER_CONFIGS,
+} from "../components/spot-map/spot-filter-config";
 
 @Injectable({
   providedIn: "root",
@@ -143,32 +147,69 @@ export class SearchService {
     // TODO: Implement this
   }
 
-  public async searchDrySpotsInBounds(
+  /**
+   * Search for spots in bounds using a filter mode from the centralized config.
+   * This is the preferred method for filter-based searches.
+   */
+  public searchSpotsInBoundsWithFilter(
     bounds: google.maps.LatLngBounds,
-    num_spots: number = 100
-  ) {
+    filterMode: SpotFilterMode,
+    num_spots: number = 20
+  ): Promise<{ hits: any[]; found: number }> {
+    const config = SPOT_FILTER_CONFIGS.get(filterMode);
+    if (!config) {
+      return Promise.resolve({ hits: [], found: 0 });
+    }
     return this.searchSpotsInBounds(
       bounds,
       num_spots,
-      [
-        SpotTypes.ParkourGym,
-        SpotTypes.Garage,
-        SpotTypes.GymnasticsGym,
-        SpotTypes.TrampolinePark,
-      ],
-      undefined,
-      ["covered", "indoor"]
+      config.types,
+      config.accesses,
+      config.amenities_true,
+      config.amenities_false
     );
   }
 
+  /**
+   * @deprecated Use searchSpotsInBoundsWithFilter(bounds, SpotFilterMode.Dry) instead
+   */
+  public async searchDrySpotsInBounds(
+    bounds: google.maps.LatLngBounds,
+    num_spots: number = 20
+  ) {
+    return this.searchSpotsInBoundsWithFilter(
+      bounds,
+      SpotFilterMode.Dry,
+      num_spots
+    );
+  }
+
+  /**
+   * @deprecated Use searchSpotsInBoundsWithFilter(bounds, SpotFilterMode.ForParkour) instead
+   */
   public searchSpotsForParkourInBounds(
     bounds: google.maps.LatLngBounds,
-    num_spots: number = 100
+    num_spots: number = 20
   ) {
-    return this.searchSpotsInBounds(bounds, num_spots, [
-      SpotTypes.ParkourGym,
-      SpotTypes.PkPark,
-    ]);
+    return this.searchSpotsInBoundsWithFilter(
+      bounds,
+      SpotFilterMode.ForParkour,
+      num_spots
+    );
+  }
+
+  /**
+   * @deprecated Use searchSpotsInBoundsWithFilter(bounds, SpotFilterMode.Indoor) instead
+   */
+  public searchIndoorSpotsInBounds(
+    bounds: google.maps.LatLngBounds,
+    num_spots: number = 20
+  ) {
+    return this.searchSpotsInBoundsWithFilter(
+      bounds,
+      SpotFilterMode.Indoor,
+      num_spots
+    );
   }
 
   public async searchSpotsInBounds(
@@ -198,23 +239,17 @@ export class SearchService {
       bounds.getNorthEast().lat(),
       bounds.getSouthWest().lng(),
     ].map((num) => (Math.round(num * 1000) / 1000).toString());
+    const filters: string[] = [];
+    if (types?.length) filters.push(`type:=[${types.join(", ")}]`);
+    if (accesses?.length) filters.push(`access:=[${accesses.join(", ")}]`);
+    if (amenities_true?.length)
+      filters.push(`amenities_true:=[${amenities_true.join(", ")}]`);
+    if (amenities_false?.length)
+      filters.push(`amenities_false:=[${amenities_false.join(", ")}]`);
 
-    let filterByString: string = `location:(${latLongPairList.join(", ")})`;
-
-    if (types && types.length > 0) {
-      filterByString += ` && type:=[${types.join(", ")}]`;
-    }
-
-    if (accesses && accesses.length > 0) {
-      filterByString += ` && access:=[${accesses.join(", ")}]`;
-    }
-
-    if (amenities_true && amenities_true.length > 0) {
-      filterByString += ` && amenities_true:=[${amenities_true.join(", ")}]`;
-    }
-
-    if (amenities_false && amenities_false.length > 0) {
-      filterByString += ` && amenities_false:=[${amenities_false.join(", ")}]`;
+    let filterByString = `location:(${latLongPairList.join(", ")})`;
+    if (filters.length > 0) {
+      filterByString += ` && (${filters.join(" || ")})`;
     }
 
     const MAX_PER_PAGE = 250;

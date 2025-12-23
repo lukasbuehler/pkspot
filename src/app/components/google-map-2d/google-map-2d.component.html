@@ -72,8 +72,6 @@
       'marker-primary-dark': resolvedDarkMode(),
       'marker-primary-light': !resolvedDarkMode()
     }"
-    tabindex="0"
-    role="button"
     [style]="{
       height: 12 + sqrt(dot.weight) * 2 + 'px',
       width: 12 + sqrt(dot.weight) * 2 + 'px'
@@ -82,7 +80,8 @@
   <map-advanced-marker
     [position]="geopointToLatLngLiteral(dot.location)"
     [content]="smallDot"
-    (mapClick)="onDotMapClick(smallDot, $event)"
+    [options]="{ gmpClickable: true }"
+    (mapClick)="clickDot(dot)"
     [zIndex]="dot.weight"
   ></map-advanced-marker>
   } }

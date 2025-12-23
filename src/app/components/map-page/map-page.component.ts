@@ -18,10 +18,11 @@ import {
 import { Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
+import { SpotMapDataManager } from "../spot-map/SpotMapDataManager";
 import {
-  SpotMapDataManager,
   SpotFilterMode,
-} from "../spot-map/SpotMapDataManager";
+  getFilterModeFromUrlParam,
+} from "../spot-map/spot-filter-config";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import {
   ActivatedRoute,
@@ -91,6 +92,7 @@ import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { ChipSelectComponent } from "../chip-select/chip-select.component";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
+import { MatCardModule } from "@angular/material/card";
 
 @Component({
   selector: "app-map-page",
@@ -148,6 +150,7 @@ import { ResizeObserverDirective } from "../../directives/resize-observer.direct
     NgTemplateOutlet,
     BottomSheetComponent,
     ResizeObserverDirective,
+    MatCardModule,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -258,6 +261,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _breakpointSubscription?: Subscription;
 
   spotEdits: WritableSignal<SpotEdit[]> = signal([]);
+
+  noSpotsForFilter: WritableSignal<boolean> = signal(false);
 
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
@@ -830,34 +835,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   onFilterBoundsChange(bounds: google.maps.LatLngBounds): void {
     if (!this._activeFilter || !this.spotMap) return;
 
-    switch (this._activeFilter) {
-      case "parkour":
-        this._searchService
-          .searchSpotsForParkourInBounds(bounds)
-          .then((result) => {
-            const hits = result.hits || [];
-            const previews: SpotPreviewData[] = hits
-              .filter((h: any) => !!h)
-              .map((hit: any) =>
-                this._searchService.getSpotPreviewFromHit(hit)
-              );
-            if (this.spotMap) {
-              this.spotMap.setFilteredSpots(previews);
-            }
-          });
-        break;
-      case "dry":
-        this._searchService.searchDrySpotsInBounds(bounds).then((result) => {
-          const hits = result.hits || [];
-          const previews: SpotPreviewData[] = hits
-            .filter((h: any) => !!h)
-            .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
-          if (this.spotMap) {
-            this.spotMap.setFilteredSpots(previews);
-          }
-        });
-        break;
-    }
+    const filterMode = getFilterModeFromUrlParam(this._activeFilter);
+    if (filterMode === SpotFilterMode.None) return;
+
+    this._searchService
+      .searchSpotsInBoundsWithFilter(bounds, filterMode)
+      .then((result) => {
+        const previews: SpotPreviewData[] = (result.hits || [])
+          .filter((h: any) => !!h)
+          .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+
+        this.spotMap?.setFilteredSpots(previews);
+      })
+      .catch((err) => {
+        console.error("Error re-searching for filter on bounds change:", err);
+      });
   }
 
   filterChipChanged(selectedChip: string) {
@@ -881,68 +873,47 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Track the active filter for re-searching on pan
     this._activeFilter = selectedChip;
 
-    // Update the URL to reflect the new filter
-    this._activeFilter = selectedChip;
-
-    // URL update is handled by the effectSpy
-
     const bounds = this.spotMap?.bounds;
     if (!bounds) {
       console.error("No bounds available when applying spot search filter");
       return;
     }
 
-    switch (selectedChip) {
-      case "saved":
-        break;
-      case "visited":
-        break;
-      case "parkour":
-        // Search for spots for parkour
-        console.log("Searching for parkour spots in bounds:", bounds);
+    // Convert URL param to filter mode using the centralized config
+    const filterMode = getFilterModeFromUrlParam(selectedChip);
 
-        this._searchService
-          .searchSpotsForParkourInBounds(bounds)
-          .then((result) => {
-            const hits = result.hits || [];
-            console.log("Found parkour spots:", hits);
-
-            // Map hits to SpotPreviewData
-            const previews: SpotPreviewData[] = hits
-              .filter((h: any) => !!h)
-              .map((hit: any) =>
-                this._searchService.getSpotPreviewFromHit(hit)
-              );
-
-            if (this.spotMap) {
-              this.spotMap.spotFilterMode.set(SpotFilterMode.ForParkour);
-              this.spotMap.setFilteredSpots(previews);
-            }
-          })
-          .catch((err) => {
-            console.error("Error searching for parkour spots:", err);
-          });
-
-        break;
-      case "dry":
-        this._searchService.searchDrySpotsInBounds(bounds).then((result) => {
-          const hits = result.hits || [];
-          console.log("Found dry spots:", hits);
-
-          // Map hits to SpotPreviewData
-          const previews: SpotPreviewData[] = hits
-            .filter((h: any) => !!h)
-            .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
-
-          if (this.spotMap) {
-            this.spotMap.spotFilterMode.set(SpotFilterMode.Dry);
-            this.spotMap.setFilteredSpots(previews);
-          }
-        });
-        break;
-      case "indoor":
-        break;
+    // Handle special cases that don't have search implementations yet
+    if (selectedChip === "saved" || selectedChip === "visited") {
+      // TODO: Implement saved/visited filter
+      return;
     }
+
+    if (filterMode === SpotFilterMode.None) {
+      console.warn("Unknown filter chip:", selectedChip);
+      return;
+    }
+
+    // Generic filter application - no more switch statement!
+    console.log(`Searching for ${selectedChip} spots in bounds:`, bounds);
+
+    this._searchService
+      .searchSpotsInBoundsWithFilter(bounds, filterMode)
+      .then((result) => {
+        const hits = result.hits || [];
+        console.log(`Found ${selectedChip} spots:`, hits);
+
+        const previews: SpotPreviewData[] = hits
+          .filter((h: any) => !!h)
+          .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+
+        if (this.spotMap) {
+          this.spotMap.spotFilterMode.set(filterMode);
+          this.spotMap.setFilteredSpots(previews);
+        }
+      })
+      .catch((err) => {
+        console.error(`Error searching for ${selectedChip} spots:`, err);
+      });
   }
 
   updateMapURL() {

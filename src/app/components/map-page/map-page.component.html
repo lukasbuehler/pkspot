@@ -268,6 +268,20 @@
   } }
 </ng-template>
 
+<ng-template #filterHelper class="position-relative">
+  <div
+    class="glass d-flex flex-row align-items-center ps-4 gap-3 p-3"
+    style="border-radius: 34px"
+  >
+    <span class="mat-title-small" i18n="Filter helper text@@filter_helper_text"
+      >There are no spots matching the filter in this area.</span
+    >
+    <button class="flex-shrink-0" matButton="outlined">
+      <mat-icon>filter_alt_off</mat-icon>Clear
+    </button>
+  </div>
+</ng-template>
+
 <ng-template #chips class="position-relative">
   <!-- Search option chips -->
   <mat-chip-listbox
@@ -279,7 +293,7 @@
     [value]="selectedFilter()"
     [multiple]="false"
   >
-    @if(authService.isSignedIn && !isEditing()) {
+    <!-- @if(authService.isSignedIn && !isEditing()) {
     <mat-chip-option class="glass" value="saved"
       ><mat-icon matChipAvatar>bookmark</mat-icon
       ><span i18n="Saved spots label for spot chips@@saved_spots_chip_label"
@@ -293,7 +307,8 @@
         >Visited</span
       ></mat-chip-option
     >
-    }<mat-chip-option class="glass" value="parkour"
+    } -->
+    <mat-chip-option class="glass" value="parkour"
       ><mat-icon matChipAvatar>steps</mat-icon
       ><span
         i18n="
@@ -368,6 +383,17 @@
 
   <div class="position-relative overflow-hidden h-100 w-100">
     <ng-container *ngTemplateOutlet="mapContent"></ng-container>
+    @if(noSpotsForFilter()) {
+    <div
+      class="position-absolute"
+      style="left: 50%; top: 20px; transform: translate(-50%, 0)"
+    >
+      <ng-container
+        *ngTemplateOutlet="filterHelper"
+        class="position-relative"
+      ></ng-container>
+    </div>
+    }
 
     <!-- sidenav toggle button -->
     <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">
@@ -413,6 +439,11 @@
       ></app-search-field>
     </div>
     <ng-container *ngTemplateOutlet="chips"></ng-container>
+    @if(noSpotsForFilter()) {
+    <div style="padding-left: 64px; padding-right: 64px; padding-top: 16px">
+      <ng-container *ngTemplateOutlet="filterHelper"></ng-container>
+    </div>
+    }
   </div>
 
   <app-bottom-sheet
