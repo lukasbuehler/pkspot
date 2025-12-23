@@ -40,6 +40,12 @@ export class MapsApiService extends ConsentAwareService {
     new BehaviorSubject<number>(0);
   public loadingProgress$: Observable<number> = this._loadingProgress$;
 
+  /**
+   * Cache for street view URLs.
+   * Maps spotId -> street view URL or null (if error/not available)
+   */
+  private streetViewCache = new Map<string, string | null>();
+
   constructor() {
     super();
     // Do not auto-load anything - components will explicitly request loading when needed
@@ -318,7 +324,8 @@ export class MapsApiService extends ConsentAwareService {
   getStaticStreetViewImageForLocation(
     location: google.maps.LatLngLiteral,
     imageWidth: number = 400,
-    imageHeight: number = 400
+    imageHeight: number = 400,
+    spotId?: string
   ): string | null {
     // Only return URL if consent is granted
     if (!this.hasConsent()) {
@@ -326,11 +333,39 @@ export class MapsApiService extends ConsentAwareService {
       return null;
     }
 
-    return `https://maps.googleapis.com/maps/api/streetview?size=${imageWidth}x${imageHeight}&location=${
+    if (spotId && this.streetViewCache.has(spotId)) {
+      const cached = this.streetViewCache.get(spotId);
+      if (cached === null) {
+        console.log(
+          `Street View for spot ${spotId} is known to be unavailable (cached).`
+        );
+        return null;
+      }
+      // Return cached URL if not undefined
+      if (cached !== undefined) {
+        return cached;
+      }
+    }
+
+    const url = `https://maps.googleapis.com/maps/api/streetview?size=${imageWidth}x${imageHeight}&location=${
       location.lat
-    },${location.lng}&fov=${120}&source=outdoor&key=${
+    },${location.lng}&fov=${120}&return_error_code=${true}&source=outdoor&key=${
       environment.keys.firebaseConfig.apiKey
     }`;
+
+    if (spotId) {
+      console.debug(
+        `Generatred Street View URL for spot ${spotId}, caching it.`
+      );
+      this.streetViewCache.set(spotId, url);
+    }
+
+    return url;
+  }
+
+  reportStreetViewError(spotId: string) {
+    console.log(`Marking Street View as unavailable for spot ${spotId}`);
+    this.streetViewCache.set(spotId, null);
   }
 
   // Instance method instead of static to access consent checking

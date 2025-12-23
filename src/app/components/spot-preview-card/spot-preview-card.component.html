@@ -11,7 +11,7 @@
 >
   <mat-card-header class="pb-2">
     <mat-card-title class="pt-2 d-flex w-100 gap-2 align-items-center">
-      @if(spot()?.isIconic) {
+      @if(spotData()?.isIconic) {
       <mat-icon
         style="width: 24px; flex-shrink: 0; margin: -2px"
         matTooltip="Iconic Spot"
@@ -25,14 +25,16 @@
     <mat-card-subtitle class="d-flex flex-row gap-2">
       <div class="d-flex flex-column w-100">
         <div class="d-flex flex-row gap-1 align-items-center mat-title-small">
-          @if(spot()?.rating) {
+          @if(spotData()?.rating) {
           <app-spot-rating
-            [rating1to5]="spot()?.rating ?? null"
+            [rating1to5]="spotData()?.rating ?? null"
             [showEmptyStars]="false"
             [isCompact]="true"
           ></app-spot-rating>
           }
-          {{ spot()?.rating && spotAmenitiesArray().length > 0 ? "⸱" : null }}
+          {{
+            spotData()?.rating && spotAmenitiesArray().length > 0 ? "⸱" : null
+          }}
           <div class="d-flex flex-row align-items-center gap-1">
             @for(amenity of spotAmenitiesArray(); track $index) {
             <mat-icon
@@ -89,11 +91,11 @@
     class="img-container"
     [class.isCompact]="isCompact"
   >
-    @if(media() && media().length > 0 && media()[0]) {
-    <img [ngSrc]="media()[0]" fill priority />
+    @if(media() && media().length > 0 && media()[0] && !imageLoadError()) {
+    <img [ngSrc]="media()[0]" fill priority (error)="onImageError()" />
     } @else {
     <!-- image placeholder-->
-    <img [ngSrc]="fallbackImgSrc" fill />
+    <img [ngSrc]="fallbackImgSrc" fill priority />
     }
   </div>
 </mat-card>

@@ -7,6 +7,7 @@
       selectedSpotIdOrSlug(),
       showAllChallenges() ? 'c' : ''
     ]"
+    queryParamsHandling="merge"
     class="text-truncate"
   >
     <mat-icon>arrow_back_ios</mat-icon>
@@ -29,6 +30,7 @@
     <a
       mat-button
       [routerLink]="['/map', selectedSpotIdOrSlug()]"
+      queryParamsHandling="merge"
       class="text-truncate"
     >
       <mat-icon>arrow_back_ios</mat-icon>
@@ -54,6 +56,7 @@
     <a
       mat-button
       [routerLink]="['/map', selectedSpotIdOrSlug()]"
+      queryParamsHandling="merge"
       class="text-truncate"
     >
       <mat-icon>arrow_back_ios</mat-icon>

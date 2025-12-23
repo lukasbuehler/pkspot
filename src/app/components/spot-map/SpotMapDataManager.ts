@@ -784,11 +784,21 @@ export class SpotMapDataManager {
     // If we have an existing cached version, check if it needs updating
     if (existingPreview) {
       // Check if any relevant properties have changed
+      let locationChanged = false;
+      if (existingPreview.location && previewData.location) {
+        locationChanged =
+          existingPreview.location.latitude !== previewData.location.latitude ||
+          existingPreview.location.longitude !== previewData.location.longitude;
+      } else if (!!existingPreview.location !== !!previewData.location) {
+        locationChanged = true;
+      }
+
       const hasChanged =
         existingPreview.name !== previewData.name ||
         existingPreview.rating !== previewData.rating ||
         existingPreview.imageSrc !== previewData.imageSrc ||
         existingPreview.locality !== previewData.locality ||
+        locationChanged ||
         JSON.stringify(existingPreview.amenities) !==
           JSON.stringify(previewData.amenities);
 

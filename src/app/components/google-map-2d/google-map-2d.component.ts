@@ -1122,21 +1122,8 @@ export class GoogleMap2dComponent
       return paths[0];
     }
 
-    // If we're in editing mode and no paths exist, only create a default path
-    // if the spot doesn't already have bounds (i.e., we're creating new bounds)
-    const selectedSpot = this.selectedSpot();
-    if (this.isEditing() && selectedSpot && !selectedSpot.hasBounds()) {
-      const location = selectedSpot.location();
-      const dist = 0.0001;
-      const defaultPath = [
-        { lat: location.lat + dist, lng: location.lng + dist },
-        { lat: location.lat - dist, lng: location.lng + dist },
-        { lat: location.lat - dist, lng: location.lng - dist },
-        { lat: location.lat + dist, lng: location.lng - dist },
-      ];
-
-      return defaultPath;
-    }
+    // If we're in editing mode and no paths exist, DO NOT create a default path automatically.
+    // Bounds should only be added via the "Add Bounds" action.
 
     return [];
   });

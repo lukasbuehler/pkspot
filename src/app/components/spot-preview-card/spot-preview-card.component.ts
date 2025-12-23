@@ -1,4 +1,3 @@
-import { trigger, transition, style, animate } from "@angular/animations";
 import {
   Component,
   Input,
@@ -11,8 +10,10 @@ import {
   inject,
   input,
   computed,
+  signal,
 } from "@angular/core";
 import { Router } from "@angular/router";
+import { MapsApiService } from "../../services/maps-api.service";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { StorageService } from "../../services/firebase/storage.service";
@@ -23,17 +24,7 @@ import { NgOptimizedImage } from "@angular/common";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
-import { AmenitiesMap } from "../../../db/schemas/Amenities";
-import {
-  makeAmenitiesArray,
-  makeSmartAmenitiesArray,
-  getImportantAmenities,
-} from "../../../db/models/Amenities";
-import {
-  StorageImage,
-  StorageMedia,
-  StorageVideo,
-} from "../../../db/models/Media";
+import { getImportantAmenities } from "../../../db/models/Amenities";
 
 @Component({
   selector: "app-spot-preview-card",
@@ -55,7 +46,7 @@ export class SpotPreviewCardComponent implements OnChanges {
   hasBorder = input<boolean>(true);
   imgSize = input<200 | 400 | 800>(200);
 
-  spot = input<Spot | LocalSpot | SpotPreviewData | null>(null);
+  spotData = input<Spot | LocalSpot | SpotPreviewData | null>(null);
   spotAmenitiesArray = computed<
     {
       name?: string;
@@ -64,7 +55,7 @@ export class SpotPreviewCardComponent implements OnChanges {
       isNegative?: boolean;
     }[]
   >(() => {
-    const spot = this.spot();
+    const spot = this.spotData();
     if (!spot) {
       return [];
     }
@@ -95,44 +86,85 @@ export class SpotPreviewCardComponent implements OnChanges {
   spotName?: string;
   spotLocality?: string;
   media = computed<string[]>(() => {
-    const spot = this.spot();
+    const spot = this.spotData();
 
     if (!spot) {
       return [];
     }
 
+    let mediaArr: string[] = [];
+    let location: google.maps.LatLngLiteral | null = null;
+
     if (!(spot instanceof Spot || spot instanceof LocalSpot)) {
       // Spot is a SpotPreviewData object
-      return [spot.imageSrc];
-    }
-
-    const media = spot.media().filter((m) => m.type === MediaType.Image);
-
-    if (media.length === 0) {
-      return [this.fallbackImgSrc];
-    }
-
-    return media.map((m) => {
-      if (m instanceof StorageMedia) {
-        return m.getPreviewImageSrc();
-      } else {
-        return m.src;
+      if (spot.location) {
+        location = {
+          lat: spot.location.latitude,
+          lng: spot.location.longitude,
+        };
       }
-    });
+      if (spot.imageSrc) {
+        mediaArr = [spot.imageSrc];
+      }
+    } else {
+      location = spot.location();
+      mediaArr = spot
+        .media()
+        .filter((m) => m.type === MediaType.Image)
+        .map((m) => m.getPreviewImageSrc());
+    }
+
+    console.log("media length", mediaArr.length);
+    if (mediaArr.length === 0) {
+      // Return Street View Static API image if available
+
+      if (location) {
+        console.log("No media found for spot, using Street View");
+        let spotId: string | undefined;
+
+        if (spot instanceof Spot) {
+          spotId = spot.id;
+        } else if (spot instanceof LocalSpot) {
+          spotId = undefined; // Local spots don't have an ID
+        } else {
+          // SpotPreviewData
+          spotId = spot.id;
+        }
+
+        const svUrl = this.mapsApiService.getStaticStreetViewImageForLocation(
+          location,
+          400,
+          400,
+          spotId
+        );
+
+        console.log("instead of media, Street View URL: ", svUrl);
+        if (svUrl) {
+          mediaArr.push(svUrl);
+        }
+      }
+    }
+    return mediaArr;
   });
 
   bookmarked = false;
   visited = false;
 
+  imageLoadError = signal(false);
+
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
     private _router: Router,
-    public storageService: StorageService
+    public storageService: StorageService,
+    public mapsApiService: MapsApiService
   ) {}
 
   ngOnChanges() {
-    const spot = this.spot();
+    const spot = this.spotData();
     if (spot) {
+      // Reset error state when spot changes
+      this.imageLoadError.set(false);
+
       if (spot instanceof Spot || spot instanceof LocalSpot) {
         this.spotName = spot.name();
         this.spotLocality = spot.localityString();
@@ -153,6 +185,18 @@ export class SpotPreviewCardComponent implements OnChanges {
   //     this.spotClick.emit(this.spot);
   //   }
   // }
+
+  onImageError() {
+    console.log("Image load error");
+    this.imageLoadError.set(true);
+    const spot = this.spotData();
+    if (spot && spot instanceof Spot) {
+      this.mapsApiService.reportStreetViewError(spot.id);
+    } else if (spot && !(spot instanceof LocalSpot)) {
+      // Spot Preview Data
+      this.mapsApiService.reportStreetViewError(spot.id);
+    }
+  }
 
   shareSpot() {
     // TODO

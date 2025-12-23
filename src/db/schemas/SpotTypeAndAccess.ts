@@ -16,6 +16,8 @@ export enum SpotTypes {
   Monument = "monument",
   Water = "water",
   Garage = "garage",
+  SkatePark = "skate park",
+  Calisthenics = "calisthenics",
   Other = "other",
 }
 
@@ -37,6 +39,8 @@ export const SpotTypesNames: Record<SpotTypes, string> = {
   [SpotTypes.Monument]: $localize`:@@spot-type.monument:Monument`,
   [SpotTypes.Water]: $localize`:@@spot-type.water:Water Spot`,
   [SpotTypes.Garage]: $localize`:@@spot-type.garage:Garage`,
+  [SpotTypes.SkatePark]: $localize`:@@spot-type.skate-park:Skate Park`,
+  [SpotTypes.Calisthenics]: $localize`:@@spot-type.calisthenics:Calisthenics Park`,
   [SpotTypes.Other]: $localize`:@@spot-type.other:Other`,
 };
 
@@ -58,6 +62,8 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
   [SpotTypes.Monument]: "museum",
   [SpotTypes.Water]: "water",
   [SpotTypes.Garage]: "garage_door",
+  [SpotTypes.SkatePark]: "skateboarding",
+  [SpotTypes.Calisthenics]: "playground",
   [SpotTypes.Other]: "help_outline",
 };
 
@@ -79,6 +85,8 @@ export const SpotTypesDescriptions: Record<SpotTypes, string> = {
   [SpotTypes.Monument]: $localize`:@@spot-type-description.monument:This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.`,
   [SpotTypes.Water]: $localize`:@@spot-type-description.water:This spot centers around water (fountain, riverbank, lakeside structure, etc.) offering unique movement or aesthetic value. Surfaces may be slippery—use caution.`,
   [SpotTypes.Garage]: $localize`:@@spot-type-description.garage:This is a parking garage or car park with ramps, columns, and concrete structures suitable for training.`,
+  [SpotTypes.SkatePark]: $localize`:@@spot-type-description.skate-park:This is a skate park with ramps, rails, and concrete structures suitable for training. Make sure to give way to skaters and be respectful at the skate park.`,
+  [SpotTypes.Calisthenics]: $localize`:@@spot-type-description.calisthenics:This is a calisthenics park with bars and beams suitable for training. Be respectful to others and use the equipment carefully.`,
   [SpotTypes.Other]: $localize`:@@spot-type-description.other:This is a location that doesn't fit standard categories but offers training opportunities.`,
 };
 

@@ -25,7 +25,7 @@
   <a [routerLink]="['/map', spot.slug ?? spot.id]">
     <app-spot-preview-card
       @gridElementAnimation
-      [spot]="spot"
+      [spotData]="spot"
       [infoOnly]="true"
       [clickable]="true"
       [isCompact]="group.value === 'compact'"
@@ -36,7 +36,7 @@
   } @else {
   <app-spot-preview-card
     @gridElementAnimation
-    [spot]="spot"
+    [spotData]="spot"
     [infoOnly]="true"
     [clickable]="true"
     [isCompact]="group.value === 'compact'"
@@ -57,7 +57,7 @@
   <a [routerLink]="['/map', getSpotIdOrSlugForSpotObj(spot)]">
     <app-spot-preview-card
       @gridElementAnimation
-      [spot]="spot"
+      [spotData]="spot"
       [infoOnly]="true"
       [clickable]="true"
       [isCompact]="group.value === 'compact'"
@@ -68,7 +68,7 @@
   >} @else {
   <app-spot-preview-card
     @gridElementAnimation
-    [spot]="spot"
+    [spotData]="spot"
     [infoOnly]="true"
     [clickable]="true"
     [isCompact]="group.value === 'compact'"

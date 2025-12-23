@@ -229,6 +229,26 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   selectedFilter = signal<string>("");
 
+  /**
+   * Effect to apply filter when map becomes available or filter changes.
+   * This handles the initial load race condition where filter param exists but map isn't ready.
+   */
+  filterEffect = effect(() => {
+    const filter = this.selectedFilter();
+    const map = this.spotMap;
+
+    // Only proceed if we have a map instance
+    if (map) {
+      if (filter) {
+        // Schedule in next tick to avoid ExpressionChangedAfterItHasBeenChecked if called during init
+        setTimeout(() => this.filterChipChanged(filter), 0);
+      } else {
+        // Ensure filter is cleared if signal is empty
+        this.filterChipChanged("");
+      }
+    }
+  });
+
   toggleSidenav() {
     this.sidenavOpen.update((open) => !open);
   }
@@ -466,7 +486,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     let showEditHistory = false;
 
     if (urlParts.length >= 2 && urlParts[0] === "map") {
-      const potentialSpot = decodeURIComponent(urlParts[1]);
+      // Decode and strip any potential query parameters from the spot ID segment
+      const potentialSpot = decodeURIComponent(urlParts[1]).split("?")[0];
 
       if (urlParts.length === 2) {
         // /map/:spot
@@ -514,13 +535,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     // Read filter from URL query params and apply if present
+    // Read filter from URL query params and set signal
     const filterParam =
       this.activatedRoute.snapshot.queryParamMap.get("filter");
     if (filterParam) {
-      // Defer to allow spotMap to be initialized
-      setTimeout(() => {
-        this.filterChipChanged(filterParam);
-      }, 100);
+      this.selectedFilter.set(filterParam);
     }
   }
 
@@ -558,7 +577,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             return;
           }
           const match = navEvent.url.match(
-            /^\/map(?:\/([^\/]+))?(?:\/(c)(?:\/([^\/]+))?)?(\/(edits)(?:\/)?)?/
+            /^\/map(?:\/([^\/?]+))?(?:\/(c)(?:\/([^\/]+))?)?(\/(edits)(?:\/)?)?/
           );
           const spotIdOrSlug = match?.[1] ?? null;
           const showChallenges = !!match?.[2];
@@ -843,7 +862,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   filterChipChanged(selectedChip: string) {
     // Update the selectedFilter signal for URL sync and chip binding
-    this.selectedFilter.set(selectedChip || "");
+    // Only update signal if it's different to avoid infinite effect loops
+    if (this.selectedFilter() !== (selectedChip || "")) {
+      this.selectedFilter.set(selectedChip || "");
+    }
 
     if (!selectedChip || selectedChip.length === 0) {
       this._activeFilter = "";
@@ -858,6 +880,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Track the active filter for re-searching on pan
     this._activeFilter = selectedChip;
+
+    // Update the URL to reflect the new filter
+    this._activeFilter = selectedChip;
+
+    // URL update is handled by the effectSpy
 
     const bounds = this.spotMap?.bounds;
     if (!bounds) {
@@ -924,17 +951,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const showEditHistory = this.showSpotEditHistory();
     const activeFilter = this.selectedFilter();
 
-    // Build query params - only include filter if set
-    const queryParams: { filter?: string } = {};
+    // Build query params - only include filter if set and not empty
+    const queryParams: { filter?: string | null } = {};
     if (activeFilter) {
       queryParams.filter = activeFilter;
+    } else {
+      // Explicitly remove filter param if activeFilter is empty
+      queryParams.filter = null;
     }
 
-    const urlTree = this.router.createUrlTree(
+    const commands =
       selectedChallenge &&
-        selectedChallenge instanceof SpotChallenge &&
-        selectedSpot &&
-        selectedSpot instanceof Spot
+      selectedChallenge instanceof SpotChallenge &&
+      selectedSpot &&
+      selectedSpot instanceof Spot
         ? [
             "/map",
             selectedSpot.slug ?? selectedSpot.id,
@@ -949,27 +979,27 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         ? ["/map", selectedSpot.slug ?? selectedSpot.id, "c"]
         : selectedSpot && selectedSpot instanceof Spot
         ? ["/map", selectedSpot.slug ?? selectedSpot.id]
-        : ["/map"],
-      { queryParams }
-    );
+        : ["/map"];
+
+    const urlTree = this.router.createUrlTree(commands, {
+      queryParams: queryParams,
+      queryParamsHandling: "merge",
+    });
+
     const currentUrl = this.router.url;
     const newUrl = this.router.serializeUrl(urlTree);
 
-    console.log(currentUrl, newUrl);
-
     if (currentUrl === newUrl) {
       return;
-    } else if (currentUrl.includes("/map")) {
-      // Update the browser URL without triggering a router navigation
-      // This avoids causing a navigation cycle / full page refresh.
-      try {
-        this._location.replaceState(newUrl);
-      } catch (err) {
-        // Fallback to router navigation if Location fails for any reason
-        this.router.navigateByUrl(newUrl);
-      }
     }
-    // If not on /map, do not update the URL
+
+    // Use router.navigate with commands array to allow Angular to smartly handle route reuse
+    // merge query params to preserve potential other params, but we explicitly control 'filter'
+    this.router.navigate(commands, {
+      queryParams: queryParams,
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
   }
 
   /**
