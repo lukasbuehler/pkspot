@@ -1,4 +1,4 @@
-import { inject, Injectable } from "@angular/core";
+import { inject, Injectable, runInInjectionContext } from "@angular/core";
 import {
   Firestore,
   doc,
@@ -77,14 +77,16 @@ export class SpotEditsService extends ConsentAwareService {
 
   getSpotEditById$(spotId: string, editId: string): Observable<SpotEditSchema> {
     console.debug("Getting edit with id: ", editId);
-    return docData(doc(this.firestore, "spots", spotId, "edits", editId), {
-      idField: "id",
-    }).pipe(
-      map((d: any) => {
-        if (!d) throw new Error("No edit found for this edit id.");
-        return d as SpotEditSchema;
-      })
-    );
+    return runInInjectionContext(this.injector, () => {
+      return docData(doc(this.firestore, "spots", spotId, "edits", editId), {
+        idField: "id",
+      }).pipe(
+        map((d: any) => {
+          if (!d) throw new Error("No edit found for this edit id.");
+          return d as SpotEditSchema;
+        })
+      );
+    });
   }
 
   getSpotEditsBySpotId$(

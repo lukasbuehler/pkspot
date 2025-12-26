@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, runInInjectionContext } from "@angular/core";
 import {
   Firestore,
   addDoc,
@@ -89,11 +89,9 @@ export class MediaReportsService extends ConsentAwareService {
       authUid: authUser?.uid ?? null,
     });
 
-    const docRef = await addDoc(
-      collection(this.firestore, "media_reports"),
-      report
-    );
-
+    const docRef = await runInInjectionContext(this.injector, () => {
+      return addDoc(collection(this.firestore, "media_reports"), report);
+    });
     return docRef.id;
   }
 

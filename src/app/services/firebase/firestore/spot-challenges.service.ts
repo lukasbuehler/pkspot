@@ -1,4 +1,9 @@
-import { inject, Injectable, LOCALE_ID } from "@angular/core";
+import {
+  inject,
+  Injectable,
+  LOCALE_ID,
+  runInInjectionContext,
+} from "@angular/core";
 import { Firestore } from "@angular/fire/firestore";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
 import { SpotChallengeSchema } from "../../../../db/schemas/SpotChallengeSchema";
@@ -31,9 +36,11 @@ export class SpotChallengesService extends ConsentAwareService {
     spotId: SpotId,
     challengeId: string
   ): Promise<SpotChallengeSchema> {
-    return getDoc(
-      doc(this._firestore, "spots", spotId, "challenges", challengeId)
-    ).then((snap) => {
+    return runInInjectionContext(this.injector, () => {
+      return getDoc(
+        doc(this._firestore, "spots", spotId, "challenges", challengeId)
+      );
+    }).then((snap) => {
       if (!snap.exists()) {
         return Promise.reject("No challenge found for this challenge id.");
       }
@@ -48,7 +55,9 @@ export class SpotChallengesService extends ConsentAwareService {
   }
 
   getAllChallengesForSpot(spot: Spot): Promise<SpotChallenge[]> {
-    return getDocs(collection(this._firestore, "spots", spot.id, "challenges"))
+    return runInInjectionContext(this.injector, () =>
+      getDocs(collection(this._firestore, "spots", spot.id, "challenges"))
+    )
       .then((snap) => {
         if (snap.size == 0) {
           return [];
@@ -75,9 +84,11 @@ export class SpotChallengesService extends ConsentAwareService {
 
     console.debug("adding challenge");
 
-    return addDoc(
-      collection(this._firestore, "spots", spotId, "challenges"),
-      challengeData
+    return runInInjectionContext(this.injector, () =>
+      addDoc(
+        collection(this._firestore, "spots", spotId, "challenges"),
+        challengeData
+      )
     ).then((docRef) => {
       return docRef.id;
     });
@@ -87,14 +98,16 @@ export class SpotChallengesService extends ConsentAwareService {
     spotId: SpotId,
     challengeId: string,
     challengeData: Partial<SpotChallengeSchema>
-  ): Promise<void> {
+  ) {
     challengeData = removeUndefinedProperties(challengeData);
 
     console.log("updating challenge", challengeId);
 
-    return updateDoc(
-      doc(this._firestore, "spots", spotId, "challenges", challengeId),
-      challengeData
+    return runInInjectionContext(this.injector, () =>
+      updateDoc(
+        doc(this._firestore, "spots", spotId, "challenges", challengeId),
+        challengeData
+      )
     );
   }
 }

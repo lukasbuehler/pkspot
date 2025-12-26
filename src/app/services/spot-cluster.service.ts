@@ -26,13 +26,27 @@ export class SpotClusterService {
   >();
   private _tileInFlight = new Map<string, Promise<ClusterPoint[]>>();
 
+  /**
+   * Cached Supercluster index - only rebuilt when the underlying points change.
+   * This is the key optimization: index.load() is O(n log n), but getClusters() is fast.
+   */
+  private _clusterIndex: Supercluster | null = null;
+  private _clusterIndexTileKey: string = "";
+  private _clusterIndexPoints: ClusterPoint[] = [];
+
+  /**
+   * Guard to prevent duplicate in-flight cluster requests for the same tile set.
+   */
+  private _clusterInFlight: Promise<ClusterResult> | null = null;
+  private _clusterInFlightTileKey: string = "";
+
   private readonly CACHE_TTL_MS = 60 * 1000; // 1 minute cache for tiles
 
   constructor(private _searchService: SearchService) {}
 
   /**
    * Main entry point: Get clusters for a specific viewport.
-   * This method abstract away the tiling logic.
+   * This method abstracts away the tiling logic and uses cached Supercluster index.
    */
   public async getClustersForViewport(
     viewport: VisibleViewport,
@@ -50,16 +64,98 @@ export class SpotClusterService {
     // Identify tiles at fetchZoom that cover the viewport
     const tilesToFetch = this._getTilesCoveringViewport(viewport, fetchZoom);
 
-    // 2. Fetch points for these tiles (parallel)
+    // Create a stable tile key for caching - sorted to ensure consistent key regardless of tile order
+    const tileKey = tilesToFetch
+      .map((t) => `${t.x}:${t.y}`)
+      .sort()
+      .join("|");
+
+    // If we already have an in-flight request for the same tile set, reuse it
+    if (this._clusterInFlight && this._clusterInFlightTileKey === tileKey) {
+      const result = await this._clusterInFlight;
+      // Return fresh clusters for current viewport using cached index
+      return this._getClusterResultForViewport(viewport, zoom);
+    }
+
+    // If the tile coverage hasn't changed, we can reuse the cached index
+    // and just query it with the new viewport (getClusters is fast)
+    if (this._clusterIndex && this._clusterIndexTileKey === tileKey) {
+      return this._getClusterResultForViewport(viewport, zoom);
+    }
+
+    // Need to fetch points and rebuild the index
+    const fetchPromise = this._fetchAndBuildIndex(
+      tilesToFetch,
+      fetchZoom,
+      tileKey
+    );
+    this._clusterInFlight = fetchPromise.then(() =>
+      this._getClusterResultForViewport(viewport, zoom)
+    );
+    this._clusterInFlightTileKey = tileKey;
+
+    try {
+      await fetchPromise;
+      return this._getClusterResultForViewport(viewport, zoom);
+    } finally {
+      this._clusterInFlight = null;
+      this._clusterInFlightTileKey = "";
+    }
+  }
+
+  /**
+   * Fetch points for tiles and build the Supercluster index.
+   * This is the expensive operation that we want to minimize.
+   */
+  private async _fetchAndBuildIndex(
+    tilesToFetch: { x: number; y: number }[],
+    fetchZoom: number,
+    tileKey: string
+  ): Promise<void> {
+    // Fetch points for these tiles (parallel)
     const pointsArrays = await Promise.all(
       tilesToFetch.map((t) => this.getPointsForTile(fetchZoom, t.x, t.y))
     );
 
-    // 3. Deduplicate points (because a spot might be on the edge or logic overlap)
+    // Deduplicate points (because a spot might be on the edge or logic overlap)
     const uniquePoints = this._deduplicatePoints(pointsArrays.flat());
 
-    // 4. Cluster using Supercluster
-    return this.clusterPointsForViewport(uniquePoints, viewport, zoom);
+    // Build the new index
+    const index = new Supercluster({ radius: 60, maxZoom: 20 });
+    const geojson = uniquePoints.map((p) => ({
+      type: "Feature" as const,
+      properties: { ...p },
+      geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+    }));
+    index.load(geojson);
+
+    // Cache the new index
+    this._clusterIndex = index;
+    this._clusterIndexTileKey = tileKey;
+    this._clusterIndexPoints = uniquePoints;
+  }
+
+  /**
+   * Get cluster result for a viewport using the cached index.
+   * This is fast - just a spatial query on the already-built index.
+   */
+  private _getClusterResultForViewport(
+    viewport: VisibleViewport,
+    zoom: number
+  ): ClusterResult {
+    if (!this._clusterIndex) {
+      return { clusters: [], points: [] };
+    }
+
+    const bbox: [number, number, number, number] = [
+      viewport.bbox.west,
+      viewport.bbox.south,
+      viewport.bbox.east,
+      viewport.bbox.north,
+    ];
+
+    const clusters = this._clusterIndex.getClusters(bbox, Math.floor(zoom));
+    return { clusters, points: this._clusterIndexPoints };
   }
 
   /**

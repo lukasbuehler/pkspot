@@ -108,6 +108,13 @@ export class SpotMapDataManager {
   readonly divisor = 4;
   readonly defaultRating = 1.5;
 
+  /**
+   * Debounce timer for cluster viewport changes (zoom 10-16).
+   * Prevents rapid reclustering during smooth pan/zoom gestures.
+   */
+  private _clusterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly CLUSTER_DEBOUNCE_MS = 100;
+
   constructor(
     readonly locale: LocaleCode,
     injector: Injector,
@@ -272,54 +279,99 @@ export class SpotMapDataManager {
       const yMin = Math.min(swTile.y, neTile.y);
       const yMax = Math.max(swTile.y, neTile.y);
 
-      // Use the new service method that handles fetching and clustering
-      this._spotClusterService!.getClustersForViewport(
-        { zoom, bbox: { north, south, west, east } },
-        zoom
-      )
-        .then(({ clusters, points }) => {
-          const dots: SpotClusterDotSchema[] = clusters.map((c: any) => {
-            const [lng, lat] = c.geometry?.coordinates || [0, 0];
-            const props = c.properties || {};
+      // Clear any pending debounce timer
+      if (this._clusterDebounceTimer) {
+        clearTimeout(this._clusterDebounceTimer);
+      }
 
-            if (props.cluster === true) {
+      // Debounce the cluster request to prevent rapid reclustering during smooth gestures.
+      // The SpotClusterService already caches the index, but debouncing further reduces
+      // unnecessary work during continuous pan/zoom.
+      this._clusterDebounceTimer = setTimeout(() => {
+        this._clusterDebounceTimer = null;
+
+        // Use the new service method that handles fetching and clustering
+        this._spotClusterService!.getClustersForViewport(
+          { zoom, bbox: { north, south, west, east } },
+          zoom
+        )
+          .then(({ clusters, points }) => {
+            const dots: SpotClusterDotSchema[] = clusters.map((c: any) => {
+              const [lng, lat] = c.geometry?.coordinates || [0, 0];
+              const props = c.properties || {};
+
+              if (props.cluster === true) {
+                return {
+                  location: {
+                    latitude: Number(lat),
+                    longitude: Number(lng),
+                  } as any,
+                  weight: Number(props.point_count) || 1,
+                  spot_id: null,
+                  cluster_id: props.cluster_id,
+                } as any;
+              }
+
               return {
                 location: {
                   latitude: Number(lat),
                   longitude: Number(lng),
                 } as any,
-                weight: Number(props.point_count) || 1,
-                spot_id: null,
-                cluster_id: props.cluster_id,
-              } as any;
-            }
+                weight: Number(props.weight) || 1,
+                spot_id: props.id ?? null,
+              } as SpotClusterDotSchema;
+            });
 
-            return {
-              location: {
-                latitude: Number(lat),
-                longitude: Number(lng),
-              } as any,
-              weight: Number(props.weight) || 1,
-              spot_id: props.id ?? null,
-            } as SpotClusterDotSchema;
-          });
+            this._visibleDots.set(dots);
 
-          this._visibleDots.set(dots);
+            // Top-N previews from unique points
+            try {
+              const topN = 4;
+              let filteredPoints = points.slice();
 
-          // Top-N previews from unique points
-          try {
-            const topN = 4;
-            let filteredPoints = points.slice();
+              // Filter points to precise viewport if available
+              // This prevents highlight markers from appearing outside the visible map area
+              if (this._currentViewport) {
+                const { north, south, east, west } = this._currentViewport.bbox;
 
-            // Filter points to precise viewport if available
-            // This prevents highlight markers from appearing outside the visible map area
-            if (this._currentViewport) {
-              const { north, south, east, west } = this._currentViewport.bbox;
+                // Helper to get lat/lng from a point (duplicate logic from map function below, could be extracted)
+                const getLatLng = (p: any) => {
+                  let lat = 0;
+                  let lng = 0;
+                  if (Array.isArray(p.location) && p.location.length >= 2) {
+                    lat = Number(p.location[0]);
+                    lng = Number(p.location[1]);
+                  } else if (p.lat && p.lng) {
+                    lat = Number(p.lat);
+                    lng = Number(p.lng);
+                  } else if (p.location && typeof p.location === "object") {
+                    lat = Number(p.location.latitude ?? p.location.lat ?? 0);
+                    lng = Number(p.location.longitude ?? p.location.lng ?? 0);
+                  }
+                  return { lat, lng };
+                };
 
-              // Helper to get lat/lng from a point (duplicate logic from map function below, could be extracted)
-              const getLatLng = (p: any) => {
-                let lat = 0;
-                let lng = 0;
+                filteredPoints = filteredPoints.filter((p) => {
+                  const { lat, lng } = getLatLng(p);
+                  // Check lat bounds
+                  if (lat > north || lat < south) return false;
+
+                  // Check lng bounds regarding wrap around?
+                  // Simple box check for now as standard maps usually don't wrap weirdly in local views
+                  // Ideally use MapsHelpers for wrap-around safe check if mostly needed
+                  // But for filtering visual noise, standard check is usually sufficient
+                  return lng <= east && lng >= west;
+                });
+              }
+
+              const sorted = filteredPoints
+                .filter((p: any) => p && (p.location || (p.lat && p.lng)))
+                .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0))
+                .slice(0, topN);
+
+              const previews: SpotPreviewData[] = sorted.map((p: any) => {
+                let lat = null as number | null;
+                let lng = null as number | null;
                 if (Array.isArray(p.location) && p.location.length >= 2) {
                   lat = Number(p.location[0]);
                   lng = Number(p.location[1]);
@@ -330,167 +382,134 @@ export class SpotMapDataManager {
                   lat = Number(p.location.latitude ?? p.location.lat ?? 0);
                   lng = Number(p.location.longitude ?? p.location.lng ?? 0);
                 }
-                return { lat, lng };
-              };
 
-              filteredPoints = filteredPoints.filter((p) => {
-                const { lat, lng } = getLatLng(p);
-                // Check lat bounds
-                if (lat > north || lat < south) return false;
+                const nameField = p.name ?? p.title ?? p.display_name ?? "";
+                let displayName: string = "Unnamed Spot";
 
-                // Check lng bounds regarding wrap around?
-                // Simple box check for now as standard maps usually don't wrap weirdly in local views
-                // Ideally use MapsHelpers for wrap-around safe check if mostly needed
-                // But for filtering visual noise, standard check is usually sufficient
-                return lng <= east && lng >= west;
-              });
-            }
+                if (typeof nameField === "string") {
+                  displayName = nameField;
+                } else if (
+                  typeof nameField === "object" &&
+                  nameField !== null &&
+                  Object.keys(nameField).length > 0
+                ) {
+                  const availableLocales = Object.keys(nameField) as any[];
+                  const bestLocale = getBestLocale(
+                    availableLocales,
+                    this.locale as any
+                  );
+                  const val = (nameField as any)[bestLocale];
 
-            const sorted = filteredPoints
-              .filter((p: any) => p && (p.location || (p.lat && p.lng)))
-              .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0))
-              .slice(0, topN);
-
-            const previews: SpotPreviewData[] = sorted.map((p: any) => {
-              let lat = null as number | null;
-              let lng = null as number | null;
-              if (Array.isArray(p.location) && p.location.length >= 2) {
-                lat = Number(p.location[0]);
-                lng = Number(p.location[1]);
-              } else if (p.lat && p.lng) {
-                lat = Number(p.lat);
-                lng = Number(p.lng);
-              } else if (p.location && typeof p.location === "object") {
-                lat = Number(p.location.latitude ?? p.location.lat ?? 0);
-                lng = Number(p.location.longitude ?? p.location.lng ?? 0);
-              }
-
-              const nameField = p.name ?? p.title ?? p.display_name ?? "";
-              let displayName: string = "Unnamed Spot";
-
-              if (typeof nameField === "string") {
-                displayName = nameField;
-              } else if (
-                typeof nameField === "object" &&
-                nameField !== null &&
-                Object.keys(nameField).length > 0
-              ) {
-                const availableLocales = Object.keys(nameField) as any[];
-                const bestLocale = getBestLocale(
-                  availableLocales,
-                  this.locale as any
-                );
-                const val = (nameField as any)[bestLocale];
-
-                if (typeof val === "string") {
-                  displayName = val;
-                } else if (val && typeof val === "object" && "text" in val) {
-                  displayName = val.text;
+                  if (typeof val === "string") {
+                    displayName = val;
+                  } else if (val && typeof val === "object" && "text" in val) {
+                    displayName = val.text;
+                  }
                 }
-              }
 
-              const imageSrc = p.thumbnail_url ?? p.image_src ?? "";
+                const imageSrc = p.thumbnail_url ?? p.image_src ?? "";
 
-              let localityString = "";
-              if (p.address) {
-                if (p.address.sublocality) {
-                  localityString += p.address.sublocality + ", ";
+                let localityString = "";
+                if (p.address) {
+                  if (p.address.sublocality) {
+                    localityString += p.address.sublocality + ", ";
+                  }
+                  if (p.address.locality) {
+                    localityString += p.address.locality + ", ";
+                  }
+                  if (p.address.country && p.address.country.code) {
+                    localityString += p.address.country.code.toUpperCase();
+                  }
                 }
-                if (p.address.locality) {
-                  localityString += p.address.locality + ", ";
-                }
-                if (p.address.country && p.address.country.code) {
-                  localityString += p.address.country.code.toUpperCase();
-                }
-              }
-              // removing trailing comma and space if present (though logic above handles it mostly by appending,
-              // but let's be safe or just leave trailing comma?
-              // Spot.ts logic: "sublocality, locality, GB".
-              // If country is missing: "sublocality, locality, " -> might want to trim.
-              // Actually Spot.ts result logic:
-              /*
+                // removing trailing comma and space if present (though logic above handles it mostly by appending,
+                // but let's be safe or just leave trailing comma?
+                // Spot.ts logic: "sublocality, locality, GB".
+                // If country is missing: "sublocality, locality, " -> might want to trim.
+                // Actually Spot.ts result logic:
+                /*
                   if (address?.sublocality) { str += address.sublocality + ", "; }
                   if (address?.locality) { str += address.locality + ", "; }
                   if (address?.country) { str += address.country.code.toUpperCase(); }
               */
-              // If proper formatted address is desired, we might want to trim trailing separateors if country is missing.
-              // Let's copy Spot.ts logic exactly first.
+                // If proper formatted address is desired, we might want to trim trailing separateors if country is missing.
+                // Let's copy Spot.ts logic exactly first.
 
-              // Reconstruct AmenitiesMap from separate arrays if needed
-              let amenities = p.amenities;
-              if (
-                !amenities &&
-                ((p.amenities_true && Array.isArray(p.amenities_true)) ||
-                  (p.amenities_false && Array.isArray(p.amenities_false)))
-              ) {
-                amenities = {};
-                if (p.amenities_true) {
-                  p.amenities_true.forEach((key: string) => {
-                    amenities[key] = true;
-                  });
+                // Reconstruct AmenitiesMap from separate arrays if needed
+                let amenities = p.amenities;
+                if (
+                  !amenities &&
+                  ((p.amenities_true && Array.isArray(p.amenities_true)) ||
+                    (p.amenities_false && Array.isArray(p.amenities_false)))
+                ) {
+                  amenities = {};
+                  if (p.amenities_true) {
+                    p.amenities_true.forEach((key: string) => {
+                      amenities[key] = true;
+                    });
+                  }
+                  if (p.amenities_false) {
+                    p.amenities_false.forEach((key: string) => {
+                      amenities[key] = false;
+                    });
+                  }
                 }
-                if (p.amenities_false) {
-                  p.amenities_false.forEach((key: string) => {
-                    amenities[key] = false;
-                  });
+
+                // Robust isIconic check
+                let isIconic = false;
+                const rawIsIconic = p.isIconic ?? p.is_iconic;
+                if (typeof rawIsIconic === "boolean") {
+                  isIconic = rawIsIconic;
+                } else if (typeof rawIsIconic === "string") {
+                  isIconic = rawIsIconic.toLowerCase() === "true";
+                } else if (typeof rawIsIconic === "number") {
+                  isIconic = rawIsIconic === 1;
                 }
+
+                const preview: SpotPreviewData = {
+                  id: (p.id as any) ?? (p.document?.id as any) ?? "",
+                  name: displayName,
+                  slug: p.slug ?? undefined,
+                  location:
+                    lat !== null && lng !== null
+                      ? new GeoPoint(lat, lng)
+                      : undefined,
+                  type: p.type ?? undefined,
+                  access: p.access ?? undefined,
+                  locality: localityString,
+                  imageSrc: imageSrc || "",
+                  isIconic: isIconic,
+                  rating: p.rating ?? undefined,
+                  amenities: amenities ?? undefined,
+                } as SpotPreviewData;
+
+                return preview;
+              });
+
+              // Only set highlighted spots if no filter is active.
+              // When filter mode is on, preserve the manual highlights set by setManualHighlightedSpots().
+              const activeFilter = this.spotFilterMode
+                ? this.spotFilterMode()
+                : SpotFilterMode.None;
+              if (activeFilter === SpotFilterMode.None) {
+                this._visibleHighlightedSpots.set(previews);
               }
-
-              // Robust isIconic check
-              let isIconic = false;
-              const rawIsIconic = p.isIconic ?? p.is_iconic;
-              if (typeof rawIsIconic === "boolean") {
-                isIconic = rawIsIconic;
-              } else if (typeof rawIsIconic === "string") {
-                isIconic = rawIsIconic.toLowerCase() === "true";
-              } else if (typeof rawIsIconic === "number") {
-                isIconic = rawIsIconic === 1;
+              // When filter is active, _visibleHighlightedSpots retains the manual highlights
+            } catch (err) {
+              console.error(
+                "Error building previews from Typesense points:",
+                err
+              );
+              // Only clear highlights if no filter is active
+              if (this.spotFilterMode() === SpotFilterMode.None) {
+                this._visibleHighlightedSpots.set([]);
               }
-
-              const preview: SpotPreviewData = {
-                id: (p.id as any) ?? (p.document?.id as any) ?? "",
-                name: displayName,
-                slug: p.slug ?? undefined,
-                location:
-                  lat !== null && lng !== null
-                    ? new GeoPoint(lat, lng)
-                    : undefined,
-                type: p.type ?? undefined,
-                access: p.access ?? undefined,
-                locality: localityString,
-                imageSrc: imageSrc || "",
-                isIconic: isIconic,
-                rating: p.rating ?? undefined,
-                amenities: amenities ?? undefined,
-              } as SpotPreviewData;
-
-              return preview;
-            });
-
-            // Only set highlighted spots if no filter is active.
-            // When filter mode is on, preserve the manual highlights set by setManualHighlightedSpots().
-            const activeFilter = this.spotFilterMode
-              ? this.spotFilterMode()
-              : SpotFilterMode.None;
-            if (activeFilter === SpotFilterMode.None) {
-              this._visibleHighlightedSpots.set(previews);
             }
-            // When filter is active, _visibleHighlightedSpots retains the manual highlights
-          } catch (err) {
-            console.error(
-              "Error building previews from Typesense points:",
-              err
-            );
-            // Only clear highlights if no filter is active
-            if (this.spotFilterMode() === SpotFilterMode.None) {
-              this._visibleHighlightedSpots.set([]);
-            }
-          }
 
-          // For this flow we don't populate full Spot objects via tiles here
-          this._visibleSpots.set([]);
-        })
-        .catch((err) => console.error("Cluster load error (tiles):", err));
+            // For this flow we don't populate full Spot objects via tiles here
+            this._visibleSpots.set([]);
+          })
+          .catch((err) => console.error("Cluster load error (tiles):", err));
+      }, this.CLUSTER_DEBOUNCE_MS);
 
       // We don't continue with tile-based loading when using Typesense clusters
       return;

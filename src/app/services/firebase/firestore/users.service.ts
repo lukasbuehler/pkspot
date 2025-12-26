@@ -21,6 +21,7 @@ import {
 import { ConsentAwareService } from "../../consent-aware.service";
 import { getDoc } from "firebase/firestore";
 import { StorageImage } from "../../../../db/models/Media";
+import { run } from "node:test";
 
 @Injectable({
   providedIn: "root",
@@ -43,7 +44,9 @@ export class UsersService extends ConsentAwareService {
       ...data,
     };
     return this.executeWithConsent(() => {
-      return setDoc(doc(this.firestore, "users", userId), schema);
+      return runInInjectionContext(this.injector, () => {
+        return setDoc(doc(this.firestore, "users", userId), schema);
+      });
     });
   }
 
@@ -83,7 +86,9 @@ export class UsersService extends ConsentAwareService {
 
     const firestore = this.firestore;
     return this.executeWhenConsent(() => {
-      return getDoc(doc(firestore, "users", userId));
+      return runInInjectionContext(this.injector, () => {
+        return getDoc(doc(firestore, "users", userId));
+      });
     }).then((snap) => {
       if (snap.exists()) {
         const data = snap.data() as UserSchema;
@@ -102,7 +107,9 @@ export class UsersService extends ConsentAwareService {
 
   updateUser(userId: string, _data: Partial<UserSchema>) {
     return this.executeWithConsent(() => {
-      return updateDoc(doc(this.firestore, "users", userId), _data);
+      return runInInjectionContext(this.injector, () => {
+        return updateDoc(doc(this.firestore, "users", userId), _data);
+      });
     });
   }
 

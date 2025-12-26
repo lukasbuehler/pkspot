@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, runInInjectionContext } from "@angular/core";
 import {
   Firestore,
   doc,
@@ -24,36 +24,42 @@ export class SpotReviewsService extends ConsentAwareService {
     spotId: string,
     reviewId: string
   ): Promise<SpotReviewSchema> {
-    return getDoc(
-      doc(this.firestore, "spots", spotId, "reviews", reviewId)
-    ).then((snap) => {
-      if (!snap.exists()) {
-        return Promise.reject("No review found for this review id.");
-      }
-      return snap.data() as SpotReviewSchema;
+    return runInInjectionContext(this.injector, () => {
+      return getDoc(
+        doc(this.firestore, "spots", spotId, "reviews", reviewId)
+      ).then((snap) => {
+        if (!snap.exists()) {
+          return Promise.reject("No review found for this review id.");
+        }
+        return snap.data() as SpotReviewSchema;
+      });
     });
   }
 
   getSpotReviewsBySpotId(spotId: string): Promise<SpotReviewSchema[]> {
     console.log("getting all reviews for a spot");
-    return getDocs(
-      query(collection(this.firestore, "spots", spotId, "reviews"))
-    ).then((snap) => {
-      if (snap.size == 0) {
-        return [];
-      }
-      return snap.docs.map((data) => data.data() as SpotReviewSchema);
+    return runInInjectionContext(this.injector, () => {
+      return getDocs(
+        query(collection(this.firestore, "spots", spotId, "reviews"))
+      ).then((snap) => {
+        if (snap.size == 0) {
+          return [];
+        }
+        return snap.docs.map((data) => data.data() as SpotReviewSchema);
+      });
     });
   }
 
   getSpotReviewsByUserId(userId: string): Promise<SpotReviewSchema> {
     console.log("getting all reviews for a user");
-    return getDocs(
-      query(
-        collection(this.firestore, "reviews"),
-        where("userId", "==", userId)
-      )
-    ).then((snap) => {
+    return runInInjectionContext(this.injector, () => {
+      return getDocs(
+        query(
+          collection(this.firestore, "reviews"),
+          where("userId", "==", userId)
+        )
+      );
+    }).then((snap) => {
       if (snap.size == 0) {
         return Promise.reject("No reviews found for this user id.");
       }
@@ -69,9 +75,11 @@ export class SpotReviewsService extends ConsentAwareService {
       props: { spotId: spot_id },
     });
 
-    return setDoc(
-      doc(this.firestore, "spots", spot_id, "reviews", user_id),
-      review
-    );
+    return runInInjectionContext(this.injector, () => {
+      return setDoc(
+        doc(this.firestore, "spots", spot_id, "reviews", user_id),
+        review
+      );
+    });
   }
 }

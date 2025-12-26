@@ -17,7 +17,6 @@ import {
   updateProfile,
 } from "@angular/fire/auth";
 import {
-  setPersistence,
   indexedDBLocalPersistence,
   browserLocalPersistence,
   inMemoryPersistence,

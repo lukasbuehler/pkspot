@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, runInInjectionContext } from "@angular/core";
 import {
   collection,
   doc,
@@ -34,53 +34,59 @@ export class SlugsService extends ConsentAwareService {
       where("spot_id", "==", spotId)
     );
 
-    return getDocs(q)
-      .then((snap) => {
-        if ((snap?.size ?? 0) > 0) {
-          return Promise.reject("A custom URL already exists for this spot.");
-        }
-      })
-      .then(() => getDoc(slugDocRef))
-      .then((snap) => {
-        if (snap.exists()) {
-          // If already mapped to same spot, treat as success; otherwise reject to avoid overwrite
-          const existing = snap.data() as any;
-          const existingSpotId: string | undefined = existing.spot_id;
-          if (existingSpotId === spotId) return; // no-op
-          return Promise.reject(
-            "This URL is already taken. Please choose another."
-          );
-        }
-        const data: SpotSlugSchema = {
-          spot_id: spotId,
-        };
-        return setDoc(slugDocRef, data);
-      });
+    return runInInjectionContext(this.injector, () => {
+      return getDocs(q)
+        .then((snap) => {
+          if ((snap?.size ?? 0) > 0) {
+            return Promise.reject("A custom URL already exists for this spot.");
+          }
+        })
+        .then(() => getDoc(slugDocRef))
+        .then((snap) => {
+          if (snap.exists()) {
+            // If already mapped to same spot, treat as success; otherwise reject to avoid overwrite
+            const existing = snap.data() as any;
+            const existingSpotId: string | undefined = existing.spot_id;
+            if (existingSpotId === spotId) return; // no-op
+            return Promise.reject(
+              "This URL is already taken. Please choose another."
+            );
+          }
+          const data: SpotSlugSchema = {
+            spot_id: spotId,
+          };
+          return setDoc(slugDocRef, data);
+        });
+    });
   }
 
   getAllSlugsForASpot(spotId: string): Promise<string[]> {
-    return getDocs(
-      query(
-        collection(this.firestore, "spot_slugs"),
-        where("spot_id", "==", spotId)
-      )
-    ).then((snap) => {
-      if (!snap || snap.size === 0) return [];
-      return snap.docs.map((d) => d.id);
+    return runInInjectionContext(this.injector, () => {
+      return getDocs(
+        query(
+          collection(this.firestore, "spot_slugs"),
+          where("spot_id", "==", spotId)
+        )
+      ).then((snap) => {
+        if (!snap || snap.size === 0) return [];
+        return snap.docs.map((d) => d.id);
+      });
     });
   }
 
   getSpotIdFromSpotSlug(slug: string): Promise<SpotId> {
     const slugString: string = slug.toString();
 
-    return getDoc(doc(this.firestore, "spot_slugs", slugString))
-      .then((snap) => {
-        if (!snap.exists()) {
-          return Promise.reject("No spot found for this slug.");
-        }
-        return snap.data() as any;
-      })
-      .then((data) => data.spot_id as SpotId);
+    return runInInjectionContext(this.injector, () => {
+      return getDoc(doc(this.firestore, "spot_slugs", slugString))
+        .then((snap) => {
+          if (!snap.exists()) {
+            return Promise.reject("No spot found for this slug.");
+          }
+          return snap.data() as any;
+        })
+        .then((data) => data.spot_id as SpotId);
+    });
   }
 
   getSpotIdFromSpotSlugHttp(slug: string): Promise<SpotId> {
