@@ -610,6 +610,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           const challengeId = match?.[3] ?? null;
           const showEditHistory = !!match?.[4];
 
+          // Also extract filter query param from URL to keep it in sync
+          const queryIndex = navEvent.url.indexOf("?");
+          if (queryIndex >= 0) {
+            const queryString = navEvent.url.substring(queryIndex + 1);
+            const params = new URLSearchParams(queryString);
+            const filterParam = params.get("filter");
+            if (filterParam && this.selectedFilter() !== filterParam) {
+              this.selectedFilter.set(filterParam);
+            }
+          }
+
           this._handleURLParamsChange(
             spotIdOrSlug,
             showChallenges,
@@ -951,60 +962,71 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateMapURL() {
+    // Only update URL if we're currently on the map page
+    // This prevents interfering with navigation away from the map
+    if (!this.router.url.startsWith("/map")) {
+      return;
+    }
+
     const selectedSpot = this.selectedSpot();
     const selectedChallenge = this.selectedChallenge();
     const showEditHistory = this.showSpotEditHistory();
     const activeFilter = this.selectedFilter();
 
-    // Build query params - only include filter if set and not empty
-    const queryParams: { filter?: string | null } = {};
-    if (activeFilter) {
-      queryParams.filter = activeFilter;
-    } else {
-      // Explicitly remove filter param if activeFilter is empty
-      queryParams.filter = null;
-    }
+    // Get the spot - prefer selectedSpot, but fall back to challenge's spot
+    const spot =
+      selectedSpot instanceof Spot
+        ? selectedSpot
+        : selectedChallenge instanceof SpotChallenge
+        ? selectedChallenge.spot
+        : null;
 
-    const commands =
+    // Build the path based on current state
+    let path: string;
+    if (
       selectedChallenge &&
       selectedChallenge instanceof SpotChallenge &&
-      selectedSpot &&
-      selectedSpot instanceof Spot
-        ? [
-            "/map",
-            selectedSpot.slug ?? selectedSpot.id,
-            "c",
-            selectedChallenge.id,
-          ]
-        : selectedSpot && selectedSpot instanceof Spot && showEditHistory
-        ? ["/map", selectedSpot.slug ?? selectedSpot.id, "edits"]
-        : selectedSpot &&
-          selectedSpot instanceof Spot &&
-          this.showAllChallenges()
-        ? ["/map", selectedSpot.slug ?? selectedSpot.id, "c"]
-        : selectedSpot && selectedSpot instanceof Spot
-        ? ["/map", selectedSpot.slug ?? selectedSpot.id]
-        : ["/map"];
+      spot
+    ) {
+      path = `/map/${encodeURIComponent(
+        spot.slug ?? spot.id
+      )}/c/${encodeURIComponent(selectedChallenge.id)}`;
+    } else if (spot && showEditHistory) {
+      path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}/edits`;
+    } else if (spot && this.showAllChallenges()) {
+      path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}/c`;
+    } else if (spot) {
+      path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}`;
+    } else {
+      path = `/map`;
+    }
 
-    const urlTree = this.router.createUrlTree(commands, {
-      queryParams: queryParams,
-      queryParamsHandling: "merge",
-    });
+    // Use Location.path() to get the actual browser URL including query params
+    // This is necessary because Location.replaceState() doesn't update router.url
+    const currentUrl = this._location.path();
+    const queryIndex = currentUrl.indexOf("?");
+    const existingParams = new URLSearchParams(
+      queryIndex >= 0 ? currentUrl.substring(queryIndex + 1) : ""
+    );
 
-    const currentUrl = this.router.url;
-    const newUrl = this.router.serializeUrl(urlTree);
+    // Update the filter param based on activeFilter signal
+    if (activeFilter) {
+      existingParams.set("filter", activeFilter);
+    } else {
+      existingParams.delete("filter");
+    }
+
+    // Build the new URL
+    const queryString = existingParams.toString();
+    const newUrl = queryString ? `${path}?${queryString}` : path;
 
     if (currentUrl === newUrl) {
       return;
     }
 
-    // Use router.navigate with commands array to allow Angular to smartly handle route reuse
-    // merge query params to preserve potential other params, but we explicitly control 'filter'
-    this.router.navigate(commands, {
-      queryParams: queryParams,
-      queryParamsHandling: "merge",
-      replaceUrl: true,
-    });
+    // Use Location.replaceState to update the URL without triggering navigation
+    // This prevents interference with navigation away from the map page
+    this._location.replaceState(newUrl);
   }
 
   /**

@@ -437,6 +437,7 @@
       <a
         mat-stroked-button
         [routerLink]="['/map', spotSlugOrId(), 'edits']"
+        queryParamsHandling="merge"
         (click)="editHistoryButtonClick()"
         class="flex-grow-1 flex-basis-0"
         i18n-matTooltip="
