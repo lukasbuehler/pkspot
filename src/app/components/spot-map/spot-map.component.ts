@@ -259,7 +259,8 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       // When filter is cleared, also clear manual highlights
       if (filterMode === SpotFilterMode.None) {
         this._spotMapDataManager.clearManualHighlightedSpots();
-        this._spotMapDataManager.refresh();
+        // Schedule refresh in next tick to ensure signal has fully propagated
+        setTimeout(() => this._spotMapDataManager.refresh(), 0);
       }
     });
   }

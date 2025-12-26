@@ -157,6 +157,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
 
+  /** Signal to track when the map is ready for interaction */
+  mapReady = signal<boolean>(false);
+
   pendingTasks = inject(PendingTasks);
   responsiveService = inject(ResponsiveService);
   private ngZone = inject(NgZone);
@@ -238,17 +241,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   filterEffect = effect(() => {
     const filter = this.selectedFilter();
-    const map = this.spotMap;
+    const isMapReady = this.mapReady();
 
-    // Only proceed if we have a map instance
-    if (map) {
-      if (filter) {
-        // Schedule in next tick to avoid ExpressionChangedAfterItHasBeenChecked if called during init
-        setTimeout(() => this.filterChipChanged(filter), 0);
-      } else {
-        // Ensure filter is cleared if signal is empty
-        this.filterChipChanged("");
-      }
+    console.debug("filterEffect running:", {
+      filter,
+      isMapReady,
+      hasSpotMap: !!this.spotMap,
+    });
+
+    // Only proceed if we have a map instance that's ready
+    if (isMapReady && this.spotMap) {
+      // filterChipChanged handles both cases: bounds available (immediate search)
+      // and bounds not available (sets filter mode, waits for filterBoundsChange event)
+      console.debug("filterEffect: calling filterChipChanged with:", filter);
+      setTimeout(() => this.filterChipChanged(filter), 0);
     }
   });
 
@@ -571,6 +577,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
+    // The spotMap is inside a @defer block, so it won't be available immediately.
+    // Only poll for spotMap in the browser (not during SSR).
+    if (isPlatformBrowser(this.platformId)) {
+      const checkSpotMapAvailable = () => {
+        if (this.spotMap) {
+          console.debug("spotMap is now available, setting mapReady");
+          this.mapReady.set(true);
+        } else {
+          // Keep polling every 50ms until spotMap is available
+          setTimeout(checkSpotMapAvailable, 50);
+        }
+      };
+      checkSpotMapAvailable();
+    }
+
     if (isPlatformBrowser(this.platformId)) {
       this._routerSubscription = this.router.events
         .pipe(filter((event) => event instanceof NavigationStart))
@@ -830,6 +851,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _activeFilter: string = "";
 
   /**
+   * Pending filter to apply when bounds become available (for URL-based filter on page load).
+   */
+  private _pendingFilter: string | null = null;
+
+  /**
    * Handle filter bounds change - re-run the filter search for the new bounds.
    */
   onFilterBoundsChange(bounds: google.maps.LatLngBounds): void {
@@ -861,6 +887,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (!selectedChip || selectedChip.length === 0) {
       this._activeFilter = "";
+      this._pendingFilter = null;
       this.highlightedSpots = [];
       this.visibleSpots = [];
       if (this.spotMap) {
@@ -872,12 +899,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Track the active filter for re-searching on pan
     this._activeFilter = selectedChip;
-
-    const bounds = this.spotMap?.bounds;
-    if (!bounds) {
-      console.error("No bounds available when applying spot search filter");
-      return;
-    }
 
     // Convert URL param to filter mode using the centralized config
     const filterMode = getFilterModeFromUrlParam(selectedChip);
@@ -893,7 +914,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Generic filter application - no more switch statement!
+    // Set filter mode on spotMap FIRST - this ensures filterBoundsChange will fire
+    // when bounds become available
+    if (this.spotMap) {
+      this.spotMap.spotFilterMode.set(filterMode);
+    }
+
+    const bounds = this.spotMap?.bounds;
+    if (!bounds) {
+      // Bounds not available yet - the search will be triggered by onFilterBoundsChange
+      // when the map emits its first bounds
+      console.debug("Filter set, waiting for bounds to become available...");
+      return;
+    }
+
+    // Generic filter search
     console.log(`Searching for ${selectedChip} spots in bounds:`, bounds);
 
     this._searchService
@@ -907,7 +942,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
         if (this.spotMap) {
-          this.spotMap.spotFilterMode.set(filterMode);
           this.spotMap.setFilteredSpots(previews);
         }
       })

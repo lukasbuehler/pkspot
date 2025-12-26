@@ -114,12 +114,10 @@ export class SpotPreviewCardComponent implements OnChanges {
         .map((m) => m.getPreviewImageSrc());
     }
 
-    console.log("media length", mediaArr.length);
     if (mediaArr.length === 0) {
       // Return Street View Static API image if available
 
       if (location) {
-        console.log("No media found for spot, using Street View");
         let spotId: string | undefined;
 
         if (spot instanceof Spot) {
@@ -138,7 +136,6 @@ export class SpotPreviewCardComponent implements OnChanges {
           spotId
         );
 
-        console.log("instead of media, Street View URL: ", svUrl);
         if (svUrl) {
           mediaArr.push(svUrl);
         }

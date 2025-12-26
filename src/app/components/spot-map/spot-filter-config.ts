@@ -11,6 +11,7 @@ export enum SpotFilterMode {
   ForParkour = "parkour",
   Dry = "dry",
   Indoor = "indoor",
+  Lighting = "lighting",
 }
 
 /**
@@ -84,6 +85,19 @@ export const SPOT_FILTER_CONFIGS: Map<SpotFilterMode, SpotFilterConfig> =
         matchesSpot: (spot: Spot) => {
           const amenities = spot.amenities() ?? {};
           return !!amenities.indoor;
+        },
+      },
+    ],
+    [
+      SpotFilterMode.Lighting,
+      {
+        mode: SpotFilterMode.Lighting,
+        urlParam: "lighting",
+        types: [],
+        amenities_true: ["lighting"],
+        matchesSpot: (spot: Spot) => {
+          const amenities = spot.amenities() ?? {};
+          return !!amenities.lighting;
         },
       },
     ],
