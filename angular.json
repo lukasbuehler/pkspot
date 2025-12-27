@@ -56,7 +56,7 @@
             },
             "localize": ["en", "de", "de-CH", "it", "fr", "es", "nl"],
             "outputPath": "dist/pkspot",
-            "index": "src/index.html",
+            "index": { "input": "src/index.html", "output": "index.html" },
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js",
