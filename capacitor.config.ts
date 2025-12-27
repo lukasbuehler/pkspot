@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "app.pkspot.app",
-  appName: "pkspot",
+  appName: "PK Spot",
   webDir: "dist/pkspot/browser",
 };
 

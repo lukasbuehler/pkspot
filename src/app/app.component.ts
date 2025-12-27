@@ -52,6 +52,7 @@ import { SelectLanguageDialogComponent } from "./components/select-language-dial
 import { firstValueFrom } from "rxjs";
 import { AnalyticsService } from "./services/analytics.service";
 import { ConsentService } from "./services/consent.service";
+import { Capacitor } from "@capacitor/core";
 
 interface ButtonBase {
   name: string;
@@ -666,6 +667,19 @@ export class AppComponent implements OnInit {
         // set the new language
         segments[1] = localeCode;
         url.pathname = segments.join("/");
+
+        // Fix for Capacitor/Native: Ensure we point to index.html and handle deep links if needed
+        if (Capacitor.isNativePlatform()) {
+          // If the path doesn't end with index.html, append it or reset to root to avoid 404s on folder paths
+          if (!url.pathname.endsWith("index.html")) {
+            // If we are on a deep path (e.g. /en/map), simple replacement to /de/map might fail without server support.
+            // Safest is to redirect to the root index.html of the new language.
+            const baseUrl = window.location.href.split(`/${currentLocale}/`)[0];
+            window.location.href = `${baseUrl}/${localeCode}/index.html`;
+            return;
+          }
+        }
+
         window.location.href = url.toString();
       }
     });

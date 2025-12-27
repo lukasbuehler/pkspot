@@ -9,6 +9,12 @@ button:focus {
   outline: none;
 }
 
+html {
+  /* Native Status Bar Padding */
+  // padding-top: env(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top) !important;
+}
+
 body,
 html {
   margin: 0;

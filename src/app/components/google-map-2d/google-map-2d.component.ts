@@ -59,6 +59,7 @@ import { AnyMedia } from "../../../db/models/Media";
 import { ThemeService } from "../../services/theme.service";
 import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.component";
 import { CustomMarkerComponent } from "../custom-marker/custom-marker.component";
+import { GeolocationService } from "../../services/geolocation.service";
 
 function enumerateTileRangeX(
   start: number,
@@ -433,9 +434,22 @@ export class GoogleMap2dComponent
     private cdr: ChangeDetectorRef,
     public mapsApiService: MapsApiService,
     private _consentService: ConsentService,
-    private theme: ThemeService
+    private theme: ThemeService,
+    private geolocationService: GeolocationService
   ) {
     super();
+
+    // Connect geolocation signal
+    effect(() => {
+      const loc = this.geolocationService.currentLocation();
+      if (loc) {
+        this.geolocation.set(loc);
+        this.hasGeolocationChange.emit(true);
+      } else {
+        this.geolocation.set(null);
+        this.hasGeolocationChange.emit(false);
+      }
+    });
     // Effect to handle selected spot changes and editing state changes for polygon updates
     effect(() => {
       const tracker = this.selectedSpotTracker();
@@ -627,40 +641,13 @@ export class GoogleMap2dComponent
   }
 
   initGeolocation() {
-    navigator.permissions.query({ name: "geolocation" }).then((permission) => {
-      if (permission.state == "granted") {
-        this.useGeolocation();
-      }
-    });
+    if (this.showGeolocation) {
+      this.geolocationService.startWatching();
+    }
   }
 
   useGeolocation() {
-    if (this.showGeolocation) {
-      let geolocationWatchId = navigator.geolocation.watchPosition(
-        (_location) => {
-          let locObj = {
-            location: {
-              lat: _location.coords.latitude,
-              lng: _location.coords.longitude,
-            },
-            accuracy: _location.coords.accuracy,
-          };
-          this.geolocation.set(locObj);
-          this.hasGeolocationChange.emit(true);
-        },
-        (error) => {
-          console.error(error);
-          navigator.geolocation.clearWatch(geolocationWatchId);
-          this.geolocation.set(null);
-          this.hasGeolocationChange.emit(false);
-        },
-        {
-          enableHighAccuracy: true,
-        }
-      );
-    }
-
-    this.cdr.detectChanges();
+    // Managed by GeolocationService now
   }
 
   geolocation = signal<{
