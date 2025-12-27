@@ -7,7 +7,7 @@
     // background-color: mat.get-theme-color($theme, surface-container-low);
     background-color: rgba(
       mat.get-theme-color($theme, surface-container-high),
-      0.8
+      0.9
     ) !important;
     backdrop-filter: blur(10px);
   }

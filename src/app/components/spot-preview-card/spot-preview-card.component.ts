@@ -86,7 +86,7 @@ export class SpotPreviewCardComponent implements OnChanges {
   @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() edit: EventEmitter<any> = new EventEmitter<any>();
 
-  fallbackImgSrc = "/assets/no_media.png";
+  fallbackImgSrc = "assets/no_media.png";
 
   spotName?: string;
   spotLocality?: string;

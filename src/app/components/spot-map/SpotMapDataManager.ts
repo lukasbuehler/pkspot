@@ -246,6 +246,12 @@ export class SpotMapDataManager {
 
     // If we have the SpotClusterService available and the zoom is >= 10,
     // prefer Typesense + client-side Supercluster clustering for viewport-driven loading.
+    console.log(
+      "[SpotMapDataManager] setVisibleTiles zoom:",
+      zoom,
+      "Service avail:",
+      !!this._spotClusterService
+    );
     if (this._spotClusterService && zoom >= 10 && zoom < 16) {
       const tileZoom = 12; // base tile zoom for fetching/caching
 
@@ -1032,6 +1038,11 @@ export class SpotMapDataManager {
     // add an empty array for the tiles that spots will be loaded for
     tilesToLoad.forEach((key) => this._tilesLoading.add(key));
 
+    console.log(
+      "[SpotMapDataManager] _loadSpotsForTiles loading:",
+      tilesToLoad.size
+    );
+
     // load the spots and add them
     firstValueFrom(
       this._spotsService.getSpotsForTileKeys(
@@ -1040,7 +1051,11 @@ export class SpotMapDataManager {
       )
     )
       .then((spots) => this._addLoadedSpots(spots))
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error("[SpotMapDataManager] Load Error:", err);
+        // Clear loading state on error so we can retry
+        tilesToLoad.forEach((key) => this._tilesLoading.delete(key));
+      });
   }
 
   private _getMarkerTilesToLoad(visibleTilesObj: TilesObject): Set<MapTileKey> {
@@ -1220,7 +1235,14 @@ export class SpotMapDataManager {
 
     const missingTiles = [...visibleTilesObj.tiles]
       .map((tile) => getClusterTileKey(visibleTilesObj.zoom, tile.x, tile.y))
-      .filter((tileKey) => !this._spotClusterTiles.has(tileKey));
+      .filter((tileKey) => !this._spots.has(tileKey));
+
+    console.log(
+      "[SpotMapDataManager] _getSpotTilesToLoad missing:",
+      missingTiles.length,
+      "zoom:",
+      zoom
+    );
 
     const tilesToLoad = new Set(
       missingTiles.filter((tileKey: MapTileKey) => !this.isTileLoading(tileKey))
@@ -1308,7 +1330,10 @@ export class SpotMapDataManager {
       this._spotsService.getSpotClusterTiles(Array.from(tilesToLoad))
     )
       .then((spotClusters) => this._addLoadedSpotClusters(spotClusters))
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error("[SpotMapDataManager] Cluster Load Error:", err);
+        tilesToLoad.forEach((key) => this._tilesLoading.delete(key));
+      });
   }
 
   isTileLoading(tileKey: MapTileKey): boolean {

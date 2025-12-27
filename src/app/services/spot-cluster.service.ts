@@ -97,6 +97,9 @@ export class SpotClusterService {
     try {
       await fetchPromise;
       return this._getClusterResultForViewport(viewport, zoom);
+    } catch (e) {
+      console.error("[SpotClusterService] fetchAndBuildIndex failed", e);
+      throw e;
     } finally {
       this._clusterInFlight = null;
       this._clusterInFlightTileKey = "";

@@ -647,7 +647,12 @@ export class GoogleMap2dComponent
   }
 
   useGeolocation() {
-    // Managed by GeolocationService now
+    this.geolocationService.getCurrentPosition().then((pos) => {
+      if (pos && this.googleMap) {
+        this.googleMap.panTo(pos.location);
+        this.googleMap.zoom = 17;
+      }
+    });
   }
 
   geolocation = signal<{
