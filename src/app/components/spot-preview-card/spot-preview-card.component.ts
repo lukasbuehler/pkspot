@@ -11,6 +11,7 @@ import {
   input,
   computed,
   signal,
+  effect,
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { MapsApiService } from "../../services/maps-api.service";
@@ -25,6 +26,9 @@ import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
 import { getImportantAmenities } from "../../../db/models/Amenities";
+import { isoCountryCodeToFlagEmoji } from "../../../scripts/Helpers";
+
+import { MatTooltipModule } from "@angular/material/tooltip";
 
 @Component({
   selector: "app-spot-preview-card",
@@ -38,6 +42,7 @@ import { getImportantAmenities } from "../../../db/models/Amenities";
     SpotRatingComponent,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
   ],
 })
 export class SpotPreviewCardComponent implements OnChanges {
@@ -144,6 +149,69 @@ export class SpotPreviewCardComponent implements OnChanges {
     return mediaArr;
   });
 
+  countryCode = computed(() => {
+    const spot = this.spotData();
+    let code: string | undefined;
+    if (!spot) return undefined;
+    if (spot instanceof Spot || spot instanceof LocalSpot) {
+      code = spot.address()?.country?.code;
+    } else {
+      // SpotPreviewData
+      code = spot.countryCode;
+
+      // Fallback: try to extract from locality string if it ends with ", XX"
+      if (!code && spot.locality) {
+        const match = spot.locality.trim().match(/, ([A-Za-z]{2})$/);
+        if (match && match[1]) {
+          code = match[1];
+        }
+      }
+    }
+    return code?.trim().toUpperCase();
+  });
+
+  countryFlagEmoji = computed(() => {
+    const code = this.countryCode();
+    return code ? isoCountryCodeToFlagEmoji(code) : undefined;
+  });
+
+  countryTooltip = computed(() => {
+    const spot = this.spotData();
+    if (!spot) return "";
+    let name = "";
+    if (spot instanceof Spot || spot instanceof LocalSpot) {
+      name = spot.address()?.country?.name || "";
+    } else {
+      name = (spot as any).countryName || "";
+    }
+    return name;
+  });
+
+  displayLocality = computed(() => {
+    const spot = this.spotData();
+    if (!spot) return "";
+    let loc = "";
+    let code = this.countryCode();
+
+    if (spot instanceof Spot || spot instanceof LocalSpot) {
+      loc = spot.localityString();
+    } else {
+      loc = spot.locality;
+    }
+
+    // If we have a code and the locality ends with it, strip it
+    if (code && loc.endsWith(code.toUpperCase())) {
+      // Also strip the comma/space before it if present
+      const suffix = code.toUpperCase();
+      loc = loc.substring(0, loc.length - suffix.length);
+      loc = loc.trim();
+      if (loc.endsWith(",")) {
+        loc = loc.substring(0, loc.length - 1);
+      }
+    }
+    return loc;
+  });
+
   bookmarked = false;
   visited = false;
 
@@ -154,7 +222,23 @@ export class SpotPreviewCardComponent implements OnChanges {
     private _router: Router,
     public storageService: StorageService,
     public mapsApiService: MapsApiService
-  ) {}
+  ) {
+    effect(() => {
+      const data = this.spotData();
+      const code = this.countryCode();
+      const emoji = this.countryFlagEmoji();
+      if (code) {
+        console.log("SpotPreviewCard Debug:", {
+          name: (data as any)?.name,
+          code,
+          emoji,
+          emojiCodePoints: emoji
+            ? [...emoji].map((c) => c.codePointAt(0)?.toString(16))
+            : "undefined",
+        });
+      }
+    });
+  }
 
   ngOnChanges() {
     const spot = this.spotData();

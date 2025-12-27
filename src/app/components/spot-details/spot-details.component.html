@@ -130,7 +130,21 @@
           >}
         </div>
         } @if(spot()?.address()) {
-        <span class="text-truncate">{{ spot()!.localityString() }}</span>
+        <span class="text-truncate d-flex align-items-center gap-1">
+          <span
+            >{{ displayLocality()
+            }}{{ displayLocality() && countryCode() ? "," : "" }}</span
+          >
+          @if(countryCode()) {
+          <span
+            class="country-badge"
+            [matTooltip]="spot()?.address()?.country?.name || ''"
+          >
+            <span class="country-code">{{ countryCode() }}</span>
+            <span class="flag-emoji ms-1">{{ countryFlagEmoji() }}</span>
+          </span>
+          }
+        </span>
         }
       </div>
 

@@ -672,6 +672,8 @@ export class Spot extends LocalSpot {
       id: this.id,
       slug: this.slug ?? undefined,
       locality: this.localityString(),
+      countryCode: this.address()?.country?.code,
+      countryName: this.address()?.country?.name,
       imageSrc: this.previewImageSrc(),
       isIconic: this.isIconic,
       rating: this.rating || undefined,

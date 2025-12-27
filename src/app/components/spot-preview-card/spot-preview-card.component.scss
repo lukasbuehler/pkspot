@@ -81,3 +81,20 @@ mat-card.clickable:hover {
 .img-container.isCompact {
   height: 100%;
 }
+
+.country-badge {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.flag-emoji {
+  font-size: 1.4em;
+  line-height: 1;
+  font-style: normal;
+  margin-left: 4px;
+}
+
+.country-code {
+  font-weight: 500;
+}

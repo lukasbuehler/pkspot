@@ -182,3 +182,19 @@ div.google-img-container {
     padding: 8px 0;
   }
 }
+
+.country-badge {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.flag-emoji {
+  font-size: 1.2em;
+  line-height: 1;
+  filter: grayscale(0.2);
+}
+
+.country-code {
+  font-weight: 500;
+}

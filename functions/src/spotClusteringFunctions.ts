@@ -99,6 +99,8 @@ async function _clusterAllSpots() {
             isIconic: spot.is_iconic ?? false,
             imageSrc: getSpotPreviewImage(spot),
             locality: getSpotLocalityString(spot),
+            countryCode: spot.address?.country?.code,
+            countryName: spot.address?.country?.name,
           };
 
           // Only add optional fields if they are defined

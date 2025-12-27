@@ -308,6 +308,31 @@ export class SpotDetailsComponent
     () => this.spot() !== null && !(this.spot() instanceof Spot)
   );
 
+  countryCode = computed(() => {
+    return this.spot()?.address()?.country?.code;
+  });
+
+  countryFlagEmoji = computed(() => {
+    const code = this.countryCode();
+    return code ? isoCountryCodeToFlagEmoji(code) : undefined;
+  });
+
+  displayLocality = computed(() => {
+    const spot = this.spot();
+    if (!spot) return "";
+    let loc = spot.localityString();
+    const code = this.countryCode();
+
+    if (code && loc.endsWith(code.toUpperCase())) {
+      const suffix = code.toUpperCase();
+      loc = loc.substring(0, loc.length - suffix.length).trim();
+      if (loc.endsWith(",")) {
+        loc = loc.substring(0, loc.length - 1);
+      }
+    }
+    return loc;
+  });
+
   // Expose centralized questions for potential dynamic UI
   AmenityQuestions = AmenityQuestions;
 

@@ -45,9 +45,24 @@
             }
           </div>
         </div>
-        @if(spotLocality) {
-        <span class="text-truncate mat-title-small" style="flex-shrink: 1">
-          {{ spotLocality }}
+        @if(displayLocality() || countryCode()) {
+        <span
+          class="mat-title-small d-flex align-items-center gap-1"
+          style="flex-shrink: 1; min-width: 0"
+        >
+          <span class="text-truncate"
+            >{{ displayLocality()
+            }}{{ displayLocality() && countryCode() ? "," : "" }}</span
+          >
+          @if(countryCode()) {
+          <span
+            class="country-badge flex-shrink-0"
+            [matTooltip]="countryTooltip()"
+          >
+            <span class="country-code">{{ countryCode() }}</span>
+            <span class="flag-emoji">{{ countryFlagEmoji() }}</span>
+          </span>
+          }
         </span>
         }
       </div>

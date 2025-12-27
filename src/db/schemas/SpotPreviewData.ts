@@ -10,6 +10,8 @@ export interface SpotPreviewData {
   type?: string; //SpotTypes;
   access?: string; //SpotAccess;
   locality: string;
+  countryCode?: string;
+  countryName?: string;
   imageSrc: string;
   isIconic: boolean;
   rating?: number; // whole number 1-10
