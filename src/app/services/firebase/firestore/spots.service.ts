@@ -310,7 +310,34 @@ export class SpotsService extends ConsentAwareService {
           }
           // Convert to the expected array shape
           console.log(`[SpotsService] Cluster Tile ${tile} returned DATA`);
-          return [d as SpotClusterTileSchema];
+
+          const tileData = d as SpotClusterTileSchema;
+
+          // Normalize dots
+          if (tileData.dots) {
+            tileData.dots.forEach((dot) => {
+              if (!dot.location && dot.location_raw) {
+                dot.location = new GeoPoint(
+                  dot.location_raw.lat,
+                  dot.location_raw.lng
+                );
+              }
+            });
+          }
+
+          // Normalize highlighted spots
+          if (tileData.spots) {
+            tileData.spots.forEach((spot) => {
+              if (!spot.location && spot.location_raw) {
+                spot.location = new GeoPoint(
+                  spot.location_raw.lat,
+                  spot.location_raw.lng
+                );
+              }
+            });
+          }
+
+          return [tileData];
         }),
         catchError((err) => {
           console.error(`[SpotsService] Cluster Tile ${tile} FAILED:`, err);
