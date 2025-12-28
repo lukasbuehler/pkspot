@@ -57,6 +57,8 @@
     "@angular/router": "^20.3.15",
     "@angular/service-worker": "^20.3.15",
     "@angular/ssr": "^20.3.6",
+    "@capacitor-firebase/authentication": "^8.0.1",
+    "@capacitor-firebase/firestore": "^8.0.1",
     "@capacitor/android": "^8.0.0",
     "@capacitor/angular": "^2.0.3",
     "@capacitor/core": "latest",

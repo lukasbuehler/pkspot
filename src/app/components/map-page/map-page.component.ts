@@ -939,6 +939,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    if (this.selectedSpot()) {
+      this.selectedSpot.set(null);
+    }
+
     // Generic filter search
     console.log(`Searching for ${selectedChip} spots in bounds:`, bounds);
 

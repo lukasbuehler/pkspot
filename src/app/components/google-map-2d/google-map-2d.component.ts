@@ -535,13 +535,21 @@ export class GoogleMap2dComponent
     if (!dots || dots.length === 0) {
       return [];
     }
-    return dots.map((dot) => ({
-      location: new google.maps.LatLng(
-        dot.location.latitude,
-        dot.location.longitude
-      ),
-      weight: dot.weight || 1,
-    }));
+    // Filter out dots without valid location (can happen with native Firestore SDK)
+    return dots
+      .filter(
+        (dot) =>
+          dot.location &&
+          typeof dot.location.latitude === "number" &&
+          typeof dot.location.longitude === "number"
+      )
+      .map((dot) => ({
+        location: new google.maps.LatLng(
+          dot.location.latitude,
+          dot.location.longitude
+        ),
+        weight: dot.weight || 1,
+      }));
   });
 
   heatmapOptions = computed<google.maps.visualization.HeatmapLayerOptions>(
@@ -641,18 +649,25 @@ export class GoogleMap2dComponent
   }
 
   initGeolocation() {
-    if (this.showGeolocation) {
-      this.geolocationService.startWatching();
-    }
+    // Don't auto-start geolocation watching - wait for user action
+    // This is called in ngAfterViewInit but we no longer auto-start
   }
 
-  useGeolocation() {
-    this.geolocationService.getCurrentPosition().then((pos) => {
-      if (pos && this.googleMap) {
-        this.googleMap.panTo(pos.location);
-        this.googleMap.zoom = 17;
-      }
-    });
+  private _geolocationStarted = false;
+
+  async useGeolocation() {
+    // Start watching if not already started
+    if (!this._geolocationStarted) {
+      await this.geolocationService.startWatching();
+      this._geolocationStarted = true;
+    }
+
+    // Pan to current position
+    const pos = await this.geolocationService.getCurrentPosition();
+    if (pos && this.googleMap) {
+      this.googleMap.panTo(pos.location);
+      this.googleMap.zoom = 17;
+    }
   }
 
   geolocation = signal<{
@@ -1017,12 +1032,14 @@ export class GoogleMap2dComponent
   clickDot(dot: SpotClusterDotSchema) {
     if (dot.spot_id) {
       this.spotClick.emit(dot.spot_id as SpotId);
-    } else {
+    } else if (dot.location?.latitude && dot.location?.longitude) {
       const location: google.maps.LatLng = new google.maps.LatLng(
         dot.location.latitude,
         dot.location.longitude
       );
       this.focusOnLocation(location, this.zoom + 4);
+    } else {
+      console.warn("[GoogleMap2D] clickDot: dot has no valid location", dot);
     }
   }
 

@@ -47,6 +47,10 @@ import { ConsentAwareService } from "../../consent-aware.service";
 import { SpotEditsService } from "./spot-edits.service";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
 import { PlatformService } from "../../platform.service";
+import {
+  FirestoreAdapterService,
+  QueryFilter,
+} from "../firestore-adapter.service";
 
 @Injectable({
   providedIn: "root",
@@ -54,136 +58,18 @@ import { PlatformService } from "../../platform.service";
 export class SpotsService extends ConsentAwareService {
   private _injector = inject(Injector);
   private _platformService = inject(PlatformService);
+  private _firestoreAdapter = inject(FirestoreAdapterService);
   private get storageService(): StorageService {
     // Lazily resolve to avoid circular DI during construction
     return this._injector.get(StorageService);
   }
 
-  // Firestore REST API base URL for HTTP fallback
+  // Firestore REST API base URL for HTTP fallback (legacy, can be removed later)
   private readonly FIRESTORE_REST_URL =
     "https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents";
 
   constructor(private firestore: Firestore) {
     super();
-  }
-
-  // DIAGNOSTIC - Test different query types to isolate the issue
-  async diagnosticTest() {
-    console.warn(
-      "[DIAGNOSTIC] ========== STARTING FIRESTORE DIAGNOSTIC =========="
-    );
-    console.warn(
-      "[DIAGNOSTIC] Testing connection at:",
-      new Date().toISOString()
-    );
-
-    // Helper function to add timeout to promises
-    const withTimeout = <T>(
-      promise: Promise<T>,
-      ms: number,
-      name: string
-    ): Promise<T> => {
-      return Promise.race([
-        promise,
-        new Promise<T>((_, reject) =>
-          setTimeout(
-            () => reject(new Error(`${name} timed out after ${ms}ms`)),
-            ms
-          )
-        ),
-      ]);
-    };
-
-    const TIMEOUT_MS = 10000; // 10 second timeout for each test
-
-    // Test 1: Single document fetch (getDoc) - this typically works
-    console.warn("[DIAGNOSTIC] Test 1: Single document fetch (getDoc)...");
-    const startGetDoc = Date.now();
-    try {
-      // Use a known document ID or first one from a collection
-      const singleDocRef = doc(this.firestore, "spots", "test-doc-id"); // This may not exist, but should still return quickly
-      const singleSnap = await withTimeout(
-        getDoc(singleDocRef),
-        TIMEOUT_MS,
-        "getDoc"
-      );
-      console.warn(
-        `[DIAGNOSTIC] Test 1 SUCCESS in ${
-          Date.now() - startGetDoc
-        }ms - exists: ${singleSnap.exists()}`
-      );
-    } catch (e) {
-      console.error(
-        `[DIAGNOSTIC] Test 1 FAILURE in ${Date.now() - startGetDoc}ms:`,
-        e
-      );
-    }
-
-    // Test 2: Simple query with limit (getDocs) - this is what's failing
-    console.warn("[DIAGNOSTIC] Test 2: Simple query with limit(1)...");
-    const startQuery = Date.now();
-    try {
-      const ref = collection(this.firestore, "spots");
-      const q = query(ref, limit(1));
-      const snap = await withTimeout(getDocs(q), TIMEOUT_MS, "getDocs(limit)");
-      console.warn(
-        `[DIAGNOSTIC] Test 2 SUCCESS in ${Date.now() - startQuery}ms - found ${
-          snap.size
-        } docs`
-      );
-      snap.forEach((d) => console.warn(`[DIAGNOSTIC] Doc ID: ${d.id}`));
-    } catch (e) {
-      console.error(
-        `[DIAGNOSTIC] Test 2 FAILURE in ${Date.now() - startQuery}ms:`,
-        e
-      );
-    }
-
-    // Test 3: Query with where clause (like the tile queries)
-    console.warn("[DIAGNOSTIC] Test 3: Query with where clause...");
-    const startWhere = Date.now();
-    try {
-      const ref = collection(this.firestore, "spots");
-      const q = query(ref, where("tile_coordinates.z16.x", "==", 0), limit(1)); // Use 0 to get empty result quickly
-      const snap = await withTimeout(getDocs(q), TIMEOUT_MS, "getDocs(where)");
-      console.warn(
-        `[DIAGNOSTIC] Test 3 SUCCESS in ${Date.now() - startWhere}ms - found ${
-          snap.size
-        } docs`
-      );
-    } catch (e) {
-      console.error(
-        `[DIAGNOSTIC] Test 3 FAILURE in ${Date.now() - startWhere}ms:`,
-        e
-      );
-    }
-
-    // Test 4: Raw fetch API to bypass SDK entirely - tests basic network connectivity
-    console.warn("[DIAGNOSTIC] Test 4: Raw fetch to Firestore REST API...");
-    const startFetch = Date.now();
-    try {
-      const response = await withTimeout(
-        fetch(
-          "https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/spots?pageSize=1",
-          { method: "GET" }
-        ),
-        TIMEOUT_MS,
-        "fetch"
-      );
-      const data = await response.json();
-      console.warn(
-        `[DIAGNOSTIC] Test 4 SUCCESS in ${
-          Date.now() - startFetch
-        }ms - status: ${response.status}, has documents: ${!!data.documents}`
-      );
-    } catch (e) {
-      console.error(
-        `[DIAGNOSTIC] Test 4 FAILURE in ${Date.now() - startFetch}ms:`,
-        e
-      );
-    }
-
-    console.warn("[DIAGNOSTIC] ========== DIAGNOSTIC COMPLETE ==========");
   }
 
   docRef(path: string) {
@@ -192,16 +78,17 @@ export class SpotsService extends ConsentAwareService {
 
   getSpotById(spotId: SpotId, locale: LocaleCode): Promise<Spot> {
     console.log(spotId);
-    const spotIdString: string = spotId as string;
 
-    return getDoc(doc(this.firestore, "spots", spotIdString)).then((snap) => {
-      if (snap.exists()) {
-        const data = snap.data() as SpotSchema;
-        return new Spot(snap.id as SpotId, data, locale);
-      } else {
-        throw new Error("Error! This Spot does not exist.");
-      }
-    });
+    // Use adapter for platform-agnostic access
+    return this._firestoreAdapter
+      .getDocument<SpotSchema & { id: string }>(`spots/${spotId}`)
+      .then((data) => {
+        if (data) {
+          return new Spot(data.id as SpotId, data as SpotSchema, locale);
+        } else {
+          throw new Error("Error! This Spot does not exist.");
+        }
+      });
   }
 
   getSpotByIdHttp(spotId: SpotId, locale: LocaleCode): Promise<Spot> {
@@ -231,16 +118,15 @@ export class SpotsService extends ConsentAwareService {
 
   getSpotById$(spotId: SpotId, locale: LocaleCode): Observable<Spot> {
     console.debug("Getting spot with id: ", spotId);
-    return runInInjectionContext(this.injector, () => {
-      return docData(doc(this.firestore, "spots", spotId), {
-        idField: "id",
-      }).pipe(
-        map((d: any) => {
+    // Use adapter for platform-agnostic real-time access
+    return this._firestoreAdapter
+      .documentSnapshots<SpotSchema & { id: string }>(`spots/${spotId}`)
+      .pipe(
+        map((d) => {
           if (!d) throw new Error("Error! This Spot does not exist.");
-          return new Spot(spotId, d as SpotSchema, locale);
+          return new Spot(d.id as SpotId, d as SpotSchema, locale);
         })
       );
-    });
   }
 
   getSpotsForTileKeys(
@@ -255,45 +141,32 @@ export class SpotsService extends ConsentAwareService {
     tiles: { x: number; y: number }[],
     locale: LocaleCode
   ): Observable<Spot[]> {
-    // On native platforms (iOS/Android), the Firebase JS SDK has connection issues.
-    // Use REST API fallback instead.
-    if (this._platformService.isNative()) {
-      console.log("[SpotsService] Using HTTP fallback for native platform");
-      return this.getSpotsForTilesHttp(tiles, locale);
-    }
-
-    // On web, use the standard Firebase SDK
+    // Use adapter - it handles platform detection internally
+    // On native: uses native Capacitor Firebase SDK
+    // On web: uses @angular/fire
     const observables = tiles.map((tile) => {
-      return runInInjectionContext(this.injector, () => {
-        return collectionData(
-          query(
-            collection(this.firestore, "spots"),
-            where("tile_coordinates.z16.x", "==", tile.x),
-            where("tile_coordinates.z16.y", "==", tile.y)
-          ),
-          { idField: "id" }
-        );
-      }).pipe(
-        take(1),
-        timeout(15000),
-        map((arr: any[]) => {
+      const filters: QueryFilter[] = [
+        { fieldPath: "tile_coordinates.z16.x", opStr: "==", value: tile.x },
+        { fieldPath: "tile_coordinates.z16.y", opStr: "==", value: tile.y },
+      ];
+
+      return from(
+        this._firestoreAdapter.getCollection<SpotSchema & { id: string }>(
+          "spots",
+          filters
+        )
+      ).pipe(
+        map((arr) => {
           console.log(
             `[SpotsService] Tile ${tile.x},${tile.y} returned ${arr.length} spots`
           );
           return arr.map(
             (docObj) =>
-              new Spot(
-                (docObj as any).id as SpotId,
-                docObj as SpotSchema,
-                locale
-              )
+              new Spot(docObj.id as SpotId, docObj as SpotSchema, locale)
           );
         }),
         catchError((err) => {
-          console.error(
-            `[SpotsService] Tile ${tile.x},${tile.y} FAILED (likely missing index):`,
-            err
-          );
+          console.error(`[SpotsService] Tile ${tile.x},${tile.y} FAILED:`, err);
           return of([]);
         })
       );
@@ -419,32 +292,31 @@ export class SpotsService extends ConsentAwareService {
   getSpotClusterTiles(
     tiles: MapTileKey[]
   ): Observable<SpotClusterTileSchema[]> {
+    // Use adapter for platform-agnostic document access
     const observables = tiles.map((tile) => {
-      // Use AngularFire docData to get typed doc observable and take one emission
       console.debug("Getting spot cluster tile for tile: ", tile);
-      return runInInjectionContext(this.injector, () => {
-        return docData(doc(this.firestore, "spot_clusters", tile), {
-          idField: "id",
-        }).pipe(
-          take(1),
-          map((d: any) => {
-            if (!d) {
-              console.log(
-                `[SpotsService] Cluster Tile ${tile} returned NULL/Empty`
-              );
-              return [] as SpotClusterTileSchema[];
-            }
-            // docData returns the document data — convert to the expected array shape
-            console.log(`[SpotsService] Cluster Tile ${tile} returned DATA`);
-            return [d as SpotClusterTileSchema];
-          }),
-          timeout(15000),
-          catchError((err) => {
-            console.error(`[SpotsService] Cluster Tile ${tile} FAILED:`, err);
-            return of([]);
-          })
-        );
-      });
+
+      return from(
+        this._firestoreAdapter.getDocument<
+          SpotClusterTileSchema & { id: string }
+        >(`spot_clusters/${tile}`)
+      ).pipe(
+        map((d) => {
+          if (!d) {
+            console.log(
+              `[SpotsService] Cluster Tile ${tile} returned NULL/Empty`
+            );
+            return [] as SpotClusterTileSchema[];
+          }
+          // Convert to the expected array shape
+          console.log(`[SpotsService] Cluster Tile ${tile} returned DATA`);
+          return [d as SpotClusterTileSchema];
+        }),
+        catchError((err) => {
+          console.error(`[SpotsService] Cluster Tile ${tile} FAILED:`, err);
+          return of([]);
+        })
+      );
     });
 
     return forkJoin(observables).pipe(
