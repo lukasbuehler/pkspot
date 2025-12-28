@@ -16,9 +16,11 @@ import {
   query,
   QuerySnapshot,
   DocumentData,
+  limit,
+  getDocs,
 } from "@angular/fire/firestore";
-import { Observable, forkJoin } from "rxjs";
-import { map, take } from "rxjs/operators";
+import { Observable, forkJoin, of } from "rxjs";
+import { map, take, timeout, catchError } from "rxjs/operators";
 import { Spot } from "../../../../db/models/Spot";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
 import {
@@ -57,6 +59,20 @@ export class SpotsService extends ConsentAwareService {
 
   constructor(private firestore: Firestore) {
     super();
+  }
+
+  // DIAGNOSTIC
+  async diagnosticTest() {
+    console.warn("[DIAGNOSTIC] Starting Simple Query Test...");
+    try {
+      const ref = collection(this.firestore, "spots");
+      const q = query(ref, limit(1));
+      const snap = await getDocs(q);
+      console.warn(`[DIAGNOSTIC] SUCCESS! Found ${snap.size} docs.`);
+      snap.forEach((d) => console.warn(`[DIAGNOSTIC] Doc ID: ${d.id}`));
+    } catch (e) {
+      console.error("[DIAGNOSTIC] FAILURE!", e);
+    }
   }
 
   docRef(path: string) {
@@ -142,16 +158,27 @@ export class SpotsService extends ConsentAwareService {
         );
       }).pipe(
         take(1),
-        map((arr: any[]) =>
-          arr.map(
+        timeout(15000), // Fail if no response (e.g. missing index) or slow network
+        map((arr: any[]) => {
+          console.log(
+            `[SpotsService] Tile ${tile.x},${tile.y} returned ${arr.length} spots`
+          );
+          return arr.map(
             (docObj) =>
               new Spot(
                 (docObj as any).id as SpotId,
                 docObj as SpotSchema,
                 locale
               )
-          )
-        )
+          );
+        }),
+        catchError((err) => {
+          console.error(
+            `[SpotsService] Tile ${tile.x},${tile.y} FAILED (likely missing index):`,
+            err
+          );
+          return of([]); // Return empty on error to unblock forkJoin
+        })
       );
     });
 
@@ -180,9 +207,20 @@ export class SpotsService extends ConsentAwareService {
         }).pipe(
           take(1),
           map((d: any) => {
-            if (!d) return [] as SpotClusterTileSchema[];
+            if (!d) {
+              console.log(
+                `[SpotsService] Cluster Tile ${tile} returned NULL/Empty`
+              );
+              return [] as SpotClusterTileSchema[];
+            }
             // docData returns the document data — convert to the expected array shape
+            console.log(`[SpotsService] Cluster Tile ${tile} returned DATA`);
             return [d as SpotClusterTileSchema];
+          }),
+          timeout(15000),
+          catchError((err) => {
+            console.error(`[SpotsService] Cluster Tile ${tile} FAILED:`, err);
+            return of([]);
           })
         );
       });

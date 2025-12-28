@@ -1314,6 +1314,10 @@ export class SpotMapDataManager {
   }
 
   private _loadSpotClustersForTiles(tilesToLoad: Set<MapTileKey>) {
+    console.log(
+      "[SpotMapDataManager] _loadSpotClustersForTiles loading:",
+      tilesToLoad.size
+    );
     if (tilesToLoad.size === 0) return;
 
     // Only load spot clusters if consent is granted

@@ -23,6 +23,10 @@ import {
 import {
   provideFirestore,
   getFirestore as ngfGetFirestore,
+  connectFirestoreEmulator,
+  setLogLevel,
+  initializeFirestore,
+  memoryLocalCache,
 } from "@angular/fire/firestore";
 import {
   provideFirebaseApp,
@@ -51,7 +55,17 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideFirebaseApp(() => initializeApp(environment.keys.firebaseConfig)),
     // Bind Firestore/Storage/Functions to the injected FirebaseApp to enforce init ordering
-    provideFirestore(() => ngfGetFirestore(inject(FirebaseApp))),
+    // Bind Firestore/Storage/Functions to the injected FirebaseApp to enforce init ordering
+    provideFirestore(() => {
+      const app = inject(FirebaseApp);
+      if (environment.production === false) {
+        setLogLevel("debug"); // Enable concise debug logs to diagnose connection issues
+      }
+      return initializeFirestore(app, {
+        experimentalForceLongPolling: true,
+        localCache: memoryLocalCache(), // Disable IndexedDB persistence for Capacitor stability
+      });
+    }),
     // Only initialize Storage on the browser; use AngularFire's getStorage to avoid registration issues
     provideStorage(() => {
       const platformId = inject(PLATFORM_ID);

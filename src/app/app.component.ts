@@ -25,6 +25,7 @@ import { AuthenticationService } from "./services/firebase/authentication.servic
 import { StorageService } from "./services/firebase/storage.service";
 import { ResponsiveService } from "./services/responsive.service";
 import { GlobalVariables } from "../scripts/global";
+import { environment } from "../environments/environment";
 import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
 import { MatButtonModule, MatFabButton } from "@angular/material/button";
 import { MatIcon, MatIconRegistry } from "@angular/material/icon";
@@ -202,6 +203,11 @@ export class AppComponent implements OnInit {
       url: "https://pkspot.app/",
     };
     this._structuredDataService.addStructuredData("website", json);
+
+    console.log(
+      "Using Firebase Project ID:",
+      environment.keys.firebaseConfig.projectId
+    );
 
     // Setup route events and consent dialog logic immediately (before consent)
     this.router.events

@@ -27,6 +27,7 @@ import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
 import { UserSchema } from "../../../db/schemas/UserSchema";
 import { ConsentAwareService } from "../consent-aware.service";
+import { Capacitor } from "@capacitor/core";
 
 interface AuthServiceUser {
   uid?: string;
@@ -131,13 +132,19 @@ export class AuthenticationService extends ConsentAwareService {
     // Prefer IndexedDB first for best durability and multi-tab behavior.
     // Fall back to localStorage for environments where IndexedDB is blocked,
     // then in-memory as a last resort.
-    try {
-      await runInInjectionContext(this.injector, async () => {
-        await this._auth.setPersistence(indexedDBLocalPersistence);
-        console.log("Firebase Auth persistence set: indexedDBLocalPersistence");
-      });
+    // SKIP IndexedDB on Native (Capacitor) as it is unreliable in WebViews
+    const isNative = Capacitor.isNativePlatform();
 
-      return;
+    try {
+      if (!isNative) {
+        await runInInjectionContext(this.injector, async () => {
+          await this._auth.setPersistence(indexedDBLocalPersistence);
+          console.log(
+            "Firebase Auth persistence set: indexedDBLocalPersistence"
+          );
+        });
+        return;
+      }
     } catch (e1) {
       console.warn(
         "IndexedDB persistence unavailable, trying localStorage",
