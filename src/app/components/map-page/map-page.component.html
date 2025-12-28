@@ -125,6 +125,7 @@
     [(isEditing)]="isEditing"
     [(mapStyle)]="mapStyle"
     [showAmenities]="showAmenities()"
+    [minZoom]="4"
     (visibleSpotsChange)="setVisibleSpots($event)"
     (hightlightedSpotsChange)="highlightedSpots = $event"
     (hasGeolocationChange)="askedGeoPermission = true; hasGeolocation = $event"
@@ -333,6 +334,12 @@
       ><span
         i18n="Lighting spots label for spot chips@@lighting_spots_chip_label"
         >Lighting</span
+      ></mat-chip-option
+    >
+    <mat-chip-option class="glass" value="water"
+      ><mat-icon matChipAvatar>water</mat-icon
+      ><span i18n="Water spots label for spot chips@@water_spots_chip_label"
+        >Water</span
       ></mat-chip-option
     >
   </mat-chip-listbox>

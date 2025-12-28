@@ -13,6 +13,7 @@ import { MatAnchor, MatButtonModule } from "@angular/material/button";
 import { NgOptimizedImage, isPlatformBrowser } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { RouterLinkWithHref } from "@angular/router";
+import { MatTooltipModule } from "@angular/material/tooltip";
 
 interface Partner {
   name: string;
@@ -33,6 +34,7 @@ interface Partner {
     MatCardModule,
     MatButtonModule,
     RouterLinkWithHref,
+    MatTooltipModule,
   ],
 })
 export class AboutPageComponent implements AfterViewInit, OnDestroy {

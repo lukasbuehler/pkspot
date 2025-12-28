@@ -257,3 +257,18 @@ section {
 footer a {
   color: lightgray;
 }
+
+.socials {
+  a {
+    height: 64px;
+    width: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      height: 48px;
+      width: 48px;
+    }
+  }
+}
