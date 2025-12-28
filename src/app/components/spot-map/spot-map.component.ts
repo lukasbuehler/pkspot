@@ -345,6 +345,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this.visibleMarkers.set(this.markers()); // ?????
 
     this.isInitiated = true;
+
+    // Run Firestore diagnostic on first load (useful for debugging mobile issues)
+    // TODO: Remove this after debugging is complete
+    this._spotsService.diagnosticTest();
   }
 
   ngOnDestroy(): void {}

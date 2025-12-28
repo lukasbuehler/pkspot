@@ -10,6 +10,7 @@ import {
   query,
   orderBy,
   limit,
+  getDoc,
 } from "@angular/fire/firestore";
 import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
@@ -19,9 +20,7 @@ import {
   UserSchema,
 } from "../../../../db/schemas/UserSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
-import { getDoc } from "firebase/firestore";
 import { StorageImage } from "../../../../db/models/Media";
-import { run } from "node:test";
 
 @Injectable({
   providedIn: "root",

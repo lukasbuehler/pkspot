@@ -9,7 +9,7 @@ import {
 } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { Auth, RecaptchaVerifier } from "firebase/auth";
+import { Auth, RecaptchaVerifier } from "@angular/fire/auth";
 import { NgOptimizedImage } from "@angular/common";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatInput } from "@angular/material/input";

@@ -27,6 +27,7 @@ import {
   setLogLevel,
   initializeFirestore,
   memoryLocalCache,
+  Firestore,
 } from "@angular/fire/firestore";
 import {
   provideFirebaseApp,
@@ -51,20 +52,60 @@ import { routes } from "./app.routes";
 import { provideRouter, withViewTransitions } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
 
+// Module-level singleton to ensure Firestore is only initialized once
+let firestoreInstance: Firestore | null = null;
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideFirebaseApp(() => initializeApp(environment.keys.firebaseConfig)),
     // Bind Firestore/Storage/Functions to the injected FirebaseApp to enforce init ordering
-    // Bind Firestore/Storage/Functions to the injected FirebaseApp to enforce init ordering
     provideFirestore(() => {
+      // Return cached instance if already initialized
+      if (firestoreInstance) {
+        console.log("[Firestore] Returning cached instance");
+        return firestoreInstance;
+      }
+
       const app = inject(FirebaseApp);
+
       if (environment.production === false) {
         setLogLevel("debug"); // Enable concise debug logs to diagnose connection issues
       }
-      return initializeFirestore(app, {
-        experimentalForceLongPolling: true,
+
+      // Firestore settings optimized for Capacitor/WKWebView
+      const firestoreSettings = {
+        experimentalForceLongPolling: true, // Required for WKWebView - WebSockets are unreliable
+        // @ts-ignore - useFetchStreams is a valid but undocumented option
+        useFetchStreams: false, // Disable fetch streams which can hang in WebViews
         localCache: memoryLocalCache(), // Disable IndexedDB persistence for Capacitor stability
-      });
+      };
+
+      console.log(
+        "[Firestore] Initializing with settings:",
+        JSON.stringify(firestoreSettings)
+      );
+
+      // Try to get existing Firestore instance first, initialize only if needed
+      try {
+        // Try to initialize with our settings
+        firestoreInstance = initializeFirestore(app, firestoreSettings);
+        console.log("[Firestore] Successfully initialized new instance");
+      } catch (e: any) {
+        // If already initialized, just get the existing instance
+        if (
+          e?.code === "failed-precondition" ||
+          e?.message?.includes("already been called")
+        ) {
+          console.warn(
+            "[Firestore] Already initialized, using existing instance"
+          );
+          firestoreInstance = ngfGetFirestore(app);
+        } else {
+          throw e;
+        }
+      }
+
+      return firestoreInstance;
     }),
     // Only initialize Storage on the browser; use AngularFire's getStorage to avoid registration issues
     provideStorage(() => {

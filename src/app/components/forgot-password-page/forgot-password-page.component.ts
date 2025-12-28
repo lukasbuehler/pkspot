@@ -8,7 +8,7 @@ import {
 } from "@angular/forms";
 import { Router } from "@angular/router";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { RecaptchaVerifier, sendPasswordResetEmail } from "firebase/auth";
+import { RecaptchaVerifier, sendPasswordResetEmail } from "@angular/fire/auth";
 import { MatIcon } from "@angular/material/icon";
 import { MatButton } from "@angular/material/button";
 import { MatInput } from "@angular/material/input";

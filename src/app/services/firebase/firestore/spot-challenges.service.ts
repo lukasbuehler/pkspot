@@ -4,17 +4,17 @@ import {
   LOCALE_ID,
   runInInjectionContext,
 } from "@angular/core";
-import { Firestore } from "@angular/fire/firestore";
-import { SpotId } from "../../../../db/schemas/SpotSchema";
-import { SpotChallengeSchema } from "../../../../db/schemas/SpotChallengeSchema";
 import {
+  Firestore,
   addDoc,
   collection,
   doc,
   getDoc,
   getDocs,
   updateDoc,
-} from "firebase/firestore";
+} from "@angular/fire/firestore";
+import { SpotId } from "../../../../db/schemas/SpotSchema";
+import { SpotChallengeSchema } from "../../../../db/schemas/SpotChallengeSchema";
 import { SpotChallenge } from "../../../../db/models/SpotChallenge";
 import { Spot } from "../../../../db/models/Spot";
 import { LocaleCode } from "../../../../db/models/Interfaces";

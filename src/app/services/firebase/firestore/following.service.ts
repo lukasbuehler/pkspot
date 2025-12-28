@@ -10,9 +10,9 @@ import {
   query,
   orderBy,
   limit,
+  Timestamp,
 } from "@angular/fire/firestore";
 import { map, Observable } from "rxjs";
-import { Timestamp } from "firebase/firestore";
 import {
   FollowingDataSchema,
   FollowingSchema,

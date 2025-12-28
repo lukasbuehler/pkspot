@@ -18,8 +18,9 @@ import {
   DocumentData,
   limit,
   getDocs,
+  deleteField,
 } from "@angular/fire/firestore";
-import { Observable, forkJoin, of } from "rxjs";
+import { Observable, forkJoin, of, from } from "rxjs";
 import { map, take, timeout, catchError } from "rxjs/operators";
 import { Spot } from "../../../../db/models/Spot";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
@@ -35,7 +36,6 @@ import {
   cleanDataForFirestore,
 } from "../../../../scripts/Helpers";
 import { GeoPoint } from "firebase/firestore";
-import { deleteField } from "firebase/firestore";
 import { StorageService } from "../storage.service";
 import {
   AnyMedia,
@@ -46,33 +46,144 @@ import { MediaSchema } from "../../../../db/schemas/Media";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { SpotEditsService } from "./spot-edits.service";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
+import { PlatformService } from "../../platform.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class SpotsService extends ConsentAwareService {
   private _injector = inject(Injector);
+  private _platformService = inject(PlatformService);
   private get storageService(): StorageService {
     // Lazily resolve to avoid circular DI during construction
     return this._injector.get(StorageService);
   }
 
+  // Firestore REST API base URL for HTTP fallback
+  private readonly FIRESTORE_REST_URL =
+    "https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents";
+
   constructor(private firestore: Firestore) {
     super();
   }
 
-  // DIAGNOSTIC
+  // DIAGNOSTIC - Test different query types to isolate the issue
   async diagnosticTest() {
-    console.warn("[DIAGNOSTIC] Starting Simple Query Test...");
+    console.warn(
+      "[DIAGNOSTIC] ========== STARTING FIRESTORE DIAGNOSTIC =========="
+    );
+    console.warn(
+      "[DIAGNOSTIC] Testing connection at:",
+      new Date().toISOString()
+    );
+
+    // Helper function to add timeout to promises
+    const withTimeout = <T>(
+      promise: Promise<T>,
+      ms: number,
+      name: string
+    ): Promise<T> => {
+      return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+          setTimeout(
+            () => reject(new Error(`${name} timed out after ${ms}ms`)),
+            ms
+          )
+        ),
+      ]);
+    };
+
+    const TIMEOUT_MS = 10000; // 10 second timeout for each test
+
+    // Test 1: Single document fetch (getDoc) - this typically works
+    console.warn("[DIAGNOSTIC] Test 1: Single document fetch (getDoc)...");
+    const startGetDoc = Date.now();
+    try {
+      // Use a known document ID or first one from a collection
+      const singleDocRef = doc(this.firestore, "spots", "test-doc-id"); // This may not exist, but should still return quickly
+      const singleSnap = await withTimeout(
+        getDoc(singleDocRef),
+        TIMEOUT_MS,
+        "getDoc"
+      );
+      console.warn(
+        `[DIAGNOSTIC] Test 1 SUCCESS in ${
+          Date.now() - startGetDoc
+        }ms - exists: ${singleSnap.exists()}`
+      );
+    } catch (e) {
+      console.error(
+        `[DIAGNOSTIC] Test 1 FAILURE in ${Date.now() - startGetDoc}ms:`,
+        e
+      );
+    }
+
+    // Test 2: Simple query with limit (getDocs) - this is what's failing
+    console.warn("[DIAGNOSTIC] Test 2: Simple query with limit(1)...");
+    const startQuery = Date.now();
     try {
       const ref = collection(this.firestore, "spots");
       const q = query(ref, limit(1));
-      const snap = await getDocs(q);
-      console.warn(`[DIAGNOSTIC] SUCCESS! Found ${snap.size} docs.`);
+      const snap = await withTimeout(getDocs(q), TIMEOUT_MS, "getDocs(limit)");
+      console.warn(
+        `[DIAGNOSTIC] Test 2 SUCCESS in ${Date.now() - startQuery}ms - found ${
+          snap.size
+        } docs`
+      );
       snap.forEach((d) => console.warn(`[DIAGNOSTIC] Doc ID: ${d.id}`));
     } catch (e) {
-      console.error("[DIAGNOSTIC] FAILURE!", e);
+      console.error(
+        `[DIAGNOSTIC] Test 2 FAILURE in ${Date.now() - startQuery}ms:`,
+        e
+      );
     }
+
+    // Test 3: Query with where clause (like the tile queries)
+    console.warn("[DIAGNOSTIC] Test 3: Query with where clause...");
+    const startWhere = Date.now();
+    try {
+      const ref = collection(this.firestore, "spots");
+      const q = query(ref, where("tile_coordinates.z16.x", "==", 0), limit(1)); // Use 0 to get empty result quickly
+      const snap = await withTimeout(getDocs(q), TIMEOUT_MS, "getDocs(where)");
+      console.warn(
+        `[DIAGNOSTIC] Test 3 SUCCESS in ${Date.now() - startWhere}ms - found ${
+          snap.size
+        } docs`
+      );
+    } catch (e) {
+      console.error(
+        `[DIAGNOSTIC] Test 3 FAILURE in ${Date.now() - startWhere}ms:`,
+        e
+      );
+    }
+
+    // Test 4: Raw fetch API to bypass SDK entirely - tests basic network connectivity
+    console.warn("[DIAGNOSTIC] Test 4: Raw fetch to Firestore REST API...");
+    const startFetch = Date.now();
+    try {
+      const response = await withTimeout(
+        fetch(
+          "https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/spots?pageSize=1",
+          { method: "GET" }
+        ),
+        TIMEOUT_MS,
+        "fetch"
+      );
+      const data = await response.json();
+      console.warn(
+        `[DIAGNOSTIC] Test 4 SUCCESS in ${
+          Date.now() - startFetch
+        }ms - status: ${response.status}, has documents: ${!!data.documents}`
+      );
+    } catch (e) {
+      console.error(
+        `[DIAGNOSTIC] Test 4 FAILURE in ${Date.now() - startFetch}ms:`,
+        e
+      );
+    }
+
+    console.warn("[DIAGNOSTIC] ========== DIAGNOSTIC COMPLETE ==========");
   }
 
   docRef(path: string) {
@@ -144,9 +255,15 @@ export class SpotsService extends ConsentAwareService {
     tiles: { x: number; y: number }[],
     locale: LocaleCode
   ): Observable<Spot[]> {
-    const observables = tiles.map((tile) => {
-      // console.debug("Getting spots for tile: ", tile);
+    // On native platforms (iOS/Android), the Firebase JS SDK has connection issues.
+    // Use REST API fallback instead.
+    if (this._platformService.isNative()) {
+      console.log("[SpotsService] Using HTTP fallback for native platform");
+      return this.getSpotsForTilesHttp(tiles, locale);
+    }
 
+    // On web, use the standard Firebase SDK
+    const observables = tiles.map((tile) => {
       return runInInjectionContext(this.injector, () => {
         return collectionData(
           query(
@@ -158,7 +275,7 @@ export class SpotsService extends ConsentAwareService {
         );
       }).pipe(
         take(1),
-        timeout(15000), // Fail if no response (e.g. missing index) or slow network
+        timeout(15000),
         map((arr: any[]) => {
           console.log(
             `[SpotsService] Tile ${tile.x},${tile.y} returned ${arr.length} spots`
@@ -177,7 +294,7 @@ export class SpotsService extends ConsentAwareService {
             `[SpotsService] Tile ${tile.x},${tile.y} FAILED (likely missing index):`,
             err
           );
-          return of([]); // Return empty on error to unblock forkJoin
+          return of([]);
         })
       );
     });
@@ -193,6 +310,110 @@ export class SpotsService extends ConsentAwareService {
         return Array.from(allSpots.values());
       })
     );
+  }
+
+  /**
+   * HTTP-based alternative for getSpotsForTiles that uses the Firestore REST API.
+   * This is used on native platforms where the Firebase JS SDK has connection issues.
+   */
+  private getSpotsForTilesHttp(
+    tiles: { x: number; y: number }[],
+    locale: LocaleCode
+  ): Observable<Spot[]> {
+    const promises = tiles.map((tile) =>
+      this.getSpotsForTileHttp(tile, locale)
+    );
+    return from(
+      Promise.all(promises).then((arrays) => {
+        const allSpots = new Map<string, Spot>();
+        arrays.forEach((spots) => {
+          spots.forEach((spot) => {
+            allSpots.set(spot.id, spot);
+          });
+        });
+        return Array.from(allSpots.values());
+      })
+    );
+  }
+
+  /**
+   * Fetch spots for a single tile using the Firestore REST API.
+   */
+  private async getSpotsForTileHttp(
+    tile: { x: number; y: number },
+    locale: LocaleCode
+  ): Promise<Spot[]> {
+    try {
+      // Build the structured query for the REST API
+      const queryBody = {
+        structuredQuery: {
+          from: [{ collectionId: "spots" }],
+          where: {
+            compositeFilter: {
+              op: "AND",
+              filters: [
+                {
+                  fieldFilter: {
+                    field: { fieldPath: "tile_coordinates.z16.x" },
+                    op: "EQUAL",
+                    value: { integerValue: tile.x.toString() },
+                  },
+                },
+                {
+                  fieldFilter: {
+                    field: { fieldPath: "tile_coordinates.z16.y" },
+                    op: "EQUAL",
+                    value: { integerValue: tile.y.toString() },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      const response = await fetch(`${this.FIRESTORE_REST_URL}:runQuery`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(queryBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const spots: Spot[] = [];
+
+      // Parse the REST API response
+      for (const result of data) {
+        if (result.document) {
+          // Extract document ID from the name field (format: projects/{project}/databases/{db}/documents/{collection}/{id})
+          const nameParts = result.document.name.split("/");
+          const spotId = nameParts[nameParts.length - 1] as SpotId;
+
+          // Transform the Firestore REST format to normal objects
+          const spotData = transformFirestoreData(
+            result.document.fields
+          ) as SpotSchema;
+          spots.push(new Spot(spotId, spotData, locale));
+        }
+      }
+
+      console.log(
+        `[SpotsService HTTP] Tile ${tile.x},${tile.y} returned ${spots.length} spots`
+      );
+
+      return spots;
+    } catch (error) {
+      console.error(
+        `[SpotsService HTTP] Tile ${tile.x},${tile.y} FAILED:`,
+        error
+      );
+      return [];
+    }
   }
 
   getSpotClusterTiles(
