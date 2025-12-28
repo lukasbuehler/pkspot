@@ -104,8 +104,8 @@ export class SpotMapDataManager {
   readonly spotZoom = 16;
   readonly amenityMarkerZoom = 14; // Load amenity markers at zoom 14 for efficient caching
   readonly amenityMarkerDisplayZoom = 16; // Display amenity markers at zoom 16+
-  readonly clusterZooms = [4, 8, 12];
-  readonly divisor = 4;
+  readonly clusterZooms = [2, 4, 6, 8, 10, 12];
+  readonly divisor = 2;
   readonly defaultRating = 1.5;
 
   /**

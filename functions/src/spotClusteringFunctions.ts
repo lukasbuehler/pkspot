@@ -56,10 +56,13 @@ async function _clusterAllSpots() {
 
     const clusterTiles = new Map<string, SpotClusterTile>();
 
-    const clusterTilesMap = {
+    const clusterTilesMap: Record<number, Map<string, string[]>> = {
       12: new Map<string, string[]>(),
+      10: new Map<string, string[]>(),
       8: new Map<string, string[]>(),
+      6: new Map<string, string[]>(),
       4: new Map<string, string[]>(),
+      2: new Map<string, string[]>(),
     };
 
     // setup for clustering, setting all the tiles for zoom 12
@@ -169,12 +172,12 @@ async function _clusterAllSpots() {
             spots: spotIsClusterWorthy ? [spotForTile!] : [],
           });
 
-          // also add this 12 tile key to the cluster tiles map for zoom 8
-          const key8 = `z8_${tile.x >> 4}_${tile.y >> 4}`;
-          if (!clusterTilesMap[8].has(key8)) {
-            clusterTilesMap[8].set(key8, [`z12_${tile.x}_${tile.y}`]);
+          // also add this 12 tile key to the cluster tiles map for zoom 10
+          const key10 = `z10_${tile.x >> 2}_${tile.y >> 2}`;
+          if (!clusterTilesMap[10].has(key10)) {
+            clusterTilesMap[10].set(key10, [`z12_${tile.x}_${tile.y}`]);
           } else {
-            clusterTilesMap[8].get(key8)!.push(`z12_${tile.x}_${tile.y}`);
+            clusterTilesMap[10].get(key10)!.push(`z12_${tile.x}_${tile.y}`);
           }
         }
       }
@@ -206,15 +209,14 @@ async function _clusterAllSpots() {
       console.error("supercluster load failed", err);
     }
 
-    for (let zoom = 8; zoom >= 4; zoom -= 4) {
-      for (let [tileKey, smallerTileKeys] of clusterTilesMap[
-        zoom as 8 | 4
-      ].entries()) {
+    for (let zoom = 10; zoom >= 2; zoom -= 2) {
+      for (let [tileKey, smallerTileKeys] of clusterTilesMap[zoom].entries()) {
         const firstSmallerTile = clusterTiles.get(smallerTileKeys[0])!;
 
         // compute desired bbox for this aggregated tile
-        const tileX = firstSmallerTile.x >> 4;
-        const tileY = firstSmallerTile.y >> 4;
+        // Shift by 2 bits since the zoom difference is 2 between levels
+        const tileX = firstSmallerTile.x >> 2;
+        const tileY = firstSmallerTile.y >> 2;
         const bbox = tileToBBox(zoom, tileX, tileY);
 
         // ask supercluster for clusters in this bbox at the target zoom
@@ -262,20 +264,20 @@ async function _clusterAllSpots() {
         // set the cluster tile
         clusterTiles.set(tileKey, {
           zoom: zoom,
-          x: firstSmallerTile.x >> 4,
-          y: firstSmallerTile.y >> 4,
+          x: tileX,
+          y: tileY,
           dots: clusterDots,
           spots: clusterSpots,
         });
 
         // also add the zoom tile to the cluster tiles map for the next zoom level
-        if (zoom > 4) {
+        if (zoom > 2) {
           const tile = clusterTiles.get(tileKey)!;
-          const key = `z${zoom - 4}_${tile.x >> 4}_${tile.y >> 4}`;
-          if (!clusterTilesMap[(zoom - 4) as 8 | 4].has(key)) {
-            clusterTilesMap[(zoom - 4) as 8 | 4].set(key, [tileKey]);
+          const key = `z${zoom - 2}_${tile.x >> 2}_${tile.y >> 2}`;
+          if (!clusterTilesMap[zoom - 2].has(key)) {
+            clusterTilesMap[zoom - 2].set(key, [tileKey]);
           } else {
-            clusterTilesMap[(zoom - 4) as 8 | 4].get(key)!.push(tileKey);
+            clusterTilesMap[zoom - 2].get(key)!.push(tileKey);
           }
         }
       }
