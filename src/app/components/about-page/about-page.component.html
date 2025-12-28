@@ -1,10 +1,7 @@
-<div class="container text-center pt-5">
-  <div class="row my-5">
-    <div class="col-md-12 flex-column d-flex align-items-center">
-      <div
-        style="width: 500px; height: 64px"
-        class="mw-100 mb-5 position-relative"
-      >
+<div class="about-page-background">
+  <div class="about-page">
+    <section class="hero-section">
+      <div class="logo-container">
         <img
           ngSrc="assets/logos/pkspot/pkspot_logo_oneline_dark.png"
           alt="PK Spot"
@@ -14,148 +11,227 @@
         />
       </div>
 
-      <h2 class="mat-title-large" i18n>
-        The spot for Parkour and Freerunning.
+      <h2
+        class="mat-headline-large pkspot-font tagline"
+        style="font-size: xxx-large"
+        i18n
+      >
+        The <span class="font-primary">Spot</span> for Parkour<span
+          class="font-secondary"
+          >.</span
+        >
       </h2>
-      <h3 class="mat-headline-medium" i18n>Discover, Train, Share.</h3>
+      <h3 class="mat-title-large subtitle text-block" i18n>
+        The digital home for a physical movement. Whether you're a beginner
+        looking for your first wall or a pro searching for a challenge, this is
+        where the Parkour community maps the world.
+      </h3>
+    </section>
 
-      <p class="mat-body-medium" i18n>
-        Discover spots and fellow athletes, plan training sessions with your
-        friends and share achievements and memories with them and the world.
-      </p>
-    </div>
-  </div>
-  <div class="row mb-5">
-    <!-- <div class="col-md-4 mb-4">
-      <h4 class="mat-h2">Our Ad policy</h4>
-      <p class="mat-body">
-        We are currently not serving ads. However, this will likely change in
-        the future. This is also reflected in our terms and conditions and
-        privacy policy.
-      </p>
-      <p class="mat-body">
-        Our plan is to only have parkour related ads on this platform. It is our
-        dream to support Parkour and Freerunning brands, and be supported by
-        them.
-      </p>
-    </div> -->
-    <div class="col-md-4"></div>
-    <div class="col-md-4 mb-4">
-      <h4 class="mat-headline-small">Open-Source</h4>
-      <p class="mat-body-medium" i18n>
-        This project is Open-Source! Our code is licensed under the
-        <b>MIT License</b>.
-      </p>
-      <div class="d-flex flex-column align-items-center">
-        <a
-          mat-stroked-button
-          color="default"
-          href="https://github.com/lukasbuehler/pkspot"
-          class="link-button mb-2"
-        >
-          <mat-icon>code</mat-icon>
-          Github
-        </a>
-        <a
-          mat-stroked-button
-          color="default"
-          href="https://github.com/lukasbuehler/pkspot/blob/main/LICENSE"
-          class="link-button"
-          i18n
-        >
-          <mat-icon>receipt_long</mat-icon>
-          View License
-        </a>
-      </div>
-    </div>
-  </div>
-  <div class="row justify-content-center">
-    <div class="col-md-12 mb-5">
-      <h2 class="mat-headline-medium mb-4" i18n>Partners</h2>
-      <div class="partner-grid">
-        <a href="https://sph.ethz.ch/">
-          <div class="sph-background rounded position-relative">
-            <img
-              ngSrc="assets/logos/sph.svg"
-              title="ETH Student Project House"
-              alt="ETH Student Project House"
-              fill
-            />
+    <section class="utility-section">
+      <h2 class="mat-headline-large pkspot-font section-title" i18n>
+        Don't Just Look. <span class="font-secondary">Find</span>.
+      </h2>
+      <div class="three-grid">
+        <mat-card class="feature-card">
+          <!-- <h4 class="mat-title-large d-flex justify-content-around">
+          <mat-icon>rainy</mat-icon> <mat-icon>sunny</mat-icon>
+          <mat-icon>cloud</mat-icon> <mat-icon>moon_stars</mat-icon>
+          <mat-icon>ac_unit</mat-icon>
+        </h4> -->
+          <h4 class="mat-title-large pkspot-font">
+            Smart Filters <mat-icon>map_search</mat-icon>
+          </h4>
+          <p class="mat-body-medium">
+            Your training doesn't stop for the weather. Need a covered rail for
+            a rainy night? A lit spot for a winter session? Or a gym for drills?
+            Our Smart Filters let you dial in the exact training conditions you
+            need.
+          </p>
+          <div>
+            <a
+              mat-stroked-button
+              [routerLink]="['/map']"
+              [queryParams]="{ filter: 'indoor' }"
+            >
+              <mat-icon>home</mat-icon> Find Indoor Spots
+            </a>
           </div>
-        </a>
-        <a href="https://spka.ch/">
-          <div class="bg-white rounded p-5">
-            <div class="h-100 w-100 position-relative">
+        </mat-card>
+        <mat-card class="feature-card">
+          <h4 class="mat-title-large pkspot-font">Live & Verified</h4>
+          <p class="mat-body-medium">
+            A map is only useful if it's accurate. We prioritize Active
+            Training. Through community check-ins and verified organization
+            updates, we are building a living heatmap of where the sport is
+            actually happening right now.
+          </p>
+        </mat-card>
+        <mat-card class="feature-card">
+          <h4 class="mat-title-large pkspot-font">
+            🌍 Local Knowledge, Global Reach
+          </h4>
+          <p class="mat-body-medium" i18n>
+            Landing in a new city? Don't waste time scrolling. Use the Top Rated
+            view to find the legendary spots the locals love. From the streets
+            to the rooftops, the map speaks your language.
+          </p>
+        </mat-card>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="mat-headline-large pkspot-font">We move with You.</h2>
+      <p class="text-block">
+        Training happens outside, not behind a desk. Take the full power of PK
+        Spot with you—verified spots, smart filters, and session logging, right
+        in your pocket.
+      </p>
+      <div></div>
+    </section>
+
+    <section class="trust-section">
+      <h2 class="mat-headline-large pkspot-font section-title" i18n>
+        Built on <span class="font-secondary">Open</span> Ground.
+      </h2>
+      <h3 class="mat-title-large subtitle text-block" i18n>
+        We believe the map belongs to the athletes, not a corporation. That's
+        why <span class="font-primary pkspot-font">PK Spot</span> is built
+        differently.
+      </h3>
+
+      <div class="two-grid mt-3">
+        <mat-card class="feature-card">
+          <h4 class="mat-title-large pkspot-font" i18n>
+            <mat-icon>all_inclusive</mat-icon> Your Data, Forever
+          </h4>
+          <p class="mat-body-medium" i18n>
+            We don't lock your world behind a paywall. All community spot data
+            is released publicly to the community and is licensed under Creative
+            Commons
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en"
+              >CC BY-NC-SA 4.0</a
+            >. It is open, shareable, and yours forever.
+          </p>
+        </mat-card>
+        <mat-card class="feature-card">
+          <h4 class="mat-title-large pkspot-font" i18n>Transparent Code</h4>
+          <p class="mat-body-medium" i18n>
+            We are Open Source. No black-box algorithms, no hidden tracking.
+            Just cutting-edge web tech built to serve the community.
+          </p>
+          <a matButton="outlined" href="https://github.com/lukasbuehler/pkspot">
+            <img src="assets/logos/github.svg" alt="" /> Github
+          </a>
+        </mat-card>
+      </div>
+    </section>
+
+    <section class="sustainability-section">
+      <h3 class="mat-headline-large section-title pkspot-font" i18n>
+        Fueled by Passion, Community and Partners
+      </h3>
+      <h4 class="mat-heading-medium px-5 mb-3 text-block" i18n>
+        <span class="pkspot-font font-primary">PK Spot </span>
+        is a <span class="font-secondary">free</span> utility tool built by
+        <span class="font-primary">athletes</span>. We don't charge you to use
+        the map, and we never will.
+      </h4>
+      <p i18n class="mat-title-medium mb-3 px-5 text-block">
+        To keep the servers running, we partner with the Parkour ecosystem —
+        National Associations, ethical brands, and gyms. We support the
+        organizations that support the sport.
+      </p>
+      <div class="carousel-container">
+        <div class="carousel-track" #carouselTrack>
+          @for (partner of partners; track $index) {
+          <a [href]="partner.url" class="partner-link" target="_blank">
+            <div
+              class="partner-logo position-relative object-fit-contain"
+              [class]="partner.logoClass"
+              [class.invert-colors]="partner.invert"
+            >
               <img
                 class="object-fit-contain"
-                ngSrc="assets/logos/spka_white.jpg"
-                title="Swiss Parkour Association (SPKA)"
-                alt="Swiss Parkour Associaton"
+                [ngSrc]="partner.logoUrl"
+                [title]="partner.name"
+                [alt]="partner.name"
                 fill
               />
             </div>
-          </div>
+            <div class="partner-name mat-label-small">{{ partner.name }}</div>
+          </a>
+          }
+        </div>
+      </div>
+    </section>
+    <!-- 
+  <section class="contributors-section">
+    <h2 class="mat-headline-medium section-title" i18n>Contributors</h2>
+    <div class="credit-grid">
+      <div class="contributor-card">
+        <div class="mat-title-large">Lukas Bühler</div>
+        <div class="mat-body-large" i18n>Lead developer</div>
+      </div>
+      <div class="contributor-card">
+        <div class="mat-title-large">Shadi Vandeventer</div>
+        <div class="mat-body-medium" i18n>Testing</div>
+      </div>
+      <div class="contributor-card">
+        <div class="mat-title-large">Alain Rohner</div>
+        <div class="mat-body-medium" i18n>Testing, UI/UX Advisor</div>
+      </div>
+      
+    </div>
+  </section> -->
+
+    <section class="movement-section text-center">
+      <h3 class="mat-headline-large section-title pkspot-font" i18n>
+        Be Part of the Movement
+      </h3>
+      <p class="mat-title-medium mb-4 px-5 text-block" i18n>
+        Whether you are a solo athlete, a gym owner, or a national organization
+        - we are happy to have you on board.
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <a matButton="filled" color="accent" routerLink="/" i18n>
+          Start Exploring
+        </a>
+        <a
+          matButton="filled"
+          color="primary"
+          href="mailto:contact@lukasbuehler.ch"
+          i18n
+        >
+          Partner With Us
         </a>
       </div>
-    </div>
-  </div>
-  <div class="row mb-5">
-    <div class="col-md-12">
-      <h2 class="mat-headline-medium mb-4" i18n>Contributors</h2>
-      <div class="credit-grid pb-5">
-        <div
-          class="mat-card rounded mat-elevation-z0 border p-4 d-flex flex-column"
-        >
-          <div class="mat-card-title mat-title-large">Lukas Bühler</div>
-          <div class="mat-card-content mat-body-large" i18n>Lead developer</div>
-          <!-- <div
-          class="d-flex flex-grow-1 flex-row justify-content-center align-items-center gap-3 pt-4"
-        >
-          <a href="https://github.com/lukasbuehler">
-            <img ngSrc="assets/logos/github.svg" title="Github" alt="Github" />
-          </a>
-          <a href="https://www.instagram.com/lukasbuehler_">
-            <img
-              ngSrc="assets/logos/instagram.svg"
-              title="Instagram"
-              alt="Instagram"
-            />
-          </a>
-          <a href="mailto:contact@lukasbuehler.ch">
-            <mat-icon class="mat-icon-link">mail</mat-icon>
-          </a>
-        </div> -->
-        </div>
-        <div class="mat-card rounded mat-elevation-z0 border p-4">
-          <div class="mat-card-title mat-title-large">Shadi Vandeventer</div>
-          <div class="mat-card-content mat-body-medium" i18n>Testing</div>
-        </div>
-        <div class="mat-card rounded mat-elevation-z0 border p-4">
-          <div class="mat-card-title mat-title-large">Alain Rohner</div>
-          <div class="mat-card-content mat-body-medium" i18n>
-            Testing, UI/UX Advisor
-          </div>
-        </div>
-        <div class="mat-card rounded mat-elevation-z0 border p-4">
-          <div class="mat-card-content">
-            <p class="mat-body-medium" i18n>
-              Join our community of Parkour and Freerunning enthusiasts!
-              Contribute your ideas, report bugs, and provide feedback to help
-              us improve this platform together!
-            </p>
-            <a
-              mat-stroked-button
-              color="default"
-              href="https://discord.gg/Th5vx4KnQb"
-              class="link-button mb-2"
-              i18n
-            >
-              <mat-icon>sports_esports</mat-icon>
-              Discord
-            </a>
-          </div>
-        </div>
+      <div>
+        <!-- socials -->
+        <a href="https://github.com/lukasbuehler/pkspot" matIconButton>
+          <img src="assets/logos/github.svg" alt="" />
+        </a>
+        <a href="https://instagram.com/pkstpo.app" matIconButton>
+          <img src="assets/logos/instagram.svg" alt="" />
+        </a>
+        <a matIconButton href="https://discord.gg/Th5vx4KnQb">
+          <img src="assets/logos/discord.svg" alt="" />
+        </a>
       </div>
-    </div>
+    </section>
+
+    <footer class="d-flex flex-column align-items-center">
+      <p class="mat-body-large text-block">
+        Crafted in Zürich, Switzerland. Open Data. Open Code. ©2025 PK Spot.
+      </p>
+
+      <div class="d-flex flex-row gap-5 mt-3">
+        <a routerLink="/terms-of-service" i18n="@@terms.long"
+          >Terms of Service</a
+        >
+        <a routerLink="/privacy-policy" i18n="@@policy.long">Privacy Policy</a>
+        <a routerLink="/impressum">Impressum</a>
+      </div>
+    </footer>
   </div>
 </div>

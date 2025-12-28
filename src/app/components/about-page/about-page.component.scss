@@ -1,68 +1,259 @@
-.logo {
-  font-family: "Permanent Marker", cursive;
+.about-page-background {
+  width: 100%;
+  min-height: 100%;
 }
 
-.link-button {
-  text-decoration: none;
-  width: 80%;
+.about-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  text-align: center;
 }
 
-.partner-grid {
-  display: grid;
-  gap: 20px;
-
-  @media (max-width: 767px) {
-    grid-template-columns: repeat(1, 1fr);
-  }
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  > a {
-    aspect-ratio: 7/5;
-    // Fallback
-    @supports not (aspect-ratio: 7/5) {
-      &::before {
-        float: left;
-        padding-top: calc(100% * 5 / 7);
-        content: "";
-      }
-
-      &::after {
-        display: block;
-        content: "";
-        clear: both;
-      }
-    }
-
-    div {
-      height: 100%;
-    }
-  }
+.parkour-earth-background {
+  background-color: white;
 }
 
-.credit-grid {
-  display: grid;
-  gap: 10px;
+// ============================================
+// Hero Section
+// ============================================
 
-  @media (max-width: 767px) {
-    grid-template-columns: repeat(1, 1fr);
-  }
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 4rem;
+}
+
+.logo-container {
+  position: relative;
+  width: min(700px, 90%);
+  height: 128px;
+  margin-bottom: 2.5rem;
+}
+
+.tagline {
+  margin-bottom: 2.5rem;
+}
+
+.subtitle {
+  max-width: 800px;
+}
+
+// ============================================
+// Features Section
+// ============================================
+
+.utility-section {
+  margin-bottom: 4rem;
+}
+
+.section-title {
+  margin-bottom: 1.5rem;
+}
+
+.three-grid {
   @media (min-width: 768px) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-mat-card {
-  mat-card-content {
-    padding-top: 10px;
+.two-grid {
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.mat-icon-link {
+.three-grid,
+.two-grid {
+  display: grid;
+  gap: 1.5rem;
+  text-align: left;
+}
+
+.feature-card {
+  padding: 1.5rem;
+
+  h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+.text-block {
+  width: 600px;
+  max-width: 90%;
+}
+
+// ============================================
+// Partners Section
+// ============================================
+
+.partners-section {
+  margin-bottom: 4rem;
+}
+
+.carousel-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  // Fade out edges
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+}
+
+.carousel-track {
+  display: flex;
+  width: max-content;
+  gap: 2rem;
+  padding: 1rem 0 3rem; // Extra bottom padding for text
+  will-change: transform; // Hint for GPU acceleration
+}
+
+.partner-link {
+  display: block;
+  position: relative;
+  flex: 0 0 auto; // Don't shrink
+  width: 200px;
+  aspect-ratio: 7 / 5;
+  text-decoration: none;
+  overflow: visible;
+
+  &:hover {
+    .partner-logo {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .partner-name {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+.partner-name {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  padding-top: 0.5rem;
+  text-align: center;
   color: white;
-  height: 32px;
-  width: 32px;
-  vertical-align: middle;
-  font-size: 32px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9); // Ensure visibility on any background
+  opacity: 0;
+  pointer-events: none;
+  font-weight: 500;
+  z-index: 100; // Ensure it's on top
+  transform: translateY(-8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+mat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0px 20px rgba(23, 233, 89, 0.15);
+  }
+}
+
+.partner-logo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  img {
+    object-fit: contain;
+  }
+
+  &.sph-background img {
+    transform: scale(1.3);
+  }
+}
+
+// ============================================
+// Contributors Section
+// ============================================
+
+.contributors-section {
+  margin-bottom: 2rem;
+}
+
+.credit-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: 992px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.contributor-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--mat-divider-color, rgba(0, 0, 0, 0.12));
+}
+
+.cta-card {
+  text-align: left;
+
+  p {
+    margin-bottom: 1rem;
+  }
+}
+
+// ============================================
+// Shared Styles
+// ============================================
+
+.pkspot-font {
+  font-family: "Permanent Marker", cursive;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.link-button {
+  text-decoration: none;
+}
+
+.object-fit-contain {
+  object-fit: contain;
+}
+
+section {
+  margin-bottom: 5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+}
+
+.invert-colors {
+  filter: invert(1);
+}
+
+footer a {
+  color: lightgray;
 }

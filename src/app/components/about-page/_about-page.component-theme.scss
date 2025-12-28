@@ -5,6 +5,40 @@
   .sph-background {
     background-color: mat.get-theme-color($theme, secondary);
   }
+
+  .spka-background {
+    // background-color: rgb(36, 47, 63);
+    background-color: #282f34;
+  }
+
+  .font-primary {
+    color: mat.get-theme-color($theme, primary);
+  }
+
+  .font-secondary {
+    color: mat.get-theme-color($theme, secondary);
+  }
+
+  .about-page-background {
+    background: radial-gradient(
+        circle at top right,
+        color-mix(
+          in srgb,
+          mat.get-theme-color($theme, primary),
+          transparent 90%
+        ),
+        transparent 60%
+      ),
+      radial-gradient(
+        circle at bottom left,
+        color-mix(
+          in srgb,
+          mat.get-theme-color($theme, secondary),
+          transparent 90%
+        ),
+        transparent 60%
+      );
+  }
 }
 
 @mixin typography($theme) {
