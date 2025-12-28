@@ -332,6 +332,13 @@ export class SpotEditsService extends ConsentAwareService {
     spotData: Partial<SpotSchema>,
     userReference: UserReferenceSchema
   ): Promise<string> {
+    // Convert GeoPoint to plain object for native compatibility
+    if (spotData.location) {
+      spotData.location = this._convertGeoPointToPlainObject(
+        spotData.location
+      ) as any;
+    }
+
     const editData = {
       type: "CREATE" as const,
       timestamp: Timestamp.now(),
@@ -366,6 +373,18 @@ export class SpotEditsService extends ConsentAwareService {
       prevData = cleanDataForFirestore(prevData) as Partial<SpotSchema>;
     }
 
+    // Convert GeoPoint to plain object for native compatibility
+    if (spotUpdateData.location) {
+      spotUpdateData.location = this._convertGeoPointToPlainObject(
+        spotUpdateData.location
+      ) as any;
+    }
+    if (prevData && prevData.location) {
+      prevData.location = this._convertGeoPointToPlainObject(
+        prevData.location
+      ) as any;
+    }
+
     const editData = {
       type: "UPDATE" as const,
       timestamp: Timestamp.now(),
@@ -374,5 +393,44 @@ export class SpotEditsService extends ConsentAwareService {
       prevData: prevData,
     };
     return this.addSpotEdit(spotId, editData);
+  }
+
+  /**
+   * Helper to convert a GeoPoint (or similar object) to a plain JSON object { latitude, longitude }.
+   * This ensures safe serialization on native devices where GeoPoint might fail.
+   */
+  private _convertGeoPointToPlainObject(location: any): {
+    latitude: number;
+    longitude: number;
+  } {
+    // If it's already a plain object with the right keys, return it
+    if (
+      typeof location.latitude === "number" &&
+      typeof location.longitude === "number" &&
+      !location.toJSON // GeoPoint usually has methods
+    ) {
+      return { latitude: location.latitude, longitude: location.longitude };
+    }
+
+    // Attempt to extract latitude/longitude
+    let lat: number | undefined;
+    let lng: number | undefined;
+
+    if (typeof location.latitude === "number") lat = location.latitude;
+    else if (typeof location._lat === "number") lat = location._lat;
+    else if (typeof location.lat === "number") lat = location.lat;
+    else if (typeof location.lat === "function") lat = location.lat();
+
+    if (typeof location.longitude === "number") lng = location.longitude;
+    else if (typeof location._long === "number") lng = location._long;
+    else if (typeof location.lng === "number") lng = location.lng;
+    else if (typeof location.lng === "function") lng = location.lng();
+
+    if (lat !== undefined && lng !== undefined) {
+      return { latitude: lat, longitude: lng };
+    }
+
+    // Fallback: return as is (might be null or unknown format)
+    return location;
   }
 }

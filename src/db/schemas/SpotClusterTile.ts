@@ -3,6 +3,7 @@ import { SpotPreviewData } from "./SpotPreviewData";
 
 export interface SpotClusterDotSchema {
   location: GeoPoint; // on DB
+  location_raw?: { lat: number; lng: number };
   weight: number;
   spot_id?: string;
 }

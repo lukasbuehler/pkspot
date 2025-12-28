@@ -539,17 +539,34 @@ export class GoogleMap2dComponent
     return dots
       .filter(
         (dot) =>
+          (dot.location &&
+            typeof dot.location.latitude === "number" &&
+            typeof dot.location.longitude === "number") ||
+          (dot.location_raw &&
+            typeof dot.location_raw.lat === "number" &&
+            typeof dot.location_raw.lng === "number")
+      )
+      .map((dot) => {
+        let lat: number;
+        let lng: number;
+
+        if (
           dot.location &&
           typeof dot.location.latitude === "number" &&
           typeof dot.location.longitude === "number"
-      )
-      .map((dot) => ({
-        location: new google.maps.LatLng(
-          dot.location.latitude,
-          dot.location.longitude
-        ),
-        weight: dot.weight || 1,
-      }));
+        ) {
+          lat = dot.location.latitude;
+          lng = dot.location.longitude;
+        } else {
+          lat = dot.location_raw!.lat;
+          lng = dot.location_raw!.lng;
+        }
+
+        return {
+          location: new google.maps.LatLng(lat, lng),
+          weight: dot.weight || 1,
+        };
+      });
   });
 
   heatmapOptions = computed<google.maps.visualization.HeatmapLayerOptions>(
@@ -1032,11 +1049,21 @@ export class GoogleMap2dComponent
   clickDot(dot: SpotClusterDotSchema) {
     if (dot.spot_id) {
       this.spotClick.emit(dot.spot_id as SpotId);
-    } else if (dot.location?.latitude && dot.location?.longitude) {
-      const location: google.maps.LatLng = new google.maps.LatLng(
-        dot.location.latitude,
-        dot.location.longitude
-      );
+    } else if (
+      (dot.location && dot.location.latitude && dot.location.longitude) ||
+      (dot.location_raw && dot.location_raw.lat && dot.location_raw.lng)
+    ) {
+      let lat: number;
+      let lng: number;
+      if (dot.location && dot.location.latitude && dot.location.longitude) {
+        lat = dot.location.latitude;
+        lng = dot.location.longitude;
+      } else {
+        lat = dot.location_raw!.lat;
+        lng = dot.location_raw!.lng;
+      }
+
+      const location: google.maps.LatLng = new google.maps.LatLng(lat, lng);
       this.focusOnLocation(location, this.zoom + 4);
     } else {
       console.warn("[GoogleMap2D] clickDot: dot has no valid location", dot);

@@ -7,6 +7,7 @@ export interface SpotPreviewData {
   id: SpotId;
   slug?: string;
   location?: GeoPoint;
+  location_raw?: { lat: number; lng: number };
   type?: string; //SpotTypes;
   access?: string; //SpotAccess;
   locality: string;

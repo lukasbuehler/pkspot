@@ -85,6 +85,9 @@ export const applySpotEditOnCreate = onDocumentCreated(
             latitude,
             longitude
           );
+
+          // Always write location_raw
+          createData.location_raw = { lat: latitude, lng: longitude };
         }
 
         await spotRef.update(createData);
@@ -134,6 +137,9 @@ export const applySpotEditOnCreate = onDocumentCreated(
             latitude,
             longitude
           );
+
+          // Always write location_raw
+          updateData.location_raw = { lat: latitude, lng: longitude };
         }
 
         // Special handling for media: append instead of replace

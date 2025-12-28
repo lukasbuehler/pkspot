@@ -114,13 +114,31 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
 
     //// 1. Update the address if the location changed OR if there is no address yet.
     // if the location of the spot has changed, call Googles reverse geocoding to get the address.
-    if (
-      (!(beforeData === undefined || beforeData.location === undefined) &&
-        beforeData.location["isEqual"] &&
-        !(beforeData.location as GeoPoint).isEqual(afterData.location)) ||
-      !afterData.address
-    ) {
-      const location = afterData.location as GeoPoint;
+
+    // Helper to get a stable comparable string for location
+    const getLocStr = (d: SpotSchema) => {
+      if (d?.location) return `${d.location.latitude},${d.location.longitude}`;
+      if (d?.location_raw) return `${d.location_raw.lat},${d.location_raw.lng}`;
+      return null;
+    };
+    const beforeLoc = getLocStr(beforeData);
+    const afterLoc = getLocStr(afterData);
+
+    const locationChanged = beforeLoc !== afterLoc;
+
+    if ((locationChanged && afterLoc) || (!afterData.address && afterLoc)) {
+      let location: GeoPoint;
+      if (afterData.location) {
+        location = afterData.location as GeoPoint;
+      } else if (afterData.location_raw) {
+        location = new admin.firestore.GeoPoint(
+          afterData.location_raw.lat,
+          afterData.location_raw.lng
+        );
+      } else {
+        // Should not happen due to check above
+        return null;
+      }
 
       try {
         const [address, _] = await getAddressAndLocaleFromGeopoint(

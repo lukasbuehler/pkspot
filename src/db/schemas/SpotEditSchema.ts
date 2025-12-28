@@ -15,8 +15,20 @@ export type SpotEditDataSchema = Partial<
     | "amenities"
     | "bounds"
     | "slug"
+    | "media"
+    | "external_references"
+    | "type"
+    | "access"
+    | "amenities"
+    | "bounds"
+    | "slug"
     | "hide_streetview"
-  >
+  > & {
+    location?:
+      | { latitude: number; longitude: number }
+      | { lat: number; lng: number }
+      | any; // Allow GeoPoint or plain object
+  }
 >;
 
 export interface SpotEditSchema {

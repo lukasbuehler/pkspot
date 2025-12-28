@@ -13,7 +13,8 @@ import {
 import { MapHelpers } from "../../src/scripts/MapHelpers";
 import { SpotId } from "../../src/db/schemas/SpotSchema";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const Supercluster = require("supercluster");
+const SuperclusterModule = require("supercluster");
+const Supercluster = SuperclusterModule.default || SuperclusterModule;
 
 function tileToBBox(
   zoom: number,
@@ -28,6 +29,7 @@ function tileToBBox(
 
 interface ClusterTileDot {
   location: GeoPoint;
+  location_raw?: { lat: number; lng: number };
   weight: number;
   spot_id?: string;
 }
@@ -70,7 +72,7 @@ async function _clusterAllSpots() {
           spot.media &&
           spot.media.length > 0;
 
-        if (!spot.location) {
+        if (!spot.location && !spot.location_raw) {
           console.error("Spot has no location", id);
           return;
         }
@@ -85,8 +87,15 @@ async function _clusterAllSpots() {
         // get the tile coordinates for the spot at zoom 14
         const tile = spot.tile_coordinates.z12; // the coords are for tiles at zoom 12
 
+        // Determine location to use (prefer GeoPoint for now as legacy, but ensure we have one)
+        let location: any = spot.location;
+        if (!location && spot.location_raw) {
+          location = new GeoPoint(spot.location_raw.lat, spot.location_raw.lng);
+        }
+
         const clusterTileDot: ClusterTileDot = {
-          location: spot.location,
+          location: location! as any,
+          location_raw: { lat: location.latitude, lng: location.longitude },
           weight: 1,
           spot_id: id,
         };
@@ -110,6 +119,15 @@ async function _clusterAllSpots() {
 
           if (spot.location !== undefined) {
             spotForTile.location = spot.location;
+          }
+          if (spot.location_raw !== undefined) {
+            spotForTile.location_raw = spot.location_raw;
+          } else if (spot.location !== undefined) {
+            // Backfill location_raw if missing from spot but location exists
+            spotForTile.location_raw = {
+              lat: spot.location.latitude,
+              lng: spot.location.longitude,
+            };
           }
 
           if (spot.type !== undefined) {
@@ -195,8 +213,8 @@ async function _clusterAllSpots() {
         const firstSmallerTile = clusterTiles.get(smallerTileKeys[0])!;
 
         // compute desired bbox for this aggregated tile
-        const tileX = firstSmallerTile.x >> (zoom === 8 ? 4 : 8);
-        const tileY = firstSmallerTile.y >> (zoom === 8 ? 4 : 8);
+        const tileX = firstSmallerTile.x >> 4;
+        const tileY = firstSmallerTile.y >> 4;
         const bbox = tileToBBox(zoom, tileX, tileY);
 
         // ask supercluster for clusters in this bbox at the target zoom
@@ -212,8 +230,9 @@ async function _clusterAllSpots() {
               : 1;
           return {
             location: new GeoPoint(coords[1], coords[0]),
+            location_raw: { lat: coords[1], lng: coords[0] },
             weight,
-            spot_id: c.properties && c.properties.spot_id,
+            spot_id: (c.properties && c.properties.spot_id) || null,
           } as ClusterTileDot;
         });
 
@@ -243,8 +262,8 @@ async function _clusterAllSpots() {
         // set the cluster tile
         clusterTiles.set(tileKey, {
           zoom: zoom,
-          x: firstSmallerTile.x >> (zoom === 8 ? 4 : 8),
-          y: firstSmallerTile.y >> (zoom === 8 ? 4 : 8),
+          x: firstSmallerTile.x >> 4,
+          y: firstSmallerTile.y >> 4,
           dots: clusterDots,
           spots: clusterSpots,
         });

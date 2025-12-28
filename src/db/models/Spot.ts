@@ -136,10 +136,22 @@ export class LocalSpot {
       return namesMap[nameLocale]?.text ?? $localize`Unnamed Spot`;
     });
 
-    this.location = signal({
-      lat: data.location.latitude,
-      lng: data.location.longitude,
-    });
+    if (data.location_raw) {
+      this.location = signal({
+        lat: data.location_raw.lat,
+        lng: data.location_raw.lng,
+      });
+    } else if (data.location) {
+      this.location = signal({
+        lat: data.location.latitude,
+        lng: data.location.longitude,
+      });
+    } else {
+      // Fallback or error if no location? For now defaulting to 0,0 or throwing might be too aggressive if valid data is missing.
+      // But SpotSchema usually requires location. We'll assume one exists.
+      console.error("Spot initialized without location or location_raw");
+      this.location = signal({ lat: 0, lng: 0 });
+    }
     this.tileCoordinates = data.tile_coordinates;
 
     this.locationString = computed(() => {
@@ -360,10 +372,21 @@ export class LocalSpot {
     // Names and descriptions
     this.names.set(makeLocaleMapFromObject(data.name));
 
-    const newLocation = {
-      lat: data.location.latitude,
-      lng: data.location.longitude,
-    };
+    let newLocation: { lat: number; lng: number };
+    if (data.location_raw) {
+      newLocation = {
+        lat: data.location_raw.lat,
+        lng: data.location_raw.lng,
+      };
+    } else if (data.location) {
+      newLocation = {
+        lat: data.location.latitude,
+        lng: data.location.longitude,
+      };
+    } else {
+      newLocation = this.location(); // Keep old location if strictly missing?
+    }
+
     this.location.set(newLocation);
 
     const descMap = data.description
@@ -479,6 +502,7 @@ export class LocalSpot {
     const data: SpotSchema = {
       name: this.names(),
       location: new GeoPoint(location.lat, location.lng),
+      location_raw: { lat: location.lat, lng: location.lng },
       tile_coordinates: MapHelpers.getTileCoordinates(location),
       description: this.descriptions(),
       media: mediaSchema,

@@ -22,7 +22,8 @@ export interface SpotAddressSchema {
 export interface SpotSchema {
   name: LocaleMap | Record<string, string>;
 
-  location: GeoPoint;
+  location?: GeoPoint;
+  location_raw?: { lat: number; lng: number };
 
   tile_coordinates?: {
     z2: { x: number; y: number };
