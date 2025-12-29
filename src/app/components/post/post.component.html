@@ -54,7 +54,7 @@
   }
 
   <!-- Spot display -->
-  @if(post.spot && (post.spot?.ref || post.spot?.spot_location)) {
+  @if(post.spot && (post.spot.ref || post.spot.spot_location)) {
   <a
     class="spot-container-link"
     [routerLink]="

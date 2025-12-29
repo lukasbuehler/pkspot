@@ -31,7 +31,6 @@ import {
   MapCircle,
   MapAdvancedMarker,
   MapRectangle,
-  MapHeatmapLayer,
 } from "@angular/google-maps";
 import { Subscription } from "rxjs";
 import { environment } from "../../../environments/environment";
@@ -105,7 +104,6 @@ export interface TilesObject {
     MapPolygon,
     MapRectangle,
     MapAdvancedMarker,
-    MapHeatmapLayer,
     MatIconModule,
     NgClass,
     MarkerComponent,

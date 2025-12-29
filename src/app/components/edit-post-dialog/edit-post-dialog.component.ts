@@ -36,7 +36,6 @@ import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { Observable } from "rxjs";
 import { MatButton } from "@angular/material/button";
 import { MatOption } from "@angular/material/core";
-import { NgIf } from "@angular/common";
 import { MatIcon } from "@angular/material/icon";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { MatTabGroup, MatTab } from "@angular/material/tabs";
@@ -73,7 +72,6 @@ export interface PostDialogData {
     MatIcon,
     MatSuffix,
     MatHint,
-    NgIf,
     MatError,
     MatAutocompleteTrigger,
     MatAutocomplete,
