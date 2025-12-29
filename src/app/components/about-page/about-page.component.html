@@ -34,7 +34,7 @@
       </h2>
       <div class="three-grid">
         <mat-card class="feature-card border">
-          <h4 class="mat-title-large">
+          <h4 class="mat-title-large" i18n>
             <mat-icon class="flex-shrink-0">globe</mat-icon> Local Knowledge,
             Global Reach
           </h4>
@@ -55,10 +55,10 @@
           <mat-icon>cloud</mat-icon> <mat-icon>moon_stars</mat-icon>
           <mat-icon>ac_unit</mat-icon>
         </h4> -->
-          <h4 class="mat-title-large">
+          <h4 class="mat-title-large" i18n>
             <mat-icon>map_search</mat-icon> Smart Map Filters
           </h4>
-          <p class="mat-body-medium">
+          <p class="mat-body-medium" i18n>
             Your training doesn't stop for the weather. Need a covered rail for
             a rainy night? A lit spot for a winter session? Or a gym for drills?
             Our Smart Filters let you dial in the exact training conditions you
@@ -95,9 +95,9 @@
         </mat-card>
         <mat-card class="feature-card border">
           <h4 class="mat-title-large">
-            <mat-icon>verified_user</mat-icon> Live & Verified
+            <mat-icon>verified_user</mat-icon> <span i18n>Live & Verified</span>
           </h4>
-          <p class="mat-body-medium">
+          <p class="mat-body-medium" i18n>
             A map is only useful if it's accurate. We prioritize Active
             Training. Through community check-ins and verified organization
             updates, we are building a living heatmap of where the sport is
@@ -108,8 +108,8 @@
     </section>
 
     <section>
-      <h2 class="mat-headline-large pkspot-font">We move with You.</h2>
-      <p class="text-block">
+      <h2 class="mat-headline-large pkspot-font" i18n>We move with You.</h2>
+      <p class="text-block" i18n>
         Training happens outside, not behind a desk. Take the full power of PK
         Spot with you - verified spots, smart filters, and session logging,
         right in your pocket.
@@ -118,7 +118,7 @@
         <div>
           <mat-card class="feature-card">
             <h4 class="mat-title-large">
-              <mat-icon>bookmark</mat-icon> Bookmark & Collect
+              <mat-icon>bookmark</mat-icon> <span i18n>Bookmark & Collect</span>
             </h4>
             <p class="mat-body-medium" i18n>
               Keep track of your journey. Bookmark your favorite training
@@ -137,9 +137,10 @@
         </mat-card> -->
         <mat-card class="feature-card">
           <h4 class="mat-title-large">
-            <mat-icon>install_desktop</mat-icon> Install Web App
+            <mat-icon>install_desktop</mat-icon>
+            <span i18n>Install Web App</span>
           </h4>
-          <p class="mat-body-medium">
+          <p class="mat-body-medium" i18n>
             Get the full-screen app experience directly from your browser. Open
             the menu and select "Add to Home Screen" or "Install" to access PK
             Spot instantly on any device.
@@ -184,7 +185,9 @@
             We are Open Source. No black-box algorithms, no hidden tracking.
             Just cutting-edge web tech built to serve the community.
           </p>
-          <div class="d-flex flex-row justify-content-start gap-2">
+          <div
+            class="d-flex flex-column align-items-start justify-content-start gap-2"
+          >
             <a
               matButton="outlined"
               href="https://github.com/lukasbuehler/pkspot"
@@ -230,12 +233,12 @@
       <h3 class="mat-headline-large section-title pkspot-font" i18n>
         Fueled by Passion, Community and Partners
       </h3>
-      <h4 class="mat-heading-medium px-5 mb-3 text-block" i18n>
+      <h4 class="mat-heading-medium mb-3 text-block" i18n>
         <span class="pkspot-font font-primary">PK Spot </span>
         is a <span class="font-secondary">free</span> utility tool built by
         athletes. We don't charge you to use the map, and we never will.
       </h4>
-      <p i18n class="mat-title-medium mb-3 px-5 text-block">
+      <p i18n class="mat-title-medium mb-3 text-block">
         To keep the servers running, we partner with the Parkour ecosystem —
         National Associations, ethical brands, and gyms. We support the
         organizations that support the sport.
@@ -303,7 +306,7 @@
       <div class="socials d-flex justify-content-center flex-row gap-3 mt-3">
         <!-- socials -->
 
-        <a href="https://instagram.com/pkstpo.app" matIconButton>
+        <a href="https://instagram.com/pkspot.app" matIconButton>
           <img src="assets/logos/instagram.svg" alt="" />
         </a>
         <a matIconButton href="https://discord.gg/Th5vx4KnQb">
@@ -316,11 +319,11 @@
     </section>
 
     <footer class="d-flex flex-column align-items-center">
-      <p class="mat-body-large text-block">
+      <p class="mat-body-large" i18n>
         Crafted in Zürich, Switzerland. Open Data. Open Code. ©2025 PK Spot.
       </p>
 
-      <div class="d-flex flex-row gap-5 mt-3">
+      <div class="d-flex flex-column gap-2 mt-3">
         <a routerLink="/terms-of-service" i18n="@@terms.long"
           >Terms of Service</a
         >

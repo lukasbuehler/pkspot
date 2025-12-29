@@ -1,75 +1,21 @@
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="fr">
   <file id="ngi18n" original="ng.template">
-    <unit id="1940752772695642659">
-      <segment state="initial">
-        <source> The spot for Parkour and Freerunning. </source>
-        <target> Le spot pour le parkour et le freerunning. </target>
-      </segment>
-    </unit>
-    <unit id="3710111609881776947">
-      <segment state="initial">
-        <source>Discover, Train, Share.</source>
-        <target>Découvrez, entraînez-vous, partagez.</target>
-      </segment>
-    </unit>
-    <unit id="3733695846697223562">
-      <segment state="initial">
-        <source> Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world. </source>
-        <target> Découvrez des spots et des athlètes, planifiez des séances d’entraînement avec vos amis et partagez vos réussites et souvenirs avec eux et le monde entier. </target>
-      </segment>
-    </unit>
     <unit id="3768927257183755959">
       <segment state="initial">
         <source>Save</source>
         <target>Enregistrer</target>
       </segment>
     </unit>
-    <unit id="7411379953853971507">
+    <unit id="2788928704037276887">
       <segment state="initial">
-        <source> This project is Open-Source! Our code is licensed under the <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">MIT License</pc>. </source>
-        <target> Ce projet est open-source ! Notre code est sous licence <pc id="0" equivStart="START_BOLD_TEXT" equivEnd="CLOSE_BOLD_TEXT" type="fmt" dispStart="&lt;b&gt;" dispEnd="&lt;/b&gt;">MIT License</pc>. </target>
-      </segment>
-    </unit>
-    <unit id="1563251428514246752">
-      <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc> View License </source>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">code</pc> MIT License </source>
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">receipt_long</pc> Voir la licence </target>
       </segment>
     </unit>
-    <unit id="6511882108366913037">
+    <unit id="69041188957873463">
       <segment state="initial">
-        <source>Contributors</source>
-        <target>Contributeurs</target>
-      </segment>
-    </unit>
-    <unit id="2405554561656775177">
-      <segment state="initial">
-        <source>Lead developer</source>
-        <target>Développeur principal</target>
-      </segment>
-    </unit>
-    <unit id="8985868511640294928">
-      <segment state="initial">
-        <source>Testing</source>
-        <target>Tests</target>
-      </segment>
-    </unit>
-    <unit id="6034013755958678236">
-      <segment state="initial">
-        <source> Testing, UI/UX Advisor </source>
-        <target> Tests, conseiller UI/UX </target>
-      </segment>
-    </unit>
-    <unit id="8062277427231117545">
-      <segment state="initial">
-        <source> Join our community of Parkour and Freerunning enthusiasts! Contribute your ideas, report bugs, and provide feedback to help us improve this platform together! </source>
-        <target> Rejoignez notre communauté d’enthousiastes de parkour et freerunning ! Apportez vos idées, signalez des bugs et donnez votre avis pour nous aider à améliorer cette plateforme ensemble ! </target>
-      </segment>
-    </unit>
-    <unit id="5825310972408482968">
-      <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc> Discord </source>
-        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">sports_esports</pc> Discord </target>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">policy</pc> Privacy Policy </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">policy</pc> Politique de confidentialité </target>
       </segment>
     </unit>
     <unit id="about_page_label">
@@ -266,15 +212,6 @@
         <target> Informations de connexion </target>
       </segment>
     </unit>
-    <unit id="saved_spots_chip_label">
-      <notes>
-        <note category="description">Saved spots label for spot chips</note>
-      </notes>
-      <segment state="initial">
-        <source>Saved</source>
-        <target>Enregistré</target>
-      </segment>
-    </unit>
     <unit id="settings.login.description">
       <notes>
         <note category="description">Description of login information section</note>
@@ -295,6 +232,12 @@
       <segment state="initial">
         <source>E-mail address</source>
         <target>Adresse e-mail</target>
+      </segment>
+    </unit>
+    <unit id="5520281340448478864">
+      <segment state="initial">
+        <source> Landing in a new city? Don&apos;t waste time scrolling. Use the Top Rated view to find the legendary spots the locals love. From the streets to the rooftops, the map speaks your language. </source>
+        <target> Vous débarquez dans une nouvelle ville ? Ne perdez pas de temps à scroller. Utilisez la vue Top Rated pour trouver les spots légendaires que les locaux adorent. Des rues aux toits, la carte parle votre langue. </target>
       </segment>
     </unit>
     <unit id="5563672453089263696">
@@ -382,10 +325,22 @@
         <target>Notifications</target>
       </segment>
     </unit>
+    <unit id="5888181835078469865">
+      <segment state="initial">
+        <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">Spot</pc> for Parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
+        <target> Le <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">Spot</pc> pour le Parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></target>
+      </segment>
+    </unit>
     <unit id="5207635742003539443">
       <segment state="initial">
         <source>Sign in</source>
         <target>Se connecter</target>
+      </segment>
+    </unit>
+    <unit id="policy.long">
+      <segment state="initial">
+        <source>Privacy Policy</source>
+        <target>Politique de confidentialité</target>
       </segment>
     </unit>
     <unit id="policy.short">
@@ -638,6 +593,12 @@
         <target>Créer un nouveau compte</target>
       </segment>
     </unit>
+    <unit id="697121102743047551">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">water</pc> Find Water Spots </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">water</pc> Trouver des spots d&apos;eau </target>
+      </segment>
+    </unit>
     <unit id="6997602168024654529">
       <segment state="initial">
         <source>Not sure</source>
@@ -648,6 +609,12 @@
       <segment state="initial">
         <source>Display Name</source>
         <target>Nom d’affichage</target>
+      </segment>
+    </unit>
+    <unit id="3088718992754147096">
+      <segment state="initial">
+        <source> Fueled by Passion, Community and Partners </source>
+        <target> Propulsé par la passion, la communauté et les partenaires </target>
       </segment>
     </unit>
     <unit id="6858563845386603352">
@@ -672,6 +639,18 @@
       <segment state="initial">
         <source>The repeated password needs to match the password entered.</source>
         <target>Le mot de passe répété doit correspondre au premier mot de passe saisi.</target>
+      </segment>
+    </unit>
+    <unit id="1048224077750217239">
+      <segment state="initial">
+        <source>Live &amp; Verified</source>
+        <target>En Direct et Vérifié</target>
+      </segment>
+    </unit>
+    <unit id="1074819869528994576">
+      <segment state="initial">
+        <source> Keep track of your journey. Bookmark your favorite training locations and save the spots you&apos;ve visited to build your personal collection of spots around the world. </source>
+        <target> Suivez votre parcours. Mettez en favori vos lieux d&apos;entraînement préférés et enregistrez les spots que vous avez visités pour construire votre collection personnelle de spots à travers le monde. </target>
       </segment>
     </unit>
     <unit id="1267967133679326155">
@@ -701,7 +680,7 @@
     <unit id="1975356621924283237">
       <segment state="initial">
         <source>Outdoor</source>
-        <target>Outdoor</target>
+        <target>Extérieur</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -779,6 +758,12 @@
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Other</pc></source>
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Autre</pc></target>
+      </segment>
+    </unit>
+    <unit id="6786034061470870852">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon class=&quot;flex-shrink-0&quot;&gt;" dispEnd="&lt;/mat-icon&gt;">globe</pc> Local Knowledge, Global Reach </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon class=&quot;flex-shrink-0&quot;&gt;" dispEnd="&lt;/mat-icon&gt;">globe</pc> Savoir Local, Portée Mondiale </target>
       </segment>
     </unit>
     <unit id="6807040359477339777">
@@ -872,6 +857,12 @@
         <target>Démoli</target>
       </segment>
     </unit>
+    <unit id="8369296838542073526">
+      <segment state="initial">
+        <source> Your training doesn&apos;t stop for the weather. Need a covered rail for a rainy night? A lit spot for a winter session? Or a gym for drills? Our Smart Filters let you dial in the exact training conditions you need. </source>
+        <target> Ton entraînement ne s&apos;arrête pas pour la météo. Besoin d&apos;une barre couverte pour une nuit pluvieuse ? Un spot éclairé pour une session d&apos;hiver ? Ou une salle pour les exercices ? Nos Smart Filters te permettent de trouver les conditions d&apos;entraînement exactes dont tu as besoin. </target>
+      </segment>
+    </unit>
     <unit id="8374523856907728400">
       <segment state="initial">
         <source>Does not exist</source>
@@ -882,6 +873,12 @@
       <segment state="initial">
         <source>It&apos;s a private spot and should not be on this spot map.</source>
         <target>C’est un spot privé et il ne devrait pas figurer sur cette carte.</target>
+      </segment>
+    </unit>
+    <unit id="8686897794326651735">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">search</pc> Find the best Spots </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">search</pc> Trouvez les meilleurs Spots </target>
       </segment>
     </unit>
     <unit id="8693603235657020323">
@@ -902,10 +899,22 @@
         <target>Spot</target>
       </segment>
     </unit>
+    <unit id="440458300676573130">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">shield</pc> Your Privacy, Protected </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">shield</pc> Votre vie privée, protégée </target>
+      </segment>
+    </unit>
     <unit id="4411046525037051458">
       <segment state="initial">
         <source> Note: Spot reports are public and will be displayed on the spot itself together with your profile and user name. </source>
         <target> Remarque : Les signalements de spots sont publics et seront affichés sur le spot lui-même, avec votre profil et nom d’utilisateur. </target>
+      </segment>
+    </unit>
+    <unit id="4412142780233553240">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">steps</pc> Find Parkour parks and gyms </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">steps</pc> Trouvez des parcs et salles de Parkour </target>
       </segment>
     </unit>
     <unit id="2330577642930707695">
@@ -1163,6 +1172,12 @@
         <target> Il s&apos;agit d&apos;une installation artistique publique ou d&apos;une sculpture qui peut être utilisée pour la pratique du Parkour. Veuillez respecter l&apos;œuvre et les environs.</target>
       </segment>
     </unit>
+    <unit id="spot-type-description.calisthenics">
+      <segment state="initial">
+        <source>This is a calisthenics park with bars and beams suitable for training. Be respectful to others and use the equipment carefully.</source>
+        <target>Ceci est un parc de calisthenics avec des barres et des poutres adaptées à l&apos;entraînement. Soyez respectueux envers les autres et utilisez l&apos;équipement avec soin.</target>
+      </segment>
+    </unit>
     <unit id="spot-type-description.descent">
       <segment state="initial">
         <source>This is a spot primarily used for descending techniques.</source>
@@ -1172,13 +1187,13 @@
     <unit id="spot-type-description.garage">
       <segment state="initial">
         <source>This is a parking garage or car park with ramps, columns, and concrete structures suitable for training.</source>
-        <target>This is a parking garage or car park with ramps, columns, and concrete structures suitable for training.</target>
+        <target>Ceci est un garage ou un parking avec des rampes, des colonnes et des structures en béton adaptées à l&apos;entraînement.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.gymnastics-gym">
       <segment state="initial">
         <source>This is a gymnastics facility with mats, bars, beams, and tumbling equipment suitable for acrobatic training.</source>
-        <target>This is a gymnastics facility with mats, bars, beams, and tumbling equipment suitable for acrobatic training.</target>
+        <target>Ceci est une salle de gymnastique avec des tapis, des barres, des poutres et de l&apos;équipement de tumbling adapté à l&apos;entraînement acrobatique.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.monument">
@@ -1241,10 +1256,16 @@
         <target>Il s&apos;agit d&apos;un établissement scolaire avec des murs, des bancs et des éléments architecturaux pour la pratique.</target>
       </segment>
     </unit>
+    <unit id="spot-type-description.skate-park">
+      <segment state="initial">
+        <source>This is a skate park with ramps, rails, and concrete structures suitable for training. Make sure to give way to skaters and be respectful at the skate park.</source>
+        <target>Ceci est un skatepark avec des rampes, des rails et des structures en béton adaptées à l&apos;entraînement. Assurez-vous de céder le passage aux skateurs et soyez respectueux au skatepark.</target>
+      </segment>
+    </unit>
     <unit id="spot-type-description.trampoline-park">
       <segment state="initial">
         <source>This is a trampoline park facility that has aerial training areas.</source>
-        <target>This is a trampoline park facility that has aerial training areas.</target>
+        <target>Ceci est un parc de trampolines qui propose des zones d&apos;entraînement aérien.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.university-campus">
@@ -1271,6 +1292,12 @@
         <target>Art</target>
       </segment>
     </unit>
+    <unit id="spot-type.calisthenics">
+      <segment state="initial">
+        <source>Calisthenics Park</source>
+        <target>Parc de Calisthenics</target>
+      </segment>
+    </unit>
     <unit id="spot-type.descent">
       <segment state="initial">
         <source>Descent</source>
@@ -1286,7 +1313,7 @@
     <unit id="spot-type.gymnastics-gym">
       <segment state="initial">
         <source>Gymnastics Gym</source>
-        <target>Gymnastics Gym</target>
+        <target>Salle de Gymnastique</target>
       </segment>
     </unit>
     <unit id="spot-type.monument">
@@ -1349,10 +1376,16 @@
         <target>École</target>
       </segment>
     </unit>
+    <unit id="spot-type.skate-park">
+      <segment state="initial">
+        <source>Skate Park</source>
+        <target>Skatepark</target>
+      </segment>
+    </unit>
     <unit id="spot-type.trampoline-park">
       <segment state="initial">
         <source>Trampoline Park</source>
-        <target>Trampoline Park</target>
+        <target>Parc de trampolines</target>
       </segment>
     </unit>
     <unit id="spot-type.university-campus">
@@ -1554,6 +1587,18 @@
         <target>Environnement</target>
       </segment>
     </unit>
+    <unit id="9210899085665920557">
+      <segment state="initial">
+        <source>Install Web App</source>
+        <target>Installer l&apos;Application Web</target>
+      </segment>
+    </unit>
+    <unit id="978733016608641076">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">all_inclusive</pc> Your Data, Forever </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">all_inclusive</pc> Vos données, pour toujours </target>
+      </segment>
+    </unit>
     <unit id="6435282697411612190">
       <segment state="initial">
         <source>What would you rate this spot from one to five stars?</source>
@@ -1584,12 +1629,6 @@
       <segment state="initial">
         <source> Address </source>
         <target> Adresse </target>
-      </segment>
-    </unit>
-    <unit id="3687194426938367329">
-      <segment state="initial">
-        <source>Partners</source>
-        <target>Partenaires</target>
       </segment>
     </unit>
     <unit id="8151017381798767627">
@@ -1638,6 +1677,15 @@
         <target> Accepter et continuer </target>
       </segment>
     </unit>
+    <unit id="water_spots_chip_label">
+      <notes>
+        <note category="description">Water spots label for spot chips</note>
+      </notes>
+      <segment state="initial">
+        <source>Water</source>
+        <target>Eau</target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogAboutButton">
       <segment state="initial">
         <source>About us</source>
@@ -1653,13 +1701,13 @@
     <unit id="welcomeDialogCommunityBody">
       <segment state="initial">
         <source> PK Spot is built by the community. By contributing content, you grant us the license needed to operate the service, as detailed in our Terms of Service. We then share the combined spot data back to the public under a protective, non-commercial license (CC BY-NC-SA 4.0) to keep it an open resource for everyone. </source>
-        <target> PK Spot is built by the community. By contributing content, you grant us the license needed to operate the service, as detailed in our Terms of Service. We then share the combined spot data back to the public under a protective, non-commercial license (CC BY-NC-SA 4.0) to keep it an open resource for everyone. </target>
+        <target> PK Spot est construit par la communauté. En contribuant du contenu, vous nous accordez la licence nécessaire pour faire fonctionner le service, comme détaillé dans nos Conditions d&apos;utilisation. Nous partageons ensuite les données combinées des spots avec le public sous une licence protectrice non commerciale (CC BY-NC-SA 4.0) pour en faire une ressource ouverte à tous. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogCommunityHeading">
       <segment state="initial">
         <source> Community &amp; Contribution </source>
-        <target> Community &amp; Contribution </target>
+        <target> Communauté et contribution </target>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyBody">
@@ -1855,6 +1903,15 @@
         <target>Spot emblématique</target>
       </segment>
     </unit>
+    <unit id="filter_helper_text">
+      <notes>
+        <note category="description">Filter helper text</note>
+      </notes>
+      <segment state="initial">
+        <source>There are no spots matching the filter in this area.</source>
+        <target>Il n&apos;y a aucun spot correspondant au filtre dans cette zone.</target>
+      </segment>
+    </unit>
     <unit id="for_parkour_spots_chip_label">
       <notes>
         <note category="description">&apos;For Parkour&apos; spots label for spot chips</note>
@@ -1903,6 +1960,12 @@
         <target>Langue</target>
       </segment>
     </unit>
+    <unit id="2832676521820274073">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-primary&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot </pc> is a <pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">free</pc> utility tool built by athletes. We don&apos;t charge you to use the map, and we never will. </source>
+        <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-primary&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot </pc> is a <pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">free</pc> utility tool built by athletes. We don&apos;t charge you to use the map, and we never will. </target>
+      </segment>
+    </unit>
     <unit id="28674972039900875">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Public License:</pc> This spot&apos;s data is made available under the <pc id="1" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;" dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </source>
@@ -1919,6 +1982,12 @@
       <segment state="initial">
         <source>Closed</source>
         <target>Fermé</target>
+      </segment>
+    </unit>
+    <unit id="7930891814958874419">
+      <segment state="initial">
+        <source> We are Open Source. No black-box algorithms, no hidden tracking. Just cutting-edge web tech built to serve the community. </source>
+        <target>Nous sommes Open Source. Pas d&apos;algorithmes opaques, pas de traçage caché. Juste une technologie web de pointe au service de la communauté.</target>
       </segment>
     </unit>
     <unit id="822217384326702238">
@@ -1943,6 +2012,15 @@
       <segment state="initial">
         <source>Account</source>
         <target>Compte</target>
+      </segment>
+    </unit>
+    <unit id="lighting_spots_chip_label">
+      <notes>
+        <note category="description">Lighting spots label for spot chips</note>
+      </notes>
+      <segment state="initial">
+        <source>Lighting</source>
+        <target>Éclairage</target>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -2025,15 +2103,6 @@
         <target>Mettre à jour l&apos;avis</target>
       </segment>
     </unit>
-    <unit id="visited_spots_chip_label">
-      <notes>
-        <note category="description">Visited spots label for spot chips</note>
-      </notes>
-      <segment state="initial">
-        <source>Visited</source>
-        <target>Visité</target>
-      </segment>
-    </unit>
     <unit id="8755396282893693521">
       <segment state="initial">
         <source>Event spots</source>
@@ -2076,16 +2145,34 @@
         <target> Enregistrez d&apos;abord le spot pour ajouter des images. </target>
       </segment>
     </unit>
+    <unit id="4872378010635024789">
+      <segment state="initial">
+        <source> Training happens outside, not behind a desk. Take the full power of PK Spot with you - verified spots, smart filters, and session logging, right in your pocket. </source>
+        <target> L&apos;entraînement se passe dehors, pas derrière un bureau. Emporte toute la puissance de PK Spot avec toi - spots vérifiés, smart filters et suivi de sessions, directement dans ta poche. </target>
+      </segment>
+    </unit>
     <unit id="7059749880989073519">
       <segment state="initial">
         <source>Water challenge</source>
         <target>Water Challenge</target>
       </segment>
     </unit>
+    <unit id="2445432338788485465">
+      <segment state="initial">
+        <source> Don&apos;t Just Look. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">Find</pc>. </source>
+        <target> Ne te contente pas de regarder. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">Trouve</pc>. </target>
+      </segment>
+    </unit>
     <unit id="2496518471623524249">
       <segment state="initial">
         <source>Uploaded by: </source>
         <target>Ajouté par : </target>
+      </segment>
+    </unit>
+    <unit id="5957901138028541022">
+      <segment state="initial">
+        <source> Get the full-screen app experience directly from your browser. Open the menu and select &quot;Add to Home Screen&quot; or &quot;Install&quot; to access PK Spot instantly on any device. </source>
+        <target> Profite de l&apos;expérience plein écran directement depuis ton navigateur. Ouvre le menu et sélectionne &quot;Ajouter à l&apos;écran d&apos;accueil&quot; ou &quot;Installer&quot; pour accéder à PK Spot instantanément sur n&apos;importe quel appareil. </target>
       </segment>
     </unit>
     <unit id="599066928832045467">
@@ -2130,6 +2217,12 @@
         <target> Enregistrer </target>
       </segment>
     </unit>
+    <unit id="4104301377423880524">
+      <segment state="initial">
+        <source>We move with You.</source>
+        <target>Nous bougeons avec toi.</target>
+      </segment>
+    </unit>
     <unit id="4110209764320322600">
       <segment state="initial">
         <source> What should we call you? Don&apos;t worry, the display name can be changed later. </source>
@@ -2142,10 +2235,22 @@
         <target>Challenge mis à jour avec succès</target>
       </segment>
     </unit>
+    <unit id="4274541861199186910">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">home</pc> Find Indoor Spots </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">home</pc> Trouver des spots intérieurs </target>
+      </segment>
+    </unit>
     <unit id="3714343477148346459">
       <segment state="initial">
         <source>New challenge saved successfully</source>
         <target>Nouveau Challenge enregistré avec succès</target>
+      </segment>
+    </unit>
+    <unit id="5069221023481955463">
+      <segment state="initial">
+        <source> We don&apos;t lock your world behind a paywall. All community spot data is released publicly to the community and is licensed under Creative Commons <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc>. It is open, shareable, and yours forever. </source>
+        <target> Nous ne verrouillons pas votre monde derrière un paywall. Toutes les données des spots de la communauté sont publiées publiquement et sont sous licence Creative Commons <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc>. C&apos;est ouvert, partageable, et à vous pour toujours. </target>
       </segment>
     </unit>
     <unit id="5078551942621038511">
@@ -2215,6 +2320,12 @@
         <target>Veuillez sélectionner un fichier à télécharger</target>
       </segment>
     </unit>
+    <unit id="8078753231616252504">
+      <segment state="initial">
+        <source> We believe the map belongs to the athletes, not a corporation. That&apos;s why <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary pkspot-font&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot</pc> is built differently. </source>
+        <target> Nous croyons que la carte appartient aux athlètes, pas à une entreprise. C&apos;est pourquoi <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary pkspot-font&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot</pc> est construit différemment. </target>
+      </segment>
+    </unit>
     <unit id="3368417786821334758">
       <segment state="initial">
         <source>Abort</source>
@@ -2252,7 +2363,7 @@
     <unit id="3148120434799119252">
       <segment state="initial">
         <source>Challenges</source>
-        <target>Challenges</target>
+        <target>Défis</target>
       </segment>
     </unit>
     <unit id="spot.challenges.add">
@@ -2272,7 +2383,7 @@
       </notes>
       <segment state="initial">
         <source> Challenges </source>
-        <target> Challenges </target>
+        <target> Défis </target>
       </segment>
     </unit>
     <unit id="spot.challenges.header_empty">
@@ -2282,7 +2393,7 @@
       </notes>
       <segment state="initial">
         <source> Challenges </source>
-        <target> Challenges </target>
+        <target> Défis </target>
       </segment>
     </unit>
     <unit id="spot.challenges.no_challenges">
@@ -2360,7 +2471,7 @@
       </notes>
       <segment state="initial">
         <source>Edit Spot</source>
-        <target>Edit Spot</target>
+        <target>Modifier le Spot</target>
       </segment>
     </unit>
     <unit id="spot.report.aria_label">
@@ -2387,6 +2498,12 @@
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">I&apos;m visible and have a problem with it.</pc></source>
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Je suis visible et cela me pose problème.</pc></target>
+      </segment>
+    </unit>
+    <unit id="5368124734646212072">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">map_search</pc> Smart Map Filters </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">map_search</pc> Filtres de Carte Intelligents </target>
       </segment>
     </unit>
     <unit id="spot.edit.media.header">
@@ -2481,6 +2598,12 @@
         <target>Impossible de partager un Spot qui n&apos;a pas encore été enregistré</target>
       </segment>
     </unit>
+    <unit id="667055198031260741">
+      <segment state="initial">
+        <source> To keep the servers running, we partner with the Parkour ecosystem — National Associations, ethical brands, and gyms. We support the organizations that support the sport. </source>
+        <target> Pour maintenir les serveurs en marche, nous travaillons en partenariat avec l&apos;écosystème du Parkour — Associations nationales, marques éthiques et salles de sport. Nous soutenons les organisations qui soutiennent le sport. </target>
+      </segment>
+    </unit>
     <unit id="7523630390926625638">
       <segment state="initial">
         <source>Link to spot copied to clipboard</source>
@@ -2493,10 +2616,16 @@
         <target>Challenge sans nom</target>
       </segment>
     </unit>
+    <unit id="2575639027185325240">
+      <segment state="initial">
+        <source> Be Part of the Movement </source>
+        <target> Faites partie du mouvement </target>
+      </segment>
+    </unit>
     <unit id="2043725857486133673">
       <segment state="initial">
         <source>Sketchy</source>
-        <target>Sketchy</target>
+        <target>Glauque</target>
       </segment>
     </unit>
     <unit id="204562474612147063">
@@ -2506,6 +2635,12 @@
       <segment state="initial">
         <source>Your Email</source>
         <target>Votre e-mail</target>
+      </segment>
+    </unit>
+    <unit id="6517384114852301760">
+      <segment state="initial">
+        <source>Transparent Code</source>
+        <target>Code transparent</target>
       </segment>
     </unit>
     <unit id="6554529363159797991">
@@ -2523,7 +2658,7 @@
     <unit id="6179528187219959958">
       <segment state="initial">
         <source>Techy</source>
-        <target>Techy</target>
+        <target>Technique</target>
       </segment>
     </unit>
     <unit id="5451766476743569122">
@@ -2535,7 +2670,7 @@
     <unit id="7027401708987643293">
       <segment state="initial">
         <source>Core</source>
-        <target>Core</target>
+        <target>Base</target>
       </segment>
     </unit>
     <unit id="3998090677451328461">
@@ -2562,10 +2697,22 @@
         <target>Ce Challenge est pour le plaisir ! </target>
       </segment>
     </unit>
+    <unit id="5133096532155335173">
+      <segment state="initial">
+        <source> Start Exploring </source>
+        <target> Commencer à explorer </target>
+      </segment>
+    </unit>
     <unit id="5176605689144016167">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
         <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important :</pc> Lors de l&apos;intégration de ce contenu sur votre site web, vous êtes responsable d&apos;obtenir le consentement de l&apos;utilisateur pour les services tiers (Google Maps, analyses, etc.). Assurez-vous que votre site a une bannière de consentement claire ou des conditions que les utilisateurs acceptent avant de voir le contenu intégré. </target>
+      </segment>
+    </unit>
+    <unit id="2364479747143032381">
+      <segment state="initial">
+        <source> We care deeply about your privacy. We do <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not</pc> sell your data — ever. No tracking cookies, no shady ad networks. Just the essentials to keep the platform running. </source>
+        <target> Nous tenons beaucoup à votre vie privée. Nous ne vendons <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">pas</pc> vos données — jamais. Pas de cookies de suivi, pas de réseaux publicitaires louches. Juste l&apos;essentiel pour faire fonctionner la plateforme. </target>
       </segment>
     </unit>
     <unit id="2369409944839137310">
@@ -2578,6 +2725,12 @@
       <segment state="initial">
         <source>Solo</source>
         <target>Solo</target>
+      </segment>
+    </unit>
+    <unit id="2252911490527310739">
+      <segment state="initial">
+        <source> The digital home for a physical movement. Whether you&apos;re a beginner looking for your first wall or a pro searching for a challenge, this is where the Parkour community maps the world. </source>
+        <target> La maison numérique d&apos;un mouvement physique. Que vous soyez un débutant cherchant votre premier mur ou un pro cherchant un défi, c&apos;est ici que la communauté du Parkour cartographie le monde. </target>
       </segment>
     </unit>
     <unit id="2267637299863581067">
@@ -2662,6 +2815,12 @@
         <target> Le challenge sera public immédiatement après son ajout. </target>
       </segment>
     </unit>
+    <unit id="5994590242730766861">
+      <segment state="initial">
+        <source>Bookmark &amp; Collect</source>
+        <target>Favoris et Collection</target>
+      </segment>
+    </unit>
     <unit id="5996977642855652872">
       <segment state="initial">
         <source>Please select the reason for this report:</source>
@@ -2717,6 +2876,12 @@
         <target>Type de Spot</target>
       </segment>
     </unit>
+    <unit id="terms.long">
+      <segment state="initial">
+        <source>Terms of Service</source>
+        <target>Conditions d&apos;utilisation</target>
+      </segment>
+    </unit>
     <unit id="terms.short">
       <segment state="initial">
         <source>Terms</source>
@@ -2730,7 +2895,7 @@
       </notes>
       <segment state="initial">
         <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you will contribute content under the license terms described within.</source>
-        <target>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you will contribute content under the license terms described within.</target>
+        <target>En créant un compte, vous acceptez nos <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Conditions d&apos;utilisation</pc> et confirmez que vous contribuerez au contenu selon les termes de licence décrits.</target>
       </segment>
     </unit>
     <unit id="7150227608403439982">
@@ -2749,6 +2914,12 @@
       <segment state="initial">
         <source>Show more</source>
         <target>Afficher plus</target>
+      </segment>
+    </unit>
+    <unit id="5602565406648292689">
+      <segment state="initial">
+        <source> Whether you are a solo athlete, a gym owner, or a national organization - we are happy to have you on board. </source>
+        <target> Que vous soyez un athlète solo, un propriétaire de salle ou une organisation nationale - nous sommes heureux de vous avoir à bord. </target>
       </segment>
     </unit>
     <unit id="565606266379309262">
@@ -2787,13 +2958,19 @@
     <unit id="6251586038459969294">
       <segment state="initial">
         <source>Both</source>
-        <target>Both</target>
+        <target>Les deux</target>
       </segment>
     </unit>
     <unit id="6299599810982807013">
       <segment state="initial">
         <source>All Challenges of </source>
         <target>Tous les challenges de </target>
+      </segment>
+    </unit>
+    <unit id="4004311420452381622">
+      <segment state="initial">
+        <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">Open</pc> Ground. </source>
+        <target> Construit sur un terrain <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">Ouvert</pc>. </target>
       </segment>
     </unit>
     <unit id="4020018249666121252">
@@ -2912,6 +3089,12 @@
         <target>autres</target>
       </segment>
     </unit>
+    <unit id="7798907458150961468">
+      <segment state="initial">
+        <source> Crafted in Zürich, Switzerland. Open Data. Open Code. ©2025 PK Spot. </source>
+        <target> Conçu à Zurich, Suisse. Données Ouvertes. Code Ouvert. ©2025 PK Spot. </target>
+      </segment>
+    </unit>
     <unit id="5753174679285423997">
       <segment state="initial">
         <source>Smart Scorecard</source>
@@ -2954,7 +3137,19 @@
     <unit id="4658982717700339898">
       <segment state="initial">
         <source>Unlink</source>
-        <target>Unlink</target>
+        <target>Dissocier</target>
+      </segment>
+    </unit>
+    <unit id="7433077905899310281">
+      <segment state="initial">
+        <source> A map is only useful if it&apos;s accurate. We prioritize Active Training. Through community check-ins and verified organization updates, we are building a living heatmap of where the sport is actually happening right now. </source>
+        <target> Une carte n&apos;est utile que si elle est précise. Nous priorisons l&apos;Entraînement Actif. Grâce aux check-ins de la communauté et aux mises à jour vérifiées des organisations, nous construisons une heatmap vivante montrant où le sport se pratique vraiment en ce moment. </target>
+      </segment>
+    </unit>
+    <unit id="744750008248382275">
+      <segment state="initial">
+        <source> Sign Up </source>
+        <target> S&apos;inscrire </target>
       </segment>
     </unit>
     <unit id="7457957151903874535">
