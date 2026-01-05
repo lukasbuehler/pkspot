@@ -228,13 +228,26 @@ export class MapsApiService extends ConsentAwareService {
           .filter((s) => s.placePrediction)
           .map((suggestion) => {
             const placePrediction = suggestion.placePrediction!;
+            const fullText = placePrediction.text.text || "";
+            // Split into main text (first comma-separated part) and secondary text (rest)
+            const commaIndex = fullText.indexOf(",");
+            const mainText =
+              commaIndex >= 0 ? fullText.substring(0, commaIndex) : fullText;
+            const secondaryText =
+              commaIndex >= 0 ? fullText.substring(commaIndex + 1).trim() : "";
+
             return {
               place_id: placePrediction.placeId || "",
-              description: placePrediction.text.text || "",
+              description: fullText,
+              structured_formatting: {
+                main_text: mainText,
+                secondary_text: secondaryText,
+                main_text_matched_substrings: [],
+              },
               terms: [
                 {
                   offset: 0,
-                  value: placePrediction.text.text || "",
+                  value: fullText,
                 },
               ],
               types: placePrediction.types || [],
@@ -456,7 +469,12 @@ export class MapsApiService extends ConsentAwareService {
     maxResults: number = 5
   ): Promise<google.maps.places.Place[]> {
     console.log("Fetching nearby places by distance:", location, type);
-    return Promise.reject(new Error("Not implemented"));
+
+    // Early return if API not loaded
+    if (!this._isApiLoaded()) {
+      console.warn("Google Maps API not loaded yet");
+      return [];
+    }
 
     return this.executeWithConsent(async () => {
       const request: google.maps.places.SearchNearbyRequest = {

@@ -69,7 +69,7 @@ export const appConfig: ApplicationConfig = {
       const app = inject(FirebaseApp);
 
       if (environment.production === false) {
-        setLogLevel("debug"); // Enable concise debug logs to diagnose connection issues
+        setLogLevel("info"); // Enable concise debug logs to diagnose connection issues
       }
 
       // Firestore settings optimized for Capacitor/WKWebView

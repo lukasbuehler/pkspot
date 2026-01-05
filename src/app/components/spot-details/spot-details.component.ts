@@ -615,19 +615,26 @@ export class SpotDetailsComponent
   }
 
   private async _preloadNearbyPlaces() {
-    // const spot = this.spot();
-    // if (!spot) return;
-    // try {
-    //   this.nearbyPlaceResults =
-    //     await this._mapsApiService.getNearbyPlacesByDistance(
-    //       spot.location(),
-    //       undefined,
-    //       5
-    //     );
-    // } catch (e) {
-    //   console.warn("Failed to preload nearby places", e);
-    //   this.nearbyPlaceResults = [];
-    // }
+    const spot = this.spot();
+    if (!spot) return;
+
+    // Don't load if Maps API is not available
+    if (!this._mapsApiService.isApiLoaded()) {
+      this._mapsApiService.loadGoogleMapsApi();
+      return;
+    }
+
+    try {
+      this.nearbyPlaceResults =
+        await this._mapsApiService.getNearbyPlacesByDistance(
+          spot.location(),
+          undefined, // No type filter - get all nearby POIs
+          5
+        );
+    } catch (e) {
+      console.warn("Failed to preload nearby places", e);
+      this.nearbyPlaceResults = [];
+    }
   }
 
   async linkPlace(pred: google.maps.places.AutocompletePrediction) {
@@ -797,6 +804,17 @@ export class SpotDetailsComponent
       if (a !== this._lastAccessValue) {
         this._lastAccessValue = a;
         this.accessAnimKey.update((v) => v + 1);
+      }
+    });
+
+    // Load nearby Google Places only when entering edit mode (to save API costs)
+    effect(() => {
+      const editing = this.isEditing();
+      const spot = this.spot();
+
+      if (editing && spot instanceof Spot && !spot.googlePlaceId()) {
+        // Only load if editing and no place is already linked
+        void this._preloadNearbyPlaces();
       }
     });
   }
