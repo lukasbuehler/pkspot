@@ -4,6 +4,7 @@
 
 h2[mat-dialog-title] {
   margin: 0;
+  color: var(--mat-sys-on-surface);
 }
 
 mat-dialog-content {
@@ -18,7 +19,7 @@ mat-dialog-content {
     margin: 0 0 12px 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--mat-sys-on-surface-variant, #49454f);
+    color: var(--mat-sys-on-surface);
   }
 }
 
@@ -27,16 +28,22 @@ mat-dialog-content {
   flex-wrap: wrap;
   gap: 8px;
 
-  mat-chip {
+  mat-chip-option {
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
 
-    &.selected {
-      background: var(--mat-sys-primary, #6750a4);
-      color: var(--mat-sys-on-primary, #ffffff);
+    // Target the standard Material selected class
+    &.mat-mdc-chip-selected {
+      ::ng-deep .mdc-evolution-chip__action--primary {
+        background-color: var(--mat-sys-secondary-container) !important;
+      }
 
-      mat-icon {
-        color: inherit;
+      ::ng-deep .mdc-evolution-chip__text-label {
+        color: var(--mat-sys-on-secondary-container) !important;
+      }
+
+      ::ng-deep .mat-icon {
+        color: var(--mat-sys-on-secondary-container) !important;
       }
     }
   }
@@ -65,7 +72,7 @@ mat-dialog-content {
       font-size: 20px;
       width: 20px;
       height: 20px;
-      color: var(--mat-sys-on-surface-variant, #49454f);
+      color: var(--mat-sys-on-surface);
     }
 
     span {
@@ -73,6 +80,7 @@ mat-dialog-content {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: var(--mat-sys-on-surface);
     }
   }
 

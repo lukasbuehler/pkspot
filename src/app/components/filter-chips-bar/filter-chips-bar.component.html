@@ -14,12 +14,13 @@
     </mat-chip-listbox>
   </div>
 
-  <mat-chip
+  <!-- Filters chip using mat-chip-option with selected for proper visual state -->
+  <mat-chip-option
     class="filters-chip glass"
-    [class.active]="customFilterActive"
+    [selected]="customFilterActive"
     (click)="onFiltersClick()"
   >
     <mat-icon matChipAvatar>tune</mat-icon>
     <span>{{ filtersLabel }}</span>
-  </mat-chip>
+  </mat-chip-option>
 </div>

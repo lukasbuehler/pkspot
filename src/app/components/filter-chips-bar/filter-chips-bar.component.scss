@@ -64,7 +64,7 @@ mat-chip {
   margin-left: 8px;
 
   // When active, match the selected chip appearance
-  &.active {
+  &.mat-mdc-chip-selected {
     ::ng-deep {
       .mdc-evolution-chip__action--primary {
         background-color: var(--mat-sys-secondary-container) !important;

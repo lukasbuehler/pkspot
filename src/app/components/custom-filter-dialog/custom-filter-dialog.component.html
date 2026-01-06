@@ -6,13 +6,13 @@
     <h3>{{ typesSectionLabel }}</h3>
     <div class="chips-grid">
       @for (type of allTypes; track type) {
-      <mat-chip
-        [class.selected]="isTypeSelected(type)"
+      <mat-chip-option
+        [selected]="isTypeSelected(type)"
         (click)="toggleType(type)"
       >
         <mat-icon matChipAvatar>{{ typeIcons[type] }}</mat-icon>
         <span>{{ typeNames[type] }}</span>
-      </mat-chip>
+      </mat-chip-option>
       }
     </div>
   </section>
@@ -24,13 +24,13 @@
     <h3>{{ accessSectionLabel }}</h3>
     <div class="chips-grid">
       @for (access of allAccesses; track access) {
-      <mat-chip
-        [class.selected]="isAccessSelected(access)"
+      <mat-chip-option
+        [selected]="isAccessSelected(access)"
         (click)="toggleAccess(access)"
       >
         <mat-icon matChipAvatar>{{ accessIcons[access] }}</mat-icon>
         <span>{{ accessNames[access] }}</span>
-      </mat-chip>
+      </mat-chip-option>
       }
     </div>
   </section>
