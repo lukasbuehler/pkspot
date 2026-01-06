@@ -53,13 +53,23 @@ export class SpotClusterService {
     zoom: number
   ): Promise<ClusterResult> {
     // 1. Calculate which tiles cover this viewport
-    // We use a fixed "fetching zoom" (e.g. 12) to cache data efficiently
-    // This allows panning around without re-fetching everything if we stay in same tiles
-    const fetchZoom = 12;
+    // Adaptive fetch zoom to optimize caching and performance at different zoom levels
+    // We aim to fetch a manageable number of tiles (e.g. ~16) regardless of the map zoom
+    let fetchZoom = 12;
+    if (zoom < 4) {
+      fetchZoom = 2;
+    } else if (zoom < 8) {
+      fetchZoom = 6;
+    } else if (zoom < 12) {
+      fetchZoom = 10;
+    } else {
+      fetchZoom = 12;
+    }
 
     // Don't fetch if zoom is too low (server-side clustering should handle < 10 or so in a real app,
     // but here we just follow existing logic or return empty if very far out)
-    if (zoom < 4) return { clusters: [], points: [] };
+    // We use a safe adaptive strategy now, so we can allow it.
+    // if (zoom < 4) return { clusters: [], points: [] };
 
     // Identify tiles at fetchZoom that cover the viewport
     const tilesToFetch = this._getTilesCoveringViewport(viewport, fetchZoom);
@@ -150,12 +160,40 @@ export class SpotClusterService {
       return { clusters: [], points: [] };
     }
 
-    const bbox: [number, number, number, number] = [
-      viewport.bbox.west,
-      viewport.bbox.south,
-      viewport.bbox.east,
-      viewport.bbox.north,
-    ];
+    const { north, south, east, west } = viewport.bbox;
+
+    // Check if the viewport crosses the International Date Line
+    if (west > east) {
+      // Split into two queries: one for the "left" side (west to 180) and one for the "right" side (-180 to east)
+      const bboxLeft: [number, number, number, number] = [
+        west,
+        south,
+        180,
+        north,
+      ];
+      const bboxRight: [number, number, number, number] = [
+        -180,
+        south,
+        east,
+        north,
+      ];
+
+      const clustersLeft = this._clusterIndex.getClusters(
+        bboxLeft,
+        Math.floor(zoom)
+      );
+      const clustersRight = this._clusterIndex.getClusters(
+        bboxRight,
+        Math.floor(zoom)
+      );
+
+      return {
+        clusters: [...clustersLeft, ...clustersRight],
+        points: this._clusterIndexPoints,
+      };
+    }
+
+    const bbox: [number, number, number, number] = [west, south, east, north];
 
     const clusters = this._clusterIndex.getClusters(bbox, Math.floor(zoom));
     return { clusters, points: this._clusterIndexPoints };
@@ -294,8 +332,20 @@ export class SpotClusterService {
 
     const tiles: { x: number; y: number }[] = [];
 
-    // Handle wrap around if needed (simple version for now)
-    const xRange = this._enumerateXRange(swTile.x, neTile.x, zoom);
+    // Check if we are viewing the full world (360 degrees) or close to it
+    // If so, we need to fetch all tile columns, because swTile.x and neTile.x might be identical (e.g. 0 and 0)
+    // which _enumerateXRange would mistakenly interpret as a single column.
+    const lngDiff = Math.abs(viewport.bbox.east - viewport.bbox.west);
+    let xRange: number[] = [];
+
+    // If we cover ~360 degrees, we must fetch all tiles in the row
+    if (lngDiff > 359) {
+      const tileCount = 1 << zoom;
+      xRange = Array.from({ length: tileCount }, (_, i) => i);
+    } else {
+      xRange = this._enumerateXRange(swTile.x, neTile.x, zoom);
+    }
+
     const yMin = Math.min(swTile.y, neTile.y);
     const yMax = Math.max(swTile.y, neTile.y);
 

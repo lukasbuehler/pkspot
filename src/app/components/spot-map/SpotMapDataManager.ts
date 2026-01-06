@@ -252,24 +252,35 @@ export class SpotMapDataManager {
       "Service avail:",
       !!this._spotClusterService
     );
-    if (this._spotClusterService && zoom >= 10 && zoom < 16) {
+    if (this._spotClusterService && zoom < 16) {
       const tileZoom = 12; // base tile zoom for fetching/caching
 
-      const neBounds = MapHelpers.getBoundsForTile(
-        visibleTilesObj.zoom,
-        visibleTilesObj.ne.x,
-        visibleTilesObj.ne.y
-      );
-      const swBounds = MapHelpers.getBoundsForTile(
-        visibleTilesObj.zoom,
-        visibleTilesObj.sw.x,
-        visibleTilesObj.sw.y
-      );
+      let north: number, south: number, east: number, west: number;
 
-      const north = neBounds.north;
-      const east = neBounds.east;
-      const south = swBounds.south;
-      const west = swBounds.west;
+      // Prefer the exact viewport if available and matching the current operation
+      // This prevents loss of information when converting to/from tiles (e.g. global wrap-around)
+      if (this._currentViewport) {
+        north = this._currentViewport.bbox.north;
+        south = this._currentViewport.bbox.south;
+        east = this._currentViewport.bbox.east;
+        west = this._currentViewport.bbox.west;
+      } else {
+        const neBounds = MapHelpers.getBoundsForTile(
+          visibleTilesObj.zoom,
+          visibleTilesObj.ne.x,
+          visibleTilesObj.ne.y
+        );
+        const swBounds = MapHelpers.getBoundsForTile(
+          visibleTilesObj.zoom,
+          visibleTilesObj.sw.x,
+          visibleTilesObj.sw.y
+        );
+
+        north = neBounds.north;
+        east = neBounds.east;
+        south = swBounds.south;
+        west = swBounds.west;
+      }
 
       // Compute tile coordinates at the tileZoom that cover the current viewport
       const neTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
@@ -362,11 +373,14 @@ export class SpotMapDataManager {
                   // Check lat bounds
                   if (lat > north || lat < south) return false;
 
-                  // Check lng bounds regarding wrap around?
-                  // Simple box check for now as standard maps usually don't wrap weirdly in local views
-                  // Ideally use MapsHelpers for wrap-around safe check if mostly needed
-                  // But for filtering visual noise, standard check is usually sufficient
-                  return lng <= east && lng >= west;
+                  // Check lng bounds regarding wrap around
+                  if (west > east) {
+                    // Date line crossing: Point must be either to the right of West OR to the left of East
+                    return lng >= west || lng <= east;
+                  } else {
+                    // Standard case
+                    return lng >= west && lng <= east;
+                  }
                 });
               }
 

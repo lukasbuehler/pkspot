@@ -377,7 +377,19 @@ export class GoogleMap2dComponent
       sw: swTile,
     };
 
-    const xRange = enumerateTileRangeX(swTile.x, neTile.x, intZoom);
+    // Check if we cover effectively the whole world horizontally
+    const ne = boundsToRender.getNorthEast();
+    const sw = boundsToRender.getSouthWest();
+    const lngDiff = ne.lng() - sw.lng();
+    const lngSpan = lngDiff < 0 ? lngDiff + 360 : lngDiff;
+
+    let xRange: number[];
+    if (lngSpan > 359) {
+      const tileCount = 1 << intZoom;
+      xRange = Array.from({ length: tileCount }, (_, i) => i);
+    } else {
+      xRange = enumerateTileRangeX(swTile.x, neTile.x, intZoom);
+    }
     const yMin = Math.min(swTile.y, neTile.y);
     const yMax = Math.max(swTile.y, neTile.y);
 
