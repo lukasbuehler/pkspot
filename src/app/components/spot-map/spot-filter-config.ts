@@ -13,6 +13,7 @@ export enum SpotFilterMode {
   Indoor = "indoor",
   Lighting = "lighting",
   Water = "water",
+  Custom = "custom",
 }
 
 /**
@@ -34,6 +35,13 @@ export interface SpotFilterConfig {
   amenities_false?: (keyof AmenitiesMap)[];
   /** Function to determine if a loaded Spot object matches this filter */
   matchesSpot: (spot: Spot) => boolean;
+  /** For custom mode, holds user-selected filter parameters (dynamic) */
+  customParams?: {
+    types?: SpotTypes[];
+    accesses?: SpotAccess[];
+    amenities_true?: (keyof AmenitiesMap)[];
+    amenities_false?: (keyof AmenitiesMap)[];
+  };
 }
 
 /**

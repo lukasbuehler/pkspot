@@ -212,6 +212,30 @@ export class SearchService {
     );
   }
 
+  /**
+   * Search spots using custom filter parameters from the dialog.
+   * This is a convenience wrapper around searchSpotsInBounds.
+   */
+  public searchSpotsWithCustomFilter(
+    bounds: google.maps.LatLngBounds,
+    params: {
+      types?: SpotTypes[];
+      accesses?: SpotAccess[];
+      amenities_true?: (keyof AmenitiesMap)[];
+      amenities_false?: (keyof AmenitiesMap)[];
+    },
+    num_spots: number = 20
+  ): Promise<{ hits: any[]; found: number }> {
+    return this.searchSpotsInBounds(
+      bounds,
+      num_spots,
+      params.types,
+      params.accesses,
+      params.amenities_true,
+      params.amenities_false
+    );
+  }
+
   public async searchSpotsInBounds(
     bounds: google.maps.LatLngBounds,
     num_spots: number = 100,

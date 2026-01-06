@@ -157,9 +157,6 @@ export class SpotsService extends ConsentAwareService {
         )
       ).pipe(
         map((arr) => {
-          console.log(
-            `[SpotsService] Tile ${tile.x},${tile.y} returned ${arr.length} spots`
-          );
           return arr.map(
             (docObj) =>
               new Spot(docObj.id as SpotId, docObj as SpotSchema, locale)
@@ -275,10 +272,6 @@ export class SpotsService extends ConsentAwareService {
         }
       }
 
-      console.log(
-        `[SpotsService HTTP] Tile ${tile.x},${tile.y} returned ${spots.length} spots`
-      );
-
       return spots;
     } catch (error) {
       console.error(
@@ -303,14 +296,9 @@ export class SpotsService extends ConsentAwareService {
       ).pipe(
         map((d) => {
           if (!d) {
-            console.log(
-              `[SpotsService] Cluster Tile ${tile} returned NULL/Empty`
-            );
             return [] as SpotClusterTileSchema[];
           }
           // Convert to the expected array shape
-          console.log(`[SpotsService] Cluster Tile ${tile} returned DATA`);
-
           const tileData = d as SpotClusterTileSchema;
 
           // Normalize dots

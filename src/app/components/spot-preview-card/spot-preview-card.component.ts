@@ -222,23 +222,7 @@ export class SpotPreviewCardComponent implements OnChanges {
     private _router: Router,
     public storageService: StorageService,
     public mapsApiService: MapsApiService
-  ) {
-    effect(() => {
-      const data = this.spotData();
-      const code = this.countryCode();
-      const emoji = this.countryFlagEmoji();
-      if (code) {
-        console.log("SpotPreviewCard Debug:", {
-          name: (data as any)?.name,
-          code,
-          emoji,
-          emojiCodePoints: emoji
-            ? [...emoji].map((c) => c.codePointAt(0)?.toString(16))
-            : "undefined",
-        });
-      }
-    });
-  }
+  ) {}
 
   ngOnChanges() {
     const spot = this.spotData();

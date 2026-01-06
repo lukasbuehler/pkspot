@@ -1,0 +1,25 @@
+<div class="filter-chips-container">
+  <div class="chips-scroll-area">
+    <mat-chip-listbox
+      [value]="selectedFilter"
+      [multiple]="false"
+      (change)="onChipChange($event.value)"
+    >
+      @for (filter of presetFilters; track filter.urlParam) {
+      <mat-chip-option class="glass" [value]="filter.urlParam">
+        <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
+        <span>{{ filter.label }}</span>
+      </mat-chip-option>
+      }
+    </mat-chip-listbox>
+  </div>
+
+  <mat-chip
+    class="filters-chip glass"
+    [class.active]="customFilterActive"
+    (click)="onFiltersClick()"
+  >
+    <mat-icon matChipAvatar>tune</mat-icon>
+    <span>{{ filtersLabel }}</span>
+  </mat-chip>
+</div>

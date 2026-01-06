@@ -1,0 +1,96 @@
+:host {
+  display: block;
+}
+
+h2[mat-dialog-title] {
+  margin: 0;
+}
+
+mat-dialog-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.filter-section {
+  padding: 16px 0;
+
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface-variant, #49454f);
+  }
+}
+
+.chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  mat-chip {
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+
+    &.selected {
+      background: var(--mat-sys-primary, #6750a4);
+      color: var(--mat-sys-on-primary, #ffffff);
+
+      mat-icon {
+        color: inherit;
+      }
+    }
+  }
+}
+
+.amenities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.amenity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  .amenity-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: var(--mat-sys-on-surface-variant, #49454f);
+    }
+
+    span {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  mat-button-toggle-group {
+    flex-shrink: 0;
+
+    ::ng-deep .mat-button-toggle-label-content {
+      padding: 0 12px;
+      font-size: 12px;
+    }
+  }
+}
+
+mat-dialog-actions {
+  padding: 12px 16px;
+  gap: 8px;
+}
+
+mat-divider {
+  margin: 0;
+}

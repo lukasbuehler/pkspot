@@ -1,0 +1,93 @@
+:host {
+  display: block;
+}
+
+.filter-chips-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  position: relative;
+}
+
+.chips-scroll-area {
+  flex: 1;
+  min-width: 0; // Allow shrinking
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // IE/Edge
+  padding-right: 24px; // Space for fade effect
+
+  // Fade-out gradient on the right edge
+  -webkit-mask-image: linear-gradient(
+    to right,
+    black 0%,
+    black calc(100% - 48px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    black 0%,
+    black calc(100% - 48px),
+    transparent 100%
+  );
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome/Safari
+  }
+
+  mat-chip-listbox {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+
+    // Prevent chips from wrapping
+    ::ng-deep .mdc-evolution-chip-set__chips {
+      flex-wrap: nowrap;
+    }
+  }
+}
+
+// All chips should have round shape
+mat-chip-option,
+mat-chip {
+  border-radius: 20px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+// Filters chip - standalone mat-chip for opening the filter dialog
+.filters-chip {
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-left: 8px;
+
+  // When active, match the selected chip appearance
+  &.active {
+    ::ng-deep {
+      .mdc-evolution-chip__action--primary {
+        background-color: var(--mat-sys-secondary-container) !important;
+      }
+
+      .mdc-evolution-chip__text-label,
+      .mat-icon {
+        color: var(--mat-sys-on-secondary-container) !important;
+      }
+    }
+  }
+}
+
+// Glass effect applied globally via ::ng-deep
+::ng-deep {
+  // Glass effect for all chips with .glass class
+  .glass .mdc-evolution-chip__action--primary {
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+  }
+
+  // Remove border on glass chips
+  .glass .mdc-evolution-chip__action--primary::before {
+    border: none !important;
+  }
+}

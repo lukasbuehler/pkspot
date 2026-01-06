@@ -89,10 +89,14 @@ import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.s
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
-import { ChipSelectComponent } from "../chip-select/chip-select.component";
 import { StructuredDataService } from "../../services/structured-data.service";
-import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
 import { MatCardModule } from "@angular/material/card";
+import { MatDialog } from "@angular/material/dialog";
+import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
+import {
+  CustomFilterDialogComponent,
+  CustomFilterParams,
+} from "../custom-filter-dialog/custom-filter-dialog.component";
 
 @Component({
   selector: "app-map-page",
@@ -149,8 +153,8 @@ import { MatCardModule } from "@angular/material/card";
     MatSidenavModule,
     NgTemplateOutlet,
     BottomSheetComponent,
-    ResizeObserverDirective,
     MatCardModule,
+    FilterChipsBarComponent,
   ],
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -269,6 +273,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   spotEdits: WritableSignal<SpotEdit[]> = signal([]);
 
   noSpotsForFilter: WritableSignal<boolean> = signal(false);
+
+  /** Stores custom filter parameters when using the Filters dialog */
+  customFilterParams: WritableSignal<CustomFilterParams | null> = signal(null);
+
+  /** MatDialog for opening the custom filter dialog */
+  private _dialog = inject(MatDialog);
 
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
@@ -872,6 +882,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   onFilterBoundsChange(bounds: google.maps.LatLngBounds): void {
     if (!this._activeFilter || !this.spotMap) return;
 
+    // Handle custom filter mode with stored params
+    if (this._activeFilter === "custom") {
+      const customParams = this.customFilterParams();
+      if (!customParams) return;
+
+      this._searchService
+        .searchSpotsWithCustomFilter(bounds, customParams)
+        .then((result) => {
+          const previews: SpotPreviewData[] = (result.hits || [])
+            .filter((h: any) => !!h)
+            .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+
+          this.spotMap?.setFilteredSpots(previews);
+        })
+        .catch((err) => {
+          console.error(
+            "Error re-searching custom filter on bounds change:",
+            err
+          );
+        });
+      return;
+    }
+
+    // Handle preset filter modes
     const filterMode = getFilterModeFromUrlParam(this._activeFilter);
     if (filterMode === SpotFilterMode.None) return;
 
@@ -901,6 +935,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this._pendingFilter = null;
       this.highlightedSpots = [];
       this.visibleSpots = [];
+      // Clear custom filter when clearing all filters
+      this.customFilterParams.set(null);
       if (this.spotMap) {
         // Clear filter mode using the signal - this triggers sync effect in SpotMapComponent
         this.spotMap.spotFilterMode.set(SpotFilterMode.None);
@@ -910,6 +946,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Track the active filter for re-searching on pan
     this._activeFilter = selectedChip;
+
+    // Clear custom filter when selecting a preset chip
+    if (selectedChip !== "custom") {
+      this.customFilterParams.set(null);
+    }
 
     // Convert URL param to filter mode using the centralized config
     const filterMode = getFilterModeFromUrlParam(selectedChip);
@@ -963,6 +1004,82 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .catch((err) => {
         console.error(`Error searching for ${selectedChip} spots:`, err);
       });
+  }
+
+  /**
+   * Opens the custom filter dialog and applies the selected filters.
+   */
+  openCustomFilterDialog(): void {
+    const dialogRef = this._dialog.open(CustomFilterDialogComponent, {
+      width: "400px",
+      maxWidth: "90vw",
+      maxHeight: "90vh",
+      data: { currentParams: this.customFilterParams() },
+    });
+
+    dialogRef.afterClosed().subscribe((result: CustomFilterParams | null) => {
+      if (!result) {
+        // User cancelled - do nothing
+        return;
+      }
+
+      // Check if result has any selections
+      const hasFilters =
+        (result.types?.length ?? 0) > 0 ||
+        (result.accesses?.length ?? 0) > 0 ||
+        (result.amenities_true?.length ?? 0) > 0 ||
+        (result.amenities_false?.length ?? 0) > 0;
+
+      if (!hasFilters) {
+        // Clear custom filter and reset to no filter
+        this.customFilterParams.set(null);
+        this.filterChipChanged("");
+        return;
+      }
+
+      // Store the custom filter params
+      this.customFilterParams.set(result);
+
+      // Update the selected filter to custom mode
+      this.selectedFilter.set("custom");
+      this._activeFilter = "custom";
+
+      // Set filter mode on spotMap
+      if (this.spotMap) {
+        this.spotMap.spotFilterMode.set(SpotFilterMode.Custom);
+      }
+
+      // Run the search with custom params
+      const bounds = this.spotMap?.bounds;
+      if (!bounds) {
+        console.debug("Custom filter set, waiting for bounds...");
+        return;
+      }
+
+      if (this.selectedSpot()) {
+        this.selectedSpot.set(null);
+      }
+
+      console.log("Searching with custom filter:", result);
+
+      this._searchService
+        .searchSpotsWithCustomFilter(bounds, result)
+        .then((searchResult) => {
+          const hits = searchResult.hits || [];
+          console.log("Found custom filter spots:", hits);
+
+          const previews: SpotPreviewData[] = hits
+            .filter((h: any) => !!h)
+            .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
+
+          if (this.spotMap) {
+            this.spotMap.setFilteredSpots(previews);
+          }
+        })
+        .catch((err) => {
+          console.error("Error searching with custom filter:", err);
+        });
+    });
   }
 
   updateMapURL() {

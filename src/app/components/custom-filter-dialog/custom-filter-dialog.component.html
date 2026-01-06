@@ -1,0 +1,71 @@
+<h2 mat-dialog-title>{{ dialogTitle }}</h2>
+
+<mat-dialog-content>
+  <!-- Spot Types Section -->
+  <section class="filter-section">
+    <h3>{{ typesSectionLabel }}</h3>
+    <div class="chips-grid">
+      @for (type of allTypes; track type) {
+      <mat-chip
+        [class.selected]="isTypeSelected(type)"
+        (click)="toggleType(type)"
+      >
+        <mat-icon matChipAvatar>{{ typeIcons[type] }}</mat-icon>
+        <span>{{ typeNames[type] }}</span>
+      </mat-chip>
+      }
+    </div>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Access Types Section -->
+  <section class="filter-section">
+    <h3>{{ accessSectionLabel }}</h3>
+    <div class="chips-grid">
+      @for (access of allAccesses; track access) {
+      <mat-chip
+        [class.selected]="isAccessSelected(access)"
+        (click)="toggleAccess(access)"
+      >
+        <mat-icon matChipAvatar>{{ accessIcons[access] }}</mat-icon>
+        <span>{{ accessNames[access] }}</span>
+      </mat-chip>
+      }
+    </div>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Amenities Section -->
+  <section class="filter-section">
+    <h3>{{ amenitiesSectionLabel }}</h3>
+    <div class="amenities-list">
+      @for (amenity of allAmenities; track amenity) {
+      <div class="amenity-row">
+        <div class="amenity-label">
+          <mat-icon>{{ amenityIcons[amenity] }}</mat-icon>
+          <span>{{ amenityNames[amenity] }}</span>
+        </div>
+        <mat-button-toggle-group
+          [value]="getAmenityState(amenity)"
+          (change)="setAmenityState(amenity, $event.value)"
+        >
+          <mat-button-toggle value="any">{{ anyLabel }}</mat-button-toggle>
+          <mat-button-toggle value="yes">{{ yesLabel }}</mat-button-toggle>
+          <mat-button-toggle value="no">{{ noLabel }}</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+      }
+    </div>
+  </section>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="clearAll()" [disabled]="!hasAnySelection">
+    {{ clearLabel }}
+  </button>
+  <button mat-flat-button color="primary" (click)="apply()">
+    {{ applyLabel }}
+  </button>
+</mat-dialog-actions>
