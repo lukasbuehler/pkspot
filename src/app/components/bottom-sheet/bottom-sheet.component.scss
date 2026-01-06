@@ -4,6 +4,10 @@
   position: relative;
   overflow: hidden;
   border-radius: 0px !important;
+
+  // Note: --bottom-sheet-closed-height is set dynamically by the component's closedHeight input.
+  // The parent component (e.g., map-page) should also define this variable for sibling components
+  // (like google-map-2d) to inherit. Default fallback: 140px.
 }
 
 $handle-region-height: 30px;

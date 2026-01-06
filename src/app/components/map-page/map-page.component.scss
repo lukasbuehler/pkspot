@@ -2,6 +2,11 @@
   height: 100%;
   position: relative;
   display: block;
+
+  // Centralized variable for the bottom sheet's visible height when closed.
+  // This is used by child components (e.g., Google Maps controls, FABs) to offset elements.
+  // Default: 140px. Can be changed here to update all dependent positioning.
+  --bottom-sheet-closed-height: 90px;
 }
 
 app-spot-map {
@@ -66,8 +71,8 @@ app-spot-map {
   z-index: 1;
 
   @media (max-width: 599.99px) {
-    // small screen
-    bottom: calc(140px + 30px);
+    // small screen - offset by bottom sheet height + margin
+    bottom: calc(var(--bottom-sheet-closed-height, 140px) + 30px);
     right: 20px;
   }
   @media (min-width: 600px) {

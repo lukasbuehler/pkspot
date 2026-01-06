@@ -95,6 +95,7 @@
     [infoOnly]="false"
     [editable]="true"
     [isEditing]="isEditing()"
+    [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
     (isEditingChange)="$event ? spotMap!.startEdit() : spotMap!.discardEdit()"
     (dismiss)="closeSpot()"
     (addBoundsClick)="spotMap!.addBounds()"

@@ -3,9 +3,11 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  input,
   OnDestroy,
   Output,
   Renderer2,
+  effect,
   inject,
   signal,
   ViewChild,
@@ -21,7 +23,24 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   @Output() isAtTopChange = new EventEmitter<boolean>();
   @Output() openProgressChange = new EventEmitter<number>(); // 0 = bottom (closed), 1 = top (open)
 
-  headerHeight = 140;
+  /**
+   * Height of the visible portion when the sheet is closed.
+   * This controls how much of the sheet "peeks" above the bottom.
+   * Default: 140px
+   */
+  closedHeight = input<number>(90);
+
+  private hostEl = inject(ElementRef);
+
+  constructor() {
+    // Keep the CSS custom property in sync with the input value
+    effect(() => {
+      this.hostEl.nativeElement.style.setProperty(
+        "--bottom-sheet-closed-height",
+        `${this.closedHeight()}px`
+      );
+    });
+  }
 
   private readonly animationDurationMs = 500;
   private readonly minDragDistance = 10;
@@ -58,7 +77,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   // ─── Shared drag helpers ───────────────────────────────────────────
 
   private getAlwaysVisible(sheetEl: HTMLElement): number {
-    return Math.max(sheetEl.clientHeight - this.headerHeight, 0);
+    return Math.max(sheetEl.clientHeight - this.closedHeight(), 0);
   }
 
   /**
@@ -67,7 +86,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
    */
   private recalculateSheetPosition(sheetEl: HTMLElement): void {
     const newHeight = sheetEl.clientHeight;
-    const newAlwaysVisible = Math.max(newHeight - this.headerHeight, 0);
+    const newAlwaysVisible = Math.max(newHeight - this.closedHeight(), 0);
 
     // If size hasn't changed, no need to recalculate
     if (newAlwaysVisible === this.lastRecordedHeight) {
@@ -244,7 +263,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     // This prevents the sheet from starting 10px too high due to incomplete measurements at init
     Promise.resolve().then(() => {
       const height = sheetEl.clientHeight;
-      const alwaysVisibleHeight = Math.max(height - this.headerHeight, 0);
+      const alwaysVisibleHeight = Math.max(height - this.closedHeight(), 0);
       this.lastRecordedHeight = alwaysVisibleHeight;
       // Initialize to closed position (offset by alwaysVisible)
       this.currentOffset = alwaysVisibleHeight;

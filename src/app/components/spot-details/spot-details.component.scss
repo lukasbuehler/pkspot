@@ -198,3 +198,24 @@ div.google-img-container {
 .country-code {
   font-weight: 500;
 }
+
+// Collapsible header info - animates based on --open-progress CSS variable
+// This is set dynamically by the component when used in a bottom sheet context
+.collapsible-header-info {
+  // Use CSS custom property for smooth continuous animation
+  // --open-progress: 0 = hidden, 1 = fully visible
+  opacity: var(--open-progress, 1);
+  max-height: calc(var(--open-progress, 1) * 100px);
+  overflow: hidden;
+  transition: opacity 0.2s ease-out, max-height 0.2s ease-out;
+
+  // When fully collapsed, prevent interaction
+  pointer-events: auto;
+
+  // Hide completely when progress is very low to avoid tiny sliver
+  &[data-collapsed="true"] {
+    opacity: 0;
+    max-height: 0;
+    pointer-events: none;
+  }
+}

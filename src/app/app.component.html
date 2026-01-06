@@ -69,7 +69,7 @@
     <!-- Bottom navigation bar -->
     @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
     'mobile' || responsive.viewMode() === 'tablet') {
-    <mat-toolbar class="mat-elevation-z1">
+    <mat-toolbar class="mat-elevation-z0">
       @for (button of navbarConfig(); track $index) { @if(button.link) {
       <a [routerLink]="button.link" tabindex="-1">
         <app-mat3-nav-button
@@ -144,7 +144,7 @@
     && (responsive.viewMode() === 'mobile' || responsive.viewMode() ===
     'tablet')) {
     <div
-      class="mat-body-small justify-content-around align-items-center flex-row mb-0 py-1 gap-3 px-3"
+      class="mat-body-small justify-content-around align-items-center flex-row mb-0 pb-1 gap-3 px-3"
       style="
         background-color: #1f1f23;
         font-size: 10px;

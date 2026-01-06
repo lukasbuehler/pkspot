@@ -283,6 +283,15 @@ export class SpotDetailsComponent
   private _metaTagService = inject(MetaTagService);
   private _analyticsService = inject(AnalyticsService);
 
+  /**
+   * Sets the --open-progress CSS custom property on the host element.
+   * This controls the visibility of collapsible header info sections.
+   */
+  @HostBinding("style.--open-progress")
+  get openProgressStyle(): number {
+    return this.openProgress();
+  }
+
   spot = model<Spot | LocalSpot | null>(null);
   notLocalSpotOrNull = computed(() => {
     const spot = this.spot();
@@ -394,6 +403,13 @@ export class SpotDetailsComponent
   @Input() border: boolean = false;
   @Input() clickable: boolean = false;
   @Input() editable: boolean = false;
+
+  /**
+   * Controls the visibility of collapsible header info when used in bottom sheet.
+   * 0 = closed (only show spot name + close button), 1 = fully open (show all info).
+   * On desktop sidebar this should always be 1.
+   */
+  openProgress = input<number>(1);
 
   @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() addBoundsClick: EventEmitter<void> = new EventEmitter<void>();

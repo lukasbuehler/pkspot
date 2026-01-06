@@ -57,100 +57,110 @@
       <div
         class="d-flex flex-column flex-grow-1 justify-content-center text-truncate"
       >
-        @if(spot()?.rating || spot()!.importantAmenitiesArray().length > 0 ||
-        spot()?.type() !== "other" || spot()?.access() !== "other") {
-        <div class="d-flex flex-row gap-1 align-items-center pb-1">
-          <!-- <span class="mat-label-small px-1 border rounded me-1">Spot</span> -->
-          @if(spot()?.rating) {
-          <span class="d-flex align-items-center gap-1 flex-shrink-0">
-            <app-fancy-counter
-              [number]="spot()!.rating!"
-              [decimals]="1"
-            ></app-fancy-counter>
-            <app-spot-rating
-              [rating1to5]="spot()!.rating"
-              [showNumReviews]="true"
-              [numReviews]="spot()!.numReviews"
-              [isCompact]="true"
-              [showRating]="false"
-            ></app-spot-rating>
-          </span>
-          }
-          {{
-            spot()?.rating && spot()!.importantAmenitiesArray().length > 0
-              ? "⸱"
-              : null
-          }}
-          @if(spot()!.importantAmenitiesArray().length > 0) {
-          <div class="d-flex flex-row gap-1 align-items-center">
-            @for(amenity of spot()!.importantAmenitiesArray(); track $index) {
-            <mat-icon class="amenity-icon" [matTooltip]="amenity.name">{{
-              amenity.icon
-            }}</mat-icon>
+        <!-- Collapsible header info - hidden when bottom sheet is closed -->
+        <div
+          class="collapsible-header-info"
+          [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
+        >
+          @if(spot()?.rating || spot()!.importantAmenitiesArray().length > 0 ||
+          spot()?.type() !== "other" || spot()?.access() !== "other") {
+          <div class="d-flex flex-row gap-1 align-items-center pb-1">
+            <!-- <span class="mat-label-small px-1 border rounded me-1">Spot</span> -->
+            @if(spot()?.rating) {
+            <span class="d-flex align-items-center gap-1 flex-shrink-0">
+              <app-fancy-counter
+                [number]="spot()!.rating!"
+                [decimals]="1"
+              ></app-fancy-counter>
+              <app-spot-rating
+                [rating1to5]="spot()!.rating"
+                [showNumReviews]="true"
+                [numReviews]="spot()!.numReviews"
+                [isCompact]="true"
+                [showRating]="false"
+              ></app-spot-rating>
+            </span>
             }
-          </div>
-          }
-          {{
-            (spot()?.rating || spot()!.importantAmenitiesArray().length > 0) &&
-            spot()?.type() !== "other"
-              ? "⸱"
-              : null
-          }}
-          @if(spot()?.type() && spot()?.type()! !== 'other') {
-          <span
-            class="mat-label-large text-nowrap text-truncate"
-            [@fadeSlideOnChange]="typeAnimKey()"
-          >
-            <!-- <mat-icon class="amenity-icon me-1">{{
+            {{
+              spot()?.rating && spot()!.importantAmenitiesArray().length > 0
+                ? "⸱"
+                : null
+            }}
+            @if(spot()!.importantAmenitiesArray().length > 0) {
+            <div class="d-flex flex-row gap-1 align-items-center">
+              @for(amenity of spot()!.importantAmenitiesArray(); track $index) {
+              <mat-icon class="amenity-icon" [matTooltip]="amenity.name">{{
+                amenity.icon
+              }}</mat-icon>
+              }
+            </div>
+            }
+            {{
+              (spot()?.rating ||
+                spot()!.importantAmenitiesArray().length > 0) &&
+              spot()?.type() !== "other"
+                ? "⸱"
+                : null
+            }}
+            @if(spot()?.type() && spot()?.type()! !== 'other') {
+            <span
+              class="mat-label-large text-nowrap text-truncate"
+              [@fadeSlideOnChange]="typeAnimKey()"
+            >
+              <!-- <mat-icon class="amenity-icon me-1">{{
               spotTypesIcons[spot()!.type()]
             }}</mat-icon
             > -->
 
-            {{ spotTypeNames[spot()!.type()] }}</span
-          >}
-          {{
-            (spot()?.rating ||
-              spot()!.importantAmenitiesArray().length > 0 ||
-              spot()?.type() !== "other") &&
-            spot()?.access() !== "other"
-              ? "⸱"
-              : null
-          }}
-          @if(spot()?.access() && spot()?.access()! !== 'other') {
-          <span
-            class="mat-label-large text-nowrap text-truncate"
-            [@fadeSlideOnChange]="accessAnimKey()"
-          >
-            <!-- <mat-icon class="amenity-icon me-1">{{
+              {{ spotTypeNames[spot()!.type()] }}</span
+            >}
+            {{
+              (spot()?.rating ||
+                spot()!.importantAmenitiesArray().length > 0 ||
+                spot()?.type() !== "other") &&
+              spot()?.access() !== "other"
+                ? "⸱"
+                : null
+            }}
+            @if(spot()?.access() && spot()?.access()! !== 'other') {
+            <span
+              class="mat-label-large text-nowrap text-truncate"
+              [@fadeSlideOnChange]="accessAnimKey()"
+            >
+              <!-- <mat-icon class="amenity-icon me-1">{{
               spotAccessIcons[spot()!.access()]
             }}</mat-icon
             > -->
 
-            {{ spotAccessNames[spot()!.access()] }}</span
-          >}
-        </div>
-        } @if(spot()?.address()) {
-        <span class="text-truncate d-flex align-items-center gap-1">
-          <span
-            >{{ displayLocality()
-            }}{{ displayLocality() && countryCode() ? "," : "" }}</span
-          >
-          @if(countryCode()) {
-          <span
-            class="country-badge"
-            [matTooltip]="spot()?.address()?.country?.name || ''"
-          >
-            <span class="country-code">{{ countryCode() }}</span>
-            <span class="flag-emoji ms-1">{{ countryFlagEmoji() }}</span>
+              {{ spotAccessNames[spot()!.access()] }}</span
+            >}
+          </div>
+          } @if(spot()?.address()) {
+          <span class="text-truncate d-flex align-items-center gap-1">
+            <span
+              >{{ displayLocality()
+              }}{{ displayLocality() && countryCode() ? "," : "" }}</span
+            >
+            @if(countryCode()) {
+            <span
+              class="country-badge"
+              [matTooltip]="spot()?.address()?.country?.name || ''"
+            >
+              <span class="country-code">{{ countryCode() }}</span>
+              <span class="flag-emoji ms-1">{{ countryFlagEmoji() }}</span>
+            </span>
+            }
           </span>
           }
-        </span>
-        }
+        </div>
       </div>
 
-      <!-- Icon buttons in header -->
+      <!-- Icon buttons in header - collapsible when sheet is closed -->
       @if(!isEditing()) {
-      <div class="spot-button-row">
+      <div
+        class="spot-button-row collapsible-header-info"
+        [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
+      >
         <!--@if(authenticationService.isSignedIn) {
         @if (!visited) {
          <button
