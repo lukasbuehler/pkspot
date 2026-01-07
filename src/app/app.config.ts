@@ -24,11 +24,11 @@ import {
   provideFirestore,
   getFirestore as ngfGetFirestore,
   connectFirestoreEmulator,
-  setLogLevel,
   initializeFirestore,
   memoryLocalCache,
   Firestore,
 } from "@angular/fire/firestore";
+import { LogLevel, setLogLevel } from "@angular/fire";
 import {
   provideFirebaseApp,
   initializeApp,
@@ -69,7 +69,7 @@ export const appConfig: ApplicationConfig = {
       const app = inject(FirebaseApp);
 
       if (environment.production === false) {
-        setLogLevel("info"); // Enable concise debug logs to diagnose connection issues
+        setLogLevel(LogLevel.VERBOSE);
       }
 
       // Firestore settings optimized for Capacitor/WKWebView

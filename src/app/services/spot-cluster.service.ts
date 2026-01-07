@@ -162,6 +162,14 @@ export class SpotClusterService {
 
     const { north, south, east, west } = viewport.bbox;
 
+    // Special case: when west === east, the viewport spans the full 360° world
+    // Query the entire longitude range
+    if (west === east) {
+      const bbox: [number, number, number, number] = [-180, south, 180, north];
+      const clusters = this._clusterIndex.getClusters(bbox, Math.floor(zoom));
+      return { clusters, points: this._clusterIndexPoints };
+    }
+
     // Check if the viewport crosses the International Date Line
     if (west > east) {
       // Split into two queries: one for the "left" side (west to 180) and one for the "right" side (-180 to east)
@@ -332,22 +340,46 @@ export class SpotClusterService {
 
     const tiles: { x: number; y: number }[] = [];
 
+    // Maximum valid tile index for Y at this zoom level
+    const maxTileIndex = (1 << zoom) - 1;
+
+    // Clamp Y coordinates to valid tile bounds (0 to 2^zoom - 1)
+    // This is necessary because extreme latitudes (near poles) can produce
+    // out-of-bounds tile coordinates
+    const clampY = (y: number) => Math.max(0, Math.min(maxTileIndex, y));
+
     // Check if we are viewing the full world (360 degrees) or close to it
     // If so, we need to fetch all tile columns, because swTile.x and neTile.x might be identical (e.g. 0 and 0)
     // which _enumerateXRange would mistakenly interpret as a single column.
-    const lngDiff = Math.abs(viewport.bbox.east - viewport.bbox.west);
+    // Handle date line crossing: when west > east, the viewport spans across the date line
+    // Special case: when west === east, it means the viewport has wrapped around the entire world (360°)
+    const west = viewport.bbox.west;
+    const east = viewport.bbox.east;
+    const isFullWorldWrap = west === east; // e.g., west=0, east=0 means full 360° view
+    const lngDiff = isFullWorldWrap
+      ? 360
+      : west > east
+      ? 360 - west + east
+      : east - west;
     let xRange: number[] = [];
 
     // If we cover ~360 degrees, we must fetch all tiles in the row
-    if (lngDiff > 359) {
+    // Also, at low zoom levels (like 2), if swTile.x === neTile.x but we're viewing a large
+    // portion of the world (e.g., > 90 degrees), we need all tiles because the coordinates wrapped
+    if (
+      lngDiff > 359 ||
+      isFullWorldWrap ||
+      (zoom <= 4 && swTile.x === neTile.x && lngDiff > 90)
+    ) {
       const tileCount = 1 << zoom;
       xRange = Array.from({ length: tileCount }, (_, i) => i);
     } else {
       xRange = this._enumerateXRange(swTile.x, neTile.x, zoom);
     }
 
-    const yMin = Math.min(swTile.y, neTile.y);
-    const yMax = Math.max(swTile.y, neTile.y);
+    // Clamp Y values to valid tile bounds before iterating
+    const yMin = clampY(Math.min(swTile.y, neTile.y));
+    const yMax = clampY(Math.max(swTile.y, neTile.y));
 
     xRange.forEach((x) => {
       for (let y = yMin; y <= yMax; y++) {

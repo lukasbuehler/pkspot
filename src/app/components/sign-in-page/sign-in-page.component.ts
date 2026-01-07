@@ -102,9 +102,11 @@ export class SignInPageComponent implements OnInit {
             break;
           case "auth/user-not-found":
           case "auth/wrong-password":
-            this.signInError = $localize`The E-mail address and password do not match for any existing user.`;
+          case "auth/invalid-credential":
+            this.signInError = $localize`Invalid email or password.`;
             break;
           default:
+            console.error("Unhandled Sign-In Error Code:", err.code);
             this.signInError = $localize`An unknown error has occured on sign in. Please try again.`;
             break;
         }

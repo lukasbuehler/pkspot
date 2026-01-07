@@ -589,9 +589,28 @@ export class SpotMapDataManager {
       sw: swTile,
     };
 
-    const xRange = this._enumerateXRange(swTile.x, neTile.x, zoom);
-    const yMin = Math.min(swTile.y, neTile.y);
-    const yMax = Math.max(swTile.y, neTile.y);
+    // Clamp Y coordinates to valid tile bounds (0 to 2^zoom - 1)
+    // This is necessary because extreme latitudes (near poles) can produce
+    // out-of-bounds tile coordinates
+    const maxTileIndex = (1 << zoom) - 1;
+    const clampY = (y: number) => Math.max(0, Math.min(maxTileIndex, y));
+
+    // Detect full 360° world view: when west === east, the viewport has wrapped around
+    const west = viewport.bbox.west;
+    const east = viewport.bbox.east;
+    const isFullWorldWrap = west === east;
+
+    let xRange: number[];
+    if (isFullWorldWrap) {
+      // Fetch all horizontal tiles when viewing full 360°
+      const tileCount = 1 << zoom;
+      xRange = Array.from({ length: tileCount }, (_, i) => i);
+    } else {
+      xRange = this._enumerateXRange(swTile.x, neTile.x, zoom);
+    }
+
+    const yMin = clampY(Math.min(swTile.y, neTile.y));
+    const yMax = clampY(Math.max(swTile.y, neTile.y));
 
     xRange.forEach((x) => {
       for (let y = yMin; y <= yMax; y++) {

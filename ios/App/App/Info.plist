@@ -8,6 +8,8 @@
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
         <string>PK Spot</string>
+    <key>GIDClientID</key>
+    <string>294969617102-u9u0rov6mtv79l51cu1cg8mrkf3hgjkp.apps.googleusercontent.com</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -49,5 +51,14 @@
 	<true/>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>We need your location to show spots near you.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.294969617102-u9u0rov6mtv79l51cu1cg8mrkf3hgjkp</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

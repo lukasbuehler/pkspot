@@ -381,17 +381,29 @@ export class GoogleMap2dComponent
     const ne = boundsToRender.getNorthEast();
     const sw = boundsToRender.getSouthWest();
     const lngDiff = ne.lng() - sw.lng();
-    const lngSpan = lngDiff < 0 ? lngDiff + 360 : lngDiff;
+    // Special case: when east === west, the viewport has wrapped around the entire world (360°)
+    const isFullWorldWrap = sw.lng() === ne.lng();
+    const lngSpan = isFullWorldWrap
+      ? 360
+      : lngDiff < 0
+      ? lngDiff + 360
+      : lngDiff;
+
+    // Maximum valid tile index for Y at this zoom level
+    const maxTileIndex = (1 << intZoom) - 1;
+    const clampY = (y: number) => Math.max(0, Math.min(maxTileIndex, y));
 
     let xRange: number[];
-    if (lngSpan > 359) {
+    if (lngSpan > 359 || isFullWorldWrap) {
       const tileCount = 1 << intZoom;
       xRange = Array.from({ length: tileCount }, (_, i) => i);
     } else {
       xRange = enumerateTileRangeX(swTile.x, neTile.x, intZoom);
     }
-    const yMin = Math.min(swTile.y, neTile.y);
-    const yMax = Math.max(swTile.y, neTile.y);
+
+    // Clamp Y values to valid tile bounds before iterating
+    const yMin = clampY(Math.min(swTile.y, neTile.y));
+    const yMax = clampY(Math.max(swTile.y, neTile.y));
 
     xRange.forEach((x) => {
       for (let y = yMin; y <= yMax; y++) {

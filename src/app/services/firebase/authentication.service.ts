@@ -28,6 +28,10 @@ import { UsersService } from "./firestore/users.service";
 import { UserSchema } from "../../../db/schemas/UserSchema";
 import { ConsentAwareService } from "../consent-aware.service";
 import { Capacitor } from "@capacitor/core";
+import {
+  FirebaseAuthentication,
+  User as CapacitorFirebaseUser,
+} from "@capacitor-firebase/authentication";
 
 interface AuthServiceUser {
   uid?: string;
@@ -62,6 +66,13 @@ export class AuthenticationService extends ConsentAwareService {
   private _isCreatingAccount = false;
   // Guard against concurrent Google sign-in attempts
   private _isSigningInWithGoogle = false;
+
+  /**
+   * Returns true if running on a native platform (iOS/Android)
+   */
+  private get _isNative(): boolean {
+    return Capacitor.isNativePlatform();
+  }
 
   constructor(
     private _userService: UsersService,
@@ -188,11 +199,26 @@ export class AuthenticationService extends ConsentAwareService {
   private _initializeAuthStateListener() {
     if (!this._authStateListenerInitialized) {
       this._authStateListenerInitialized = true;
-      // This call will trigger the accounts:lookup API call
-      this.auth.onAuthStateChanged(
-        this.firebaseAuthChangeListener,
-        this.firebaseAuthChangeError
-      );
+
+      if (this._isNative) {
+        // Use Capacitor Firebase Authentication listener for native platforms
+        FirebaseAuthentication.addListener(
+          "authStateChange",
+          (change: { user: CapacitorFirebaseUser | null }) => {
+            this._handleAuthStateChange(change.user);
+          }
+        );
+        // Also check current user immediately
+        FirebaseAuthentication.getCurrentUser().then((result) => {
+          this._handleAuthStateChange(result.user);
+        });
+      } else {
+        // Use web Firebase Auth listener
+        this.auth.onAuthStateChanged(
+          this.firebaseAuthChangeListener,
+          this.firebaseAuthChangeError
+        );
+      }
     }
   }
 
@@ -202,22 +228,28 @@ export class AuthenticationService extends ConsentAwareService {
     maps: "googlemaps",
   };
 
-  private firebaseAuthChangeListener = (firebaseUser: FirebaseUser | null) => {
-    // Auth state changed
-    if (firebaseUser) {
+  /**
+   * Handles auth state changes from both web and native platforms
+   */
+  private _handleAuthStateChange(
+    user: FirebaseUser | CapacitorFirebaseUser | null
+  ) {
+    if (user) {
       // If we have a firebase user, we are signed in.
-      this._currentFirebaseUser = firebaseUser;
+      if (!this._isNative) {
+        this._currentFirebaseUser = user as FirebaseUser;
+      }
       this.isSignedIn = true;
 
-      this.user.uid = firebaseUser.uid;
-      this.user.email = firebaseUser.email ?? undefined;
-      this.user.emailVerified = firebaseUser.emailVerified;
+      this.user.uid = user.uid;
+      this.user.email = user.email ?? undefined;
+      this.user.emailVerified = user.emailVerified;
 
       // Send basic auth state immediately (with Firebase user data)
       this.authState$.next(this.user);
 
       // Fetch user data from Firestore immediately (already consent-gated by executeWhenConsent wrapper)
-      this._fetchUserData(firebaseUser.uid, true);
+      this._fetchUserData(user.uid, true);
     } else {
       // We don't have a firebase user, we are not signed in
       this._currentFirebaseUser = null;
@@ -226,6 +258,10 @@ export class AuthenticationService extends ConsentAwareService {
 
       this.authState$.next(null);
     }
+  }
+
+  private firebaseAuthChangeListener = (firebaseUser: FirebaseUser | null) => {
+    this._handleAuthStateChange(firebaseUser);
   };
 
   private firebaseAuthChangeError = (error: any) => {
@@ -277,11 +313,41 @@ export class AuthenticationService extends ConsentAwareService {
     });
   }
 
+  // ============================================
+  // Sign In with Email and Password
+  // ============================================
+
   public signInEmailPassword(email: string, password: string) {
+    if (this._isNative) {
+      return this._signInEmailPasswordNative(email, password);
+    }
+    return this._signInEmailPasswordWeb(email, password);
+  }
+
+  private _signInEmailPasswordWeb(email: string, password: string) {
     return signInWithEmailAndPassword(this.auth, email, password);
   }
 
+  private async _signInEmailPasswordNative(email: string, password: string) {
+    const result = await FirebaseAuthentication.signInWithEmailAndPassword({
+      email,
+      password,
+    });
+    return result;
+  }
+
+  // ============================================
+  // Sign In with Google
+  // ============================================
+
   public async signInGoogle(): Promise<void> {
+    if (this._isNative) {
+      return this._signInGoogleNative();
+    }
+    return this._signInGoogleWeb();
+  }
+
+  private async _signInGoogleWeb(): Promise<void> {
     // Guard against concurrent Google sign-in attempts
     if (this._isSigningInWithGoogle) {
       console.warn(
@@ -307,52 +373,142 @@ export class AuthenticationService extends ConsentAwareService {
       );
 
       // check if the user exists in the database
-      try {
-        let user: User | null = await firstValueFrom(
-          this._userService.getUserById(googleSignInResponse.user.uid)
-        ); // TODO check out of context
-        if (!user) {
-          // This is a new user!
-          this.trackEventWithConsent("Create Account", {
-            props: { accountType: "Google" },
-          });
+      await this._handleGoogleSignInResult(
+        googleSignInResponse.user.uid,
+        googleSignInResponse.user.displayName,
+        googleSignInResponse.user.emailVerified
+      );
+    } finally {
+      this._isSigningInWithGoogle = false;
+    }
+  }
 
-          if (!googleSignInResponse.user.displayName) {
-            console.error("Google Sign In: No display name found");
-            return;
-          }
+  private async _signInGoogleNative(): Promise<void> {
+    // Guard against concurrent Google sign-in attempts
+    if (this._isSigningInWithGoogle) {
+      console.warn(
+        "Google sign-in already in progress, rejecting duplicate request"
+      );
+      return Promise.reject(
+        new Error(
+          "Google sign-in is already in progress. Please wait for the first attempt to complete."
+        )
+      );
+    }
 
-          // create a database entry for the user
-          this._userService.addUser(
-            googleSignInResponse.user.uid,
-            googleSignInResponse.user.displayName,
-            {
-              verified_email: googleSignInResponse.user.emailVerified, // TODO check
-              settings: this._defaultUserSettings,
-            }
-          );
-        }
-      } catch (error) {
-        // user does not exist
-        console.error(error);
+    this._isSigningInWithGoogle = true;
+
+    try {
+      const result = await FirebaseAuthentication.signInWithGoogle();
+
+      if (result.user) {
+        await this._handleGoogleSignInResult(
+          result.user.uid,
+          result.user.displayName,
+          result.user.emailVerified
+        );
       }
     } finally {
       this._isSigningInWithGoogle = false;
     }
   }
 
+  /**
+   * Shared logic for handling Google sign-in result (both web and native)
+   */
+  private async _handleGoogleSignInResult(
+    uid: string,
+    displayName: string | null,
+    emailVerified: boolean
+  ): Promise<void> {
+    try {
+      let user: User | null = await firstValueFrom(
+        this._userService.getUserById(uid)
+      );
+      if (!user) {
+        // This is a new user!
+        this.trackEventWithConsent("Create Account", {
+          props: { accountType: "Google" },
+        });
+
+        if (!displayName) {
+          console.error("Google Sign In: No display name found");
+          return;
+        }
+
+        // create a database entry for the user
+        this._userService.addUser(uid, displayName, {
+          verified_email: emailVerified,
+          settings: this._defaultUserSettings,
+        });
+      }
+    } catch (error) {
+      // user does not exist
+      console.error(error);
+    }
+  }
+
+  // ============================================
+  // Sign Out
+  // ============================================
+
   public logUserOut(): Promise<void> {
+    if (this._isNative) {
+      return this._logUserOutNative();
+    }
+    return this._logUserOutWeb();
+  }
+
+  private _logUserOutWeb(): Promise<void> {
     return signOut(this.auth);
   }
 
+  private async _logUserOutNative(): Promise<void> {
+    await FirebaseAuthentication.signOut();
+  }
+
+  // ============================================
+  // Resend Verification Email
+  // ============================================
+
   public resendVerificationEmail(): Promise<void> {
+    if (this._isNative) {
+      return this._resendVerificationEmailNative();
+    }
+    return this._resendVerificationEmailWeb();
+  }
+
+  private _resendVerificationEmailWeb(): Promise<void> {
     if (!this._currentFirebaseUser) {
       return Promise.reject("No current firebase user found");
     }
     return sendEmailVerification(this._currentFirebaseUser);
   }
 
+  private async _resendVerificationEmailNative(): Promise<void> {
+    const { user } = await FirebaseAuthentication.getCurrentUser();
+    if (!user) {
+      return Promise.reject("No current firebase user found");
+    }
+    await FirebaseAuthentication.sendEmailVerification();
+  }
+
+  // ============================================
+  // Create Account
+  // ============================================
+
   public async createAccount(
+    email: string,
+    confirmedPassword: string,
+    displayName: string
+  ): Promise<void> {
+    if (this._isNative) {
+      return this._createAccountNative(email, confirmedPassword, displayName);
+    }
+    return this._createAccountWeb(email, confirmedPassword, displayName);
+  }
+
+  private async _createAccountWeb(
     email: string,
     confirmedPassword: string,
     displayName: string
@@ -409,6 +565,61 @@ export class AuthenticationService extends ConsentAwareService {
           // Send verification email
           sendEmailVerification(firebaseAuthResponse.user);
         });
+      });
+    } finally {
+      this._isCreatingAccount = false;
+    }
+  }
+
+  private async _createAccountNative(
+    email: string,
+    confirmedPassword: string,
+    displayName: string
+  ): Promise<void> {
+    // Guard against concurrent account creation attempts
+    if (this._isCreatingAccount) {
+      console.warn(
+        "Account creation already in progress, rejecting duplicate request"
+      );
+      return Promise.reject(
+        new Error(
+          "Account creation is already in progress. Please wait for the first attempt to complete."
+        )
+      );
+    }
+
+    this._isCreatingAccount = true;
+
+    try {
+      // Ensure consent before creating account
+      return await this.executeWithConsent(async () => {
+        const result =
+          await FirebaseAuthentication.createUserWithEmailAndPassword({
+            email,
+            password: confirmedPassword,
+          });
+
+        if (!result.user) {
+          return Promise.reject("Failed to create user account");
+        }
+
+        this.trackEventWithConsent("Create Account", {
+          props: { accountType: "Email and Password" },
+        });
+
+        // Set the user's display name
+        await FirebaseAuthentication.updateProfile({
+          displayName: displayName,
+        });
+
+        // Create a database entry for the user
+        this._userService.addUser(result.user.uid, displayName, {
+          verified_email: false,
+          settings: this._defaultUserSettings,
+        });
+
+        // Send verification email
+        await FirebaseAuthentication.sendEmailVerification();
       });
     } finally {
       this._isCreatingAccount = false;
