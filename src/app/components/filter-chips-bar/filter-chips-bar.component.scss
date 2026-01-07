@@ -1,5 +1,6 @@
 :host {
   display: block;
+  overflow: visible;
 }
 
 .filter-chips-container {
@@ -18,6 +19,9 @@
   scrollbar-width: none; // Firefox
   -ms-overflow-style: none; // IE/Edge
   padding-right: 24px; // Space for fade effect
+
+  margin-left: -16px;
+  padding-left: 16px;
 
   // Fade-out gradient on the right edge
   -webkit-mask-image: linear-gradient(

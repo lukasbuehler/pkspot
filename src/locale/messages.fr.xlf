@@ -19,6 +19,10 @@
       </segment>
     </unit>
     <unit id="about_page_label">
+      <notes>
+        <note category="description">A very short label for the navbar about page button</note>
+        <note category="meaning">About page navbar button label</note>
+      </notes>
       <segment state="initial">
         <source>About</source>
         <target>À propos</target>
@@ -557,12 +561,6 @@
         <target>Le mot de passe est invalide !</target>
       </segment>
     </unit>
-    <unit id="2978266456005156211">
-      <segment state="initial">
-        <source>The E-mail address and password do not match for any existing user.</source>
-        <target>Aucun utilisateur ne correspond à cette combinaison d’adresse e-mail et de mot de passe.</target>
-      </segment>
-    </unit>
     <unit id="7708270344948043036">
       <segment state="initial">
         <source> <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}"/> </source>
@@ -726,9 +724,6 @@
       </segment>
     </unit>
     <unit id="dry_spots_chip_label">
-      <notes>
-        <note category="description">Dry spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Dry</source>
         <target>Sec</target>
@@ -1044,6 +1039,96 @@
       <segment state="initial">
         <source>WC</source>
         <target>WC</target>
+      </segment>
+    </unit>
+    <unit id="amenity.ac">
+      <segment state="initial">
+        <source>Air Conditioning</source>
+        <target>Climatisation</target>
+      </segment>
+    </unit>
+    <unit id="amenity.changing_room">
+      <segment state="initial">
+        <source>Changing Room</source>
+        <target>Vestiaire</target>
+      </segment>
+    </unit>
+    <unit id="amenity.covered">
+      <segment state="initial">
+        <source>Covered</source>
+        <target>Couvert</target>
+      </segment>
+    </unit>
+    <unit id="amenity.drinking_water">
+      <segment state="initial">
+        <source>Drinking Water</source>
+        <target>Eau potable</target>
+      </segment>
+    </unit>
+    <unit id="amenity.entry_fee">
+      <segment state="initial">
+        <source>Entry Fee</source>
+        <target>Payant</target>
+      </segment>
+    </unit>
+    <unit id="amenity.heated">
+      <segment state="initial">
+        <source>Heated</source>
+        <target>Chauffé</target>
+      </segment>
+    </unit>
+    <unit id="amenity.indoor">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Intérieur</target>
+      </segment>
+    </unit>
+    <unit id="amenity.lighting">
+      <segment state="initial">
+        <source>Lighting</source>
+        <target>Éclairage</target>
+      </segment>
+    </unit>
+    <unit id="amenity.lockers">
+      <segment state="initial">
+        <source>Lockers</source>
+        <target>Casiers</target>
+      </segment>
+    </unit>
+    <unit id="amenity.maybe_overgrown">
+      <segment state="initial">
+        <source>May Be Overgrown</source>
+        <target>Peut être envahi par la végétation</target>
+      </segment>
+    </unit>
+    <unit id="amenity.outdoor">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Extérieur</target>
+      </segment>
+    </unit>
+    <unit id="amenity.parking_on_site">
+      <segment state="initial">
+        <source>Parking</source>
+        <target>Parking</target>
+      </segment>
+    </unit>
+    <unit id="amenity.power_outlets">
+      <segment state="initial">
+        <source>Power Outlets</source>
+        <target>Prises électriques</target>
+      </segment>
+    </unit>
+    <unit id="amenity.water_feature">
+      <segment state="initial">
+        <source>Water Feature</source>
+        <target>Point d'eau</target>
+      </segment>
+    </unit>
+    <unit id="amenity.wc">
+      <segment state="initial">
+        <source>Toilets</source>
+        <target>Toilettes</target>
       </segment>
     </unit>
     <unit id="amenities.changing_room">
@@ -1415,15 +1500,6 @@
         <target>Parkour spot à </target>
       </segment>
     </unit>
-    <unit id="spot_highlights">
-      <notes>
-        <note category="description">Title for the spot highlights, spots is clear from the context</note>
-      </notes>
-      <segment state="initial">
-        <source> Highlights </source>
-        <target> Points forts </target>
-      </segment>
-    </unit>
     <unit id="question.covered">
       <segment state="initial">
         <source>Is the area covered?</source>
@@ -1486,8 +1562,8 @@
     </unit>
     <unit id="regular_spots_text">
       <segment state="initial">
-        <source>Spots</source>
-        <target>Spots</target>
+        <source>Other Spots</source>
+        <target>Autres spots</target>
       </segment>
     </unit>
     <unit id="no_spots_text">
@@ -1678,9 +1754,6 @@
       </segment>
     </unit>
     <unit id="water_spots_chip_label">
-      <notes>
-        <note category="description">Water spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Water</source>
         <target>Eau</target>
@@ -1903,6 +1976,24 @@
         <target>Spot emblématique</target>
       </segment>
     </unit>
+    <unit id="filter_any">
+      <segment state="initial">
+        <source>Any</source>
+        <target>Tout</target>
+      </segment>
+    </unit>
+    <unit id="filter_apply">
+      <segment state="initial">
+        <source>Apply</source>
+        <target>Appliquer</target>
+      </segment>
+    </unit>
+    <unit id="filter_clear">
+      <segment state="initial">
+        <source>Clear</source>
+        <target>Effacer</target>
+      </segment>
+    </unit>
     <unit id="filter_helper_text">
       <notes>
         <note category="description">Filter helper text</note>
@@ -1912,10 +2003,43 @@
         <target>Il n&apos;y a aucun spot correspondant au filtre dans cette zone.</target>
       </segment>
     </unit>
+    <unit id="filter_no">
+      <segment state="initial">
+        <source>No</source>
+        <target>Non</target>
+      </segment>
+    </unit>
+    <unit id="filter_section_access">
+      <segment state="initial">
+        <source>Access</source>
+        <target>Accès</target>
+      </segment>
+    </unit>
+    <unit id="filter_section_amenities">
+      <segment state="initial">
+        <source>Amenities</source>
+        <target>Équipements</target>
+      </segment>
+    </unit>
+    <unit id="filter_section_types">
+      <segment state="initial">
+        <source>Spot Type</source>
+        <target>Type de spot</target>
+      </segment>
+    </unit>
+    <unit id="filter_yes">
+      <segment state="initial">
+        <source>Yes</source>
+        <target>Oui</target>
+      </segment>
+    </unit>
+    <unit id="filters_chip_label">
+      <segment state="initial">
+        <source>Filters</source>
+        <target>Filtres</target>
+      </segment>
+    </unit>
     <unit id="for_parkour_spots_chip_label">
-      <notes>
-        <note category="description">&apos;For Parkour&apos; spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>For Parkour</source>
         <target>Pour le Parkour</target>
@@ -1928,9 +2052,6 @@
       </segment>
     </unit>
     <unit id="indoor_spots_chip_label">
-      <notes>
-        <note category="description">Indoor spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Indoor</source>
         <target>Intérieur</target>
@@ -2015,9 +2136,6 @@
       </segment>
     </unit>
     <unit id="lighting_spots_chip_label">
-      <notes>
-        <note category="description">Lighting spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Lighting</source>
         <target>Éclairage</target>
@@ -2083,6 +2201,12 @@
       <segment state="initial">
         <source>Save Cropped Image</source>
         <target>Enregistrer l&apos;image recadrée</target>
+      </segment>
+    </unit>
+    <unit id="custom_filter_dialog_title">
+      <segment state="initial">
+        <source>Custom Filters</source>
+        <target>Filtres personnalisés</target>
       </segment>
     </unit>
     <unit id="add_review_label">
@@ -2235,7 +2359,7 @@
         <target>Challenge mis à jour avec succès</target>
       </segment>
     </unit>
-    <unit id="4274541861199186910">
+    <unit id="4122763657542193970">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">home</pc> Find Indoor Spots </source>
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">home</pc> Trouver des spots intérieurs </target>
@@ -2432,6 +2556,12 @@
       <segment state="initial">
         <source> Spot Type and Access </source>
         <target> Type de Spot et Accès </target>
+      </segment>
+    </unit>
+    <unit id="1578341976423133065">
+      <segment state="initial">
+        <source>Invalid email or password.</source>
+        <target>Email ou mot de passe invalide.</target>
       </segment>
     </unit>
     <unit id="1581074162625291057">
@@ -3089,7 +3219,7 @@
         <target>autres</target>
       </segment>
     </unit>
-    <unit id="7798907458150961468">
+    <unit id="2704103786825350604">
       <segment state="initial">
         <source> Crafted in Zürich, Switzerland. Open Data. Open Code. ©2026 PK Spot. </source>
         <target> Conçu à Zurich, Suisse. Données Ouvertes. Code Ouvert. ©2026 PK Spot. </target>

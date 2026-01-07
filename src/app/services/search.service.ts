@@ -244,8 +244,6 @@ export class SearchService {
     amenities_true?: (keyof AmenitiesMap)[],
     amenities_false?: (keyof AmenitiesMap)[]
   ): Promise<{ hits: any[]; found: number }> {
-    console.debug("Searching spots in bounds:", bounds.toJSON());
-
     const latLongPairList: string[] = [
       // northeast
       bounds.getNorthEast().lat(),

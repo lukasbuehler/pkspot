@@ -19,6 +19,10 @@
       </segment>
     </unit>
     <unit id="about_page_label">
+      <notes>
+        <note category="description">A very short label for the navbar about page button</note>
+        <note category="meaning">About page navbar button label</note>
+      </notes>
       <segment state="initial">
         <source>About</source>
         <target>Über eus</target>
@@ -557,12 +561,6 @@
         <target>Das Passwort isch ungültig!</target>
       </segment>
     </unit>
-    <unit id="2978266456005156211">
-      <segment state="initial">
-        <source>The E-mail address and password do not match for any existing user.</source>
-        <target>Für die E-Mail Adresse und Passwort Kombination gits kein Benutzer.</target>
-      </segment>
-    </unit>
     <unit id="7708270344948043036">
       <segment state="initial">
         <source> <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}"/> </source>
@@ -726,9 +724,6 @@
       </segment>
     </unit>
     <unit id="dry_spots_chip_label">
-      <notes>
-        <note category="description">Dry spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Dry</source>
         <target>Troche</target>
@@ -1044,6 +1039,96 @@
       <segment state="initial">
         <source>WC</source>
         <target>WC</target>
+      </segment>
+    </unit>
+    <unit id="amenity.ac">
+      <segment state="initial">
+        <source>Air Conditioning</source>
+        <target>Klimatisiert</target>
+      </segment>
+    </unit>
+    <unit id="amenity.changing_room">
+      <segment state="initial">
+        <source>Changing Room</source>
+        <target>Umkleidekabine</target>
+      </segment>
+    </unit>
+    <unit id="amenity.covered">
+      <segment state="initial">
+        <source>Covered</source>
+        <target>Überdacht</target>
+      </segment>
+    </unit>
+    <unit id="amenity.drinking_water">
+      <segment state="initial">
+        <source>Drinking Water</source>
+        <target>Trinkwasser</target>
+      </segment>
+    </unit>
+    <unit id="amenity.entry_fee">
+      <segment state="initial">
+        <source>Entry Fee</source>
+        <target>Chostepflichtig</target>
+      </segment>
+    </unit>
+    <unit id="amenity.heated">
+      <segment state="initial">
+        <source>Heated</source>
+        <target>Beheizt</target>
+      </segment>
+    </unit>
+    <unit id="amenity.indoor">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Drin</target>
+      </segment>
+    </unit>
+    <unit id="amenity.lighting">
+      <segment state="initial">
+        <source>Lighting</source>
+        <target>Belüchtet</target>
+      </segment>
+    </unit>
+    <unit id="amenity.lockers">
+      <segment state="initial">
+        <source>Lockers</source>
+        <target>Schlüssfächli</target>
+      </segment>
+    </unit>
+    <unit id="amenity.maybe_overgrown">
+      <segment state="initial">
+        <source>May Be Overgrown</source>
+        <target>Chan überwucheret sii</target>
+      </segment>
+    </unit>
+    <unit id="amenity.outdoor">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Verusse</target>
+      </segment>
+    </unit>
+    <unit id="amenity.parking_on_site">
+      <segment state="initial">
+        <source>Parking</source>
+        <target>Parkplätz</target>
+      </segment>
+    </unit>
+    <unit id="amenity.power_outlets">
+      <segment state="initial">
+        <source>Power Outlets</source>
+        <target>Steckdose</target>
+      </segment>
+    </unit>
+    <unit id="amenity.water_feature">
+      <segment state="initial">
+        <source>Water Feature</source>
+        <target>Wasser-Element</target>
+      </segment>
+    </unit>
+    <unit id="amenity.wc">
+      <segment state="initial">
+        <source>Toilets</source>
+        <target>WCs</target>
       </segment>
     </unit>
     <unit id="amenities.changing_room">
@@ -1415,15 +1500,6 @@
         <target>Parkour Spot in </target>
       </segment>
     </unit>
-    <unit id="spot_highlights">
-      <notes>
-        <note category="description">Title for the spot highlights, spots is clear from the context</note>
-      </notes>
-      <segment state="initial">
-        <source> Highlights </source>
-        <target> Highlights </target>
-      </segment>
-    </unit>
     <unit id="question.covered">
       <segment state="initial">
         <source>Is the area covered?</source>
@@ -1486,8 +1562,8 @@
     </unit>
     <unit id="regular_spots_text">
       <segment state="initial">
-        <source>Spots</source>
-        <target>Spots</target>
+        <source>Other Spots</source>
+        <target>Anderi Spots</target>
       </segment>
     </unit>
     <unit id="no_spots_text">
@@ -1678,9 +1754,6 @@
       </segment>
     </unit>
     <unit id="water_spots_chip_label">
-      <notes>
-        <note category="description">Water spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Water</source>
         <target>Wasser</target>
@@ -1903,6 +1976,24 @@
         <target>Ikonische Spot</target>
       </segment>
     </unit>
+    <unit id="filter_any">
+      <segment state="initial">
+        <source>Any</source>
+        <target>Any</target>
+      </segment>
+    </unit>
+    <unit id="filter_apply">
+      <segment state="initial">
+        <source>Apply</source>
+        <target>Apply</target>
+      </segment>
+    </unit>
+    <unit id="filter_clear">
+      <segment state="initial">
+        <source>Clear</source>
+        <target>Clear</target>
+      </segment>
+    </unit>
     <unit id="filter_helper_text">
       <notes>
         <note category="description">Filter helper text</note>
@@ -1912,10 +2003,43 @@
         <target>Es git kei Spots i dere Region für de Filter.</target>
       </segment>
     </unit>
+    <unit id="filter_no">
+      <segment state="initial">
+        <source>No</source>
+        <target>Nei</target>
+      </segment>
+    </unit>
+    <unit id="filter_section_access">
+      <segment state="initial">
+        <source>Access</source>
+        <target>Zuegang</target>
+      </segment>
+    </unit>
+    <unit id="filter_section_amenities">
+      <segment state="initial">
+        <source>Amenities</source>
+        <target>Ahnemlichkeite  </target>
+      </segment>
+    </unit>
+    <unit id="filter_section_types">
+      <segment state="initial">
+        <source>Spot Type</source>
+        <target>Spot Typ</target>
+      </segment>
+    </unit>
+    <unit id="filter_yes">
+      <segment state="initial">
+        <source>Yes</source>
+        <target>Ja</target>
+      </segment>
+    </unit>
+    <unit id="filters_chip_label">
+      <segment state="initial">
+        <source>Filters</source>
+        <target>Filter</target>
+      </segment>
+    </unit>
     <unit id="for_parkour_spots_chip_label">
-      <notes>
-        <note category="description">&apos;For Parkour&apos; spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>For Parkour</source>
         <target>Für Parkour</target>
@@ -1928,9 +2052,6 @@
       </segment>
     </unit>
     <unit id="indoor_spots_chip_label">
-      <notes>
-        <note category="description">Indoor spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Indoor</source>
         <target>Indoor</target>
@@ -1987,7 +2108,7 @@
     <unit id="7930891814958874419">
       <segment state="initial">
         <source> We are Open Source. No black-box algorithms, no hidden tracking. Just cutting-edge web tech built to serve the community. </source>
-        <target> Mir sind Open-Source. Kei black-box Algorithme, kei versteckts Tracking. Nur cutting-edge Web Tech baut für d'Community. </target>
+        <target> Mir sind Open-Source. Kei black-box Algorithme, kei versteckts Tracking. Nur cutting-edge Web Tech baut für d&apos;Community. </target>
       </segment>
     </unit>
     <unit id="822217384326702238">
@@ -2015,9 +2136,6 @@
       </segment>
     </unit>
     <unit id="lighting_spots_chip_label">
-      <notes>
-        <note category="description">Lighting spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Lighting</source>
         <target>Belüchtig</target>
@@ -2083,6 +2201,12 @@
       <segment state="initial">
         <source>Save Cropped Image</source>
         <target>Zuegschnittes Bild speichere</target>
+      </segment>
+    </unit>
+    <unit id="custom_filter_dialog_title">
+      <segment state="initial">
+        <source>Custom Filters</source>
+        <target>Benutzerdefinierti Filter</target>
       </segment>
     </unit>
     <unit id="add_review_label">
@@ -2172,7 +2296,7 @@
     <unit id="5957901138028541022">
       <segment state="initial">
         <source> Get the full-screen app experience directly from your browser. Open the menu and select &quot;Add to Home Screen&quot; or &quot;Install&quot; to access PK Spot instantly on any device. </source>
-        <target> Bechum d'Vollbild App Erfahrig direkt vo dim Browser. Öffne s'Menü und wǎhl "Zum Stardbildschirm hinzuefüege" oder "Installiere" zum PK Spot sofort uf dem Grät benutze.</target>
+        <target> Bechum d&apos;Vollbild App Erfahrig direkt vo dim Browser. Öffne s&apos;Menü und wǎhl &quot;Zum Stardbildschirm hinzuefüege&quot; oder &quot;Installiere&quot; zum PK Spot sofort uf dem Grät benutze.</target>
       </segment>
     </unit>
     <unit id="599066928832045467">
@@ -2434,6 +2558,12 @@
         <target> Spot-Art und Zuegang </target>
       </segment>
     </unit>
+    <unit id="1578341976423133065">
+      <segment state="initial">
+        <source>Invalid email or password.</source>
+        <target>Ungültigi E-Mail oder Passwort.</target>
+      </segment>
+    </unit>
     <unit id="1581074162625291057">
       <notes>
         <note category="description">The header for the spot description</note>
@@ -2601,7 +2731,7 @@
     <unit id="667055198031260741">
       <segment state="initial">
         <source> To keep the servers running, we partner with the Parkour ecosystem — National Associations, ethical brands, and gyms. We support the organizations that support the sport. </source>
-        <target> Zum d'Server betriebe, partnered mir mitem Parkour Ökosystem - Nationali Vereinigunge, ethischi Marke und Gyms. Mir unterstützed die Organisatione wo de Sport unterstützed. </target>
+        <target> Zum d&apos;Server betriebe, partnered mir mitem Parkour Ökosystem - Nationali Vereinigunge, ethischi Marke und Gyms. Mir unterstützed die Organisatione wo de Sport unterstützed. </target>
       </segment>
     </unit>
     <unit id="7523630390926625638">
@@ -2712,7 +2842,7 @@
     <unit id="2364479747143032381">
       <segment state="initial">
         <source> We care deeply about your privacy. We do <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not</pc> sell your data — ever. No tracking cookies, no shady ad networks. Just the essentials to keep the platform running. </source>
-        <target> Eus isch dini Privatsphäre wichtig. Mir verchaufed dini Date <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">nöd</pc> — jemals. Kei tracking Cookies, kei shady Werbe-Netzwerk. Nur essenzielli Sache zum d'Plattform betriebe. </target>
+        <target> Eus isch dini Privatsphäre wichtig. Mir verchaufed dini Date <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">nöd</pc> — jemals. Kei tracking Cookies, kei shady Werbe-Netzwerk. Nur essenzielli Sache zum d&apos;Plattform betriebe. </target>
       </segment>
     </unit>
     <unit id="2369409944839137310">
@@ -2730,7 +2860,7 @@
     <unit id="2252911490527310739">
       <segment state="initial">
         <source> The digital home for a physical movement. Whether you&apos;re a beginner looking for your first wall or a pro searching for a challenge, this is where the Parkour community maps the world. </source>
-        <target> S'digitale Dihei für physischi Bewegig. Egal öb du en Ahfänger bisch  wo sini ersti Wand suecht oder en Pro uf de Suechi nachere Challenge, das isch de Ort wod Parkour-Community d'Welt kartographiert.</target>
+        <target> S&apos;digitale Dihei für physischi Bewegig. Egal öb du en Ahfänger bisch wo sini ersti Wand suecht oder en Pro uf de Suechi nachere Challenge, das isch de Ort wod Parkour-Community d&apos;Welt kartographiert.</target>
       </segment>
     </unit>
     <unit id="2267637299863581067">
@@ -2919,7 +3049,7 @@
     <unit id="5602565406648292689">
       <segment state="initial">
         <source> Whether you are a solo athlete, a gym owner, or a national organization - we are happy to have you on board. </source>
-        <target> Egal öb du en Solo-Athlet, en Gym-Bsitzer, oder vonere nationale Organisation bisch - mir sind glücklich dich a Board z'ha.  </target>
+        <target> Egal öb du en Solo-Athlet, en Gym-Bsitzer, oder vonere nationale Organisation bisch - mir sind glücklich dich a Board z&apos;ha. </target>
       </segment>
     </unit>
     <unit id="565606266379309262">
@@ -3089,7 +3219,7 @@
         <target>anderi</target>
       </segment>
     </unit>
-    <unit id="7798907458150961468">
+    <unit id="2704103786825350604">
       <segment state="initial">
         <source> Crafted in Zürich, Switzerland. Open Data. Open Code. ©2026 PK Spot. </source>
         <target> Kreirt in Züri, i de Schwiiz. Offeni Date. Offne Code. ©2026 PK Spot. </target>

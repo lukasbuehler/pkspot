@@ -26,6 +26,10 @@
       </segment>
     </unit>
     <unit id="about_page_label">
+      <notes>
+        <note category="description">A very short label for the navbar about page button</note>
+        <note category="meaning">About page navbar button label</note>
+      </notes>
       <segment>
         <source>About</source>
       </segment>
@@ -586,11 +590,6 @@
         <source>The password is invalid!</source>
       </segment>
     </unit>
-    <unit id="2978266456005156211">
-      <segment>
-        <source>The E-mail address and password do not match for any existing user.</source>
-      </segment>
-    </unit>
     <unit id="7708270344948043036">
       <segment>
         <source> <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}"/> </source>
@@ -729,9 +728,6 @@
       </segment>
     </unit>
     <unit id="dry_spots_chip_label">
-      <notes>
-        <note category="description">Dry spots label for spot chips</note>
-      </notes>
       <segment>
         <source>Dry</source>
       </segment>
@@ -971,14 +967,6 @@
         <source> Save changes </source>
       </segment>
     </unit>
-    <unit id="spot_highlights">
-      <notes>
-        <note category="description">Title for the spot highlights, spots is clear from the context</note>
-      </notes>
-      <segment>
-        <source> Highlights </source>
-      </segment>
-    </unit>
     <unit id="question.covered">
       <segment>
         <source>Is the area covered?</source>
@@ -1031,7 +1019,7 @@
     </unit>
     <unit id="regular_spots_text">
       <segment>
-        <source>Spots</source>
+        <source>Other Spots</source>
       </segment>
     </unit>
     <unit id="no_spots_text">
@@ -1319,9 +1307,6 @@
       </segment>
     </unit>
     <unit id="water_spots_chip_label">
-      <notes>
-        <note category="description">Water spots label for spot chips</note>
-      </notes>
       <segment>
         <source>Water</source>
       </segment>
@@ -1444,6 +1429,81 @@
     <unit id="amenities.wc">
       <segment>
         <source>WC</source>
+      </segment>
+    </unit>
+    <unit id="amenity.ac">
+      <segment>
+        <source>Air Conditioning</source>
+      </segment>
+    </unit>
+    <unit id="amenity.changing_room">
+      <segment>
+        <source>Changing Room</source>
+      </segment>
+    </unit>
+    <unit id="amenity.covered">
+      <segment>
+        <source>Covered</source>
+      </segment>
+    </unit>
+    <unit id="amenity.drinking_water">
+      <segment>
+        <source>Drinking Water</source>
+      </segment>
+    </unit>
+    <unit id="amenity.entry_fee">
+      <segment>
+        <source>Entry Fee</source>
+      </segment>
+    </unit>
+    <unit id="amenity.heated">
+      <segment>
+        <source>Heated</source>
+      </segment>
+    </unit>
+    <unit id="amenity.indoor">
+      <segment>
+        <source>Indoor</source>
+      </segment>
+    </unit>
+    <unit id="amenity.lighting">
+      <segment>
+        <source>Lighting</source>
+      </segment>
+    </unit>
+    <unit id="amenity.lockers">
+      <segment>
+        <source>Lockers</source>
+      </segment>
+    </unit>
+    <unit id="amenity.maybe_overgrown">
+      <segment>
+        <source>May Be Overgrown</source>
+      </segment>
+    </unit>
+    <unit id="amenity.outdoor">
+      <segment>
+        <source>Outdoor</source>
+      </segment>
+    </unit>
+    <unit id="amenity.parking_on_site">
+      <segment>
+        <source>Parking</source>
+      </segment>
+    </unit>
+    <unit id="amenity.power_outlets">
+      <segment>
+        <source>Power Outlets</source>
+      </segment>
+    </unit>
+    <unit id="amenity.water_feature">
+      <segment>
+        <source>Water Feature</source>
+      </segment>
+    </unit>
+    <unit id="amenity.wc">
+      <segment>
+        <source>Toilets</source>
       </segment>
     </unit>
     <unit id="amenities.changing_room">
@@ -1612,6 +1672,21 @@
         <source>Info stand</source>
       </segment>
     </unit>
+    <unit id="filter_any">
+      <segment>
+        <source>Any</source>
+      </segment>
+    </unit>
+    <unit id="filter_apply">
+      <segment>
+        <source>Apply</source>
+      </segment>
+    </unit>
+    <unit id="filter_clear">
+      <segment>
+        <source>Clear</source>
+      </segment>
+    </unit>
     <unit id="filter_helper_text">
       <notes>
         <note category="description">Filter helper text</note>
@@ -1620,10 +1695,37 @@
         <source>There are no spots matching the filter in this area.</source>
       </segment>
     </unit>
+    <unit id="filter_no">
+      <segment>
+        <source>No</source>
+      </segment>
+    </unit>
+    <unit id="filter_section_access">
+      <segment>
+        <source>Access</source>
+      </segment>
+    </unit>
+    <unit id="filter_section_amenities">
+      <segment>
+        <source>Amenities</source>
+      </segment>
+    </unit>
+    <unit id="filter_section_types">
+      <segment>
+        <source>Spot Type</source>
+      </segment>
+    </unit>
+    <unit id="filter_yes">
+      <segment>
+        <source>Yes</source>
+      </segment>
+    </unit>
+    <unit id="filters_chip_label">
+      <segment>
+        <source>Filters</source>
+      </segment>
+    </unit>
     <unit id="for_parkour_spots_chip_label">
-      <notes>
-        <note category="description">&apos;For Parkour&apos; spots label for spot chips</note>
-      </notes>
       <segment>
         <source>For Parkour</source>
       </segment>
@@ -1634,9 +1736,6 @@
       </segment>
     </unit>
     <unit id="indoor_spots_chip_label">
-      <notes>
-        <note category="description">Indoor spots label for spot chips</note>
-      </notes>
       <segment>
         <source>Indoor</source>
       </segment>
@@ -1775,10 +1874,12 @@
         <source>Save Cropped Image</source>
       </segment>
     </unit>
+    <unit id="custom_filter_dialog_title">
+      <segment>
+        <source>Custom Filters</source>
+      </segment>
+    </unit>
     <unit id="lighting_spots_chip_label">
-      <notes>
-        <note category="description">Lighting spots label for spot chips</note>
-      </notes>
       <segment>
         <source>Lighting</source>
       </segment>
@@ -1849,6 +1950,11 @@
       </notes>
       <segment>
         <source> Other sign-in options </source>
+      </segment>
+    </unit>
+    <unit id="1578341976423133065">
+      <segment>
+        <source>Invalid email or password.</source>
       </segment>
     </unit>
     <unit id="1581074162625291057">
@@ -2690,7 +2796,7 @@
         <source>others</source>
       </segment>
     </unit>
-    <unit id="7798907458150961468">
+    <unit id="2704103786825350604">
       <segment>
         <source> Crafted in Zürich, Switzerland. Open Data. Open Code. ©2026 PK Spot. </source>
       </segment>

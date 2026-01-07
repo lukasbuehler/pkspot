@@ -109,7 +109,7 @@ import {
         animate("0.3s ease-out", style({ opacity: 1, scale: 1 })),
       ]),
       transition(":leave", [
-        style({ opacity: 1, scale: 1, position: "static" }),
+        style({ opacity: 1, scale: 1 }),
         animate("0.3s ease-in", style({ opacity: 0, scale: 1 })),
       ]),
     ]),
@@ -122,7 +122,7 @@ import {
         ),
       ]),
       transition(":leave", [
-        style({ opacity: 1, scale: 1, translate: "0px", position: "absolute" }),
+        style({ opacity: 1, scale: 1, translate: "0px" }),
         animate(
           "0.3s ease-in-out",
           style({ opacity: 0, scale: 1, translate: "100%" })

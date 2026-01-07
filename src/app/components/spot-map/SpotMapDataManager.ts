@@ -246,12 +246,6 @@ export class SpotMapDataManager {
 
     // If we have the SpotClusterService available and the zoom is >= 10,
     // prefer Typesense + client-side Supercluster clustering for viewport-driven loading.
-    console.log(
-      "[SpotMapDataManager] setVisibleTiles zoom:",
-      zoom,
-      "Service avail:",
-      !!this._spotClusterService
-    );
     if (this._spotClusterService && zoom < 16) {
       const tileZoom = 12; // base tile zoom for fetching/caching
 

@@ -25,6 +25,10 @@
       </segment>
     </unit>
     <unit id="about_page_label">
+      <notes>
+        <note category="description">A very short label for the navbar about page button</note>
+        <note category="meaning">About page navbar button label</note>
+      </notes>
       <segment state="initial">
         <source>About</source>
         <target>Over</target>
@@ -563,12 +567,6 @@
         <target>Het wachtwoord is ongeldig!</target>
       </segment>
     </unit>
-    <unit id="2978266456005156211">
-      <segment state="initial">
-        <source>The E-mail address and password do not match for any existing user.</source>
-        <target>Er bestaat geen gebruiker met deze combinatie van e-mailadres en wachtwoord.</target>
-      </segment>
-    </unit>
     <unit id="7708270344948043036">
       <segment state="initial">
         <source> <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}"/> </source>
@@ -750,9 +748,6 @@
       </segment>
     </unit>
     <unit id="dry_spots_chip_label">
-      <notes>
-        <note category="description">Dry spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Dry</source>
         <target>Droog</target>
@@ -1074,6 +1069,96 @@
       <segment state="initial">
         <source>WC</source>
         <target>WC</target>
+      </segment>
+    </unit>
+    <unit id="amenity.ac">
+      <segment state="initial">
+        <source>Air Conditioning</source>
+        <target>Airconditiong</target>
+      </segment>
+    </unit>
+    <unit id="amenity.changing_room">
+      <segment state="initial">
+        <source>Changing Room</source>
+        <target>Kleedkamer</target>
+      </segment>
+    </unit>
+    <unit id="amenity.covered">
+      <segment state="initial">
+        <source>Covered</source>
+        <target>Overdekt</target>
+      </segment>
+    </unit>
+    <unit id="amenity.drinking_water">
+      <segment state="initial">
+        <source>Drinking Water</source>
+        <target>Drinkwater</target>
+      </segment>
+    </unit>
+    <unit id="amenity.entry_fee">
+      <segment state="initial">
+        <source>Entry Fee</source>
+        <target>Toegangsprijs</target>
+      </segment>
+    </unit>
+    <unit id="amenity.heated">
+      <segment state="initial">
+        <source>Heated</source>
+        <target>Verwarmd</target>
+      </segment>
+    </unit>
+    <unit id="amenity.indoor">
+      <segment state="initial">
+        <source>Indoor</source>
+        <target>Binnen</target>
+      </segment>
+    </unit>
+    <unit id="amenity.lighting">
+      <segment state="initial">
+        <source>Lighting</source>
+        <target>Verlichting</target>
+      </segment>
+    </unit>
+    <unit id="amenity.lockers">
+      <segment state="initial">
+        <source>Lockers</source>
+        <target>Kluisjes</target>
+      </segment>
+    </unit>
+    <unit id="amenity.maybe_overgrown">
+      <segment state="initial">
+        <source>May Be Overgrown</source>
+        <target>Kan overwoekerd zijn</target>
+      </segment>
+    </unit>
+    <unit id="amenity.outdoor">
+      <segment state="initial">
+        <source>Outdoor</source>
+        <target>Buiten</target>
+      </segment>
+    </unit>
+    <unit id="amenity.parking_on_site">
+      <segment state="initial">
+        <source>Parking</source>
+        <target>Parkeerplaats</target>
+      </segment>
+    </unit>
+    <unit id="amenity.power_outlets">
+      <segment state="initial">
+        <source>Power Outlets</source>
+        <target>Stopcontacten</target>
+      </segment>
+    </unit>
+    <unit id="amenity.water_feature">
+      <segment state="initial">
+        <source>Water Feature</source>
+        <target>Waterelement</target>
+      </segment>
+    </unit>
+    <unit id="amenity.wc">
+      <segment state="initial">
+        <source>Toilets</source>
+        <target>Toiletten</target>
       </segment>
     </unit>
     <unit id="amenities.changing_room">
@@ -1445,15 +1530,6 @@
         <target>Parkour spot in </target>
       </segment>
     </unit>
-    <unit id="spot_highlights">
-      <notes>
-        <note category="description">Title for the spot highlights, spots is clear from the context</note>
-      </notes>
-      <segment state="initial">
-        <source> Highlights </source>
-        <target> Hoogtepunten </target>
-      </segment>
-    </unit>
     <unit id="question.covered">
       <segment state="initial">
         <source>Is the area covered?</source>
@@ -1516,8 +1592,8 @@
     </unit>
     <unit id="regular_spots_text">
       <segment state="initial">
-        <source>Spots</source>
-        <target>Spots</target>
+        <source>Other Spots</source>
+        <target>Andere spots</target>
       </segment>
     </unit>
     <unit id="no_spots_text">
@@ -1708,9 +1784,6 @@
       </segment>
     </unit>
     <unit id="water_spots_chip_label">
-      <notes>
-        <note category="description">Water spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Water</source>
         <target>Water</target>
@@ -1933,6 +2006,24 @@
         <target>Iconische Spot</target>
       </segment>
     </unit>
+    <unit id="filter_any">
+      <segment state="initial">
+        <source>Any</source>
+        <target>Elk</target>
+      </segment>
+    </unit>
+    <unit id="filter_apply">
+      <segment state="initial">
+        <source>Apply</source>
+        <target>Toepassen</target>
+      </segment>
+    </unit>
+    <unit id="filter_clear">
+      <segment state="initial">
+        <source>Clear</source>
+        <target>Wissen</target>
+      </segment>
+    </unit>
     <unit id="filter_helper_text">
       <notes>
         <note category="description">Filter helper text</note>
@@ -1942,10 +2033,43 @@
         <target>Er zijn geen spots die voldoen aan het filter in dit gebied.</target>
       </segment>
     </unit>
+    <unit id="filter_no">
+      <segment state="initial">
+        <source>No</source>
+        <target>Nee</target>
+      </segment>
+    </unit>
+    <unit id="filter_section_access">
+      <segment state="initial">
+        <source>Access</source>
+        <target>Toegang</target>
+      </segment>
+    </unit>
+    <unit id="filter_section_amenities">
+      <segment state="initial">
+        <source>Amenities</source>
+        <target>Voorzieningen</target>
+      </segment>
+    </unit>
+    <unit id="filter_section_types">
+      <segment state="initial">
+        <source>Spot Type</source>
+        <target>Type spot</target>
+      </segment>
+    </unit>
+    <unit id="filter_yes">
+      <segment state="initial">
+        <source>Yes</source>
+        <target>Ja</target>
+      </segment>
+    </unit>
+    <unit id="filters_chip_label">
+      <segment state="initial">
+        <source>Filters</source>
+        <target>Filters</target>
+      </segment>
+    </unit>
     <unit id="for_parkour_spots_chip_label">
-      <notes>
-        <note category="description">&apos;For Parkour&apos; spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>For Parkour</source>
         <target>Voor parkour</target>
@@ -1958,9 +2082,6 @@
       </segment>
     </unit>
     <unit id="indoor_spots_chip_label">
-      <notes>
-        <note category="description">Indoor spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Indoor</source>
         <target>Binnen</target>
@@ -2045,9 +2166,6 @@
       </segment>
     </unit>
     <unit id="lighting_spots_chip_label">
-      <notes>
-        <note category="description">Lighting spots label for spot chips</note>
-      </notes>
       <segment state="initial">
         <source>Lighting</source>
         <target>Lighting</target>
@@ -2113,6 +2231,12 @@
       <segment state="initial">
         <source>Save Cropped Image</source>
         <target>Bijgesneden Afbeelding Opslaan</target>
+      </segment>
+    </unit>
+    <unit id="custom_filter_dialog_title">
+      <segment state="initial">
+        <source>Custom Filters</source>
+        <target>Aangepaste filters</target>
       </segment>
     </unit>
     <unit id="add_review_label">
@@ -2468,6 +2592,12 @@
       <segment state="initial">
         <source> Spot Type and Access </source>
         <target> Type Spot en Toegang </target>
+      </segment>
+    </unit>
+    <unit id="1578341976423133065">
+      <segment state="initial">
+        <source>Invalid email or password.</source>
+        <target>Ongeldig e-mailadres of wachtwoord.</target>
       </segment>
     </unit>
     <unit id="1581074162625291057">
@@ -3140,7 +3270,7 @@
         <target>anderen</target>
       </segment>
     </unit>
-    <unit id="7798907458150961468">
+    <unit id="2704103786825350604">
       <segment state="initial">
         <source> Crafted in Zürich, Switzerland. Open Data. Open Code. ©2026 PK Spot. </source>
         <target> Gemaakt in Zürich, Zwitserland. Open Data. Open Code. ©2026 PK Spot. </target>
