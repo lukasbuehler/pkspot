@@ -99,6 +99,9 @@ function run() {
     const assetPath = path.join(__dirname, "../browser/en", req.path);
     console.log(`Serving asset: ${req.path} from ${assetPath}`);
 
+    // Override global cache header for static assets
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+
     // Send file with error handling
     res.sendFile(assetPath, (err) => {
       if (err) {
@@ -121,6 +124,9 @@ function run() {
       console.log(
         `Serving language-specific asset: ${req.path} from ${assetPath}`
       );
+
+      // Override global cache header for static assets
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
 
       res.sendFile(assetPath, (err) => {
         if (err) {

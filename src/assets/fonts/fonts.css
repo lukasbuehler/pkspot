@@ -3,7 +3,7 @@
   font-family: 'Material Symbols Rounded';
   font-style: normal;
   font-weight: 100 700;
-  font-display: block; /* use block for icons to avoid showing ligature text */
+  font-display: swap; /* use swap to ensure text is visible while font loads */
   src: url('./MaterialSymbolsRounded[FILL,GRAD,opsz,wght].woff2') format('woff2');
 }
 

@@ -21,6 +21,15 @@ import { EventsPageComponent } from "./components/events-page/events-page.compon
 import { ImpressumComponent } from "./components/impressum/impressum.component";
 import { contentResolver } from "./resolvers/content.resolver";
 
+export const ACCEPTANCE_FREE_PREFIXES = [
+  "/about",
+  "/terms-of-service",
+  "/tos",
+  "/privacy-policy",
+  "/pp",
+  "/impressum",
+];
+
 export const routes: Routes = [
   // Home page (redirects to spot map)
   {

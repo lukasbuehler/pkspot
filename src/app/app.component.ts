@@ -26,6 +26,8 @@ import { StorageService } from "./services/firebase/storage.service";
 import { ResponsiveService } from "./services/responsive.service";
 import { GlobalVariables } from "../scripts/global";
 import { environment } from "../environments/environment";
+import { isBot } from "../scripts/Helpers";
+import { ACCEPTANCE_FREE_PREFIXES } from "./app.routes";
 import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
 import { MatButtonModule, MatFabButton } from "@angular/material/button";
 import { MatIcon, MatIconRegistry } from "@angular/material/icon";
@@ -248,6 +250,44 @@ export class AppComponent implements OnInit {
 
     if (typeof window !== "undefined") {
       this.hasAds = (window as any)["canRunAds"] ?? false;
+
+      // Optimistic Welcome Dialog (LCP improvement)
+      // Check immediately if we should show the dialog, without waiting for Router events
+      try {
+        const currentTermsVersion = this._consentService.CURRENT_TERMS_VERSION;
+        const acceptedVersion = localStorage.getItem("acceptedVersion");
+        const path = window.location.pathname;
+        const isEmbedded = path.startsWith("/embedded");
+
+        // List of paths where we don't enforce the dialog (approximate check based on routes)
+        const isAcceptanceFree = ACCEPTANCE_FREE_PREFIXES.some((prefix) =>
+          path.startsWith(prefix)
+        );
+
+        const isABot = isBot();
+
+        if (
+          acceptedVersion !== currentTermsVersion &&
+          !isEmbedded &&
+          !isAcceptanceFree &&
+          !isABot &&
+          this.dialog.openDialogs.length === 0
+        ) {
+          const dialogRef = this.dialog.open(WelcomeDialogComponent, {
+            data: { version: currentTermsVersion },
+            hasBackdrop: true,
+            disableClose: true,
+          });
+
+          dialogRef.afterClosed().subscribe((agreed: boolean) => {
+            if (agreed) {
+              this._consentService.grantConsent();
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Error in optimistic welcome dialog check", e);
+      }
     }
 
     // Manual pageview + engaged-time tracking (disable autocapture to avoid race conditions)
