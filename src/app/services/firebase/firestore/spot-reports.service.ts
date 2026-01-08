@@ -1,23 +1,18 @@
-import { Injectable, runInInjectionContext } from "@angular/core";
-import {
-  Firestore,
-  doc,
-  addDoc,
-  collection,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  collectionGroup,
-} from "@angular/fire/firestore";
+import { Injectable, inject } from "@angular/core";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
+import {
+  FirestoreAdapterService,
+  QueryFilter,
+} from "../firestore-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class SpotReportsService extends ConsentAwareService {
-  constructor(private firestore: Firestore) {
+  private _firestoreAdapter = inject(FirestoreAdapterService);
+
+  constructor() {
     super();
   }
 
@@ -25,47 +20,47 @@ export class SpotReportsService extends ConsentAwareService {
     spotId: string,
     reportId: string
   ): Promise<SpotReportSchema> {
-    return runInInjectionContext(this.injector, () => {
-      return getDoc(
-        doc(this.firestore, "spots", spotId, "reports", reportId)
-      ).then((snap) => {
-        if (!snap.exists()) {
+    return this._firestoreAdapter
+      .getDocument<SpotReportSchema & { id: string }>(
+        `spots/${spotId}/reports/${reportId}`
+      )
+      .then((data) => {
+        if (!data) {
           return Promise.reject("No report found for this report id.");
         }
-        return snap.data() as SpotReportSchema;
+        return data as SpotReportSchema;
       });
-    });
   }
 
   getSpotReportsBySpotId(spotId: string): Promise<SpotReportSchema[]> {
     console.log("getting all reports for a spot");
-    return runInInjectionContext(this.injector, () => {
-      return getDocs(
-        query(collection(this.firestore, "spots", spotId, "reports"))
-      ).then((snap) => {
-        if (snap.size == 0) {
+    return this._firestoreAdapter
+      .getCollection<SpotReportSchema & { id: string }>(
+        `spots/${spotId}/reports`
+      )
+      .then((docs) => {
+        if (docs.length === 0) {
           return [];
         }
-        return snap.docs.map((data) => data.data() as SpotReportSchema);
+        return docs as SpotReportSchema[];
       });
-    });
   }
 
+  // Now uses adapter for full native support
   getSpotReportsByUserId(userId: string): Promise<SpotReportSchema> {
     console.log("getting all reports for a user");
-    return runInInjectionContext(this.injector, () => {
-      return getDocs(
-        query(
-          collectionGroup(this.firestore, "reports"),
-          where("userId", "==", userId)
-        )
-      ).then((snap) => {
-        if (snap.size == 0) {
+    const filters: QueryFilter[] = [
+      { fieldPath: "userId", opStr: "==", value: userId },
+    ];
+
+    return this._firestoreAdapter
+      .getCollectionGroup<SpotReportSchema & { id: string }>("reports", filters)
+      .then((docs) => {
+        if (docs.length === 0) {
           return Promise.reject("No reports found for this user id.");
         }
-        return snap.docs[0].data() as SpotReportSchema;
+        return docs[0] as SpotReportSchema;
       });
-    });
   }
 
   addSpotReport(report: SpotReportSchema) {
@@ -75,11 +70,9 @@ export class SpotReportsService extends ConsentAwareService {
       props: { spotId: spot_id },
     });
 
-    return runInInjectionContext(this.injector, () => {
-      return addDoc(
-        collection(this.firestore, "spots", spot_id, "reports"),
-        report
-      );
-    });
+    return this._firestoreAdapter.addDocument(
+      `spots/${spot_id}/reports`,
+      report
+    );
   }
 }

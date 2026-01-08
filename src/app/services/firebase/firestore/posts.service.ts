@@ -1,31 +1,25 @@
-import { Injectable } from "@angular/core";
-import {
-  Firestore,
-  doc,
-  addDoc,
-  collection,
-  collectionData,
-  DocumentChangeType,
-  where,
-  query,
-  orderBy,
-  limit,
-  deleteDoc,
-  setDoc,
-  getDoc,
-} from "@angular/fire/firestore";
-import { Observable } from "rxjs";
+import { Injectable, inject } from "@angular/core";
+import { Firestore, doc } from "@angular/fire/firestore";
+import { Observable, from } from "rxjs";
 import { map } from "rxjs/operators";
 import { Post } from "../../../../db/models/Post";
 import { Spot } from "../../../../db/models/Spot";
 import { LikeSchema } from "../../../../db/schemas/LikeSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
+import {
+  FirestoreAdapterService,
+  QueryFilter,
+  QueryConstraintOptions,
+} from "../firestore-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class PostsService extends ConsentAwareService {
-  constructor(private firestore: Firestore) {
+  private _firestoreAdapter = inject(FirestoreAdapterService);
+  private firestore = inject(Firestore);
+
+  constructor() {
     super();
   }
 
@@ -34,10 +28,10 @@ export class PostsService extends ConsentAwareService {
   }
 
   addPost(newPost: Post.Schema) {
-    let postsCollectionRef = collection(this.firestore, "posts");
-    addDoc(postsCollectionRef, newPost)
-      .then((docRef) => {
-        console.log("Post Document written with ID: " + docRef.id);
+    this._firestoreAdapter
+      .addDocument("posts", newPost)
+      .then((docId) => {
+        console.log("Post Document written with ID: " + docId);
       })
       .catch((error) => {
         console.error("Error adding Post Document: ", error);
@@ -47,7 +41,9 @@ export class PostsService extends ConsentAwareService {
 
   getPostUpdates(
     userId: string
-  ): Observable<{ type: DocumentChangeType; post: Post.Class }[]> {
+  ): Observable<
+    { type: "added" | "modified" | "removed"; post: Post.Class }[]
+  > {
     /**
      * 1) Get all followings of the currently authenticated user
      * 2) Make multiple arrays of fixed size with all the followings
@@ -58,73 +54,90 @@ export class PostsService extends ConsentAwareService {
 
     // TODO
 
-    return new Observable<{ type: DocumentChangeType; post: Post.Class }[]>(
-      (obs) => {}
-    );
+    return new Observable<
+      { type: "added" | "modified" | "removed"; post: Post.Class }[]
+    >((obs) => {});
   }
 
   getTodaysTopPosts(): Observable<any> {
-    const twentyFourHoursInMilliSeconds = 24 * 60 * 60 * 1000;
-    const yesterday = new Date(Date.now() - twentyFourHoursInMilliSeconds);
+    const constraints: QueryConstraintOptions[] = [
+      { type: "orderBy", fieldPath: "like_count", direction: "desc" },
+      { type: "orderBy", fieldPath: "time_posted", direction: "desc" },
+      { type: "limit", limit: 10 },
+    ];
 
-    return collectionData(
-      query(
-        collection(this.firestore, "posts"),
-        orderBy("like_count", "desc"),
-        orderBy("time_posted", "desc"),
-        limit(10)
-      ),
-      { idField: "id" }
-    ).pipe(
-      map((arr: any[]) => {
-        const postSchemasMap: any = {};
-        arr.forEach((doc) => {
-          postSchemasMap[doc.id] = doc;
-        });
-        return postSchemasMap;
-      })
-    );
+    return this._firestoreAdapter
+      .collectionSnapshots<Post.Schema & { id: string }>(
+        "posts",
+        undefined,
+        constraints
+      )
+      .pipe(
+        map((arr) => {
+          const postSchemasMap: any = {};
+          arr.forEach((doc) => {
+            postSchemasMap[doc.id] = doc;
+          });
+          return postSchemasMap;
+        })
+      );
   }
 
   getPostsFromSpot(spot: Spot): Observable<Post.Schema> {
-    return collectionData(
-      query(
-        collection(this.firestore, "posts"),
-        where("spot.ref", "==", this.docRef("spots/" + spot.id)),
-        limit(10)
-      ),
-      { idField: "id" }
-    ).pipe(
-      map((arr: any[]) => {
-        const postSchemasMap: any = {};
-        arr.forEach((doc) => {
-          postSchemasMap[doc.id] = doc;
-        });
-        return postSchemasMap;
-      })
-    );
+    const filters: QueryFilter[] = [
+      {
+        fieldPath: "spot.ref",
+        opStr: "==",
+        value: this.docRef("spots/" + spot.id),
+      },
+    ];
+    const constraints: QueryConstraintOptions[] = [
+      { type: "limit", limit: 10 },
+    ];
+
+    return this._firestoreAdapter
+      .collectionSnapshots<Post.Schema & { id: string }>(
+        "posts",
+        filters,
+        constraints
+      )
+      .pipe(
+        map((arr) => {
+          const postSchemasMap: any = {};
+          arr.forEach((doc) => {
+            postSchemasMap[doc.id] = doc;
+          });
+          return postSchemasMap;
+        })
+      );
   }
 
   getPostsFromUser(userId: string): Observable<Record<string, Post.Schema>> {
     // Wait for consent before making Firestore calls
     return new Observable<Record<string, Post.Schema>>((observer) => {
       this.executeWhenConsent(() => {
-        const obs$ = collectionData(
-          query(
-            collection(this.firestore, "posts"),
-            where("user.uid", "==", userId),
-            limit(10)
-          ),
-          { idField: "id" }
-        ).pipe(
-          map((arr: any[]) => {
-            const postSchemasMap: any = {};
-            arr.forEach((doc) => {
-              postSchemasMap[doc.id] = doc;
-            });
-            return postSchemasMap;
-          })
-        );
+        const filters: QueryFilter[] = [
+          { fieldPath: "user.uid", opStr: "==", value: userId },
+        ];
+        const constraints: QueryConstraintOptions[] = [
+          { type: "limit", limit: 10 },
+        ];
+
+        const obs$ = this._firestoreAdapter
+          .collectionSnapshots<Post.Schema & { id: string }>(
+            "posts",
+            filters,
+            constraints
+          )
+          .pipe(
+            map((arr) => {
+              const postSchemasMap: any = {};
+              arr.forEach((doc) => {
+                postSchemasMap[doc.id] = doc;
+              });
+              return postSchemasMap;
+            })
+          );
 
         const sub = obs$.subscribe({
           next: (v) => observer.next(v as Record<string, Post.Schema>),
@@ -142,31 +155,28 @@ export class PostsService extends ConsentAwareService {
     if (!postId) {
       return Promise.reject("The post ID is empty");
     }
-    return deleteDoc(doc(this.firestore, "posts", postId));
+    return this._firestoreAdapter.deleteDocument(`posts/${postId}`);
   }
 
   userHasLikedPost(postId: string, userId: string): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
-      // Use a single-shot getDoc instead of a listener
-      getDoc(doc(this.firestore, `posts/${postId}/likes/${userId}`))
-        .then((snap) => {
-          resolve((snap as any)?.exists ? (snap as any).exists() : !!snap);
-        })
-        .catch((err) => reject(err));
-    });
+    return this._firestoreAdapter
+      .getDocument<{ id: string }>(`posts/${postId}/likes/${userId}`)
+      .then((data) => !!data);
   }
 
   addLike(postId: string, userUID: string, newLike: LikeSchema): Promise<void> {
     if (userUID !== newLike.user.uid) {
       return Promise.reject("The User ID and User ID on the like don't match!");
     }
-    return setDoc(
-      doc(this.firestore, `posts/${postId}/likes/${userUID}`),
+    return this._firestoreAdapter.setDocument(
+      `posts/${postId}/likes/${userUID}`,
       newLike
     );
   }
 
   removeLike(postId: string, userUID: string): Promise<void> {
-    return deleteDoc(doc(this.firestore, `posts/${postId}/likes/${userUID}`));
+    return this._firestoreAdapter.deleteDocument(
+      `posts/${postId}/likes/${userUID}`
+    );
   }
 }

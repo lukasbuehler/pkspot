@@ -1,25 +1,20 @@
-import { Injectable, runInInjectionContext } from "@angular/core";
-import {
-  Firestore,
-  addDoc,
-  collection,
-  serverTimestamp,
-} from "@angular/fire/firestore";
+import { Injectable, inject } from "@angular/core";
 import { MediaReportSchema } from "../../../../db/schemas/MediaReportSchema";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { AuthenticationService } from "../../firebase/authentication.service";
 import { AnyMedia } from "../../../../db/models/Media";
 import { firstValueFrom } from "rxjs";
+import { FirestoreAdapterService } from "../firestore-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class MediaReportsService extends ConsentAwareService {
-  constructor(
-    private firestore: Firestore,
-    private authService: AuthenticationService
-  ) {
+  private _firestoreAdapter = inject(FirestoreAdapterService);
+  private authService = inject(AuthenticationService);
+
+  constructor() {
     super();
   }
 
@@ -67,14 +62,13 @@ export class MediaReportsService extends ConsentAwareService {
       ? this.buildAuthenticatedUserInfo(authUser)
       : this.buildUnauthenticatedUserInfo(reporterEmail);
 
-    const report: Omit<MediaReportSchema, "createdAt"> & {
-      createdAt: ReturnType<typeof serverTimestamp>;
-    } = {
+    // Using new Date() for native compatibility (schema expects Date)
+    const report: MediaReportSchema = {
       media: this.serializeMedia(media),
       reason,
       comment,
       user: userInfo,
-      createdAt: serverTimestamp(),
+      createdAt: new Date(),
       ...(locale && { locale }),
     };
 
@@ -89,10 +83,7 @@ export class MediaReportsService extends ConsentAwareService {
       authUid: authUser?.uid ?? null,
     });
 
-    const docRef = await runInInjectionContext(this.injector, () => {
-      return addDoc(collection(this.firestore, "media_reports"), report);
-    });
-    return docRef.id;
+    return this._firestoreAdapter.addDocument("media_reports", report);
   }
 
   /**

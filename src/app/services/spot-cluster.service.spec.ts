@@ -238,4 +238,165 @@ describe("SpotClusterService", () => {
       // Note: exact count depends on Supercluster internal logic, but we test basic grouping
     });
   });
+
+  describe("_deduplicatePoints (private method via casting)", () => {
+    let deduplicatePoints: (points: ClusterPoint[]) => ClusterPoint[];
+
+    beforeEach(() => {
+      deduplicatePoints = (service as any)["_deduplicatePoints"].bind(service);
+    });
+
+    it("should remove duplicate points by id", () => {
+      const points: ClusterPoint[] = [
+        { id: "1", lat: 10, lng: 20 },
+        { id: "2", lat: 11, lng: 21 },
+        { id: "1", lat: 10, lng: 20 }, // Duplicate
+        { id: "3", lat: 12, lng: 22 },
+        { id: "2", lat: 11, lng: 21 }, // Duplicate
+      ];
+
+      const unique = deduplicatePoints(points);
+
+      expect(unique.length).toBe(3);
+      expect(unique.map((p) => p.id)).toEqual(["1", "2", "3"]);
+    });
+
+    it("should handle empty array", () => {
+      const unique = deduplicatePoints([]);
+      expect(unique).toEqual([]);
+    });
+
+    it("should return same array if no duplicates", () => {
+      const points: ClusterPoint[] = [
+        { id: "a", lat: 1, lng: 1 },
+        { id: "b", lat: 2, lng: 2 },
+        { id: "c", lat: 3, lng: 3 },
+      ];
+
+      const unique = deduplicatePoints(points);
+      expect(unique.length).toBe(3);
+    });
+  });
+
+  describe("_mapDocumentToClusterPoint (private method via casting)", () => {
+    let mapDoc: (doc: any) => ClusterPoint;
+
+    beforeEach(() => {
+      mapDoc = (service as any)["_mapDocumentToClusterPoint"].bind(service);
+    });
+
+    it("should handle array location format [lat, lng]", () => {
+      const doc = { id: "spot1", location: [48.1234, 11.5678] };
+      const point = mapDoc(doc);
+
+      expect(point.id).toBe("spot1");
+      expect(point.lat).toBe(48.1234);
+      expect(point.lng).toBe(11.5678);
+    });
+
+    it("should handle object location format with latitude/longitude", () => {
+      const doc = {
+        id: "spot2",
+        location: { latitude: 48.0, longitude: 11.0 },
+      };
+      const point = mapDoc(doc);
+
+      expect(point.lat).toBe(48.0);
+      expect(point.lng).toBe(11.0);
+    });
+
+    it("should handle object location format with lat/lng", () => {
+      const doc = { id: "spot3", location: { lat: 47.5, lng: 10.5 } };
+      const point = mapDoc(doc);
+
+      expect(point.lat).toBe(47.5);
+      expect(point.lng).toBe(10.5);
+    });
+
+    it("should preserve additional document properties", () => {
+      const doc = {
+        id: "spot4",
+        location: [48.0, 11.0],
+        name: "Test Spot",
+        type: "outdoor",
+      };
+      const point = mapDoc(doc);
+
+      expect(point["name"]).toBe("Test Spot");
+      expect(point["type"]).toBe("outdoor");
+    });
+  });
+
+  describe("_enumerateXRange (private method via casting)", () => {
+    let enumerateXRange: (start: number, end: number, zoom: number) => number[];
+
+    beforeEach(() => {
+      enumerateXRange = (service as any)["_enumerateXRange"].bind(service);
+    });
+
+    it("should enumerate simple range", () => {
+      const range = enumerateXRange(0, 3, 4); // 4 tiles at zoom 4
+      expect(range).toEqual([0, 1, 2, 3]);
+    });
+
+    it("should wrap around at date line", () => {
+      // At zoom 2, there are 4 columns (0, 1, 2, 3)
+      // Range from 3 to 1 should wrap: 3 -> 0 -> 1
+      const range = enumerateXRange(3, 1, 2);
+      expect(range).toEqual([3, 0, 1]);
+    });
+
+    it("should normalize negative values", () => {
+      const range = enumerateXRange(-1, 1, 2);
+      // -1 % 4 = 3, so should go 3 -> 0 -> 1
+      expect(range).toContain(0);
+      expect(range).toContain(1);
+    });
+  });
+
+  describe("Cache behavior", () => {
+    it("should use cached results for same tile", async () => {
+      const mockPoints = [{ document: { id: "1", location: [10, 20] } }];
+      searchServiceSpy.searchSpotsInBounds.mockResolvedValue({
+        hits: mockPoints,
+        found: 1,
+      });
+
+      // First call - should fetch
+      await service.getPointsForTile(12, 1, 1);
+      // Second call - should use cache
+      await service.getPointsForTile(12, 1, 1);
+      // Third call - should still use cache
+      await service.getPointsForTile(12, 1, 1);
+
+      // Should only have called the search service once
+      expect(searchServiceSpy.searchSpotsInBounds).toHaveBeenCalledTimes(1);
+    });
+
+    it("should fetch different tiles separately", async () => {
+      const mockPoints = [{ document: { id: "1", location: [10, 20] } }];
+      searchServiceSpy.searchSpotsInBounds.mockResolvedValue({
+        hits: mockPoints,
+        found: 1,
+      });
+
+      await service.getPointsForTile(12, 1, 1);
+      await service.getPointsForTile(12, 2, 2);
+      await service.getPointsForTile(12, 3, 3);
+
+      expect(searchServiceSpy.searchSpotsInBounds).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe("Error handling", () => {
+    it("should return empty array on fetch error", async () => {
+      searchServiceSpy.searchSpotsInBounds.mockRejectedValue(
+        new Error("Network error")
+      );
+
+      const points = await service.getPointsForTile(12, 1, 1);
+
+      expect(points).toEqual([]);
+    });
+  });
 });

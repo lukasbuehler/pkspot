@@ -1,22 +1,18 @@
-import { Injectable, runInInjectionContext } from "@angular/core";
-import {
-  Firestore,
-  doc,
-  collection,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  setDoc,
-} from "@angular/fire/firestore";
+import { Injectable, inject } from "@angular/core";
 import { SpotReviewSchema } from "../../../../db/schemas/SpotReviewSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
+import {
+  FirestoreAdapterService,
+  QueryFilter,
+} from "../firestore-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class SpotReviewsService extends ConsentAwareService {
-  constructor(private firestore: Firestore) {
+  private _firestoreAdapter = inject(FirestoreAdapterService);
+
+  constructor() {
     super();
   }
 
@@ -24,47 +20,46 @@ export class SpotReviewsService extends ConsentAwareService {
     spotId: string,
     reviewId: string
   ): Promise<SpotReviewSchema> {
-    return runInInjectionContext(this.injector, () => {
-      return getDoc(
-        doc(this.firestore, "spots", spotId, "reviews", reviewId)
-      ).then((snap) => {
-        if (!snap.exists()) {
+    return this._firestoreAdapter
+      .getDocument<SpotReviewSchema & { id: string }>(
+        `spots/${spotId}/reviews/${reviewId}`
+      )
+      .then((data) => {
+        if (!data) {
           return Promise.reject("No review found for this review id.");
         }
-        return snap.data() as SpotReviewSchema;
+        return data as SpotReviewSchema;
       });
-    });
   }
 
   getSpotReviewsBySpotId(spotId: string): Promise<SpotReviewSchema[]> {
     console.log("getting all reviews for a spot");
-    return runInInjectionContext(this.injector, () => {
-      return getDocs(
-        query(collection(this.firestore, "spots", spotId, "reviews"))
-      ).then((snap) => {
-        if (snap.size == 0) {
+    return this._firestoreAdapter
+      .getCollection<SpotReviewSchema & { id: string }>(
+        `spots/${spotId}/reviews`
+      )
+      .then((docs) => {
+        if (docs.length === 0) {
           return [];
         }
-        return snap.docs.map((data) => data.data() as SpotReviewSchema);
+        return docs as SpotReviewSchema[];
       });
-    });
   }
 
   getSpotReviewsByUserId(userId: string): Promise<SpotReviewSchema> {
     console.log("getting all reviews for a user");
-    return runInInjectionContext(this.injector, () => {
-      return getDocs(
-        query(
-          collection(this.firestore, "reviews"),
-          where("userId", "==", userId)
-        )
-      );
-    }).then((snap) => {
-      if (snap.size == 0) {
-        return Promise.reject("No reviews found for this user id.");
-      }
-      return snap.docs[0].data() as SpotReviewSchema;
-    });
+    const filters: QueryFilter[] = [
+      { fieldPath: "userId", opStr: "==", value: userId },
+    ];
+
+    return this._firestoreAdapter
+      .getCollection<SpotReviewSchema & { id: string }>("reviews", filters)
+      .then((docs) => {
+        if (docs.length === 0) {
+          return Promise.reject("No reviews found for this user id.");
+        }
+        return docs[0] as SpotReviewSchema;
+      });
   }
 
   updateSpotReview(review: SpotReviewSchema) {
@@ -75,11 +70,9 @@ export class SpotReviewsService extends ConsentAwareService {
       props: { spotId: spot_id },
     });
 
-    return runInInjectionContext(this.injector, () => {
-      return setDoc(
-        doc(this.firestore, "spots", spot_id, "reviews", user_id),
-        review
-      );
-    });
+    return this._firestoreAdapter.setDocument(
+      `spots/${spot_id}/reviews/${user_id}`,
+      review
+    );
   }
 }

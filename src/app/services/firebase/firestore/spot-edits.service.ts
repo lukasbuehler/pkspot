@@ -1,19 +1,5 @@
-import { inject, Injectable, runInInjectionContext } from "@angular/core";
-import {
-  Firestore,
-  doc,
-  addDoc,
-  collection,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  collectionGroup,
-  updateDoc,
-  collectionData,
-  docData,
-  Timestamp,
-} from "@angular/fire/firestore";
+import { inject, Injectable } from "@angular/core";
+import { Timestamp } from "@angular/fire/firestore";
 import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";
@@ -26,67 +12,75 @@ import { SpotId, SpotSchema } from "../../../../db/schemas/SpotSchema";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
 import { AnyMedia } from "../../../../db/models/Media";
 import { MediaSchema } from "../../../../db/schemas/Media";
+import {
+  FirestoreAdapterService,
+  QueryFilter,
+} from "../firestore-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class SpotEditsService extends ConsentAwareService {
-  private firestore: Firestore = inject(Firestore);
+  private _firestoreAdapter = inject(FirestoreAdapterService);
 
   constructor() {
     super();
   }
 
   getSpotEditById(spotId: string, editId: string): Promise<SpotEditSchema> {
-    return getDoc(doc(this.firestore, "spots", spotId, "edits", editId)).then(
-      (snap) => {
-        if (!snap.exists()) {
+    return this._firestoreAdapter
+      .getDocument<SpotEditSchema & { id: string }>(
+        `spots/${spotId}/edits/${editId}`
+      )
+      .then((data) => {
+        if (!data) {
           return Promise.reject("No edit found for this edit id.");
         }
-        return snap.data() as SpotEditSchema;
-      }
-    );
+        return data as SpotEditSchema;
+      });
   }
 
   getSpotEditsBySpotId(spotId: string): Promise<SpotEditSchema[]> {
     console.log("getting all edits for a spot");
-    return getDocs(
-      query(collection(this.firestore, "spots", spotId, "edits"))
-    ).then((snap) => {
-      if (snap.size == 0) {
-        return [];
-      }
-      return snap.docs.map((data) => data.data() as SpotEditSchema);
-    });
+    return this._firestoreAdapter
+      .getCollection<SpotEditSchema & { id: string }>(`spots/${spotId}/edits`)
+      .then((docs) => {
+        if (docs.length === 0) {
+          return [];
+        }
+        return docs as SpotEditSchema[];
+      });
   }
 
+  // Now uses adapter for full native support
   getSpotEditsByUserId(userId: string): Promise<SpotEditSchema[]> {
     console.log("getting all edits for a user");
-    return getDocs(
-      query(
-        collectionGroup(this.firestore, "edits"),
-        where("user.uid", "==", userId)
-      )
-    ).then((snap) => {
-      if (snap.size == 0) {
-        return [];
-      }
-      return snap.docs.map((data) => data.data() as SpotEditSchema);
-    });
+    const filters: QueryFilter[] = [
+      { fieldPath: "user.uid", opStr: "==", value: userId },
+    ];
+
+    return this._firestoreAdapter
+      .getCollectionGroup<SpotEditSchema & { id: string }>("edits", filters)
+      .then((docs) => {
+        if (docs.length === 0) {
+          return [];
+        }
+        return docs as SpotEditSchema[];
+      });
   }
 
   getSpotEditById$(spotId: string, editId: string): Observable<SpotEditSchema> {
     console.debug("Getting edit with id: ", editId);
-    return runInInjectionContext(this.injector, () => {
-      return docData(doc(this.firestore, "spots", spotId, "edits", editId), {
-        idField: "id",
-      }).pipe(
-        map((d: any) => {
+    return this._firestoreAdapter
+      .documentSnapshots<SpotEditSchema & { id: string }>(
+        `spots/${spotId}/edits/${editId}`
+      )
+      .pipe(
+        map((d) => {
           if (!d) throw new Error("No edit found for this edit id.");
           return d as SpotEditSchema;
         })
       );
-    });
   }
 
   getSpotEditsBySpotId$(
@@ -94,29 +88,33 @@ export class SpotEditsService extends ConsentAwareService {
   ): Observable<Array<{ id: string; schema: SpotEditSchema }>> {
     console.debug("Getting all edits for spot: ", spotId);
 
-    return collectionData(
-      query(collection(this.firestore, "spots", spotId, "edits")),
-      { idField: "id" }
-    ).pipe(
-      map((arr: any[]) =>
-        arr.map((d) => ({
-          id: (d as any).id,
-          schema: d as any as SpotEditSchema,
-        }))
+    return this._firestoreAdapter
+      .collectionSnapshots<SpotEditSchema & { id: string }>(
+        `spots/${spotId}/edits`
       )
-    );
+      .pipe(
+        map((arr) =>
+          arr.map((d) => ({
+            id: d.id,
+            schema: d as SpotEditSchema,
+          }))
+        )
+      );
   }
 
+  // Now uses adapter for full native support
   getSpotEditsByUserId$(userId: string): Observable<SpotEditSchema[]> {
     console.debug("Getting all edits for user: ", userId);
+    const filters: QueryFilter[] = [
+      { fieldPath: "user.uid", opStr: "==", value: userId },
+    ];
 
-    return collectionData(
-      query(
-        collectionGroup(this.firestore, "edits"),
-        where("user.uid", "==", userId)
-      ),
-      { idField: "id" }
-    ).pipe(map((arr: any[]) => arr.map((d) => d as SpotEditSchema)));
+    return this._firestoreAdapter
+      .collectionGroupSnapshots<SpotEditSchema & { id: string }>(
+        "edits",
+        filters
+      )
+      .pipe(map((arr) => arr as SpotEditSchema[]));
   }
 
   addSpotEdit(spotId: string, edit: SpotEditSchema): Promise<string> {
@@ -134,12 +132,10 @@ export class SpotEditsService extends ConsentAwareService {
       props: { spotId: spotId },
     });
 
-    return addDoc(
-      collection(this.firestore, "spots", spotId, "edits"),
+    return this._firestoreAdapter.addDocument(
+      `spots/${spotId}/edits`,
       cleanEdit
-    ).then((docRef) => {
-      return docRef.id;
-    });
+    );
   }
 
   updateSpotEdit(
@@ -151,8 +147,8 @@ export class SpotEditsService extends ConsentAwareService {
 
     console.log("updating edit", editId);
 
-    return updateDoc(
-      doc(this.firestore, "spots", spotId, "edits", editId),
+    return this._firestoreAdapter.updateDocument(
+      `spots/${spotId}/edits/${editId}`,
       cleanEditData
     );
   }
@@ -160,17 +156,19 @@ export class SpotEditsService extends ConsentAwareService {
   approveSpotEdit(spotId: string, editId: string): Promise<void> {
     console.log("approving edit", editId);
 
-    return updateDoc(doc(this.firestore, "spots", spotId, "edits", editId), {
-      approved: true,
-    });
+    return this._firestoreAdapter.updateDocument(
+      `spots/${spotId}/edits/${editId}`,
+      { approved: true }
+    );
   }
 
   rejectSpotEdit(spotId: string, editId: string): Promise<void> {
     console.log("rejecting edit", editId);
 
-    return updateDoc(doc(this.firestore, "spots", spotId, "edits", editId), {
-      approved: false,
-    });
+    return this._firestoreAdapter.updateDocument(
+      `spots/${spotId}/edits/${editId}`,
+      { approved: false }
+    );
   }
 
   /**
@@ -306,16 +304,15 @@ export class SpotEditsService extends ConsentAwareService {
     console.debug("Creating new spot with edit:", JSON.stringify(spotData));
 
     // Create an empty spot document (let Firestore generate the ID)
-    const newSpotRef = await addDoc(collection(this.firestore, "spots"), {});
+    const spotId = await this._firestoreAdapter.addDocument("spots", {});
 
-    const spotId = newSpotRef.id as SpotId;
     console.log("Created spot document with ID:", spotId);
 
     // Now create the CREATE edit
-    await this.createSpotEdit(spotId, spotData, userReference);
+    await this.createSpotEdit(spotId as SpotId, spotData, userReference);
     console.log("Created spot edit for ID:", spotId);
 
-    return spotId;
+    return spotId as SpotId;
   }
 
   /**

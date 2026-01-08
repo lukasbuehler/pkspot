@@ -1,18 +1,4 @@
-import {
-  inject,
-  Injectable,
-  LOCALE_ID,
-  runInInjectionContext,
-} from "@angular/core";
-import {
-  Firestore,
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-} from "@angular/fire/firestore";
+import { inject, Injectable, LOCALE_ID } from "@angular/core";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
 import { SpotChallengeSchema } from "../../../../db/schemas/SpotChallengeSchema";
 import { SpotChallenge } from "../../../../db/models/SpotChallenge";
@@ -20,13 +6,14 @@ import { Spot } from "../../../../db/models/Spot";
 import { LocaleCode } from "../../../../db/models/Interfaces";
 import { removeUndefinedProperties } from "../../../../scripts/Helpers";
 import { ConsentAwareService } from "../../consent-aware.service";
+import { FirestoreAdapterService } from "../firestore-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class SpotChallengesService extends ConsentAwareService {
   private locale: LocaleCode = inject(LOCALE_ID);
-  private _firestore: Firestore = inject<Firestore>(Firestore);
+  private _firestoreAdapter = inject(FirestoreAdapterService);
 
   constructor() {
     super();
@@ -36,16 +23,16 @@ export class SpotChallengesService extends ConsentAwareService {
     spotId: SpotId,
     challengeId: string
   ): Promise<SpotChallengeSchema> {
-    return runInInjectionContext(this.injector, () => {
-      return getDoc(
-        doc(this._firestore, "spots", spotId, "challenges", challengeId)
-      );
-    }).then((snap) => {
-      if (!snap.exists()) {
-        return Promise.reject("No challenge found for this challenge id.");
-      }
-      return snap.data() as SpotChallengeSchema;
-    });
+    return this._firestoreAdapter
+      .getDocument<SpotChallengeSchema & { id: string }>(
+        `spots/${spotId}/challenges/${challengeId}`
+      )
+      .then((data) => {
+        if (!data) {
+          return Promise.reject("No challenge found for this challenge id.");
+        }
+        return data as SpotChallengeSchema;
+      });
   }
 
   getSpotChallenge(spot: Spot, challengeId: string): Promise<SpotChallenge> {
@@ -55,20 +42,15 @@ export class SpotChallengesService extends ConsentAwareService {
   }
 
   getAllChallengesForSpot(spot: Spot): Promise<SpotChallenge[]> {
-    return runInInjectionContext(this.injector, () =>
-      getDocs(collection(this._firestore, "spots", spot.id, "challenges"))
-    )
-      .then((snap) => {
-        if (snap.size == 0) {
+    return this._firestoreAdapter
+      .getCollection<SpotChallengeSchema & { id: string }>(
+        `spots/${spot.id}/challenges`
+      )
+      .then((docs) => {
+        if (docs.length === 0) {
           return [];
         }
-        return snap.docs.map((data) => ({
-          ...(data.data() as SpotChallengeSchema),
-          id: data.id,
-        }));
-      })
-      .then((dataArr: (SpotChallengeSchema & { id: string })[]) => {
-        return dataArr.map<SpotChallenge>(
+        return docs.map<SpotChallenge>(
           (data) => new SpotChallenge(data.id, data, spot, this.locale)
         );
       });
@@ -84,14 +66,10 @@ export class SpotChallengesService extends ConsentAwareService {
 
     console.debug("adding challenge");
 
-    return runInInjectionContext(this.injector, () =>
-      addDoc(
-        collection(this._firestore, "spots", spotId, "challenges"),
-        challengeData
-      )
-    ).then((docRef) => {
-      return docRef.id;
-    });
+    return this._firestoreAdapter.addDocument(
+      `spots/${spotId}/challenges`,
+      challengeData
+    );
   }
 
   updateChallenge(
@@ -103,11 +81,9 @@ export class SpotChallengesService extends ConsentAwareService {
 
     console.log("updating challenge", challengeId);
 
-    return runInInjectionContext(this.injector, () =>
-      updateDoc(
-        doc(this._firestore, "spots", spotId, "challenges", challengeId),
-        challengeData
-      )
+    return this._firestoreAdapter.updateDocument(
+      `spots/${spotId}/challenges/${challengeId}`,
+      challengeData
     );
   }
 }

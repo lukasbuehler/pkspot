@@ -1,17 +1,5 @@
-import { Injectable } from "@angular/core";
-import {
-  Firestore,
-  doc,
-  setDoc,
-  deleteDoc,
-  collection,
-  collectionData,
-  docData,
-  query,
-  orderBy,
-  limit,
-  Timestamp,
-} from "@angular/fire/firestore";
+import { Injectable, inject } from "@angular/core";
+import { Timestamp } from "@angular/fire/firestore";
 import { map, Observable } from "rxjs";
 import {
   FollowingDataSchema,
@@ -19,12 +7,18 @@ import {
   UserSchema,
 } from "../../../../db/schemas/UserSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
+import {
+  FirestoreAdapterService,
+  QueryConstraintOptions,
+} from "../firestore-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class FollowingService extends ConsentAwareService {
-  constructor(private firestore: Firestore) {
+  private _firestoreAdapter = inject(FirestoreAdapterService);
+
+  constructor() {
     super();
   }
 
@@ -38,10 +32,11 @@ export class FollowingService extends ConsentAwareService {
           otherUserId
         );
 
-        const obs$ = docData(
-          doc(this.firestore, "users", myUserId, "following", otherUserId),
-          { idField: "id" }
-        ).pipe(map((d) => !!d));
+        const obs$ = this._firestoreAdapter
+          .documentSnapshots<{ id: string }>(
+            `users/${myUserId}/following/${otherUserId}`
+          )
+          .pipe(map((d) => !!d));
 
         const sub = obs$.subscribe({
           next: (v) => obs.next(v),
@@ -65,10 +60,11 @@ export class FollowingService extends ConsentAwareService {
       myUserId
     );
 
-    return docData(
-      doc(this.firestore, "users", myUserId, "followers", otherUserId),
-      { idField: "id" }
-    ).pipe(map((d) => !!d));
+    return this._firestoreAdapter
+      .documentSnapshots<{ id: string }>(
+        `users/${myUserId}/followers/${otherUserId}`
+      )
+      .pipe(map((d) => !!d));
   }
 
   followUser(
@@ -101,60 +97,63 @@ export class FollowingService extends ConsentAwareService {
       profile_picture: myUserData.profile_picture,
       start_following: new Timestamp(Date.now() / 1000, 0),
     };
-    return setDoc(
-      doc(this.firestore, "users", myUserId, "following", otherUserId),
-      followingData
-    ).then(() => {
-      return setDoc(
-        doc(this.firestore, "users", otherUserId, "followers", myUserId),
-        followerData
-      );
-    });
+    return this._firestoreAdapter
+      .setDocument(`users/${myUserId}/following/${otherUserId}`, followingData)
+      .then(() => {
+        return this._firestoreAdapter.setDocument(
+          `users/${otherUserId}/followers/${myUserId}`,
+          followerData
+        );
+      });
   }
 
   unfollowUser(myUserId: string, otherUserId: string) {
-    return deleteDoc(
-      doc(this.firestore, "users", myUserId, "following", otherUserId)
-    ).then(() => {
-      return deleteDoc(
-        doc(this.firestore, "users", otherUserId, "followers", myUserId)
-      );
-    });
+    return this._firestoreAdapter
+      .deleteDocument(`users/${myUserId}/following/${otherUserId}`)
+      .then(() => {
+        return this._firestoreAdapter.deleteDocument(
+          `users/${otherUserId}/followers/${myUserId}`
+        );
+      });
   }
 
   getFollowersOfUser(
     userId: string,
     chunkSize: number = 20
   ): Observable<FollowingSchema[]> {
-    return collectionData(
-      query(
-        collection(this.firestore, `users/${userId}/followers`),
-        orderBy("start_following", "desc"),
-        limit(chunkSize)
-      ),
-      { idField: "uid" }
-    ).pipe(
-      map((arr: any[]) =>
-        arr.map((d) => ({ ...(d as FollowingSchema), uid: (d as any).uid }))
+    const constraints: QueryConstraintOptions[] = [
+      { type: "orderBy", fieldPath: "start_following", direction: "desc" },
+      { type: "limit", limit: chunkSize },
+    ];
+
+    return this._firestoreAdapter
+      .collectionSnapshots<FollowingSchema & { id: string }>(
+        `users/${userId}/followers`,
+        undefined,
+        constraints
       )
-    );
+      .pipe(
+        map((arr) => arr.map((d) => ({ ...(d as FollowingSchema), uid: d.id })))
+      );
   }
 
   getFollowingsOfUser(
     userId: string,
     chunkSize: number = 20
   ): Observable<FollowingSchema[]> {
-    return collectionData(
-      query(
-        collection(this.firestore, `users/${userId}/following`),
-        orderBy("start_following", "desc"),
-        limit(chunkSize)
-      ),
-      { idField: "uid" }
-    ).pipe(
-      map((arr: any[]) =>
-        arr.map((d) => ({ ...(d as FollowingSchema), uid: (d as any).uid }))
+    const constraints: QueryConstraintOptions[] = [
+      { type: "orderBy", fieldPath: "start_following", direction: "desc" },
+      { type: "limit", limit: chunkSize },
+    ];
+
+    return this._firestoreAdapter
+      .collectionSnapshots<FollowingSchema & { id: string }>(
+        `users/${userId}/following`,
+        undefined,
+        constraints
       )
-    );
+      .pipe(
+        map((arr) => arr.map((d) => ({ ...(d as FollowingSchema), uid: d.id })))
+      );
   }
 }

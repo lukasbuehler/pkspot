@@ -1,17 +1,4 @@
-import { inject, Injectable, runInInjectionContext } from "@angular/core";
-import {
-  Firestore,
-  doc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  collection,
-  docData,
-  query,
-  orderBy,
-  limit,
-  getDoc,
-} from "@angular/fire/firestore";
+import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { User } from "../../../../db/models/User";
@@ -21,12 +8,13 @@ import {
 } from "../../../../db/schemas/UserSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { StorageImage } from "../../../../db/models/Media";
+import { FirestoreAdapterService } from "../firestore-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class UsersService extends ConsentAwareService {
-  firestore = inject(Firestore);
+  private _firestoreAdapter = inject(FirestoreAdapterService);
 
   constructor() {
     super();
@@ -43,9 +31,7 @@ export class UsersService extends ConsentAwareService {
       ...data,
     };
     return this.executeWithConsent(() => {
-      return runInInjectionContext(this.injector, () => {
-        return setDoc(doc(this.firestore, "users", userId), schema);
-      });
+      return this._firestoreAdapter.setDocument(`users/${userId}`, schema);
     });
   }
 
@@ -53,20 +39,14 @@ export class UsersService extends ConsentAwareService {
     console.debug("UsersService: Fetching user by ID:", userId);
     return new Observable<User | null>((observer) => {
       this.executeWhenConsent(() => {
-        return runInInjectionContext(this.injector, () => {
-          const obs$ = docData(doc(this.firestore, "users", userId), {
-            idField: "id",
-          }).pipe(
-            map((d: any) =>
-              d ? new User((d as any).id, d as UserSchema) : null
-            )
-          );
-          const sub = obs$.subscribe({
-            next: (v) => observer.next(v),
-            error: (e) => observer.error(e),
-          });
-          return () => sub.unsubscribe();
+        const obs$ = this._firestoreAdapter
+          .documentSnapshots<UserSchema & { id: string }>(`users/${userId}`)
+          .pipe(map((d) => (d ? new User(d.id, d as UserSchema) : null)));
+        const sub = obs$.subscribe({
+          next: (v) => observer.next(v),
+          error: (e) => observer.error(e),
         });
+        return () => sub.unsubscribe();
       }).catch((error) => {
         observer.error(error);
       });
@@ -76,23 +56,18 @@ export class UsersService extends ConsentAwareService {
   getUserRefernceById(
     userId: string
   ): Promise<UserReferenceSchema | null | undefined> {
-    if (!this.firestore) {
-      return Promise.reject(new Error("Firestore not initialized"));
-    }
     if (!userId) {
       return Promise.reject(new Error("User ID is required"));
     }
 
-    const firestore = this.firestore;
     return this.executeWhenConsent(() => {
-      return runInInjectionContext(this.injector, () => {
-        return getDoc(doc(firestore, "users", userId));
-      });
-    }).then((snap) => {
-      if (snap.exists()) {
-        const data = snap.data() as UserSchema;
+      return this._firestoreAdapter.getDocument<UserSchema & { id: string }>(
+        `users/${userId}`
+      );
+    }).then((data) => {
+      if (data) {
         const userRef: UserReferenceSchema = {
-          uid: snap.id,
+          uid: data.id,
           display_name: data.display_name,
           profile_picture: data.profile_picture
             ? new StorageImage(data.profile_picture).getSrc(200)
@@ -106,9 +81,7 @@ export class UsersService extends ConsentAwareService {
 
   updateUser(userId: string, _data: Partial<UserSchema>) {
     return this.executeWithConsent(() => {
-      return runInInjectionContext(this.injector, () => {
-        return updateDoc(doc(this.firestore, "users", userId), _data);
-      });
+      return this._firestoreAdapter.updateDocument(`users/${userId}`, _data);
     });
   }
 

@@ -14,11 +14,13 @@ import {
   addDoc,
   collection,
   collectionData,
+  collectionGroup,
   docData,
   query,
   where,
   orderBy,
   limit,
+  getDocs,
   QueryConstraint as AngularFireQueryConstraint,
 } from "@angular/fire/firestore";
 
@@ -591,5 +593,256 @@ export class FirestoreAdapterService {
    */
   getPlatform(): "ios" | "android" | "web" {
     return this.platformService.getPlatform();
+  }
+
+  // ============================================================================
+  // COLLECTION GROUP QUERIES
+  // ============================================================================
+
+  /**
+   * Query a collection group (one-time fetch).
+   * Collection group queries return documents from all collections with the same ID.
+   * @param collectionId Collection ID (e.g., 'edits' to query all 'edits' subcollections)
+   * @param filters Optional array of where filters
+   * @param constraints Optional array of orderBy/limit constraints
+   */
+  async getCollectionGroup<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Promise<T[]> {
+    if (this.platformService.isNative()) {
+      return this.getCollectionGroupNative<T>(
+        collectionId,
+        filters,
+        constraints
+      );
+    }
+    return this.getCollectionGroupWeb<T>(collectionId, filters, constraints);
+  }
+
+  private async getCollectionGroupWeb<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Promise<T[]> {
+    const collGroupRef = collectionGroup(this.firestore, collectionId);
+    const queryConstraints: AngularFireQueryConstraint[] = [];
+
+    // Add where clauses
+    if (filters) {
+      for (const filter of filters) {
+        queryConstraints.push(
+          where(filter.fieldPath, filter.opStr, filter.value)
+        );
+      }
+    }
+
+    // Add orderBy/limit constraints
+    if (constraints) {
+      for (const constraint of constraints) {
+        if (constraint.type === "orderBy" && constraint.fieldPath) {
+          queryConstraints.push(
+            orderBy(constraint.fieldPath, constraint.direction)
+          );
+        } else if (constraint.type === "limit" && constraint.limit) {
+          queryConstraints.push(limit(constraint.limit));
+        }
+      }
+    }
+
+    const q = query(collGroupRef, ...queryConstraints);
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as T));
+  }
+
+  private async getCollectionGroupNative<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Promise<T[]> {
+    const options: any = {
+      reference: collectionId,
+    };
+
+    // Build composite filter if we have filters
+    if (filters && filters.length > 0) {
+      const queryFilters: QueryFieldFilterConstraint[] = filters.map((f) => ({
+        type: "where" as const,
+        fieldPath: f.fieldPath,
+        opStr: f.opStr,
+        value: f.value,
+      }));
+
+      options.compositeFilter = {
+        type: "and",
+        queryConstraints: queryFilters,
+      };
+    }
+
+    // Add non-filter constraints
+    if (constraints && constraints.length > 0) {
+      const mappedConstraints = constraints
+        .map((c): QueryNonFilterConstraint | null => {
+          if (c.type === "orderBy" && c.fieldPath) {
+            return {
+              type: "orderBy" as const,
+              fieldPath: c.fieldPath,
+              directionStr: (c.direction || "asc") as "asc" | "desc",
+            };
+          } else if (c.type === "limit" && c.limit) {
+            return {
+              type: "limit" as const,
+              limit: c.limit,
+            };
+          }
+          return null;
+        })
+        .filter((c): c is QueryNonFilterConstraint => c !== null);
+      options.queryConstraints = mappedConstraints;
+    }
+
+    const result = await FirebaseFirestore.getCollectionGroup(options);
+    return result.snapshots.map((snap) => ({
+      id: snap.id,
+      ...snap.data,
+    })) as T[];
+  }
+
+  /**
+   * Listen to a collection group query in real-time.
+   * @param collectionId Collection ID (e.g., 'edits')
+   * @param filters Optional array of where filters
+   * @param constraints Optional array of orderBy/limit constraints
+   * @returns Observable that emits array of documents on changes
+   */
+  collectionGroupSnapshots<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Observable<T[]> {
+    if (this.platformService.isNative()) {
+      return this.collectionGroupSnapshotsNative<T>(
+        collectionId,
+        filters,
+        constraints
+      );
+    }
+    return this.collectionGroupSnapshotsWeb<T>(
+      collectionId,
+      filters,
+      constraints
+    );
+  }
+
+  private collectionGroupSnapshotsWeb<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Observable<T[]> {
+    const collGroupRef = collectionGroup(this.firestore, collectionId);
+    const queryConstraints: AngularFireQueryConstraint[] = [];
+
+    if (filters) {
+      for (const filter of filters) {
+        queryConstraints.push(
+          where(filter.fieldPath, filter.opStr, filter.value)
+        );
+      }
+    }
+
+    if (constraints) {
+      for (const constraint of constraints) {
+        if (constraint.type === "orderBy" && constraint.fieldPath) {
+          queryConstraints.push(
+            orderBy(constraint.fieldPath, constraint.direction)
+          );
+        } else if (constraint.type === "limit" && constraint.limit) {
+          queryConstraints.push(limit(constraint.limit));
+        }
+      }
+    }
+
+    const q = query(collGroupRef, ...queryConstraints);
+    return collectionData(q, { idField: "id" }) as Observable<T[]>;
+  }
+
+  private collectionGroupSnapshotsNative<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Observable<T[]> {
+    return new Observable<T[]>((observer) => {
+      let callbackId: string | null = null;
+
+      const options: any = {
+        reference: collectionId,
+      };
+
+      // Build composite filter
+      if (filters && filters.length > 0) {
+        const queryFilters: QueryFieldFilterConstraint[] = filters.map((f) => ({
+          type: "where" as const,
+          fieldPath: f.fieldPath,
+          opStr: f.opStr,
+          value: f.value,
+        }));
+
+        options.compositeFilter = {
+          type: "and",
+          queryConstraints: queryFilters,
+        };
+      }
+
+      // Add non-filter constraints
+      if (constraints && constraints.length > 0) {
+        const mappedConstraints = constraints
+          .map((c): QueryNonFilterConstraint | null => {
+            if (c.type === "orderBy" && c.fieldPath) {
+              return {
+                type: "orderBy" as const,
+                fieldPath: c.fieldPath,
+                directionStr: (c.direction || "asc") as "asc" | "desc",
+              };
+            } else if (c.type === "limit" && c.limit) {
+              return {
+                type: "limit" as const,
+                limit: c.limit,
+              };
+            }
+            return null;
+          })
+          .filter((c): c is QueryNonFilterConstraint => c !== null);
+        options.queryConstraints = mappedConstraints;
+      }
+
+      FirebaseFirestore.addCollectionGroupSnapshotListener(
+        options,
+        (event, error) => {
+          this.ngZone.run(() => {
+            if (error) {
+              observer.error(error);
+              return;
+            }
+            if (event?.snapshots) {
+              const docs = event.snapshots.map((snap) => ({
+                id: snap.id,
+                ...snap.data,
+              })) as T[];
+              observer.next(docs);
+            }
+          });
+        }
+      ).then((id) => {
+        callbackId = id;
+      });
+
+      // Cleanup function
+      return () => {
+        if (callbackId) {
+          FirebaseFirestore.removeSnapshotListener({ callbackId });
+        }
+      };
+    });
   }
 }
