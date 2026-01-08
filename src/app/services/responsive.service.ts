@@ -42,10 +42,12 @@ export class ResponsiveService {
   private request = inject(REQUEST, { optional: true }) as Request | null;
 
   /**
-   * Tracks whether breakpoints have been determined
-   * False during SSR and initial browser render until first breakpoint detection
+   * Tracks whether breakpoints have been determined.
+   * Always false during SSR (we don't trust UA detection for layout).
+   * In browser: false until first BreakpointObserver emission.
+   * This ensures layout-specific components (@defer blocks) only render client-side.
    */
-  readonly isInitialized = signal(!this.isBrowser); // True for SSR (we use UA), false for browser until first breakpoint
+  readonly isInitialized = signal(false);
 
   /**
    * Mobile view: < 600px (xs & sm breakpoints)
@@ -144,8 +146,17 @@ export class ResponsiveService {
    */
   private isMobileUserAgent(): boolean {
     if (!this.request) return false;
+
+    // Check modern Client Hints header
+    const secChUaMobile = this.request.headers["sec-ch-ua-mobile"];
+    if (secChUaMobile === "?1") return true;
+    if (secChUaMobile === "?0") return false;
+
     const ua = this.request.headers["user-agent"] || "";
-    return /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    // Added 'Mobile' to the regex to catch more general mobile user agents
+    return /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(
+      ua
+    );
   }
 
   /**

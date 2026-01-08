@@ -207,7 +207,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   bottomSheetOpen = signal<boolean>(false);
   bottomSheetProgress = signal<number>(0);
 
-  sidenavOpen = signal<boolean>(true);
+  // Start closed to prevent flash - will open when desktop is confirmed
+  sidenavOpen = signal<boolean>(false);
   sidebarContentIsScrolling = signal<boolean>(false);
 
   // Height of the top spacer in the sidebar/bottom-sheet to match chip listbox
@@ -392,6 +393,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         // Clear edits if not showing edit history
         this.spotEdits.set([]);
+      }
+    });
+
+    // Open sidenav by default on desktop once responsive detection is confirmed
+    effect(() => {
+      const isInitialized = this.responsiveService.isInitialized();
+      const isNotMobile = this.responsiveService.isNotMobile();
+      if (isInitialized && isNotMobile) {
+        this.sidenavOpen.set(true);
       }
     });
   }
