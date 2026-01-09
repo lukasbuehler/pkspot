@@ -523,18 +523,24 @@ export class AppComponent implements OnInit {
           isAuthenticated = true;
         }
 
-        this.shortUserDisplayName.set(
-          // Get display name from Firestore user data if consent is granted
-          user?.data?.displayName?.split(" ")[0] ?? undefined
-        );
-
-        // Only access Firestore user data if consent is granted
-        if (this._consentService.hasConsent()) {
-          this.userPhoto.set(
-            this.authService?.user?.data?.profilePicture?.getSrc(200) ??
-              undefined
+        if (user && user.uid) {
+          this.shortUserDisplayName.set(
+            // Get display name from Firestore user data if consent is granted
+            user?.data?.displayName?.split(" ")[0] ?? undefined
           );
+
+          // Only access Firestore user data if consent is granted
+          if (this._consentService.hasConsent()) {
+            this.userPhoto.set(
+              this.authService?.user?.data?.profilePicture?.getSrc(200) ??
+                undefined
+            );
+          } else {
+            this.userPhoto.set(undefined);
+          }
         } else {
+          // User signed out - clear display name and photo
+          this.shortUserDisplayName.set(undefined);
           this.userPhoto.set(undefined);
         }
 

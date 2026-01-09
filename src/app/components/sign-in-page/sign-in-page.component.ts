@@ -138,4 +138,28 @@ export class SignInPageComponent implements OnInit {
         this.isSubmitting = false;
       });
   }
+
+  trySignInApple() {
+    // Guard against double submissions
+    if (this.isSubmitting) {
+      console.warn(
+        "Sign-in already in progress, ignoring duplicate submission"
+      );
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.signInError = "";
+
+    this._authService
+      .signInApple()
+      .then(() => {
+        console.log("Successfully signed in with apple :)");
+      })
+      .catch((err) => {
+        console.error(err);
+        this.signInError = $localize`Could not sign in with Apple!`;
+        this.isSubmitting = false;
+      });
+  }
 }

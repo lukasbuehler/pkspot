@@ -3,13 +3,16 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "app.pkspot.app",
+  appId: "com.pkspot.app",
   appName: "PK Spot",
   webDir: "dist/pkspot/browser",
+  ios: {
+    loggingBehavior: "debug", // Logs JS console to Xcode console
+  },
   plugins: {
     FirebaseAuthentication: {
       skipNativeAuth: false,
-      providers: ["google.com"],
+      providers: ["google.com", "apple.com"],
     },
   },
 };

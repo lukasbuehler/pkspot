@@ -25,7 +25,7 @@
             />
             } @else {
             <div
-              class="profile-overview__avatar profile-overview__avatar--placeholder mat-display-small"
+              class="profile-overview__avatar profile-overview__avatar--placeholder mat-display-small flex-shrink-0"
               aria-hidden="true"
             >
               {{ user.displayName ? user.displayName.charAt(0) : "?" }}
@@ -152,7 +152,9 @@
     <section class="profile-secondary" aria-label="Additional profile details">
       <mat-card class="profile-section mat-elevation-z1">
         <mat-card-header class="profile-section__header">
-          <mat-card-title class="mat-title-small">Biography</mat-card-title>
+          <mat-card-title class="mat-title-small" i18n
+            >Biography</mat-card-title
+          >
         </mat-card-header>
         <mat-divider></mat-divider>
         <mat-card-content
@@ -163,8 +165,8 @@
             {{ user.biography }}
           </p>
           } @else {
-          <p class="mat-body-medium profile-section__placeholder">
-            This runner has not added a biography yet.
+          <p class="mat-body-medium profile-section__placeholder" i18n>
+            This person has not added a biography yet.
           </p>
           }
         </mat-card-content>

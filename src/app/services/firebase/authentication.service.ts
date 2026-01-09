@@ -5,6 +5,7 @@ import {
   runInInjectionContext,
 } from "@angular/core";
 import {
+  OAuthProvider,
   GoogleAuthProvider,
   getAuth,
   Auth,
@@ -15,8 +16,6 @@ import {
   sendEmailVerification,
   createUserWithEmailAndPassword,
   updateProfile,
-} from "@angular/fire/auth";
-import {
   indexedDBLocalPersistence,
   browserLocalPersistence,
   inMemoryPersistence,
@@ -66,6 +65,10 @@ export class AuthenticationService extends ConsentAwareService {
   private _isCreatingAccount = false;
   // Guard against concurrent Google sign-in attempts
   private _isSigningInWithGoogle = false;
+  // Guard against concurrent Apple sign-in attempts
+  private _isSigningInWithApple = false;
+  // Guard against concurrent email sign-in attempts
+  private _isSigningInWithEmail = false;
 
   /**
    * Returns true if running on a native platform (iOS/Android)
@@ -433,6 +436,115 @@ export class AuthenticationService extends ConsentAwareService {
 
         if (!displayName) {
           console.error("Google Sign In: No display name found");
+          return;
+        }
+
+        // create a database entry for the user
+        this._userService.addUser(uid, displayName, {
+          verified_email: emailVerified,
+          settings: this._defaultUserSettings,
+        });
+      }
+    } catch (error) {
+      // user does not exist
+      console.error(error);
+    }
+  }
+
+  // ============================================
+  // Apple Sign In
+  // ============================================
+
+  public signInApple(): Promise<void> {
+    if (this._isNative) {
+      return this._signInAppleNative();
+    }
+    return this._signInAppleWeb();
+  }
+
+  private async _signInAppleWeb(): Promise<void> {
+    // Guard against concurrent Apple sign-in attempts
+    if (this._isSigningInWithApple) {
+      console.warn(
+        "Apple sign-in already in progress, rejecting duplicate request"
+      );
+      return Promise.reject(
+        new Error(
+          "Apple sign-in is already in progress. Please wait for the first attempt to complete."
+        )
+      );
+    }
+
+    this._isSigningInWithApple = true;
+
+    try {
+      let appleAuthProvider = new OAuthProvider("apple.com");
+      appleAuthProvider.addScope("email");
+      appleAuthProvider.addScope("name");
+
+      let appleSignInResponse = await signInWithPopup(
+        this.auth,
+        appleAuthProvider
+      );
+
+      // check if the user exists in the database
+      await this._handleAppleSignIn(
+        appleSignInResponse.user.uid,
+        appleSignInResponse.user.displayName,
+        appleSignInResponse.user.emailVerified
+      );
+    } finally {
+      this._isSigningInWithApple = false;
+    }
+  }
+
+  private async _signInAppleNative(): Promise<void> {
+    // Guard against concurrent Apple sign-in attempts
+    if (this._isSigningInWithApple) {
+      console.warn(
+        "Apple sign-in already in progress, rejecting duplicate request"
+      );
+      return Promise.reject(
+        new Error(
+          "Apple sign-in is already in progress. Please wait for the first attempt to complete."
+        )
+      );
+    }
+
+    this._isSigningInWithApple = true;
+
+    try {
+      const result = await FirebaseAuthentication.signInWithApple();
+
+      if (result.user) {
+        await this._handleAppleSignIn(
+          result.user.uid,
+          result.user.displayName,
+          result.user.emailVerified
+        );
+      }
+    } finally {
+      this._isSigningInWithApple = false;
+    }
+  }
+
+  private async _handleAppleSignIn(
+    uid: string,
+    displayName: string | null,
+    emailVerified: boolean
+  ): Promise<void> {
+    try {
+      let user: User | null = await firstValueFrom(
+        this._userService.getUserById(uid)
+      );
+      if (!user) {
+        // This is a new user!
+        this.trackEventWithConsent("Create Account", {
+          props: { accountType: "Apple" },
+        });
+
+        if (!displayName) {
+          console.error("Apple Sign In: No display name found");
           return;
         }
 

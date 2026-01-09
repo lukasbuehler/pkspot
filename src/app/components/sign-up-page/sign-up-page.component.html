@@ -16,6 +16,17 @@
         <button mat-flat-button routerLink="/sign-in">
           <mat-icon>login</mat-icon><span i18n>Sign in</span>
         </button>
+        <button mat-stroked-button (click)="trySignInApple()">
+          <span class="d-flex gap-2 align-items-center">
+            <img
+              ngSrc="assets/logos/apple_icon_dark.png"
+              height="16"
+              width="16"
+              alt=""
+            />
+            Apple</span
+          >
+        </button>
         <button mat-stroked-button (click)="trySignInGoogle()">
           <span class="d-flex gap-2 align-items-center">
             <img

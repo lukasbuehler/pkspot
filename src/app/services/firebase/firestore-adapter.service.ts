@@ -1,4 +1,10 @@
-import { Injectable, inject, NgZone } from "@angular/core";
+import {
+  Injectable,
+  inject,
+  NgZone,
+  Injector,
+  runInInjectionContext,
+} from "@angular/core";
 import { Observable, from, Subject, BehaviorSubject } from "rxjs";
 import { map, shareReplay, takeUntil } from "rxjs/operators";
 import { PlatformService } from "../platform.service";
@@ -80,6 +86,7 @@ export class FirestoreAdapterService {
   private platformService = inject(PlatformService);
   private firestore = inject(Firestore);
   private ngZone = inject(NgZone);
+  private injector = inject(Injector);
 
   // Track active listeners for cleanup
   private activeListeners = new Map<string, () => void>();
@@ -107,12 +114,14 @@ export class FirestoreAdapterService {
   }
 
   private async getDocumentWeb<T>(path: string): Promise<T | null> {
-    const docRef = doc(this.firestore, path);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      return { id: snap.id, ...snap.data() } as T;
-    }
-    return null;
+    return runInInjectionContext(this.injector, async () => {
+      const docRef = doc(this.firestore, path);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        return { id: snap.id, ...snap.data() } as T;
+      }
+      return null;
+    });
   }
 
   private async getDocumentNative<T>(path: string): Promise<T | null> {
@@ -155,8 +164,10 @@ export class FirestoreAdapterService {
     data: T,
     options?: { merge?: boolean }
   ): Promise<void> {
-    const docRef = doc(this.firestore, path);
-    await setDoc(docRef, data, options || {});
+    return runInInjectionContext(this.injector, async () => {
+      const docRef = doc(this.firestore, path);
+      await setDoc(docRef, data, options || {});
+    });
   }
 
   private async setDocumentNative<T extends Record<string, any>>(
@@ -190,8 +201,10 @@ export class FirestoreAdapterService {
     path: string,
     data: Partial<T>
   ): Promise<void> {
-    const docRef = doc(this.firestore, path);
-    await updateDoc(docRef, data as any);
+    return runInInjectionContext(this.injector, async () => {
+      const docRef = doc(this.firestore, path);
+      await updateDoc(docRef, data as any);
+    });
   }
 
   private async updateDocumentNative<T extends Record<string, any>>(
@@ -216,8 +229,10 @@ export class FirestoreAdapterService {
   }
 
   private async deleteDocumentWeb(path: string): Promise<void> {
-    const docRef = doc(this.firestore, path);
-    await deleteDoc(docRef);
+    return runInInjectionContext(this.injector, async () => {
+      const docRef = doc(this.firestore, path);
+      await deleteDoc(docRef);
+    });
   }
 
   private async deleteDocumentNative(path: string): Promise<void> {
@@ -246,9 +261,11 @@ export class FirestoreAdapterService {
     collectionPath: string,
     data: T
   ): Promise<string> {
-    const collRef = collection(this.firestore, collectionPath);
-    const docRef = await addDoc(collRef, data);
-    return docRef.id;
+    return runInInjectionContext(this.injector, async () => {
+      const collRef = collection(this.firestore, collectionPath);
+      const docRef = await addDoc(collRef, data);
+      return docRef.id;
+    });
   }
 
   private async addDocumentNative<T extends Record<string, any>>(
@@ -290,36 +307,36 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
-    const collRef = collection(this.firestore, collectionPath);
-    const queryConstraints: AngularFireQueryConstraint[] = [];
+    return runInInjectionContext(this.injector, async () => {
+      const collRef = collection(this.firestore, collectionPath);
+      const queryConstraints: AngularFireQueryConstraint[] = [];
 
-    // Add where clauses
-    if (filters) {
-      for (const filter of filters) {
-        queryConstraints.push(
-          where(filter.fieldPath, filter.opStr, filter.value)
-        );
-      }
-    }
-
-    // Add orderBy/limit constraints
-    if (constraints) {
-      for (const constraint of constraints) {
-        if (constraint.type === "orderBy" && constraint.fieldPath) {
+      // Add where clauses
+      if (filters) {
+        for (const filter of filters) {
           queryConstraints.push(
-            orderBy(constraint.fieldPath, constraint.direction)
+            where(filter.fieldPath, filter.opStr, filter.value)
           );
-        } else if (constraint.type === "limit" && constraint.limit) {
-          queryConstraints.push(limit(constraint.limit));
         }
       }
-    }
 
-    const q = query(collRef, ...queryConstraints);
-    const snap = await import("@angular/fire/firestore").then((m) =>
-      m.getDocs(q)
-    );
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as T));
+      // Add orderBy/limit constraints
+      if (constraints) {
+        for (const constraint of constraints) {
+          if (constraint.type === "orderBy" && constraint.fieldPath) {
+            queryConstraints.push(
+              orderBy(constraint.fieldPath, constraint.direction)
+            );
+          } else if (constraint.type === "limit" && constraint.limit) {
+            queryConstraints.push(limit(constraint.limit));
+          }
+        }
+      }
+
+      const q = query(collRef, ...queryConstraints);
+      const snap = await getDocs(q);
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as T));
+    });
   }
 
   private async getCollectionNative<T>(
@@ -401,10 +418,12 @@ export class FirestoreAdapterService {
   }
 
   private documentSnapshotsWeb<T>(path: string): Observable<T | null> {
-    const docRef = doc(this.firestore, path);
-    return docData(docRef, { idField: "id" }).pipe(
-      map((data) => (data ? (data as T) : null))
-    );
+    return runInInjectionContext(this.injector, () => {
+      const docRef = doc(this.firestore, path);
+      return docData(docRef, { idField: "id" }).pipe(
+        map((data) => (data ? (data as T) : null))
+      );
+    });
   }
 
   private documentSnapshotsNative<T>(path: string): Observable<T | null> {
@@ -471,31 +490,33 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Observable<T[]> {
-    const collRef = collection(this.firestore, collectionPath);
-    const queryConstraints: AngularFireQueryConstraint[] = [];
+    return runInInjectionContext(this.injector, () => {
+      const collRef = collection(this.firestore, collectionPath);
+      const queryConstraints: AngularFireQueryConstraint[] = [];
 
-    if (filters) {
-      for (const filter of filters) {
-        queryConstraints.push(
-          where(filter.fieldPath, filter.opStr, filter.value)
-        );
-      }
-    }
-
-    if (constraints) {
-      for (const constraint of constraints) {
-        if (constraint.type === "orderBy" && constraint.fieldPath) {
+      if (filters) {
+        for (const filter of filters) {
           queryConstraints.push(
-            orderBy(constraint.fieldPath, constraint.direction)
+            where(filter.fieldPath, filter.opStr, filter.value)
           );
-        } else if (constraint.type === "limit" && constraint.limit) {
-          queryConstraints.push(limit(constraint.limit));
         }
       }
-    }
 
-    const q = query(collRef, ...queryConstraints);
-    return collectionData(q, { idField: "id" }) as Observable<T[]>;
+      if (constraints) {
+        for (const constraint of constraints) {
+          if (constraint.type === "orderBy" && constraint.fieldPath) {
+            queryConstraints.push(
+              orderBy(constraint.fieldPath, constraint.direction)
+            );
+          } else if (constraint.type === "limit" && constraint.limit) {
+            queryConstraints.push(limit(constraint.limit));
+          }
+        }
+      }
+
+      const q = query(collRef, ...queryConstraints);
+      return collectionData(q, { idField: "id" }) as Observable<T[]>;
+    });
   }
 
   private collectionSnapshotsNative<T>(
@@ -626,34 +647,36 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
-    const collGroupRef = collectionGroup(this.firestore, collectionId);
-    const queryConstraints: AngularFireQueryConstraint[] = [];
+    return runInInjectionContext(this.injector, async () => {
+      const collGroupRef = collectionGroup(this.firestore, collectionId);
+      const queryConstraints: AngularFireQueryConstraint[] = [];
 
-    // Add where clauses
-    if (filters) {
-      for (const filter of filters) {
-        queryConstraints.push(
-          where(filter.fieldPath, filter.opStr, filter.value)
-        );
-      }
-    }
-
-    // Add orderBy/limit constraints
-    if (constraints) {
-      for (const constraint of constraints) {
-        if (constraint.type === "orderBy" && constraint.fieldPath) {
+      // Add where clauses
+      if (filters) {
+        for (const filter of filters) {
           queryConstraints.push(
-            orderBy(constraint.fieldPath, constraint.direction)
+            where(filter.fieldPath, filter.opStr, filter.value)
           );
-        } else if (constraint.type === "limit" && constraint.limit) {
-          queryConstraints.push(limit(constraint.limit));
         }
       }
-    }
 
-    const q = query(collGroupRef, ...queryConstraints);
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as T));
+      // Add orderBy/limit constraints
+      if (constraints) {
+        for (const constraint of constraints) {
+          if (constraint.type === "orderBy" && constraint.fieldPath) {
+            queryConstraints.push(
+              orderBy(constraint.fieldPath, constraint.direction)
+            );
+          } else if (constraint.type === "limit" && constraint.limit) {
+            queryConstraints.push(limit(constraint.limit));
+          }
+        }
+      }
+
+      const q = query(collGroupRef, ...queryConstraints);
+      const snap = await getDocs(q);
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as T));
+    });
   }
 
   private async getCollectionGroupNative<T>(
@@ -740,31 +763,33 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Observable<T[]> {
-    const collGroupRef = collectionGroup(this.firestore, collectionId);
-    const queryConstraints: AngularFireQueryConstraint[] = [];
+    return runInInjectionContext(this.injector, () => {
+      const collGroupRef = collectionGroup(this.firestore, collectionId);
+      const queryConstraints: AngularFireQueryConstraint[] = [];
 
-    if (filters) {
-      for (const filter of filters) {
-        queryConstraints.push(
-          where(filter.fieldPath, filter.opStr, filter.value)
-        );
-      }
-    }
-
-    if (constraints) {
-      for (const constraint of constraints) {
-        if (constraint.type === "orderBy" && constraint.fieldPath) {
+      if (filters) {
+        for (const filter of filters) {
           queryConstraints.push(
-            orderBy(constraint.fieldPath, constraint.direction)
+            where(filter.fieldPath, filter.opStr, filter.value)
           );
-        } else if (constraint.type === "limit" && constraint.limit) {
-          queryConstraints.push(limit(constraint.limit));
         }
       }
-    }
 
-    const q = query(collGroupRef, ...queryConstraints);
-    return collectionData(q, { idField: "id" }) as Observable<T[]>;
+      if (constraints) {
+        for (const constraint of constraints) {
+          if (constraint.type === "orderBy" && constraint.fieldPath) {
+            queryConstraints.push(
+              orderBy(constraint.fieldPath, constraint.direction)
+            );
+          } else if (constraint.type === "limit" && constraint.limit) {
+            queryConstraints.push(limit(constraint.limit));
+          }
+        }
+      }
+
+      const q = query(collGroupRef, ...queryConstraints);
+      return collectionData(q, { idField: "id" }) as Observable<T[]>;
+    });
   }
 
   private collectionGroupSnapshotsNative<T>(

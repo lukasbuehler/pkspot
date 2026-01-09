@@ -81,6 +81,11 @@ export class MetaTagService {
    * Sets the canonical URL for the current page
    */
   public setCanonicalUrl(url: string): void {
+    // Skip DOM manipulation on server-side rendering
+    if (this.isServer) {
+      return;
+    }
+
     // Remove existing canonical tag if present
     const existingCanonical = document.querySelector('link[rel="canonical"]');
     if (existingCanonical) {

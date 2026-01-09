@@ -1,6 +1,12 @@
 <div class="container" style="padding-top: 80px">
   <div class="row justify-content-center">
     <div class="col-sm-12 col-md-9">
+      <img
+        src="assets/logos/pkspot/pkspot_logo_oneline_dark.png"
+        alt="PK Spot"
+        style="height: 56px"
+        class="mb-5"
+      />
       <h1
         class="mat-headline-medium"
         i18n="sign in page title|Title of the sign in page@@signin.title"
@@ -91,6 +97,17 @@
         Other sign-in options
       </h3>
       <div class="oauth-buttons d-flex flex-column align-items-center">
+        <button mat-stroked-button (click)="trySignInApple()">
+          <span class="d-flex gap-2 align-items-center">
+            <img
+              ngSrc="assets/logos/apple_icon_dark.png"
+              height="16"
+              width="16"
+              alt=""
+            />
+            Apple</span
+          >
+        </button>
         <button mat-stroked-button (click)="trySignInGoogle()">
           <span class="d-flex gap-2 align-items-center">
             <img
@@ -102,17 +119,7 @@
             Google</span
           >
         </button>
-        <!-- <button mat-stroked-button>
-          <span class="d-flex gap-2 align-items-center">
-            <img
-              ngSrc="/assets/logos/apple_icon_dark.png"
-              height="16"
-              width="16"
-              alt=""
-            />
-            Apple</span
-          >
-        </button> -->
+
         <!-- <button mat-flat-button disabled color="accent">Twitter</button>
         <button mat-flat-button disabled color="primary">Github</button> -->
       </div>
