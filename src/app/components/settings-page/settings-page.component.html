@@ -76,7 +76,50 @@
 
           <!-- Email Section -->
           <div class="my-4 p-3 rounded border">
-            <h3 class="mat-h3" i18n>E-Mail address</h3>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="mat-h3 m-0" i18n>E-Mail address</h3>
+              @if(!isEmailExpanded) {
+              <button
+                mat-button
+                color="primary"
+                (click)="isEmailExpanded = true"
+                i18n
+              >
+                Edit
+              </button>
+              }
+            </div>
+
+            @if(!isEmailExpanded) {
+            <div class="d-flex align-items-center gap-2">
+              <span class="mat-body-strong">{{ emailAddress }}</span>
+              @if(authService.user?.emailVerified) {
+              <mat-icon
+                i18n-matTooltip
+                matTooltip="Verified"
+                class="text-success"
+                style="font-size: 20px; height: 20px; width: 20px"
+                >verified</mat-icon
+              >
+              } @else {
+              <mat-icon
+                i18n-matTooltip
+                matTooltip="Not verified"
+                color="warn"
+                style="font-size: 20px; height: 20px; width: 20px"
+                >warning</mat-icon
+              >
+              <button
+                mat-button
+                color="accent"
+                (click)="verifyUserEmailAddress()"
+                i18n
+              >
+                Verify now
+              </button>
+              }
+            </div>
+            } @else {
             <div class="d-flex flex-column gap-3">
               <mat-form-field appearance="outline">
                 <mat-label i18n>Current E-mail</mat-label>
@@ -94,22 +137,11 @@
                   matSuffix
                   i18n-matTooltip
                   matTooltip="Verified"
-                  color="primary"
+                  class="text-success"
                   >verified</mat-icon
                 >
                 }
               </mat-form-field>
-
-              @if(!authService.user?.emailVerified) {
-              <button
-                mat-stroked-button
-                color="accent"
-                (click)="verifyUserEmailAddress()"
-                i18n
-              >
-                Resend verification E-mail
-              </button>
-              }
 
               <mat-form-field appearance="outline">
                 <mat-label i18n>New E-mail address</mat-label>
@@ -123,26 +155,54 @@
                   [(ngModel)]="emailChangePassword"
                 />
               </mat-form-field>
-              <button
-                mat-flat-button
-                color="primary"
-                [disabled]="
-                  isChangingEmail || !newEmailAddress || !emailChangePassword
-                "
-                (click)="changeEmailAddress()"
-              >
-                @if(isChangingEmail) {
-                <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-                } @else {
-                <span i18n>Change E-mail address</span>
-                }
-              </button>
+              <div class="d-flex gap-2">
+                <button
+                  mat-stroked-button
+                  (click)="isEmailExpanded = false"
+                  i18n
+                >
+                  Cancel
+                </button>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  [disabled]="
+                    isChangingEmail || !newEmailAddress || !emailChangePassword
+                  "
+                  (click)="changeEmailAddress()"
+                >
+                  @if(isChangingEmail) {
+                  <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
+                  } @else {
+                  <span i18n>Change E-mail address</span>
+                  }
+                </button>
+              </div>
             </div>
+            }
           </div>
 
           <!-- Password Section -->
           <div class="my-4 p-3 rounded border">
-            <h3 class="mat-h3" i18n>Password</h3>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="mat-h3 m-0" i18n>Password</h3>
+              @if(!isPasswordExpanded) {
+              <button
+                mat-button
+                color="primary"
+                (click)="isPasswordExpanded = true"
+                i18n
+              >
+                Edit
+              </button>
+              }
+            </div>
+
+            @if(!isPasswordExpanded) {
+            <div class="d-flex align-items-center gap-2">
+              <span class="mat-body fw-bold">•••••••••••••</span>
+            </div>
+            } @else {
             <div class="d-flex flex-column gap-3">
               <mat-form-field appearance="outline">
                 <mat-label i18n>Current password</mat-label>
@@ -161,24 +221,34 @@
                   [(ngModel)]="confirmNewPassword"
                 />
               </mat-form-field>
-              <button
-                mat-flat-button
-                color="primary"
-                [disabled]="
-                  isChangingPassword ||
-                  !currentPassword ||
-                  !newPassword ||
-                  !confirmNewPassword
-                "
-                (click)="changePassword()"
-              >
-                @if(isChangingPassword) {
-                <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-                } @else {
-                <span i18n>Change password</span>
-                }
-              </button>
+              <div class="d-flex gap-2">
+                <button
+                  mat-stroked-button
+                  (click)="isPasswordExpanded = false"
+                  i18n
+                >
+                  Cancel
+                </button>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  [disabled]="
+                    isChangingPassword ||
+                    !currentPassword ||
+                    !newPassword ||
+                    !confirmNewPassword
+                  "
+                  (click)="changePassword()"
+                >
+                  @if(isChangingPassword) {
+                  <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
+                  } @else {
+                  <span i18n>Change password</span>
+                  }
+                </button>
+              </div>
             </div>
+            }
           </div>
 
           <!-- Delete Account Section -->
@@ -203,6 +273,12 @@
               class="d-flex flex-column gap-3 mt-3 p-3 rounded"
               style="background: rgba(var(--mat-warn-color), 0.1)"
             >
+              @if(isOAuthUser) {
+              <p class="mat-body-strong text-danger" i18n>
+                Are you sure? You will need to sign in with
+                {{ providerDisplayName }} again to confirm deletion.
+              </p>
+              } @else {
               <p class="mat-body-strong text-danger" i18n>
                 Are you sure? Enter your password to confirm deletion.
               </p>
@@ -214,6 +290,8 @@
                   [(ngModel)]="deleteAccountPassword"
                 />
               </mat-form-field>
+              }
+
               <div class="d-flex gap-2">
                 <button mat-stroked-button (click)="cancelDeleteAccount()" i18n>
                   Cancel
@@ -221,7 +299,10 @@
                 <button
                   mat-flat-button
                   color="warn"
-                  [disabled]="isDeletingAccount || !deleteAccountPassword"
+                  [disabled]="
+                    isDeletingAccount ||
+                    (!isOAuthUser && !deleteAccountPassword)
+                  "
                   (click)="deleteAccount()"
                 >
                   @if(isDeletingAccount) {

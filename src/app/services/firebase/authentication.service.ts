@@ -27,6 +27,8 @@ import {
   indexedDBLocalPersistence,
   browserLocalPersistence,
   inMemoryPersistence,
+  reauthenticateWithPopup,
+  AuthProvider,
 } from "@angular/fire/auth";
 import { FirebaseApp } from "@angular/fire/app";
 import { BehaviorSubject, firstValueFrom } from "rxjs";
@@ -45,6 +47,7 @@ interface AuthServiceUser {
   email?: string;
   emailVerified?: boolean;
   data?: User;
+  providerId?: string;
 }
 
 @Injectable({
@@ -266,6 +269,16 @@ export class AuthenticationService extends ConsentAwareService {
       this.user.uid = user.uid;
       this.user.email = user.email ?? undefined;
       this.user.emailVerified = user.emailVerified;
+      // detailed provider info is in providerData, but the top-level providerId explains how they signed in *this session*
+      // or we check the first provider in providerData
+      if (this._isNative) {
+        // Capacitor user might have providerId directly or in providerId
+        this.user.providerId = (user as any).providerId;
+      } else {
+        // Firebase web user
+        const fbUser = user as FirebaseUser;
+        this.user.providerId = fbUser.providerData[0]?.providerId;
+      }
 
       // Send basic auth state immediately (with Firebase user data)
       this.authState$.next(this.user);
@@ -765,6 +778,46 @@ export class AuthenticationService extends ConsentAwareService {
    * Reauthenticate the current user with their password.
    * Required before sensitive operations like email/password change or account deletion.
    */
+  public async reauthenticateWithProvider(providerId: string): Promise<void> {
+    if (this._isNative) {
+      return this._reauthenticateWithProviderNative(providerId);
+    }
+    return this._reauthenticateWithProviderWeb(providerId);
+  }
+
+  private async _reauthenticateWithProviderWeb(
+    providerId: string
+  ): Promise<void> {
+    if (!this.auth.currentUser) {
+      return Promise.reject(new Error("No user signed in"));
+    }
+
+    let provider: AuthProvider;
+    if (providerId === "google.com") {
+      provider = new GoogleAuthProvider();
+    } else if (providerId === "apple.com") {
+      provider = new OAuthProvider("apple.com");
+    } else {
+      return Promise.reject(new Error("Unsupported provider: " + providerId));
+    }
+
+    await reauthenticateWithPopup(this.auth.currentUser, provider);
+  }
+
+  private async _reauthenticateWithProviderNative(
+    providerId: string
+  ): Promise<void> {
+    // For native, "reauthentication" is effectively just signing in again
+    // The native SDKs handle the session merge/refresh
+    if (providerId === "google.com") {
+      await this.signInGoogle();
+    } else if (providerId === "apple.com") {
+      await this.signInApple();
+    } else {
+      throw new Error("Unsupported provider: " + providerId);
+    }
+  }
+
   public async reauthenticate(password: string): Promise<void> {
     if (this._isNative) {
       return this._reauthenticateNative(password);
@@ -889,9 +942,11 @@ export class AuthenticationService extends ConsentAwareService {
    * This deletes both the Firebase Auth account and the Firestore user document.
    * Requires reauthentication first.
    */
-  public async deleteAccount(password: string): Promise<void> {
-    // Reauthenticate first
-    await this.reauthenticate(password);
+  public async deleteAccount(password?: string): Promise<void> {
+    // Reauthenticate first if password is provided
+    if (password) {
+      await this.reauthenticate(password);
+    }
 
     const userId = this.user.uid;
     if (!userId) {

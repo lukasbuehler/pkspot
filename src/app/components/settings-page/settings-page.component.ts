@@ -113,10 +113,28 @@ export class SettingsPageComponent implements OnInit {
   isDeletingAccount: boolean = false;
   showDeleteConfirmation: boolean = false;
 
+  isEmailExpanded: boolean = false;
+  isPasswordExpanded: boolean = false;
+
+  get isOAuthUser(): boolean {
+    const providerId = this.authService.user.providerId;
+    return providerId === "google.com" || providerId === "apple.com";
+  }
+
+  get providerDisplayName(): string {
+    const providerId = this.authService.user.providerId;
+    if (providerId === "google.com") return "Google";
+    if (providerId === "apple.com") return "Apple";
+    return "";
+  }
+
   ngOnInit(): void {
     this.emailAddress = this.authService?.user?.email || "";
     this.authService.authState$.subscribe((user) => {
       this.emailAddress = user?.email;
+      if (!user || !user.uid) {
+        this.router.navigate(["/sign-in"]);
+      }
     });
 
     let tab: string = this.route.snapshot.paramMap.get("tab") || "";
@@ -182,6 +200,7 @@ export class SettingsPageComponent implements OnInit {
         );
         this.newEmailAddress = "";
         this.emailChangePassword = "";
+        this.isEmailExpanded = false;
       })
       .catch((err) => {
         console.error("Error changing email:", err);
@@ -238,6 +257,7 @@ export class SettingsPageComponent implements OnInit {
         this.currentPassword = "";
         this.newPassword = "";
         this.confirmNewPassword = "";
+        this.isPasswordExpanded = false;
       })
       .catch((err) => {
         console.error("Error changing password:", err);
@@ -263,17 +283,11 @@ export class SettingsPageComponent implements OnInit {
     this.deleteAccountPassword = "";
   }
 
-  deleteAccount() {
-    if (!this.deleteAccountPassword) {
-      this._snackbar.open($localize`Please enter your password`, "OK", {
-        duration: 3000,
-      });
-      return;
-    }
-
+  // Helper to handle the actual deletion call
+  private _performDelete(password?: string) {
     this.isDeletingAccount = true;
     this.authService
-      .deleteAccount(this.deleteAccountPassword)
+      .deleteAccount(password)
       .then(() => {
         this._snackbar.open(
           $localize`Your account has been deleted. Goodbye!`,
@@ -287,6 +301,8 @@ export class SettingsPageComponent implements OnInit {
         let message = $localize`Error deleting account. Please try again.`;
         if (err.code === "auth/wrong-password") {
           message = $localize`Incorrect password. Please try again.`;
+        } else if (err.code === "auth/requires-recent-login") {
+          message = $localize`Security check failed. Please sign in again and try deleting your account.`;
         }
         this._snackbar.open(message, "OK", { duration: 5000 });
       })
@@ -295,6 +311,42 @@ export class SettingsPageComponent implements OnInit {
         this.showDeleteConfirmation = false;
         this.deleteAccountPassword = "";
       });
+  }
+
+  deleteAccount() {
+    if (this.isOAuthUser) {
+      // For OAuth, we need to reauthenticate with the provider
+      const providerId = this.authService.user.providerId;
+      if (!providerId) return;
+
+      this.isDeletingAccount = true;
+      this.authService
+        .reauthenticateWithProvider(providerId)
+        .then(() => {
+          // Re-auth successful, proceed to delete without password
+          this._performDelete();
+        })
+        .catch((err) => {
+          console.error("Re-authentication failed:", err);
+          this.isDeletingAccount = false;
+          this._snackbar.open(
+            $localize`Re-authentication failed. Account not deleted.`,
+            "OK",
+            { duration: 5000 }
+          );
+        });
+      return;
+    }
+
+    // Password-based user
+    if (!this.deleteAccountPassword) {
+      this._snackbar.open($localize`Please enter your password`, "OK", {
+        duration: 3000,
+      });
+      return;
+    }
+
+    this._performDelete(this.deleteAccountPassword);
   }
 
   profileHasChanges(hasChanges: boolean) {
