@@ -5,9 +5,9 @@ import {
   MatDialogRef,
 } from "@angular/material/dialog";
 import { User } from "../../../db/models/User";
-import { StorageImage } from "../../../db/models/Media";
+import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 
-import { Observable } from "rxjs";
+import { Observable, take } from "rxjs";
 import { humanTimeSince } from "../../../scripts/Helpers";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatIcon } from "@angular/material/icon";
@@ -29,7 +29,6 @@ import {
 import { FollowingService } from "../../services/firebase/firestore/following.service.js";
 import { FollowingDataSchema } from "../../../db/schemas/UserSchema";
 import { NgOptimizedImage } from "@angular/common";
-import { MediaType } from "../../../db/models/Interfaces";
 
 export interface FollowListDialogData {
   userId: string;
@@ -94,6 +93,7 @@ export class FollowListComponent implements OnInit {
   isLoading: boolean = false;
   hasLoadedAll: boolean = false;
   lastLoadedFollowing: firebase.default.firestore.Timestamp | null = null;
+  private _isFirstLoad: boolean = true;
 
   ngOnInit(): void {
     this._loadFollowing();
@@ -120,11 +120,19 @@ export class FollowListComponent implements OnInit {
       );
     }
 
-    obs.subscribe(
+    // Use take(1) to get only the first emission from the real-time observable
+    obs.pipe(take(1)).subscribe(
       (followings) => {
         this.isLoading = false;
         this._processFollowUsers(followings);
-        this.data.followUsers = this.data.followUsers.concat(followings);
+
+        // On first load, replace the array instead of concatenating
+        if (this._isFirstLoad) {
+          this.data.followUsers = followings;
+          this._isFirstLoad = false;
+        } else {
+          this.data.followUsers = this.data.followUsers.concat(followings);
+        }
 
         if (followings.length < chunkSize) {
           // We are at the end, and have loaded all the things
@@ -145,30 +153,9 @@ export class FollowListComponent implements OnInit {
 
   private _processFollowUsers(users: FollowingDataSchema[]) {
     users.forEach((u: any) => {
-      // Pre-calculate the profile picture source to avoid instantiating StorageImage
-      // (and triggering signals) during template rendering.
-      if (!u._profileSrc) {
-        if (
-          u.profile_picture &&
-          (u.profile_picture.includes("firebasestorage") ||
-            u.profile_picture.includes("gs://"))
-        ) {
-          try {
-            // Determine if it's an image or video? Schema says profile_picture is string.
-            // We assume it returns an image src.
-            u._profileSrc = StorageImage.fromSchema({
-              src: u.profile_picture,
-              isInStorage: true,
-              type: MediaType.Image,
-            }).getSrc(200);
-          } catch (e) {
-            console.warn("Error parsing storage image", e);
-            u._profileSrc = u.profile_picture;
-          }
-        } else {
-          // External image (e.g. Google Auth) or empty
-          u._profileSrc = u.profile_picture || "";
-        }
+      // Generate profile picture URL from user ID - no need to store or sync URLs
+      if (!u._profileSrc && u.uid) {
+        u._profileSrc = getProfilePictureUrl(u.uid, 200);
       }
     });
   }

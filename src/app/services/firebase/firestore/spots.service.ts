@@ -422,7 +422,7 @@ export class SpotsService extends ConsentAwareService {
       return { created: createdCount, edited: editedCount };
     } catch (e) {
       // Permission denied or other error
-      // console.error("Error getting user stats", e);
+      console.error("Error getting user stats", e);
       return { created: 0, edited: 0 };
     }
   }

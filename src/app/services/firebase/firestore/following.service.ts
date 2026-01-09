@@ -93,14 +93,14 @@ export class FollowingService extends ConsentAwareService {
       );
     }
 
+    // Note: We no longer store profile_picture here.
+    // Profile picture URLs are derived from user IDs using getProfilePictureUrl().
     let followingData: FollowingDataSchema = {
       display_name: otherUserData.display_name,
-      profile_picture: otherUserData.profile_picture || "",
       start_following: new Timestamp(Date.now() / 1000, 0),
     };
     let followerData: FollowingDataSchema = {
       display_name: myUserData.display_name,
-      profile_picture: myUserData.profile_picture,
       start_following: new Timestamp(Date.now() / 1000, 0),
     };
     return this._firestoreAdapter

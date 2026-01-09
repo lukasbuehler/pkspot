@@ -207,6 +207,22 @@
     </section>
 
     <section class="profile-secondary" aria-label="Additional profile details">
+      <!-- <mat-card>
+        <mat-card-header class="profile-section__header">
+          <mat-card-title i18n class="mat-title-small">Badges</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="profile-section__content">
+          <div class="badge-grid">
+            @for (badge of badges; track badge.id) {
+            <div>
+              <img [src]="badge.src" [alt]="badge.name" />
+              <span>{{ badge.name }}</span>
+            </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card> -->
+
       <mat-card class="profile-section mat-elevation-z1">
         <mat-card-header class="profile-section__header">
           <mat-card-title class="mat-title-small" i18n
@@ -227,22 +243,6 @@
               }}</span>
               <span class="mat-body-small text-muted" i18n>Edits Made</span>
             </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card>
-        <mat-card-header class="profile-section__header">
-          <mat-card-title i18n class="mat-title-small">Badges</mat-card-title>
-        </mat-card-header>
-        <mat-card-content class="profile-section__content">
-          <div class="d-flex flex-column gap-2">
-            @for (badge of badges; track badge.id) { } @empty {
-            <p class="mat-body-medium text-muted">
-              {{ user.displayName || "this athlete" }}
-              <span i18n>has no badges yet!</span>
-            </p>
-            }
           </div>
         </mat-card-content>
       </mat-card>

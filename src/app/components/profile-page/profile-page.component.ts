@@ -18,7 +18,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Post } from "../../../db/models/Post";
 import { User } from "../../../db/models/User";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { Subscription } from "rxjs";
+import { Subscription, skip } from "rxjs";
 import { FollowListComponent } from "../follow-list/follow-list.component";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MatButton } from "@angular/material/button";
@@ -110,7 +110,16 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   isLoadingStats: boolean = false;
 
   homeSpotsObjects: Spot[] = [];
-  badges: any[] = [];
+  badges: any[] = [
+    {
+      name: "Founder",
+      src: "assets/badges/early_5.png",
+    },
+    {
+      name: "Early Adopter",
+      src: "assets/badges/early_2.png",
+    },
+  ];
 
   countries = countries;
   private _subscriptions = new Subscription();
@@ -130,44 +139,57 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private lastLoadedFollowing?: firebase.default.firestore.Timestamp;
 
   ngOnInit(): void {
-    this._subscriptions.add(
-      this._route.paramMap.subscribe((params) => {
-        const newUserId =
-          params.get("userID") ?? this._authService?.user?.uid ?? "";
-        if (newUserId !== this.userId) {
-          this.userId = newUserId;
-          if (!this.userId) {
-            this._router.navigate(["/sign-in"]);
+    // Subscribe to auth state changes first - this handles the case where
+    // auth isn't ready on initial load (e.g., page refresh)
+    // Skip the first emission (initial null from BehaviorSubject before auth loads)
+    const authSub = this._authService.authState$
+      .pipe(skip(1))
+      .subscribe((authUser) => {
+        if (authUser) {
+          this.isMyProfile = this.userId === authUser.uid;
+
+          // If we're on /profile (no userID param) and didn't have a userId yet,
+          // redirect to /u/{userId} for a shareable URL
+          if (!this._route.snapshot.paramMap.get("userID") && authUser.uid) {
+            this._router.navigate(["/u", authUser.uid], { replaceUrl: true });
             return;
           }
+        } else {
+          this.isMyProfile = false;
+          this.isFollowing = false;
+
+          // Auth has now loaded and user is null (not signed in)
+          // If we're on /profile without a specific userID, redirect to sign-in
+          if (!this._route.snapshot.paramMap.get("userID") && !this.userId) {
+            this._router.navigate(["/sign-in"]);
+          }
+        }
+      });
+    this._subscriptions.add(authSub);
+
+    this._subscriptions.add(
+      this._route.paramMap.subscribe((params) => {
+        const userIdFromRoute = params.get("userID");
+        const newUserId = userIdFromRoute ?? this._authService?.user?.uid ?? "";
+        if (newUserId && newUserId !== this.userId) {
+          this.userId = newUserId;
           this.init();
         }
       })
     );
 
-    // Initial load
-    this.userId =
-      this._route.snapshot.paramMap.get("userID") ??
-      this._authService?.user?.uid ??
-      "";
-
-    if (!this.userId) {
-      // redirect to sign-in page
-      this._router.navigate(["/sign-in"]);
-      return;
+    // Initial load - only proceed if we have a userID from the route
+    const userIdFromRoute = this._route.snapshot.paramMap.get("userID");
+    if (userIdFromRoute) {
+      this.userId = userIdFromRoute;
+      this.init();
+    } else if (this._authService?.user?.uid) {
+      // Auth is already ready (e.g., navigating within app) - redirect to shareable URL
+      this._router.navigate(["/u", this._authService.user.uid], {
+        replaceUrl: true,
+      });
     }
-
-    this.init();
-
-    const authSub = this._authService.authState$.subscribe((user) => {
-      if (user) {
-        this.isMyProfile = this.userId === user.uid;
-      } else {
-        this.isMyProfile = false;
-        this.isFollowing = false;
-      }
-    });
-    this._subscriptions.add(authSub);
+    // If neither, we wait for authState$ to provide the user
   }
 
   init() {
