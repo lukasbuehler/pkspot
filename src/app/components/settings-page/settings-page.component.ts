@@ -22,6 +22,7 @@ import { MatBadge } from "@angular/material/badge";
 import { MatIcon } from "@angular/material/icon";
 import { MatButton } from "@angular/material/button";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { MetaTagService } from "../../services/meta-tag.service";
 
 @Component({
   selector: "app-settings-page",
@@ -56,7 +57,8 @@ export class SettingsPageComponent implements OnInit {
     public authService: AuthenticationService,
     private route: ActivatedRoute,
     private router: Router,
-    private _snackbar: MatSnackBar
+    private _snackbar: MatSnackBar,
+    private _metaTagService: MetaTagService
   ) {}
 
   menuPoints = [
@@ -129,6 +131,11 @@ export class SettingsPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this._metaTagService.setStaticPageMetaTags(
+      $localize`Settings`,
+      $localize`Manage your profile and account settings.`
+    );
+
     this.emailAddress = this.authService?.user?.email || "";
     this.authService.authState$.subscribe((user) => {
       this.emailAddress = user?.email;
@@ -145,11 +152,15 @@ export class SettingsPageComponent implements OnInit {
 
   openMenuPoint(pointId: string) {
     // Check if this point id exists
-    if (
-      this.menuPoints.findIndex((menuPoint) => menuPoint.id === pointId) >= 0
-    ) {
+    const point = this.menuPoints.find((menuPoint) => menuPoint.id === pointId);
+    if (point) {
       this.selectedPoint = pointId;
       this.updateURL(pointId);
+
+      this._metaTagService.setStaticPageMetaTags(
+        $localize`Settings - ` + point.name,
+        $localize`Manage your ${point.name} settings.`
+      );
     }
     // else do nothing
   }
@@ -389,6 +400,7 @@ export class SettingsPageComponent implements OnInit {
         this.authService.refetchUserData();
       })
       .catch((err) => {
+        console.error("Saving settings failed!", err);
         this._snackbar.open(
           "Error saving all changes! Please try again later.",
           "Dismiss",

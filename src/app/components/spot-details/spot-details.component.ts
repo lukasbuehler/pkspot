@@ -141,9 +141,13 @@ import {
   SpotChallenge,
 } from "../../../db/models/SpotChallenge";
 import {
-  AnyMedia,
-  ExternalImage,
+  StorageMedia,
   StorageImage,
+  ExternalImage,
+  Media,
+  StorageVideo,
+  ExternalVideo,
+  AnyMedia,
 } from "../../../db/models/Media";
 import { languageCodes } from "../../../scripts/Languages";
 import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";

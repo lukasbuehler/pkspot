@@ -34,7 +34,7 @@
 
             <div class="profile-overview__details">
               <div class="profile-overview__heading">
-                <span class="mat-headline-small profile-overview__name">
+                <span class="mat-headline-small profile-overview__name mb-0">
                   {{ user.displayName }}
                 </span>
                 <mat-chip-set aria-label="Profile status">
@@ -45,12 +45,39 @@
                   }
                 </mat-chip-set>
               </div>
-
-              @if (user.startTimeDiffString) {
-              <p class="mat-body-large profile-overview__tenure">
-                Freerunner since {{ user.startTimeDiffString }}
-              </p>
+              @if (user.biography) {
+              <span class="mat-body-large">
+                {{ user.biography }}
+              </span>
               }
+              <div class="d-flex flex-column gap-1">
+                @if (user.nationalityCode || user.homeCity) {
+                <div
+                  class="mat-body-large profile-overview__location d-flex align-items-center"
+                >
+                  <mat-icon class="m-1 icon-size-small">location_on</mat-icon>
+
+                  @if(user.homeCity) {
+                  <span i18n>In</span>&nbsp;<strong>{{ user.homeCity }}</strong>
+                  } @if(user.homeCity && user.nationalityCode)
+                  {<span>,&nbsp;</span>} @if(user.nationalityCode &&
+                  countries[user.nationalityCode]) {
+                  <span i18n>from</span>&nbsp;<strong>{{
+                    countries[user.nationalityCode].name
+                  }}</strong>
+                  {{ countries[user.nationalityCode].emoji }}
+                  }
+                </div>
+                } @if (user.startTimeDiffString) {
+                <div
+                  class="mat-body-large profile-overview__tenure d-flex align-items-center"
+                >
+                  <mat-icon class="m-1 icon-size-small">history</mat-icon>
+                  <span i18n>Freerunner since</span>&nbsp;
+                  <strong>{{ user.startTimeDiffString }}</strong>
+                </div>
+                }
+              </div>
 
               <div class="profile-overview__metric mat-title-medium">
                 <span class="profile-overview__metric-value">
@@ -136,6 +163,31 @@
         </mat-card-content>
       </mat-card>
 
+      <!-- homespots -->
+      @if(homeSpotsObjects.length > 0) {
+      <mat-card>
+        <mat-card-header class="profile-section__header">
+          <mat-card-title class="mat-title-small" i18n
+            >Home Spots</mat-card-title
+          >
+        </mat-card-header>
+        <mat-card-content class="profile-section__content home-spots-container">
+          @for (spot of homeSpotsObjects; track spot.id) {
+          <a
+            [routerLink]="['/s', spot.slug ?? spot.id]"
+            style="text-decoration: none; color: inherit"
+          >
+            <app-spot-preview-card
+              [spotData]="spot"
+              [imgSize]="200"
+              [clickable]="true"
+            ></app-spot-preview-card
+          ></a>
+          }
+        </mat-card-content>
+      </mat-card>
+      }
+      <!-- 
       <mat-card class="profile-section mat-elevation-z1">
         <mat-card-header class="profile-section__header">
           <mat-card-title class="mat-title-small">Posts</mat-card-title>
@@ -146,43 +198,47 @@
             soon.
           </p>
         </mat-card-content>
-      </mat-card>
+      </mat-card> -->
     </section>
 
     <section class="profile-secondary" aria-label="Additional profile details">
       <mat-card class="profile-section mat-elevation-z1">
         <mat-card-header class="profile-section__header">
           <mat-card-title class="mat-title-small" i18n
-            >Biography</mat-card-title
-          >
-        </mat-card-header>
-        <mat-divider></mat-divider>
-        <mat-card-content
-          class="profile-section__content profile-section__content--with-divider"
-        >
-          @if (user.biography) {
-          <p class="mat-body-medium profile-bio__text">
-            {{ user.biography }}
-          </p>
-          } @else {
-          <p class="mat-body-medium profile-section__placeholder" i18n>
-            This person has not added a biography yet.
-          </p>
-          }
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="profile-section mat-elevation-z1">
-        <mat-card-header class="profile-section__header">
-          <mat-card-title class="mat-title-small"
-            >More coming soon</mat-card-title
+            >Contributions</mat-card-title
           >
         </mat-card-header>
         <mat-card-content class="profile-section__content">
-          <p class="mat-body-medium profile-section__placeholder">
-            Highlights, achievements, and other stats will live here in a future
-            update.
-          </p>
+          <div class="d-flex justify-content-around text-center py-2">
+            <div class="d-flex flex-column">
+              <span class="mat-headline-medium mb-0">{{
+                createdSpotsCount
+              }}</span>
+              <span class="mat-body-small text-muted" i18n>Spots Created</span>
+            </div>
+            <div class="d-flex flex-column">
+              <span class="mat-headline-medium mb-0">{{
+                editedSpotsCount
+              }}</span>
+              <span class="mat-body-small text-muted" i18n>Edits Made</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header class="profile-section__header">
+          <mat-card-title i18n class="mat-title-small">Badges</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="profile-section__content">
+          <div class="d-flex flex-column gap-2">
+            @for (badge of badges; track badge.id) { } @empty {
+            <p class="mat-body-medium text-muted">
+              {{ user.displayName || "this athlete" }}
+              <span i18n>has no badges yet!</span>
+            </p>
+            }
+          </div>
         </mat-card-content>
       </mat-card>
     </section>

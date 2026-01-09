@@ -2,6 +2,7 @@ import {
   Component,
   EventEmitter,
   inject,
+  Input,
   LOCALE_ID,
   OnDestroy,
   OnInit,
@@ -62,6 +63,8 @@ import {
 export class SearchFieldComponent implements OnInit, OnDestroy {
   readonly locale = inject(LOCALE_ID);
 
+  @Input() appearance: "fill" | "outline" = "fill";
+
   @Output() spotSelected = new EventEmitter<{
     type: "place" | "spot";
     id: string;
@@ -79,21 +82,32 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     spots: any | null;
   } | null>(null);
 
+  @Input() onlySpots: boolean = false;
+
   ngOnInit() {
     // subscribe to the spot search control and update the search results
     this._spotSearchSubscription =
       this.spotSearchControl.valueChanges.subscribe((query) => {
         if (query) {
-          this._searchService.searchSpotsAndPlaces(query).then((results) => {
-            // Limit places to 3 and spots to 5
-            if (results.places) {
-              results.places = results.places.slice(0, 3);
-            }
-            if (results.spots && results.spots.hits) {
-              results.spots.hits = results.spots.hits.slice(0, 5);
-            }
-            this.spotAndPlaceSearchResults$.next(results);
-          });
+          if (this.onlySpots) {
+            this._searchService.searchSpotsOnly(query).then((results) => {
+              if (results.spots && results.spots.hits) {
+                results.spots.hits = results.spots.hits.slice(0, 5);
+              }
+              this.spotAndPlaceSearchResults$.next(results);
+            });
+          } else {
+            this._searchService.searchSpotsAndPlaces(query).then((results) => {
+              // Limit places to 3 and spots to 5
+              if (results.places) {
+                results.places = results.places.slice(0, 3);
+              }
+              if (results.spots && results.spots.hits) {
+                results.spots.hits = results.spots.hits.slice(0, 5);
+              }
+              this.spotAndPlaceSearchResults$.next(results);
+            });
+          }
         } else {
           this.spotAndPlaceSearchResults$.next(null);
         }

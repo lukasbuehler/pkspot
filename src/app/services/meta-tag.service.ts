@@ -205,7 +205,8 @@ export class MetaTagService {
     // TODO: Replace 'any' with proper User type when you have it
     const title = `${user.displayName || user.name || "User"} - PK Spot`;
     const image =
-      user.profilePicture || "https://pkspot.app/assets/banner_1200x630.png";
+      user.profilePicture?.getPreviewImageSrc() ||
+      "https://pkspot.app/assets/banner_1200x630.png";
     const displayName = user.displayName || "this user";
     const possessive = displayName.endsWith("s")
       ? `${displayName}'`

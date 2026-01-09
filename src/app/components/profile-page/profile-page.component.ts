@@ -1,14 +1,24 @@
-import { Component, inject, OnDestroy, OnInit } from "@angular/core";
+import {
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+  LOCALE_ID,
+  Inject,
+  ChangeDetectorRef,
+} from "@angular/core";
 import {
   MatDialog,
   MatDialogConfig,
   MatDialogRef,
+  MatDialogModule,
 } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Post } from "../../../db/models/Post";
 import { User } from "../../../db/models/User";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { Subscription } from "rxjs";
 import { FollowListComponent } from "../follow-list/follow-list.component";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MatButton } from "@angular/material/button";
@@ -25,8 +35,17 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FollowingService } from "../../services/firebase/firestore/following.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { PostsService } from "../../services/firebase/firestore/posts.service";
+import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { MatIconModule } from "@angular/material/icon";
+import { MatTabsModule } from "@angular/material/tabs";
+import { MatMenuModule } from "@angular/material/menu";
+import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+import { Spot } from "../../../db/models/Spot";
+import { SpotId } from "../../../db/schemas/SpotSchema";
+import { LocaleCode } from "../../../db/models/Interfaces";
+import { countries } from "../../../scripts/Countries";
 
 @Component({
   selector: "app-profile-page",
@@ -44,6 +63,11 @@ import { MetaTagService } from "../../services/meta-tag.service";
     MatCardHeader,
     MatCardTitle,
     MatDivider,
+    MatIconModule,
+    MatTabsModule,
+    MatMenuModule,
+    MatDialogModule,
+    SpotPreviewCardComponent,
   ],
 })
 export class ProfilePageComponent implements OnInit, OnDestroy {
@@ -62,17 +86,31 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     private _authService: AuthenticationService,
     private _followingService: FollowingService,
     private _usersService: UsersService,
+
     private _postsService: PostsService,
+    private _spotsService: SpotsService,
     private _route: ActivatedRoute,
     private _router: Router,
     private _snackbar: MatSnackBar,
-    private _storageService: StorageService
+    private _storageService: StorageService,
+    private _cdr: ChangeDetectorRef,
+    @Inject(LOCALE_ID) public locale: LocaleCode
   ) {}
 
   profilePicture: string = "";
   isMyProfile: boolean = false;
   loadingFollowing: boolean = false;
   isFollowing: boolean = false;
+
+  createdSpotsCount: number = 0;
+  editedSpotsCount: number = 0;
+  isLoadingStats: boolean = false;
+
+  homeSpotsObjects: Spot[] = [];
+  badges: any[] = [];
+
+  countries = countries;
+  private _subscriptions = new Subscription();
 
   followDialogRef: MatDialogRef<FollowListComponent> | null = null;
 
@@ -104,7 +142,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
     this.init();
 
-    this._authService.authState$.subscribe((user) => {
+    const authSub = this._authService.authState$.subscribe((user) => {
       if (user) {
         this.isMyProfile = this.userId === user.uid;
       } else {
@@ -112,6 +150,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this.isFollowing = false;
       }
     });
+    this._subscriptions.add(authSub);
   }
 
   init() {
@@ -133,7 +172,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   }
 
   loadProfile(userId: string) {
-    this._usersService.getUserById(userId).subscribe(
+    const userSub = this._usersService.getUserById(userId).subscribe(
       (user) => {
         if (!user) {
           this.isLoading = false;
@@ -151,10 +190,31 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         // Set meta tags with canonical URL
         const canonicalPath = `/u/${userId}`;
         this._metaTagService.setUserMetaTags(user, canonicalPath);
+        this._metaTagService.setUserMetaTags(this.user);
+
+        this.homeSpotsObjects = [];
+        if (this.user.homeSpots && this.user.homeSpots.length > 0) {
+          this.user.homeSpots.forEach((spotId) => {
+            this._spotsService
+              .getSpotById(spotId as SpotId, this.locale)
+              .then((spot) => {
+                // Avoid duplicates if spot is already in list (e.g. if loaded twice)
+                if (
+                  spot &&
+                  !this.homeSpotsObjects.find((s) => s.id === spot.id)
+                ) {
+                  this.homeSpotsObjects.push(spot);
+                  // Trigger change detection just in case
+                  this._cdr.detectChanges();
+                }
+              })
+              .catch(console.error);
+          });
+        }
 
         // Load the profile picture of this user
         if (this.user.profilePicture) {
-          this.profilePicture = this.user.profilePicture.getSrc(400);
+          this.profilePicture = this.user.profilePicture.getPreviewImageSrc();
         }
 
         // Load all the posts from this user
@@ -165,20 +225,37 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         let myUserId = this._authService.user.uid;
         if (myUserId) {
           this.loadingFollowing = true;
-          this._followingService.isFollowingUser$(myUserId, userId).subscribe(
-            (isFollowing) => {
-              this.loadingFollowing = false;
-              this.isFollowing = isFollowing;
-            },
-            (err) => {
-              this.loadingFollowing = false;
-              console.error(
-                "There was an error checking if you follow this user"
-              );
-              console.error(err);
-            }
-          );
+          const followingSub = this._followingService
+            .isFollowingUser$(myUserId, userId)
+            .subscribe(
+              (isFollowing) => {
+                this.loadingFollowing = false;
+                this.isFollowing = isFollowing;
+              },
+              (err) => {
+                this.loadingFollowing = false;
+                console.error(
+                  "There was an error checking if you follow this user"
+                );
+                console.error(err);
+              }
+            );
+          this._subscriptions.add(followingSub);
         }
+
+        // Load User Stats
+        this.isLoadingStats = true;
+        this._spotsService
+          .getUserStats(userId)
+          .then((stats) => {
+            this.createdSpotsCount = stats.created;
+            this.editedSpotsCount = stats.edited;
+            this.isLoadingStats = false;
+          })
+          .catch((err) => {
+            console.error("Error loading user stats", err);
+            this.isLoadingStats = false;
+          });
 
         // Load the groups of this user
         // TODO
@@ -188,11 +265,12 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     );
+    this._subscriptions.add(userSub);
     this.isLoading = true;
   }
 
   loadPostsForUser(userId: string) {
-    this._postsService.getPostsFromUser(userId).subscribe(
+    const postsSub = this._postsService.getPostsFromUser(userId).subscribe(
       (postMap: Record<string, Post.Schema>) => {
         for (let postId in postMap) {
           let docIndex = this.postsFromUser.findIndex((post, index, obj) => {
@@ -220,6 +298,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this.postsFromUserLoading = false;
       }
     );
+    this._subscriptions.add(postsSub);
     this.postsFromUserLoading = true;
   }
 
@@ -323,5 +402,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this._structuredDataService.removeStructuredData("profile");
+    this._subscriptions.unsubscribe();
   }
 }

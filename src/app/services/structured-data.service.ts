@@ -4,6 +4,7 @@ import { Meta, Title } from "@angular/platform-browser";
 import { Place, Person, ImageObject } from "schema-dts";
 import { LocalSpot, Spot } from "../../db/models/Spot";
 import { User } from "../../db/models/User";
+import { StorageImage } from "../../db/models/Media";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { environment } from "../../environments/environment";
 

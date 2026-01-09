@@ -390,4 +390,29 @@ export class SearchService {
         bothResults[1].status === "fulfilled" ? bothResults[1].value : null,
     };
   }
+
+  public async searchSpotsOnly(query: string) {
+    let searchParams = { q: query, ...this.spotSearchParameters };
+
+    const typesenseSpotSearchResults = await this.client
+      .collections(this.TYPESENSE_COLLECTION_SPOTS)
+      .documents()
+      .search(searchParams, {});
+
+    const hits = (typesenseSpotSearchResults as any).hits || [];
+
+    // Attach preview
+    const spotsWithPreview = hits.map((hit: any) => {
+      hit.preview = this.getSpotPreviewFromHit(hit);
+      return hit;
+    });
+
+    return {
+      spots: {
+        hits: spotsWithPreview,
+        found: (typesenseSpotSearchResults as any).found,
+      },
+      places: null,
+    };
+  }
 }

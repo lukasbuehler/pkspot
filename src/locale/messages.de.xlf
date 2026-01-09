@@ -1906,7 +1906,7 @@
       </notes>
       <segment state="initial">
         <source>This is the date you started practicing Parkour and Freerunning. It will be rounded to full years after one year or more so don&apos;t sweat it.</source>
-        <target>Dies ist das Datum, an dem du mit Parkour und Freerunning angefangen hast. Nach einem Jahr oder mehr wird es auf volle Jahre gerundet, also keine Sorge.</target>
+        <target>Dies ist das Datum, an dem du mit Parkour und Freerunning angefangen hast. Nach einem Jahr oder mehr wird es auf volle Jahre gerundet, also mach dir keine Sorge über die Genauigkeit.</target>
       </segment>
     </unit>
     <unit id="editProfile.uploadAndSave">

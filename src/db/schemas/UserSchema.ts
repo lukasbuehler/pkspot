@@ -3,12 +3,14 @@ import { DocumentReference, Timestamp } from "firebase/firestore";
 export interface UserSchema {
   display_name?: string;
   biography?: string;
+  home_spots?: string[];
   profile_picture?: string;
   follower_count?: number;
   start_date?: Timestamp;
-  nationality?: string;
+  nationality_code?: string;
   verified_email?: boolean;
   invite_code?: string;
+  home_city?: string;
   settings?: UserSettingsSchema;
 
   creationDate?: Timestamp;

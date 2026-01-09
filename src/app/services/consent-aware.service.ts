@@ -36,9 +36,7 @@ export abstract class ConsentAwareService {
    * @returns Promise that resolves with the function result or rejects if no consent
    */
   protected executeWithConsent<T>(fn: () => T | Promise<T>): Promise<T> {
-    return runInInjectionContext(this.injector, () => {
-      return this._consentService.executeWithConsent(fn);
-    });
+    return this._consentService.executeWithConsent(fn);
   }
 
   /**
@@ -47,9 +45,7 @@ export abstract class ConsentAwareService {
    * @returns Promise that resolves with the function result
    */
   protected executeWhenConsent<T>(fn: () => T | Promise<T>): Promise<T> {
-    return runInInjectionContext(this.injector, () => {
-      return this._consentService.executeWhenConsent(fn);
-    });
+    return this._consentService.executeWhenConsent(fn);
   }
 
   /**

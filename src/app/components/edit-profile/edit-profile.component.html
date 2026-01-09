@@ -1,4 +1,4 @@
-<div class="d-flex flex-column">
+<div class="d-flex flex-column gap-4">
   @if (user) {
   <!-- Cropping mode: show cropper after image is selected -->
   @if (newProfilePictureSrc && !croppingComplete) {
@@ -91,6 +91,7 @@
     matBadgeColor="accent"
     [matBadgeHidden]="displayName === user.displayName"
     matBadgeSize="small"
+    subscriptSizing="dynamic"
   >
     <mat-label
       i18n="
@@ -114,6 +115,7 @@
     matBadgeColor="accent"
     [matBadgeHidden]="biography === user.biography"
     matBadgeSize="small"
+    subscriptSizing="dynamic"
   >
     <mat-label
       i18n="biography label|Label for biography field@@editProfile.biography"
@@ -137,8 +139,92 @@
     appearance="outline"
     matBadge="&#8288;"
     matBadgeColor="accent"
+    [matBadgeHidden]="nationalityCode === user.nationalityCode"
+    matBadgeSize="small"
+    subscriptSizing="dynamic"
+  >
+    <mat-label i18n="nationality code label@@editProfile.nationalityCode"
+      >Nationality</mat-label
+    >
+    <input
+      matInput
+      type="text"
+      placeholder="e.g. Germany"
+      [formControl]="countryControl"
+      [matAutocomplete]="auto"
+    />
+    <mat-autocomplete #auto="matAutocomplete">
+      <mat-option
+        *ngFor="let code of filteredCountries | async"
+        [value]="countries[code].name"
+      >
+        <span>{{ countries[code].emoji }} {{ countries[code].name }}</span>
+      </mat-option>
+    </mat-autocomplete>
+    <!-- <mat-hint i18n="nationality code hint@@editProfile.nationalityCodeHint"
+      >Select your nationality.</mat-hint
+    > -->
+  </mat-form-field>
+
+  <mat-form-field
+    appearance="outline"
+    matBadge="&#8288;"
+    matBadgeColor="accent"
+    [matBadgeHidden]="homeCity === user.homeCity"
+    matBadgeSize="small"
+    subscriptSizing="dynamic"
+  >
+    <mat-label i18n="home city label@@editProfile.homeCity"
+      >Home City</mat-label
+    >
+    <input
+      matInput
+      type="text"
+      [value]="homeCity"
+      (input)="
+        homeCity = getValueFromEventTarget($event.target) ?? '';
+        detectIfChanges()
+      "
+    />
+  </mat-form-field>
+
+  <div class="mb-3">
+    <h3 class="mat-title-small mb-2">
+      <ng-container i18n="home spots label@@editProfile.homeSpots"
+        >Home Spots</ng-container
+      >
+      ({{ homeSpots.length }}/3)
+    </h3>
+    <app-search-field
+      appearance="outline"
+      [onlySpots]="true"
+      (spotSelected)="onSpotSelected($event)"
+    ></app-search-field>
+
+    <div class="d-flex flex-column gap-2 mt-3">
+      @for (spot of homeSpotsObjects; track spot.id) {
+      <div class="d-flex gap-2 align-items-center">
+        <app-spot-preview-card
+          [spotData]="spot"
+          [imgSize]="200"
+          [showInfoButton]="false"
+          class="flex-grow-1"
+        ></app-spot-preview-card>
+        <button mat-icon-button color="warn" (click)="removeHomeSpot(spot.id)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+
+  <mat-form-field
+    appearance="outline"
+    matBadge="&#8288;"
+    matBadgeColor="accent"
     [matBadgeHidden]="startDate === user.startDate"
     matBadgeSize="small"
+    subscriptSizing="dynamic"
   >
     <mat-label
       i18n="start date label|Label for start date field@@editProfile.startDate"
@@ -147,8 +233,8 @@
     <input
       matInput
       [matDatepicker]="picker"
-      [value]="startDate"
-      (dateChange)="startDate = $event.target.value; detectIfChanges()"
+      [(ngModel)]="startDate"
+      (dateChange)="startDate = $event.value; detectIfChanges()"
     />
     <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
     <mat-datepicker #picker></mat-datepicker>
