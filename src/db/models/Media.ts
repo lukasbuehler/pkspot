@@ -93,7 +93,7 @@ export abstract class StorageMedia extends Media {
   readonly filename: string;
   readonly extension: string;
   readonly options: string;
-  private readonly parsed: ParsedStorageMediaUrl;
+  protected readonly parsed: ParsedStorageMediaUrl;
 
   constructor(
     src: string,
@@ -182,8 +182,11 @@ export class StorageVideo extends StorageMedia {
       userId,
       origin
     );
+    // Build thumbnail URL with correct prefix format: thumb_{filename}.png
+    // This creates a base URL that StorageImage can then add size suffixes to
+    const thumbnailSrc = `${this.uriBeforeBucket}${this.bucket}%2F${this.thumbnailPrefix}${this.filename}.png?${this.options}`;
     this.thumbnail = new StorageImage(
-      this._makeSrc(this.thumbnailPrefix + this.filename, "png"),
+      thumbnailSrc,
       this.userId,
       this.origin as "user" | "other"
     );

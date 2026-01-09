@@ -123,6 +123,9 @@ export interface TilesObject {
       ]),
     ]),
   ],
+  host: {
+    "[class.with-bottom-offset]": "bottomSheetOffset",
+  },
 })
 export class GoogleMap2dComponent
   extends MapBase
@@ -304,6 +307,11 @@ export class GoogleMap2dComponent
     east: number;
   } | null = null;
   @Input() minZoom: number | null = null;
+  /**
+   * Whether to apply a bottom offset (via CSS) to the Google Maps logo/copyright.
+   * Useful when a bottom sheet is overlaying the map on mobile.
+   */
+  @Input() bottomSheetOffset: boolean = false;
 
   mapStyle = input<"roadmap" | "satellite">("roadmap");
   polygons = input<PolygonSchema[]>([]);
@@ -643,12 +651,31 @@ export class GoogleMap2dComponent
         latLngBounds: this.boundRestriction,
         strictBounds: false,
       };
+      // Apply restriction dynamically after map is initialized using setOptions
+      this._applyBoundRestriction();
     }
     if (this.minZoom) {
       this.mapOptions.minZoom = this.minZoom;
+      // Also apply minZoom dynamically
+      this.googleMap.googleMap?.setOptions({ minZoom: this.minZoom });
     }
 
     this.positionGoogleMapsLogo();
+  }
+
+  /**
+   * Apply bound restriction to the map using setOptions.
+   * This ensures the restriction is applied even after map initialization.
+   */
+  private _applyBoundRestriction(): void {
+    if (!this.googleMap?.googleMap || !this.boundRestriction) return;
+
+    this.googleMap.googleMap.setOptions({
+      restriction: {
+        latLngBounds: this.boundRestriction,
+        strictBounds: false,
+      },
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -658,6 +685,11 @@ export class GoogleMap2dComponent
         previous: changes["selectedSpot"].previousValue,
         current: changes["selectedSpot"].currentValue,
       });
+    }
+
+    // Reapply bound restriction if it changes
+    if (changes["boundRestriction"] && this.googleMap?.googleMap) {
+      this._applyBoundRestriction();
     }
   }
 

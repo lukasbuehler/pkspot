@@ -172,36 +172,29 @@
       target="_blank"
       href="https://pkspot.app"
       class="text-decoration-none text-center text-light text-wrap"
+      style="height: 100%; display: flex; align-items: center"
     >
       <img
         ngSrc="/assets/logos/pkspot/pkspot_logo_oneline_dark.png"
         alt="PK Spot"
-        class="mw-100 mh-100"
+        style="height: 36px; width: auto; object-fit: contain"
         width="200"
         height="33.78"
         priority
       />
     </a>
-    <a
-      mat-stroked-button
-      target="_blank"
-      [href]="getUnembeddedUrl()"
-      @if(responsive.isNotMobile())
-    >
+    @if(responsive.isNotMobile()) {
+    <a mat-stroked-button target="_blank" [href]="getUnembeddedUrl()">
       <mat-icon>open_in_new</mat-icon>
       <span i18n="@@open-embedded-in-pkspot-button-label"
         >Open this on PK Spot</span
       >
     </a>
-    <a
-      [href]="getUnembeddedUrl()"
-      target="_blank"
-      mat-mini-fab
-      @if(responsive.isMobile())
-      color="primary"
-    >
+    } @else {
+    <a [href]="getUnembeddedUrl()" target="_blank" mat-mini-fab color="primary">
       <mat-icon> open_in_new </mat-icon>
     </a>
+    }
   </div>
   <div class="flex-grow-1">
     <router-outlet></router-outlet>

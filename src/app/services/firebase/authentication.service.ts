@@ -2,8 +2,10 @@ import {
   inject,
   Injectable,
   Injector,
+  PLATFORM_ID,
   runInInjectionContext,
 } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import {
   OAuthProvider,
   GoogleAuthProvider,
@@ -16,6 +18,12 @@ import {
   sendEmailVerification,
   createUserWithEmailAndPassword,
   updateProfile,
+  updateEmail,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthCredential,
+  deleteUser,
+  sendPasswordResetEmail,
   indexedDBLocalPersistence,
   browserLocalPersistence,
   inMemoryPersistence,
@@ -54,6 +62,11 @@ export class AuthenticationService extends ConsentAwareService {
     new BehaviorSubject<AuthServiceUser | null>(null);
 
   private _injector = inject(Injector);
+  private _platformId = inject(PLATFORM_ID);
+
+  private get _isBrowser(): boolean {
+    return isPlatformBrowser(this._platformId);
+  }
 
   private _auth: Auth;
   public get auth() {
@@ -82,6 +95,12 @@ export class AuthenticationService extends ConsentAwareService {
     private _firebaseApp: FirebaseApp
   ) {
     super();
+
+    // Skip auth initialization on server (SSR)
+    if (!this._isBrowser) {
+      this._auth = null as any;
+      return;
+    }
 
     this._auth = getAuth(this._firebaseApp);
 
@@ -736,5 +755,173 @@ export class AuthenticationService extends ConsentAwareService {
     } finally {
       this._isCreatingAccount = false;
     }
+  }
+
+  // ============================================
+  // Reauthentication (required for sensitive ops)
+  // ============================================
+
+  /**
+   * Reauthenticate the current user with their password.
+   * Required before sensitive operations like email/password change or account deletion.
+   */
+  public async reauthenticate(password: string): Promise<void> {
+    if (this._isNative) {
+      return this._reauthenticateNative(password);
+    }
+    return this._reauthenticateWeb(password);
+  }
+
+  private async _reauthenticateWeb(password: string): Promise<void> {
+    if (!this._currentFirebaseUser || !this._currentFirebaseUser.email) {
+      throw new Error("No authenticated user found");
+    }
+
+    const { EmailAuthProvider } = await import("@angular/fire/auth");
+    const credential = EmailAuthProvider.credential(
+      this._currentFirebaseUser.email,
+      password
+    );
+    await reauthenticateWithCredential(this._currentFirebaseUser, credential);
+  }
+
+  private async _reauthenticateNative(password: string): Promise<void> {
+    const { user } = await FirebaseAuthentication.getCurrentUser();
+    if (!user || !user.email) {
+      throw new Error("No authenticated user found");
+    }
+    // For native, we sign in again with email/password to reauthenticate
+    await FirebaseAuthentication.signInWithEmailAndPassword({
+      email: user.email,
+      password,
+    });
+  }
+
+  // ============================================
+  // Update Email
+  // ============================================
+
+  /**
+   * Update the user's email address.
+   * Requires reauthentication first.
+   */
+  public async changeEmail(newEmail: string, password: string): Promise<void> {
+    // Reauthenticate first
+    await this.reauthenticate(password);
+
+    if (this._isNative) {
+      return this._changeEmailNative(newEmail);
+    }
+    return this._changeEmailWeb(newEmail);
+  }
+
+  private async _changeEmailWeb(newEmail: string): Promise<void> {
+    if (!this._currentFirebaseUser) {
+      throw new Error("No authenticated user found");
+    }
+    await updateEmail(this._currentFirebaseUser, newEmail);
+    // Send verification email to new address
+    await sendEmailVerification(this._currentFirebaseUser);
+    // Update local state
+    this.user.email = newEmail;
+    this.user.emailVerified = false;
+    this.authState$.next(this.user);
+  }
+
+  private async _changeEmailNative(newEmail: string): Promise<void> {
+    await FirebaseAuthentication.updateEmail({ newEmail });
+    await FirebaseAuthentication.sendEmailVerification();
+    // Update local state
+    this.user.email = newEmail;
+    this.user.emailVerified = false;
+    this.authState$.next(this.user);
+  }
+
+  // ============================================
+  // Update Password
+  // ============================================
+
+  /**
+   * Update the user's password.
+   * Requires reauthentication first.
+   */
+  public async changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    // Reauthenticate first
+    await this.reauthenticate(currentPassword);
+
+    if (this._isNative) {
+      return this._changePasswordNative(newPassword);
+    }
+    return this._changePasswordWeb(newPassword);
+  }
+
+  private async _changePasswordWeb(newPassword: string): Promise<void> {
+    if (!this._currentFirebaseUser) {
+      throw new Error("No authenticated user found");
+    }
+    await updatePassword(this._currentFirebaseUser, newPassword);
+  }
+
+  private async _changePasswordNative(newPassword: string): Promise<void> {
+    await FirebaseAuthentication.updatePassword({ newPassword });
+  }
+
+  // ============================================
+  // Send Password Reset Email
+  // ============================================
+
+  /**
+   * Send a password reset email to the specified address.
+   */
+  public async sendPasswordReset(email: string): Promise<void> {
+    await sendPasswordResetEmail(this._auth, email);
+  }
+
+  // ============================================
+  // Delete Account
+  // ============================================
+
+  /**
+   * Delete the user's account.
+   * This deletes both the Firebase Auth account and the Firestore user document.
+   * Requires reauthentication first.
+   */
+  public async deleteAccount(password: string): Promise<void> {
+    // Reauthenticate first
+    await this.reauthenticate(password);
+
+    const userId = this.user.uid;
+    if (!userId) {
+      throw new Error("No user ID found");
+    }
+
+    // Delete Firestore user document first
+    await this._userService.deleteUser(userId);
+
+    // Then delete Firebase Auth account
+    if (this._isNative) {
+      await this._deleteAccountNative();
+    } else {
+      await this._deleteAccountWeb();
+    }
+
+    // Clear local state
+    this.isSignedIn = false;
+    this.user = {};
+    this.authState$.next(null);
+  }
+
+  private async _deleteAccountWeb(): Promise<void> {
+    if (!this._currentFirebaseUser) {
+      throw new Error("No authenticated user found");
+    }
+    await deleteUser(this._currentFirebaseUser);
+  }
+
+  private async _deleteAccountNative(): Promise<void> {
+    await FirebaseAuthentication.deleteUser();
   }
 }

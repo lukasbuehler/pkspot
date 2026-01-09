@@ -59,71 +59,50 @@
             (changes)="profileHasChanges($event)"
           ></app-edit-profile>
         </div>
-        <div *ngSwitchCase="'login'">
+        <div *ngSwitchCase="'account'">
           <h2
             class="mat-h2"
-            i18n="
-              login information section|Header for login information
-              section@@settings.login.header"
+            i18n="account section header@@settings.account.header"
           >
-            Login information
+            Account
           </h2>
           <p
             class="mat-body"
-            i18n="
-              login information description|Description of login information
-              section@@settings.login.description"
+            i18n="account section description@@settings.account.description"
           >
-            Your login information. Your E-mail address here is used for your
-            login. You can add the same E-mail address or a different one to
-            your contact information.
+            Manage your account settings including email, password, and account
+            deletion.
           </p>
-          <div class="my-4">
+
+          <!-- Email Section -->
+          <div class="my-4 p-3 rounded border">
             <h3 class="mat-h3" i18n>E-Mail address</h3>
-            <div class="d-flex flex-column my-4">
+            <div class="d-flex flex-column gap-3">
               <mat-form-field appearance="outline">
-                <mat-label i18n>E-mail address</mat-label>
-                <input
-                  #emailInput
-                  matInput
-                  type="text"
-                  [value]="emailAddress"
-                  (keyup)="emailAddress = emailInput.value"
-                />
+                <mat-label i18n>Current E-mail</mat-label>
+                <input matInput type="email" [value]="emailAddress" disabled />
                 @if(!authService.user?.emailVerified) {
                 <mat-icon
                   matSuffix
                   i18n-matTooltip
-                  matTooltip="Your E-mail has not been verified!"
+                  matTooltip="Not verified"
+                  color="warn"
                   >warning</mat-icon
                 >
-                } @if(authService.user?.emailVerified) {
+                } @else {
                 <mat-icon
                   matSuffix
                   i18n-matTooltip
-                  matTooltip="Your E-mail is verified"
+                  matTooltip="Verified"
+                  color="primary"
                   >verified</mat-icon
                 >
                 }
-                <mat-hint i18n
-                  >Changing this E-mail will change your login
-                  information</mat-hint
-                >
               </mat-form-field>
-              <button
-                [disabled]="emailAddress === authService.user.email"
-                mat-flat-button
-                class="mt-3 mb-1"
-                color="primary"
-                (click)="changeEmailAddress()"
-                i18n
-              >
-                Change E-mail address
-              </button>
+
               @if(!authService.user?.emailVerified) {
               <button
-                mat-flat-button
-                class="mt-3 mb-1"
+                mat-stroked-button
                 color="accent"
                 (click)="verifyUserEmailAddress()"
                 i18n
@@ -131,15 +110,129 @@
                 Resend verification E-mail
               </button>
               }
+
+              <mat-form-field appearance="outline">
+                <mat-label i18n>New E-mail address</mat-label>
+                <input matInput type="email" [(ngModel)]="newEmailAddress" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Current password (for confirmation)</mat-label>
+                <input
+                  matInput
+                  type="password"
+                  [(ngModel)]="emailChangePassword"
+                />
+              </mat-form-field>
+              <button
+                mat-flat-button
+                color="primary"
+                [disabled]="
+                  isChangingEmail || !newEmailAddress || !emailChangePassword
+                "
+                (click)="changeEmailAddress()"
+              >
+                @if(isChangingEmail) {
+                <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
+                } @else {
+                <span i18n>Change E-mail address</span>
+                }
+              </button>
             </div>
-            <div class="my-4">
-              <h3 class="mat-h3" i18n>Password</h3>
-              <div class="my-3 d-flex flex-column">
-                <button mat-stroked-button class="mb-1" color="primary" i18n>
-                  Change password
+          </div>
+
+          <!-- Password Section -->
+          <div class="my-4 p-3 rounded border">
+            <h3 class="mat-h3" i18n>Password</h3>
+            <div class="d-flex flex-column gap-3">
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Current password</mat-label>
+                <input matInput type="password" [(ngModel)]="currentPassword" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label i18n>New password</mat-label>
+                <input matInput type="password" [(ngModel)]="newPassword" />
+                <mat-hint i18n>Minimum 6 characters</mat-hint>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Confirm new password</mat-label>
+                <input
+                  matInput
+                  type="password"
+                  [(ngModel)]="confirmNewPassword"
+                />
+              </mat-form-field>
+              <button
+                mat-flat-button
+                color="primary"
+                [disabled]="
+                  isChangingPassword ||
+                  !currentPassword ||
+                  !newPassword ||
+                  !confirmNewPassword
+                "
+                (click)="changePassword()"
+              >
+                @if(isChangingPassword) {
+                <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
+                } @else {
+                <span i18n>Change password</span>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Delete Account Section -->
+          <div class="my-4 p-3 rounded border border-danger">
+            <h3 class="mat-h3 text-danger" i18n>Delete Account</h3>
+            <p class="mat-body" i18n>
+              Permanently delete your account and all associated data. This
+              action cannot be undone.
+            </p>
+
+            @if(!showDeleteConfirmation) {
+            <button
+              mat-stroked-button
+              color="warn"
+              (click)="confirmDeleteAccount()"
+              i18n
+            >
+              Delete my account
+            </button>
+            } @else {
+            <div
+              class="d-flex flex-column gap-3 mt-3 p-3 rounded"
+              style="background: rgba(var(--mat-warn-color), 0.1)"
+            >
+              <p class="mat-body-strong text-danger" i18n>
+                Are you sure? Enter your password to confirm deletion.
+              </p>
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Password</mat-label>
+                <input
+                  matInput
+                  type="password"
+                  [(ngModel)]="deleteAccountPassword"
+                />
+              </mat-form-field>
+              <div class="d-flex gap-2">
+                <button mat-stroked-button (click)="cancelDeleteAccount()" i18n>
+                  Cancel
+                </button>
+                <button
+                  mat-flat-button
+                  color="warn"
+                  [disabled]="isDeletingAccount || !deleteAccountPassword"
+                  (click)="deleteAccount()"
+                >
+                  @if(isDeletingAccount) {
+                  <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
+                  } @else {
+                  <span i18n>Permanently delete</span>
+                  }
                 </button>
               </div>
             </div>
+            }
           </div>
         </div>
         <div *ngSwitchCase="'general'">

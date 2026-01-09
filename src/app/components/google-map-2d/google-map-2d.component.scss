@@ -61,12 +61,14 @@
 }
 
 /* Moves the Google Logo and Copyright text up when bottom sheet is visible */
-::ng-deep .gmnoprint a,
-::ng-deep .gmnoprint span,
-::ng-deep .gm-style-cc,
-::ng-deep div.gm-logo {
-  @media (max-width: 599px) {
-    // Use the centralized variable from map-page for bottom sheet offset
-    bottom: var(--bottom-sheet-closed-height, 140px) !important;
+:host.with-bottom-offset {
+  ::ng-deep .gmnoprint a,
+  ::ng-deep .gmnoprint span,
+  ::ng-deep .gm-style-cc,
+  ::ng-deep div.gm-logo {
+    @media (max-width: 599px) {
+      // Use the centralized variable from map-page for bottom sheet offset
+      bottom: var(--bottom-sheet-closed-height, 140px) !important;
+    }
   }
 }

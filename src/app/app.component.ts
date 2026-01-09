@@ -206,11 +206,6 @@ export class AppComponent implements OnInit {
     };
     this._structuredDataService.addStructuredData("website", json);
 
-    console.log(
-      "Using Firebase Project ID:",
-      environment.keys.firebaseConfig.projectId
-    );
-
     // Setup route events and consent dialog logic immediately (before consent)
     this.router.events
       .pipe(filter((event) => event instanceof RoutesRecognized))

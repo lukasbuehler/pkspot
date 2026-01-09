@@ -8,7 +8,7 @@ import {
 } from "@angular/forms";
 import { Router } from "@angular/router";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { RecaptchaVerifier, sendPasswordResetEmail } from "@angular/fire/auth";
+import { RecaptchaVerifier } from "@angular/fire/auth";
 import { MatIcon } from "@angular/material/icon";
 import { MatButton } from "@angular/material/button";
 import { MatInput } from "@angular/material/input";
@@ -39,6 +39,7 @@ export class ForgotPasswordPageComponent implements OnInit {
   private _recaptchaSetupCompleted = false;
   recaptcha: RecaptchaVerifier | null = null;
   sendingSuccessful: boolean = false;
+  isSending: boolean = false;
 
   constructor(
     private _authService: AuthenticationService,
@@ -123,30 +124,41 @@ export class ForgotPasswordPageComponent implements OnInit {
   }
 
   resetPassword(forgotPasswordFormValue: { email: string }) {
-    if (!this._authService.auth) {
-      console.error("Auth service not initialized");
+    if (this.sendingSuccessful || this.isSending) {
       return;
     }
 
-    console.log("resetting password");
-
-    if (this.sendingSuccessful) {
-      console.log("The email was already sent!");
+    const email = forgotPasswordFormValue.email?.trim();
+    if (!email) {
+      this.forgotPasswordError = $localize`Please enter your email address`;
       return;
     }
 
-    let email = forgotPasswordFormValue.email;
-    if (this.recaptcha && !this._recaptchaSolved) {
-      this.recaptcha.verify().then(
-        (str) => {
-          console.log(str);
+    this.isSending = true;
+    this.forgotPasswordError = "";
+
+    this._authService
+      .sendPasswordReset(email)
+      .then(() => {
+        this.sendingSuccessful = true;
+      })
+      .catch((err) => {
+        console.error("Error sending password reset:", err);
+        if (err.code === "auth/user-not-found") {
+          // Don't reveal if user exists, just show success
           this.sendingSuccessful = true;
-        },
-        (err) => {
-          console.error(err);
+        } else if (err.code === "auth/invalid-email") {
+          this.forgotPasswordError = $localize`Invalid email address`;
+        } else {
+          this.forgotPasswordError = $localize`Error sending reset email. Please try again.`;
         }
-      );
-    }
-    sendPasswordResetEmail(this._authService.auth, email);
+      })
+      .finally(() => {
+        this.isSending = false;
+      });
+  }
+
+  goBack() {
+    this._router.navigate(["/sign-in"]);
   }
 }

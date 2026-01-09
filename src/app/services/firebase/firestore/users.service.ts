@@ -85,7 +85,17 @@ export class UsersService extends ConsentAwareService {
     });
   }
 
-  deleteUser() {
-    // TODO
+  /**
+   * Delete a user's document from Firestore.
+   * This permanently removes all user profile data.
+   */
+  deleteUser(userId: string): Promise<void> {
+    if (!userId) {
+      return Promise.reject(new Error("User ID is required"));
+    }
+
+    return this.executeWithConsent(() => {
+      return this._firestoreAdapter.deleteDocument(`users/${userId}`);
+    });
   }
 }

@@ -131,6 +131,7 @@
     (hightlightedSpotsChange)="highlightedSpots = $event"
     (hasGeolocationChange)="askedGeoPermission = true; hasGeolocation = $event"
     (filterBoundsChange)="onFilterBoundsChange($event)"
+    [bottomSheetOffset]="true"
   ></app-spot-map>
   } @placeholder {
   <div

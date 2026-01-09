@@ -525,8 +525,8 @@
         <note category="meaning">no account message</note>
       </notes>
       <segment state="initial">
-        <source> Don&apos;t have an account yet? Simply sign in with your Google account or sign up below. </source>
-        <target> Du hast keinen Account? Melde dich einfach mit Google an oder regestriere dich unten. </target>
+        <source> Don&apos;t have an account yet? Simply sign in with your Google or Apple account or sign up below. </source>
+        <target> Du hast keinen Account? Melde dich einfach mit Google oder Apple an oder registriere dich unten. </target>
       </segment>
     </unit>
     <unit id="signin.signup.button">
@@ -2731,7 +2731,7 @@
     <unit id="667055198031260741">
       <segment state="initial">
         <source> To keep the servers running, we partner with the Parkour ecosystem — National Associations, ethical brands, and gyms. We support the organizations that support the sport. </source>
-        <target> Um die Server am Laufen zu halten, arbeiten wir mit dem Parkour-Ökosystem zusammen – nationalen Verbänden, ethischen Marken und Fitnessstudios. Wir unterstützen die Organisationen, die den Sport unterstützen. </target>
+        <target> Um die Server am Laufen zu halten, arbeiten wir mit dem Parkour-Ökosystem zusammen - nationalen Verbänden, ethischen Marken und Parkour Gyms. Wir unterstützen die Organisationen, die den Sport unterstützen. </target>
       </segment>
     </unit>
     <unit id="7523630390926625638">

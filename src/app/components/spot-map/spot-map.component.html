@@ -19,6 +19,7 @@
   [minZoom]="minZoom"
   [mapStyle]="mapStyle() ?? 'roadmap'"
   [showSpotPreview]="showSpotPreview()"
+  [bottomSheetOffset]="bottomSheetOffset()"
   (boundsChange)="mapBoundsChanged($event, mapZoom)"
   (visibleTilesChange)="visibleTilesChanged($event)"
   (zoomChange)="zoomChanged($event)"

@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgClass, NgSwitch, NgSwitchCase } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EditProfileComponent } from "../edit-profile/edit-profile.component";
 import {
@@ -20,6 +21,7 @@ import { MatDivider } from "@angular/material/divider";
 import { MatBadge } from "@angular/material/badge";
 import { MatIcon } from "@angular/material/icon";
 import { MatButton } from "@angular/material/button";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 
 @Component({
   selector: "app-settings-page",
@@ -37,11 +39,12 @@ import { MatButton } from "@angular/material/button";
     MatFormField,
     MatLabel,
     MatInput,
-
     MatSuffix,
     MatTooltip,
     MatHint,
     SpeedDialFabComponent,
+    FormsModule,
+    MatProgressSpinner,
   ],
 })
 export class SettingsPageComponent implements OnInit {
@@ -59,39 +62,22 @@ export class SettingsPageComponent implements OnInit {
   menuPoints = [
     {
       id: "profile",
-      name: "Public profile",
+      name: $localize`Public profile`,
       icon: "person",
       hasChanges: false,
     },
     {
-      id: "login",
-      name: "Login information",
-      icon: "vpn_key",
+      id: "account",
+      name: $localize`Account`,
+      icon: "manage_accounts",
       hasChanges: false,
     },
     {
       id: "general",
-      name: "General",
+      name: $localize`General`,
       icon: "settings",
       hasChanges: false,
     },
-    /*
-    {
-      id: "notifications",
-      name: "Notifications",
-      icon: "notifications",
-    },
-    {
-      id: "security-privacy",
-      name: "Security & Privacy",
-      icon: "security",
-    },
-    {
-      id: "delete",
-      name: "Delete Profile",
-      icon: "delete",
-    },
-    */
   ];
 
   selectedPoint: string = "profile";
@@ -114,6 +100,18 @@ export class SettingsPageComponent implements OnInit {
   };
 
   emailAddress?: string;
+  newEmailAddress: string = "";
+  emailChangePassword: string = "";
+  isChangingEmail: boolean = false;
+
+  currentPassword: string = "";
+  newPassword: string = "";
+  confirmNewPassword: string = "";
+  isChangingPassword: boolean = false;
+
+  deleteAccountPassword: string = "";
+  isDeletingAccount: boolean = false;
+  showDeleteConfirmation: boolean = false;
 
   ngOnInit(): void {
     this.emailAddress = this.authService?.user?.email || "";
@@ -166,8 +164,137 @@ export class SettingsPageComponent implements OnInit {
   }
 
   changeEmailAddress() {
-    //this.authService.changeEmailAddress()
-    // TODO
+    if (!this.newEmailAddress || !this.emailChangePassword) {
+      this._snackbar.open($localize`Please fill in all fields`, "OK", {
+        duration: 3000,
+      });
+      return;
+    }
+
+    this.isChangingEmail = true;
+    this.authService
+      .changeEmail(this.newEmailAddress, this.emailChangePassword)
+      .then(() => {
+        this._snackbar.open(
+          $localize`Email changed successfully. Please verify your new email.`,
+          "OK",
+          { duration: 5000 }
+        );
+        this.newEmailAddress = "";
+        this.emailChangePassword = "";
+      })
+      .catch((err) => {
+        console.error("Error changing email:", err);
+        let message = $localize`Error changing email. Please check your password.`;
+        if (err.code === "auth/wrong-password") {
+          message = $localize`Incorrect password. Please try again.`;
+        } else if (err.code === "auth/invalid-email") {
+          message = $localize`Invalid email address.`;
+        } else if (err.code === "auth/email-already-in-use") {
+          message = $localize`This email is already in use.`;
+        }
+        this._snackbar.open(message, "OK", { duration: 5000 });
+      })
+      .finally(() => {
+        this.isChangingEmail = false;
+      });
+  }
+
+  changePassword() {
+    if (
+      !this.currentPassword ||
+      !this.newPassword ||
+      !this.confirmNewPassword
+    ) {
+      this._snackbar.open($localize`Please fill in all fields`, "OK", {
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (this.newPassword !== this.confirmNewPassword) {
+      this._snackbar.open($localize`New passwords do not match`, "OK", {
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (this.newPassword.length < 6) {
+      this._snackbar.open(
+        $localize`Password must be at least 6 characters`,
+        "OK",
+        { duration: 3000 }
+      );
+      return;
+    }
+
+    this.isChangingPassword = true;
+    this.authService
+      .changePassword(this.currentPassword, this.newPassword)
+      .then(() => {
+        this._snackbar.open($localize`Password changed successfully`, "OK", {
+          duration: 5000,
+        });
+        this.currentPassword = "";
+        this.newPassword = "";
+        this.confirmNewPassword = "";
+      })
+      .catch((err) => {
+        console.error("Error changing password:", err);
+        let message = $localize`Error changing password. Please try again.`;
+        if (err.code === "auth/wrong-password") {
+          message = $localize`Current password is incorrect.`;
+        } else if (err.code === "auth/weak-password") {
+          message = $localize`New password is too weak.`;
+        }
+        this._snackbar.open(message, "OK", { duration: 5000 });
+      })
+      .finally(() => {
+        this.isChangingPassword = false;
+      });
+  }
+
+  confirmDeleteAccount() {
+    this.showDeleteConfirmation = true;
+  }
+
+  cancelDeleteAccount() {
+    this.showDeleteConfirmation = false;
+    this.deleteAccountPassword = "";
+  }
+
+  deleteAccount() {
+    if (!this.deleteAccountPassword) {
+      this._snackbar.open($localize`Please enter your password`, "OK", {
+        duration: 3000,
+      });
+      return;
+    }
+
+    this.isDeletingAccount = true;
+    this.authService
+      .deleteAccount(this.deleteAccountPassword)
+      .then(() => {
+        this._snackbar.open(
+          $localize`Your account has been deleted. Goodbye!`,
+          "OK",
+          { duration: 5000 }
+        );
+        this.router.navigate(["/"]);
+      })
+      .catch((err) => {
+        console.error("Error deleting account:", err);
+        let message = $localize`Error deleting account. Please try again.`;
+        if (err.code === "auth/wrong-password") {
+          message = $localize`Incorrect password. Please try again.`;
+        }
+        this._snackbar.open(message, "OK", { duration: 5000 });
+      })
+      .finally(() => {
+        this.isDeletingAccount = false;
+        this.showDeleteConfirmation = false;
+        this.deleteAccountPassword = "";
+      });
   }
 
   profileHasChanges(hasChanges: boolean) {
