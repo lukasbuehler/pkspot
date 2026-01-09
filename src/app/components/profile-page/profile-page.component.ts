@@ -41,6 +41,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTabsModule } from "@angular/material/tabs";
 import { MatMenuModule } from "@angular/material/menu";
+import { MatRippleModule } from "@angular/material/core";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
@@ -67,6 +68,7 @@ import { countries } from "../../../scripts/Countries";
     MatTabsModule,
     MatMenuModule,
     MatDialogModule,
+    MatRippleModule,
     SpotPreviewCardComponent,
   ],
 })
@@ -104,6 +106,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   createdSpotsCount: number = 0;
   editedSpotsCount: number = 0;
+  followingCount: number = 0;
   isLoadingStats: boolean = false;
 
   homeSpotsObjects: Spot[] = [];
@@ -127,6 +130,22 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private lastLoadedFollowing?: firebase.default.firestore.Timestamp;
 
   ngOnInit(): void {
+    this._subscriptions.add(
+      this._route.paramMap.subscribe((params) => {
+        const newUserId =
+          params.get("userID") ?? this._authService?.user?.uid ?? "";
+        if (newUserId !== this.userId) {
+          this.userId = newUserId;
+          if (!this.userId) {
+            this._router.navigate(["/sign-in"]);
+            return;
+          }
+          this.init();
+        }
+      })
+    );
+
+    // Initial load
     this.userId =
       this._route.snapshot.paramMap.get("userID") ??
       this._authService?.user?.uid ??
@@ -136,8 +155,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       // redirect to sign-in page
       this._router.navigate(["/sign-in"]);
       return;
-    } else {
-      this._router.navigate(["/u", this.userId]);
     }
 
     this.init();
@@ -245,8 +262,14 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
         // Load User Stats
         this.isLoadingStats = true;
+
+        // Load following count
+        this._followingService.getFollowingCount(userId).then((count) => {
+          this.followingCount = count;
+        });
+
         this._spotsService
-          .getUserStats(userId)
+          .getUserSpotEditStats(userId)
           .then((stats) => {
             this.createdSpotsCount = stats.created;
             this.editedSpotsCount = stats.edited;

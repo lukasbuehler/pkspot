@@ -67,6 +67,12 @@ export class FollowingService extends ConsentAwareService {
       .pipe(map((d) => !!d));
   }
 
+  getFollowingCount(userId: string): Promise<number> {
+    return this._firestoreAdapter
+      .getCollection<{ id: string }>(`users/${userId}/following`)
+      .then((docs) => docs.length);
+  }
+
   followUser(
     myUserId: string,
     myUserData: UserSchema,

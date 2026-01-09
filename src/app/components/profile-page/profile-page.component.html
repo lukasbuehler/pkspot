@@ -79,24 +79,45 @@
                 }
               </div>
 
-              <div class="profile-overview__metric mat-title-medium">
-                <span class="profile-overview__metric-value">
-                  <app-fancy-counter
-                    [number]="user.followerCount || 0"
-                  ></app-fancy-counter>
-                </span>
-                Follower{{ user.followerCount === 1 ? "" : "s" }}
+              <div class="d-flex justify-content-around text-center py-2">
+                <div
+                  class="d-flex flex-column clickable-stat p-2 rounded"
+                  matRipple
+                  (click)="viewFollowers()"
+                >
+                  <span class="mat-headline-medium mb-0">
+                    <app-fancy-counter
+                      [number]="user.followerCount || 0"
+                    ></app-fancy-counter>
+                  </span>
+                  <span class="mat-body-small text-muted" i18n
+                    >{user.followerCount, plural, =1 {Follower} other
+                    {Followers}}</span
+                  >
+                </div>
+                <div
+                  class="d-flex flex-column clickable-stat p-2 rounded"
+                  matRipple
+                  (click)="viewFollowing()"
+                >
+                  <span class="mat-headline-medium mb-0">
+                    <app-fancy-counter
+                      [number]="followingCount || 0"
+                    ></app-fancy-counter>
+                  </span>
+                  <span class="mat-body-small text-muted" i18n>Following</span>
+                </div>
               </div>
 
               @if (!isMyProfile) {
               <div
-                class="profile-overview__actions"
+                class="profile-overview__actions w-100 d-flex gap-2"
                 aria-label="Profile actions"
               >
                 <button
                   [matButton]="isFollowing ? 'outlined' : 'filled'"
                   color="primary"
-                  class="profile-overview__action"
+                  class="profile-overview__action flex-grow-1"
                   (click)="followButtonClick()"
                 >
                   @if (loadingFollowing) {
@@ -122,36 +143,20 @@
                 <button
                   mat-stroked-button
                   color="warn"
-                  class="profile-overview__action"
+                  class="profile-overview__action flex-grow-1"
                 >
                   Block
                 </button>
               </div>
               } @else {
               <div
-                class="profile-overview__actions"
+                class="profile-overview__actions w-100"
                 aria-label="Profile management actions"
               >
                 <button
                   mat-stroked-button
-                  color="primary"
-                  class="profile-overview__action"
-                  (click)="viewFollowers()"
-                >
-                  Followers
-                </button>
-                <button
-                  mat-stroked-button
-                  color="primary"
-                  class="profile-overview__action"
-                  (click)="viewFollowing()"
-                >
-                  Following
-                </button>
-                <button
-                  mat-stroked-button
                   color="accent"
-                  class="profile-overview__action"
+                  class="profile-overview__action w-100"
                   routerLink="/settings/profile"
                 >
                   Edit Profile

@@ -398,7 +398,7 @@ export class SpotsService extends ConsentAwareService {
       }
     });
   }
-  async getUserStats(
+  async getUserSpotEditStats(
     userId: string
   ): Promise<{ created: number; edited: number }> {
     try {

@@ -111,6 +111,15 @@
   gap: 8px;
 }
 
+.clickable-stat {
+  cursor: pointer;
+  min-width: 100px;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}
+
 .profile-overview__action-spinner {
   --mdc-circular-progress-active-indicator-color: currentColor;
 }

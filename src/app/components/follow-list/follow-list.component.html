@@ -7,7 +7,13 @@
   <ng-container matColumnDef="user">
     <th mat-header-cell *matHeaderCellDef>User</th>
     <td mat-cell *matCellDef="let followUser">
-      <img class="profilePicture" [src]="followUser.profile_picture" />
+      <img
+        class="profilePicture"
+        [src]="followUser._profileSrc || '/assets/images/user_placeholder.png'"
+        height="40"
+        width="40"
+        alt="Profile"
+      />
       {{ followUser.display_name }}
     </td>
   </ng-container>
@@ -22,14 +28,15 @@
   <ng-container matColumnDef="open">
     <th mat-header-cell *matHeaderCellDef>Actions</th>
     <td mat-cell *matCellDef="let followUser">
-      <button
-        [routerLink]="'/u/' + followUser.uid"
+      <a
+        [routerLink]="['/u', followUser.uid]"
+        (click)="closeDialog()"
         mat-icon-button
         color="primary"
-        aria-label="Example icon button with a home icon"
+        aria-label="Open profile"
       >
         <mat-icon>open_in_new</mat-icon>
-      </button>
+      </a>
     </td>
   </ng-container>
 

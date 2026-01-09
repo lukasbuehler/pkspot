@@ -56,3 +56,5 @@ export {
 //   generateSocialCards,
 //   onUserProfileUpdate,
 // } from "./socialCardFunctions";
+
+export { cleanupOnUserDelete } from "./authFunctions";
