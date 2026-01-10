@@ -10,5 +10,12 @@
       0.8
     );
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    // WebKit GPU acceleration to prevent blur flickering during animations
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    will-change: backdrop-filter;
   }
 }

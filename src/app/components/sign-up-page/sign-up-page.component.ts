@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import {
   AbstractControl,
   UntypedFormBuilder,
@@ -7,7 +7,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from "@angular/forms";
-import { Router, RouterLink } from "@angular/router";
+import { Router, RouterLink, ActivatedRoute } from "@angular/router";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { Auth, RecaptchaVerifier } from "@angular/fire/auth";
 import { NgOptimizedImage } from "@angular/common";
@@ -19,6 +19,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatDividerModule } from "@angular/material/divider";
 import { RecaptchaService } from "../../services/recaptcha.service";
 import { ConsentService } from "../../services/consent.service";
+import { Subscription, filter } from "rxjs";
 
 @Component({
   selector: "app-sign-up-page",
@@ -39,16 +40,19 @@ import { ConsentService } from "../../services/consent.service";
     MatDividerModule,
   ],
 })
-export class SignUpPageComponent implements OnInit {
+export class SignUpPageComponent implements OnInit, OnDestroy {
   createAccountForm: UntypedFormGroup | undefined;
   signUpError: string = "";
   isInviteOnly: boolean = true;
   isSubmitting: boolean = false;
+  private _returnUrl: string = "/profile";
+  private _authSubscription?: Subscription;
 
   constructor(
     private _authService: AuthenticationService,
     private _formBuilder: UntypedFormBuilder,
     private _router: Router,
+    private _route: ActivatedRoute,
     private _recaptchaService: RecaptchaService,
     private _consentService: ConsentService
   ) {}
@@ -96,6 +100,25 @@ export class SignUpPageComponent implements OnInit {
         this.setupSignUpReCaptcha();
       }
     });
+
+    // Get the return URL from query params, default to profile page
+    this._route.queryParams.subscribe((params) => {
+      this._returnUrl = params["returnUrl"] || "/profile";
+    });
+
+    // Listen for successful authentication to redirect
+    this._authSubscription = this._authService.authState$
+      .pipe(filter((user) => user !== null && !!user.uid))
+      .subscribe(() => {
+        // User is now authenticated, redirect to return URL
+        if (this.isSubmitting) {
+          this._router.navigateByUrl(this._returnUrl);
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this._authSubscription?.unsubscribe();
   }
 
   setupSignUpReCaptcha() {
@@ -187,8 +210,7 @@ export class SignUpPageComponent implements OnInit {
       .createAccount(email, password, displayName)
       .then(() => {
         console.log("Created account!");
-        // TODO nvaigate to the last page
-        this._router.navigateByUrl("/");
+        this._router.navigateByUrl(this._returnUrl);
       })
       .catch((err) => {
         console.error("Cannot create account!", err);

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from "@angular/core";
+import { Component, OnInit, OnDestroy, inject } from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { ResponsiveService } from "../../services/responsive.service";
 import {
@@ -8,7 +8,8 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from "@angular/forms";
-import { Router, RouterLink } from "@angular/router";
+import { Router, RouterLink, ActivatedRoute } from "@angular/router";
+import { Subscription, filter } from "rxjs";
 import { MatDivider } from "@angular/material/divider";
 import { MatButton } from "@angular/material/button";
 import { NgOptimizedImage } from "@angular/common";
@@ -36,15 +37,19 @@ import { MatTooltipModule } from "@angular/material/tooltip";
     MatTooltipModule,
   ],
 })
-export class SignInPageComponent implements OnInit {
+export class SignInPageComponent implements OnInit, OnDestroy {
   readonly responsive = inject(ResponsiveService);
   signInForm?: UntypedFormGroup;
   signInError: string = "";
   isSubmitting: boolean = false;
+  private _returnUrl: string = "/profile";
+  private _authSubscription?: Subscription;
+
   constructor(
     private _authService: AuthenticationService,
     private _formBuilder: UntypedFormBuilder,
-    private _router: Router
+    private _router: Router,
+    private _route: ActivatedRoute
   ) {}
 
   ngOnInit() {
@@ -52,6 +57,25 @@ export class SignInPageComponent implements OnInit {
       email: ["", [Validators.required, Validators.email]],
       password: ["", [Validators.required]],
     });
+
+    // Get the return URL from query params, default to profile page
+    this._route.queryParams.subscribe((params) => {
+      this._returnUrl = params["returnUrl"] || "/profile";
+    });
+
+    // Listen for successful authentication to redirect
+    this._authSubscription = this._authService.authState$
+      .pipe(filter((user) => user !== null && !!user.uid))
+      .subscribe(() => {
+        // User is now authenticated, redirect to return URL
+        if (this.isSubmitting) {
+          this._router.navigateByUrl(this._returnUrl);
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this._authSubscription?.unsubscribe();
   }
 
   get emailFieldHasError(): boolean {
@@ -86,9 +110,8 @@ export class SignInPageComponent implements OnInit {
 
     this._authService.signInEmailPassword(email, password).then(
       (res) => {
-        // login and return the user to where they were or to the home page if
-        // no information is available.
-        this._router.navigateByUrl("/");
+        // login and return the user to where they were
+        this._router.navigateByUrl(this._returnUrl);
       },
       (err) => {
         // display the error on the login form

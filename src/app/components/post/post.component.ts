@@ -191,7 +191,9 @@ export class PostComponent implements OnInit {
         })
         .onAction()
         .subscribe(() => {
-          this._router.navigateByUrl("/sign-in");
+          this._router.navigate(["/sign-in"], {
+            queryParams: { returnUrl: this._router.url },
+          });
         });
     }
   }

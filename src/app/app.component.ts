@@ -751,13 +751,13 @@ export class AppComponent implements OnInit {
   unauthenticatedUserMenuConfig: ButtonConfig = [
     {
       name: $localize`:@@login.nav_label:Login`,
-      link: "/sign-in",
       icon: "login",
+      function: () => this.navigateToSignIn(),
     },
     {
       name: $localize`:@@create_acc.nav_label:Create Account`,
-      link: "/sign-up",
       icon: "person_add",
+      function: () => this.navigateToSignUp(),
     },
     {
       name: $localize`:Language button label|The label of the change language button@@lang_btn_label:Language`,
@@ -765,6 +765,22 @@ export class AppComponent implements OnInit {
       function: () => this.changeLanguage(),
     },
   ];
+
+  /**
+   * Navigate to sign-in page with the current URL as the return URL
+   */
+  navigateToSignIn() {
+    const returnUrl = this.router.url;
+    this.router.navigate(["/sign-in"], { queryParams: { returnUrl } });
+  }
+
+  /**
+   * Navigate to sign-up page with the current URL as the return URL
+   */
+  navigateToSignUp() {
+    const returnUrl = this.router.url;
+    this.router.navigate(["/sign-up"], { queryParams: { returnUrl } });
+  }
 
   authenticatedUserMenuConfig: ButtonConfig = [
     {

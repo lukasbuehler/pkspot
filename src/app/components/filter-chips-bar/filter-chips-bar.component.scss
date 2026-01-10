@@ -88,6 +88,12 @@ mat-chip {
   .glass .mdc-evolution-chip__action--primary {
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
+    // WebKit GPU acceleration to prevent blur flickering during animations
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    will-change: backdrop-filter;
   }
 
   // Remove border on glass chips

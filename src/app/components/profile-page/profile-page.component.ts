@@ -155,7 +155,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           // Auth has now loaded and user is null (not signed in)
           // If we're on /profile without a specific userID, redirect to sign-in
           if (!this._route.snapshot.paramMap.get("userID") && !this.userId) {
-            this._router.navigate(["/sign-in"]);
+            this._router.navigate(["/sign-in"], {
+              queryParams: { returnUrl: "/profile" },
+            });
           }
         }
       });

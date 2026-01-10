@@ -119,7 +119,22 @@ export const appConfig: ApplicationConfig = {
     provideFunctions(() => ngfGetFunctions(inject(FirebaseApp))),
     // TODO: Make Auth provider consent-aware
     // provideAuth(() => getAuth()),
-    provideRouter(routes, withViewTransitions()),
+    provideRouter(
+      routes,
+      withViewTransitions({
+        onViewTransitionCreated: (transitionInfo) => {
+          // Skip transitions on Safari/iOS where View Transitions API causes glitches
+          // and backdrop-filter blur flickering
+          const userAgent = navigator?.userAgent ?? "";
+          const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+          const isSafari =
+            /^((?!chrome|android).)*safari/i.test(userAgent) && !isIOS;
+          if (isIOS || isSafari) {
+            transitionInfo.transition.skipTransition();
+          }
+        },
+      })
+    ),
     BrowserModule,
     GoogleMapsModule,
     {

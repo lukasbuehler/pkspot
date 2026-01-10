@@ -137,7 +137,11 @@
         Don't have an account yet? Simply sign in with your Google or Apple
         account or sign up below.
       </p>
-      <button mat-stroked-button routerLink="/sign-up">
+      <button
+        mat-stroked-button
+        routerLink="/sign-up"
+        queryParamsHandling="preserve"
+      >
         <mat-icon>person_add</mat-icon
         ><span i18n="sign up button|Button to sign up@@signin.signup.button"
           >Sign up here</span

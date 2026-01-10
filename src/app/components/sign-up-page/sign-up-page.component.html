@@ -13,7 +13,11 @@
       <h3 class="mat-h2 text-center" i18n>Sign in instead?</h3>
 
       <div class="oauth-buttons d-flex flex-row justify-content-center">
-        <button mat-flat-button routerLink="/sign-in">
+        <button
+          mat-flat-button
+          routerLink="/sign-in"
+          queryParamsHandling="preserve"
+        >
           <mat-icon>login</mat-icon><span i18n>Sign in</span>
         </button>
         <button mat-stroked-button (click)="trySignInApple()">
