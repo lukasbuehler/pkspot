@@ -41,32 +41,52 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
     description: "Joined PK Spot early",
     iconPrefix: "early_",
     tiers: [
-      { tier: 5, id: "founder", name: "Founder", maxSignup: 100 },
-      { tier: 4, id: "pioneer", name: "Pioneer", maxSignup: 250 },
-      { tier: 3, id: "early_adopter", name: "Early Adopter", maxSignup: 500 },
-      { tier: 2, id: "early_bird", name: "Early Bird", maxSignup: 1000 },
-      { tier: 1, id: "supporter", name: "Supporter", maxSignup: 2500 },
+      { tier: 5, id: "founder", name: $localize`Founder`, maxSignup: 100 },
+      { tier: 4, id: "pioneer", name: $localize`Pioneer`, maxSignup: 250 },
+      {
+        tier: 3,
+        id: "early_adopter",
+        name: $localize`Early Adopter`,
+        maxSignup: 500,
+      },
+      {
+        tier: 2,
+        id: "early_bird",
+        name: $localize`Early Bird`,
+        maxSignup: 1000,
+      },
+      { tier: 1, id: "supporter", name: $localize`Supporter`, maxSignup: 2500 },
     ],
   },
   {
     id: "spots_created",
     name: "Spot Creator",
     description: "Created spots on the map",
-    iconPrefix: "early_", // Reusing early_ icons for now
+    iconPrefix: "spot_", // Reusing early_ icons for now
     stat: "spot_creates_count",
     tiers: [
-      { tier: 5, id: "cartographer", name: "Cartographer", threshold: 100 },
-      { tier: 4, id: "explorer", name: "Explorer", threshold: 50 },
-      { tier: 3, id: "trailblazer", name: "Trailblazer", threshold: 20 },
-      { tier: 2, id: "pathfinder", name: "Pathfinder", threshold: 5 },
-      { tier: 1, id: "pioneer_spot", name: "Pioneer", threshold: 1 },
+      {
+        tier: 5,
+        id: "cartographer",
+        name: $localize`Cartographer`,
+        threshold: 100,
+      },
+      { tier: 4, id: "explorer", name: $localize`Explorer`, threshold: 50 },
+      {
+        tier: 3,
+        id: "trailblazer",
+        name: $localize`Trailblazer`,
+        threshold: 20,
+      },
+      { tier: 2, id: "pathfinder", name: $localize`Pathfinder`, threshold: 5 },
+      { tier: 1, id: "pioneer_spot", name: $localize`Pioneer`, threshold: 1 },
     ],
   },
   {
     id: "spots_edited",
     name: "Spot Editor",
     description: "Made edits to spots",
-    iconPrefix: "early_",
+    iconPrefix: "update_",
     stat: "spot_edits_count",
     tiers: [
       { tier: 5, id: "architect", name: "Architect", threshold: 500 },
@@ -80,7 +100,7 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
     id: "media_added",
     name: "Media Contributor",
     description: "Added photos and videos",
-    iconPrefix: "early_",
+    iconPrefix: "media_",
     stat: "media_added_count",
     tiers: [
       { tier: 5, id: "filmmaker", name: "Filmmaker", threshold: 200 },
@@ -97,13 +117,13 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
  * These are stored in user.special_badges array.
  */
 export const SPECIAL_BADGES: Record<string, Badge> = {
-  beta_tester: {
-    id: "beta_tester",
-    name: "Beta Tester",
-    icon: "assets/badges/early_3.png",
-    tier: 3,
-    category: "special",
-  },
+  // beta_tester: {
+  //   id: "beta_tester",
+  //   name: "Beta Tester",
+  //   icon: "assets/badges/early_3.png",
+  //   tier: 3,
+  //   category: "special",
+  // },
   // Add event badges here as needed
   // swissjam_25: { ... }
 };

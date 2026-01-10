@@ -207,7 +207,6 @@
     </section>
 
     <section class="profile-secondary" aria-label="Additional profile details">
-      <!-- Badges section - temporarily hidden
       @if (badges.length > 0) {
       <mat-card>
         <mat-card-header class="profile-section__header">
@@ -225,7 +224,6 @@
         </mat-card-content>
       </mat-card>
       }
-      -->
 
       <mat-card class="profile-section mat-elevation-z1">
         <mat-card-header class="profile-section__header">
@@ -235,19 +233,19 @@
         </mat-card-header>
         <mat-card-content class="profile-section__content">
           <div class="d-flex justify-content-around text-center py-2">
-            <div class="d-flex flex-column">
+            <div class="d-flex flex-column px-1">
               <span class="mat-headline-medium mb-0">{{
                 createdSpotsCount
               }}</span>
               <span class="mat-body-small text-muted" i18n>Spots Created</span>
             </div>
-            <div class="d-flex flex-column">
+            <div class="d-flex flex-column px-1">
               <span class="mat-headline-medium mb-0">{{
                 editedSpotsCount
               }}</span>
               <span class="mat-body-small text-muted" i18n>Edits Made</span>
             </div>
-            <div class="d-flex flex-column">
+            <div class="d-flex flex-column px-1">
               <span class="mat-headline-medium mb-0">{{
                 mediaAddedCount
               }}</span>

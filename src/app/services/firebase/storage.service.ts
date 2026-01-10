@@ -1,4 +1,10 @@
-import { Injectable, Optional } from "@angular/core";
+import {
+  Injectable,
+  Injector,
+  Optional,
+  inject,
+  runInInjectionContext,
+} from "@angular/core";
 import { Observable } from "rxjs";
 import {
   Storage,
@@ -15,6 +21,8 @@ import { StorageBucket } from "../../../db/schemas/Media";
   providedIn: "root",
 })
 export class StorageService {
+  private injector = inject(Injector);
+
   // Inject AngularFire Storage and Auth like Firestore services do
   constructor(
     @Optional() private storage: Storage | null,
@@ -52,14 +60,6 @@ export class StorageService {
         "Firebase Storage service is not available (did you provideStorage()?)"
       );
     }
-    let uploadRef = ref(
-      this.storage,
-      `${location}/${filename}${fileEnding ? "." + fileEnding : ""}`
-    );
-    // return uploadBytes(uploadRef, blob).then((snapshot) => {
-    //   return getDownloadURL(snapshot.ref);
-    // });
-
     let uid: string | null = null;
     if (this.authService.isSignedIn) {
       uid = this.authService.user?.uid ?? null;
@@ -73,48 +73,56 @@ export class StorageService {
         return;
       }
 
-      const uploadTask = uploadBytesResumable(uploadRef, blob, {
-        customMetadata: {
-          uid: uid,
-        },
-      });
+      // Run Firebase Storage operations inside injection context to avoid warnings
+      runInInjectionContext(this.injector, () => {
+        const uploadRef = ref(
+          this.storage!,
+          `${location}/${filename}${fileEnding ? "." + fileEnding : ""}`
+        );
 
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          // Observe state change events such as progress, pause, and resume
-          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.debug("Upload is " + progress + "% done");
-          if (progressCallback) {
-            progressCallback(progress);
+        const uploadTask = uploadBytesResumable(uploadRef, blob, {
+          customMetadata: {
+            uid: uid!,
+          },
+        });
+
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            // Observe state change events such as progress, pause, and resume
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.debug("Upload is " + progress + "% done");
+            if (progressCallback) {
+              progressCallback(progress);
+            }
+          },
+          (error) => {
+            // Handle unsuccessful uploads
+            reject(error);
+          },
+          () => {
+            // Handle successful uploads on complete
+            // Generate a public URL without token (since our Storage rules allow public read access)
+            // Format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media
+
+            const bucket = this.storage!.app.options.storageBucket;
+            const fullPath = uploadTask.snapshot.ref.fullPath;
+            const encodedPath = encodeURIComponent(fullPath);
+
+            const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
+
+            // Normalize extensions (consistent formatting)
+            const normalizedUrl = publicUrl
+              .replace(/\.MP4\?/, ".mp4?")
+              .replace(/\.mov\?/i, ".mp4?");
+
+            resolve(normalizedUrl);
           }
-        },
-        (error) => {
-          // Handle unsuccessful uploads
-          reject(error);
-        },
-        () => {
-          // Handle successful uploads on complete
-          // Generate a public URL without token (since our Storage rules allow public read access)
-          // Format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media
-
-          const bucket = this.storage!.app.options.storageBucket;
-          const fullPath = uploadTask.snapshot.ref.fullPath;
-          const encodedPath = encodeURIComponent(fullPath);
-
-          const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
-
-          // Normalize extensions (consistent formatting)
-          const normalizedUrl = publicUrl
-            .replace(/\.MP4\?/, ".mp4?")
-            .replace(/\.mov\?/i, ".mp4?");
-
-          resolve(normalizedUrl);
-        }
-      );
-    });
+        );
+      }); // close runInInjectionContext
+    }); // close Promise
   }
 
   deleteFromStorage(bucket: StorageBucket, filename: string): Promise<void>;

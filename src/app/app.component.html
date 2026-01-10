@@ -65,35 +65,8 @@
       <router-outlet></router-outlet>
     </div>
 
-    @if(!alainMode) {
-    <!-- Bottom navigation bar -->
-    @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
-    'mobile' || responsive.viewMode() === 'tablet') {
-    <mat-toolbar class="mat-elevation-z0">
-      @for (button of navbarConfig(); track $index) { @if(button.link) {
-      <a [routerLink]="button.link" tabindex="-1">
-        <app-mat3-nav-button
-          [icon]="button.icon"
-          [label]="button.name"
-        ></app-mat3-nav-button>
-      </a>
-      } @else if(button.function) {
-      <app-mat3-nav-button
-        (click)="button.function()"
-        [icon]="button.icon"
-        [label]="button.name"
-      ></app-mat3-nav-button>
-      } @else {
-      <app-mat3-nav-button
-        [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
-        [icon]="button.icon"
-        [image]="button.image ?? ''"
-        [label]="button.name"
-      ></app-mat3-nav-button>
-      } }
-    </mat-toolbar>
-    } } } @else {
-    <!-- Menu button -->
+    @if(alainMode) {
+    <!-- Alain Mode: Menu button (shows in any view mode when alainMode is true) -->
     <button
       mat-fab
       #mainMenuTrigger="matMenuTrigger"
@@ -130,13 +103,40 @@
           class="rounded-circle"
           style="margin-right: 12px"
         />
-        } @else {<mat-icon>{{ button.icon }}</mat-icon
-        >}
+        } @else {<mat-icon>{{ button.icon }}</mat-icon>
+        }
         <span>{{ button.name }}</span>
       </button>
       } }
     </mat-menu>
-    }
+    } @else {
+    <!-- Bottom navigation bar (only when NOT in alainMode and mobile/tablet) -->
+    @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
+    'mobile' || responsive.viewMode() === 'tablet') {
+    <mat-toolbar class="mat-elevation-z0">
+      @for (button of navbarConfig(); track $index) { @if(button.link) {
+      <a [routerLink]="button.link" tabindex="-1">
+        <app-mat3-nav-button
+          [icon]="button.icon"
+          [label]="button.name"
+        ></app-mat3-nav-button>
+      </a>
+      } @else if(button.function) {
+      <app-mat3-nav-button
+        (click)="button.function()"
+        [icon]="button.icon"
+        [label]="button.name"
+      ></app-mat3-nav-button>
+      } @else {
+      <app-mat3-nav-button
+        [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
+        [icon]="button.icon"
+        [image]="button.image ?? ''"
+        [label]="button.name"
+      ></app-mat3-nav-button>
+      } }
+    </mat-toolbar>
+    } } }
 
     <!-- Terms and Privacy -->
 

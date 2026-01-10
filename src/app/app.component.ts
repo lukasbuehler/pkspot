@@ -177,7 +177,14 @@ export class AppComponent implements OnInit {
 
   enforceAlainMode() {
     if (typeof window !== "undefined") {
-      if (window.innerHeight < 700 && window.innerWidth < 768) {
+      // Enable alain mode when:
+      // 1. Height is very small (< 500px) - handles landscape mobile
+      // 2. OR both height < 700 and width < 768 - handles portrait mobile
+      const isLandscapeMobile = window.innerHeight < 500;
+      const isPortraitMobile =
+        window.innerHeight < 700 && window.innerWidth < 768;
+
+      if (isLandscapeMobile || isPortraitMobile) {
         this.alainMode = true;
       } else {
         this.alainMode = false;

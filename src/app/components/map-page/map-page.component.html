@@ -244,8 +244,9 @@
     </button> -->
   </div>
 
-  @if( authService.isSignedIn && !isEditing() && !(responsiveService.isMobile()
-  && (bottomSheetOpen() || bottomSheetProgress() > 0)) ) {
+  @if( authService.isSignedIn && !isEditing() && spotMap.mapZoom >= 14 &&
+  !(responsiveService.isMobile() && (bottomSheetOpen() || bottomSheetProgress()
+  > 0)) ) {
   <!-- Add / import spots speed dial-->
   <!-- <app-speed-dial-fab
     #createSpotSpeedDial
@@ -301,11 +302,16 @@
   class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
   style="z-index: 100"
 >
-  <app-search-field
-    class="position-relative w-100 mat-elevation-z3 overflow-hidden"
-    style="border-radius: 16px"
-    (spotSelected)="openSpotOrGooglePlace($event)"
-  ></app-search-field>
+  <div class="d-flex flex-row gap-3">
+    @if(alainMode) {
+    <div class="spacer" style="width: 56px"></div>
+    }
+    <app-search-field
+      class="position-relative w-100 mat-elevation-z3 overflow-hidden"
+      style="border-radius: 16px"
+      (spotSelected)="openSpotOrGooglePlace($event)"
+    ></app-search-field>
+  </div>
   @if(!sidebarContentIsScrolling() || !sidenavOpen()) {
   <ng-container *ngTemplateOutlet="chips"></ng-container>
   }

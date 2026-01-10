@@ -50,8 +50,15 @@ mat-toolbar {
 
 #alainMenuButton {
   position: absolute;
-  left: 10px;
-  top: 10px;
+  left: 8px;
+  top: 8px;
+  z-index: 101;
+
+  // On larger screens (sidepanel layout), use more padding to match the search container
+  @media (min-width: 600px) {
+    left: 16px;
+    top: 16px;
+  }
 }
 
 // .main-content {

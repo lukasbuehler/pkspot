@@ -138,7 +138,21 @@ export class SpotEdit implements SpotEditSchema {
   }
 
   getTimestampString(): string {
-    const date = this.timestamp.toDate();
+    let date: Date;
+    if (this.timestamp && typeof this.timestamp.toDate === "function") {
+      // Firestore Timestamp object
+      date = this.timestamp.toDate();
+    } else if (
+      this.timestamp &&
+      typeof (this.timestamp as any).seconds === "number"
+    ) {
+      // Plain object with seconds/nanoseconds (from Firestore REST API or serialization)
+      date = new Date((this.timestamp as any).seconds * 1000);
+    } else {
+      // Fallback to current date if timestamp is invalid
+      console.warn("Invalid timestamp format:", this.timestamp);
+      date = new Date();
+    }
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   }
 }
