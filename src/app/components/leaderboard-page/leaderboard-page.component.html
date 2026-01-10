@@ -1,0 +1,104 @@
+<div class="leaderboard-page">
+  <mat-card class="leaderboard-card">
+    <mat-card-header>
+      <mat-card-title class="mat-headline-medium">
+        <mat-icon class="header-icon">emoji_events</mat-icon>
+        Contributions Leaderboard
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (isLoading) {
+      <div class="loading-container">
+        <mat-spinner diameter="48"></mat-spinner>
+      </div>
+      } @else {
+      <div class="table-container">
+        <table
+          mat-table
+          [dataSource]="leaderboardData"
+          matSort
+          (matSortChange)="onSort($event)"
+          class="leaderboard-table"
+        >
+          <!-- Rank Column -->
+          <ng-container matColumnDef="rank">
+            <th mat-header-cell *matHeaderCellDef>#</th>
+            <td mat-cell *matCellDef="let entry">
+              <span
+                class="rank"
+                [class.gold]="entry.rank === 1"
+                [class.silver]="entry.rank === 2"
+                [class.bronze]="entry.rank === 3"
+              >
+                {{ entry.rank }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- User Column -->
+          <ng-container matColumnDef="user">
+            <th mat-header-cell *matHeaderCellDef>User</th>
+            <td mat-cell *matCellDef="let entry">
+              <a [routerLink]="['/u', entry.uid]" class="user-link">
+                <img
+                  [src]="entry.profile_picture"
+                  [alt]="entry.display_name"
+                  class="avatar"
+                  (error)="entry._imgError = true"
+                  [hidden]="entry._imgError"
+                />
+                @if (entry._imgError || !entry.profile_picture) {
+                <div class="avatar avatar-placeholder">
+                  {{ entry.display_name.charAt(0).toUpperCase() }}
+                </div>
+                }
+                <span class="user-name">{{ entry.display_name }}</span>
+              </a>
+            </td>
+          </ng-container>
+
+          <!-- Spots Created Column -->
+          <ng-container matColumnDef="spot_creates_count">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Spots Created
+            </th>
+            <td mat-cell *matCellDef="let entry">
+              {{ entry.spot_creates_count }}
+            </td>
+          </ng-container>
+
+          <!-- Edits Made Column -->
+          <ng-container matColumnDef="spot_edits_count">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Edits Made
+            </th>
+            <td mat-cell *matCellDef="let entry">
+              {{ entry.spot_edits_count }}
+            </td>
+          </ng-container>
+
+          <!-- Media Added Column -->
+          <ng-container matColumnDef="media_added_count">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Media Added
+            </th>
+            <td mat-cell *matCellDef="let entry">
+              {{ entry.media_added_count }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+
+      @if (leaderboardData.length === 0) {
+      <div class="empty-state">
+        <mat-icon>leaderboard</mat-icon>
+        <p>No contributors yet. Be the first!</p>
+      </div>
+      } }
+    </mat-card-content>
+  </mat-card>
+</div>

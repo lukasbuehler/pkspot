@@ -215,6 +215,30 @@ export const applySpotEditOnCreate = onDocumentCreated(
       });
 
       console.log(`Marked edit ${editId} as approved`);
+
+      // Increment user contribution counters
+      const userRef = db.collection("users").doc(editData.user.uid);
+      const incrementData: Record<string, FirebaseFirestore.FieldValue> = {
+        spot_edits_count: admin.firestore.FieldValue.increment(1),
+      };
+
+      if (editData.type === "CREATE") {
+        incrementData["spot_creates_count"] =
+          admin.firestore.FieldValue.increment(1);
+      }
+
+      // Count media items added in this edit
+      const mediaItems = editData.data?.media;
+      if (Array.isArray(mediaItems) && mediaItems.length > 0) {
+        incrementData["media_added_count"] =
+          admin.firestore.FieldValue.increment(mediaItems.length);
+      }
+
+      await userRef.set(incrementData, { merge: true });
+      console.log(`Updated user ${editData.user.uid} contribution counters`);
+
+      // Update leaderboards
+      await updateLeaderboards(editData.user.uid, editData.type, db);
     } catch (error) {
       console.error(
         `Error processing spot edit ${editId} for spot ${spotId}:`,
@@ -224,3 +248,109 @@ export const applySpotEditOnCreate = onDocumentCreated(
     }
   }
 );
+
+interface LeaderboardEntry {
+  uid: string;
+  display_name: string;
+  profile_picture?: string;
+  count: number;
+}
+
+const TOP_N = 50;
+
+/**
+ * Updates the leaderboards after a spot edit is approved.
+ * Maintains three separate leaderboards: spots_created, spots_edited, media_added
+ */
+async function updateLeaderboards(
+  userId: string,
+  editType: "CREATE" | "UPDATE",
+  db: FirebaseFirestore.Firestore
+): Promise<void> {
+  try {
+    const userDoc = await db.collection("users").doc(userId).get();
+    const userData = userDoc.data();
+
+    if (!userData) {
+      console.warn(`User ${userId} not found when updating leaderboards`);
+      return;
+    }
+
+    const userEntry: Omit<LeaderboardEntry, "count"> = {
+      uid: userId,
+      display_name: userData["display_name"] || "Anonymous",
+      profile_picture: userData["profile_picture"],
+    };
+
+    // Always update the edits leaderboard
+    await updateSingleLeaderboard(
+      db,
+      "spots_edited",
+      userEntry,
+      userData["spot_edits_count"] || 0
+    );
+
+    // Update creates leaderboard if this was a CREATE
+    if (editType === "CREATE") {
+      await updateSingleLeaderboard(
+        db,
+        "spots_created",
+        userEntry,
+        userData["spot_creates_count"] || 0
+      );
+    }
+
+    // Update media leaderboard if user has media count
+    if (userData["media_added_count"]) {
+      await updateSingleLeaderboard(
+        db,
+        "media_added",
+        userEntry,
+        userData["media_added_count"]
+      );
+    }
+  } catch (error) {
+    console.error(`Error updating leaderboards for user ${userId}:`, error);
+    // Don't throw - leaderboard update failure shouldn't fail the edit
+  }
+}
+
+/**
+ * Updates a single leaderboard document with the user's new count.
+ */
+async function updateSingleLeaderboard(
+  db: FirebaseFirestore.Firestore,
+  leaderboardId: string,
+  userEntry: Omit<LeaderboardEntry, "count">,
+  count: number
+): Promise<void> {
+  const leaderboardRef = db.collection("leaderboards").doc(leaderboardId);
+
+  await db.runTransaction(async (transaction) => {
+    const leaderboardDoc = await transaction.get(leaderboardRef);
+    const entries: LeaderboardEntry[] =
+      leaderboardDoc.data()?.["entries"] || [];
+
+    // Find existing entry for this user
+    const existingIndex = entries.findIndex((e) => e.uid === userEntry.uid);
+
+    if (existingIndex >= 0) {
+      // Update existing entry
+      entries[existingIndex] = { ...userEntry, count };
+    } else {
+      // Add new entry
+      entries.push({ ...userEntry, count });
+    }
+
+    // Sort by count descending and keep top N
+    entries.sort((a, b) => b.count - a.count);
+    const topEntries = entries.slice(0, TOP_N);
+
+    transaction.set(leaderboardRef, {
+      entries: topEntries,
+      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  });
+
+  console.log(`Updated leaderboard ${leaderboardId} for user ${userEntry.uid}`);
+}

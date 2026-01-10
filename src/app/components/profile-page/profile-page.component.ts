@@ -47,6 +47,8 @@ import { Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { countries } from "../../../scripts/Countries";
+import { BadgeService } from "../../services/badge.service";
+import { Badge } from "../../shared/badge-definitions";
 
 @Component({
   selector: "app-profile-page",
@@ -88,9 +90,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     private _authService: AuthenticationService,
     private _followingService: FollowingService,
     private _usersService: UsersService,
-
     private _postsService: PostsService,
     private _spotsService: SpotsService,
+    private _badgeService: BadgeService,
     private _route: ActivatedRoute,
     private _router: Router,
     private _snackbar: MatSnackBar,
@@ -106,20 +108,12 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   createdSpotsCount: number = 0;
   editedSpotsCount: number = 0;
+  mediaAddedCount: number = 0;
   followingCount: number = 0;
   isLoadingStats: boolean = false;
 
   homeSpotsObjects: Spot[] = [];
-  badges: any[] = [
-    {
-      name: "Founder",
-      src: "assets/badges/early_5.png",
-    },
-    {
-      name: "Early Adopter",
-      src: "assets/badges/early_2.png",
-    },
-  ];
+  badges: Badge[] = [];
 
   countries = countries;
   private _subscriptions = new Subscription();
@@ -290,17 +284,14 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           this.followingCount = count;
         });
 
-        this._spotsService
-          .getUserSpotEditStats(userId)
-          .then((stats) => {
-            this.createdSpotsCount = stats.created;
-            this.editedSpotsCount = stats.edited;
-            this.isLoadingStats = false;
-          })
-          .catch((err) => {
-            console.error("Error loading user stats", err);
-            this.isLoadingStats = false;
-          });
+        // Stats are now stored on the user profile (set by Cloud Functions)
+        this.createdSpotsCount = this.user.data?.spot_creates_count ?? 0;
+        this.editedSpotsCount = this.user.data?.spot_edits_count ?? 0;
+        this.mediaAddedCount = this.user.data?.media_added_count ?? 0;
+        this.isLoadingStats = false;
+
+        // Compute badges for this user
+        this.badges = this._badgeService.getDisplayBadges(this.user.data);
 
         // Load the groups of this user
         // TODO

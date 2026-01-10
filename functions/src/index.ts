@@ -33,8 +33,13 @@ export {
   clusterAllSpotsOnSchedule,
 } from "./spotClusteringFunctions";
 
-// fixes
-export { fixSpotLocations, fixLocaleMaps } from "./fixFunctions";
+// fixes and migrations
+export {
+  fixSpotLocations,
+  fixLocaleMaps,
+  backfillSignupNumbers,
+  recalculateUserEditStats,
+} from "./fixFunctions";
 
 // storage triggers
 export { processVideoUpload } from "./storageFunctions";
@@ -57,4 +62,7 @@ export {
 //   onUserProfileUpdate,
 // } from "./socialCardFunctions";
 
-export { cleanupOnUserDelete } from "./authFunctions";
+export {
+  cleanupOnUserDelete,
+  assignSignupNumberOnCreate,
+} from "./authFunctions";

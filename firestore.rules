@@ -139,11 +139,11 @@ service cloud.firestore {
     {
       // all users and their profiles are currently public
       allow read: if true;
-      // It is not allowed to update the follower_count. This is handled by a cloud function.
+      // It is not allowed to update protected fields. These are handled by cloud functions.
       allow create: if request.auth.uid != null && request.auth.uid == userId
-         && !('follower_count' in request.resource.data);
+         && !request.resource.data.keys().hasAny(['follower_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'special_badges']);
       allow update: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count']);
+         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'special_badges']);
 
       match /following/{otherUserId} {
         // A user can only see and update his own following
@@ -161,6 +161,12 @@ service cloud.firestore {
     }
 
     match /events/{eventId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Leaderboards are read-only; only cloud functions can write
+    match /leaderboards/{leaderboardId} {
       allow read: if true;
       allow write: if false;
     }

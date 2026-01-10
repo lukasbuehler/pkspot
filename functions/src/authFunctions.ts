@@ -73,3 +73,43 @@ export const cleanupOnUserDelete = functions.auth
 
     return null;
   });
+
+/**
+ * When a new user is created, assign them a permanent signup number.
+ * This number never changes even if earlier users delete their accounts,
+ * enabling permanent early adopter badges.
+ */
+export const assignSignupNumberOnCreate = functions.auth
+  .user()
+  .onCreate(async (user: UserRecord) => {
+    const db = admin.firestore();
+    const counterRef = db.doc("counters/users");
+    const userRef = db.doc(`users/${user.uid}`);
+
+    try {
+      // Atomic increment and get new value using transaction
+      const signupNumber = await db.runTransaction(async (transaction) => {
+        const counterDoc = await transaction.get(counterRef);
+        const currentCount = counterDoc.data()?.["signup_count"] || 0;
+        const nextNumber = currentCount + 1;
+
+        transaction.set(
+          counterRef,
+          { signup_count: nextNumber },
+          { merge: true }
+        );
+        return nextNumber;
+      });
+
+      // Write signup number to user profile
+      await userRef.set({ signup_number: signupNumber }, { merge: true });
+
+      console.log(`Assigned signup number ${signupNumber} to user ${user.uid}`);
+    } catch (error) {
+      console.error(
+        `Error assigning signup number to user ${user.uid}:`,
+        error
+      );
+      // Don't throw - we don't want to fail user creation
+    }
+  });

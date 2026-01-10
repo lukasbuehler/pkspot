@@ -1,0 +1,138 @@
+.leaderboard-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.leaderboard-card {
+  mat-card-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .header-icon {
+    vertical-align: middle;
+    margin-right: 0.5rem;
+    color: var(--mat-sys-primary);
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.leaderboard-table {
+  width: 100%;
+
+  th.mat-header-cell,
+  td.mat-cell {
+    padding: 0.75rem 1rem;
+  }
+
+  th.mat-header-cell:first-of-type,
+  td.mat-cell:first-of-type {
+    padding-left: 1.5rem;
+    width: 60px;
+  }
+}
+
+.rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-weight: 600;
+  background-color: var(--mat-sys-surface-variant);
+
+  &.gold {
+    background: linear-gradient(135deg, #ffd700, #ffed4a);
+    color: #333;
+  }
+
+  &.silver {
+    background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+    color: #333;
+  }
+
+  &.bronze {
+    background: linear-gradient(135deg, #cd7f32, #daa06d);
+    color: #fff;
+  }
+}
+
+.user-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-weight: 500;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1rem;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 600px) {
+  .leaderboard-page {
+    padding: 1rem 0.5rem;
+  }
+
+  .leaderboard-table {
+    th.mat-header-cell,
+    td.mat-cell {
+      padding: 0.5rem;
+    }
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+  }
+}

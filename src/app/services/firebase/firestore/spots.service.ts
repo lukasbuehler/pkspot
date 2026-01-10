@@ -398,32 +398,4 @@ export class SpotsService extends ConsentAwareService {
       }
     });
   }
-  async getUserSpotEditStats(
-    userId: string
-  ): Promise<{ created: number; edited: number }> {
-    try {
-      // 1. Count spots created by user (using collection group query on 'edits')
-      const createdSpots = await this._firestoreAdapter.getCollectionGroup(
-        "edits",
-        [
-          { fieldPath: "user.uid", opStr: "==", value: userId },
-          { fieldPath: "type", opStr: "==", value: "CREATE" },
-          { fieldPath: "approved", opStr: "==", value: true },
-        ]
-      );
-      const createdCount = createdSpots.length;
-
-      // 2. Count edits made by user
-      const edits = await this._firestoreAdapter.getCollectionGroup("edits", [
-        { fieldPath: "user.uid", opStr: "==", value: userId },
-      ]);
-      const editedCount = edits.length;
-
-      return { created: createdCount, edited: editedCount };
-    } catch (e) {
-      // Permission denied or other error
-      console.error("Error getting user stats", e);
-      return { created: 0, edited: 0 };
-    }
-  }
 }

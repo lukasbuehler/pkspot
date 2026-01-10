@@ -262,5 +262,15 @@ export const routes: Routes = [
     data: { routeName: "Impressum", acceptanceFree: true },
   },
 
+  // Secret leaderboard page (no nav button)
+  {
+    path: "leaderboard",
+    loadComponent: () =>
+      import("./components/leaderboard-page/leaderboard-page.component").then(
+        (m) => m.LeaderboardPageComponent
+      ),
+    data: { routeName: "Leaderboard" },
+  },
+
   { path: "**", component: NotFoundPageComponent },
 ];
