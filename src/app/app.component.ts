@@ -9,6 +9,7 @@ import {
   TemplateRef,
   ViewChild,
   WritableSignal,
+  NgZone,
 } from "@angular/core";
 import { Injector } from "@angular/core";
 import {
@@ -200,6 +201,41 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Handle Deep Links (Universal Links/App Links)
+    import("@capacitor/app").then(({ App }) => {
+      App.addListener("appUrlOpen", (event: any) => {
+        // Normalize the URL
+        const url = new URL(event.url);
+        // Get the path and query params (everything after domain)
+        let path = url.pathname;
+
+        // Strip locale prefix if present (e.g. /fr/map -> /map)
+        // The app might be running in a specific locale or default,
+        // but the router likely expects paths without the *other* locale prefixes
+        // unless fully configured for i18n routing in the same app instance.
+        // For Capacitor, we usually want to just navigate to the content.
+        const segments = path.split("/");
+        if (
+          segments.length > 1 &&
+          this.availableLanguageCodes.includes(segments[1] as any)
+        ) {
+          // Remove the locale segment
+          segments.splice(1, 1);
+          path = segments.join("/");
+        }
+
+        const slug = path + url.search;
+
+        // If the link is a "login" link with returnUrl, we might want to preserve that
+        // But usually just navigating to the slug is enough as Angular Router handles the rest
+        if (slug) {
+          this._injector.get(NgZone).run(() => {
+            this.router.navigateByUrl(slug);
+          });
+        }
+      });
+    });
+
     // structured data
     const json: WebSite = {
       "@type": "WebSite",

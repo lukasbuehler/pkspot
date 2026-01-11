@@ -1,4 +1,13 @@
-<div class="p-5">
-  <h2 class="mat-heading-medium">Page not found!</h2>
-  <p class="mat-body-large">Sorry, this page was not found!</p>
+<div class="not-found-container">
+  <div class="content">
+    <mat-icon class="large-icon">sentiment_dissatisfied</mat-icon>
+    <h1 class="mat-display-small" i18n>Page not found</h1>
+    <p class="mat-body-large" i18n>
+      The page you are looking for does not exist or has been moved.
+    </p>
+
+    <div class="actions">
+      <a mat-flat-button color="primary" routerLink="/" i18n>Go Home</a>
+    </div>
+  </div>
 </div>

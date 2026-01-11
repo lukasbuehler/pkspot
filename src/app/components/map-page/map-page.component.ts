@@ -27,6 +27,7 @@ import { SpotId } from "../../../db/schemas/SpotSchema";
 import {
   ActivatedRoute,
   NavigationStart,
+  NavigationEnd,
   Router,
   RouterLink,
 } from "@angular/router";
@@ -614,15 +615,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (isPlatformBrowser(this.platformId)) {
       this._routerSubscription = this.router.events
-        .pipe(filter((event) => event instanceof NavigationStart))
+        .pipe(filter((event) => event instanceof NavigationEnd))
         .subscribe((event) => {
-          const navEvent = event as NavigationStart;
+          const navEvent = event as NavigationEnd;
           // Only handle navigation events that are for the map page
-          if (!navEvent.url.startsWith("/map")) {
+          if (!navEvent.urlAfterRedirects.startsWith("/map")) {
             // Navigating away from map, do not interfere
             return;
           }
-          const match = navEvent.url.match(
+          const match = navEvent.urlAfterRedirects.match(
             /^\/map(?:\/([^\/?]+))?(?:\/(c)(?:\/([^\/]+))?)?(\/(edits)(?:\/)?)?/
           );
           const spotIdOrSlug = match?.[1] ?? null;
@@ -631,9 +632,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           const showEditHistory = !!match?.[4];
 
           // Also extract filter query param from URL to keep it in sync
-          const queryIndex = navEvent.url.indexOf("?");
+          const queryIndex = navEvent.urlAfterRedirects.indexOf("?");
           if (queryIndex >= 0) {
-            const queryString = navEvent.url.substring(queryIndex + 1);
+            const queryString = navEvent.urlAfterRedirects.substring(
+              queryIndex + 1
+            );
             const params = new URLSearchParams(queryString);
             const filterParam = params.get("filter");
             if (filterParam && this.selectedFilter() !== filterParam) {
