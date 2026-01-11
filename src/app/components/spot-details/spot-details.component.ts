@@ -392,11 +392,15 @@ export class SpotDetailsComponent
     const spot = this.spot();
     if (!spot) return [];
 
+    const blockedUsers =
+      this.authenticationService.user?.data?.data?.blocked_users || [];
+
     return spot
       .userMedia()
       .filter(
         (media) =>
-          media instanceof StorageImage || media instanceof ExternalImage
+          (media instanceof StorageImage || media instanceof ExternalImage) &&
+          (!media.userId || !blockedUsers.includes(media.userId))
       );
   });
 

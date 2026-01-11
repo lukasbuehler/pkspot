@@ -1,4 +1,5 @@
 import { inject, Injectable } from "@angular/core";
+import { arrayRemove, arrayUnion } from "@angular/fire/firestore";
 import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { User } from "../../../../db/models/User";
@@ -96,6 +97,49 @@ export class UsersService extends ConsentAwareService {
 
     return this.executeWithConsent(() => {
       return this._firestoreAdapter.deleteDocument(`users/${userId}`);
+    });
+  }
+
+  async blockUser(myUserId: string, blockedUserId: string): Promise<void> {
+    return this.executeWithConsent(async () => {
+      // Use Read-Modify-Write to ensure compatibility with native platforms
+      // where arrayUnion/arrayRemove might not be supported via the adapter bridge.
+      const userDoc = await this._firestoreAdapter.getDocument<UserSchema>(
+        `users/${myUserId}`
+      );
+
+      if (!userDoc) {
+        throw new Error("User document not found");
+      }
+
+      const blockedUsers = userDoc.blocked_users || [];
+      if (!blockedUsers.includes(blockedUserId)) {
+        blockedUsers.push(blockedUserId);
+        await this._firestoreAdapter.updateDocument(`users/${myUserId}`, {
+          blocked_users: blockedUsers,
+        } as Partial<UserSchema>);
+      }
+    });
+  }
+
+  async unblockUser(myUserId: string, blockedUserId: string): Promise<void> {
+    return this.executeWithConsent(async () => {
+      // Use Read-Modify-Write for native compatibility
+      const userDoc = await this._firestoreAdapter.getDocument<UserSchema>(
+        `users/${myUserId}`
+      );
+
+      if (!userDoc) {
+        throw new Error("User document not found");
+      }
+
+      let blockedUsers = userDoc.blocked_users || [];
+      if (blockedUsers.includes(blockedUserId)) {
+        blockedUsers = blockedUsers.filter((id) => id !== blockedUserId);
+        await this._firestoreAdapter.updateDocument(`users/${myUserId}`, {
+          blocked_users: blockedUsers,
+        } as Partial<UserSchema>);
+      }
     });
   }
 }

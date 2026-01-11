@@ -8,6 +8,7 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
 import { FirestoreAdapterService } from "../../services/firebase/firestore-adapter.service";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 
 interface LeaderboardEntry {
@@ -46,6 +47,7 @@ interface UserData {
 })
 export class LeaderboardPageComponent implements OnInit {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private _authService = inject(AuthenticationService);
   private _platformId = inject(PLATFORM_ID);
 
   leaderboardData: LeaderboardEntry[] = [];
@@ -85,17 +87,28 @@ export class LeaderboardPageComponent implements OnInit {
       const entries: LeaderboardEntry[] = [];
       let rank = 1;
 
+      // Get blocked users list
+      const blockedUsers =
+        this._authService.user?.data?.data?.blocked_users || [];
+
       for (const user of users) {
         if (
-          user.spot_edits_count ||
           user.spot_creates_count ||
+          user.spot_edits_count ||
           user.media_added_count
         ) {
+          // Check if blocked
+          const isBlocked = blockedUsers.includes(user.id);
+
           entries.push({
             rank: rank++,
             uid: user.id,
-            display_name: user.display_name || "Anonymous",
-            profile_picture: getProfilePictureUrl(user.id, 200),
+            display_name: isBlocked
+              ? "Blocked User"
+              : user.display_name || "Anonymous", // Redact name
+            profile_picture: isBlocked
+              ? ""
+              : getProfilePictureUrl(user.id, 200), // Hide PFP
             spot_creates_count: user.spot_creates_count || 0,
             spot_edits_count: user.spot_edits_count || 0,
             media_added_count: user.media_added_count || 0,

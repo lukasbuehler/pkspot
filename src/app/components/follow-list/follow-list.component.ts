@@ -35,6 +35,8 @@ export interface FollowListDialogData {
   type: "followers" | "following";
   followUsers: FollowingDataSchema[];
   allLoaded: boolean;
+  displayName?: string;
+  isMyProfile?: boolean;
 }
 
 @Pipe({
@@ -124,6 +126,15 @@ export class FollowListComponent implements OnInit {
     obs.pipe(take(1)).subscribe(
       (followings) => {
         this.isLoading = false;
+
+        // Debugging: Log counts and IDs to help trace "empty list" bug
+        console.log(`Loaded ${followings.length} items for ${this.data.type}`);
+        if (followings.length === 0 && this._isFirstLoad) {
+          console.warn(
+            `Warning: First load returned 0 items for ${this.data.type}. Check database count vs collection content.`
+          );
+        }
+
         this._processFollowUsers(followings);
 
         // On first load, replace the array instead of concatenating
@@ -136,17 +147,21 @@ export class FollowListComponent implements OnInit {
 
         if (followings.length < chunkSize) {
           // We are at the end, and have loaded all the things
-          console.log("The end!");
+          // console.log("The end!");
           this.lastLoadedFollowing = null;
           this.hasLoadedAll = true;
         } else {
           // this was not the end
-          console.log("not the end!");
+          // console.log("not the end!");
           this.lastLoadedFollowing =
             followings[followings.length - 1].start_following ?? null;
         }
       },
-      (err) => {},
+      (err) => {
+        console.error("Error loading follow list:", err);
+        this.isLoading = false;
+        // Optionally show snackbar here
+      },
       () => {}
     );
   }
@@ -158,5 +173,29 @@ export class FollowListComponent implements OnInit {
         u._profileSrc = getProfilePictureUrl(u.uid, 200);
       }
     });
+  }
+
+  getInitials(displayName: string | undefined): string {
+    if (!displayName) return "?";
+    return displayName.charAt(0).toUpperCase();
+  }
+
+  onImgError(event: any) {
+    event.target.style.display = "none";
+    // The sibling element (fallback div) will become visible if handled in template,
+    // or we can set a backup src, but hiding the broken img and showing a div behind it is better for letter avatars.
+    // However, simplified approach: set a flag on the user object or just use *ngIf in template.
+    // Let's rely on template logic: *ngIf="!imageError" and (error)="imageError = true"
+    // But since we are iterating, we can't easily use a single variable.
+    // We can add a property to the user object in the list.
+    const element = event.target;
+    // Mark this element as failed so we can show the fallback
+    element.dataset.hasError = "true";
+    // For this simple implementation, let's just use the 'onError' in HTML to switch a variable on the user object if possible,
+    // or use a class-based toggle.
+    // Actually, simplest way for *ngFor: add a `_imgError` property to the schema locally.
+
+    // We can't easily access the scope variable here without passing it.
+    // Let's handle it in the template with a local template variable if possible, or update the model.
   }
 }

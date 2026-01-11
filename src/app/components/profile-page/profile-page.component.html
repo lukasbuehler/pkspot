@@ -9,6 +9,25 @@
   </div>
   } @else { @if (user) {
   <div class="profile-grid">
+    @if(isBlocked) {
+    <div
+      class="profile-blocked-container d-flex flex-column align-items-center justify-content-center p-5 text-center w-100"
+      style="min-height: 50vh"
+    >
+      <mat-icon
+        class="icon-size-large mb-3 text-muted"
+        style="transform: scale(3); margin-bottom: 2rem !important"
+        >block</mat-icon
+      >
+      <h2 class="mat-headline-medium mb-2 mt-4">You have blocked this user</h2>
+      <p class="mat-body-large text-muted mb-4">
+        Unblock them to see their profile and posts.
+      </p>
+      <button mat-stroked-button color="warn" (click)="toggleBlockUser()">
+        Unblock User
+      </button>
+    </div>
+    } @else {
     <section class="profile-primary" aria-label="Profile overview">
       <mat-card class="profile-overview__card mat-elevation-z1">
         <mat-card-content>
@@ -144,8 +163,9 @@
                   mat-stroked-button
                   color="warn"
                   class="profile-overview__action flex-grow-1"
+                  (click)="toggleBlockUser()"
                 >
-                  Block
+                  {{ isBlocked ? "Unblock" : "Block" }}
                 </button>
               </div>
               } @else {
@@ -215,7 +235,11 @@
         <mat-card-content class="profile-section__content">
           <div class="badge-grid">
             @for (badge of badges; track badge.id) {
-            <div class="badge-item" [title]="badge.name">
+            <div
+              class="badge-item"
+              [title]="badge.name"
+              [matTooltip]="badge.name + ' (Level ' + badge.tier + ')'"
+            >
               <img [src]="badge.icon" [alt]="badge.name" class="badge-icon" />
               <span class="badge-name mat-body-small">{{ badge.name }}</span>
             </div>
@@ -226,13 +250,23 @@
       }
 
       <mat-card class="profile-section mat-elevation-z1">
-        <mat-card-header class="profile-section__header">
-          <mat-card-title class="mat-title-small" i18n
+        <mat-card-header
+          class="profile-section__header d-flex flex-row align-items-center justify-content-between pb-2"
+        >
+          <mat-card-title class="mat-title-small m-0" i18n
             >Contributions</mat-card-title
+          ><a
+            [routerLink]="['/leaderboard']"
+            matButton="outlined"
+            color="primary"
           >
+            <mat-icon>leaderboard</mat-icon><span i18n>Leaderboard</span>
+          </a>
         </mat-card-header>
-        <mat-card-content class="profile-section__content">
-          <div class="d-flex justify-content-around text-center py-2">
+        <mat-card-content
+          class="profile-section__content d-flex flex-column gap-2"
+        >
+          <div class="d-flex flex-row justify-content-around text-center py-2">
             <div class="d-flex flex-column px-1">
               <span class="mat-headline-medium mb-0">{{
                 createdSpotsCount
@@ -255,6 +289,7 @@
         </mat-card-content>
       </mat-card>
     </section>
+    }
   </div>
   } @else {
   <div class="profile-state" aria-live="polite">

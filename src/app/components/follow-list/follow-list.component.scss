@@ -1,9 +1,27 @@
 .profilePicture {
   border-radius: 100%;
-  max-height: 36px;
-  max-width: 36px;
-  background-color: rgba(112, 112, 112, 0.479);
-  margin-right: 10px;
-  width: 36px;
-  height: 36px;
+  object-fit: cover;
+}
+
+.avatar-container {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.profile-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 18px;
+  user-select: none;
 }

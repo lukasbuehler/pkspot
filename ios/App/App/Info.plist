@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>CAPACITOR_DEBUG</key>
@@ -25,19 +26,27 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.294969617102-u9u0rov6mtv79l51cu1cg8mrkf3hgjkp</string>
+				<string
+          >com.googleusercontent.apps.294969617102-u9u0rov6mtv79l51cu1cg8mrkf3hgjkp</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GIDClientID</key>
-	<string>294969617102-u9u0rov6mtv79l51cu1cg8mrkf3hgjkp.apps.googleusercontent.com</string>
+	<string
+    >294969617102-u9u0rov6mtv79l51cu1cg8mrkf3hgjkp.apps.googleusercontent.com</string>
 	<key>LSRequiresIPhoneOS</key>
-	<true/>
+	<true />
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to display your location on the map and to find nearby spots.</string>
-	<key>UILaunchStoryboardName</key>
+  <string
+    >PK Spot needs your location to display your location, nearby spots and verify your active sessions.</string>
+  <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+  <string
+    >PK Spot uses your location to display your location, nearby spots and verify training sessions while you use the app.</string>
+  <key>NSLocationAlwaysUsageDescription</key>
+  <string>PK Spot needs your location to verify training sessions.</string>
+  <key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
@@ -59,6 +68,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<true/>
+	<true />
 </dict>
 </plist>

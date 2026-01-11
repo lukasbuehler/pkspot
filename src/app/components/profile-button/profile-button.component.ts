@@ -1,4 +1,5 @@
-import { Component, input } from "@angular/core";
+import { Component, input, inject, computed } from "@angular/core";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { RouterLink } from "@angular/router";
 import { NgOptimizedImage } from "@angular/common";
@@ -12,5 +13,22 @@ import { MatIconModule } from "@angular/material/icon";
   styleUrl: "./profile-button.component.scss",
 })
 export class ProfileButtonComponent {
+  private _authService = inject(AuthenticationService);
   user = input<UserReferenceSchema | null | undefined>();
+
+  displayUser = computed(() => {
+    const u = this.user();
+    if (!u) return null;
+
+    const blockedUsers =
+      this._authService.user?.data?.data?.blocked_users || [];
+    if (blockedUsers.includes(u.uid)) {
+      return {
+        ...u,
+        display_name: "Blocked User",
+        profile_picture: "",
+      };
+    }
+    return u;
+  });
 }

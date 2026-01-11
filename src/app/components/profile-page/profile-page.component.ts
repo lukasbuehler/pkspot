@@ -18,7 +18,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Post } from "../../../db/models/Post";
 import { User } from "../../../db/models/User";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { Subscription, skip } from "rxjs";
+import { Subscription } from "rxjs";
 import { FollowListComponent } from "../follow-list/follow-list.component";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MatButton } from "@angular/material/button";
@@ -30,7 +30,6 @@ import {
   MatCardHeader,
   MatCardTitle,
 } from "@angular/material/card";
-import { MatDivider } from "@angular/material/divider";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FollowingService } from "../../services/firebase/firestore/following.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
@@ -43,12 +42,15 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatRippleModule } from "@angular/material/core";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+import { BlockUserDialogComponent } from "../block-user-dialog/block-user-dialog.component";
+import { UnblockUserDialogComponent } from "../unblock-user-dialog/unblock-user-dialog.component";
 import { Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { countries } from "../../../scripts/Countries";
 import { BadgeService } from "../../services/badge.service";
 import { Badge } from "../../shared/badge-definitions";
+import { MatTooltipModule } from "@angular/material/tooltip";
 
 @Component({
   selector: "app-profile-page",
@@ -65,13 +67,13 @@ import { Badge } from "../../shared/badge-definitions";
     RouterLink,
     MatCardHeader,
     MatCardTitle,
-    MatDivider,
     MatIconModule,
     MatTabsModule,
     MatMenuModule,
     MatDialogModule,
     MatRippleModule,
     SpotPreviewCardComponent,
+    MatTooltipModule,
   ],
 })
 export class ProfilePageComponent implements OnInit, OnDestroy {
@@ -116,6 +118,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   badges: Badge[] = [];
 
   countries = countries;
+  blockedUsers: string[] = [];
   private _subscriptions = new Subscription();
 
   followDialogRef: MatDialogRef<FollowListComponent> | null = null;
@@ -136,31 +139,36 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     // Subscribe to auth state changes first - this handles the case where
     // auth isn't ready on initial load (e.g., page refresh)
     // Skip the first emission (initial null from BehaviorSubject before auth loads)
-    const authSub = this._authService.authState$
-      .pipe(skip(1))
-      .subscribe((authUser) => {
-        if (authUser) {
-          this.isMyProfile = this.userId === authUser.uid;
+    const authSub = this._authService.authState$.subscribe((authUser) => {
+      if (authUser) {
+        this.isMyProfile = this.userId === authUser.uid;
 
-          // If we're on /profile (no userID param) and didn't have a userId yet,
-          // redirect to /u/{userId} for a shareable URL
-          if (!this._route.snapshot.paramMap.get("userID") && authUser.uid) {
-            this._router.navigate(["/u", authUser.uid], { replaceUrl: true });
-            return;
-          }
+        // Load blocked users list for UI state
+        if (authUser.data?.data?.blocked_users) {
+          this.blockedUsers = authUser.data.data.blocked_users;
         } else {
-          this.isMyProfile = false;
-          this.isFollowing = false;
-
-          // Auth has now loaded and user is null (not signed in)
-          // If we're on /profile without a specific userID, redirect to sign-in
-          if (!this._route.snapshot.paramMap.get("userID") && !this.userId) {
-            this._router.navigate(["/sign-in"], {
-              queryParams: { returnUrl: "/profile" },
-            });
-          }
+          this.blockedUsers = [];
         }
-      });
+
+        // If we're on /profile (no userID param) and didn't have a userId yet,
+        // redirect to /u/{userId} for a shareable URL
+        if (!this._route.snapshot.paramMap.get("userID") && authUser.uid) {
+          this._router.navigate(["/u", authUser.uid], { replaceUrl: true });
+          return;
+        }
+      } else {
+        this.isMyProfile = false;
+        this.isFollowing = false;
+
+        // Auth has now loaded and user is null (not signed in)
+        // If we're on /profile without a specific userID, redirect to sign-in
+        if (!this._route.snapshot.paramMap.get("userID") && !this.userId) {
+          this._router.navigate(["/sign-in"], {
+            queryParams: { returnUrl: "/profile" },
+          });
+        }
+      }
+    });
     this._subscriptions.add(authSub);
 
     this._subscriptions.add(
@@ -195,6 +203,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this.profilePicture = "";
     this.isFollowing = false;
 
+    this.followingCount = 0;
+    this.user = null; // Ensure user is null so UI shows loading or empty state correctly for counts that rely on user object
+    // createdSpotsCount etc are derived from user object so they will reset when user is null
+
     if (this.userId) {
       // load stuff
       this.isMyProfile = this.userId === this._authService.user.uid;
@@ -206,8 +218,14 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     }
   }
 
+  private _userSubscription: Subscription | null = null;
+
   loadProfile(userId: string) {
-    const userSub = this._usersService.getUserById(userId).subscribe(
+    if (this._userSubscription) {
+      this._userSubscription.unsubscribe();
+      this._userSubscription = null;
+    }
+    this._userSubscription = this._usersService.getUserById(userId).subscribe(
       (user) => {
         if (!user) {
           this.isLoading = false;
@@ -281,15 +299,15 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         // Load User Stats
         this.isLoadingStats = true;
 
-        // Load following count
-        this._followingService.getFollowingCount(userId).then((count) => {
-          this.followingCount = count;
-        });
-
-        // Stats are now stored on the user profile (set by Cloud Functions)
+        // Stats are on the user profile (set by Cloud Functions)
         this.createdSpotsCount = this.user.data?.spot_creates_count ?? 0;
         this.editedSpotsCount = this.user.data?.spot_edits_count ?? 0;
         this.mediaAddedCount = this.user.data?.media_added_count ?? 0;
+
+        // IMPORTANT: following_count is on the user document.
+        // We cannot count the collection directly for other users due to privacy rules.
+        this.followingCount = this.user.data?.following_count ?? 0;
+
         this.isLoadingStats = false;
 
         // Compute badges for this user
@@ -303,7 +321,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     );
-    this._subscriptions.add(userSub);
     this.isLoading = true;
   }
 
@@ -420,6 +437,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           userId: this.userId,
           type: "followers",
           followUsers: [],
+          displayName: this.user?.displayName || "User",
+          isMyProfile: this.isMyProfile,
         },
       });
     }
@@ -433,9 +452,84 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           userId: this.userId,
           type: "following",
           followUsers: [],
+          displayName: this.user?.displayName || "User",
+          isMyProfile: this.isMyProfile,
         },
       });
     }
+  }
+
+  toggleBlockUser() {
+    if (!this.user || !this._authService.user.uid) return;
+
+    const myId = this._authService.user.uid;
+    const targetId = this.userId;
+
+    if (this.isBlocked) {
+      // Unblock
+      this.followListDialog
+        .open(UnblockUserDialogComponent)
+        .afterClosed()
+        .subscribe((result) => {
+          if (result) {
+            this._usersService
+              .unblockUser(myId, targetId)
+              .then(() => {
+                this.blockedUsers = (this.blockedUsers || []).filter(
+                  (id) => id !== targetId
+                );
+                this._snackbar.open("User unblocked", "OK", { duration: 3000 });
+                // Update local auth user data if needed or rely on reload?
+                // It's better to update local state immediately.
+                if (this._authService.user.data?.data) {
+                  this._authService.user.data.data.blocked_users =
+                    this.blockedUsers;
+                }
+                // Reload profile to ensure clean state and avoid bugs where stats might be mixed up
+                this.loadProfile(this.userId);
+              })
+              .catch((err) => {
+                console.error(err);
+                this._snackbar.open("Error unblocking user", "OK", {
+                  duration: 3000,
+                });
+              });
+          }
+        });
+    } else {
+      // Block
+      this.followListDialog
+        .open(BlockUserDialogComponent)
+        .afterClosed()
+        .subscribe((result) => {
+          if (result) {
+            this._usersService
+              .blockUser(myId, targetId)
+              .then(() => {
+                if (!this.blockedUsers) this.blockedUsers = [];
+                this.blockedUsers.push(targetId);
+                this._snackbar.open("User blocked", "OK", { duration: 3000 });
+                if (this._authService.user.data?.data) {
+                  // Initialize if undefined
+                  if (!this._authService.user.data.data.blocked_users) {
+                    this._authService.user.data.data.blocked_users = [];
+                  }
+                  this._authService.user.data.data.blocked_users.push(targetId);
+                }
+              })
+              .catch((err) => {
+                console.error(err);
+                this._snackbar.open("Error blocking user", "OK", {
+                  duration: 3000,
+                });
+              });
+          }
+        });
+    }
+  }
+
+  get isBlocked(): boolean {
+    return this.blockedUsers?.includes(this.userId) ?? false;
   }
 
   ngOnDestroy(): void {
