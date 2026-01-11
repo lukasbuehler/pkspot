@@ -8,6 +8,7 @@ import { AppComponent } from "./app/app.component";
 
 import { bootstrapApplication } from "@angular/platform-browser";
 import posthog from "posthog-js";
+import { Capacitor } from "@capacitor/core";
 
 // Initialize PostHog analytics early (before Angular bootstrap)
 const { apiKey, host } = environment.keys.posthog;
@@ -62,12 +63,36 @@ if (apiKey && host) {
     },
   });
 
-  // Register initial super-properties so autocaptured pageviews include them
+  // Register initial super-properties so all events include them
   try {
     const accepted =
       typeof window !== "undefined" &&
       !!localStorage.getItem("acceptedVersion");
-    posthog.register({ authenticated: false, consent_granted: accepted });
+
+    // Detect platform for analytics segmentation (iOS, Android, PWA, web)
+    const platform = Capacitor.getPlatform(); // 'ios', 'android', or 'web'
+    const isNative = Capacitor.isNativePlatform();
+
+    // Detect PWA for web platform
+    let isPwa = false;
+    if (!isNative && typeof window !== "undefined") {
+      isPwa =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone === true ||
+        document.referrer.includes("android-app://");
+    }
+
+    // Determine app_type: 'ios', 'android', 'pwa', or 'web'
+    const appType = isNative ? platform : isPwa ? "pwa" : "web";
+
+    posthog.register({
+      authenticated: false,
+      consent_granted: accepted,
+      platform: platform,
+      is_native: isNative,
+      is_pwa: isPwa,
+      app_type: appType,
+    });
   } catch (e) {
     // ignore
   }

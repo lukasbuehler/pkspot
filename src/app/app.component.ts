@@ -156,6 +156,9 @@ export class AppComponent implements OnInit {
 
   alainMode: boolean = false;
 
+  /** True when running with a non-production environment (dev/ios dev config) */
+  isDevMode: boolean = !environment.production;
+
   isEmbedded: WritableSignal<boolean | null> = signal(null);
 
   availableLanguageCodes: LocaleCode[] = [
@@ -190,7 +193,7 @@ export class AppComponent implements OnInit {
         this.alainMode = false;
       }
       GlobalVariables.alainMode.next(this.alainMode);
-      this._analyticsService.trackEvent("Page View", {
+      this._analyticsService.trackEvent("Alain Mode Changed", {
         alainMode: this.alainMode,
       });
     }
@@ -414,6 +417,17 @@ export class AppComponent implements OnInit {
           try {
             const isBrowser =
               typeof window !== "undefined" && typeof document !== "undefined";
+
+            // Reset scroll position of the main content container on navigation
+            // This is needed because we use a custom scroll container (.main-content)
+            // not the viewport, so Angular's scrollPositionRestoration doesn't work
+            if (isBrowser) {
+              const mainContent = document.querySelector(".main-content");
+              if (mainContent) {
+                mainContent.scrollTop = 0;
+              }
+            }
+
             const url = isBrowser
               ? window.location.href
               : nav.urlAfterRedirects;
@@ -426,8 +440,9 @@ export class AppComponent implements OnInit {
             // finalize previous page's engagement before starting new
             this._engagement.finalizeAndSend();
 
-            // Emit manual pageview
-            this._analyticsService.trackEvent("Page View", {
+            // Emit manual pageview using PostHog's standard $pageview event
+
+            this._analyticsService.trackEvent("$pageview", {
               path: nav.urlAfterRedirects,
               current_url: url,
               authenticated: authenticated,

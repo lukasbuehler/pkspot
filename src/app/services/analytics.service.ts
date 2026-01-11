@@ -56,7 +56,7 @@ export class AnalyticsService {
 
     // Allowlist of minimal events that may be collected before consent
     const allowlist = new Set([
-      "Page View",
+      "$pageview",
       "User Authenticated",
       "Consent Granted",
       "Visitor Agreed to Terms",

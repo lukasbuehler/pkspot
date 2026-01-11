@@ -1,4 +1,7 @@
-@if(!isEmbedded()) {
+<!-- DEV MODE warning banner - only shows in non-production builds -->
+@if(isDevMode) {
+<!-- <div class="dev-mode-banner">⚠️ DEV MODE - This is NOT a production build</div> -->
+} @if(!isEmbedded()) {
 <!-- is not embedded  -->
 <app-nav-rail-container>
   @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===

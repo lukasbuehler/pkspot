@@ -30,4 +30,29 @@ export class PlatformService {
   getPlatform(): "ios" | "android" | "web" {
     return Capacitor.getPlatform() as "ios" | "android" | "web";
   }
+
+  /**
+   * Returns true if running as a Progressive Web App (installed/standalone mode).
+   */
+  isPwa(): boolean {
+    if (typeof window === "undefined") return false;
+
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true || // Safari iOS
+      document.referrer.includes("android-app://") // TWA on Android
+    );
+  }
+
+  /**
+   * Returns the app type: 'ios', 'android', 'pwa', or 'web'.
+   * This is a more granular classification than getPlatform().
+   */
+  getAppType(): "ios" | "android" | "pwa" | "web" {
+    const platform = this.getPlatform();
+    if (platform === "ios" || platform === "android") {
+      return platform;
+    }
+    return this.isPwa() ? "pwa" : "web";
+  }
 }
