@@ -242,8 +242,14 @@ export function buildAbsoluteUrlNoLocale(path: string): string {
     // On SSR return a root-relative path; caller can prepend origin if needed.
     return normalizedPath;
   }
+
+  // In Capacitor, window.location.origin is "capacitor://localhost" - use production domain
   const origin = window.location.origin;
-  return `${origin}${normalizedPath}`;
+  const isCapacitor =
+    origin.startsWith("capacitor://") || origin.includes("localhost");
+  const shareOrigin = isCapacitor ? "https://pkspot.app" : origin;
+
+  return `${shareOrigin}${normalizedPath}`;
 }
 
 /**

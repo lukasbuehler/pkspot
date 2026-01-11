@@ -747,20 +747,38 @@ export class EventPageComponent implements OnInit, OnDestroy {
     );
     const link = buildAbsoluteUrlNoLocale(`/events/${this.eventId}`);
 
-    if (navigator["share"]) {
-      try {
-        const shareData = {
-          title: this.name,
-          text: `PK Spot: ${this.name}`,
-          url: link,
-        };
+    const shareData = {
+      title: this.name,
+      text: `PK Spot: ${this.name}`,
+      url: link,
+    };
 
-        await navigator["share"](shareData);
+    // Use Capacitor Share on native iOS/Android, navigator.share on web browser
+    const { Capacitor } = await import("@capacitor/core");
+    const isNative = Capacitor.isNativePlatform();
+
+    if (isNative) {
+      // Use Capacitor Share plugin for native apps
+      const { Share } = await import("@capacitor/share");
+      try {
+        await Share.share({
+          ...shareData,
+          dialogTitle: "Share Event",
+        });
       } catch (err) {
-        console.error("Couldn't share this spot");
+        console.error("Couldn't share this event");
+        console.error(err);
+      }
+    } else if (navigator.share) {
+      // Use Web Share API on browser
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error("Couldn't share this event");
         console.error(err);
       }
     } else {
+      // Fallback to clipboard
       navigator.clipboard.writeText(`${this.name} - PK Spot \n${link}`);
       this._snackbar.open(
         `Link to ${this.name} event copied to clipboard`,

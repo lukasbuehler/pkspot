@@ -341,20 +341,38 @@ export class ChallengeDetailComponent {
     // TODO use slug instead of id if available
     const link = buildAbsoluteUrlNoLocale(`/map/${spot.id}/c/${challenge.id}`);
 
-    if (navigator["share"]) {
-      try {
-        const shareData = {
-          title: "Challenge: " + spot.name(),
-          text: `PK Spot: ${spot.name()}`,
-          url: link,
-        };
+    const shareData = {
+      title: "Challenge: " + spot.name(),
+      text: `PK Spot: ${spot.name()}`,
+      url: link,
+    };
 
-        await navigator["share"](shareData);
+    // Use Capacitor Share on native iOS/Android, navigator.share on web browser
+    const { Capacitor } = await import("@capacitor/core");
+    const isNative = Capacitor.isNativePlatform();
+
+    if (isNative) {
+      // Use Capacitor Share plugin for native apps
+      const { Share } = await import("@capacitor/share");
+      try {
+        await Share.share({
+          ...shareData,
+          dialogTitle: "Share Challenge",
+        });
+      } catch (err) {
+        console.error("Couldn't share this challenge");
+        console.error(err);
+      }
+    } else if (navigator.share) {
+      // Use Web Share API on browser
+      try {
+        await navigator.share(shareData);
       } catch (err) {
         console.error("Couldn't share this challenge");
         console.error(err);
       }
     } else {
+      // Fallback to clipboard
       navigator.clipboard.writeText(
         `${spot.name()} Challenge - PK Spot \n${link}`
       );

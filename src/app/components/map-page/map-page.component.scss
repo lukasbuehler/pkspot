@@ -10,23 +10,34 @@
 }
 
 app-spot-map {
-  // Use position: fixed to break out of all parent overflow constraints
-  // This allows the map to fill the entire viewport, including behind the notch
-  position: fixed;
-  // Explicitly extend into safe areas on all sides (for landscape left/right notch)
-  top: calc(-1 * env(safe-area-inset-top, 0px));
-  left: calc(-1 * env(safe-area-inset-left, 0px));
-  right: calc(-1 * env(safe-area-inset-right, 0px));
-  bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
-  // Calculate dimensions to include safe areas
-  width: calc(
-    100% + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)
-  );
-  height: calc(
-    100% + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)
-  );
   // Ensure the map is behind the UI elements which use z-index
   z-index: 0;
+
+  // On mobile: Use position: fixed to break out of parent overflow constraints
+  // This allows the map to fill the entire viewport, including behind the notch (top only)
+  @media (max-width: 599.99px) {
+    position: fixed;
+    // Extend into top safe area (notch) only
+    top: calc(-1 * env(safe-area-inset-top, 0px));
+    left: calc(-1 * env(safe-area-inset-left, 0px));
+    right: calc(-1 * env(safe-area-inset-right, 0px));
+    // Stop above the bottom nav bar (80px) - don't add safe area as nav bar is already within it
+    bottom: 80px;
+    width: calc(
+      100% + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)
+    );
+    // Height is from top safe area to above bottom nav bar
+    height: auto;
+  }
+
+  // On desktop: Use position: absolute so the map respects the sidepanel layout
+  @media (min-width: 600px) {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 }
 
 .map-container {

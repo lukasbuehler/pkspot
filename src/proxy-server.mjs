@@ -142,6 +142,35 @@ function run() {
     }
   });
 
+  // Serve .well-known files for iOS Universal Links and Android App Links
+  server.get("/.well-known/*", (req, res) => {
+    const __dirname = path.dirname(new URL(import.meta.url).pathname);
+    const wellKnownPath = path.join(
+      __dirname,
+      "../browser/en/assets",
+      req.path
+    );
+    console.log(`Serving .well-known file: ${req.path} from ${wellKnownPath}`);
+
+    // Set appropriate content type for apple-app-site-association
+    if (req.path.includes("apple-app-site-association")) {
+      res.setHeader("Content-Type", "application/json");
+    }
+
+    // Override global cache header - revalidate frequently
+    res.setHeader("Cache-Control", "public, max-age=3600");
+
+    res.sendFile(wellKnownPath, (err) => {
+      if (err) {
+        console.error(
+          `Failed to serve .well-known file ${req.path}:`,
+          err.message
+        );
+        res.status(404).send(`File not found: ${req.path}`);
+      }
+    });
+  });
+
   server.get("/robots.txt", (req, res) => {
     const __dirname = path.dirname(new URL(import.meta.url).pathname);
     res.sendFile(path.join(__dirname, "../browser/en/robots.txt"));
