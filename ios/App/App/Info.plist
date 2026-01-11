@@ -46,6 +46,8 @@
     >PK Spot uses your location to display your location, nearby spots and verify training sessions while you use the app.</string>
   <key>NSLocationAlwaysUsageDescription</key>
   <string>PK Spot needs your location to verify training sessions.</string>
+  <key>ITSAppUsesNonExemptEncryption</key>
+  <false />
   <key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
