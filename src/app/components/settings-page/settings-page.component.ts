@@ -74,12 +74,12 @@ export class SettingsPageComponent implements OnInit {
       icon: "manage_accounts",
       hasChanges: false,
     },
-    {
-      id: "general",
-      name: $localize`General`,
-      icon: "settings",
-      hasChanges: false,
-    },
+    // {
+    //   id: "general",
+    //   name: $localize`General`,
+    //   icon: "settings",
+    //   hasChanges: false,
+    // },
   ];
 
   selectedPoint: string = "profile";

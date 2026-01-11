@@ -1,0 +1,181 @@
+<div class="container" style="padding-top: 80px">
+  <div class="row justify-content-center">
+    <div class="col-sm-12 col-md-6 text-center">
+      <img
+        src="assets/logos/pkspot/pkspot_logo_oneline_dark.png"
+        alt="PK Spot"
+        style="height: 56px"
+        class="mb-5"
+      />
+
+      <!-- Loading State -->
+      @if (state.status === 'loading') {
+      <div class="d-flex flex-column align-items-center gap-4">
+        <mat-spinner diameter="48"></mat-spinner>
+        <h1 class="mat-headline-medium">{{ state.title }}</h1>
+        <p class="mat-body-large">{{ state.message }}</p>
+      </div>
+      }
+
+      <!-- Success State -->
+      @if (state.status === 'success') {
+      <div class="d-flex flex-column align-items-center gap-4">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+        <h1 class="mat-headline-medium">{{ state.title }}</h1>
+        <p class="mat-body-large">{{ state.message }}</p>
+
+        <div class="d-flex gap-3 mt-3">
+          @if (mode === 'verifyEmail') {
+          <button mat-flat-button (click)="navigateToProfile()">
+            <mat-icon>person</mat-icon>
+            <span
+              i18n="
+                go to profile|Button to go to profile@@auth_action.go_to_profile"
+              >Go to Profile</span
+            >
+          </button>
+          } @if (mode === 'resetPassword') {
+          <button mat-flat-button (click)="navigateToSignIn()">
+            <mat-icon>login</mat-icon>
+            <span i18n="sign in now|Button to sign in@@auth_action.sign_in_now"
+              >Sign in now</span
+            >
+          </button>
+          } @if (mode === 'recoverEmail') {
+          <button mat-flat-button (click)="navigateToProfile()">
+            <mat-icon>person</mat-icon>
+            <span
+              i18n="
+                go to profile|Button to go to profile@@auth_action.go_to_profile"
+              >Go to Profile</span
+            >
+          </button>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Error State -->
+      @if (state.status === 'error') {
+      <div class="d-flex flex-column align-items-center gap-4">
+        <mat-icon class="error-icon">error</mat-icon>
+        <h1 class="mat-headline-medium">{{ state.title }}</h1>
+        <p class="mat-body-large">{{ state.message }}</p>
+
+        <div class="d-flex gap-3 mt-3">
+          @if (mode === 'resetPassword') {
+          <button mat-flat-button (click)="navigateToForgotPassword()">
+            <mat-icon>refresh</mat-icon>
+            <span i18n="try again|Button to try again@@auth_action.try_again"
+              >Request new link</span
+            >
+          </button>
+          }
+          <button mat-stroked-button (click)="navigateToSignIn()">
+            <mat-icon>login</mat-icon>
+            <span
+              i18n="
+                back to sign in|Button to go back to sign
+                in@@auth_action.back_to_signin"
+              >Back to Sign in</span
+            >
+          </button>
+        </div>
+      </div>
+      }
+
+      <!-- Password Reset Input State -->
+      @if (state.status === 'input_required' && mode === 'resetPassword') {
+      <div class="d-flex flex-column align-items-center gap-4">
+        <mat-icon class="reset-icon">lock_reset</mat-icon>
+        <h1 class="mat-headline-medium">{{ state.title }}</h1>
+        <p class="mat-body-large">{{ state.message }}</p>
+
+        <form
+          [formGroup]="passwordResetForm"
+          (ngSubmit)="submitNewPassword()"
+          class="password-form"
+        >
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label
+              i18n="
+                new password|Label for new password
+                field@@auth_action.new_password"
+              >New Password</mat-label
+            >
+            <input
+              matInput
+              type="password"
+              formControlName="password"
+              autocomplete="new-password"
+            />
+            @if (passwordResetForm.get('password')?.hasError('required') &&
+            passwordResetForm.get('password')?.touched) {
+            <mat-error
+              i18n="
+                password required|Error for missing
+                password@@auth_action.password_required"
+              >Password is required</mat-error
+            >
+            } @if (passwordResetForm.get('password')?.hasError('minlength') &&
+            passwordResetForm.get('password')?.touched) {
+            <mat-error
+              i18n="
+                password too short|Error for short
+                password@@auth_action.password_minlength"
+              >Password must be at least 6 characters</mat-error
+            >
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label
+              i18n="
+                confirm password|Label for confirm password
+                field@@auth_action.confirm_password"
+              >Confirm Password</mat-label
+            >
+            <input
+              matInput
+              type="password"
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+            />
+            @if (passwordMismatch) {
+            <mat-error
+              i18n="
+                passwords dont match|Error for mismatched
+                passwords@@auth_action.password_mismatch"
+              >Passwords do not match</mat-error
+            >
+            }
+          </mat-form-field>
+
+          <button
+            mat-flat-button
+            type="submit"
+            [disabled]="passwordResetForm.invalid || isResettingPassword"
+            class="full-width"
+          >
+            @if (isResettingPassword) {
+            <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+            } @else {
+            <ng-container
+              class="d-flex flex-row align-items-center gap-1 justify-content-center"
+            >
+              <mat-icon>lock</mat-icon>
+              <span
+                i18n="
+                  reset password|Button to reset
+                  password@@auth_action.reset_password"
+                >Reset Password</span
+              >
+            </ng-container>
+            }
+          </button>
+        </form>
+      </div>
+      }
+    </div>
+  </div>
+</div>

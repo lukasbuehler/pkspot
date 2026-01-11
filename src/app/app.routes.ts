@@ -272,5 +272,16 @@ export const routes: Routes = [
     data: { routeName: "Leaderboard" },
   },
 
+  // Firebase Auth Action Handler (email verification, password reset, etc.)
+  // Firebase sends links to /__/auth/action with query params
+  {
+    path: "__/auth/action",
+    loadComponent: () =>
+      import("./components/auth-action-page/auth-action-page.component").then(
+        (m) => m.AuthActionPageComponent
+      ),
+    data: { routeName: "Auth Action" },
+  },
+
   { path: "**", component: NotFoundPageComponent },
 ];
