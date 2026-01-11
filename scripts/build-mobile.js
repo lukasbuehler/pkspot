@@ -4,14 +4,15 @@ const path = require("path");
 
 // Configuration map
 const CONFIGS = {
-  mobile: "mobile",
+  iosdev: "ios-dev",
+  androiddev: "android-dev",
   android: "android",
   ios: "ios",
 };
 
 // Get configuration from arguments (default to 'mobile')
 const args = process.argv.slice(2);
-const targetConfig = args[0] || "mobile";
+const targetConfig = args[0] || "ios-dev";
 
 if (!CONFIGS[targetConfig]) {
   console.error(`Invalid configuration: ${targetConfig}`);

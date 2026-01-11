@@ -373,7 +373,7 @@
   ></ng-container>
 
   <div
-    class="position-absolute top-0 start-0 end-0 p-2 d-flex flex-column gap-1"
+    class="search-bar-overlay position-absolute top-0 start-0 end-0 p-2 d-flex flex-column gap-1"
   >
     <div class="d-flex flex-row gap-3">
       @if(alainMode && responsiveService.isMobile()) {
@@ -395,7 +395,12 @@
 
   <app-bottom-sheet
     class="d-flex"
-    style="top: 72px; bottom: 0; position: absolute; width: 100%"
+    style="
+      top: calc(72px - min(8px, env(safe-area-inset-top, 0px)));
+      bottom: 0;
+      position: absolute;
+      width: 100%;
+    "
     @fadeInOut
     (isAtTopChange)="bottomSheetOpen.set($event)"
     (openProgressChange)="bottomSheetProgress.set($event)"

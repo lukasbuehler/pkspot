@@ -10,14 +10,36 @@
 }
 
 app-spot-map {
-  position: absolute;
-  width: 100%;
-  height: 100%;
+  // Use position: fixed to break out of all parent overflow constraints
+  // This allows the map to fill the entire viewport, including behind the notch
+  position: fixed;
+  // Explicitly extend into safe areas on all sides (for landscape left/right notch)
+  top: calc(-1 * env(safe-area-inset-top, 0px));
+  left: calc(-1 * env(safe-area-inset-left, 0px));
+  right: calc(-1 * env(safe-area-inset-right, 0px));
+  bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+  // Calculate dimensions to include safe areas
+  width: calc(
+    100% + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)
+  );
+  height: calc(
+    100% + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)
+  );
+  // Ensure the map is behind the UI elements which use z-index
+  z-index: 0;
 }
 
 .map-container {
   overflow: hidden;
   height: 100%;
+}
+
+// Smart top padding for the search bar overlay container
+// Uses default padding when no safe area (mobile browser), but removes it when
+// there IS a safe area (native app with notch) to avoid double spacing
+.search-bar-overlay {
+  // Default 8px padding, reduced by the safe area inset amount (clamped to 0 minimum)
+  padding-top: max(0px, calc(8px - env(safe-area-inset-top, 0px))) !important;
 }
 
 .tab-icon {
@@ -51,14 +73,6 @@ app-spot-map {
   margin: 0 auto;
   width: 50vw;
   max-width: 100%;
-}
-
-#searchFab {
-  position: absolute;
-  z-index: 2;
-
-  left: 20px;
-  top: 20px;
 }
 
 ::ng-deep .mat-drawer-inner-container {

@@ -1264,13 +1264,6 @@ export class SpotMapDataManager {
       .map((tile) => getClusterTileKey(visibleTilesObj.zoom, tile.x, tile.y))
       .filter((tileKey) => !this._spots.has(tileKey));
 
-    console.log(
-      "[SpotMapDataManager] _getSpotTilesToLoad missing:",
-      missingTiles.length,
-      "zoom:",
-      zoom
-    );
-
     const tilesToLoad = new Set(
       missingTiles.filter((tileKey: MapTileKey) => !this.isTileLoading(tileKey))
     );

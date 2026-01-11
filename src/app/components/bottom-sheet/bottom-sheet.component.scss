@@ -37,6 +37,9 @@ div.sheet {
     overflow-y: scroll;
     height: calc(100% - $handle-region-height);
     overflow-x: hidden;
+    // Prevent iOS rubber-band/overshoot scrolling which interferes with
+    // the ability to drag the bottom sheet down when content is at top
+    overscroll-behavior: none;
   }
 }
 
