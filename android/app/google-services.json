@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "294969617102",
+    "firebase_url": "https://parkour-base-project.firebaseio.com",
+    "project_id": "parkour-base-project",
+    "storage_bucket": "parkour-base-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:294969617102:android:7dc490ae0f078f00313e9f",
+        "android_client_info": {
+          "package_name": "com.pkspot.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "294969617102-fuif26sghnbtrpecffne0909a4ders0e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8nceLK2mSi3OyeTgjRxaYSsq_IEF7rHM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "294969617102-fuif26sghnbtrpecffne0909a4ders0e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "294969617102-8v45jb48g2osm3umqgaup5urcit7djd8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pkspot.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
