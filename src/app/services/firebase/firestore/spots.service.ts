@@ -77,8 +77,6 @@ export class SpotsService extends ConsentAwareService {
   }
 
   getSpotById(spotId: SpotId, locale: LocaleCode): Promise<Spot> {
-    console.log(spotId);
-
     // Use adapter for platform-agnostic access
     return this._firestoreAdapter
       .getDocument<SpotSchema & { id: string }>(`spots/${spotId}`)

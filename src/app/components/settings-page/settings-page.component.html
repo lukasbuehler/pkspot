@@ -79,7 +79,7 @@
           <div class="my-4 p-3 rounded border">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h3 class="mat-h3 m-0" i18n>E-Mail address</h3>
-              @if(!isEmailExpanded) {
+              @if(!isEmailExpanded && !isOAuthUser) {
               <button
                 mat-button
                 color="primary"
@@ -184,6 +184,7 @@
           </div>
 
           <!-- Password Section -->
+          @if(!isOAuthUser) {
           <div class="my-4 p-3 rounded border">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h3 class="mat-h3 m-0" i18n>Password</h3>
@@ -251,6 +252,7 @@
             </div>
             }
           </div>
+          }
 
           <!-- Delete Account Section -->
           <div class="my-4 p-3 rounded border border-danger">

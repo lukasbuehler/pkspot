@@ -47,6 +47,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
     FormsModule,
     MatProgressSpinner,
   ],
+  host: { ngSkipHydration: "true" },
 })
 export class SettingsPageComponent implements OnInit {
   @ViewChild("editProfileComponent") editProfileComponent:
@@ -120,7 +121,12 @@ export class SettingsPageComponent implements OnInit {
 
   get isOAuthUser(): boolean {
     const providerId = this.authService.user.providerId;
-    return providerId === "google.com" || providerId === "apple.com";
+    // If providerId is missing or is 'password', it's not an OAuth user
+    if (!providerId || providerId === "password") {
+      return false;
+    }
+    // Otherwise (google.com, apple.com, etc.), it is an OAuth user
+    return true;
   }
 
   get providerDisplayName(): string {
@@ -330,15 +336,39 @@ export class SettingsPageComponent implements OnInit {
       const providerId = this.authService.user.providerId;
       if (!providerId) return;
 
+      const originalUid = this.authService.user.uid;
+
       this.isDeletingAccount = true;
       this.authService
         .reauthenticateWithProvider(providerId)
-        .then(() => {
+        .then(async () => {
+          // Check for UID mismatch using fresh SDK data
+          const newUid = await this.authService.getCurrentUserUid();
+
+          if (originalUid && newUid && originalUid !== newUid) {
+            console.error(
+              `UID Mismatch: Original ${originalUid} vs New ${newUid}`
+            );
+            this.isDeletingAccount = false;
+            this._snackbar.open(
+              $localize`Account mismatch. Please sign in to the correct account.`,
+              "OK",
+              { duration: 5000 }
+            );
+            return;
+          }
+
           // Re-auth successful, proceed to delete without password
           this._performDelete();
         })
         .catch((err) => {
           console.error("Re-authentication failed:", err);
+          try {
+            console.error("Re-auth error details:", JSON.stringify(err));
+          } catch (e) {
+            console.error("Could not stringify error");
+          }
+
           this.isDeletingAccount = false;
           this._snackbar.open(
             $localize`Re-authentication failed. Account not deleted.`,

@@ -274,6 +274,17 @@ export class AuthenticationService extends ConsentAwareService {
       if (this._isNative) {
         // Capacitor user might have providerId directly or in providerId
         this.user.providerId = (user as any).providerId;
+
+        // Fallback: if providerId is 'Firebase', check providerData to get the real provider
+        if (
+          this.user.providerId === "Firebase" &&
+          (user as any).providerData?.length > 0
+        ) {
+          const firstProvider = (user as any).providerData[0];
+          if (firstProvider && firstProvider.providerId) {
+            this.user.providerId = firstProvider.providerId;
+          }
+        }
       } else {
         // Firebase web user
         const fbUser = user as FirebaseUser;
@@ -402,9 +413,9 @@ export class AuthenticationService extends ConsentAwareService {
       googleAuthProvider.addScope("email");
       googleAuthProvider.addScope("profile");
 
-      let googleSignInResponse = await signInWithPopup(
-        this.auth,
-        googleAuthProvider
+      let googleSignInResponse = await runInInjectionContext(
+        this._injector,
+        () => signInWithPopup(this.auth, googleAuthProvider)
       );
 
       // check if the user exists in the database
@@ -514,9 +525,9 @@ export class AuthenticationService extends ConsentAwareService {
       appleAuthProvider.addScope("email");
       appleAuthProvider.addScope("name");
 
-      let appleSignInResponse = await signInWithPopup(
-        this.auth,
-        appleAuthProvider
+      let appleSignInResponse = await runInInjectionContext(
+        this._injector,
+        () => signInWithPopup(this.auth, appleAuthProvider)
       );
 
       // check if the user exists in the database
@@ -635,6 +646,19 @@ export class AuthenticationService extends ConsentAwareService {
       return Promise.reject("No current firebase user found");
     }
     await FirebaseAuthentication.sendEmailVerification();
+  }
+
+  // ============================================
+  // Get Current User UID (Direct SDK Call)
+  // ============================================
+
+  public async getCurrentUserUid(): Promise<string | undefined> {
+    if (this._isNative) {
+      const { user } = await FirebaseAuthentication.getCurrentUser();
+      return user?.uid;
+    } else {
+      return this.auth.currentUser?.uid;
+    }
   }
 
   // ============================================
@@ -793,27 +817,46 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     let provider: AuthProvider;
-    if (providerId === "google.com") {
+    if (providerId === "google.com" || providerId === "google") {
       provider = new GoogleAuthProvider();
-    } else if (providerId === "apple.com") {
+    } else if (providerId === "apple.com" || providerId === "apple") {
       provider = new OAuthProvider("apple.com");
     } else {
       return Promise.reject(new Error("Unsupported provider: " + providerId));
     }
 
-    await reauthenticateWithPopup(this.auth.currentUser, provider);
+    await runInInjectionContext(this._injector, () =>
+      reauthenticateWithPopup(this.auth.currentUser!, provider)
+    );
   }
 
   private async _reauthenticateWithProviderNative(
     providerId: string
   ): Promise<void> {
+    console.log("Re-authenticating with provider (native):", providerId);
+
     // For native, "reauthentication" is effectively just signing in again
     // The native SDKs handle the session merge/refresh
-    if (providerId === "google.com") {
-      await this.signInGoogle();
-    } else if (providerId === "apple.com") {
-      await this.signInApple();
+
+    // Check for google (google.com or just google)
+    if (providerId === "google.com" || providerId === "google") {
+      try {
+        await this.signInGoogle();
+      } catch (err) {
+        console.error("Native Google re-auth failed:", err);
+        throw err;
+      }
+    }
+    // Check for apple (apple.com or just apple)
+    else if (providerId === "apple.com" || providerId === "apple") {
+      try {
+        await this.signInApple();
+      } catch (err) {
+        console.error("Native Apple re-auth failed:", err);
+        throw err;
+      }
     } else {
+      console.error("Unsupported provider for re-auth:", providerId);
       throw new Error("Unsupported provider: " + providerId);
     }
   }
@@ -953,14 +996,19 @@ export class AuthenticationService extends ConsentAwareService {
       throw new Error("No user ID found");
     }
 
-    // Delete Firestore user document first
-    await this._userService.deleteUser(userId);
-
-    // Then delete Firebase Auth account
+    // Delete Firebase Auth account first (while still authenticated)
     if (this._isNative) {
       await this._deleteAccountNative();
     } else {
       await this._deleteAccountWeb();
+    }
+
+    // Then delete Firestore user document
+    try {
+      await this._userService.deleteUser(userId);
+    } catch (err) {
+      // Log but don't throw - auth user is already deleted
+      console.warn("Failed to delete user document:", err);
     }
 
     // Clear local state
