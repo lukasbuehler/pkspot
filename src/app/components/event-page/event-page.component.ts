@@ -571,6 +571,38 @@ export class EventPageComponent implements OnInit, OnDestroy {
     );
 
     this.spots.set([mainSpot]);
+
+    if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
+      // Use effect to wait for Maps API to load
+      effect(() => {
+        if (this.mapsApiService.isApiLoaded()) {
+          this.areaPolygon.set({
+            paths: new google.maps.MVCArray<
+              google.maps.MVCArray<google.maps.LatLng>
+            >([
+              new google.maps.MVCArray<google.maps.LatLng>([
+                new google.maps.LatLng(0, -90),
+                new google.maps.LatLng(0, 90),
+                new google.maps.LatLng(90, -90),
+                new google.maps.LatLng(90, 90),
+              ]),
+              new google.maps.MVCArray<google.maps.LatLng>([
+                new google.maps.LatLng(47.39690440489847, 8.54137955373239),
+                new google.maps.LatLng(47.39922912784592, 8.54270958874722),
+                new google.maps.LatLng(47.39976970395402, 8.546988087725437),
+                new google.maps.LatLng(47.39852765134482, 8.552592984179212),
+                new google.maps.LatLng(47.39266322242201, 8.550449664195357),
+                new google.maps.LatLng(47.395861761732796, 8.546175461394029),
+              ]),
+            ]),
+            strokeOpacity: 0,
+            strokeWeight: 0,
+            fillColor: "#000000",
+            fillOpacity: 0.5,
+          });
+        }
+      });
+    }
   }
 
   updateCompactView() {
@@ -611,35 +643,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
     this.metaTagService.setEventMetaTags(eventData, canonicalPath);
 
     if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
-      // Use effect to wait for Maps API to load
-      effect(() => {
-        if (this.mapsApiService.isApiLoaded()) {
-          this.areaPolygon.set({
-            paths: new google.maps.MVCArray<
-              google.maps.MVCArray<google.maps.LatLng>
-            >([
-              new google.maps.MVCArray<google.maps.LatLng>([
-                new google.maps.LatLng(0, -90),
-                new google.maps.LatLng(0, 90),
-                new google.maps.LatLng(90, -90),
-                new google.maps.LatLng(90, 90),
-              ]),
-              new google.maps.MVCArray<google.maps.LatLng>([
-                new google.maps.LatLng(47.39690440489847, 8.54137955373239),
-                new google.maps.LatLng(47.39922912784592, 8.54270958874722),
-                new google.maps.LatLng(47.39976970395402, 8.546988087725437),
-                new google.maps.LatLng(47.39852765134482, 8.552592984179212),
-                new google.maps.LatLng(47.39266322242201, 8.550449664195357),
-                new google.maps.LatLng(47.395861761732796, 8.546175461394029),
-              ]),
-            ]),
-            strokeOpacity: 0,
-            strokeWeight: 0,
-            fillColor: "#000000",
-            fillOpacity: 0.5,
-          });
-        }
-      });
+      // API loading effect moved to constructor to fix NG0203
     }
 
     // add the structured data for the event

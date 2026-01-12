@@ -298,7 +298,9 @@ export class AppComponent implements OnInit {
         const currentTermsVersion = this._consentService.CURRENT_TERMS_VERSION;
         const acceptedVersion = localStorage.getItem("acceptedVersion");
         const path = window.location.pathname;
-        const isEmbedded = path.startsWith("/embedded");
+        // Check both path-based embedding (/embedded route) and iframe embedding
+        const isEmbedded =
+          path.startsWith("/embedded") || window.self !== window.top;
 
         // List of paths where we don't enforce the dialog (approximate check based on routes)
         const isAcceptanceFree = ACCEPTANCE_FREE_PREFIXES.some((prefix) =>
@@ -639,10 +641,14 @@ export class AppComponent implements OnInit {
 
       this.policyAccepted = acceptedVersion === currentTermsVersion;
 
+      // Check both path-based embedding (/embedded route) and iframe embedding (window.self !== window.top)
+      const isInIframe = window.self !== window.top;
+
       if (
         !this.policyAccepted &&
         !isABot &&
         this.isEmbedded() === false &&
+        !isInIframe &&
         this.dialog.openDialogs.length === 0
       ) {
         firstValueFrom(

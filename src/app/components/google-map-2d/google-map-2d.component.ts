@@ -320,6 +320,11 @@ export class GoogleMap2dComponent
   //   google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY;
 
   mapTypeId: Signal<google.maps.MapTypeId> = computed(() => {
+    // Guard against google maps not being loaded
+    if (typeof google === "undefined" || !google.maps) {
+      return "roadmap" as any;
+    }
+
     switch (this.mapStyle()) {
       case "roadmap":
         return google.maps.MapTypeId.ROADMAP;
@@ -561,6 +566,9 @@ export class GoogleMap2dComponent
 
   // Build heatmap data from dots with weighted lat/lng
   heatmapData = computed<google.maps.visualization.WeightedLocation[]>(() => {
+    // Guard against google maps not being loaded
+    if (typeof google === "undefined" || !google.maps) return [];
+
     const dots = this._dotsSignal();
     if (!dots || dots.length === 0) {
       return [];
@@ -595,7 +603,7 @@ export class GoogleMap2dComponent
         return {
           location: new google.maps.LatLng(lat, lng),
           weight: dot.weight || 1,
-        };
+        } as google.maps.visualization.WeightedLocation;
       });
   });
 
@@ -659,6 +667,12 @@ export class GoogleMap2dComponent
       // Also apply minZoom dynamically
       this.googleMap.googleMap?.setOptions({ minZoom: this.minZoom });
     }
+
+    // Apply vector rendering type safely
+    this.mapOptions.renderingType = google.maps.RenderingType.VECTOR;
+    this.googleMap.googleMap?.setOptions({
+      renderingType: google.maps.RenderingType.VECTOR,
+    });
 
     this.positionGoogleMapsLogo();
   }
@@ -755,7 +769,6 @@ export class GoogleMap2dComponent
     gestureHandling: "greedy",
     disableDefaultUI: true,
     tilt: 0,
-    renderingType: google.maps.RenderingType.VECTOR,
     headingInteractionEnabled: true,
   };
 
