@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">
   <file id="ngi18n" original="ng.template">
+    <unit id="3762050401268226469">
+      <segment>
+        <source>Unknown Action</source>
+      </segment>
+    </unit>
     <unit id="3768927257183755959">
       <segment>
         <source>Save</source>
@@ -39,6 +44,16 @@
         <source>Embed</source>
       </segment>
     </unit>
+    <unit id="8155714392761937762">
+      <segment>
+        <source>Home Spots</source>
+      </segment>
+    </unit>
+    <unit id="8182413566453831074">
+      <segment>
+        <source>Freerunner since</source>
+      </segment>
+    </unit>
     <unit id="spot_access_label">
       <notes>
         <note category="description">Label for the spot access selection field</note>
@@ -61,6 +76,11 @@
     <unit id="7344847855829755220">
       <segment>
         <source>Show geolocation</source>
+      </segment>
+    </unit>
+    <unit id="7353924840712072086">
+      <segment>
+        <source>Current password (for confirmation)</source>
       </segment>
     </unit>
     <unit id="6058033902089935749">
@@ -368,32 +388,9 @@
         <source> You can edit your public profile here. The information on your public profile can be seen by everyone, even unauthenticated visitors. </source>
       </segment>
     </unit>
-    <unit id="settings.login.header">
-      <notes>
-        <note category="description">Header for login information section</note>
-        <note category="meaning">login information section</note>
-      </notes>
-      <segment>
-        <source> Login information </source>
-      </segment>
-    </unit>
-    <unit id="settings.login.description">
-      <notes>
-        <note category="description">Description of login information section</note>
-        <note category="meaning">login information description</note>
-      </notes>
-      <segment>
-        <source> Your login information. Your E-mail address here is used for your login. You can add the same E-mail address or a different one to your contact information. </source>
-      </segment>
-    </unit>
     <unit id="6815507474406960450">
       <segment>
         <source>E-Mail address</source>
-      </segment>
-    </unit>
-    <unit id="5830520205989474611">
-      <segment>
-        <source>E-mail address</source>
       </segment>
     </unit>
     <unit id="3517550046701184661">
@@ -401,14 +398,19 @@
         <source>Show less</source>
       </segment>
     </unit>
-    <unit id="3539941729807255231">
-      <segment>
-        <source>Your E-mail has not been verified!</source>
-      </segment>
-    </unit>
     <unit id="3542042671420335679">
       <segment>
         <source>No</source>
+      </segment>
+    </unit>
+    <unit id="3575990016862725996">
+      <segment>
+        <source> Join our Discord server to chat with the community, report bugs, and request features. This is the fastest way to get help! </source>
+      </segment>
+    </unit>
+    <unit id="3588415639242079458">
+      <segment>
+        <source>New password</source>
       </segment>
     </unit>
     <unit id="3599528462269889129">
@@ -421,9 +423,9 @@
         <source>lowercase letters, numbers, and hyphens only</source>
       </segment>
     </unit>
-    <unit id="133789173523080152">
+    <unit id="5506176846620350292">
       <segment>
-        <source>Your E-mail is verified</source>
+        <source>Your email address has been successfully recovered. You may want to change your password if you didn&apos;t make this change.</source>
       </segment>
     </unit>
     <unit id="5520281340448478864">
@@ -431,9 +433,14 @@
         <source> Landing in a new city? Don&apos;t waste time scrolling. Use the Top Rated view to find the legendary spots the locals love. From the streets to the rooftops, the map speaks your language. </source>
       </segment>
     </unit>
-    <unit id="5563672453089263696">
+    <unit id="5526007558904938886">
       <segment>
-        <source>Changing this E-mail will change your login information</source>
+        <source>About PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="553543363816145762">
+      <segment>
+        <source>Your email address has been successfully verified. You can now access all features of PK Spot.</source>
       </segment>
     </unit>
     <unit id="5567404971286131139">
@@ -441,19 +448,24 @@
         <source> This spot is not eligible for highlights. To be eligible, it needs at least one user-submitted picture and at least one rating. </source>
       </segment>
     </unit>
-    <unit id="3934298777794632654">
+    <unit id="5596960263969935910">
       <segment>
-        <source> Change E-mail address </source>
+        <source>The password is too weak. Please use at least 6 characters.</source>
+      </segment>
+    </unit>
+    <unit id="5598589668932032802">
+      <segment>
+        <source>Verification Failed</source>
+      </segment>
+    </unit>
+    <unit id="574237115855339547">
+      <segment>
+        <source>Change E-mail address</source>
       </segment>
     </unit>
     <unit id="2807800733729323332">
       <segment>
         <source>Yes</source>
-      </segment>
-    </unit>
-    <unit id="2818862099235102080">
-      <segment>
-        <source> Resend verification E-mail </source>
       </segment>
     </unit>
     <unit id="1431416938026210429">
@@ -470,9 +482,24 @@
         <source>Edit History</source>
       </segment>
     </unit>
-    <unit id="8626615958100222841">
+    <unit id="1441164278426420486">
       <segment>
-        <source> Change password </source>
+        <source>New E-mail address</source>
+      </segment>
+    </unit>
+    <unit id="1486755545881068533">
+      <segment>
+        <source>Re-authentication failed. Account not deleted.</source>
+      </segment>
+    </unit>
+    <unit id="6309828574111583895">
+      <segment>
+        <source>Change password</source>
+      </segment>
+    </unit>
+    <unit id="1336542143746897548">
+      <segment>
+        <source>Email Support</source>
       </segment>
     </unit>
     <unit id="134280351162314914">
@@ -480,9 +507,14 @@
         <source>Rating: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10"/> ⭐</source>
       </segment>
     </unit>
-    <unit id="1347241542439262355">
+    <unit id="1356237918552845367">
       <segment>
-        <source>General settings</source>
+        <source>Cartographer</source>
+      </segment>
+    </unit>
+    <unit id="1370851403138688256">
+      <segment>
+        <source>Email Verified!</source>
       </segment>
     </unit>
     <unit id="1388168313047050333">
@@ -493,14 +525,9 @@
         <source> We&apos;ll only use your email to contact you about this report. </source>
       </segment>
     </unit>
-    <unit id="5223089976416033243">
+    <unit id="1389550100207768929">
       <segment>
-        <source> General settings to tune your experience on PK Spot. </source>
-      </segment>
-    </unit>
-    <unit id="5851560788527570644">
-      <segment>
-        <source>Notifications</source>
+        <source>No account found for this email address.</source>
       </segment>
     </unit>
     <unit id="5888181835078469865">
@@ -559,7 +586,7 @@
         <note category="meaning">no account message</note>
       </notes>
       <segment>
-        <source> Don&apos;t have an account yet? Simply sign in with your Google account or sign up below. </source>
+        <source> Don&apos;t have an account yet? Simply sign in with your Google or Apple account or sign up below. </source>
       </segment>
     </unit>
     <unit id="signin.signup.button">
@@ -590,6 +617,11 @@
         <source>The password is invalid!</source>
       </segment>
     </unit>
+    <unit id="7705508697330810763">
+      <segment>
+        <source>Delete Account</source>
+      </segment>
+    </unit>
     <unit id="7708270344948043036">
       <segment>
         <source> <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}"/> </source>
@@ -598,6 +630,11 @@
     <unit id="7733953409417762446">
       <segment>
         <source>An unknown error has occured on sign in. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="7742018872696898961">
+      <segment>
+        <source>Current password is incorrect.</source>
       </segment>
     </unit>
     <unit id="7323901917278002498">
@@ -618,6 +655,11 @@
     <unit id="697121102743047551">
       <segment>
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">water</pc> Find Water Spots </source>
+      </segment>
+    </unit>
+    <unit id="6972105223770675605">
+      <segment>
+        <source>Reset Password</source>
       </segment>
     </unit>
     <unit id="6997602168024654529">
@@ -655,6 +697,11 @@
         <source>The repeated password needs to match the password entered.</source>
       </segment>
     </unit>
+    <unit id="5287661483037226366">
+      <segment>
+        <source> Feel free to slide into our DMs! We&apos;re happy to help with quick questions. </source>
+      </segment>
+    </unit>
     <unit id="1048224077750217239">
       <segment>
         <source>Live &amp; Verified</source>
@@ -663,6 +710,11 @@
     <unit id="1074819869528994576">
       <segment>
         <source> Keep track of your journey. Bookmark your favorite training locations and save the spots you&apos;ve visited to build your personal collection of spots around the world. </source>
+      </segment>
+    </unit>
+    <unit id="1096271480010782204">
+      <segment>
+        <source>Founder</source>
       </segment>
     </unit>
     <unit id="1267967133679326155">
@@ -693,6 +745,11 @@
     <unit id="3601523967492159201">
       <segment>
         <source>Could not create account!</source>
+      </segment>
+    </unit>
+    <unit id="3631960501807863073">
+      <segment>
+        <source>New password is too weak.</source>
       </segment>
     </unit>
     <unit id="3637006077361642270">
@@ -750,6 +807,11 @@
         <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</source>
       </segment>
     </unit>
+    <unit id="8115083664628466958">
+      <segment>
+        <source>E-Mail</source>
+      </segment>
+    </unit>
     <unit id="8126459137636028145">
       <notes>
         <note category="description">The header for the spot description</note>
@@ -765,6 +827,11 @@
       </notes>
       <segment>
         <source>Please enter a valid email</source>
+      </segment>
+    </unit>
+    <unit id="6715130059718666635">
+      <segment>
+        <source>Contributions</source>
       </segment>
     </unit>
     <unit id="6772316127315505952">
@@ -907,9 +974,24 @@
         <source> Report </source>
       </segment>
     </unit>
+    <unit id="6340970481322850527">
+      <segment>
+        <source>Return to sign in</source>
+      </segment>
+    </unit>
+    <unit id="6366005533956235174">
+      <segment>
+        <source>Please enter your password</source>
+      </segment>
+    </unit>
     <unit id="6377092763030946894">
       <segment>
         <source>Custom URL added</source>
+      </segment>
+    </unit>
+    <unit id="641716500460785755">
+      <segment>
+        <source>Get in Touch</source>
       </segment>
     </unit>
     <unit id="6417858746273147766">
@@ -926,6 +1008,16 @@
         <source>Description</source>
       </segment>
     </unit>
+    <unit id="4930506384627295710">
+      <segment>
+        <source>Settings</source>
+      </segment>
+    </unit>
+    <unit id="4939428286618017421">
+      <segment>
+        <source>Back to sign in</source>
+      </segment>
+    </unit>
     <unit id="8942517704279686805">
       <notes>
         <note category="description">Placeholder of the spot description edit field</note>
@@ -933,6 +1025,11 @@
       </notes>
       <segment>
         <source>Description of the spot, its features and more...</source>
+      </segment>
+    </unit>
+    <unit id="8958570874759054860">
+      <segment>
+        <source>Settings - </source>
       </segment>
     </unit>
     <unit id="6876434298853499564">
@@ -1050,9 +1147,29 @@
         <source>Initializing map...</source>
       </segment>
     </unit>
+    <unit id="1521539924104999091">
+      <segment>
+        <source>Email Recovered</source>
+      </segment>
+    </unit>
+    <unit id="1521659529201664852">
+      <segment>
+        <source>Spots Created</source>
+      </segment>
+    </unit>
+    <unit id="1534029177398918729">
+      <segment>
+        <source>GitHub</source>
+      </segment>
+    </unit>
     <unit id="1536087519743707362">
       <segment>
         <source>Dismiss</source>
+      </segment>
+    </unit>
+    <unit id="6945945395354199350">
+      <segment>
+        <source>Incorrect password. Please try again.</source>
       </segment>
     </unit>
     <unit id="6946913675153584317">
@@ -1083,9 +1200,19 @@
         <source><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></source>
       </segment>
     </unit>
+    <unit id="8439955599488894226">
+      <segment>
+        <source>Privacy Policy</source>
+      </segment>
+    </unit>
     <unit id="8450335284128633458">
       <segment>
         <source>Failed to link Google Place</source>
+      </segment>
+    </unit>
+    <unit id="3268843240047650795">
+      <segment>
+        <source>Trailblazer</source>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -1098,9 +1225,19 @@
         <source>Torn down</source>
       </segment>
     </unit>
-    <unit id="8369296838542073526">
+    <unit id="1101593405603414898">
       <segment>
-        <source> Your training doesn&apos;t stop for the weather. Need a covered rail for a rainy night? A lit spot for a winter session? Or a gym for drills? Our Smart Filters let you dial in the exact training conditions you need. </source>
+        <source> Your training doesn&apos;t stop for the weather. Need a covered rail for a rainy night? A lit spot for a winter session? Or a Parkour gym for drills? Our Smart Filters let you dial in the exact training conditions you need. </source>
+      </segment>
+    </unit>
+    <unit id="1118027788072351320">
+      <segment>
+        <source>Sending...</source>
+      </segment>
+    </unit>
+    <unit id="1140327701924892323">
+      <segment>
+        <source>Quick Links</source>
       </segment>
     </unit>
     <unit id="8374523856907728400">
@@ -1111,6 +1248,16 @@
     <unit id="4430765953319659794">
       <segment>
         <source>It&apos;s a private spot and should not be on this spot map.</source>
+      </segment>
+    </unit>
+    <unit id="8656126574213649581">
+      <segment>
+        <source>Confirm new password</source>
+      </segment>
+    </unit>
+    <unit id="8672443665211234755">
+      <segment>
+        <source>This link has expired. Please request a new one.</source>
       </segment>
     </unit>
     <unit id="8686897794326651735">
@@ -1128,9 +1275,24 @@
         <source>Which spot is this spot a duplicate of?</source>
       </segment>
     </unit>
+    <unit id="2014228771300600511">
+      <segment>
+        <source> The page you are looking for does not exist or has been moved. </source>
+      </segment>
+    </unit>
+    <unit id="2016569006287688818">
+      <segment>
+        <source>An error occurred. Please try again or request a new link.</source>
+      </segment>
+    </unit>
     <unit id="2029717048910432760">
       <segment>
         <source>Spot</source>
+      </segment>
+    </unit>
+    <unit id="2029980907058777630">
+      <segment>
+        <source>Terms of Service</source>
       </segment>
     </unit>
     <unit id="440458300676573130">
@@ -1148,17 +1310,44 @@
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">steps</pc> Find Parkour parks and gyms </source>
       </segment>
     </unit>
+    <unit id="2325032840535506648">
+      <segment>
+        <source>Discord Community</source>
+      </segment>
+    </unit>
     <unit id="2330577642930707695">
-      <notes>
-        <note category="description">cancel button label</note>
-      </notes>
       <segment>
         <source> Cancel </source>
+      </segment>
+    </unit>
+    <unit id="9019759608416406738">
+      <segment>
+        <source>Early Adopter</source>
+      </segment>
+    </unit>
+    <unit id="9068926282349592226">
+      <segment>
+        <source>Password changed successfully</source>
       </segment>
     </unit>
     <unit id="9074160907730350759">
       <segment>
         <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
+      </segment>
+    </unit>
+    <unit id="9113275416553101993">
+      <segment>
+        <source>Enter a new password for <ph id="0" equiv="PH" disp="this.passwordResetEmail"/></source>
+      </segment>
+    </unit>
+    <unit id="9147694429145547851">
+      <segment>
+        <source>Validating your reset link...</source>
+      </segment>
+    </unit>
+    <unit id="9156829285909106416">
+      <segment>
+        <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot;&gt;" dispEnd="&lt;/a&gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
       </segment>
     </unit>
     <unit id="9160510009013134726">
@@ -1171,9 +1360,19 @@
         <source>Environment</source>
       </segment>
     </unit>
+    <unit id="9191968011325658792">
+      <segment>
+        <source>Invalid email address</source>
+      </segment>
+    </unit>
     <unit id="9210899085665920557">
       <segment>
         <source>Install Web App</source>
+      </segment>
+    </unit>
+    <unit id="947995176992343811">
+      <segment>
+        <source>This E-Mail address is not valid!</source>
       </segment>
     </unit>
     <unit id="978733016608641076">
@@ -1181,14 +1380,39 @@
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">all_inclusive</pc> Your Data, Forever </source>
       </segment>
     </unit>
+    <unit id="991761096918819245">
+      <segment>
+        <source>Not verified</source>
+      </segment>
+    </unit>
+    <unit id="6431756795596367554">
+      <segment>
+        <source>Minimum 6 characters</source>
+      </segment>
+    </unit>
     <unit id="6435282697411612190">
       <segment>
         <source>What would you rate this spot from one to five stars?</source>
       </segment>
     </unit>
+    <unit id="643839708130168383">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {Follower} other {Followers}}</source>
+      </segment>
+    </unit>
     <unit id="6439365426343089851">
       <segment>
         <source>General</source>
+      </segment>
+    </unit>
+    <unit id="6441345770791594657">
+      <segment>
+        <source>This account has been disabled. Please contact support.</source>
+      </segment>
+    </unit>
+    <unit id="6446631772000124223">
+      <segment>
+        <source>Password must be at least 6 characters</source>
       </segment>
     </unit>
     <unit id="5207635742003539443">
@@ -1209,6 +1433,22 @@
     <unit id="profile.nav_label">
       <segment>
         <source>My Profile</source>
+      </segment>
+    </unit>
+    <unit id="settings.account.description">
+      <notes>
+        <note category="description">account section description</note>
+      </notes>
+      <segment>
+        <source> Manage your account settings including email, password, and account deletion. </source>
+      </segment>
+    </unit>
+    <unit id="settings.account.header">
+      <notes>
+        <note category="description">account section header</note>
+      </notes>
+      <segment>
+        <source> Account </source>
       </segment>
     </unit>
     <unit id="settings.nav_label">
@@ -1506,6 +1746,96 @@
         <source>Toilets</source>
       </segment>
     </unit>
+    <unit id="auth_action.back_to_signin">
+      <notes>
+        <note category="description">Button to go back to sign in</note>
+        <note category="meaning">back to sign in</note>
+      </notes>
+      <segment>
+        <source>Back to Sign in</source>
+      </segment>
+    </unit>
+    <unit id="auth_action.confirm_password">
+      <notes>
+        <note category="description">Label for confirm password field</note>
+        <note category="meaning">confirm password</note>
+      </notes>
+      <segment>
+        <source>Confirm Password</source>
+      </segment>
+    </unit>
+    <unit id="auth_action.go_to_profile">
+      <notes>
+        <note category="description">Button to go to profile</note>
+        <note category="meaning">go to profile</note>
+      </notes>
+      <segment>
+        <source>Go to Profile</source>
+      </segment>
+    </unit>
+    <unit id="auth_action.new_password">
+      <notes>
+        <note category="description">Label for new password field</note>
+        <note category="meaning">new password</note>
+      </notes>
+      <segment>
+        <source>New Password</source>
+      </segment>
+    </unit>
+    <unit id="auth_action.password_minlength">
+      <notes>
+        <note category="description">Error for short password</note>
+        <note category="meaning">password too short</note>
+      </notes>
+      <segment>
+        <source>Password must be at least 6 characters</source>
+      </segment>
+    </unit>
+    <unit id="auth_action.password_mismatch">
+      <notes>
+        <note category="description">Error for mismatched passwords</note>
+        <note category="meaning">passwords dont match</note>
+      </notes>
+      <segment>
+        <source>Passwords do not match</source>
+      </segment>
+    </unit>
+    <unit id="auth_action.password_required">
+      <notes>
+        <note category="description">Error for missing password</note>
+        <note category="meaning">password required</note>
+      </notes>
+      <segment>
+        <source>Password is required</source>
+      </segment>
+    </unit>
+    <unit id="auth_action.reset_password">
+      <notes>
+        <note category="description">Button to reset password</note>
+        <note category="meaning">reset password</note>
+      </notes>
+      <segment>
+        <source>Reset Password</source>
+      </segment>
+    </unit>
+    <unit id="auth_action.sign_in_now">
+      <notes>
+        <note category="description">Button to sign in</note>
+        <note category="meaning">sign in now</note>
+      </notes>
+      <segment>
+        <source>Sign in now</source>
+      </segment>
+    </unit>
+    <unit id="auth_action.try_again">
+      <notes>
+        <note category="description">Button to try again</note>
+        <note category="meaning">try again</note>
+      </notes>
+      <segment>
+        <source>Request new link</source>
+      </segment>
+    </unit>
     <unit id="amenities.changing_room">
       <segment>
         <source>Changing room</source>
@@ -1551,6 +1881,16 @@
         <source>Event in </source>
       </segment>
     </unit>
+    <unit id="7655174159902173121">
+      <segment>
+        <source> For formal inquiries, partnerships, or issues that require privacy, reach out via email. </source>
+      </segment>
+    </unit>
+    <unit id="7675878133592710280">
+      <segment>
+        <source>This link is not recognized. Please check your email and try again.</source>
+      </segment>
+    </unit>
     <unit id="editProfile.biography">
       <notes>
         <note category="description">Label for biography field</note>
@@ -1594,6 +1934,30 @@
       </notes>
       <segment>
         <source>Display Name</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.homeCity">
+      <notes>
+        <note category="description">home city label</note>
+      </notes>
+      <segment>
+        <source>Home City</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.homeSpots">
+      <notes>
+        <note category="description">home spots label</note>
+      </notes>
+      <segment>
+        <source>Home Spots</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.nationalityCode">
+      <notes>
+        <note category="description">nationality code label</note>
+      </notes>
+      <segment>
+        <source>Nationality</source>
       </segment>
     </unit>
     <unit id="editProfile.readyToUpload">
@@ -1667,6 +2031,11 @@
         <source>Iconic Spot</source>
       </segment>
     </unit>
+    <unit id="420441727915604290">
+      <segment>
+        <source>Security check failed. Please sign in again and try deleting your account.</source>
+      </segment>
+    </unit>
     <unit id="4218851671709080860">
       <segment>
         <source>Info stand</source>
@@ -1730,6 +2099,22 @@
         <source>For Parkour</source>
       </segment>
     </unit>
+    <unit id="forgotPassword.description">
+      <notes>
+        <note category="description">forgot password description</note>
+      </notes>
+      <segment>
+        <source> Enter your E-mail address and you will receive an E-mail with instructions to reset your password. </source>
+      </segment>
+    </unit>
+    <unit id="forgotPassword.title">
+      <notes>
+        <note category="description">forgot password title</note>
+      </notes>
+      <segment>
+        <source> Forgot password </source>
+      </segment>
+    </unit>
     <unit id="generic.not_sure">
       <segment>
         <source>Not sure</source>
@@ -1769,14 +2154,39 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-primary&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot </pc> is a <pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">free</pc> utility tool built by athletes. We don&apos;t charge you to use the map, and we never will. </source>
       </segment>
     </unit>
+    <unit id="2841739558138901231">
+      <segment>
+        <source>In</source>
+      </segment>
+    </unit>
+    <unit id="2855049153368933927">
+      <segment>
+        <source>Current E-mail</source>
+      </segment>
+    </unit>
     <unit id="28674972039900875">
       <segment>
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Public License:</pc> This spot&apos;s data is made available under the <pc id="1" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;" dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </source>
       </segment>
     </unit>
+    <unit id="2874252575916172948">
+      <segment>
+        <source> Delete my account </source>
+      </segment>
+    </unit>
     <unit id="3304972143698843178">
       <segment>
         <source>Event</source>
+      </segment>
+    </unit>
+    <unit id="3315502019080545247">
+      <segment>
+        <source>Error deleting account. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="4320994550381609480">
+      <segment>
+        <source>Pioneer</source>
       </segment>
     </unit>
     <unit id="4323470180912194028">
@@ -1794,9 +2204,24 @@
         <source>Map</source>
       </segment>
     </unit>
+    <unit id="5822654539864238023">
+      <segment>
+        <source> Check your inbox and follow the instructions to reset your password. </source>
+      </segment>
+    </unit>
+    <unit id="5823022281127676839">
+      <segment>
+        <source> Have a question, found a bug, or want to request a feature? We&apos;d love to hear from you! </source>
+      </segment>
+    </unit>
     <unit id="7008439939460403347">
       <segment>
         <source>Report</source>
+      </segment>
+    </unit>
+    <unit id="7833933616390918367">
+      <segment>
+        <source>Recovery Failed</source>
       </segment>
     </unit>
     <unit id="7855274718891325217">
@@ -1809,9 +2234,19 @@
         <source>Closed</source>
       </segment>
     </unit>
+    <unit id="7881945331295450373">
+      <segment>
+        <source>Supporter</source>
+      </segment>
+    </unit>
     <unit id="7930891814958874419">
       <segment>
         <source> We are Open Source. No black-box algorithms, no hidden tracking. Just cutting-edge web tech built to serve the community. </source>
+      </segment>
+    </unit>
+    <unit id="8202652744541567309">
+      <segment>
+        <source>Password Reset Successful</source>
       </segment>
     </unit>
     <unit id="822217384326702238">
@@ -1905,9 +2340,24 @@
         <source>Update Review</source>
       </segment>
     </unit>
+    <unit id="8726138323871139597">
+      <segment>
+        <source>Following</source>
+      </segment>
+    </unit>
+    <unit id="8736188664022016115">
+      <segment>
+        <source>Could not sign in with Apple!</source>
+      </segment>
+    </unit>
     <unit id="8755396282893693521">
       <segment>
         <source>Event spots</source>
+      </segment>
+    </unit>
+    <unit id="8784425134270344261">
+      <segment>
+        <source>Early Bird</source>
       </segment>
     </unit>
     <unit id="amenities.ac">
@@ -1952,6 +2402,11 @@
         <source> Other sign-in options </source>
       </segment>
     </unit>
+    <unit id="1577979859082287846">
+      <segment>
+        <source>This email is already in use.</source>
+      </segment>
+    </unit>
     <unit id="1578341976423133065">
       <segment>
         <source>Invalid email or password.</source>
@@ -1975,6 +2430,11 @@
         <source>Report button with a warning icon</source>
       </segment>
     </unit>
+    <unit id="2037607997452853008">
+      <segment>
+        <source>Error changing password. Please try again.</source>
+      </segment>
+    </unit>
     <unit id="2043725857486133673">
       <segment>
         <source>Sketchy</source>
@@ -1996,6 +2456,16 @@
     <unit id="2114926278043068343">
       <segment>
         <source> Add an editable boundary for this spot. After adding, you can adjust the polygon shape on the map. </source>
+      </segment>
+    </unit>
+    <unit id="2143027146062629863">
+      <segment>
+        <source>Invalid email address.</source>
+      </segment>
+    </unit>
+    <unit id="2157223865323513041">
+      <segment>
+        <source>Please fill in all fields</source>
       </segment>
     </unit>
     <unit id="2159130950882492111">
@@ -2048,6 +2518,16 @@
         <source>Pair</source>
       </segment>
     </unit>
+    <unit id="2275328567992347600">
+      <segment>
+        <source>Page not found</source>
+      </segment>
+    </unit>
+    <unit id="2288513108450439427">
+      <segment>
+        <source>Support</source>
+      </segment>
+    </unit>
     <unit id="spot.edit.type_access.header">
       <notes>
         <note category="description">Header for type and access editing section</note>
@@ -2055,6 +2535,11 @@
       </notes>
       <segment>
         <source> Type and Access </source>
+      </segment>
+    </unit>
+    <unit id="23518581647153834">
+      <segment>
+        <source>from</source>
       </segment>
     </unit>
     <unit id="2364479747143032381">
@@ -2082,6 +2567,11 @@
         <source>Unnamed Challenge</source>
       </segment>
     </unit>
+    <unit id="2523505136253356900">
+      <segment>
+        <source>Invalid Link</source>
+      </segment>
+    </unit>
     <unit id="2575639027185325240">
       <segment>
         <source> Be Part of the Movement </source>
@@ -2093,6 +2583,11 @@
       </notes>
       <segment>
         <source>Comment</source>
+      </segment>
+    </unit>
+    <unit id="2684344419716682750">
+      <segment>
+        <source>Badges</source>
       </segment>
     </unit>
     <unit id="2736531674722915416">
@@ -2115,9 +2610,19 @@
         <source> Continue </source>
       </segment>
     </unit>
+    <unit id="2969365666988952758">
+      <segment>
+        <source>Recovering Email</source>
+      </segment>
+    </unit>
     <unit id="add_media.label">
       <segment>
         <source>Add media</source>
+      </segment>
+    </unit>
+    <unit id="3143510854025741393">
+      <segment>
+        <source>This link is invalid or has expired. Please request a new one.</source>
       </segment>
     </unit>
     <unit id="3148120434799119252">
@@ -2148,6 +2653,11 @@
     <unit id="3420095157187102720">
       <segment>
         <source>This techy challenge requires great precision and control.</source>
+      </segment>
+    </unit>
+    <unit id="3432396429990524008">
+      <segment>
+        <source>Account mismatch. Please sign in to the correct account.</source>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -2222,6 +2732,11 @@
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">home</pc> Find Indoor Spots </source>
       </segment>
     </unit>
+    <unit id="4127571452382238225">
+      <segment>
+        <source>Explorer</source>
+      </segment>
+    </unit>
     <unit id="spot.location.header">
       <notes>
         <note category="description">Header for the location section</note>
@@ -2280,6 +2795,11 @@
         <source> We don&apos;t lock your world behind a paywall. All community spot data is released publicly to the community and is licensed under Creative Commons <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc>. It is open, shareable, and yours forever. </source>
       </segment>
     </unit>
+    <unit id="5075169696278804374">
+      <segment>
+        <source>Error sending reset email. Please try again.</source>
+      </segment>
+    </unit>
     <unit id="5078551942621038511">
       <segment>
         <source>Link to challenge copied to clipboard</source>
@@ -2298,6 +2818,11 @@
     <unit id="5176605689144016167">
       <segment>
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
+      </segment>
+    </unit>
+    <unit id="519026501519052552">
+      <segment>
+        <source>Manage your profile and account settings.</source>
       </segment>
     </unit>
     <unit id="spot.edit.hide_streetview">
@@ -2336,6 +2861,16 @@
         <source>View edit history of this spot</source>
       </segment>
     </unit>
+    <unit id="5306728370945378331">
+      <segment>
+        <source>Go Home</source>
+      </segment>
+    </unit>
+    <unit id="5340498030552368470">
+      <segment>
+        <source>Current password</source>
+      </segment>
+    </unit>
     <unit id="5354481455147566182">
       <notes>
         <note category="description">Label of the button to report the spot</note>
@@ -2355,9 +2890,34 @@
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">map_search</pc> Smart Map Filters </source>
       </segment>
     </unit>
+    <unit id="5377078063439833222">
+      <segment>
+        <source> Edit </source>
+      </segment>
+    </unit>
     <unit id="5451766476743569122">
       <segment>
         <source>Fun</source>
+      </segment>
+    </unit>
+    <unit id="5464118521750361406">
+      <segment>
+        <source>Public profile</source>
+      </segment>
+    </unit>
+    <unit id="5492320356892382782">
+      <segment>
+        <source>Permanently delete</source>
+      </segment>
+    </unit>
+    <unit id="5911495341996816625">
+      <segment>
+        <source>Please wait while we verify your email address...</source>
+      </segment>
+    </unit>
+    <unit id="5957587063470298128">
+      <segment>
+        <source> Verify now </source>
       </segment>
     </unit>
     <unit id="5957901138028541022">
@@ -2399,14 +2959,24 @@
         <source>Creative</source>
       </segment>
     </unit>
+    <unit id="657631833222600301">
+      <segment>
+        <source>Media Added</source>
+      </segment>
+    </unit>
     <unit id="6670068416688791508">
       <segment>
         <source>Cannot share a spot that hasn&apos;t been saved yet</source>
       </segment>
     </unit>
-    <unit id="667055198031260741">
+    <unit id="5604123151232836009">
       <segment>
-        <source> To keep the servers running, we partner with the Parkour ecosystem — National Associations, ethical brands, and gyms. We support the organizations that support the sport. </source>
+        <source>Join Discord</source>
+      </segment>
+    </unit>
+    <unit id="5623922014146618415">
+      <segment>
+        <source> To keep the servers running, we partner with the Parkour ecosystem — National Associations, ethical brands, and Parkour Gyms. We support the organizations that support the sport. </source>
       </segment>
     </unit>
     <unit id="7027401708987643293">
@@ -2424,6 +2994,11 @@
         <source>Link to spot copied to clipboard</source>
       </segment>
     </unit>
+    <unit id="7536618650694716867">
+      <segment>
+        <source> Find answers to common questions or reach out to us directly. </source>
+      </segment>
+    </unit>
     <unit id="7801350351736394974">
       <notes>
         <note category="meaning">report button label</note>
@@ -2437,14 +3012,34 @@
         <source>Please select a file to upload</source>
       </segment>
     </unit>
+    <unit id="8018379614687762047">
+      <segment>
+        <source>Email changed successfully. Please verify your new email.</source>
+      </segment>
+    </unit>
     <unit id="8078753231616252504">
       <segment>
         <source> We believe the map belongs to the athletes, not a corporation. That&apos;s why <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary pkspot-font&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot</pc> is built differently. </source>
       </segment>
     </unit>
+    <unit id="8096545544094225301">
+      <segment>
+        <source> Need help? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/support&quot;&gt;" dispEnd="&lt;/a&gt;">Visit our support page</pc></source>
+      </segment>
+    </unit>
+    <unit id="8324331879973734366">
+      <segment>
+        <source> Frequently Asked Questions </source>
+      </segment>
+    </unit>
     <unit id="8333618256474808727">
       <segment>
         <source>Add translation</source>
+      </segment>
+    </unit>
+    <unit id="8334401359656001773">
+      <segment>
+        <source>Error changing email. Please check your password.</source>
       </segment>
     </unit>
     <unit id="8902169607450414056">
@@ -2475,6 +3070,16 @@
         <source>Team</source>
       </segment>
     </unit>
+    <unit id="3737580346792181367">
+      <segment>
+        <source> Are you sure? Enter your password to confirm deletion. </source>
+      </segment>
+    </unit>
+    <unit id="3742557968359744247">
+      <segment>
+        <source>Password Reset Failed</source>
+      </segment>
+    </unit>
     <unit id="3959902123742995673">
       <segment>
         <source>Could not sign in with Google!</source>
@@ -2500,6 +3105,11 @@
         <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </source>
       </segment>
     </unit>
+    <unit id="4074207137823057482">
+      <segment>
+        <source> Are you sure? You will need to sign in with <ph id="0" equiv="INTERPOLATION" disp="{{ providerDisplayName }}"/> again to confirm deletion. </source>
+      </segment>
+    </unit>
     <unit id="4077520913910941990">
       <segment>
         <source>Label</source>
@@ -2512,6 +3122,11 @@
       </notes>
       <segment>
         <source>See private challenges</source>
+      </segment>
+    </unit>
+    <unit id="4565748598505088180">
+      <segment>
+        <source>This link is invalid or has already been used. Please request a new one.</source>
       </segment>
     </unit>
     <unit id="4570725150232607497">
@@ -2536,14 +3151,39 @@
         <source> The Challenge will only be available starting from the release date. Before that it will be private to you. </source>
       </segment>
     </unit>
+    <unit id="5014960004929658159">
+      <segment>
+        <source>Verified</source>
+      </segment>
+    </unit>
+    <unit id="5400391042453835180">
+      <segment>
+        <source>Manage your <ph id="0" equiv="PH" disp="point.name"/> settings.</source>
+      </segment>
+    </unit>
+    <unit id="5411574545284988510">
+      <segment>
+        <source>Verifying Email</source>
+      </segment>
+    </unit>
     <unit id="5442876463654189578">
       <segment>
         <source>Label and particpant type</source>
       </segment>
     </unit>
-    <unit id="5602565406648292689">
+    <unit id="6607382385355290684">
       <segment>
-        <source> Whether you are a solo athlete, a gym owner, or a national organization - we are happy to have you on board. </source>
+        <source>New passwords do not match</source>
+      </segment>
+    </unit>
+    <unit id="6642568354300862445">
+      <segment>
+        <source> Whether you are a solo athlete, a Parkour gym owner, or a national organization - we are happy to have you on board. </source>
+      </segment>
+    </unit>
+    <unit id="565319861201250432">
+      <segment>
+        <source>Edits Made</source>
       </segment>
     </unit>
     <unit id="565606266379309262">
@@ -2574,6 +3214,11 @@
         <source>Both</source>
       </segment>
     </unit>
+    <unit id="6275309169485929724">
+      <segment>
+        <source>Authentication Error</source>
+      </segment>
+    </unit>
     <unit id="6299599810982807013">
       <segment>
         <source>All Challenges of </source>
@@ -2587,6 +3232,11 @@
     <unit id="7095237946376271162">
       <segment>
         <source>Participant Type</source>
+      </segment>
+    </unit>
+    <unit id="7097945335364423857">
+      <segment>
+        <source>The reset E-mail has been sent!</source>
       </segment>
     </unit>
     <unit id="spot_type_label">
@@ -2617,6 +3267,11 @@
         <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you will contribute content under the license terms described within.</source>
       </segment>
     </unit>
+    <unit id="7139999409916594388">
+      <segment>
+        <source>Leaderboard</source>
+      </segment>
+    </unit>
     <unit id="7150227608403439982">
       <segment>
         <source>I&apos;ll add media!</source>
@@ -2630,6 +3285,11 @@
     <unit id="7215101881367554791">
       <segment>
         <source>Show more</source>
+      </segment>
+    </unit>
+    <unit id="7224722019363844519">
+      <segment>
+        <source>Pathfinder</source>
       </segment>
     </unit>
     <unit id="7334091550966090385">
@@ -2647,6 +3307,11 @@
         <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}"/>, at <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}"/>. </source>
       </segment>
     </unit>
+    <unit id="83860586054430315">
+      <segment>
+        <source>Your password has been successfully reset. You can now sign in with your new password.</source>
+      </segment>
+    </unit>
     <unit id="8387795974331999553">
       <segment>
         <source>Challenge media is required!</source>
@@ -2655,6 +3320,11 @@
     <unit id="8497528947328199741">
       <segment>
         <source>Time</source>
+      </segment>
+    </unit>
+    <unit id="8535056559014052836">
+      <segment>
+        <source>Please enter your email address</source>
       </segment>
     </unit>
     <unit id="8552587679160911578">
@@ -2713,9 +3383,19 @@
         <source>All</source>
       </segment>
     </unit>
+    <unit id="1634423786949067514">
+      <segment>
+        <source> Permanently delete your account and all associated data. This action cannot be undone. </source>
+      </segment>
+    </unit>
     <unit id="1634758098784005644">
       <segment>
         <source>Loading Google Place…</source>
+      </segment>
+    </unit>
+    <unit id="1636934520301910285">
+      <segment>
+        <source>Reset password</source>
       </segment>
     </unit>
     <unit id="1737753151350322492">
@@ -2726,6 +3406,16 @@
     <unit id="1744316082077040772">
       <segment>
         <source>Loading Google Maps® API...</source>
+      </segment>
+    </unit>
+    <unit id="1826181746940790026">
+      <segment>
+        <source>Please wait while we recover your email address...</source>
+      </segment>
+    </unit>
+    <unit id="1869005629911328727">
+      <segment>
+        <source>Your account has been deleted. Goodbye!</source>
       </segment>
     </unit>
     <unit id="187187500641108332">
@@ -2746,9 +3436,24 @@
         <source>Submitting...</source>
       </segment>
     </unit>
+    <unit id="3857035781062897227">
+      <segment>
+        <source>Instagram DMs</source>
+      </segment>
+    </unit>
     <unit id="3881818169480672345">
       <segment>
         <source>other</source>
+      </segment>
+    </unit>
+    <unit id="3894305924320774026">
+      <segment>
+        <source>@pkspot.app</source>
+      </segment>
+    </unit>
+    <unit id="4590398956969854643">
+      <segment>
+        <source>Unable to process this request. Please try again later.</source>
       </segment>
     </unit>
     <unit id="459311985687858272">

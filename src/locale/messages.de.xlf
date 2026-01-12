@@ -1,5 +1,11 @@
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="de">
   <file id="ngi18n" original="ng.template">
+    <unit id="3762050401268226469">
+      <segment state="initial">
+        <source>Unknown Action</source>
+        <target>Unbekannte Aktion</target>
+      </segment>
+    </unit>
     <unit id="3768927257183755959">
       <segment state="initial">
         <source>Save</source>
@@ -32,6 +38,12 @@
       <segment state="initial">
         <source>Find spots and places</source>
         <target>Finde Spots und Orte</target>
+      </segment>
+    </unit>
+    <unit id="8115083664628466958">
+      <segment state="initial">
+        <source>E-Mail</source>
+        <target>E-Mail</target>
       </segment>
     </unit>
     <unit id="8126459137636028145">
@@ -108,10 +120,28 @@
         <target> Melden </target>
       </segment>
     </unit>
+    <unit id="6340970481322850527">
+      <segment state="initial">
+        <source>Return to sign in</source>
+        <target>Zurück zur Anmeldung</target>
+      </segment>
+    </unit>
+    <unit id="6366005533956235174">
+      <segment state="initial">
+        <source>Please enter your password</source>
+        <target>Bitte gib dein Passwort ein</target>
+      </segment>
+    </unit>
     <unit id="6377092763030946894">
       <segment state="initial">
         <source>Custom URL added</source>
         <target> Benutzerdefinierte URL hinzugefügt </target>
+      </segment>
+    </unit>
+    <unit id="641716500460785755">
+      <segment state="initial">
+        <source>Get in Touch</source>
+        <target>Kontakt aufnehmen</target>
       </segment>
     </unit>
     <unit id="6417858746273147766">
@@ -130,6 +160,18 @@
         <target>Beschreibung</target>
       </segment>
     </unit>
+    <unit id="4930506384627295710">
+      <segment state="initial">
+        <source>Settings</source>
+        <target>Einstellungen</target>
+      </segment>
+    </unit>
+    <unit id="4939428286618017421">
+      <segment state="initial">
+        <source>Back to sign in</source>
+        <target>Zurück zur Anmeldung</target>
+      </segment>
+    </unit>
     <unit id="8942517704279686805">
       <notes>
         <note category="description">Placeholder of the spot description edit field</note>
@@ -138,6 +180,12 @@
       <segment state="initial">
         <source>Description of the spot, its features and more...</source>
         <target>Beschreibung des Spots, den Eigenschaften und mehr...</target>
+      </segment>
+    </unit>
+    <unit id="8958570874759054860">
+      <segment state="initial">
+        <source>Settings - </source>
+        <target>Einstellungen - </target>
       </segment>
     </unit>
     <unit id="6876434298853499564">
@@ -206,36 +254,16 @@
         <target> Hier kannst du dein öffentliches Profil bearbeiten. Diese Informationen von deinem öffentlichen Profil können von allen eingesehen werden, auch unauthentifizierten Benutzer. </target>
       </segment>
     </unit>
-    <unit id="settings.login.header">
-      <notes>
-        <note category="description">Header for login information section</note>
-        <note category="meaning">login information section</note>
-      </notes>
-      <segment state="initial">
-        <source> Login information </source>
-        <target> Login Information </target>
-      </segment>
-    </unit>
-    <unit id="settings.login.description">
-      <notes>
-        <note category="description">Description of login information section</note>
-        <note category="meaning">login information description</note>
-      </notes>
-      <segment state="initial">
-        <source> Your login information. Your E-mail address here is used for your login. You can add the same E-mail address or a different one to your contact information. </source>
-        <target> Deine Login-Informationen. Diese E-Mail Adresse wird für das Login verwendet. Du kannst die selbe oder eine andere E-Mail Adresse für deine Kontaktinformation angeben. </target>
-      </segment>
-    </unit>
     <unit id="6815507474406960450">
       <segment state="initial">
         <source>E-Mail address</source>
         <target>E-Mail Adresse</target>
       </segment>
     </unit>
-    <unit id="5830520205989474611">
+    <unit id="5506176846620350292">
       <segment state="initial">
-        <source>E-mail address</source>
-        <target>E-Mail Adresse</target>
+        <source>Your email address has been successfully recovered. You may want to change your password if you didn&apos;t make this change.</source>
+        <target>Deine E-Mail-Adresse wurde erfolgreich wiederhergestellt. Du solltest dein Passwort ändern, wenn du diese Änderung nicht vorgenommen hast.</target>
       </segment>
     </unit>
     <unit id="5520281340448478864">
@@ -244,10 +272,16 @@
         <target> Neu in einer Stadt? Verschwende keine Zeit mit Scrollen. Nutze die Top-Bewertungen, um die legendären Spots zu finden, die die Einheimischen lieben. Von den Straßen bis zu den Dächern – die Karte spricht deine Sprache. </target>
       </segment>
     </unit>
-    <unit id="5563672453089263696">
+    <unit id="5526007558904938886">
       <segment state="initial">
-        <source>Changing this E-mail will change your login information</source>
-        <target>Das ändern dieser E-Mail Adresse ändert deine Login-Informationen</target>
+        <source>About PK Spot</source>
+        <target>Über PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="553543363816145762">
+      <segment state="initial">
+        <source>Your email address has been successfully verified. You can now access all features of PK Spot.</source>
+        <target>Deine E-Mail-Adresse wurde erfolgreich verifiziert. Du kannst jetzt auf alle Funktionen von PK Spot zugreifen.</target>
       </segment>
     </unit>
     <unit id="5567404971286131139">
@@ -256,22 +290,28 @@
         <target> Dieser Spot erscheint nicht in Highlights. Um in die Highlights aufgenommen zu werden, benötigt er mindestens ein von einem Benutzer eingereichtes Bild und mindestens eine Bewertung. </target>
       </segment>
     </unit>
-    <unit id="3934298777794632654">
+    <unit id="5596960263969935910">
       <segment state="initial">
-        <source> Change E-mail address </source>
-        <target> E-Mail Adresse ändern </target>
+        <source>The password is too weak. Please use at least 6 characters.</source>
+        <target>Das Passwort ist zu schwach. Bitte verwende mindestens 6 Zeichen.</target>
+      </segment>
+    </unit>
+    <unit id="5598589668932032802">
+      <segment state="initial">
+        <source>Verification Failed</source>
+        <target>Verifizierung fehlgeschlagen</target>
+      </segment>
+    </unit>
+    <unit id="574237115855339547">
+      <segment state="initial">
+        <source>Change E-mail address</source>
+        <target>E-Mail Adresse ändern</target>
       </segment>
     </unit>
     <unit id="2807800733729323332">
       <segment state="initial">
         <source>Yes</source>
         <target>Ja</target>
-      </segment>
-    </unit>
-    <unit id="2818862099235102080">
-      <segment state="initial">
-        <source> Resend verification E-mail </source>
-        <target> Verifikations E-mail erneut senden </target>
       </segment>
     </unit>
     <unit id="1431416938026210429">
@@ -290,10 +330,28 @@
         <target>Velauf</target>
       </segment>
     </unit>
-    <unit id="8626615958100222841">
+    <unit id="1441164278426420486">
       <segment state="initial">
-        <source> Change password </source>
-        <target> Passwort ändern </target>
+        <source>New E-mail address</source>
+        <target>Neue E-Mail-Adresse</target>
+      </segment>
+    </unit>
+    <unit id="1486755545881068533">
+      <segment state="initial">
+        <source>Re-authentication failed. Account not deleted.</source>
+        <target>Erneute Authentifizierung fehlgeschlagen. Konto nicht gelöscht.</target>
+      </segment>
+    </unit>
+    <unit id="6309828574111583895">
+      <segment state="initial">
+        <source>Change password</source>
+        <target>Passwort ändern</target>
+      </segment>
+    </unit>
+    <unit id="1336542143746897548">
+      <segment state="initial">
+        <source>Email Support</source>
+        <target>E-Mail-Support</target>
       </segment>
     </unit>
     <unit id="134280351162314914">
@@ -302,10 +360,16 @@
         <target>Bewertung: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10"/> ⭐</target>
       </segment>
     </unit>
-    <unit id="1347241542439262355">
+    <unit id="1356237918552845367">
       <segment state="initial">
-        <source>General settings</source>
-        <target>Allgemeine Einstellungen</target>
+        <source>Cartographer</source>
+        <target>Kartograf</target>
+      </segment>
+    </unit>
+    <unit id="1370851403138688256">
+      <segment state="initial">
+        <source>Email Verified!</source>
+        <target>E-Mail verifiziert!</target>
       </segment>
     </unit>
     <unit id="1388168313047050333">
@@ -317,16 +381,10 @@
         <target> Wir verwenden deine E-Mail nur, um dich bezüglich dieser Meldung zu kontaktieren. </target>
       </segment>
     </unit>
-    <unit id="5223089976416033243">
+    <unit id="1389550100207768929">
       <segment state="initial">
-        <source> General settings to tune your experience on PK Spot. </source>
-        <target> Deine allgemeinen Einstellungen für PK Spot </target>
-      </segment>
-    </unit>
-    <unit id="5851560788527570644">
-      <segment state="initial">
-        <source>Notifications</source>
-        <target>Benachrichtungen</target>
+        <source>No account found for this email address.</source>
+        <target>Kein Konto für diese E-Mail-Adresse gefunden.</target>
       </segment>
     </unit>
     <unit id="5888181835078469865">
@@ -357,6 +415,24 @@
       <segment state="initial">
         <source>My Profile</source>
         <target>Mein Profil</target>
+      </segment>
+    </unit>
+    <unit id="settings.account.description">
+      <notes>
+        <note category="description">account section description</note>
+      </notes>
+      <segment state="initial">
+        <source> Manage your account settings including email, password, and account deletion. </source>
+        <target> Verwalte deine Kontoeinstellungen einschließlich E-Mail, Passwort und Kontolöschung. </target>
+      </segment>
+    </unit>
+    <unit id="settings.account.header">
+      <notes>
+        <note category="description">account section header</note>
+      </notes>
+      <segment state="initial">
+        <source> Account </source>
+        <target> Konto </target>
       </segment>
     </unit>
     <unit id="settings.nav_label">
@@ -439,16 +515,22 @@
         <target>Weniger anzeigen</target>
       </segment>
     </unit>
-    <unit id="3539941729807255231">
-      <segment state="initial">
-        <source>Your E-mail has not been verified!</source>
-        <target>Deine E-Mail wurde noch nicht verifiziert!</target>
-      </segment>
-    </unit>
     <unit id="3542042671420335679">
       <segment state="initial">
         <source>No</source>
         <target>Nein</target>
+      </segment>
+    </unit>
+    <unit id="3575990016862725996">
+      <segment state="initial">
+        <source> Join our Discord server to chat with the community, report bugs, and request features. This is the fastest way to get help! </source>
+        <target> Tritt unserem Discord-Server bei, um mit der Community zu chatten, Fehler zu melden und Funktionen anzufragen. Das ist der schnellste Weg, um Hilfe zu erhalten! </target>
+      </segment>
+    </unit>
+    <unit id="3588415639242079458">
+      <segment state="initial">
+        <source>New password</source>
+        <target>Neues Passwort</target>
       </segment>
     </unit>
     <unit id="3599528462269889129">
@@ -461,12 +543,6 @@
       <segment state="initial">
         <source>lowercase letters, numbers, and hyphens only</source>
         <target>Nur Kleinbuchstaben, Zahlen und Bindestriche</target>
-      </segment>
-    </unit>
-    <unit id="133789173523080152">
-      <segment state="initial">
-        <source>Your E-mail is verified</source>
-        <target>Deine E-Mail ist verifiziert</target>
       </segment>
     </unit>
     <unit id="signin.email_password.header">
@@ -561,6 +637,12 @@
         <target>Das Passwort ist ungültig!</target>
       </segment>
     </unit>
+    <unit id="7705508697330810763">
+      <segment state="initial">
+        <source>Delete Account</source>
+        <target>Konto löschen</target>
+      </segment>
+    </unit>
     <unit id="7708270344948043036">
       <segment state="initial">
         <source> <ph id="0" equiv="INTERPOLATION" disp="{{ positiveLabel() }}"/> </source>
@@ -571,6 +653,12 @@
       <segment state="initial">
         <source>An unknown error has occured on sign in. Please try again.</source>
         <target>Ein unbekannter Fehler ist aufgetrete bei der Anmeldung. Bitte versueche es erneut.</target>
+      </segment>
+    </unit>
+    <unit id="7742018872696898961">
+      <segment state="initial">
+        <source>Current password is incorrect.</source>
+        <target>Das aktuelle Passwort ist falsch.</target>
       </segment>
     </unit>
     <unit id="7323901917278002498">
@@ -595,6 +683,12 @@
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">water</pc> Find Water Spots </source>
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">water</pc> Wasser-Spots finden </target>
+      </segment>
+    </unit>
+    <unit id="6972105223770675605">
+      <segment state="initial">
+        <source>Reset Password</source>
+        <target>Passwort zurücksetzen</target>
       </segment>
     </unit>
     <unit id="6997602168024654529">
@@ -639,6 +733,12 @@
         <target>Das wiederholte Passwort muss dem ersten entsprechen.</target>
       </segment>
     </unit>
+    <unit id="5287661483037226366">
+      <segment state="initial">
+        <source> Feel free to slide into our DMs! We&apos;re happy to help with quick questions. </source>
+        <target> Schreib uns gerne eine DM! Wir helfen dir gerne bei kurzen Fragen. </target>
+      </segment>
+    </unit>
     <unit id="1048224077750217239">
       <segment state="initial">
         <source>Live &amp; Verified</source>
@@ -649,6 +749,12 @@
       <segment state="initial">
         <source> Keep track of your journey. Bookmark your favorite training locations and save the spots you&apos;ve visited to build your personal collection of spots around the world. </source>
         <target> Verfolge deine Reise. Speichere deine bevorzugten Trainingsorte und die Spots, die du besucht hast, um deine persönliche Sammlung von Spots auf der ganzen Welt aufzubauen. </target>
+      </segment>
+    </unit>
+    <unit id="1096271480010782204">
+      <segment state="initial">
+        <source>Founder</source>
+        <target>Gründer</target>
       </segment>
     </unit>
     <unit id="1267967133679326155">
@@ -685,6 +791,12 @@
       <segment state="initial">
         <source>Could not create account!</source>
         <target>Account konnte nicht erstellt werden.</target>
+      </segment>
+    </unit>
+    <unit id="3631960501807863073">
+      <segment state="initial">
+        <source>New password is too weak.</source>
+        <target>Das neue Passwort ist zu schwach.</target>
       </segment>
     </unit>
     <unit id="3637006077361642270">
@@ -749,6 +861,12 @@
         <target>Dieser Spot wurde gemeldet als &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</target>
       </segment>
     </unit>
+    <unit id="6715130059718666635">
+      <segment state="initial">
+        <source>Contributions</source>
+        <target>Beiträge</target>
+      </segment>
+    </unit>
     <unit id="6772316127315505952">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Other</pc></source>
@@ -795,10 +913,34 @@
         <target>Karte wird initialisiert...</target>
       </segment>
     </unit>
+    <unit id="1521539924104999091">
+      <segment state="initial">
+        <source>Email Recovered</source>
+        <target>E-Mail wiederhergestellt</target>
+      </segment>
+    </unit>
+    <unit id="1521659529201664852">
+      <segment state="initial">
+        <source>Spots Created</source>
+        <target>Erstellte Spots</target>
+      </segment>
+    </unit>
+    <unit id="1534029177398918729">
+      <segment state="initial">
+        <source>GitHub</source>
+        <target>GitHub</target>
+      </segment>
+    </unit>
     <unit id="1536087519743707362">
       <segment state="initial">
         <source>Dismiss</source>
         <target>Ignorieren</target>
+      </segment>
+    </unit>
+    <unit id="6945945395354199350">
+      <segment state="initial">
+        <source>Incorrect password. Please try again.</source>
+        <target>Falsches Passwort. Bitte versuche es erneut.</target>
       </segment>
     </unit>
     <unit id="6946913675153584317">
@@ -834,10 +976,22 @@
         <target><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></target>
       </segment>
     </unit>
+    <unit id="8439955599488894226">
+      <segment state="initial">
+        <source>Privacy Policy</source>
+        <target>Datenschutzerklärung</target>
+      </segment>
+    </unit>
     <unit id="8450335284128633458">
       <segment state="initial">
         <source>Failed to link Google Place</source>
         <target>Fehler beim Hinzufügen des Google Place</target>
+      </segment>
+    </unit>
+    <unit id="3268843240047650795">
+      <segment state="initial">
+        <source>Trailblazer</source>
+        <target>Wegbereiter</target>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -852,10 +1006,22 @@
         <target>Abgerissen</target>
       </segment>
     </unit>
-    <unit id="8369296838542073526">
+    <unit id="1101593405603414898">
       <segment state="initial">
-        <source> Your training doesn&apos;t stop for the weather. Need a covered rail for a rainy night? A lit spot for a winter session? Or a gym for drills? Our Smart Filters let you dial in the exact training conditions you need. </source>
+        <source> Your training doesn&apos;t stop for the weather. Need a covered rail for a rainy night? A lit spot for a winter session? Or a Parkour gym for drills? Our Smart Filters let you dial in the exact training conditions you need. </source>
         <target> Dein Training stoppt nicht wegen des Wetters. Brauchst du ein überdachtes Geländer für eine regnerische Nacht? Einen beleuchteten Spot für eine Winter-Session? Oder eine Halle für Übungen? Mit unseren Smart Filters findest du genau die Trainingsbedingungen, die du brauchst. </target>
+      </segment>
+    </unit>
+    <unit id="1118027788072351320">
+      <segment state="initial">
+        <source>Sending...</source>
+        <target>Senden...</target>
+      </segment>
+    </unit>
+    <unit id="1140327701924892323">
+      <segment state="initial">
+        <source>Quick Links</source>
+        <target>Schnelllinks</target>
       </segment>
     </unit>
     <unit id="8374523856907728400">
@@ -868,6 +1034,18 @@
       <segment state="initial">
         <source>It&apos;s a private spot and should not be on this spot map.</source>
         <target>Es ist ein privater Spot und er sollte nicht auf der Spot Karte sein.</target>
+      </segment>
+    </unit>
+    <unit id="8656126574213649581">
+      <segment state="initial">
+        <source>Confirm new password</source>
+        <target>Neues Passwort bestätigen</target>
+      </segment>
+    </unit>
+    <unit id="8672443665211234755">
+      <segment state="initial">
+        <source>This link has expired. Please request a new one.</source>
+        <target>Dieser Link ist abgelaufen. Bitte fordere einen neuen an.</target>
       </segment>
     </unit>
     <unit id="8686897794326651735">
@@ -888,10 +1066,28 @@
         <target>Von welchem Spot ist dieser ein Duplikat?</target>
       </segment>
     </unit>
+    <unit id="2014228771300600511">
+      <segment state="initial">
+        <source> The page you are looking for does not exist or has been moved. </source>
+        <target> Die Seite, die du suchst, existiert nicht oder wurde verschoben. </target>
+      </segment>
+    </unit>
+    <unit id="2016569006287688818">
+      <segment state="initial">
+        <source>An error occurred. Please try again or request a new link.</source>
+        <target>Ein Fehler ist aufgetreten. Bitte versuche es erneut oder fordere einen neuen Link an.</target>
+      </segment>
+    </unit>
     <unit id="2029717048910432760">
       <segment state="initial">
         <source>Spot</source>
         <target>Spot</target>
+      </segment>
+    </unit>
+    <unit id="2029980907058777630">
+      <segment state="initial">
+        <source>Terms of Service</source>
+        <target>Terms of Service</target>
       </segment>
     </unit>
     <unit id="440458300676573130">
@@ -912,10 +1108,13 @@
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">steps</pc> Finde Parkour-Parks und Hallen </target>
       </segment>
     </unit>
+    <unit id="2325032840535506648">
+      <segment state="initial">
+        <source>Discord Community</source>
+        <target>Discord-Community</target>
+      </segment>
+    </unit>
     <unit id="2330577642930707695">
-      <notes>
-        <note category="description">cancel button label</note>
-      </notes>
       <segment state="initial">
         <source> Cancel </source>
         <target> Abbrechen </target>
@@ -1129,6 +1328,106 @@
       <segment state="initial">
         <source>Toilets</source>
         <target>Toiletten</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.back_to_signin">
+      <notes>
+        <note category="description">Button to go back to sign in</note>
+        <note category="meaning">back to sign in</note>
+      </notes>
+      <segment state="initial">
+        <source>Back to Sign in</source>
+        <target>Zurück zur Anmeldung</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.confirm_password">
+      <notes>
+        <note category="description">Label for confirm password field</note>
+        <note category="meaning">confirm password</note>
+      </notes>
+      <segment state="initial">
+        <source>Confirm Password</source>
+        <target>Passwort bestätigen</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.go_to_profile">
+      <notes>
+        <note category="description">Button to go to profile</note>
+        <note category="meaning">go to profile</note>
+      </notes>
+      <segment state="initial">
+        <source>Go to Profile</source>
+        <target>Zum Profil</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.new_password">
+      <notes>
+        <note category="description">Label for new password field</note>
+        <note category="meaning">new password</note>
+      </notes>
+      <segment state="initial">
+        <source>New Password</source>
+        <target>Neues Passwort</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.password_minlength">
+      <notes>
+        <note category="description">Error for short password</note>
+        <note category="meaning">password too short</note>
+      </notes>
+      <segment state="initial">
+        <source>Password must be at least 6 characters</source>
+        <target>Passwort muss mindestens 6 Zeichen lang sein</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.password_mismatch">
+      <notes>
+        <note category="description">Error for mismatched passwords</note>
+        <note category="meaning">passwords dont match</note>
+      </notes>
+      <segment state="initial">
+        <source>Passwords do not match</source>
+        <target>Passwörter stimmen nicht überein</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.password_required">
+      <notes>
+        <note category="description">Error for missing password</note>
+        <note category="meaning">password required</note>
+      </notes>
+      <segment state="initial">
+        <source>Password is required</source>
+        <target>Passwort ist erforderlich</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.reset_password">
+      <notes>
+        <note category="description">Button to reset password</note>
+        <note category="meaning">reset password</note>
+      </notes>
+      <segment state="initial">
+        <source>Reset Password</source>
+        <target>Passwort zurücksetzen</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.sign_in_now">
+      <notes>
+        <note category="description">Button to sign in</note>
+        <note category="meaning">sign in now</note>
+      </notes>
+      <segment state="initial">
+        <source>Sign in now</source>
+        <target>Jetzt anmelden</target>
+      </segment>
+    </unit>
+    <unit id="auth_action.try_again">
+      <notes>
+        <note category="description">Button to try again</note>
+        <note category="meaning">try again</note>
+      </notes>
+      <segment state="initial">
+        <source>Request new link</source>
+        <target>Neuen Link anfordern</target>
       </segment>
     </unit>
     <unit id="amenities.changing_room">
@@ -1464,7 +1763,7 @@
     <unit id="spot-type.skate-park">
       <segment state="initial">
         <source>Skate Park</source>
-        <target>Skate Park</target>
+        <target>Skatepark</target>
       </segment>
     </unit>
     <unit id="spot-type.trampoline-park">
@@ -1645,10 +1944,40 @@
         <target>Spot bewerten</target>
       </segment>
     </unit>
+    <unit id="9019759608416406738">
+      <segment state="initial">
+        <source>Early Adopter</source>
+        <target>Early Adopter</target>
+      </segment>
+    </unit>
+    <unit id="9068926282349592226">
+      <segment state="initial">
+        <source>Password changed successfully</source>
+        <target>Passwort erfolgreich geändert</target>
+      </segment>
+    </unit>
     <unit id="9074160907730350759">
       <segment state="initial">
         <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
         <target>Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}"/>&apos; bewerten</target>
+      </segment>
+    </unit>
+    <unit id="9113275416553101993">
+      <segment state="initial">
+        <source>Enter a new password for <ph id="0" equiv="PH" disp="this.passwordResetEmail"/></source>
+        <target>Gib ein neues Passwort für <ph id="0" equiv="PH" disp="this.passwordResetEmail"/> ein</target>
+      </segment>
+    </unit>
+    <unit id="9147694429145547851">
+      <segment state="initial">
+        <source>Validating your reset link...</source>
+        <target>Dein Zurücksetzungs-Link wird validiert...</target>
+      </segment>
+    </unit>
+    <unit id="9156829285909106416">
+      <segment state="initial">
+        <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot;&gt;" dispEnd="&lt;/a&gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
+        <target> Findest du nicht, was du suchst? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot;&gt;" dispEnd="&lt;/a&gt;">Tritt unserem Discord bei</pc> und wir helfen dir weiter! </target>
       </segment>
     </unit>
     <unit id="9160510009013134726">
@@ -1663,10 +1992,22 @@
         <target>Umgebung</target>
       </segment>
     </unit>
+    <unit id="9191968011325658792">
+      <segment state="initial">
+        <source>Invalid email address</source>
+        <target>Ungültige E-Mail-Adresse</target>
+      </segment>
+    </unit>
     <unit id="9210899085665920557">
       <segment state="initial">
         <source>Install Web App</source>
         <target>Web-App installieren</target>
+      </segment>
+    </unit>
+    <unit id="947995176992343811">
+      <segment state="initial">
+        <source>This E-Mail address is not valid!</source>
+        <target>Diese E-Mail-Adresse ist ungültig!</target>
       </segment>
     </unit>
     <unit id="978733016608641076">
@@ -1675,16 +2016,46 @@
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">all_inclusive</pc> Eure Daten, für immer </target>
       </segment>
     </unit>
+    <unit id="991761096918819245">
+      <segment state="initial">
+        <source>Not verified</source>
+        <target>Nicht verifiziert</target>
+      </segment>
+    </unit>
+    <unit id="6431756795596367554">
+      <segment state="initial">
+        <source>Minimum 6 characters</source>
+        <target>Mindestens 6 Zeichen</target>
+      </segment>
+    </unit>
     <unit id="6435282697411612190">
       <segment state="initial">
         <source>What would you rate this spot from one to five stars?</source>
         <target>Was würdest du diesem Spot von eins bis fünf Sterne geben?</target>
       </segment>
     </unit>
+    <unit id="643839708130168383">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {Follower} other {Followers}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Follower} other {Follower}}</target>
+      </segment>
+    </unit>
     <unit id="6439365426343089851">
       <segment state="initial">
         <source>General</source>
         <target>Generell</target>
+      </segment>
+    </unit>
+    <unit id="6441345770791594657">
+      <segment state="initial">
+        <source>This account has been disabled. Please contact support.</source>
+        <target>Dieses Konto wurde deaktiviert. Bitte kontaktiere den Support.</target>
+      </segment>
+    </unit>
+    <unit id="6446631772000124223">
+      <segment state="initial">
+        <source>Password must be at least 6 characters</source>
+        <target>Passwort muss mindestens 6 Zeichen lang sein</target>
       </segment>
     </unit>
     <unit id="spot.review.count">
@@ -1713,6 +2084,18 @@
         <target>Einbetten</target>
       </segment>
     </unit>
+    <unit id="8155714392761937762">
+      <segment state="initial">
+        <source>Home Spots</source>
+        <target>Heimat-Spots</target>
+      </segment>
+    </unit>
+    <unit id="8182413566453831074">
+      <segment state="initial">
+        <source>Freerunner since</source>
+        <target>Freerunner seit</target>
+      </segment>
+    </unit>
     <unit id="spot_access_label">
       <notes>
         <note category="description">Label for the spot access selection field</note>
@@ -1739,6 +2122,12 @@
       <segment state="initial">
         <source>Show geolocation</source>
         <target>Geo-Standort anzeigen</target>
+      </segment>
+    </unit>
+    <unit id="7353924840712072086">
+      <segment state="initial">
+        <source>Current password (for confirmation)</source>
+        <target>Aktuelles Passwort (zur Bestätigung)</target>
       </segment>
     </unit>
     <unit id="welcomeDialogTitle">
@@ -1819,6 +2208,18 @@
         <target>Veranstaltung in </target>
       </segment>
     </unit>
+    <unit id="7655174159902173121">
+      <segment state="initial">
+        <source> For formal inquiries, partnerships, or issues that require privacy, reach out via email. </source>
+        <target> Für formelle Anfragen, Partnerschaften oder Themen, die Privatsphäre erfordern, kontaktiere uns per E-Mail. </target>
+      </segment>
+    </unit>
+    <unit id="7675878133592710280">
+      <segment state="initial">
+        <source>This link is not recognized. Please check your email and try again.</source>
+        <target>Dieser Link wird nicht erkannt. Bitte überprüfe deine E-Mail und versuche es erneut.</target>
+      </segment>
+    </unit>
     <unit id="editProfile.biography">
       <notes>
         <note category="description">Label for biography field</note>
@@ -1867,6 +2268,33 @@
       <segment state="initial">
         <source>Display Name</source>
         <target>Anzeigename</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.homeCity">
+      <notes>
+        <note category="description">home city label</note>
+      </notes>
+      <segment state="initial">
+        <source>Home City</source>
+        <target>Heimatstadt</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.homeSpots">
+      <notes>
+        <note category="description">home spots label</note>
+      </notes>
+      <segment state="initial">
+        <source>Home Spots</source>
+        <target>Heimat-Spots</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.nationalityCode">
+      <notes>
+        <note category="description">nationality code label</note>
+      </notes>
+      <segment state="initial">
+        <source>Nationality</source>
+        <target>Nationalität</target>
       </segment>
     </unit>
     <unit id="editProfile.readyToUpload">
@@ -1938,6 +2366,12 @@
       <segment state="initial">
         <source>WC</source>
         <target>WC</target>
+      </segment>
+    </unit>
+    <unit id="420441727915604290">
+      <segment state="initial">
+        <source>Security check failed. Please sign in again and try deleting your account.</source>
+        <target>Sicherheitsüberprüfung fehlgeschlagen. Bitte melde dich erneut an und versuche, dein Konto zu löschen.</target>
       </segment>
     </unit>
     <unit id="4218851671709080860">
@@ -2045,6 +2479,24 @@
         <target>Für Parkour</target>
       </segment>
     </unit>
+    <unit id="forgotPassword.description">
+      <notes>
+        <note category="description">forgot password description</note>
+      </notes>
+      <segment state="initial">
+        <source> Enter your E-mail address and you will receive an E-mail with instructions to reset your password. </source>
+        <target> Gib deine E-Mail-Adresse ein und du erhältst eine E-Mail mit Anweisungen zum Zurücksetzen deines Passworts. </target>
+      </segment>
+    </unit>
+    <unit id="forgotPassword.title">
+      <notes>
+        <note category="description">forgot password title</note>
+      </notes>
+      <segment state="initial">
+        <source> Forgot password </source>
+        <target> Passwort vergessen </target>
+      </segment>
+    </unit>
     <unit id="generic.not_sure">
       <segment state="initial">
         <source>Not sure</source>
@@ -2055,6 +2507,12 @@
       <segment state="initial">
         <source>Indoor</source>
         <target>Drinnen</target>
+      </segment>
+    </unit>
+    <unit id="4320994550381609480">
+      <segment state="initial">
+        <source>Pioneer</source>
+        <target>Pionier</target>
       </segment>
     </unit>
     <unit id="4323470180912194028">
@@ -2075,6 +2533,12 @@
         <target>Veranstaltung</target>
       </segment>
     </unit>
+    <unit id="3315502019080545247">
+      <segment state="initial">
+        <source>Error deleting account. Please try again.</source>
+        <target>Fehler beim Löschen des Kontos. Bitte versuche es erneut.</target>
+      </segment>
+    </unit>
     <unit id="2826581353496868063">
       <segment state="initial">
         <source>Language</source>
@@ -2087,10 +2551,34 @@
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-primary&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot </pc> ist ein <pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">kostenloses</pc> Tool, das von Athleten entwickelt wurde. Wir verlangen kein Geld für die Nutzung der Karte, und werden das nie tun. </target>
       </segment>
     </unit>
+    <unit id="2841739558138901231">
+      <segment state="initial">
+        <source>In</source>
+        <target>In</target>
+      </segment>
+    </unit>
+    <unit id="2855049153368933927">
+      <segment state="initial">
+        <source>Current E-mail</source>
+        <target>Aktuelle E-Mail</target>
+      </segment>
+    </unit>
     <unit id="28674972039900875">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Public License:</pc> This spot&apos;s data is made available under the <pc id="1" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;" dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </source>
         <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Öffentliche Lizenz:</pc> Die Daten dieses Spots stehen unter der <pc id="1" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;" dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> Lizenz zur Verfügung. </target>
+      </segment>
+    </unit>
+    <unit id="2874252575916172948">
+      <segment state="initial">
+        <source> Delete my account </source>
+        <target> Mein Konto löschen </target>
+      </segment>
+    </unit>
+    <unit id="7833933616390918367">
+      <segment state="initial">
+        <source>Recovery Failed</source>
+        <target>Wiederherstellung fehlgeschlagen</target>
       </segment>
     </unit>
     <unit id="7855274718891325217">
@@ -2105,10 +2593,22 @@
         <target>Geschlossen</target>
       </segment>
     </unit>
+    <unit id="7881945331295450373">
+      <segment state="initial">
+        <source>Supporter</source>
+        <target>Unterstützer</target>
+      </segment>
+    </unit>
     <unit id="7930891814958874419">
       <segment state="initial">
         <source> We are Open Source. No black-box algorithms, no hidden tracking. Just cutting-edge web tech built to serve the community. </source>
         <target>Wir sind Open Source. Keine Black-Box-Algorithmen, kein verstecktes Tracking. Nur modernste Web-Technologie im Dienst der Community.</target>
+      </segment>
+    </unit>
+    <unit id="8202652744541567309">
+      <segment state="initial">
+        <source>Password Reset Successful</source>
+        <target>Passwort erfolgreich zurückgesetzt</target>
       </segment>
     </unit>
     <unit id="822217384326702238">
@@ -2121,6 +2621,18 @@
       <segment state="initial">
         <source>Map</source>
         <target>Karte</target>
+      </segment>
+    </unit>
+    <unit id="5822654539864238023">
+      <segment state="initial">
+        <source> Check your inbox and follow the instructions to reset your password. </source>
+        <target> Überprüfe deinen Posteingang und folge den Anweisungen, um dein Passwort zurückzusetzen. </target>
+      </segment>
+    </unit>
+    <unit id="5823022281127676839">
+      <segment state="initial">
+        <source> Have a question, found a bug, or want to request a feature? We&apos;d love to hear from you! </source>
+        <target> Hast du eine Frage, einen Fehler gefunden oder möchtest du eine Funktion anfragen? Wir würden uns freuen, von dir zu hören! </target>
       </segment>
     </unit>
     <unit id="7008439939460403347">
@@ -2227,10 +2739,28 @@
         <target>Bewertung aktualisieren</target>
       </segment>
     </unit>
+    <unit id="8726138323871139597">
+      <segment state="initial">
+        <source>Following</source>
+        <target>Folge ich</target>
+      </segment>
+    </unit>
+    <unit id="8736188664022016115">
+      <segment state="initial">
+        <source>Could not sign in with Apple!</source>
+        <target>Anmeldung mit Apple fehlgeschlagen!</target>
+      </segment>
+    </unit>
     <unit id="8755396282893693521">
       <segment state="initial">
         <source>Event spots</source>
         <target>Veranstaltungs Spots</target>
+      </segment>
+    </unit>
+    <unit id="8784425134270344261">
+      <segment state="initial">
+        <source>Early Bird</source>
+        <target>Early Bird</target>
       </segment>
     </unit>
     <unit id="amenities.heated">
@@ -2293,6 +2823,18 @@
         <target>Hochgeladen von: </target>
       </segment>
     </unit>
+    <unit id="5911495341996816625">
+      <segment state="initial">
+        <source>Please wait while we verify your email address...</source>
+        <target>Bitte warte, während wir deine E-Mail-Adresse verifizieren...</target>
+      </segment>
+    </unit>
+    <unit id="5957587063470298128">
+      <segment state="initial">
+        <source> Verify now </source>
+        <target> Jetzt verifizieren </target>
+      </segment>
+    </unit>
     <unit id="5957901138028541022">
       <segment state="initial">
         <source> Get the full-screen app experience directly from your browser. Open the menu and select &quot;Add to Home Screen&quot; or &quot;Install&quot; to access PK Spot instantly on any device. </source>
@@ -2315,6 +2857,18 @@
       <segment state="initial">
         <source> Add an editable boundary for this spot. After adding, you can adjust the polygon shape on the map. </source>
         <target> Füge eine bearbeitbares Areal für diesen Spot hinzu. Nach dem Hinzufügen kannst du die Polygonform auf der Karte anpassen. </target>
+      </segment>
+    </unit>
+    <unit id="2143027146062629863">
+      <segment state="initial">
+        <source>Invalid email address.</source>
+        <target>Ungültige E-Mail-Adresse.</target>
+      </segment>
+    </unit>
+    <unit id="2157223865323513041">
+      <segment state="initial">
+        <source>Please fill in all fields</source>
+        <target>Bitte fülle alle Felder aus</target>
       </segment>
     </unit>
     <unit id="2159130950882492111">
@@ -2365,6 +2919,12 @@
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">home</pc> Indoor-Spots finden </target>
       </segment>
     </unit>
+    <unit id="4127571452382238225">
+      <segment state="initial">
+        <source>Explorer</source>
+        <target>Entdecker</target>
+      </segment>
+    </unit>
     <unit id="3714343477148346459">
       <segment state="initial">
         <source>New challenge saved successfully</source>
@@ -2377,16 +2937,34 @@
         <target> Wir sperren deine Welt nicht hinter eine Paywall. Alle Spot-Daten der Community werden öffentlich für die Community freigegeben und unter Creative Commons <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> lizenziert. Es ist offen, teilbar und gehört für immer dir. </target>
       </segment>
     </unit>
+    <unit id="5075169696278804374">
+      <segment state="initial">
+        <source>Error sending reset email. Please try again.</source>
+        <target>Fehler beim Senden der Zurücksetzungs-E-Mail. Bitte versuche es erneut.</target>
+      </segment>
+    </unit>
     <unit id="5078551942621038511">
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
         <target>Link zur Challenge in die Zwischenablage kopiert</target>
       </segment>
     </unit>
+    <unit id="8324331879973734366">
+      <segment state="initial">
+        <source> Frequently Asked Questions </source>
+        <target> Häufig gestellte Fragen </target>
+      </segment>
+    </unit>
     <unit id="8333618256474808727">
       <segment state="initial">
         <source>Add translation</source>
         <target>Übersetzung hinzufügen</target>
+      </segment>
+    </unit>
+    <unit id="8334401359656001773">
+      <segment state="initial">
+        <source>Error changing email. Please check your password.</source>
+        <target>Fehler beim Ändern der E-Mail. Bitte überprüfe dein Passwort.</target>
       </segment>
     </unit>
     <unit id="3249513483374643425">
@@ -2402,6 +2980,12 @@
       <segment state="initial">
         <source>Comment</source>
         <target>Kommentar</target>
+      </segment>
+    </unit>
+    <unit id="2684344419716682750">
+      <segment state="initial">
+        <source>Badges</source>
+        <target>Abzeichen</target>
       </segment>
     </unit>
     <unit id="2736531674722915416">
@@ -2444,10 +3028,22 @@
         <target>Bitte eine Datei zum hochladen auswählen</target>
       </segment>
     </unit>
+    <unit id="8018379614687762047">
+      <segment state="initial">
+        <source>Email changed successfully. Please verify your new email.</source>
+        <target>E-Mail erfolgreich geändert. Bitte verifiziere deine neue E-Mail.</target>
+      </segment>
+    </unit>
     <unit id="8078753231616252504">
       <segment state="initial">
         <source> We believe the map belongs to the athletes, not a corporation. That&apos;s why <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary pkspot-font&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot</pc> is built differently. </source>
         <target> Wir glauben, dass die Karte den Athleten gehört, nicht einem Unternehmen. Deshalb ist <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary pkspot-font&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot</pc> anders gebaut. </target>
+      </segment>
+    </unit>
+    <unit id="8096545544094225301">
+      <segment state="initial">
+        <source> Need help? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/support&quot;&gt;" dispEnd="&lt;/a&gt;">Visit our support page</pc></source>
+        <target> Brauchst du Hilfe? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/support&quot;&gt;" dispEnd="&lt;/a&gt;">Besuche unsere Support-Seite</pc></target>
       </segment>
     </unit>
     <unit id="3368417786821334758">
@@ -2460,6 +3056,12 @@
       <segment state="initial">
         <source> Continue </source>
         <target> Weiterfahren </target>
+      </segment>
+    </unit>
+    <unit id="2969365666988952758">
+      <segment state="initial">
+        <source>Recovering Email</source>
+        <target>E-Mail wird wiederhergestellt</target>
       </segment>
     </unit>
     <unit id="signin.other_options.header">
@@ -2482,6 +3084,12 @@
       <segment state="initial">
         <source>Add media</source>
         <target>Medien hinzufügen</target>
+      </segment>
+    </unit>
+    <unit id="3143510854025741393">
+      <segment state="initial">
+        <source>This link is invalid or has expired. Please request a new one.</source>
+        <target>Dieser Link ist ungültig oder abgelaufen. Bitte fordere einen neuen an.</target>
       </segment>
     </unit>
     <unit id="3148120434799119252">
@@ -2558,6 +3166,12 @@
         <target> Spot Typ and Zugang </target>
       </segment>
     </unit>
+    <unit id="1577979859082287846">
+      <segment state="initial">
+        <source>This email is already in use.</source>
+        <target>Diese E-Mail wird bereits verwendet.</target>
+      </segment>
+    </unit>
     <unit id="1578341976423133065">
       <segment state="initial">
         <source>Invalid email or password.</source>
@@ -2614,6 +3228,18 @@
         <target>Melden Knopf mit einem Warnungs Bild</target>
       </segment>
     </unit>
+    <unit id="5306728370945378331">
+      <segment state="initial">
+        <source>Go Home</source>
+        <target>Nach Hause gehen</target>
+      </segment>
+    </unit>
+    <unit id="5340498030552368470">
+      <segment state="initial">
+        <source>Current password</source>
+        <target>Aktuelles Passwort</target>
+      </segment>
+    </unit>
     <unit id="5354481455147566182">
       <notes>
         <note category="description">Label of the button to report the spot</note>
@@ -2634,6 +3260,12 @@
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">map_search</pc> Smart Map Filters </source>
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">map_search</pc> Smarte Kartenfilter </target>
+      </segment>
+    </unit>
+    <unit id="5377078063439833222">
+      <segment state="initial">
+        <source> Edit </source>
+        <target> Bearbeiten </target>
       </segment>
     </unit>
     <unit id="spot.edit.media.header">
@@ -2683,7 +3315,7 @@
       </notes>
       <segment state="initial">
         <source> Spot URL </source>
-        <target> Spot URL </target>
+        <target> Spot-URL </target>
       </segment>
     </unit>
     <unit id="spot.edit.url.select_label">
@@ -2728,9 +3360,15 @@
         <target>Dieser Spot kann nicht geteilt werden, er wurde noch nicht gespeichert.</target>
       </segment>
     </unit>
-    <unit id="667055198031260741">
+    <unit id="5604123151232836009">
       <segment state="initial">
-        <source> To keep the servers running, we partner with the Parkour ecosystem — National Associations, ethical brands, and gyms. We support the organizations that support the sport. </source>
+        <source>Join Discord</source>
+        <target>Discord beitreten</target>
+      </segment>
+    </unit>
+    <unit id="5623922014146618415">
+      <segment state="initial">
+        <source> To keep the servers running, we partner with the Parkour ecosystem — National Associations, ethical brands, and Parkour Gyms. We support the organizations that support the sport. </source>
         <target> Um die Server am Laufen zu halten, arbeiten wir mit dem Parkour-Ökosystem zusammen - nationalen Verbänden, ethischen Marken und Parkour Gyms. Wir unterstützen die Organisationen, die den Sport unterstützen. </target>
       </segment>
     </unit>
@@ -2740,16 +3378,34 @@
         <target>Link zum Spot wurde in die Zwischenablage kopiert</target>
       </segment>
     </unit>
+    <unit id="7536618650694716867">
+      <segment state="initial">
+        <source> Find answers to common questions or reach out to us directly. </source>
+        <target> Finde Antworten auf häufige Fragen oder kontaktiere uns direkt. </target>
+      </segment>
+    </unit>
     <unit id="250704833554562493">
       <segment state="initial">
         <source>Unnamed Challenge</source>
         <target>Unbenannte Challenge</target>
       </segment>
     </unit>
+    <unit id="2523505136253356900">
+      <segment state="initial">
+        <source>Invalid Link</source>
+        <target>Ungültiger Link</target>
+      </segment>
+    </unit>
     <unit id="2575639027185325240">
       <segment state="initial">
         <source> Be Part of the Movement </source>
         <target> Sei Teil der Bewegung </target>
+      </segment>
+    </unit>
+    <unit id="2037607997452853008">
+      <segment state="initial">
+        <source>Error changing password. Please try again.</source>
+        <target>Fehler beim Ändern des Passworts. Bitte versuche es erneut.</target>
       </segment>
     </unit>
     <unit id="2043725857486133673">
@@ -2779,6 +3435,12 @@
         <target>Kreativ</target>
       </segment>
     </unit>
+    <unit id="657631833222600301">
+      <segment state="initial">
+        <source>Media Added</source>
+        <target>Medien hinzugefügt</target>
+      </segment>
+    </unit>
     <unit id="611564526184434442">
       <segment state="initial">
         <source> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()"/></source>
@@ -2795,6 +3457,18 @@
       <segment state="initial">
         <source>Fun</source>
         <target>Spaß</target>
+      </segment>
+    </unit>
+    <unit id="5464118521750361406">
+      <segment state="initial">
+        <source>Public profile</source>
+        <target>Öffentliches Profil</target>
+      </segment>
+    </unit>
+    <unit id="5492320356892382782">
+      <segment state="initial">
+        <source>Permanently delete</source>
+        <target>Dauerhaft löschen</target>
       </segment>
     </unit>
     <unit id="7027401708987643293">
@@ -2821,6 +3495,12 @@
         <target>Diese technische Challenge erfordert große Präzision und Kontrolle.</target>
       </segment>
     </unit>
+    <unit id="3432396429990524008">
+      <segment state="initial">
+        <source>Account mismatch. Please sign in to the correct account.</source>
+        <target>Kontonichtübereinstimmung. Bitte melde dich beim richtigen Konto an.</target>
+      </segment>
+    </unit>
     <unit id="5109390034351761565">
       <segment state="initial">
         <source>This challenge is for fun! </source>
@@ -2837,6 +3517,18 @@
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
         <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Wichtig:</pc> Wenn du diesen Inhalt auf deiner Website einbettest, bist du verantwortlich für die Einholung der Zustimmung des Benutzers für Drittanbieter-Dienste (Google Maps, Analysen, etc.). Stelle sicher, dass deine Website ein klares Zustimmungs-Banner oder Bedingungen hat, denen Benutzer zustimmen, bevor sie eingebettete Inhalte ansehen. </target>
+      </segment>
+    </unit>
+    <unit id="519026501519052552">
+      <segment state="initial">
+        <source>Manage your profile and account settings.</source>
+        <target>Verwalte deine Profil- und Kontoeinstellungen.</target>
+      </segment>
+    </unit>
+    <unit id="23518581647153834">
+      <segment state="initial">
+        <source>from</source>
+        <target>von</target>
       </segment>
     </unit>
     <unit id="2364479747143032381">
@@ -2875,6 +3567,18 @@
         <target>Paar</target>
       </segment>
     </unit>
+    <unit id="2275328567992347600">
+      <segment state="initial">
+        <source>Page not found</source>
+        <target>Seite nicht gefunden</target>
+      </segment>
+    </unit>
+    <unit id="2288513108450439427">
+      <segment state="initial">
+        <source>Support</source>
+        <target>Support</target>
+      </segment>
+    </unit>
     <unit id="spot.edit.type_access.header">
       <notes>
         <note category="description">Header for type and access editing section</note>
@@ -2897,10 +3601,28 @@
         <target> Diese Challenge wird am <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}"/> um <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}"/> veröffentlicht. </target>
       </segment>
     </unit>
+    <unit id="5400391042453835180">
+      <segment state="initial">
+        <source>Manage your <ph id="0" equiv="PH" disp="point.name"/> settings.</source>
+        <target>Verwalte deine <ph id="0" equiv="PH" disp="point.name"/> Einstellungen.</target>
+      </segment>
+    </unit>
+    <unit id="5411574545284988510">
+      <segment state="initial">
+        <source>Verifying Email</source>
+        <target>E-Mail wird verifiziert</target>
+      </segment>
+    </unit>
     <unit id="5442876463654189578">
       <segment state="initial">
         <source>Label and particpant type</source>
         <target>Label und Teilnehmer-Typ</target>
+      </segment>
+    </unit>
+    <unit id="4074207137823057482">
+      <segment state="initial">
+        <source> Are you sure? You will need to sign in with <ph id="0" equiv="INTERPOLATION" disp="{{ providerDisplayName }}"/> again to confirm deletion. </source>
+        <target> Bist du sicher? Du musst dich erneut mit <ph id="0" equiv="INTERPOLATION" disp="{{ providerDisplayName }}"/> anmelden, um das Löschen zu bestätigen. </target>
       </segment>
     </unit>
     <unit id="4077520913910941990">
@@ -2913,6 +3635,12 @@
       <segment state="initial">
         <source>Participant Type</source>
         <target>Teilnehmer-Typ</target>
+      </segment>
+    </unit>
+    <unit id="7097945335364423857">
+      <segment state="initial">
+        <source>The reset E-mail has been sent!</source>
+        <target>Die Zurücksetzungs-E-Mail wurde gesendet!</target>
       </segment>
     </unit>
     <unit id="8822206448271061589">
@@ -2937,6 +3665,12 @@
       <segment state="initial">
         <source> The Challenge will only be available starting from the release date. Before that it will be private to you. </source>
         <target> Die Challenge ist erst ab dem Veröffentlichungsdatum verfügbar. Davor ist sie nur für dich privat. </target>
+      </segment>
+    </unit>
+    <unit id="5014960004929658159">
+      <segment state="initial">
+        <source>Verified</source>
+        <target>Verifiziert</target>
       </segment>
     </unit>
     <unit id="5992560285899135152">
@@ -2981,6 +3715,12 @@
         <target>Uhrzeit</target>
       </segment>
     </unit>
+    <unit id="8535056559014052836">
+      <segment state="initial">
+        <source>Please enter your email address</source>
+        <target>Bitte gib deine E-Mail-Adresse ein</target>
+      </segment>
+    </unit>
     <unit id="8552587679160911578">
       <notes>
         <note category="description">email required error</note>
@@ -2988,6 +3728,12 @@
       <segment state="initial">
         <source>Email is required</source>
         <target>E-Mail ist erforderlich</target>
+      </segment>
+    </unit>
+    <unit id="83860586054430315">
+      <segment state="initial">
+        <source>Your password has been successfully reset. You can now sign in with your new password.</source>
+        <target>Dein Passwort wurde erfolgreich zurückgesetzt. Du kannst dich jetzt mit deinem neuen Passwort anmelden.</target>
       </segment>
     </unit>
     <unit id="8387795974331999553">
@@ -3028,6 +3774,12 @@
         <target>Durch die Erstellung eines Kontos stimmst du unseren <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> zu und bestätigst, dass du Inhalte unter den darin beschriebenen Lizenzbedingungen beitragen wirst.</target>
       </segment>
     </unit>
+    <unit id="7139999409916594388">
+      <segment state="initial">
+        <source>Leaderboard</source>
+        <target>Bestenliste</target>
+      </segment>
+    </unit>
     <unit id="7150227608403439982">
       <segment state="initial">
         <source>I&apos;ll add media!</source>
@@ -3046,10 +3798,28 @@
         <target>Mehr anzeigen</target>
       </segment>
     </unit>
-    <unit id="5602565406648292689">
+    <unit id="7224722019363844519">
       <segment state="initial">
-        <source> Whether you are a solo athlete, a gym owner, or a national organization - we are happy to have you on board. </source>
+        <source>Pathfinder</source>
+        <target>Wegbereiter</target>
+      </segment>
+    </unit>
+    <unit id="6607382385355290684">
+      <segment state="initial">
+        <source>New passwords do not match</source>
+        <target>Die neuen Passwörter stimmen nicht überein</target>
+      </segment>
+    </unit>
+    <unit id="6642568354300862445">
+      <segment state="initial">
+        <source> Whether you are a solo athlete, a Parkour gym owner, or a national organization - we are happy to have you on board. </source>
         <target> Egal, ob du ein Solo-Athlet, ein Gym-Betreiber oder eine nationale Organisation bist – wir freuen uns, dich an Bord zu haben. </target>
+      </segment>
+    </unit>
+    <unit id="565319861201250432">
+      <segment state="initial">
+        <source>Edits Made</source>
+        <target>Bearbeitungen vorgenommen</target>
       </segment>
     </unit>
     <unit id="565606266379309262">
@@ -3059,6 +3829,12 @@
       <segment state="initial">
         <source>All Types</source>
         <target>Alle Typen</target>
+      </segment>
+    </unit>
+    <unit id="4565748598505088180">
+      <segment state="initial">
+        <source>This link is invalid or has already been used. Please request a new one.</source>
+        <target>Dieser Link ist ungültig oder wurde bereits verwendet. Bitte fordere einen neuen an.</target>
       </segment>
     </unit>
     <unit id="4570725150232607497">
@@ -3089,6 +3865,12 @@
       <segment state="initial">
         <source>Both</source>
         <target>Beides</target>
+      </segment>
+    </unit>
+    <unit id="6275309169485929724">
+      <segment state="initial">
+        <source>Authentication Error</source>
+        <target>Authentifizierungsfehler</target>
       </segment>
     </unit>
     <unit id="6299599810982807013">
@@ -3153,6 +3935,18 @@
         <target>Team</target>
       </segment>
     </unit>
+    <unit id="3737580346792181367">
+      <segment state="initial">
+        <source> Are you sure? Enter your password to confirm deletion. </source>
+        <target> Bist du sicher? Gib dein Passwort ein, um das Löschen zu bestätigen. </target>
+      </segment>
+    </unit>
+    <unit id="3742557968359744247">
+      <segment state="initial">
+        <source>Password Reset Failed</source>
+        <target>Passwortzurücksetzung fehlgeschlagen</target>
+      </segment>
+    </unit>
     <unit id="open-embedded-in-pkspot-button-label">
       <segment state="initial">
         <source>Open this on PK Spot</source>
@@ -3195,16 +3989,40 @@
         <target>Alle</target>
       </segment>
     </unit>
+    <unit id="1634423786949067514">
+      <segment state="initial">
+        <source> Permanently delete your account and all associated data. This action cannot be undone. </source>
+        <target> Lösche dein Konto und alle zugehörigen Daten dauerhaft. Diese Aktion kann nicht rückgängig gemacht werden. </target>
+      </segment>
+    </unit>
     <unit id="1634758098784005644">
       <segment state="initial">
         <source>Loading Google Place…</source>
         <target>Lade Google Place…</target>
       </segment>
     </unit>
+    <unit id="1636934520301910285">
+      <segment state="initial">
+        <source>Reset password</source>
+        <target>Passwort zurücksetzen</target>
+      </segment>
+    </unit>
+    <unit id="3857035781062897227">
+      <segment state="initial">
+        <source>Instagram DMs</source>
+        <target>Instagram DMs</target>
+      </segment>
+    </unit>
     <unit id="3881818169480672345">
       <segment state="initial">
         <source>other</source>
         <target>anderes</target>
+      </segment>
+    </unit>
+    <unit id="3894305924320774026">
+      <segment state="initial">
+        <source>@pkspot.app</source>
+        <target>@pkspot.app</target>
       </segment>
     </unit>
     <unit id="7772746290400709115">
@@ -3231,6 +4049,18 @@
         <target>Smarte Scorecard</target>
       </segment>
     </unit>
+    <unit id="1826181746940790026">
+      <segment state="initial">
+        <source>Please wait while we recover your email address...</source>
+        <target>Bitte warte, während wir deine E-Mail-Adresse wiederherstellen...</target>
+      </segment>
+    </unit>
+    <unit id="1869005629911328727">
+      <segment state="initial">
+        <source>Your account has been deleted. Goodbye!</source>
+        <target>Dein Konto wurde gelöscht. Auf Wiedersehen!</target>
+      </segment>
+    </unit>
     <unit id="187187500641108332">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}"/></source>
@@ -3250,6 +4080,12 @@
       <segment state="initial">
         <source>Submitting...</source>
         <target>Wird gesendet...</target>
+      </segment>
+    </unit>
+    <unit id="4590398956969854643">
+      <segment state="initial">
+        <source>Unable to process this request. Please try again later.</source>
+        <target>Anfrage konnte nicht verarbeitet werden. Bitte versuche es später noch einmal.</target>
       </segment>
     </unit>
     <unit id="459311985687858272">
