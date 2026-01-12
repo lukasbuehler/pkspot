@@ -23,6 +23,7 @@ import { contentResolver } from "./resolvers/content.resolver";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
   "/about",
+  "/support",
   "/terms-of-service",
   "/tos",
   "/privacy-policy",
@@ -233,6 +234,15 @@ export const routes: Routes = [
     component: AboutPageComponent,
     resolve: { content: contentResolver },
     data: { routeName: "About", acceptanceFree: true },
+  },
+  {
+    path: "support",
+    loadComponent: () =>
+      import("./components/support-page/support-page.component").then(
+        (m) => m.SupportPageComponent
+      ),
+    resolve: { content: contentResolver },
+    data: { routeName: "Support", acceptanceFree: true },
   },
   {
     path: "welcome",

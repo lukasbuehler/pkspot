@@ -1,0 +1,208 @@
+.support-page-background {
+  width: 100%;
+  min-height: 100%;
+}
+
+.support-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+  padding-top: 5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+// ============================================
+// Hero Section
+// ============================================
+
+.hero-section {
+  text-align: center;
+  margin-bottom: 4rem;
+
+  h1 {
+    margin-bottom: 1rem;
+  }
+
+  .subtitle {
+    max-width: 600px;
+    margin: 0 auto;
+    opacity: 0.85;
+  }
+}
+
+// ============================================
+// Sections
+// ============================================
+
+section {
+  margin-bottom: 4rem;
+}
+
+.section-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.text-block {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+// ============================================
+// Contact Section
+// ============================================
+
+.contact-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.contact-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0px 20px rgba(23, 233, 89, 0.15);
+  }
+
+  h3 {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    flex-grow: 1;
+  }
+}
+
+.contact-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+
+  img {
+    width: 36px;
+    height: 36px;
+  }
+
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  &.discord {
+    background: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
+  }
+
+  &.email {
+    background: linear-gradient(135deg, #17e959 0%, #00c853 100%);
+  }
+
+  &.instagram {
+    background: linear-gradient(
+      135deg,
+      #f09433 0%,
+      #e6683c 25%,
+      #dc2743 50%,
+      #cc2366 75%,
+      #bc1888 100%
+    );
+  }
+}
+
+.btn-icon {
+  height: 20px;
+  width: 20px;
+}
+
+// ============================================
+// FAQ Section
+// ============================================
+
+.faq-section {
+  text-align: left;
+}
+
+.faq-category {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.category-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+
+  mat-icon {
+    opacity: 0.7;
+  }
+}
+
+.faq-accordion {
+  display: block;
+  width: 100%;
+
+  mat-expansion-panel {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    line-height: 1.6;
+    opacity: 0.9;
+  }
+}
+
+// ============================================
+// Quick Links Section
+// ============================================
+
+.quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+// ============================================
+// Footer
+// ============================================
+
+footer {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid var(--mat-divider-color, rgba(255, 255, 255, 0.12));
+
+  a {
+    color: var(--mat-primary-color, #17e959);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

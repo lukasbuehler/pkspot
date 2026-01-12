@@ -1,0 +1,147 @@
+<div class="support-page-background">
+  <div class="support-page">
+    <section class="hero-section">
+      <h1 class="mat-headline-large">Support & Resources</h1>
+      <p class="mat-title-medium subtitle" i18n>
+        Find answers to common questions or reach out to us directly.
+      </p>
+    </section>
+
+    <section class="contact-section">
+      <h2 class="mat-headline-medium section-title" i18n>Get in Touch</h2>
+      <p class="mat-body-large text-block mb-4" i18n>
+        Have a question, found a bug, or want to request a feature? We'd love to
+        hear from you!
+      </p>
+
+      <div class="contact-grid">
+        <mat-card class="contact-card border">
+          <div class="contact-icon discord">
+            <img src="assets/logos/discord_white.svg" alt="Discord" />
+          </div>
+          <h3 class="mat-title-large" i18n>Discord Community</h3>
+          <p class="mat-body-medium" i18n>
+            Join our Discord server to chat with the community, report bugs, and
+            request features. This is the fastest way to get help!
+          </p>
+          <a
+            matButton="outlined"
+            color="primary"
+            [href]="discordUrl"
+            target="_blank"
+            class="mt-auto"
+          >
+            <img
+              src="assets/logos/discord_white.svg"
+              alt=""
+              class="btn-icon me-2"
+            />
+            <span i18n>Join Discord</span>
+          </a>
+        </mat-card>
+
+        <mat-card class="contact-card border">
+          <div class="contact-icon email">
+            <mat-icon>email</mat-icon>
+          </div>
+          <h3 class="mat-title-large" i18n>Email Support</h3>
+          <p class="mat-body-medium" i18n>
+            For formal inquiries, partnerships, or issues that require privacy,
+            reach out via email.
+          </p>
+          <a
+            mat-stroked-button
+            [href]="'mailto:' + supportEmail"
+            class="mt-auto"
+          >
+            <mat-icon>email</mat-icon>
+            <span>{{ supportEmail }}</span>
+          </a>
+        </mat-card>
+
+        <mat-card class="contact-card border">
+          <div class="contact-icon instagram">
+            <img src="assets/logos/instagram.svg" alt="Instagram" />
+          </div>
+          <h3 class="mat-title-large" i18n>Instagram DMs</h3>
+          <p class="mat-body-medium" i18n>
+            Feel free to slide into our DMs! We're happy to help with quick
+            questions.
+          </p>
+          <a
+            mat-stroked-button
+            [href]="instagramUrl"
+            target="_blank"
+            class="mt-auto"
+          >
+            <img
+              src="assets/logos/instagram.svg"
+              alt=""
+              class="btn-icon me-2"
+            />
+            <span i18n>@pkspot.app</span>
+          </a>
+        </mat-card>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <h2 class="mat-headline-medium section-title" i18n>
+        Frequently Asked Questions
+      </h2>
+
+      @for (category of faqCategories; track category.title) {
+      <div class="faq-category">
+        <h3 class="mat-title-large category-title">
+          <mat-icon>{{ category.icon }}</mat-icon>
+          <span>{{ category.title }}</span>
+        </h3>
+        <mat-accordion class="faq-accordion">
+          @for (item of category.items; track item.question) {
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>{{ item.question }}</mat-panel-title>
+            </mat-expansion-panel-header>
+            <p>{{ item.answer }}</p>
+          </mat-expansion-panel>
+          }
+        </mat-accordion>
+      </div>
+      }
+    </section>
+
+    <section class="quick-links-section">
+      <h2 class="mat-headline-medium section-title" i18n>Quick Links</h2>
+      <div class="quick-links">
+        <a mat-stroked-button routerLink="/about">
+          <mat-icon>info</mat-icon>
+          <span i18n>About PK Spot</span>
+        </a>
+        <a mat-stroked-button routerLink="/privacy-policy">
+          <mat-icon>policy</mat-icon>
+          <span i18n>Privacy Policy</span>
+        </a>
+        <a mat-stroked-button routerLink="/terms-of-service">
+          <mat-icon>gavel</mat-icon>
+          <span i18n>Terms of Service</span>
+        </a>
+        <a
+          mat-stroked-button
+          href="https://github.com/lukasbuehler/pkspot"
+          target="_blank"
+        >
+          <img src="assets/logos/github.svg" alt="" class="btn-icon me-2" />
+          <span i18n>GitHub</span>
+        </a>
+      </div>
+    </section>
+
+    <footer class="d-flex flex-column align-items-center">
+      <p class="mat-body-large" i18n>
+        Can't find what you're looking for?
+        <a [href]="discordUrl" target="_blank">Join our Discord</a>
+        and we'll help you out!
+      </p>
+    </footer>
+  </div>
+</div>

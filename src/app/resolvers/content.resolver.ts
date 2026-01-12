@@ -75,12 +75,12 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
       return resolveStaticContent(route, result, metaTagService);
 
     case "home":
-      metaTagService.setHomeMetaTags();
+      metaTagService.setHomeMetaTags("/");
       return result;
 
     case "map":
     default:
-      metaTagService.setDefaultMapMetaTags();
+      metaTagService.setDefaultMapMetaTags("/map");
       return result;
   }
 };
@@ -117,9 +117,13 @@ function determineContentType(route: ActivatedRouteSnapshot): ContentType {
   } else if (fullPath === "" || fullPath === "home") {
     return "home";
   } else if (
-    ["about", "privacy-policy", "terms-of-service", "impressum"].some((p) =>
-      fullPath.includes(p)
-    )
+    [
+      "about",
+      "support",
+      "privacy-policy",
+      "terms-of-service",
+      "impressum",
+    ].some((p) => fullPath.includes(p))
   ) {
     return "static";
   }
@@ -136,7 +140,7 @@ async function resolveSpotContent(
   const challengeId = getParamFromRouteTree(route, "challenge");
 
   if (!spotIdOrSlug) {
-    services.metaTagService.setDefaultMapMetaTags();
+    services.metaTagService.setDefaultMapMetaTags("/map");
     return result;
   }
 
@@ -145,7 +149,7 @@ async function resolveSpotContent(
     console.warn(
       "Content resolver: User consent required for Firestore access"
     );
-    services.metaTagService.setDefaultMapMetaTags();
+    services.metaTagService.setDefaultMapMetaTags("/map");
     return result;
   }
 
@@ -170,24 +174,34 @@ async function resolveSpotContent(
         );
         result.challenge = challenge;
 
-        // Set challenge meta tags
-        services.metaTagService.setChallengeMetaTags(challenge);
+        // Set challenge meta tags with canonical URL
+        const challengeCanonicalPath = spot.slug
+          ? `/map/${spot.slug}/c/${challengeId}`
+          : `/map/${spot.id}/c/${challengeId}`;
+        services.metaTagService.setChallengeMetaTags(
+          challenge,
+          challengeCanonicalPath
+        );
       } catch (error) {
         console.warn("Could not load challenge, showing spot instead:", error);
         // Fall back to spot meta tags
-        services.metaTagService.setSpotMetaTags(spot);
+        const spotCanonicalPath = spot.slug
+          ? `/map/${spot.slug}`
+          : `/map/${spot.id}`;
+        services.metaTagService.setSpotMetaTags(spot, spotCanonicalPath);
       }
-    } else if (result.contentType === "spotEditHistory") {
-      services.metaTagService.setSpotMetaTags(spot);
     } else {
-      // Set spot meta tags
-      services.metaTagService.setSpotMetaTags(spot);
+      // Set spot meta tags with canonical URL (use slug if available)
+      const spotCanonicalPath = spot.slug
+        ? `/map/${spot.slug}`
+        : `/map/${spot.id}`;
+      services.metaTagService.setSpotMetaTags(spot, spotCanonicalPath);
     }
 
     return result;
   } catch (error) {
     console.error("Error resolving spot content:", error);
-    services.metaTagService.setDefaultMapMetaTags();
+    services.metaTagService.setDefaultMapMetaTags("/map");
     return result;
   }
 }
@@ -206,12 +220,22 @@ async function resolveEventContent(
     metaTagService.setStaticPageMetaTags(
       "SwissJam 2025",
       "Join us for the biggest parkour event in Switzerland! SwissJam 2025 brings together athletes from around the world.",
-      "https://pkspot.app/assets/swissjam.jpg"
+      "https://pkspot.app/assets/swissjam.jpg",
+      "/events/swissjam25"
+    );
+  } else if (eventId) {
+    metaTagService.setStaticPageMetaTags(
+      "Event",
+      "Discover upcoming parkour and freerunning events near you.",
+      undefined,
+      `/events/${eventId}`
     );
   } else {
     metaTagService.setStaticPageMetaTags(
       "Events",
-      "Discover upcoming parkour and freerunning events near you."
+      "Discover upcoming parkour and freerunning events near you.",
+      undefined,
+      "/events"
     );
   }
 
@@ -238,21 +262,24 @@ async function resolveUserContent(
       metaTagService.setStaticPageMetaTags(
         `${userId}'s Profile | PK Spot`,
         "Check out this user's profile and achievements on PK Spot.",
-        socialCardUrl
+        socialCardUrl,
+        `/u/${userId}`
       );
     } catch (error) {
       console.error("Error loading user profile:", error);
       metaTagService.setStaticPageMetaTags(
         "User Profile",
         "Check out this user's profile and achievements on PK Spot.",
-        "/assets/banner_1200x630.png"
+        "/assets/banner_1200x630.png",
+        `/u/${userId}`
       );
     }
   } else {
     metaTagService.setStaticPageMetaTags(
       "User Profile",
       "Check out this user's profile and achievements on PK Spot.",
-      "/assets/banner_1200x630.png"
+      "/assets/banner_1200x630.png",
+      "/profile"
     );
   }
 
@@ -274,7 +301,9 @@ async function resolvePostContent(
 
   metaTagService.setStaticPageMetaTags(
     "Post",
-    "Check out this post on PK Spot."
+    "Check out this post on PK Spot.",
+    undefined,
+    postId ? `/post/${postId}` : undefined
   );
 
   return result;
@@ -298,29 +327,44 @@ function resolveStaticContent(
 
   const fullPath = pathSegments.join("/");
 
-  // Set meta tags based on static page
+  // Set meta tags based on static page with canonical URLs
   if (fullPath.includes("about")) {
     metaTagService.setStaticPageMetaTags(
       "About",
-      "Learn more about PK Spot and our mission to connect the parkour and freerunning community."
+      "Learn more about PK Spot and our mission to connect the parkour and freerunning community.",
+      undefined,
+      "/about"
+    );
+  } else if (fullPath.includes("support")) {
+    metaTagService.setStaticPageMetaTags(
+      "Support & Resources",
+      "Find answers to common questions or reach out to us directly. Get help with your account, using the map, or technical issues.",
+      undefined,
+      "/support"
     );
   } else if (fullPath.includes("privacy-policy")) {
     metaTagService.setStaticPageMetaTags(
       "Privacy Policy",
-      "Read our privacy policy to understand how we protect and handle your data."
+      "Read our privacy policy to understand how we protect and handle your data.",
+      undefined,
+      "/privacy-policy"
     );
   } else if (fullPath.includes("terms-of-service")) {
     metaTagService.setStaticPageMetaTags(
       "Terms of Service",
-      "Read our terms of service to understand the rules and guidelines for using PK Spot."
+      "Read our terms of service to understand the rules and guidelines for using PK Spot.",
+      undefined,
+      "/terms-of-service"
     );
   } else if (fullPath.includes("impressum")) {
     metaTagService.setStaticPageMetaTags(
       "Impressum",
-      "Legal information and contact details for PK Spot."
+      "Legal information and contact details for PK Spot.",
+      undefined,
+      "/impressum"
     );
   } else {
-    metaTagService.setHomeMetaTags();
+    metaTagService.setHomeMetaTags("/");
   }
 
   return result;
