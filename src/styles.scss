@@ -10,12 +10,13 @@ button:focus {
 }
 
 html {
-  /* Native Status Bar Padding */
-  // padding-top: env(safe-area-inset-top);
-  padding-top: env(safe-area-inset-top) !important;
-  /* Handle notch in landscape mode (left/right safe areas) */
-  padding-left: env(safe-area-inset-left) !important;
-  padding-right: env(safe-area-inset-right) !important;
+  /* Native Safe Area Padding for iOS/Android notch and navigation */
+  /* Native edge-to-edge mode provides env() values via the WebView */
+  padding-top: env(safe-area-inset-top, 0px);
+  // padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+
   /* Ensure padding is included in width calculations to prevent horizontal overflow */
   box-sizing: border-box;
   /* Prevent any horizontal scrolling caused by safe area calculations */
@@ -25,7 +26,6 @@ html {
 body,
 html {
   margin: 0;
-  padding: 0;
   height: 100%;
   color: white;
 

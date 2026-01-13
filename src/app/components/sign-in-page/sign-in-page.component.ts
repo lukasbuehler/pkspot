@@ -17,6 +17,7 @@ import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 
 @Component({
   selector: "app-sign-in-page",
@@ -35,6 +36,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
     MatIconModule,
     NgOptimizedImage,
     MatTooltipModule,
+    MatProgressSpinner,
   ],
 })
 export class SignInPageComponent implements OnInit, OnDestroy {
@@ -42,6 +44,8 @@ export class SignInPageComponent implements OnInit, OnDestroy {
   signInForm?: UntypedFormGroup;
   signInError: string = "";
   isSubmitting: boolean = false;
+  isSigningInGoogle: boolean = false;
+  isSigningInApple: boolean = false;
   private _returnUrl: string = "/profile";
   private _authSubscription?: Subscription;
 
@@ -148,6 +152,7 @@ export class SignInPageComponent implements OnInit, OnDestroy {
     }
 
     this.isSubmitting = true;
+    this.isSigningInGoogle = true;
     this.signInError = "";
 
     this._authService
@@ -159,6 +164,7 @@ export class SignInPageComponent implements OnInit, OnDestroy {
         console.error(err);
         this.signInError = $localize`Could not sign in with Google!`;
         this.isSubmitting = false;
+        this.isSigningInGoogle = false;
       });
   }
 
@@ -172,6 +178,7 @@ export class SignInPageComponent implements OnInit, OnDestroy {
     }
 
     this.isSubmitting = true;
+    this.isSigningInApple = true;
     this.signInError = "";
 
     this._authService
@@ -183,6 +190,7 @@ export class SignInPageComponent implements OnInit, OnDestroy {
         console.error(err);
         this.signInError = $localize`Could not sign in with Apple!`;
         this.isSubmitting = false;
+        this.isSigningInApple = false;
       });
   }
 }

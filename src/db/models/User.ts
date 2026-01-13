@@ -1,4 +1,4 @@
-import { humanTimeSince } from "../../scripts/Helpers";
+import { humanTimeSince, parseFirestoreTimestamp } from "../../scripts/Helpers";
 import { UserSchema, UserSettingsSchema } from "../schemas/UserSchema";
 import { StorageImage } from "./Media";
 
@@ -42,10 +42,11 @@ export class User {
 
     this.settings = this._data.settings ?? {};
 
-    // Start date
-    if (this._data.start_date) {
-      this.startTimeDiffString = humanTimeSince(this._data.start_date.toDate());
-      this.startDate = this._data.start_date.toDate();
+    // Start date - use helper to parse various timestamp formats
+    const startDate = parseFirestoreTimestamp(this._data.start_date);
+    if (startDate) {
+      this.startTimeDiffString = humanTimeSince(startDate);
+      this.startDate = startDate;
     }
 
     // Followers

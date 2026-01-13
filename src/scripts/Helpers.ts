@@ -103,6 +103,47 @@ export function humanTimeSince(date: Date): string {
   return Math.floor(seconds) + " seconds";
 }
 
+/**
+ * Parse a Firestore timestamp into a JavaScript Date.
+ * Handles multiple formats:
+ * - Firestore Timestamp objects with toDate() method
+ * - Plain objects with seconds property (from Capacitor Firestore plugin)
+ * - String representations like "Timestamp(seconds=1706742000, nanoseconds=0)"
+ * - Date objects (passed through)
+ *
+ * @param timestamp - The timestamp to parse (Timestamp, object, string, or Date)
+ * @returns The parsed Date, or null if parsing fails
+ */
+export function parseFirestoreTimestamp(timestamp: any): Date | null {
+  if (!timestamp) return null;
+
+  // Already a Date
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+
+  // Firestore Timestamp with toDate() method
+  if (typeof timestamp.toDate === "function") {
+    return timestamp.toDate();
+  }
+
+  // Plain object with seconds property (from Capacitor Firestore plugin)
+  if (typeof timestamp.seconds === "number") {
+    return new Date(timestamp.seconds * 1000);
+  }
+
+  // String representation like "Timestamp(seconds=1706742000, nanoseconds=0)"
+  if (typeof timestamp === "string") {
+    const match = timestamp.match(/Timestamp\(seconds=(\d+)/);
+    if (match) {
+      return new Date(parseInt(match[1], 10) * 1000);
+    }
+  }
+
+  console.warn("Unable to parse timestamp:", timestamp);
+  return null;
+}
+
 export function humanFileSize(bytes: number, si?: boolean): string {
   var thresh = si ? 1000 : 1024;
   if (Math.abs(bytes) < thresh) {

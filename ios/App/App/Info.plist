@@ -28,9 +28,18 @@
 			<array>
 				<string
           >com.googleusercontent.apps.294969617102-u9u0rov6mtv79l51cu1cg8mrkf3hgjkp</string>
+				<string
+          >com.googleusercontent.apps.294969617102-8v45jb48g2osm3umqgaup5urcit7djd8</string>
 			</array>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string
+    >PK Spot needs access to your camera to let you upload photos of spots.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>PK Spot needs access to save photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PK Spot needs access to your library to select spot photos.</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GIDClientID</key>

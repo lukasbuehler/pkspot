@@ -1,7 +1,10 @@
 <?xml version='1.0' encoding='utf-8' ?>
 <resources>
-    <string name="app_name">pkspot</string>
-    <string name="title_activity_main">pkspot</string>
+    <string name="app_name">PK Spot</string>
+    <string name="title_activity_main">PK Spot</string>
     <string name="package_name">com.pkspot.app</string>
     <string name="custom_url_scheme">com.pkspot.app</string>
+    <string
+    name="server_client_id"
+  >294969617102-fuif26sghnbtrpecffne0909a4ders0e.apps.googleusercontent.com</string>
 </resources>

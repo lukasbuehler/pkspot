@@ -97,3 +97,19 @@ a {
     opacity: 0.15;
   }
 }
+
+// Terms/Policy footer that appears for non-signed-in users on mobile
+// This sets a CSS variable that child components (like map-page) can use
+// to offset their content when the footer is visible
+.terms-footer {
+  height: 24px;
+  z-index: 999; // Below nav but above map
+  flex-shrink: 0;
+}
+
+// When the terms footer is present, set a CSS variable on the body
+// that descendant components (like map-page) can use to add extra bottom offset
+// Using body:has() so the variable is inherited by all components
+body:has(.terms-footer) {
+  --terms-footer-offset: 24px;
+}

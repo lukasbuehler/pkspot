@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "294969617102-m81k5qt61f9n7ji2v37tp3h0u655fvmj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pkspot.app",
+            "certificate_hash": "5cb2f375006fc68aa1cc988e5e0907554c3a2672"
+          }
+        },
+        {
           "client_id": "294969617102-fuif26sghnbtrpecffne0909a4ders0e.apps.googleusercontent.com",
           "client_type": 3
         }

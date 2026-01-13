@@ -97,18 +97,33 @@
         Other sign-in options
       </h3>
       <div class="oauth-buttons d-flex flex-column align-items-center">
-        <button mat-stroked-button (click)="trySignInApple()">
+        <button
+          mat-stroked-button
+          (click)="trySignInApple()"
+          [disabled]="isSubmitting"
+        >
+          @if(isSigningInApple) {
+          <mat-spinner diameter="16"></mat-spinner>
+          } @else {
           <span class="d-flex gap-2 align-items-center">
             <img
               ngSrc="assets/logos/apple_icon_dark.png"
               height="16"
               width="16"
-              alt=""
+              alt=""
             />
             Apple</span
           >
+          }
         </button>
-        <button mat-stroked-button (click)="trySignInGoogle()">
+        <button
+          mat-stroked-button
+          (click)="trySignInGoogle()"
+          [disabled]="isSubmitting"
+        >
+          @if(isSigningInGoogle) {
+          <mat-spinner diameter="16"></mat-spinner>
+          } @else {
           <span class="d-flex gap-2 align-items-center">
             <img
               ngSrc="assets/logos/google_icon.png"
@@ -118,6 +133,7 @@
             />
             Google</span
           >
+          }
         </button>
 
         <!-- <button mat-flat-button disabled color="accent">Twitter</button>
