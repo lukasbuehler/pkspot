@@ -187,6 +187,18 @@
                 }
               ],
               "optimization": true,
+              "sourceMap": false,
+              "assets": [
+                "src/favicon.ico",
+                "src/manifest.webmanifest",
+                "src/robots.txt",
+                {
+                  "glob": "**/*",
+                  "input": "src/assets",
+                  "output": "/assets",
+                  "ignore": ["sitemap.xml"]
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
@@ -229,6 +241,18 @@
                 }
               ],
               "optimization": true,
+              "sourceMap": false,
+              "assets": [
+                "src/favicon.ico",
+                "src/manifest.webmanifest",
+                "src/robots.txt",
+                {
+                  "glob": "**/*",
+                  "input": "src/assets",
+                  "output": "/assets",
+                  "ignore": ["sitemap.xml"]
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",

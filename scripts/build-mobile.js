@@ -155,4 +155,77 @@ const redirectionScript = `
 
 fs.writeFileSync(rootIndexPath, redirectionScript);
 console.log(`Successfully created ${rootIndexPath}`);
+
+// 4. Deduplicate assets across locales
+// Keep assets only in 'en' folder, remove from others to save space
+// Assets are accessed via relative paths, so we update the locale index.html files
+// to reference ../en/assets/ instead of ./assets/
+console.log("Deduplicating assets across locales...");
+
+const primaryLang = "en";
+const assetsFolder = "assets";
+
+function getDirectorySize(dirPath) {
+  let size = 0;
+  if (!fs.existsSync(dirPath)) return 0;
+
+  const files = fs.readdirSync(dirPath, { withFileTypes: true });
+  for (const file of files) {
+    const filePath = path.join(dirPath, file.name);
+    if (file.isDirectory()) {
+      size += getDirectorySize(filePath);
+    } else {
+      size += fs.statSync(filePath).size;
+    }
+  }
+  return size;
+}
+
+let totalSaved = 0;
+
+languages.forEach((lang) => {
+  if (lang === primaryLang) return;
+
+  const langPath = path.join(distPath, lang);
+  const assetsPath = path.join(langPath, assetsFolder);
+
+  if (fs.existsSync(assetsPath)) {
+    const sizeBeforeDelete = getDirectorySize(assetsPath);
+
+    // Remove the duplicate assets folder
+    fs.rmSync(assetsPath, { recursive: true, force: true });
+
+    totalSaved += sizeBeforeDelete;
+    console.log(
+      `[${lang}] Removed duplicate assets (${(
+        sizeBeforeDelete /
+        1024 /
+        1024
+      ).toFixed(1)} MB saved)`
+    );
+
+    // Update index.html to reference assets from the primary language folder
+    const indexHtmlPath = path.join(langPath, "index.html");
+    if (fs.existsSync(indexHtmlPath)) {
+      let content = fs.readFileSync(indexHtmlPath, "utf8");
+
+      // Replace relative asset paths to point to the primary language's assets
+      // ./assets/ -> ../en/assets/
+      // "assets/ -> "../en/assets/
+      content = content.replace(/\.\/assets\//g, `../${primaryLang}/assets/`);
+      content = content.replace(/"assets\//g, `"../${primaryLang}/assets/`);
+
+      fs.writeFileSync(indexHtmlPath, content);
+      console.log(
+        `[${lang}] Updated index.html to use shared assets from /${primaryLang}/`
+      );
+    }
+  }
+});
+
+console.log(
+  `\nTotal space saved by deduplication: ${(totalSaved / 1024 / 1024).toFixed(
+    1
+  )} MB`
+);
 console.log("Mobile build setup complete.");
