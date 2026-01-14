@@ -241,6 +241,10 @@ export class AppComponent implements OnInit {
       });
     }
 
+    if (this.isNativePlatform && typeof window !== "undefined") {
+      document.documentElement.classList.add("native-platform");
+    }
+
     // structured data
     const json: WebSite = {
       "@type": "WebSite",

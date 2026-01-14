@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "@angular/fire/firestore";
-import { map, Observable } from "rxjs";
+import { map, Observable, from } from "rxjs";
 import {
   FollowingDataSchema,
   FollowingSchema,
@@ -11,6 +11,7 @@ import {
   FirestoreAdapterService,
   QueryConstraintOptions,
 } from "../firestore-adapter.service";
+import { Capacitor } from "@capacitor/core";
 
 @Injectable({
   providedIn: "root",
@@ -125,41 +126,84 @@ export class FollowingService extends ConsentAwareService {
 
   getFollowersOfUser(
     userId: string,
-    chunkSize: number = 20
+    chunkSize: number = 50
   ): Observable<FollowingSchema[]> {
+    console.log(`Fetching followers for userId: ${userId} (one-time)`);
     const constraints: QueryConstraintOptions[] = [
-      { type: "orderBy", fieldPath: "start_following", direction: "desc" },
+      // { type: "orderBy", fieldPath: "start_following", direction: "desc" }, // Removed to include legacy docs
       { type: "limit", limit: chunkSize },
     ];
+    console.log(
+      "DEBUG: getFollowersOfUser constraints",
+      JSON.stringify(constraints)
+    );
 
-    return this._firestoreAdapter
-      .collectionSnapshots<FollowingSchema & { id: string }>(
+    // Use one-time fetch to avoid Android persistent cache issues
+    return from(
+      this._firestoreAdapter.getCollection<FollowingSchema & { id: string }>(
         `users/${userId}/followers`,
         undefined,
         constraints
       )
-      .pipe(
-        map((arr) => arr.map((d) => ({ ...(d as FollowingSchema), uid: d.id })))
-      );
+    ).pipe(
+      map((arr) => {
+        const users = arr.map((d) => {
+          // Debug check for iOS timestamps
+          // if (d.start_following === undefined) console.log('Follower missing timestamp:', JSON.stringify(d));
+          return {
+            ...(d as FollowingSchema),
+            uid: d.id,
+          };
+        });
+        // Client-side sort: Newest first, then those without timestamp
+        return users.sort((a, b) => {
+          const timeA = (a.start_following as any)?.seconds ?? 0;
+          const timeB = (b.start_following as any)?.seconds ?? 0;
+          return timeB - timeA;
+        });
+      })
+    );
   }
 
   getFollowingsOfUser(
     userId: string,
-    chunkSize: number = 20
+    chunkSize: number = 50
   ): Observable<FollowingSchema[]> {
+    console.log(`Fetching following for userId: ${userId} (one-time)`);
     const constraints: QueryConstraintOptions[] = [
-      { type: "orderBy", fieldPath: "start_following", direction: "desc" },
+      // { type: "orderBy", fieldPath: "start_following", direction: "desc" }, // Removed to include legacy docs
       { type: "limit", limit: chunkSize },
     ];
+    console.log(
+      "DEBUG: getFollowingsOfUser constraints",
+      JSON.stringify(constraints)
+    );
 
-    return this._firestoreAdapter
-      .collectionSnapshots<FollowingSchema & { id: string }>(
+    // Use one-time fetch to avoid Android persistent cache issues
+    return from(
+      this._firestoreAdapter.getCollection<FollowingSchema & { id: string }>(
         `users/${userId}/following`,
         undefined,
         constraints
       )
-      .pipe(
-        map((arr) => arr.map((d) => ({ ...(d as FollowingSchema), uid: d.id })))
-      );
+    ).pipe(
+      map((arr) => {
+        const users = arr.map((d) => {
+          if (Capacitor.getPlatform() === "ios") {
+            console.log("iOS Following JSON:", JSON.stringify(d));
+          }
+          return {
+            ...(d as FollowingSchema),
+            uid: d.id,
+          };
+        });
+        // Client-side sort: Newest first, then those without timestamp
+        return users.sort((a, b) => {
+          const timeA = (a.start_following as any)?.seconds ?? 0;
+          const timeB = (b.start_following as any)?.seconds ?? 0;
+          return timeB - timeA;
+        });
+      })
+    );
   }
 }

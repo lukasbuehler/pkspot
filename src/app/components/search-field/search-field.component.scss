@@ -8,9 +8,12 @@
   ::ng-deep .mdc-line-ripple {
     display: none;
   }
-  // ::ng-deep .mat-mdc-text-field-wrapper {
-  //   background-color: transparent;
-  // }
+
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    background-color: rgba(30, 30, 30, 0.6) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+  }
   ::ng-deep .mat-mdc-form-field-icon-suffix {
     align-items: center;
   }

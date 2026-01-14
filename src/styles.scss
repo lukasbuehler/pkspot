@@ -13,7 +13,16 @@ html {
   /* Native Safe Area Padding for iOS/Android notch and navigation */
   /* On Android, our MainActivity injects --safe-area-inset-* with correct orientation values.
      On iOS, env() works correctly. We use var() first (for Android), with env() as fallback (for iOS). */
-  padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+
+  --status-bar-height: 0px;
+  &.native-platform {
+    --status-bar-height: 24px;
+  }
+
+  padding-top: max(
+    var(--safe-area-inset-top, env(safe-area-inset-top, 0px)),
+    var(--status-bar-height)
+  );
   // padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   padding-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
   padding-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
@@ -37,11 +46,12 @@ html {
 
   // Default nav bar height (80px). Changed by mat-toolbar.native-platform to 95px.
   --nav-bar-height: 80px;
+  --toolbar-native-extra: 20px;
 }
 
 // When nav bar has native-platform class, increase the nav bar height variable globally
 body:has(mat-toolbar.native-platform) {
-  --nav-bar-height: 95px;
+  --nav-bar-height: calc(80px + var(--toolbar-native-extra));
 }
 
 // When alain mode is active (presence of #alainMenuButton), there's no bottom nav bar

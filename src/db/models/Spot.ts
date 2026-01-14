@@ -136,20 +136,30 @@ export class LocalSpot {
       return namesMap[nameLocale]?.text ?? $localize`Unnamed Spot`;
     });
 
-    if (data.location_raw) {
+    if (
+      data.location_raw &&
+      typeof data.location_raw.lat === "number" &&
+      typeof data.location_raw.lng === "number"
+    ) {
       this.location = signal({
         lat: data.location_raw.lat,
         lng: data.location_raw.lng,
       });
-    } else if (data.location) {
+    } else if (
+      data.location &&
+      typeof data.location.latitude === "number" &&
+      typeof data.location.longitude === "number"
+    ) {
       this.location = signal({
         lat: data.location.latitude,
         lng: data.location.longitude,
       });
     } else {
       // Fallback or error if no location? For now defaulting to 0,0 or throwing might be too aggressive if valid data is missing.
-      // But SpotSchema usually requires location. We'll assume one exists.
-      console.error("Spot initialized without location or location_raw");
+      console.warn(
+        "Spot initialized without valid location or location_raw",
+        data
+      );
       this.location = signal({ lat: 0, lng: 0 });
     }
     this.tileCoordinates = data.tile_coordinates;
@@ -373,18 +383,27 @@ export class LocalSpot {
     this.names.set(makeLocaleMapFromObject(data.name));
 
     let newLocation: { lat: number; lng: number };
-    if (data.location_raw) {
+    if (
+      data.location_raw &&
+      typeof data.location_raw.lat === "number" &&
+      typeof data.location_raw.lng === "number"
+    ) {
       newLocation = {
         lat: data.location_raw.lat,
         lng: data.location_raw.lng,
       };
-    } else if (data.location) {
+    } else if (
+      data.location &&
+      typeof data.location.latitude === "number" &&
+      typeof data.location.longitude === "number"
+    ) {
       newLocation = {
         lat: data.location.latitude,
         lng: data.location.longitude,
       };
     } else {
-      newLocation = this.location(); // Keep old location if strictly missing?
+      console.warn("Spot applyFromSchema invalid location update", data);
+      newLocation = this.location(); // Keep old location if invalid
     }
 
     this.location.set(newLocation);
@@ -636,16 +655,22 @@ export class LocalSpot {
     }
 
     const paths = [
-      bounds.map((point) => {
-        // GeoPoint can have either 'latitude'/'longitude' or '_latitude'/'_longitude'
-        const lat = (point as any).latitude ?? (point as any)._latitude;
-        const lng = (point as any).longitude ?? (point as any)._longitude;
+      bounds
+        .map((point) => {
+          // GeoPoint can have either 'latitude'/'longitude' or '_latitude'/'_longitude'
+          const lat = (point as any).latitude ?? (point as any)._latitude;
+          const lng = (point as any).longitude ?? (point as any)._longitude;
 
-        return {
-          lat,
-          lng,
-        };
-      }),
+          if (typeof lat !== "number" || typeof lng !== "number") {
+            return null;
+          }
+
+          return {
+            lat,
+            lng,
+          };
+        })
+        .filter((p): p is { lat: number; lng: number } => p !== null),
     ];
     return paths;
   }

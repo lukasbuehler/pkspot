@@ -175,7 +175,11 @@ export class SpotsService extends ConsentAwareService {
           );
         }),
         catchError((err) => {
-          console.error(`[SpotsService] Tile ${tile.x},${tile.y} FAILED:`, err);
+          console.error(
+            `[SpotsService] Tile ${tile.x},${tile.y} FAILED:`,
+            JSON.stringify(err, Object.getOwnPropertyNames(err))
+          );
+          console.error(err);
           return of([]);
         })
       );

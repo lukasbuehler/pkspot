@@ -1148,6 +1148,11 @@ export class SpotDetailsComponent
     }
 
     const spotId = spot.id;
+
+    if (this._latestReportRequestSpotId === spotId) {
+      return;
+    }
+
     this._latestReportRequestSpotId = spotId;
 
     try {

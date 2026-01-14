@@ -115,6 +115,7 @@ export function humanTimeSince(date: Date): string {
  * @returns The parsed Date, or null if parsing fails
  */
 export function parseFirestoreTimestamp(timestamp: any): Date | null {
+  console.log("parseFirestoreTimestamp input:", JSON.stringify(timestamp));
   if (!timestamp) return null;
 
   // Already a Date
