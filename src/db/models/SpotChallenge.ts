@@ -15,7 +15,10 @@ import { UserReferenceSchema } from "../schemas/UserSchema";
 import { GeoPoint, Timestamp } from "firebase/firestore";
 import { AuthenticationService } from "../../app/services/firebase/authentication.service";
 import { AnyMedia } from "./Media";
-import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";
+import {
+  makeAnyMediaFromMediaSchema,
+  parseFirestoreTimestamp,
+} from "../../scripts/Helpers";
 import {
   ChallengeLabel,
   ChallengeParticipantType,
@@ -68,8 +71,8 @@ export class LocalSpotChallenge {
     this.descriptionLocaleMap = signal<LocaleMap>(data.description ?? {});
 
     this.user = data.user;
-    this.releaseDate = data.release_date?.toDate() ?? null;
-    this.createdAt = data.created_at?.toDate();
+    this.releaseDate = parseFirestoreTimestamp(data.release_date);
+    this.createdAt = parseFirestoreTimestamp(data.created_at) ?? new Date();
     this.location = signal<google.maps.LatLngLiteral>(
       data.location
         ? {

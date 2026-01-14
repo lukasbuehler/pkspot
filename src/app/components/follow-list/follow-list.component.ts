@@ -8,7 +8,10 @@ import { User } from "../../../db/models/User";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 
 import { Observable, take } from "rxjs";
-import { humanTimeSince } from "../../../scripts/Helpers";
+import {
+  humanTimeSince,
+  parseFirestoreTimestamp,
+} from "../../../scripts/Helpers";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatIcon } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
@@ -46,10 +49,13 @@ export interface FollowListDialogData {
 })
 export class FollowDurationPipe implements PipeTransform {
   transform(
-    timestamp: firebase.default.firestore.Timestamp,
+    timestamp: firebase.default.firestore.Timestamp | any,
     args?: any
   ): string {
-    const data = timestamp.toDate();
+    const data = parseFirestoreTimestamp(timestamp);
+    if (!data) {
+      return "Unknown";
+    }
     return `${humanTimeSince(data)} (since ${data.toLocaleDateString()})`;
   }
 }

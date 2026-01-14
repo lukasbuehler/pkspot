@@ -2,6 +2,7 @@ import { Timestamp } from "firebase/firestore";
 import { SpotEditSchema } from "../schemas/SpotEditSchema";
 import { languageCodes } from "../../scripts/Languages";
 import { LocaleMap } from "./Interfaces";
+import { parseFirestoreTimestamp } from "../../scripts/Helpers";
 
 export class SpotEdit implements SpotEditSchema {
   readonly id: string;
@@ -138,21 +139,7 @@ export class SpotEdit implements SpotEditSchema {
   }
 
   getTimestampString(): string {
-    let date: Date;
-    if (this.timestamp && typeof this.timestamp.toDate === "function") {
-      // Firestore Timestamp object
-      date = this.timestamp.toDate();
-    } else if (
-      this.timestamp &&
-      typeof (this.timestamp as any).seconds === "number"
-    ) {
-      // Plain object with seconds/nanoseconds (from Firestore REST API or serialization)
-      date = new Date((this.timestamp as any).seconds * 1000);
-    } else {
-      // Fallback to current date if timestamp is invalid
-      console.warn("Invalid timestamp format:", this.timestamp);
-      date = new Date();
-    }
+    const date = parseFirestoreTimestamp(this.timestamp) ?? new Date();
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   }
 }
