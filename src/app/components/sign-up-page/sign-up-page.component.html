@@ -16,22 +16,32 @@
         <button
           mat-flat-button
           routerLink="/sign-in"
-          queryParamsHandling="preserve"
+          queryParamsHandling="merge"
         >
           <mat-icon>login</mat-icon><span i18n>Sign in</span>
         </button>
-        <button mat-stroked-button (click)="trySignInApple()">
+        <button
+          mat-stroked-button
+          routerLink="/sign-in"
+          [queryParams]="{ startWith: 'apple' }"
+          queryParamsHandling="merge"
+        >
           <span class="d-flex gap-2 align-items-center">
             <img
               ngSrc="assets/logos/apple_icon_dark.png"
               height="16"
               width="16"
-              alt=""
+              alt=""
             />
             Apple</span
           >
         </button>
-        <button mat-stroked-button (click)="trySignInGoogle()">
+        <button
+          mat-stroked-button
+          routerLink="/sign-in"
+          [queryParams]="{ startWith: 'google' }"
+          queryParamsHandling="merge"
+        >
           <span class="d-flex gap-2 align-items-center">
             <img
               ngSrc="assets/logos/google_icon.png"

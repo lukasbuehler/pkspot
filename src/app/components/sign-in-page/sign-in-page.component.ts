@@ -1,4 +1,11 @@
-import { Component, OnInit, OnDestroy, inject } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  ViewChild,
+  AfterViewInit,
+} from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { ResponsiveService } from "../../services/responsive.service";
 import {
@@ -12,12 +19,11 @@ import { Router, RouterLink, ActivatedRoute } from "@angular/router";
 import { Subscription, filter } from "rxjs";
 import { MatDivider } from "@angular/material/divider";
 import { MatButton } from "@angular/material/button";
-import { NgOptimizedImage } from "@angular/common";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
-import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { OAuthSignInButtonsComponent } from "../oauth-sign-in-buttons/oauth-sign-in-buttons.component";
 
 @Component({
   selector: "app-sign-in-page",
@@ -34,19 +40,21 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
     RouterLink,
     MatDivider,
     MatIconModule,
-    NgOptimizedImage,
     MatTooltipModule,
-    MatProgressSpinner,
+    OAuthSignInButtonsComponent,
   ],
 })
-export class SignInPageComponent implements OnInit, OnDestroy {
+export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly responsive = inject(ResponsiveService);
+
+  @ViewChild(OAuthSignInButtonsComponent)
+  oauthButtons?: OAuthSignInButtonsComponent;
+
   signInForm?: UntypedFormGroup;
   signInError: string = "";
   isSubmitting: boolean = false;
-  isSigningInGoogle: boolean = false;
-  isSigningInApple: boolean = false;
   private _returnUrl: string = "/profile";
+  private _autoStartProvider: "google" | "apple" | null = null;
   private _authSubscription?: Subscription;
 
   constructor(
@@ -62,9 +70,10 @@ export class SignInPageComponent implements OnInit, OnDestroy {
       password: ["", [Validators.required]],
     });
 
-    // Get the return URL from query params, default to profile page
+    // Get the return URL and auto-start provider from query params
     this._route.queryParams.subscribe((params) => {
       this._returnUrl = params["returnUrl"] || "/profile";
+      this._autoStartProvider = params["startWith"] || null;
     });
 
     // Listen for successful authentication to redirect
@@ -76,6 +85,19 @@ export class SignInPageComponent implements OnInit, OnDestroy {
           this._router.navigateByUrl(this._returnUrl);
         }
       });
+  }
+
+  ngAfterViewInit() {
+    // Auto-start OAuth flow if requested via query param
+    if (this._autoStartProvider && this.oauthButtons) {
+      setTimeout(() => {
+        if (this._autoStartProvider === "google") {
+          this.oauthButtons?.trySignInGoogle();
+        } else if (this._autoStartProvider === "apple") {
+          this.oauthButtons?.trySignInApple();
+        }
+      }, 100);
+    }
   }
 
   ngOnDestroy() {
@@ -142,55 +164,13 @@ export class SignInPageComponent implements OnInit, OnDestroy {
     );
   }
 
-  trySignInGoogle() {
-    // Guard against double submissions
-    if (this.isSubmitting) {
-      console.warn(
-        "Sign-in already in progress, ignoring duplicate submission"
-      );
-      return;
-    }
-
-    this.isSubmitting = true;
-    this.isSigningInGoogle = true;
-    this.signInError = "";
-
-    this._authService
-      .signInGoogle()
-      .then(() => {
-        console.log("Successfully signed in with google :)");
-      })
-      .catch((err) => {
-        console.error(err);
-        this.signInError = $localize`Could not sign in with Google!`;
-        this.isSubmitting = false;
-        this.isSigningInGoogle = false;
-      });
+  onOAuthError(event: { provider: "google" | "apple"; message: string }) {
+    this.signInError = event.message;
+    this.isSubmitting = false;
   }
 
-  trySignInApple() {
-    // Guard against double submissions
-    if (this.isSubmitting) {
-      console.warn(
-        "Sign-in already in progress, ignoring duplicate submission"
-      );
-      return;
-    }
-
+  onOAuthSuccess() {
     this.isSubmitting = true;
-    this.isSigningInApple = true;
-    this.signInError = "";
-
-    this._authService
-      .signInApple()
-      .then(() => {
-        console.log("Successfully signed in with apple :)");
-      })
-      .catch((err) => {
-        console.error(err);
-        this.signInError = $localize`Could not sign in with Apple!`;
-        this.isSubmitting = false;
-        this.isSigningInApple = false;
-      });
+    // Redirect is handled by the authState$ subscription
   }
 }

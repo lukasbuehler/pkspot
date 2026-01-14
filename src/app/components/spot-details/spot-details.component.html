@@ -608,7 +608,7 @@
     </div>
     }
 
-    <!-- Spot Challenges -->
+    <!-- Spot Challenges - temporarily hidden while not working
     @if(!isLocalSpot()) { @if(spot()!.topChallenges().length > 0 &&
     spotSlugOrId()) {
     <div class="pb-4">
@@ -676,7 +676,6 @@
           >
         </button>
 
-        <!-- If the user has private challenges for this spot -->
         @if(true) {
         <button mat-stroked-button (click)="showAllChallenges()">
           <mat-icon>lock</mat-icon>
@@ -690,6 +689,9 @@
         }
       </div>
     </div>
+    } } }
+    END OF CHALLENGES SECTION -->
+
     <p class="m-0 mat-body-small mt-4" style="color: lightgray" i18n>
       <strong>Public License:</strong>
       This spot's data is made available under the
@@ -702,7 +704,7 @@
       </a>
       license.
     </p>
-    } } } } @else {
+    } @else {
     <!-- 
     /////////////////////////////////////////////////   
     EDITING MODE

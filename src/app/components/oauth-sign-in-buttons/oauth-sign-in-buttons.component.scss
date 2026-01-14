@@ -1,0 +1,11 @@
+.oauth-buttons {
+  button {
+    margin: 5px;
+    min-width: 120px;
+  }
+
+  &.flex-column button {
+    width: 150px;
+    max-width: 100%;
+  }
+}

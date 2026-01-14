@@ -1,0 +1,44 @@
+<div
+  class="oauth-buttons d-flex align-items-center"
+  [class.flex-column]="layout === 'column'"
+  [class.flex-row]="layout === 'row'"
+>
+  <button
+    mat-stroked-button
+    (click)="trySignInApple()"
+    [disabled]="disabled || isSubmitting"
+  >
+    @if(isSigningInApple) {
+    <mat-spinner diameter="16"></mat-spinner>
+    } @else {
+    <span class="d-flex gap-2 align-items-center">
+      <img
+        ngSrc="assets/logos/apple_icon_dark.png"
+        height="16"
+        width="16"
+        alt=""
+      />
+      Apple</span
+    >
+    }
+  </button>
+  <button
+    mat-stroked-button
+    (click)="trySignInGoogle()"
+    [disabled]="disabled || isSubmitting"
+  >
+    @if(isSigningInGoogle) {
+    <mat-spinner diameter="16"></mat-spinner>
+    } @else {
+    <span class="d-flex gap-2 align-items-center">
+      <img
+        ngSrc="assets/logos/google_icon.png"
+        height="16"
+        width="16"
+        alt="G"
+      />
+      Google</span
+    >
+    }
+  </button>
+</div>

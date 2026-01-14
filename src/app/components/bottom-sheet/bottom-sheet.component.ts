@@ -465,6 +465,9 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     let removeTouchMove: (() => void) | null = null;
     let removeTouchEnd: (() => void) | null = null;
     let removeTouchCancel: (() => void) | null = null;
+    // Track original touch target to dispatch touchcancel when drag starts
+    let originalTarget: HTMLElement | null = null;
+    let originalTouch: Touch | null = null;
 
     const handleTouchStart = (event: TouchEvent) => {
       if (this.activeTouchId !== null) return;
@@ -478,6 +481,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       if (target && !sheetEl.contains(target)) return;
 
       this.activeTouchId = touch.identifier;
+      originalTarget = target;
+      originalTouch = touch;
       lastY = touch.pageY;
       initialY = touch.clientY;
       startTime = performance.now();
@@ -538,11 +543,21 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
               removeTouchCancel
             );
             this.activeTouchId = null;
+            originalTarget = null;
+            originalTouch = null;
             return;
           }
         }
 
         hasDragged = true;
+
+        // Cancel the touch on the original target (e.g., button) so it releases
+        // its pressed state and doesn't capture the swipe gesture
+        if (originalTarget && originalTouch) {
+          this.dispatchTouchCancel(originalTarget, originalTouch);
+          originalTarget = null;
+          originalTouch = null;
+        }
       }
 
       event.preventDefault();
@@ -573,6 +588,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
       if (!hasDragged) {
         this.activeTouchId = null;
+        originalTarget = null;
+        originalTouch = null;
         return;
       }
 
@@ -593,6 +610,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.contentElement!.style.overflowY = overflowY;
       this.animateToPosition(sheetEl, offset, targetOffset, alwaysVisible);
       this.activeTouchId = null;
+      originalTarget = null;
+      originalTouch = null;
     };
 
     this.addTouchListener(sheetEl, "touchstart", handleTouchStart, {
@@ -645,6 +664,36 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.destroyListeners.push(remove);
     }
     return remove;
+  }
+
+  /**
+   * Dispatches a synthetic touchcancel event to the target element.
+   * This is used to release buttons and other interactive elements from their
+   * pressed state when a drag gesture is detected, preventing them from
+   * capturing the swipe.
+   */
+  private dispatchTouchCancel(target: HTMLElement, originalTouch: Touch): void {
+    try {
+      // Create a synthetic touchcancel event with bubbles: false to prevent
+      // it from being caught by our own document-level touchcancel listener
+      const touchCancelEvent = new TouchEvent("touchcancel", {
+        bubbles: false,
+        cancelable: false,
+        touches: [],
+        targetTouches: [],
+        changedTouches: [originalTouch],
+      });
+      target.dispatchEvent(touchCancelEvent);
+    } catch {
+      // TouchEvent constructor may not be available in all browsers
+      // In that case, just blur the element to release focus/active state
+      if (
+        target instanceof HTMLButtonElement ||
+        target instanceof HTMLAnchorElement
+      ) {
+        target.blur();
+      }
+    }
   }
 
   ngOnDestroy(): void {

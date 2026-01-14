@@ -9,4 +9,5 @@ div.nav-rail-content {
 ::ng-deep div.nav-rail-content > div.main-content {
   height: calc(100% - 90px);
   overflow-y: auto;
+  overflow-x: hidden;
 }

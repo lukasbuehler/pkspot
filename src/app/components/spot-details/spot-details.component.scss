@@ -65,6 +65,20 @@ form {
   margin-right: 5px;
 }
 
+// Allow vertical panning on buttons and links so they don't block
+// swipe gestures on the bottom sheet in mobile layouts
+button,
+a,
+[mat-button],
+[mat-stroked-button],
+[mat-raised-button],
+[mat-flat-button],
+[mat-icon-button],
+[mat-fab],
+[mat-mini-fab] {
+  touch-action: pan-y;
+}
+
 mat-progress-bar {
   margin-bottom: -4px;
   z-index: 1;

@@ -243,6 +243,9 @@ export class AppComponent implements OnInit {
 
     if (this.isNativePlatform && typeof window !== "undefined") {
       document.documentElement.classList.add("native-platform");
+      document.documentElement.classList.add(
+        `platform-${Capacitor.getPlatform()}`
+      );
     }
 
     // structured data

@@ -96,49 +96,12 @@
       >
         Other sign-in options
       </h3>
-      <div class="oauth-buttons d-flex flex-column align-items-center">
-        <button
-          mat-stroked-button
-          (click)="trySignInApple()"
-          [disabled]="isSubmitting"
-        >
-          @if(isSigningInApple) {
-          <mat-spinner diameter="16"></mat-spinner>
-          } @else {
-          <span class="d-flex gap-2 align-items-center">
-            <img
-              ngSrc="assets/logos/apple_icon_dark.png"
-              height="16"
-              width="16"
-              alt=""
-            />
-            Apple</span
-          >
-          }
-        </button>
-        <button
-          mat-stroked-button
-          (click)="trySignInGoogle()"
-          [disabled]="isSubmitting"
-        >
-          @if(isSigningInGoogle) {
-          <mat-spinner diameter="16"></mat-spinner>
-          } @else {
-          <span class="d-flex gap-2 align-items-center">
-            <img
-              ngSrc="assets/logos/google_icon.png"
-              height="16"
-              width="16"
-              alt="G"
-            />
-            Google</span
-          >
-          }
-        </button>
-
-        <!-- <button mat-flat-button disabled color="accent">Twitter</button>
-        <button mat-flat-button disabled color="primary">Github</button> -->
-      </div>
+      <app-oauth-sign-in-buttons
+        layout="column"
+        [disabled]="isSubmitting"
+        (success)="onOAuthSuccess()"
+        (error)="onOAuthError($event)"
+      ></app-oauth-sign-in-buttons>
     </div>
   </div>
   <div class="row justify-content-center">

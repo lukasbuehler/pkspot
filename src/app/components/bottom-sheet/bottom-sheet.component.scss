@@ -74,3 +74,31 @@ div.handle-region {
   }
   z-index: 1;
 }
+
+// Allow vertical panning/swiping on buttons and interactive elements
+// within the sheet content. This ensures that swiping gestures on buttons
+// pass through to the bottom sheet drag handler.
+div.sheet > div.content {
+  ::ng-deep {
+    button,
+    a,
+    [mat-button],
+    [mat-stroked-button],
+    [mat-raised-button],
+    [mat-flat-button],
+    [mat-icon-button],
+    [mat-fab],
+    [mat-mini-fab],
+    [matButton],
+    .mat-mdc-button,
+    .mat-mdc-icon-button,
+    .mat-mdc-outlined-button,
+    .mat-mdc-unelevated-button,
+    .mat-mdc-raised-button,
+    .mat-mdc-fab,
+    .mat-mdc-mini-fab,
+    .mdc-button {
+      touch-action: pan-y !important;
+    }
+  }
+}
