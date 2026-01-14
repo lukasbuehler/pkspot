@@ -5,7 +5,7 @@
 <!-- is not embedded  -->
 <app-nav-rail-container>
   @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
-  'desktop') {
+  'desktop' && !alainMode) {
   <app-nav-rail class="mat-elevation-z3">
     <a
       routerLink="/"

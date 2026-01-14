@@ -9,6 +9,10 @@ const config: CapacitorConfig = {
   ios: {
     loggingBehavior: "debug", // Logs JS console to Xcode console
   },
+  server: {
+    hostname: "pkspot.app",
+    androidScheme: "https",
+  },
   plugins: {
     FirebaseAuthentication: {
       skipNativeAuth: false,

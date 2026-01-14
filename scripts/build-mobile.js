@@ -156,11 +156,10 @@ const redirectionScript = `
 fs.writeFileSync(rootIndexPath, redirectionScript);
 console.log(`Successfully created ${rootIndexPath}`);
 
-// 4. Deduplicate assets across locales
-// Keep assets only in 'en' folder, remove from others to save space
-// Assets are accessed via relative paths, so we update the locale index.html files
-// to reference ../en/assets/ instead of ./assets/
-console.log("Deduplicating assets across locales...");
+console.log(`Successfully created ${rootIndexPath}`);
+
+// 4. Robust Deduplication: Deduplicate assets & Patch artifacts
+console.log("Starting robust asset deduplication & artifact patching...");
 
 const primaryLang = "en";
 const assetsFolder = "assets";
@@ -181,20 +180,34 @@ function getDirectorySize(dirPath) {
   return size;
 }
 
+function getAllFiles(dirPath, arrayOfFiles) {
+  files = fs.readdirSync(dirPath);
+
+  arrayOfFiles = arrayOfFiles || [];
+
+  files.forEach(function (file) {
+    if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+      arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles);
+    } else {
+      arrayOfFiles.push(path.join(dirPath, "/", file));
+    }
+  });
+
+  return arrayOfFiles;
+}
+
 let totalSaved = 0;
 
 languages.forEach((lang) => {
-  if (lang === primaryLang) return;
+  if (lang === primaryLang) return; // Skip primary language
 
   const langPath = path.join(distPath, lang);
   const assetsPath = path.join(langPath, assetsFolder);
 
+  // 1. Remove duplicate assets folder
   if (fs.existsSync(assetsPath)) {
     const sizeBeforeDelete = getDirectorySize(assetsPath);
-
-    // Remove the duplicate assets folder
     fs.rmSync(assetsPath, { recursive: true, force: true });
-
     totalSaved += sizeBeforeDelete;
     console.log(
       `[${lang}] Removed duplicate assets (${(
@@ -203,23 +216,37 @@ languages.forEach((lang) => {
         1024
       ).toFixed(1)} MB saved)`
     );
+  }
 
-    // Update index.html to reference assets from the primary language folder
-    const indexHtmlPath = path.join(langPath, "index.html");
-    if (fs.existsSync(indexHtmlPath)) {
-      let content = fs.readFileSync(indexHtmlPath, "utf8");
+  // 2. Patch build artifacts (.js, .html, .css) to reference shared assets from ../en/assets/
+  // This fixes the issue where Angular compiles paths like "assets/img.png" into JS code
+  const files = getAllFiles(langPath);
+  let patchedCount = 0;
 
-      // Replace relative asset paths to point to the primary language's assets
-      // ./assets/ -> ../en/assets/
-      // "assets/ -> "../en/assets/
-      content = content.replace(/\.\/assets\//g, `../${primaryLang}/assets/`);
+  files.forEach((file) => {
+    if (
+      file.endsWith(".js") ||
+      file.endsWith(".html") ||
+      file.endsWith(".css")
+    ) {
+      let content = fs.readFileSync(file, "utf8");
+      let originalContent = content;
+
+      // Replace "assets/" with "../en/assets/" (double quotes)
       content = content.replace(/"assets\//g, `"../${primaryLang}/assets/`);
 
-      fs.writeFileSync(indexHtmlPath, content);
-      console.log(
-        `[${lang}] Updated index.html to use shared assets from /${primaryLang}/`
-      );
+      // Replace 'assets/' with '../en/assets/' (single quotes)
+      content = content.replace(/'assets\//g, `'../${primaryLang}/assets/`);
+
+      if (content !== originalContent) {
+        fs.writeFileSync(file, content);
+        patchedCount++;
+      }
     }
+  });
+
+  if (patchedCount > 0) {
+    console.log(`[${lang}] Patched ${patchedCount} files to use shared assets`);
   }
 });
 

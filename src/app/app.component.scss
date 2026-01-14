@@ -90,7 +90,10 @@ a {
   right: 0;
   z-index: 9999;
   // Only takes up the safe-area-inset (notch height) or a minimal fallback
-  height: max(env(safe-area-inset-top), 20px);
+  height: max(
+    max(env(safe-area-inset-top), var(--safe-area-inset-top, 0px)),
+    20px
+  );
   background: rgba(255, 0, 0, 0.6);
   color: #fff;
   font-weight: bold;

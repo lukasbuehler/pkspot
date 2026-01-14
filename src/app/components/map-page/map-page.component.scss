@@ -18,13 +18,22 @@ app-spot-map {
   @media (max-width: 599.99px) {
     position: fixed;
     // Extend into top safe area (notch) only
-    top: calc(-1 * env(safe-area-inset-top, 0px));
-    left: calc(-1 * env(safe-area-inset-left, 0px));
-    right: calc(-1 * env(safe-area-inset-right, 0px));
+    // Use max(env(), var()) for Android compatibility (Chromium WebView bug workaround)
+    top: calc(
+      -1 * max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px))
+    );
+    left: calc(
+      -1 * max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px))
+    );
+    right: calc(
+      -1 * max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px))
+    );
     // Stop above the bottom nav bar (uses CSS variable that's 80px on web, 95px on native)
     bottom: var(--nav-bar-height, 80px);
     width: calc(
-      100% + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)
+      100% +
+        max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px)) +
+        max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px))
     );
     // Height is from top safe area to above bottom nav bar
     height: auto;
@@ -50,7 +59,13 @@ app-spot-map {
 // there IS a safe area (native app with notch) to avoid double spacing
 .search-bar-overlay {
   // Default 8px padding, reduced by the safe area inset amount (clamped to 0 minimum)
-  padding-top: max(0px, calc(8px - env(safe-area-inset-top, 0px))) !important;
+  // Use max(env(), var()) for Android compatibility
+  padding-top: max(
+    0px,
+    calc(
+      8px - max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px))
+    )
+  ) !important;
 }
 
 .tab-icon {

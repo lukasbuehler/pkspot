@@ -18,7 +18,7 @@
   overflow-y: hidden;
   scrollbar-width: none; // Firefox
   -ms-overflow-style: none; // IE/Edge
-  padding-right: 24px; // Space for fade effect
+  padding-right: 16px; // Space for fade effect
 
   margin-left: -16px;
   padding-left: 16px;
@@ -27,13 +27,13 @@
   -webkit-mask-image: linear-gradient(
     to right,
     black 0%,
-    black calc(100% - 48px),
+    black calc(100% - 16px),
     transparent 100%
   );
   mask-image: linear-gradient(
     to right,
     black 0%,
-    black calc(100% - 48px),
+    black calc(100% - 16px),
     transparent 100%
   );
 
