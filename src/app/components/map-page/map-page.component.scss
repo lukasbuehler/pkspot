@@ -21,9 +21,8 @@ app-spot-map {
     top: calc(-1 * env(safe-area-inset-top, 0px));
     left: calc(-1 * env(safe-area-inset-left, 0px));
     right: calc(-1 * env(safe-area-inset-right, 0px));
-    // Stop above the bottom nav bar (80px) + optional terms footer (--terms-footer-offset, defaults to 0)
-    // The terms footer appears for non-signed-in users on mobile
-    bottom: calc(80px + var(--terms-footer-offset, 0px));
+    // Stop above the bottom nav bar (uses CSS variable that's 80px on web, 95px on native)
+    bottom: var(--nav-bar-height, 80px);
     width: calc(
       100% + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)
     );

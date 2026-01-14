@@ -160,6 +160,9 @@ export class AppComponent implements OnInit {
   /** True when running with a non-production environment (dev/ios dev config) */
   isDevMode: boolean = !environment.production;
 
+  /** True when running as a native iOS or Android app via Capacitor */
+  isNativePlatform: boolean = Capacitor.isNativePlatform();
+
   isEmbedded: WritableSignal<boolean | null> = signal(null);
 
   availableLanguageCodes: LocaleCode[] = [

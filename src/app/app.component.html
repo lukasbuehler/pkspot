@@ -116,7 +116,10 @@
     <!-- Bottom navigation bar (only when NOT in alainMode and mobile/tablet) -->
     @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
     'mobile' || responsive.viewMode() === 'tablet') {
-    <mat-toolbar class="mat-elevation-z0">
+    <mat-toolbar
+      class="mat-elevation-z0"
+      [class.native-platform]="isNativePlatform"
+    >
       @for (button of navbarConfig(); track $index) { @if(button.link) {
       <a [routerLink]="button.link" tabindex="-1">
         <app-mat3-nav-button

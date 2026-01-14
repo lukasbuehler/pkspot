@@ -33,6 +33,14 @@ html {
   position: relative;
   overflow: hidden;
   background-color: var(--mat-app-background-color);
+
+  // Default nav bar height (80px). Changed by mat-toolbar.native-platform to 95px.
+  --nav-bar-height: 80px;
+}
+
+// When nav bar has native-platform class, increase the nav bar height variable globally
+body:has(mat-toolbar.native-platform) {
+  --nav-bar-height: 95px;
 }
 
 // Removes blue google maps iframe border

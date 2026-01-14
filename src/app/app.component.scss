@@ -7,6 +7,8 @@
 }
 
 $toolbar-height: 80px;
+$toolbar-native-extra: 15px;
+
 mat-toolbar {
   position: relative;
   z-index: 1000;
@@ -17,6 +19,16 @@ mat-toolbar {
 
   height: $toolbar-height;
   flex-shrink: 0;
+
+  // Set CSS variable for the nav bar height that other components can use
+  --nav-bar-height: #{$toolbar-height};
+
+  // Extra padding on native platforms (iOS/Android) for gesture bar spacing
+  &.native-platform {
+    padding-bottom: $toolbar-native-extra;
+    height: calc($toolbar-height + $toolbar-native-extra);
+    --nav-bar-height: calc(#{$toolbar-height} + #{$toolbar-native-extra});
+  }
 }
 
 .spacer {
