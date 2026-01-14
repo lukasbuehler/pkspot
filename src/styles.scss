@@ -11,22 +11,12 @@ button:focus {
 
 html {
   /* Native Safe Area Padding for iOS/Android notch and navigation */
-  /* On iOS, env() works correctly. On Android, our MainActivity injects
-     --safe-area-inset-* CSS variables as a workaround for the Chromium bug
-     where env() returns 0. We use max() to pick the larger value. */
-  padding-top: max(
-    env(safe-area-inset-top, 0px),
-    var(--safe-area-inset-top, 0px)
-  );
-  // padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
-  padding-left: max(
-    env(safe-area-inset-left, 0px),
-    var(--safe-area-inset-left, 0px)
-  );
-  padding-right: max(
-    env(safe-area-inset-right, 0px),
-    var(--safe-area-inset-right, 0px)
-  );
+  /* On Android, our MainActivity injects --safe-area-inset-* with correct orientation values.
+     On iOS, env() works correctly. We use var() first (for Android), with env() as fallback (for iOS). */
+  padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  // padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  padding-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  padding-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
 
   /* Ensure padding is included in width calculations to prevent horizontal overflow */
   box-sizing: border-box;
@@ -52,6 +42,12 @@ html {
 // When nav bar has native-platform class, increase the nav bar height variable globally
 body:has(mat-toolbar.native-platform) {
   --nav-bar-height: 95px;
+}
+
+// When alain mode is active (presence of #alainMenuButton), there's no bottom nav bar
+// so set the nav bar height to 0 to allow the map to extend to the bottom
+body:has(#alainMenuButton) {
+  --nav-bar-height: 0px;
 }
 
 // Removes blue google maps iframe border

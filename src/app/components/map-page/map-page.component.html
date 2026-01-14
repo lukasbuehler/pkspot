@@ -398,10 +398,7 @@
     style="
       top: calc(
         72px -
-          min(
-            8px,
-            max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px))
-          )
+          min(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
       );
       bottom: 0;
       position: absolute;

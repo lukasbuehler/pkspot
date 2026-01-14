@@ -63,13 +63,24 @@ mat-toolbar {
 #alainMenuButton {
   position: absolute;
   left: 8px;
-  top: 8px;
   z-index: 101;
+
+  // Smart top positioning that accounts for native platform safe-area insets.
+  // Uses default padding when no safe area (web browser), but reduces it when
+  // there IS a safe area (native app with notch) to avoid double spacing.
+  // Matches the search-bar-overlay behavior in map-page.component.scss
+  top: max(
+    0px,
+    calc(8px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+  );
 
   // On larger screens (sidepanel layout), use more padding to match the search container
   @media (min-width: 600px) {
     left: 16px;
-    top: 16px;
+    top: max(
+      0px,
+      calc(16px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+    );
   }
 }
 
@@ -90,10 +101,7 @@ a {
   right: 0;
   z-index: 9999;
   // Only takes up the safe-area-inset (notch height) or a minimal fallback
-  height: max(
-    max(env(safe-area-inset-top), var(--safe-area-inset-top, 0px)),
-    20px
-  );
+  height: max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), 20px);
   background: rgba(255, 0, 0, 0.6);
   color: #fff;
   font-weight: bold;

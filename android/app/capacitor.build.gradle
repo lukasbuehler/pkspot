@@ -13,6 +13,7 @@ dependencies {
     implementation project(':capacitor-firebase-firestore')
     implementation project(':capacitor-app')
     implementation project(':capacitor-geolocation')
+    implementation project(':capacitor-keyboard')
     implementation project(':capacitor-share')
 
 }
