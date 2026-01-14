@@ -85,7 +85,12 @@ mat-chip {
 // Glass effect applied globally via ::ng-deep
 ::ng-deep {
   // Glass effect for all chips with .glass class
-  .glass .mdc-evolution-chip__action--primary {
+  // Target the chip action area which contains the background
+  .glass .mdc-evolution-chip__action--primary,
+  .glass .mdc-evolution-chip__action--secondary {
+    background: rgba(60, 60, 60, 0.85) !important;
+    background-color: rgba(60, 60, 60, 0.85) !important;
+
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
     // WebKit GPU acceleration to prevent blur flickering during animations

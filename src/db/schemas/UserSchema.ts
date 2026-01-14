@@ -15,6 +15,7 @@ export interface UserSchema {
   blocked_users?: string[]; // IDs of users blocked by this user
   pinned_badges?: string[]; // User's preferred display order for badges (max 5)
   start_date?: Timestamp;
+  start_date_raw_ms?: number;
   nationality_code?: string;
   verified_email?: boolean;
   invite_code?: string;
@@ -42,6 +43,7 @@ export interface FollowingDataSchema {
   profile_picture?: string;
 
   start_following?: Timestamp;
+  start_following_raw_ms?: number;
 }
 
 export interface FollowingSchema extends FollowingDataSchema {

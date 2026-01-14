@@ -99,10 +99,13 @@ export class FollowingService extends ConsentAwareService {
     let followingData: FollowingDataSchema = {
       display_name: otherUserData.display_name,
       start_following: new Timestamp(Date.now() / 1000, 0),
+      start_following_raw_ms: Date.now(),
     };
+
     let followerData: FollowingDataSchema = {
       display_name: myUserData.display_name,
       start_following: new Timestamp(Date.now() / 1000, 0),
+      start_following_raw_ms: Date.now(),
     };
     return this._firestoreAdapter
       .setDocument(`users/${myUserId}/following/${otherUserId}`, followingData)
@@ -156,9 +159,16 @@ export class FollowingService extends ConsentAwareService {
           };
         });
         // Client-side sort: Newest first, then those without timestamp
+        // Prioritize raw milliseconds if available (fixes iOS bug)
         return users.sort((a, b) => {
-          const timeA = (a.start_following as any)?.seconds ?? 0;
-          const timeB = (b.start_following as any)?.seconds ?? 0;
+          const timeA =
+            a.start_following_raw_ms ??
+            (a.start_following as any)?.seconds * 1000 ??
+            0;
+          const timeB =
+            b.start_following_raw_ms ??
+            (b.start_following as any)?.seconds * 1000 ??
+            0;
           return timeB - timeA;
         });
       })
@@ -198,9 +208,16 @@ export class FollowingService extends ConsentAwareService {
           };
         });
         // Client-side sort: Newest first, then those without timestamp
+        // Prioritize raw milliseconds if available (fixes iOS bug)
         return users.sort((a, b) => {
-          const timeA = (a.start_following as any)?.seconds ?? 0;
-          const timeB = (b.start_following as any)?.seconds ?? 0;
+          const timeA =
+            a.start_following_raw_ms ??
+            (a.start_following as any)?.seconds * 1000 ??
+            0;
+          const timeB =
+            b.start_following_raw_ms ??
+            (b.start_following as any)?.seconds * 1000 ??
+            0;
           return timeB - timeA;
         });
       })

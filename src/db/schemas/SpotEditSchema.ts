@@ -34,6 +34,7 @@ export type SpotEditDataSchema = Partial<
 export interface SpotEditSchema {
   type: "CREATE" | "UPDATE";
   timestamp: Timestamp;
+  timestamp_raw_ms?: number;
   likes?: number;
   approved?: boolean;
   user: UserReferenceSchema;

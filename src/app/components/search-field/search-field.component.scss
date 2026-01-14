@@ -2,6 +2,7 @@
   height: 56px;
   overflow: hidden;
   border: none;
+  background: transparent !important;
   // width: 100%;
 
   ::ng-deep .mat-mdc-form-field-subscript-wrapper,
@@ -10,7 +11,7 @@
   }
 
   ::ng-deep .mat-mdc-text-field-wrapper {
-    background-color: rgba(30, 30, 30, 0.6) !important;
+    background: rgba(60, 60, 60, 0.85) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
   }
@@ -20,7 +21,7 @@
 }
 
 :host {
-  background-color: transparent;
+  background-color: transparent !important;
   width: 100%;
   // display: block;
   // position: relative;

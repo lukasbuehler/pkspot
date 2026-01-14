@@ -226,6 +226,7 @@ export class SpotEditsService extends ConsentAwareService {
     const editData = {
       type: "UPDATE" as const,
       timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
       likes: 0,
       approved: false,
       user: userReference,
@@ -250,6 +251,7 @@ export class SpotEditsService extends ConsentAwareService {
     const editData = {
       type: "UPDATE" as const,
       timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
       likes: 0,
       approved: false,
       user: userReference,
@@ -274,6 +276,7 @@ export class SpotEditsService extends ConsentAwareService {
     const editData = {
       type: "UPDATE" as const,
       timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
       likes: 0,
       approved: false,
       user: userReference,
@@ -339,6 +342,7 @@ export class SpotEditsService extends ConsentAwareService {
     const editData = {
       type: "CREATE" as const,
       timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
       user: userReference,
       data: spotData,
     };
@@ -385,6 +389,7 @@ export class SpotEditsService extends ConsentAwareService {
     const editData = {
       type: "UPDATE" as const,
       timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
       user: userReference,
       data: spotUpdateData,
       prevData: prevData,

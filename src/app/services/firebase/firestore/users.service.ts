@@ -31,6 +31,9 @@ export class UsersService extends ConsentAwareService {
       verified_email: false,
       ...data,
     };
+    if (schema.start_date && !schema.start_date_raw_ms) {
+      schema.start_date_raw_ms = schema.start_date.seconds * 1000;
+    }
     return this.executeWithConsent(() => {
       return this._firestoreAdapter.setDocument(`users/${userId}`, schema);
     });
@@ -82,6 +85,9 @@ export class UsersService extends ConsentAwareService {
 
   updateUser(userId: string, _data: Partial<UserSchema>) {
     return this.executeWithConsent(() => {
+      if (_data.start_date && !_data.start_date_raw_ms) {
+        _data.start_date_raw_ms = _data.start_date.seconds * 1000;
+      }
       return this._firestoreAdapter.updateDocument(`users/${userId}`, _data);
     });
   }
