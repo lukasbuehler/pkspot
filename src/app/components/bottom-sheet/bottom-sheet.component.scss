@@ -29,6 +29,10 @@ div.sheet {
   will-change: transform;
   // Initial closed position set via JS after calculating alwaysVisible
 
+  // Start invisible to prevent flicker on Safari during initial positioning
+  // JS will set opacity to 1 after calculating the correct transform position
+  opacity: 0;
+
   > * {
     position: relative;
   }

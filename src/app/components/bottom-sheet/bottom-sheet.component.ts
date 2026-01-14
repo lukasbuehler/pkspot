@@ -268,6 +268,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       // Initialize to closed position (offset by alwaysVisible)
       this.currentOffset = alwaysVisibleHeight;
       sheetEl.style.transform = `translateY(${alwaysVisibleHeight}px)`;
+      // Reveal the sheet now that it's properly positioned (prevents flicker on Safari)
+      sheetEl.style.opacity = "1";
       this.emitSheetState(alwaysVisibleHeight, alwaysVisibleHeight);
     });
 

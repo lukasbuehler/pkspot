@@ -65,13 +65,11 @@
               [rating1to5]="hit.preview?.rating ?? hit.document.rating"
               [isCompact]="true"
             ></app-spot-rating>
-            } @for(amenity of getImportantAmenities(hit.preview?.amenities ||
-            hit.document.amenities); track $index) {
-            <mat-icon
-              class="mat-title-small typeOrAccesIcon"
-              [title]="amenity.key"
-              >{{ amenity.icon }}</mat-icon
-            >
+            } @for(amenity of getSpotImportantAmenities(hit.preview?.amenities
+            || hit.document.amenities, hit.document.type); track $index) {
+            <mat-icon class="typeOrAccesIcon" [title]="amenity.name">{{
+              amenity.icon
+            }}</mat-icon>
             }
           </div>
           <div

@@ -51,6 +51,7 @@ import { provideNativeDateAdapter } from "@angular/material/core";
 import { routes } from "./app.routes";
 import { provideRouter, withViewTransitions } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
+import { Capacitor } from "@capacitor/core";
 
 // Module-level singleton to ensure Firestore is only initialized once
 let firestoreInstance: Firestore | null = null;
@@ -123,14 +124,23 @@ export const appConfig: ApplicationConfig = {
       routes,
       withViewTransitions({
         onViewTransitionCreated: (transitionInfo) => {
-          // Skip transitions on Safari/iOS where View Transitions API causes glitches
-          // and backdrop-filter blur flickering
-          const userAgent = navigator?.userAgent ?? "";
-          const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-          const isSafari =
-            /^((?!chrome|android).)*safari/i.test(userAgent) && !isIOS;
-          if (isIOS || isSafari) {
+          // Skip transitions on iOS (native or Safari) where View Transitions API
+          // causes glitches and backdrop-filter blur flickering
+          const platform = Capacitor.getPlatform();
+
+          // Always skip on native iOS
+          if (platform === "ios") {
             transitionInfo.transition.skipTransition();
+            return;
+          }
+
+          // Also skip on Safari desktop (non-native)
+          if (platform === "web") {
+            const userAgent = navigator?.userAgent ?? "";
+            const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+            if (isSafari) {
+              transitionInfo.transition.skipTransition();
+            }
           }
         },
       })

@@ -36,11 +36,8 @@ import {
   parseSpotType,
   parseSpotAccess,
 } from "../../../db/schemas/SpotTypeAndAccess";
-import {
-  AmenitiesMap,
-  AmenityIcons,
-  GeneralAmenities,
-} from "../../../db/schemas/Amenities";
+import { AmenitiesMap } from "../../../db/schemas/Amenities";
+import { getImportantAmenities } from "../../../db/models/Amenities";
 
 @Component({
   selector: "app-search-field",
@@ -233,23 +230,15 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     const access = parseSpotAccess(accessString);
     return SpotAccessNames[access];
   }
-
   /**
-   * Get important amenities to display (only those with true value)
+   * Get important amenities to display using the centralized logic
+   * shared with the Spot model's importantAmenitiesArray.
    */
-  getImportantAmenities(
-    amenities?: AmenitiesMap
-  ): { key: keyof AmenitiesMap; icon: string }[] {
+  getSpotImportantAmenities(
+    amenities?: AmenitiesMap,
+    spotType?: string
+  ): { name?: string; icon?: string }[] {
     if (!amenities) return [];
-
-    // Get amenities that are explicitly true
-    const importantAmenities = GeneralAmenities.filter(
-      (key) => amenities[key] === true
-    ).map((key) => ({
-      key,
-      icon: AmenityIcons[key] || "info",
-    }));
-
-    return importantAmenities;
+    return getImportantAmenities(amenities, spotType);
   }
 }

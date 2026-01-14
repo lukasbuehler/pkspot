@@ -15,7 +15,13 @@
     -webkit-transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    will-change: backdrop-filter;
+  }
+
+  // Disable backdrop-filter on iOS to prevent flickering during navigation
+  html.platform-ios app-bottom-sheet > div.sheet {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background-color: mat.get-theme-color($theme, surface-container-low);
   }
 }
 

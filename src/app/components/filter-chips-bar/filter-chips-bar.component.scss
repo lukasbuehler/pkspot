@@ -98,11 +98,21 @@ mat-chip {
     -webkit-transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    will-change: backdrop-filter;
   }
 
   // Remove border on glass chips
   .glass .mdc-evolution-chip__action--primary::before {
     border: none !important;
+  }
+
+  // Disable backdrop-filter on iOS to prevent flickering during navigation
+  html.platform-ios {
+    .glass .mdc-evolution-chip__action--primary,
+    .glass .mdc-evolution-chip__action--secondary {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(50, 50, 50, 0.95) !important;
+      background-color: rgba(50, 50, 50, 0.95) !important;
+    }
   }
 }
