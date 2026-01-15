@@ -51,10 +51,35 @@ export class OAuthSignInButtonsComponent {
       })
       .catch((err) => {
         console.error(err);
-        this.error.emit({
-          provider: "google",
-          message: $localize`Could not sign in with Google!`,
-        });
+
+        // Check for specific error messages to provide better user feedback
+        const errorMessage = err?.message || err?.toString() || "";
+
+        let userMessage: string;
+        if (
+          errorMessage.includes("No credentials available") ||
+          errorMessage.includes("NoCredentialException")
+        ) {
+          // User doesn't have a Google account linked on their device
+          userMessage = $localize`No Google account found on this device. Please add a Google account in your device settings and try again.`;
+        } else if (
+          errorMessage.includes("canceled") ||
+          errorMessage.includes("cancelled") ||
+          errorMessage.includes("popup-closed-by-user") ||
+          errorMessage.includes("user denied")
+        ) {
+          // User cancelled the sign-in flow - don't show an error
+          userMessage = "";
+        } else {
+          userMessage = $localize`Could not sign in with Google!`;
+        }
+
+        if (userMessage) {
+          this.error.emit({
+            provider: "google",
+            message: userMessage,
+          });
+        }
       })
       .finally(() => {
         this.isSigningInGoogle = false;
@@ -76,10 +101,34 @@ export class OAuthSignInButtonsComponent {
       })
       .catch((err) => {
         console.error(err);
-        this.error.emit({
-          provider: "apple",
-          message: $localize`Could not sign in with Apple!`,
-        });
+
+        // Check for specific error messages to provide better user feedback
+        const errorMessage = err?.message || err?.toString() || "";
+
+        let userMessage: string;
+        if (
+          errorMessage.includes("No credentials available") ||
+          errorMessage.includes("NoCredentialException")
+        ) {
+          // User doesn't have an Apple ID linked on their device
+          userMessage = $localize`No Apple ID found on this device. Please sign in to your Apple ID in your device settings and try again.`;
+        } else if (
+          errorMessage.includes("canceled") ||
+          errorMessage.includes("cancelled") ||
+          errorMessage.includes("user denied")
+        ) {
+          // User cancelled the sign-in flow - don't show an error
+          userMessage = "";
+        } else {
+          userMessage = $localize`Could not sign in with Apple!`;
+        }
+
+        if (userMessage) {
+          this.error.emit({
+            provider: "apple",
+            message: userMessage,
+          });
+        }
       })
       .finally(() => {
         this.isSigningInApple = false;
