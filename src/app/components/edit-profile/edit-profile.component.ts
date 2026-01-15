@@ -34,6 +34,7 @@ import {
 import { MatMenu, MatMenuTrigger } from "@angular/material/menu";
 import { SearchFieldComponent } from "../search-field/search-field.component";
 import { StorageService } from "../../services/firebase/storage.service";
+import { StorageBucket } from "../../../db/schemas/Media";
 import { MatBadge } from "@angular/material/badge";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
@@ -46,6 +47,7 @@ import {
   MatDatepickerModule,
 } from "@angular/material/datepicker";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 
 @Component({
@@ -293,15 +295,17 @@ export class EditProfileComponent implements OnInit {
         this._storageService
           .setUploadToStorage(
             this.newProfilePicture,
-            "profile-pictures" as any,
+            StorageBucket.ProfilePictures,
             undefined,
             userId,
             "png"
           )
-          .then((url) => {
+          .then(() => {
+            // Use predictable token-free URL from ProfilePictureHelper
+            const profilePictureUrl = getProfilePictureUrl(userId);
             // Update user document with new profile picture URL
             return this._userService.updateUser(userId, {
-              profile_picture: url,
+              profile_picture: profilePictureUrl,
             });
           })
           .then(() => {

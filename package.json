@@ -1,6 +1,6 @@
 {
   "name": "pkspot",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -61,10 +61,12 @@
     "@angular/ssr": "^20.3.6",
     "@capacitor-firebase/authentication": "^8.0.1",
     "@capacitor-firebase/firestore": "^8.0.1",
+    "@capacitor-firebase/storage": "^8.0.1",
     "@capacitor/android": "^8.0.0",
     "@capacitor/angular": "^2.0.3",
     "@capacitor/app": "^8.0.0",
     "@capacitor/core": "latest",
+    "@capacitor/filesystem": "^8.0.0",
     "@capacitor/geolocation": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
     "@capacitor/keyboard": "^8.0.0",

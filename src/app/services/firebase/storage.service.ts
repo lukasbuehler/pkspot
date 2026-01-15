@@ -1,33 +1,16 @@
-import {
-  Injectable,
-  Injector,
-  Optional,
-  inject,
-  runInInjectionContext,
-} from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
-import {
-  Storage,
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-  deleteObject,
-} from "@angular/fire/storage";
 import { AuthenticationService } from "./authentication.service";
 import { StorageMedia } from "../../../db/models/Media";
 import { StorageBucket } from "../../../db/schemas/Media";
+import { StorageAdapterService } from "./storage-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class StorageService {
-  private injector = inject(Injector);
-
-  // Inject AngularFire Storage and Auth like Firestore services do
-  constructor(
-    @Optional() private storage: Storage | null,
-    private authService: AuthenticationService
-  ) {}
+  private storageAdapter = inject(StorageAdapterService);
+  private authService = inject(AuthenticationService);
 
   private readonly isBrowser = typeof window !== "undefined";
 
@@ -36,30 +19,28 @@ export class StorageService {
   getStoredContent() {}
 
   /**
-   * Uploads a file or blob to a specified locatin in cloud storage
-   * @param blob
-   * @param location
-   * @param filename
-   * @param fileEnding
-   * @returns Observable which sends the download URL as soon as the upload is completed
+   * Uploads a file or blob to a specified location in cloud storage.
+   * Works on both web and native platforms via the StorageAdapterService.
+   * @param blob The file/blob to upload
+   * @param location The storage bucket/folder
+   * @param progressCallback Optional callback for upload progress (0-100)
+   * @param filename Optional filename (auto-generated if not provided)
+   * @param fileEnding Optional file extension (e.g., "jpg", "png", "mp4")
+   * @returns Promise which resolves to the download URL when upload is completed
    */
   setUploadToStorage(
     blob: Blob,
     location: StorageBucket,
     progressCallback?: (progressPercent: number) => void,
     filename?: string,
-    fileEnding?: string // e.g "jpg", "png", "mp4"
+    fileEnding?: string
   ): Promise<string> {
     if (!this.isBrowser) {
       return Promise.reject(
         "Firebase Storage is not available on the server (SSR)"
       );
     }
-    if (!this.storage) {
-      return Promise.reject(
-        "Firebase Storage service is not available (did you provideStorage()?)"
-      );
-    }
+
     let uid: string | null = null;
     if (this.authService.isSignedIn) {
       uid = this.authService.user?.uid ?? null;
@@ -67,62 +48,40 @@ export class StorageService {
       return Promise.reject("User is not signed in");
     }
 
-    return new Promise<string>((resolve, reject) => {
-      if (uid === null) {
-        reject("User is not signed in");
-        return;
-      }
+    if (uid === null) {
+      return Promise.reject("User is not signed in");
+    }
 
-      // Run Firebase Storage operations inside injection context to avoid warnings
-      runInInjectionContext(this.injector, () => {
-        const uploadRef = ref(
-          this.storage!,
-          `${location}/${filename}${fileEnding ? "." + fileEnding : ""}`
-        );
+    // Build the full storage path
+    const storagePath = `${location}/${filename}${
+      fileEnding ? "." + fileEnding : ""
+    }`;
 
-        const uploadTask = uploadBytesResumable(uploadRef, blob, {
-          customMetadata: {
-            uid: uid!,
-          },
-        });
+    // Determine content type from blob or file extension
+    let contentType = blob.type;
+    if (!contentType && fileEnding) {
+      const mimeTypes: Record<string, string> = {
+        jpg: "image/jpeg",
+        jpeg: "image/jpeg",
+        png: "image/png",
+        gif: "image/gif",
+        webp: "image/webp",
+        mp4: "video/mp4",
+        mov: "video/quicktime",
+        webm: "video/webm",
+      };
+      contentType = mimeTypes[fileEnding.toLowerCase()] || "";
+    }
 
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            // Observe state change events such as progress, pause, and resume
-            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-            const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.debug("Upload is " + progress + "% done");
-            if (progressCallback) {
-              progressCallback(progress);
-            }
-          },
-          (error) => {
-            // Handle unsuccessful uploads
-            reject(error);
-          },
-          () => {
-            // Handle successful uploads on complete
-            // Generate a public URL without token (since our Storage rules allow public read access)
-            // Format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media
-
-            const bucket = this.storage!.app.options.storageBucket;
-            const fullPath = uploadTask.snapshot.ref.fullPath;
-            const encodedPath = encodeURIComponent(fullPath);
-
-            const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
-
-            // Normalize extensions (consistent formatting)
-            const normalizedUrl = publicUrl
-              .replace(/\.MP4\?/, ".mp4?")
-              .replace(/\.mov\?/i, ".mp4?");
-
-            resolve(normalizedUrl);
-          }
-        );
-      }); // close runInInjectionContext
-    }); // close Promise
+    return this.storageAdapter.uploadFile({
+      data: blob,
+      path: storagePath,
+      metadata: {
+        uid: uid,
+        contentType: contentType || undefined,
+      },
+      onProgress: progressCallback,
+    });
   }
 
   deleteFromStorage(bucket: StorageBucket, filename: string): Promise<void>;
@@ -136,15 +95,29 @@ export class StorageService {
         "Firebase Storage delete is not available on the server (SSR)"
       );
     }
-    if (!this.storage) {
-      return Promise.reject(
-        "Firebase Storage service is not available (did you provideStorage()?)"
-      );
-    }
+
+    // Determine the path
+    let path: string;
     if (filename === undefined) {
-      return deleteObject(ref(this.storage, bucketOrSrc as string));
+      // src is a full URL or path - extract the path
+      const src = bucketOrSrc as string;
+      // If it's a full URL, extract the path
+      if (src.includes("firebasestorage.googleapis.com")) {
+        // Extract path from URL like: .../o/{encoded-path}?alt=media
+        const match = src.match(/\/o\/([^?]+)/);
+        if (match) {
+          path = decodeURIComponent(match[1]);
+        } else {
+          path = src;
+        }
+      } else {
+        path = src;
+      }
+    } else {
+      path = `${bucketOrSrc}/${filename}`;
     }
-    return deleteObject(ref(this.storage, `${bucketOrSrc}/${filename}`));
+
+    return this.storageAdapter.deleteFile(path);
   }
 
   delete(file: StorageMedia) {
