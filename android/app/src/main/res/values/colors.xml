@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <!-- Primary brand color (primary-40 from m3-theme) -->
+    <color name="colorPrimary">#2b51d5</color>
+    <!-- Darker variant for status bars and splash screen (neutral-4 from m3-theme) -->
+    <color name="colorPrimaryDark">#1f1f23</color>
+    <!-- Accent color for highlights (secondary-80 from m3-theme, used in dark theme) -->
+    <color name="colorAccent">#8dd978</color>
+</resources>

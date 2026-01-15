@@ -246,6 +246,15 @@ export class AppComponent implements OnInit {
       document.documentElement.classList.add(
         `platform-${Capacitor.getPlatform()}`
       );
+
+      // Set status bar style to use light (white) icons on Android
+      // Style.Dark = light/white icons (for dark backgrounds)
+      // Style.Light = dark/black icons (for light backgrounds)
+      if (Capacitor.getPlatform() === "android") {
+        import("@capacitor/status-bar").then(({ StatusBar, Style }) => {
+          StatusBar.setStyle({ style: Style.Dark });
+        });
+      }
     }
 
     // structured data

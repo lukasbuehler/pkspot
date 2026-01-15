@@ -8,6 +8,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -18,6 +19,18 @@ public class MainActivity extends BridgeActivity {
     super.onCreate(savedInstanceState);
     // Enable edge-to-edge display for proper safe-area-inset CSS support
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    // Force white status bar icons after activity is fully ready
+    // (isAppearanceLightStatusBars = false means light/white icons on dark
+    // background)
+    WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(getWindow(),
+        getWindow().getDecorView());
+    insetsController.setAppearanceLightStatusBars(false);
+    insetsController.setAppearanceLightNavigationBars(false);
   }
 
   @Override

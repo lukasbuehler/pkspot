@@ -84,7 +84,7 @@ const redirectionScript = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Swarms</title>
+    <title>PK Spot</title>
     <style>
         body {
             background-color: #000;
@@ -146,6 +146,11 @@ const redirectionScript = `
         <ul>
             <li><a href="./en/index.html">English</a></li>
             <li><a href="./de/index.html">Deutsch</a></li>
+            <li><a href="./de-CH/index.html">Deutsch (Schweiz)</a></li>
+            <li><a href="./it/index.html">Italiano</a></li>
+            <li><a href="./fr/index.html">Français</a></li>
+            <li><a href="./es/index.html">Español</a></li>
+            <li><a href="./nl/index.html">Nederlands</a></li>
             <!-- Add others -->
         </ul>
     </noscript>

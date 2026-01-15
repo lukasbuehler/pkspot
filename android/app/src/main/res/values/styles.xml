@@ -18,6 +18,7 @@
         <item name="android:background">@null</item>
         <item name="android:windowLayoutInDisplayCutoutMode">always</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item
       name="android:navigationBarColor"
     >@android:color/transparent</item>
@@ -28,8 +29,12 @@
         <item name="android:background">@drawable/splash</item>
         <item name="android:windowLayoutInDisplayCutoutMode">always</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item
       name="android:navigationBarColor"
     >@android:color/transparent</item>
+        <!-- Android 12+ splash screen background (use dark color to match splash.png) -->
+        <item name="windowSplashScreenBackground">@color/colorPrimaryDark</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>
