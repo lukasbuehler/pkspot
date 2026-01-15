@@ -164,7 +164,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   eventId: string = "swissjam25";
   name: string = "Swiss Jam 2025";
-  bannerImageSrc: string = "/assets/swissjam/swissjam0.jpg";
+  bannerImageSrc: string = "assets/swissjam/swissjam0.jpg";
   venueString: string = "Universität Irchel";
   localityString: string = "Zurich, Switzerland";
   start: Date = new Date("2025-05-24T09:00:00+01:00");
@@ -538,17 +538,17 @@ export class EventPageComponent implements OnInit, OnDestroy {
         ],
         media: [
           {
-            src: "/assets/swissjam/swissjam2.jpg",
+            src: "assets/swissjam/swissjam2.jpg",
             type: MediaType.Image,
             isInStorage: false,
           },
           {
-            src: "/assets/swissjam/swissjam0.jpg",
+            src: "assets/swissjam/swissjam0.jpg",
             type: MediaType.Image,
             isInStorage: false,
           },
           {
-            src: "/assets/swissjam/swissjam1.jpg",
+            src: "assets/swissjam/swissjam1.jpg",
             type: MediaType.Image,
             isInStorage: false,
           },

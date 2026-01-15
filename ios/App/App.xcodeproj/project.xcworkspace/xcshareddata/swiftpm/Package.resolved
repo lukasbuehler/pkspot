@@ -137,6 +137,15 @@
       }
     },
     {
+      "identity" : "ion-ios-filesystem",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ionic-team/ion-ios-filesystem.git",
+      "state" : {
+        "revision" : "dd9052cfb55b70771d04deb427f94e19ea31c372",
+        "version" : "1.0.1"
+      }
+    },
+    {
       "identity" : "ion-ios-geolocation",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ionic-team/ion-ios-geolocation.git",
