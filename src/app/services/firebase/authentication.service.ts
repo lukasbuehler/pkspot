@@ -454,6 +454,15 @@ export class AuthenticationService extends ConsentAwareService {
           result.user.emailVerified
         );
       }
+    } catch (error: any) {
+      // Log detailed error information for debugging
+      console.error("Google Sign-In Native Error:", {
+        message: error?.message,
+        code: error?.code,
+        name: error?.name,
+        fullError: JSON.stringify(error, null, 2),
+      });
+      throw error;
     } finally {
       this._isSigningInWithGoogle = false;
     }
@@ -566,6 +575,15 @@ export class AuthenticationService extends ConsentAwareService {
           result.user.emailVerified
         );
       }
+    } catch (error: any) {
+      // Log detailed error information for debugging
+      console.error("Apple Sign-In Native Error:", {
+        message: error?.message,
+        code: error?.code,
+        name: error?.name,
+        fullError: JSON.stringify(error, null, 2),
+      });
+      throw error;
     } finally {
       this._isSigningInWithApple = false;
     }
