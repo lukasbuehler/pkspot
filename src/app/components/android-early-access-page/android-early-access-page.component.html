@@ -1,0 +1,164 @@
+<div class="early-access-background">
+  <div class="early-access-page">
+    <section class="hero-section">
+      <div class="hero-icon">
+        <img src="assets/logos/android.svg" alt="Android" />
+      </div>
+      <h1 class="mat-headline-large" i18n>Android Early Access</h1>
+      <p class="mat-title-medium subtitle" i18n>
+        Be among the first to experience PK Spot on Android! Join our closed
+        testing program and help shape the future of the app.
+      </p>
+      @if (daysRemaining > 0) {
+      <div class="countdown-badge">
+        <mat-icon>schedule</mat-icon>
+        <span i18n>{{ daysRemaining }} days remaining in early access</span>
+      </div>
+      }
+    </section>
+
+    <section class="steps-section">
+      <h2 class="mat-headline-medium section-title" i18n>How to Join</h2>
+      <p class="mat-body-large text-block mb-4" i18n>
+        Follow these three simple steps to get the Android app before anyone
+        else.
+      </p>
+
+      <div class="steps-grid">
+        <mat-card class="step-card border">
+          <div class="step-number">1</div>
+          <h3 class="mat-title-large" i18n>
+            <mat-icon>group_add</mat-icon> Join the Google Group
+          </h3>
+          <p class="mat-body-medium" i18n>
+            First, you need to join our Google Group. This is required by Google
+            Play to participate in closed testing programs. Press the big button
+            at the top to join the group.
+          </p>
+          <div class="mt-auto pt-3">
+            <a
+              mat-stroked-button
+              [href]="googleGroupUrl"
+              target="_blank"
+              color="primary"
+            >
+              <mat-icon>open_in_new</mat-icon>
+              <span i18n>Join Google Group</span>
+            </a>
+          </div>
+        </mat-card>
+
+        <mat-card class="step-card border">
+          <div class="step-number">2</div>
+          <h3 class="mat-title-large" i18n>
+            <mat-icon>verified_user</mat-icon> Become a Tester
+          </h3>
+          <p class="mat-body-medium" i18n>
+            After joining the group, visit the Play Store testing page and opt
+            in to become a tester. This unlocks access to the early access
+            version.
+          </p>
+          <div class="mt-auto pt-3">
+            <a
+              mat-stroked-button
+              [href]="playStoreTesterUrl"
+              target="_blank"
+              color="primary"
+            >
+              <mat-icon>open_in_new</mat-icon>
+              <span i18n>Become a Tester</span>
+            </a>
+          </div>
+        </mat-card>
+
+        <mat-card class="step-card border">
+          <div class="step-number">3</div>
+          <h3 class="mat-title-large" i18n>
+            <mat-icon>download</mat-icon> Download the App
+          </h3>
+          <p class="mat-body-medium" i18n>
+            Once you're a tester, you can download PK Spot from the Google Play
+            Store. The app will update automatically as we release new versions.
+          </p>
+          <div class="mt-auto pt-3">
+            <a
+              mat-stroked-button
+              [href]="playStoreUrl"
+              target="_blank"
+              color="primary"
+            >
+              <img
+                src="assets/logos/android.svg"
+                alt=""
+                style="height: 20px"
+                class="me-2"
+              />
+              <span i18n>Get on Play Store</span>
+            </a>
+          </div>
+        </mat-card>
+      </div>
+    </section>
+
+    <section class="info-section">
+      <h2 class="mat-headline-medium section-title" i18n>
+        What is Early Access?
+      </h2>
+      <div class="info-grid">
+        <mat-card class="info-card border">
+          <mat-icon class="info-icon">bug_report</mat-icon>
+          <h4 class="mat-title-medium" i18n>Help Find Bugs</h4>
+          <p class="mat-body-medium" i18n>
+            Early access versions may have bugs. Your feedback helps us fix
+            issues before the public launch.
+          </p>
+        </mat-card>
+        <mat-card class="info-card border">
+          <mat-icon class="info-icon">star</mat-icon>
+          <h4 class="mat-title-medium" i18n>Get Features First</h4>
+          <p class="mat-body-medium" i18n>
+            Be the first to try new features and improvements as we develop
+            them.
+          </p>
+        </mat-card>
+        <mat-card class="info-card border">
+          <mat-icon class="info-icon">feedback</mat-icon>
+          <h4 class="mat-title-medium" i18n>Shape the App</h4>
+          <p class="mat-body-medium" i18n>
+            Your feedback directly influences the direction of the app. Tell us
+            what you love and what needs work.
+          </p>
+        </mat-card>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <p class="mat-title-medium" i18n>
+        Have questions or running into issues?
+      </p>
+      <div class="d-flex gap-3 flex-wrap justify-content-center">
+        <a mat-stroked-button routerLink="/support">
+          <mat-icon>help</mat-icon>
+          <span i18n>Get Support</span>
+        </a>
+        <a
+          mat-stroked-button
+          href="https://discord.gg/Th5vx4KnQb"
+          target="_blank"
+        >
+          <img
+            src="assets/logos/discord_white.svg"
+            alt=""
+            style="height: 20px"
+            class="me-2"
+          />
+          <span i18n>Join Discord</span>
+        </a>
+      </div>
+    </section>
+
+    <footer class="d-flex flex-column align-items-center">
+      <a routerLink="/about" class="mat-body-large" i18n>← Back to About</a>
+    </footer>
+  </div>
+</div>

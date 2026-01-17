@@ -29,6 +29,7 @@ export const ACCEPTANCE_FREE_PREFIXES = [
   "/privacy-policy",
   "/pp",
   "/impressum",
+  "/android-early-access",
 ];
 
 export const routes: Routes = [
@@ -234,6 +235,15 @@ export const routes: Routes = [
     component: AboutPageComponent,
     resolve: { content: contentResolver },
     data: { routeName: "About", acceptanceFree: true },
+  },
+  {
+    path: "android-early-access",
+    loadComponent: () =>
+      import(
+        "./components/android-early-access-page/android-early-access-page.component"
+      ).then((m) => m.AndroidEarlyAccessPageComponent),
+    resolve: { content: contentResolver },
+    data: { routeName: "Android Early Access", acceptanceFree: true },
   },
   {
     path: "support",
