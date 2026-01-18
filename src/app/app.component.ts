@@ -213,6 +213,33 @@ export class AppComponent implements OnInit {
           // Get the path and query params (everything after domain)
           let path = url.pathname;
 
+          // Check for OAuth callback from Chrome Custom Tabs
+          if (path === "/oauth/callback" || path.endsWith("/oauth/callback")) {
+            // OAuth callback - extract ID token from URL fragment
+            const hashParams = new URLSearchParams(url.hash.substring(1));
+            const idToken = hashParams.get("id_token");
+
+            if (idToken) {
+              console.log("OAuth callback received, processing ID token...");
+              this._injector.get(NgZone).run(() => {
+                // Import Browser to close the Custom Tab
+                import("@capacitor/browser").then(({ Browser }) => {
+                  this._authService
+                    .handleOAuthCallback(idToken)
+                    .then(() => {
+                      Browser.close(); // Close the browser
+                      this.router.navigateByUrl("/map");
+                    })
+                    .catch((err) => {
+                      console.error("OAuth callback error:", err);
+                      Browser.close();
+                    });
+                });
+              });
+              return; // Don't process as regular deep link
+            }
+          }
+
           // Strip locale prefix if present (e.g. /fr/map -> /map)
           // The app might be running in a specific locale or default,
           // but the router likely expects paths without the *other* locale prefixes

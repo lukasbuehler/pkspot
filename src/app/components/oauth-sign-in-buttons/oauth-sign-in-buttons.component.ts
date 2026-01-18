@@ -63,6 +63,12 @@ export class OAuthSignInButtonsComponent {
           // User doesn't have a Google account linked on their device
           userMessage = $localize`No Google account found on this device. Please add a Google account in your device settings and try again.`;
         } else if (
+          errorMessage.includes("MicroG") ||
+          errorMessage.includes("ReVanced")
+        ) {
+          // MicroG/ReVanced user - show the specific troubleshooting message
+          userMessage = errorMessage;
+        } else if (
           errorMessage.includes("canceled") ||
           errorMessage.includes("cancelled") ||
           errorMessage.includes("popup-closed-by-user") ||

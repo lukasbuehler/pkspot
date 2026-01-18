@@ -13,6 +13,7 @@ import {
   Auth,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithCredential,
   User as FirebaseUser,
   signOut,
   sendEmailVerification,
@@ -41,6 +42,7 @@ import {
   FirebaseAuthentication,
   User as CapacitorFirebaseUser,
 } from "@capacitor-firebase/authentication";
+import { Browser } from "@capacitor/browser";
 
 interface AuthServiceUser {
   uid?: string;
@@ -85,6 +87,10 @@ export class AuthenticationService extends ConsentAwareService {
   private _isSigningInWithApple = false;
   // Guard against concurrent email sign-in attempts
   private _isSigningInWithEmail = false;
+
+  // Google Web Client ID for OAuth fallback (Chrome Custom Tabs)
+  private readonly GOOGLE_WEB_CLIENT_ID =
+    "294969617102-fuif26sghnbtrpecffne0909a4ders0e.apps.googleusercontent.com";
 
   /**
    * Returns true if running on a native platform (iOS/Android)
@@ -237,6 +243,21 @@ export class AuthenticationService extends ConsentAwareService {
         FirebaseAuthentication.getCurrentUser().then((result) => {
           this._handleAuthStateChange(result.user);
         });
+
+        // On Android, ALSO listen to web auth state changes
+        // This is needed for Chrome Custom Tabs OAuth fallback which uses
+        // signInWithCredential from the JS SDK (not the Capacitor plugin)
+        if (Capacitor.getPlatform() === "android") {
+          this.auth.onAuthStateChanged((user) => {
+            if (user) {
+              console.log(
+                "Web auth state detected user (OAuth fallback):",
+                user.uid
+              );
+              this._handleAuthStateChange(user);
+            }
+          });
+        }
       } else {
         // Use web Firebase Auth listener
         this.auth.onAuthStateChanged(
@@ -462,9 +483,116 @@ export class AuthenticationService extends ConsentAwareService {
         name: error?.name,
         fullError: JSON.stringify(error, null, 2),
       });
+
+      const errorMessage = error?.message?.toLowerCase() || "";
+
+      // Check if user cancelled
+      const isCancellation =
+        errorMessage.includes("cancel") ||
+        errorMessage.includes("user denied") ||
+        errorMessage.includes("popup-closed");
+
+      // Check if this might be a MicroG or credential manager conflict
+      // Common with YouTube ReVanced users who have duplicate Google accounts
+      const isMicroGLikeError =
+        errorMessage.includes("no credentials") ||
+        errorMessage.includes("nocredentialexception") ||
+        errorMessage.includes("credential") ||
+        (errorMessage === "" && error?.code === undefined); // Silent failures often indicate MicroG
+
+      if (
+        !isCancellation &&
+        isMicroGLikeError &&
+        Capacitor.getPlatform() === "android"
+      ) {
+        // Fall back to Chrome Custom Tabs OAuth for MicroG users
+        console.log(
+          "Native Google sign-in failed (likely MicroG), falling back to Chrome Custom Tabs OAuth..."
+        );
+        this._isSigningInWithGoogle = false;
+        return this._signInGoogleCustomTabs();
+      }
+
       throw error;
     } finally {
       this._isSigningInWithGoogle = false;
+    }
+  }
+
+  /**
+   * Sign in with Google using Chrome Custom Tabs (fallback for MicroG users on Android).
+   * Opens a real browser for OAuth, bypassing WebView limitations.
+   */
+  private async _signInGoogleCustomTabs(): Promise<void> {
+    const redirectUri = "https://pkspot.app/oauth/callback";
+    const scope = encodeURIComponent("openid email profile");
+    const responseType = "id_token";
+    const nonce = this._generateNonce();
+
+    // Store nonce for validation (optional, for extra security)
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("google_oauth_nonce", nonce);
+    }
+
+    const authUrl =
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${this.GOOGLE_WEB_CLIENT_ID}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&response_type=${responseType}` +
+      `&scope=${scope}` +
+      `&nonce=${nonce}`;
+
+    console.log("Opening Chrome Custom Tabs for Google OAuth...");
+
+    // Open in Chrome Custom Tabs (real browser, not WebView)
+    await Browser.open({ url: authUrl });
+  }
+
+  /**
+   * Generate a random nonce for OAuth security
+   */
+  private _generateNonce(): string {
+    const array = new Uint8Array(16);
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      crypto.getRandomValues(array);
+    } else {
+      // Fallback for environments without crypto
+      for (let i = 0; i < 16; i++) {
+        array[i] = Math.floor(Math.random() * 256);
+      }
+    }
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+      ""
+    );
+  }
+
+  /**
+   * Handle OAuth callback from Chrome Custom Tabs.
+   * Called by app.component.ts when a deep link to /oauth/callback is received.
+   */
+  public async handleOAuthCallback(idToken: string): Promise<void> {
+    try {
+      console.log("Handling OAuth callback with ID token...");
+
+      const credential = GoogleAuthProvider.credential(idToken);
+      const result = await runInInjectionContext(this._injector, () =>
+        signInWithCredential(this.auth, credential)
+      );
+
+      if (result.user) {
+        console.log("OAuth callback sign-in successful");
+        await this._handleGoogleSignInResult(
+          result.user.uid,
+          result.user.displayName,
+          result.user.emailVerified
+        );
+      }
+    } catch (error: any) {
+      console.error("OAuth callback error:", {
+        message: error?.message,
+        code: error?.code,
+      });
+      throw error;
     }
   }
 

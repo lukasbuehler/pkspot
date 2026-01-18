@@ -65,6 +65,7 @@
     "@capacitor/android": "^8.0.0",
     "@capacitor/angular": "^2.0.3",
     "@capacitor/app": "^8.0.0",
+    "@capacitor/browser": "^8.0.0",
     "@capacitor/core": "latest",
     "@capacitor/filesystem": "^8.0.0",
     "@capacitor/geolocation": "^8.0.0",

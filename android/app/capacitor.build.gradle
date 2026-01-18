@@ -13,6 +13,7 @@ dependencies {
     implementation project(':capacitor-firebase-firestore')
     implementation project(':capacitor-firebase-storage')
     implementation project(':capacitor-app')
+    implementation project(':capacitor-browser')
     implementation project(':capacitor-filesystem')
     implementation project(':capacitor-geolocation')
     implementation project(':capacitor-keyboard')
