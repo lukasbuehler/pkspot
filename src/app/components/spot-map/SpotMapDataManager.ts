@@ -637,11 +637,11 @@ export class SpotMapDataManager {
       let diffData: Partial<SpotSchema> = currentData;
       if (originalSpot && originalSpot instanceof Spot) {
         const originalData = originalSpot.data();
+
         diffData = this._computeDataDiff(
           originalData,
           currentData
         ) as Partial<SpotSchema>;
-        console.debug("Computed diff for update:", diffData);
       }
 
       await this._spotEditsService.createSpotUpdateEdit(

@@ -15,7 +15,8 @@ html {
      On iOS, env() works correctly. We use var() first (for Android), with env() as fallback (for iOS). */
 
   --status-bar-height: 0px;
-  &.platform-android {
+  // Only apply status bar height on Android native - not on iOS or macOS
+  &.native-platform.platform-android:not(.running-on-macos-or-ipad) {
     --status-bar-height: 24px;
   }
 

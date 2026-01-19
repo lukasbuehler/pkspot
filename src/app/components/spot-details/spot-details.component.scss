@@ -233,3 +233,17 @@ div.google-img-container {
     pointer-events: none;
   }
 }
+
+.access-off-limits {
+  color: #ffb4ab !important; // Material Design Error Color
+  mat-icon {
+    color: #ffb4ab !important;
+  }
+}
+
+.access-private {
+  color: #fff28f !important;
+  mat-icon {
+    color: #fff28f !important;
+  }
+}

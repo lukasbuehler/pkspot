@@ -98,42 +98,50 @@
             {{
               (spot()?.rating ||
                 spot()!.importantAmenitiesArray().length > 0) &&
-              spot()?.type() !== "other"
+              spot()?.type()
                 ? "⸱"
                 : null
             }}
-            @if(spot()?.type() && spot()?.type()! !== 'other') {
-            <span
-              class="mat-label-large text-nowrap text-truncate"
+            @if(spot()?.type()) {
+            <div
+              class="d-flex align-items-center"
               [@fadeSlideOnChange]="typeAnimKey()"
+              style="min-width: 0"
             >
-              <!-- <mat-icon class="amenity-icon me-1">{{
-              spotTypesIcons[spot()!.type()]
-            }}</mat-icon
-            > -->
+              <mat-icon class="amenity-icon me-1 flex-shrink-0">{{
+                spotTypesIcons[spot()!.type()]
+              }}</mat-icon>
 
-              {{ spotTypeNames[spot()!.type()] }}</span
-            >}
+              <span class="mat-label-large text-nowrap text-truncate">{{
+                spotTypeNames[spot()!.type()]
+              }}</span>
+            </div>
+            }
             {{
               (spot()?.rating ||
                 spot()!.importantAmenitiesArray().length > 0 ||
-                spot()?.type() !== "other") &&
-              spot()?.access() !== "other"
+                spot()?.type()) &&
+              spot()?.access()
                 ? "⸱"
                 : null
             }}
-            @if(spot()?.access() && spot()?.access()! !== 'other') {
-            <span
-              class="mat-label-large text-nowrap text-truncate"
+            @if(spot()?.access()) {
+            <div
+              class="d-flex align-items-center"
+              [class.access-off-limits]="spot()!.access() === 'off-limits'"
+              [class.access-private]="spot()!.access() === 'private'"
               [@fadeSlideOnChange]="accessAnimKey()"
+              style="min-width: 0"
             >
-              <!-- <mat-icon class="amenity-icon me-1">{{
-              spotAccessIcons[spot()!.access()]
-            }}</mat-icon
-            > -->
+              <mat-icon class="amenity-icon me-1 flex-shrink-0">{{
+                spotAccessIcons[spot()!.access()]
+              }}</mat-icon>
 
-              {{ spotAccessNames[spot()!.access()] }}</span
-            >}
+              <span class="mat-label-large text-nowrap text-truncate">{{
+                spotAccessNames[spot()!.access()]
+              }}</span>
+            </div>
+            }
           </div>
           } @if(spot()?.address()) {
           <span class="text-truncate d-flex align-items-center gap-1">
@@ -158,7 +166,7 @@
       <!-- Icon buttons in header - collapsible when sheet is closed -->
       @if(!isEditing()) {
       <div
-        class="spot-button-row collapsible-header-info"
+        class="spot-button-row collapsible-header-info flex-shrink-0"
         [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
       >
         <!--@if(authenticationService.isSignedIn) {
@@ -172,7 +180,6 @@
         >
           <mat-icon>{{ bookmarked ? "bookmark" : "bookmark_border" }}</mat-icon>
         </button>
-
         }
         <button
           mat-icon-button
@@ -358,7 +365,11 @@
             i18n="@@spot.details.spot_access_chip"
             >Spot Access</span
           >
-          <h4 class="mat-title-medium m-0">
+          <h4
+            class="mat-title-medium m-0"
+            [class.access-off-limits]="spot()!.access() === 'off-limits'"
+            [class.access-private]="spot()!.access() === 'private'"
+          >
             <mat-icon class="me-2">{{
               spotAccessIcons[spot()!.access()]
             }}</mat-icon

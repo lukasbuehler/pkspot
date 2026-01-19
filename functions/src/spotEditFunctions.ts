@@ -142,21 +142,9 @@ export const applySpotEditOnCreate = onDocumentCreated(
           updateData.location_raw = { lat: latitude, lng: longitude };
         }
 
-        // Special handling for media: append instead of replace
+        // For media, we want to replace the existing media with the new media from the update
         if (media && Array.isArray(media)) {
-          const spotSnapshot = await spotRef.get();
-          if (spotSnapshot.exists) {
-            const currentMedia = (spotSnapshot.data() as any)["media"] || [];
-            // Append new media items to existing ones, avoiding duplicates
-            const newMedia = media.filter(
-              (newItem: any) =>
-                !currentMedia.some((item: any) => item.src === newItem.src)
-            );
-            updateData.media = [...currentMedia, ...newMedia];
-          } else {
-            // Spot doesn't exist yet, just set the media
-            updateData.media = media;
-          }
+          updateData.media = media;
         }
 
         // Handle external references: merge instead of replace

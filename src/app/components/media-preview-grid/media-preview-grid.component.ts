@@ -76,7 +76,7 @@ export class MediaPreviewGridComponent implements OnInit {
   }
 
   removeMedia(index: number) {
-    let mediaCopy: AnyMedia[] = JSON.parse(JSON.stringify(this.media()));
+    let mediaCopy: AnyMedia[] = [...this.media()];
     mediaCopy.splice(index, 1);
     this.mediaChanged.emit(mediaCopy);
   }

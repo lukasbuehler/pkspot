@@ -274,6 +274,20 @@ export class AppComponent implements OnInit {
         `platform-${Capacitor.getPlatform()}`
       );
 
+      // Detect if running on macOS (iOS app via "Designed for iPad" / Mac Catalyst)
+      // navigator.platform is deprecated but still works and is useful here
+      const isMacOSOrIPad =
+        navigator.platform?.toLowerCase().includes("mac") ||
+        navigator.userAgent?.toLowerCase().includes("macintosh") ||
+        navigator.userAgent?.toLowerCase().includes("ipad");
+      if (isMacOSOrIPad) {
+        document.documentElement.classList.add("running-on-macos-or-ipad");
+      }
+
+      console.log(
+        `[Platform] Native: ${Capacitor.getPlatform()}, isMacOSOrIPad: ${isMacOSOrIPad}`
+      );
+
       // Set status bar style to use light (white) icons on Android
       // Style.Dark = light/white icons (for dark backgrounds)
       // Style.Light = dark/black icons (for light backgrounds)
