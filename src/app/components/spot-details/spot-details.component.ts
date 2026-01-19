@@ -1113,6 +1113,7 @@ export class SpotDetailsComponent
       const ref = this.dialog.open(m.MediaUploadDialogComponent, {
         data: {
           spotId: spot.id,
+          currentMedia: spot.data().media,
         },
         width: "640px",
       });

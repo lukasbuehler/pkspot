@@ -40,4 +40,5 @@ export interface SpotEditSchema {
   user: UserReferenceSchema;
   data: SpotEditDataSchema;
   prevData?: SpotEditDataSchema;
+  modification_type?: "APPEND" | "OVERWRITE";
 }

@@ -27,6 +27,14 @@ import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
 import { getImportantAmenities } from "../../../db/models/Amenities";
 import { isoCountryCodeToFlagEmoji } from "../../../scripts/Helpers";
+import {
+  SpotTypes,
+  SpotAccess,
+  SpotTypesIcons,
+  SpotAccessIcons,
+  parseSpotType,
+  parseSpotAccess,
+} from "../../../db/schemas/SpotTypeAndAccess";
 
 import { MatTooltipModule } from "@angular/material/tooltip";
 
@@ -47,6 +55,12 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 })
 export class SpotPreviewCardComponent implements OnChanges {
   public elementRef = inject(ElementRef);
+
+  // Spot Types and Access
+  SpotTypes = SpotTypes;
+  SpotAccess = SpotAccess;
+  spotTypesIcons = SpotTypesIcons;
+  spotAccessIcons = SpotAccessIcons;
 
   hasBorder = input<boolean>(true);
   imgSize = input<200 | 400 | 800>(200);
@@ -210,6 +224,28 @@ export class SpotPreviewCardComponent implements OnChanges {
       }
     }
     return loc;
+  });
+
+  spotType = computed(() => {
+    const spot = this.spotData();
+    if (!spot) return undefined;
+    if (spot instanceof Spot || spot instanceof LocalSpot) {
+      return spot.type();
+    } else {
+      // SpotPreviewData
+      return parseSpotType(spot.type);
+    }
+  });
+
+  spotAccess = computed(() => {
+    const spot = this.spotData();
+    if (!spot) return undefined;
+    if (spot instanceof Spot || spot instanceof LocalSpot) {
+      return spot.access();
+    } else {
+      // SpotPreviewData
+      return parseSpotAccess(spot.access);
+    }
   });
 
   bookmarked = false;

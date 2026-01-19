@@ -43,6 +43,22 @@
               >{{ amenity.icon }}</mat-icon
             >
             }
+            <!-- Spot Type -->
+            @if(spotType() && spotType() !== SpotTypes.Other) {
+            <mat-icon class="amenity-icon">{{
+              spotTypesIcons[spotType()!]
+            }}</mat-icon>
+            }
+
+            <!-- Spot Access -->
+            @if(spotAccess() && spotAccess() !== SpotAccess.Other) {
+            <mat-icon
+              class="amenity-icon"
+              [class.access-off-limits]="spotAccess() === SpotAccess.OffLimits"
+              [class.access-private]="spotAccess() === SpotAccess.Private"
+              >{{ spotAccessIcons[spotAccess()!] }}</mat-icon
+            >
+            }
           </div>
         </div>
         @if(displayLocality() || countryCode()) {

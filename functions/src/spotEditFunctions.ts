@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { getStorage } from "firebase-admin/storage";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 
 interface SpotEditSchema {
@@ -13,6 +14,7 @@ interface SpotEditSchema {
   };
   data: any;
   prevData?: any;
+  modification_type?: "APPEND" | "OVERWRITE";
 }
 
 /**
@@ -142,9 +144,74 @@ export const applySpotEditOnCreate = onDocumentCreated(
           updateData.location_raw = { lat: latitude, lng: longitude };
         }
 
-        // For media, we want to replace the existing media with the new media from the update
+        // For media, we handle two cases based on modification_type:
+        // 1. OVERWRITE: Completely replace the media list (used by new clients supporting deletions)
+        // 2. APPEND (default): Add new items only (used by legacy clients)
         if (media && Array.isArray(media)) {
-          updateData.media = media;
+          if (editData.modification_type === "OVERWRITE") {
+            // Check for deleted media and remove from storage
+            const spotSnapshot = await spotRef.get();
+            if (spotSnapshot.exists) {
+              const currentMedia = (spotSnapshot.data() as any)["media"] || [];
+              const newMediaSrcs = new Set(media.map((m: any) => m.src));
+
+              const removedMedia = currentMedia.filter(
+                (m: any) => !newMediaSrcs.has(m.src) && m.isInStorage
+              );
+
+              if (removedMedia.length > 0) {
+                console.log(
+                  `Found ${removedMedia.length} removed media items. Attempting deletion.`
+                );
+                const bucket = getStorage().bucket();
+
+                for (const item of removedMedia) {
+                  try {
+                    // Extract path from URL.
+                    // Format: https://firebasestorage.googleapis.com/v0/b/[bucket]/o/[path]?alt=media...
+                    // Or gs://[bucket]/[path]
+
+                    let path = "";
+                    if (item.src.startsWith("gs://")) {
+                      path = item.src.split(bucket.name + "/")[1];
+                    } else if (item.src.includes("/o/")) {
+                      const urlObj = new URL(item.src);
+                      const pathWithToken = urlObj.pathname.split("/o/")[1];
+                      path = decodeURIComponent(pathWithToken);
+                    }
+
+                    if (path) {
+                      console.log(`Deleting orphaned file: ${path}`);
+                      await bucket.file(path).delete();
+                    }
+                  } catch (e) {
+                    console.error(
+                      `Failed to delete orphaned media ${item.src}:`,
+                      e
+                    );
+                    // Continue execution, do not fail the spot update
+                  }
+                }
+              }
+            }
+
+            updateData.media = media;
+          } else {
+            // Legacy/Default behavior: Append only
+            const spotSnapshot = await spotRef.get();
+            if (spotSnapshot.exists) {
+              const currentMedia = (spotSnapshot.data() as any)["media"] || [];
+              // Append new media items to existing ones, avoiding duplicates
+              const newMedia = media.filter(
+                (newItem: any) =>
+                  !currentMedia.some((item: any) => item.src === newItem.src)
+              );
+              updateData.media = [...currentMedia, ...newMedia];
+            } else {
+              // Spot doesn't exist yet, just set the media
+              updateData.media = media;
+            }
+          }
         }
 
         // Handle external references: merge instead of replace

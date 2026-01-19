@@ -231,6 +231,7 @@ export class SpotEditsService extends ConsentAwareService {
       approved: false,
       user: userReference,
       data: { media: mediaSchema },
+      modification_type: "OVERWRITE" as const,
     };
     return this.addSpotEdit(spotId, editData);
   }
@@ -393,6 +394,7 @@ export class SpotEditsService extends ConsentAwareService {
       user: userReference,
       data: spotUpdateData,
       prevData: prevData,
+      modification_type: "OVERWRITE" as const,
     };
     return this.addSpotEdit(spotId, editData);
   }

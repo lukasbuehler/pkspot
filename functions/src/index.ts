@@ -66,3 +66,5 @@ export {
   cleanupOnUserDelete,
   assignSignupNumberOnCreate,
 } from "./authFunctions";
+
+export { cleanupAllOrphanedMedia } from "./mediaCleanupFunctions";

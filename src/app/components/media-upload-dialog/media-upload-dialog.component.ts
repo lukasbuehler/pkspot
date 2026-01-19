@@ -14,6 +14,7 @@ import { SpotId } from "../../../db/schemas/SpotSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { createUserReference } from "../../../scripts/Helpers";
 
@@ -22,6 +23,7 @@ export interface MediaUploadDialogData {
   storageFolder?: StorageBucket;
   allowedMimeTypes?: string[];
   multipleAllowed?: boolean;
+  currentMedia?: MediaSchema[];
 }
 
 @Component({
@@ -33,12 +35,14 @@ export interface MediaUploadDialogData {
     MatButtonModule,
     MatIconModule,
     MediaUpload,
+    MatSnackBarModule,
   ],
   templateUrl: "./media-upload-dialog.component.html",
 })
 export class MediaUploadDialogComponent {
   private _spotEditsService = inject(SpotEditsService);
   private _auth = inject(AuthenticationService);
+  private _snackBar = inject(MatSnackBar);
 
   storageFolder: StorageBucket;
   allowedMimeTypes: string[];
@@ -74,14 +78,27 @@ export class MediaUploadDialogComponent {
 
     const userReference = createUserReference(this._auth.user.data!);
 
+    const currentMedia = this.data.currentMedia || [];
+    const newMediaList = [...currentMedia, mediaItem];
+
     try {
-      await this._spotEditsService.appendSpotMediaEdit(
+      await this._spotEditsService.createSpotUpdateEdit(
         this.data.spotId,
-        mediaItem,
+        { media: newMediaList },
         userReference
       );
+      this._snackBar.open("Media added successfully!", "Dismiss", {
+        duration: 3000,
+        horizontalPosition: "center",
+        verticalPosition: "bottom",
+      });
+      // Update the local currentMedia so subsequent adds include this one
+      this.data.currentMedia = newMediaList;
     } catch (e) {
       console.error("Failed to append media to spot:", e);
+      this._snackBar.open("Failed to add media. Please try again.", "Dismiss", {
+        duration: 3000,
+      });
     }
   }
 
