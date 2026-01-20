@@ -92,6 +92,7 @@ export interface TilesObject {
   tiles: { x: number; y: number }[];
   ne: { x: number; y: number };
   sw: { x: number; y: number };
+  center?: google.maps.LatLngLiteral;
 }
 
 @Component({
@@ -279,7 +280,7 @@ export class GoogleMap2dComponent
 
   getHighlightZIndex(spot: SpotPreviewData): number {
     const rating = spot.rating ?? 0;
-    return 1000 + Math.round(rating * 10);
+    return 50000 + Math.round(rating * 10);
   }
 
   resetMapOrientation() {
@@ -388,6 +389,7 @@ export class GoogleMap2dComponent
       tiles: [],
       ne: neTile,
       sw: swTile,
+      center: boundsToRender.getCenter().toJSON(),
     };
 
     // Check if we cover effectively the whole world horizontally

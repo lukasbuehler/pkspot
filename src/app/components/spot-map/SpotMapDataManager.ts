@@ -31,6 +31,8 @@ import { SpotFilterMode, SPOT_FILTER_CONFIGS } from "./spot-filter-config";
 // Re-export SpotFilterMode for backward compatibility with existing imports
 export { SpotFilterMode } from "./spot-filter-config";
 
+import { SearchService } from "../../services/search.service";
+
 /**
  * This interface is used to reference a spot in the loaded spots array.
  */
@@ -51,6 +53,7 @@ export class SpotMapDataManager {
   private _osmDataService: OsmDataService;
   private _consentService: ConsentService;
   private _authService: AuthenticationService;
+  private _searchService: SearchService;
 
   private _spotClusterTiles: Map<MapTileKey, SpotClusterTileSchema>;
   private _spotClusterService: SpotClusterService | null;
@@ -61,10 +64,6 @@ export class SpotMapDataManager {
 
   /**
    * Cache for SpotPreviewData objects to maintain reference stability.
-   *
-   * This prevents unnecessary object recreation when transitioning between zoom levels,
-   * which improves performance and ensures Angular's change detection works efficiently
-   * with track-by-id in @for loops.
    */
   private _spotPreviewCache: Map<SpotId, SpotPreviewData> = new Map();
 
@@ -73,26 +72,11 @@ export class SpotMapDataManager {
   private _visibleAmenityMarkers = signal<MarkerSchema[]>([]);
   private _visibleHighlightedSpots = signal<SpotPreviewData[]>([]);
 
-  /**
-   * Manually set highlighted spots that persist across viewport changes.
-   * When filter mode is active, these are shown instead of the automatic highlights.
-   */
   private _manualHighlightedSpots = signal<SpotPreviewData[]>([]);
-
-  /**
-   * Cache for filtered spots to maintain stable object references and prevent re-rendering.
-   * Keyed by spot ID for efficient lookup and merging.
-   */
   private _filteredSpotsCache: Map<SpotId, SpotPreviewData> = new Map();
 
   // Single-select filter mode for showing special filter pins on the map.
   public spotFilterMode = signal<SpotFilterMode>(SpotFilterMode.None);
-
-  /**
-   * Spot filter modes for showing single-select filter pins on the map.
-   * When set to other than `None` the highlighted pins are replaced by the
-   * filtered pins according to the selected mode.
-   */
 
   public visibleSpots = this._visibleSpots.asReadonly();
   public visibleDots = this._visibleDots.asReadonly();
@@ -102,50 +86,41 @@ export class SpotMapDataManager {
   private _lastVisibleTiles = signal<TilesObject | null>(null);
 
   readonly spotZoom = 16;
-  readonly amenityMarkerZoom = 14; // Load amenity markers at zoom 14 for efficient caching
-  readonly amenityMarkerDisplayZoom = 16; // Display amenity markers at zoom 16+
+  readonly amenityMarkerZoom = 14;
+  readonly amenityMarkerDisplayZoom = 16;
   readonly clusterZooms = [2, 4, 6, 8, 10, 12];
   readonly divisor = 2;
   readonly defaultRating = 1.5;
 
-  /**
-   * Debounce timer for cluster viewport changes (zoom 10-16).
-   * Prevents rapid reclustering during smooth pan/zoom gestures.
-   */
   private _clusterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly CLUSTER_DEBOUNCE_MS = 100;
+
+  private currentSearchRequestId: ReturnType<typeof setTimeout> | undefined;
+
+  private _lastRenderedClusterKeys: Set<string> | null = null;
 
   constructor(
     readonly locale: LocaleCode,
     injector: Injector,
     readonly debugMode: boolean = false
   ) {
-    // Resolve dependencies via the provided Injector to avoid using inject() outside DI context
     this._spotsService = injector.get(SpotsService);
     this._spotEditsService = injector.get(SpotEditsService);
     this._osmDataService = injector.get(OsmDataService);
     this._consentService = injector.get(ConsentService);
     this._authService = injector.get(AuthenticationService);
+    this._searchService = injector.get(SearchService);
+
     this._spotClusterTiles = new Map<MapTileKey, SpotClusterTileSchema>();
-    // this._spotClusterKeysByZoom = new Map<number, Map<string, MapTileKey>>();
     this._spots = new Map<MapTileKey, Spot[]>();
     this._markers = new Map<MapTileKey, MarkerSchema[]>();
     this._tilesLoading = new Set<MapTileKey>();
-    // Optional cluster service (Typesense + Supercluster) resolved lazily
+
     try {
       this._spotClusterService = injector.get(SpotClusterService);
     } catch (e) {
       this._spotClusterService = null as any;
     }
-
-    // TODO is this needed?
-    // Listen for consent changes and reload data when granted
-    // this._consentService.consentGranted$.subscribe((hasConsent) => {
-    //   if (hasConsent && this._lastVisibleTiles()) {
-    //     console.debug('Consent granted - reloading map data');
-    //     this.setVisibleTiles(this._lastVisibleTiles()!);
-    //   }
-    // });
   }
 
   // public functions
@@ -230,6 +205,7 @@ export class SpotMapDataManager {
   }
 
   refresh() {
+    this._lastRenderedClusterKeys = null;
     const tiles = this._lastVisibleTiles();
     if (tiles) {
       this.setVisibleTiles(tiles);
@@ -244,289 +220,37 @@ export class SpotMapDataManager {
 
     const zoom = visibleTilesObj.zoom;
 
-    // If we have the SpotClusterService available and the zoom is >= 10,
-    // prefer Typesense + client-side Supercluster clustering for viewport-driven loading.
+    // If we have the SpotClusterService available and the zoom is < 16,
+    // we still want to fetch "Highlights" via Typesense to enrich the map
+    // because clusters don't show enough detail.
+    // However, for CLUSTERS themselves, we revert to the tile-based loading (handled below)
+    // to ensure smooth transitions and caching.
+    // If we have the SpotClusterService available and the zoom is < 16,
+    // we still want to fetch "Highlights" via Typesense to enrich the map
+    // because clusters don't show enough detail.
+    // However, for CLUSTERS themselves, we revert to the tile-based loading (handled below)
+    // to ensure smooth transitions and caching.
     if (this._spotClusterService && zoom < 16) {
-      const tileZoom = 12; // base tile zoom for fetching/caching
-
-      let north: number, south: number, east: number, west: number;
-
-      // Prefer the exact viewport if available and matching the current operation
-      // This prevents loss of information when converting to/from tiles (e.g. global wrap-around)
-      if (this._currentViewport) {
-        north = this._currentViewport.bbox.north;
-        south = this._currentViewport.bbox.south;
-        east = this._currentViewport.bbox.east;
-        west = this._currentViewport.bbox.west;
-      } else {
-        const neBounds = MapHelpers.getBoundsForTile(
-          visibleTilesObj.zoom,
-          visibleTilesObj.ne.x,
-          visibleTilesObj.ne.y
-        );
-        const swBounds = MapHelpers.getBoundsForTile(
-          visibleTilesObj.zoom,
-          visibleTilesObj.sw.x,
-          visibleTilesObj.sw.y
-        );
-
-        north = neBounds.north;
-        east = neBounds.east;
-        south = swBounds.south;
-        west = swBounds.west;
-      }
-
-      // Compute tile coordinates at the tileZoom that cover the current viewport
-      const neTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
-        { lat: north, lng: east },
-        tileZoom
-      );
-      const swTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
-        { lat: south, lng: west },
-        tileZoom
-      );
-
-      const xRange = this._enumerateXRange(swTile.x, neTile.x, tileZoom);
-      const yMin = Math.min(swTile.y, neTile.y);
-      const yMax = Math.max(swTile.y, neTile.y);
-
-      // Clear any pending debounce timer
       if (this._clusterDebounceTimer) {
         clearTimeout(this._clusterDebounceTimer);
       }
 
-      // Debounce the cluster request to prevent rapid reclustering during smooth gestures.
-      // The SpotClusterService already caches the index, but debouncing further reduces
-      // unnecessary work during continuous pan/zoom.
       this._clusterDebounceTimer = setTimeout(() => {
         this._clusterDebounceTimer = null;
 
-        // Use the new service method that handles fetching and clustering
-        this._spotClusterService!.getClustersForViewport(
-          { zoom, bbox: { north, south, west, east } },
-          zoom
-        )
-          .then(({ clusters, points }) => {
-            const dots: SpotClusterDotSchema[] = clusters.map((c: any) => {
-              const [lng, lat] = c.geometry?.coordinates || [0, 0];
-              const props = c.properties || {};
+        // Fetch highlights using Typesense for better performance than client-side filtering
+        // Only if "Highlights" (No Filter) is active
+        const activeFilter = this.spotFilterMode
+          ? this.spotFilterMode()
+          : SpotFilterMode.None;
 
-              if (props.cluster === true) {
-                return {
-                  location: {
-                    latitude: Number(lat),
-                    longitude: Number(lng),
-                  } as any,
-                  weight: Number(props.point_count) || 1,
-                  spot_id: null,
-                  cluster_id: props.cluster_id,
-                } as any;
-              }
-
-              return {
-                location: {
-                  latitude: Number(lat),
-                  longitude: Number(lng),
-                } as any,
-                weight: Number(props.weight) || 1,
-                spot_id: props.id ?? null,
-              } as SpotClusterDotSchema;
-            });
-
-            this._visibleDots.set(dots);
-
-            // Top-N previews from unique points
-            try {
-              const topN = 4;
-              let filteredPoints = points.slice();
-
-              // Filter points to precise viewport if available
-              // This prevents highlight markers from appearing outside the visible map area
-              if (this._currentViewport) {
-                const { north, south, east, west } = this._currentViewport.bbox;
-
-                // Helper to get lat/lng from a point (duplicate logic from map function below, could be extracted)
-                const getLatLng = (p: any) => {
-                  let lat = 0;
-                  let lng = 0;
-                  if (Array.isArray(p.location) && p.location.length >= 2) {
-                    lat = Number(p.location[0]);
-                    lng = Number(p.location[1]);
-                  } else if (p.lat && p.lng) {
-                    lat = Number(p.lat);
-                    lng = Number(p.lng);
-                  } else if (p.location && typeof p.location === "object") {
-                    lat = Number(p.location.latitude ?? p.location.lat ?? 0);
-                    lng = Number(p.location.longitude ?? p.location.lng ?? 0);
-                  }
-                  return { lat, lng };
-                };
-
-                filteredPoints = filteredPoints.filter((p) => {
-                  const { lat, lng } = getLatLng(p);
-                  // Check lat bounds
-                  if (lat > north || lat < south) return false;
-
-                  // Check lng bounds regarding wrap around
-                  if (west > east) {
-                    // Date line crossing: Point must be either to the right of West OR to the left of East
-                    return lng >= west || lng <= east;
-                  } else {
-                    // Standard case
-                    return lng >= west && lng <= east;
-                  }
-                });
-              }
-
-              const sorted = filteredPoints
-                .filter((p: any) => p && (p.location || (p.lat && p.lng)))
-                .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0))
-                .slice(0, topN);
-
-              const previews: SpotPreviewData[] = sorted.map((p: any) => {
-                let lat = null as number | null;
-                let lng = null as number | null;
-                if (Array.isArray(p.location) && p.location.length >= 2) {
-                  lat = Number(p.location[0]);
-                  lng = Number(p.location[1]);
-                } else if (p.lat && p.lng) {
-                  lat = Number(p.lat);
-                  lng = Number(p.lng);
-                } else if (p.location && typeof p.location === "object") {
-                  lat = Number(p.location.latitude ?? p.location.lat ?? 0);
-                  lng = Number(p.location.longitude ?? p.location.lng ?? 0);
-                }
-
-                const nameField = p.name ?? p.title ?? p.display_name ?? "";
-                let displayName: string = "Unnamed Spot";
-
-                if (typeof nameField === "string") {
-                  displayName = nameField;
-                } else if (
-                  typeof nameField === "object" &&
-                  nameField !== null &&
-                  Object.keys(nameField).length > 0
-                ) {
-                  const availableLocales = Object.keys(nameField) as any[];
-                  const bestLocale = getBestLocale(
-                    availableLocales,
-                    this.locale as any
-                  );
-                  const val = (nameField as any)[bestLocale];
-
-                  if (typeof val === "string") {
-                    displayName = val;
-                  } else if (val && typeof val === "object" && "text" in val) {
-                    displayName = val.text;
-                  }
-                }
-
-                const imageSrc = p.thumbnail_url ?? p.image_src ?? "";
-
-                let localityString = "";
-                if (p.address) {
-                  if (p.address.sublocality) {
-                    localityString += p.address.sublocality + ", ";
-                  }
-                  if (p.address.locality) {
-                    localityString += p.address.locality + ", ";
-                  }
-                  if (p.address.country && p.address.country.code) {
-                    localityString += p.address.country.code.toUpperCase();
-                  }
-                }
-                // removing trailing comma and space if present (though logic above handles it mostly by appending,
-                // but let's be safe or just leave trailing comma?
-                // Spot.ts logic: "sublocality, locality, GB".
-                // If country is missing: "sublocality, locality, " -> might want to trim.
-                // Actually Spot.ts result logic:
-                /*
-                  if (address?.sublocality) { str += address.sublocality + ", "; }
-                  if (address?.locality) { str += address.locality + ", "; }
-                  if (address?.country) { str += address.country.code.toUpperCase(); }
-              */
-                // If proper formatted address is desired, we might want to trim trailing separateors if country is missing.
-                // Let's copy Spot.ts logic exactly first.
-
-                // Reconstruct AmenitiesMap from separate arrays if needed
-                let amenities = p.amenities;
-                if (
-                  !amenities &&
-                  ((p.amenities_true && Array.isArray(p.amenities_true)) ||
-                    (p.amenities_false && Array.isArray(p.amenities_false)))
-                ) {
-                  amenities = {};
-                  if (p.amenities_true) {
-                    p.amenities_true.forEach((key: string) => {
-                      amenities[key] = true;
-                    });
-                  }
-                  if (p.amenities_false) {
-                    p.amenities_false.forEach((key: string) => {
-                      amenities[key] = false;
-                    });
-                  }
-                }
-
-                // Robust isIconic check
-                let isIconic = false;
-                const rawIsIconic = p.isIconic ?? p.is_iconic;
-                if (typeof rawIsIconic === "boolean") {
-                  isIconic = rawIsIconic;
-                } else if (typeof rawIsIconic === "string") {
-                  isIconic = rawIsIconic.toLowerCase() === "true";
-                } else if (typeof rawIsIconic === "number") {
-                  isIconic = rawIsIconic === 1;
-                }
-
-                const preview: SpotPreviewData = {
-                  id: (p.id as any) ?? (p.document?.id as any) ?? "",
-                  name: displayName,
-                  slug: p.slug ?? undefined,
-                  location:
-                    lat !== null && lng !== null
-                      ? new GeoPoint(lat, lng)
-                      : undefined,
-                  type: p.type ?? undefined,
-                  access: p.access ?? undefined,
-                  locality: localityString,
-                  imageSrc: imageSrc || "",
-                  isIconic: isIconic,
-                  rating: p.rating ?? undefined,
-                  amenities: amenities ?? undefined,
-                } as SpotPreviewData;
-
-                return preview;
-              });
-
-              // Only set highlighted spots if no filter is active.
-              // When filter mode is on, preserve the manual highlights set by setManualHighlightedSpots().
-              const activeFilter = this.spotFilterMode
-                ? this.spotFilterMode()
-                : SpotFilterMode.None;
-              if (activeFilter === SpotFilterMode.None) {
-                this._visibleHighlightedSpots.set(previews);
-              }
-              // When filter is active, _visibleHighlightedSpots retains the manual highlights
-            } catch (err) {
-              console.error(
-                "Error building previews from Typesense points:",
-                err
-              );
-              // Only clear highlights if no filter is active
-              if (this.spotFilterMode() === SpotFilterMode.None) {
-                this._visibleHighlightedSpots.set([]);
-              }
-            }
-
-            // For this flow we don't populate full Spot objects via tiles here
-            this._visibleSpots.set([]);
-          })
-          .catch((err) => console.error("Cluster load error (tiles):", err));
+        if (activeFilter === SpotFilterMode.None) {
+          // Use the visible tiles to determine the search area
+          // This matches the logic of higher zoom levels and ensures we don't
+          // over-query or query on every pixel shift.
+          this._loadHighlightsForTiles(visibleTilesObj);
+        }
       }, this.CLUSTER_DEBOUNCE_MS);
-
-      // We don't continue with tile-based loading when using Typesense clusters
-      return;
     }
 
     // Load amenity markers at zoom >= 14 (amenityMarkerZoom) for efficient caching
@@ -549,13 +273,19 @@ export class SpotMapDataManager {
       this._loadSpotsForTiles(spotTilesToLoad16);
     } else {
       // show spot clusters
-      this._showCachedSpotClustersForTiles(visibleTilesObj);
+      // Also used to gate the loading logic: if the visible keys haven't changed (returns false),
+      // we don't need to check for missing tiles, since the set of needed tiles hasn't changed.
+      const didRender = this._showCachedSpotClustersForTiles(visibleTilesObj);
 
-      // now determine missing information and load spot clusters for that
-      const spotClusterTilesToLoad: Set<MapTileKey> =
-        this._getSpotClusterTilesToLoad(visibleTilesObj);
+      if (didRender) {
+        // now determine missing information and load spot clusters for that
+        const spotClusterTilesToLoad: Set<MapTileKey> =
+          this._getSpotClusterTilesToLoad(visibleTilesObj);
 
-      this._loadSpotClustersForTiles(spotClusterTilesToLoad);
+        if (spotClusterTilesToLoad.size > 0) {
+          this._loadSpotClustersForTiles(spotClusterTilesToLoad);
+        }
+      }
     }
   }
 
@@ -813,54 +543,6 @@ export class SpotMapDataManager {
    * @param spot - The full Spot object to create/retrieve preview data for
    * @returns Cached or newly created SpotPreviewData
    */
-  private _getOrCreateSpotPreview(spot: Spot): SpotPreviewData {
-    const existingPreview = this._spotPreviewCache.get(spot.id);
-
-    // Create preview data structure
-    const previewData: SpotPreviewData = {
-      name: spot.name(),
-      id: spot.id,
-      slug: spot.slug ?? undefined,
-      location: spot.data().location,
-      type: spot.type(),
-      access: spot.access(),
-      locality: spot.localityString(),
-      imageSrc: spot.previewImageSrc(),
-      isIconic: spot.isIconic,
-      rating: spot.rating ?? undefined,
-      amenities: spot.amenities(),
-    };
-
-    // If we have an existing cached version, check if it needs updating
-    if (existingPreview) {
-      // Check if any relevant properties have changed
-      let locationChanged = false;
-      if (existingPreview.location && previewData.location) {
-        locationChanged =
-          existingPreview.location.latitude !== previewData.location.latitude ||
-          existingPreview.location.longitude !== previewData.location.longitude;
-      } else if (!!existingPreview.location !== !!previewData.location) {
-        locationChanged = true;
-      }
-
-      const hasChanged =
-        existingPreview.name !== previewData.name ||
-        existingPreview.rating !== previewData.rating ||
-        existingPreview.imageSrc !== previewData.imageSrc ||
-        existingPreview.locality !== previewData.locality ||
-        locationChanged ||
-        JSON.stringify(existingPreview.amenities) !==
-          JSON.stringify(previewData.amenities);
-
-      if (!hasChanged) {
-        return existingPreview; // Return cached version
-      }
-    }
-
-    // Cache and return the new preview data
-    this._spotPreviewCache.set(spot.id, previewData);
-    return previewData;
-  }
 
   private _spotMatchesFilter(spot: Spot, mode: SpotFilterMode): boolean {
     const config = SPOT_FILTER_CONFIGS.get(mode);
@@ -916,10 +598,56 @@ export class SpotMapDataManager {
 
     // Extract highlighted spots (rated or iconic) at zoom 16+
     // Build highlighted or filtered spots depending on active filter mode
-    // Use cache to maintain object reference stability for Angular's change detection
     const activeFilter = this.spotFilterMode
       ? this.spotFilterMode()
       : SpotFilterMode.None;
+
+    if (activeFilter !== SpotFilterMode.None) {
+      if (this.currentSearchRequestId) {
+        clearTimeout(this.currentSearchRequestId);
+      }
+
+      this.currentSearchRequestId = setTimeout(() => {
+        // ... search logic ...
+        // Ensure we search for "Everything" or just "Spots" based on filter
+        // If Filter is None, use a default "Top Rated" search to get highlights?
+
+        let promisedResult;
+        // Use _currentViewport which is stored in the class
+        const visibleViewport = this._currentViewport;
+        if (!visibleViewport) {
+          console.warn("No visible viewport to search within.");
+          return;
+        }
+
+        const bounds = new google.maps.LatLngBounds(
+          { lat: visibleViewport.bbox.south, lng: visibleViewport.bbox.west },
+          { lat: visibleViewport.bbox.north, lng: visibleViewport.bbox.east }
+        );
+
+        // Pass the filter mode correctly
+        promisedResult = this._searchService.searchSpotsInBoundsWithFilter(
+          bounds,
+          activeFilter,
+          20
+        );
+
+        promisedResult
+          .then((searchResult) => {
+            // Use SearchService to map hits to previews
+            const searchHighlights = searchResult.hits.map((hit) =>
+              this._searchService.getSpotPreviewFromHit(hit)
+            );
+            this._visibleHighlightedSpots.set(searchHighlights);
+          })
+          .catch((err) => {
+            console.error("Search for highlights failed:", err);
+          });
+
+        this.currentSearchRequestId = undefined;
+      }, 300); // Debounce search requests
+    }
+
     let highlightedSpots: SpotPreviewData[] = [];
 
     if (activeFilter === SpotFilterMode.None) {
@@ -950,23 +678,34 @@ export class SpotMapDataManager {
     if (activeFilter === SpotFilterMode.None) {
       this._visibleHighlightedSpots.set(highlightedSpots);
       this._visibleSpots.set(spots);
-    } else {
-      // In filter mode, highlighted spots are set manually (e.g. by search results)
-      // so we don't overwrite them with cached data.
-      // We also hide regular spots.
-      this._visibleSpots.set(spots); // Keep spots for circles/polygons
     }
 
     this._visibleAmenityMarkers.set(markers);
   }
 
-  private _showCachedSpotClustersForTiles(tiles: TilesObject) {
+  /**
+   * Helper to map a Spot object to SpotPreviewData, using cache to maintain references.
+   */
+  private _getOrCreateSpotPreview(spot: Spot): SpotPreviewData {
+    if (this._spotPreviewCache.has(spot.id)) {
+      return this._spotPreviewCache.get(spot.id)!;
+    }
+
+    const preview = spot.makePreviewData();
+    this._spotPreviewCache.set(spot.id, preview);
+    return preview;
+  }
+
+  private _showCachedSpotClustersForTiles(
+    tiles: TilesObject,
+    forceRender: boolean = false
+  ): boolean {
     // assume the zoom is smaller than 16
     if (tiles.zoom > this.spotZoom) {
       console.error(
         "the zoom is larger than 16, this function should not be called"
       );
-      return;
+      return false;
     }
 
     // Get the tiles object for the cluster zoom. Choose the closest cluster zoom
@@ -992,6 +731,22 @@ export class SpotMapDataManager {
       tilesZ
     );
 
+    // Optimize: Check if the set of tiles to render is effectively the same as last time
+    // This prevents re-calculating and re-emitting signals during smooth zooming
+    // when the effective cluster tiles haven't changed.
+    const currentKeys = new Set<string>();
+    tilesZObj.tiles.forEach((t) => {
+      currentKeys.add(getClusterTileKey(tilesZObj.zoom, t.x, t.y));
+    });
+
+    if (
+      !forceRender &&
+      this._areKeySetsEqual(this._lastRenderedClusterKeys, currentKeys)
+    ) {
+      return false;
+    }
+    this._lastRenderedClusterKeys = currentKeys;
+
     // Collect spot clusters for visible tiles at cluster zoom level
     const dots: SpotClusterDotSchema[] = [];
     const spots: SpotPreviewData[] = [];
@@ -1002,7 +757,7 @@ export class SpotMapDataManager {
       if (spotCluster) {
         dots.push(...spotCluster.dots);
         // Use cache to reuse existing preview objects when available
-        spotCluster.spots.forEach((spotPreview) => {
+        spotCluster.spots?.forEach((spotPreview) => {
           const cached = this._spotPreviewCache.get(spotPreview.id);
           if (cached) {
             spots.push(cached);
@@ -1017,8 +772,9 @@ export class SpotMapDataManager {
     });
 
     // When none of the requested tiles are available yet, keep the previous state
+    // But return TRUE to signal that we processed a change and the caller should check for missing loads.
     if (dots.length === 0 && missingTileKeys.length > 0) {
-      return;
+      return true;
     }
 
     // sort the spots by rating, and if they have media
@@ -1047,10 +803,25 @@ export class SpotMapDataManager {
 
     this._visibleSpots.set([]);
     this._visibleDots.set(dots);
+    // Disable legacy highlight setting from clusters to avoid conflict with Typesense highlights
     // Only set highlights if no filter is active (preserve filtered results)
-    if (this.spotFilterMode() === SpotFilterMode.None) {
-      this._visibleHighlightedSpots.set(spots);
+    // if (this.spotFilterMode() === SpotFilterMode.None) {
+    //   this._visibleHighlightedSpots.set(spots);
+    // }
+
+    return true;
+  }
+
+  private _areKeySetsEqual(
+    setA: Set<string> | null,
+    setB: Set<string>
+  ): boolean {
+    if (!setA) return false;
+    if (setA.size !== setB.size) return false;
+    for (const key of setA) {
+      if (!setB.has(key)) return false;
     }
+    return true;
   }
 
   private _loadSpotsForTiles(tilesToLoad: Set<MapTileKey>) {
@@ -1334,11 +1105,12 @@ export class SpotMapDataManager {
   }
 
   private _loadSpotClustersForTiles(tilesToLoad: Set<MapTileKey>) {
+    if (tilesToLoad.size === 0) return;
+
     console.log(
       "[SpotMapDataManager] _loadSpotClustersForTiles loading:",
       tilesToLoad.size
     );
-    if (tilesToLoad.size === 0) return;
 
     // Only load spot clusters if consent is granted
     if (!this._consentService.hasConsent()) {
@@ -1357,6 +1129,254 @@ export class SpotMapDataManager {
       .catch((err) => {
         console.error("[SpotMapDataManager] Cluster Load Error:", err);
         tilesToLoad.forEach((key) => this._tilesLoading.delete(key));
+      });
+  }
+
+  private _loadHighlightsForTiles(visibleTilesObj: TilesObject) {
+    // Calculate bounds from tilesObj
+    const neBounds = MapHelpers.getBoundsForTile(
+      visibleTilesObj.zoom,
+      visibleTilesObj.ne.x,
+      visibleTilesObj.ne.y
+    );
+    const swBounds = MapHelpers.getBoundsForTile(
+      visibleTilesObj.zoom,
+      visibleTilesObj.sw.x,
+      visibleTilesObj.sw.y
+    );
+
+    let west = swBounds.west;
+    let east = neBounds.east;
+
+    console.log(
+      "[Highlights] _loadHighlightsForTiles",
+      "\nTiles:",
+      visibleTilesObj,
+      "\nNative Bounds:",
+      { west, east }
+    );
+
+    const queries: Promise<{ hits: any[] }>[] = [];
+
+    // 1. Check for Full World (or more)
+    // If we cover more than 360 degrees, just search everything (-180 to 180)
+    if (Math.abs(east - west) >= 360) {
+      console.log("[Highlights] Full world detected");
+      const fullWorldBounds = new google.maps.LatLngBounds(
+        { lat: -90, lng: -180 },
+        { lat: 90, lng: 180 }
+      );
+      queries.push(
+        this._searchService.searchSpotsInBounds(fullWorldBounds, 20)
+      );
+    } else {
+      // 2. Normalize Coordinates to [-180, 180]
+      const normalizeLng = (lng: number) => {
+        const n = ((((lng + 180) % 360) + 360) % 360) - 180;
+        // If we normalized to -180 but original was positive (180, 540 etc), keep it as 180
+        // to maintain left-to-right ordering for non-wrapped segments.
+        if (n === -180 && lng > 0) return 180;
+        return n;
+      };
+
+      const normWest = normalizeLng(west);
+      const normEast = normalizeLng(east);
+
+      console.log("[Highlights] Normalized:", { normWest, normEast });
+
+      // 3. Disambiguate using Center
+      // We have two possible interpretations of "West -> East":
+      // A) The direct path (normWest -> normEast)
+      // B) The wrapped path (normWest -> 180 -> -180 -> normEast)
+      // We check which one contains the visible center.
+
+      const centerLng = visibleTilesObj.center?.lng ?? 0;
+
+      console.log(
+        "[Highlights] Check Center:",
+        centerLng,
+        "in range [",
+        normWest,
+        ",",
+        normEast,
+        "]?"
+      );
+
+      // Calculate Span
+      let span = 0;
+      if (normWest <= normEast) {
+        span = normEast - normWest;
+      } else {
+        span = 180 - normWest + (normEast - -180);
+      }
+
+      console.log("[Highlights] Query Span:", span);
+
+      const MAX_SPAN = 179; // Safe limit to prevent ambiguity
+
+      if (span > MAX_SPAN) {
+        console.log(
+          "[Highlights] Span > 179, splitting query to prevent inversion."
+        );
+        // We need to split.
+        // Case 1: Standard wrap (West > East) - We already have split logic for this,
+        // but we should just use a generic "Split by Midpoint" approach for simplicity?
+        // No, specific IDL split is cleaner for that case.
+
+        if (normWest > normEast) {
+          // IDL Wrap case (already handled by split logic below, but we must redundant check?
+          // No, the original logic detected "Split Params" based on center.
+          // Let's refine the "useSplitParams" decision.
+          // Actually, if we just blindly split anything big, we are safe.
+
+          // If it's a "standard" view (West < East) but HUGE (e.g. -90 to 180, width 270).
+          if (normWest <= normEast) {
+            const midPoint = (normWest + normEast) / 2;
+            console.log(
+              `[Highlights] Large Standard View. Splitting at ${midPoint}`
+            );
+
+            const bounds1 = new google.maps.LatLngBounds(
+              { lat: swBounds.south, lng: normWest },
+              { lat: neBounds.north, lng: midPoint }
+            );
+            queries.push(this._searchService.searchSpotsInBounds(bounds1, 20)); // Request 20 from each half
+
+            const bounds2 = new google.maps.LatLngBounds(
+              { lat: swBounds.south, lng: midPoint },
+              { lat: neBounds.north, lng: normEast }
+            );
+            queries.push(this._searchService.searchSpotsInBounds(bounds2, 20));
+          } else {
+            // IDL Wrap case (West > East).
+            // This is already split by definition into (West->180) and (-180->East).
+            // Are those sub-parts too big?
+            // (180 - West) + (East - -180).
+            // If West=-170, East=170. Part1=10, Part2=10. Small.
+            // Max case: West=10, East=-10. (Pacific centered).
+            // Part1: 10->180 (170 wide). Safe.
+            // Part2: -180->-10 (170 wide). Safe.
+            // So IDL split is naturally safe (max 180 per side).
+            // So we only need to manually trigger the IDL-style split logic
+            // OR the "Big Standard" split.
+            // Re-using existing IDL logic for the wrap case.
+            // We just need to trigger "Split Mode" checks properly.
+            // FORCE IDL Split logic if we detect IDL wrap (center check).
+            // BUT if it is logically a "Standard View" (Center contained in West-East) but HUGE, we do the Midpoint Split.
+          }
+        }
+      }
+
+      // Re-evaluating the flow.
+      // 1. Determine "Logical Topology": Is it a Standard Strip or a Wrapped Strip?
+      //    (Using center check)
+
+      let isLogicalWrap = false;
+      if (normWest > normEast) {
+        isLogicalWrap = true; // Definitely wrapping IDL
+      } else {
+        // West < East.
+        const inDirectRange = centerLng >= normWest && centerLng <= normEast;
+        if (!inDirectRange) {
+          isLogicalWrap = true; // Center outside, must be wrapping the long way.
+        }
+      }
+
+      if (isLogicalWrap) {
+        console.log("[Highlights] Logical Wrap / IDL Split");
+        // Split: West -> 180 and -180 -> East
+        if (normWest < 180) {
+          const bounds1 = new google.maps.LatLngBounds(
+            { lat: swBounds.south, lng: normWest },
+            { lat: neBounds.north, lng: 180 }
+          );
+          queries.push(this._searchService.searchSpotsInBounds(bounds1, 20));
+        }
+        if (normEast > -180) {
+          const bounds2 = new google.maps.LatLngBounds(
+            { lat: swBounds.south, lng: -180 },
+            { lat: neBounds.north, lng: normEast }
+          );
+          queries.push(this._searchService.searchSpotsInBounds(bounds2, 20));
+        }
+      } else {
+        // Logical Standard View (West -> East contains Center)
+        // Check for "Too Big" issue
+        if (normEast - normWest > MAX_SPAN) {
+          const midPoint = (normWest + normEast) / 2;
+          console.log(
+            `[Highlights] Standard View too wide (${
+              normEast - normWest
+            }). Splitting at ${midPoint}`
+          );
+
+          const bounds1 = new google.maps.LatLngBounds(
+            { lat: swBounds.south, lng: normWest },
+            { lat: neBounds.north, lng: midPoint }
+          );
+          queries.push(this._searchService.searchSpotsInBounds(bounds1, 20));
+
+          const bounds2 = new google.maps.LatLngBounds(
+            { lat: swBounds.south, lng: midPoint },
+            { lat: neBounds.north, lng: normEast }
+          );
+          queries.push(this._searchService.searchSpotsInBounds(bounds2, 20));
+        } else {
+          // Safe standard query
+          const standardBounds = new google.maps.LatLngBounds(
+            { lat: swBounds.south, lng: normWest },
+            { lat: neBounds.north, lng: normEast }
+          );
+          console.log(
+            "[Highlights] Standard query simple",
+            standardBounds.toJSON()
+          );
+          queries.push(
+            this._searchService.searchSpotsInBounds(standardBounds, 20)
+          );
+        }
+      }
+    }
+
+    Promise.all(queries)
+      .then((results) => {
+        const allHits: any[] = [];
+        results.forEach((res) => {
+          if (res && res.hits) {
+            allHits.push(...res.hits);
+          }
+        });
+
+        console.log(
+          `[Highlights] Found ${allHits.length} spots (before dedup). First 3:`,
+          allHits
+            .slice(0, 3)
+            .map((h) => `${h.document.name} (${h.document.location})`)
+        );
+
+        // Deduplicate hits (just in case)
+        const uniqueHits = new Map();
+        allHits.forEach((hit) => {
+          const id = hit.document?.id || hit.id;
+          if (!uniqueHits.has(id)) {
+            uniqueHits.set(id, hit);
+          }
+        });
+
+        const previews = Array.from(uniqueHits.values()).map((hit) =>
+          this._searchService.getSpotPreviewFromHit(hit)
+        );
+
+        // Sort by rating again after merge?
+        // Typesense returns sorted results, but merging two sorted lists might need re-sort if we care about strict order.
+        // For distinct sets it's fine. For top 20... we requested top 20 from EACH side.
+        // We'll show up to 40 spots now if wrapped? That's acceptable.
+
+        this._visibleHighlightedSpots.set(previews);
+      })
+      .catch((err) => {
+        console.error("Typesense highlight search failed:", err);
+        this._visibleHighlightedSpots.set([]);
       });
   }
 
@@ -1566,7 +1586,7 @@ export class SpotMapDataManager {
 
     const _lastVisibleTiles = this._lastVisibleTiles();
     if (_lastVisibleTiles) {
-      this._showCachedSpotClustersForTiles(_lastVisibleTiles);
+      this._showCachedSpotClustersForTiles(_lastVisibleTiles, true);
     }
   }
 

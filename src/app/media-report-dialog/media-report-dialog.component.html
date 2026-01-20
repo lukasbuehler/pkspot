@@ -7,9 +7,9 @@
       class="rounded bg-black"
       style="width: 200px; height: 200px; position: relative"
     >
-      @if(dialogData.media.getSrc(200)) {
+      @if(getPreviewSrc(dialogData.media)) {
       <img
-        [ngSrc]="dialogData.media.getSrc(200)"
+        [ngSrc]="getPreviewSrc(dialogData.media)!"
         alt="Image to report"
         style="object-fit: contain"
         priority
@@ -21,9 +21,23 @@
   <form [formGroup]="reportForm">
     <mat-radio-group
       color="warn"
-      class="d-flex flex-column mb-3"
+      class="d-flex flex-column mb-3 gap-3"
       formControlName="reason"
     >
+      <mat-radio-button value="not of spot" i18n
+        ><span class="mat-body-large"
+          >Not a picture of this spot: This image does not show the location or
+          is misleading.</span
+        ></mat-radio-button
+      >
+
+      <mat-radio-button value="bad quality" i18n
+        ><span class="mat-body-large"
+          >Bad quality: This picture is blurry, too dark, or generally poor
+          quality.</span
+        ></mat-radio-button
+      >
+
       <mat-radio-button value="copyright infringement" i18n="">
         <span class="mat-body-large">
           Copyright infringement: This is my content and I did not give

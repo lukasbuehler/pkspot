@@ -24,7 +24,12 @@ import {
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { NgOptimizedImage } from "@angular/common";
-import { ExternalImage, StorageImage } from "../../db/models/Media";
+import {
+  ExternalImage,
+  StorageImage,
+  AnyMedia,
+  StorageVideo,
+} from "../../db/models/Media";
 import { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { UsersService } from "../services/firebase/firestore/users.service";
 import { MediaReportsService } from "../services/firebase/firestore/media-reports.service";
@@ -63,8 +68,18 @@ export class MediaReportDialogComponent implements AfterViewInit {
 
   reportForm: FormGroup;
   public dialogData: any = inject<{
-    media: StorageImage | ExternalImage;
+    media: AnyMedia;
   }>(MAT_DIALOG_DATA);
+
+  getPreviewSrc(media: AnyMedia): string | null {
+    if (media instanceof StorageImage) {
+      return media.getSrc(200);
+    } else if (media instanceof StorageVideo) {
+      return media.getPreviewImageSrc();
+    } else {
+      return media.src;
+    }
+  }
 
   constructor() {
     this.reportForm = this._fb.group({

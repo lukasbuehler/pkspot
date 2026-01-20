@@ -17,7 +17,7 @@ export interface SpotClusterTileSchema {
   // the array of cluster points with their corresponding weights.
   dots: SpotClusterDotSchema[];
 
-  spots: SpotPreviewData[];
+  spots?: SpotPreviewData[];
 }
 
 export type MapTileKey = string & { __brand: "ClusterTileKey" };

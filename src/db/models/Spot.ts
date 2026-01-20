@@ -720,6 +720,11 @@ export class Spot extends LocalSpot {
       name: this.name(),
       id: this.id,
       slug: this.slug ?? undefined,
+      location: new GeoPoint(this.location().lat, this.location().lng),
+      // Needed because Geopoints are funky on Capacitor
+      location_raw: this.location(),
+      type: this.type(),
+      access: this.access(),
       locality: this.localityString(),
       countryCode: this.address()?.country?.code,
       countryName: this.address()?.country?.name,

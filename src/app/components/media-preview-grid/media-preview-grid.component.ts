@@ -23,6 +23,8 @@ import { MatIconButton } from "@angular/material/button";
 import { NgIf, NgFor, NgOptimizedImage } from "@angular/common";
 import { StorageService } from "../../services/firebase/storage.service";
 import { AnyMedia, StorageImage, StorageVideo } from "../../../db/models/Media";
+import { MatDialog } from "@angular/material/dialog";
+import { MediaReportDialogComponent } from "../../media-report-dialog/media-report-dialog.component";
 
 @Component({
   selector: "app-media-preview-grid",
@@ -44,6 +46,7 @@ export class MediaPreviewGridComponent implements OnInit {
   >();
 
   storageService = inject(StorageService);
+  dialog = inject(MatDialog);
 
   mediaSources: Signal<string[]> = computed<string[]>(() => {
     const media = this.media();
@@ -75,9 +78,24 @@ export class MediaPreviewGridComponent implements OnInit {
     this.mediaChanged.emit(this.media());
   }
 
-  removeMedia(index: number) {
-    let mediaCopy: AnyMedia[] = [...this.media()];
-    mediaCopy.splice(index, 1);
-    this.mediaChanged.emit(mediaCopy);
+  reportMedia(index: number) {
+    const mediaItem = this.media()[index];
+    const dialogRef = this.dialog.open(MediaReportDialogComponent, {
+      data: { media: mediaItem },
+      // width: "400px",
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Report submitted successfully
+        const mediaCopy: AnyMedia[] = [...this.media()];
+        // Mark as reported
+        // We need to cast or ensure properties exist, but AnyMedia should have isReported now
+        if (typeof mediaCopy[index] === "object") {
+          (mediaCopy[index] as any).isReported = true;
+        }
+        this.mediaChanged.emit(mediaCopy);
+      }
+    });
   }
 }

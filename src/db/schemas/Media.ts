@@ -10,6 +10,7 @@ export interface MediaSchema {
   isInStorage: boolean;
   origin?: "user" | "streetview" | "other";
   timestamp?: Timestamp;
+  isReported?: boolean;
 }
 
 export enum StorageBucket {
