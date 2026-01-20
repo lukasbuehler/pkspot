@@ -203,7 +203,10 @@ export class AppComponent implements OnInit {
     }
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // Initialize analytics
+    await this._analyticsService.init();
+
     // Handle Deep Links (Universal Links/App Links)
     if (typeof window !== "undefined") {
       import("@capacitor/app").then(({ App }) => {

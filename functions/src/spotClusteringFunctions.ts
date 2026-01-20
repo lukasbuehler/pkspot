@@ -1,17 +1,14 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { GeoPoint } from "firebase-admin/firestore";
-import * as admin from "firebase-admin";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import { SpotPreviewData } from "../../src/db/schemas/SpotPreviewData";
-
+import * as admin from "firebase-admin";
 import {
-  PartialSpotSchema,
-  getSpotLocalityString,
-  getSpotName,
-  getSpotPreviewImage,
-} from "./spotHelpers";
-import { MapHelpers } from "../../src/scripts/MapHelpers";
-import { SpotId } from "../../src/db/schemas/SpotSchema";
+  SpotClusterTileSchema as SpotClusterTile,
+  SpotClusterDotSchema as ClusterTileDot,
+} from "../../src/db/schemas/SpotClusterTile";
+import { SpotSchema } from "../../src/db/schemas/SpotSchema";
+
+type PartialSpotSchema = Partial<SpotSchema>;
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const SuperclusterModule = require("supercluster");
 const Supercluster = SuperclusterModule.default || SuperclusterModule;
@@ -21,29 +18,17 @@ function tileToBBox(
   x: number,
   y: number
 ): [number, number, number, number] {
-  // Reuse client-side MapHelpers to compute bounds for tile and convert to bbox
-  const bounds = MapHelpers.getBoundsForTile(zoom, x, y);
-  // MapHelpers returns { south, west, north, east }
-  return [bounds.west, bounds.south, bounds.east, bounds.north];
-}
-
-interface ClusterTileDot {
-  location: GeoPoint;
-  location_raw?: { lat: number; lng: number };
-  weight: number;
-  spot_id?: string;
-}
-
-interface SpotClusterTile {
-  // the zoom level the tile should be loaded and displayed at.
-  zoom: number;
-  x: number;
-  y: number;
-
-  // the array of cluster points with their corresponding weights.
-  dots: ClusterTileDot[];
-
-  spots: SpotPreviewData[];
+  const tile2long = (x: number, z: number) => (x / Math.pow(2, z)) * 360 - 180;
+  const tile2lat = (y: number, z: number) => {
+    const n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z);
+    return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+  };
+  return [
+    tile2long(x, zoom),
+    tile2lat(y + 1, zoom),
+    tile2long(x + 1, zoom),
+    tile2lat(y, zoom),
+  ];
 }
 
 async function _clusterAllSpots() {
@@ -70,10 +55,10 @@ async function _clusterAllSpots() {
       (spotAndId: { id: string; data: PartialSpotSchema }) => {
         const id = spotAndId.id;
         const spot = spotAndId.data;
-        const spotIsClusterWorthy =
-          (spot.rating || spot.is_iconic) &&
-          spot.media &&
-          spot.media.length > 0;
+
+        // We cluster ALL spots now, or maybe only those with location?
+        // Previously: Checked rating/is_iconic/media.
+        // Now: Occupancy means ALL spots with location.
 
         if (!spot.location && !spot.location_raw) {
           console.error("Spot has no location", id);
@@ -93,7 +78,10 @@ async function _clusterAllSpots() {
         // Determine location to use (prefer GeoPoint for now as legacy, but ensure we have one)
         let location: any = spot.location;
         if (!location && spot.location_raw) {
-          location = new GeoPoint(spot.location_raw.lat, spot.location_raw.lng);
+          location = new admin.firestore.GeoPoint(
+            spot.location_raw.lat,
+            spot.location_raw.lng
+          );
         }
 
         const clusterTileDot: ClusterTileDot = {
@@ -103,65 +91,12 @@ async function _clusterAllSpots() {
           spot_id: id,
         };
 
-        let spotForTile: SpotPreviewData;
-        if (spotIsClusterWorthy) {
-          spotForTile = {
-            name: getSpotName(spot, "en"),
-            id: id as SpotId,
-            isIconic: spot.is_iconic ?? false,
-            imageSrc: getSpotPreviewImage(spot),
-            locality: getSpotLocalityString(spot),
-            countryCode: spot.address?.country?.code,
-            countryName: spot.address?.country?.name,
-          };
-
-          // Only add optional fields if they are defined
-          if (spot.slug !== undefined) {
-            spotForTile.slug = spot.slug;
-          }
-
-          if (spot.location !== undefined) {
-            spotForTile.location = spot.location;
-          }
-          if (spot.location_raw !== undefined) {
-            spotForTile.location_raw = spot.location_raw;
-          } else if (spot.location !== undefined) {
-            // Backfill location_raw if missing from spot but location exists
-            spotForTile.location_raw = {
-              lat: spot.location.latitude,
-              lng: spot.location.longitude,
-            };
-          }
-
-          if (spot.type !== undefined) {
-            spotForTile.type = spot.type;
-          }
-
-          if (spot.access !== undefined) {
-            spotForTile.access = spot.access;
-          }
-
-          if (spot.amenities !== undefined) {
-            spotForTile.amenities = spot.amenities;
-          }
-
-          if (spot.rating) {
-            spotForTile.rating = spot.rating;
-          }
-        }
-
         // check if the tile exists in the clusterTilesMap for zoom 12
         if (clusterTiles.has(`z12_${tile.x}_${tile.y}`)) {
           // if the tile exists, add the spot to the array of spots in the cluster tile
           clusterTiles
             .get(`z12_${tile.x}_${tile.y}`)!
             .dots.push(clusterTileDot);
-
-          if (spotIsClusterWorthy) {
-            clusterTiles
-              .get(`z12_${tile.x}_${tile.y}`)!
-              .spots.push(spotForTile!);
-          }
         } else {
           // if the tile does not exist, create a new array with the spot and add it to the clusterTilesMap for zoom 12
           clusterTiles.set(`z12_${tile.x}_${tile.y}`, {
@@ -169,7 +104,7 @@ async function _clusterAllSpots() {
             x: tile.x,
             y: tile.y,
             dots: [clusterTileDot],
-            spots: spotIsClusterWorthy ? [spotForTile!] : [],
+            spots: [], // No spots preview data
           });
 
           // also add this 12 tile key to the cluster tiles map for zoom 10
@@ -231,43 +166,20 @@ async function _clusterAllSpots() {
               ? c.properties.weight
               : 1;
           return {
-            location: new GeoPoint(coords[1], coords[0]),
+            location: new admin.firestore.GeoPoint(coords[1], coords[0]),
             location_raw: { lat: coords[1], lng: coords[0] },
             weight,
             spot_id: (c.properties && c.properties.spot_id) || null,
           } as ClusterTileDot;
         });
 
-        // only add the best spots to the cluster tile (reuse previous selection logic)
-        const numberOfClusterSpots = 1;
-        const iconicScore = 4;
-        const clusterSpots: SpotPreviewData[] = smallerTileKeys
-          .map((key) => {
-            return (clusterTiles.get(key) as SpotClusterTile).spots;
-          })
-          .reduce((acc, spots) => {
-            return acc.concat(spots);
-          }, [])
-          .filter((spot) => spot.rating || spot.isIconic)
-          .map((spot) => {
-            return {
-              ...spot,
-              score: spot.isIconic
-                ? Math.max(spot.rating || 1, iconicScore)
-                : spot.rating || 2,
-            };
-          })
-          .sort((a, b) => b.score - a.score)
-          .slice(0, numberOfClusterSpots)
-          .map(({ score, ...rest }) => rest); // Remove the score field
-
-        // set the cluster tile
+        // set the cluster tile (occupancy only)
         clusterTiles.set(tileKey, {
           zoom: zoom,
           x: tileX,
           y: tileY,
           dots: clusterDots,
-          spots: clusterSpots,
+          spots: [], // No spots preview data
         });
 
         // also add the zoom tile to the cluster tiles map for the next zoom level
@@ -290,6 +202,7 @@ async function _clusterAllSpots() {
   return admin
     .firestore()
     .collection("spots")
+    .select("location", "location_raw", "tile_coordinates")
     .get()
     .then((spotsSnap) => {
       const spots: { id: string; data: PartialSpotSchema }[] =
