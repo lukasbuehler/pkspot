@@ -154,7 +154,7 @@ export class SearchService {
   public searchSpotsInBoundsWithFilter(
     bounds: google.maps.LatLngBounds,
     filterMode: SpotFilterMode,
-    num_spots: number = 20
+    num_spots: number = 10
   ): Promise<{ hits: any[]; found: number }> {
     const config = SPOT_FILTER_CONFIGS.get(filterMode);
     if (!config) {
@@ -175,7 +175,7 @@ export class SearchService {
    */
   public async searchDrySpotsInBounds(
     bounds: google.maps.LatLngBounds,
-    num_spots: number = 20
+    num_spots: number = 10
   ) {
     return this.searchSpotsInBoundsWithFilter(
       bounds,
@@ -189,7 +189,7 @@ export class SearchService {
    */
   public searchSpotsForParkourInBounds(
     bounds: google.maps.LatLngBounds,
-    num_spots: number = 20
+    num_spots: number = 10
   ) {
     return this.searchSpotsInBoundsWithFilter(
       bounds,
@@ -203,7 +203,7 @@ export class SearchService {
    */
   public searchIndoorSpotsInBounds(
     bounds: google.maps.LatLngBounds,
-    num_spots: number = 20
+    num_spots: number = 10
   ) {
     return this.searchSpotsInBoundsWithFilter(
       bounds,
@@ -224,7 +224,7 @@ export class SearchService {
       amenities_true?: (keyof AmenitiesMap)[];
       amenities_false?: (keyof AmenitiesMap)[];
     },
-    num_spots: number = 20
+    num_spots: number = 10
   ): Promise<{ hits: any[]; found: number }> {
     return this.searchSpotsInBounds(
       bounds,
@@ -236,9 +236,12 @@ export class SearchService {
     );
   }
 
-  public async searchSpotsInBounds(
-    bounds: google.maps.LatLngBounds,
-    num_spots: number = 100,
+  public async searchSpotsInRawBounds(
+    north: number,
+    south: number,
+    east: number,
+    west: number,
+    num_spots: number = 10,
     types?: SpotTypes[],
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
@@ -246,21 +249,41 @@ export class SearchService {
   ): Promise<{ hits: any[]; found: number }> {
     const latLongPairList: string[] = [
       // northeast
-      bounds.getNorthEast().lat(),
-      bounds.getNorthEast().lng(),
+      north,
+      east,
 
       // southeast
-      bounds.getSouthWest().lat(),
-      bounds.getNorthEast().lng(),
+      south,
+      east,
 
       // southwest
-      bounds.getSouthWest().lat(),
-      bounds.getSouthWest().lng(),
+      south,
+      west,
 
       // northwest
-      bounds.getNorthEast().lat(),
-      bounds.getSouthWest().lng(),
+      north,
+      west,
     ].map((num) => (Math.round(num * 1000) / 1000).toString());
+
+    // Reuse filter logic
+    return this._executeSearch(
+      latLongPairList,
+      num_spots,
+      types,
+      accesses,
+      amenities_true,
+      amenities_false
+    );
+  }
+
+  private async _executeSearch(
+    latLongPairList: string[],
+    num_spots: number,
+    types?: SpotTypes[],
+    accesses?: SpotAccess[],
+    amenities_true?: (keyof AmenitiesMap)[],
+    amenities_false?: (keyof AmenitiesMap)[]
+  ) {
     const filters: string[] = [];
     if (types?.length) filters.push(`type:=[${types.join(", ")}]`);
     if (accesses?.length) filters.push(`access:=[${accesses.join(", ")}]`);
@@ -340,6 +363,52 @@ export class SearchService {
     mergedResult.found = found;
 
     return mergedResult;
+  }
+
+  public async searchSpotsInBounds(
+    bounds: google.maps.LatLngBounds,
+    num_spots: number = 10,
+    types?: SpotTypes[],
+    accesses?: SpotAccess[],
+    amenities_true?: (keyof AmenitiesMap)[],
+    amenities_false?: (keyof AmenitiesMap)[]
+  ): Promise<{ hits: any[]; found: number }> {
+    let neLat = bounds.getNorthEast().lat();
+    let neLng = bounds.getNorthEast().lng();
+    let swLat = bounds.getSouthWest().lat();
+    let swLng = bounds.getSouthWest().lng();
+
+    // Fix for IDL/DateLine normalization issues.
+    if (swLng > neLng) {
+      swLng -= 360;
+    }
+
+    const latLongPairList: string[] = [
+      // northeast
+      neLat,
+      neLng,
+
+      // southeast
+      swLat,
+      neLng,
+
+      // southwest
+      swLat,
+      swLng,
+
+      // northwest
+      neLat,
+      swLng,
+    ].map((num) => (Math.round(num * 1000) / 1000).toString());
+
+    return this._executeSearch(
+      latLongPairList,
+      num_spots,
+      types,
+      accesses,
+      amenities_true,
+      amenities_false
+    );
   }
 
   public async searchSpotsAndPlaces(query: string) {

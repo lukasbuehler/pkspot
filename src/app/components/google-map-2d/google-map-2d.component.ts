@@ -93,6 +93,7 @@ export interface TilesObject {
   ne: { x: number; y: number };
   sw: { x: number; y: number };
   center?: google.maps.LatLngLiteral;
+  viewportBounds?: google.maps.LatLngBoundsLiteral;
 }
 
 @Component({
@@ -363,33 +364,14 @@ export class GoogleMap2dComponent
       intZoom
     );
 
-    // if the previously visible tiles are empty, we need to render the new tiles
-    if (
-      this._previouslyVisibleTiles &&
-      this._previouslyVisibleTiles.tiles?.length > 0
-    ) {
-      // Abort if the neTile and swTile are the same as before
-      const prevNeTile = this._previouslyVisibleTiles.ne;
-      const prevSwTile = this._previouslyVisibleTiles.sw;
-
-      if (
-        this._previouslyVisibleTiles.zoom === intZoom &&
-        prevNeTile.x === neTile.x &&
-        prevNeTile.y === neTile.y &&
-        prevSwTile.x === swTile.x &&
-        prevSwTile.y === swTile.y
-      ) {
-        return this._previouslyVisibleTiles;
-      }
-    }
-
-    // make an array of all the tiles between (and including) the NE and SW tiles
+    // Check if we cover effectively the whole world horizontally
     const tilesObj: TilesObject = {
       zoom: intZoom,
       tiles: [],
       ne: neTile,
       sw: swTile,
       center: boundsToRender.getCenter().toJSON(),
+      viewportBounds: boundsToRender.toJSON(),
     };
 
     // Check if we cover effectively the whole world horizontally

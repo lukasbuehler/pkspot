@@ -93,7 +93,9 @@ export class SpotMapDataManager {
   readonly defaultRating = 1.5;
 
   private _clusterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly CLUSTER_DEBOUNCE_MS = 100;
+  private readonly CLUSTER_DEBOUNCE_MS = 200;
+  private readonly HIGHLIGHT_THROTTLE_MS = 500;
+  private _lastHighlightFetchTime: number = 0;
 
   private currentSearchRequestId: ReturnType<typeof setTimeout> | undefined;
 
@@ -231,26 +233,31 @@ export class SpotMapDataManager {
     // However, for CLUSTERS themselves, we revert to the tile-based loading (handled below)
     // to ensure smooth transitions and caching.
     if (this._spotClusterService && zoom < 16) {
-      if (this._clusterDebounceTimer) {
-        clearTimeout(this._clusterDebounceTimer);
-      }
+      // Fetch highlights using Typesense for better performance than client-side filtering
+      // Only if "Highlights" (No Filter) is active
+      const activeFilter = this.spotFilterMode
+        ? this.spotFilterMode()
+        : SpotFilterMode.None;
 
-      this._clusterDebounceTimer = setTimeout(() => {
-        this._clusterDebounceTimer = null;
-
-        // Fetch highlights using Typesense for better performance than client-side filtering
-        // Only if "Highlights" (No Filter) is active
-        const activeFilter = this.spotFilterMode
-          ? this.spotFilterMode()
-          : SpotFilterMode.None;
-
-        if (activeFilter === SpotFilterMode.None) {
-          // Use the visible tiles to determine the search area
-          // This matches the logic of higher zoom levels and ensures we don't
-          // over-query or query on every pixel shift.
+      if (activeFilter === SpotFilterMode.None) {
+        const now = Date.now();
+        // Throttle: Allow updates while moving (at least every X ms)
+        if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
           this._loadHighlightsForTiles(visibleTilesObj);
+          this._lastHighlightFetchTime = now;
         }
-      }, this.CLUSTER_DEBOUNCE_MS);
+
+        // Debounce: Ensure we catch the final resting state (and handle small movements)
+        if (this._clusterDebounceTimer) {
+          clearTimeout(this._clusterDebounceTimer);
+        }
+
+        this._clusterDebounceTimer = setTimeout(() => {
+          this._clusterDebounceTimer = null;
+          this._loadHighlightsForTiles(visibleTilesObj);
+          this._lastHighlightFetchTime = Date.now();
+        }, this.CLUSTER_DEBOUNCE_MS);
+      }
     }
 
     // Load amenity markers at zoom >= 14 (amenityMarkerZoom) for efficient caching
@@ -1139,203 +1146,129 @@ export class SpotMapDataManager {
       visibleTilesObj.ne.x,
       visibleTilesObj.ne.y
     );
-    const swBounds = MapHelpers.getBoundsForTile(
-      visibleTilesObj.zoom,
-      visibleTilesObj.sw.x,
-      visibleTilesObj.sw.y
-    );
+    // We use a strip-based approach to strict query only the visible tiles.
+    // This avoids all ambiguity with global bounding boxes and wrapping.
 
-    let west = swBounds.west;
-    let east = neBounds.east;
-
-    console.log(
-      "[Highlights] _loadHighlightsForTiles",
-      "\nTiles:",
-      visibleTilesObj,
-      "\nNative Bounds:",
-      { west, east }
-    );
+    // Simplified Strict Viewport Query
+    // We strictly query the visible viewport bounds, splitting at the IDL if necessary.
+    // This avoids querying buffer tiles (off-screen) and prevents global inversions.
 
     const queries: Promise<{ hits: any[] }>[] = [];
 
-    // 1. Check for Full World (or more)
-    // If we cover more than 360 degrees, just search everything (-180 to 180)
-    if (Math.abs(east - west) >= 360) {
-      console.log("[Highlights] Full world detected");
-      const fullWorldBounds = new google.maps.LatLngBounds(
-        { lat: -90, lng: -180 },
-        { lat: 90, lng: 180 }
-      );
-      queries.push(
-        this._searchService.searchSpotsInBounds(fullWorldBounds, 20)
-      );
-    } else {
-      // 2. Normalize Coordinates to [-180, 180]
-      const normalizeLng = (lng: number) => {
-        const n = ((((lng + 180) % 360) + 360) % 360) - 180;
-        // If we normalized to -180 but original was positive (180, 540 etc), keep it as 180
-        // to maintain left-to-right ordering for non-wrapped segments.
-        if (n === -180 && lng > 0) return 180;
-        return n;
-      };
+    if (visibleTilesObj.viewportBounds) {
+      const { north, south, east, west } = visibleTilesObj.viewportBounds;
 
-      const normWest = normalizeLng(west);
-      const normEast = normalizeLng(east);
+      if (west > east) {
+        // Viewport crosses IDL (e.g. West=170, East=-170)
+        // Split into two clean queries: [West, 180] and [-180, East]
 
-      console.log("[Highlights] Normalized:", { normWest, normEast });
-
-      // 3. Disambiguate using Center
-      // We have two possible interpretations of "West -> East":
-      // A) The direct path (normWest -> normEast)
-      // B) The wrapped path (normWest -> 180 -> -180 -> normEast)
-      // We check which one contains the visible center.
-
-      const centerLng = visibleTilesObj.center?.lng ?? 0;
-
-      console.log(
-        "[Highlights] Check Center:",
-        centerLng,
-        "in range [",
-        normWest,
-        ",",
-        normEast,
-        "]?"
-      );
-
-      // Calculate Span
-      let span = 0;
-      if (normWest <= normEast) {
-        span = normEast - normWest;
-      } else {
-        span = 180 - normWest + (normEast - -180);
-      }
-
-      console.log("[Highlights] Query Span:", span);
-
-      const MAX_SPAN = 179; // Safe limit to prevent ambiguity
-
-      if (span > MAX_SPAN) {
-        console.log(
-          "[Highlights] Span > 179, splitting query to prevent inversion."
-        );
-        // We need to split.
-        // Case 1: Standard wrap (West > East) - We already have split logic for this,
-        // but we should just use a generic "Split by Midpoint" approach for simplicity?
-        // No, specific IDL split is cleaner for that case.
-
-        if (normWest > normEast) {
-          // IDL Wrap case (already handled by split logic below, but we must redundant check?
-          // No, the original logic detected "Split Params" based on center.
-          // Let's refine the "useSplitParams" decision.
-          // Actually, if we just blindly split anything big, we are safe.
-
-          // If it's a "standard" view (West < East) but HUGE (e.g. -90 to 180, width 270).
-          if (normWest <= normEast) {
-            const midPoint = (normWest + normEast) / 2;
-            console.log(
-              `[Highlights] Large Standard View. Splitting at ${midPoint}`
-            );
-
-            const bounds1 = new google.maps.LatLngBounds(
-              { lat: swBounds.south, lng: normWest },
-              { lat: neBounds.north, lng: midPoint }
-            );
-            queries.push(this._searchService.searchSpotsInBounds(bounds1, 20)); // Request 20 from each half
-
-            const bounds2 = new google.maps.LatLngBounds(
-              { lat: swBounds.south, lng: midPoint },
-              { lat: neBounds.north, lng: normEast }
-            );
-            queries.push(this._searchService.searchSpotsInBounds(bounds2, 20));
-          } else {
-            // IDL Wrap case (West > East).
-            // This is already split by definition into (West->180) and (-180->East).
-            // Are those sub-parts too big?
-            // (180 - West) + (East - -180).
-            // If West=-170, East=170. Part1=10, Part2=10. Small.
-            // Max case: West=10, East=-10. (Pacific centered).
-            // Part1: 10->180 (170 wide). Safe.
-            // Part2: -180->-10 (170 wide). Safe.
-            // So IDL split is naturally safe (max 180 per side).
-            // So we only need to manually trigger the IDL-style split logic
-            // OR the "Big Standard" split.
-            // Re-using existing IDL logic for the wrap case.
-            // We just need to trigger "Split Mode" checks properly.
-            // FORCE IDL Split logic if we detect IDL wrap (center check).
-            // BUT if it is logically a "Standard View" (Center contained in West-East) but HUGE, we do the Midpoint Split.
-          }
-        }
-      }
-
-      // Re-evaluating the flow.
-      // 1. Determine "Logical Topology": Is it a Standard Strip or a Wrapped Strip?
-      //    (Using center check)
-
-      let isLogicalWrap = false;
-      if (normWest > normEast) {
-        isLogicalWrap = true; // Definitely wrapping IDL
-      } else {
-        // West < East.
-        const inDirectRange = centerLng >= normWest && centerLng <= normEast;
-        if (!inDirectRange) {
-          isLogicalWrap = true; // Center outside, must be wrapping the long way.
-        }
-      }
-
-      if (isLogicalWrap) {
-        console.log("[Highlights] Logical Wrap / IDL Split");
-        // Split: West -> 180 and -180 -> East
-        if (normWest < 180) {
-          const bounds1 = new google.maps.LatLngBounds(
-            { lat: swBounds.south, lng: normWest },
-            { lat: neBounds.north, lng: 180 }
-          );
-          queries.push(this._searchService.searchSpotsInBounds(bounds1, 20));
-        }
-        if (normEast > -180) {
-          const bounds2 = new google.maps.LatLngBounds(
-            { lat: swBounds.south, lng: -180 },
-            { lat: neBounds.north, lng: normEast }
-          );
-          queries.push(this._searchService.searchSpotsInBounds(bounds2, 20));
-        }
-      } else {
-        // Logical Standard View (West -> East contains Center)
-        // Check for "Too Big" issue
-        if (normEast - normWest > MAX_SPAN) {
-          const midPoint = (normWest + normEast) / 2;
-          console.log(
-            `[Highlights] Standard View too wide (${
-              normEast - normWest
-            }). Splitting at ${midPoint}`
-          );
-
-          const bounds1 = new google.maps.LatLngBounds(
-            { lat: swBounds.south, lng: normWest },
-            { lat: neBounds.north, lng: midPoint }
-          );
-          queries.push(this._searchService.searchSpotsInBounds(bounds1, 20));
-
-          const bounds2 = new google.maps.LatLngBounds(
-            { lat: swBounds.south, lng: midPoint },
-            { lat: neBounds.north, lng: normEast }
-          );
-          queries.push(this._searchService.searchSpotsInBounds(bounds2, 20));
-        } else {
-          // Safe standard query
-          const standardBounds = new google.maps.LatLngBounds(
-            { lat: swBounds.south, lng: normWest },
-            { lat: neBounds.north, lng: normEast }
-          );
-          console.log(
-            "[Highlights] Standard query simple",
-            standardBounds.toJSON()
+        // Query 1: West side (Pacific towards 180)
+        const span1 = 180 - west;
+        if (span1 > 179) {
+          const mid1 = (west + 180) / 2;
+          queries.push(
+            this._searchService.searchSpotsInRawBounds(
+              north,
+              south,
+              mid1,
+              west,
+              10
+            )
           );
           queries.push(
-            this._searchService.searchSpotsInBounds(standardBounds, 20)
+            this._searchService.searchSpotsInRawBounds(
+              north,
+              south,
+              180,
+              mid1,
+              10
+            )
+          );
+        } else {
+          queries.push(
+            this._searchService.searchSpotsInRawBounds(
+              north,
+              south,
+              180,
+              west,
+              10
+            )
+          );
+        }
+
+        // Query 2: East side (-180 towards East)
+        const span2 = east - -180;
+        if (span2 > 179) {
+          const mid2 = (-180 + east) / 2;
+          queries.push(
+            this._searchService.searchSpotsInRawBounds(
+              north,
+              south,
+              mid2,
+              -180,
+              10
+            )
+          );
+          queries.push(
+            this._searchService.searchSpotsInRawBounds(
+              north,
+              south,
+              east,
+              mid2,
+              10
+            )
+          );
+        } else {
+          queries.push(
+            this._searchService.searchSpotsInRawBounds(
+              north,
+              south,
+              east,
+              -180,
+              10
+            )
+          );
+        }
+      } else {
+        // Standard Linear Viewport
+        // Check for Large Span > 179 degrees (Typesense might invert large polygons)
+        const span = east - west;
+        if (span > 179) {
+          const mid = (west + east) / 2;
+
+          queries.push(
+            this._searchService.searchSpotsInRawBounds(
+              north,
+              south,
+              mid,
+              west,
+              10
+            )
+          );
+          queries.push(
+            this._searchService.searchSpotsInRawBounds(
+              north,
+              south,
+              east,
+              mid,
+              10
+            )
+          );
+        } else {
+          queries.push(
+            this._searchService.searchSpotsInRawBounds(
+              north,
+              south,
+              east,
+              west,
+              20
+            )
           );
         }
       }
+    } else {
+      // Fallback (Should rarely happen if configured correctly)
+      console.warn("[Highlights] No Viewport Bounds available.");
     }
 
     Promise.all(queries)
@@ -1346,13 +1279,6 @@ export class SpotMapDataManager {
             allHits.push(...res.hits);
           }
         });
-
-        console.log(
-          `[Highlights] Found ${allHits.length} spots (before dedup). First 3:`,
-          allHits
-            .slice(0, 3)
-            .map((h) => `${h.document.name} (${h.document.location})`)
-        );
 
         // Deduplicate hits (just in case)
         const uniqueHits = new Map();
