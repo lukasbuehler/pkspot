@@ -120,13 +120,17 @@ export class CustomMarkerComponent {
   /** Zoom threshold below which to show dots (inclusive) */
   dotModeThreshold = input<number>(17);
 
+  /** Whether to force using the full marker regardless of zoom */
+  forceFullMarker = input<boolean>(false);
+
   /** Emitted when the marker is clicked, with the marker's index */
   markerClick = output<number>();
 
   /**
    * Determine if we should show dot mode based on zoom level
    */
-  useDotMode = () => this.zoom() <= this.dotModeThreshold();
+  useDotMode = () =>
+    !this.forceFullMarker() && this.zoom() <= this.dotModeThreshold();
 
   /**
    * Get priority based on marker's explicit priority or fallback to color/type.

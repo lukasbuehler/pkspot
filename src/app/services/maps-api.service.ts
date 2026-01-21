@@ -349,9 +349,9 @@ export class MapsApiService extends ConsentAwareService {
     if (spotId && this.streetViewCache.has(spotId)) {
       const cached = this.streetViewCache.get(spotId);
       if (cached === null) {
-        console.log(
-          `Street View for spot ${spotId} is known to be unavailable (cached).`
-        );
+        // console.log(
+        //   `Street View for spot ${spotId} is known to be unavailable (cached).`
+        // );
         return null;
       }
       // Return cached URL if not undefined
@@ -377,7 +377,7 @@ export class MapsApiService extends ConsentAwareService {
   }
 
   reportStreetViewError(spotId: string) {
-    console.log(`Marking Street View as unavailable for spot ${spotId}`);
+    // console.log(`Marking Street View as unavailable for spot ${spotId}`);
     this.streetViewCache.set(spotId, null);
   }
 

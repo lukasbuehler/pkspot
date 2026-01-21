@@ -64,7 +64,7 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
   [SpotTypes.Garage]: "garage_door",
   [SpotTypes.SkatePark]: "skateboarding",
   [SpotTypes.Calisthenics]: "tools_ladder",
-  [SpotTypes.Other]: "help_outline",
+  [SpotTypes.Other]: "help",
 };
 
 export const SpotTypesDescriptions: Record<SpotTypes, string> = {

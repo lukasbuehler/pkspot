@@ -81,6 +81,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   isEditing = model<boolean>(false);
   mapStyle = model<"roadmap" | "satellite" | null>(null);
   markers = input<MarkerSchema[]>([]);
+  priorityMarkers = input<MarkerSchema[]>([]);
   polygons = input<PolygonSchema[]>([]);
   selectedMarker = input<google.maps.LatLngLiteral | null>(null);
   focusZoom = input<number>(17);
@@ -264,15 +265,46 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         setTimeout(() => this._spotMapDataManager.refresh(), 0);
       }
     });
+
+    // Initialize map when API is loaded
+    effect(() => {
+      const isLoaded = this.mapsAPIService.isApiLoaded();
+      console.log("SpotMap: API loaded signal changed:", isLoaded);
+      if (isLoaded) {
+        // Wait for change detection to update ViewChild
+        setTimeout(() => {
+          console.log("SpotMap: triggering _initializeMap from effect");
+          this._initializeMap();
+        }, 100);
+      }
+    });
   }
 
   isInitiated: boolean = false;
 
-  async ngAfterViewInit(): Promise<void> {
-    if (!this.map) {
-      console.warn("Map not initialized in ngAFterViewInit!");
+  ngAfterViewInit(): void {
+    console.log("SpotMap: ngAfterViewInit");
+    if (this.mapsAPIService.isApiLoaded()) {
+      console.log("SpotMap: API already loaded, initializing...");
+      this._initializeMap();
+    } else {
+      console.log("SpotMap: API not loaded yet, waiting for signal...");
+    }
+  }
+
+  private async _initializeMap() {
+    if (this.isInitiated) {
+      console.log("SpotMap: Already initiated, skipping.");
       return;
     }
+
+    if (!this.map) {
+      console.warn("SpotMap: Map ViewChild NOT found in _initializeMap!");
+      // If API is loaded but map is still not found, it might be due to race condition or structural directive
+      return;
+    }
+
+    console.log("SpotMap: Map ViewChild found!", this.map);
 
     // load the map style from memory
     if (this.mapStyle() === null) {
@@ -295,8 +327,19 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     const selectedSpot = this.selectedSpot();
     const centerStart = this.centerStart();
 
+    console.log(
+      "SpotMap: initializing center. SelectedSpot:",
+      selectedSpot,
+      "CenterStart:",
+      centerStart
+    );
+
     if (selectedSpot) {
       // If we have a selected spot, focus on it
+      console.log(
+        "SpotMap: Setting center to selected spot",
+        selectedSpot.location()
+      );
       this.map.center = selectedSpot.location();
       this.mapZoom = this.focusZoom();
     } else if (centerStart) {

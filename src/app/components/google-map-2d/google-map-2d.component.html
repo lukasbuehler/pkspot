@@ -309,6 +309,17 @@
   ></map-circle>
   }
 
+  <!-- Priority Markers (always visible) -->
+  @for(marker of priorityMarkers(); track $index) {
+  <app-custom-marker
+    [marker]="marker"
+    [index]="$index"
+    [zoom]="zoom"
+    [forceFullMarker]="true"
+    (markerClick)="markerClick($event)"
+  ></app-custom-marker>
+  }
+
   <!-- Additional Markers (amenities, custom markers, etc.) -->
   @if(zoom >= 16) { @for(marker of markers(); track $index) {
   <app-custom-marker

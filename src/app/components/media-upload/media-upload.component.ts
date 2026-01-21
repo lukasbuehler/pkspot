@@ -64,6 +64,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   @Input() required: boolean = false;
   @Input() multipleAllowed: boolean = false;
   @Input() storageFolder: StorageBucket | null = null;
+  @Input() uploadToStorage: boolean = true;
   @Input() maximumSizeInBytes: number = 500 * 1024 * 1024; // 500 MB
   @Input() allowedMimeTypes: string[] | null = null;
   @Input() acceptString: string | null = null;
@@ -73,6 +74,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
     is_sized: boolean;
     type: MediaType;
   }>();
+  @Output() fileSelected = new EventEmitter<File>();
 
   private _storageService = inject(StorageService);
 
@@ -96,7 +98,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   }
 
   ngOnInit() {
-    if (this.storageFolder === null) {
+    if (this.storageFolder === null && this.uploadToStorage) {
       console.error("No storage folder specified for media upload");
     }
   }
@@ -124,7 +126,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         this.hasError = false;
         let type = file.type;
         console.debug("file type", type);
-        if (this.allowedMimeTypes && this.allowedMimeTypes.includes(type)) {
+        if (!this.allowedMimeTypes || this.allowedMimeTypes.includes(type)) {
           if (
             this.maximumSizeInBytes !== null &&
             file.size > this.maximumSizeInBytes
@@ -170,7 +172,20 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         };
 
         _mediaList.push(newMedia);
-        this.uploadMedia(newMedia, i);
+
+        if (this.uploadToStorage && this.storageFolder) {
+          this.uploadMedia(newMedia, i);
+        } else {
+          // just emit the file
+          this.fileSelected.emit(file);
+          // mark as completed (or should we just not show progress?)
+          this.mediaList.update((list) => {
+            // add to list but completed
+            newMedia.uploadProgress = 100;
+            // list.push(newMedia); // handled by set below
+            return list;
+          });
+        }
       }
       this.mediaList.set(_mediaList);
     }
@@ -186,12 +201,6 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
 
   getFileImageSrc(file: File): string {
     if (!file || !this.fileIsImage(file)) {
-      console.warn(
-        "Cannot make image src file is",
-        typeof file,
-        "type:",
-        file?.type
-      );
       return "";
     }
 

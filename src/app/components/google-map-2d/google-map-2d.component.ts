@@ -163,6 +163,7 @@ export class GoogleMap2dComponent
   // Deprecated: use global theme via ThemeService instead. Kept for backward-compat; if bound, it overrides global.
   isDarkMode = input<boolean | null | undefined>(null);
   markers: InputSignal<MarkerSchema[]> = input<MarkerSchema[]>([]);
+  priorityMarkers: InputSignal<MarkerSchema[]> = input<MarkerSchema[]>([]);
   // Optional parallel spot IDs for markers to allow opening a spot on marker click.
   @Input() markerSpotIds: (SpotId | null)[] | null = null;
 

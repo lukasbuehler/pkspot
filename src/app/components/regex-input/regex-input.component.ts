@@ -235,7 +235,7 @@ export class RegexInputComponent
     @Optional() @Self() public ngControl: NgControl,
     private fm: FocusMonitor,
     private _elementRef: ElementRef<HTMLElement>,
-    @Optional() public parentFormField: MatFormField
+    @Optional() public parentFormField: MatFormField | null
   ) {
     if (this.ngControl != null) {
       // Setting the value accessor directly (instead of using

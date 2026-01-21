@@ -103,10 +103,10 @@ export class LocalSpot {
 
   hideStreetview: boolean;
 
-  googlePlaceId = signal<string | undefined>(undefined);
+  googlePlaceId: WritableSignal<string | undefined>;
 
-  type = signal<SpotTypes>(SpotTypes.Other);
-  access = signal<SpotAccess>(SpotAccess.Other);
+  type: WritableSignal<SpotTypes>;
+  access: WritableSignal<SpotAccess>;
 
   source = signal<string | undefined>(undefined);
 
@@ -126,7 +126,7 @@ export class LocalSpot {
     );
   });
 
-  paths = signal<google.maps.LatLngLiteral[][] | undefined>(undefined);
+  paths: WritableSignal<google.maps.LatLngLiteral[][] | undefined>;
 
   constructor(data: SpotSchema, readonly locale: LocaleCode) {
     this.names = signal(makeLocaleMapFromObject(data.name));
@@ -328,7 +328,7 @@ export class LocalSpot {
         return newData;
       }) ?? []
     );
-    this.numChallenges.set(data.num_challenges ?? 0);
+    this.numChallenges = signal(data.num_challenges ?? 0);
 
     this.address = signal(data.address ?? null);
     this.formattedAddress = computed(() => this.address()?.formatted ?? "");
@@ -349,12 +349,16 @@ export class LocalSpot {
 
     // set google place id
     if (data.external_references?.google_maps_place_id) {
-      this.googlePlaceId.set(data.external_references.google_maps_place_id);
+      this.googlePlaceId = signal(
+        data.external_references.google_maps_place_id
+      );
+    } else {
+      this.googlePlaceId = signal(undefined);
     }
 
     // Coerce raw strings from DB to known enums with fallback to Other
-    this.type.set(parseSpotType(data.type ?? null));
-    this.access.set(parseSpotAccess(data.access ?? null));
+    this.type = signal(parseSpotType(data.type ?? null));
+    this.access = signal(parseSpotAccess(data.access ?? null));
 
     // Set the default amenities if they don't exist
     if (!data.amenities) data.amenities = {};
@@ -371,7 +375,7 @@ export class LocalSpot {
       return makeSmartAmenitiesArray(amenities, this.type());
     });
 
-    this.paths.set(this._makePathsFromBounds(data.bounds ?? []));
+    this.paths = signal(this._makePathsFromBounds(data.bounds ?? []));
   }
 
   /**

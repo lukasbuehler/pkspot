@@ -2,10 +2,12 @@
   <div class="container">
     <div class="row">
       <div class="col-md-12 pt-5 pb-3">
-        <h1 class="mat-headline-4 text-center">Spot Import from KML</h1>
-        <p class="mat-body">
-          Here you can upload KML files to transfer spots to PK Spot for free.
-          Anyone can then see, share and review the uploaded spots.
+        <h1 class="mat-headline-4 text-center" i18n>
+          Spot Import from KML / KMZ
+        </h1>
+        <p class="mat-body" i18n>
+          Here you can upload KML or KMZ files to transfer spots to PK Spot for
+          free. Anyone can then see, share and review the uploaded spots.
         </p>
       </div>
     </div>
@@ -46,13 +48,10 @@
             <form class="pt-3 px-3" [formGroup]="uploadFormGroup!">
               <h3 class="mat-h3">Please select a KML file.</h3>
               <app-media-upload
-                [allowedMimeTypes]="[
-                  'application/xml',
-                  'text/xml',
-                  'application/vnd.google-earth.kml+xml'
-                ]"
-                acceptString=".kml, .xml"
+                acceptString=".kml, .xml, .kmz"
                 [required]="true"
+                [uploadToStorage]="false"
+                (fileSelected)="onUploadMediaSelect($event)"
               ></app-media-upload>
               <div class="mt-5">
                 <button
@@ -70,155 +69,118 @@
 
           <!-- Setup step -->
           <mat-step [stepControl]="setupFormGroup!" state="setup">
+            <br />
             <ng-template matStepLabel>
               @if(responsive.isDesktop()) {<span>Import Setup</span>
               }
             </ng-template>
-            <form class="px-3" [formGroup]="setupFormGroup!">
-              <div class="mt-3">
-                <div class="row">
-                  @if(responsive.isDesktop()) {
-                  <div class="col-md-6">
-                    @if(kmlParserService.setupInfo) {
-                    <div class="kml-preview">
-                      <h2 class="mat-h2">Preview</h2>
-                      <div class="px-3">
-                        <h3 class="mat-h3">
-                          <b>{{ kmlParserService.setupInfo.name }}</b>
-                        </h3>
-                        <p class="mat-body">
-                          {{ kmlParserService.setupInfo.description }}
-                        </p>
-                        <p class="mat-body">
-                          <b
-                            >{{ kmlParserService.setupInfo.spotCount }} Spots</b
-                          >
-                          accross
-                          <b
-                            >{{
-                              kmlParserService.setupInfo.folders.length
-                            }}
-                            folders</b
-                          >.
-                        </p>
-                      </div>
-                    </div>
-                    }
 
-                    <h2 class="mat-h2">Import Settings</h2>
-                    @if(kmlParserService.setupInfo) {
-                    <mat-form-field class="w-100" appearance="outline">
-                      <mat-label>Language</mat-label>
-                      <input
-                        type="text"
-                        matInput
-                        formControlName="setupLangCtrl"
-                        [matAutocomplete]="auto"
-                        required
-                      /><mat-autocomplete #auto="matAutocomplete">
-                        @for(lang of languages; track $index) {
-                        <mat-option
-                          [value]="lang"
-                          (onSelectionChange)="
-                            kmlParserService.setupInfo.lang = lang
-                          "
-                        >
-                          {{ lang }}
+            <div class="step-content">
+              <p class="mat-body-1">
+                Review the folders and their content. Select which folders to
+                import.
+              </p>
+
+              <form [formGroup]="setupFormGroup!" class="setup-form">
+                <mat-accordion multi>
+                  @for(folder of kmlParserService.setupInfo?.folders; track
+                  $index) {
+                  <div class="folder-row d-flex align-items-center mb-2">
+                    <mat-checkbox
+                      class="flex-grow-1"
+                      [(ngModel)]="folder.import"
+                      [ngModelOptions]="{ standalone: true }"
+                    >
+                      {{ folder.name }} ({{ folder.spotCount }} spots)
+                    </mat-checkbox>
+
+                    <mat-form-field
+                      appearance="outline"
+                      subscriptSizing="dynamic"
+                      class="ml-3"
+                      style="width: 200px"
+                    >
+                      <mat-label>Type</mat-label>
+                      <mat-select [(value)]="folder.type">
+                        @for(type of SpotTypes | keyvalue; track type) {
+                        <mat-option [value]="type.value">
+                          <div class="d-flex align-items-center">
+                            <mat-icon class="mr-2">{{
+                              spotTypesIcons[type.value]
+                            }}</mat-icon>
+                            {{ spotTypesNames[type.value] }}
+                          </div>
                         </mat-option>
                         }
-                      </mat-autocomplete>
-                      <mat-icon
-                        matSuffix
-                        matTooltip="The language of the spot names"
-                        >help_outline</mat-icon
-                      >
+                      </mat-select>
                     </mat-form-field>
-                    }
-
-                    <div class="mt-2">
-                      <mat-slide-toggle
-                        #regexToggle
-                        color="accent"
-                        [checked]="false"
-                        (change)="setRegexEnabled($event.checked)"
-                        >RegEx for Spot name</mat-slide-toggle
-                      >
-
-                      <mat-form-field class="w-100 py-3" appearance="outline">
-                        <mat-label>Name RegEx</mat-label>
-                        <app-regex-input
-                          #regex
-                          formControlName="setupRegexCtrl"
-                          flagsString="gim"
-                          [disabledFlags]="true"
-                          [disabled]="!regexToggle.checked"
-                          [value]="{
-                            regularExpression: '([^-]*)$',
-                            expressionFlags: 'gim'
-                          }"
-                          (valueChange)="updateRegex($event)"
-                        ></app-regex-input>
-                        <mat-icon
-                          matSuffix
-                          matTooltip="You can provide a regular expression that will be applied to every imported spot name. The first capturing group will be used as the new spot name. Spot names that don't produce any matches will need to be checked by you on step 4. Visit https://regexr.com/ for help."
-                          >help_outline</mat-icon
-                        >
-                        @if(!regex?.errorState && !regex?.disabled) {
-                        <mat-hint
-                          >The first capturing group is used as the spot
-                          name.</mat-hint
-                        >
-                        } @if(regex?.errorState) {
-                        <mat-error>{{ regex.getErrorMessage() }}</mat-error>
-                        }
-                      </mat-form-field>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <h2 class="mat-h2">Folders to import</h2>
-                    @if(kmlParserService.setupInfo?.folders) {
-                    <span class="example-list-section">
-                      <ul class="checkbox-list">
-                        @for(folder of kmlParserService.setupInfo?.folders;
-                        track $index) {
-                        <li>
-                          @if(folder) {
-                          <mat-checkbox
-                            color="accent"
-                            [checked]="folder.import"
-                            (change)="folder.import = $event.checked"
-                          >
-                            {{ folder.name }} ({{ folder.spotCount }} Spots)
-                          </mat-checkbox>
-                          }
-                        </li>
-                        }
-                      </ul>
-                    </span>
-                    } @if( !kmlParserService.setupInfo?.folders ||
-                    (kmlParserService.setupInfo?.folders)!.length === 0 ) {
-                    <p class="mat-body">No folders in KML file.</p>
-                    }
                   </div>
                   }
-                </div>
-              </div>
+                </mat-accordion>
 
-              <div class="mt-3 d-flex flex-row justify-content-between">
-                <button mat-flat-button class="float-left" (click)="goBack()">
-                  Return to File Selection
-                </button>
+                <div class="setup-inputs mt-4">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Language</mat-label>
+                    <input
+                      type="text"
+                      matInput
+                      formControlName="setupLangCtrl"
+                      [matAutocomplete]="auto"
+                    />
+                    <mat-autocomplete
+                      #auto="matAutocomplete"
+                      [displayWith]="displayFn"
+                    >
+                      @for(lang of filteredLanguages | async; track lang) {
+                      <mat-option [value]="lang">
+                        <span>{{ languages[lang].emoji }} </span
+                        >{{ languages[lang].name_native }}
+                      </mat-option>
+                      }
+                    </mat-autocomplete>
+                    <mat-hint>Language of the imported spots</mat-hint>
+                  </mat-form-field>
+
+                  <mat-expansion-panel
+                    class="regex-panel mt-3"
+                    (opened)="setRegexEnabled(true)"
+                    (closed)="setRegexEnabled(false)"
+                  >
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        <mat-slide-toggle
+                          [checked]="regexEnabled"
+                          (click)="$event.stopPropagation()"
+                          (change)="setRegexEnabled($event.checked)"
+                        >
+                          Use Regex
+                        </mat-slide-toggle>
+                      </mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    <app-regex-input
+                      (valueChange)="updateRegex($any($event))"
+                    ></app-regex-input>
+                    <mat-hint
+                      >Advanced: Use Regex to extract spot names from the KML
+                      description or name field.</mat-hint
+                    >
+                  </mat-expansion-panel>
+                </div>
+              </form>
+
+              <div class="actions mt-3 d-flex justify-content-between">
+                <button mat-button matStepperPrevious>Back</button>
                 <button
                   mat-flat-button
-                  class="float-right"
-                  color="accent"
-                  [disabled]="setupFormGroup?.invalid || regex?.errorState"
+                  color="primary"
+                  [disabled]="setupFormGroup!.invalid"
                   (click)="continueToVerification()"
                 >
-                  Continue
+                  Next
                 </button>
               </div>
-            </form>
+            </div>
           </mat-step>
 
           <mat-step state="verify">
@@ -226,84 +188,70 @@
               @if(responsive.isDesktop()) {<span>Verify</span>
               }
             </ng-template>
-            <div class="container">
-              <div class="row">
-                <div class="col-md-5 verify-acc-col">
-                  <mat-accordion>
-                    <mat-expansion-panel class="mat-elevation-z0">
-                      <mat-expansion-panel-header>
-                        <mat-panel-title>
-                          Spots to be imported
-                        </mat-panel-title>
-                      </mat-expansion-panel-header>
-                      <div>
-                        @for(spot of kmlParserService.spotsToImport$ | async;
-                        track $index) {
-                        <button
-                          mat-flat-button
-                          class="text-truncate"
-                          (click)="selectedVerificationSpot = spot"
-                        >
-                          {{ spot.spot.name }}
-                        </button>
-                        }
+            <div class="step-content full-width">
+              <div class="verification-container row">
+                <div
+                  class="col-md-4 spots-list"
+                  style="max-height: 500px; overflow-y: auto"
+                >
+                  <h3 class="h5 mb-3">
+                    Spots to Import ({{ spotsToImport().length }})
+                  </h3>
+                  <div class="list-group">
+                    @for(spot of spotsToImport(); track spot; let i = $index) {
+                    <button
+                      mat-button
+                      class="list-group-item list-group-item-action"
+                      [class.active]="spot === selectedSpot()"
+                      (click)="selectedSpot.set(spot)"
+                    >
+                      <div class="d-flex align-items-center w-100">
+                        <mat-icon class="mr-3">{{
+                          spotTypesIcons[getSpotType(spot)]
+                        }}</mat-icon>
+                        <div class="text-truncate">
+                          <div class="spot-name font-weight-bold">
+                            {{ spot.spot.name }}
+                          </div>
+                          <small class="spot-folder text-muted">{{
+                            spot.folder
+                          }}</small>
+                        </div>
                       </div>
-                    </mat-expansion-panel>
-                    <mat-divider></mat-divider>
-                    <mat-expansion-panel class="mat-elevation-z0">
-                      <mat-expansion-panel-header>
-                        <mat-panel-title>Will not be imported</mat-panel-title>
-                      </mat-expansion-panel-header>
-                      <div>
-                        @for(spot of kmlParserService.spotsNotToImport$ | async;
-                        track $index) {
-                        <button
-                          mat-flat-button
-                          class="text-truncate"
-                          (click)="selectedVerificationSpot = spot"
-                        >
-                          {{ spot.spot.name }}
-                        </button>
-                        }
-                      </div>
-                    </mat-expansion-panel>
-                  </mat-accordion>
+                    </button>
+                    }
+                  </div>
                 </div>
-                <div class="col-md-7">
-                  @if(selectedVerificationSpot) {
-                  <div class="p-2">
-                    <h3 class="mat-h2">
-                      {{ selectedVerificationSpot.spot.name }}
-                    </h3>
-                    <p>Folder: {{ selectedVerificationSpot.folder }}</p>
-                    <div class="map-container">
+                <div class="col-md-8 map-preview">
+                  @if(selectedVerificationSpot()) {
+                  <div class="card h-100">
+                    <div class="card-body p-0 h-100 position-relative">
                       <app-spot-map
                         #spotMap
-                        id="spotMap"
-                        [markers]="
-                          getSpotMarkers(
-                            kmlParserService.spotsToImport$ | async
-                          )
-                        "
-                        [selectedMarker]="
-                          selectedVerificationSpot.spot.location
-                        "
-                        [isClickable]="false"
+                        [spots]="[]"
+                        [selectedSpot]="selectedVerificationSpot()"
+                        [isEditing]="true"
+                        [priorityMarkers]="getSpotMarkers(spotsToImport())"
+                        [boundRestriction]="importedSpotsBounds()"
+                        [polygons]="polygons()"
+                        class="w-100 h-100 d-block"
                       ></app-spot-map>
                     </div>
+                  </div>
+                  } @else {
+                  <div
+                    class="d-flex justify-content-center align-items-center h-100 bg-light"
+                  >
+                    <p class="text-muted">Select a spot to preview</p>
                   </div>
                   }
                 </div>
               </div>
-              <div class="pt-3 d-flex flex-row justify-content-between">
-                <button mat-button (click)="goBack()">Return to Setup</button>
-                <button
-                  mat-flat-button
-                  matStepperNext
-                  color="warn"
-                  (click)="importSpots()"
-                >
-                  Import Spots
+
+              <div class="actions mt-4 d-flex justify-content-between">
+                <button mat-button matStepperPrevious>Back</button>
+                <button mat-flat-button color="primary" (click)="importSpots()">
+                  Import {{ spotsToImport().length }} Spots
                 </button>
               </div>
             </div>
@@ -313,6 +261,12 @@
               @if(responsive.isDesktop()) {<span>Save</span>
               }
             </ng-template>
+            <div
+              class="d-flex flex-column justify-content-center align-items-center p-5"
+            >
+              <mat-spinner diameter="40"></mat-spinner>
+              <p class="mt-3">Importing spots...</p>
+            </div>
           </mat-step>
           <mat-step [editable]="false" state="done">
             <ng-template matStepLabel>
