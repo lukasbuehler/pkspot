@@ -57,6 +57,7 @@ import { firstValueFrom } from "rxjs";
 import { AnalyticsService } from "./services/analytics.service";
 import { ConsentService } from "./services/consent.service";
 import { Capacitor } from "@capacitor/core";
+import { BackHandlingService } from "./services/back-handling.service";
 
 interface ButtonBase {
   name: string;
@@ -138,6 +139,8 @@ export class AppComponent implements OnInit {
     }
     return this._storageService as StorageService;
   }
+
+  private _backHandlingService = inject(BackHandlingService);
 
   constructor(
     public router: Router,
@@ -299,6 +302,16 @@ export class AppComponent implements OnInit {
           StatusBar.setStyle({ style: Style.Dark });
         });
       }
+
+      // Listen for hardware back button
+      import("@capacitor/app").then(({ App }) => {
+        App.addListener("backButton", () => {
+          this._injector.get(NgZone).run(() => {
+            console.log("Hardware back button pressed");
+            this._backHandlingService.handleBack();
+          });
+        });
+      });
     }
 
     // structured data

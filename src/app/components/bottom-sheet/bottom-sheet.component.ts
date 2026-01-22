@@ -24,6 +24,52 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   @Output() openProgressChange = new EventEmitter<number>(); // 0 = bottom (closed), 1 = top (open)
 
   /**
+   * Toggles the sheet state between open and closed/peek.
+   */
+  public toggle() {
+    if (this.isOpen()) {
+      this.minimize();
+    } else {
+      this.maximize();
+    }
+  }
+
+  /**
+   * Maximizes the sheet to the top.
+   */
+  public maximize() {
+    if (!this.bottomSheet?.nativeElement) return;
+    this.animateToPosition(
+      this.bottomSheet.nativeElement,
+      this.currentOffset,
+      0,
+      this.getAlwaysVisible(this.bottomSheet.nativeElement)
+    );
+  }
+
+  /**
+   * Minimizes the sheet to the peek height.
+   */
+  public minimize() {
+    if (!this.bottomSheet?.nativeElement) return;
+    const alwaysVisible = this.getAlwaysVisible(this.bottomSheet.nativeElement);
+    this.animateToPosition(
+      this.bottomSheet.nativeElement,
+      this.currentOffset,
+      alwaysVisible,
+      alwaysVisible
+    );
+  }
+
+  public isOpen(): boolean {
+    // Considered open if more than halfway up
+    const sheetEl = this.bottomSheet?.nativeElement;
+    if (!sheetEl) return false;
+    const alwaysVisible = this.getAlwaysVisible(sheetEl);
+    return this.currentOffset < alwaysVisible / 2;
+  }
+
+  /**
    * Height of the visible portion when the sheet is closed.
    * This controls how much of the sheet "peeks" above the bottom.
    * Default: 140px
@@ -452,6 +498,34 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
     // Touch events - use native events with {passive: false} to enable preventDefault
     this.setupTouchHandling(sheetEl);
+
+    // Click on handle to toggle
+    if (this.handleRegion) {
+      this.addListener(this.handleRegion.nativeElement, "click", (event) => {
+        // Only toggle if we didn't just drag
+        if (this.activePointerId === null && this.activeTouchId === null) {
+          this.toggle();
+        }
+      });
+    }
+
+    // Click on content to expand if it's minimized (optional, maybe user only wants handle?)
+    // User requested: "make my actual custom bottom sheet i use slide up when a user presses on the handle or it when it's closed"
+    // So if it's closed (peeking), clicking the content should open it.
+    if (this.contentElement) {
+      this.addListener(this.contentElement, "click", (event) => {
+        // If closed and not dragging, open it.
+        if (
+          !this.isOpen() &&
+          this.activePointerId === null &&
+          this.activeTouchId === null
+        ) {
+          // Check if the click was on a button or interactive element, we might not want to hijack it?
+          // But since it's "closed", interacting with content is hard anyway.
+          this.maximize();
+        }
+      });
+    }
   }
 
   private setupTouchHandling(sheetEl: HTMLElement): void {

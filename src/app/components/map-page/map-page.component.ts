@@ -98,6 +98,7 @@ import {
   CustomFilterDialogComponent,
   CustomFilterParams,
 } from "../custom-filter-dialog/custom-filter-dialog.component";
+import { BackHandlingService } from "../../services/back-handling.service";
 
 @Component({
   selector: "app-map-page",
@@ -161,6 +162,7 @@ import {
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
+  @ViewChild(BottomSheetComponent) bottomSheet?: BottomSheetComponent;
 
   /** Signal to track when the map is ready for interaction */
   mapReady = signal<boolean>(false);
@@ -169,6 +171,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   responsiveService = inject(ResponsiveService);
   private ngZone = inject(NgZone);
   private _structuredDataService = inject(StructuredDataService);
+  private _backHandlingService = inject(BackHandlingService);
 
   searchResultSpots: WritableSignal<Spot[]> = signal([]);
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
@@ -573,6 +576,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (filterParam) {
       this.selectedFilter.set(filterParam);
     }
+
+    // Register back button handler
+    this._backHandlingService.addListener(10, this.handleBackPress);
   }
 
   async _getSpotIdFromSlugOrId(spotIdOrSlug: string): Promise<SpotId | null> {
@@ -1436,5 +1442,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     } catch (e) {
       console.warn("Error removing scroll listeners:", e);
     }
+    this._backHandlingService.removeListener(this.handleBackPress);
   }
+
+  handleBackPress = () => {
+    // High priority (10)
+
+    // 1. If Editing, stop editing
+    if (this.isEditing()) {
+      this.spotMap?.discardEdit();
+      return true;
+    }
+
+    // 2. If Bottom Sheet is open, close/minimize it
+    if (this.bottomSheet && this.bottomSheet.isOpen()) {
+      this.bottomSheet.minimize();
+      return true;
+    }
+
+    // 3. If Spot is selected, close it?
+    // User currently relies on URL back, so we return false to let default (BackHandlingService) handle it
+    // which triggers Location.back().
+
+    return false;
+  };
 }
