@@ -33,7 +33,8 @@ export class StorageService {
     location: StorageBucket,
     progressCallback?: (progressPercent: number) => void,
     filename?: string,
-    fileEnding?: string
+    fileEnding?: string,
+    cacheControl?: string
   ): Promise<string> {
     if (!this.isBrowser) {
       return Promise.reject(
@@ -79,6 +80,7 @@ export class StorageService {
       metadata: {
         uid: uid,
         contentType: contentType || undefined,
+        cacheControl: cacheControl,
       },
       onProgress: progressCallback,
     });

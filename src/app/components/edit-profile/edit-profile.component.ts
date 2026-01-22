@@ -48,6 +48,7 @@ import {
 } from "@angular/material/datepicker";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
+import { StorageImage } from "../../../db/models/Media";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 
 @Component({
@@ -99,7 +100,9 @@ export class EditProfileComponent implements OnInit {
   newProfilePictureSrc: string = "";
   croppedProfilePicture: string = "";
   croppingComplete: boolean = false;
-  isUpdatingProfilePicture: boolean = false;
+  tempProfilePictureSrc: string = ""; // Temporary storage for immediate UI update after upload
+  isProfilePictureLoaded: boolean = true;
+  hasProfilePictureError: boolean = false;
 
   // Country Autocomplete
   countries = countries;
@@ -284,55 +287,79 @@ export class EditProfileComponent implements OnInit {
       });
   }
 
-  private _handleProfilePictureUploadAndSave(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (this.user && this.user.uid && this.newProfilePicture) {
-        const userId = this.user.uid;
-        this.isUpdatingProfilePicture = true;
+  private async _handleProfilePictureUploadAndSave(): Promise<void> {
+    if (!this.user || !this.user.uid || !this.newProfilePicture) {
+      throw new Error("Missing user ID or profile picture");
+    }
 
-        // Upload new profile picture with userid as filename
-        // Since we generate token-free public URLs, replacing the file keeps the same URL format
-        this._storageService
-          .setUploadToStorage(
-            this.newProfilePicture,
-            StorageBucket.ProfilePictures,
-            undefined,
-            userId,
-            "png"
-          )
-          .then(() => {
-            // Use predictable token-free URL from ProfilePictureHelper
-            const profilePictureUrl = getProfilePictureUrl(userId);
-            // Update user document with new profile picture URL
-            return this._userService.updateUser(userId, {
-              profile_picture: profilePictureUrl,
-            });
-          })
-          .then(() => {
-            this.isUpdatingProfilePicture = false;
-            this.newProfilePicture = null;
-            // Refresh user data with new profile picture
-            if (this.user?.data?.profile_picture) {
-              this.user.setProfilePicture(this.user.data.profile_picture);
-            }
-            this.croppedProfilePicture = "";
-            this.newProfilePictureSrc = "";
-            this.croppingComplete = false;
-            resolve();
-          })
-          .catch((err) => {
-            console.error("Error uploading or saving profile picture:", err);
-            this.isUpdatingProfilePicture = false;
-            reject(
-              err instanceof Error
-                ? err.message
-                : "Error uploading the profile picture!"
-            );
-          });
-      } else {
-        reject("Missing user ID or profile picture");
+    const userId = this.user.uid;
+    this.isUpdatingProfilePicture = true;
+
+    try {
+      // 1. Delete existing profile picture and all resized versions
+      // This is crucial to prevent race conditions with the resize extension
+      // that can occur if we overwrite files while they are being processed.
+      const filesToDelete = [
+        // Delete potentially existing files with .png extension (cleanup)
+        `${StorageBucket.ProfilePictures}/${userId}.png`,
+        ...StorageImage.SIZES.map(
+          (size) =>
+            `${StorageBucket.ProfilePictures}/${userId}_${size}x${size}.png`
+        ),
+        // Delete files without extension (correct format)
+        `${StorageBucket.ProfilePictures}/${userId}`,
+        ...StorageImage.SIZES.map(
+          (size) => `${StorageBucket.ProfilePictures}/${userId}_${size}x${size}`
+        ),
+      ];
+
+      await Promise.all(
+        filesToDelete.map((path) =>
+          this._storageService
+            .deleteFromStorage(path)
+            .catch((e) => console.warn(`Ignored delete error for ${path}:`, e))
+        )
+      );
+      // Successfully deleted the old profile picture
+
+      // 2. Upload new profile picture
+      // Since we generate token-free public URLs, replacing the file keeps the same URL format
+      await this._storageService.setUploadToStorage(
+        this.newProfilePicture,
+        StorageBucket.ProfilePictures,
+        undefined,
+        userId,
+        undefined
+      );
+
+      // 3. Update user document
+      // Use predictable token-free URL from ProfilePictureHelper
+      const profilePictureUrl = getProfilePictureUrl(userId);
+      await this._userService.updateUser(userId, {
+        profile_picture: profilePictureUrl,
+      });
+
+      // 4. Update local state
+      this.isUpdatingProfilePicture = false;
+      this.newProfilePicture = null;
+      // Refresh user data with new profile picture
+      if (this.user?.data?.profile_picture) {
+        this.user.setProfilePicture(this.user.data.profile_picture);
       }
-    });
+
+      // Use the cropped data URL as a temporary display to avoid broken image during resize
+      this.tempProfilePictureSrc = this.croppedProfilePicture;
+
+      this.croppedProfilePicture = "";
+      this.newProfilePictureSrc = "";
+      this.croppingComplete = false;
+    } catch (err) {
+      console.error("Error uploading or saving profile picture:", err);
+      this.isUpdatingProfilePicture = false;
+      throw err instanceof Error
+        ? err.message
+        : "Error uploading the profile picture!";
+    }
   }
 
   onSpotSelected(selection: { type: "place" | "spot"; id: string }) {
@@ -384,7 +411,6 @@ export class EditProfileComponent implements OnInit {
 
     if (
       this.displayName !== this.user?.displayName ||
-      this.newProfilePicture ||
       this.startDate !== this.user?.startDate ||
       this.biography !== this.user?.biography ||
       this.nationalityCode !== (this.user?.nationalityCode ?? null) ||

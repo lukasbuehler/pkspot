@@ -28,7 +28,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "deploy:rules:firestore": "npx firebase deploy --only firestore:rules",
-    "deploy:rules:storage": "npx firebase deploy --only storage:rules",
+    "deploy:rules:storage": "npx firebase deploy --only storage",
     "deploy:test:rules": "npx firebase use test && npx firebase deploy --only firestore:rules",
     "deploy:prod:rules": "npx firebase use prod && npx firebase deploy --only firestore:rules",
     "deploy:functions": "cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",

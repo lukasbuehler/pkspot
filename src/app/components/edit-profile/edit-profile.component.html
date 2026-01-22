@@ -18,8 +18,30 @@
     class="rounded border p-3 mt-3 mb-4 d-flex flex-column align-items-center"
   >
     @if (user.profilePicture && !croppedProfilePicture) {
-    <div class="text-center">
-      <img class="profile-picture" [src]="user.profilePicture.getSrc(200)" />
+    <div class="text-center position-relative">
+      <div class="d-inline-block position-relative">
+        <img
+          class="profile-picture"
+          [src]="tempProfilePictureSrc || user.profilePicture.getSrc(200)"
+          (error)="hasProfilePictureError = true; isProfilePictureLoaded = true"
+          (load)="isProfilePictureLoaded = true; hasProfilePictureError = false"
+          [style.opacity]="
+            isProfilePictureLoaded && !hasProfilePictureError ? 1 : 0.5
+          "
+          priority
+        />
+        @if (!isProfilePictureLoaded) {
+        <div class="position-absolute top-50 start-50 translate-middle">
+          <mat-spinner diameter="40" color="accent"></mat-spinner>
+        </div>
+        } @if (hasProfilePictureError) {
+        <div class="position-absolute top-50 start-50 translate-middle">
+          <mat-icon class="text-muted" style="transform: scale(2)"
+            >image_not_supported</mat-icon
+          >
+        </div>
+        }
+      </div>
       <h5
         class="mat-body mt-3 mb-4"
         i18n="

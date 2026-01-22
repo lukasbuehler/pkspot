@@ -228,7 +228,11 @@ export class StorageVideo extends StorageMedia {
  * To retrieve the correct sources for this, use this class/instance.
  */
 export class StorageImage extends StorageMedia {
-  readonly sizes = [200, 400, 800];
+  static readonly SIZES = [200, 400, 800];
+
+  get sizes() {
+    return StorageImage.SIZES;
+  }
 
   /**
    * Tracks whether the resized versions of this image are still being processed.
