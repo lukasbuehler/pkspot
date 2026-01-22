@@ -141,8 +141,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ionic-team/ion-ios-filesystem.git",
       "state" : {
-        "revision" : "dd9052cfb55b70771d04deb427f94e19ea31c372",
-        "version" : "1.0.1"
+        "revision" : "a1a664318a7dae56d3f4756172365b5312f0292a",
+        "version" : "1.1.0"
       }
     },
     {
@@ -170,6 +170,15 @@
       "state" : {
         "revision" : "b7e1104502eca3a213b46303391ca4d3bc8ddec1",
         "version" : "2.30910.0"
+      }
+    },
+    {
+      "identity" : "posthog-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PostHog/posthog-ios.git",
+      "state" : {
+        "revision" : "6d1186fe0471f76d9b87b83e96bcb8ff5db72732",
+        "version" : "3.37.2"
       }
     },
     {
