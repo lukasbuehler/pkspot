@@ -34,6 +34,7 @@ import { LocaleCode } from "../../../../db/models/Interfaces";
 import {
   transformFirestoreData,
   cleanDataForFirestore,
+  parseFirestoreGeoPoint,
 } from "../../../../scripts/Helpers";
 import { GeoPoint } from "firebase/firestore";
 import { StorageService } from "../storage.service";
@@ -320,11 +321,12 @@ export class SpotsService extends ConsentAwareService {
           // Normalize dots
           if (tileData.dots) {
             tileData.dots.forEach((dot) => {
-              if (!dot.location && dot.location_raw) {
-                dot.location = new GeoPoint(
-                  dot.location_raw.lat,
-                  dot.location_raw.lng
-                );
+              const parsed = parseFirestoreGeoPoint(
+                dot.location,
+                dot.location_raw
+              );
+              if (parsed) {
+                dot.location = parsed;
               }
             });
           }
@@ -332,11 +334,12 @@ export class SpotsService extends ConsentAwareService {
           // Normalize highlighted spots
           if (tileData.spots) {
             tileData.spots.forEach((spot) => {
-              if (!spot.location && spot.location_raw) {
-                spot.location = new GeoPoint(
-                  spot.location_raw.lat,
-                  spot.location_raw.lng
-                );
+              const parsed = parseFirestoreGeoPoint(
+                spot.location,
+                spot.location_raw
+              );
+              if (parsed) {
+                spot.location = parsed;
               }
             });
           }

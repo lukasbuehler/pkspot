@@ -1,4 +1,5 @@
 import { MediaType } from "../db/models/Interfaces";
+import { GeoPoint } from "firebase/firestore";
 import {
   AnyMedia,
   ExternalImage,
@@ -425,4 +426,66 @@ export function createUserReference(user: User): UserReferenceSchema {
   }
 
   return reference;
+}
+
+/**
+ * Parse a Firestore GeoPoint from various formats.
+ * Handles:
+ * - GeoPoint objects
+ * - String representations like "GeoPoint { latitude=..., longitude=... }" (Capacitor quirk)
+ * - Plain objects with lat/lng or latitude/longitude
+ * - location_raw fallback
+ *
+ * @param location - The location object/string to parse
+ * @param location_raw - Optional raw location fallback
+ * @returns A valid GeoPoint or undefined if parsing fails
+ */
+export function parseFirestoreGeoPoint(
+  location: any,
+  location_raw?: { lat: number; lng: number }
+): GeoPoint | undefined {
+  // 1. Check if it's already a valid GeoPoint-like object (has strict numbers)
+  if (
+    location &&
+    typeof location === "object" &&
+    typeof location.latitude === "number" &&
+    typeof location.longitude === "number"
+  ) {
+    // It might be a plain object or a real GeoPoint, but we want a real GeoPoint instance
+    // If it's already an instance, new GeoPoint(...) is cheap enough or we could check instanceof
+    return new GeoPoint(location.latitude, location.longitude);
+  }
+
+  // 1b. Check specific _latitude/_longitude format (internal Firestore) if accessible
+  if (
+    location &&
+    typeof location === "object" &&
+    typeof location._latitude === "number" &&
+    typeof location._longitude === "number"
+  ) {
+    return new GeoPoint(location._latitude, location._longitude);
+  }
+
+  // 2. Handle stringified GeoPoint (Capacitor native quirk)
+  if (typeof location === "string") {
+    const match = location.match(/latitude=([-\d.]+).*longitude=([-\d.]+)/);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        return new GeoPoint(lat, lng);
+      }
+    }
+  }
+
+  // 3. Fallback to location_raw
+  if (
+    location_raw &&
+    typeof location_raw.lat === "number" &&
+    typeof location_raw.lng === "number"
+  ) {
+    return new GeoPoint(location_raw.lat, location_raw.lng);
+  }
+
+  return undefined;
 }

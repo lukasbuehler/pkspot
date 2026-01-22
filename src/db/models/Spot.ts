@@ -29,7 +29,10 @@ import {
 } from "./Media";
 import { MediaSchema } from "../schemas/Media";
 import { ChallengePreviewSchema } from "../schemas/SpotChallengeSchema";
-import { makeAnyMediaFromMediaSchema } from "../../scripts/Helpers";
+import {
+  makeAnyMediaFromMediaSchema,
+  parseFirestoreGeoPoint,
+} from "../../scripts/Helpers";
 import { MapsApiService } from "../../app/services/maps-api.service";
 import { SpotChallengePreview } from "./SpotChallenge";
 import {
@@ -312,10 +315,15 @@ export class LocalSpot {
           media: signal(media),
         };
         if (data.location) {
-          newData.location = {
-            lat: data.location.latitude,
-            lng: data.location.longitude,
-          };
+          const parsedLocation = parseFirestoreGeoPoint(data.location);
+          if (parsedLocation) {
+            newData.location = {
+              lat: parsedLocation.latitude,
+              lng: parsedLocation.longitude,
+            };
+          } else {
+            newData.location = this.location();
+          }
         } else {
           newData.location = this.location();
         }
@@ -453,10 +461,15 @@ export class LocalSpot {
           media: signal(media),
         };
         if (d.location) {
-          newData.location = {
-            lat: d.location.latitude,
-            lng: d.location.longitude,
-          };
+          const parsedLocation = parseFirestoreGeoPoint(d.location);
+          if (parsedLocation) {
+            newData.location = {
+              lat: parsedLocation.latitude,
+              lng: parsedLocation.longitude,
+            };
+          } else {
+            newData.location = newLocation;
+          }
         } else {
           newData.location = newLocation;
         }
