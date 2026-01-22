@@ -53,7 +53,13 @@
   </mat-card>
 </a>
 @if(websiteUrl()) {
-<a [href]="websiteUrl()!" matButton="outlined">
+<a
+  [href]="websiteUrl()!"
+  matButton="outlined"
+  i18n="
+    Website button label|Label of the button to open the website of the spot
+  "
+>
   <mat-icon>language</mat-icon>
   Website
 </a>
