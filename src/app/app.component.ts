@@ -840,6 +840,13 @@ export class AppComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((localeCode) => {
       if (localeCode) {
+        // save the new language preference
+        try {
+          localStorage.setItem("language", localeCode);
+        } catch (e) {
+          console.error("Could not save language preference", e);
+        }
+
         // set the new language
         segments[1] = localeCode;
         url.pathname = segments.join("/");

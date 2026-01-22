@@ -112,11 +112,40 @@ const redirectionScript = `
     </style>
     <script>
         function redirect() {
-            var lang = navigator.language || navigator.userLanguage;
-            var supportedLangs = ['en', 'de', 'it', 'fr', 'es', 'nl']; // de-CH is handled via de usually or explicit check
-            
-            // Simple mapping logic
+            var supportedLangs = ['en', 'de', 'de-CH', 'it', 'fr', 'es', 'nl'];
             var targetLang = 'en';
+
+            try {
+                // Check if we have a saved language preference
+                var savedLang = localStorage.getItem('language');
+                if (savedLang) {
+                    // Validate that the saved language is one we support
+                    if (supportedLangs.includes(savedLang) || savedLang === 'de-CH') {
+                        // Special check for de-CH if it's supported
+                        targetLang = savedLang;
+                    } else if (savedLang.startsWith('de')) {
+                        targetLang = 'de';
+                    } else {
+                         // Check if the short code is supported
+                         var shortSaved = savedLang.split('-')[0];
+                         if (supportedLangs.includes(shortSaved)) {
+                             targetLang = shortSaved;
+                         }
+                    }
+                    
+                    // If we found a valid saved language, use it
+                    if (targetLang === savedLang || targetLang === savedLang.split('-')[0]) {
+                        console.log("Redirecting to saved language: " + targetLang);
+                        window.location.replace('./' + targetLang + '/index.html');
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error("Error reading language preference", e);
+            }
+
+            // Fallback to browser language
+            var lang = navigator.language || navigator.userLanguage;
             
             if (lang.startsWith('de')) {
                 // Check specific regions if needed, else default to de
