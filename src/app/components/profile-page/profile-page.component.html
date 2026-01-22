@@ -31,17 +31,19 @@
     <section class="profile-primary" aria-label="Profile overview">
       <mat-card class="profile-overview__card mat-elevation-z1">
         <mat-card-content>
-          <div class="profile-overview__content">
+          <div class="profile-overview__content position-relative">
             @if (profilePicture) {
-            <img
-              class="profile-overview__avatar"
-              [src]="profilePicture"
-              [alt]="
-                user.displayName
-                  ? user.displayName + ' profile picture'
-                  : 'Profile picture'
-              "
-            />
+            <div class="profile-overview__avatar">
+              <img
+                [ngSrc]="profilePicture"
+                [alt]="
+                  user.displayName
+                    ? user.displayName + ' profile picture'
+                    : 'Profile picture'
+                "
+                fill
+              />
+            </div>
             } @else {
             <div
               class="profile-overview__avatar profile-overview__avatar--placeholder mat-display-small flex-shrink-0"

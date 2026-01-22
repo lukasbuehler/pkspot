@@ -88,6 +88,9 @@ export class AuthenticationService extends ConsentAwareService {
   // Guard against concurrent email sign-in attempts
   private _isSigningInWithEmail = false;
 
+  // Local override for profile picture to prevent flickering/reversion during session
+  public overrideProfilePicture: any | null = null;
+
   // Google Web Client ID for OAuth fallback (Chrome Custom Tabs)
   private readonly GOOGLE_WEB_CLIENT_ID =
     "294969617102-fuif26sghnbtrpecffne0909a4ders0e.apps.googleusercontent.com";
@@ -341,6 +344,11 @@ export class AuthenticationService extends ConsentAwareService {
       this._userService.getUserById(uid).subscribe(
         (_user) => {
           if (_user) {
+            // Apply local override for profile picture if set (prevents flicker/reversion to remote URL)
+            if (this.overrideProfilePicture) {
+              _user.profilePicture = this.overrideProfilePicture;
+            }
+
             this.user.data = _user;
 
             if (sendUpdate) {

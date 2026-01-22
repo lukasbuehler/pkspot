@@ -1,13 +1,13 @@
 import { humanTimeSince, parseFirestoreTimestamp } from "../../scripts/Helpers";
 import { UserSchema, UserSettingsSchema } from "../schemas/UserSchema";
-import { StorageImage } from "./Media";
+import { StorageImage, ImageMedia } from "./Media";
 
 export class User {
   public uid: string;
   public displayName: string = "";
   public biography: string = "";
   public homeSpots: string[] = [];
-  public profilePicture: StorageImage | null = null;
+  public profilePicture: ImageMedia | null = null;
   public startTimeDiffString: string | null = null;
   public startDate: Date | null = null;
   public followerCount: number = 0;

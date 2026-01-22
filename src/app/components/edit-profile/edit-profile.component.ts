@@ -48,7 +48,7 @@ import {
 } from "@angular/material/datepicker";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
-import { StorageImage } from "../../../db/models/Media";
+import { StorageImage, ExternalImage } from "../../../db/models/Media";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 
 @Component({
@@ -100,6 +100,7 @@ export class EditProfileComponent implements OnInit {
   newProfilePictureSrc: string = "";
   croppedProfilePicture: string = "";
   croppingComplete: boolean = false;
+  isUpdatingProfilePicture: boolean = false;
   tempProfilePictureSrc: string = ""; // Temporary storage for immediate UI update after upload
   isProfilePictureLoaded: boolean = true;
   hasProfilePictureError: boolean = false;
@@ -238,19 +239,31 @@ export class EditProfileComponent implements OnInit {
    * Handle the cropped image blob from the CropImageComponent
    */
   onImageCropped(croppedBlob: Blob) {
-    // Convert the blob to a data URL for preview
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      this.croppedProfilePicture = event.target!.result as string;
-      this.croppingComplete = true;
-    };
-    reader.readAsDataURL(croppedBlob);
+    console.log("Image cropped, starting auto-save...");
 
-    // Store the blob for upload
+    // 1. Store the blob for upload
     this.newProfilePicture = new File([croppedBlob], "profile-picture.png", {
       type: "image/png",
     });
 
+    // 2. Set temp source immediately using Object URL
+    if (
+      this.tempProfilePictureSrc &&
+      this.tempProfilePictureSrc.startsWith("blob:")
+    ) {
+      URL.revokeObjectURL(this.tempProfilePictureSrc);
+    }
+    this.tempProfilePictureSrc = URL.createObjectURL(croppedBlob);
+
+    // 3. Update state
+    this.isProfilePictureLoaded = true;
+    this.hasProfilePictureError = false;
+    this.croppingComplete = true;
+
+    // 4. Trigger upload
+    this.saveNewProfilePicture();
+
+    // 5. Ensure detectIfChanges doesn't block anything (it shouldn't, as we auto-save)
     this.detectIfChanges();
   }
 
@@ -268,6 +281,7 @@ export class EditProfileComponent implements OnInit {
   saveNewProfilePicture() {
     this._handleProfilePictureUploadAndSave()
       .then(() => {
+        console.log("saveNewProfilePicture success");
         this._snackbar.open(
           "Successfully saved new profile picture",
           "Dismiss",
@@ -297,15 +311,7 @@ export class EditProfileComponent implements OnInit {
 
     try {
       // 1. Delete existing profile picture and all resized versions
-      // This is crucial to prevent race conditions with the resize extension
-      // that can occur if we overwrite files while they are being processed.
       const filesToDelete = [
-        // Delete potentially existing files with .png extension (cleanup)
-        `${StorageBucket.ProfilePictures}/${userId}.png`,
-        ...StorageImage.SIZES.map(
-          (size) =>
-            `${StorageBucket.ProfilePictures}/${userId}_${size}x${size}.png`
-        ),
         // Delete files without extension (correct format)
         `${StorageBucket.ProfilePictures}/${userId}`,
         ...StorageImage.SIZES.map(
@@ -333,8 +339,9 @@ export class EditProfileComponent implements OnInit {
       );
 
       // 3. Update user document
-      // Use predictable token-free URL from ProfilePictureHelper
+      // Use predictable token-free URL from ProfilePictureHelper (no query params)
       const profilePictureUrl = getProfilePictureUrl(userId);
+
       await this._userService.updateUser(userId, {
         profile_picture: profilePictureUrl,
       });
@@ -342,13 +349,32 @@ export class EditProfileComponent implements OnInit {
       // 4. Update local state
       this.isUpdatingProfilePicture = false;
       this.newProfilePicture = null;
+
       // Refresh user data with new profile picture
-      if (this.user?.data?.profile_picture) {
-        this.user.setProfilePicture(this.user.data.profile_picture);
+      if (this.user?.data) {
+        // Update the data object reference with the new URL string
+        this.user.data.profile_picture = profilePictureUrl;
+
+        if (this.tempProfilePictureSrc) {
+          // Use ExternalImage with the local data URL for immediate, reliable update across the app (Nav Bar)
+          // AND set it as an override in AuthService so it persists through Firestore updates
+          const override = new ExternalImage(this.tempProfilePictureSrc);
+          this.authService.overrideProfilePicture = override;
+          this.user.profilePicture = override;
+        } else {
+          this.user.setProfilePicture(profilePictureUrl);
+        }
+
+        // Notify subscribers (like the Nav Bar) that the user data has changed
+        this.authService.authState$.next(this.authService.user);
       }
 
       // Use the cropped data URL as a temporary display to avoid broken image during resize
-      this.tempProfilePictureSrc = this.croppedProfilePicture;
+      if (this.croppedProfilePicture) {
+        this.tempProfilePictureSrc = this.croppedProfilePicture;
+        this.hasProfilePictureError = false;
+        this.isProfilePictureLoaded = true;
+      }
 
       this.croppedProfilePicture = "";
       this.newProfilePictureSrc = "";

@@ -11,13 +11,9 @@
   } @else {
   <!-- Normal mode: show upload and current picture -->
   <div
-    matBadge="&#8288;"
-    matBadgeColor="accent"
-    [matBadgeHidden]="!croppedProfilePicture"
-    matBadgeSize="small"
     class="rounded border p-3 mt-3 mb-4 d-flex flex-column align-items-center"
   >
-    @if (user.profilePicture && !croppedProfilePicture) {
+    @if (user.profilePicture) {
     <div class="text-center position-relative">
       <div class="d-inline-block position-relative">
         <img
@@ -26,15 +22,20 @@
           (error)="hasProfilePictureError = true; isProfilePictureLoaded = true"
           (load)="isProfilePictureLoaded = true; hasProfilePictureError = false"
           [style.opacity]="
-            isProfilePictureLoaded && !hasProfilePictureError ? 1 : 0.5
+            isProfilePictureLoaded && !hasProfilePictureError ? 1 : 0
           "
           priority
         />
-        @if (!isProfilePictureLoaded) {
-        <div class="position-absolute top-50 start-50 translate-middle">
+
+        <!-- Loading / Saving Overlay -->
+        @if (!isProfilePictureLoaded || isUpdatingProfilePicture) {
+        <div
+          class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style="background: rgba(0, 0, 0, 0.3); border-radius: 50%"
+        >
           <mat-spinner diameter="40" color="accent"></mat-spinner>
         </div>
-        } @if (hasProfilePictureError) {
+        } @if (hasProfilePictureError && !isUpdatingProfilePicture) {
         <div class="position-absolute top-50 start-50 translate-middle">
           <mat-icon class="text-muted" style="transform: scale(2)"
             >image_not_supported</mat-icon
@@ -51,24 +52,6 @@
         Your current profile picture
       </h5>
     </div>
-    } @if (croppedProfilePicture) {
-    <div class="text-center">
-      <img class="profile-picture" [src]="croppedProfilePicture" />
-      <h5
-        class="mat-body mt-3 mb-2"
-        i18n="
-          cropped profile picture|Label for cropped profile
-          picture@@editProfile.croppedPicture"
-      >
-        Your cropped profile picture
-      </h5>
-      <p
-        class="mat-caption text-muted"
-        i18n="ready to upload|Status message@@editProfile.readyToUpload"
-      >
-        Ready to upload
-      </p>
-    </div>
     }
     <div class="w-100">
       <input
@@ -82,6 +65,7 @@
         mat-stroked-button
         class="w-100"
         (click)="profilePictureInput.click()"
+        [disabled]="isUpdatingProfilePicture"
         i18n="
           select profile picture button|Button to select profile
           picture@@editProfile.selectPicture"
@@ -90,20 +74,6 @@
         Select Profile Picture
       </button>
     </div>
-    @if (croppedProfilePicture) {
-    <button
-      mat-flat-button
-      color="accent"
-      class="mt-3 w-100"
-      (click)="saveNewProfilePicture()"
-      [disabled]="isUpdatingProfilePicture"
-      i18n="
-        upload and save button|Button to upload and save profile
-        picture@@editProfile.uploadAndSave"
-    >
-      Upload and save
-    </button>
-    }
   </div>
   }
 
