@@ -79,7 +79,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   selectedChallenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
 
   isEditing = model<boolean>(false);
-  mapStyle = model<"roadmap" | "satellite" | null>(null);
+  mapStyle = model<"roadmap" | "satellite" | "hybrid" | "terrain" | null>(null);
   markers = input<MarkerSchema[]>([]);
   polygons = input<PolygonSchema[]>([]);
   selectedMarker = input<google.maps.LatLngLiteral | null>(null);
@@ -278,7 +278,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (this.mapStyle() === null) {
       this.mapsAPIService
         .loadMapStyle("roadmap")
-        .then((style: "satellite" | "roadmap") => {
+        .then((style: "satellite" | "roadmap" | "hybrid" | "terrain") => {
           if (style) {
             this.mapStyle.set(style);
           }
@@ -593,17 +593,22 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   toggleMapStyle() {
-    let newMapStyle: "roadmap" | "satellite" = "roadmap";
-    if (this.mapStyle() === "roadmap") {
-      // if it is equal to roadmap, toggle to satellite
-      newMapStyle = "satellite";
+    let newMapStyle: "roadmap" | "satellite" | "hybrid" | "terrain" = "roadmap";
+    const mapStylesToCycleThrough = ["roadmap", "hybrid"];
 
-      // this.setLightMode();
-    } else {
-      // otherwise toggle back to roadmap
-      newMapStyle = "roadmap";
-      // this.setDarkMode();
-    }
+    const currentMapStyle = this.mapStyle();
+
+    // cycle through the map styles
+    const currentIndex = mapStylesToCycleThrough.indexOf(
+      currentMapStyle as string
+    );
+    const nextIndex = (currentIndex + 1) % mapStylesToCycleThrough.length;
+    newMapStyle = mapStylesToCycleThrough[nextIndex] as
+      | "roadmap"
+      | "hybrid"
+      | "satellite"
+      | "terrain";
+
     this.mapStyle.set(newMapStyle);
 
     // store the new map style in the browser memory

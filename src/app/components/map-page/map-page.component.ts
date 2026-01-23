@@ -181,7 +181,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   showSpotEditHistory: WritableSignal<boolean> = signal(false);
 
   isEditing: WritableSignal<boolean> = signal(false);
-  mapStyle: "roadmap" | "satellite" | null = null;
+  mapStyle: "roadmap" | "satellite" | "hybrid" | "terrain" | null = null;
   selectedChallenge: WritableSignal<SpotChallenge | LocalSpotChallenge | null> =
     signal(null);
 

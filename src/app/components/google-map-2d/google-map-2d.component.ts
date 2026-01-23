@@ -315,7 +315,7 @@ export class GoogleMap2dComponent
    */
   @Input() bottomSheetOffset: boolean = false;
 
-  mapStyle = input<"roadmap" | "satellite">("roadmap");
+  mapStyle = input<"roadmap" | "satellite" | "hybrid" | "terrain">("roadmap");
   polygons = input<PolygonSchema[]>([]);
 
   // defaultMarkerCollisionBehavior: google.maps.CollisionBehavior =
@@ -332,6 +332,10 @@ export class GoogleMap2dComponent
         return google.maps.MapTypeId.ROADMAP;
       case "satellite":
         return google.maps.MapTypeId.SATELLITE;
+      case "hybrid":
+        return google.maps.MapTypeId.HYBRID;
+      case "terrain":
+        return google.maps.MapTypeId.TERRAIN;
       default:
         return google.maps.MapTypeId.ROADMAP;
     }
@@ -545,7 +549,8 @@ export class GoogleMap2dComponent
   resolvedDarkMode = computed<boolean>(() => {
     const explicit = this.isDarkMode();
     if (typeof explicit === "boolean") return explicit;
-    return this.theme.isDark(this.mapStyle());
+    const mapStyle = this.mapStyle();
+    return this.theme.isDark(mapStyle);
   });
 
   // Build heatmap data from dots with weighted lat/lng

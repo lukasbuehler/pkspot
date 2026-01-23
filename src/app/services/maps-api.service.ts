@@ -114,15 +114,15 @@ export class MapsApiService extends ConsentAwareService {
     return Promise.resolve(JSON.parse(lastLocationAndZoom));
   }
 
-  storeMapStyle(mapStyle: "roadmap" | "satellite") {
+  storeMapStyle(mapStyle: "roadmap" | "satellite" | "hybrid" | "terrain") {
     if (typeof localStorage === "undefined") return;
 
     localStorage.setItem("mapStyle", mapStyle);
   }
 
   loadMapStyle(
-    defaultStyle: "roadmap" | "satellite"
-  ): Promise<"roadmap" | "satellite"> {
+    defaultStyle: "roadmap" | "satellite" | "hybrid" | "terrain"
+  ): Promise<"roadmap" | "satellite" | "hybrid" | "terrain"> {
     if (typeof localStorage === "undefined")
       return Promise.resolve(defaultStyle);
 
