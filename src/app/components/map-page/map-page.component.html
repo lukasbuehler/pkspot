@@ -129,7 +129,6 @@
     [minZoom]="2"
     (visibleSpotsChange)="setVisibleSpots($event)"
     (hightlightedSpotsChange)="highlightedSpots = $event"
-    (hasGeolocationChange)="askedGeoPermission = true; hasGeolocation = $event"
     (filterBoundsChange)="onFilterBoundsChange($event)"
     [bottomSheetOffset]="true"
   ></app-spot-map>
@@ -195,15 +194,17 @@
       matTooltipPosition="left"
       matTooltipShowDelay="500"
     >
+      @if(spotMap.geolocationLoading()) {
+      <mat-progress-spinner
+        mode="indeterminate"
+        diameter="20"
+        color="accent"
+      ></mat-progress-spinner>
+      } @else {
       <mat-icon>
-        {{
-          askedGeoPermission
-            ? hasGeolocation
-              ? "my_location"
-              : "location_disabled"
-            : "location_searching"
-        }}
+        {{ geolocationIcon() }}
       </mat-icon>
+      }
     </button>
 
     @if(spotMap.headingIsNotNorth()) {

@@ -59,17 +59,24 @@ import {
 } from "../../../db/models/SpotChallenge";
 import { AnyMedia } from "../../../db/models/Media";
 
+import { GeolocationService } from "../../services/geolocation.service";
+
 @Component({
   selector: "app-spot-map",
   templateUrl: "./spot-map.component.html",
   styleUrls: ["./spot-map.component.scss"],
-  imports: [GoogleMap2dComponent, MatSnackBarModule],
+  imports: [GoogleMap2dComponent, MatSnackBarModule, AsyncPipe],
+  standalone: true,
   animations: [],
 })
 export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @ViewChild("map") map: GoogleMap2dComponent | undefined;
 
   osmDataService = inject(OsmDataService);
+
+  geolocationService = inject(GeolocationService);
+  geolocationLoading = this.geolocationService.loading;
+
   mapsApiService = inject(MapsApiService);
 
   private _router = inject(Router);
@@ -190,7 +197,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     private authService: AuthenticationService,
     private mapsAPIService: MapsApiService,
     private snackBar: MatSnackBar,
-    private cd: ChangeDetectorRef // <-- Inject ChangeDetectorRef
+    private cd: ChangeDetectorRef
   ) {
     // Track the previous spot to detect actual changes
     let previousSpotKey: string | null = null;

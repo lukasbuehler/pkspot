@@ -61,6 +61,7 @@ import { GlobalVariables } from "../../../scripts/global";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
+import { GeolocationService } from "../../services/geolocation.service";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { Title } from "@angular/platform-browser";
@@ -99,6 +100,7 @@ import {
   CustomFilterParams,
 } from "../custom-filter-dialog/custom-filter-dialog.component";
 import { BackHandlingService } from "../../services/back-handling.service";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 
 @Component({
   selector: "app-map-page",
@@ -144,6 +146,7 @@ import { BackHandlingService } from "../../services/back-handling.service";
     MatDividerModule,
     MatTooltipModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule, // <-- Added
     SearchFieldComponent,
     ChallengeDetailComponent,
     // SpeedDialFabComponent,
@@ -185,8 +188,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedChallenge: WritableSignal<SpotChallenge | LocalSpotChallenge | null> =
     signal(null);
 
-  askedGeoPermission: boolean = false;
-  hasGeolocation: boolean = false;
+  geolocationService = inject(GeolocationService);
+
+  geolocationIcon = computed(() => {
+    if (this.geolocationService.error()) return "location_disabled";
+    if (this.geolocationService.currentLocation()) return "my_location";
+    return "location_searching";
+  });
 
   visibleSpots: Spot[] = [];
   private _highlightedSpots: SpotPreviewData[] = [];

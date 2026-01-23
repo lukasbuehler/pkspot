@@ -43,6 +43,7 @@ import {
 import { GeoPoint } from "firebase/firestore";
 import { AsyncPipe, NgClass } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
 import { MapHelpers } from "../../../scripts/MapHelpers";
@@ -112,6 +113,7 @@ export interface TilesObject {
     SpotPreviewCardComponent,
     HighlightMarkerComponent,
     CustomMarkerComponent,
+    MatSnackBarModule,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -458,9 +460,13 @@ export class GoogleMap2dComponent
     public mapsApiService: MapsApiService,
     private _consentService: ConsentService,
     private theme: ThemeService,
-    private geolocationService: GeolocationService
+    private geolocationService: GeolocationService,
+    private snackBar: MatSnackBar
   ) {
     super();
+
+    // Clear any stale error state from previous sessions
+    this.geolocationService.error.set(null);
 
     // Connect geolocation signal
     effect(() => {
@@ -469,8 +475,26 @@ export class GoogleMap2dComponent
         this.geolocation.set(loc);
         this.hasGeolocationChange.emit(true);
       } else {
-        this.geolocation.set(null);
         this.hasGeolocationChange.emit(false);
+      }
+    });
+
+    // Effect to handle geolocation errors
+    effect(() => {
+      const error = this.geolocationService.error();
+      if (error) {
+        console.error("Geolocation error signal:", error);
+
+        // Reset started status so user can try again
+        this._geolocationStarted = false;
+
+        this.snackBar.open(
+          $localize`:Snackbar message for disabled geolocation info|Message shown when user clicks geolocation button but permissions are denied@@map.geolocation_denied.snackbar:Location permission denied. Please enable it to use this feature.`,
+          $localize`:Snackbar action for disabled geolocation info|Action button on snackbar shown when user clicks geolocation button but permissions are denied@@map.geolocation_denied.snackbar_action:OK`,
+          {
+            duration: 5000,
+          }
+        );
       }
     });
     // Effect to handle selected spot changes and editing state changes for polygon updates
@@ -722,9 +746,12 @@ export class GoogleMap2dComponent
     return MapHelpers.getBoundsForTile(tile.zoom, tile.x, tile.y);
   }
 
-  initGeolocation() {
-    // Don't auto-start geolocation watching - wait for user action
-    // This is called in ngAfterViewInit but we no longer auto-start
+  async initGeolocation() {
+    // Check permissions and auto-start if already granted
+    const hasPermission = await this.geolocationService.checkPermissions();
+    if (hasPermission) {
+      await this.geolocationService.startWatching();
+    }
   }
 
   private _geolocationStarted = false;
@@ -736,11 +763,18 @@ export class GoogleMap2dComponent
       this._geolocationStarted = true;
     }
 
-    // Pan to current position
-    const pos = await this.geolocationService.getCurrentPosition();
+    // Pan to current position if available, otherwise it will happen when location updates
+    const pos = this.geolocationService.currentLocation();
     if (pos && this.googleMap) {
       this.googleMap.panTo(pos.location);
       this.googleMap.zoom = 17;
+    } else {
+      // If we don't have a location yet, try to get it once
+      const pos = await this.geolocationService.getCurrentPosition();
+      if (pos && this.googleMap) {
+        this.googleMap.panTo(pos.location);
+        this.googleMap.zoom = 17;
+      }
     }
   }
 
@@ -748,6 +782,8 @@ export class GoogleMap2dComponent
     location: google.maps.LatLngLiteral;
     accuracy: number;
   } | null>(null);
+
+  geolocationLoading = this.geolocationService.loading;
 
   //spotDotZoomRadii: number[] = Array<number>(16);
 
