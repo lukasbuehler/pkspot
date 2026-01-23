@@ -487,4 +487,50 @@ export class AnalyticsService {
     }
     return event;
   }
+
+  /**
+   * Add UTM parameters to a URL
+   * @param url The URL to append parameters to
+   * @param campaign Optional campaign name (default: 'referral')
+   * @param source Optional source (default: 'pkspot')
+   * @param medium Optional medium (default: 'referral')
+   */
+  public addUtmToUrl(
+    url: string | null | undefined,
+    campaign: string = "referral",
+    source: string = "pkspot",
+    medium: string = "referral"
+  ): string | null {
+    if (!url) return null;
+
+    try {
+      // Handle simple URLs that might not have protocol (though they should)
+      let urlObj: URL;
+      try {
+        urlObj = new URL(url);
+      } catch (e) {
+        // If relative or invalid, simplify or retry with fallback base
+        // But for external links, they should be absolute.
+        // If it fails, just return original.
+        return url;
+      }
+
+      // If parameters already exist, we shouldn't overwrite them if they designate source?
+      // But usually we want to enforce our source.
+      if (!urlObj.searchParams.has("utm_source")) {
+        urlObj.searchParams.set("utm_source", source);
+      }
+      if (!urlObj.searchParams.has("utm_medium")) {
+        urlObj.searchParams.set("utm_medium", medium);
+      }
+      if (!urlObj.searchParams.has("utm_campaign")) {
+        urlObj.searchParams.set("utm_campaign", campaign);
+      }
+
+      return urlObj.toString();
+    } catch (e) {
+      console.warn("Failed to add UTM params to URL", url, e);
+      return url;
+    }
+  }
 }

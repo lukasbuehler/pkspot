@@ -24,10 +24,13 @@ interface LocationAndZoom {
   zoom: number;
 }
 
+import { AnalyticsService } from "./analytics.service";
+
 @Injectable({
   providedIn: "root",
 })
 export class MapsApiService extends ConsentAwareService {
+  private _analytics = inject(AnalyticsService);
   private _isApiLoaded: WritableSignal<boolean> = signal(false);
   public isApiLoaded: Signal<boolean> = this._isApiLoaded;
 
@@ -158,15 +161,39 @@ export class MapsApiService extends ConsentAwareService {
   }
 
   private _openLatLngInAppleMaps(location: google.maps.LatLngLiteral) {
-    window.open(
-      `https://maps.apple.com/?address=${location.lat},${location.lng}`
+    const url = `https://maps.apple.com/?address=${location.lat},${location.lng}`;
+    const taggedUrl = this._analytics.addUtmToUrl(
+      url,
+      "open_in_maps",
+      "pkspot",
+      "referral"
     );
+
+    this._analytics.trackEvent("open_maps", {
+      platform: "apple",
+      location: location,
+      url: taggedUrl || url,
+    });
+
+    if (taggedUrl) window.open(taggedUrl);
   }
 
   private _openLatLngInGoogleMaps(location: google.maps.LatLngLiteral) {
-    window.open(
-      `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`
+    const url = `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`;
+    const taggedUrl = this._analytics.addUtmToUrl(
+      url,
+      "open_in_maps",
+      "pkspot",
+      "referral"
     );
+
+    this._analytics.trackEvent("open_maps", {
+      platform: "google",
+      location: location,
+      url: taggedUrl || url,
+    });
+
+    if (taggedUrl) window.open(taggedUrl);
   }
 
   openDirectionsInMaps(location: google.maps.LatLngLiteral) {
@@ -181,16 +208,40 @@ export class MapsApiService extends ConsentAwareService {
 
   private _openDirectionsInAppleMaps(location: google.maps.LatLngLiteral) {
     if (typeof window === "undefined") return; // abort if not in browser
-    window.open(
-      `https://maps.apple.com/?daddr=${location.lat},${location.lng}`
+    const url = `https://maps.apple.com/?daddr=${location.lat},${location.lng}`;
+    const taggedUrl = this._analytics.addUtmToUrl(
+      url,
+      "directions",
+      "pkspot",
+      "referral"
     );
+
+    this._analytics.trackEvent("get_directions", {
+      platform: "apple",
+      location: location,
+      url: taggedUrl || url,
+    });
+
+    if (taggedUrl) window.open(taggedUrl);
   }
 
   private _openDirectionsInGoogleMaps(location: google.maps.LatLngLiteral) {
     if (typeof window === "undefined") return; // abort if not in browser
-    window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`;
+    const taggedUrl = this._analytics.addUtmToUrl(
+      url,
+      "directions",
+      "pkspot",
+      "referral"
     );
+
+    this._analytics.trackEvent("get_directions", {
+      platform: "google",
+      location: location,
+      url: taggedUrl || url,
+    });
+
+    if (taggedUrl) window.open(taggedUrl);
   }
 
   async autocompletePlaceSearch(

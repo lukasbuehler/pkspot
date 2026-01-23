@@ -23,6 +23,8 @@ import { MapsApiService } from "../../services/maps-api.service";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 
+import { AnalyticsService } from "../../services/analytics.service";
+
 @Component({
   selector: "app-google-place-preview",
   standalone: true,
@@ -43,6 +45,7 @@ import { MatButtonModule } from "@angular/material/button";
 })
 export class GooglePlacePreviewComponent implements OnDestroy {
   private _maps = inject(MapsApiService);
+  private _analytics = inject(AnalyticsService);
   private _locale: string = inject(LOCALE_ID);
 
   placeId = input<string | null | undefined>(undefined);
@@ -64,21 +67,39 @@ export class GooglePlacePreviewComponent implements OnDestroy {
 
   websiteUrl = computed<string | null>(() => {
     const p = this.place();
-    if (!p) return null;
-    console.log("Website URL:", p.websiteURI);
-    return p.websiteURI ?? null;
+    if (!p || !p.websiteURI) return null;
+    return this._analytics.addUtmToUrl(p.websiteURI, "spot_preview_website");
   });
 
   url = computed<string | null>(() => {
     const p = this.place();
-    console.log("place:", p);
     if (!p) return null;
+    let mapUrl: string;
     if (p.googleMapsURI) {
-      console.log("Using googleMapsURI for place URL", p.googleMapsURI);
-      return p.googleMapsURI;
+      mapUrl = p.googleMapsURI;
+    } else {
+      mapUrl = `https://www.google.com/maps/search/?api=1&query=${p.displayName}&query_place_id=${p.id}`;
     }
-    return `https://www.google.com/maps/search/?api=1&query=${p.displayName}&query_place_id=${p.id}`;
+    return this._analytics.addUtmToUrl(mapUrl, "spot_preview_maps");
   });
+
+  trackMapClick() {
+    this._analytics.trackEvent("click_google_place_map", {
+      place_id: this.placeId(),
+      place_name: this.place()?.displayName,
+      url: this.url(),
+    });
+    return true; // allow navigation to proceed
+  }
+
+  trackWebsiteClick() {
+    this._analytics.trackEvent("click_google_place_website", {
+      place_id: this.placeId(),
+      place_name: this.place()?.displayName,
+      url: this.websiteUrl(),
+    });
+    return true; // allow navigation to proceed
+  }
 
   closedTemporarily = computed<boolean>(() => {
     const status = this.place()?.businessStatus as string | undefined;
