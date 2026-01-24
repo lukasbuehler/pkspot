@@ -96,7 +96,7 @@ export class BadgeService {
           badges.push({
             id: tier.id,
             name: tier.name,
-            icon: `/assets/badges/${category.iconPrefix}${tier.tier}.png`,
+            icon: `assets/badges/${category.iconPrefix}${tier.tier}.png`,
             tier: tier.tier,
             category: category.id,
           });

@@ -215,7 +215,7 @@ function getDirectorySize(dirPath) {
 }
 
 function getAllFiles(dirPath, arrayOfFiles) {
-  files = fs.readdirSync(dirPath);
+  const files = fs.readdirSync(dirPath);
 
   arrayOfFiles = arrayOfFiles || [];
 
@@ -272,8 +272,12 @@ languages.forEach((lang) => {
       // Replace 'assets/' with '../en/assets/' (single quotes)
       content = content.replace(/'assets\//g, `'../${primaryLang}/assets/`);
 
+      // Replace `assets/` with `../en/assets/` (backticks)
+      content = content.replace(/`assets\//g, `\`../${primaryLang}/assets/`);
+
       if (content !== originalContent) {
         fs.writeFileSync(file, content);
+        console.log(`[${lang}] Patched assets in: ${file}`);
         patchedCount++;
       }
     }
