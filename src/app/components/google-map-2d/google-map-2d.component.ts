@@ -59,6 +59,7 @@ import { AnyMedia } from "../../../db/models/Media";
 import { ThemeService } from "../../services/theme.service";
 import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.component";
 import { CustomMarkerComponent } from "../custom-marker/custom-marker.component";
+import { ClusterDotMarkerComponent } from "../cluster-dot-marker/cluster-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
 
 function enumerateTileRangeX(
@@ -113,6 +114,7 @@ export interface TilesObject {
     SpotPreviewCardComponent,
     HighlightMarkerComponent,
     CustomMarkerComponent,
+    ClusterDotMarkerComponent,
     MatSnackBarModule,
   ],
   animations: [
@@ -187,7 +189,12 @@ export class GoogleMap2dComponent
   @Input() set zoom(newZoom: number) {
     this._zoom.set(newZoom);
     if (this.googleMap) {
-      this.googleMap.zoom = newZoom;
+      const currentZoom = this.googleMap.getZoom();
+      // Only set zoom if it differs significantly or we're not continuously updating
+      // This prevents interrupting smooth zoom inertia when the parent component reflects the value back
+      if (currentZoom === undefined || Math.abs(currentZoom - newZoom) > 0.01) {
+        this.googleMap.zoom = newZoom;
+      }
     }
   }
   @Output() zoomChange = new EventEmitter<number>();
@@ -874,35 +881,41 @@ export class GoogleMap2dComponent
 
   // }
 
+  private _lastBoundsChangeTime = 0;
+  private _boundsThrottleTimer: any = null;
+  private readonly BOUNDS_THROTTLE_MS = 40; // ~25fps
+
   boundsChanged() {
+    const now = Date.now();
+
+    // If enough time has passed, execute immediately
+    if (now - this._lastBoundsChangeTime > this.BOUNDS_THROTTLE_MS) {
+      this._executeBoundsChange();
+      this._lastBoundsChangeTime = now;
+      // Clear any pending timer since we just executed
+      if (this._boundsThrottleTimer) {
+        clearTimeout(this._boundsThrottleTimer);
+        this._boundsThrottleTimer = null;
+      }
+    } else {
+      // Otherwise, schedule a trailing update to ensure the final state is captured
+      // This handles the case where the user stops moving between throttle intervals
+      if (this._boundsThrottleTimer) clearTimeout(this._boundsThrottleTimer);
+
+      this._boundsThrottleTimer = setTimeout(() => {
+        this._executeBoundsChange();
+        this._lastBoundsChangeTime = Date.now();
+        this._boundsThrottleTimer = null;
+      }, this.BOUNDS_THROTTLE_MS);
+    }
+  }
+
+  private _executeBoundsChange() {
+    console.log(`[${Date.now()}] GoogleMap2d: boundsChanged EXECUTE`);
     if (!this.googleMap) return;
     const bounds = this.googleMap.getBounds()!;
 
-    // if (this.isDebug()) {
-    //   // set the bounds to render
-    //   // TODO remove: for debugging set it to half the actual bounds now
-    //   const boundsCenter = bounds.getCenter();
-    //   const halvedBoundsLiteral: google.maps.LatLngBoundsLiteral = {
-    //     north:
-    //       boundsCenter.lat() +
-    //       (bounds.getNorthEast().lat() - boundsCenter.lat()) / 2,
-    //     south:
-    //       boundsCenter.lat() +
-    //       (bounds.getSouthWest().lat() - boundsCenter.lat()) / 2,
-    //     east:
-    //       boundsCenter.lng() +
-    //       (bounds.getNorthEast().lng() - boundsCenter.lng()) / 2,
-    //     west:
-    //       boundsCenter.lng() +
-    //       (bounds.getSouthWest().lng() - boundsCenter.lng()) / 2,
-    //   };
-
-    //   const halvedBounds = new google.maps.LatLngBounds(halvedBoundsLiteral);
-    //   this.boundsToRender.set(halvedBounds);
-    // } else {
     this.boundsToRender.set(bounds);
-    // }
-
     this.boundsChange.emit(this.boundsToRender() ?? undefined);
   }
 
@@ -966,7 +979,7 @@ export class GoogleMap2dComponent
 
     // For Spot instances (with ID), compare by ID
     if ("id" in selectedSpot && "id" in spot) {
-      const result = selectedSpot.id === spot.id;
+      const result = (selectedSpot as any).id === (spot as any).id;
       if (result) return true;
     }
 
@@ -1407,5 +1420,31 @@ export class GoogleMap2dComponent
   closeSelectedSpot() {
     // Emit null to parent component to close the selected spot
     this.spotClick.emit(null as any);
+  }
+
+  /**
+   * Track function for spot dots to prevent unnecessary DOM recreation
+   */
+  trackDot(index: number, dot: SpotClusterDotSchema): string {
+    if (dot.spot_id) return dot.spot_id;
+    if (dot.location) {
+      return `${dot.location.latitude},${dot.location.longitude}_${dot.weight}`;
+    }
+    if (dot.location_raw) {
+      return `${dot.location_raw.lat},${dot.location_raw.lng}_${dot.weight}`;
+    }
+    return index.toString();
+  }
+
+  /**
+   * Track function for custom markers
+   */
+  trackMarker(index: number, marker: MarkerSchema): string {
+    // If marker has a unique ID (e.g. spot ID), use it
+    // For now fall back to index if no unique ID is apparent, or combine properties
+    // Using name and location as unique key
+    if (marker.name)
+      return `${marker.name}_${marker.location.lat}_${marker.location.lng}`;
+    return `${index}_${marker.location.lat}_${marker.location.lng}`;
   }
 }

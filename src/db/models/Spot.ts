@@ -53,7 +53,7 @@ export class LocalSpot {
   location: WritableSignal<google.maps.LatLngLiteral>;
   locationString: Signal<string>;
 
-  readonly tileCoordinates: SpotSchema["tile_coordinates"];
+  tileCoordinates: SpotSchema["tile_coordinates"];
   descriptions: WritableSignal<LocaleMap | undefined>;
   description: Signal<string>;
   descriptionLocale: WritableSignal<LocaleCode>;

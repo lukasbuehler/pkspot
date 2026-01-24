@@ -128,6 +128,7 @@ export class HighlightMarkerComponent {
         gmpClickable: true,
         collisionBehavior:
           google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
+        // collisionBehavior: google.maps.CollisionBehavior.REQUIRED, // should be faster
         zIndex: priority,
       };
     }

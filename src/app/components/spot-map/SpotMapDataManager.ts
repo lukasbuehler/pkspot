@@ -100,6 +100,11 @@ export class SpotMapDataManager {
   private currentSearchRequestId: ReturnType<typeof setTimeout> | undefined;
 
   private _lastRenderedClusterKeys: Set<string> | null = null;
+  private _updateRequestId = 0;
+
+  private _yieldToMain() {
+    return new Promise((resolve) => setTimeout(resolve, 0));
+  }
 
   constructor(
     readonly locale: LocaleCode,
@@ -216,17 +221,21 @@ export class SpotMapDataManager {
 
   // public functions
 
-  setVisibleTiles(visibleTilesObj: TilesObject) {
+  async setVisibleTiles(visibleTilesObj: TilesObject) {
+    const startTime = Date.now();
+    const requestId = ++this._updateRequestId;
+    console.log(
+      `[${startTime}] DataManager: setVisibleTiles START req=${requestId} zoom=${visibleTilesObj.zoom}`
+    );
+
     // update the visible tiles
     this._lastVisibleTiles.set(visibleTilesObj);
 
+    // Yield removed to prevent delay
+    // await this._yieldToMain();
+
     const zoom = visibleTilesObj.zoom;
 
-    // If we have the SpotClusterService available and the zoom is < 16,
-    // we still want to fetch "Highlights" via Typesense to enrich the map
-    // because clusters don't show enough detail.
-    // However, for CLUSTERS themselves, we revert to the tile-based loading (handled below)
-    // to ensure smooth transitions and caching.
     // If we have the SpotClusterService available and the zoom is < 16,
     // we still want to fetch "Highlights" via Typesense to enrich the map
     // because clusters don't show enough detail.
@@ -243,6 +252,9 @@ export class SpotMapDataManager {
         const now = Date.now();
         // Throttle: Allow updates while moving (at least every X ms)
         if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
+          console.log(
+            `[${Date.now()}] DataManager: triggering loadHighlights (throttled) req=${requestId}`
+          );
           this._loadHighlightsForTiles(visibleTilesObj);
           this._lastHighlightFetchTime = now;
         }
@@ -253,6 +265,9 @@ export class SpotMapDataManager {
         }
 
         this._clusterDebounceTimer = setTimeout(() => {
+          console.log(
+            `[${Date.now()}] DataManager: triggering loadHighlights (debounced)`
+          );
           this._clusterDebounceTimer = null;
           this._loadHighlightsForTiles(visibleTilesObj);
           this._lastHighlightFetchTime = Date.now();
@@ -260,16 +275,32 @@ export class SpotMapDataManager {
       }
     }
 
+    if (requestId !== this._updateRequestId) {
+      console.log(
+        `[${Date.now()}] DataManager: setVisibleTiles ABORTED (pre-amenity) req=${requestId}`
+      );
+      return;
+    }
+
     // Load amenity markers at zoom >= 14 (amenityMarkerZoom) for efficient caching
     // But they will only be displayed at zoom >= 16 (amenityMarkerDisplayZoom)
     if (zoom >= this.amenityMarkerZoom) {
+      console.log(
+        `[${Date.now()}] DataManager: loading markers req=${requestId}`
+      );
       const markerTilesToLoad: Set<MapTileKey> =
         this._getMarkerTilesToLoad(visibleTilesObj);
       this._loadMarkersForTiles(markerTilesToLoad);
     }
 
+    // Yield removed
+    // await this._yieldToMain();
+
     if (zoom >= this.spotZoom) {
       // show spots and markers
+      console.log(
+        `[${Date.now()}] DataManager: showing cached spots req=${requestId}`
+      );
       this._showCachedSpotsAndMarkersForTiles(visibleTilesObj);
 
       // now determine the missing information and load spots for it
@@ -277,11 +308,19 @@ export class SpotMapDataManager {
         this._getSpotTilesToLoad(visibleTilesObj);
 
       // load spots for missing tiles
+      console.log(
+        `[${Date.now()}] DataManager: loading missing spots req=${requestId} count=${
+          spotTilesToLoad16.size
+        }`
+      );
       this._loadSpotsForTiles(spotTilesToLoad16);
     } else {
       // show spot clusters
       // Also used to gate the loading logic: if the visible keys haven't changed (returns false),
       // we don't need to check for missing tiles, since the set of needed tiles hasn't changed.
+      console.log(
+        `[${Date.now()}] DataManager: showing clusters req=${requestId}`
+      );
       const didRender = this._showCachedSpotClustersForTiles(visibleTilesObj);
 
       if (didRender) {
@@ -758,6 +797,8 @@ export class SpotMapDataManager {
     const dots: SpotClusterDotSchema[] = [];
     const spots: SpotPreviewData[] = [];
     const missingTileKeys: MapTileKey[] = [];
+
+    const clusterLoopStart = Date.now();
     tilesZObj.tiles.forEach((tile) => {
       const key = getClusterTileKey(tilesZObj.zoom, tile.x, tile.y);
       const spotCluster = this._spotClusterTiles.get(key);
@@ -778,6 +819,8 @@ export class SpotMapDataManager {
       }
     });
 
+    // console.log(`[${Date.now()}] DataManager: cluster loop time=${Date.now() - clusterLoopStart}ms tiles=${tilesZObj.tiles.length} dots=${dots.length}`);
+
     // When none of the requested tiles are available yet, keep the previous state
     // But return TRUE to signal that we processed a change and the caller should check for missing loads.
     if (dots.length === 0 && missingTileKeys.length > 0) {
@@ -785,6 +828,7 @@ export class SpotMapDataManager {
     }
 
     // sort the spots by rating, and if they have media
+    const sortStart = Date.now();
     spots.sort((a, b) => {
       // sort rating in descending order
       if (
@@ -803,13 +847,16 @@ export class SpotMapDataManager {
       }
       return 0;
     });
+    // console.log(`[${Date.now()}] DataManager: sort time=${Date.now() - sortStart}ms spots=${spots.length}`);
 
     // Don't show amenity markers in cluster view (zoom < 16) for performance
     // Amenity markers are only displayed at amenityMarkerDisplayZoom (16) and above
     this._visibleAmenityMarkers.set([]);
 
+    const signalStart = Date.now();
     this._visibleSpots.set([]);
     this._visibleDots.set(dots);
+    // console.log(`[${Date.now()}] DataManager: signal update time=${Date.now() - signalStart}ms`);
     // Disable legacy highlight setting from clusters to avoid conflict with Typesense highlights
     // Only set highlights if no filter is active (preserve filtered results)
     // if (this.spotFilterMode() === SpotFilterMode.None) {
@@ -1139,6 +1186,22 @@ export class SpotMapDataManager {
       });
   }
 
+  /**
+   * Helper to map a Search Hit to SpotPreviewData, using cache to maintain references.
+   */
+  private _getOrCreateSpotPreviewFromHit(hit: any): SpotPreviewData {
+    const id = hit.document?.id || hit.id;
+    if (this._spotPreviewCache.has(id)) {
+      return this._spotPreviewCache.get(id)!;
+    }
+
+    const preview = this._searchService.getSpotPreviewFromHit(hit);
+    if (preview && preview.id) {
+      this._spotPreviewCache.set(preview.id, preview);
+    }
+    return preview;
+  }
+
   private _loadHighlightsForTiles(visibleTilesObj: TilesObject) {
     // Calculate bounds from tilesObj
     const neBounds = MapHelpers.getBoundsForTile(
@@ -1290,19 +1353,38 @@ export class SpotMapDataManager {
         });
 
         const previews = Array.from(uniqueHits.values()).map((hit) =>
-          this._searchService.getSpotPreviewFromHit(hit)
+          this._getOrCreateSpotPreviewFromHit(hit)
         );
 
-        // Sort by rating again after merge?
-        // Typesense returns sorted results, but merging two sorted lists might need re-sort if we care about strict order.
-        // For distinct sets it's fine. For top 20... we requested top 20 from EACH side.
-        // We'll show up to 40 spots now if wrapped? That's acceptable.
+        // Check for equality to prevent unnecessary signal updates
+        const currentSpots = this._visibleHighlightedSpots();
+        if (currentSpots.length === previews.length) {
+          let hasChanged = false;
+          // Since we recycle object references, reliable strict equality check is possible if order is preserved
+          // But search results might change order slightly. Set checking ID is safer.
+          const currentIds = new Set(currentSpots.map((s) => s.id));
+          for (const p of previews) {
+            if (!currentIds.has(p.id)) {
+              hasChanged = true;
+              break;
+            }
+          }
 
+          if (!hasChanged) {
+            // console.log(`[${Date.now()}] DataManager: highlights update skipped (identical content) count=${previews.length}`);
+            return;
+          }
+        }
+
+        // console.log(`[${Date.now()}] DataManager: highlights updated count=${previews.length}`);
         this._visibleHighlightedSpots.set(previews);
       })
       .catch((err) => {
         console.error("Typesense highlight search failed:", err);
-        this._visibleHighlightedSpots.set([]);
+        // Only clear if we actually had spots
+        if (this._visibleHighlightedSpots().length > 0) {
+          this._visibleHighlightedSpots.set([]);
+        }
       });
   }
 
@@ -1441,9 +1523,22 @@ export class SpotMapDataManager {
     }
 
     spots.forEach((spot: Spot) => {
-      if (!spot.tileCoordinates) return;
+      let spotTile = spot.tileCoordinates?.z16;
 
-      const spotTile = spot.tileCoordinates.z16;
+      if (!spotTile) {
+        // If tile coordinates are missing (e.g. new spot), compute them client-side
+        const calculatedTileCoords = MapHelpers.getTileCoordinates(
+          spot.location()
+        );
+
+        if (calculatedTileCoords) {
+          spot.tileCoordinates = calculatedTileCoords;
+          spotTile = calculatedTileCoords.z16;
+        }
+      }
+
+      if (!spotTile) return;
+
       const key: MapTileKey = getClusterTileKey(16, spotTile.x, spotTile.y);
       if (!this._spots.has(key)) {
         this._spots.set(key, []);

@@ -400,10 +400,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
    * @param visibleTilesObj
    */
   visibleTilesChanged(visibleTilesObj: TilesObject): void {
+    console.log(
+      `[${Date.now()}] SpotMap: visibleTilesChanged start`,
+      visibleTilesObj
+    );
     this._visibleTilesObj = visibleTilesObj;
     if (!visibleTilesObj) return;
 
     this._spotMapDataManager.setVisibleTiles(visibleTilesObj);
+    console.log(`[${Date.now()}] SpotMap: visibleTilesChanged end`);
   }
 
   visibleViewportChanged(viewport: VisibleViewport): void {

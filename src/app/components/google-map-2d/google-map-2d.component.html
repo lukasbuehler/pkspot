@@ -64,26 +64,11 @@
     [zIndex]="getHighlightZIndex(spot)"
     (markerClick)="onHighlightedSpotClick($event)"
   ></app-highlight-marker>
-  } @if(zoom < 16) { @for (dot of dots; track $index) {
-  <div
-    #smallDot
-    class="small-dot-marker"
-    [ngClass]="{
-      'marker-primary-dark': resolvedDarkMode(),
-      'marker-primary-light': !resolvedDarkMode()
-    }"
-    [style]="{
-      height: 12 + sqrt(dot.weight) * 2 + 'px',
-      width: 12 + sqrt(dot.weight) * 2 + 'px'
-    }"
-  ></div>
-  <map-advanced-marker
-    [position]="geopointToLatLngLiteral(dot.location)"
-    [content]="smallDot"
-    [options]="{ gmpClickable: true }"
-    (mapClick)="clickDot(dot)"
-    [zIndex]="dot.weight"
-  ></map-advanced-marker>
+  } @if(zoom < 16) { @for (dot of dots; track trackDot($index, dot)) {
+  <app-cluster-dot-marker
+    [dot]="dot"
+    (markerClick)="clickDot($event)"
+  ></app-cluster-dot-marker>
   } }
 
   <!-- Heatmap Layer - show from zoom 2 until spots appear at zoom 16 -->
@@ -310,7 +295,8 @@
   }
 
   <!-- Additional Markers (amenities, custom markers, etc.) -->
-  @if(zoom >= 16) { @for(marker of markers(); track $index) {
+  @if(zoom >= 16) { @for(marker of markers(); track trackMarker($index, marker))
+  {
   <app-custom-marker
     [marker]="marker"
     [index]="$index"
