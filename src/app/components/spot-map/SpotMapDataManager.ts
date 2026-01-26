@@ -1235,7 +1235,12 @@ export class SpotMapDataManager {
               south,
               mid1,
               west,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              true
             )
           );
           queries.push(
@@ -1244,7 +1249,12 @@ export class SpotMapDataManager {
               south,
               180,
               mid1,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              true
             )
           );
         } else {
@@ -1254,7 +1264,12 @@ export class SpotMapDataManager {
               south,
               180,
               west,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              true
             )
           );
         }
@@ -1269,7 +1284,12 @@ export class SpotMapDataManager {
               south,
               mid2,
               -180,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              true
             )
           );
           queries.push(
@@ -1278,7 +1298,12 @@ export class SpotMapDataManager {
               south,
               east,
               mid2,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              true
             )
           );
         } else {
@@ -1288,7 +1313,12 @@ export class SpotMapDataManager {
               south,
               east,
               -180,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              true
             )
           );
         }
@@ -1305,7 +1335,12 @@ export class SpotMapDataManager {
               south,
               mid,
               west,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              true
             )
           );
           queries.push(
@@ -1314,7 +1349,12 @@ export class SpotMapDataManager {
               south,
               east,
               mid,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              true
             )
           );
         } else {
@@ -1324,7 +1364,12 @@ export class SpotMapDataManager {
               south,
               east,
               west,
-              20
+              20,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              true
             )
           );
         }

@@ -245,7 +245,8 @@ export class SearchService {
     types?: SpotTypes[],
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
-    amenities_false?: (keyof AmenitiesMap)[]
+    amenities_false?: (keyof AmenitiesMap)[],
+    onlyWithImages: boolean = false
   ): Promise<{ hits: any[]; found: number }> {
     const latLongPairList: string[] = [
       // northeast
@@ -272,7 +273,8 @@ export class SearchService {
       types,
       accesses,
       amenities_true,
-      amenities_false
+      amenities_false,
+      onlyWithImages
     );
   }
 
@@ -282,7 +284,8 @@ export class SearchService {
     types?: SpotTypes[],
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
-    amenities_false?: (keyof AmenitiesMap)[]
+    amenities_false?: (keyof AmenitiesMap)[],
+    onlyWithImages: boolean = false
   ) {
     const filters: string[] = [];
     if (types?.length) filters.push(`type:=[${types.join(", ")}]`);
@@ -291,6 +294,9 @@ export class SearchService {
       filters.push(`amenities_true:=[${amenities_true.join(", ")}]`);
     if (amenities_false?.length)
       filters.push(`amenities_false:=[${amenities_false.join(", ")}]`);
+    if (onlyWithImages) {
+      filters.push("thumbnail_url:!=null");
+    }
 
     let filterByString = `location:(${latLongPairList.join(", ")})`;
     if (filters.length > 0) {
