@@ -20,6 +20,7 @@
   [mapStyle]="mapStyle() ?? 'roadmap'"
   [showSpotPreview]="showSpotPreview()"
   [bottomSheetOffset]="bottomSheetOffset()"
+  [isDebug]="isDebug()"
   (boundsChange)="mapBoundsChanged($event, mapZoom)"
   (visibleTilesChange)="visibleTilesChanged($event)"
   (zoomChange)="zoomChanged($event)"

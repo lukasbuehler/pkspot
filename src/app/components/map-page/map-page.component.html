@@ -131,6 +131,7 @@
     (hightlightedSpotsChange)="highlightedSpots = $event"
     (filterBoundsChange)="onFilterBoundsChange($event)"
     [bottomSheetOffset]="true"
+    [isDebug]="appSettings.debugMode()"
   ></app-spot-map>
   } @placeholder {
   <div

@@ -101,6 +101,7 @@ import {
 } from "../custom-filter-dialog/custom-filter-dialog.component";
 import { BackHandlingService } from "../../services/back-handling.service";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { AppSettingsService } from "../../services/app-settings.service";
 
 @Component({
   selector: "app-map-page",
@@ -311,7 +312,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private titleService: Title,
     private _consentService: ConsentService,
     private breakpointObserver: BreakpointObserver,
-    private _spotEditsService: SpotEditsService
+    private _spotEditsService: SpotEditsService,
+    public appSettings: AppSettingsService
   ) {
     this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
       (value) => {

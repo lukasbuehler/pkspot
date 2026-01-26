@@ -319,11 +319,28 @@
             }
           </div>
         </div>
-        <!-- <div *ngSwitchCase="'general'">
+        <div *ngSwitchCase="'general'">
           <h2 class="mat-h2" i18n>General settings</h2>
           <h3 class="mat-body" i18n>
             General settings to tune your experience on PK Spot.
           </h3>
+
+          <div class="my-4">
+            <h3 class="mat-h3">Map Debug Mode</h3>
+            <p class="mat-body">
+              Enable overlay with technical information (FPS, Zoom Level, Tile
+              Coordinates).
+            </p>
+            <mat-slide-toggle
+              [checked]="appSettings.debugMode()"
+              (change)="appSettings.debugMode.set($event.checked)"
+              color="primary"
+            >
+              Enable Map Debug Mode
+            </mat-slide-toggle>
+          </div>
+
+          <!--
           <div class="my-4">
             <h3 class="mat-h3">Geo-URI links</h3>
             <p class="mat-body">
@@ -335,28 +352,11 @@
               >Use Geo-URI to open maps on mobile devices</mat-checkbox
             >
           </div>
-          <div class="my-4">
-            <h3 class="mat-h3">Preferred external maps application</h3>
-            <p class="mat-body">
-              This selection will be used if Geo-URI is not supported or
-              disabled above.
-            </p>
-            <mat-button-toggle-group name="fontStyle" [value]="authService?.user?.settings?.maps || 'googlemaps'">
-              <mat-button-toggle value="googlemaps"
-                >Google Maps</mat-button-toggle
-              >
-              <mat-button-toggle value="applemaps"
-                >Apple Maps</mat-button-toggle
-              >
-              <mat-button-toggle value="openstreetmap"
-                >OpenSreetMap</mat-button-toggle
-              >
-            </mat-button-toggle-group>
-          </div> 
+          -->
         </div>
         <div *ngSwitchCase="'notifications'">
           <h2 class="mat-h2" i18n>Notifications</h2>
-        </div>-->
+        </div>
       </div>
     </div>
   </div>

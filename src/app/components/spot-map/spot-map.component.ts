@@ -96,6 +96,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   centerStart = input<google.maps.LatLngLiteral | null>(null);
   showSpotPreview = input<boolean>(false);
   bottomSheetOffset = input<boolean>(false);
+  isDebug = input<boolean>(false);
 
   @Input() showGeolocation: boolean = true;
   @Input() showSatelliteToggle: boolean = false;

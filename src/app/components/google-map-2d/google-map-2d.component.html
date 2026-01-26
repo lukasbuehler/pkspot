@@ -50,9 +50,11 @@
       padding: 10px;
     "
   >
-    Debug Mode: Zoom {{ zoom }}, sw: ({{ visibleTiles()!.sw.x }},
-    {{ visibleTiles()!.sw.y }}), ne: ({{ visibleTiles()!.ne.x }},
-    {{ visibleTiles()!.ne.y }})
+    Debug Mode: Zoom {{ Math.round(zoom * 100) / 100 }} (Tile:
+    {{ Math.floor(zoom) }}), sw: ({{ visibleTiles()?.sw?.x }},
+    {{ visibleTiles()?.sw?.y }}), ne: ({{ visibleTiles()?.ne?.x }},
+    {{ visibleTiles()?.ne?.y }}) <br />
+    FPS: {{ fps() }}
   </div>
 
   }

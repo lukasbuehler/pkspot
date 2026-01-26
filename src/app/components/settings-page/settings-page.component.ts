@@ -19,17 +19,19 @@ import {
 } from "@angular/material/form-field";
 import { MatDivider } from "@angular/material/divider";
 import { MatBadge } from "@angular/material/badge";
+import { MatButtonModule } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
-import { MatButton } from "@angular/material/button";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { AppSettingsService } from "../../services/app-settings.service";
+import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 
 @Component({
   selector: "app-settings-page",
   templateUrl: "./settings-page.component.html",
   styleUrls: ["./settings-page.component.scss"],
   imports: [
-    MatButton,
+    MatButtonModule,
     NgClass,
     MatIcon,
     MatBadge,
@@ -46,6 +48,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
     SpeedDialFabComponent,
     FormsModule,
     MatProgressSpinner,
+    MatSlideToggleModule,
   ],
   host: { ngSkipHydration: "true" },
 })
@@ -59,7 +62,8 @@ export class SettingsPageComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private _snackbar: MatSnackBar,
-    private _metaTagService: MetaTagService
+    private _metaTagService: MetaTagService,
+    public appSettings: AppSettingsService
   ) {}
 
   menuPoints = [
@@ -75,12 +79,12 @@ export class SettingsPageComponent implements OnInit {
       icon: "manage_accounts",
       hasChanges: false,
     },
-    // {
-    //   id: "general",
-    //   name: $localize`General`,
-    //   icon: "settings",
-    //   hasChanges: false,
-    // },
+    {
+      id: "general",
+      name: $localize`General`,
+      icon: "settings",
+      hasChanges: false,
+    },
   ];
 
   selectedPoint: string = "profile";

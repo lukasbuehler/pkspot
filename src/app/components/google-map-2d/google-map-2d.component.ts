@@ -695,6 +695,9 @@ export class GoogleMap2dComponent
     });
 
     this.positionGoogleMapsLogo();
+    if (this.isDebug()) {
+      this._startFpsLoop();
+    }
   }
 
   /**
@@ -731,6 +734,8 @@ export class GoogleMap2dComponent
     if (this.isApiLoadedSubscription)
       this.isApiLoadedSubscription.unsubscribe();
     if (this.consentSubscription) this.consentSubscription.unsubscribe();
+    if (this._fpsAnimationFrameId)
+      cancelAnimationFrame(this._fpsAnimationFrameId);
   }
 
   private _geoPointToLatLng(
@@ -883,7 +888,40 @@ export class GoogleMap2dComponent
 
   private _lastBoundsChangeTime = 0;
   private _boundsThrottleTimer: any = null;
-  private readonly BOUNDS_THROTTLE_MS = 40; // ~25fps
+  private readonly BOUNDS_THROTTLE_MS = 80; // ~12fps
+
+  // FPS Counter
+  fps = signal<number>(0);
+  private _lastFrameTime = 0;
+  private _frameCount = 0;
+  private _lastFpsUpdate = 0;
+  private _fpsAnimationFrameId: number | null = null;
+
+  private _startFpsLoop() {
+    const loop = (time: number) => {
+      if (this._lastFrameTime === 0) {
+        this._lastFrameTime = time;
+        this._lastFpsUpdate = time;
+      }
+
+      this._frameCount++;
+      const now = time;
+
+      // Update FPS every 500ms
+      if (now - this._lastFpsUpdate >= 500) {
+        const fps = Math.round(
+          (this._frameCount * 1000) / (now - this._lastFpsUpdate)
+        );
+        this.fps.set(fps);
+        this._frameCount = 0;
+        this._lastFpsUpdate = now;
+      }
+
+      this._lastFrameTime = now;
+      this._fpsAnimationFrameId = requestAnimationFrame(loop);
+    };
+    this._fpsAnimationFrameId = requestAnimationFrame(loop);
+  }
 
   boundsChanged() {
     const now = Date.now();
