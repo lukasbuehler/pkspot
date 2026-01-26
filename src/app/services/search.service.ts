@@ -294,9 +294,9 @@ export class SearchService {
       filters.push(`amenities_true:=[${amenities_true.join(", ")}]`);
     if (amenities_false?.length)
       filters.push(`amenities_false:=[${amenities_false.join(", ")}]`);
-    if (onlyWithImages) {
-      filters.push("thumbnail_url:!=null");
-    }
+
+    // Note: We cannot filter by thumbnail_url in Typesense because it is not a faceted field.
+    // We will handle onlyWithImages by fetching more results and filtering client-side.
 
     let filterByString = `location:(${latLongPairList.join(", ")})`;
     if (filters.length > 0) {
@@ -304,7 +304,12 @@ export class SearchService {
     }
 
     const MAX_PER_PAGE = 250;
-    const perPage = Math.min(MAX_PER_PAGE, Math.max(1, num_spots));
+    // If onlyWithImages is requested, fetch more results to increase chance of finding enough spots with images
+    const fetchMultiplier = onlyWithImages ? 5 : 1;
+    const perPage = Math.min(
+      MAX_PER_PAGE,
+      Math.max(1, num_spots * fetchMultiplier)
+    );
 
     // Fetch first page to learn total found and to return early when small
     const firstPage = await this.client
@@ -321,54 +326,30 @@ export class SearchService {
         {}
       );
 
-    let allHits: any[] = (firstPage && (firstPage as any).hits) || [];
-    const found: number =
-      (firstPage && (firstPage as any).found) || allHits.length;
+    let hits = (firstPage.hits as any[]) || [];
 
-    // If we already satisfied the requested number or there's nothing more, return
-    if (allHits.length >= num_spots || found <= perPage) {
-      return {
-        hits: allHits.slice(0, num_spots),
-        found: found,
-      };
+    // Filter results client-side if onlyWithImages is true
+    if (onlyWithImages) {
+      hits = hits.filter((hit: any) => {
+        const doc = hit.document;
+        // Check for thumbnail_url or image_url.
+        // Some spots might have empty strings, so check length > 0
+        return (
+          (doc.thumbnail_url && doc.thumbnail_url.length > 0) ||
+          (doc.image_url && doc.image_url.length > 0)
+        );
+      });
     }
 
-    const remainingToFetch = Math.min(num_spots, found) - allHits.length;
-    const remainingPages = Math.ceil(remainingToFetch / perPage);
-
-    // Build requests for remaining pages (pages 2..)
-    const pageRequests: Promise<any>[] = [];
-    for (let i = 2; i <= 1 + remainingPages; i++) {
-      pageRequests.push(
-        this.client
-          .collections(this.TYPESENSE_COLLECTION_SPOTS)
-          .documents()
-          .search(
-            {
-              q: "*",
-              filter_by: filterByString,
-              sort_by: "rating:desc",
-              per_page: perPage,
-              page: i,
-            },
-            {}
-          )
-      );
+    // Limit to original requested number
+    if (hits.length > num_spots) {
+      hits = hits.slice(0, num_spots);
     }
 
-    const settled = await Promise.allSettled(pageRequests);
-    for (const res of settled) {
-      if (res.status === "fulfilled" && res.value && res.value.hits) {
-        allHits.push(...res.value.hits);
-      }
-    }
-
-    // Build a merged result object similar to Typesense response shape
-    const mergedResult = { ...(firstPage as any) } as any;
-    mergedResult.hits = allHits.slice(0, num_spots);
-    mergedResult.found = found;
-
-    return mergedResult;
+    return {
+      hits: hits,
+      found: firstPage.found,
+    };
   }
 
   public async searchSpotsInBounds(
