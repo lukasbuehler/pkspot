@@ -110,10 +110,12 @@ export class StorageAdapterService {
           metadata.cacheControl = options.metadata.cacheControl;
         }
         if (options.metadata?.uid || options.metadata?.customMetadata) {
-          metadata.customMetadata = {
-            ...options.metadata.customMetadata,
-            ...(options.metadata.uid ? { uid: options.metadata.uid } : {}),
-          };
+          const customMetadata: Record<string, string> =
+            options.metadata.customMetadata || {};
+          if (options.metadata.uid) {
+            customMetadata["uid"] = options.metadata.uid;
+          }
+          metadata.customMetadata = customMetadata;
         }
 
         const uploadTask = uploadBytesResumable(
@@ -121,6 +123,7 @@ export class StorageAdapterService {
           blob,
           Object.keys(metadata).length > 0 ? metadata : undefined
         );
+        console.log("[StorageAdapter] Uploading with metadata:", metadata);
 
         uploadTask.on(
           "state_changed",
@@ -172,10 +175,12 @@ export class StorageAdapterService {
     };
 
     if (options.metadata?.uid || options.metadata?.customMetadata) {
-      metadata.customMetadata = {
-        ...options.metadata.customMetadata,
-        ...(options.metadata.uid ? { uid: options.metadata.uid } : {}),
-      };
+      const customMetadata: Record<string, string> =
+        options.metadata.customMetadata || {};
+      if (options.metadata.uid) {
+        customMetadata["uid"] = options.metadata.uid;
+      }
+      metadata.customMetadata = customMetadata;
     }
 
     return new Promise<string>((resolve, reject) => {
