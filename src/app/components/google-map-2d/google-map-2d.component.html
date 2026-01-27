@@ -11,6 +11,7 @@
   (zoomChanged)="getAndEmitChangedZoom()"
   width="100%"
   height="100%"
+  class="postition-relative"
 >
   @if(isDebug()) {
   <!-- rectangles for each tile -->
@@ -40,21 +41,17 @@
   ></map-rectangle>
 
   <!-- Debug zoom level -->
-  <div
-    style="
-      color: white;
-      background-color: red;
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px;
-    "
-  >
-    Debug Mode: Zoom {{ Math.round(zoom * 100) / 100 }} (Tile:
-    {{ Math.floor(zoom) }}), sw: ({{ visibleTiles()?.sw?.x }},
-    {{ visibleTiles()?.sw?.y }}), ne: ({{ visibleTiles()?.ne?.x }},
-    {{ visibleTiles()?.ne?.y }}) <br />
-    FPS: {{ fps() }}
+  <div class="debug-panel">
+    <span>FPS: {{ fps() }}</span>
+    <span
+      >Debug Mode: Zoom {{ zoom.toFixed(2) }} (Tile:
+      {{ Math.floor(zoom) }})</span
+    >
+    <span>
+      sw: ({{ visibleTiles()?.sw?.x }}, {{ visibleTiles()?.sw?.y }}), ne: ({{
+        visibleTiles()?.ne?.x
+      }}, {{ visibleTiles()?.ne?.y }})</span
+    >
   </div>
 
   }

@@ -60,6 +60,24 @@
   }
 }
 
+.debug-panel {
+  color: white;
+  background-color: red;
+  position: absolute;
+  left: 0px;
+  padding: 5px;
+  font-size: 10px;
+  font-family: monospace;
+  display: flex;
+  flex-direction: column;
+  bottom: 30px;
+
+  @media (max-width: 599px) {
+    // Use the centralized variable from map-page for bottom sheet offset
+    bottom: calc(var(--bottom-sheet-closed-height, 140px) + 30px) !important;
+  }
+}
+
 /* Moves the Google Logo and Copyright text up when bottom sheet is visible */
 :host.with-bottom-offset {
   ::ng-deep .gmnoprint a,
