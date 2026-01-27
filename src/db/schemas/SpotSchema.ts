@@ -84,7 +84,8 @@ export interface SpotSchema {
   // Typesense helper fields
   amenities_true?: string[];
   amenities_false?: string[];
-  thumbnail_url?: string;
+  thumbnail_small_url?: string;
+  thumbnail_medium_url?: string;
   name_search?: string[];
   description_search?: string[];
 }

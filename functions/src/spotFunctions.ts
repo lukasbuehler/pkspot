@@ -34,8 +34,7 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
     spotDataToUpdate.amenities_false = amenitiesFalse;
   }
 
-  //// 3. Write a `thumbnail_url` for typesense to use.
-  const thumbnailSize = 200;
+  //// 3. Write `thumbnail_small_url` and `thumbnail_medium_url` for typesense to use.
   if (
     spotData.media &&
     Array.isArray(spotData.media) &&
@@ -49,13 +48,18 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
     if (firstMediaItem) {
       try {
         const parsed = parseStorageMediaUrl(firstMediaItem.src);
-        spotDataToUpdate.thumbnail_url = buildStorageMediaUrl(
+        spotDataToUpdate.thumbnail_small_url = buildStorageMediaUrl(
           parsed,
           undefined,
-          `_${thumbnailSize}x${thumbnailSize}`
+          `_200x200`
+        );
+        spotDataToUpdate.thumbnail_medium_url = buildStorageMediaUrl(
+          parsed,
+          undefined,
+          `_400x400`
         );
       } catch (e) {
-        console.error("Error generating thumbnail URL for spot:", e);
+        console.error("Error generating thumbnail URLs for spot:", e);
       }
     }
   }
@@ -168,6 +172,7 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
 export const updateAllSpotsWithTypesenseFields = onDocumentCreated(
   { document: "spots/typesense" },
   async (event) => {
+    // get all spots
     const spots = await admin.firestore().collection("spots").get();
 
     for (const spot of spots.docs) {

@@ -33,13 +33,7 @@
     "deploy:prod:rules": "npx firebase use prod && npx firebase deploy --only firestore:rules",
     "deploy:functions": "cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
     "deploy:test:functions": "npx firebase use test && cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
-    "deploy:prod:functions": "npx firebase use prod && cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
-    "import:horizn:validate": "cd scripts/horizn-import && npm run validate",
-    "import:horizn:test": "cd scripts/horizn-import && npm run test",
-    "import:horizn:dry": "cd scripts/horizn-import && npm run dry-run",
-    "import:horizn": "cd scripts/horizn-import && npm run import",
-    "import:horizn:spots": "cd scripts/horizn-import && npm run import:spots",
-    "import:horizn:images": "cd scripts/horizn-import && npm run import:images"
+    "deploy:prod:functions": "npx firebase use prod && cd ./functions && npm run build && npx firebase deploy --only functions && cd .."
   },
   "private": true,
   "dependencies": {
