@@ -47,9 +47,9 @@ async function touchAllSpots() {
       // If media-only mode is on, skip spots without media
       if (mediaOnly) {
         if (
-          !data.media ||
-          !Array.isArray(data.media) ||
-          data.media.length === 0
+          !data["media"] ||
+          !Array.isArray(data["media"]) ||
+          data["media"].length === 0
         ) {
           return;
         }

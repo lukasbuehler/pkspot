@@ -1221,6 +1221,10 @@ export class SpotMapDataManager {
     if (visibleTilesObj.viewportBounds) {
       const { north, south, east, west } = visibleTilesObj.viewportBounds;
 
+      // If zoom is less than 10, only show/highlight spots that have images.
+      // If zoom is 10 or greater, show all highlights regardless of image presence.
+      const onlyWithImages = visibleTilesObj.zoom < 10;
+
       if (west > east) {
         // Viewport crosses IDL (e.g. West=170, East=-170)
         // Split into two clean queries: [West, 180] and [-180, East]
@@ -1240,7 +1244,7 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              true
+              onlyWithImages
             )
           );
           queries.push(
@@ -1254,7 +1258,7 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              true
+              onlyWithImages
             )
           );
         } else {
@@ -1269,7 +1273,7 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              true
+              onlyWithImages
             )
           );
         }
@@ -1289,7 +1293,7 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              true
+              onlyWithImages
             )
           );
           queries.push(
@@ -1303,7 +1307,7 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              true
+              onlyWithImages
             )
           );
         } else {
@@ -1318,7 +1322,7 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              true
+              onlyWithImages
             )
           );
         }
@@ -1340,7 +1344,7 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              true
+              onlyWithImages
             )
           );
           queries.push(
@@ -1354,7 +1358,7 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              true
+              onlyWithImages
             )
           );
         } else {
@@ -1369,7 +1373,7 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              true
+              onlyWithImages
             )
           );
         }

@@ -299,10 +299,10 @@ export class SearchService {
     if (amenities_false?.length)
       filters.push(`amenities_false:=[${amenities_false.join(", ")}]`);
     if (onlyWithImages) {
-      // Ensure we have at least one image source
-      // Note: This requires 'thumbnail_small_url' and 'thumbnail_medium_url' and 'image_url' to be faceted in Typesense schema
+      // Use strict server-side filtering on the new faceted fields.
+      // Note: We intentionally exclude 'image_url' as it is not in the Typesense schema/index.
       filters.push(
-        "(thumbnail_small_url:!=null || thumbnail_medium_url:!=null || image_url:!=null)"
+        "(thumbnail_small_url:!=null || thumbnail_medium_url:!=null)"
       );
     }
 
@@ -330,10 +330,11 @@ export class SearchService {
       );
 
     let allHits: any[] = (firstPage && (firstPage as any).hits) || [];
+
     const found: number =
       (firstPage && (firstPage as any).found) || allHits.length;
 
-    // If we already satisfied the requested number or there's nothing more, return
+    // If we already satisfied the requested number (after filtering)
     if (allHits.length >= num_spots || found <= perPage) {
       return {
         hits: allHits.slice(0, num_spots),
