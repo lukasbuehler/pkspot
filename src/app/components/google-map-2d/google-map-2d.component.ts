@@ -712,17 +712,15 @@ export class GoogleMap2dComponent
 
     // Apply vector rendering type safely
     this.mapOptions.renderingType = google.maps.RenderingType.VECTOR;
-    this.googleMap.googleMap?.setOptions({
-      renderingType: google.maps.RenderingType.VECTOR,
-    });
+    // this.googleMap.googleMap?.setOptions({
+    //   renderingType: google.maps.RenderingType.VECTOR,
+    // });
 
     this.positionGoogleMapsLogo();
     if (this.isDebug()) {
       this._startFpsLoop();
     }
   }
-
-
 
   private async _updateMapColorScheme() {
     // If map is already initialized, use setOptions
@@ -868,6 +866,7 @@ export class GoogleMap2dComponent
     disableDefaultUI: true,
     tilt: 0,
     headingInteractionEnabled: true,
+    renderingType: "VECTOR" as any, // Force Vector Map
   };
 
   optionsInitialized = signal<boolean>(false);

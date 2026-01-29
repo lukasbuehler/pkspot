@@ -228,6 +228,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Default to expected fallback (32 chip + 100 padding)
   chipsSpacerHeight = signal<number>(132);
 
+  spotListLimit = computed(() => {
+    // If mobile and bottom sheet is "closed" (progress < 0.2), limit the list
+    if (this.responsiveService.isMobile() && this.bottomSheetProgress() <= 0) {
+      return 2;
+    }
+    return undefined;
+  });
+
   // ResizeObserver for chips height measurement
   private _chipsResizeObserver: ResizeObserver | null = null;
   private _chipsUpdateRaf: number | null = null;

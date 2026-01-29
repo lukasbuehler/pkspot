@@ -108,6 +108,8 @@
     @fadeInOut
     [spots]="visibleSpots"
     [highlightedSpots]="highlightedSpots"
+    [limit]="spotListLimit()"
+    [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
   ></app-spot-list>
   }
 </ng-template>
