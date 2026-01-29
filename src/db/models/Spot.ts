@@ -132,7 +132,7 @@ export class LocalSpot {
   paths = signal<google.maps.LatLngLiteral[][] | undefined>(undefined);
 
   constructor(data: SpotSchema, readonly locale: LocaleCode) {
-    this.names = signal(makeLocaleMapFromObject(data.name));
+    this.names = signal(makeLocaleMapFromObject(data.name || {}));
     this.name = computed(() => {
       const namesMap = this.names();
       const nameLocale = getBestLocale(Object.keys(namesMap), this.locale);

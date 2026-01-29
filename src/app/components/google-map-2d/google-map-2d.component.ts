@@ -137,10 +137,18 @@ export class GoogleMap2dComponent
   extends MapBase
   implements OnChanges, AfterViewInit
 {
-  @ViewChild("googleMap") googleMap: GoogleMap | undefined;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
   // @ViewChildren(MapPolygon, { read: ElementRef })
   polygonElements: QueryList<ElementRef> | undefined;
+
+  public googleMap: GoogleMap | undefined;
+
+  @ViewChild("googleMap") set googleMapSetter(content: GoogleMap) {
+    if (content) {
+      this.googleMap = content;
+      this.onMapReady();
+    }
+  }
   @ViewChild("selectedSpotMarkerNode") selectedSpotMarkerNode: Node | undefined;
   @ViewChild("selectedChallengeMarker") selectedChallengeMarker:
     | MapAdvancedMarker
@@ -520,6 +528,13 @@ export class GoogleMap2dComponent
       }
     });
 
+    // Effect to update map color scheme when dark mode changes
+    effect(() => {
+      // Create dependency on resolvedDarkMode
+      const _ = this.resolvedDarkMode();
+      this._updateMapColorScheme();
+    });
+
     // if (this.selectedSpot) {
     //   this.selectedSpotMarkerNode = this.buildAdvancedMarkerContent(
     //     this.selectedSpot
@@ -667,6 +682,13 @@ export class GoogleMap2dComponent
       console.error("Google Maps API is not loaded!");
       return;
     }
+
+    // Initial color scheme update - this will trigger optionsInitialized
+    // which eventually renders the map
+    this._updateMapColorScheme();
+  }
+
+  onMapReady() {
     if (!this.googleMap) {
       console.error("GoogleMap component is not available!");
       return;
@@ -697,6 +719,45 @@ export class GoogleMap2dComponent
     this.positionGoogleMapsLogo();
     if (this.isDebug()) {
       this._startFpsLoop();
+    }
+  }
+
+
+
+  private async _updateMapColorScheme() {
+    // If map is already initialized, use setOptions
+    if (this.googleMap?.googleMap) {
+      try {
+        const { ColorScheme } = (await google.maps.importLibrary(
+          "core"
+        )) as any;
+        const isDark = this.resolvedDarkMode();
+        this.googleMap.googleMap.setOptions({
+          colorScheme: isDark ? ColorScheme.DARK : ColorScheme.LIGHT,
+        } as any);
+      } catch (e) {
+        console.warn("Failed to update map color scheme:", e);
+      }
+      return;
+    }
+
+    // Otherwise update mapOptions before initialization
+    try {
+      // Use dynamic import for Core library to get ColorScheme
+      // @ts-ignore - Handle potential missing types for newer Maps features
+      const { ColorScheme } = await google.maps.importLibrary("core");
+
+      const isDark = this.resolvedDarkMode();
+
+      this.mapOptions = {
+        ...this.mapOptions,
+        // @ts-ignore
+        colorScheme: isDark ? ColorScheme.DARK : ColorScheme.LIGHT,
+      };
+      this.optionsInitialized.set(true);
+    } catch (e) {
+      console.warn("Failed to set map color scheme:", e);
+      this.optionsInitialized.set(true); // Proceed anyway
     }
   }
 
@@ -809,6 +870,8 @@ export class GoogleMap2dComponent
     headingInteractionEnabled: true,
   };
 
+  optionsInitialized = signal<boolean>(false);
+
   spotCircleDarkOptions: google.maps.CircleOptions = {
     fillColor: "#b8c4ff",
     strokeColor: "#0036ba",
@@ -888,7 +951,7 @@ export class GoogleMap2dComponent
 
   private _lastBoundsChangeTime = 0;
   private _boundsThrottleTimer: any = null;
-  private readonly BOUNDS_THROTTLE_MS = 80; // ~12fps
+  private readonly BOUNDS_THROTTLE_MS = 100; // ~10fps
 
   // FPS Counter
   fps = signal<number>(0);
@@ -949,7 +1012,6 @@ export class GoogleMap2dComponent
   }
 
   private _executeBoundsChange() {
-    console.log(`[${Date.now()}] GoogleMap2d: boundsChanged EXECUTE`);
     if (!this.googleMap) return;
     const bounds = this.googleMap.getBounds()!;
 

@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
+import { timeout } from "rxjs/operators";
 
 export interface NodeTags {
   amenity?: string;
@@ -50,9 +51,11 @@ export class OsmDataService {
     });
 
     // The body of the POST request is the query.
-    return this.http.post<OverpassResponse>(this._overpassUrl, query, {
-      headers,
-    });
+    return this.http
+      .post<OverpassResponse>(this._overpassUrl, query, {
+        headers,
+      })
+      .pipe(timeout(3000));
   }
 
   private getBboxStringFromBounds(

@@ -1,3 +1,4 @@
+@if(optionsInitialized()) {
 <google-map
   #googleMap
   id="googleMap"
@@ -5,7 +6,7 @@
   [zoom]="_zoom()"
   [options]="mapOptions"
   [mapTypeId]="mapTypeId()"
-  (mapClick)="mapClick.emit()"
+  (mapClick)="mapClick.emit($event.latLng!.toJSON())"
   (boundsChanged)="boundsChanged()"
   (centerChanged)="centerChanged()"
   (zoomChanged)="getAndEmitChangedZoom()"
@@ -24,7 +25,8 @@
       strokeColor: '#FF0000',
       strokeOpacity: 0.7,
       strokeWeight: 1,
-      fillOpacity: 0
+      fillOpacity: 0,
+      clickable: false
     }"
   ></map-rectangle>
   }
@@ -36,7 +38,8 @@
       strokeColor: '#FF0000',
       strokeOpacity: 0.8,
       strokeWeight: 2,
-      fillOpacity: 0
+      fillOpacity: 0,
+      clickable: false
     }"
   ></map-rectangle>
 
@@ -227,72 +230,6 @@
   ></div>
   } } } }
 
-  <!-- @if(selectedSpot) {
-  <map-advanced-marker
-    #selectedSpotMarker
-    className="'spot-marker'"
-    id="selectedSpotMarker"
-    [options]="
-      isEditing() ? selectedSpotMarkerEditingOptions : selectedSpotMarkerOptions
-    "
-    [position]="selectedSpot.location"
-    (mapDragend)="editingSpotPositionChanged($event.latLng)"
-  ></map-advanced-marker>
-  } -->
-
-  <!-- Highlighted spot markers
-  @for(spot of highlightedSpots; track $index) {
-  <map-advanced-marker
-    #selectedSpotMarker
-    id="selectedSpotMarker"
-    [position]="spot.location"
-    [options]="{
-      gmpDraggable: true
-    }"
-    (mapDragend)="editingSpotPositionChanged($event.latLng)"
-    [content]="selectedSpotMarkerNode"
-  ></map-advanced-marker> -->
-  <!-- <div
-    class="pin-marker"
-    #selectedSpotMarkerNode
-    id="selectedSpotMarkerNode"
-    [rating]="spot.rating"
-  >
-    <div class="mat-label-large pin-primary">
-      <mat-icon style="height: 20px; font-size: 20px; width: 20px"
-        >star</mat-icon
-      >
-    </div>
-    <svg
-      width="18"
-      height="12"
-      viewBox="0 0 18 12"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M6.88614 10.6061C7.4508 11.2455 7.73313 11.5653 8.04116 11.7336C8.63871 12.06 9.36129 12.06 9.95884 11.7336C10.2669 11.5653 10.5492 11.2455 11.1139 10.6061L16.1201 4.93655C17.1337 3.78859 17.6406 3.21461 17.7605 2.75071C17.9955 1.84214 17.5671 0.8924 16.7305 0.467134C16.3034 0.25 15.5377 0.25 14.0062 0.25H3.99378C2.46234 0.25 1.69663 0.25 1.26948 0.467134C0.432911 0.8924 0.00453424 1.84214 0.239482 2.75071C0.359444 3.21461 0.86627 3.78859 1.87992 4.93655L6.88614 10.6061Z"
-        fill="#DDE1FF"
-      />
-    </svg>
-  </div> } -->
-
-  <!-- Geolocation -->
-  @if(showGeolocation && geolocation()) {
-  <div #geolocationMarker class="geolocation-marker"></div>
-  <map-advanced-marker
-    [position]="geolocation()!.location"
-    [content]="geolocationMarker"
-    [zIndex]="1000000"
-  >
-  </map-advanced-marker>
-  <map-circle
-    [center]="geolocation()!.location"
-    [radius]="geolocation()!.accuracy"
-    [options]="geolocationCircleOptions"
-  ></map-circle>
-  }
-
   <!-- Additional Markers (amenities, custom markers, etc.) -->
   @if(zoom >= 16) { @for(marker of markers(); track trackMarker($index, marker))
   {
@@ -309,3 +246,8 @@
   <map-polygon [options]="polygon" [paths]="polygon.paths"></map-polygon>
   }
 </google-map>
+} @else {
+<div
+  class="w-100 h-100 d-flex justify-content-center align-items-center bg-black"
+></div>
+}

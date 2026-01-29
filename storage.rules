@@ -5,7 +5,7 @@ service firebase.storage {
     match /profile_pictures/{filename} {
       allow write: if request.auth.uid != null && (
         (filename.size() >= request.auth.uid.size() && filename[0 : request.auth.uid.size()] == request.auth.uid) ||
-        (request.resource != null && request.resource.metadata.customMetadata.uid == request.auth.uid)
+        (request.resource != null && request.resource.metadata.uid == request.auth.uid)
       );
     }
 
@@ -13,7 +13,7 @@ service firebase.storage {
       allow read: if true;
       allow create, update: if request.auth.uid != null &&
       request.resource.size < 500 * 1024 * 1024 &&
-      request.resource.metadata.customMetadata.uid == request.auth.uid;
+      request.resource.metadata.uid == request.auth.uid;
       // Only allow uploads of any image file that's less than 100MB 
     }
   }

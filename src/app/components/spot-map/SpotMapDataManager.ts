@@ -221,13 +221,42 @@ export class SpotMapDataManager {
 
   // public functions
 
-  async setVisibleTiles(visibleTilesObj: TilesObject) {
-    const startTime = Date.now();
-    const requestId = ++this._updateRequestId;
-    console.log(
-      `[${startTime}] DataManager: setVisibleTiles START req=${requestId} zoom=${visibleTilesObj.zoom}`
-    );
+  // Throttling for setVisibleTiles to prevent UI blocking during fast zooms
+  private _visibleTilesThrottleTimer: any = null;
+  private readonly VISIBLE_TILES_THROTTLE_MS = 100;
+  private _pendingVisibleTiles: TilesObject | null = null;
+  private _lastVisibleTilesExecutionTime = 0;
 
+  setVisibleTiles(visibleTilesObj: TilesObject) {
+    this._pendingVisibleTiles = visibleTilesObj;
+    const now = Date.now();
+
+    // If enough time has passed since last execution, run immediately (throttle)
+    if (
+      now - this._lastVisibleTilesExecutionTime >
+      this.VISIBLE_TILES_THROTTLE_MS
+    ) {
+      this._executeSetVisibleTiles(visibleTilesObj);
+    } else {
+      // Otherwise schedule/update the trailing call (debounce/throttle tail)
+      if (this._visibleTilesThrottleTimer) {
+        // Timer already exists, just updating _pendingVisibleTiles is enough
+        return;
+      }
+
+      this._visibleTilesThrottleTimer = setTimeout(() => {
+        if (this._pendingVisibleTiles) {
+          this._executeSetVisibleTiles(this._pendingVisibleTiles);
+        }
+        this._visibleTilesThrottleTimer = null;
+      }, this.VISIBLE_TILES_THROTTLE_MS);
+    }
+  }
+
+  private async _executeSetVisibleTiles(visibleTilesObj: TilesObject) {
+    this._lastVisibleTilesExecutionTime = Date.now();
+    const startTime = this._lastVisibleTilesExecutionTime;
+    const requestId = ++this._updateRequestId;
     // update the visible tiles
     this._lastVisibleTiles.set(visibleTilesObj);
 
@@ -251,10 +280,8 @@ export class SpotMapDataManager {
       if (activeFilter === SpotFilterMode.None) {
         const now = Date.now();
         // Throttle: Allow updates while moving (at least every X ms)
+        // Throttle: Allow updates while moving (at least every X ms)
         if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
-          console.log(
-            `[${Date.now()}] DataManager: triggering loadHighlights (throttled) req=${requestId}`
-          );
           this._loadHighlightsForTiles(visibleTilesObj);
           this._lastHighlightFetchTime = now;
         }
@@ -265,9 +292,6 @@ export class SpotMapDataManager {
         }
 
         this._clusterDebounceTimer = setTimeout(() => {
-          console.log(
-            `[${Date.now()}] DataManager: triggering loadHighlights (debounced)`
-          );
           this._clusterDebounceTimer = null;
           this._loadHighlightsForTiles(visibleTilesObj);
           this._lastHighlightFetchTime = Date.now();
@@ -276,18 +300,12 @@ export class SpotMapDataManager {
     }
 
     if (requestId !== this._updateRequestId) {
-      console.log(
-        `[${Date.now()}] DataManager: setVisibleTiles ABORTED (pre-amenity) req=${requestId}`
-      );
       return;
     }
 
     // Load amenity markers at zoom >= 14 (amenityMarkerZoom) for efficient caching
     // But they will only be displayed at zoom >= 16 (amenityMarkerDisplayZoom)
     if (zoom >= this.amenityMarkerZoom) {
-      console.log(
-        `[${Date.now()}] DataManager: loading markers req=${requestId}`
-      );
       const markerTilesToLoad: Set<MapTileKey> =
         this._getMarkerTilesToLoad(visibleTilesObj);
       this._loadMarkersForTiles(markerTilesToLoad);
@@ -298,9 +316,6 @@ export class SpotMapDataManager {
 
     if (zoom >= this.spotZoom) {
       // show spots and markers
-      console.log(
-        `[${Date.now()}] DataManager: showing cached spots req=${requestId}`
-      );
       this._showCachedSpotsAndMarkersForTiles(visibleTilesObj);
 
       // now determine the missing information and load spots for it
@@ -308,20 +323,19 @@ export class SpotMapDataManager {
         this._getSpotTilesToLoad(visibleTilesObj);
 
       // load spots for missing tiles
-      console.log(
-        `[${Date.now()}] DataManager: loading missing spots req=${requestId} count=${
-          spotTilesToLoad16.size
-        }`
-      );
       this._loadSpotsForTiles(spotTilesToLoad16);
     } else {
       // show spot clusters
       // Also used to gate the loading logic: if the visible keys haven't changed (returns false),
       // we don't need to check for missing tiles, since the set of needed tiles hasn't changed.
-      console.log(
-        `[${Date.now()}] DataManager: showing clusters req=${requestId}`
-      );
       const didRender = this._showCachedSpotClustersForTiles(visibleTilesObj);
+
+      // Ensure we always load missing cluster tiles even if we didn't re-render
+      // (e.g. if we just panned a tiny bit but exposed a new tile)
+      // BUT _showCachedSpotClustersForTiles returns true if there are MISSING tiles too.
+      // So if it returned false, it means we have everything we need AND nothing changed??
+      // Let's stick to the original logic: only load if didRender is true OR we think we might need it.
+      // Actually, if we didn't render (because keys are same), we probably don't need to load either.
 
       if (didRender) {
         // now determine missing information and load spot clusters for that

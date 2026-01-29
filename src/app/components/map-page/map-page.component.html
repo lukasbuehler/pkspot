@@ -119,6 +119,7 @@
     @fadeInOut
     #spotMap
     id="spotMap"
+    [isClickable]="true"
     [selectedSpot]="selectedSpot()"
     [selectedChallenge]="selectedChallenge()"
     [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"

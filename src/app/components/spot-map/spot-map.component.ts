@@ -22,7 +22,11 @@ import {
   signal,
   Injector,
 } from "@angular/core";
-import { LocalSpot, Spot } from "../../../db/models/Spot";
+import {
+  LocalSpot,
+  Spot,
+  convertLocalSpotToSpot,
+} from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -365,11 +369,13 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   mapClick(event: google.maps.LatLngLiteral) {
+    console.log("Map clicked!", event);
     /**
      * When the map is clicked with a spot open, the spot is
      * closed and the bottom panel cloes as well.
      */
     if (this.selectedSpot()) {
+      console.log("Closing spot from map click");
       this.closeSpot();
     }
   }
@@ -401,15 +407,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
    * @param visibleTilesObj
    */
   visibleTilesChanged(visibleTilesObj: TilesObject): void {
-    console.log(
-      `[${Date.now()}] SpotMap: visibleTilesChanged start`,
-      visibleTilesObj
-    );
     this._visibleTilesObj = visibleTilesObj;
     if (!visibleTilesObj) return;
 
     this._spotMapDataManager.setVisibleTiles(visibleTilesObj);
-    console.log(`[${Date.now()}] SpotMap: visibleTilesChanged end`);
   }
 
   visibleViewportChanged(viewport: VisibleViewport): void {
@@ -711,16 +712,32 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           this.selectedSpot.set(spot as Spot);
           this.uneditedSpot = (spot as Spot).clone();
         } else {
-          // For new spots, we need to load the full object from the server (to get ID, timestamps, etc)
-          const savedSpot = await this._spotMapDataManager.loadAndAddSpotById(
+          // For new spots, don't wait for server - update optimistically!
+          // Convert the LocalSpot to a proper Spot with the new ID
+          const optimisticSpot = convertLocalSpotToSpot(
+            spot as LocalSpot,
             spotId
           );
-          if (savedSpot) {
-            this.selectedSpot.set(savedSpot);
-            // Update uneditedSpot backup with the fresh data from Firebase
-            this.uneditedSpot = savedSpot.clone();
-            // The spot will now appear on the map with the latest bounds
-          }
+
+          // Add it to the cache immediately so it stays visible
+          this._spotMapDataManager.addOrUpdateNewSpotToLoadedSpotsAndUpdate(
+            optimisticSpot
+          );
+
+          // Set as selected and current
+          this.selectedSpot.set(optimisticSpot);
+          this.uneditedSpot = optimisticSpot.clone();
+
+          // Still try to fetch the real data in background to eventually sync timestamps/metadata
+          // But don't block the UI or show loading state
+          this._spotMapDataManager
+            .loadAndAddSpotById(spotId)
+            .then((serverSpot) => {
+              if (serverSpot) {
+                console.log("Synced spot with server data");
+                // Optional: update again if needed, but optimistic data is usually fresher for user-edited fields
+              }
+            });
         }
       })
       .catch((error) => {
@@ -766,6 +783,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
    * Unselect the spot and close the bottom panel
    */
   closeSpot() {
+    console.log("closeSpot called. isEditing:", this.isEditing());
     if (this.isEditing()) {
       // TODO show dialog
       alert(

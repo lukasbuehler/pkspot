@@ -28,7 +28,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="pkspot.app" />
-                <data android:scheme="https" android:host="www.pkspot.app" />
             </intent-filter>
         </activity>
 
