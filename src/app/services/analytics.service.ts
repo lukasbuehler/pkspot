@@ -7,12 +7,14 @@ import { environment } from "../../environments/environment";
 import { Capacitor } from "@capacitor/core";
 import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { filter } from "rxjs/operators";
+import { version } from "../../../package.json";
 
 /**
  * Analytics service wrapping PostHog for event tracking.
  * PostHog is initialized in main.ts before Angular bootstrap.
  * This service provides a typed wrapper for PostHog calls.
  */
+
 @Injectable({
   providedIn: "root",
 })
@@ -21,6 +23,7 @@ export class AnalyticsService {
   private _consentService = inject(ConsentService);
   private router = inject(Router);
   private _initialized = false;
+  private readonly appVersion = version;
 
   constructor() {
     // no-op
@@ -430,6 +433,8 @@ export class AnalyticsService {
         is_native: isNative,
         is_pwa: isPwa,
         app_type: appType,
+        client_version: this.appVersion,
+        app_version: this.appVersion,
       };
 
       if (this.isNative()) {
