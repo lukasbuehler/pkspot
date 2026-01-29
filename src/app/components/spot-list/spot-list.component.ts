@@ -19,35 +19,17 @@ import {
   style,
   animate,
 } from "@angular/animations";
+import { AutoAnimateDirective } from "../../directives/auto-animate.directive";
 
 @Component({
   selector: "app-spot-list",
-  animations: [
-    trigger("gridElementAnimation", [
-      transition(":enter", [
-        style({ opacity: 0, height: "0px", transform: "translateY(-300px)" }),
-        sequence([
-          animate(
-            "0.5s ease",
-            style({ height: "*", width: "*", opacity: 1, transform: "none" })
-          ),
-        ]),
-      ]),
-      transition(":leave", [
-        sequence([
-          animate(
-            "0.5s ease",
-            style({ height: 0, width: 0, opacity: 0, transform: "scale(0.0)" })
-          ),
-        ]),
-      ]),
-    ]),
-  ],
+  animations: [],
   imports: [
     SpotPreviewCardComponent,
     MatButtonToggleModule,
     MatIconModule,
     RouterLink,
+    AutoAnimateDirective,
   ],
   templateUrl: "./spot-list.component.html",
   styleUrl: "./spot-list.component.scss",
@@ -100,5 +82,12 @@ export class SpotListComponent implements OnChanges {
     } else {
       return "";
     }
+  }
+
+  trackSpot(index: number, spot: SpotPreviewData | Spot | LocalSpot): string {
+    if ("id" in spot && spot.id) {
+      return spot.id;
+    }
+    return index.toString();
   }
 }

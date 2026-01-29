@@ -20,31 +20,37 @@
 >
   Highlights
 </h4> -->
-<div [class.compact]="group.value === 'compact'" class="spot-container pb-3">
-  @for(spot of highlightedSpots; track $index) { @if(withHrefLink()) {
-  <a [routerLink]="['/map', spot.slug ?? spot.id]">
+<div
+  [class.compact]="group.value === 'compact'"
+  class="spot-container pb-3"
+  appAutoAnimate
+>
+  @for(spot of highlightedSpots; track trackSpot($index, spot)) {
+  <div class="w-100">
+    @if(withHrefLink()) {
+    <a [routerLink]="['/map', spot.slug ?? spot.id]">
+      <app-spot-preview-card
+        [spotData]="spot"
+        [infoOnly]="true"
+        [clickable]="true"
+        [isCompact]="group.value === 'compact'"
+        class="w-100"
+      >
+      </app-spot-preview-card>
+    </a>
+    } @else {
     <app-spot-preview-card
-      @gridElementAnimation
       [spotData]="spot"
       [infoOnly]="true"
       [clickable]="true"
       [isCompact]="group.value === 'compact'"
+      (click)="spotClick($index)"
       class="w-100"
     >
     </app-spot-preview-card>
-  </a>
-  } @else {
-  <app-spot-preview-card
-    @gridElementAnimation
-    [spotData]="spot"
-    [infoOnly]="true"
-    [clickable]="true"
-    [isCompact]="group.value === 'compact'"
-    (click)="spotClick($index)"
-    class="w-100"
-  >
-  </app-spot-preview-card>
-  } }
+    }
+  </div>
+  }
 </div>
 }
 
@@ -52,32 +58,38 @@
 @if(remainingSpots.length > 0 && highlightedSpots.length > 0) {
 <h4 class="mat-title-medium" i18n="@@regular_spots_text">Other Spots</h4>
 } @if(remainingSpots.length > 0) {
-<div [class.compact]="group.value === 'compact'" class="spot-container pb-3">
-  @for(spot of remainingSpots; track $index) { @if(withHrefLink()) {
-  <a [routerLink]="['/map', getSpotIdOrSlugForSpotObj(spot)]">
+<div
+  [class.compact]="group.value === 'compact'"
+  class="spot-container pb-3"
+  appAutoAnimate
+>
+  @for(spot of remainingSpots; track trackSpot($index, spot)) {
+  <div class="w-100">
+    @if(withHrefLink()) {
+    <a [routerLink]="['/map', getSpotIdOrSlugForSpotObj(spot)]">
+      <app-spot-preview-card
+        [spotData]="spot"
+        [infoOnly]="true"
+        [clickable]="true"
+        [isCompact]="group.value === 'compact'"
+        [imgSize]="400"
+        class="w-100"
+      >
+      </app-spot-preview-card> </a
+    >} @else {
     <app-spot-preview-card
-      @gridElementAnimation
       [spotData]="spot"
       [infoOnly]="true"
       [clickable]="true"
       [isCompact]="group.value === 'compact'"
       [imgSize]="400"
       class="w-100"
+      (click)="spotClick($index)"
     >
-    </app-spot-preview-card> </a
-  >} @else {
-  <app-spot-preview-card
-    @gridElementAnimation
-    [spotData]="spot"
-    [infoOnly]="true"
-    [clickable]="true"
-    [isCompact]="group.value === 'compact'"
-    [imgSize]="400"
-    class="w-100"
-    (click)="spotClick($index)"
-  >
-  </app-spot-preview-card>
-  } }
+    </app-spot-preview-card>
+    }
+  </div>
+  }
 </div>
 }
 

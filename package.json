@@ -69,6 +69,7 @@
     "@capacitor/splash-screen": "^8.0.0",
     "@capacitor/status-bar": "^8.0.0",
     "@capawesome/capacitor-posthog": "^8.1.0",
+    "@formkit/auto-animate": "^0.9.0",
     "@videogular/ngx-videogular": "^8.0.0",
     "bootstrap": "^5.3.0",
     "buffer": "^6.0.3",
