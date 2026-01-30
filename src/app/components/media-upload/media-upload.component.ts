@@ -118,6 +118,11 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
 
     if (fileList) {
       const _mediaList: UploadMedia[] = [];
+
+      this._activeUploadCount = fileList.length;
+      this.isUploading.emit(true);
+      this._currentBatch = [];
+
       for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
 
@@ -217,6 +222,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         media.file,
         this.storageFolder,
         (progress: number) => {
+          if (this._activeUploadCount <= 0) return; // Ignore if cancelled
           this.mediaList.update((list) => {
             list[index] = {
               ...list[index],
@@ -230,6 +236,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
       )
       .then(
         (imageLink) => {
+          if (this._activeUploadCount <= 0) return; // Ignore if cancelled
           this.mediaFinishedUploading(media, imageLink);
           this.mediaList.update((list) => {
             list[index] = {
@@ -240,6 +247,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
           });
         },
         (error) => {
+          if (this._activeUploadCount <= 0) return; // Ignore if cancelled
           console.error("Error uploading media: ", error);
           this._snackbar.open(
             $localize`Error uploading media!`,
@@ -248,8 +256,17 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
               duration: 5000,
             }
           );
+          this._checkBatchCompletion();
         }
       );
+  }
+
+  cancelBatch() {
+    this._activeUploadCount = 0;
+    this._currentBatch = [];
+    this.mediaList.set([]);
+    this.uploadFile = null;
+    this.isUploading.emit(false);
   }
 
   mediaFinishedUploading(media: UploadMedia, url: string) {
@@ -265,6 +282,37 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
       isSized = true;
     }
     this.newMedia.emit({ src: url, is_sized: isSized, type: media.type });
+
+    // Handle batch logic
+    this._currentBatch.push({
+      src: url,
+      is_sized: isSized,
+      type: media.type,
+    });
+    this._checkBatchCompletion();
+  }
+
+  private _activeUploadCount = 0;
+  private _currentBatch: { src: string; is_sized: boolean; type: MediaType }[] =
+    [];
+
+  @Output() mediaBatchUploaded = new EventEmitter<
+    { src: string; is_sized: boolean; type: MediaType }[]
+  >();
+
+  @Output() isUploading = new EventEmitter<boolean>();
+
+  private _checkBatchCompletion() {
+    this._activeUploadCount--;
+    if (this._activeUploadCount <= 0) {
+      if (this._currentBatch.length > 0) {
+        this.mediaBatchUploaded.emit(this._currentBatch);
+      }
+      // Reset
+      this._activeUploadCount = 0;
+      this._currentBatch = [];
+      this.isUploading.emit(false);
+    }
   }
 
   clear() {

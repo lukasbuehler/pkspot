@@ -1,4 +1,4 @@
-import { Component, Inject, inject } from "@angular/core";
+import { Component, Inject, inject, signal, ViewChild } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -61,25 +61,45 @@ export class MediaUploadDialogComponent {
     this.multipleAllowed = data.multipleAllowed ?? true;
   }
 
-  async onNewMedia(event: { src: string; is_sized: boolean; type: MediaType }) {
+  protected uploading = signal(false);
+
+  @ViewChild(MediaUpload) mediaUpload!: MediaUpload;
+
+  onUploadingChange(isUploading: boolean) {
+    this.uploading.set(isUploading);
+    this.dialogRef.disableClose = isUploading; // Prevent closing via backdrop/escape
+  }
+
+  abort() {
+    if (this.mediaUpload) {
+      this.mediaUpload.cancelBatch();
+    }
+    this.uploading.set(false);
+    this.dialogRef.disableClose = false;
+    this.close();
+  }
+
+  async onMediaBatchUploaded(
+    events: { src: string; is_sized: boolean; type: MediaType }[]
+  ) {
     const uid = this._auth.user?.uid;
     if (!uid) {
       console.error("Cannot append media: user not signed in");
       return;
     }
 
-    const mediaItem: MediaSchema = {
+    const userReference = createUserReference(this._auth.user!.data!);
+    const currentMedia = this.data.currentMedia || [];
+
+    const newMediaItems: MediaSchema[] = events.map((event) => ({
       src: event.src,
       type: event.type,
       uid,
       origin: "user",
       isInStorage: true,
-    };
+    }));
 
-    const userReference = createUserReference(this._auth.user.data!);
-
-    const currentMedia = this.data.currentMedia || [];
-    const newMediaList = [...currentMedia, mediaItem];
+    const newMediaList = [...currentMedia, ...newMediaItems];
 
     try {
       await this._spotEditsService.createSpotUpdateEdit(
@@ -87,13 +107,18 @@ export class MediaUploadDialogComponent {
         { media: newMediaList },
         userReference
       );
-      this._snackBar.open("Media added successfully!", "Dismiss", {
-        duration: 3000,
-        horizontalPosition: "center",
-        verticalPosition: "bottom",
-      });
-      // Update the local currentMedia so subsequent adds include this one
+
       this.data.currentMedia = newMediaList;
+
+      this._snackBar.open(
+        `${newMediaItems.length} media item(s) added successfully!`,
+        "Dismiss",
+        {
+          duration: 3000,
+          horizontalPosition: "center",
+          verticalPosition: "bottom",
+        }
+      );
     } catch (e) {
       console.error("Failed to append media to spot:", e);
       this._snackBar.open("Failed to add media. Please try again.", "Dismiss", {
