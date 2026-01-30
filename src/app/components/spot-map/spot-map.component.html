@@ -29,6 +29,7 @@
   (centerChange)="mapCenter = $event"
   (hasGeolocationChange)="hasGeolocationChange.emit($event)"
   (markerClickEvent)="onMarkerClickFromMap($event)"
+  (poiClick)="poiClick.emit($event)"
 ></app-google-map-2d>
 
 }

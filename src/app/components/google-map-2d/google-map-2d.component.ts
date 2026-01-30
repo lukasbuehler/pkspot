@@ -228,10 +228,32 @@ export class GoogleMap2dComponent
     this.zoomChange.emit(this._zoom());
   }
 
+  onMapClick(event: google.maps.MapMouseEvent | google.maps.IconMouseEvent) {
+    if (!event.latLng) return;
+
+    // Check if it's a POI click (IconMouseEvent has placeId)
+    const placeId = (event as google.maps.IconMouseEvent).placeId;
+
+    if (placeId) {
+      // Prevent the default info window
+      event.stop();
+      this.poiClick.emit({
+        location: event.latLng.toJSON(),
+        placeId: placeId,
+      });
+    } else {
+      this.mapClick.emit(event.latLng.toJSON());
+    }
+  }
+
   @Output() boundsChange = new EventEmitter<google.maps.LatLngBounds>();
   @Output() visibleTilesChange = new EventEmitter<TilesObject>();
   @Output() visibleViewportChange = new EventEmitter<VisibleViewport>();
   @Output() mapClick = new EventEmitter<google.maps.LatLngLiteral>();
+  @Output() poiClick = new EventEmitter<{
+    location: google.maps.LatLngLiteral;
+    placeId: string;
+  }>();
   @Output() spotClick = new EventEmitter<
     LocalSpot | Spot | SpotPreviewData | SpotId
   >();
@@ -861,7 +883,7 @@ export class GoogleMap2dComponent
   mapOptions: google.maps.MapOptions = {
     mapId: environment.mapId,
     backgroundColor: "#000000",
-    clickableIcons: false,
+    clickableIcons: true,
     gestureHandling: "greedy",
     disableDefaultUI: true,
     tilt: 0,

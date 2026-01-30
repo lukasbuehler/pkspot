@@ -212,5 +212,6 @@ export class CustomMarkerComponent {
     if ($event && typeof ($event as any).stopPropagation === "function") {
       ($event as any).stopPropagation();
     }
+    this.markerClick.emit(this.index());
   }
 }

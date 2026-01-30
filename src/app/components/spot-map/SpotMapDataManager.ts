@@ -987,6 +987,7 @@ export class SpotMapDataManager {
                         ? ` (${element.tags.operator})`
                         : ""),
                     color: "secondary",
+                    type: "drinking_water",
                   };
                   const tileCoords16 =
                     MapHelpers.getTileCoordinatesForLocationAndZoom(
@@ -1013,6 +1014,7 @@ export class SpotMapDataManager {
                         ? ` (${element.tags.operator})`
                         : ""),
                     color: "secondary",
+                    type: "drinking_water",
                   };
                   const tileCoords16 =
                     MapHelpers.getTileCoordinatesForLocationAndZoom(
@@ -1045,6 +1047,7 @@ export class SpotMapDataManager {
                         : ""),
                     color: "tertiary",
                     priority: isFree ? 350 : isPaid ? 250 : 300, // Free toilets > unknown > paid
+                    type: "wc",
                   };
                   const tileCoords16 =
                     MapHelpers.getTileCoordinatesForLocationAndZoom(

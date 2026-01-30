@@ -1,5 +1,10 @@
 <ng-template #sidebarContent>
-  @if(selectedSpot()) { @if(selectedChallenge()) {
+  @if(selectedPoi()) {
+  <app-poi-detail
+    [poi]="selectedPoi()!"
+    (dismiss)="closeSpot()"
+  ></app-poi-detail>
+  } @else if(selectedSpot()) { @if(selectedChallenge()) {
   <a
     mat-button
     [routerLink]="[
@@ -83,7 +88,7 @@
     </p>
   </div>
 
-  }@else {
+  } @else {
   <app-spot-details
     @fadeInOut
     #spotDetail
@@ -135,6 +140,8 @@
     (filterBoundsChange)="onFilterBoundsChange($event)"
     [bottomSheetOffset]="true"
     [isDebug]="appSettings.debugMode()"
+    (poiClick)="onPoiClick($event)"
+    (markerClickEvent)="onAmenityClick($event)"
   ></app-spot-map>
   } @placeholder {
   <div

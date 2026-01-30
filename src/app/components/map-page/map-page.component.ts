@@ -103,6 +103,10 @@ import { BackHandlingService } from "../../services/back-handling.service";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { AppSettingsService } from "../../services/app-settings.service";
 
+import { PoiData } from "../../../db/models/PoiData";
+import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
+import { AmenityNames, AmenitiesMap } from "../../../db/models/Amenities";
+
 @Component({
   selector: "app-map-page",
   templateUrl: "./map-page.component.html",
@@ -147,7 +151,8 @@ import { AppSettingsService } from "../../services/app-settings.service";
     MatDividerModule,
     MatTooltipModule,
     MatProgressBarModule,
-    MatProgressSpinnerModule, // <-- Added
+    MatProgressSpinnerModule,
+    PoiDetailComponent,
     SearchFieldComponent,
     ChallengeDetailComponent,
     // SpeedDialFabComponent,
@@ -179,6 +184,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   searchResultSpots: WritableSignal<Spot[]> = signal([]);
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
+  selectedPoi = signal<PoiData | null>(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
   showAllChallenges: WritableSignal<boolean> = signal(false);
   allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
@@ -301,6 +307,95 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** MatDialog for opening the custom filter dialog */
   private _dialog = inject(MatDialog);
+
+  /**
+   * Handle clicks on POIs or Amenity Markers
+   */
+  /**
+   * Handle clicks on POIs or Amenity Markers
+   */
+  async onPoiClick(event: {
+    location: google.maps.LatLngLiteral;
+    placeId: string;
+  }) {
+    this.ngZone.run(async () => {
+      console.log("POI Clicked", event);
+      this.closeSpot(); // Ensure no spot is selected
+
+      if (event.placeId) {
+        // It's a Google Maps POI
+        try {
+          // Fetch details to get the name
+          const place = await this.mapsService.getGooglePlaceById(
+            event.placeId
+          );
+
+          this.selectedPoi.set({
+            type: "google-poi",
+            id: event.placeId,
+            name: place.displayName || "Point of Interest",
+            location: place.location?.toJSON() || event.location,
+            googlePlace: place,
+          });
+
+          // Focus the map on it
+          if (this.spotMap) {
+            this.spotMap.focusPoint(this.selectedPoi()!.location);
+          }
+        } catch (error) {
+          console.error("Failed to load POI details:", error);
+        }
+      }
+    });
+  }
+
+  // Handle clicks on custom amenity markers (bubbled up from SpotMap via markerClickEvent)
+  onAmenityClick(event: number | { marker: any; index?: number }) {
+    this.ngZone.run(() => {
+      let markerIndex: number | undefined;
+
+      if (typeof event === "number") {
+        markerIndex = event;
+      } else {
+        markerIndex = event.index;
+      }
+
+      if (markerIndex === undefined) return;
+
+      this.closeSpot();
+
+      // Access spotMapData from the child component
+      const markers = this.spotMap?.spotMapData?.visibleAmenityMarkers();
+
+      if (markers && markers[markerIndex]) {
+        const marker = markers[markerIndex];
+
+        let displayname: string = marker.name || "Amenity";
+        if (displayname === "Amenity" || displayname === "undefined") {
+          // Try to look up a friendly name based on the icon/type if available
+          const nameFromType = marker.type
+            ? AmenityNames[marker.type as keyof AmenitiesMap]
+            : undefined;
+          if (nameFromType) {
+            displayname = nameFromType;
+          } else {
+            displayname = "Amenity";
+          }
+        }
+
+        this.selectedPoi.set({
+          type: "amenity",
+          id: `amenity-${marker.location.lat}-${marker.location.lng}`,
+          name: displayname,
+          location: marker.location,
+          marker: marker,
+        });
+        if (this.spotMap) {
+          this.spotMap.focusPoint(marker.location);
+        }
+      }
+    });
+  }
 
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
@@ -1299,6 +1394,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.closeSpot(updateUrl);
     } else {
       this.closeChallenge(false);
+      this.selectedPoi.set(null);
       this.selectedSpot.set(spot);
       // When a new spot is selected, jump the sidebar/bottom-sheet content to top
       this.resetSidebarContentToTop();
@@ -1381,6 +1477,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   closeSpot(updateUrl: boolean = true) {
     this.selectedSpot.set(null);
+    this.selectedPoi.set(null); // Clear selected POI
     this.showSpotEditHistory.set(false);
     this.closeChallenge(false);
 

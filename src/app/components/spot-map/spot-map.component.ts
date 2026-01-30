@@ -119,6 +119,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @Output() markerClickEvent = new EventEmitter<
     number | { marker: any; index?: number }
   >();
+  @Output() poiClick = new EventEmitter<{
+    location: google.maps.LatLngLiteral;
+    placeId: string;
+  }>();
   /**
    * Emits when map bounds change while a filter is active.
    * Parent component should re-run the filter search for the new bounds.

@@ -6,7 +6,7 @@
   [zoom]="_zoom()"
   [options]="mapOptions"
   [mapTypeId]="mapTypeId()"
-  (mapClick)="mapClick.emit($event.latLng!.toJSON())"
+  (mapClick)="onMapClick($event)"
   (boundsChanged)="boundsChanged()"
   (centerChanged)="centerChanged()"
   (zoomChanged)="getAndEmitChangedZoom()"
