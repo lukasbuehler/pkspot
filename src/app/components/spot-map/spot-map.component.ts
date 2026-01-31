@@ -119,10 +119,13 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @Output() markerClickEvent = new EventEmitter<
     number | { marker: any; index?: number }
   >();
+
   @Output() poiClick = new EventEmitter<{
     location: google.maps.LatLngLiteral;
     placeId: string;
   }>();
+
+  @Output() mapClickEvent = new EventEmitter<google.maps.LatLngLiteral>();
   /**
    * Emits when map bounds change while a filter is active.
    * Parent component should re-run the filter search for the new bounds.
@@ -374,6 +377,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   mapClick(event: google.maps.LatLngLiteral) {
     console.log("Map clicked!", event);
+
+    // Emit the click event for parent components to handle (e.g. deselection)
+    this.mapClickEvent.emit(event);
+
     /**
      * When the map is clicked with a spot open, the spot is
      * closed and the bottom panel cloes as well.

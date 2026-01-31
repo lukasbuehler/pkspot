@@ -95,6 +95,7 @@ import { StructuredDataService } from "../../services/structured-data.service";
 import { MatCardModule } from "@angular/material/card";
 import { MatDialog } from "@angular/material/dialog";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
+import { MarkerSchema } from "../marker/marker.component";
 import {
   CustomFilterDialogComponent,
   CustomFilterParams,
@@ -320,7 +321,22 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }) {
     this.ngZone.run(async () => {
       console.log("POI Clicked", event);
-      this.closeSpot(); // Ensure no spot is selected
+
+      // Set a placeholder POI to prevent the spot list from showing up
+      // during the transition (template logic: if selectedPoi -> show POI, else if selectedSpot -> show Spot, else -> show List)
+      this.selectedPoi.set({
+        type: "google-poi",
+        id: event.placeId,
+        name: "Loading...",
+        location: event.location,
+        googlePlace: undefined,
+      });
+
+      // Clear spot selection manually (don't use closeSpot() as it clears selectedPoi)
+      this.selectedSpot.set(null);
+      this.showSpotEditHistory.set(false);
+      this.closeChallenge(false);
+      this.updateMapURL();
 
       if (event.placeId) {
         // It's a Google Maps POI
@@ -349,6 +365,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // Handle click on map background (bubbled up from SpotMap)
+  onMapClick(event: google.maps.LatLngLiteral) {
+    this.ngZone.run(() => {
+      // Clear spot selection
+      if (this.selectedSpot()) {
+        this.selectedSpot.set(null);
+      }
+
+      // Clear POI selection
+      if (this.selectedPoi()) {
+        this.selectedPoi.set(null);
+        // also clear the placeholder if it was just loading
+      }
+
+      this.showSpotEditHistory.set(false);
+      this.closeChallenge(false);
+
+      // Update URL to remove selected spot/poi
+      this.updateMapURL();
+    });
+  }
+
   // Handle clicks on custom amenity markers (bubbled up from SpotMap via markerClickEvent)
   onAmenityClick(event: number | { marker: any; index?: number }) {
     this.ngZone.run(() => {
@@ -361,8 +399,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (markerIndex === undefined) return;
-
-      this.closeSpot();
 
       // Access spotMapData from the child component
       const markers = this.spotMap?.spotMapData?.visibleAmenityMarkers();
@@ -390,6 +426,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           location: marker.location,
           marker: marker,
         });
+
+        // Clear spot selection manually (don't use closeSpot() as it clears selectedPoi)
+        this.selectedSpot.set(null);
+        this.showSpotEditHistory.set(false);
+        this.closeChallenge(false);
+        this.updateMapURL();
+
         if (this.spotMap) {
           this.spotMap.focusPoint(marker.location);
         }

@@ -18,6 +18,7 @@ export interface MarkerSchema {
   number?: number;
   priority?: "required" | number;
   type?: string;
+  description?: string;
 }
 
 @Component({

@@ -267,7 +267,8 @@
       }
     </div>
 
-    @if(spot()?.isEligableForHighlights() === false) {
+    @if(authenticationService.isSignedIn && spot()?.isEligableForHighlights()
+    === false) {
     <div class="border rounded d-flex flex-row gap-2 p-2 mb-3">
       <mat-icon class="flex-shrink-0">info</mat-icon>
       <p class="mat-body-small m-0 p-0" i18n>

@@ -967,108 +967,19 @@ export class SpotMapDataManager {
 
         const bounds = MapHelpers.getBoundsForTile(zoom, x, y);
         // load the water markers and add them
-        firstValueFrom(this._osmDataService.getDrinkingWaterAndToilets(bounds))
-          .then((data) => {
-            const markers: {
-              marker: MarkerSchema;
-              tile: { x: number; y: number };
-            }[] = data.elements
-              .map((element) => {
-                if (element.tags.amenity === "drinking_water") {
-                  const marker: MarkerSchema = {
-                    location: {
-                      lat: element.lat,
-                      lng: element.lon,
-                    },
-                    icons: ["water_full"], // local_drink, water_drop
-                    name:
-                      element.tags.name +
-                      (element.tags.operator
-                        ? ` (${element.tags.operator})`
-                        : ""),
-                    color: "secondary",
-                    type: "drinking_water",
-                  };
-                  const tileCoords16 =
-                    MapHelpers.getTileCoordinatesForLocationAndZoom(
-                      marker.location,
-                      16
-                    );
-                  return { marker: marker, tile: tileCoords16 };
-                } else if (element.tags.amenity === "fountain") {
-                  if (element.tags.drinking_water === "no") {
-                    return;
-                  }
-                  const marker: MarkerSchema = {
-                    location: {
-                      lat: element.lat,
-                      lng: element.lon,
-                    },
-                    icons:
-                      element.tags.drinking_water === "yes"
-                        ? ["water_full"]
-                        : ["water_drop"],
-                    name:
-                      element.tags.name +
-                      (element.tags.operator
-                        ? ` (${element.tags.operator})`
-                        : ""),
-                    color: "secondary",
-                    type: "drinking_water",
-                  };
-                  const tileCoords16 =
-                    MapHelpers.getTileCoordinatesForLocationAndZoom(
-                      marker.location,
-                      16
-                    );
-                  return { marker: marker, tile: tileCoords16 };
-                } else if (element.tags.amenity === "toilets") {
-                  const isFree = element.tags.fee === "no";
-                  const isPaid = element.tags.fee === "yes";
-
-                  const marker: MarkerSchema = {
-                    location: {
-                      lat: element.lat,
-                      lng: element.lon,
-                    },
-                    icons: isPaid
-                      ? ["wc", "paid"]
-                      : isFree
-                      ? ["wc", "money_off"]
-                      : ["wc"],
-                    name:
-                      element.tags.name +
-                      (element.tags.fee ? ` Fee: ${element.tags.charge}` : "") +
-                      (element.tags.operator
-                        ? ` (${element.tags.operator})`
-                        : "") +
-                      (element.tags.opening_hours
-                        ? `Opening hours: ${element.tags.opening_hours}`
-                        : ""),
-                    color: "tertiary",
-                    priority: isFree ? 350 : isPaid ? 250 : 300, // Free toilets > unknown > paid
-                    type: "wc",
-                  };
-                  const tileCoords16 =
-                    MapHelpers.getTileCoordinatesForLocationAndZoom(
-                      marker.location,
-                      16
-                    );
-                  return { marker: marker, tile: tileCoords16 };
-                }
-              })
-              .filter((marker) => marker !== undefined);
-
-            markers.forEach((markerObj) => {
-              const key = getClusterTileKey(
-                16,
-                markerObj.tile.x,
-                markerObj.tile.y
-              );
+        firstValueFrom(this._osmDataService.getAmenityMarkers(bounds))
+          .then((markers) => {
+            markers.forEach((marker) => {
+              const tileCoords16 =
+                MapHelpers.getTileCoordinatesForLocationAndZoom(
+                  marker.location,
+                  16
+                );
+              const key = getClusterTileKey(16, tileCoords16.x, tileCoords16.y);
               if (!this._markers.has(key)) {
                 this._markers.set(key, []);
               }
-              this._markers.get(key)!.push(markerObj.marker);
+              this._markers.get(key)!.push(marker);
             });
 
             const _lastVisibleTiles = this._lastVisibleTiles();
