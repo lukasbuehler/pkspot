@@ -1,23 +1,29 @@
 import { Injectable, PLATFORM_ID, inject } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
+import { Router, NavigationEnd } from "@angular/router";
 import posthog from "posthog-js";
 import { ConsentService } from "./consent.service";
 import { environment } from "../../environments/environment";
 import { Capacitor } from "@capacitor/core";
 import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
+import { filter } from "rxjs/operators";
+import { version } from "../../../package.json";
 
 /**
  * Analytics service wrapping PostHog for event tracking.
  * PostHog is initialized in main.ts before Angular bootstrap.
  * This service provides a typed wrapper for PostHog calls.
  */
+
 @Injectable({
   providedIn: "root",
 })
 export class AnalyticsService {
   private _platformId = inject(PLATFORM_ID);
   private _consentService = inject(ConsentService);
+  private router = inject(Router);
   private _initialized = false;
+  private readonly appVersion = version;
 
   constructor() {
     // no-op
@@ -28,20 +34,27 @@ export class AnalyticsService {
    */
   async init(): Promise<void> {
     if (this._initialized) {
+      console.log("[AnalyticsDebug] Already initialized");
       return;
     }
 
     // Check for localhost/dev environment safeguard
     if (this.isLocalhost() && !environment.production) {
       console.log(
-        "[Analytics] Skipping initialization for localhost/dev environment"
+        "[AnalyticsDebug] Skipping initialization for localhost/dev environment (Safeguard Active)"
       );
       return;
     }
 
     const { apiKey, host } = environment.keys.posthog;
+    console.log(
+      `[AnalyticsDebug] Initializing with Host: ${host}, Key: ${
+        apiKey ? apiKey.substring(0, 4) + "***" : "MISSING"
+      }`
+    );
+
     if (!apiKey || !host) {
-      console.warn("[Analytics] PostHog configuration missing");
+      console.warn("[AnalyticsDebug] PostHog configuration missing");
       return;
     }
 
@@ -55,6 +68,35 @@ export class AnalyticsService {
       this.registerSuperProperties();
     } catch (e) {
       console.error("[Analytics] Initialization failed", e);
+    }
+  }
+
+  /**
+   * Track a screen view (Native only essentially, as Web tracks pageviews automatically)
+   */
+  trackScreen(screenName: string, properties?: Record<string, unknown>): void {
+    if (!this.isAvailable()) return;
+
+    if (this.isNative()) {
+      // Prepend base URL for consistent reporting in PostHog
+      const baseUrl = environment.baseUrl || "https://pkspot.app";
+      const fullUrl = `${baseUrl}${
+        screenName.startsWith("/") ? "" : "/"
+      }${screenName}`;
+      CapacitorPostHog.screen({
+        screenTitle: fullUrl,
+        properties: properties,
+      });
+
+      // Register current URL/Screen as super properties so they are attached to all subsequent events (like trackEvent)
+      this.registerNativeSuperProperty({
+        $current_url: fullUrl,
+        $screen_name: fullUrl,
+      });
+    } else {
+      // Web usually handles this via $pageview, but we could force a capture if needed.
+      // For now, rely on default $pageview from posthog-js which is usually automatic or manual.
+      // If automatic capture is disabled, we might want to manually capture $pageview here.
     }
   }
 
@@ -81,6 +123,13 @@ export class AnalyticsService {
       apiKey,
       host,
     });
+
+    // Auto-track screen views for Native
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.trackScreen(event.urlAfterRedirects);
+      });
   }
 
   /**
@@ -100,8 +149,20 @@ export class AnalyticsService {
       capture_pageleave: false,
       disable_session_recording: true,
       persistence: "localStorage",
-      debug: !environment.production,
-      before_send: (event) => this.processEventBeforeSend(event),
+      debug: false,
+      before_send: (event) => {
+        // filter out likely boits
+        if (this.isLikelyBot()) {
+          if (event && event.event) {
+            console.log(
+              "AnalyticsService: filtering out likely bot event",
+              event.event
+            );
+          }
+          return null;
+        }
+        return event;
+      },
     });
   }
 
@@ -149,21 +210,16 @@ export class AnalyticsService {
     // Allowlist of minimal events that may be collected before consent
     const allowlist = new Set([
       "$pageview",
-      "User Authenticated",
+      "$autocapture",
       "Consent Granted",
-      "Visitor Agreed to Terms",
+      "Consent Denied",
+      "Alain Mode Changed",
     ]);
 
-    // Respect consent for non-essential events
-    try {
-      const hasConsentSignal = this._consentService?.hasConsent;
-      const hasConsent =
-        typeof hasConsentSignal === "function" ? hasConsentSignal() : false;
-      if (!hasConsent && !allowlist.has(eventName)) {
-        return;
-      }
-    } catch (e) {
-      // If consent check fails, default to safe behavior: do not send
+    const hasConsent = this._consentService.hasConsent();
+
+    // If no consent & not calling allowlisted event => skip
+    if (!hasConsent && !allowlist.has(eventName)) {
       return;
     }
 
@@ -377,6 +433,8 @@ export class AnalyticsService {
         is_native: isNative,
         is_pwa: isPwa,
         app_type: appType,
+        client_version: this.appVersion,
+        app_version: this.appVersion,
       };
 
       if (this.isNative()) {
@@ -433,5 +491,51 @@ export class AnalyticsService {
       ].replace(/^(https?:\/\/[^/]+)\/(en|de|de-CH|fr|it|es|nl)(\/|$)/, "$1/");
     }
     return event;
+  }
+
+  /**
+   * Add UTM parameters to a URL
+   * @param url The URL to append parameters to
+   * @param campaign Optional campaign name (default: 'referral')
+   * @param source Optional source (default: 'pkspot')
+   * @param medium Optional medium (default: 'referral')
+   */
+  public addUtmToUrl(
+    url: string | null | undefined,
+    campaign: string = "referral",
+    source: string = "pkspot",
+    medium: string = "referral"
+  ): string | null {
+    if (!url) return null;
+
+    try {
+      // Handle simple URLs that might not have protocol (though they should)
+      let urlObj: URL;
+      try {
+        urlObj = new URL(url);
+      } catch (e) {
+        // If relative or invalid, simplify or retry with fallback base
+        // But for external links, they should be absolute.
+        // If it fails, just return original.
+        return url;
+      }
+
+      // If parameters already exist, we shouldn't overwrite them if they designate source?
+      // But usually we want to enforce our source.
+      if (!urlObj.searchParams.has("utm_source")) {
+        urlObj.searchParams.set("utm_source", source);
+      }
+      if (!urlObj.searchParams.has("utm_medium")) {
+        urlObj.searchParams.set("utm_medium", medium);
+      }
+      if (!urlObj.searchParams.has("utm_campaign")) {
+        urlObj.searchParams.set("utm_campaign", campaign);
+      }
+
+      return urlObj.toString();
+    } catch (e) {
+      console.warn("Failed to add UTM params to URL", url, e);
+      return url;
+    }
   }
 }

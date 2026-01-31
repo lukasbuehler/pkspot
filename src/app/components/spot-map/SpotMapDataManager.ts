@@ -100,6 +100,11 @@ export class SpotMapDataManager {
   private currentSearchRequestId: ReturnType<typeof setTimeout> | undefined;
 
   private _lastRenderedClusterKeys: Set<string> | null = null;
+  private _updateRequestId = 0;
+
+  private _yieldToMain() {
+    return new Promise((resolve) => setTimeout(resolve, 0));
+  }
 
   constructor(
     readonly locale: LocaleCode,
@@ -216,17 +221,50 @@ export class SpotMapDataManager {
 
   // public functions
 
+  // Throttling for setVisibleTiles to prevent UI blocking during fast zooms
+  private _visibleTilesThrottleTimer: any = null;
+  private readonly VISIBLE_TILES_THROTTLE_MS = 100;
+  private _pendingVisibleTiles: TilesObject | null = null;
+  private _lastVisibleTilesExecutionTime = 0;
+
   setVisibleTiles(visibleTilesObj: TilesObject) {
+    this._pendingVisibleTiles = visibleTilesObj;
+    const now = Date.now();
+
+    // If enough time has passed since last execution, run immediately (throttle)
+    if (
+      now - this._lastVisibleTilesExecutionTime >
+      this.VISIBLE_TILES_THROTTLE_MS
+    ) {
+      this._executeSetVisibleTiles(visibleTilesObj);
+    } else {
+      // Otherwise schedule/update the trailing call (debounce/throttle tail)
+      if (this._visibleTilesThrottleTimer) {
+        // Timer already exists, just updating _pendingVisibleTiles is enough
+        return;
+      }
+
+      this._visibleTilesThrottleTimer = setTimeout(() => {
+        if (this._pendingVisibleTiles) {
+          this._executeSetVisibleTiles(this._pendingVisibleTiles);
+        }
+        this._visibleTilesThrottleTimer = null;
+      }, this.VISIBLE_TILES_THROTTLE_MS);
+    }
+  }
+
+  private async _executeSetVisibleTiles(visibleTilesObj: TilesObject) {
+    this._lastVisibleTilesExecutionTime = Date.now();
+    const startTime = this._lastVisibleTilesExecutionTime;
+    const requestId = ++this._updateRequestId;
     // update the visible tiles
     this._lastVisibleTiles.set(visibleTilesObj);
 
+    // Yield removed to prevent delay
+    // await this._yieldToMain();
+
     const zoom = visibleTilesObj.zoom;
 
-    // If we have the SpotClusterService available and the zoom is < 16,
-    // we still want to fetch "Highlights" via Typesense to enrich the map
-    // because clusters don't show enough detail.
-    // However, for CLUSTERS themselves, we revert to the tile-based loading (handled below)
-    // to ensure smooth transitions and caching.
     // If we have the SpotClusterService available and the zoom is < 16,
     // we still want to fetch "Highlights" via Typesense to enrich the map
     // because clusters don't show enough detail.
@@ -241,6 +279,7 @@ export class SpotMapDataManager {
 
       if (activeFilter === SpotFilterMode.None) {
         const now = Date.now();
+        // Throttle: Allow updates while moving (at least every X ms)
         // Throttle: Allow updates while moving (at least every X ms)
         if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
           this._loadHighlightsForTiles(visibleTilesObj);
@@ -260,6 +299,10 @@ export class SpotMapDataManager {
       }
     }
 
+    if (requestId !== this._updateRequestId) {
+      return;
+    }
+
     // Load amenity markers at zoom >= 14 (amenityMarkerZoom) for efficient caching
     // But they will only be displayed at zoom >= 16 (amenityMarkerDisplayZoom)
     if (zoom >= this.amenityMarkerZoom) {
@@ -267,6 +310,9 @@ export class SpotMapDataManager {
         this._getMarkerTilesToLoad(visibleTilesObj);
       this._loadMarkersForTiles(markerTilesToLoad);
     }
+
+    // Yield removed
+    // await this._yieldToMain();
 
     if (zoom >= this.spotZoom) {
       // show spots and markers
@@ -283,6 +329,13 @@ export class SpotMapDataManager {
       // Also used to gate the loading logic: if the visible keys haven't changed (returns false),
       // we don't need to check for missing tiles, since the set of needed tiles hasn't changed.
       const didRender = this._showCachedSpotClustersForTiles(visibleTilesObj);
+
+      // Ensure we always load missing cluster tiles even if we didn't re-render
+      // (e.g. if we just panned a tiny bit but exposed a new tile)
+      // BUT _showCachedSpotClustersForTiles returns true if there are MISSING tiles too.
+      // So if it returned false, it means we have everything we need AND nothing changed??
+      // Let's stick to the original logic: only load if didRender is true OR we think we might need it.
+      // Actually, if we didn't render (because keys are same), we probably don't need to load either.
 
       if (didRender) {
         // now determine missing information and load spot clusters for that
@@ -758,6 +811,8 @@ export class SpotMapDataManager {
     const dots: SpotClusterDotSchema[] = [];
     const spots: SpotPreviewData[] = [];
     const missingTileKeys: MapTileKey[] = [];
+
+    const clusterLoopStart = Date.now();
     tilesZObj.tiles.forEach((tile) => {
       const key = getClusterTileKey(tilesZObj.zoom, tile.x, tile.y);
       const spotCluster = this._spotClusterTiles.get(key);
@@ -778,6 +833,8 @@ export class SpotMapDataManager {
       }
     });
 
+    // console.log(`[${Date.now()}] DataManager: cluster loop time=${Date.now() - clusterLoopStart}ms tiles=${tilesZObj.tiles.length} dots=${dots.length}`);
+
     // When none of the requested tiles are available yet, keep the previous state
     // But return TRUE to signal that we processed a change and the caller should check for missing loads.
     if (dots.length === 0 && missingTileKeys.length > 0) {
@@ -785,6 +842,7 @@ export class SpotMapDataManager {
     }
 
     // sort the spots by rating, and if they have media
+    const sortStart = Date.now();
     spots.sort((a, b) => {
       // sort rating in descending order
       if (
@@ -803,13 +861,16 @@ export class SpotMapDataManager {
       }
       return 0;
     });
+    // console.log(`[${Date.now()}] DataManager: sort time=${Date.now() - sortStart}ms spots=${spots.length}`);
 
     // Don't show amenity markers in cluster view (zoom < 16) for performance
     // Amenity markers are only displayed at amenityMarkerDisplayZoom (16) and above
     this._visibleAmenityMarkers.set([]);
 
+    const signalStart = Date.now();
     this._visibleSpots.set([]);
     this._visibleDots.set(dots);
+    // console.log(`[${Date.now()}] DataManager: signal update time=${Date.now() - signalStart}ms`);
     // Disable legacy highlight setting from clusters to avoid conflict with Typesense highlights
     // Only set highlights if no filter is active (preserve filtered results)
     // if (this.spotFilterMode() === SpotFilterMode.None) {
@@ -906,105 +967,19 @@ export class SpotMapDataManager {
 
         const bounds = MapHelpers.getBoundsForTile(zoom, x, y);
         // load the water markers and add them
-        firstValueFrom(this._osmDataService.getDrinkingWaterAndToilets(bounds))
-          .then((data) => {
-            const markers: {
-              marker: MarkerSchema;
-              tile: { x: number; y: number };
-            }[] = data.elements
-              .map((element) => {
-                if (element.tags.amenity === "drinking_water") {
-                  const marker: MarkerSchema = {
-                    location: {
-                      lat: element.lat,
-                      lng: element.lon,
-                    },
-                    icons: ["water_full"], // local_drink, water_drop
-                    name:
-                      element.tags.name +
-                      (element.tags.operator
-                        ? ` (${element.tags.operator})`
-                        : ""),
-                    color: "secondary",
-                  };
-                  const tileCoords16 =
-                    MapHelpers.getTileCoordinatesForLocationAndZoom(
-                      marker.location,
-                      16
-                    );
-                  return { marker: marker, tile: tileCoords16 };
-                } else if (element.tags.amenity === "fountain") {
-                  if (element.tags.drinking_water === "no") {
-                    return;
-                  }
-                  const marker: MarkerSchema = {
-                    location: {
-                      lat: element.lat,
-                      lng: element.lon,
-                    },
-                    icons:
-                      element.tags.drinking_water === "yes"
-                        ? ["water_full"]
-                        : ["water_drop"],
-                    name:
-                      element.tags.name +
-                      (element.tags.operator
-                        ? ` (${element.tags.operator})`
-                        : ""),
-                    color: "secondary",
-                  };
-                  const tileCoords16 =
-                    MapHelpers.getTileCoordinatesForLocationAndZoom(
-                      marker.location,
-                      16
-                    );
-                  return { marker: marker, tile: tileCoords16 };
-                } else if (element.tags.amenity === "toilets") {
-                  const isFree = element.tags.fee === "no";
-                  const isPaid = element.tags.fee === "yes";
-
-                  const marker: MarkerSchema = {
-                    location: {
-                      lat: element.lat,
-                      lng: element.lon,
-                    },
-                    icons: isPaid
-                      ? ["wc", "paid"]
-                      : isFree
-                      ? ["wc", "money_off"]
-                      : ["wc"],
-                    name:
-                      element.tags.name +
-                      (element.tags.fee ? ` Fee: ${element.tags.charge}` : "") +
-                      (element.tags.operator
-                        ? ` (${element.tags.operator})`
-                        : "") +
-                      (element.tags.opening_hours
-                        ? `Opening hours: ${element.tags.opening_hours}`
-                        : ""),
-                    color: "tertiary",
-                    priority: isFree ? 350 : isPaid ? 250 : 300, // Free toilets > unknown > paid
-                  };
-                  const tileCoords16 =
-                    MapHelpers.getTileCoordinatesForLocationAndZoom(
-                      marker.location,
-                      16
-                    );
-                  return { marker: marker, tile: tileCoords16 };
-                }
-              })
-              .filter((marker) => marker !== undefined);
-
-            markers.forEach((markerObj) => {
-              const key = getClusterTileKey(
-                16,
-                markerObj.tile.x,
-                markerObj.tile.y
-              );
+        firstValueFrom(this._osmDataService.getAmenityMarkers(bounds))
+          .then((markers) => {
+            markers.forEach((marker) => {
+              const tileCoords16 =
+                MapHelpers.getTileCoordinatesForLocationAndZoom(
+                  marker.location,
+                  16
+                );
+              const key = getClusterTileKey(16, tileCoords16.x, tileCoords16.y);
               if (!this._markers.has(key)) {
                 this._markers.set(key, []);
               }
-              this._markers.get(key)!.push(markerObj.marker);
+              this._markers.get(key)!.push(marker);
             });
 
             const _lastVisibleTiles = this._lastVisibleTiles();
@@ -1139,6 +1114,22 @@ export class SpotMapDataManager {
       });
   }
 
+  /**
+   * Helper to map a Search Hit to SpotPreviewData, using cache to maintain references.
+   */
+  private _getOrCreateSpotPreviewFromHit(hit: any): SpotPreviewData {
+    const id = hit.document?.id || hit.id;
+    if (this._spotPreviewCache.has(id)) {
+      return this._spotPreviewCache.get(id)!;
+    }
+
+    const preview = this._searchService.getSpotPreviewFromHit(hit);
+    if (preview && preview.id) {
+      this._spotPreviewCache.set(preview.id, preview);
+    }
+    return preview;
+  }
+
   private _loadHighlightsForTiles(visibleTilesObj: TilesObject) {
     // Calculate bounds from tilesObj
     const neBounds = MapHelpers.getBoundsForTile(
@@ -1158,6 +1149,10 @@ export class SpotMapDataManager {
     if (visibleTilesObj.viewportBounds) {
       const { north, south, east, west } = visibleTilesObj.viewportBounds;
 
+      // If zoom is less than 10, only show/highlight spots that have images.
+      // If zoom is 10 or greater, show all highlights regardless of image presence.
+      const onlyWithImages = visibleTilesObj.zoom < 10;
+
       if (west > east) {
         // Viewport crosses IDL (e.g. West=170, East=-170)
         // Split into two clean queries: [West, 180] and [-180, East]
@@ -1172,7 +1167,12 @@ export class SpotMapDataManager {
               south,
               mid1,
               west,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              onlyWithImages
             )
           );
           queries.push(
@@ -1181,7 +1181,12 @@ export class SpotMapDataManager {
               south,
               180,
               mid1,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              onlyWithImages
             )
           );
         } else {
@@ -1191,7 +1196,12 @@ export class SpotMapDataManager {
               south,
               180,
               west,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              onlyWithImages
             )
           );
         }
@@ -1206,7 +1216,12 @@ export class SpotMapDataManager {
               south,
               mid2,
               -180,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              onlyWithImages
             )
           );
           queries.push(
@@ -1215,7 +1230,12 @@ export class SpotMapDataManager {
               south,
               east,
               mid2,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              onlyWithImages
             )
           );
         } else {
@@ -1225,7 +1245,12 @@ export class SpotMapDataManager {
               south,
               east,
               -180,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              onlyWithImages
             )
           );
         }
@@ -1242,7 +1267,12 @@ export class SpotMapDataManager {
               south,
               mid,
               west,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              onlyWithImages
             )
           );
           queries.push(
@@ -1251,7 +1281,12 @@ export class SpotMapDataManager {
               south,
               east,
               mid,
-              10
+              10,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              onlyWithImages
             )
           );
         } else {
@@ -1261,7 +1296,12 @@ export class SpotMapDataManager {
               south,
               east,
               west,
-              20
+              20,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              onlyWithImages
             )
           );
         }
@@ -1290,19 +1330,38 @@ export class SpotMapDataManager {
         });
 
         const previews = Array.from(uniqueHits.values()).map((hit) =>
-          this._searchService.getSpotPreviewFromHit(hit)
+          this._getOrCreateSpotPreviewFromHit(hit)
         );
 
-        // Sort by rating again after merge?
-        // Typesense returns sorted results, but merging two sorted lists might need re-sort if we care about strict order.
-        // For distinct sets it's fine. For top 20... we requested top 20 from EACH side.
-        // We'll show up to 40 spots now if wrapped? That's acceptable.
+        // Check for equality to prevent unnecessary signal updates
+        const currentSpots = this._visibleHighlightedSpots();
+        if (currentSpots.length === previews.length) {
+          let hasChanged = false;
+          // Since we recycle object references, reliable strict equality check is possible if order is preserved
+          // But search results might change order slightly. Set checking ID is safer.
+          const currentIds = new Set(currentSpots.map((s) => s.id));
+          for (const p of previews) {
+            if (!currentIds.has(p.id)) {
+              hasChanged = true;
+              break;
+            }
+          }
 
+          if (!hasChanged) {
+            // console.log(`[${Date.now()}] DataManager: highlights update skipped (identical content) count=${previews.length}`);
+            return;
+          }
+        }
+
+        // console.log(`[${Date.now()}] DataManager: highlights updated count=${previews.length}`);
         this._visibleHighlightedSpots.set(previews);
       })
       .catch((err) => {
         console.error("Typesense highlight search failed:", err);
-        this._visibleHighlightedSpots.set([]);
+        // Only clear if we actually had spots
+        if (this._visibleHighlightedSpots().length > 0) {
+          this._visibleHighlightedSpots.set([]);
+        }
       });
   }
 
@@ -1441,9 +1500,22 @@ export class SpotMapDataManager {
     }
 
     spots.forEach((spot: Spot) => {
-      if (!spot.tileCoordinates) return;
+      let spotTile = spot.tileCoordinates?.z16;
 
-      const spotTile = spot.tileCoordinates.z16;
+      if (!spotTile) {
+        // If tile coordinates are missing (e.g. new spot), compute them client-side
+        const calculatedTileCoords = MapHelpers.getTileCoordinates(
+          spot.location()
+        );
+
+        if (calculatedTileCoords) {
+          spot.tileCoordinates = calculatedTileCoords;
+          spotTile = calculatedTileCoords.z16;
+        }
+      }
+
+      if (!spotTile) return;
+
       const key: MapTileKey = getClusterTileKey(16, spotTile.x, spotTile.y);
       if (!this._spots.has(key)) {
         this._spots.set(key, []);

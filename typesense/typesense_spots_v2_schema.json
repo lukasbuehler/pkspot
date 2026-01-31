@@ -10,7 +10,18 @@
     },
     { "name": "name_search", "type": "string[]", "optional": true },
     { "name": "description_search", "type": "string[]", "optional": true },
-    { "name": "thumbnail_url", "type": "string", "optional": true },
+    {
+      "name": "thumbnail_small_url",
+      "type": "string",
+      "optional": true,
+      "facet": true
+    },
+    {
+      "name": "thumbnail_medium_url",
+      "type": "string",
+      "optional": true,
+      "facet": true
+    },
     { "name": "address.formatted", "type": "string", "optional": true },
     {
       "name": "address.locality",

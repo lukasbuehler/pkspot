@@ -1,0 +1,144 @@
+<div class="p-3 d-flex flex-column gap-3">
+  <!-- Header with Close Button -->
+  <div class="d-flex flex-row justify-content-between align-items-start">
+    <h2 class="mat-title-large m-0 text-wrap text-break">
+      {{ poi().name }}
+    </h2>
+    <button mat-icon-button (click)="dismiss.emit()" class="flex-shrink-0">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Main Image -->
+  @if(photoUrl()) {
+  <div
+    class="position-relative w-100 rounded overflow-hidden mat-elevation-z2"
+    style="height: 200px"
+  >
+    <img
+      [ngSrc]="photoUrl()!"
+      fill
+      class="poi-image"
+      [class.loaded]="isImageLoaded()"
+      (load)="onImageLoad()"
+      style="object-fit: cover"
+      [alt]="poi().name"
+    />
+  </div>
+  }
+
+  <div class="d-flex flex-column gap-2">
+    <!-- Type & Icon -->
+    <div class="d-flex align-items-center gap-2 text-secondary">
+      <mat-icon>{{ getIcon() }}</mat-icon>
+      <span>{{ getTypeLabel() }}</span>
+    </div>
+
+    <!-- Description -->
+    @if(poi().marker?.description) {
+    <div class="mat-body-small text-secondary">
+      {{ poi().marker?.description }}
+    </div>
+    }
+
+    <!-- Rating -->
+    @if(poi().googlePlace?.rating) {
+    <div class="d-flex align-items-center gap-2">
+      <app-spot-rating
+        [rating1to5]="poi().googlePlace!.rating!"
+        [showEmptyStars]="false"
+        [isCompact]="true"
+      />
+      @if(poi().googlePlace?.userRatingCount) {
+      <span class="text-secondary"
+        >({{ poi().googlePlace?.userRatingCount }})</span
+      >
+      }
+    </div>
+    }
+
+    <!-- Opening Hours Status -->
+    @if(openStatusText() || todayHoursText()) {
+    <div class="d-flex flex-column gap-1 mt-1">
+      @if(openStatusText()) {
+      <div
+        class="d-flex align-items-center gap-2"
+        [class.text-success]="isOpenNow() === true"
+        [class.text-danger]="isOpenNow() === false"
+      >
+        <mat-icon class="icon-sm">schedule</mat-icon>
+        <span class="fw-medium">{{ openStatusText() }}</span>
+      </div>
+      } @if(todayHoursText()) {
+      <div class="d-flex align-items-center gap-2 text-secondary">
+        <div class="icon-sm"></div>
+        <!-- spacer -->
+        <span class="mat-body-small">{{ todayHoursText() }}</span>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- Address -->
+    @if(poi().googlePlace?.formattedAddress) {
+    <div class="d-flex align-items-start gap-2 mt-1">
+      <mat-icon class="icon-sm mt-1">location_on</mat-icon>
+      <span class="text-secondary text-wrap text-break">{{
+        poi().googlePlace?.formattedAddress
+      }}</span>
+    </div>
+    }
+
+    <!-- Coordinates -->
+    <div class="d-flex align-items-center gap-2 mt-1">
+      <mat-icon class="icon-sm">my_location</mat-icon>
+      <span class="text-secondary mat-body-small">
+        {{ poi().location.lat | number : "1.4-4" }},
+        {{ poi().location.lng | number : "1.4-4" }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="d-flex flex-wrap gap-2 mt-2">
+    <button
+      mat-flat-button
+      color="primary"
+      class="flex-grow-1"
+      (click)="navigateTo()"
+    >
+      <mat-icon>directions</mat-icon>
+      Navigate
+    </button>
+
+    @if(websiteUrl()) {
+    <a
+      mat-stroked-button
+      [href]="websiteUrl()"
+      target="_blank"
+      (click)="trackWebsiteClick()"
+    >
+      <mat-icon>language</mat-icon>
+      Website
+    </a>
+    } @if(url()) {
+    <a
+      mat-stroked-button
+      [href]="url()"
+      target="_blank"
+      (click)="trackMapClick()"
+    >
+      <span i18n="@@open_google_maps_button_label">Open in Google Maps</span>
+    </a>
+    }
+  </div>
+
+  <!-- Source Attribution -->
+  @if(sourceText()) {
+  <div class="d-flex justify-content-end mt-1">
+    <span class="mat-caption text-secondary" style="font-size: 10px">{{
+      sourceText()
+    }}</span>
+  </div>
+  }
+</div>

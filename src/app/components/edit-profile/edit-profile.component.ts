@@ -48,6 +48,7 @@ import {
 } from "@angular/material/datepicker";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
+import { StorageImage, ExternalImage } from "../../../db/models/Media";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 
 @Component({
@@ -95,6 +96,9 @@ export class EditProfileComponent implements OnInit {
   croppedProfilePicture: string = "";
   croppingComplete: boolean = false;
   isUpdatingProfilePicture: boolean = false;
+  tempProfilePictureSrc: string = ""; // Temporary storage for immediate UI update after upload
+  isProfilePictureLoaded: boolean = true;
+  hasProfilePictureError: boolean = false;
 
   // Country Autocomplete
   countries = countries;
@@ -230,19 +234,31 @@ export class EditProfileComponent implements OnInit {
    * Handle the cropped image blob from the CropImageComponent
    */
   onImageCropped(croppedBlob: Blob) {
-    // Convert the blob to a data URL for preview
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      this.croppedProfilePicture = event.target!.result as string;
-      this.croppingComplete = true;
-    };
-    reader.readAsDataURL(croppedBlob);
+    console.log("Image cropped, starting auto-save...");
 
-    // Store the blob for upload
+    // 1. Store the blob for upload
     this.newProfilePicture = new File([croppedBlob], "profile-picture.png", {
       type: "image/png",
     });
 
+    // 2. Set temp source immediately using Object URL
+    if (
+      this.tempProfilePictureSrc &&
+      this.tempProfilePictureSrc.startsWith("blob:")
+    ) {
+      URL.revokeObjectURL(this.tempProfilePictureSrc);
+    }
+    this.tempProfilePictureSrc = URL.createObjectURL(croppedBlob);
+
+    // 3. Update state
+    this.isProfilePictureLoaded = true;
+    this.hasProfilePictureError = false;
+    this.croppingComplete = true;
+
+    // 4. Trigger upload
+    this.saveNewProfilePicture();
+
+    // 5. Ensure detectIfChanges doesn't block anything (it shouldn't, as we auto-save)
     this.detectIfChanges();
   }
 
@@ -260,6 +276,7 @@ export class EditProfileComponent implements OnInit {
   saveNewProfilePicture() {
     this._handleProfilePictureUploadAndSave()
       .then(() => {
+        console.log("saveNewProfilePicture success");
         this._snackbar.open(
           "Successfully saved new profile picture",
           "Dismiss",
@@ -279,55 +296,91 @@ export class EditProfileComponent implements OnInit {
       });
   }
 
-  private _handleProfilePictureUploadAndSave(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (this.user && this.user.uid && this.newProfilePicture) {
-        const userId = this.user.uid;
-        this.isUpdatingProfilePicture = true;
+  private async _handleProfilePictureUploadAndSave(): Promise<void> {
+    if (!this.user || !this.user.uid || !this.newProfilePicture) {
+      throw new Error("Missing user ID or profile picture");
+    }
 
-        // Upload new profile picture with userid as filename
-        // Since we generate token-free public URLs, replacing the file keeps the same URL format
-        this._storageService
-          .setUploadToStorage(
-            this.newProfilePicture,
-            StorageBucket.ProfilePictures,
-            undefined,
-            userId,
-            "png"
-          )
-          .then(() => {
-            // Use predictable token-free URL from ProfilePictureHelper
-            const profilePictureUrl = getProfilePictureUrl(userId);
-            // Update user document with new profile picture URL
-            return this._userService.updateUser(userId, {
-              profile_picture: profilePictureUrl,
-            });
-          })
-          .then(() => {
-            this.isUpdatingProfilePicture = false;
-            this.newProfilePicture = null;
-            // Refresh user data with new profile picture
-            if (this.user?.data?.profile_picture) {
-              this.user.setProfilePicture(this.user.data.profile_picture);
-            }
-            this.croppedProfilePicture = "";
-            this.newProfilePictureSrc = "";
-            this.croppingComplete = false;
-            resolve();
-          })
-          .catch((err) => {
-            console.error("Error uploading or saving profile picture:", err);
-            this.isUpdatingProfilePicture = false;
-            reject(
-              err instanceof Error
-                ? err.message
-                : "Error uploading the profile picture!"
-            );
-          });
-      } else {
-        reject("Missing user ID or profile picture");
+    const userId = this.user.uid;
+    this.isUpdatingProfilePicture = true;
+
+    try {
+      // 1. Delete existing profile picture and all resized versions
+      const filesToDelete = [
+        // Delete files without extension (correct format)
+        `${StorageBucket.ProfilePictures}/${userId}`,
+        ...StorageImage.SIZES.map(
+          (size) => `${StorageBucket.ProfilePictures}/${userId}_${size}x${size}`
+        ),
+      ];
+
+      await Promise.all(
+        filesToDelete.map((path) =>
+          this._storageService
+            .deleteFromStorage(path)
+            .catch((e) => console.warn(`Ignored delete error for ${path}:`, e))
+        )
+      );
+      // Successfully deleted the old profile picture
+
+      // 2. Upload new profile picture
+      // Since we generate token-free public URLs, replacing the file keeps the same URL format
+      await this._storageService.setUploadToStorage(
+        this.newProfilePicture,
+        StorageBucket.ProfilePictures,
+        undefined,
+        userId,
+        undefined
+      );
+
+      // 3. Update user document
+      // Use predictable token-free URL from ProfilePictureHelper (no query params)
+      const profilePictureUrl = getProfilePictureUrl(userId);
+
+      await this._userService.updateUser(userId, {
+        profile_picture: profilePictureUrl,
+      });
+
+      // 4. Update local state
+      this.isUpdatingProfilePicture = false;
+      this.newProfilePicture = null;
+
+      // Refresh user data with new profile picture
+      if (this.user?.data) {
+        // Update the data object reference with the new URL string
+        this.user.data.profile_picture = profilePictureUrl;
+
+        if (this.tempProfilePictureSrc) {
+          // Use ExternalImage with the local data URL for immediate, reliable update across the app (Nav Bar)
+          // AND set it as an override in AuthService so it persists through Firestore updates
+          const override = new ExternalImage(this.tempProfilePictureSrc);
+          this.authService.overrideProfilePicture = override;
+          this.user.profilePicture = override;
+        } else {
+          this.user.setProfilePicture(profilePictureUrl);
+        }
+
+        // Notify subscribers (like the Nav Bar) that the user data has changed
+        this.authService.authState$.next(this.authService.user);
       }
-    });
+
+      // Use the cropped data URL as a temporary display to avoid broken image during resize
+      if (this.croppedProfilePicture) {
+        this.tempProfilePictureSrc = this.croppedProfilePicture;
+        this.hasProfilePictureError = false;
+        this.isProfilePictureLoaded = true;
+      }
+
+      this.croppedProfilePicture = "";
+      this.newProfilePictureSrc = "";
+      this.croppingComplete = false;
+    } catch (err) {
+      console.error("Error uploading or saving profile picture:", err);
+      this.isUpdatingProfilePicture = false;
+      throw err instanceof Error
+        ? err.message
+        : "Error uploading the profile picture!";
+    }
   }
 
   onSpotSelected(selection: { type: "place" | "spot"; id: string }) {
@@ -379,7 +432,6 @@ export class EditProfileComponent implements OnInit {
 
     if (
       this.displayName !== this.user?.displayName ||
-      this.newProfilePicture ||
       this.startDate !== this.user?.startDate ||
       this.biography !== this.user?.biography ||
       this.nationalityCode !== (this.user?.nationalityCode ?? null) ||

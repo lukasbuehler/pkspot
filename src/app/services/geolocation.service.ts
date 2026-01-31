@@ -19,7 +19,32 @@ export class GeolocationService {
     signal(null);
   public error: WritableSignal<any | null> = signal(null);
 
+  public loading: WritableSignal<boolean> = signal(false);
+
   constructor() {}
+
+  async checkPermissions(): Promise<boolean> {
+    if (!this._platformService.isNative()) {
+      if (!navigator.permissions) return false;
+      try {
+        const result = await navigator.permissions.query({
+          name: "geolocation",
+        });
+        return result.state === "granted";
+      } catch (e) {
+        console.warn("Permissions query not supported", e);
+        return false;
+      }
+    }
+
+    try {
+      const status = await Geolocation.checkPermissions();
+      return status.location === "granted";
+    } catch (e) {
+      console.error("Error checking permissions", e);
+      return false;
+    }
+  }
 
   async requestPermissions(): Promise<boolean> {
     // On web, the browser handles permissions automatically when we request location
@@ -50,10 +75,16 @@ export class GeolocationService {
   async startWatching(): Promise<void> {
     if (this.watchId || this.browserWatchId !== null) return;
 
+    this.loading.set(true);
+    this.error.set(null);
+
     try {
       const hasPermission = await this.requestPermissions();
       if (!hasPermission) {
-        throw new Error("Location permission denied");
+        const error = new Error("Location permission denied");
+        this.error.set(error);
+        this.loading.set(false);
+        throw error;
       }
 
       // Use browser geolocation on web, Capacitor on native
@@ -68,11 +99,14 @@ export class GeolocationService {
               accuracy: position.coords.accuracy,
             });
             this.error.set(null);
+            this.loading.set(false);
           },
           (err) => {
             console.error("Geolocation watch error", err);
             this.error.set(err);
             this.currentLocation.set(null);
+            this.loading.set(false);
+            this.browserWatchId = null; // Clear watch ID to allow retry
           },
           {
             enableHighAccuracy: true,
@@ -92,6 +126,8 @@ export class GeolocationService {
               console.error("Geolocation watch error", err);
               this.error.set(err);
               this.currentLocation.set(null);
+              this.loading.set(false);
+              this.watchId = null; // Clear watch ID to allow retry
               return;
             }
 
@@ -104,6 +140,7 @@ export class GeolocationService {
                 accuracy: position.coords.accuracy,
               });
               this.error.set(null);
+              this.loading.set(false);
             }
           }
         );
@@ -111,6 +148,7 @@ export class GeolocationService {
     } catch (e) {
       console.error("Error starting watch", e);
       this.error.set(e);
+      this.loading.set(false);
     }
   }
 
@@ -124,18 +162,24 @@ export class GeolocationService {
       this.browserWatchId = null;
     }
     this.currentLocation.set(null);
+    this.loading.set(false);
   }
 
   async getCurrentPosition(): Promise<GeoLocationState | null> {
+    this.loading.set(true);
     try {
       const hasPermission = await this.requestPermissions();
-      if (!hasPermission) return null;
+      if (!hasPermission) {
+        this.loading.set(false);
+        return null;
+      }
 
       // Use browser geolocation on web, Capacitor on native
       if (!this._platformService.isNative()) {
         return new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(
             (position) => {
+              this.loading.set(false);
               resolve({
                 location: {
                   lat: position.coords.latitude,
@@ -146,6 +190,7 @@ export class GeolocationService {
             },
             (err) => {
               console.error("Error getting current position", err);
+              this.loading.set(false);
               resolve(null);
             },
             {
@@ -159,6 +204,8 @@ export class GeolocationService {
         enableHighAccuracy: true,
       });
 
+      this.loading.set(false);
+
       return {
         location: {
           lat: position.coords.latitude,
@@ -168,6 +215,7 @@ export class GeolocationService {
       };
     } catch (e) {
       console.error("Error getting current position", e);
+      this.loading.set(false);
       return null;
     }
   }

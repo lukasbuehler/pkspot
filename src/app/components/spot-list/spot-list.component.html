@@ -11,7 +11,7 @@
 </div>
 
 <!-- Spot highlights -->
-@if(highlightedSpots.length > 0) {
+@if(renderedHighlightedSpots().length > 0) {
 <!-- <h4
   class="mat-title-medium"
   i18n="
@@ -20,69 +20,87 @@
 >
   Highlights
 </h4> -->
-<div [class.compact]="group.value === 'compact'" class="spot-container pb-3">
-  @for(spot of highlightedSpots; track $index) { @if(withHrefLink()) {
-  <a [routerLink]="['/map', spot.slug ?? spot.id]">
+<div
+  [class.compact]="group.value === 'compact'"
+  class="spot-container pb-3"
+  [appAutoAnimate]="enableAnimation()"
+>
+  @for(spot of renderedHighlightedSpots(); track trackSpot($index, spot)) {
+  <div>
+    @if(withHrefLink()) {
+    <a [routerLink]="['/map', spot.slug ?? spot.id]">
+      <app-spot-preview-card
+        [spotData]="spot"
+        [infoOnly]="true"
+        [clickable]="true"
+        [isCompact]="group.value === 'compact'"
+        [loadingPriority]="true"
+        class="w-100"
+      >
+      </app-spot-preview-card>
+    </a>
+    } @else {
     <app-spot-preview-card
-      @gridElementAnimation
       [spotData]="spot"
       [infoOnly]="true"
       [clickable]="true"
       [isCompact]="group.value === 'compact'"
+      [loadingPriority]="true"
+      (click)="spotClick($index)"
       class="w-100"
     >
     </app-spot-preview-card>
-  </a>
-  } @else {
-  <app-spot-preview-card
-    @gridElementAnimation
-    [spotData]="spot"
-    [infoOnly]="true"
-    [clickable]="true"
-    [isCompact]="group.value === 'compact'"
-    (click)="spotClick($index)"
-    class="w-100"
-  >
-  </app-spot-preview-card>
-  } }
+    }
+  </div>
+  }
 </div>
 }
 
 <!-- All spots except highlights -->
-@if(remainingSpots.length > 0 && highlightedSpots.length > 0) {
+@if(renderedRemainingSpots().length > 0 && renderedHighlightedSpots().length >
+0) {
 <h4 class="mat-title-medium" i18n="@@regular_spots_text">Other Spots</h4>
-} @if(remainingSpots.length > 0) {
-<div [class.compact]="group.value === 'compact'" class="spot-container pb-3">
-  @for(spot of remainingSpots; track $index) { @if(withHrefLink()) {
-  <a [routerLink]="['/map', getSpotIdOrSlugForSpotObj(spot)]">
+} @if(renderedRemainingSpots().length > 0) {
+<div
+  [class.compact]="group.value === 'compact'"
+  class="spot-container pb-3"
+  [appAutoAnimate]="enableAnimation()"
+>
+  @for(spot of renderedRemainingSpots(); track trackSpot($index, spot)) {
+  <div>
+    @if(withHrefLink()) {
+    <a [routerLink]="['/map', getSpotIdOrSlugForSpotObj(spot)]">
+      <app-spot-preview-card
+        [spotData]="spot"
+        [infoOnly]="true"
+        [clickable]="true"
+        [isCompact]="group.value === 'compact'"
+        [imgSize]="400"
+        [loadingPriority]="$index < 6"
+        class="w-100"
+      >
+      </app-spot-preview-card> </a
+    >} @else {
     <app-spot-preview-card
-      @gridElementAnimation
       [spotData]="spot"
       [infoOnly]="true"
       [clickable]="true"
       [isCompact]="group.value === 'compact'"
       [imgSize]="400"
+      [loadingPriority]="$index < 6"
       class="w-100"
+      (click)="spotClick($index)"
     >
-    </app-spot-preview-card> </a
-  >} @else {
-  <app-spot-preview-card
-    @gridElementAnimation
-    [spotData]="spot"
-    [infoOnly]="true"
-    [clickable]="true"
-    [isCompact]="group.value === 'compact'"
-    [imgSize]="400"
-    class="w-100"
-    (click)="spotClick($index)"
-  >
-  </app-spot-preview-card>
-  } }
+    </app-spot-preview-card>
+    }
+  </div>
+  }
 </div>
 }
 
 <!-- No spots and no highlights text -->
-@if(remainingSpots.length === 0 && highlightedSpots.length === 0) {
+@if(renderedRemainingSpots().length === 0 && renderedHighlightedSpots().length
+=== 0) {
 <div class="d-flex justify-content-center align-items-center h-100">
   <p
     class="mat-body-large"

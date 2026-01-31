@@ -33,6 +33,10 @@ export abstract class Media {
 
   abstract getPreviewImageSrc(): string;
 
+  get baseSrc(): string {
+    return this._src;
+  }
+
   getData(): MediaSchema {
     const data = {
       src: this._src,
@@ -62,6 +66,10 @@ export class ExternalImage extends Media {
   }
 
   getPreviewImageSrc(): string {
+    return this._src;
+  }
+
+  getSrc(size?: number): string {
     return this._src;
   }
 }
@@ -158,7 +166,7 @@ export abstract class StorageMedia extends Media {
    * This source is not usable by itself, but is used to create the src for the
    * resized image or compressed video and the thumbnail. It is also what's stored in the database.
    */
-  get baseSrc(): string {
+  override get baseSrc(): string {
     return this._src;
   }
 
@@ -228,7 +236,11 @@ export class StorageVideo extends StorageMedia {
  * To retrieve the correct sources for this, use this class/instance.
  */
 export class StorageImage extends StorageMedia {
-  readonly sizes = [200, 400, 800];
+  static readonly SIZES = [200, 400, 800];
+
+  get sizes() {
+    return StorageImage.SIZES;
+  }
 
   /**
    * Tracks whether the resized versions of this image are still being processed.

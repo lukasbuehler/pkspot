@@ -1,9 +1,8 @@
 import {
   Component,
+  computed,
   EventEmitter,
   input,
-  Input,
-  OnChanges,
   Output,
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -19,42 +18,27 @@ import {
   style,
   animate,
 } from "@angular/animations";
+import { AutoAnimateDirective } from "../../directives/auto-animate.directive";
 
 @Component({
   selector: "app-spot-list",
-  animations: [
-    trigger("gridElementAnimation", [
-      transition(":enter", [
-        style({ opacity: 0, height: "0px", transform: "translateY(-300px)" }),
-        sequence([
-          animate(
-            "0.5s ease",
-            style({ height: "*", width: "*", opacity: 1, transform: "none" })
-          ),
-        ]),
-      ]),
-      transition(":leave", [
-        sequence([
-          animate(
-            "0.5s ease",
-            style({ height: 0, width: 0, opacity: 0, transform: "scale(0.0)" })
-          ),
-        ]),
-      ]),
-    ]),
-  ],
+  animations: [],
   imports: [
     SpotPreviewCardComponent,
     MatButtonToggleModule,
     MatIconModule,
     RouterLink,
+    AutoAnimateDirective,
   ],
   templateUrl: "./spot-list.component.html",
   styleUrl: "./spot-list.component.scss",
 })
-export class SpotListComponent implements OnChanges {
-  @Input() highlightedSpots: SpotPreviewData[] = [];
-  @Input() spots: (Spot | LocalSpot)[] = [];
+export class SpotListComponent {
+  highlightedSpots = input<SpotPreviewData[]>([]);
+  spots = input<(Spot | LocalSpot)[]>([]);
+
+  limit = input<number | undefined>(undefined);
+  enableAnimation = input<boolean>(true);
 
   withHrefLink = input(true);
 
@@ -62,16 +46,13 @@ export class SpotListComponent implements OnChanges {
 
   @Output("spotClickIndex") spotClickIndexEvent = new EventEmitter<number>();
 
-  // all spots minus the highlighted spots, set manually in ngOnChanges
-  remainingSpots: (Spot | LocalSpot)[] = [];
+  // Filter out highlighted spots from regular spots
+  remainingSpots = computed(() => {
+    const spots = this.spots();
+    const highlights = this.highlightedSpots();
 
-  ngOnChanges() {
-    this.filterOutHighlightedSpotsFromOtherSpots();
-  }
-
-  filterOutHighlightedSpotsFromOtherSpots() {
-    this.remainingSpots = this.spots.filter((spot) => {
-      const foundSpot: SpotPreviewData | undefined = this.highlightedSpots.find(
+    return spots.filter((spot) => {
+      const foundSpot: SpotPreviewData | undefined = highlights.find(
         (highlightedSpot) => {
           if (spot instanceof Spot && highlightedSpot.id) {
             return highlightedSpot.id === spot.id;
@@ -79,12 +60,35 @@ export class SpotListComponent implements OnChanges {
           return false;
         }
       );
-      // if the spot is found in the highlights array,
-      // then we want to exclude it from the remaining spots
-      // meaning we want to return true if a spot is not found for it be not filtered out
       return !foundSpot;
     });
-  }
+  });
+
+  renderedHighlightedSpots = computed(() => {
+    const limit = this.limit();
+    const highlights = this.highlightedSpots();
+
+    if (limit === undefined) {
+      return highlights;
+    }
+    return highlights.slice(0, limit);
+  });
+
+  renderedRemainingSpots = computed(() => {
+    const limit = this.limit();
+    const remaining = this.remainingSpots();
+    const renderedHighlightsCount = this.renderedHighlightedSpots().length;
+
+    if (limit === undefined) {
+      return remaining;
+    }
+
+    const remainingLimit = limit - renderedHighlightsCount;
+    if (remainingLimit <= 0) {
+      return [];
+    }
+    return remaining.slice(0, remainingLimit);
+  });
 
   spotClick(spotIndex: number) {
     this.spotClickIndexEvent.emit(spotIndex);
@@ -100,5 +104,12 @@ export class SpotListComponent implements OnChanges {
     } else {
       return "";
     }
+  }
+
+  trackSpot(index: number, spot: SpotPreviewData | Spot | LocalSpot): string {
+    if ("id" in spot && spot.id) {
+      return spot.id;
+    }
+    return index.toString();
   }
 }

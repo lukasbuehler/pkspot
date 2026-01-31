@@ -1,0 +1,12 @@
+.icon-sm {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+.poi-image {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+.poi-image.loaded {
+  opacity: 1;
+}

@@ -69,13 +69,14 @@ export class MediaPreviewGridComponent implements OnInit {
   ngOnInit(): void {}
 
   drop(event: CdkDragDrop<number>) {
+    const newMedia = [...this.media()];
     moveItemInArray(
-      this.media(),
+      newMedia,
       event.previousContainer.data,
       event.container.data
     );
 
-    this.mediaChanged.emit(this.media());
+    this.mediaChanged.emit(newMedia);
   }
 
   reportMedia(index: number) {

@@ -89,11 +89,16 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
     iconPrefix: "update_",
     stat: "spot_edits_count",
     tiers: [
-      { tier: 5, id: "architect", name: "Architect", threshold: 500 },
-      { tier: 4, id: "curator", name: "Curator", threshold: 100 },
-      { tier: 3, id: "contributor", name: "Contributor", threshold: 50 },
-      { tier: 2, id: "helper", name: "Helper", threshold: 20 },
-      { tier: 1, id: "editor", name: "Editor", threshold: 5 },
+      { tier: 5, id: "architect", name: $localize`Architect`, threshold: 500 },
+      { tier: 4, id: "curator", name: $localize`Curator`, threshold: 100 },
+      {
+        tier: 3,
+        id: "contributor",
+        name: $localize`Contributor`,
+        threshold: 50,
+      },
+      { tier: 2, id: "helper", name: $localize`Helper`, threshold: 20 },
+      { tier: 1, id: "editor", name: $localize`Editor`, threshold: 5 },
     ],
   },
   {
@@ -103,11 +108,16 @@ export const BADGE_CATEGORIES: BadgeCategory[] = [
     iconPrefix: "media_",
     stat: "media_added_count",
     tiers: [
-      { tier: 5, id: "filmmaker", name: "Filmmaker", threshold: 200 },
-      { tier: 4, id: "photographer", name: "Photographer", threshold: 100 },
-      { tier: 3, id: "documenter", name: "Documenter", threshold: 50 },
-      { tier: 2, id: "snapper", name: "Snapper", threshold: 10 },
-      { tier: 1, id: "shutterbug", name: "Shutterbug", threshold: 1 },
+      { tier: 5, id: "filmmaker", name: $localize`Filmmaker`, threshold: 200 },
+      {
+        tier: 4,
+        id: "photographer",
+        name: $localize`Photographer`,
+        threshold: 100,
+      },
+      { tier: 3, id: "documenter", name: $localize`Documenter`, threshold: 50 },
+      { tier: 2, id: "snapper", name: $localize`Snapper`, threshold: 10 },
+      { tier: 1, id: "shutterbug", name: $localize`Shutterbug`, threshold: 1 },
     ],
   },
 ];

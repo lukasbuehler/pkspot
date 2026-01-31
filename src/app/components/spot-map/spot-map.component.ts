@@ -22,7 +22,11 @@ import {
   signal,
   Injector,
 } from "@angular/core";
-import { LocalSpot, Spot } from "../../../db/models/Spot";
+import {
+  LocalSpot,
+  Spot,
+  convertLocalSpotToSpot,
+} from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -59,17 +63,24 @@ import {
 } from "../../../db/models/SpotChallenge";
 import { AnyMedia } from "../../../db/models/Media";
 
+import { GeolocationService } from "../../services/geolocation.service";
+
 @Component({
   selector: "app-spot-map",
   templateUrl: "./spot-map.component.html",
   styleUrls: ["./spot-map.component.scss"],
-  imports: [GoogleMap2dComponent, MatSnackBarModule],
+  imports: [GoogleMap2dComponent, MatSnackBarModule, AsyncPipe],
+  standalone: true,
   animations: [],
 })
 export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @ViewChild("map") map: GoogleMap2dComponent | undefined;
 
   osmDataService = inject(OsmDataService);
+
+  geolocationService = inject(GeolocationService);
+  geolocationLoading = this.geolocationService.loading;
+
   mapsApiService = inject(MapsApiService);
 
   private _router = inject(Router);
@@ -79,7 +90,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   selectedChallenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
 
   isEditing = model<boolean>(false);
-  mapStyle = model<"roadmap" | "satellite" | null>(null);
+  mapStyle = model<"roadmap" | "satellite" | "hybrid" | "terrain" | null>(null);
   markers = input<MarkerSchema[]>([]);
   priorityMarkers = input<MarkerSchema[]>([]);
   polygons = input<PolygonSchema[]>([]);
@@ -90,6 +101,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   centerStart = input<google.maps.LatLngLiteral | null>(null);
   showSpotPreview = input<boolean>(false);
   bottomSheetOffset = input<boolean>(false);
+  isDebug = input<boolean>(false);
 
   @Input() showGeolocation: boolean = true;
   @Input() showSatelliteToggle: boolean = false;
@@ -108,6 +120,13 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @Output() markerClickEvent = new EventEmitter<
     number | { marker: any; index?: number }
   >();
+
+  @Output() poiClick = new EventEmitter<{
+    location: google.maps.LatLngLiteral;
+    placeId: string;
+  }>();
+
+  @Output() mapClickEvent = new EventEmitter<google.maps.LatLngLiteral>();
   /**
    * Emits when map bounds change while a filter is active.
    * Parent component should re-run the filter search for the new bounds.
@@ -191,7 +210,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     private authService: AuthenticationService,
     private mapsAPIService: MapsApiService,
     private snackBar: MatSnackBar,
-    private cd: ChangeDetectorRef // <-- Inject ChangeDetectorRef
+    private cd: ChangeDetectorRef
   ) {
     // Track the previous spot to detect actual changes
     let previousSpotKey: string | null = null;
@@ -310,7 +329,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (this.mapStyle() === null) {
       this.mapsAPIService
         .loadMapStyle("roadmap")
-        .then((style: "satellite" | "roadmap") => {
+        .then((style: "satellite" | "roadmap" | "hybrid" | "terrain") => {
           if (style) {
             this.mapStyle.set(style);
           }
@@ -400,11 +419,17 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   mapClick(event: google.maps.LatLngLiteral) {
+    console.log("Map clicked!", event);
+
+    // Emit the click event for parent components to handle (e.g. deselection)
+    this.mapClickEvent.emit(event);
+
     /**
      * When the map is clicked with a spot open, the spot is
      * closed and the bottom panel cloes as well.
      */
     if (this.selectedSpot()) {
+      console.log("Closing spot from map click");
       this.closeSpot();
     }
   }
@@ -636,17 +661,22 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   toggleMapStyle() {
-    let newMapStyle: "roadmap" | "satellite" = "roadmap";
-    if (this.mapStyle() === "roadmap") {
-      // if it is equal to roadmap, toggle to satellite
-      newMapStyle = "satellite";
+    let newMapStyle: "roadmap" | "satellite" | "hybrid" | "terrain" = "roadmap";
+    const mapStylesToCycleThrough = ["roadmap", "hybrid"];
 
-      // this.setLightMode();
-    } else {
-      // otherwise toggle back to roadmap
-      newMapStyle = "roadmap";
-      // this.setDarkMode();
-    }
+    const currentMapStyle = this.mapStyle();
+
+    // cycle through the map styles
+    const currentIndex = mapStylesToCycleThrough.indexOf(
+      currentMapStyle as string
+    );
+    const nextIndex = (currentIndex + 1) % mapStylesToCycleThrough.length;
+    newMapStyle = mapStylesToCycleThrough[nextIndex] as
+      | "roadmap"
+      | "hybrid"
+      | "satellite"
+      | "terrain";
+
     this.mapStyle.set(newMapStyle);
 
     // store the new map style in the browser memory
@@ -736,16 +766,32 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           this.selectedSpot.set(spot as Spot);
           this.uneditedSpot = (spot as Spot).clone();
         } else {
-          // For new spots, we need to load the full object from the server (to get ID, timestamps, etc)
-          const savedSpot = await this._spotMapDataManager.loadAndAddSpotById(
+          // For new spots, don't wait for server - update optimistically!
+          // Convert the LocalSpot to a proper Spot with the new ID
+          const optimisticSpot = convertLocalSpotToSpot(
+            spot as LocalSpot,
             spotId
           );
-          if (savedSpot) {
-            this.selectedSpot.set(savedSpot);
-            // Update uneditedSpot backup with the fresh data from Firebase
-            this.uneditedSpot = savedSpot.clone();
-            // The spot will now appear on the map with the latest bounds
-          }
+
+          // Add it to the cache immediately so it stays visible
+          this._spotMapDataManager.addOrUpdateNewSpotToLoadedSpotsAndUpdate(
+            optimisticSpot
+          );
+
+          // Set as selected and current
+          this.selectedSpot.set(optimisticSpot);
+          this.uneditedSpot = optimisticSpot.clone();
+
+          // Still try to fetch the real data in background to eventually sync timestamps/metadata
+          // But don't block the UI or show loading state
+          this._spotMapDataManager
+            .loadAndAddSpotById(spotId)
+            .then((serverSpot) => {
+              if (serverSpot) {
+                console.log("Synced spot with server data");
+                // Optional: update again if needed, but optimistic data is usually fresher for user-edited fields
+              }
+            });
         }
       })
       .catch((error) => {
@@ -791,6 +837,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
    * Unselect the spot and close the bottom panel
    */
   closeSpot() {
+    console.log("closeSpot called. isEditing:", this.isEditing());
     if (this.isEditing()) {
       // TODO show dialog
       alert(

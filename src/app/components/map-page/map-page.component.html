@@ -1,5 +1,10 @@
 <ng-template #sidebarContent>
-  @if(selectedSpot()) { @if(selectedChallenge()) {
+  @if(selectedPoi()) {
+  <app-poi-detail
+    [poi]="selectedPoi()!"
+    (dismiss)="closeSpot()"
+  ></app-poi-detail>
+  } @else if(selectedSpot()) { @if(selectedChallenge()) {
   <a
     mat-button
     [routerLink]="[
@@ -83,7 +88,7 @@
     </p>
   </div>
 
-  }@else {
+  } @else {
   <app-spot-details
     @fadeInOut
     #spotDetail
@@ -108,6 +113,8 @@
     @fadeInOut
     [spots]="visibleSpots"
     [highlightedSpots]="highlightedSpots"
+    [limit]="spotListLimit()"
+    [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
   ></app-spot-list>
   }
 </ng-template>
@@ -119,6 +126,7 @@
     @fadeInOut
     #spotMap
     id="spotMap"
+    [isClickable]="true"
     [selectedSpot]="selectedSpot()"
     [selectedChallenge]="selectedChallenge()"
     [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"
@@ -129,9 +137,12 @@
     [minZoom]="2"
     (visibleSpotsChange)="setVisibleSpots($event)"
     (hightlightedSpotsChange)="highlightedSpots = $event"
-    (hasGeolocationChange)="askedGeoPermission = true; hasGeolocation = $event"
     (filterBoundsChange)="onFilterBoundsChange($event)"
     [bottomSheetOffset]="true"
+    [isDebug]="appSettings.debugMode()"
+    (poiClick)="onPoiClick($event)"
+    (markerClickEvent)="onAmenityClick($event)"
+    (mapClickEvent)="onMapClick($event)"
   ></app-spot-map>
   } @placeholder {
   <div
@@ -195,15 +206,17 @@
       matTooltipPosition="left"
       matTooltipShowDelay="500"
     >
+      @if(spotMap.geolocationLoading()) {
+      <mat-progress-spinner
+        mode="indeterminate"
+        diameter="20"
+        color="accent"
+      ></mat-progress-spinner>
+      } @else {
       <mat-icon>
-        {{
-          askedGeoPermission
-            ? hasGeolocation
-              ? "my_location"
-              : "location_disabled"
-            : "location_searching"
-        }}
+        {{ geolocationIcon() }}
       </mat-icon>
+      }
     </button>
 
     @if(spotMap.headingIsNotNorth()) {

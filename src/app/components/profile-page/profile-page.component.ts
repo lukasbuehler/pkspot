@@ -51,6 +51,7 @@ import { countries } from "../../../scripts/Countries";
 import { BadgeService } from "../../services/badge.service";
 import { Badge } from "../../shared/badge-definitions";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { NgOptimizedImage } from "@angular/common";
 
 @Component({
   selector: "app-profile-page",
@@ -74,6 +75,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
     MatRippleModule,
     SpotPreviewCardComponent,
     MatTooltipModule,
+    NgOptimizedImage,
   ],
 })
 export class ProfilePageComponent implements OnInit, OnDestroy {

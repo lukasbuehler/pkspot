@@ -43,6 +43,7 @@ import {
 import { GeoPoint } from "firebase/firestore";
 import { AsyncPipe, NgClass } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
 import { MapHelpers } from "../../../scripts/MapHelpers";
@@ -58,6 +59,7 @@ import { AnyMedia } from "../../../db/models/Media";
 import { ThemeService } from "../../services/theme.service";
 import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.component";
 import { CustomMarkerComponent } from "../custom-marker/custom-marker.component";
+import { ClusterDotMarkerComponent } from "../cluster-dot-marker/cluster-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
 
 function enumerateTileRangeX(
@@ -112,6 +114,8 @@ export interface TilesObject {
     SpotPreviewCardComponent,
     HighlightMarkerComponent,
     CustomMarkerComponent,
+    ClusterDotMarkerComponent,
+    MatSnackBarModule,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -133,10 +137,18 @@ export class GoogleMap2dComponent
   extends MapBase
   implements OnChanges, AfterViewInit
 {
-  @ViewChild("googleMap") googleMap: GoogleMap | undefined;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
   // @ViewChildren(MapPolygon, { read: ElementRef })
   polygonElements: QueryList<ElementRef> | undefined;
+
+  public googleMap: GoogleMap | undefined;
+
+  @ViewChild("googleMap") set googleMapSetter(content: GoogleMap) {
+    if (content) {
+      this.googleMap = content;
+      this.onMapReady();
+    }
+  }
   @ViewChild("selectedSpotMarkerNode") selectedSpotMarkerNode: Node | undefined;
   @ViewChild("selectedChallengeMarker") selectedChallengeMarker:
     | MapAdvancedMarker
@@ -186,7 +198,12 @@ export class GoogleMap2dComponent
   @Input() set zoom(newZoom: number) {
     this._zoom.set(newZoom);
     if (this.googleMap) {
-      this.googleMap.zoom = newZoom;
+      const currentZoom = this.googleMap.getZoom();
+      // Only set zoom if it differs significantly or we're not continuously updating
+      // This prevents interrupting smooth zoom inertia when the parent component reflects the value back
+      if (currentZoom === undefined || Math.abs(currentZoom - newZoom) > 0.01) {
+        this.googleMap.zoom = newZoom;
+      }
     }
   }
   @Output() zoomChange = new EventEmitter<number>();
@@ -212,10 +229,32 @@ export class GoogleMap2dComponent
     this.zoomChange.emit(this._zoom());
   }
 
+  onMapClick(event: google.maps.MapMouseEvent | google.maps.IconMouseEvent) {
+    if (!event.latLng) return;
+
+    // Check if it's a POI click (IconMouseEvent has placeId)
+    const placeId = (event as google.maps.IconMouseEvent).placeId;
+
+    if (placeId) {
+      // Prevent the default info window
+      event.stop();
+      this.poiClick.emit({
+        location: event.latLng.toJSON(),
+        placeId: placeId,
+      });
+    } else {
+      this.mapClick.emit(event.latLng.toJSON());
+    }
+  }
+
   @Output() boundsChange = new EventEmitter<google.maps.LatLngBounds>();
   @Output() visibleTilesChange = new EventEmitter<TilesObject>();
   @Output() visibleViewportChange = new EventEmitter<VisibleViewport>();
   @Output() mapClick = new EventEmitter<google.maps.LatLngLiteral>();
+  @Output() poiClick = new EventEmitter<{
+    location: google.maps.LatLngLiteral;
+    placeId: string;
+  }>();
   @Output() spotClick = new EventEmitter<
     LocalSpot | Spot | SpotPreviewData | SpotId
   >();
@@ -316,7 +355,7 @@ export class GoogleMap2dComponent
    */
   @Input() bottomSheetOffset: boolean = false;
 
-  mapStyle = input<"roadmap" | "satellite">("roadmap");
+  mapStyle = input<"roadmap" | "satellite" | "hybrid" | "terrain">("roadmap");
   polygons = input<PolygonSchema[]>([]);
 
   // defaultMarkerCollisionBehavior: google.maps.CollisionBehavior =
@@ -333,6 +372,10 @@ export class GoogleMap2dComponent
         return google.maps.MapTypeId.ROADMAP;
       case "satellite":
         return google.maps.MapTypeId.SATELLITE;
+      case "hybrid":
+        return google.maps.MapTypeId.HYBRID;
+      case "terrain":
+        return google.maps.MapTypeId.TERRAIN;
       default:
         return google.maps.MapTypeId.ROADMAP;
     }
@@ -455,9 +498,13 @@ export class GoogleMap2dComponent
     public mapsApiService: MapsApiService,
     private _consentService: ConsentService,
     private theme: ThemeService,
-    private geolocationService: GeolocationService
+    private geolocationService: GeolocationService,
+    private snackBar: MatSnackBar
   ) {
     super();
+
+    // Clear any stale error state from previous sessions
+    this.geolocationService.error.set(null);
 
     // Connect geolocation signal
     effect(() => {
@@ -466,8 +513,26 @@ export class GoogleMap2dComponent
         this.geolocation.set(loc);
         this.hasGeolocationChange.emit(true);
       } else {
-        this.geolocation.set(null);
         this.hasGeolocationChange.emit(false);
+      }
+    });
+
+    // Effect to handle geolocation errors
+    effect(() => {
+      const error = this.geolocationService.error();
+      if (error) {
+        console.error("Geolocation error signal:", error);
+
+        // Reset started status so user can try again
+        this._geolocationStarted = false;
+
+        this.snackBar.open(
+          $localize`:Snackbar message for disabled geolocation info|Message shown when user clicks geolocation button but permissions are denied@@map.geolocation_denied.snackbar:Location permission denied. Please enable it to use this feature.`,
+          $localize`:Snackbar action for disabled geolocation info|Action button on snackbar shown when user clicks geolocation button but permissions are denied@@map.geolocation_denied.snackbar_action:OK`,
+          {
+            duration: 5000,
+          }
+        );
       }
     });
     // Effect to handle selected spot changes and editing state changes for polygon updates
@@ -484,6 +549,13 @@ export class GoogleMap2dComponent
         // Use setTimeout to ensure the DOM and ViewChild are updated
         setTimeout(() => {}, 50);
       }
+    });
+
+    // Effect to update map color scheme when dark mode changes
+    effect(() => {
+      // Create dependency on resolvedDarkMode
+      const _ = this.resolvedDarkMode();
+      this._updateMapColorScheme();
     });
 
     // if (this.selectedSpot) {
@@ -546,7 +618,8 @@ export class GoogleMap2dComponent
   resolvedDarkMode = computed<boolean>(() => {
     const explicit = this.isDarkMode();
     if (typeof explicit === "boolean") return explicit;
-    return this.theme.isDark(this.mapStyle());
+    const mapStyle = this.mapStyle();
+    return this.theme.isDark(mapStyle);
   });
 
   // Build heatmap data from dots with weighted lat/lng
@@ -632,6 +705,13 @@ export class GoogleMap2dComponent
       console.error("Google Maps API is not loaded!");
       return;
     }
+
+    // Initial color scheme update - this will trigger optionsInitialized
+    // which eventually renders the map
+    this._updateMapColorScheme();
+  }
+
+  onMapReady() {
     if (!this.googleMap) {
       console.error("GoogleMap component is not available!");
       return;
@@ -655,11 +735,51 @@ export class GoogleMap2dComponent
 
     // Apply vector rendering type safely
     this.mapOptions.renderingType = google.maps.RenderingType.VECTOR;
-    this.googleMap.googleMap?.setOptions({
-      renderingType: google.maps.RenderingType.VECTOR,
-    });
+    // this.googleMap.googleMap?.setOptions({
+    //   renderingType: google.maps.RenderingType.VECTOR,
+    // });
 
     this.positionGoogleMapsLogo();
+    if (this.isDebug()) {
+      this._startFpsLoop();
+    }
+  }
+
+  private async _updateMapColorScheme() {
+    // If map is already initialized, use setOptions
+    if (this.googleMap?.googleMap) {
+      try {
+        const { ColorScheme } = (await google.maps.importLibrary(
+          "core"
+        )) as any;
+        const isDark = this.resolvedDarkMode();
+        this.googleMap.googleMap.setOptions({
+          colorScheme: isDark ? ColorScheme.DARK : ColorScheme.LIGHT,
+        } as any);
+      } catch (e) {
+        console.warn("Failed to update map color scheme:", e);
+      }
+      return;
+    }
+
+    // Otherwise update mapOptions before initialization
+    try {
+      // Use dynamic import for Core library to get ColorScheme
+      // @ts-ignore - Handle potential missing types for newer Maps features
+      const { ColorScheme } = await google.maps.importLibrary("core");
+
+      const isDark = this.resolvedDarkMode();
+
+      this.mapOptions = {
+        ...this.mapOptions,
+        // @ts-ignore
+        colorScheme: isDark ? ColorScheme.DARK : ColorScheme.LIGHT,
+      };
+      this.optionsInitialized.set(true);
+    } catch (e) {
+      console.warn("Failed to set map color scheme:", e);
+      this.optionsInitialized.set(true); // Proceed anyway
+    }
   }
 
   /**
@@ -696,6 +816,8 @@ export class GoogleMap2dComponent
     if (this.isApiLoadedSubscription)
       this.isApiLoadedSubscription.unsubscribe();
     if (this.consentSubscription) this.consentSubscription.unsubscribe();
+    if (this._fpsAnimationFrameId)
+      cancelAnimationFrame(this._fpsAnimationFrameId);
   }
 
   private _geoPointToLatLng(
@@ -718,9 +840,12 @@ export class GoogleMap2dComponent
     return MapHelpers.getBoundsForTile(tile.zoom, tile.x, tile.y);
   }
 
-  initGeolocation() {
-    // Don't auto-start geolocation watching - wait for user action
-    // This is called in ngAfterViewInit but we no longer auto-start
+  async initGeolocation() {
+    // Check permissions and auto-start if already granted
+    const hasPermission = await this.geolocationService.checkPermissions();
+    if (hasPermission) {
+      await this.geolocationService.startWatching();
+    }
   }
 
   private _geolocationStarted = false;
@@ -732,11 +857,18 @@ export class GoogleMap2dComponent
       this._geolocationStarted = true;
     }
 
-    // Pan to current position
-    const pos = await this.geolocationService.getCurrentPosition();
+    // Pan to current position if available, otherwise it will happen when location updates
+    const pos = this.geolocationService.currentLocation();
     if (pos && this.googleMap) {
       this.googleMap.panTo(pos.location);
       this.googleMap.zoom = 17;
+    } else {
+      // If we don't have a location yet, try to get it once
+      const pos = await this.geolocationService.getCurrentPosition();
+      if (pos && this.googleMap) {
+        this.googleMap.panTo(pos.location);
+        this.googleMap.zoom = 17;
+      }
     }
   }
 
@@ -745,17 +877,22 @@ export class GoogleMap2dComponent
     accuracy: number;
   } | null>(null);
 
+  geolocationLoading = this.geolocationService.loading;
+
   //spotDotZoomRadii: number[] = Array<number>(16);
 
   mapOptions: google.maps.MapOptions = {
     mapId: environment.mapId,
     backgroundColor: "#000000",
-    clickableIcons: false,
+    clickableIcons: true,
     gestureHandling: "greedy",
     disableDefaultUI: true,
     tilt: 0,
     headingInteractionEnabled: true,
+    renderingType: "VECTOR" as any, // Force Vector Map
   };
+
+  optionsInitialized = signal<boolean>(false);
 
   spotCircleDarkOptions: google.maps.CircleOptions = {
     fillColor: "#b8c4ff",
@@ -834,35 +971,73 @@ export class GoogleMap2dComponent
 
   // }
 
+  private _lastBoundsChangeTime = 0;
+  private _boundsThrottleTimer: any = null;
+  private readonly BOUNDS_THROTTLE_MS = 100; // ~10fps
+
+  // FPS Counter
+  fps = signal<number>(0);
+  private _lastFrameTime = 0;
+  private _frameCount = 0;
+  private _lastFpsUpdate = 0;
+  private _fpsAnimationFrameId: number | null = null;
+
+  private _startFpsLoop() {
+    const loop = (time: number) => {
+      if (this._lastFrameTime === 0) {
+        this._lastFrameTime = time;
+        this._lastFpsUpdate = time;
+      }
+
+      this._frameCount++;
+      const now = time;
+
+      // Update FPS every 500ms
+      if (now - this._lastFpsUpdate >= 500) {
+        const fps = Math.round(
+          (this._frameCount * 1000) / (now - this._lastFpsUpdate)
+        );
+        this.fps.set(fps);
+        this._frameCount = 0;
+        this._lastFpsUpdate = now;
+      }
+
+      this._lastFrameTime = now;
+      this._fpsAnimationFrameId = requestAnimationFrame(loop);
+    };
+    this._fpsAnimationFrameId = requestAnimationFrame(loop);
+  }
+
   boundsChanged() {
+    const now = Date.now();
+
+    // If enough time has passed, execute immediately
+    if (now - this._lastBoundsChangeTime > this.BOUNDS_THROTTLE_MS) {
+      this._executeBoundsChange();
+      this._lastBoundsChangeTime = now;
+      // Clear any pending timer since we just executed
+      if (this._boundsThrottleTimer) {
+        clearTimeout(this._boundsThrottleTimer);
+        this._boundsThrottleTimer = null;
+      }
+    } else {
+      // Otherwise, schedule a trailing update to ensure the final state is captured
+      // This handles the case where the user stops moving between throttle intervals
+      if (this._boundsThrottleTimer) clearTimeout(this._boundsThrottleTimer);
+
+      this._boundsThrottleTimer = setTimeout(() => {
+        this._executeBoundsChange();
+        this._lastBoundsChangeTime = Date.now();
+        this._boundsThrottleTimer = null;
+      }, this.BOUNDS_THROTTLE_MS);
+    }
+  }
+
+  private _executeBoundsChange() {
     if (!this.googleMap) return;
     const bounds = this.googleMap.getBounds()!;
 
-    // if (this.isDebug()) {
-    //   // set the bounds to render
-    //   // TODO remove: for debugging set it to half the actual bounds now
-    //   const boundsCenter = bounds.getCenter();
-    //   const halvedBoundsLiteral: google.maps.LatLngBoundsLiteral = {
-    //     north:
-    //       boundsCenter.lat() +
-    //       (bounds.getNorthEast().lat() - boundsCenter.lat()) / 2,
-    //     south:
-    //       boundsCenter.lat() +
-    //       (bounds.getSouthWest().lat() - boundsCenter.lat()) / 2,
-    //     east:
-    //       boundsCenter.lng() +
-    //       (bounds.getNorthEast().lng() - boundsCenter.lng()) / 2,
-    //     west:
-    //       boundsCenter.lng() +
-    //       (bounds.getSouthWest().lng() - boundsCenter.lng()) / 2,
-    //   };
-
-    //   const halvedBounds = new google.maps.LatLngBounds(halvedBoundsLiteral);
-    //   this.boundsToRender.set(halvedBounds);
-    // } else {
     this.boundsToRender.set(bounds);
-    // }
-
     this.boundsChange.emit(this.boundsToRender() ?? undefined);
   }
 
@@ -926,7 +1101,7 @@ export class GoogleMap2dComponent
 
     // For Spot instances (with ID), compare by ID
     if ("id" in selectedSpot && "id" in spot) {
-      const result = selectedSpot.id === spot.id;
+      const result = (selectedSpot as any).id === (spot as any).id;
       if (result) return true;
     }
 
@@ -1367,5 +1542,31 @@ export class GoogleMap2dComponent
   closeSelectedSpot() {
     // Emit null to parent component to close the selected spot
     this.spotClick.emit(null as any);
+  }
+
+  /**
+   * Track function for spot dots to prevent unnecessary DOM recreation
+   */
+  trackDot(index: number, dot: SpotClusterDotSchema): string {
+    if (dot.spot_id) return dot.spot_id;
+    if (dot.location) {
+      return `${dot.location.latitude},${dot.location.longitude}_${dot.weight}`;
+    }
+    if (dot.location_raw) {
+      return `${dot.location_raw.lat},${dot.location_raw.lng}_${dot.weight}`;
+    }
+    return index.toString();
+  }
+
+  /**
+   * Track function for custom markers
+   */
+  trackMarker(index: number, marker: MarkerSchema): string {
+    // If marker has a unique ID (e.g. spot ID), use it
+    // For now fall back to index if no unique ID is apparent, or combine properties
+    // Using name and location as unique key
+    if (marker.name)
+      return `${marker.name}_${marker.location.lat}_${marker.location.lng}`;
+    return `${index}_${marker.location.lat}_${marker.location.lng}`;
   }
 }

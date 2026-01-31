@@ -123,7 +123,12 @@
     [class.isCompact]="isCompact"
   >
     @if(media() && media().length > 0 && media()[0] && !imageLoadError()) {
-    <img [ngSrc]="media()[0]" fill priority (error)="onImageError()" />
+    <img
+      [ngSrc]="media()[0]"
+      fill
+      [priority]="loadingPriority()"
+      (error)="onImageError()"
+    />
     } @else {
     <!-- image placeholder-->
     <img [ngSrc]="fallbackImgSrc" fill priority />

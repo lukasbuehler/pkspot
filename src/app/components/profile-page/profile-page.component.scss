@@ -49,9 +49,14 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  object-fit: cover;
   background-color: var(--mat-sys-color-secondary-container, #e8def8);
   color: var(--mat-sys-color-on-secondary-container, #1d192b);
+  position: relative;
+  overflow: hidden;
+
+  > img {
+    object-fit: cover;
+  }
 }
 
 .profile-overview__avatar--placeholder {

@@ -15,11 +15,11 @@ export class ThemeService {
   }
 
   // Resolve dark/light given current map style and mode
-  isDark(mapStyle: "roadmap" | "satellite" = "roadmap") {
+  isDark(mapStyle: "roadmap" | "satellite" | "hybrid" | "terrain" = "roadmap") {
     const mode = this._mode();
     if (mode === "auto") {
       // Default behavior: dark for roadmap, light for satellite
-      return mapStyle !== "satellite";
+      return mapStyle === "roadmap";
     }
     return mode === "dark";
   }

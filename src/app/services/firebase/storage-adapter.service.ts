@@ -41,6 +41,7 @@ export interface UploadFileOptions {
   metadata?: {
     uid?: string;
     contentType?: string;
+    cacheControl?: string;
     customMetadata?: Record<string, string>;
   };
 
@@ -105,11 +106,16 @@ export class StorageAdapterService {
         if (options.metadata?.contentType) {
           metadata.contentType = options.metadata.contentType;
         }
+        if (options.metadata?.cacheControl) {
+          metadata.cacheControl = options.metadata.cacheControl;
+        }
         if (options.metadata?.uid || options.metadata?.customMetadata) {
-          metadata.customMetadata = {
-            ...options.metadata.customMetadata,
-            ...(options.metadata.uid ? { uid: options.metadata.uid } : {}),
-          };
+          const customMetadata: Record<string, string> =
+            options.metadata.customMetadata || {};
+          if (options.metadata.uid) {
+            customMetadata["uid"] = options.metadata.uid;
+          }
+          metadata.customMetadata = customMetadata;
         }
 
         const uploadTask = uploadBytesResumable(
@@ -117,6 +123,7 @@ export class StorageAdapterService {
           blob,
           Object.keys(metadata).length > 0 ? metadata : undefined
         );
+        console.log("[StorageAdapter] Uploading with metadata:", metadata);
 
         uploadTask.on(
           "state_changed",
@@ -161,14 +168,27 @@ export class StorageAdapterService {
       fileUri = await this.blobToFileUri(options.data, options.path);
     }
 
+    // Prepare metadata
+    const metadata: any = {
+      contentType: options.metadata?.contentType,
+      cacheControl: options.metadata?.cacheControl,
+    };
+
+    if (options.metadata?.uid || options.metadata?.customMetadata) {
+      const customMetadata: Record<string, string> =
+        options.metadata.customMetadata || {};
+      if (options.metadata.uid) {
+        customMetadata["uid"] = options.metadata.uid;
+      }
+      metadata.customMetadata = customMetadata;
+    }
+
     return new Promise<string>((resolve, reject) => {
       FirebaseStorage.uploadFile(
         {
           path: options.path,
           uri: fileUri,
-          metadata: options.metadata?.contentType
-            ? { contentType: options.metadata.contentType }
-            : undefined,
+          metadata: metadata,
         },
         (event, error) => {
           if (error) {

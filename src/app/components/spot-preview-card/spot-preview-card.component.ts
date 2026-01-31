@@ -64,6 +64,7 @@ export class SpotPreviewCardComponent implements OnChanges {
 
   hasBorder = input<boolean>(true);
   imgSize = input<200 | 400 | 800>(200);
+  loadingPriority = input<boolean>(false);
 
   spotData = input<Spot | LocalSpot | SpotPreviewData | null>(null);
   spotAmenitiesArray = computed<

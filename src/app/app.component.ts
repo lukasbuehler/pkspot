@@ -57,6 +57,7 @@ import { firstValueFrom } from "rxjs";
 import { AnalyticsService } from "./services/analytics.service";
 import { ConsentService } from "./services/consent.service";
 import { Capacitor } from "@capacitor/core";
+import { BackHandlingService } from "./services/back-handling.service";
 
 interface ButtonBase {
   name: string;
@@ -114,7 +115,7 @@ type ButtonConfig = LinkMenuButton[];
     MatButtonModule,
   ],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   readonly dialog = inject(MatDialog);
   private _snackbar = inject(MatSnackBar);
   private _structuredDataService = inject(StructuredDataService);
@@ -138,6 +139,8 @@ export class AppComponent implements OnInit {
     }
     return this._storageService as StorageService;
   }
+
+  private _backHandlingService = inject(BackHandlingService);
 
   constructor(
     public router: Router,
@@ -200,6 +203,32 @@ export class AppComponent implements OnInit {
       this._analyticsService.trackEvent("Alain Mode Changed", {
         alainMode: this.alainMode,
       });
+    }
+  }
+
+  async ngAfterViewInit() {
+    // Hide native splash screen
+    if (this.isNativePlatform) {
+      import("@capacitor/splash-screen").then(({ SplashScreen }) => {
+        // Add a small delay to ensure the view is fully painted
+        setTimeout(async () => {
+          await SplashScreen.hide();
+        }, 500);
+      });
+    }
+
+    // Hide web splash screen
+    if (typeof document !== "undefined") {
+      // Wait for Angular to settle
+      setTimeout(() => {
+        const splash = document.getElementById("app-splash-screen");
+        if (splash) {
+          splash.classList.add("splash-fade-out");
+          setTimeout(() => {
+            splash.remove();
+          }, 500); // Wait for transition
+        }
+      }, 500); // Initial delay to show splash for a bit or wait for paint
     }
   }
 
@@ -299,6 +328,16 @@ export class AppComponent implements OnInit {
           StatusBar.setStyle({ style: Style.Dark });
         });
       }
+
+      // Listen for hardware back button
+      import("@capacitor/app").then(({ App }) => {
+        App.addListener("backButton", () => {
+          this._injector.get(NgZone).run(() => {
+            console.log("Hardware back button pressed");
+            this._backHandlingService.handleBack();
+          });
+        });
+      });
     }
 
     // structured data
@@ -840,6 +879,13 @@ export class AppComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((localeCode) => {
       if (localeCode) {
+        // save the new language preference
+        try {
+          localStorage.setItem("language", localeCode);
+        } catch (e) {
+          console.error("Could not save language preference", e);
+        }
+
         // set the new language
         segments[1] = localeCode;
         url.pathname = segments.join("/");

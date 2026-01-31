@@ -124,7 +124,11 @@ export class SearchService {
         type: doc.type,
         access: doc.access,
         locality: localityString,
-        imageSrc: doc.thumbnail_url || doc.image_url || "",
+        imageSrc:
+          doc.thumbnail_medium_url ||
+          doc.thumbnail_small_url ||
+          doc.image_url ||
+          "",
         isIconic: isIconic,
         rating: doc.rating ?? undefined,
         amenities: amenities || undefined,
@@ -245,7 +249,8 @@ export class SearchService {
     types?: SpotTypes[],
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
-    amenities_false?: (keyof AmenitiesMap)[]
+    amenities_false?: (keyof AmenitiesMap)[],
+    onlyWithImages: boolean = false
   ): Promise<{ hits: any[]; found: number }> {
     const latLongPairList: string[] = [
       // northeast
@@ -272,7 +277,8 @@ export class SearchService {
       types,
       accesses,
       amenities_true,
-      amenities_false
+      amenities_false,
+      onlyWithImages
     );
   }
 
@@ -282,7 +288,8 @@ export class SearchService {
     types?: SpotTypes[],
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
-    amenities_false?: (keyof AmenitiesMap)[]
+    amenities_false?: (keyof AmenitiesMap)[],
+    onlyWithImages: boolean = false
   ) {
     const filters: string[] = [];
     if (types?.length) filters.push(`type:=[${types.join(", ")}]`);
@@ -291,6 +298,13 @@ export class SearchService {
       filters.push(`amenities_true:=[${amenities_true.join(", ")}]`);
     if (amenities_false?.length)
       filters.push(`amenities_false:=[${amenities_false.join(", ")}]`);
+    if (onlyWithImages) {
+      // Use strict server-side filtering on the new faceted fields.
+      // Note: We intentionally exclude 'image_url' as it is not in the Typesense schema/index.
+      filters.push(
+        "(thumbnail_small_url:!=null || thumbnail_medium_url:!=null)"
+      );
+    }
 
     let filterByString = `location:(${latLongPairList.join(", ")})`;
     if (filters.length > 0) {
@@ -316,10 +330,11 @@ export class SearchService {
       );
 
     let allHits: any[] = (firstPage && (firstPage as any).hits) || [];
+
     const found: number =
       (firstPage && (firstPage as any).found) || allHits.length;
 
-    // If we already satisfied the requested number or there's nothing more, return
+    // If we already satisfied the requested number (after filtering)
     if (allHits.length >= num_spots || found <= perPage) {
       return {
         hits: allHits.slice(0, num_spots),

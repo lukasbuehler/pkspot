@@ -21,6 +21,7 @@
   [mapStyle]="mapStyle() ?? 'roadmap'"
   [showSpotPreview]="showSpotPreview()"
   [bottomSheetOffset]="bottomSheetOffset()"
+  [isDebug]="isDebug()"
   (boundsChange)="mapBoundsChanged($event, mapZoom)"
   (visibleTilesChange)="visibleTilesChanged($event)"
   (zoomChange)="zoomChanged($event)"
@@ -29,6 +30,7 @@
   (centerChange)="mapCenter = $event"
   (hasGeolocationChange)="hasGeolocationChange.emit($event)"
   (markerClickEvent)="onMarkerClickFromMap($event)"
+  (poiClick)="poiClick.emit($event)"
 ></app-google-map-2d>
 
 }

@@ -1,5 +1,10 @@
 @if (place()) {
-<a [href]="url()" target="_blank" style="text-decoration: none; color: inherit">
+<a
+  [href]="url()"
+  target="_blank"
+  style="text-decoration: none; color: inherit"
+  (click)="trackMapClick()"
+>
   <mat-card
     matRipple
     class="mat-elevation-z0 clickable border rounded d-flex flex-row mb-2 overflow-hidden"
@@ -53,7 +58,14 @@
   </mat-card>
 </a>
 @if(websiteUrl()) {
-<a [href]="websiteUrl()!" matButton="outlined">
+<a
+  [href]="websiteUrl()!"
+  matButton="outlined"
+  (click)="trackWebsiteClick()"
+  i18n="
+    Website button label|Label of the button to open the website of the spot
+  "
+>
   <mat-icon>language</mat-icon>
   Website
 </a>

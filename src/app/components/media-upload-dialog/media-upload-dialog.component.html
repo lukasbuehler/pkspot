@@ -4,9 +4,18 @@
     [allowedMimeTypes]="allowedMimeTypes"
     [multipleAllowed]="multipleAllowed"
     [storageFolder]="storageFolder"
-    (newMedia)="onNewMedia($event)"
   ></app-media-upload>
 </div>
-<div mat-dialog-actions class="d-flex justify-content-end">
-  <button mat-stroked-button (click)="close()" i18n>Done</button>
+<div mat-dialog-actions class="d-flex justify-content-between">
+  <button
+    mat-button
+    (click)="uploading() ? abort() : close()"
+    [color]="uploading() ? 'warn' : null"
+  >
+    {{ uploading() ? "Abort" : "Cancel" }}
+  </button>
+
+  <button mat-stroked-button (click)="close()" [disabled]="uploading()" i18n>
+    {{ uploading() ? "Uploading..." : "Done" }}
+  </button>
 </div>

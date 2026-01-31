@@ -61,6 +61,7 @@ import { GlobalVariables } from "../../../scripts/global";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
+import { GeolocationService } from "../../services/geolocation.service";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { Title } from "@angular/platform-browser";
@@ -94,10 +95,18 @@ import { StructuredDataService } from "../../services/structured-data.service";
 import { MatCardModule } from "@angular/material/card";
 import { MatDialog } from "@angular/material/dialog";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
+import { MarkerSchema } from "../marker/marker.component";
 import {
   CustomFilterDialogComponent,
   CustomFilterParams,
 } from "../custom-filter-dialog/custom-filter-dialog.component";
+import { BackHandlingService } from "../../services/back-handling.service";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { AppSettingsService } from "../../services/app-settings.service";
+
+import { PoiData } from "../../../db/models/PoiData";
+import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
+import { AmenityNames, AmenitiesMap } from "../../../db/models/Amenities";
 
 @Component({
   selector: "app-map-page",
@@ -143,6 +152,8 @@ import {
     MatDividerModule,
     MatTooltipModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
+    PoiDetailComponent,
     SearchFieldComponent,
     ChallengeDetailComponent,
     // SpeedDialFabComponent,
@@ -161,6 +172,7 @@ import {
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
+  @ViewChild(BottomSheetComponent) bottomSheet?: BottomSheetComponent;
 
   /** Signal to track when the map is ready for interaction */
   mapReady = signal<boolean>(false);
@@ -169,21 +181,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   responsiveService = inject(ResponsiveService);
   private ngZone = inject(NgZone);
   private _structuredDataService = inject(StructuredDataService);
+  private _backHandlingService = inject(BackHandlingService);
 
   searchResultSpots: WritableSignal<Spot[]> = signal([]);
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
+  selectedPoi = signal<PoiData | null>(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
   showAllChallenges: WritableSignal<boolean> = signal(false);
   allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
   showSpotEditHistory: WritableSignal<boolean> = signal(false);
 
   isEditing: WritableSignal<boolean> = signal(false);
-  mapStyle: "roadmap" | "satellite" | null = null;
+  mapStyle: "roadmap" | "satellite" | "hybrid" | "terrain" | null = null;
   selectedChallenge: WritableSignal<SpotChallenge | LocalSpotChallenge | null> =
     signal(null);
 
-  askedGeoPermission: boolean = false;
-  hasGeolocation: boolean = false;
+  geolocationService = inject(GeolocationService);
+
+  geolocationIcon = computed(() => {
+    if (this.geolocationService.error()) return "location_disabled";
+    if (this.geolocationService.currentLocation()) return "my_location";
+    return "location_searching";
+  });
 
   visibleSpots: Spot[] = [];
   private _highlightedSpots: SpotPreviewData[] = [];
@@ -215,6 +234,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Height of the top spacer in the sidebar/bottom-sheet to match chip listbox
   // Default to expected fallback (32 chip + 100 padding)
   chipsSpacerHeight = signal<number>(132);
+
+  spotListLimit = computed(() => {
+    // If mobile and bottom sheet is "closed" (progress < 0.2), limit the list
+    if (this.responsiveService.isMobile() && this.bottomSheetProgress() <= 0) {
+      return 2;
+    }
+    return undefined;
+  });
 
   // ResizeObserver for chips height measurement
   private _chipsResizeObserver: ResizeObserver | null = null;
@@ -282,6 +309,137 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   /** MatDialog for opening the custom filter dialog */
   private _dialog = inject(MatDialog);
 
+  /**
+   * Handle clicks on POIs or Amenity Markers
+   */
+  /**
+   * Handle clicks on POIs or Amenity Markers
+   */
+  async onPoiClick(event: {
+    location: google.maps.LatLngLiteral;
+    placeId: string;
+  }) {
+    this.ngZone.run(async () => {
+      console.log("POI Clicked", event);
+
+      // Set a placeholder POI to prevent the spot list from showing up
+      // during the transition (template logic: if selectedPoi -> show POI, else if selectedSpot -> show Spot, else -> show List)
+      this.selectedPoi.set({
+        type: "google-poi",
+        id: event.placeId,
+        name: "Loading...",
+        location: event.location,
+        googlePlace: undefined,
+      });
+
+      // Clear spot selection manually (don't use closeSpot() as it clears selectedPoi)
+      this.selectedSpot.set(null);
+      this.showSpotEditHistory.set(false);
+      this.closeChallenge(false);
+      this.updateMapURL();
+
+      if (event.placeId) {
+        // It's a Google Maps POI
+        try {
+          // Fetch details to get the name
+          const place = await this.mapsService.getGooglePlaceById(
+            event.placeId
+          );
+
+          this.selectedPoi.set({
+            type: "google-poi",
+            id: event.placeId,
+            name: place.displayName || "Point of Interest",
+            location: place.location?.toJSON() || event.location,
+            googlePlace: place,
+          });
+
+          // Focus the map on it
+          if (this.spotMap) {
+            this.spotMap.focusPoint(this.selectedPoi()!.location);
+          }
+        } catch (error) {
+          console.error("Failed to load POI details:", error);
+        }
+      }
+    });
+  }
+
+  // Handle click on map background (bubbled up from SpotMap)
+  onMapClick(event: google.maps.LatLngLiteral) {
+    this.ngZone.run(() => {
+      // Clear spot selection
+      if (this.selectedSpot()) {
+        this.selectedSpot.set(null);
+      }
+
+      // Clear POI selection
+      if (this.selectedPoi()) {
+        this.selectedPoi.set(null);
+        // also clear the placeholder if it was just loading
+      }
+
+      this.showSpotEditHistory.set(false);
+      this.closeChallenge(false);
+
+      // Update URL to remove selected spot/poi
+      this.updateMapURL();
+    });
+  }
+
+  // Handle clicks on custom amenity markers (bubbled up from SpotMap via markerClickEvent)
+  onAmenityClick(event: number | { marker: any; index?: number }) {
+    this.ngZone.run(() => {
+      let markerIndex: number | undefined;
+
+      if (typeof event === "number") {
+        markerIndex = event;
+      } else {
+        markerIndex = event.index;
+      }
+
+      if (markerIndex === undefined) return;
+
+      // Access spotMapData from the child component
+      const markers = this.spotMap?.spotMapData?.visibleAmenityMarkers();
+
+      if (markers && markers[markerIndex]) {
+        const marker = markers[markerIndex];
+
+        let displayname: string = marker.name || "Amenity";
+        if (displayname === "Amenity" || displayname === "undefined") {
+          // Try to look up a friendly name based on the icon/type if available
+          const nameFromType = marker.type
+            ? AmenityNames[marker.type as keyof AmenitiesMap]
+            : undefined;
+          if (nameFromType) {
+            displayname = nameFromType;
+          } else {
+            displayname = "Amenity";
+          }
+        }
+
+        this.selectedPoi.set({
+          type: "amenity",
+          id: `amenity-${marker.location.lat}-${marker.location.lng}`,
+          name: displayname,
+          location: marker.location,
+          marker: marker,
+        });
+
+        // Clear spot selection manually (don't use closeSpot() as it clears selectedPoi)
+        this.selectedSpot.set(null);
+        this.showSpotEditHistory.set(false);
+        this.closeChallenge(false);
+        this.updateMapURL();
+
+        if (this.spotMap) {
+          this.spotMap.focusPoint(marker.location);
+        }
+      }
+    });
+  }
+
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -300,7 +458,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private titleService: Title,
     private _consentService: ConsentService,
     private breakpointObserver: BreakpointObserver,
-    private _spotEditsService: SpotEditsService
+    private _spotEditsService: SpotEditsService,
+    public appSettings: AppSettingsService
   ) {
     this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
       (value) => {
@@ -573,6 +732,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (filterParam) {
       this.selectedFilter.set(filterParam);
     }
+
+    // Register back button handler
+    this._backHandlingService.addListener(10, this.handleBackPress);
   }
 
   async _getSpotIdFromSlugOrId(spotIdOrSlug: string): Promise<SpotId | null> {
@@ -1275,6 +1437,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.closeSpot(updateUrl);
     } else {
       this.closeChallenge(false);
+      this.selectedPoi.set(null);
       this.selectedSpot.set(spot);
       // When a new spot is selected, jump the sidebar/bottom-sheet content to top
       this.resetSidebarContentToTop();
@@ -1357,6 +1520,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   closeSpot(updateUrl: boolean = true) {
     this.selectedSpot.set(null);
+    this.selectedPoi.set(null); // Clear selected POI
     this.showSpotEditHistory.set(false);
     this.closeChallenge(false);
 
@@ -1436,5 +1600,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     } catch (e) {
       console.warn("Error removing scroll listeners:", e);
     }
+    this._backHandlingService.removeListener(this.handleBackPress);
   }
+
+  handleBackPress = () => {
+    // High priority (10)
+
+    // 1. If Editing, stop editing
+    if (this.isEditing()) {
+      this.spotMap?.discardEdit();
+      return true;
+    }
+
+    // 2. If Bottom Sheet is open, close/minimize it
+    if (this.bottomSheet && this.bottomSheet.isOpen()) {
+      this.bottomSheet.minimize();
+      return true;
+    }
+
+    // 3. If Spot is selected, close it?
+    // User currently relies on URL back, so we return false to let default (BackHandlingService) handle it
+    // which triggers Location.back().
+
+    return false;
+  };
 }

@@ -5,6 +5,8 @@ import {
   AmenityNegativeIcons,
 } from "../schemas/Amenities";
 
+export { AmenitiesMap };
+
 export const AmenityNames: { [key in keyof AmenitiesMap]: string } = {
   covered: $localize`:@@amenities.covered:Covered`,
   outdoor: $localize`:@@amenities.outdoor:Outdoor`,
