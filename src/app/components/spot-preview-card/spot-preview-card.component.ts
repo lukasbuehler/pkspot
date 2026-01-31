@@ -107,6 +107,8 @@ export class SpotPreviewCardComponent implements OnChanges {
   spotLocality?: string;
   media = computed<string[]>(() => {
     const spot = this.spotData();
+    // Add dependency on imageLoadError to trigger re-computation when error occurs
+    this.imageLoadError();
 
     if (!spot) {
       return [];

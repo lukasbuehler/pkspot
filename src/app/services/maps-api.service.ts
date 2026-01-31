@@ -49,9 +49,51 @@ export class MapsApiService extends ConsentAwareService {
    */
   private streetViewCache = new Map<string, string | null>();
 
+  private readonly FAILED_SV_CACHE_KEY = "failed_street_view_ids";
+
   constructor() {
     super();
     // Do not auto-load anything - components will explicitly request loading when needed
+    this._loadFailedStreetViewCache();
+  }
+
+  private _loadFailedStreetViewCache() {
+    if (typeof localStorage === "undefined") return;
+    try {
+      const stored = localStorage.getItem(this.FAILED_SV_CACHE_KEY);
+      if (stored) {
+        const ids = JSON.parse(stored);
+        if (Array.isArray(ids)) {
+          ids.forEach((id) => this.streetViewCache.set(id, null));
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load street view error cache", e);
+    }
+  }
+
+  private _saveFailedStreetViewToCache(spotId: string) {
+    if (typeof localStorage === "undefined") return;
+
+    // Get all IDs that are currently null in the cache
+    const failedIds: string[] = [];
+    // We can't easily iterate and filter efficiently if we mix URLs and nulls in the same map,
+    // but for now, let's just grab the ones we know are failing.
+    // Actually, simpler: read existing, add new one, save.
+
+    try {
+      let ids: string[] = [];
+      const stored = localStorage.getItem(this.FAILED_SV_CACHE_KEY);
+      if (stored) {
+        ids = JSON.parse(stored);
+      }
+      if (!ids.includes(spotId)) {
+        ids.push(spotId);
+        localStorage.setItem(this.FAILED_SV_CACHE_KEY, JSON.stringify(ids));
+      }
+    } catch (e) {
+      console.warn("Failed to save street view error to cache", e);
+    }
   }
 
   loadGoogleMapsApi() {
@@ -418,9 +460,9 @@ export class MapsApiService extends ConsentAwareService {
     }`;
 
     if (spotId) {
-      console.debug(
-        `Generatred Street View URL for spot ${spotId}, caching it.`
-      );
+      //   console.debug(
+      //     `Generatred Street View URL for spot ${spotId}, caching it.`
+      //   );
       this.streetViewCache.set(spotId, url);
     }
 
@@ -430,12 +472,22 @@ export class MapsApiService extends ConsentAwareService {
   reportStreetViewError(spotId: string) {
     // console.log(`Marking Street View as unavailable for spot ${spotId}`);
     this.streetViewCache.set(spotId, null);
+    this._saveFailedStreetViewToCache(spotId);
   }
 
   // Instance method instead of static to access consent checking
   async loadStreetviewForLocation(
-    location: google.maps.LatLngLiteral
+    location: google.maps.LatLngLiteral,
+    spotId?: string
   ): Promise<ExternalImage | undefined> {
+    // Check persistent cache first if spotId is provided
+    if (spotId && this.streetViewCache.has(spotId)) {
+      if (this.streetViewCache.get(spotId) === null) {
+        // console.log(`Skipping Street View load for spot ${spotId} (known failure)`);
+        return undefined;
+      }
+    }
+
     // Use consent-aware execution
     return this.executeWithConsent(async () => {
       // street view metadata

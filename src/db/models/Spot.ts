@@ -648,8 +648,10 @@ export class LocalSpot {
     if (this.hasMedia()) return;
 
     try {
+      const spotId = this instanceof Spot ? this.id : undefined;
       const sv = await mapsApiService.loadStreetviewForLocation(
-        this.location()
+        this.location(),
+        spotId
       );
       if (sv) {
         this._streetview.set(sv);
@@ -657,6 +659,10 @@ export class LocalSpot {
     } catch (err) {
       console.warn("Failed to load streetview for spot", err);
     }
+  }
+
+  public removeStreetView() {
+    this._streetview.set(undefined);
   }
 
   public clone(): LocalSpot {

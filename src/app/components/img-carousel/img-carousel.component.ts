@@ -3,6 +3,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   Input,
+  Output,
+  EventEmitter,
   CUSTOM_ELEMENTS_SCHEMA,
   Inject,
   PLATFORM_ID,
@@ -34,6 +36,7 @@ import {
 } from "../../../db/models/Media";
 import { MediaReportDialogComponent } from "../../media-report-dialog/media-report-dialog.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MapsApiService } from "../../services/maps-api.service";
 
 @Component({
   selector: "app-img-carousel",
@@ -52,6 +55,14 @@ export class ImgCarouselComponent {
   private readonly MAX_RETRIES = 10;
   private readonly RETRY_DELAY_MS = 3000;
 
+  /** Tracks indices of images that should be hidden (e.g. broken external images) */
+  /** Tracks indices of images that should be hidden (e.g. broken external images) */
+  hiddenIndices = signal<Set<number>>(new Set());
+
+  @Output() mediaRemove = new EventEmitter<AnyMedia>();
+
+  mapsApiService = inject(MapsApiService);
+
   constructor(
     public dialog: MatDialog,
     public storageService: StorageService
@@ -62,27 +73,38 @@ export class ImgCarouselComponent {
    * For StorageImages, this likely means the resized version isn't ready yet.
    */
   onImageError(event: Event, index: number, mediaObj: AnyMedia): void {
-    if (!(mediaObj instanceof StorageImage)) return;
+    if (mediaObj instanceof StorageImage) {
+      const currentRetries = this.retryCountMap.get(index) ?? 0;
+      if (currentRetries >= this.MAX_RETRIES) {
+        console.warn(`Max retries reached for image at index ${index}`);
+        return;
+      }
 
-    const currentRetries = this.retryCountMap.get(index) ?? 0;
-    if (currentRetries >= this.MAX_RETRIES) {
-      console.warn(`Max retries reached for image at index ${index}`);
-      return;
+      // Mark this image as having an error (shows spinner)
+      mediaObj.isProcessing.set(true);
+      this.imageLoadErrors.update((set) => {
+        const newSet = new Set(set);
+        newSet.add(index);
+        return newSet;
+      });
+
+      // Schedule a retry
+      this.retryCountMap.set(index, currentRetries + 1);
+      setTimeout(() => {
+        this.retryImage(index, mediaObj);
+      }, this.RETRY_DELAY_MS);
+    } else if (mediaObj instanceof ExternalImage) {
+      if (mediaObj.userId === "streetview") {
+        this.mediaRemove.emit(mediaObj);
+      }
+
+      // For any broken external image, hide it.
+      this.hiddenIndices.update((set) => {
+        const newSet = new Set(set);
+        newSet.add(index);
+        return newSet;
+      });
     }
-
-    // Mark this image as having an error (shows spinner)
-    mediaObj.isProcessing.set(true);
-    this.imageLoadErrors.update((set) => {
-      const newSet = new Set(set);
-      newSet.add(index);
-      return newSet;
-    });
-
-    // Schedule a retry
-    this.retryCountMap.set(index, currentRetries + 1);
-    setTimeout(() => {
-      this.retryImage(index, mediaObj);
-    }, this.RETRY_DELAY_MS);
   }
 
   /**

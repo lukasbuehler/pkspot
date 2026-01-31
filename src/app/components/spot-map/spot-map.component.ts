@@ -563,7 +563,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           typeof spot.location === "function" ||
           typeof spot.location !== "undefined"
         ) {
-          console.log("function location:", spot.location);
+          // console.log("function location:", spot.location); // removed debug log
           this.focusPoint(spot.location());
         }
       }

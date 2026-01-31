@@ -1434,6 +1434,20 @@ export class SpotDetailsComponent
     });
   }
 
+  mediaRemoved(media: AnyMedia) {
+    if (media instanceof ExternalImage && media.userId === "streetview") {
+      const spot = this.spot();
+      if (spot instanceof LocalSpot) {
+        spot.removeStreetView();
+
+        // Also ensure persistence if it's a full Spot
+        if (spot instanceof Spot) {
+          this._mapsApiService.reportStreetViewError(spot.id);
+        }
+      }
+    }
+  }
+
   setEnvironment(selection: "indoor" | "outdoor" | "both" | "unknown") {
     this.spot!.update((spot) => {
       if (!spot) return spot;
