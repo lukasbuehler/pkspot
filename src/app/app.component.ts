@@ -349,8 +349,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         "PK Spot App",
         "Parkour Spot",
         "Parkour Spot App",
-        "PKFR Spot",
-        "pkfrspot.com",
       ],
       url: "https://pkspot.app/",
     };

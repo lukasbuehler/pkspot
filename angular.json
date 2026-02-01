@@ -50,9 +50,7 @@
           "builder": "@angular/build:application",
           "options": {
             "optimization": {
-              "styles": {
-                "inlineCritical": false
-              }
+              "inlineCritical": true
             },
             "localize": ["en", "de", "de-CH", "it", "fr", "es", "nl"],
             "outputPath": "dist/pkspot",
@@ -74,6 +72,7 @@
             "styles": [
               "node_modules/swiper/swiper-bundle.css",
               "node_modules/@videogular/ngx-videogular/fonts/videogular.css",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "src/theming/m3-theme.scss",
               "src/styles.scss"
             ],
@@ -133,7 +132,16 @@
                   "with": "src/environments/environment.production.ts"
                 }
               ],
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
+                "fonts": {
+                  "inline": true
+                }
+              },
 
               "budgets": [
                 {
