@@ -11,7 +11,7 @@ import {
 import { TilesObject } from "../google-map-2d/google-map-2d.component";
 import { VisibleViewport } from "../maps/map-base";
 import { MarkerSchema } from "../marker/marker.component";
-import { Injector, signal, computed } from "@angular/core";
+import { Injector, signal, computed, NgZone } from "@angular/core";
 import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotClusterService } from "../../services/spot-cluster.service";
@@ -54,6 +54,7 @@ export class SpotMapDataManager {
   private _consentService: ConsentService;
   private _authService: AuthenticationService;
   private _searchService: SearchService;
+  private _ngZone: NgZone;
 
   private _spotClusterTiles: Map<MapTileKey, SpotClusterTileSchema>;
   private _spotClusterService: SpotClusterService | null;
@@ -117,6 +118,7 @@ export class SpotMapDataManager {
     this._consentService = injector.get(ConsentService);
     this._authService = injector.get(AuthenticationService);
     this._searchService = injector.get(SearchService);
+    this._ngZone = injector.get(NgZone);
 
     this._spotClusterTiles = new Map<MapTileKey, SpotClusterTileSchema>();
     this._spots = new Map<MapTileKey, Spot[]>();
@@ -967,27 +969,44 @@ export class SpotMapDataManager {
 
         const bounds = MapHelpers.getBoundsForTile(zoom, x, y);
         // load the water markers and add them
-        firstValueFrom(this._osmDataService.getAmenityMarkers(bounds))
-          .then((markers) => {
-            markers.forEach((marker) => {
-              const tileCoords16 =
-                MapHelpers.getTileCoordinatesForLocationAndZoom(
-                  marker.location,
-                  16
-                );
-              const key = getClusterTileKey(16, tileCoords16.x, tileCoords16.y);
-              if (!this._markers.has(key)) {
-                this._markers.set(key, []);
-              }
-              this._markers.get(key)!.push(marker);
-            });
+        // load the water markers and add them
+        this._ngZone.runOutsideAngular(() => {
+          firstValueFrom(this._osmDataService.getAmenityMarkers(bounds))
+            .then((markers) => {
+              this._ngZone.run(() => {
+                markers.forEach((marker) => {
+                  const tileCoords16 =
+                    MapHelpers.getTileCoordinatesForLocationAndZoom(
+                      marker.location,
+                      16
+                    );
+                  const key = getClusterTileKey(
+                    16,
+                    tileCoords16.x,
+                    tileCoords16.y
+                  );
+                  if (!this._markers.has(key)) {
+                    this._markers.set(key, []);
+                  }
+                  this._markers.get(key)!.push(marker);
+                });
 
-            const _lastVisibleTiles = this._lastVisibleTiles();
-            if (_lastVisibleTiles) {
-              this._showCachedSpotsAndMarkersForTiles(_lastVisibleTiles);
-            }
-          })
-          .catch((err) => console.error(err));
+                const _lastVisibleTiles = this._lastVisibleTiles();
+                if (_lastVisibleTiles) {
+                  this._showCachedSpotsAndMarkersForTiles(_lastVisibleTiles);
+                }
+              });
+            })
+            .catch((err) => {
+              if (err.name === "TimeoutError") {
+                console.warn(
+                  "[SpotMapDataManager] Overpass API timed out - skipping amenities"
+                );
+              } else {
+                console.error(err);
+              }
+            });
+        });
       }
     });
   }

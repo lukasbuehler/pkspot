@@ -52,7 +52,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebSite } from "schema-dts";
 import { StructuredDataService } from "./services/structured-data.service";
 import { StorageImage } from "../db/models/Media";
-import { SelectLanguageDialogComponent } from "./components/select-language-dialog/select-language-dialog.component";
+// import { SelectLanguageDialogComponent } from "./components/select-language-dialog/select-language-dialog.component";
 import { firstValueFrom } from "rxjs";
 import { AnalyticsService } from "./services/analytics.service";
 import { ConsentService } from "./services/consent.service";
@@ -866,42 +866,49 @@ export class AppComponent implements OnInit, AfterViewInit {
     const currentLocale = segments[1];
 
     // open language dialog
-    const dialogRef = this.dialog.open(SelectLanguageDialogComponent, {
-      data: {
-        locale: currentLocale as LocaleCode,
-        supportedUiLocales: this.availableLanguageCodes,
-        mode: "ui",
-      },
-      width: "400px",
-      maxWidth: "90vw",
-    });
-    dialogRef.afterClosed().subscribe((localeCode) => {
-      if (localeCode) {
-        // save the new language preference
-        try {
-          localStorage.setItem("language", localeCode);
-        } catch (e) {
-          console.error("Could not save language preference", e);
-        }
-
-        // set the new language
-        segments[1] = localeCode;
-        url.pathname = segments.join("/");
-
-        // Fix for Capacitor/Native: Ensure we point to index.html and handle deep links if needed
-        if (Capacitor.isNativePlatform()) {
-          // If the path doesn't end with index.html, append it or reset to root to avoid 404s on folder paths
-          if (!url.pathname.endsWith("index.html")) {
-            // If we are on a deep path (e.g. /en/map), simple replacement to /de/map might fail without server support.
-            // Safest is to redirect to the root index.html of the new language.
-            const baseUrl = window.location.href.split(`/${currentLocale}/`)[0];
-            window.location.href = `${baseUrl}/${localeCode}/index.html`;
-            return;
+    // open language dialog
+    import(
+      "./components/select-language-dialog/select-language-dialog.component"
+    ).then(({ SelectLanguageDialogComponent }) => {
+      const dialogRef = this.dialog.open(SelectLanguageDialogComponent, {
+        data: {
+          locale: currentLocale as LocaleCode,
+          supportedUiLocales: this.availableLanguageCodes,
+          mode: "ui",
+        },
+        width: "400px",
+        maxWidth: "90vw",
+      });
+      dialogRef.afterClosed().subscribe((localeCode) => {
+        if (localeCode) {
+          // save the new language preference
+          try {
+            localStorage.setItem("language", localeCode);
+          } catch (e) {
+            console.error("Could not save language preference", e);
           }
-        }
 
-        window.location.href = url.toString();
-      }
+          // set the new language
+          segments[1] = localeCode;
+          url.pathname = segments.join("/");
+
+          // Fix for Capacitor/Native: Ensure we point to index.html and handle deep links if needed
+          if (Capacitor.isNativePlatform()) {
+            // If the path doesn't end with index.html, append it or reset to root to avoid 404s on folder paths
+            if (!url.pathname.endsWith("index.html")) {
+              // If we are on a deep path (e.g. /en/map), simple replacement to /de/map might fail without server support.
+              // Safest is to redirect to the root index.html of the new language.
+              const baseUrl = window.location.href.split(
+                `/${currentLocale}/`
+              )[0];
+              window.location.href = `${baseUrl}/${localeCode}/index.html`;
+              return;
+            }
+          }
+
+          window.location.href = url.toString();
+        }
+      });
     });
   }
 

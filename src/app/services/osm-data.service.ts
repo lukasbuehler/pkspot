@@ -56,7 +56,7 @@ export class OsmDataService {
       .post<OverpassResponse>(this._overpassUrl, query, {
         headers,
       })
-      .pipe(timeout(3000));
+      .pipe(timeout(2000));
   }
 
   private getBboxStringFromBounds(

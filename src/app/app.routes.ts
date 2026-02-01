@@ -1,24 +1,24 @@
 import { NgModule } from "@angular/core";
 import { Routes, RouterModule, UrlSegment, Route } from "@angular/router";
-import { HomePageComponent } from "./components/home-page/home-page.component";
-import { NotFoundPageComponent } from "./components/not-found-page/not-found-page.component";
-import { MapPageComponent } from "./components/map-page/map-page.component";
-import { SignInPageComponent } from "./components/sign-in-page/sign-in-page.component";
-import { AboutPageComponent } from "./components/about-page/about-page.component";
+// import { HomePageComponent } from "./components/home-page/home-page.component";
+// import { NotFoundPageComponent } from "./components/not-found-page/not-found-page.component";
+// import { MapPageComponent } from "./components/map-page/map-page.component";
+// import { SignInPageComponent } from "./components/sign-in-page/sign-in-page.component";
+// import { AboutPageComponent } from "./components/about-page/about-page.component";
 import { KmlImportPageComponent } from "./components/kml-import-page/kml-import-page.component";
 import { PostPageComponent } from "./components/post-page/post-page.component";
-import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
-import { SignUpPageComponent } from "./components/sign-up-page/sign-up-page.component";
-import { TermsOfServiceComponent } from "./components/terms-of-service/terms-of-service.component";
-import { PrivacyPolicyComponent } from "./components/privacy-policy/privacy-policy.component";
-import { SettingsPageComponent } from "./components/settings-page/settings-page.component";
-import { ForgotPasswordPageComponent } from "./components/forgot-password-page/forgot-password-page.component";
-import { EmbedPageComponent } from "./components/embedding/embed-page/embed-page.component";
-import { EventPageComponent } from "./components/event-page/event-page.component";
-import { EmbeddedSpotPageComponent } from "./components/embedding/embedded-spot-page/embedded-spot-page.component";
-import { EmbeddedMapPageComponent } from "./components/embedding/embedded-map-page/embedded-map-page.component";
-import { EventsPageComponent } from "./components/events-page/events-page.component";
-import { ImpressumComponent } from "./components/impressum/impressum.component";
+// import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
+// import { SignUpPageComponent } from "./components/sign-up-page/sign-up-page.component";
+// import { TermsOfServiceComponent } from "./components/terms-of-service/terms-of-service.component";
+// import { PrivacyPolicyComponent } from "./components/privacy-policy/privacy-policy.component";
+// import { SettingsPageComponent } from "./components/settings-page/settings-page.component";
+// import { ForgotPasswordPageComponent } from "./components/forgot-password-page/forgot-password-page.component";
+// import { EmbedPageComponent } from "./components/embedding/embed-page/embed-page.component";
+// import { EventPageComponent } from "./components/event-page/event-page.component";
+// import { EmbeddedSpotPageComponent } from "./components/embedding/embedded-spot-page/embedded-spot-page.component";
+// import { EmbeddedMapPageComponent } from "./components/embedding/embedded-map-page/embedded-map-page.component";
+// import { EventsPageComponent } from "./components/events-page/events-page.component";
+// import { ImpressumComponent } from "./components/impressum/impressum.component";
 import { contentResolver } from "./resolvers/content.resolver";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
@@ -56,27 +56,42 @@ export const routes: Routes = [
   // Map page (single matcher for all map routes)
   {
     path: "map",
-    component: MapPageComponent,
+    loadComponent: () =>
+      import("./components/map-page/map-page.component").then(
+        (m) => m.MapPageComponent
+      ),
     resolve: { content: contentResolver },
     children: [
       {
         path: ":spot",
-        component: MapPageComponent,
+        loadComponent: () =>
+          import("./components/map-page/map-page.component").then(
+            (m) => m.MapPageComponent
+          ),
         resolve: { content: contentResolver },
         children: [
           {
             path: "edits",
-            component: MapPageComponent,
+            loadComponent: () =>
+              import("./components/map-page/map-page.component").then(
+                (m) => m.MapPageComponent
+              ),
             resolve: { content: contentResolver },
           },
           {
             path: "c",
-            component: MapPageComponent,
+            loadComponent: () =>
+              import("./components/map-page/map-page.component").then(
+                (m) => m.MapPageComponent
+              ),
             resolve: { content: contentResolver },
             children: [
               {
                 path: ":challenge",
-                component: MapPageComponent,
+                loadComponent: () =>
+                  import("./components/map-page/map-page.component").then(
+                    (m) => m.MapPageComponent
+                  ),
                 resolve: { content: contentResolver },
               },
             ],
@@ -101,7 +116,10 @@ export const routes: Routes = [
   // Embedded stuff
   {
     path: "embed",
-    component: EmbedPageComponent,
+    loadComponent: () =>
+      import("./components/embedding/embed-page/embed-page.component").then(
+        (m) => m.EmbedPageComponent
+      ),
     data: { routeName: "Embed" },
   },
   // {
@@ -133,19 +151,28 @@ export const routes: Routes = [
   },
   {
     path: "embedded/events/:eventID",
-    component: EventPageComponent,
+    loadComponent: () =>
+      import("./components/event-page/event-page.component").then(
+        (m) => m.EventPageComponent
+      ),
     data: { routeName: "Embedded Event" },
   },
   {
     path: "embedded/map",
-    component: EmbeddedMapPageComponent,
+    loadComponent: () =>
+      import(
+        "./components/embedding/embedded-map-page/embedded-map-page.component"
+      ).then((m) => m.EmbeddedMapPageComponent),
     data: { routeName: "Embedded Map" },
   },
 
   // Events
   {
     path: "events",
-    component: EventsPageComponent,
+    loadComponent: () =>
+      import("./components/events-page/events-page.component").then(
+        (m) => m.EventsPageComponent
+      ),
     resolve: { content: contentResolver },
     data: { routeName: "Events" },
   },
@@ -157,7 +184,10 @@ export const routes: Routes = [
   },
   {
     path: "events/swissjam25",
-    component: EventPageComponent,
+    loadComponent: () =>
+      import("./components/event-page/event-page.component").then(
+        (m) => m.EventPageComponent
+      ),
     resolve: { content: contentResolver },
     data: { routeName: "Event" },
   },
@@ -191,48 +221,72 @@ export const routes: Routes = [
   // Profiles and sign-in flow
   {
     path: "profile",
-    component: ProfilePageComponent,
+    loadComponent: () =>
+      import("./components/profile-page/profile-page.component").then(
+        (m) => m.ProfilePageComponent
+      ),
     resolve: { content: contentResolver },
     data: { routeName: "Profile" },
   },
   {
     path: "u/:userID",
-    component: ProfilePageComponent,
+    loadComponent: () =>
+      import("./components/profile-page/profile-page.component").then(
+        (m) => m.ProfilePageComponent
+      ),
     resolve: { content: contentResolver },
     data: { routeName: "Profile" },
   },
   {
     path: "sign-in",
-    component: SignInPageComponent,
+    loadComponent: () =>
+      import("./components/sign-in-page/sign-in-page.component").then(
+        (m) => m.SignInPageComponent
+      ),
     data: { routeName: "Sign-in" },
   },
   {
     path: "sign-up",
-    component: SignUpPageComponent,
+    loadComponent: () =>
+      import("./components/sign-up-page/sign-up-page.component").then(
+        (m) => m.SignUpPageComponent
+      ),
     data: { routeName: "Sign-up" },
   },
   {
     path: "forgot-password",
-    component: ForgotPasswordPageComponent,
+    loadComponent: () =>
+      import(
+        "./components/forgot-password-page/forgot-password-page.component"
+      ).then((m) => m.ForgotPasswordPageComponent),
     data: { routeName: "Forgot password" },
   },
 
   // Settings
   {
     path: "settings",
-    component: SettingsPageComponent,
+    loadComponent: () =>
+      import("./components/settings-page/settings-page.component").then(
+        (m) => m.SettingsPageComponent
+      ),
     data: { routeName: "Settings" },
   },
   {
     path: "settings/:tab",
-    component: SettingsPageComponent,
+    loadComponent: () =>
+      import("./components/settings-page/settings-page.component").then(
+        (m) => m.SettingsPageComponent
+      ),
     data: { routeName: "Settings" },
   },
 
   // Other
   {
     path: "about",
-    component: AboutPageComponent,
+    loadComponent: () =>
+      import("./components/about-page/about-page.component").then(
+        (m) => m.AboutPageComponent
+      ),
     resolve: { content: contentResolver },
     data: { routeName: "About", acceptanceFree: true },
   },
@@ -255,21 +309,21 @@ export const routes: Routes = [
     data: { routeName: "Support", acceptanceFree: true },
   },
   {
-    path: "welcome",
-    redirectTo: "",
-    pathMatch: "full",
-    data: { routeName: "Welcome" },
-  }, //component: WelcomePageComponent },
-  {
     path: "terms-of-service",
-    component: TermsOfServiceComponent,
+    loadComponent: () =>
+      import("./components/terms-of-service/terms-of-service.component").then(
+        (m) => m.TermsOfServiceComponent
+      ),
     resolve: { content: contentResolver },
     data: { routeName: "Terms of Service", acceptanceFree: true },
   },
   { path: "tos", redirectTo: "terms-of-service", pathMatch: "full" },
   {
     path: "privacy-policy",
-    component: PrivacyPolicyComponent,
+    loadComponent: () =>
+      import("./components/privacy-policy/privacy-policy.component").then(
+        (m) => m.PrivacyPolicyComponent
+      ),
     resolve: { content: contentResolver },
     data: { routeName: "Privacy Policy", acceptanceFree: true },
   },
@@ -277,7 +331,11 @@ export const routes: Routes = [
   {
     path: "impressum",
     pathMatch: "full",
-    component: ImpressumComponent,
+    component: undefined,
+    loadComponent: () =>
+      import("./components/impressum/impressum.component").then(
+        (m) => m.ImpressumComponent
+      ),
     resolve: { content: contentResolver },
     data: { routeName: "Impressum", acceptanceFree: true },
   },
@@ -303,5 +361,11 @@ export const routes: Routes = [
     data: { routeName: "Auth Action" },
   },
 
-  { path: "**", component: NotFoundPageComponent },
+  {
+    path: "**",
+    loadComponent: () =>
+      import("./components/not-found-page/not-found-page.component").then(
+        (m) => m.NotFoundPageComponent
+      ),
+  },
 ];

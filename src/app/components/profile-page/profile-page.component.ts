@@ -19,6 +19,7 @@ import { Post } from "../../../db/models/Post";
 import { User } from "../../../db/models/User";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { Subscription } from "rxjs";
+import { Timestamp } from "firebase/firestore";
 import { FollowListComponent } from "../follow-list/follow-list.component";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MatButton } from "@angular/material/button";
@@ -135,7 +136,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     maxHeight: "80%",
   };
 
-  private lastLoadedFollowing?: firebase.default.firestore.Timestamp;
+  private lastLoadedFollowing?: Timestamp;
 
   ngOnInit(): void {
     // Subscribe to auth state changes first - this handles the case where

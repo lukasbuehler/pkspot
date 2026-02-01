@@ -8,6 +8,7 @@ import { User } from "../../../db/models/User";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 
 import { Observable, take } from "rxjs";
+import { Timestamp } from "firebase/firestore";
 import {
   humanTimeSince,
   parseFirestoreTimestamp,
@@ -48,10 +49,7 @@ export interface FollowListDialogData {
   standalone: true,
 })
 export class FollowDurationPipe implements PipeTransform {
-  transform(
-    timestamp: firebase.default.firestore.Timestamp | any,
-    args?: any
-  ): string {
+  transform(timestamp: Timestamp | any, args?: any): string {
     const data = parseFirestoreTimestamp(timestamp);
     if (!data) {
       return "Unknown";
@@ -100,7 +98,7 @@ export class FollowListComponent implements OnInit {
 
   isLoading: boolean = false;
   hasLoadedAll: boolean = false;
-  lastLoadedFollowing: firebase.default.firestore.Timestamp | null = null;
+  lastLoadedFollowing: Timestamp | null = null;
   private _isFirstLoad: boolean = true;
 
   ngOnInit(): void {

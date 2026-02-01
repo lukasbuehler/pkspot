@@ -34,7 +34,7 @@
         [infoOnly]="true"
         [clickable]="true"
         [isCompact]="group.value === 'compact'"
-        [loadingPriority]="true"
+        [loadingPriority]="$index < 2"
         class="w-100"
       >
       </app-spot-preview-card>
@@ -45,7 +45,7 @@
       [infoOnly]="true"
       [clickable]="true"
       [isCompact]="group.value === 'compact'"
-      [loadingPriority]="true"
+      [loadingPriority]="$index < 2"
       (click)="spotClick($index)"
       class="w-100"
     >
@@ -76,7 +76,7 @@
         [clickable]="true"
         [isCompact]="group.value === 'compact'"
         [imgSize]="400"
-        [loadingPriority]="$index < 6"
+        [loadingPriority]="$index < 2"
         class="w-100"
       >
       </app-spot-preview-card> </a
@@ -87,7 +87,7 @@
       [clickable]="true"
       [isCompact]="group.value === 'compact'"
       [imgSize]="400"
-      [loadingPriority]="$index < 6"
+      [loadingPriority]="$index < 2"
       class="w-100"
       (click)="spotClick($index)"
     >
