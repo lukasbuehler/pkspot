@@ -320,13 +320,23 @@ export class AuthenticationService extends ConsentAwareService {
 
       // Fetch user data from Firestore immediately (already consent-gated by executeWhenConsent wrapper)
       this._fetchUserData(user.uid, true);
+
+      // Identify user in PostHog
+      this.executeWithConsent(() => {
+        this._analyticsService.identifyUser(user.uid);
+      }).catch(() => {
+        // Ignore if no consent yet, it will be handled if consent is granted later via other flows or next session
+      });
     } else {
       // We don't have a firebase user, we are not signed in
       this._currentFirebaseUser = null;
       this.isSignedIn = false;
       this.user.uid = "";
 
+      this.user.uid = "";
+
       this.authState$.next(null);
+      this._analyticsService.resetUser();
     }
   }
 

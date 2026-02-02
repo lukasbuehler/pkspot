@@ -140,16 +140,46 @@ export class AnalyticsService {
       return;
     }
 
+    // Check for Do Not Track
+    const dnt =
+      navigator.doNotTrack === "true" ||
+      navigator.doNotTrack === "1" ||
+      navigator.doNotTrack === "yes";
+
+    // 1. Attempt to load persisted distinct_id
+    let bootstrapConfig: any = {};
+    const persistedId = localStorage.getItem("ph_distinct_id_v1");
+    if (persistedId) {
+      console.log(
+        `[AnalyticsDebug] Bootstrapping with persisted ID: ${persistedId}`
+      );
+      bootstrapConfig = {
+        bootstrap: {
+          distinctID: persistedId,
+          isIdentifiedID: false,
+        },
+      };
+    }
+
     posthog.init(apiKey, {
       api_host: host,
       person_profiles: "identified_only",
       defaults: "2025-11-30",
-      respect_dnt: true,
+      respect_dnt: true, // PostHog handles this internally usually, but we can be explicit with opt_out below if needed
+      opt_out_capturing_by_default: dnt, // Explicitly respect DNT for initial capture state
       capture_pageview: false,
       capture_pageleave: false,
       disable_session_recording: true,
       persistence: "localStorage",
       debug: false,
+      ...bootstrapConfig,
+      loaded: (ph) => {
+        // 2. Persist the distinct_id for future sessions
+        const currentId = ph.get_distinct_id();
+        if (currentId) {
+          localStorage.setItem("ph_distinct_id_v1", currentId);
+        }
+      },
       before_send: (event) => {
         // filter out likely boits
         if (this.isLikelyBot()) {
