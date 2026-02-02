@@ -42,7 +42,8 @@ html {
   color: white;
 
   overscroll-behavior-y: contain;
-  position: relative;
+  position: fixed; // Fixed position prevents the whole webview from scrolling/shifting
+  width: 100%;
   overflow: hidden;
   background-color: var(--mat-app-background-color);
 

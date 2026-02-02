@@ -23,6 +23,7 @@ export class OAuthSignInButtonsComponent {
   @Input() disabled: boolean = false;
   @Input() layout: "row" | "column" = "column";
 
+  @Output() start = new EventEmitter<void>();
   @Output() success = new EventEmitter<void>();
   @Output() error = new EventEmitter<{
     provider: "google" | "apple";
@@ -42,6 +43,7 @@ export class OAuthSignInButtonsComponent {
     }
 
     this.isSigningInGoogle = true;
+    this.start.emit();
 
     this._authService
       .signInGoogle()
@@ -98,6 +100,7 @@ export class OAuthSignInButtonsComponent {
     }
 
     this.isSigningInApple = true;
+    this.start.emit();
 
     this._authService
       .signInApple()

@@ -26,6 +26,15 @@ export function app(): express.Express {
 
   // Example Express Rest API endpoints
   // server.get('/api/**', (req, res) => { });
+
+  // Sitemap redirect
+  server.get("/sitemap.xml", (req, res) => {
+    res.redirect(
+      301,
+      "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml"
+    );
+  });
+
   // Serve static files from /browser
   server.get(
     "*.*",

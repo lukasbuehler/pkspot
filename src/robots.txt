@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Sitemap location (generated nightly)
-Sitemap: https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml
+Sitemap: https://pkspot.app/sitemap.xml

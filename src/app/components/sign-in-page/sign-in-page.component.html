@@ -99,6 +99,8 @@
       <app-oauth-sign-in-buttons
         layout="column"
         [disabled]="isSubmitting"
+        [disabled]="isSubmitting"
+        (start)="isSubmitting = true"
         (success)="onOAuthSuccess()"
         (error)="onOAuthError($event)"
       ></app-oauth-sign-in-buttons>

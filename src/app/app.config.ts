@@ -46,6 +46,8 @@ import {
   withIncrementalHydration,
 } from "@angular/platform-browser";
 import { MAT_DIALOG_DEFAULT_OPTIONS } from "@angular/material/dialog";
+import { MAT_MENU_SCROLL_STRATEGY } from "@angular/material/menu";
+import { Overlay } from "@angular/cdk/overlay";
 import { provideNativeDateAdapter } from "@angular/material/core";
 
 import { routes } from "./app.routes";
@@ -152,6 +154,11 @@ export const appConfig: ApplicationConfig = {
       useValue: {
         hasBackdrop: true,
       },
+    },
+    {
+      provide: MAT_MENU_SCROLL_STRATEGY,
+      useFactory: (overlay: Overlay) => () => overlay.scrollStrategies.block(),
+      deps: [Overlay],
     },
     provideNativeDateAdapter(),
     provideClientHydration(withI18nSupport(), withIncrementalHydration()),
