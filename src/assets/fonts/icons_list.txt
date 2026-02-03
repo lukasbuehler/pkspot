@@ -116,7 +116,6 @@ star
 star_border
 star_half
 globe
-emoji_events
 logout
 manage_accounts
 face

@@ -63,7 +63,7 @@ mat-toolbar {
 #alainMenuButton {
   position: absolute;
   // Add safe area left to prevent overlap with camera cutout in landscape
-  left: calc(8px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+  left: calc(var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
   z-index: 101;
 
   // Simplifed positioning: app-root now handles the safe area padding,
