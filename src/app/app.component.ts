@@ -323,11 +323,25 @@ export class AppComponent implements OnInit, AfterViewInit {
       // Set status bar style to use light (white) icons on Android
       // Style.Dark = light/white icons (for dark backgrounds)
       // Style.Light = dark/black icons (for light backgrounds)
-      if (Capacitor.getPlatform() === "android") {
-        import("@capacitor/status-bar").then(({ StatusBar, Style }) => {
-          StatusBar.setStyle({ style: Style.Dark });
-        });
-      }
+      import("@capacitor/status-bar").then(({ StatusBar, Style }) => {
+        StatusBar.setStyle({ style: Style.Dark });
+
+        // Initial check for orientation
+        this.updateStatusBarVisibility();
+
+        // Listen for orientation changes to hide/show status bar
+        // standard window.screen.orientation API works in Android WebView
+        if (screen && screen.orientation) {
+          screen.orientation.addEventListener("change", () => {
+            this.updateStatusBarVisibility();
+          });
+        } else {
+          // Fallback to resize event if orientation API not supported
+          window.addEventListener("resize", () => {
+            this.updateStatusBarVisibility();
+          });
+        }
+      });
 
       // Listen for hardware back button
       import("@capacitor/app").then(({ App }) => {
@@ -728,6 +742,20 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.userPhoto.set(undefined);
       }
     });
+  }
+
+  private updateStatusBarVisibility() {
+    // Logic to hide status bar in landscape mode on Android
+    if (Capacitor.getPlatform() === "android") {
+      import("@capacitor/status-bar").then(({ StatusBar }) => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        if (isLandscape) {
+          StatusBar.hide();
+        } else {
+          StatusBar.show();
+        }
+      });
+    }
   }
 
   maybeOpenClickWrap() {

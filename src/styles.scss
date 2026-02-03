@@ -15,19 +15,7 @@ html {
   /* On Android, our MainActivity injects --safe-area-inset-* with correct orientation values.
      On iOS, env() works correctly. We use var() first (for Android), with env() as fallback (for iOS). */
 
-  --status-bar-height: 0px;
-  // Only apply status bar height on Android native - not on iOS or macOS
-  &.native-platform.platform-android:not(.running-on-macos-or-ipad) {
-    --status-bar-height: 24px;
-  }
-
-  padding-top: max(
-    var(--safe-area-inset-top, env(safe-area-inset-top, 0px)),
-    var(--status-bar-height)
-  );
-  // padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
-  padding-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
-  padding-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  /* Safe Area handling moved to app-root to avoid conflict with fixed body */
 
   /* Ensure padding is included in width calculations to prevent horizontal overflow */
   box-sizing: border-box;
@@ -119,6 +107,41 @@ body:has(#alainMenuButton) {
 /* Target any iframe inside the badge */
 .grecaptcha-badge iframe {
   pointer-events: auto !important;
+}
+
+// Ensure app-root handles scrolling since body is fixed/hidden
+app-root {
+  display: block;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Apply safe area padding here to the scrolling container */
+  --status-bar-height: 0px;
+  // Only apply status bar height on Android native - not on iOS or macOS
+  .native-platform.platform-android:not(.running-on-macos-or-ipad) & {
+    @media (orientation: portrait) {
+      --status-bar-height: 24px;
+    }
+    // In landscape, we hide the status bar via JS, so height should be 0 (default)
+  }
+
+  padding-top: max(
+    var(--safe-area-inset-top, env(safe-area-inset-top, 0px)),
+    var(--status-bar-height)
+  );
+  padding-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  padding-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  padding-bottom: var(
+    --safe-area-inset-bottom,
+    env(safe-area-inset-bottom, 0px)
+  );
+
+  box-sizing: border-box;
+
+  // Create a positioning context so absolute children (like the menu button)
+  // are positioned relative to this container (starting below the safe area padding)
+  position: relative;
 }
 
 /* Alternative: Hide the badge entirely if preferred (only if you show the reCAPTCHA terms elsewhere) */
