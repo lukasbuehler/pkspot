@@ -135,3 +135,4 @@ car_crash
 power_off
 power_outlets
 maybe_overgrown
+fiber_manual_record
