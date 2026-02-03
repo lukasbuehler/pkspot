@@ -61,14 +61,8 @@ languages.forEach((lang) => {
   ) {
     console.log(`[${lang}] Patching base href in index.html`);
     // Replace both / and empty string with ./
-    // Replace both / and empty string with ./
     content = content.replace(/<base href="\/">/g, '<base href="./">');
     content = content.replace(/<base href="">/g, '<base href="./">');
-
-    // NOTE: Do NOT change asset paths to ../assets/ because Angular copies assets to EACH language folder.
-    // So assets/fonts/fonts.css is correct relative to en/index.html when base href is ./
-
-    fs.writeFileSync(indexHtmlPath, content);
 
     fs.writeFileSync(indexHtmlPath, content);
   }
