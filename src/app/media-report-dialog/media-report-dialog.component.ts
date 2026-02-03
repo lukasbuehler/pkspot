@@ -69,6 +69,7 @@ export class MediaReportDialogComponent implements AfterViewInit {
   reportForm: FormGroup;
   public dialogData: any = inject<{
     media: AnyMedia;
+    spotId?: string;
   }>(MAT_DIALOG_DATA);
 
   getPreviewSrc(media: AnyMedia): string | null {
@@ -147,7 +148,8 @@ export class MediaReportDialogComponent implements AfterViewInit {
         reason,
         comment,
         !this.isAuthenticated() ? reporterEmail : undefined,
-        this.locale
+        this.locale,
+        this.dialogData.spotId
       )
       .then(() => {
         console.log("Media report submitted successfully");

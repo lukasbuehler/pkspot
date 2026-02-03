@@ -215,7 +215,7 @@ export class LocalSpot {
     this._streetview = signal<ExternalImage | undefined>(undefined);
 
     this.media = computed(() => {
-      const userMedia = this.userMedia();
+      const userMedia = this.userMedia().filter((m) => !m.isReported);
       const streetview = this._streetview();
 
       if (streetview) {
@@ -523,6 +523,7 @@ export class LocalSpot {
           uid: mediaObj.userId,
           origin: mediaObj.origin,
           isInStorage: isInStorage,
+          isReported: mediaObj.isReported,
         };
 
         Object.keys(obj).forEach((key) => {

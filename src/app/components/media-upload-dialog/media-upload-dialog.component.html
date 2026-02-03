@@ -4,6 +4,8 @@
     [allowedMimeTypes]="allowedMimeTypes"
     [multipleAllowed]="multipleAllowed"
     [storageFolder]="storageFolder"
+    (mediaBatchUploaded)="onMediaBatchUploaded($event)"
+    (isUploading)="onUploadingChange($event)"
   ></app-media-upload>
 </div>
 <div mat-dialog-actions class="d-flex justify-content-between">

@@ -1403,6 +1403,11 @@ export class SpotDetailsComponent
     });
   }
 
+  getSpotId(): string | undefined {
+    const s = this.spot();
+    return s instanceof Spot ? s.id : undefined;
+  }
+
   setHideStreetviewFromToggle(event: MatSlideToggleChange) {
     this.spot!.update((spot) => {
       if (!spot) return spot;

@@ -6,9 +6,11 @@ export interface MediaReportSchema {
     type: string;
     userId?: string;
     src?: string;
+    spotId?: string;
     // ... other media fields
     [key: string]: any;
   };
+  spotId?: string;
   reason: string;
   comment: string;
   // User can be authenticated or unauthenticated

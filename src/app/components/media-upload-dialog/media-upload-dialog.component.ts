@@ -82,13 +82,26 @@ export class MediaUploadDialogComponent {
   async onMediaBatchUploaded(
     events: { src: string; is_sized: boolean; type: MediaType }[]
   ) {
+    console.log("MediaUploadDialog: onMediaBatchUploaded called", events);
     const uid = this._auth.user?.uid;
     if (!uid) {
       console.error("Cannot append media: user not signed in");
       return;
     }
 
-    const userReference = createUserReference(this._auth.user!.data!);
+    if (!this._auth.user?.data) {
+      console.error(
+        "Cannot append media: user data not loaded",
+        this._auth.user
+      );
+      this._snackBar.open(
+        "User profile not loaded. Please try again.",
+        "Dismiss",
+        { duration: 3000 }
+      );
+      return;
+    }
+
     const currentMedia = this.data.currentMedia || [];
 
     const newMediaItems: MediaSchema[] = events.map((event) => ({
@@ -100,13 +113,25 @@ export class MediaUploadDialogComponent {
     }));
 
     const newMediaList = [...currentMedia, ...newMediaItems];
+    console.log(
+      "MediaUploadDialog: newMediaList prepared",
+      newMediaList.length
+    );
 
     try {
+      console.log(
+        "MediaUploadDialog: Creating user reference for",
+        this._auth.user.data
+      );
+      const userReference = createUserReference(this._auth.user.data!);
+
+      console.log("MediaUploadDialog: calling createSpotUpdateEdit");
       await this._spotEditsService.createSpotUpdateEdit(
         this.data.spotId,
         { media: newMediaList },
         userReference
       );
+      console.log("MediaUploadDialog: createSpotUpdateEdit success");
 
       this.data.currentMedia = newMediaList;
 

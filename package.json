@@ -17,6 +17,7 @@
     "icons:optimize": ".venv/bin/python3 scripts/optimize_icons.py",
     "build:ios:prod": "node scripts/build-mobile.js ios && npx cap sync ios",
     "build:ios:dev": "node scripts/build-mobile.js iosdev && npx cap sync ios",
+    "build:mobile:prod": "node scripts/build-mobile.js ios && npx cap sync ios && node scripts/build-mobile.js android && npx cap sync android",
     "test": "vitest",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",

@@ -1,6 +1,7 @@
 import * as logger from "firebase-functions/logger";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { defineSecret } from "firebase-functions/params";
+import * as admin from "firebase-admin";
 
 interface MediaReportSchema {
   media: any;
@@ -13,6 +14,7 @@ interface MediaReportSchema {
   };
   createdAt: any;
   locale?: string;
+  spotId?: string;
 }
 
 /**
@@ -51,6 +53,48 @@ export const onMediaReportCreate = onDocumentCreated(
 
       // Get Discord webhook URL from params secret
       const webhookUrl = discordWebhookUrl.value();
+
+      // Update Spot if spotId is present
+      if (reportData.spotId && reportData.media?.src) {
+        try {
+          const spotRef = admin.firestore().doc(`spots/${reportData.spotId}`);
+          await admin.firestore().runTransaction(async (transaction) => {
+            const spotDoc = await transaction.get(spotRef);
+            if (!spotDoc.exists) {
+              logger.warn(`Spot ${reportData.spotId} not found`);
+              return;
+            }
+
+            const spotData = spotDoc.data();
+            const currentMedia = spotData?.["media"] || [];
+            let found = false;
+
+            const updatedMedia = currentMedia.map((m: any) => {
+              if (m.src === reportData.media.src) {
+                found = true;
+                return { ...m, isReported: true };
+              }
+              return m;
+            });
+
+            if (found) {
+              transaction.update(spotRef, { media: updatedMedia });
+              logger.info(
+                `Marked media as reported for spot ${reportData.spotId}`
+              );
+            } else {
+              logger.warn(
+                `Media ${reportData.media.src} not found in spot ${reportData.spotId}`
+              );
+            }
+          });
+        } catch (error) {
+          logger.error(
+            `Failed to update spot ${reportData.spotId} media status:`,
+            error
+          );
+        }
+      }
 
       if (!webhookUrl) {
         logger.error(

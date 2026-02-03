@@ -8,10 +8,19 @@
     [cdkDropListData]="$index"
     (cdkDropListDropped)="drop($event)"
   >
-    <div cdkDrag class="drag-element">
+    <div
+      cdkDrag
+      class="drag-element"
+      [class.is-reported]="media()[$index].isReported"
+    >
       <div class="tile-image">
         <!-- mediaSrc is safe and is a non-empty string -->
         <img class="tile-image rounded" [ngSrc]="mediaSrc" fill />
+        @if(media()[$index].isReported) {
+        <div class="reported-overlay">
+          <mat-icon>visibility_off</mat-icon>
+        </div>
+        }
       </div>
       <!-- <button
         class="bl-fab"

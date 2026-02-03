@@ -41,6 +41,7 @@ import { MediaReportDialogComponent } from "../../media-report-dialog/media-repo
 })
 export class MediaPreviewGridComponent implements OnInit {
   media: InputSignal<AnyMedia[]> = input<AnyMedia[]>([]);
+  spotId = input<string | undefined>(undefined);
   @Output() mediaChanged: EventEmitter<AnyMedia[]> = new EventEmitter<
     AnyMedia[]
   >();
@@ -82,20 +83,16 @@ export class MediaPreviewGridComponent implements OnInit {
   reportMedia(index: number) {
     const mediaItem = this.media()[index];
     const dialogRef = this.dialog.open(MediaReportDialogComponent, {
-      data: { media: mediaItem },
+      data: { media: mediaItem, spotId: this.spotId() },
       // width: "400px",
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         // Report submitted successfully
-        const mediaCopy: AnyMedia[] = [...this.media()];
-        // Mark as reported
-        // We need to cast or ensure properties exist, but AnyMedia should have isReported now
-        if (typeof mediaCopy[index] === "object") {
-          (mediaCopy[index] as any).isReported = true;
-        }
-        this.mediaChanged.emit(mediaCopy);
+        // We do not remove it locally anymore.
+        // The Cloud Function updates the DB, and the live subscription receives the update
+        // with isReported: true, which updates the UI.
       }
     });
   }

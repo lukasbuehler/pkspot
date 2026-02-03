@@ -47,6 +47,7 @@ import { MapsApiService } from "../../services/maps-api.service";
 })
 export class ImgCarouselComponent {
   @Input() media: AnyMedia[] | undefined;
+  @Input() spotId: string | undefined;
 
   /** Tracks images that failed to load and are being retried */
   imageLoadErrors = signal<Set<number>>(new Set());
@@ -150,16 +151,26 @@ export class ImgCarouselComponent {
 
   openImageViewer(index: number = 0) {
     const dialogRef = this.dialog.open(SwiperDialogComponent, {
-      data: { media: this.media, index: index },
+      data: { media: this.media, index: index, spotId: this.spotId },
       hasBackdrop: true,
       maxWidth: "95vw",
       maxHeight: "95vh",
       panelClass: "dialog",
     });
 
-    // dialogRef.afterClosed().subscribe((result) => {
-    //   console.log("The dialog was closed");
-    // });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.reportedMediaIndex !== undefined) {
+        console.log(
+          "Hiding reported media at index",
+          result.reportedMediaIndex
+        );
+        this.hiddenIndices.update((set) => {
+          const newSet = new Set(set);
+          newSet.add(result.reportedMediaIndex);
+          return newSet;
+        });
+      }
+    });
   }
 }
 
@@ -281,6 +292,18 @@ export class SwiperDialogComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     if (this.isBroswer) {
+      // Filter images to match template logic
+      const images =
+        this.data.media?.filter((m: AnyMedia) => m.type === "image") ?? [];
+
+      // Find the initial slide index corresponding to the passed original index
+      let initialSlide = 0;
+      if (this.data.index !== undefined && this.data.media) {
+        const targetMedia = this.data.media[this.data.index];
+        initialSlide = images.indexOf(targetMedia);
+        if (initialSlide === -1) initialSlide = 0;
+      }
+
       this.swiper = new Swiper(".swiper", {
         modules: [Navigation, Pagination, Zoom],
 
@@ -289,6 +312,7 @@ export class SwiperDialogComponent implements AfterViewInit {
         observer: true,
         observeParents: true,
         autoplay: false,
+        initialSlide: initialSlide, // Use mapped index
 
         pagination: {
           el: ".swiper-pagination",
@@ -309,17 +333,13 @@ export class SwiperDialogComponent implements AfterViewInit {
         },
       });
 
-      if (this.data.index && this.swiper) {
-        this.swiper.slideTo(this.data.index, 0, false);
-      }
-
       // Update active slide index when swiper slide changes
       this.swiper?.on("slideChange", () => {
         this.activeSlideIndex.set(this.swiper?.activeIndex ?? 0);
       });
 
       // Set initial index
-      this.activeSlideIndex.set(this.data.index ?? 0);
+      this.activeSlideIndex.set(initialSlide);
     }
   }
 
@@ -328,16 +348,36 @@ export class SwiperDialogComponent implements AfterViewInit {
   }
 
   onReportClick(): void {
-    const currentIndex = this.swiper?.activeIndex ?? this.data.index;
+    const activeIndex = this.swiper?.activeIndex ?? this.activeSlideIndex();
+
+    // Get filtered images (as rendered in swiper)
+    const images =
+      this.data.media?.filter((m: AnyMedia) => m.type === "image") ?? [];
+    const mediaItem = images[activeIndex];
+
+    if (!mediaItem) {
+      console.warn("Could not find media item to report");
+      return;
+    }
+
+    // Find original index in the full media list
+    const originalIndex = this.data.media.indexOf(mediaItem);
+
     const mediaDialogRef = this.dialog.open(MediaReportDialogComponent, {
       data: {
-        media: this.data.media[currentIndex],
+        media: mediaItem,
+        spotId: this.data.spotId,
         reason: "",
         comment: "",
       },
     });
 
-    // close the swiper dialog after opening the report dialog
-    this.dialogRef.close();
+    mediaDialogRef.afterClosed().subscribe((result) => {
+      if (result === true) {
+        // Report was submitted successfully
+        // Close the swiper dialog and pass back the reported index (original)
+        this.dialogRef.close({ reportedMediaIndex: originalIndex });
+      }
+    });
   }
 }

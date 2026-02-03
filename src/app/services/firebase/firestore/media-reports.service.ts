@@ -32,8 +32,10 @@ export class MediaReportsService extends ConsentAwareService {
       serialized.userId = media.userId;
     }
 
-    // Only add src if it exists
-    if ((media as any).src) {
+    // Add src (check baseSrc for StorageMedia, then src for others)
+    if ((media as any).baseSrc) {
+      serialized.src = (media as any).baseSrc;
+    } else if ((media as any).src) {
       serialized.src = (media as any).src;
     }
 
@@ -53,7 +55,8 @@ export class MediaReportsService extends ConsentAwareService {
     reason: string,
     comment: string,
     reporterEmail?: string,
-    locale?: string
+    locale?: string,
+    spotId?: string
   ): Promise<string> {
     const authUser = await firstValueFrom(this.authService.authState$);
 
@@ -70,6 +73,7 @@ export class MediaReportsService extends ConsentAwareService {
       user: userInfo,
       createdAt: new Date(),
       ...(locale && { locale }),
+      ...(spotId && { spotId }),
     };
 
     console.log("Submitting media report with data:", {

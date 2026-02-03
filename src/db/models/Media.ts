@@ -18,18 +18,21 @@ export abstract class Media {
     src: string,
     type: MediaType,
     userId?: string,
-    origin?: MediaSchema["origin"]
+    origin?: MediaSchema["origin"],
+    isReported: boolean = false
   ) {
     this._src = src;
     this.type = type;
     this.userId = userId;
     this.origin = origin;
+    this.isReported = isReported;
   }
 
   protected readonly _src: string;
   readonly userId?: string;
   readonly origin?: MediaSchema["origin"];
   readonly type: MediaType;
+  readonly isReported: boolean;
 
   abstract getPreviewImageSrc(): string;
 
@@ -44,6 +47,7 @@ export abstract class Media {
       uid: this.userId,
       origin: this.origin,
       isInStorage: false,
+      isReported: this.isReported,
     };
 
     (Object.keys(data) as (keyof typeof data)[]).forEach((key) => {
@@ -57,8 +61,13 @@ export abstract class Media {
 }
 
 export class ExternalImage extends Media {
-  constructor(src: string, userId?: string, origin?: MediaSchema["origin"]) {
-    super(src, MediaType.Image, userId, origin);
+  constructor(
+    src: string,
+    userId?: string,
+    origin?: MediaSchema["origin"],
+    isReported: boolean = false
+  ) {
+    super(src, MediaType.Image, userId, origin, isReported);
   }
 
   get src(): string {
@@ -75,8 +84,13 @@ export class ExternalImage extends Media {
 }
 
 export class ExternalVideo extends Media {
-  constructor(src: string, userId?: string, origin?: MediaSchema["origin"]) {
-    super(src, MediaType.Video, userId, origin);
+  constructor(
+    src: string,
+    userId?: string,
+    origin?: MediaSchema["origin"],
+    isReported: boolean = false
+  ) {
+    super(src, MediaType.Video, userId, origin, isReported);
   }
 
   get src(): string {
@@ -107,9 +121,10 @@ export abstract class StorageMedia extends Media {
     src: string,
     type: MediaType,
     userId?: string,
-    origin?: "user" | "other"
+    origin?: "user" | "other",
+    isReported: boolean = false
   ) {
-    super(src, type, userId, origin);
+    super(src, type, userId, origin, isReported);
     this.parsed = parseStorageMediaUrl(src);
 
     this.uriBeforeBucket = this.parsed.uriBeforeBucket;
@@ -150,6 +165,7 @@ export abstract class StorageMedia extends Media {
       uid: this.userId,
       origin: this.origin,
       isInStorage: true,
+      isReported: this.isReported,
     };
 
     (Object.keys(data) as (keyof typeof data)[]).forEach((key) => {
@@ -183,12 +199,18 @@ export class StorageVideo extends StorageMedia {
   readonly compressedPrefix = "comp_";
   readonly thumbnail: StorageImage;
 
-  constructor(src: string, userId?: string, origin?: "user" | "other") {
+  constructor(
+    src: string,
+    userId?: string,
+    origin?: "user" | "other",
+    isReported: boolean = false
+  ) {
     super(
       src.replace(/comp_/, "").replace(/thumb_/, ""),
       MediaType.Video,
       userId,
-      origin
+      origin,
+      isReported
     );
     // Build thumbnail URL with correct prefix format: thumb_{filename}.png
     // This creates a base URL that StorageImage can then add size suffixes to
@@ -213,7 +235,8 @@ export class StorageVideo extends StorageMedia {
     return new StorageVideo(
       schema.src,
       schema.uid,
-      schema.origin as "user" | "other"
+      schema.origin as "user" | "other",
+      schema.isReported ?? false
     );
   }
 
@@ -252,9 +275,10 @@ export class StorageImage extends StorageMedia {
     src: string,
     userId?: string,
     origin?: "user" | "other",
-    isProcessing: boolean = false
+    isProcessing: boolean = false,
+    isReported: boolean = false
   ) {
-    super(src, MediaType.Image, userId, origin);
+    super(src, MediaType.Image, userId, origin, isReported);
     this.isProcessing.set(isProcessing);
   }
 
@@ -271,7 +295,9 @@ export class StorageImage extends StorageMedia {
     return new StorageImage(
       schema.src,
       schema.uid,
-      schema.origin as "user" | "other"
+      schema.origin as "user" | "other",
+      false, // isProcessing
+      schema.isReported ?? false
     );
   }
 

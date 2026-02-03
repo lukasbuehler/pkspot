@@ -251,6 +251,7 @@
       @if(spot()?.media() && spot()!.media().length > 0) {
       <app-img-carousel
         [media]="spot()?.media()"
+        [spotId]="getSpotId()"
         class="mb-3"
         (mediaRemove)="mediaRemoved($event)"
       >
@@ -796,6 +797,7 @@
       </p>
       <app-media-preview-grid
         [media]="spot()!.userMedia()"
+        [spotId]="getSpotId()"
         (mediaChanged)="mediaChanged($event)"
       ></app-media-preview-grid>
       }

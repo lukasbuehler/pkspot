@@ -207,13 +207,16 @@ export function makeAnyMediaFromMediaSchema(
       return new StorageImage(
         mediaSchema.src,
         mediaSchema.uid,
-        (mediaSchema.origin as "user" | "other") ?? "other"
+        (mediaSchema.origin as "user" | "other") ?? "other",
+        false, // isProcessing
+        mediaSchema.isReported ?? false
       );
     } else if (mediaSchema.type === MediaType.Video) {
       return new StorageVideo(
         mediaSchema.src,
         mediaSchema.uid,
-        (mediaSchema.origin as "user" | "other") ?? "other"
+        (mediaSchema.origin as "user" | "other") ?? "other",
+        mediaSchema.isReported ?? false
       );
     } else {
       throw new Error("Unknown media type for storage media");
@@ -223,13 +226,15 @@ export function makeAnyMediaFromMediaSchema(
       return new ExternalImage(
         mediaSchema.src,
         mediaSchema.uid,
-        mediaSchema.origin
+        mediaSchema.origin as "user" | "streetview" | "other",
+        mediaSchema.isReported ?? false
       );
     } else if (mediaSchema.type === MediaType.Video) {
       return new ExternalVideo(
         mediaSchema.src,
         mediaSchema.uid,
-        mediaSchema.origin
+        mediaSchema.origin as "user" | "streetview" | "other",
+        mediaSchema.isReported ?? false
       );
     } else {
       throw new Error("Unknown media type for external media");

@@ -1,6 +1,6 @@
 <div class="carousel">
   @for (mediaObj of media; track $index) { @if (mediaObj.type === "image" &&
-  !hiddenIndices().has($index)) {
+  !hiddenIndices().has($index) && !mediaObj.isReported) {
   <div
     matRipple
     class="spot-img-container position-relative"
