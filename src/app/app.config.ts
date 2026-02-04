@@ -12,7 +12,6 @@ import {
   provideFunctions,
   getFunctions as ngfGetFunctions,
 } from "@angular/fire/functions";
-import { GoogleMapsModule } from "@angular/google-maps";
 
 import { provideAnimations } from "@angular/platform-browser/animations";
 import {
@@ -148,7 +147,6 @@ export const appConfig: ApplicationConfig = {
       })
     ),
     BrowserModule,
-    GoogleMapsModule,
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
       useValue: {

@@ -219,7 +219,9 @@ export class EditPostDialogComponent implements AfterViewInit {
         (percent) => {
           console.log("Upload progress", percent);
         },
-        fileEnding
+        undefined,
+        fileEnding,
+        "public, max-age=31536000"
       );
     }
 

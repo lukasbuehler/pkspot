@@ -53,6 +53,7 @@
   color: var(--mat-sys-color-on-secondary-container, #1d192b);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 
   > img {
     object-fit: cover;

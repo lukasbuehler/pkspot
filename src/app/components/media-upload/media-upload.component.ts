@@ -241,7 +241,8 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
           });
         },
         filename,
-        fileEnding
+        fileEnding,
+        "public, max-age=31536000"
       )
       .then(
         (imageLink) => {

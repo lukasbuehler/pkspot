@@ -56,11 +56,7 @@
             "outputPath": "dist/pkspot",
             "index": { "input": "src/index.html", "output": "index.html" },
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js",
-              "@angular/localize/init",
-              "src/polyfills-node.ts"
-            ],
+            "polyfills": ["zone.js", "@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
             "sourceMap": true,
             "assets": [
@@ -82,7 +78,7 @@
               "@angular/fire",
               "@angular/fire/firestore",
               "dialog-polyfill",
-              "xml2js",
+
               "sax",
               "buffer",
               "typesense"

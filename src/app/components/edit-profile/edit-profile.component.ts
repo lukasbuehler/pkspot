@@ -330,7 +330,8 @@ export class EditProfileComponent implements OnInit {
         StorageBucket.ProfilePictures,
         undefined,
         userId,
-        undefined
+        undefined,
+        "public, max-age=31536000"
       );
 
       // 3. Update user document
