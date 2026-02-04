@@ -79,8 +79,6 @@
               "@angular/fire/firestore",
               "dialog-polyfill",
 
-              "sax",
-              "buffer",
               "typesense"
             ],
             "server": "src/main.server.ts",

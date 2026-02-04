@@ -131,7 +131,8 @@ mat-icon {
   display: block;
   position: relative;
   flex: 0 0 auto; // Don't shrink
-  width: 200px;
+  width: 15vw;
+  min-width: 150px;
   aspect-ratio: 7 / 5;
   text-decoration: none;
   overflow: visible;
