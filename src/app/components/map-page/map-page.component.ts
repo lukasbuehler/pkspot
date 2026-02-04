@@ -14,6 +14,7 @@ import {
   effect,
   computed,
   NgZone,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import { Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -168,6 +169,7 @@ import { AmenityNames, AmenitiesMap } from "../../../db/models/Amenities";
     MatCardModule,
     FilterChipsBarComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =

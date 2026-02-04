@@ -21,6 +21,7 @@ import {
   OnDestroy,
   signal,
   Injector,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {
   LocalSpot,
@@ -72,6 +73,7 @@ import { GeolocationService } from "../../services/geolocation.service";
   imports: [GoogleMap2dComponent, MatSnackBarModule, AsyncPipe],
   standalone: true,
   animations: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @ViewChild("map") map: GoogleMap2dComponent | undefined;

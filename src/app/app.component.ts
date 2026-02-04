@@ -10,6 +10,7 @@ import {
   ViewChild,
   WritableSignal,
   NgZone,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import { Injector } from "@angular/core";
 import {
@@ -114,6 +115,7 @@ type ButtonConfig = LinkMenuButton[];
     RouterModule,
     MatButtonModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit, AfterViewInit {
   readonly dialog = inject(MatDialog);
@@ -213,7 +215,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         // Add a small delay to ensure the view is fully painted
         setTimeout(async () => {
           await SplashScreen.hide();
-        }, 500);
+        }, 100);
       });
     }
 
@@ -226,9 +228,9 @@ export class AppComponent implements OnInit, AfterViewInit {
           splash.classList.add("splash-fade-out");
           setTimeout(() => {
             splash.remove();
-          }, 500); // Wait for transition
+          }, 300); // Wait for transition
         }
-      }, 500); // Initial delay to show splash for a bit or wait for paint
+      }, 100); // Initial delay to show splash for a bit or wait for paint
     }
   }
 

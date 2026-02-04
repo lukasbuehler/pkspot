@@ -67,34 +67,6 @@
 
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
-    <!-- Preload critical variable icon/text fonts to reduce layout shifts -->
-    <!-- Removed to improve LCP - browser will load them when needed from CSS -->
-    <!--
-    <link
-      rel="preload"
-      href="assets/fonts/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-      fetchpriority="high"
-    />
-    -->
-    <!--
-    <link
-      rel="preload"
-      href="assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf"
-      as="font"
-      type="font/ttf"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="assets/fonts/Roboto/Roboto-Italic-VariableFont_wdth,wght.ttf"
-      as="font"
-      type="font/ttf"
-      crossorigin
-    />
-    -->
     <!-- Load font stylesheet (Inlined to avoid blocking request) -->
     <style>
       /* Material Symbols Rounded - Local */
@@ -183,6 +155,13 @@
     <meta name="theme-color" content="#1f1f23" />
     <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
 
+    <link
+      rel="preload"
+      as="image"
+      href="assets/logos/pkspot/pkspot_logo_stacked_dark.png"
+      fetchpriority="high"
+    />
+
     <style>
       body {
         background-color: #1f1f23; /* Match theme color */
@@ -232,6 +211,7 @@
       <img
         src="assets/logos/pkspot/pkspot_logo_stacked_dark.png"
         alt="PK Spot"
+        fetchpriority="high"
       />
     </div>
     <app-root>
