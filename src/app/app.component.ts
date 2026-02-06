@@ -59,6 +59,7 @@ import { AnalyticsService } from "./services/analytics.service";
 import { ConsentService } from "./services/consent.service";
 import { Capacitor } from "@capacitor/core";
 import { BackHandlingService } from "./services/back-handling.service";
+import { CanonicalService } from "./services/canonical.service";
 
 interface ButtonBase {
   name: string;
@@ -149,7 +150,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute,
     private matIconRegistry: MatIconRegistry,
     private _analyticsService: AnalyticsService,
-    private _consentService: ConsentService
+    private _consentService: ConsentService,
+    private _canonicalService: CanonicalService
   ) {
     this.matIconRegistry.setDefaultFontSetClass("material-symbols-rounded");
 
@@ -606,6 +608,9 @@ export class AppComponent implements OnInit, AfterViewInit {
               accepted_version: acceptedVersion,
               source: "manual",
             });
+
+            // Update Canonical URL and Hreflang tags
+            this._canonicalService.setCanonicalURL();
 
             // Start new engagement tracking for this page (browser-only)
             if (isBrowser && document.visibilityState === "visible") {

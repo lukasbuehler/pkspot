@@ -362,8 +362,16 @@ export class GoogleMap2dComponent
   //   google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY;
 
   mapTypeId: Signal<google.maps.MapTypeId> = computed(() => {
+    // Create dependency on isApiLoaded signal so this re-evaluates when API loads
+    const isLoaded = this.mapsApiService.isApiLoaded();
+
     // Guard against google maps not being loaded
-    if (typeof google === "undefined" || !google.maps) {
+    if (
+      !isLoaded ||
+      typeof google === "undefined" ||
+      !google.maps ||
+      !google.maps.MapTypeId
+    ) {
       return "roadmap" as any;
     }
 
@@ -621,81 +629,6 @@ export class GoogleMap2dComponent
     const mapStyle = this.mapStyle();
     return this.theme.isDark(mapStyle);
   });
-
-  // Build heatmap data from dots with weighted lat/lng
-  heatmapData = computed<google.maps.visualization.WeightedLocation[]>(() => {
-    // Guard against google maps not being loaded
-    if (typeof google === "undefined" || !google.maps) return [];
-
-    const dots = this._dotsSignal();
-    if (!dots || dots.length === 0) {
-      return [];
-    }
-    // Filter out dots without valid location (can happen with native Firestore SDK)
-    return dots
-      .filter(
-        (dot) =>
-          (dot.location &&
-            typeof dot.location.latitude === "number" &&
-            typeof dot.location.longitude === "number") ||
-          (dot.location_raw &&
-            typeof dot.location_raw.lat === "number" &&
-            typeof dot.location_raw.lng === "number")
-      )
-      .map((dot) => {
-        let lat: number;
-        let lng: number;
-
-        if (
-          dot.location &&
-          typeof dot.location.latitude === "number" &&
-          typeof dot.location.longitude === "number"
-        ) {
-          lat = dot.location.latitude;
-          lng = dot.location.longitude;
-        } else {
-          lat = dot.location_raw!.lat;
-          lng = dot.location_raw!.lng;
-        }
-
-        return {
-          location: new google.maps.LatLng(lat, lng),
-          weight: dot.weight || 1,
-        } as google.maps.visualization.WeightedLocation;
-      });
-  });
-
-  heatmapOptions = computed<google.maps.visualization.HeatmapLayerOptions>(
-    () => {
-      // Scale radius based on zoom level for better visualization
-      const z = this._zoom();
-      const baseRadius = z < 6 ? 10 : z < 10 ? 15 : 20;
-
-      return this.resolvedDarkMode()
-        ? {
-            radius: baseRadius + z,
-            gradient: [
-              "rgba(184,196,255,0)",
-              "rgba(184,196,255,1)",
-              "rgba(43, 81, 213,1)",
-            ],
-            dissipating: true,
-            maxIntensity: 2,
-            opacity: 0.6,
-          }
-        : {
-            radius: baseRadius + z,
-            gradient: [
-              "rgba(43, 81, 213,0)",
-              "rgba(43, 81, 213,1)",
-              "rgba(184,196,255,1)",
-            ],
-            dissipating: true,
-            maxIntensity: 2,
-            opacity: 0.6,
-          };
-    }
-  );
 
   isApiLoadedSubscription: Subscription | null = null;
   consentSubscription: Subscription | null = null;
