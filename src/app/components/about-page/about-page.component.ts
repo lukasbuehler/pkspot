@@ -43,7 +43,7 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
   // Base partners data
   readonly basePartners: Partner[] = [
     {
-      name: "Swiss Parkour Association (SPKA) - Member of Parkour Earth",
+      name: "Swiss Parkour Association (SPKA)",
       url: "https://spka.ch/",
       logoUrl: "assets/logos/spka_orange.png",
       logoClass: "spka-background",
@@ -55,12 +55,12 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
       logoUrl: "assets/logos/sph.svg",
       logoClass: "sph-background",
     },
-    // {
-    //   name: "Parkour Earth",
-    //   url: "https://www.parkour.earth/",
-    //   logoUrl: "assets/logos/parkour_earth_white.png",
-    //   logoClass: "parkour-earth-background",
-    // },
+    {
+      name: "Parkour Earth",
+      url: "https://www.parkour.earth/",
+      logoUrl: "assets/logos/parkour_earth_white.png",
+      logoClass: "parkour-earth-background",
+    },
   ];
 
   // Repeat sufficiently to cover large screens and fast scrolling
