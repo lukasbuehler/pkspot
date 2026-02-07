@@ -1,35 +1,44 @@
 <div class="activity-feed">
   <h1>Activity</h1>
 
-  @if (recentEdits$ | async; as edits) { @if (edits.length === 0) {
-  <div class="empty-state">No recent activity.</div>
-  } @for (item of edits; track item.spotId || item.edit.timestamp) {
+  @if (newItemsBuffer$ | async; as buffer) { @if (buffer.length > 0) {
+  <button class="new-items-btn" (click)="showNewItems()">
+    Show {{ buffer.length }} new activities ↑
+  </button>
+  } } @if (items$ | async; as items) { @if (items.length === 0 && (isLoading$ |
+  async) === false) {
+  <div class="empty-state">No activity yet.</div>
+  } @for (item of items; track item.spotId + '_' +
+  item.formattedTimestamp.getTime()) {
   <div class="feed-item">
     <div class="timestamp">
       {{ item.formattedTimestamp | date : "medium" }}
     </div>
 
     <div class="user-action">
-      <strong>{{ item.edit.user.display_name }}</strong> added a spot in @if
-      (item.spot) {
+      <strong>{{ item.edit.user.display_name }}</strong>
+      {{ getActionText(item.edit) }}
+      @if (item.spot) {
       <span>{{ item.spot.localityString() }}</span>
-      } @else {
-      <span>Unknown Location</span>
       }
     </div>
 
-    @if (item.spot) {
-    <div class="spot-preview">
+    <a
+      [routerLink]="['/map', item.spot?.slug || item.spotId]"
+      class="activity-preview-link"
+    >
       <app-spot-preview-card
         [spotData]="item.spot"
         [clickable]="true"
-        (spotClick)="openSpot($event)"
-      >
-      </app-spot-preview-card>
-    </div>
-    }
+        [imgSize]="400"
+      ></app-spot-preview-card>
+    </a>
   </div>
-  } } @else {
-  <div class="loading-state">Loading recent activity...</div>
-  }
+  } } @if (isLoading$ | async) {
+  <div class="loading-state">Loading activities...</div>
+  } @if (hasMore$ | async) { @if ((isLoading$ | async) === false) {
+  <div class="load-more-container">
+    <button class="load-more-btn" (click)="loadMore()">Load More</button>
+  </div>
+  } }
 </div>

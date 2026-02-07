@@ -3,6 +3,49 @@
   max-width: 600px;
   margin: 0 auto;
 
+  .new-items-btn {
+    background: var(--primary-color, #007bff);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 20px;
+    width: 100%;
+    margin-bottom: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .load-more-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .load-more-btn {
+    background: transparent;
+    border: 1px solid var(--border-color, #ddd);
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    color: var(--text-color, #333);
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+  }
+
   h1 {
     font-size: 24px;
     margin-bottom: 24px;
@@ -26,6 +69,20 @@
     .user-action {
       font-size: 16px;
       margin-bottom: 12px;
+    }
+
+    .activity-preview-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+
+      &:hover {
+        text-decoration: none;
+      }
+
+      app-spot-preview-card {
+        width: 100%;
+      }
     }
 
     .spot-preview {

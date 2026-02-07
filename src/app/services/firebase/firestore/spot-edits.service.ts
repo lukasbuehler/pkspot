@@ -118,6 +118,90 @@ export class SpotEditsService extends ConsentAwareService {
       .pipe(map((arr) => arr as SpotEditSchema[]));
   }
 
+  /**
+   * Get a page of recent spot edits.
+   * @param limitCount Number of items to fetch
+   * @param startAfterDoc Optional cursor for pagination
+   */
+  async getSpotEditsPage(
+    limitCount: number = 10,
+    startAfterDoc?: any
+  ): Promise<{
+    edits: Array<{ edit: SpotEditSchema; spotId: string }>;
+    lastDoc: any;
+  }> {
+    const constraints: QueryConstraintOptions[] = [
+      { type: "orderBy", fieldPath: "timestamp", direction: "desc" },
+      { type: "limit", limit: limitCount },
+    ];
+
+    const result = await this._firestoreAdapter.getCollectionGroupWithMetadata<
+      SpotEditSchema & { id: string }
+    >("edits", [], constraints, startAfterDoc);
+
+    const edits = result.data.map((item) => {
+      const spotId = this._extractSpotIdFromPath(item.path);
+      return {
+        edit: item,
+        spotId: spotId,
+      };
+    });
+
+    return {
+      edits,
+      lastDoc: result.lastDoc,
+    };
+  }
+
+  /**
+   * Listen for new spot edits since a given timestamp.
+   * @param timestamp Timestamp to filter by
+   */
+  getNewSpotEditsSince(
+    timestamp: Timestamp
+  ): Observable<Array<{ edit: SpotEditSchema; spotId: string }>> {
+    const constraints: QueryConstraintOptions[] = [
+      { type: "orderBy", fieldPath: "timestamp", direction: "desc" },
+    ];
+
+    const filters: any[] = [
+      { fieldPath: "timestamp", opStr: ">", value: timestamp },
+    ];
+
+    return this._firestoreAdapter
+      .collectionGroupSnapshotsWithMetadata<SpotEditSchema & { id: string }>(
+        "edits",
+        filters,
+        constraints
+      )
+      .pipe(
+        map((arr) => {
+          return arr.map((item) => {
+            const spotId = this._extractSpotIdFromPath(item.path);
+            return {
+              edit: item,
+              spotId: spotId,
+            };
+          });
+        })
+      );
+  }
+
+  /**
+   * Helper to extract spot ID from edit path.
+   * Path format: spots/{spotId}/edits/{editId}
+   */
+  private _extractSpotIdFromPath(path: string): string {
+    const parts = path.split("/");
+    if (parts.length >= 4 && parts[parts.length - 2] === "edits") {
+      return parts[parts.length - 3];
+    }
+    return "";
+  }
+
+  /**
+   * @deprecated Use getSpotEditsPage or getNewSpotEditsSince instead.
+   */
   getMostRecentSpotEdits(
     limitCount: number = 5
   ): Observable<Array<{ edit: SpotEditSchema; spotId: string }>> {

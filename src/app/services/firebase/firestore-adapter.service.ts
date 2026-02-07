@@ -24,6 +24,7 @@ import {
   docData,
   query,
   where,
+  startAfter,
   onSnapshot,
   orderBy,
   limit,
@@ -677,6 +678,88 @@ export class FirestoreAdapterService {
       const q = query(collGroupRef, ...queryConstraints);
       const snap = await getDocs(q);
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as T));
+    });
+  }
+
+  /**
+   * Query a collection group (one-time fetch) and return documents with metadata (id, path) and the last snapshot.
+   * Useful for pagination.
+   */
+  async getCollectionGroupWithMetadata<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[],
+    startAfterDoc?: any
+  ): Promise<{ data: Array<T & { id: string; path: string }>; lastDoc: any }> {
+    if (this.platformService.isNative()) {
+      console.warn(
+        "getCollectionGroupWithMetadata pagination not fully supported on native yet."
+      );
+      // Native fallback (no pagination support yet)
+      const docs = await this.getCollectionGroupNative<T>(
+        collectionId,
+        filters,
+        constraints
+      );
+      return {
+        data: docs.map((d: any) => ({ ...d, path: "" })),
+        lastDoc: null,
+      };
+    }
+    return this.getCollectionGroupWebWithMetadata<T>(
+      collectionId,
+      filters,
+      constraints,
+      startAfterDoc
+    );
+  }
+
+  private async getCollectionGroupWebWithMetadata<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[],
+    startAfterDoc?: any
+  ): Promise<{ data: Array<T & { id: string; path: string }>; lastDoc: any }> {
+    return runInInjectionContext(this.injector, async () => {
+      const collGroupRef = collectionGroup(this.firestore, collectionId);
+      const queryConstraints: AngularFireQueryConstraint[] = [];
+
+      if (filters) {
+        for (const filter of filters) {
+          queryConstraints.push(
+            where(filter.fieldPath, filter.opStr, filter.value)
+          );
+        }
+      }
+
+      if (constraints) {
+        for (const constraint of constraints) {
+          if (constraint.type === "orderBy" && constraint.fieldPath) {
+            queryConstraints.push(
+              orderBy(constraint.fieldPath, constraint.direction)
+            );
+          } else if (constraint.type === "limit" && constraint.limit) {
+            queryConstraints.push(limit(constraint.limit));
+          }
+        }
+      }
+
+      if (startAfterDoc) {
+        queryConstraints.push(startAfter(startAfterDoc));
+      }
+
+      const q = query(collGroupRef, ...queryConstraints);
+      const snap = await getDocs(q);
+      const data = snap.docs.map((d) => ({
+        id: d.id,
+        path: d.ref.path,
+        ...d.data(),
+      })) as Array<T & { id: string; path: string }>;
+
+      return {
+        data,
+        lastDoc: snap.docs.length > 0 ? snap.docs[snap.docs.length - 1] : null,
+      };
     });
   }
 
