@@ -1,0 +1,42 @@
+.activity-feed {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+
+  .feed-item {
+    margin-bottom: 32px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 24px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .timestamp {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .user-action {
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    .spot-preview {
+      width: 100%;
+    }
+  }
+
+  .empty-state,
+  .loading-state {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+  }
+}

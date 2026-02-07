@@ -1083,16 +1083,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     const userPhoto = this.userPhoto();
 
     return [
-      // {
-      //   name: "Feed",
-      //   link: "/feed",
-      //   icon: "question_answer",
-      // },
       {
         name: $localize`:Map navbar button label|A very short label for the navbar map label@@map_label:Map`,
         link: "/map",
         icon: "map",
       },
+      {
+        name: $localize`Activity`,
+        link: "/activity",
+        icon: "vital_signs",
+      },
+
       // {
       //   name: $localize`:@@train.nav_label:Train`,
       //   link: "/train",

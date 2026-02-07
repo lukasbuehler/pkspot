@@ -1,0 +1,35 @@
+<div class="activity-feed">
+  <h1>Activity</h1>
+
+  @if (recentEdits$ | async; as edits) { @if (edits.length === 0) {
+  <div class="empty-state">No recent activity.</div>
+  } @for (item of edits; track item.spotId || item.edit.timestamp) {
+  <div class="feed-item">
+    <div class="timestamp">
+      {{ item.formattedTimestamp | date : "medium" }}
+    </div>
+
+    <div class="user-action">
+      <strong>{{ item.edit.user.display_name }}</strong> added a spot in @if
+      (item.spot) {
+      <span>{{ item.spot.localityString() }}</span>
+      } @else {
+      <span>Unknown Location</span>
+      }
+    </div>
+
+    @if (item.spot) {
+    <div class="spot-preview">
+      <app-spot-preview-card
+        [spotData]="item.spot"
+        [clickable]="true"
+        (spotClick)="openSpot($event)"
+      >
+      </app-spot-preview-card>
+    </div>
+    }
+  </div>
+  } } @else {
+  <div class="loading-state">Loading recent activity...</div>
+  }
+</div>

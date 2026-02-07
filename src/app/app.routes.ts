@@ -1,24 +1,4 @@
-import { NgModule } from "@angular/core";
-import { Routes, RouterModule, UrlSegment, Route } from "@angular/router";
-// import { HomePageComponent } from "./components/home-page/home-page.component";
-// import { NotFoundPageComponent } from "./components/not-found-page/not-found-page.component";
-// import { MapPageComponent } from "./components/map-page/map-page.component";
-// import { SignInPageComponent } from "./components/sign-in-page/sign-in-page.component";
-// import { AboutPageComponent } from "./components/about-page/about-page.component";
-import { KmlImportPageComponent } from "./components/kml-import-page/kml-import-page.component";
-import { PostPageComponent } from "./components/post-page/post-page.component";
-// import { ProfilePageComponent } from "./components/profile-page/profile-page.component";
-// import { SignUpPageComponent } from "./components/sign-up-page/sign-up-page.component";
-// import { TermsOfServiceComponent } from "./components/terms-of-service/terms-of-service.component";
-// import { PrivacyPolicyComponent } from "./components/privacy-policy/privacy-policy.component";
-// import { SettingsPageComponent } from "./components/settings-page/settings-page.component";
-// import { ForgotPasswordPageComponent } from "./components/forgot-password-page/forgot-password-page.component";
-// import { EmbedPageComponent } from "./components/embedding/embed-page/embed-page.component";
-// import { EventPageComponent } from "./components/event-page/event-page.component";
-// import { EmbeddedSpotPageComponent } from "./components/embedding/embedded-spot-page/embedded-spot-page.component";
-// import { EmbeddedMapPageComponent } from "./components/embedding/embedded-map-page/embedded-map-page.component";
-// import { EventsPageComponent } from "./components/events-page/events-page.component";
-// import { ImpressumComponent } from "./components/impressum/impressum.component";
+import { Routes } from "@angular/router";
 import { contentResolver } from "./resolvers/content.resolver";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
@@ -38,6 +18,17 @@ export const routes: Routes = [
     redirectTo: "map",
     pathMatch: "full",
     resolve: { content: contentResolver },
+  },
+
+  // Activity
+  {
+    path: "activity",
+    loadComponent: () =>
+      import("./components/activity-page/activity-page.component").then(
+        (m) => m.ActivityPageComponent
+      ),
+    resolve: { content: contentResolver },
+    data: { routeName: "Activity" },
   },
 
   // Posts

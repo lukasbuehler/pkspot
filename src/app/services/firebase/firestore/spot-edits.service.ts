@@ -15,6 +15,7 @@ import { MediaSchema } from "../../../../db/schemas/Media";
 import {
   FirestoreAdapterService,
   QueryFilter,
+  QueryConstraintOptions,
 } from "../firestore-adapter.service";
 
 @Injectable({
@@ -115,6 +116,45 @@ export class SpotEditsService extends ConsentAwareService {
         filters
       )
       .pipe(map((arr) => arr as SpotEditSchema[]));
+  }
+
+  getMostRecentSpotEdits(
+    limitCount: number = 5
+  ): Observable<Array<{ edit: SpotEditSchema; spotId: string }>> {
+    console.debug(`Getting ${limitCount} most recent spot edits`);
+
+    const constraints: QueryConstraintOptions[] = [
+      { type: "orderBy", fieldPath: "timestamp", direction: "desc" },
+      { type: "limit", limit: limitCount },
+    ];
+
+    return this._firestoreAdapter
+      .collectionGroupSnapshotsWithMetadata<SpotEditSchema & { id: string }>(
+        "edits",
+        [],
+        constraints
+      )
+      .pipe(
+        map((arr) => {
+          return arr.map((item) => {
+            // Path format: spots/{spotId}/edits/{editId}
+            const pathParts = item.path.split("/");
+            let spotId = "";
+            // Verify path structure
+            if (
+              pathParts.length >= 4 &&
+              pathParts[pathParts.length - 2] === "edits"
+            ) {
+              spotId = pathParts[pathParts.length - 3];
+            }
+
+            return {
+              edit: item as SpotEditSchema,
+              spotId: spotId,
+            };
+          });
+        })
+      );
   }
 
   addSpotEdit(spotId: string, edit: SpotEditSchema): Promise<string> {

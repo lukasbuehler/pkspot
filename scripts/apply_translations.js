@@ -1279,7 +1279,7 @@ const translations = {
     nl: "Bijdrager",
   },
   Editor: {
-    de: "Editor",
+    de: "Bearbeiter",
     es: "Editor",
     fr: "Éditeur",
     it: "Editore",
@@ -1628,6 +1628,44 @@ const translations = {
       it: " Una volta che sei un tester, puoi scaricare PK Spot dal Google Play Store. L'app si aggiornerà automaticamente man mano che rilasceremo nuove versioni. ",
       nl: " Zodra je tester bent, kun je PK Spot downloaden uit de Google Play Store. De app wordt automatisch bijgewerkt zodra we nieuwe versies uitbrengen. ",
     },
+  Activity: {
+    de: "Aktivität",
+    es: "Actividad",
+    fr: "Activité",
+    it: "Attività",
+    nl: "Activiteit",
+  },
+  Editor: {
+    de: "Bearbeiter",
+    es: "Editor",
+    fr: "Éditeur",
+    it: "Editore",
+    nl: "Editor",
+  },
+  " Download PK Spot from the Google Play Store. Get the seamless experience on your Android device. ":
+    {
+      de: " Lade PK Spot aus dem Google Play Store herunter. Erhalte das nahtlose Erlebnis auf deinem Android-Gerät. ",
+      es: " Descarga PK Spot desde Google Play Store. Obtén la experiencia perfecta en tu dispositivo Android. ",
+      fr: " Téléchargez PK Spot sur le Google Play Store. Profitez d'une expérience fluide sur votre appareil Android. ",
+      it: " Scarica PK Spot dal Google Play Store. Ottieni un'esperienza senza interruzioni sul tuo dispositivo Android. ",
+      nl: " Download PK Spot uit de Google Play Store. Krijg de naadloze ervaring op je Android-apparaat. ",
+    },
+  " Download PK Spot from the Apple App Store. Get the seamless experience on your iPhone or iPad. ":
+    {
+      de: " Lade PK Spot aus dem Apple App Store herunter. Erhalte das nahtlose Erlebnis auf deinem iPhone oder iPad. ",
+      es: " Descarga PK Spot desde la Apple App Store. Obtén la experiencia perfecta en tu iPhone o iPad. ",
+      fr: " Téléchargez PK Spot sur l'App Store Apple. Profitez d'une expérience fluide sur votre iPhone ou iPad. ",
+      it: " Scarica PK Spot dall'Apple App Store. Ottieni un'esperienza senza interruzioni sul tuo iPhone o iPad. ",
+      nl: " Download PK Spot uit de Apple App Store. Krijg de naadloze ervaring op je iPhone of iPad. ",
+    },
+  '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;" /> Download for Android ':
+    {
+      de: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;" /> Für Android herunterladen ',
+      es: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;" /> Descargar para Android ',
+      fr: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;" /> Télécharger pour Android ',
+      it: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;" /> Scarica per Android ',
+      nl: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;" /> Download voor Android ',
+    },
 };
 
 const normalize = (s) => s.replace(/\s+/g, " ").replace(/"\s+>/g, '">').trim();
@@ -1676,8 +1714,11 @@ function processFile(filePath) {
   const replacements = [];
 
   // Re-create regex to iterate
+  // Re-create regex to iterate
+  // Updated to handle attributes in source/target tags (e.g. <source xml:space="preserve">)
+  // and handle tags split across lines (e.g. <source\n>)
   const unitRegexIter =
-    /<unit id="([^"]+)">[\s\S]*?<segment state="initial">[\s\S]*?<source>([\s\S]*?)<\/source>([\s\S]*?)<target>([\s\S]*?)<\/target>[\s\S]*?<\/segment>[\s\S]*?<\/unit>/g;
+    /<unit id="([^"]+)">[\s\S]*?<segment state="initial">[\s\S]*?<source\b[^>]*>([\s\S]*?)<\/source>([\s\S]*?)<target\b[^>]*>([\s\S]*?)<\/target>[\s\S]*?<\/segment>[\s\S]*?<\/unit>/g;
 
   while ((match = unitRegexIter.exec(content)) !== null) {
     const fullMatch = match[0];
@@ -1689,16 +1730,19 @@ function processFile(filePath) {
     const normalizedSource = normalize(sourceContent);
     const normalizedTarget = normalize(targetContent);
 
-    // Check if it's already translated (source != target)
-    // This check is a bit loose because of normalization, but if normalized source == normalized target, it's likely untranslated.
-
     // Explicit lookup first
     let translationKey = Object.keys(translations).find(
       (key) => normalize(key) === normalizedSource
     );
 
     if (translationKey) {
-      const translation = translations[translationKey][lang];
+      let translation = translations[translationKey][lang];
+
+      // Fallback for de-CH to de
+      if (!translation && lang === "de-CH") {
+        translation = translations[translationKey]["de"];
+      }
+
       if (translation) {
         // Only replace if currently untranslated OR if we want to force update.
         // The user wants to fix missing ones.
@@ -1745,37 +1789,36 @@ function processFile(filePath) {
           // Better: We have the start and end indices of the match.
           // We can find the index of <target> inside the match.
 
-          const targetStartIndex = fullMatch.indexOf("<target>") + 8; // length of <target>
-          const targetEndIndex = fullMatch.indexOf("</target>");
+          // Use regex to find the target tag start, because it might have attributes or newlines
+          const targetTagRegex = /<target\b[^>]*>/;
+          const targetTagMatch = fullMatch.match(targetTagRegex);
 
-          // Wait, indexOf searches from start. If multiple targets? XLIFF unit usually has one segment/target in this file.
-          // Verify assumption: "standard order <source> then <target> inside a segment".
+          if (targetTagMatch) {
+            const targetTagStart = targetTagMatch.index;
+            const targetTagLength = targetTagMatch[0].length;
+            const contentStart = targetTagStart + targetTagLength;
 
-          if (targetStartIndex > 8 && targetEndIndex > targetStartIndex) {
-            // Calculate absolute positions
-            // Actually, we can just replace the segment in the fullMatch string.
-            const beforeTarget = fullMatch.substring(
-              0,
-              fullMatch.indexOf("<target>") + 8
-            );
-            const afterTarget = fullMatch.substring(
-              fullMatch.indexOf("</target>")
-            );
+            const contentEnd = fullMatch.indexOf("</target>", contentStart);
 
-            const newUnitString = beforeTarget + translation + afterTarget;
+            if (contentEnd > contentStart) {
+              const beforeTarget = fullMatch.substring(0, contentStart);
+              const afterTarget = fullMatch.substring(contentEnd);
 
-            replacements.push({
-              start: match.index,
-              end: match.index + fullMatch.length,
-              newText: newUnitString,
-            });
+              const newUnitString = beforeTarget + translation + afterTarget;
 
-            console.log(
-              `Updated [${unitId}]: "${normalizedSource.substring(
-                0,
-                30
-              )}..." -> "${translation.substring(0, 30)}..."`
-            );
+              replacements.push({
+                start: match.index,
+                end: match.index + fullMatch.length,
+                newText: newUnitString,
+              });
+
+              console.log(
+                `Updated [${unitId}]: "${normalizedSource.substring(
+                  0,
+                  30
+                )}..." -> "${translation.substring(0, 30)}..."`
+              );
+            }
           }
         }
       }

@@ -179,5 +179,9 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if false;
     }
+    // Collection Group Queries
+    match /{path=**}/edits/{editId} {
+      allow read: if true;
+    }
   }
 }

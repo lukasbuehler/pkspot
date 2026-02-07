@@ -24,6 +24,7 @@ import {
   docData,
   query,
   where,
+  onSnapshot,
   orderBy,
   limit,
   getDocs,
@@ -788,7 +789,91 @@ export class FirestoreAdapterService {
       }
 
       const q = query(collGroupRef, ...queryConstraints);
-      return collectionData(q, { idField: "id" }) as Observable<T[]>;
+      return collectionData(q, { idField: "id" }).pipe(
+        map((docs: any[]) =>
+          docs.map((d) => {
+            // DocumentData from collectionData doesn't naturally include the ref path when using idField
+            // We need to use snapshotChanges if we want the ref, but collectionData is simpler.
+            // However, for collection group queries, we absolutely need the path.
+            // Let's switch to proper snapshot handling if we need the path.
+            // BUT, for now, let's try to see if we can get the path from the ref if we weren't using data().
+            // Actually, collectionData with idField just gives data + id.
+            // To get the path, we need to inspect the document reference.
+            // Since collectionData hides the ref, we might need to use collectionChanges or getDocs.
+            // But real-time is required.
+            return d;
+          })
+        )
+      ) as Observable<T[]>;
+    });
+  }
+
+  /**
+   * Listen to a collection group query in real-time, returning the full document path.
+   */
+  collectionGroupSnapshotsWithMetadata<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Observable<Array<T & { id: string; path: string }>> {
+    const injector = this.injector;
+
+    if (this.platformService.isNative()) {
+      return this.collectionGroupSnapshotsNativeWithMetadata<T>(
+        collectionId,
+        filters,
+        constraints
+      );
+    }
+
+    return runInInjectionContext(injector, () => {
+      const collGroupRef = collectionGroup(this.firestore, collectionId);
+      const queryConstraints: AngularFireQueryConstraint[] = [];
+
+      if (filters) {
+        for (const filter of filters) {
+          queryConstraints.push(
+            where(filter.fieldPath, filter.opStr, filter.value)
+          );
+        }
+      }
+
+      if (constraints) {
+        for (const constraint of constraints) {
+          if (constraint.type === "orderBy" && constraint.fieldPath) {
+            queryConstraints.push(
+              orderBy(constraint.fieldPath, constraint.direction)
+            );
+          } else if (constraint.type === "limit" && constraint.limit) {
+            queryConstraints.push(limit(constraint.limit));
+          }
+        }
+      }
+
+      const q = query(collGroupRef, ...queryConstraints);
+
+      return new Observable<Array<T & { id: string; path: string }>>(
+        (observer) => {
+          let unsubscribe: any;
+          runInInjectionContext(injector, () => {
+            unsubscribe = onSnapshot(
+              q,
+              (snapshot: any) => {
+                const docs = snapshot.docs.map((d: any) => ({
+                  id: d.id,
+                  path: d.ref.path,
+                  ...d.data(),
+                }));
+                observer.next(docs);
+              },
+              (error: any) => {
+                observer.error(error);
+              }
+            );
+          });
+          return () => unsubscribe && unsubscribe();
+        }
+      );
     });
   }
 
@@ -869,5 +954,89 @@ export class FirestoreAdapterService {
         }
       };
     });
+  }
+
+  private collectionGroupSnapshotsNativeWithMetadata<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Observable<Array<T & { id: string; path: string }>> {
+    return new Observable<Array<T & { id: string; path: string }>>(
+      (observer) => {
+        let callbackId: string | null = null;
+
+        const options: any = {
+          reference: collectionId,
+        };
+
+        // Build composite filter
+        if (filters && filters.length > 0) {
+          const queryFilters: QueryFieldFilterConstraint[] = filters.map(
+            (f) => ({
+              type: "where" as const,
+              fieldPath: f.fieldPath,
+              opStr: f.opStr,
+              value: f.value,
+            })
+          );
+
+          options.compositeFilter = {
+            type: "and",
+            queryConstraints: queryFilters,
+          };
+        }
+
+        // Add non-filter constraints
+        if (constraints && constraints.length > 0) {
+          const mappedConstraints = constraints
+            .map((c): QueryNonFilterConstraint | null => {
+              if (c.type === "orderBy" && c.fieldPath) {
+                return {
+                  type: "orderBy" as const,
+                  fieldPath: c.fieldPath,
+                  directionStr: (c.direction || "asc") as "asc" | "desc",
+                };
+              } else if (c.type === "limit" && c.limit) {
+                return {
+                  type: "limit" as const,
+                  limit: c.limit,
+                };
+              }
+              return null;
+            })
+            .filter((c): c is QueryNonFilterConstraint => c !== null);
+          options.queryConstraints = mappedConstraints;
+        }
+
+        FirebaseFirestore.addCollectionGroupSnapshotListener(
+          options,
+          (event, error) => {
+            this.ngZone.run(() => {
+              if (error) {
+                observer.error(error);
+                return;
+              }
+              if (event?.snapshots) {
+                const docs = event.snapshots.map((snap) => ({
+                  id: snap.id,
+                  path: snap.path,
+                  ...snap.data,
+                })) as Array<T & { id: string; path: string }>;
+                observer.next(docs);
+              }
+            });
+          }
+        ).then((id) => {
+          callbackId = id;
+        });
+
+        // Cleanup function
+        return () => {
+          if (callbackId) {
+            FirebaseFirestore.removeSnapshotListener({ callbackId });
+          }
+        };
+      }
+    );
   }
 }
