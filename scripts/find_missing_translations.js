@@ -4,7 +4,9 @@ const path = require("path");
 const files = [
   "src/locale/messages.de.xlf",
   "src/locale/messages.es.xlf",
+  "src/locale/messages.fr.xlf",
   "src/locale/messages.it.xlf",
+  "src/locale/messages.nl.xlf",
 ];
 
 function findUntranslated(filePath) {
@@ -20,29 +22,54 @@ function findUntranslated(filePath) {
 
   console.log(`\nScanning ${filePath}...`);
 
+  let buffer = [];
+  let unitSource = null;
+  let unitTarget = null;
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
 
     if (line.startsWith('<unit id="')) {
       currentUnitId = line.match(/id="([^"]+)"/)[1];
-      source = null;
-      target = null;
+      unitSource = null;
+      unitTarget = null;
     } else if (line.startsWith("<source>")) {
-      source = line.replace("<source>", "").replace("</source>", "").trim();
-      sourceLine = i + 1;
+      // Handle simple single line source
+      const match = lines[i].match(/<source>([\s\S]*?)<\/source>/);
+      if (match) {
+        unitSource = match[1];
+      } else {
+        // handle multiline or complex case later if needed, but for now assuming single line for simplicity
+        // or we can just join lines until </source>
+        unitSource = line.replace("<source>", "").replace("</source>", "");
+      }
     } else if (line.startsWith("<target>")) {
-      target = line.replace("<target>", "").replace("</target>", "").trim();
-      targetLine = i + 1;
+      const match = lines[i].match(/<target>([\s\S]*?)<\/target>/);
+      if (match) {
+        unitTarget = match[1];
+      } else {
+        unitTarget = line.replace("<target>", "").replace("</target>", "");
+      }
 
       // Check if source and target are identical
-      if (currentUnitId && source && target && source === target) {
-        // Filter out trivial/empty strings if necessary, though user wants everything
-        if (source.length > 0) {
+      if (
+        currentUnitId &&
+        unitSource &&
+        unitTarget &&
+        unitSource === unitTarget
+      ) {
+        if (unitSource.trim().length > 0) {
           console.log(
-            `[${filePath}:${targetLine}] ID: ${currentUnitId} | Text: "${source.substring(
-              0,
-              50
-            )}${source.length > 50 ? "..." : ""}"`
+            JSON.stringify(
+              {
+                file: filePath,
+                line: i,
+                id: currentUnitId,
+                source: unitSource,
+              },
+              null,
+              2
+            ) + ","
           );
         }
       }

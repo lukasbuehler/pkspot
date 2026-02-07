@@ -81,6 +81,12 @@
         <target>E-Mail</target>
       </segment>
     </unit>
+    <unit id="8124605615260157091">
+      <segment state="initial">
+        <source>Documenter</source>
+        <target>Dokumentierer</target>
+      </segment>
+    </unit>
     <unit id="8126459137636028145">
       <notes>
         <note category="description">The header for the spot description</note>
@@ -110,6 +116,12 @@
       <segment state="initial">
         <source>Open the location of this spot in Maps</source>
         <target>Öffne de spot in Maps</target>
+      </segment>
+    </unit>
+    <unit id="open_google_maps_button_label">
+      <segment state="initial">
+        <source>Open in Google Maps</source>
+        <target>In Google Maps ufmache</target>
       </segment>
     </unit>
     <unit id="open_maps_button_label">
@@ -406,6 +418,26 @@
         <target>Neui E-mail Adresse</target>
       </segment>
     </unit>
+    <unit id="1444810422143574364">
+      <segment state="initial">
+        <source><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Not a picture of this spot: This image does not show the location or is misleading.</pc></source>
+        <target><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Das isch keis Bild vo dem Spot. DAs Bild zeigt de Standort nöd oder isch irrefüehrend.</pc></target>
+      </segment>
+    </unit>
     <unit id="1486755545881068533">
       <segment state="initial">
         <source>Re-authentication failed. Account not deleted.</source>
@@ -417,6 +449,14 @@
       <segment state="initial">
         <source>Change password</source>
         <target>Password ändere</target>
+      </segment>
+    </unit>
+    <unit id="1330427292857858931">
+      <segment state="initial">
+        <source
+        >No Apple ID found on this device. Please sign in to your Apple ID in your device settings and try again.</source>
+        <target
+        >Kei Apple ID gfunde uf dem Grät. Bitte meld dich mit dinere Apple ID uf dim Grät ah und versuechs nomal.</target>
       </segment>
     </unit>
     <unit id="1336542143746897548">
@@ -437,6 +477,12 @@
             equiv="PH"
             disp="Math.round(spot.rating * 10) / 10"
           /> ⭐</target>
+      </segment>
+    </unit>
+    <unit id="1347241542439262355">
+      <segment state="initial">
+        <source>General settings</source>
+        <target>Allgemeini Ihstellige</target>
       </segment>
     </unit>
     <unit id="1356237918552845367">
@@ -508,6 +554,13 @@
         <target>Ahmelden</target>
       </segment>
     </unit>
+    <unit id="5223089976416033243">
+      <segment state="initial">
+        <source> General settings to tune your experience on PK Spot. </source>
+        <target
+        > Allgemeini Ihstellige zum dini Experience uf PK Spot ahzpasse. </target>
+      </segment>
+    </unit>
     <unit id="policy.long">
       <segment state="initial">
         <source>Privacy Policy</source>
@@ -534,7 +587,7 @@
         <source
         > Manage your account settings including email, password, and account deletion. </source>
         <target
-        > Bearbeit dini Konto-Ihstellige wie E-Mail, Passwort und "Konto lösche". </target>
+        > Bearbeit dini Konto-Ihstellige wie E-Mail, Passwort und &quot;Konto lösche&quot;. </target>
       </segment>
     </unit>
     <unit id="settings.account.header">
@@ -576,6 +629,36 @@
       <segment state="initial">
         <source>Add a new spot</source>
         <target>En neue Spot hinzuefüege</target>
+      </segment>
+    </unit>
+    <unit id="map.geolocation_denied.snackbar">
+      <notes>
+        <note
+          category="description"
+        >Message shown when user clicks geolocation button but permissions are denied</note>
+        <note
+          category="meaning"
+        >Snackbar message for disabled geolocation info</note>
+      </notes>
+      <segment state="initial">
+        <source
+        >Location permission denied. Please enable it to use this feature.</source>
+        <target
+        >Standort-Berechtigung nöd erteilt. Bitte erlaub Standort-Zuegriff zum das Feature bruche.</target>
+      </segment>
+    </unit>
+    <unit id="map.geolocation_denied.snackbar_action">
+      <notes>
+        <note
+          category="description"
+        >Action button on snackbar shown when user clicks geolocation button but permissions are denied</note>
+        <note
+          category="meaning"
+        >Snackbar action for disabled geolocation info</note>
+      </notes>
+      <segment state="initial">
+        <source>OK</source>
+        <target>OK</target>
       </segment>
     </unit>
     <unit id="map.highlighted_spots.structured_data_name">
@@ -655,7 +738,7 @@
         <source
         > Join our Discord server to chat with the community, report bugs, and request features. This is the fastest way to get help! </source>
         <target
-        > Tritt eusem Discord Server bii und chat mit de Community, meld Bugs und frög nach Features. Das isch de schnellsti Weg Hilf z'becho! </target>
+        > Tritt eusem Discord Server bii und chat mit de Community, meld Bugs und frög nach Features. Das isch de schnellsti Weg Hilf z&apos;becho! </target>
       </segment>
     </unit>
     <unit id="3588415639242079458">
@@ -795,13 +878,19 @@
         <source> <ph
             id="0"
             equiv="INTERPOLATION"
-            disp="{{ positiveLabel() }}"
+            disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"
           /> </source>
         <target> <ph
             id="0"
             equiv="INTERPOLATION"
-            disp="{{ positiveLabel() }}"
+            disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"
           /> </target>
+      </segment>
+    </unit>
+    <unit id="7724618434121262533">
+      <segment state="initial">
+        <source>Unnamed Drinking Water spot</source>
+        <target>Unbenntei Trinkwasserstell</target>
       </segment>
     </unit>
     <unit id="7733953409417762446">
@@ -815,7 +904,7 @@
     <unit id="7742018872696898961">
       <segment state="initial">
         <source>Current password is incorrect.</source>
-        <target>S'Aktuelle Passwort isch falsch.</target>
+        <target>S&apos;Aktuelle Passwort isch falsch.</target>
       </segment>
     </unit>
     <unit id="7323901917278002498">
@@ -921,14 +1010,6 @@
         <target>Live &amp; Verified</target>
       </segment>
     </unit>
-    <unit id="1074819869528994576">
-      <segment state="initial">
-        <source
-        > Keep track of your journey. Bookmark your favorite training locations and save the spots you&apos;ve visited to build your personal collection of spots around the world. </source>
-        <target
-        > Speicher dini Reis. Merk der dini Liebste Trainings Ort und speicher d&apos;Spots wo du bsuecht hesch i dinere persönliche Sammlig vo Spots, rund um d&apos;Welt. </target>
-      </segment>
-    </unit>
     <unit id="1096271480010782204">
       <segment state="initial">
         <source>Founder</source>
@@ -967,6 +1048,14 @@
         <target>D&apos;Passwörter stimmed nöd überein.</target>
       </segment>
     </unit>
+    <unit id="1927584134608367160">
+      <segment state="initial">
+        <source
+        >No Google account found on this device. Please add a Google account in your device settings and try again.</source>
+        <target
+        >Kein Google-Account gfunde uf dem Grät. Bitte füeg es Google-Konto uf dem Grät hinzue und probiers nomal.</target>
+      </segment>
+    </unit>
     <unit id="1948163304836345687">
       <segment state="initial">
         <source>You need to agree to the terms and conditions!</source>
@@ -988,7 +1077,7 @@
     <unit id="3631960501807863073">
       <segment state="initial">
         <source>New password is too weak.</source>
-        <target>S'Neue Passwort isch z'schwach.</target>
+        <target>S&apos;Neue Passwort isch z&apos;schwach.</target>
       </segment>
     </unit>
     <unit id="3637006077361642270">
@@ -1095,6 +1184,14 @@
             dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;"
             dispEnd="&lt;/span&gt;"
           >Other</pc></target>
+      </segment>
+    </unit>
+    <unit id="7122216721162972096">
+      <segment state="initial">
+        <source
+        > Download PK Spot from the Apple App Store. Get the seamless experience on your iPhone or iPad. </source>
+        <target
+        > Lad d&apos;PK Spot App vom Apple App Store abe für es nahtloses Erläbnis uf em iPhone oder iPad.</target>
       </segment>
     </unit>
     <unit id="6786034061470870852">
@@ -1685,7 +1782,7 @@
       </notes>
       <segment state="initial">
         <source>Password must be at least 6 characters</source>
-        <target>S'Passwort muss mindestens 6 Buechstabe lang sii.</target>
+        <target>S&apos;Passwort muss mindestens 6 Buechstabe lang sii.</target>
       </segment>
     </unit>
     <unit id="auth_action.password_mismatch">
@@ -1695,7 +1792,7 @@
       </notes>
       <segment state="initial">
         <source>Passwords do not match</source>
-        <target>D'Passwörter stimmed nöd überein</target>
+        <target>D&apos;Passwörter stimmed nöd überein</target>
       </segment>
     </unit>
     <unit id="auth_action.password_required">
@@ -1705,7 +1802,7 @@
       </notes>
       <segment state="initial">
         <source>Password is required</source>
-        <target>S'Passwort isch notwendig</target>
+        <target>S&apos;Passwort isch notwendig</target>
       </segment>
     </unit>
     <unit id="auth_action.reset_password">
@@ -2323,6 +2420,12 @@
         <target>Frühe Vogel</target>
       </segment>
     </unit>
+    <unit id="9058496705928443158">
+      <segment state="initial">
+        <source>Photographer</source>
+        <target>Fotograf</target>
+      </segment>
+    </unit>
     <unit id="9068926282349592226">
       <segment state="initial">
         <source>Password changed successfully</source>
@@ -2341,6 +2444,12 @@
             equiv="INTERPOLATION"
             disp="{{ review.spot?.name }}"
           />&apos;</target>
+      </segment>
+    </unit>
+    <unit id="9091381429305665620">
+      <segment state="initial">
+        <source>Helper</source>
+        <target>Helfer</target>
       </segment>
     </unit>
     <unit id="9113275416553101993">
@@ -2401,10 +2510,30 @@
         <target>Ungültigi E-Mail Addresse</target>
       </segment>
     </unit>
+    <unit id="9203623357458240065">
+      <segment state="initial">
+        <source><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Bad quality: This picture is blurry, too dark, or generally poor quality.</pc></source>
+        <target><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Schlechti Qualität: Das Bild isch usser Fokus, z&apos;dunkel oder suscht vo schlechter Qualität.</pc></target>
+      </segment>
+    </unit>
     <unit id="9210899085665920557">
       <segment state="initial">
         <source>Install Web App</source>
-        <target>Installier s'Web-App</target>
+        <target>Installier s&apos;Web-App</target>
       </segment>
     </unit>
     <unit id="947995176992343811">
@@ -2473,7 +2602,7 @@
     <unit id="6446631772000124223">
       <segment state="initial">
         <source>Password must be at least 6 characters</source>
-        <target>S'Passwort muss mindestens 6 Buechstabe lang sii</target>
+        <target>S&apos;Passwort muss mindestens 6 Buechstabe lang sii</target>
       </segment>
     </unit>
     <unit id="spot.review.count">
@@ -2539,6 +2668,28 @@
       <segment state="initial">
         <source>Embedding Preferences</source>
         <target>Ihbettigs Ihstellige</target>
+      </segment>
+    </unit>
+    <unit id="5851560788527570644">
+      <segment state="initial">
+        <source>Notifications</source>
+        <target>Notifikatione</target>
+      </segment>
+    </unit>
+    <unit id="5050053295355238935">
+      <segment state="initial">
+        <source><ph
+            id="0"
+            equiv="TAG_IMG"
+            type="image"
+            disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"
+          /> Download for Android </source>
+        <target><ph
+            id="0"
+            equiv="TAG_IMG"
+            type="image"
+            disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"
+          /> Uf Android abelade </target>
       </segment>
     </unit>
     <unit id="7049904563073707059">
@@ -2691,6 +2842,12 @@
         >De Link wird nöd erchennt. Bitte lueg i dini E-Mails und probiers nomal.</target>
       </segment>
     </unit>
+    <unit id="7688469791911355016">
+      <segment state="initial">
+        <source>Shutterbug</source>
+        <target>Hobby Fotograf</target>
+      </segment>
+    </unit>
     <unit id="editProfile.biography">
       <notes>
         <note category="description">Label for biography field</note>
@@ -2709,16 +2866,6 @@
       <segment state="initial">
         <source>Write your Bio here...</source>
         <target>Schriib dini Bio da...</target>
-      </segment>
-    </unit>
-    <unit id="editProfile.croppedPicture">
-      <notes>
-        <note category="description">Label for cropped profile picture</note>
-        <note category="meaning">cropped profile picture</note>
-      </notes>
-      <segment state="initial">
-        <source> Your cropped profile picture </source>
-        <target> Dis zuegschnittene Profilbild </target>
       </segment>
     </unit>
     <unit id="editProfile.currentPicture">
@@ -2768,16 +2915,6 @@
         <target>Nationalität</target>
       </segment>
     </unit>
-    <unit id="editProfile.readyToUpload">
-      <notes>
-        <note category="description">Status message</note>
-        <note category="meaning">ready to upload</note>
-      </notes>
-      <segment state="initial">
-        <source> Ready to upload </source>
-        <target> Parat zum Ufelade </target>
-      </segment>
-    </unit>
     <unit id="editProfile.selectPicture">
       <notes>
         <note category="description">Button to select profile picture</note>
@@ -2824,18 +2961,6 @@
         >Das isch s Datum, wo du ahgfange hesch Parkour und Freerunning z&apos;trainiere. Es wird uf volli Jahr abgerundet, wenns meh als es Jahr isch, drum keis Problem wenns nöd gnau weisch.</target>
       </segment>
     </unit>
-    <unit id="editProfile.uploadAndSave">
-      <notes>
-        <note
-          category="description"
-        >Button to upload and save profile picture</note>
-        <note category="meaning">upload and save button</note>
-      </notes>
-      <segment state="initial">
-        <source> Upload and save </source>
-        <target> Ufelade und speichere </target>
-      </segment>
-    </unit>
     <unit id="events.title">
       <notes>
         <note category="description">:</note>
@@ -2862,7 +2987,7 @@
         <source
         >Security check failed. Please sign in again and try deleting your account.</source>
         <target
-        >De Security check isch fehlgschlage. Bitte meld dich nomal ah und probier denn dis Konto z'lösche.</target>
+        >De Security check isch fehlgschlage. Bitte meld dich nomal ah und probier denn dis Konto z&apos;lösche.</target>
       </segment>
     </unit>
     <unit id="4218851671709080860">
@@ -3124,6 +3249,12 @@
         <target> Mis Konto lösche </target>
       </segment>
     </unit>
+    <unit id="2882100937757413407">
+      <segment state="initial">
+        <source>Architect</source>
+        <target>Architekt</target>
+      </segment>
+    </unit>
     <unit id="7833933616390918367">
       <segment state="initial">
         <source>Recovery Failed</source>
@@ -3156,6 +3287,26 @@
         > Mir sind Open-Source. Kei black-box Algorithme, kei versteckts Tracking. Nur cutting-edge Web Tech baut für d&apos;Community. </target>
       </segment>
     </unit>
+    <unit id="7952543174289794111">
+      <segment state="initial">
+        <source><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Duplicate: This image is already present on this spot.</pc></source>
+        <target><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Duplikat: Das Bild isch scho vorhande bi dem Spot.</pc></target>
+      </segment>
+    </unit>
     <unit id="8202652744541567309">
       <segment state="initial">
         <source>Password Reset Successful</source>
@@ -3166,6 +3317,32 @@
       <segment state="initial">
         <source>HTML Embed Code</source>
         <target>HTML Ihbettigs Code</target>
+      </segment>
+    </unit>
+    <unit id="5807661245547880377">
+      <notes>
+        <note
+          category="description"
+        >Label of the button to open the website of the spot</note>
+        <note category="meaning">Website button label</note>
+      </notes>
+      <segment state="initial">
+        <source><pc
+            id="0"
+            equivStart="START_TAG_MAT_ICON"
+            equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other"
+            dispStart="&lt;mat-icon&gt;"
+            dispEnd="&lt;/mat-icon&gt;"
+          >language</pc> Website </source>
+        <target><pc
+            id="0"
+            equivStart="START_TAG_MAT_ICON"
+            equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other"
+            dispStart="&lt;mat-icon&gt;"
+            dispEnd="&lt;/mat-icon&gt;"
+          >language</pc> Websiite </target>
       </segment>
     </unit>
     <unit id="5813867925497374051">
@@ -3187,7 +3364,7 @@
         <source
         > Have a question, found a bug, or want to request a feature? We&apos;d love to hear from you! </source>
         <target
-        > Hesch en Frag, en Bug gfunde, oder möchtsch en neus Feature? Mir würded eus freue vo dir z'ghöre! </target>
+        > Hesch en Frag, en Bug gfunde, oder möchtsch en neus Feature? Mir würded eus freue vo dir z&apos;ghöre! </target>
       </segment>
     </unit>
     <unit id="7008439939460403347">
@@ -3336,10 +3513,44 @@
         <target>Wasser Element</target>
       </segment>
     </unit>
+    <unit id="4743341466695708276">
+      <segment state="initial">
+        <source>Android</source>
+        <target>Android</target>
+      </segment>
+    </unit>
+    <unit id="4744376889247353452">
+      <segment state="initial">
+        <source>Curator</source>
+        <target>Kurator</target>
+      </segment>
+    </unit>
+    <unit id="4749191116785738627">
+      <segment state="initial">
+        <source><ph
+            id="0"
+            equiv="TAG_IMG"
+            type="image"
+            disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"
+          /> Download on App Store </source>
+        <target><ph
+            id="0"
+            equiv="TAG_IMG"
+            type="image"
+            disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"
+          /> Vom App Store abelade </target>
+      </segment>
+    </unit>
     <unit id="4771468580618188841">
       <segment state="initial">
         <source>Beginner friendly</source>
         <target>Ahfänger fründlich</target>
+      </segment>
+    </unit>
+    <unit id="4813152754732689397">
+      <segment state="initial">
+        <source>Contributor</source>
+        <target>Mitwirkende</target>
       </segment>
     </unit>
     <unit id="4819326588611894685">
@@ -3636,18 +3847,6 @@
         <target>Spot hinzuefüege</target>
       </segment>
     </unit>
-    <unit id="spot.challenges.add_empty">
-      <notes>
-        <note
-          category="description"
-        >Button to add a new challenge when none exist</note>
-        <note category="meaning">add challenge button empty</note>
-      </notes>
-      <segment state="initial">
-        <source>Add challenge</source>
-        <target>Challenge hinzuefüege</target>
-      </segment>
-    </unit>
     <unit id="801213320890707566">
       <segment state="initial">
         <source>Please select a file to upload</source>
@@ -3758,50 +3957,6 @@
         <target>Challenges</target>
       </segment>
     </unit>
-    <unit id="spot.challenges.add">
-      <notes>
-        <note category="description">Button to add a new challenge</note>
-        <note category="meaning">add challenge button</note>
-      </notes>
-      <segment state="initial">
-        <source>Add challenge</source>
-        <target>Challenge hinzuefüege</target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.header">
-      <notes>
-        <note category="description">Header for the challenges section</note>
-        <note category="meaning">challenges section header</note>
-      </notes>
-      <segment state="initial">
-        <source> Challenges </source>
-        <target> Challenges </target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.header_empty">
-      <notes>
-        <note
-          category="description"
-        >Header for challenges section when empty</note>
-        <note category="meaning">challenges section header empty</note>
-      </notes>
-      <segment state="initial">
-        <source> Challenges </source>
-        <target> Challenges </target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.no_challenges">
-      <notes>
-        <note
-          category="description"
-        >Message shown when there are no challenges</note>
-        <note category="meaning">no challenges message</note>
-      </notes>
-      <segment state="initial">
-        <source> There are no challenges for this spot yet. </source>
-        <target> Es git no kei Challenges für de Spot </target>
-      </segment>
-    </unit>
     <unit id="spot.details.header">
       <notes>
         <note category="description">Header for the spot details section</note>
@@ -3890,6 +4045,12 @@
       <segment state="initial">
         <source>Report button with a warning icon</source>
         <target>Melde Knopf miteme Warnigs-Bildli</target>
+      </segment>
+    </unit>
+    <unit id="5306473977542913614">
+      <segment state="initial">
+        <source>Activity</source>
+        <target>Aktivität</target>
       </segment>
     </unit>
     <unit id="5306728370945378331">
@@ -4146,6 +4307,12 @@
         <target>Medie hinzuegfüegt</target>
       </segment>
     </unit>
+    <unit id="6598126152282792001">
+      <segment state="initial">
+        <source>Unnamed Toilet</source>
+        <target>Unbennents WC</target>
+      </segment>
+    </unit>
     <unit id="611564526184434442">
       <segment state="initial">
         <source> in <ph
@@ -4190,6 +4357,14 @@
         <target>Kern</target>
       </segment>
     </unit>
+    <unit id="7037452207236778271">
+      <segment state="initial">
+        <source
+        > Download PK Spot from the Google Play Store. Get the seamless experience on your Android device. </source>
+        <target
+        > Lad PK Spot vom Google Play Store abe. Erhalt die nahtolisi User Experience uf dim Android Gerät. </target>
+      </segment>
+    </unit>
     <unit id="3998090677451328461">
       <segment state="initial">
         <source
@@ -4219,7 +4394,7 @@
         <source
         >Account mismatch. Please sign in to the correct account.</source>
         <target
-        >D'Konte stimmed nöd überein. Bitte meld dich mitem richtige Konto ah.</target>
+        >D&apos;Konte stimmed nöd überein. Bitte meld dich mitem richtige Konto ah.</target>
       </segment>
     </unit>
     <unit id="5109390034351761565">
@@ -4397,7 +4572,7 @@
       <segment state="initial">
         <source>Label and particpant type</source>
         <target>Art und Teilnehmer</target>
-      </segment>1
+      </segment>
     </unit>
     <unit id="4074207137823057482">
       <segment state="initial">
@@ -4410,7 +4585,7 @@
             id="0"
             equiv="INTERPOLATION"
             disp="{{ providerDisplayName }}"
-          /> zum s'Lösche bestätige. </target>
+          /> zum s&apos;Lösche bestätige. </target>
       </segment>
     </unit>
     <unit id="4077520913910941990">
@@ -4428,7 +4603,7 @@
     <unit id="7097945335364423857">
       <segment state="initial">
         <source>The reset E-mail has been sent!</source>
-        <target>S'Reset E-Mail isch gschickt worde!</target>
+        <target>S&apos;Reset E-Mail isch gschickt worde!</target>
       </segment>
     </unit>
     <unit id="8822206448271061589">
@@ -4486,12 +4661,6 @@
         > Die Challenge wird öffentlich sii gad nach dem sie hinzuegfüegt worde isch. </target>
       </segment>
     </unit>
-    <unit id="5994590242730766861">
-      <segment state="initial">
-        <source>Bookmark &amp; Collect</source>
-        <target>Merke &amp; Sammle</target>
-      </segment>
-    </unit>
     <unit id="5996977642855652872">
       <segment state="initial">
         <source>Please select the reason for this report:</source>
@@ -4502,12 +4671,6 @@
       <segment state="initial">
         <source>Could not sign in with Google!</source>
         <target>Fehler bim Aamälde mit Google!</target>
-      </segment>
-    </unit>
-    <unit id="397098723873502323">
-      <segment state="initial">
-        <source>Done</source>
-        <target>Fertig</target>
       </segment>
     </unit>
     <unit id="3973931101896534797">
@@ -4634,7 +4797,7 @@
     <unit id="6607382385355290684">
       <segment state="initial">
         <source>New passwords do not match</source>
-        <target>S'neue Passwort stimmt nöd überein</target>
+        <target>S&apos;neue Passwort stimmt nöd überein</target>
       </segment>
     </unit>
     <unit id="6642568354300862445">
@@ -4756,30 +4919,16 @@
         <target>Fehler bim Medie-Upload!</target>
       </segment>
     </unit>
+    <unit id="8998012040622657110">
+      <segment state="initial">
+        <source>Filmmaker</source>
+        <target>Filme-Macher</target>
+      </segment>
+    </unit>
     <unit id="8998179362936748717">
       <segment state="initial">
         <source>OK</source>
         <target>OK</target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.view_all">
-      <notes>
-        <note category="description">Button to view all challenges</note>
-        <note category="meaning">view all challenges button</note>
-      </notes>
-      <segment state="initial">
-        <source>View all challanges</source>
-        <target>Alli Challenges ahluege</target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.see_private">
-      <notes>
-        <note category="description">Button to see private challenges</note>
-        <note category="meaning">see private challenges button</note>
-      </notes>
-      <segment state="initial">
-        <source>See private challenges</source>
-        <target>Privati Challenges ahluege</target>
       </segment>
     </unit>
     <unit id="3724068243287682962">
@@ -4800,6 +4949,12 @@
       <segment state="initial">
         <source>Password Reset Failed</source>
         <target>Passwort zruggsetze fehlgschlage</target>
+      </segment>
+    </unit>
+    <unit id="3742657416068781599">
+      <segment state="initial">
+        <source>Editor</source>
+        <target>Bearbeiter</target>
       </segment>
     </unit>
     <unit id="open-embedded-in-pkspot-button-label">
@@ -4824,6 +4979,12 @@
       <segment state="initial">
         <source>Loading Google Maps® API...</source>
         <target>Google Maps® API ladt...</target>
+      </segment>
+    </unit>
+    <unit id="1772658275500241538">
+      <segment state="initial">
+        <source>Snapper</source>
+        <target>Bruno de Kameramaa</target>
       </segment>
     </unit>
     <unit id="1603041043712955298">
@@ -4906,6 +5067,12 @@
       <segment state="initial">
         <source>Smart Scorecard</source>
         <target>Smart Scorecard</target>
+      </segment>
+    </unit>
+    <unit id="5788860025290749857">
+      <segment state="initial">
+        <source>iOS App Store</source>
+        <target>iOS App Store</target>
       </segment>
     </unit>
     <unit id="1826181746940790026">

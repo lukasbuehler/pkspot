@@ -81,6 +81,12 @@
         <target>E-Mail</target>
       </segment>
     </unit>
+    <unit id="8124605615260157091">
+      <segment state="initial">
+        <source>Documenter</source>
+        <target>Dokumentar</target>
+      </segment>
+    </unit>
     <unit id="8126459137636028145">
       <notes>
         <note category="description">The header for the spot description</note>
@@ -110,6 +116,12 @@
       <segment state="initial">
         <source>Open the location of this spot in Maps</source>
         <target>Diesen Spot in Karten öffnen</target>
+      </segment>
+    </unit>
+    <unit id="open_google_maps_button_label">
+      <segment state="initial">
+        <source>Open in Google Maps</source>
+        <target>In Google Maps öffnen</target>
       </segment>
     </unit>
     <unit id="open_maps_button_label">
@@ -405,6 +417,26 @@
         <target>Neue E-Mail-Adresse</target>
       </segment>
     </unit>
+    <unit id="1444810422143574364">
+      <segment state="initial">
+        <source><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Not a picture of this spot: This image does not show the location or is misleading.</pc></source>
+        <target><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Kein Bild dieses Spots: Dieses Bild zeigt nicht den Spot oder ist irreführend.</pc></target>
+      </segment>
+    </unit>
     <unit id="1486755545881068533">
       <segment state="initial">
         <source>Re-authentication failed. Account not deleted.</source>
@@ -416,6 +448,14 @@
       <segment state="initial">
         <source>Change password</source>
         <target>Passwort ändern</target>
+      </segment>
+    </unit>
+    <unit id="1330427292857858931">
+      <segment state="initial">
+        <source
+        >No Apple ID found on this device. Please sign in to your Apple ID in your device settings and try again.</source>
+        <target
+        >Keine Apple ID auf diesem Gerät gefunden. Bitte melde dich in den Geräteeinstellungen mit deiner Apple ID an und versuche es erneut.</target>
       </segment>
     </unit>
     <unit id="1336542143746897548">
@@ -436,6 +476,12 @@
             equiv="PH"
             disp="Math.round(spot.rating * 10) / 10"
           /> ⭐</target>
+      </segment>
+    </unit>
+    <unit id="1347241542439262355">
+      <segment state="initial">
+        <source>General settings</source>
+        <target>Allgemeine Einstellungen</target>
       </segment>
     </unit>
     <unit id="1356237918552845367">
@@ -507,6 +553,13 @@
         <target>Anmelden</target>
       </segment>
     </unit>
+    <unit id="5223089976416033243">
+      <segment state="initial">
+        <source> General settings to tune your experience on PK Spot. </source>
+        <target
+        > Allgemeine Einstellungen, um dein Erlebnis auf PK Spot anzupassen. </target>
+      </segment>
+    </unit>
     <unit id="policy.long">
       <segment state="initial">
         <source>Privacy Policy</source>
@@ -575,6 +628,36 @@
       <segment state="initial">
         <source>Add a new spot</source>
         <target>Einen neuen Spot hinzufügen</target>
+      </segment>
+    </unit>
+    <unit id="map.geolocation_denied.snackbar">
+      <notes>
+        <note
+          category="description"
+        >Message shown when user clicks geolocation button but permissions are denied</note>
+        <note
+          category="meaning"
+        >Snackbar message for disabled geolocation info</note>
+      </notes>
+      <segment state="initial">
+        <source
+        >Location permission denied. Please enable it to use this feature.</source>
+        <target
+        >Standortberechtigung verweigert. Bitte aktiviere sie, um diese Funktion zu nutzen.</target>
+      </segment>
+    </unit>
+    <unit id="map.geolocation_denied.snackbar_action">
+      <notes>
+        <note
+          category="description"
+        >Action button on snackbar shown when user clicks geolocation button but permissions are denied</note>
+        <note
+          category="meaning"
+        >Snackbar action for disabled geolocation info</note>
+      </notes>
+      <segment state="initial">
+        <source>OK</source>
+        <target>OK</target>
       </segment>
     </unit>
     <unit id="map.highlighted_spots.structured_data_name">
@@ -794,13 +877,19 @@
         <source> <ph
             id="0"
             equiv="INTERPOLATION"
-            disp="{{ positiveLabel() }}"
+            disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"
           /> </source>
         <target> <ph
             id="0"
             equiv="INTERPOLATION"
-            disp="{{ positiveLabel() }}"
+            disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"
           /> </target>
+      </segment>
+    </unit>
+    <unit id="7724618434121262533">
+      <segment state="initial">
+        <source>Unnamed Drinking Water spot</source>
+        <target>Unbenannter Trinkwasserspot</target>
       </segment>
     </unit>
     <unit id="7733953409417762446">
@@ -920,14 +1009,6 @@
         <target>Live &amp; Verifiziert</target>
       </segment>
     </unit>
-    <unit id="1074819869528994576">
-      <segment state="initial">
-        <source
-        > Keep track of your journey. Bookmark your favorite training locations and save the spots you&apos;ve visited to build your personal collection of spots around the world. </source>
-        <target
-        > Verfolge deine Reise. Speichere deine bevorzugten Trainingsorte und die Spots, die du besucht hast, um deine persönliche Sammlung von Spots auf der ganzen Welt aufzubauen. </target>
-      </segment>
-    </unit>
     <unit id="1096271480010782204">
       <segment state="initial">
         <source>Founder</source>
@@ -964,6 +1045,14 @@
       <segment state="initial">
         <source>Password and repeated password don&apos;t match</source>
         <target>Die Passwörter stimmen nicht überein.</target>
+      </segment>
+    </unit>
+    <unit id="1927584134608367160">
+      <segment state="initial">
+        <source
+        >No Google account found on this device. Please add a Google account in your device settings and try again.</source>
+        <target
+        >Kein Google-Konto auf diesem Gerät gefunden. Bitte füge in den Geräteeinstellungen ein Google-Konto hinzu und versuche es erneut.</target>
       </segment>
     </unit>
     <unit id="1948163304836345687">
@@ -1365,7 +1454,7 @@
     <unit id="2029980907058777630">
       <segment state="initial">
         <source>Terms of Service</source>
-        <target>Terms of Service</target>
+        <target>Nutzungsbedingungen</target>
       </segment>
     </unit>
     <unit id="440458300676573130">
@@ -2325,6 +2414,12 @@
         <target>Early Adopter</target>
       </segment>
     </unit>
+    <unit id="9058496705928443158">
+      <segment state="initial">
+        <source>Photographer</source>
+        <target>Fotograf</target>
+      </segment>
+    </unit>
     <unit id="9068926282349592226">
       <segment state="initial">
         <source>Password changed successfully</source>
@@ -2343,6 +2438,12 @@
             equiv="INTERPOLATION"
             disp="{{ review.spot?.name }}"
           />&apos; bewerten</target>
+      </segment>
+    </unit>
+    <unit id="9091381429305665620">
+      <segment state="initial">
+        <source>Helper</source>
+        <target>Helfer</target>
       </segment>
     </unit>
     <unit id="9113275416553101993">
@@ -2401,6 +2502,26 @@
       <segment state="initial">
         <source>Invalid email address</source>
         <target>Ungültige E-Mail-Adresse</target>
+      </segment>
+    </unit>
+    <unit id="9203623357458240065">
+      <segment state="initial">
+        <source><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Bad quality: This picture is blurry, too dark, or generally poor quality.</pc></source>
+        <target><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Schlechte Qualität: Dieses Bild ist unscharf, zu dunkel oder hat allgemein eine schlechte Qualität.</pc></target>
       </segment>
     </unit>
     <unit id="9210899085665920557">
@@ -2542,6 +2663,28 @@
       <segment state="initial">
         <source>Embedding Preferences</source>
         <target>Einbettungs Einstellungen</target>
+      </segment>
+    </unit>
+    <unit id="5851560788527570644">
+      <segment state="initial">
+        <source>Notifications</source>
+        <target>Benachrichtigungen</target>
+      </segment>
+    </unit>
+    <unit id="5050053295355238935">
+      <segment state="initial">
+        <source><ph
+            id="0"
+            equiv="TAG_IMG"
+            type="image"
+            disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"
+          /> Download for Android </source>
+        <target><ph
+            id="0"
+            equiv="TAG_IMG"
+            type="image"
+            disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"
+          /> Für Android herunterladen </target>
       </segment>
     </unit>
     <unit id="7049904563073707059">
@@ -2694,6 +2837,12 @@
         >Dieser Link wird nicht erkannt. Bitte überprüfe deine E-Mail und versuche es erneut.</target>
       </segment>
     </unit>
+    <unit id="7688469791911355016">
+      <segment state="initial">
+        <source>Shutterbug</source>
+        <target>Hobbyfotograf</target>
+      </segment>
+    </unit>
     <unit id="editProfile.biography">
       <notes>
         <note category="description">Label for biography field</note>
@@ -2712,16 +2861,6 @@
       <segment state="initial">
         <source>Write your Bio here...</source>
         <target>Schreib deine Biografie hier...</target>
-      </segment>
-    </unit>
-    <unit id="editProfile.croppedPicture">
-      <notes>
-        <note category="description">Label for cropped profile picture</note>
-        <note category="meaning">cropped profile picture</note>
-      </notes>
-      <segment state="initial">
-        <source> Your cropped profile picture </source>
-        <target> Dein zugeschnittenes Profilbild </target>
       </segment>
     </unit>
     <unit id="editProfile.currentPicture">
@@ -2771,16 +2910,6 @@
         <target>Nationalität</target>
       </segment>
     </unit>
-    <unit id="editProfile.readyToUpload">
-      <notes>
-        <note category="description">Status message</note>
-        <note category="meaning">ready to upload</note>
-      </notes>
-      <segment state="initial">
-        <source> Ready to upload </source>
-        <target> Bereit zum Hochladen </target>
-      </segment>
-    </unit>
     <unit id="editProfile.selectPicture">
       <notes>
         <note category="description">Button to select profile picture</note>
@@ -2825,18 +2954,6 @@
         >This is the date you started practicing Parkour and Freerunning. It will be rounded to full years after one year or more so don&apos;t sweat it.</source>
         <target
         >Dies ist das Datum, an dem du mit Parkour und Freerunning angefangen hast. Nach einem Jahr oder mehr wird es auf volle Jahre gerundet, also mach dir keine Sorge über die Genauigkeit.</target>
-      </segment>
-    </unit>
-    <unit id="editProfile.uploadAndSave">
-      <notes>
-        <note
-          category="description"
-        >Button to upload and save profile picture</note>
-        <note category="meaning">upload and save button</note>
-      </notes>
-      <segment state="initial">
-        <source> Upload and save </source>
-        <target> Hochladen und speichern </target>
       </segment>
     </unit>
     <unit id="events.title">
@@ -3129,6 +3246,12 @@
         <target> Mein Konto löschen </target>
       </segment>
     </unit>
+    <unit id="2882100937757413407">
+      <segment state="initial">
+        <source>Architect</source>
+        <target>Architekt</target>
+      </segment>
+    </unit>
     <unit id="7833933616390918367">
       <segment state="initial">
         <source>Recovery Failed</source>
@@ -3161,6 +3284,26 @@
         >Wir sind Open Source. Keine Black-Box-Algorithmen, kein verstecktes Tracking. Nur modernste Web-Technologie im Dienst der Community.</target>
       </segment>
     </unit>
+    <unit id="7952543174289794111">
+      <segment state="initial">
+        <source><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Duplicate: This image is already present on this spot.</pc></source>
+        <target><pc
+            id="0"
+            equivStart="START_TAG_SPAN"
+            equivEnd="CLOSE_TAG_SPAN"
+            type="other"
+            dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;"
+            dispEnd="&lt;/span &gt;"
+          >Duplikat: Dieses Bild ist bereits bei diesem Spot vorhanden.</pc></target>
+      </segment>
+    </unit>
     <unit id="8202652744541567309">
       <segment state="initial">
         <source>Password Reset Successful</source>
@@ -3171,6 +3314,32 @@
       <segment state="initial">
         <source>HTML Embed Code</source>
         <target>HTML Einbettungscode</target>
+      </segment>
+    </unit>
+    <unit id="5807661245547880377">
+      <notes>
+        <note
+          category="description"
+        >Label of the button to open the website of the spot</note>
+        <note category="meaning">Website button label</note>
+      </notes>
+      <segment state="initial">
+        <source><pc
+            id="0"
+            equivStart="START_TAG_MAT_ICON"
+            equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other"
+            dispStart="&lt;mat-icon&gt;"
+            dispEnd="&lt;/mat-icon&gt;"
+          >language</pc> Website </source>
+        <target><pc
+            id="0"
+            equivStart="START_TAG_MAT_ICON"
+            equivEnd="CLOSE_TAG_MAT_ICON"
+            type="other"
+            dispStart="&lt;mat-icon&gt;"
+            dispEnd="&lt;/mat-icon&gt;"
+          >language</pc> Webseite </target>
       </segment>
     </unit>
     <unit id="5813867925497374051">
@@ -3341,10 +3510,44 @@
         <target>Wasser-Element</target>
       </segment>
     </unit>
+    <unit id="4743341466695708276">
+      <segment state="initial">
+        <source>Android</source>
+        <target>Android</target>
+      </segment>
+    </unit>
+    <unit id="4744376889247353452">
+      <segment state="initial">
+        <source>Curator</source>
+        <target>Kurator</target>
+      </segment>
+    </unit>
+    <unit id="4749191116785738627">
+      <segment state="initial">
+        <source><ph
+            id="0"
+            equiv="TAG_IMG"
+            type="image"
+            disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"
+          /> Download on App Store </source>
+        <target><ph
+            id="0"
+            equiv="TAG_IMG"
+            type="image"
+            disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"
+          /> Im App Store laden </target>
+      </segment>
+    </unit>
     <unit id="4771468580618188841">
       <segment state="initial">
         <source>Beginner friendly</source>
         <target>Anfängerfreundlich</target>
+      </segment>
+    </unit>
+    <unit id="4813152754732689397">
+      <segment state="initial">
+        <source>Contributor</source>
+        <target>Mitwirkender</target>
       </segment>
     </unit>
     <unit id="4819326588611894685">
@@ -3641,18 +3844,6 @@
         <target>Spot hinzufügen</target>
       </segment>
     </unit>
-    <unit id="spot.challenges.add_empty">
-      <notes>
-        <note
-          category="description"
-        >Button to add a new challenge when none exist</note>
-        <note category="meaning">add challenge button empty</note>
-      </notes>
-      <segment state="initial">
-        <source>Add challenge</source>
-        <target>Challenge hinzufügen</target>
-      </segment>
-    </unit>
     <unit id="801213320890707566">
       <segment state="initial">
         <source>Please select a file to upload</source>
@@ -3763,50 +3954,6 @@
         <target>Herausforderungen</target>
       </segment>
     </unit>
-    <unit id="spot.challenges.add">
-      <notes>
-        <note category="description">Button to add a new challenge</note>
-        <note category="meaning">add challenge button</note>
-      </notes>
-      <segment state="initial">
-        <source>Add challenge</source>
-        <target>Challenge hinzufügen</target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.header">
-      <notes>
-        <note category="description">Header for the challenges section</note>
-        <note category="meaning">challenges section header</note>
-      </notes>
-      <segment state="initial">
-        <source> Challenges </source>
-        <target> Herausforderungen </target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.header_empty">
-      <notes>
-        <note
-          category="description"
-        >Header for challenges section when empty</note>
-        <note category="meaning">challenges section header empty</note>
-      </notes>
-      <segment state="initial">
-        <source> Challenges </source>
-        <target> Herausforderungen </target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.no_challenges">
-      <notes>
-        <note
-          category="description"
-        >Message shown when there are no challenges</note>
-        <note category="meaning">no challenges message</note>
-      </notes>
-      <segment state="initial">
-        <source> There are no challenges for this spot yet. </source>
-        <target> Es gibt noch keine Challenges für diesen Spot. </target>
-      </segment>
-    </unit>
     <unit id="spot.details.header">
       <notes>
         <note category="description">Header for the spot details section</note>
@@ -3895,6 +4042,12 @@
       <segment state="initial">
         <source>Report button with a warning icon</source>
         <target>Melden Knopf mit einem Warnungs Bild</target>
+      </segment>
+    </unit>
+    <unit id="5306473977542913614">
+      <segment state="initial">
+        <source>Activity</source>
+        <target>Aktivität</target>
       </segment>
     </unit>
     <unit id="5306728370945378331">
@@ -4152,6 +4305,12 @@
         <target>Medien hinzugefügt</target>
       </segment>
     </unit>
+    <unit id="6598126152282792001">
+      <segment state="initial">
+        <source>Unnamed Toilet</source>
+        <target>Unbenannte Toilette</target>
+      </segment>
+    </unit>
     <unit id="611564526184434442">
       <segment state="initial">
         <source> in <ph
@@ -4194,6 +4353,14 @@
       <segment state="initial">
         <source>Core</source>
         <target>Kern</target>
+      </segment>
+    </unit>
+    <unit id="7037452207236778271">
+      <segment state="initial">
+        <source
+        > Download PK Spot from the Google Play Store. Get the seamless experience on your Android device. </source>
+        <target
+        > Lade PK Spot aus dem Google Play Store herunter. Erhalte das nahtlose Erlebnis auf deinem Android-Gerät. </target>
       </segment>
     </unit>
     <unit id="3998090677451328461">
@@ -4491,12 +4658,6 @@
         > Die Challenge wird sofort nach dem Hinzufügen öffentlich. </target>
       </segment>
     </unit>
-    <unit id="5994590242730766861">
-      <segment state="initial">
-        <source>Bookmark &amp; Collect</source>
-        <target>Merken &amp; Sammeln</target>
-      </segment>
-    </unit>
     <unit id="5996977642855652872">
       <segment state="initial">
         <source>Please select the reason for this report:</source>
@@ -4507,12 +4668,6 @@
       <segment state="initial">
         <source>Could not sign in with Google!</source>
         <target>Anmeldung mit Google fehlgeschlagen!</target>
-      </segment>
-    </unit>
-    <unit id="397098723873502323">
-      <segment state="initial">
-        <source>Done</source>
-        <target>Fertig</target>
       </segment>
     </unit>
     <unit id="3973931101896534797">
@@ -4604,6 +4759,14 @@
             dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;"
             dispEnd="&lt;/a&gt;"
           >Terms of Service</pc> zu und bestätigst, dass du Inhalte unter den darin beschriebenen Lizenzbedingungen beitragen wirst.</target>
+      </segment>
+    </unit>
+    <unit id="7122216721162972096">
+      <segment state="initial">
+        <source
+        > Download PK Spot from the Apple App Store. Get the seamless experience on your iPhone or iPad. </source>
+        <target
+        > Lade PK Spot aus dem Apple App Store herunter. Erhalte das nahtlose Erlebnis auf deinem iPhone oder iPad. </target>
       </segment>
     </unit>
     <unit id="7139999409916594388">
@@ -4761,30 +4924,16 @@
         <target>Fehler beim Hochladen der Medien!</target>
       </segment>
     </unit>
+    <unit id="8998012040622657110">
+      <segment state="initial">
+        <source>Filmmaker</source>
+        <target>Filmemacher</target>
+      </segment>
+    </unit>
     <unit id="8998179362936748717">
       <segment state="initial">
         <source>OK</source>
         <target>OK</target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.view_all">
-      <notes>
-        <note category="description">Button to view all challenges</note>
-        <note category="meaning">view all challenges button</note>
-      </notes>
-      <segment state="initial">
-        <source>View all challanges</source>
-        <target>Alle Challenges anzeigen</target>
-      </segment>
-    </unit>
-    <unit id="spot.challenges.see_private">
-      <notes>
-        <note category="description">Button to see private challenges</note>
-        <note category="meaning">see private challenges button</note>
-      </notes>
-      <segment state="initial">
-        <source>See private challenges</source>
-        <target>Private Challenges anzeigen</target>
       </segment>
     </unit>
     <unit id="3724068243287682962">
@@ -4805,6 +4954,12 @@
       <segment state="initial">
         <source>Password Reset Failed</source>
         <target>Passwortzurücksetzung fehlgeschlagen</target>
+      </segment>
+    </unit>
+    <unit id="3742657416068781599">
+      <segment state="initial">
+        <source>Editor</source>
+        <target>Bearbeiter</target>
       </segment>
     </unit>
     <unit id="open-embedded-in-pkspot-button-label">
@@ -4829,6 +4984,12 @@
       <segment state="initial">
         <source>Loading Google Maps® API...</source>
         <target>Lade Google Maps® API...</target>
+      </segment>
+    </unit>
+    <unit id="1772658275500241538">
+      <segment state="initial">
+        <source>Snapper</source>
+        <target>Knipser</target>
       </segment>
     </unit>
     <unit id="1603041043712955298">
@@ -4911,6 +5072,12 @@
       <segment state="initial">
         <source>Smart Scorecard</source>
         <target>Smarte Scorecard</target>
+      </segment>
+    </unit>
+    <unit id="5788860025290749857">
+      <segment state="initial">
+        <source>iOS App Store</source>
+        <target>iOS App Store</target>
       </segment>
     </unit>
     <unit id="1826181746940790026">

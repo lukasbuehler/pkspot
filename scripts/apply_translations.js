@@ -7,6 +7,7 @@ const files = [
   "src/locale/messages.fr.xlf",
   "src/locale/messages.it.xlf",
   "src/locale/messages.nl.xlf",
+  "src/locale/messages.de-CH.xlf",
 ];
 
 const translations = {
@@ -1207,7 +1208,429 @@ const translations = {
     it: "{VAR_PLURAL, plural, =1 {Seguace} other {Seguaci}}",
     nl: "{VAR_PLURAL, plural, =1 {Volger} other {Volgers}}",
   },
+  "Open in Google Maps": {
+    de: "In Google Maps öffnen",
+    es: "Abrir en Google Maps",
+    fr: "Ouvrir dans Google Maps",
+    it: "Apri in Google Maps",
+    nl: "Openen in Google Maps",
+  },
+  "Android Early Access": {
+    de: "Android Early Access",
+    es: "Acceso Anticipado Android",
+    fr: "Accès anticipé Android",
+    it: "Accesso anticipato Android",
+    nl: "Android Early Access",
+  },
+  "Become a Tester": {
+    de: "Tester werden",
+    es: "Convertirse en tester",
+    fr: "Devenir testeur",
+    it: "Diventa un tester",
+    nl: "Tester worden",
+  },
+  "iOS App Store": {
+    de: "iOS App Store",
+    es: "App Store de iOS",
+    fr: "App Store iOS",
+    it: "App Store iOS",
+    nl: "iOS App Store",
+  },
+  GitHub: {
+    de: "GitHub",
+    es: "GitHub",
+    fr: "GitHub",
+    it: "GitHub",
+    nl: "GitHub",
+  },
+  Photographer: {
+    de: "Fotograf",
+    es: "Fotógrafo",
+    fr: "Photographe",
+    it: "Fotografo",
+    nl: "Fotograaf",
+  },
+  Helper: {
+    de: "Helfer",
+    es: "Ayudante",
+    fr: "Aide",
+    it: "Aiutante",
+    nl: "Helper",
+  },
+  Architect: {
+    de: "Architekt",
+    es: "Arquitecto",
+    fr: "Architecte",
+    it: "Architetto",
+    nl: "Architect",
+  },
+  Curator: {
+    de: "Kurator",
+    es: "Curador",
+    fr: "Conservateur",
+    it: "Curatore",
+    nl: "Curator",
+  },
+  Contributor: {
+    de: "Mitwirkender",
+    es: "Colaborador",
+    fr: "Contributeur",
+    it: "Contributore",
+    nl: "Bijdrager",
+  },
+  Editor: {
+    de: "Editor",
+    es: "Editor",
+    fr: "Éditeur",
+    it: "Editore",
+    nl: "Editor",
+  },
+  Snapper: {
+    de: "Knipser",
+    es: "Fotógrafo",
+    fr: "Photographe",
+    it: "Fotografo",
+    nl: "Snapper",
+  },
+  Filmmaker: {
+    de: "Filmemacher",
+    es: "Cineasta",
+    fr: "Cinéaste",
+    it: "Regista",
+    nl: "Filmmaker",
+  },
+  "Get Support": {
+    de: "Unterstützung erhalten",
+    es: "Obtener soporte",
+    fr: "Obtenir de l'aide",
+    it: "Ricevi supporto",
+    nl: "Krijg ondersteuning",
+  },
+  "What is Early Access?": {
+    de: "Was ist Early Access?",
+    es: "¿Qué es el Acceso Anticipado?",
+    fr: "Qu'est-ce que l'accès anticipé ?",
+    it: "Cos'è l'accesso anticipato?",
+    nl: "Wat is Early Access?",
+  },
+  Shutterbug: {
+    de: "Hobbyfotograf",
+    es: "Aficionado a la fotografía",
+    fr: "Passionné de photo",
+    it: "Appassionato di foto",
+    nl: "Hobbyfotograaf",
+  },
+  Solo: {
+    de: "Solo",
+    es: "Solo",
+    fr: "Solo",
+    it: "Solo",
+    nl: "Solo",
+  },
+  Team: {
+    de: "Team",
+    es: "Equipo",
+    fr: "Équipe",
+    it: "Team",
+    nl: "Team",
+  },
+  "Terms of Service": {
+    de: "Nutzungsbedingungen",
+    es: "Términos de servicio",
+    fr: "Conditions d'utilisation",
+    it: "Termini di servizio",
+    nl: "Servicevoorwaarden",
+  },
+  "Unnamed Drinking Water spot": {
+    de: "Unbenannter Trinkwasserspot",
+    es: "Punto de agua potable sin nombre",
+    fr: "Point d'eau potable sans nom",
+    it: "Punto acqua potabile senza nome",
+    nl: "Naamloze drinkwaterplek",
+  },
+  "Unnamed Toilet": {
+    de: "Unbenannte Toilette",
+    es: "Baño sin nombre",
+    fr: "Toilettes sans nom",
+    it: "Bagno senza nome",
+    nl: "Naamloos toilet",
+  },
+  "Download PK Spot from the Apple App Store. Get the full native experience with offline support and seamless performance on your iPhone or iPad.":
+    {
+      de: "Lade PK Spot aus dem Apple App Store herunter. Hol dir das volle native Erlebnis mit Offline-Unterstützung und nahtloser Leistung auf deinem iPhone oder iPad.",
+      es: "Descarga PK Spot desde la Apple App Store. Obtén la experiencia nativa completa con soporte offline y rendimiento fluido en tu iPhone o iPad.",
+      fr: "Téléchargez PK Spot depuis l'App Store Apple. Profitez de l'expérience native complète avec le support hors ligne et des performances fluides sur votre iPhone ou iPad.",
+      it: "Scarica PK Spot dall'Apple App Store. Ottieni l'esperienza nativa completa con supporto offline e prestazioni fluide sul tuo iPhone o iPad.",
+      nl: "Download PK Spot uit de Apple App Store. Krijg de volledige native ervaring met offline ondersteuning en naadloze prestaties op je iPhone of iPad.",
+    },
+  "Be among the first to try PK Spot on Android! Join our early access program to get the app before the official launch and help us make it even better.":
+    {
+      de: "Sei einer der Ersten, die PK Spot auf Android ausprobieren! Tritt unserem Early-Access-Programm bei, um die App vor dem offiziellen Start zu erhalten und uns zu helfen, sie noch besser zu machen.",
+      es: "¡Sé uno de los primeros en probar PK Spot en Android! Únete a nuestro programa de acceso anticipado para obtener la aplicación antes del lanzamiento oficial y ayúdanos a mejorarla.",
+      fr: "Soyez parmi les premiers à essayer PK Spot sur Android ! Rejoignez notre programme d'accès anticipé pour obtenir l'application avant le lancement officiel et aidez-nous à l'améliorer.",
+      it: "Sii tra i primi a provare PK Spot su Android! Unisciti al nostro programma di accesso anticipato per ottenere l'app prima del lancio ufficiale e aiutaci a migliorarla.",
+      nl: "Wees een van de eersten die PK Spot op Android probeert! Word lid van ons Early Access-programma om de app voor de officiële lancering te krijgen en ons te helpen deze nog beter te maken.",
+    },
+  "Be among the first to experience PK Spot on Android! Join our closed testing program and help shape the future of the app.":
+    {
+      de: "Sei einer der Ersten, die PK Spot auf Android erleben! Tritt unserem geschlossenen Testprogramm bei und hilf mit, die Zukunft der App zu gestalten.",
+      es: "¡Sé uno de los primeros en experimentar PK Spot en Android! Únete a nuestro programa de pruebas cerrado y ayuda a dar forma al futuro de la aplicación.",
+      fr: "Soyez parmi les premiers à découvrir PK Spot sur Android ! Rejoignez notre programme de test fermé et aidez à façonner l'avenir de l'application.",
+      it: "Sii tra i primi a provare l'esperienza di PK Spot su Android! Unisciti al nostro programma di test chiuso e aiuta a plasmare il futuro dell'app.",
+      nl: "Wees een van de eersten die PK Spot op Android ervaart! Doe mee aan ons gesloten testprogramma en help de toekomst van de app vorm te geven.",
+    },
+  "Follow these three simple steps to get the Android app before anyone else.":
+    {
+      de: "Folge diesen drei einfachen Schritten, um die Android-App vor allen anderen zu erhalten.",
+      es: "Sigue estos tres sencillos pasos para obtener la aplicación de Android antes que nadie.",
+      fr: "Suivez ces trois étapes simples pour obtenir l'application Android avant tout le monde.",
+      it: "Segui questi tre semplici passaggi per ottenere l'app Android prima di chiunque altro.",
+      nl: "Volg deze drie eenvoudige stappen om de Android-app eerder dan wie dan ook te krijgen.",
+    },
+  "Early access versions may have bugs. Your feedback helps us fix issues before the public launch.":
+    {
+      de: "Early-Access-Versionen können Fehler enthalten. Dein Feedback hilft uns, Probleme vor dem öffentlichen Start zu beheben.",
+      es: "Las versiones de acceso anticipado pueden tener errores. Tus comentarios nos ayudan a solucionar problemas antes del lanzamiento público.",
+      fr: "Les versions d'accès anticipé peuvent contenir des bugs. Vos commentaires nous aident à corriger les problèmes avant le lancement public.",
+      it: "Le versioni ad accesso anticipato potrebbero contenere bug. Il tuo feedback ci aiuta a risolvere i problemi prima del lancio pubblico.",
+      nl: "Versies voor vroegtijdige toegang kunnen bugs bevatten. Jouw feedback helpt ons problemen op te lossen vóór de publieke lancering.",
+    },
+  "Be the first to try new features and improvements as we develop them.": {
+    de: "Sei der Erste, der neue Funktionen und Verbesserungen ausprobiert, während wir sie entwickeln.",
+    es: "Sé el primero en probar nuevas funciones y mejoras a medida que las desarrollamos.",
+    fr: "Soyez le premier à essayer les nouvelles fonctionnalités et améliorations au fur et à mesure que nous les développons.",
+    it: "Sii il primo a provare nuove funzionalità e miglioramenti mentre li sviluppiamo.",
+    nl: "Wees de eerste die nieuwe functies en verbeteringen uitprobeert terwijl we ze ontwikkelen.",
+  },
+  "Your feedback directly influences the direction of the app. Tell us what you love and what needs work.":
+    {
+      de: "Dein Feedback beeinflusst direkt die Richtung der App. Sag uns, was dir gefällt und was verbessert werden muss.",
+      es: "Tus comentarios influyen directamente en la dirección de la aplicación. Cuéntanos qué te encanta y qué necesita trabajo.",
+      fr: "Vos commentaires influencent directement la direction de l'application. Dites-nous ce que vous aimez et ce qui doit être amélioré.",
+      it: "Il tuo feedback influenza direttamente la direzione dell'app. Dicci cosa ami e cosa deve essere migliorato.",
+      nl: "Jouw feedback beïnvloedt direct de richting van de app. Vertel ons wat je leuk vindt en wat verbetering behoeft.",
+    },
+  "Location permission denied. Please enable it to use this feature.": {
+    de: "Standortberechtigung verweigert. Bitte aktiviere sie, um diese Funktion zu nutzen.",
+    es: "Permiso de ubicación denegado. Habilítalo para usar esta función.",
+    fr: "Autorisation de localisation refusée. Veuillez l'activer pour utiliser cette fonctionnalité.",
+    it: "Autorizzazione alla posizione negata. Abilitala per utilizzare questa funzione.",
+    nl: "Locatietoestemming geweigerd. Schakel dit in om deze functie te gebruiken.",
+  },
+  "No Google account found on this device. Please add a Google account in your device settings and try again.":
+    {
+      de: "Kein Google-Konto auf diesem Gerät gefunden. Bitte füge in den Geräteeinstellungen ein Google-Konto hinzu und versuche es erneut.",
+      es: "No se encontró ninguna cuenta de Google en este dispositivo. Agrega una cuenta de Google en la configuración de tu dispositivo e intenta de nuevo.",
+      fr: "Aucun compte Google trouvé sur cet appareil. Veuillez ajouter un compte Google dans les paramètres de votre appareil et réessayer.",
+      it: "Nessun account Google trovato su questo dispositivo. Aggiungi un account Google nelle impostazioni del dispositivo e riprova.",
+      nl: "Geen Google-account gevonden op dit apparaat. Voeg een Google-account toe in je apparaatinstellingen en probeer het opnieuw.",
+    },
+  "No Apple ID found on this device. Please sign in to your Apple ID in your device settings and try again.":
+    {
+      de: "Keine Apple ID auf diesem Gerät gefunden. Bitte melde dich in den Geräteeinstellungen mit deiner Apple ID an und versuche es erneut.",
+      es: "No se encontró ningún ID de Apple en este dispositivo. Inicia sesión con su ID de Apple en la configuración de su dispositivo e intenta de nuevo.",
+      fr: "Aucun identifiant Apple trouvé sur cet appareil. Veuillez vous connecter à votre identifiant Apple dans les paramètres de votre appareil et réessayer.",
+      it: "Nessun ID Apple trovato su questo dispositivo. Accedi al tuo ID Apple nelle impostazioni del dispositivo e riprova.",
+      nl: "Geen Apple ID gevonden op dit apparaat. Log in met je Apple ID in je apparaatinstellingen en probeer het opnieuw.",
+    },
+  "General settings": {
+    de: "Allgemeine Einstellungen",
+    es: "Configuración general",
+    fr: "Paramètres généraux",
+    it: "Impostazioni generali",
+    nl: "Algemene instellingen",
+  },
+  " General settings to tune your experience on PK Spot. ": {
+    de: " Allgemeine Einstellungen, um dein Erlebnis auf PK Spot anzupassen. ",
+    es: " Configuración general para ajustar tu experiencia en PK Spot. ",
+    fr: " Paramètres généraux pour ajuster votre expérience sur PK Spot. ",
+    it: " Impostazioni generali per ottimizzare la tua esperienza su PK Spot. ",
+    nl: " Algemene instellingen om je ervaring op PK Spot aan te passen. ",
+  },
+  "Get on Play Store": {
+    de: "Auf Play Store holen",
+    es: "Obtener en Play Store",
+    fr: "Obtenir sur Play Store",
+    it: "Disponibile su Play Store",
+    nl: "Downloaden via Play Store",
+  },
+  "Join Google Group": {
+    de: "Google-Gruppe beitreten",
+    es: "Unirse al grupo de Google",
+    fr: "Rejoindre le groupe Google",
+    it: "Unisciti al gruppo Google",
+    nl: "Word lid van Google Groep",
+  },
+  "How to Join": {
+    de: "Wie man beitritt",
+    es: "Cómo unirse",
+    fr: "Comment rejoindre",
+    it: "Come partecipare",
+    nl: "Hoe deelnemen",
+  },
+  "Shape the App": {
+    de: "Gestalte die App",
+    es: "Da forma a la App",
+    fr: "Façonnez l'application",
+    it: "Plasma l'app",
+    nl: "Geef de app vorm",
+  },
+  "Get Features First": {
+    de: "Erhalte Funktionen zuerst",
+    es: "Obtén funciones primero",
+    fr: "Obtenez les fonctionnalités en avant-première",
+    it: "Ottieni le funzionalità prima",
+    nl: "Krijg functies als eerste",
+  },
+  "Have questions or running into issues?": {
+    de: "Hast du Fragen oder Probleme?",
+    es: "¿Tienes preguntas o problemas?",
+    fr: "Des questions ou des problèmes ?",
+    it: "Hai domande o riscontri problemi?",
+    nl: "Heb je vragen of kom je problemen tegen?",
+  },
+  "Help Find Bugs": {
+    de: "Hilf Fehler zu finden",
+    es: "Ayuda a encontrar errores",
+    fr: "Aidez à trouver des bugs",
+    it: "Aiuta a trovare bug",
+    nl: "Help bugs te vinden",
+  },
+  Documenter: {
+    de: "Dokumentar",
+    es: "Documentalista",
+    fr: "Documentaliste",
+    it: "Documentalista",
+    nl: "Documenteerder",
+  },
+  No: {
+    de: "Nein",
+    es: "No",
+    fr: "Non",
+    it: "No",
+    nl: "Nee",
+  },
+  Notifications: {
+    de: "Benachrichtigungen",
+    es: "Notificaciones",
+    fr: "Notifications",
+    it: "Notifiche",
+    nl: "Meldingen",
+  },
+  "First, you need to join our Google Group. This is required by Google Play to participate in closed testing programs. Press the big button at the top to join the group.":
+    {
+      de: "Zuerst musst du unserer Google-Gruppe beitreten. Dies ist von Google Play erforderlich, um an geschlossenen Testprogrammen teilzunehmen. Drücke den großen Knopf oben, um der Gruppe beizutreten.",
+      es: "Primero, debes unirte a nuestro grupo de Google. Esto es requerido por Google Play para participar en programas de pruebas cerrados. Presiona el botón grande en la parte superior para unirte al grupo.",
+      fr: "D'abord, vous devez rejoindre notre groupe Google. C'est requis par Google Play pour participer aux programmes de test fermés. Appuyez sur le grand bouton en haut pour rejoindre le groupe.",
+      it: "Per prima cosa, devi unirti al nostro gruppo Google. Questo è richiesto da Google Play per partecipare ai programmi di test chiusi. Premi il pulsante grande in alto per unirti al gruppo.",
+      nl: "Eerst moet je lid worden van onze Google Groep. Dit is vereist door Google Play om deel te nemen aan gesloten testprogramma's. Druk op de grote knop bovenaan om lid te worden van de groep.",
+    },
+  '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">download</pc> Download the App ':
+    {
+      de: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">download</pc> App herunterladen ',
+      es: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">download</pc> Descargar la App ',
+      fr: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">download</pc> Télécharger l\'application ',
+      it: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">download</pc> Scarica l\'App ',
+      nl: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">download</pc> Download de app ',
+    },
+  '<ph id="0" equiv="INTERPOLATION" disp="{{ daysRemaining }}"/> days remaining in early access':
+    {
+      de: '<ph id="0" equiv="INTERPOLATION" disp="{{ daysRemaining }}"/> Tage verbleibend im Early Access',
+      es: '<ph id="0" equiv="INTERPOLATION" disp="{{ daysRemaining }}"/> días restantes en acceso anticipado',
+      fr: '<ph id="0" equiv="INTERPOLATION" disp="{{ daysRemaining }}"/> jours restants en accès anticipé',
+      it: '<ph id="0" equiv="INTERPOLATION" disp="{{ daysRemaining }}"/> giorni rimanenti in accesso anticipato',
+      nl: '<ph id="0" equiv="INTERPOLATION" disp="{{ daysRemaining }}"/> dagen over in early access',
+    },
+  "← Back to About": {
+    de: "← Zurück zu Über uns",
+    es: "← Volver a Acerca de",
+    fr: "← Retour à À propos",
+    it: "← Torna a Informazioni",
+    nl: "← Terug naar Over",
+  },
+  '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Bad quality: This picture is blurry, too dark, or generally poor quality.</pc>':
+    {
+      de: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Schlechte Qualität: Dieses Bild ist unscharf, zu dunkel oder hat allgemein eine schlechte Qualität.</pc>',
+      es: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Mala calidad: Esta imagen es borrosa, demasiado oscura o de mala calidad en general.</pc>',
+      fr: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Mauvaise qualité : Cette image est floue, trop sombre ou de mauvaise qualité générale.</pc>',
+      it: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Scarsa qualità: Questa immagine è sfocata, troppo scura o di scarsa qualità generale.</pc>',
+      nl: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Slechte kwaliteit: Deze afbeelding is wazig, te donker of over het algemeen van slechte kwaliteit.</pc>',
+    },
+  '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Join Early Access ':
+    {
+      de: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Early Access beitreten ',
+      es: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Unirse al Acceso Anticipado ',
+      fr: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Rejoindre l\'accès anticipé ',
+      it: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Unisciti all\'Accesso Anticipato ',
+      nl: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Word lid van Early Access ',
+    },
+  " After joining the group, visit the Play Store testing page and opt in to become a tester. This unlocks access to the early access version. ":
+    {
+      de: " Nachdem du der Gruppe beigetreten bist, besuche die Play Store-Testseite und melde dich als Tester an. Dies schaltet den Zugang zur Early-Access-Version frei. ",
+      es: " Después de unirte al grupo, visita la página de prueba de Play Store y solicita participar como probador. Esto desbloquea el acceso a la versión de acceso anticipado. ",
+      fr: " Après avoir rejoint le groupe, visitez la page de test du Play Store et inscrivez-vous comme testeur. Cela débloque l'accès à la version d'accès anticipé. ",
+      it: " Dopo esserti unito al gruppo, visita la pagina di test del Play Store e iscriviti come tester. Questo sblocca l'accesso alla versione ad accesso anticipato. ",
+      nl: " Nadat je lid bent geworden van de groep, bezoek je de testpagina van de Play Store en meld je je aan als tester. Dit ontgrendelt toegang tot de early access-versie. ",
+    },
+  '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This image is already present on this spot.</pc>':
+    {
+      de: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplikat: Dieses Bild ist bereits bei diesem Spot vorhanden.</pc>',
+      es: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicado: Esta imagen ya está presente en este spot.</pc>',
+      fr: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Doublon : Cette image est déjà présente sur ce spot.</pc>',
+      it: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicato: Questa immagine è già presente in questo spot.</pc>',
+      nl: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicaat: Deze afbeelding is al aanwezig bij deze spot.</pc>',
+    },
+  '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Website ':
+    {
+      de: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Webseite ',
+      es: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Sitio web ',
+      fr: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Site web ',
+      it: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Sito web ',
+      nl: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Website ',
+    },
+  '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Download on App Store ':
+    {
+      de: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Im App Store laden ',
+      es: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Descargar en App Store ',
+      fr: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Télécharger sur l\'App Store ',
+      it: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Scarica su App Store ',
+      nl: '<ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Downloaden in de App Store ',
+    },
+  '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">group_add</pc> Join the Google Group ':
+    {
+      de: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">group_add</pc> Der Google-Gruppe beitreten ',
+      es: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">group_add</pc> Unirse al grupo de Google ',
+      fr: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">group_add</pc> Rejoindre le groupe Google ',
+      it: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">group_add</pc> Unisciti al gruppo Google ',
+      nl: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">group_add</pc> Word lid van de Google Groep ',
+    },
+  '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">verified_user</pc> Become a Tester ':
+    {
+      de: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">verified_user</pc> Tester werden ',
+      es: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">verified_user</pc> Convertirse en tester ',
+      fr: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">verified_user</pc> Devenir testeur ',
+      it: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">verified_user</pc> Diventa un tester ',
+      nl: '<pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">verified_user</pc> Tester worden ',
+    },
+  '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Not a picture of this spot: This image does not show the location or is misleading.</pc>':
+    {
+      de: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Kein Bild dieses Spots: Dieses Bild zeigt nicht den Ort oder ist irreführend.</pc>',
+      es: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">No es una foto de este lugar: Esta imagen no muestra la ubicación o es engañosa.</pc>',
+      fr: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Pas une photo de ce lieu : Cette image ne montre pas l\'emplacement ou est trompeuse.</pc>',
+      it: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Non è una foto di questo posto: Questa immagine non mostra la posizione o è fuorviante.</pc>',
+      nl: '<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Geen foto van deze plek: Deze afbeelding toont de locatie niet of is misleidend.</pc>',
+    },
+  " Once you&apos;re a tester, you can download PK Spot from the Google Play Store. The app will update automatically as we release new versions. ":
+    {
+      de: " Sobald du ein Tester bist, kannst du PK Spot aus dem Google Play Store herunterladen. Die App wird automatisch aktualisiert, wenn wir neue Versionen veröffentlichen. ",
+      es: " Una vez que seas probador, puedes descargar PK Spot de Google Play Store. La aplicación se actualizará automáticamente a medida que lancemos nuevas versiones. ",
+      fr: " Une fois testeur, vous pouvez télécharger PK Spot sur le Google Play Store. L'application se mettra à jour automatiquement dès que nous publierons de nouvelles versions. ",
+      it: " Una volta che sei un tester, puoi scaricare PK Spot dal Google Play Store. L'app si aggiornerà automaticamente man mano che rilasceremo nuove versioni. ",
+      nl: " Zodra je tester bent, kun je PK Spot downloaden uit de Google Play Store. De app wordt automatisch bijgewerkt zodra we nieuwe versies uitbrengen. ",
+    },
 };
+
+const normalize = (s) => s.replace(/\s+/g, " ").replace(/"\s+>/g, '">').trim();
 
 function processFile(filePath) {
   const absolutePath = path.resolve(filePath);
@@ -1216,7 +1639,7 @@ function processFile(filePath) {
     return;
   }
 
-  const langMatch = filePath.match(/messages\.([a-z]{2})?\.xlf/);
+  const langMatch = filePath.match(/messages\.([a-zA-Z-]+)\.xlf/);
   const lang = langMatch ? langMatch[1] : null;
 
   if (!lang) {
@@ -1224,131 +1647,151 @@ function processFile(filePath) {
     return;
   }
 
-  // Map 'de' to 'de' etc. basically logic is straightforward
   console.log(`Processing ${filePath} for language ${lang}...`);
 
   let content = fs.readFileSync(absolutePath, "utf8");
-  const lines = content.split("\n");
-  const newLines = [];
 
-  let inSource = false;
-  let inTarget = false;
-  let sourceLines = [];
-  let targetLines = [];
-  let currentUnitStart = 0;
+  // Regex to find units.
+  // We capture:
+  // 1. The part before <target>
+  // 2. The source content
+  // 3. The part between source end and target start (usually just whitespace + <target>)
+  // 4. The target content
+  // 5. The part after target content end
 
-  // We will iterate and build a NEW content string.
-  // Actually, regex replacement might be safer if we can match the chunks.
-  // But line-by-line reconstruction is safer for preserving formatting.
+  // Note: This regex assumes standard order <source> then <target> inside a segment.
 
-  // Actually, we can just replace <target>Source</target> with <target>Translation</target>
-  // BUT we have to be careful about matching exact source.
+  // We'll iterate manually because we need to normalize the source for lookup but replace the target in the original string.
 
-  // Let's use the parsing logic to identify where to replace.
+  // Strategy: match the full unit, parse source, lookup, replace target.
 
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
-    const trimmed = line.trim();
+  const unitRegex =
+    /<unit id="([^"]+)">[\s\S]*?<segment state="initial">[\s\S]*?<source>([\s\S]*?)<\/source>[\s\S]*?<target>([\s\S]*?)<\/target>[\s\S]*?<\/segment>[\s\S]*?<\/unit>/g;
 
-    if (trimmed.includes("<source>")) {
-      // Start of a unit logic
-      // We need to capture source and target
-      // This simple parser assumes standard formatting
-    }
+  let match;
+  let newContent = content;
 
-    // Actually, let's just use string replacement on the file content for the specific patterns
-    // identified in uniqueSources? No, that's dangerous if source appears multiple times differently.
-    // XLIFF structure is:
-    // <unit id="...">
-    //   <segment>
-    //     <source>...</source>
-    //     <target>...</target>
-    //   </segment>
-    // </unit>
+  // We need to build a map of replacements to do.
+  // We cannot modify newContent while iterating with regex on content, so we will collect replacements.
+  const replacements = [];
 
-    // We can loop through the file similar to the analyzer, and when we find a Match, we modify the target line.
-    newLines.push(line);
-    i++;
-  }
+  // Re-create regex to iterate
+  const unitRegexIter =
+    /<unit id="([^"]+)">[\s\S]*?<segment state="initial">[\s\S]*?<source>([\s\S]*?)<\/source>([\s\S]*?)<target>([\s\S]*?)<\/target>[\s\S]*?<\/segment>[\s\S]*?<\/unit>/g;
 
-  // Re-reading to actually implement the logic:
-  // We need to buffer the lines to find source and target of a unit.
+  while ((match = unitRegexIter.exec(content)) !== null) {
+    const fullMatch = match[0];
+    const unitId = match[1];
+    const sourceContent = match[2];
+    const middleContent = match[3];
+    const targetContent = match[4];
 
-  const outputLines = [];
-  let buffer = [];
-  let unitSource = null;
-  let unitTarget = null;
-  let targetIndexInBuffer = -1;
-  let sourceIndexInBuffer = -1;
+    const normalizedSource = normalize(sourceContent);
+    const normalizedTarget = normalize(targetContent);
 
-  for (let j = 0; j < lines.length; j++) {
-    const line = lines[j];
-    const trimmed = line.trim();
+    // Check if it's already translated (source != target)
+    // This check is a bit loose because of normalization, but if normalized source == normalized target, it's likely untranslated.
 
-    if (trimmed.startsWith('<unit id="')) {
-      // Flush buffer if any
-      outputLines.push(...buffer);
-      buffer = [line];
-      unitSource = null;
-      unitTarget = null;
-      targetIndexInBuffer = -1;
-      sourceIndexInBuffer = -1;
-    } else if (trimmed.startsWith("</unit>")) {
-      buffer.push(line);
+    // Explicit lookup first
+    let translationKey = Object.keys(translations).find(
+      (key) => normalize(key) === normalizedSource
+    );
 
-      // Process the unit in buffer
-      if (unitSource && unitTarget && unitSource === unitTarget) {
-        const translation = translations[unitSource];
-        if (translation && translation[lang]) {
-          // Replace target line
-          // We assume single line <target>...</target> for simplicity based on previous files
-          // If multi-line, this logic needs to be better.
-          // The analyzer handled multi-line, let's see check if our sources are multi-line.
-          // Most seem single line.
+    if (translationKey) {
+      const translation = translations[translationKey][lang];
+      if (translation) {
+        // Only replace if currently untranslated OR if we want to force update.
+        // The user wants to fix missing ones.
+        // If normalizedTarget is basically the same as normalizedSource (untranslated), replace it.
+        // OR if the target is empty?
 
-          if (targetIndexInBuffer !== -1) {
-            const oldTargetLine = buffer[targetIndexInBuffer];
-            // Replace content between tags
-            const newTargetLine = oldTargetLine.replace(
-              unitTarget,
-              translation[lang]
+        // Let's rely on the fact that if it's in our list, we probably want to apply it.
+        // But we should avoid overwriting if it's already translated to something else?
+        // The previous logic was: if (unitSource === unitTarget).
+
+        if (normalizedSource === normalizedTarget) {
+          // It matches! We should replace targetContent with translation.
+          // We need to preserve the surrounding XML structure of the unit, just replacing the inner text found in <target>.
+
+          // However, simpler approach:
+          // Construct the new target string.
+          const newTargetContent = translation; // formatting might be lost if we don't handle it, but our keys include tags.
+
+          // We will replace the specific substring of targetContent with newTargetContent
+          // Actually, since we matched the whole group 4 as targetContent, we can replace that range in the file.
+
+          // Start index of target content = match.index + ... this is hard to calculate exactly with variable groups.
+          // Better: use string replace on the full match, but be careful.
+
+          // Construct the replacement for the whole <target>...</target> block?
+          // <target>targetContent</target>  -> <target>translation</target>
+
+          // Let's allow for flexible whitespace in the replacement tag? No, standard is <target>...</target>
+
+          // The safest way to replace specifically the target content found:
+          // We know the exact string `targetContent` from the match.
+          // BUT `targetContent` might appear multiple times? Unlikely inside this specific match.
+
+          // Let's replace the whole match?
+          // Reconstruct the unit:
+          // Parts of the match we captured:
+          // 1: id (not full match)
+          // match[0] is the whole unit block.
+
+          // We can use string replacement on match[0].
+          // Replace `<target>${targetContent}</target>` with `<target>${translation}</target>`?
+          // We need to be careful about characters that have regex meaning if we passed them into replace.
+
+          // Better: We have the start and end indices of the match.
+          // We can find the index of <target> inside the match.
+
+          const targetStartIndex = fullMatch.indexOf("<target>") + 8; // length of <target>
+          const targetEndIndex = fullMatch.indexOf("</target>");
+
+          // Wait, indexOf searches from start. If multiple targets? XLIFF unit usually has one segment/target in this file.
+          // Verify assumption: "standard order <source> then <target> inside a segment".
+
+          if (targetStartIndex > 8 && targetEndIndex > targetStartIndex) {
+            // Calculate absolute positions
+            // Actually, we can just replace the segment in the fullMatch string.
+            const beforeTarget = fullMatch.substring(
+              0,
+              fullMatch.indexOf("<target>") + 8
             );
-            buffer[targetIndexInBuffer] = newTargetLine;
+            const afterTarget = fullMatch.substring(
+              fullMatch.indexOf("</target>")
+            );
+
+            const newUnitString = beforeTarget + translation + afterTarget;
+
+            replacements.push({
+              start: match.index,
+              end: match.index + fullMatch.length,
+              newText: newUnitString,
+            });
+
             console.log(
-              `Updated: "${unitSource.trim()}" -> "${translation[lang].trim()}"`
+              `Updated [${unitId}]: "${normalizedSource.substring(
+                0,
+                30
+              )}..." -> "${translation.substring(0, 30)}..."`
             );
           }
         }
       }
-
-      outputLines.push(...buffer);
-      buffer = [];
-    } else {
-      buffer.push(line);
-      if (trimmed.startsWith("<source>")) {
-        unitSource = line.replace("<source>", "").replace("</source>", ""); // Keep spaces?
-        // The extractor logic removed tags.
-        // We need exact string inside tags.
-        // Regex match for inside tags:
-        const match = line.match(/<source>([\s\S]*?)<\/source>/);
-        if (match) {
-          unitSource = match[1];
-          sourceIndexInBuffer = buffer.length - 1;
-        }
-      }
-      if (trimmed.startsWith("<target>")) {
-        const match = line.match(/<target>([\s\S]*?)<\/target>/);
-        if (match) {
-          unitTarget = match[1];
-          targetIndexInBuffer = buffer.length - 1;
-        }
-      }
     }
   }
-  outputLines.push(...buffer); // Flush remaining
 
-  fs.writeFileSync(absolutePath, outputLines.join("\n"));
+  // Apply replacements in reverse order to not mess up indices
+  for (let i = replacements.length - 1; i >= 0; i--) {
+    const rep = replacements[i];
+    content =
+      content.substring(0, rep.start) +
+      rep.newText +
+      content.substring(rep.end);
+  }
+
+  fs.writeFileSync(absolutePath, content);
 }
 
 files.forEach(processFile);
