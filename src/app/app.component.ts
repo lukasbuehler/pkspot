@@ -12,6 +12,13 @@ import {
   NgZone,
   ChangeDetectionStrategy,
 } from "@angular/core";
+import {
+  trigger,
+  transition,
+  style,
+  animate,
+  state,
+} from "@angular/animations";
 import { Injector } from "@angular/core";
 import {
   Router,
@@ -60,6 +67,7 @@ import { ConsentService } from "./services/consent.service";
 import { Capacitor } from "@capacitor/core";
 import { BackHandlingService } from "./services/back-handling.service";
 import { CanonicalService } from "./services/canonical.service";
+import { CheckInService } from "./services/check-in.service";
 
 interface ButtonBase {
   name: string;
@@ -117,6 +125,30 @@ type ButtonConfig = LinkMenuButton[];
     MatButtonModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger("slideVertical", [
+      transition(
+        ":enter",
+        [
+          style({
+            opacity: 0,
+            transform: "translateY({{startPos}})",
+          }),
+          animate(
+            "0.5s cubic-bezier(0.25, 0.8, 0.25, 1)",
+            style({ opacity: 1, transform: "translateY(0)" })
+          ),
+        ],
+        { params: { startPos: "100%" } }
+      ),
+      transition(":leave", [
+        animate(
+          "0.3s ease-in",
+          style({ opacity: 0, transform: "translateY({{startPos}})" })
+        ),
+      ]),
+    ]),
+  ],
 })
 export class AppComponent implements OnInit, AfterViewInit {
   readonly dialog = inject(MatDialog);
@@ -144,6 +176,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private _backHandlingService = inject(BackHandlingService);
+  public checkInService = inject(CheckInService);
 
   constructor(
     public router: Router,

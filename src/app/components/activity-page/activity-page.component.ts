@@ -26,6 +26,8 @@ import { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 import { Spot } from "../../../db/models/Spot";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { Timestamp } from "@angular/fire/firestore";
+import { MatButtonModule } from "@angular/material/button";
+import { MatCardModule } from "@angular/material/card";
 
 interface FeedItem {
   edit: SpotEditSchema;
@@ -36,7 +38,14 @@ interface FeedItem {
 
 @Component({
   selector: "app-activity-page",
-  imports: [AsyncPipe, DatePipe, SpotPreviewCardComponent, RouterLink],
+  imports: [
+    AsyncPipe,
+    DatePipe,
+    SpotPreviewCardComponent,
+    RouterLink,
+    MatButtonModule,
+    MatCardModule,
+  ],
   templateUrl: "./activity-page.component.html",
   styleUrl: "./activity-page.component.scss",
 })

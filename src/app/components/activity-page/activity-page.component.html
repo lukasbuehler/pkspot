@@ -1,4 +1,4 @@
-<div class="activity-feed">
+<div class="activity-feed d-flex flex-column gap-3">
   <h1>Activity</h1>
 
   @if (newItemsBuffer$ | async; as buffer) { @if (buffer.length > 0) {
@@ -10,35 +10,38 @@
   <div class="empty-state">No activity yet.</div>
   } @for (item of items; track item.spotId + '_' +
   item.formattedTimestamp.getTime()) {
-  <div class="feed-item">
-    <div class="timestamp">
-      {{ item.formattedTimestamp | date : "medium" }}
-    </div>
-
-    <div class="user-action">
-      <strong>{{ item.edit.user.display_name }}</strong>
-      {{ getActionText(item.edit) }}
-      @if (item.spot) {
-      <span>{{ item.spot.localityString() }}</span>
-      }
-    </div>
-
-    <a
-      [routerLink]="['/map', item.spot?.slug || item.spotId]"
-      class="activity-preview-link"
-    >
-      <app-spot-preview-card
-        [spotData]="item.spot"
-        [clickable]="true"
-        [imgSize]="400"
-      ></app-spot-preview-card>
-    </a>
-  </div>
+  <mat-card class="feed-item">
+    <mat-card-header class="d-flex flex-column gap-1 pb-3">
+      <div class="user-action mat-body-large">
+        <strong>{{ item.edit.user.display_name }}</strong>
+        {{ getActionText(item.edit) }}
+        @if (item.spot) {
+        <span>{{ item.spot.localityString() }}</span>
+        }
+      </div>
+      <div class="timestamp mat-body-small">
+        {{ item.formattedTimestamp | date : "short" }}
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <a
+        [routerLink]="['/map', item.spot?.slug || item.spotId]"
+        class="activity-preview-link"
+      >
+        <app-spot-preview-card
+          [spotData]="item.spot"
+          [clickable]="true"
+          [imgSize]="200"
+          [isCompact]="true"
+        ></app-spot-preview-card>
+      </a>
+    </mat-card-content>
+  </mat-card>
   } } @if (isLoading$ | async) {
   <div class="loading-state">Loading activities...</div>
   } @if (hasMore$ | async) { @if ((isLoading$ | async) === false) {
   <div class="load-more-container">
-    <button class="load-more-btn" (click)="loadMore()">Load More</button>
+    <button matButton="filled" (click)="loadMore()">Load More</button>
   </div>
   } }
 </div>

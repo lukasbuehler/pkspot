@@ -1,5 +1,27 @@
 <ng-template #sidebarContent>
-  @if(selectedPoi()) {
+  @if(checkInService.currentProximitySpot(); as spot) {
+  <div class="px-3 pb-5 gap-1 d-flex flex-column">
+    <div class="d-flex align-items-center gap-2">
+      <mat-icon class="text-primary flex-shrink-0">place</mat-icon>
+      <span class="mat-body-medium text-truncate"
+        >Are you at <strong>{{ spot.name() }} spot</strong>?</span
+      >
+    </div>
+    <div class="d-flex gap-2">
+      <button
+        mat-flat-button
+        color="accent"
+        class="flex-grow-1"
+        (click)="router.navigate(['/map', spot.slug || spot.id])"
+      >
+        Check In
+      </button>
+      <button mat-stroked-button (click)="checkInService.dismissSpot(spot.id)">
+        Dismiss
+      </button>
+    </div>
+  </div>
+  } @if(selectedPoi()) {
   <app-poi-detail
     [poi]="selectedPoi()!"
     (dismiss)="closeSpot()"

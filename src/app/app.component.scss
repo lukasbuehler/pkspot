@@ -133,3 +133,8 @@ a {
 body:has(.terms-footer) {
   --terms-footer-offset: 24px;
 }
+
+.check-in-chip {
+  pointer-events: auto;
+  cursor: pointer;
+}

@@ -5,6 +5,12 @@
   mat-toolbar {
     background-color: mat.get-theme-color($theme, surface-container) !important;
   }
+
+  .check-in-chip {
+    background-color: mat.get-theme-color($theme, surface-container-highest);
+    color: mat.get-theme-color($theme, on-surface);
+    border: 1px solid mat.get-theme-color($theme, outline-variant);
+  }
 }
 
 @mixin typography($theme) {

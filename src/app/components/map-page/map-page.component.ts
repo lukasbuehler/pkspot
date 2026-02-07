@@ -63,6 +63,7 @@ import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
 import { GeolocationService } from "../../services/geolocation.service";
+import { CheckInService } from "../../services/check-in.service";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { Title } from "@angular/platform-browser";
@@ -199,6 +200,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     signal(null);
 
   geolocationService = inject(GeolocationService);
+  checkInService = inject(CheckInService);
 
   geolocationIcon = computed(() => {
     if (this.geolocationService.error()) return "location_disabled";
@@ -454,7 +456,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private _challengesService: SpotChallengesService,
     private _searchService: SearchService,
     private _slugsService: SlugsService,
-    private router: Router,
+    public router: Router,
     private _location: Location,
     private _snackbar: MatSnackBar,
     private titleService: Title,
@@ -566,6 +568,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.sidenavOpen.set(true);
       }
     });
+
+    // Effect to peek bottom sheet when proximity spot is detected
+    effect(() => {
+      const spot = this.checkInService.currentProximitySpot();
+      const isMobile = this.responsiveService.isMobile();
+      const isSheetOpen = this.bottomSheetOpen();
+      const progress = this.bottomSheetProgress();
+
+      // If we have a spot, we are on mobile, and the sheet is fully closed (progress <= 0),
+      // we don't necessarily need to "open" it (maximize), but we should ensure the user knows it's there.
+      // The bottom sheet by default "peeks" at closedHeight.
+      // So if content is added to sidebarContent, it should be visible in the peek area.
+      // We might want to ensure we don't accidentally hide it if we have logic that hides the sheet?
+      // But currently the sheet is always present.
+      // We could optionally bounce it or something, but just showing the content is a good start.
+
+      // If the user is on the map and a spot is detected, maybe we want to make sure the bottom sheet isn't obscured?
+      // But standard behavior is enough.
+
+      // Optional: If we want to force open it slightly more or something?
+      // For now, let's rely on the template update.
+    });
   }
 
   /**
@@ -642,6 +666,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Trigger Google Maps API loading since this page needs it
     // this.tryLoadMapsApi(); // TODO wtf
+
+    this.checkInService.showGlobalChip.set(false);
 
     // Listen for consent changes to retry Maps API loading when consent is granted
     this._consentService.consentGranted$.subscribe((hasConsent) => {
@@ -1566,6 +1592,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     console.debug("destroying map page");
+    this.checkInService.showGlobalChip.set(true);
     this.closeSpot();
     this._routerSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();
