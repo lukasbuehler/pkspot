@@ -199,6 +199,22 @@ function run() {
     }
   });
 
+  // Sitemap redirect
+  server.get("/sitemap.xml", (req, res) => {
+    res.redirect(
+      301,
+      "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml"
+    );
+  });
+
+  // Android Early Access redirect (covers /android-early-access and /:lang/android-early-access)
+  server.get("**/android-early-access", (req, res) => {
+    res.redirect(
+      301,
+      "https://play.google.com/store/apps/details?id=com.pkspot.app"
+    );
+  });
+
   // Redirect based on preffered language
   server.get("*", detectLanguage);
 

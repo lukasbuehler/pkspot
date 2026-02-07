@@ -138,3 +138,4 @@ fiber_manual_record
 visibility_off
 phone_iphone
 sentiment_dissatisfied
+vital_signs
