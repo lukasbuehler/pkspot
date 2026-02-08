@@ -23,6 +23,9 @@ export interface UserSchema {
   settings?: UserSettingsSchema;
 
   creationDate?: Timestamp;
+
+  bookmarks?: string[]; // Array of Spot IDs
+  visited_spots?: string[]; // Array of Spot IDs (updated via Cloud Function)
 }
 
 export interface UserSettingsSchema {

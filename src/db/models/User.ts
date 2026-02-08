@@ -15,6 +15,9 @@ export class User {
   public nationalityCode: string | null = null;
   public homeCity: string | null = null;
 
+  public bookmarks: string[] = [];
+  public visitedSpots: string[] = [];
+
   public data: UserSchema | null = null;
 
   constructor(private _uid: string, private _data: UserSchema) {
@@ -56,6 +59,9 @@ export class User {
 
     this.nationalityCode = this._data.nationality_code ?? null;
     this.homeCity = this._data.home_city ?? null;
+
+    this.bookmarks = this._data.bookmarks ?? [];
+    this.visitedSpots = this._data.visited_spots ?? [];
 
     // Data
     this.data = this._data;

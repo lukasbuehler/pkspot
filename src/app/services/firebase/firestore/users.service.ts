@@ -1,12 +1,13 @@
 import { inject, Injectable } from "@angular/core";
 import { arrayRemove, arrayUnion } from "@angular/fire/firestore";
-import { map } from "rxjs/operators";
-import { Observable } from "rxjs";
+import { map, switchMap } from "rxjs/operators";
+import { Observable, from } from "rxjs";
 import { User } from "../../../../db/models/User";
 import {
   UserReferenceSchema,
   UserSchema,
 } from "../../../../db/schemas/UserSchema";
+import { CheckInSchema } from "../../../../db/schemas/CheckInSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { StorageImage } from "../../../../db/models/Media";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
@@ -147,5 +148,53 @@ export class UsersService extends ConsentAwareService {
         } as Partial<UserSchema>);
       }
     });
+  }
+
+  async toggleBookmark(userId: string, spotId: string): Promise<void> {
+    return this.executeWithConsent(async () => {
+      const userRef = `users/${userId}`;
+      const userSnap = await this._firestoreAdapter.getDocument<UserSchema>(
+        userRef
+      );
+
+      if (!userSnap) {
+        throw new Error("User not found");
+      }
+
+      let bookmarks = userSnap.bookmarks || [];
+      const isBookmarked = bookmarks.includes(spotId);
+
+      if (isBookmarked) {
+        bookmarks = bookmarks.filter((id) => id !== spotId);
+      } else {
+        bookmarks.push(spotId);
+      }
+
+      await this._firestoreAdapter.updateDocument(userRef, {
+        bookmarks: bookmarks,
+      } as Partial<UserSchema>);
+    });
+  }
+
+  async addCheckIn(userId: string, data: CheckInSchema): Promise<void> {
+    return this.executeWithConsent(async () => {
+      await this._firestoreAdapter.addDocument(
+        `users/${userId}/check_ins`,
+        data
+      );
+    });
+  }
+
+  getCheckIns(userId: string): Observable<CheckInSchema[]> {
+    return from(
+      this.executeWhenConsent(() => {
+        // Order by timestamp descending
+        return this._firestoreAdapter.collectionSnapshots<CheckInSchema>(
+          `users/${userId}/check_ins`,
+          [],
+          [{ type: "orderBy", fieldPath: "timestamp", direction: "desc" }]
+        );
+      })
+    ).pipe(switchMap((obs) => obs));
   }
 }

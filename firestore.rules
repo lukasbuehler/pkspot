@@ -159,6 +159,12 @@ service cloud.firestore {
         allow write: if request.auth.uid != null && 
         request.auth.uid == otherUserId && request.auth.uid != userId;
       }
+
+      match /check_ins/{checkInId} {
+        // Private to the user
+        allow read, create, delete: if request.auth.uid != null && request.auth.uid == userId;
+        allow update: if false;
+      }
     }
 
     match /events/{eventId} {
