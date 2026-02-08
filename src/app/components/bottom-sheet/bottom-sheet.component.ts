@@ -512,16 +512,27 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     // Click on content to expand if it's minimized (optional, maybe user only wants handle?)
     // User requested: "make my actual custom bottom sheet i use slide up when a user presses on the handle or it when it's closed"
     // So if it's closed (peeking), clicking the content should open it.
+    // BUT: clicking on buttons/interactive elements should work without expanding
     if (this.contentElement) {
       this.addListener(this.contentElement, "click", (event) => {
-        // If closed and not dragging, open it.
+        // If closed and not dragging, check if we should open it.
         if (
           !this.isOpen() &&
           this.activePointerId === null &&
           this.activeTouchId === null
         ) {
-          // Check if the click was on a button or interactive element, we might not want to hijack it?
-          // But since it's "closed", interacting with content is hard anyway.
+          // Check if the click was on a button, link, or element with data-no-expand attribute
+          // In those cases, don't expand - let the click action through
+          const target = event.target as HTMLElement | null;
+          if (target) {
+            const interactiveElement = target.closest(
+              "button, a, [data-no-expand], mat-icon-button, [mat-button], [mat-flat-button], [mat-stroked-button], [mat-icon-button]"
+            );
+            if (interactiveElement) {
+              // Let the button/link click through without expanding
+              return;
+            }
+          }
           this.maximize();
         }
       });

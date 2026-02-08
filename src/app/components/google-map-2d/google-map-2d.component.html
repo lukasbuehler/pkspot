@@ -229,9 +229,9 @@
       width: 15 + 'px'
     }"
   ></div>
-  } }
+  } } } }
 
-  <!-- Check-In Marker (only if not selected) -->
+  <!-- Check-In Marker (show when there's a proximity spot and it's not the selected spot) -->
   @if(shouldShowCheckInMarker()) {
   <map-advanced-marker
     [position]="checkInSpot()!.location()"
@@ -246,7 +246,7 @@
     [clickable]="true"
     (click)="spotClick.emit(checkInSpot()!)"
   ></app-marker>
-  } } }
+  }
 
   <!-- Geolocation -->
   @if(showGeolocation && geolocation()) {

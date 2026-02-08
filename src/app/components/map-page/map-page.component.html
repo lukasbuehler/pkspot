@@ -2,22 +2,44 @@
   @if(checkInService.currentProximitySpot(); as spot) {
   <div
     @fadeInOut
-    class="px-3 pt-2 pb-3 gap-1 d-flex flex-row justify-content-between overflow-hidden"
+    style="height: 42px; margin-bottom: 18px"
+    class="gap-1 d-flex px-3 flex-row justify-content-between align-items-center overflow-hidden"
   >
-    <div class="d-flex align-items-center gap-2 overflow-hidden">
+    <!-- Clickable spot info area - clicking selects the spot -->
+    <button
+      type="button"
+      class="d-flex align-items-center gap-2 overflow-hidden bg-transparent border-0 p-0 text-start"
+      style="cursor: pointer"
+      (click)="selectSpot(spot)"
+    >
+      @if(spot.hasMedia()) {
+      <div
+        style="
+          height: 42px;
+          width: 42px;
+          border-radius: 10px;
+          margin-right: 5px;
+        "
+        class="position-relative overflow-hidden flex-shrink-0"
+      >
+        <img [ngSrc]="spot.previewImageSrc()" alt="" fill />
+      </div>
+      } @else {
       <mat-icon class="flex-shrink-0" color="accent">beenhere</mat-icon>
+
+      }
       <span
         class="mat-title-medium text-truncate"
         i18n="@@checkin.at_spot_short"
         >At <strong>{{ spot.name() }}</strong> spot?</span
       >
-    </div>
-    <div class="d-flex gap-2">
+    </button>
+    <div class="d-flex gap-1 align-items-center flex-shrink-0">
       <button
         mat-flat-button
         color="accent"
         class="flex-grow-1"
-        (click)="spotCheckIn(spot.id)"
+        (click)="spotCheckIn(spot.id); $event.stopPropagation()"
       >
         <!-- <mat-icon>beenhere</mat-icon> -->
         <span i18n="@@checkin.check_in">Check In</span>
@@ -29,7 +51,11 @@
       >
         Dismiss
       </button> -->
-      <button mat-icon-button (click)="checkInService.dismissSpot(spot.id)">
+      <button
+        mat-icon-button
+        (click)="checkInService.dismissSpot(spot.id); $event.stopPropagation()"
+        class="d-flex"
+      >
         <mat-icon>close</mat-icon>
       </button>
     </div>

@@ -16,7 +16,7 @@ import {
   NgZone,
   ChangeDetectionStrategy,
 } from "@angular/core";
-import { Location } from "@angular/common";
+import { Location, NgOptimizedImage } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotMapDataManager } from "../spot-map/SpotMapDataManager";
@@ -169,6 +169,7 @@ import { AmenityNames, AmenitiesMap } from "../../../db/models/Amenities";
     BottomSheetComponent,
     MatCardModule,
     FilterChipsBarComponent,
+    NgOptimizedImage,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -67,6 +67,7 @@ export interface SpotSchema {
   amenities?: AmenitiesMap;
 
   bounds?: GeoPoint[];
+  bounds_raw?: { lat: number; lng: number }[]; // Raw coords for mobile (Capacitor can't handle GeoPoints)
 
   time_created?: Timestamp;
   time_updated?: { seconds: number; nanoseconds: number };
@@ -88,4 +89,7 @@ export interface SpotSchema {
   thumbnail_medium_url?: string;
   name_search?: string[];
   description_search?: string[];
+  // Bounds helper fields for geo-radius proximity queries
+  bounds_center?: [number, number]; // [lat, lng] centroid of bounds polygon
+  bounds_radius_m?: number; // max distance from center to any vertex + buffer
 }

@@ -383,7 +383,9 @@ export class LocalSpot {
       return makeSmartAmenitiesArray(amenities, this.type());
     });
 
-    this.paths = signal(this._makePathsFromBounds(data.bounds ?? []));
+    // Use bounds_raw as fallback for mobile (Capacitor can't deserialize GeoPoints)
+    const boundsData = data.bounds ?? data.bounds_raw ?? [];
+    this.paths = signal(this._makePathsFromBounds(boundsData));
   }
 
   /**
@@ -504,8 +506,9 @@ export class LocalSpot {
     if (!data.amenities) data.amenities = {};
     this.amenities.set(data.amenities);
 
-    // Bounds
-    this.paths.set(this._makePathsFromBounds(data.bounds ?? []));
+    // Bounds - use bounds_raw as fallback for mobile
+    const boundsData = data.bounds ?? data.bounds_raw ?? [];
+    this.paths.set(this._makePathsFromBounds(boundsData));
   }
 
   /**
@@ -672,7 +675,7 @@ export class LocalSpot {
   }
 
   private _makePathsFromBounds(
-    bounds: GeoPoint[]
+    bounds: GeoPoint[] | { lat: number; lng: number }[]
   ): Array<Array<google.maps.LatLngLiteral>> | undefined {
     if (!bounds || bounds.length === 0) {
       return undefined;
@@ -681,9 +684,22 @@ export class LocalSpot {
     const paths = [
       bounds
         .map((point) => {
-          // GeoPoint can have either 'latitude'/'longitude' or '_latitude'/'_longitude'
-          const lat = (point as any).latitude ?? (point as any)._latitude;
-          const lng = (point as any).longitude ?? (point as any)._longitude;
+          // Handle multiple formats:
+          // 1. GeoPoint with latitude/longitude
+          // 2. GeoPoint with _latitude/_longitude (internal)
+          // 3. Raw {lat, lng} object (from bounds_raw for mobile)
+          let lat: number | undefined;
+          let lng: number | undefined;
+
+          if ("lat" in point && "lng" in point) {
+            // Raw {lat, lng} format (from bounds_raw)
+            lat = (point as any).lat;
+            lng = (point as any).lng;
+          } else {
+            // GeoPoint format (latitude/longitude or _latitude/_longitude)
+            lat = (point as any).latitude ?? (point as any)._latitude;
+            lng = (point as any).longitude ?? (point as any)._longitude;
+          }
 
           if (typeof lat !== "number" || typeof lng !== "number") {
             return null;

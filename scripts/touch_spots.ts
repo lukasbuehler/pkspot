@@ -20,9 +20,12 @@ async function touchAllSpots() {
 
   const args = process.argv.slice(2);
   const mediaOnly = args.includes("--media-only");
+  const boundsOnly = args.includes("--bounds-only");
 
   console.log(
-    `🚀 Starting Force Sync (All Spots)${mediaOnly ? " [Media Only]" : ""}...`
+    `🚀 Starting Force Sync (All Spots)${mediaOnly ? " [Media Only]" : ""}${
+      boundsOnly ? " [Bounds Only]" : ""
+    }...`
   );
 
   while (true) {
@@ -50,6 +53,17 @@ async function touchAllSpots() {
           !data["media"] ||
           !Array.isArray(data["media"]) ||
           data["media"].length === 0
+        ) {
+          return;
+        }
+      }
+
+      // If bounds-only mode is on, skip spots without bounds
+      if (boundsOnly) {
+        if (
+          !data["bounds"] ||
+          !Array.isArray(data["bounds"]) ||
+          data["bounds"].length < 3
         ) {
           return;
         }

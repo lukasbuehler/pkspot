@@ -169,21 +169,20 @@
         class="spot-button-row collapsible-header-info flex-shrink-0"
         [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
       >
-        <!--@if(authenticationService.isSignedIn) {
-        @if (!visited) {
-         <button
+        @if(!isLocalSpot()) { @if(authenticationService.isSignedIn) {
+        <button
           mat-icon-button
-          color="accent"
+          [color]="bookmarked ? 'primary' : 'white'"
           matTooltip="Bookmark this spot"
           aria-label="Icon button with a bookmark icon"
           (click)="bookmarked = !bookmarked; $event.stopPropagation()"
         >
           <mat-icon>{{ bookmarked ? "bookmark" : "bookmark_border" }}</mat-icon>
         </button>
-        }
+
         <button
           mat-icon-button
-          color="primary"
+          [color]="visited ? 'accent' : 'white'"
           matTooltip="Mark this spot as visited"
           aria-label="Icon button with a flag icon"
           (click)="
@@ -191,11 +190,10 @@
           "
         >
           <mat-icon>beenhere</mat-icon>
-        </button> 
+        </button>
         }
-        -->
 
-        @if(!isLocalSpot()) {
+        <!-- Share icon button -->
         <button
           mat-icon-button
           matTooltip="Share this spot"
@@ -210,7 +208,7 @@
         >
           <mat-icon>share</mat-icon>
         </button>
-        }
+        } @else {
         <button
           mat-icon-button
           matTooltip="Directions to spot"
@@ -224,10 +222,8 @@
           (click)="openDirectionsInMaps()"
         >
           <mat-icon>directions</mat-icon>
-          <!-- <mat-icon>turn_right</mat-icon> -->
-          <!-- <mat-icon>route</mat-icon> -->
-          <!-- <mat-icon>share_location</mat-icon> -->
         </button>
+        }
       </div>
       }
     </mat-card-subtitle>
@@ -707,6 +703,8 @@
     </div>
     } } }
     END OF CHALLENGES SECTION -->
+
+    <div class="mb-4">Source: {{ spot()?.source() }}</div>
 
     <p class="m-0 mat-body-small mt-4" style="color: lightgray" i18n>
       <strong>Public License:</strong>

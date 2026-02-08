@@ -52,6 +52,22 @@
 
     { "name": "rating", "type": "float", "optional": false },
     { "name": "location", "type": "geopoint" },
+    {
+      "name": "bounds",
+      "type": "geopoint[]",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "bounds_center",
+      "type": "geopoint",
+      "optional": true
+    },
+    {
+      "name": "bounds_radius_m",
+      "type": "float",
+      "optional": true
+    },
 
     { "name": "id", "type": "string" },
     { "name": "_force_sync", "type": "int64", "optional": true, "index": false }

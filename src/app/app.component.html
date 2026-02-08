@@ -158,33 +158,47 @@
       }"
     >
       <div
-        class="check-in-chip mat-elevation-z4 d-flex align-items-center gap-2 px-3 py-2 rounded-pill overflow-hidden"
-        (click)="router.navigate(['/map', spot.slug || spot.id])"
+        class="check-in-chip mat-elevation-z4 d-flex align-items-center gap-3 p-2 rounded-pill overflow-hidden"
+        (click)="spotCheckIn(spot.id)"
       >
-        <mat-icon class="text-primary flex-shrink-0">place</mat-icon>
+        @if(spot.hasMedia()) {
+        <div
+          style="height: 42px; width: 42px; border-radius: 100px"
+          class="position-relative overflow-hidden"
+        >
+          <img [ngSrc]="spot.previewImageSrc()" alt="" fill />
+        </div>
+        } @else {
+        <div class="ps-2 d-flex align-items-center">
+          <mat-icon class="flex-shrink-0" color="accent">beenhere</mat-icon>
+        </div>
+        }
+
         <span
           class="mat-title-small text-truncate"
           i18n="@@checkin.at_spot_short"
           >At <strong>{{ spot.name() }}</strong> spot?</span
         >
-        <button
-          mat-stroked-button
-          color="primary"
-          style="height: 32px; line-height: 32px"
-          i18n="@@checkin.check_in"
-          (click)="spotCheckIn(spot.id)"
-        >
-          Check In
-        </button>
-        <button
-          mat-icon-button
-          class=""
-          (click)="
-            $event.stopPropagation(); checkInService.dismissSpot(spot.id)
-          "
-        >
-          <mat-icon>close</mat-icon>
-        </button>
+        <div class="d-flex flex-row justify-content-center align-items-center">
+          <button
+            matButton="filled"
+            color="accent"
+            style="height: 32px; line-height: 32px"
+            i18n="@@checkin.check_in"
+            (click)="spotCheckIn(spot.id)"
+          >
+            Check In
+          </button>
+          <button
+            mat-icon-button
+            class="d-flex"
+            (click)="
+              $event.stopPropagation(); checkInService.dismissSpot(spot.id)
+            "
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
       </div>
     </div>
     }

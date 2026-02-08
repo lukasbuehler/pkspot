@@ -289,24 +289,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this._checkInService.selectedSpot.set(this.selectedSpot() as Spot | null);
     });
 
-    // Auto-focus logic for check-in spot
-    effect(() => {
-      const checkInSpot = this.checkInSpot();
-      const selectedSpot = this.selectedSpot();
-
-      // Only focus if no spot is selected and we have a check-in spot
-      if (checkInSpot && !selectedSpot && this.isInitiated) {
-        // Use a small timeout to let the map stabilize if needed
-        setTimeout(() => {
-          // Check again to be sure
-          if (!this.selectedSpot()) {
-            // Optional: Don't force focus if user is panning?
-            // But user asked: "if none are selected we could also focus it"
-            this.focusPoint(checkInSpot.location(), 17);
-          }
-        }, 500);
-      }
-    });
+    // Note: Auto-focus for check-in spots was removed.
+    // User explicitly clicks on the spot info in the bottom sheet to select and focus on it.
+    // This prevents interruption when the user is viewing another location.
 
     // Sync the spotFilterMode signal with the data manager
     effect(() => {

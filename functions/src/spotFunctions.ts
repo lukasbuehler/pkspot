@@ -13,6 +13,7 @@ import {
 
 import { googleAPIKey } from "./secrets";
 import { getAddressAndLocaleFromGeopoint } from "./spotAddressFunctions";
+import { calculateBoundsData } from "./boundsHelpers";
 
 const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
   const spotDataToUpdate: Partial<SpotSchema> = {};
@@ -95,6 +96,31 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
   //// 6. Set rating to zero if not set
   if (spotData.rating === undefined || spotData.rating === null) {
     spotDataToUpdate.rating = 0;
+  }
+
+  //// 7. Serialize bounds for Typesense proximity queries and mobile compatibility
+  const boundsResult = calculateBoundsData(spotData.bounds);
+
+  if (boundsResult.boundsRaw && boundsResult.boundsRaw.length >= 3) {
+    // Always store bounds_raw for mobile (Capacitor can't handle GeoPoints)
+    // This is an array of {lat, lng} objects - NOT a nested array, so Firestore accepts it
+    spotDataToUpdate.bounds_raw = boundsResult.boundsRaw;
+
+    // Note: We do NOT overwrite spotData.bounds here!
+    // The original bounds array of GeoPoints is already in Firestore.
+    // The Firebase Extension will sync the GeoPoints to Typesense, which converts them.
+
+    if (boundsResult.isValid) {
+      // Bounds are valid and within size limit
+      // bounds_center as [lat, lng] tuple - Firestore allows single-level arrays
+      spotDataToUpdate.bounds_center = boundsResult.boundsCenter as any;
+      spotDataToUpdate.bounds_radius_m = boundsResult.boundsRadiusM!;
+    } else {
+      // Bounds too large - log warning and clear proximity fields
+      console.warn(`Spot bounds: ${boundsResult.error}`);
+      spotDataToUpdate.bounds_center = undefined as any;
+      spotDataToUpdate.bounds_radius_m = undefined;
+    }
   }
 
   //// Return the fields to update

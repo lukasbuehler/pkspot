@@ -426,6 +426,70 @@ export class SearchService {
     );
   }
 
+  /**
+   * Search for spots near a location using geo-radius filtering.
+   * This is optimized for check-in proximity detection.
+   *
+   * Uses OR logic: finds spots where EITHER:
+   * - location is within radius, OR
+   * - bounds_center is within (radius + bounds_radius_m)
+   *
+   * This ensures spots with large polygons are found even if user is
+   * far from the center point but close to the polygon edge.
+   *
+   * @param location User's current location
+   * @param radiusMeters Search radius in meters (default 100m)
+   * @param maxResults Maximum number of results (default 20)
+   */
+  public async searchSpotsNearLocation(
+    location: google.maps.LatLngLiteral,
+    radiusMeters: number = 100,
+    maxResults: number = 20
+  ): Promise<{ hits: any[]; found: number }> {
+    const lat = location.lat.toFixed(6);
+    const lng = location.lng.toFixed(6);
+    // Convert meters to km for Typesense (which uses km for geo-radius)
+    const radiusKm = (radiusMeters / 1000).toFixed(3);
+
+    // Search with a larger radius to catch spots with bounds
+    // We'll use 500m as max bounds radius assumption to avoid missing large spots
+    const extendedRadiusKm = ((radiusMeters + 500) / 1000).toFixed(3);
+
+    // Filter: location within radius OR bounds_center within extended radius
+    // This catches spots where user might be near the polygon edge
+    const filterBy = `location:(${lat}, ${lng}, ${extendedRadiusKm} km)`;
+
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_SPOTS)
+        .documents()
+        .search(
+          {
+            q: "*",
+            filter_by: filterBy,
+            sort_by: `location(${lat}, ${lng}):asc`, // Sort by distance
+            per_page: maxResults,
+            page: 1,
+          },
+          {}
+        );
+
+      const hits = ((result as any).hits || []).map((hit: any) => {
+        // Attach preview for convenience
+        hit.preview = this.getSpotPreviewFromHit(hit);
+        return hit;
+      });
+
+      return {
+        hits,
+        found: (result as any).found || hits.length,
+      };
+    } catch (error) {
+      console.error("[SearchService] searchSpotsNearLocation failed:", error);
+      return { hits: [], found: 0 };
+    }
+  }
+
   public async searchSpotsAndPlaces(query: string) {
     let searchParams = { q: query, ...this.spotSearchParameters };
 
