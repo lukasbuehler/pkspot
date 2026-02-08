@@ -112,8 +112,13 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
 
     if (boundsResult.isValid) {
       // Bounds are valid and within size limit
-      // bounds_center as [lat, lng] tuple - Firestore allows single-level arrays
-      spotDataToUpdate.bounds_center = boundsResult.boundsCenter as any;
+      // IMPORTANT: bounds_center must be a GeoPoint, not a plain array!
+      // The Firebase Extension only converts GeoPoint objects to Typesense geopoints.
+      const [centerLat, centerLng] = boundsResult.boundsCenter!;
+      spotDataToUpdate.bounds_center = new GeoPoint(
+        centerLat,
+        centerLng
+      ) as any;
       spotDataToUpdate.bounds_radius_m = boundsResult.boundsRadiusM!;
     } else {
       // Bounds too large - log warning and clear proximity fields

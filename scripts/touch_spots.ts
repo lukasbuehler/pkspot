@@ -69,11 +69,40 @@ async function touchAllSpots() {
         }
       }
 
-      // We update a dummy field to trigger the onWrite events
-      // We can also delete it later, but keeping a 'last_synced' timestamp is useful
-      batch.update(doc.ref, {
+      const updateData: any = {
         _force_sync: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      };
+
+      // Check and fix bounds if they exist
+      // Some spots have bounds stored as plain objects instead of GeoPoints
+      if (data["bounds"] && Array.isArray(data["bounds"])) {
+        let boundsModified = false;
+        const fixedBounds = data["bounds"].map((point: any) => {
+          // Check if it's already a proper GeoPoint
+          if (point instanceof admin.firestore.GeoPoint) {
+            return point;
+          }
+
+          // Try to extract lat/lng from various formats
+          const lat = point.latitude ?? point._latitude ?? point.lat;
+          const lng = point.longitude ?? point._longitude ?? point.lng;
+
+          if (typeof lat === "number" && typeof lng === "number") {
+            // It's a plain object looking like a geopoint, convert it
+            boundsModified = true;
+            return new admin.firestore.GeoPoint(lat, lng);
+          }
+
+          return point; // Keep original if we can't parse (unlikely for valid data)
+        });
+
+        if (boundsModified) {
+          console.log(`🔧 Fixing bounds for spot ${doc.id}`);
+          updateData["bounds"] = fixedBounds;
+        }
+      }
+
+      batch.update(doc.ref, updateData);
       batchCount++;
     });
 

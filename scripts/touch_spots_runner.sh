@@ -8,4 +8,4 @@ if [ ! -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
 fi
 
 cd "$(dirname "$0")/.."
-npx ts-node scripts/touch_spots.ts
+npx ts-node scripts/touch_spots.ts "$@"

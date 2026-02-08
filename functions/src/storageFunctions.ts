@@ -139,7 +139,7 @@ export const processVideoUpload = onObjectFinalized(
   {
     cpu: 2,
     region: "europe-west1",
-    timeoutSeconds: 600, // 10 minutes
+    timeoutSeconds: 360, // 6 minutes
     memory: "2GiB",
     maxInstances: 5,
   },
