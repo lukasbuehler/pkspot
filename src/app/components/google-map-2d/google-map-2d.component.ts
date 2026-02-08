@@ -483,9 +483,10 @@ export class GoogleMap2dComponent
 
   shouldShowCheckInMarker = computed(() => {
     const checkInSpot = this.checkInSpot();
+    const checkInSpotLocation = this.getCheckInSpotLocation();
     const selectedSpot = this.selectedSpot();
 
-    if (!checkInSpot) return false;
+    if (!checkInSpot || !checkInSpotLocation) return false;
 
     if (!selectedSpot) return true;
 
@@ -523,16 +524,62 @@ export class GoogleMap2dComponent
 
     // Check if it's a Spot (location is a signal/function)
     if (typeof spot.location === "function") {
-      return spot.location();
+      const loc = spot.location();
+      if (
+        loc &&
+        typeof loc.lat === "number" &&
+        typeof loc.lng === "number" &&
+        Number.isFinite(loc.lat) &&
+        Number.isFinite(loc.lng)
+      ) {
+        return loc;
+      }
     }
 
-    // Check if it's SpotPreviewData (location is GeoPoint)
+    // Check if it's SpotPreviewData / GeoPoint-like
     if (spot.location && typeof spot.location === "object") {
-      // It's likely a GeoPoint
-      const loc = spot.location as any; // Cast to any to access latitude/longitude safely
-      if ("latitude" in loc && "longitude" in loc) {
+      const loc = spot.location as any;
+
+      if (
+        typeof loc.latitude === "number" &&
+        typeof loc.longitude === "number" &&
+        Number.isFinite(loc.latitude) &&
+        Number.isFinite(loc.longitude)
+      ) {
         return { lat: loc.latitude, lng: loc.longitude };
       }
+
+      if (
+        typeof loc._latitude === "number" &&
+        typeof loc._longitude === "number" &&
+        Number.isFinite(loc._latitude) &&
+        Number.isFinite(loc._longitude)
+      ) {
+        return { lat: loc._latitude, lng: loc._longitude };
+      }
+
+      if (
+        typeof loc.lat === "number" &&
+        typeof loc.lng === "number" &&
+        Number.isFinite(loc.lat) &&
+        Number.isFinite(loc.lng)
+      ) {
+        return { lat: loc.lat, lng: loc.lng };
+      }
+    }
+
+    const spotWithRawLocation = spot as any;
+    if (
+      spotWithRawLocation.location_raw &&
+      typeof spotWithRawLocation.location_raw.lat === "number" &&
+      typeof spotWithRawLocation.location_raw.lng === "number" &&
+      Number.isFinite(spotWithRawLocation.location_raw.lat) &&
+      Number.isFinite(spotWithRawLocation.location_raw.lng)
+    ) {
+      return {
+        lat: spotWithRawLocation.location_raw.lat,
+        lng: spotWithRawLocation.location_raw.lng,
+      };
     }
 
     return null;
@@ -1272,12 +1319,20 @@ export class GoogleMap2dComponent
     if (dot.spot_id) {
       this.spotClick.emit(dot.spot_id as SpotId);
     } else if (
-      (dot.location && dot.location.latitude && dot.location.longitude) ||
-      (dot.location_raw && dot.location_raw.lat && dot.location_raw.lng)
+      (dot.location &&
+        typeof dot.location.latitude === "number" &&
+        typeof dot.location.longitude === "number") ||
+      (dot.location_raw &&
+        typeof dot.location_raw.lat === "number" &&
+        typeof dot.location_raw.lng === "number")
     ) {
       let lat: number;
       let lng: number;
-      if (dot.location && dot.location.latitude && dot.location.longitude) {
+      if (
+        dot.location &&
+        typeof dot.location.latitude === "number" &&
+        typeof dot.location.longitude === "number"
+      ) {
         lat = dot.location.latitude;
         lng = dot.location.longitude;
       } else {

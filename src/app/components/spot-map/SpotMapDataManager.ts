@@ -87,6 +87,8 @@ export class SpotMapDataManager {
   private _lastVisibleTiles = signal<TilesObject | null>(null);
 
   readonly spotZoom = 16;
+  readonly serviceClusterMinZoom = 10;
+  readonly serviceClusterMaxZoom = 12;
   readonly amenityMarkerZoom = 14;
   readonly amenityMarkerDisplayZoom = 16;
   readonly clusterZooms = [2, 4, 6, 8, 10, 12];
@@ -272,7 +274,11 @@ export class SpotMapDataManager {
     // because clusters don't show enough detail.
     // However, for CLUSTERS themselves, we revert to the tile-based loading (handled below)
     // to ensure smooth transitions and caching.
-    if (this._spotClusterService && zoom < 16) {
+    if (
+      this._spotClusterService &&
+      zoom >= this.serviceClusterMinZoom &&
+      zoom <= this.serviceClusterMaxZoom
+    ) {
       // Fetch highlights using Typesense for better performance than client-side filtering
       // Only if "Highlights" (No Filter) is active
       const activeFilter = this.spotFilterMode
@@ -285,6 +291,7 @@ export class SpotMapDataManager {
         // Throttle: Allow updates while moving (at least every X ms)
         if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
           this._loadHighlightsForTiles(visibleTilesObj);
+          this._loadClusterDotsViaService(visibleTilesObj);
           this._lastHighlightFetchTime = now;
         }
 
@@ -296,6 +303,7 @@ export class SpotMapDataManager {
         this._clusterDebounceTimer = setTimeout(() => {
           this._clusterDebounceTimer = null;
           this._loadHighlightsForTiles(visibleTilesObj);
+          this._loadClusterDotsViaService(visibleTilesObj);
           this._lastHighlightFetchTime = Date.now();
         }, this.CLUSTER_DEBOUNCE_MS);
       }
@@ -327,28 +335,68 @@ export class SpotMapDataManager {
       // load spots for missing tiles
       this._loadSpotsForTiles(spotTilesToLoad16);
     } else {
-      // show spot clusters
-      // Also used to gate the loading logic: if the visible keys haven't changed (returns false),
-      // we don't need to check for missing tiles, since the set of needed tiles hasn't changed.
-      const didRender = this._showCachedSpotClustersForTiles(visibleTilesObj);
+      // 10-12: Typesense cluster service only (no Firestore cluster tiles)
+      if (
+        this._spotClusterService &&
+        zoom >= this.serviceClusterMinZoom &&
+        zoom <= this.serviceClusterMaxZoom
+      ) {
+        this._visibleSpots.set([]);
+      } else {
+        // Remaining cluster zooms: Firestore cluster tiles
+        const didRender = this._showCachedSpotClustersForTiles(visibleTilesObj);
+        if (didRender) {
+          const spotClusterTilesToLoad: Set<MapTileKey> =
+            this._getSpotClusterTilesToLoad(visibleTilesObj);
 
-      // Ensure we always load missing cluster tiles even if we didn't re-render
-      // (e.g. if we just panned a tiny bit but exposed a new tile)
-      // BUT _showCachedSpotClustersForTiles returns true if there are MISSING tiles too.
-      // So if it returned false, it means we have everything we need AND nothing changed??
-      // Let's stick to the original logic: only load if didRender is true OR we think we might need it.
-      // Actually, if we didn't render (because keys are same), we probably don't need to load either.
-
-      if (didRender) {
-        // now determine missing information and load spot clusters for that
-        const spotClusterTilesToLoad: Set<MapTileKey> =
-          this._getSpotClusterTilesToLoad(visibleTilesObj);
-
-        if (spotClusterTilesToLoad.size > 0) {
-          this._loadSpotClustersForTiles(spotClusterTilesToLoad);
+          if (spotClusterTilesToLoad.size > 0) {
+            this._loadSpotClustersForTiles(spotClusterTilesToLoad);
+          }
         }
       }
     }
+  }
+
+  private _loadClusterDotsViaService(visibleTilesObj: TilesObject) {
+    if (!this._spotClusterService) return;
+
+    const viewportBounds = visibleTilesObj.viewportBounds;
+    if (!viewportBounds) return;
+
+    const viewport: VisibleViewport = {
+      zoom: visibleTilesObj.zoom,
+      bbox: {
+        north: viewportBounds.north,
+        south: viewportBounds.south,
+        west: viewportBounds.west,
+        east: viewportBounds.east,
+      },
+    };
+
+    this._spotClusterService
+      .getClustersForViewport(viewport, visibleTilesObj.zoom)
+      .then(({ clusters }) => {
+        const dots: SpotClusterDotSchema[] = clusters.map((cluster: any) => {
+          const [lng, lat] = cluster.geometry?.coordinates || [0, 0];
+          const props = cluster.properties || {};
+          const isCluster = props.cluster === true;
+
+          return {
+            location: new GeoPoint(Number(lat), Number(lng)),
+            location_raw: { lat: Number(lat), lng: Number(lng) },
+            weight: isCluster
+              ? Number(props.point_count) || 1
+              : Number(props.weight) || 1,
+            spot_id: isCluster ? undefined : props.id ?? undefined,
+          };
+        });
+
+        this._visibleSpots.set([]);
+        this._visibleDots.set(dots);
+      })
+      .catch((err) => {
+        console.warn("[SpotMapDataManager] cluster service request failed:", err);
+      });
   }
 
   private _currentViewport: VisibleViewport | null = null;

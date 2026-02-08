@@ -1,11 +1,4 @@
-import {
-  Component,
-  computed,
-  input,
-  output,
-  ViewChild,
-  ElementRef,
-} from "@angular/core";
+import { Component, computed, input, output } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { SpotClusterDotSchema } from "../../../db/schemas/SpotClusterTile";
 import { NgClass } from "@angular/common";
@@ -25,19 +18,17 @@ import { GeoPoint } from "firebase/firestore";
         'marker-primary-light': !resolvedDarkMode()
       }"
       [style]="{
-        height: 12 + sqrt(dot().weight) * 2 + 'px',
-        width: 12 + sqrt(dot().weight) * 2 + 'px'
+        height: dotSize() + 'px',
+        width: dotSize() + 'px'
       }"
     ></div>
-    @if(smallDotRef) {
     <map-advanced-marker
       [position]="position()"
-      [content]="smallDotRef.nativeElement"
+      [content]="smallDot"
       [options]="{ gmpClickable: true }"
       (mapClick)="markerClick.emit(dot())"
       [zIndex]="dot().weight"
     ></map-advanced-marker>
-    }
   `,
   styles: [
     `
@@ -62,13 +53,10 @@ import { GeoPoint } from "firebase/firestore";
   ],
 })
 export class ClusterDotMarkerComponent {
-  @ViewChild("smallDot", { static: true })
-  smallDotRef!: ElementRef<HTMLDivElement>;
+  private readonly DOT_SIZE_SCALE = 0.75;
 
   dot = input.required<SpotClusterDotSchema>();
   markerClick = output<SpotClusterDotSchema>();
-
-  sqrt = Math.sqrt;
 
   constructor(private theme: ThemeService) {}
 
@@ -76,14 +64,79 @@ export class ClusterDotMarkerComponent {
     return this.theme.isDark("roadmap"); // Assuming roadmap style for now or inject parent's mapStyle if needed
   });
 
-  position = computed<google.maps.LatLngLiteral>(() => {
-    const d = this.dot();
-    if (d.location && d.location.latitude && d.location.longitude) {
-      return { lat: d.location.latitude, lng: d.location.longitude };
-    } else if (d.location_raw) {
-      return { lat: d.location_raw.lat, lng: d.location_raw.lng };
+  private toNumber(value: unknown): number | null {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
     }
-    // Fallback?
-    return { lat: 0, lng: 0 };
+    return null;
+  }
+
+  private extractLatLng(dot: SpotClusterDotSchema): google.maps.LatLngLiteral | null {
+    const location: any = dot.location as any;
+    const locationRaw: any = dot.location_raw as any;
+
+    const latFn =
+      location && typeof location.lat === "function"
+        ? this.toNumber(location.lat())
+        : null;
+    const lngFn =
+      location && typeof location.lng === "function"
+        ? this.toNumber(location.lng())
+        : null;
+    if (latFn !== null && lngFn !== null) {
+      return { lat: latFn, lng: lngFn };
+    }
+
+    if (location && typeof location.toJSON === "function") {
+      const json = location.toJSON();
+      const lat = this.toNumber((json as any)?.lat);
+      const lng = this.toNumber((json as any)?.lng);
+      if (lat !== null && lng !== null) {
+        return { lat, lng };
+      }
+    }
+
+    const candidates: Array<[unknown, unknown]> = [
+      [location?.latitude, location?.longitude],
+      [location?._latitude, location?._longitude],
+      [location?._lat, location?._long],
+      [location?.lat, location?.lng],
+      [location?.lat, location?.lon],
+      [locationRaw?.lat, locationRaw?.lng],
+    ];
+
+    for (const [latRaw, lngRaw] of candidates) {
+      const lat = this.toNumber(latRaw);
+      const lng = this.toNumber(lngRaw);
+      if (lat !== null && lng !== null) {
+        return { lat, lng };
+      }
+    }
+
+    if (typeof location === "string") {
+      const match = location.match(
+        /(latitude|_latitude|lat)\s*[=:]\s*([-\d.]+).*?(longitude|_longitude|lng|lon)\s*[=:]\s*([-\d.]+)/
+      );
+      if (match) {
+        const lat = this.toNumber(match[2]);
+        const lng = this.toNumber(match[4]);
+        if (lat !== null && lng !== null) {
+          return { lat, lng };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  position = computed<google.maps.LatLngLiteral>(() => {
+    return this.extractLatLng(this.dot()) ?? { lat: 0, lng: 0 };
+  });
+
+  dotSize = computed<number>(() => {
+    const raw = 12 + Math.sqrt(this.dot().weight) * 2;
+    return raw * this.DOT_SIZE_SCALE;
   });
 }
