@@ -1,10 +1,15 @@
 <ng-template #sidebarContent>
   @if(checkInService.currentProximitySpot(); as spot) {
-  <div class="px-3 pb-5 gap-1 d-flex flex-column">
-    <div class="d-flex align-items-center gap-2">
-      <mat-icon class="text-primary flex-shrink-0">place</mat-icon>
-      <span class="mat-body-medium text-truncate"
-        >Are you at <strong>{{ spot.name() }} spot</strong>?</span
+  <div
+    @fadeInOut
+    class="px-3 pt-2 pb-3 gap-1 d-flex flex-row justify-content-between overflow-hidden"
+  >
+    <div class="d-flex align-items-center gap-2 overflow-hidden">
+      <mat-icon class="flex-shrink-0" color="accent">beenhere</mat-icon>
+      <span
+        class="mat-title-medium text-truncate"
+        i18n="@@checkin.at_spot_short"
+        >At <strong>{{ spot.name() }}</strong> spot?</span
       >
     </div>
     <div class="d-flex gap-2">
@@ -12,15 +17,24 @@
         mat-flat-button
         color="accent"
         class="flex-grow-1"
-        (click)="router.navigate(['/map', spot.slug || spot.id])"
+        (click)="spotCheckIn(spot.id)"
       >
-        Check In
+        <!-- <mat-icon>beenhere</mat-icon> -->
+        <span i18n="@@checkin.check_in">Check In</span>
       </button>
-      <button mat-stroked-button (click)="checkInService.dismissSpot(spot.id)">
+      <!-- <button
+        mat-stroked-button
+        (click)="checkInService.dismissSpot(spot.id)"
+        i18n="@@checkin.dismiss"
+      >
         Dismiss
+      </button> -->
+      <button mat-icon-button (click)="checkInService.dismissSpot(spot.id)">
+        <mat-icon>close</mat-icon>
       </button>
     </div>
   </div>
+  <mat-divider class="mb-2"></mat-divider>
   } @if(selectedPoi()) {
   <app-poi-detail
     [poi]="selectedPoi()!"

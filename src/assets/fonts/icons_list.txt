@@ -85,6 +85,7 @@ checkroom
 thermostat
 paid
 water_full
+water_drop
 local_parking
 power
 grass

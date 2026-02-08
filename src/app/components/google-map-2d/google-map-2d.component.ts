@@ -337,6 +337,7 @@ export class GoogleMap2dComponent
 
   selectedSpot = input<Spot | LocalSpot | null>(null);
   selectedSpotChallenges = input<SpotChallengePreview[]>([]);
+  checkInSpot = input<Spot | null>(null);
   @Input() selectedChallenge: SpotChallenge | LocalSpotChallenge | null = null;
 
   @Input() showGeolocation: boolean = false;
@@ -478,6 +479,36 @@ export class GoogleMap2dComponent
       id,
       location: `${location.lat},${location.lng}`,
     };
+  });
+
+  shouldShowCheckInMarker = computed(() => {
+    const checkInSpot = this.checkInSpot();
+    const selectedSpot = this.selectedSpot();
+
+    if (!checkInSpot) return false;
+
+    if (!selectedSpot) return true;
+
+    // If selected spot has ID, compare IDs
+    if ("id" in selectedSpot) {
+      return selectedSpot.id !== checkInSpot.id;
+    }
+
+    // If selected spot is LocalSpot, it's not the check-in spot
+    return true;
+  });
+
+  isSelectedSpotCheckIn = computed(() => {
+    const checkInSpot = this.checkInSpot();
+    const selectedSpot = this.selectedSpot();
+
+    if (!checkInSpot || !selectedSpot) return false;
+
+    if ("id" in selectedSpot) {
+      return selectedSpot.id === checkInSpot.id;
+    }
+
+    return false;
   });
 
   /**

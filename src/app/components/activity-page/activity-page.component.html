@@ -1,5 +1,19 @@
 <div class="activity-feed d-flex flex-column gap-3">
-  <h1>Activity</h1>
+  <div>
+    <h1 class="p-0 mat-headline-medium m-0 mb-3">Activity</h1>
+
+    <mat-chip-listbox class="p-0" [value]="category()">
+      @for (tabKeyVal of (categories | keyvalue); track $index) {
+      <mat-chip-option
+        i18n
+        [value]="tabKeyVal.key"
+        (selectionChange)="category.set(tabKeyVal.key)"
+        [disabled]="tabKeyVal.key !== 'community'"
+        >{{ tabKeyVal.value }}</mat-chip-option
+      >
+      }
+    </mat-chip-listbox>
+  </div>
 
   @if (newItemsBuffer$ | async; as buffer) { @if (buffer.length > 0) {
   <button class="new-items-btn" (click)="showNewItems()">

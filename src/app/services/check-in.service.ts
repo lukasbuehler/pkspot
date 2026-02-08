@@ -1,4 +1,12 @@
-import { Injectable, computed, effect, inject, signal } from "@angular/core";
+import {
+  Injectable,
+  computed,
+  effect,
+  inject,
+  signal,
+  PLATFORM_ID,
+} from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { GeolocationService } from "./geolocation.service";
 import { SpotsService } from "./firebase/firestore/spots.service";
 import { Spot } from "../../db/models/Spot";
@@ -6,6 +14,7 @@ import { getTileCoordinatesForLocationAndZoom } from "../../scripts/TileCoordina
 import { MapHelpers } from "../../scripts/MapHelpers";
 import { take } from "rxjs";
 import { toObservable } from "@angular/core/rxjs-interop";
+import { SpotId } from "../../db/schemas/SpotSchema";
 
 @Injectable({
   providedIn: "root",
@@ -23,15 +32,20 @@ export class CheckInService {
   public currentProximitySpot = signal<Spot | null>(null);
   public showGlobalChip = signal<boolean>(true);
 
+  // Track selected spot to allow checking in to it if in range, overriding closest
+  public selectedSpot = signal<Spot | null>(null);
+
   // Cooldowns map: spotId -> timestamp (ms)
   private _cooldowns = signal<Record<string, number>>({});
 
   constructor() {
     this._loadCooldowns();
 
-    // Effect to monitor location changes
+    // Effect to monitor location changes and selected spot changes
     effect(() => {
       const locationState = this._geolocationService.currentLocation();
+      const selected = this.selectedSpot(); // depend on selected spot
+
       if (locationState && locationState.location) {
         this._checkProximity(locationState.location, locationState.accuracy);
       }
@@ -48,7 +62,10 @@ export class CheckInService {
     });
   }
 
+  private _platformId = inject(PLATFORM_ID);
+
   private _loadCooldowns() {
+    if (!isPlatformBrowser(this._platformId)) return;
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY_COOLDOWN);
       if (stored) {
@@ -70,6 +87,7 @@ export class CheckInService {
   }
 
   private _saveCooldowns(cooldowns: Record<string, number>) {
+    if (!isPlatformBrowser(this._platformId)) return;
     try {
       localStorage.setItem(
         this.STORAGE_KEY_COOLDOWN,
@@ -185,6 +203,10 @@ export class CheckInService {
     let closestSpot: Spot | null = null;
     let minDistance = Infinity;
 
+    // Also check if selected spot is in range
+    let selectedSpotInRange: Spot | null = null;
+    const selected = this.selectedSpot();
+
     for (const spot of activeSpots) {
       const spotLoc = spot.location();
       const distance = this._computeDistanceMeters(currentLocation, spotLoc);
@@ -194,16 +216,23 @@ export class CheckInService {
           minDistance = distance;
           closestSpot = spot;
         }
+
+        if (selected && spot.id === selected.id) {
+          selectedSpotInRange = spot;
+        }
       }
     }
 
+    // Prioritize selected spot if in range
+    const targetSpot = selectedSpotInRange || closestSpot;
+
     // Update signal
     // Only update if changed to avoid signal churn
-    if (this.currentProximitySpot()?.id !== closestSpot?.id) {
+    if (this.currentProximitySpot()?.id !== targetSpot?.id) {
       console.log(
-        `Proactive Check-in: Found spot ${closestSpot?.name()} at ${minDistance}m`
+        `Proactive Check-in: Found spot ${targetSpot?.name()} (Selected: ${!!selectedSpotInRange})`
       );
-      this.currentProximitySpot.set(closestSpot);
+      this.currentProximitySpot.set(targetSpot);
     }
   }
 
@@ -226,5 +255,9 @@ export class CheckInService {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c;
+  }
+
+  public checkIn(spotId: SpotId) {
+    console.log(`Check-in: ${spotId}`);
   }
 }

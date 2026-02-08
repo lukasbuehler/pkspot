@@ -62,6 +62,7 @@ export class MarkerComponent {
   });
   clickable = input<boolean>(false);
   isIconic = input<boolean>(false);
+  isCheckIn = input<boolean>(false);
   color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
   size = input<number>(1);
   title = input<string | null | undefined>(null);

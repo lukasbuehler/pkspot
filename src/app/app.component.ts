@@ -68,6 +68,7 @@ import { Capacitor } from "@capacitor/core";
 import { BackHandlingService } from "./services/back-handling.service";
 import { CanonicalService } from "./services/canonical.service";
 import { CheckInService } from "./services/check-in.service";
+import { SpotId } from "../db/schemas/SpotSchema";
 
 interface ButtonBase {
   name: string;
@@ -1073,6 +1074,10 @@ export class AppComponent implements OnInit, AfterViewInit {
       return false;
     }
   });
+
+  spotCheckIn(spotId: SpotId) {
+    this.checkInService.checkIn(spotId);
+  }
 
   userMenuConfig = computed(() => {
     return this.isSignedIn()

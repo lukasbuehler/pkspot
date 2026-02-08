@@ -1,5 +1,12 @@
-import { Component, inject, LOCALE_ID, OnDestroy, OnInit } from "@angular/core";
-import { AsyncPipe, DatePipe } from "@angular/common";
+import {
+  Component,
+  inject,
+  LOCALE_ID,
+  OnDestroy,
+  OnInit,
+  signal,
+} from "@angular/core";
+import { AsyncPipe, DatePipe, KeyValuePipe } from "@angular/common";
 import { Router, RouterLink } from "@angular/router";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
@@ -28,6 +35,7 @@ import { LocaleCode } from "../../../db/models/Interfaces";
 import { Timestamp } from "@angular/fire/firestore";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
+import { MatChipsModule } from "@angular/material/chips";
 
 interface FeedItem {
   edit: SpotEditSchema;
@@ -45,6 +53,8 @@ interface FeedItem {
     RouterLink,
     MatButtonModule,
     MatCardModule,
+    MatChipsModule,
+    KeyValuePipe,
   ],
   templateUrl: "./activity-page.component.html",
   styleUrl: "./activity-page.component.scss",
@@ -64,6 +74,15 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   private _lastDoc: any = null;
   private _destroyed$ = new Subject<void>();
   private _realtimeSubscription?: Subscription;
+
+  categories = {
+    all: $localize`All`,
+    community: $localize`Community`,
+    data: $localize`Data Imports`,
+    dev_log: $localize`Dev Log`,
+  };
+  category =
+    signal<(typeof this.categories)[keyof typeof this.categories]>("all");
 
   ngOnInit() {
     this.initialLoad();

@@ -65,6 +65,7 @@ import {
 import { AnyMedia } from "../../../db/models/Media";
 
 import { GeolocationService } from "../../services/geolocation.service";
+import { CheckInService } from "../../services/check-in.service";
 
 @Component({
   selector: "app-spot-map",
@@ -86,6 +87,8 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   mapsApiService = inject(MapsApiService);
 
   private _router = inject(Router);
+
+  private _isDestroyed = false;
 
   selectedSpot = model<Spot | LocalSpot | null>(null); // input and output signal
   selectedSpotChallenges = model<SpotChallengePreview[]>([]);
@@ -141,6 +144,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   mapZoom: number = this.startZoom;
   mapCenter?: google.maps.LatLngLiteral;
   bounds?: google.maps.LatLngBounds;
+
+  // Check-In Service integration
+  private _checkInService = inject(CheckInService);
+
+  // Expose check-in spot to template
+  checkInSpot = this._checkInService.currentProximitySpot;
 
   // markers for water and toilets
   loadedInputMarkers: Signal<Map<MapTileKey, MarkerSchema[]>> = computed(() => {
@@ -271,8 +280,32 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     });
 
     effect(() => {
-      const highlightedSpots = this.visibleHighlightedSpots();
-      this.hightlightedSpotsChange.emit(highlightedSpots);
+      const visibleHighlightedSpots = this.visibleHighlightedSpots();
+      this.hightlightedSpotsChange.emit(visibleHighlightedSpots);
+    });
+
+    // Update check-in service with selected spot
+    effect(() => {
+      this._checkInService.selectedSpot.set(this.selectedSpot() as Spot | null);
+    });
+
+    // Auto-focus logic for check-in spot
+    effect(() => {
+      const checkInSpot = this.checkInSpot();
+      const selectedSpot = this.selectedSpot();
+
+      // Only focus if no spot is selected and we have a check-in spot
+      if (checkInSpot && !selectedSpot && this.isInitiated) {
+        // Use a small timeout to let the map stabilize if needed
+        setTimeout(() => {
+          // Check again to be sure
+          if (!this.selectedSpot()) {
+            // Optional: Don't force focus if user is panning?
+            // But user asked: "if none are selected we could also focus it"
+            this.focusPoint(checkInSpot.location(), 17);
+          }
+        }, 500);
+      }
     });
 
     // Sync the spotFilterMode signal with the data manager
@@ -332,6 +365,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this.mapsAPIService
         .loadMapStyle("roadmap")
         .then((style: "satellite" | "roadmap" | "hybrid" | "terrain") => {
+          if (this._isDestroyed) return;
           if (style) {
             this.mapStyle.set(style);
           }
@@ -379,6 +413,8 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       try {
         const lastLocationAndZoom =
           await this.mapsAPIService.loadLastLocationAndZoom();
+        if (this._isDestroyed) return;
+
         if (this.map) {
           if (lastLocationAndZoom) {
             this.map.center = lastLocationAndZoom.location;
@@ -396,6 +432,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           "Failed to load last location from storage, using default:",
           error
         );
+        if (this._isDestroyed) return;
         if (this.map) {
           this.map.center = {
             lat: 48.6270939,
@@ -412,7 +449,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this.isInitiated = true;
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this._isDestroyed = true;
+  }
 
   // Map events ///////////////////////////////////////////////////////////////
 

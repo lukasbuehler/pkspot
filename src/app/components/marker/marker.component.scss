@@ -53,6 +53,18 @@
 
     transition: fill 0.3s;
   }
+
+  &.pin-check-in {
+    > div {
+      background-color: var(--mat-sys-tertiary) !important;
+      border-color: var(--mat-sys-on-tertiary) !important;
+      color: var(--mat-sys-on-tertiary) !important;
+    }
+
+    > svg {
+      fill: var(--mat-sys-tertiary) !important;
+    }
+  }
 }
 
 .clickable {

@@ -102,11 +102,20 @@ export class GeolocationService {
             this.loading.set(false);
           },
           (err) => {
-            console.error("Geolocation watch error", err);
-            this.error.set(err);
-            this.currentLocation.set(null);
+            // specific error handling
+            if (err.code === 1) {
+              // PERMISSION_DENIED
+              console.error("Geolocation permission denied", err);
+              this.error.set(err);
+              this.currentLocation.set(null);
+              this.browserWatchId = null;
+            } else {
+              // POSITION_UNAVAILABLE (2) or TIMEOUT (3)
+              // These might be transient, so we warn but don't clear current location immediately
+              // to prevent UI flashing. The watch continues.
+              console.warn("Geolocation transient error", err.message);
+            }
             this.loading.set(false);
-            this.browserWatchId = null; // Clear watch ID to allow retry
           },
           {
             enableHighAccuracy: true,

@@ -59,20 +59,20 @@
   //   border-color: mat.get-theme-color($theme, primary);
   // }
 
-  // .marker-primary-dark {
-  //   @extend .marker !optional;
-  //   background-color: mat.get-theme-color($theme, primary);
-  //   border-color: #0037b9;
-  // }
+  .marker-primary-dark {
+    @extend .marker !optional;
+    background-color: mat.get-theme-color($theme, primary);
+    border-color: #0037b9;
+  }
 
-  // .marker-secondary-dark {
-  //   @extend .marker !optional;
-  //   background-color: mat.get-theme-color($theme, secondary);
-  // }
-  // .marker-tertiary-dark {
-  //   @extend .marker !optional;
-  //   background-color: mat.get-theme-color($theme, tertiary);
-  // }
+  .marker-secondary-dark {
+    @extend .marker !optional;
+    background-color: #a7f690;
+  }
+  .marker-tertiary-dark {
+    @extend .marker !optional;
+    background-color: #ffd7f4;
+  }
 }
 
 @mixin typography($theme) {

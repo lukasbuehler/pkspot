@@ -110,7 +110,7 @@ export class OsmDataService {
                 icons: ["water_full"], // local_drink, water_drop
                 name: element.tags.name,
                 description: operator,
-                color: "secondary",
+                color: "tertiary",
                 type: "drinking_water",
               };
               return marker;
@@ -133,7 +133,7 @@ export class OsmDataService {
                 name:
                   element.tags?.name ?? $localize`Unnamed Drinking Water spot`,
                 description: operator,
-                color: "secondary",
+                color: "tertiary",
                 type: "drinking_water",
               };
               return marker;

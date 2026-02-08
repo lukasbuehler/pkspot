@@ -203,6 +203,7 @@
     id="selectedSpotMarkerNode"
     [icons]="[selectedSpot()!.isIconic ? 'stars' : 'fiber_manual_record']"
     [isIconic]="selectedSpot()!.isIconic"
+    [isCheckIn]="isSelectedSpotCheckIn()"
   >
   </app-marker>
 
@@ -228,7 +229,24 @@
       width: 15 + 'px'
     }"
   ></div>
-  } } } }
+  } }
+
+  <!-- Check-In Marker (only if not selected) -->
+  @if(shouldShowCheckInMarker()) {
+  <map-advanced-marker
+    [position]="checkInSpot()!.location()"
+    [content]="checkInSpotMarkerNode.elementRef.nativeElement"
+    [zIndex]="60001"
+    (mapClick)="spotClick.emit(checkInSpot()!)"
+  ></map-advanced-marker>
+  <app-marker
+    #checkInSpotMarkerNode
+    class="fade-in"
+    [isCheckIn]="true"
+    [clickable]="true"
+    (click)="spotClick.emit(checkInSpot()!)"
+  ></app-marker>
+  } } }
 
   <!-- Geolocation -->
   @if(showGeolocation && geolocation()) {

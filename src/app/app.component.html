@@ -162,7 +162,9 @@
         (click)="router.navigate(['/map', spot.slug || spot.id])"
       >
         <mat-icon class="text-primary flex-shrink-0">place</mat-icon>
-        <span class="mat-title-small text-truncate" i18n="@@checkin.at_spot"
+        <span
+          class="mat-title-small text-truncate"
+          i18n="@@checkin.at_spot_short"
           >At <strong>{{ spot.name() }}</strong> spot?</span
         >
         <button
@@ -170,6 +172,7 @@
           color="primary"
           style="height: 32px; line-height: 32px"
           i18n="@@checkin.check_in"
+          (click)="spotCheckIn(spot.id)"
         >
           Check In
         </button>

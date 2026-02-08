@@ -1,10 +1,10 @@
 <div
   class="pin-marker"
   [ngClass]="{
-    'pin-primary': color() === 'primary' || !isIconic(),
-    'pin-secondary': color() === 'secondary' && !isIconic(),
-    'pin-tertiary': color() === 'tertiary' && !isIconic(),
-    'pin-gray': color() === 'gray' && !isIconic(),
+    'pin-primary': color() === 'primary' || (!isIconic() && !isCheckIn()),
+    'pin-secondary': (color() === 'secondary' && !isIconic()) || isCheckIn(),
+    'pin-tertiary': color() === 'tertiary' && !isIconic() && !isCheckIn(),
+    'pin-gray': color() === 'gray' && !isIconic() && !isCheckIn()
   }"
   [class.clickable]="clickable()"
   [style]="{ scale: size() }"
@@ -15,12 +15,16 @@
 >
   <div
     class="mat-label-large d-flex flex-row align-items-center gap-1"
-    [class.has-icons]="icons()"
-    [class.icons-only]="icons() && !formattedNumber()"
+    [class.has-icons]="icons() || isCheckIn()"
+    [class.icons-only]="(icons() || isCheckIn()) && !formattedNumber()"
   >
     @if(formattedNumber()) {
     <span class="d-inline-block">{{ formattedNumber() }}</span>
-    } @if(icons()) { @for(icon of icons()!; track $index) {
+    } @if(isCheckIn()) {
+    <mat-icon style="height: 20px; font-size: 20px; width: 20px"
+      >beenhere</mat-icon
+    >
+    } @else if(icons()) { @for(icon of icons()!; track $index) {
     <mat-icon style="height: 20px; font-size: 20px; width: 20px">
       {{ icon }}
     </mat-icon>

@@ -1653,4 +1653,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     return false;
   };
+
+  spotCheckIn(spotId: SpotId) {
+    this.checkInService.checkIn(spotId);
+  }
 }
