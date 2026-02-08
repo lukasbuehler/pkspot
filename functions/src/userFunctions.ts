@@ -20,12 +20,21 @@ export const onCheckInCreate = onDocumentCreated(
       return;
     }
 
-    const userRef = admin.firestore().collection("users").doc(userId);
+    // Write to private_data subcollection instead of the public user document
+    const privateDataRef = admin
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("private_data")
+      .doc("main");
 
     try {
-      await userRef.update({
-        visited_spots: admin.firestore.FieldValue.arrayUnion(spotId),
-      });
+      await privateDataRef.set(
+        {
+          visited_spots: admin.firestore.FieldValue.arrayUnion(spotId),
+        },
+        { merge: true }
+      );
       console.log(`Added spot ${spotId} to visited_spots for user ${userId}`);
     } catch (error) {
       console.error(`Error updating visited_spots for user ${userId}:`, error);

@@ -1,5 +1,5 @@
 import { humanTimeSince, parseFirestoreTimestamp } from "../../scripts/Helpers";
-import { UserSchema, UserSettingsSchema } from "../schemas/UserSchema";
+import { UserSchema } from "../schemas/UserSchema";
 import { StorageImage, ImageMedia } from "./Media";
 
 export class User {
@@ -11,12 +11,10 @@ export class User {
   public startTimeDiffString: string | null = null;
   public startDate: Date | null = null;
   public followerCount: number = 0;
-  public settings: UserSettingsSchema | null = null;
   public nationalityCode: string | null = null;
   public homeCity: string | null = null;
 
-  public bookmarks: string[] = [];
-  public visitedSpots: string[] = [];
+  // NOTE: bookmarks, visitedSpots, and settings are now loaded separately via UsersService.getPrivateData()
 
   public data: UserSchema | null = null;
 
@@ -43,8 +41,6 @@ export class User {
       this.profilePicture = new StorageImage(this._data.profile_picture);
     }
 
-    this.settings = this._data.settings ?? {};
-
     // Start date - use helper to parse various timestamp formats
     const startDate = parseFirestoreTimestamp(this._data.start_date);
     if (startDate) {
@@ -59,9 +55,6 @@ export class User {
 
     this.nationalityCode = this._data.nationality_code ?? null;
     this.homeCity = this._data.home_city ?? null;
-
-    this.bookmarks = this._data.bookmarks ?? [];
-    this.visitedSpots = this._data.visited_spots ?? [];
 
     // Data
     this.data = this._data;

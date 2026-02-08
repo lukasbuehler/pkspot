@@ -8,6 +8,7 @@ import {
   UserSchema,
 } from "../../../../db/schemas/UserSchema";
 import { CheckInSchema } from "../../../../db/schemas/CheckInSchema";
+import { PrivateUserDataSchema } from "../../../../db/schemas/PrivateUserDataSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { StorageImage } from "../../../../db/models/Media";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
@@ -152,16 +153,13 @@ export class UsersService extends ConsentAwareService {
 
   async toggleBookmark(userId: string, spotId: string): Promise<void> {
     return this.executeWithConsent(async () => {
-      const userRef = `users/${userId}`;
-      const userSnap = await this._firestoreAdapter.getDocument<UserSchema>(
-        userRef
-      );
+      const privateDataRef = `users/${userId}/private_data/main`;
+      const privateData =
+        await this._firestoreAdapter.getDocument<PrivateUserDataSchema>(
+          privateDataRef
+        );
 
-      if (!userSnap) {
-        throw new Error("User not found");
-      }
-
-      let bookmarks = userSnap.bookmarks || [];
+      let bookmarks = privateData?.bookmarks || [];
       const isBookmarked = bookmarks.includes(spotId);
 
       if (isBookmarked) {
@@ -170,9 +168,12 @@ export class UsersService extends ConsentAwareService {
         bookmarks.push(spotId);
       }
 
-      await this._firestoreAdapter.updateDocument(userRef, {
-        bookmarks: bookmarks,
-      } as Partial<UserSchema>);
+      // Use setDocument with merge to create if not exists
+      await this._firestoreAdapter.setDocument(
+        privateDataRef,
+        { bookmarks: bookmarks },
+        { merge: true }
+      );
     });
   }
 
@@ -196,5 +197,53 @@ export class UsersService extends ConsentAwareService {
         );
       })
     ).pipe(switchMap((obs) => obs));
+  }
+
+  /**
+   * Get the private data for a user (bookmarks, visited_spots, settings).
+   * Only accessible by the authenticated user themselves.
+   */
+  getPrivateData(userId: string): Observable<PrivateUserDataSchema | null> {
+    return from(
+      this.executeWhenConsent(() => {
+        return this._firestoreAdapter.documentSnapshots<PrivateUserDataSchema>(
+          `users/${userId}/private_data/main`
+        );
+      })
+    ).pipe(switchMap((obs) => obs));
+  }
+
+  /**
+   * Initialize private data for a new user with default settings.
+   * Called when creating a new user account.
+   */
+  async initializePrivateData(
+    userId: string,
+    data: PrivateUserDataSchema
+  ): Promise<void> {
+    return this.executeWithConsent(async () => {
+      await this._firestoreAdapter.setDocument(
+        `users/${userId}/private_data/main`,
+        data,
+        { merge: true }
+      );
+    });
+  }
+
+  /**
+   * Update private user data (settings, bookmarks, etc.).
+   * Only accessible by the authenticated user themselves.
+   */
+  async updatePrivateData(
+    userId: string,
+    data: Partial<PrivateUserDataSchema>
+  ): Promise<void> {
+    return this.executeWithConsent(async () => {
+      await this._firestoreAdapter.setDocument(
+        `users/${userId}/private_data/main`,
+        data,
+        { merge: true }
+      );
+    });
   }
 }

@@ -1,4 +1,11 @@
-import { Component, computed, input, output } from "@angular/core";
+import {
+  Component,
+  computed,
+  input,
+  output,
+  ViewChild,
+  ElementRef,
+} from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { SpotClusterDotSchema } from "../../../db/schemas/SpotClusterTile";
 import { NgClass } from "@angular/common";
@@ -22,13 +29,15 @@ import { GeoPoint } from "firebase/firestore";
         width: 12 + sqrt(dot().weight) * 2 + 'px'
       }"
     ></div>
+    @if(smallDotRef) {
     <map-advanced-marker
       [position]="position()"
-      [content]="smallDot"
+      [content]="smallDotRef.nativeElement"
       [options]="{ gmpClickable: true }"
       (mapClick)="markerClick.emit(dot())"
       [zIndex]="dot().weight"
     ></map-advanced-marker>
+    }
   `,
   styles: [
     `
@@ -53,6 +62,9 @@ import { GeoPoint } from "firebase/firestore";
   ],
 })
 export class ClusterDotMarkerComponent {
+  @ViewChild("smallDot", { static: true })
+  smallDotRef!: ElementRef<HTMLDivElement>;
+
   dot = input.required<SpotClusterDotSchema>();
   markerClick = output<SpotClusterDotSchema>();
 

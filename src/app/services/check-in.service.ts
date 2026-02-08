@@ -49,7 +49,7 @@ export class CheckInService {
       const selected = this.selectedSpot(); // depend on selected spot
 
       if (locationState && locationState.location) {
-        console.log(
+        console.debug(
           `[CheckIn Debug] Location update: (${locationState.location.lat.toFixed(
             6
           )}, ${locationState.location.lng.toFixed(6)}), accuracy: ${
@@ -58,7 +58,7 @@ export class CheckInService {
         );
         this._checkProximity(locationState.location, locationState.accuracy);
       } else {
-        console.log(`[CheckIn Debug] No location available yet`);
+        console.debug(`[CheckIn Debug] No location available yet`);
       }
     });
 
@@ -185,7 +185,7 @@ export class CheckInService {
     this._isQuerying = true;
     this._lastQueryTime = now;
 
-    console.log(
+    console.debug(
       `[CheckIn Debug] Querying Typesense at (${location.lat.toFixed(
         6
       )}, ${location.lng.toFixed(6)})`
@@ -197,16 +197,16 @@ export class CheckInService {
       .searchSpotsNearLocation(location, 500, 50)
       .then((result) => {
         this._isQuerying = false;
-        console.log(
+        console.debug(
           `[CheckIn Debug] Typesense returned ${result.hits.length} hits (found: ${result.found})`
         );
         if (result.hits.length > 0) {
           // Log full first hit document to see all available fields
-          console.log(
+          console.debug(
             `[CheckIn Debug] Full first hit document:`,
             JSON.stringify(result.hits[0].document, null, 2)
           );
-          console.log(
+          console.debug(
             `[CheckIn Debug] First few hits summary:`,
             result.hits.slice(0, 3).map((h) => ({
               id: h.document?.id,
@@ -292,7 +292,7 @@ export class CheckInService {
       .map((hit) => this._searchService.getSpotPreviewFromHit(hit))
       .filter((spot): spot is SpotPreviewData => !!spot);
 
-    console.log(
+    console.debug(
       `[CheckIn Debug] Converted ${spots.length}/${hits.length} hits to Spot objects`
     );
 
@@ -300,7 +300,7 @@ export class CheckInService {
       // Calculate distances for debugging
       spots.slice(0, 5).forEach((spot) => {
         const dist = this._getEffectiveDistance(currentLocation, spot);
-        console.log(
+        console.debug(
           `[CheckIn Debug] Spot "${spot.name}" - distance: ${dist.toFixed(
             1
           )}m, hasBounds: ${!!(

@@ -165,6 +165,11 @@ service cloud.firestore {
         allow read, create, delete: if request.auth.uid != null && request.auth.uid == userId;
         allow update: if false;
       }
+
+      match /private_data/{docId} {
+        // Private to the user - stores bookmarks and visited_spots
+        allow read, write: if request.auth.uid != null && request.auth.uid == userId;
+      }
     }
 
     match /events/{eventId} {

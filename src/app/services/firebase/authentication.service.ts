@@ -36,6 +36,7 @@ import { BehaviorSubject, firstValueFrom } from "rxjs";
 import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
 import { UserSchema } from "../../../db/schemas/UserSchema";
+import { PrivateUserDataSchema } from "../../../db/schemas/PrivateUserDataSchema";
 import { ConsentAwareService } from "../consent-aware.service";
 import { Capacitor } from "@capacitor/core";
 import {
@@ -273,7 +274,7 @@ export class AuthenticationService extends ConsentAwareService {
 
   private _currentFirebaseUser: FirebaseUser | null = null;
 
-  private _defaultUserSettings: UserSchema["settings"] = {
+  private _defaultUserSettings: PrivateUserDataSchema["settings"] = {
     maps: "googlemaps",
   };
 
@@ -638,8 +639,11 @@ export class AuthenticationService extends ConsentAwareService {
         }
 
         // create a database entry for the user
-        this._userService.addUser(uid, displayName, {
+        await this._userService.addUser(uid, displayName, {
           verified_email: emailVerified,
+        });
+        // Initialize private data with default settings
+        await this._userService.initializePrivateData(uid, {
           settings: this._defaultUserSettings,
         });
       }
@@ -756,8 +760,11 @@ export class AuthenticationService extends ConsentAwareService {
         }
 
         // create a database entry for the user
-        this._userService.addUser(uid, displayName, {
+        await this._userService.addUser(uid, displayName, {
           verified_email: emailVerified,
+        });
+        // Initialize private data with default settings
+        await this._userService.initializePrivateData(uid, {
           settings: this._defaultUserSettings,
         });
       }
@@ -870,7 +877,7 @@ export class AuthenticationService extends ConsentAwareService {
           this.auth!,
           email,
           confirmedPassword
-        ).then((firebaseAuthResponse) => {
+        ).then(async (firebaseAuthResponse) => {
           this.trackEventWithConsent("Create Account", {
             props: { accountType: "Email and Password" },
           });
@@ -885,11 +892,17 @@ export class AuthenticationService extends ConsentAwareService {
           });
 
           // create a database entry for the user
-          this._userService.addUser(
+          await this._userService.addUser(
             firebaseAuthResponse.user.uid,
             displayName,
             {
               verified_email: false,
+            }
+          );
+          // Initialize private data with default settings
+          await this._userService.initializePrivateData(
+            firebaseAuthResponse.user.uid,
+            {
               settings: this._defaultUserSettings,
             }
           );
@@ -945,8 +958,11 @@ export class AuthenticationService extends ConsentAwareService {
         });
 
         // Create a database entry for the user
-        this._userService.addUser(result.user.uid, displayName, {
+        await this._userService.addUser(result.user.uid, displayName, {
           verified_email: false,
+        });
+        // Initialize private data with default settings
+        await this._userService.initializePrivateData(result.user.uid, {
           settings: this._defaultUserSettings,
         });
 

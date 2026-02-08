@@ -20,12 +20,10 @@ export interface UserSchema {
   verified_email?: boolean;
   invite_code?: string;
   home_city?: string;
-  settings?: UserSettingsSchema;
 
   creationDate?: Timestamp;
-
-  bookmarks?: string[]; // Array of Spot IDs
-  visited_spots?: string[]; // Array of Spot IDs (updated via Cloud Function)
+  // NOTE: bookmarks, visited_spots, and settings are now in private_data subcollection
+  // See PrivateUserDataSchema
 }
 
 export interface UserSettingsSchema {
