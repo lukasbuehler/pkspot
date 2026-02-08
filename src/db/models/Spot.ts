@@ -772,6 +772,7 @@ export class Spot extends LocalSpot {
       isIconic: this.isIconic,
       rating: this.rating || undefined,
       amenities: this.amenities(),
+      bounds: this.data().bounds,
     };
   }
 

@@ -132,6 +132,13 @@ export class SearchService {
         isIconic: isIconic,
         rating: doc.rating ?? undefined,
         amenities: amenities || undefined,
+        bounds:
+          doc.bounds_raw?.map(
+            (p: any) => new GeoPoint(p.lat ?? p[0], p.lng ?? p[1])
+          ) ||
+          doc.bounds?.map(
+            (p: any) => new GeoPoint(p.lat ?? p[0], p.lng ?? p[1])
+          ),
       } as SpotPreviewData;
 
       return preview;

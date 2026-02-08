@@ -161,12 +161,12 @@
         class="check-in-chip mat-elevation-z4 d-flex align-items-center gap-3 p-2 rounded-pill overflow-hidden"
         (click)="spotCheckIn(spot.id)"
       >
-        @if(spot.hasMedia()) {
+        @if(spot.imageSrc) {
         <div
           style="height: 42px; width: 42px; border-radius: 100px"
-          class="position-relative overflow-hidden"
+          class="position-relative overflow-hidden flex-shrink-0"
         >
-          <img [ngSrc]="spot.previewImageSrc()" alt="" fill />
+          <img [ngSrc]="spot.imageSrc" alt="" fill />
         </div>
         } @else {
         <div class="ps-2 d-flex align-items-center">
@@ -177,7 +177,7 @@
         <span
           class="mat-title-small text-truncate"
           i18n="@@checkin.at_spot_short"
-          >At <strong>{{ spot.name() }}</strong> spot?</span
+          >At <strong>{{ spot.name }}</strong> spot?</span
         >
         <div class="d-flex flex-row justify-content-center align-items-center">
           <button

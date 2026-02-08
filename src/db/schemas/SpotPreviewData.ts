@@ -17,4 +17,8 @@ export interface SpotPreviewData {
   isIconic: boolean;
   rating?: number; // whole number 1-10
   amenities?: AmenitiesMap;
+  bounds?: GeoPoint[];
+  bounds_raw?: { lat: number; lng: number }[];
+  bounds_radius_m?: number;
+  bounds_center?: GeoPoint;
 }

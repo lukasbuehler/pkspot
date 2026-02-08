@@ -5,7 +5,6 @@
   [center]="center"
   [zoom]="_zoom()"
   [options]="mapOptions"
-  [mapTypeId]="mapTypeId()"
   (mapClick)="onMapClick($event)"
   (boundsChanged)="boundsChanged()"
   (centerChanged)="centerChanged()"
@@ -234,7 +233,7 @@
   <!-- Check-In Marker (show when there's a proximity spot and it's not the selected spot) -->
   @if(shouldShowCheckInMarker()) {
   <map-advanced-marker
-    [position]="checkInSpot()!.location()"
+    [position]="getCheckInSpotLocation()!"
     [content]="checkInSpotMarkerNode.elementRef.nativeElement"
     [zIndex]="60001"
     (mapClick)="spotClick.emit(checkInSpot()!)"

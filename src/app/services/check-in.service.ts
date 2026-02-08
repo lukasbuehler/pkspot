@@ -11,6 +11,7 @@ import { GeolocationService } from "./geolocation.service";
 import { SearchService } from "./search.service";
 import { Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
+import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 
 @Injectable({
   providedIn: "root",
@@ -30,7 +31,7 @@ export class CheckInService {
   private _isQuerying = false;
 
   // State
-  public currentProximitySpot = signal<Spot | null>(null);
+  public currentProximitySpot = signal<SpotPreviewData | null>(null);
   public showGlobalChip = signal<boolean>(true);
 
   // Track selected spot to allow checking in to it if in range, overriding closest
@@ -226,7 +227,7 @@ export class CheckInService {
 
   private _findClosestSpot(
     currentLocation: google.maps.LatLngLiteral,
-    spots: Spot[]
+    spots: SpotPreviewData[]
   ) {
     // Filter out spots that are in cooldown
     const cooldowns = this._cooldowns();
@@ -240,11 +241,11 @@ export class CheckInService {
     });
 
     // Find closest spot
-    let closestSpot: Spot | null = null;
+    let closestSpot: SpotPreviewData | null = null;
     let minDistance = Infinity;
 
     // Also check if selected spot is in range
-    let selectedSpotInRange: Spot | null = null;
+    let selectedSpotInRange: SpotPreviewData | null = null;
     const selected = this.selectedSpot();
 
     for (const spot of activeSpots) {
@@ -270,7 +271,9 @@ export class CheckInService {
     // Only update if changed to avoid signal churn
     if (this.currentProximitySpot()?.id !== targetSpot?.id) {
       console.log(
-        `Proactive Check-in: Found spot ${targetSpot?.name()} (Selected: ${!!selectedSpotInRange})`
+        `Proactive Check-in: Found spot ${
+          targetSpot?.name
+        } (Selected: ${!!selectedSpotInRange})`
       );
       this.currentProximitySpot.set(targetSpot);
     }
@@ -284,10 +287,10 @@ export class CheckInService {
     currentLocation: google.maps.LatLngLiteral,
     hits: any[]
   ) {
-    // Convert hits to Spot objects
-    const spots: Spot[] = hits
-      .map((hit) => this._spotFromTypesenseHit(hit))
-      .filter((spot): spot is Spot => spot !== null);
+    // Convert hits to SpotPreviewData objects
+    const spots: SpotPreviewData[] = hits
+      .map((hit) => this._searchService.getSpotPreviewFromHit(hit))
+      .filter((spot): spot is SpotPreviewData => !!spot);
 
     console.log(
       `[CheckIn Debug] Converted ${spots.length}/${hits.length} hits to Spot objects`
@@ -298,100 +301,17 @@ export class CheckInService {
       spots.slice(0, 5).forEach((spot) => {
         const dist = this._getEffectiveDistance(currentLocation, spot);
         console.log(
-          `[CheckIn Debug] Spot "${spot.name()}" - distance: ${dist.toFixed(
+          `[CheckIn Debug] Spot "${spot.name}" - distance: ${dist.toFixed(
             1
-          )}m, hasBounds: ${spot.hasBounds()}, threshold: ${
-            this.PROXIMITY_THRESHOLD_METERS
-          }m`
+          )}m, hasBounds: ${!!(
+            spot.bounds && spot.bounds.length > 0
+          )}, threshold: ${this.PROXIMITY_THRESHOLD_METERS}m`
         );
       });
     }
 
     // Use existing logic
     this._findClosestSpot(currentLocation, spots);
-  }
-
-  /**
-   * Convert a Typesense hit to a Spot object.
-   * Only includes data needed for proximity detection.
-   */
-  private _spotFromTypesenseHit(hit: any): Spot | null {
-    try {
-      const doc = hit.document || hit;
-      if (!doc.id) return null;
-
-      // Build location
-      let location: google.maps.LatLngLiteral | null = null;
-      if (doc.location) {
-        if (Array.isArray(doc.location) && doc.location.length >= 2) {
-          location = { lat: doc.location[0], lng: doc.location[1] };
-        } else if (doc.location.latitude && doc.location.longitude) {
-          location = {
-            lat: doc.location.latitude,
-            lng: doc.location.longitude,
-          };
-        }
-      }
-      if (!location) return null;
-
-      // Debug: Log what bounds data we have
-      console.log(`[CheckIn Debug] Hit "${doc.id}" raw bounds data:`, {
-        bounds: doc.bounds,
-        bounds_raw: doc.bounds_raw,
-        boundsType: typeof doc.bounds,
-        boundsIsArray: Array.isArray(doc.bounds),
-        boundsLength: doc.bounds?.length,
-      });
-
-      // Build bounds if available - try bounds_raw first (for mobile), then bounds
-      let bounds: { latitude: number; longitude: number }[] | undefined;
-      const boundsSource = doc.bounds_raw || doc.bounds;
-
-      if (
-        boundsSource &&
-        Array.isArray(boundsSource) &&
-        boundsSource.length >= 3
-      ) {
-        bounds = boundsSource
-          .map((point: [number, number] | { lat: number; lng: number }) => {
-            if (Array.isArray(point)) {
-              return { latitude: point[0], longitude: point[1] };
-            }
-            // Handle {lat, lng} format from bounds_raw
-            if (
-              typeof point.lat === "number" &&
-              typeof point.lng === "number"
-            ) {
-              return { latitude: point.lat, longitude: point.lng };
-            }
-            return null;
-          })
-          .filter(
-            (p: any): p is { latitude: number; longitude: number } => p !== null
-          );
-
-        console.log(`[CheckIn Debug] Converted bounds:`, bounds?.slice(0, 2));
-      }
-
-      // Build minimal SpotSchema for Spot constructor
-      const spotData: any = {
-        name: doc.name || {},
-        location_raw: location,
-        bounds: bounds,
-      };
-
-      const spot = new Spot(doc.id as SpotId, spotData, "en");
-      console.log(
-        `[CheckIn Debug] Created Spot "${spot.name()}" hasBounds: ${spot.hasBounds()}, paths: ${
-          spot.paths()?.length ?? 0
-        }`
-      );
-
-      return spot;
-    } catch (e) {
-      console.error("Error converting Typesense hit to Spot:", e);
-      return null;
-    }
   }
 
   /**
@@ -402,34 +322,48 @@ export class CheckInService {
    */
   private _getEffectiveDistance(
     currentLocation: google.maps.LatLngLiteral,
-    spot: Spot
+    spot: SpotPreviewData
   ): number {
-    const spotLoc = spot.location();
+    let spotLoc: google.maps.LatLngLiteral = { lat: 0, lng: 0 };
+
+    if (spot.location) {
+      spotLoc = {
+        lat: spot.location.latitude,
+        lng: spot.location.longitude,
+      };
+    } else if (spot.location_raw) {
+      spotLoc = spot.location_raw;
+    }
+
     const centerDistance = this._computeDistanceMeters(
       currentLocation,
       spotLoc
     );
 
     // If spot has no bounds, just use center distance
-    if (!spot.hasBounds()) {
+    if (!spot.bounds || spot.bounds.length === 0) {
       return centerDistance;
     }
 
-    // Get the paths (polygon coordinates)
-    const paths = spot.paths();
-    if (!paths || paths.length === 0 || paths[0].length < 3) {
+    // Connect the paths (polygon coordinates)
+    const polygon = spot.bounds.map((p) => ({
+      lat: p.latitude,
+      lng: p.longitude,
+    }));
+
+    if (polygon.length < 3) {
       return centerDistance;
     }
 
     // First check if user is inside the polygon
-    if (this._isPointInPolygon(currentLocation, paths[0])) {
+    if (this._isPointInPolygon(currentLocation, polygon)) {
       return 0; // User is inside the spot bounds
     }
 
     // Calculate minimum distance to any edge of the polygon
     const boundsDistance = this._distanceToPolygonEdge(
       currentLocation,
-      paths[0]
+      polygon
     );
 
     // Return the smaller of center distance and bounds distance

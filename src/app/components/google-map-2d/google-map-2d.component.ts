@@ -337,7 +337,7 @@ export class GoogleMap2dComponent
 
   selectedSpot = input<Spot | LocalSpot | null>(null);
   selectedSpotChallenges = input<SpotChallengePreview[]>([]);
-  checkInSpot = input<Spot | null>(null);
+  checkInSpot = input<Spot | SpotPreviewData | null>(null);
   @Input() selectedChallenge: SpotChallenge | LocalSpotChallenge | null = null;
 
   @Input() showGeolocation: boolean = false;
@@ -489,9 +489,12 @@ export class GoogleMap2dComponent
 
     if (!selectedSpot) return true;
 
-    // If selected spot has ID, compare IDs
-    if ("id" in selectedSpot) {
-      return selectedSpot.id !== checkInSpot.id;
+    // Both have IDs (Spot or SpotPreviewData) - safely access ID
+    const selectedId = "id" in selectedSpot ? selectedSpot.id : null;
+    const checkInId = "id" in checkInSpot ? checkInSpot.id : null;
+
+    if (selectedId && checkInId) {
+      return selectedId !== checkInId;
     }
 
     // If selected spot is LocalSpot, it's not the check-in spot
@@ -504,12 +507,36 @@ export class GoogleMap2dComponent
 
     if (!checkInSpot || !selectedSpot) return false;
 
-    if ("id" in selectedSpot) {
-      return selectedSpot.id === checkInSpot.id;
+    const selectedId = "id" in selectedSpot ? selectedSpot.id : null;
+    const checkInId = "id" in checkInSpot ? checkInSpot.id : null;
+
+    if (selectedId && checkInId) {
+      return selectedId === checkInId;
     }
 
     return false;
   });
+
+  getCheckInSpotLocation(): google.maps.LatLngLiteral | null {
+    const spot = this.checkInSpot();
+    if (!spot) return null;
+
+    // Check if it's a Spot (location is a signal/function)
+    if (typeof spot.location === "function") {
+      return spot.location();
+    }
+
+    // Check if it's SpotPreviewData (location is GeoPoint)
+    if (spot.location && typeof spot.location === "object") {
+      // It's likely a GeoPoint
+      const loc = spot.location as any; // Cast to any to access latitude/longitude safely
+      if ("latitude" in loc && "longitude" in loc) {
+        return { lat: loc.latitude, lng: loc.longitude };
+      }
+    }
+
+    return null;
+  }
 
   /**
    * Get a unique key for the selected spot to force polygon recreation
@@ -590,11 +617,13 @@ export class GoogleMap2dComponent
       }
     });
 
-    // Effect to update map color scheme when dark mode changes
+    // Effect to update map color scheme when dark mode changes or map type changes
     effect(() => {
-      // Create dependency on resolvedDarkMode
+      // Create dependency on resolvedDarkMode and mapTypeId
       const _ = this.resolvedDarkMode();
-      this._updateMapColorScheme();
+      const __ = this.mapTypeId(); // Ensure we react to map type changes too
+
+      this._updateMapConfig();
     });
 
     // if (this.selectedSpot) {
@@ -670,9 +699,9 @@ export class GoogleMap2dComponent
       return;
     }
 
-    // Initial color scheme update - this will trigger optionsInitialized
+    // Initial config update - this will trigger optionsInitialized
     // which eventually renders the map
-    this._updateMapColorScheme();
+    this._updateMapConfig();
   }
 
   onMapReady() {
@@ -709,19 +738,22 @@ export class GoogleMap2dComponent
     }
   }
 
-  private async _updateMapColorScheme() {
+  private async _updateMapConfig() {
+    const desiredMapTypeId = this.mapTypeId();
+
     // If map is already initialized, use setOptions
     if (this.googleMap?.googleMap) {
       try {
         const { ColorScheme } = (await google.maps.importLibrary(
           "core"
         )) as any;
-        const isDark = this.resolvedDarkMode();
+        // Always force Dark mode for the map as requested
         this.googleMap.googleMap.setOptions({
-          colorScheme: isDark ? ColorScheme.DARK : ColorScheme.LIGHT,
+          mapTypeId: desiredMapTypeId,
+          colorScheme: ColorScheme.DARK,
         } as any);
       } catch (e) {
-        console.warn("Failed to update map color scheme:", e);
+        console.warn("Failed to update map config:", e);
       }
       return;
     }
@@ -732,16 +764,15 @@ export class GoogleMap2dComponent
       // @ts-ignore - Handle potential missing types for newer Maps features
       const { ColorScheme } = await google.maps.importLibrary("core");
 
-      const isDark = this.resolvedDarkMode();
-
       this.mapOptions = {
         ...this.mapOptions,
+        mapTypeId: desiredMapTypeId,
         // @ts-ignore
-        colorScheme: isDark ? ColorScheme.DARK : ColorScheme.LIGHT,
+        colorScheme: ColorScheme.DARK,
       };
       this.optionsInitialized.set(true);
     } catch (e) {
-      console.warn("Failed to set map color scheme:", e);
+      console.warn("Failed to set map config:", e);
       this.optionsInitialized.set(true); // Proceed anyway
     }
   }

@@ -1460,11 +1460,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  selectSpot(spot: Spot | LocalSpot | null, updateUrl: boolean = true) {
+  selectSpot(
+    spot: Spot | LocalSpot | SpotPreviewData | null,
+    updateUrl: boolean = true
+  ) {
     // console.debug("selecting spot", spot);
     if (!spot) {
       this.closeSpot(updateUrl);
     } else {
+      // Check for SpotPreviewData
+      if (!("clone" in spot)) {
+        const id = spot.slug || spot.id;
+        this.loadSpotById(id as SpotId).then(() => {});
+        return;
+      }
+
       this.closeChallenge(false);
       this.selectedPoi.set(null);
       this.selectedSpot.set(spot);

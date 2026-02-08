@@ -12,7 +12,7 @@
       style="cursor: pointer"
       (click)="selectSpot(spot)"
     >
-      @if(spot.hasMedia()) {
+      @if(spot.imageSrc) {
       <div
         style="
           height: 42px;
@@ -22,7 +22,7 @@
         "
         class="position-relative overflow-hidden flex-shrink-0"
       >
-        <img [ngSrc]="spot.previewImageSrc()" alt="" fill />
+        <img [ngSrc]="spot.imageSrc" alt="" fill />
       </div>
       } @else {
       <mat-icon class="flex-shrink-0" color="accent">beenhere</mat-icon>
@@ -31,7 +31,7 @@
       <span
         class="mat-title-medium text-truncate"
         i18n="@@checkin.at_spot_short"
-        >At <strong>{{ spot.name() }}</strong> spot?</span
+        >At <strong>{{ spot.name }}</strong> spot?</span
       >
     </button>
     <div class="d-flex gap-1 align-items-center flex-shrink-0">
