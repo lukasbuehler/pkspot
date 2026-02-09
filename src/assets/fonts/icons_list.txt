@@ -141,3 +141,4 @@ phone_iphone
 sentiment_dissatisfied
 vital_signs
 create
+stars

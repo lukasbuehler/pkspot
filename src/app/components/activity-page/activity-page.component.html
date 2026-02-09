@@ -22,15 +22,21 @@
   } } @if (items$ | async; as items) { @if (items.length === 0 && (isLoading$ |
   async) === false) {
   <div class="empty-state">No activity yet.</div>
-  } @for (item of items; track item.spotId + '_' +
-  item.formattedTimestamp.getTime()) {
+  } @for (item of items; track item.editId || (item.spotId + '_' +
+  item.formattedTimestamp.getTime() + '_' + item.edit.type + '_' +
+  item.edit.user.uid)) {
   <mat-card class="feed-item">
     <mat-card-header class="d-flex flex-column gap-1 pb-3">
-      <div class="user-action mat-body-large">
-        <strong>{{ item.edit.user.display_name }}</strong>
-        {{ getActionText(item.edit) }}
-        @if (item.spot) {
-        <span>{{ item.spot.localityString() }}</span>
+      <div
+        class="user-action mat-body-large d-flex align-items-center pb-1 gap-1"
+      >
+        <app-profile-button
+          [user]="item.edit.user"
+          class="me-2"
+        ></app-profile-button>
+        <span>{{ getActionText(item.edit) }}</span
+        >@if (item.spot?.localityString()) {
+        <span> in {{ item.spot!.localityString() }}</span>
         }
       </div>
       <div class="timestamp mat-body-small">

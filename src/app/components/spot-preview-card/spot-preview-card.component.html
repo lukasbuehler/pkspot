@@ -117,6 +117,8 @@
       <mat-icon>share</mat-icon>
     </button>
   </div> -->
+  @if((media() && media().length > 0 && media()[0] && !imageLoadError()) ||
+  !isCompact) {
   <div
     [attr.mat-card-sm-image]="isCompact ? '' : null"
     class="img-container"
@@ -130,8 +132,8 @@
       (error)="onImageError()"
     />
     } @else {
-    <!-- image placeholder-->
     <img [ngSrc]="fallbackImgSrc" fill priority />
     }
   </div>
+  }
 </mat-card>

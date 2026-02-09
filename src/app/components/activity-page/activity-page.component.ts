@@ -11,24 +11,8 @@ import { Router, RouterLink } from "@angular/router";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
-import {
-  Observable,
-  Subject,
-  Subscription,
-  combineLatest,
-  of,
-  from,
-  BehaviorSubject,
-  firstValueFrom,
-} from "rxjs";
-import {
-  catchError,
-  map,
-  startWith,
-  switchMap,
-  takeUntil,
-  tap,
-} from "rxjs/operators";
+import { Subject, Subscription, BehaviorSubject, firstValueFrom } from "rxjs";
+import { switchMap, takeUntil } from "rxjs/operators";
 import { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 import { Spot } from "../../../db/models/Spot";
 import { LocaleCode } from "../../../db/models/Interfaces";
@@ -36,8 +20,10 @@ import { Timestamp } from "@angular/fire/firestore";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatChipsModule } from "@angular/material/chips";
+import { ProfileButtonComponent } from "../profile-button/profile-button.component";
 
 interface FeedItem {
+  editId?: string;
   edit: SpotEditSchema;
   spot: Spot | null;
   spotId: string;
@@ -54,6 +40,7 @@ interface FeedItem {
     MatButtonModule,
     MatCardModule,
     MatChipsModule,
+    ProfileButtonComponent,
     KeyValuePipe,
   ],
   templateUrl: "./activity-page.component.html",
@@ -72,6 +59,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   hasMore$ = new BehaviorSubject<boolean>(true);
 
   private _lastDoc: any = null;
+  private _spotCache = new Map<string, Promise<Spot | null>>();
   private _destroyed$ = new Subject<void>();
   private _realtimeSubscription?: Subscription;
 
@@ -94,6 +82,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     if (this._realtimeSubscription) {
       this._realtimeSubscription.unsubscribe();
     }
+    this._spotCache.clear();
   }
 
   async initialLoad() {
@@ -104,7 +93,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
       this.hasMore$.next(!!result.lastDoc);
 
       const items = await this._enrichEditsWithSpotData(result.edits);
-      this.items$.next(items);
+      this.items$.next(this._sortFeedItems(items));
 
       // Start listening for new items *after* the initial load
       // Use the timestamp of the first item (newest) as the cutoff
@@ -135,7 +124,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
 
       const newItems = await this._enrichEditsWithSpotData(result.edits);
       const currentItems = this.items$.value;
-      this.items$.next([...currentItems, ...newItems]);
+      this.items$.next(this._sortFeedItems([...currentItems, ...newItems]));
     } catch (error) {
       console.error("Error loading more activities:", error);
     } finally {
@@ -149,7 +138,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
 
     const currentItems = this.items$.value;
     // Prepend new items
-    this.items$.next([...buffer, ...currentItems]);
+    this.items$.next(this._sortFeedItems([...buffer, ...currentItems]));
     // Clear buffer
     this.newItemsBuffer$.next([]);
 
@@ -171,30 +160,24 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
       .subscribe((newItems) => {
         if (newItems.length > 0) {
           // Filter out items we might already have (duplicates) just in case
-          const currentIds = new Set(
-            this.items$.value.map((i) => i.edit.timestamp.toMillis() + i.spotId)
-          );
+          const currentIds = new Set(this.items$.value.map((i) => this._itemKey(i)));
           const uniqueNewItems = newItems.filter(
-            (i) => !currentIds.has(i.edit.timestamp.toMillis() + i.spotId)
+            (i) => !currentIds.has(this._itemKey(i))
           );
 
           // Also filter against current buffer
           const bufferIds = new Set(
-            this.newItemsBuffer$.value.map(
-              (i) => i.edit.timestamp.toMillis() + i.spotId
-            )
+            this.newItemsBuffer$.value.map((i) => this._itemKey(i))
           );
           const trulyNewItems = uniqueNewItems.filter(
-            (i) => !bufferIds.has(i.edit.timestamp.toMillis() + i.spotId)
+            (i) => !bufferIds.has(this._itemKey(i))
           );
 
           if (trulyNewItems.length > 0) {
-            // Append to buffer (newest first is how they usually come from query, but we want to prepend to feed eventually)
-            // If query matches multiple, they come in descending order.
-            // We merge with existing buffer.
             const currentBuffer = this.newItemsBuffer$.value;
-            // Add to top of buffer
-            this.newItemsBuffer$.next([...trulyNewItems, ...currentBuffer]);
+            this.newItemsBuffer$.next(
+              this._sortFeedItems([...trulyNewItems, ...currentBuffer])
+            );
           }
         }
       });
@@ -207,11 +190,10 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
 
     const promises = edits.map(async (item) => {
       try {
-        const spot = await firstValueFrom(
-          this._spotsService.getSpotById$(item.spotId as any, this._locale)
-        );
+        const spot = await this._getSpotWithCache(item.spotId);
 
         return {
+          editId: (item.edit as SpotEditSchema & { id?: string }).id,
           edit: item.edit,
           spot: spot || null,
           spotId: item.spotId,
@@ -220,6 +202,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
       } catch (err) {
         console.error(`Could not load spot ${item.spotId}`, err);
         return {
+          editId: (item.edit as SpotEditSchema & { id?: string }).id,
           edit: item.edit,
           spot: null,
           spotId: item.spotId,
@@ -231,6 +214,25 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     return Promise.all(promises);
   }
 
+  private _getSpotWithCache(spotId: string): Promise<Spot | null> {
+    const cached = this._spotCache.get(spotId);
+    if (cached) {
+      return cached;
+    }
+
+    const request = firstValueFrom(
+      this._spotsService.getSpotById$(spotId as any, this._locale)
+    )
+      .then((spot) => spot || null)
+      .catch((error) => {
+        this._spotCache.delete(spotId);
+        throw error;
+      });
+
+    this._spotCache.set(spotId, request);
+    return request;
+  }
+
   private _getJsDate(timestamp: Timestamp | any): Date {
     if (timestamp instanceof Timestamp) {
       return timestamp.toDate();
@@ -240,6 +242,34 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
       return new Date(timestamp.seconds * 1000);
     }
     return new Date();
+  }
+
+  private _getTimestampMs(timestamp: Timestamp | any): number {
+    if (timestamp instanceof Timestamp) {
+      return timestamp.toMillis();
+    } else if (timestamp && typeof timestamp.toMillis === "function") {
+      return timestamp.toMillis();
+    } else if (timestamp && typeof timestamp.seconds === "number") {
+      return timestamp.seconds * 1000;
+    }
+    return 0;
+  }
+
+  private _sortFeedItems(items: FeedItem[]): FeedItem[] {
+    return [...items].sort((a, b) => {
+      const timeDiff =
+        this._getTimestampMs(b.edit.timestamp) -
+        this._getTimestampMs(a.edit.timestamp);
+      if (timeDiff !== 0) return timeDiff;
+      return this._itemKey(a).localeCompare(this._itemKey(b));
+    });
+  }
+
+  private _itemKey(item: FeedItem): string {
+    if (item.editId) {
+      return `${item.spotId}_${item.editId}`;
+    }
+    return `${item.spotId}_${this._getTimestampMs(item.edit.timestamp)}_${item.edit.type}_${item.edit.user.uid}`;
   }
 
   openSpot(spot: Spot | null) {

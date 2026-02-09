@@ -6,6 +6,16 @@ const app = admin.initializeApp({
   projectId: "parkour-base-project",
 });
 
+function hasUsableAddress(address: any): boolean {
+  if (!address || typeof address !== "object") return false;
+  return Boolean(
+    (typeof address.formatted === "string" && address.formatted.trim()) ||
+      (typeof address.locality === "string" && address.locality.trim()) ||
+      (typeof address.sublocality === "string" && address.sublocality.trim()) ||
+      (address.country?.code && address.country?.name)
+  );
+}
+
 async function touchAllSpots() {
   const db = admin.firestore();
   // Iterate ALL spots to ensure everything is synced.
@@ -21,12 +31,21 @@ async function touchAllSpots() {
   const args = process.argv.slice(2);
   const mediaOnly = args.includes("--media-only");
   const boundsOnly = args.includes("--bounds-only");
+  const missingAddressOnly =
+    args.includes("--missing-address-only") || args.includes("--address-only");
+  let totalTouched = 0;
+  let totalSkippedByAddressFilter = 0;
 
   console.log(
     `🚀 Starting Force Sync (All Spots)${mediaOnly ? " [Media Only]" : ""}${
       boundsOnly ? " [Bounds Only]" : ""
-    }...`
+    }${missingAddressOnly ? " [Missing Address Only]" : ""}...`
   );
+  if (!missingAddressOnly) {
+    console.log(
+      "ℹ️ Tip: pass --missing-address-only to only retrigger spots with missing/incomplete addresses."
+    );
+  }
 
   while (true) {
     let query = spotsRef.limit(batchSize);
@@ -46,6 +65,11 @@ async function touchAllSpots() {
 
     snapshot.docs.forEach((doc) => {
       const data = doc.data();
+
+      if (missingAddressOnly && hasUsableAddress(data["address"])) {
+        totalSkippedByAddressFilter++;
+        return;
+      }
 
       // If media-only mode is on, skip spots without media
       if (mediaOnly) {
@@ -108,15 +132,22 @@ async function touchAllSpots() {
 
     if (batchCount > 0) {
       await batch.commit();
+      totalTouched += batchCount;
     }
 
     lastDoc = snapshot.docs[snapshot.docs.length - 1];
     totalProcessed += snapshot.docs.length;
-    console.log(`✨ Processed ${totalProcessed} spots...`);
+    console.log(
+      `✨ Processed ${totalProcessed} spots... touched ${totalTouched}.`
+    );
 
     // Optional: Sleep a tiny bit to not kill your Typesense rate limits if you have a small cluster
     await new Promise((r) => setTimeout(r, 500));
   }
+
+  console.log(
+    `📊 Summary: processed=${totalProcessed}, touched=${totalTouched}, skipped_by_address_filter=${totalSkippedByAddressFilter}`
+  );
 }
 
 touchAllSpots().catch(console.error);

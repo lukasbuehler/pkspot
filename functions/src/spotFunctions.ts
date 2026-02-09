@@ -144,6 +144,16 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
   return spotDataToUpdate;
 };
 
+const _hasUsableAddress = (address: SpotSchema["address"]): boolean => {
+  if (!address) return false;
+  return Boolean(
+    (typeof address.formatted === "string" && address.formatted.trim()) ||
+      (typeof address.locality === "string" && address.locality.trim()) ||
+      (typeof address.sublocality === "string" && address.sublocality.trim()) ||
+      (address.country?.code && address.country?.name)
+  );
+};
+
 /**
  * Update the spot fields when a spot is written. This is needed for the
  * things like fetching the address of a spot from reverse geocoding and
@@ -152,9 +162,17 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
 export const updateSpotFieldsOnWrite = onDocumentWritten(
   { document: "spots/{spotId}", secrets: [googleAPIKey] },
   async (event) => {
+    if (!event.data?.after?.exists) {
+      // Ignore deletes.
+      return null;
+    }
+
     const apiKey: string = googleAPIKey.value();
     const beforeData = event.data?.before?.data() as SpotSchema;
     const afterData = event.data?.after?.data() as SpotSchema;
+    if (!afterData) {
+      return null;
+    }
 
     let spotDataToUpdate: Partial<SpotSchema> = {};
 
@@ -171,8 +189,9 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
     const afterLoc = getLocStr(afterData);
 
     const locationChanged = beforeLoc !== afterLoc;
+    const addressMissingOrIncomplete = !_hasUsableAddress(afterData.address);
 
-    if ((locationChanged && afterLoc) || (!afterData.address && afterLoc)) {
+    if ((locationChanged && afterLoc) || (addressMissingOrIncomplete && afterLoc)) {
       let location: GeoPoint;
       if (afterData.location) {
         location = afterData.location as GeoPoint;
@@ -191,8 +210,16 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
           location,
           apiKey
         );
-        // update the spot address on the spot document
-        spotDataToUpdate.address = address;
+        // Only write usable address data. Avoid storing empty maps because
+        // they block the "missing address" condition on future writes.
+        if (_hasUsableAddress(address as SpotSchema["address"])) {
+          spotDataToUpdate.address = address as SpotSchema["address"];
+        } else {
+          console.warn(
+            "Skipping empty/incomplete geocoded address for spot",
+            event.params.spotId
+          );
+        }
       } catch (e) {
         console.error("Error fetching address for spot:", e);
         // Continue and still update derived Typesense fields even if geocoding fails.

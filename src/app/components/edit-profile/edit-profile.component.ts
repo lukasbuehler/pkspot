@@ -48,7 +48,7 @@ import {
 } from "@angular/material/datepicker";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
-import { StorageImage, ExternalImage } from "../../../db/models/Media";
+import { ExternalImage } from "../../../db/models/Media";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 
 @Component({
@@ -99,6 +99,7 @@ export class EditProfileComponent implements OnInit {
   tempProfilePictureSrc: string = ""; // Temporary storage for immediate UI update after upload
   isProfilePictureLoaded: boolean = true;
   hasProfilePictureError: boolean = false;
+  private profilePictureUploadPromise: Promise<void> | null = null;
 
   // Country Autocomplete
   countries = countries;
@@ -274,6 +275,10 @@ export class EditProfileComponent implements OnInit {
   }
 
   saveNewProfilePicture() {
+    if (this.profilePictureUploadPromise) {
+      return;
+    }
+
     this._handleProfilePictureUploadAndSave()
       .then(() => {
         console.log("saveNewProfilePicture success");
@@ -297,6 +302,19 @@ export class EditProfileComponent implements OnInit {
   }
 
   private async _handleProfilePictureUploadAndSave(): Promise<void> {
+    if (this.profilePictureUploadPromise) {
+      return this.profilePictureUploadPromise;
+    }
+
+    this.profilePictureUploadPromise = this._performProfilePictureUploadAndSave();
+    try {
+      await this.profilePictureUploadPromise;
+    } finally {
+      this.profilePictureUploadPromise = null;
+    }
+  }
+
+  private async _performProfilePictureUploadAndSave(): Promise<void> {
     if (!this.user || !this.user.uid || !this.newProfilePicture) {
       throw new Error("Missing user ID or profile picture");
     }
@@ -305,23 +323,15 @@ export class EditProfileComponent implements OnInit {
     this.isUpdatingProfilePicture = true;
 
     try {
-      // 1. Delete existing profile picture and all resized versions
-      const filesToDelete = [
-        // Delete files without extension (correct format)
-        `${StorageBucket.ProfilePictures}/${userId}`,
-        ...StorageImage.SIZES.map(
-          (size) => `${StorageBucket.ProfilePictures}/${userId}_${size}x${size}`
-        ),
-      ];
-
-      await Promise.all(
-        filesToDelete.map((path) =>
-          this._storageService
-            .deleteFromStorage(path)
-            .catch((e) => console.warn(`Ignored delete error for ${path}:`, e))
-        )
-      );
-      // Successfully deleted the old profile picture
+      // 1. Delete only the original profile picture path.
+      // Resized variants are overwritten by the extension and deleting them
+      // here can race with in-flight extension writes on repeated uploads.
+      const originalPath = `${StorageBucket.ProfilePictures}/${userId}`;
+      await this._storageService
+        .deleteFromStorage(originalPath)
+        .catch((e) =>
+          console.warn(`Ignored delete error for ${originalPath}:`, e)
+        );
 
       // 2. Upload new profile picture
       // Since we generate token-free public URLs, replacing the file keeps the same URL format

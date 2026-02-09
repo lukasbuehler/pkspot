@@ -47,6 +47,10 @@
   }
 
   .feed-item {
+    .user-action {
+      flex-wrap: wrap;
+    }
+
     .activity-preview-link {
       display: block;
       text-decoration: none;
