@@ -18,18 +18,21 @@ export abstract class Media {
     src: string,
     type: MediaType,
     userId?: string,
+    attribution?: MediaSchema["attribution"],
     origin?: MediaSchema["origin"],
     isReported: boolean = false
   ) {
     this._src = src;
     this.type = type;
     this.userId = userId;
+    this.attribution = attribution;
     this.origin = origin;
     this.isReported = isReported;
   }
 
   protected readonly _src: string;
   readonly userId?: string;
+  readonly attribution?: MediaSchema["attribution"];
   readonly origin?: MediaSchema["origin"];
   readonly type: MediaType;
   readonly isReported: boolean;
@@ -45,6 +48,7 @@ export abstract class Media {
       src: this._src,
       type: this.type,
       uid: this.userId,
+      attribution: this.attribution,
       origin: this.origin,
       isInStorage: false,
       isReported: this.isReported,
@@ -65,9 +69,40 @@ export class ExternalImage extends Media {
     src: string,
     userId?: string,
     origin?: MediaSchema["origin"],
-    isReported: boolean = false
+    isReported?: boolean
+  );
+  constructor(
+    src: string,
+    userId?: string,
+    attribution?: MediaSchema["attribution"],
+    origin?: MediaSchema["origin"],
+    isReported?: boolean
+  );
+  constructor(
+    src: string,
+    userId?: string,
+    attributionOrOrigin?: MediaSchema["attribution"] | MediaSchema["origin"],
+    originOrIsReported?: MediaSchema["origin"] | boolean,
+    isReportedMaybe: boolean = false
   ) {
-    super(src, MediaType.Image, userId, origin, isReported);
+    let attribution: MediaSchema["attribution"] | undefined;
+    let origin: MediaSchema["origin"] | undefined;
+    let isReported = isReportedMaybe;
+
+    if (typeof attributionOrOrigin === "string") {
+      origin = attributionOrOrigin;
+      isReported =
+        typeof originOrIsReported === "boolean" ? originOrIsReported : false;
+    } else {
+      attribution = attributionOrOrigin;
+      if (typeof originOrIsReported === "string") {
+        origin = originOrIsReported;
+      } else if (typeof originOrIsReported === "boolean") {
+        isReported = originOrIsReported;
+      }
+    }
+
+    super(src, MediaType.Image, userId, attribution, origin, isReported);
   }
 
   get src(): string {
@@ -88,9 +123,40 @@ export class ExternalVideo extends Media {
     src: string,
     userId?: string,
     origin?: MediaSchema["origin"],
-    isReported: boolean = false
+    isReported?: boolean
+  );
+  constructor(
+    src: string,
+    userId?: string,
+    attribution?: MediaSchema["attribution"],
+    origin?: MediaSchema["origin"],
+    isReported?: boolean
+  );
+  constructor(
+    src: string,
+    userId?: string,
+    attributionOrOrigin?: MediaSchema["attribution"] | MediaSchema["origin"],
+    originOrIsReported?: MediaSchema["origin"] | boolean,
+    isReportedMaybe: boolean = false
   ) {
-    super(src, MediaType.Video, userId, origin, isReported);
+    let attribution: MediaSchema["attribution"] | undefined;
+    let origin: MediaSchema["origin"] | undefined;
+    let isReported = isReportedMaybe;
+
+    if (typeof attributionOrOrigin === "string") {
+      origin = attributionOrOrigin;
+      isReported =
+        typeof originOrIsReported === "boolean" ? originOrIsReported : false;
+    } else {
+      attribution = attributionOrOrigin;
+      if (typeof originOrIsReported === "string") {
+        origin = originOrIsReported;
+      } else if (typeof originOrIsReported === "boolean") {
+        isReported = originOrIsReported;
+      }
+    }
+
+    super(src, MediaType.Video, userId, attribution, origin, isReported);
   }
 
   get src(): string {
@@ -121,10 +187,11 @@ export abstract class StorageMedia extends Media {
     src: string,
     type: MediaType,
     userId?: string,
+    attribution?: MediaSchema["attribution"],
     origin?: "user" | "other",
     isReported: boolean = false
   ) {
-    super(src, type, userId, origin, isReported);
+    super(src, type, userId, attribution, origin, isReported);
     this.parsed = parseStorageMediaUrl(src);
 
     this.uriBeforeBucket = this.parsed.uriBeforeBucket;
@@ -163,6 +230,7 @@ export abstract class StorageMedia extends Media {
       src: this._src,
       type: this.type,
       uid: this.userId,
+      attribution: this.attribution,
       origin: this.origin,
       isInStorage: true,
       isReported: this.isReported,
@@ -203,12 +271,47 @@ export class StorageVideo extends StorageMedia {
     src: string,
     userId?: string,
     origin?: "user" | "other",
-    isReported: boolean = false
+    isReported?: boolean
+  );
+  constructor(
+    src: string,
+    userId?: string,
+    attribution?: MediaSchema["attribution"],
+    origin?: "user" | "other",
+    isReported?: boolean
+  );
+  constructor(
+    src: string,
+    userId?: string,
+    attributionOrOrigin?: MediaSchema["attribution"] | "user" | "other",
+    originOrIsReported?: "user" | "other" | boolean,
+    isReportedMaybe: boolean = false
   ) {
+    let attribution: MediaSchema["attribution"] | undefined;
+    let origin: "user" | "other" | undefined;
+    let isReported = isReportedMaybe;
+
+    if (
+      attributionOrOrigin === "user" ||
+      attributionOrOrigin === "other"
+    ) {
+      origin = attributionOrOrigin;
+      isReported =
+        typeof originOrIsReported === "boolean" ? originOrIsReported : false;
+    } else {
+      attribution = attributionOrOrigin;
+      if (originOrIsReported === "user" || originOrIsReported === "other") {
+        origin = originOrIsReported;
+      } else if (typeof originOrIsReported === "boolean") {
+        isReported = originOrIsReported;
+      }
+    }
+
     super(
       src.replace(/comp_/, "").replace(/thumb_/, ""),
       MediaType.Video,
       userId,
+      attribution,
       origin,
       isReported
     );
@@ -218,6 +321,7 @@ export class StorageVideo extends StorageMedia {
     this.thumbnail = new StorageImage(
       thumbnailSrc,
       this.userId,
+      this.attribution,
       this.origin as "user" | "other"
     );
   }
@@ -235,6 +339,7 @@ export class StorageVideo extends StorageMedia {
     return new StorageVideo(
       schema.src,
       schema.uid,
+      schema.attribution,
       schema.origin as "user" | "other",
       schema.isReported ?? false
     );
@@ -275,10 +380,57 @@ export class StorageImage extends StorageMedia {
     src: string,
     userId?: string,
     origin?: "user" | "other",
-    isProcessing: boolean = false,
-    isReported: boolean = false
+    isProcessing?: boolean,
+    isReported?: boolean
+  );
+  constructor(
+    src: string,
+    userId?: string,
+    attribution?: MediaSchema["attribution"],
+    origin?: "user" | "other",
+    isProcessing?: boolean,
+    isReported?: boolean
+  );
+  constructor(
+    src: string,
+    userId?: string,
+    attributionOrOrigin?: MediaSchema["attribution"] | "user" | "other",
+    originOrIsProcessing?: "user" | "other" | boolean,
+    isProcessingOrReported: boolean = false,
+    isReportedMaybe: boolean = false
   ) {
-    super(src, MediaType.Image, userId, origin, isReported);
+    let attribution: MediaSchema["attribution"] | undefined;
+    let origin: "user" | "other" | undefined;
+    let isProcessing = false;
+    let isReported = false;
+
+    if (
+      attributionOrOrigin === "user" ||
+      attributionOrOrigin === "other"
+    ) {
+      origin = attributionOrOrigin;
+      isProcessing =
+        typeof originOrIsProcessing === "boolean" ? originOrIsProcessing : false;
+      isReported = isProcessingOrReported;
+    } else {
+      attribution = attributionOrOrigin;
+      if (
+        originOrIsProcessing === "user" ||
+        originOrIsProcessing === "other"
+      ) {
+        origin = originOrIsProcessing;
+        isProcessing = isProcessingOrReported;
+        isReported = isReportedMaybe;
+      } else {
+        isProcessing =
+          typeof originOrIsProcessing === "boolean"
+            ? originOrIsProcessing
+            : false;
+        isReported = isProcessingOrReported;
+      }
+    }
+
+    super(src, MediaType.Image, userId, attribution, origin, isReported);
     this.isProcessing.set(isProcessing);
   }
 
@@ -295,6 +447,7 @@ export class StorageImage extends StorageMedia {
     return new StorageImage(
       schema.src,
       schema.uid,
+      schema.attribution,
       schema.origin as "user" | "other",
       false, // isProcessing
       schema.isReported ?? false

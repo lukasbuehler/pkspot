@@ -2,7 +2,6 @@ import { LocaleMap, MediaType, LocaleCode } from "./Interfaces";
 import { AmenitiesMap } from "../schemas/Amenities";
 import { makeAmenitiesArray, makeSmartAmenitiesArray } from "./Amenities";
 import { MapHelpers } from "../../scripts/MapHelpers";
-import { environment } from "../../environments/environment";
 import { GeoPoint } from "firebase/firestore";
 import { SpotAddressSchema, SpotId, SpotSchema } from "../schemas/SpotSchema";
 import {
@@ -28,7 +27,6 @@ import {
   AnyMedia,
 } from "./Media";
 import { MediaSchema } from "../schemas/Media";
-import { ChallengePreviewSchema } from "../schemas/SpotChallengeSchema";
 import {
   makeAnyMediaFromMediaSchema,
   parseFirestoreGeoPoint,
@@ -240,8 +238,6 @@ export class LocalSpot {
     // }
 
     this.previewImageSrc = computed(() => {
-      const previewSize = 200;
-
       if (!this.hasMedia()) return "";
 
       const imageMedia = this.media().filter(
@@ -617,18 +613,18 @@ export class LocalSpot {
     let media: AnyMedia | undefined;
     if (isFromStorage) {
       if (type === MediaType.Image) {
-        media = new StorageImage(src, uid, "user", isProcessing);
+        media = new StorageImage(src, uid, undefined, "user", isProcessing);
       } else if (type === MediaType.Video) {
-        media = new StorageVideo(src, uid, "user");
+        media = new StorageVideo(src, uid, undefined, "user");
       } else {
         console.error("Unknown media type for storage media: ", type);
         return;
       }
     } else {
       if (type === MediaType.Image) {
-        media = new ExternalImage(src, "user");
+        media = new ExternalImage(src, uid, undefined, "user");
       } else if (type === MediaType.Video) {
-        media = new ExternalVideo(src, "user");
+        media = new ExternalVideo(src, uid, undefined, "user");
       } else {
         console.error("Unknown media type for external media: ", type);
         return;

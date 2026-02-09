@@ -202,43 +202,75 @@ export function makeAnyMediaFromMediaSchema(
   if (!mediaSchema) {
     throw new Error("mediaSchema is null");
   }
-  if (mediaSchema.isInStorage ?? true) {
-    if (mediaSchema.type === MediaType.Image) {
-      return new StorageImage(
-        mediaSchema.src,
-        mediaSchema.uid,
-        (mediaSchema.origin as "user" | "other") ?? "other",
-        false, // isProcessing
-        mediaSchema.isReported ?? false
-      );
-    } else if (mediaSchema.type === MediaType.Video) {
-      return new StorageVideo(
-        mediaSchema.src,
-        mediaSchema.uid,
-        (mediaSchema.origin as "user" | "other") ?? "other",
-        mediaSchema.isReported ?? false
-      );
+  const isStorage = mediaSchema.isInStorage ?? true;
+  try {
+    if (isStorage) {
+      if (mediaSchema.type === MediaType.Image) {
+        return new StorageImage(
+          mediaSchema.src,
+          mediaSchema.uid,
+          mediaSchema.attribution,
+          (mediaSchema.origin as "user" | "other") ?? "other",
+          false, // isProcessing
+          mediaSchema.isReported ?? false
+        );
+      } else if (mediaSchema.type === MediaType.Video) {
+        return new StorageVideo(
+          mediaSchema.src,
+          mediaSchema.uid,
+          mediaSchema.attribution,
+          (mediaSchema.origin as "user" | "other") ?? "other",
+          mediaSchema.isReported ?? false
+        );
+      } else {
+        throw new Error("Unknown media type for storage media");
+      }
     } else {
-      throw new Error("Unknown media type for storage media");
+      if (mediaSchema.type === MediaType.Image) {
+        return new ExternalImage(
+          mediaSchema.src,
+          mediaSchema.uid,
+          mediaSchema.attribution,
+          mediaSchema.origin as "user" | "streetview" | "other",
+          mediaSchema.isReported ?? false
+        );
+      } else if (mediaSchema.type === MediaType.Video) {
+        return new ExternalVideo(
+          mediaSchema.src,
+          mediaSchema.uid,
+          mediaSchema.attribution,
+          mediaSchema.origin as "user" | "streetview" | "other",
+          mediaSchema.isReported ?? false
+        );
+      } else {
+        throw new Error("Unknown media type for external media");
+      }
     }
-  } else {
-    if (mediaSchema.type === MediaType.Image) {
-      return new ExternalImage(
-        mediaSchema.src,
-        mediaSchema.uid,
-        mediaSchema.origin as "user" | "streetview" | "other",
-        mediaSchema.isReported ?? false
-      );
-    } else if (mediaSchema.type === MediaType.Video) {
+  } catch (error) {
+    console.warn("Failed to hydrate media schema, falling back to external", {
+      src: mediaSchema.src,
+      type: mediaSchema.type,
+      isInStorage: mediaSchema.isInStorage,
+      error,
+    });
+
+    if (mediaSchema.type === MediaType.Video) {
       return new ExternalVideo(
         mediaSchema.src,
         mediaSchema.uid,
-        mediaSchema.origin as "user" | "streetview" | "other",
+        mediaSchema.attribution,
+        (mediaSchema.origin as "user" | "streetview" | "other") ?? "other",
         mediaSchema.isReported ?? false
       );
-    } else {
-      throw new Error("Unknown media type for external media");
     }
+
+    return new ExternalImage(
+      mediaSchema.src,
+      mediaSchema.uid,
+      mediaSchema.attribution,
+      (mediaSchema.origin as "user" | "streetview" | "other") ?? "other",
+      mediaSchema.isReported ?? false
+    );
   }
 }
 

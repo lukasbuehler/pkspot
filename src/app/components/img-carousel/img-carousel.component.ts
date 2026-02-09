@@ -209,6 +209,27 @@ export class ImgCarouselComponent {
         <mat-icon>report</mat-icon>
       </button>
       }
+
+      @if (getActiveExternalSourceUrl(); as sourceUrl) {
+      <a
+        mat-stroked-button
+        style="position: absolute; left: 10px; bottom: 10px; z-index: 1; background-color: #000000b0;"
+        [href]="sourceUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <mat-icon>open_in_new</mat-icon>
+        <span>Open Source</span>
+      </a>
+      }
+      @if (getActiveAttributionText(); as attributionText) {
+      <div
+        style="position: absolute; right: 10px; bottom: 10px; z-index: 1; background-color: #000000b0; border-radius: 12px; padding: 6px 10px; max-width: 70%;"
+        class="mat-body-small"
+      >
+        {{ attributionText }}
+      </div>
+      }
       <button
         mat-icon-button
         style="position: absolute; top: 10px; right: 10px; z-index: 1; background-color: #00000080;"
@@ -288,6 +309,37 @@ export class SwiperDialogComponent implements AfterViewInit {
     } else {
       return mediaObj.src;
     }
+  }
+
+  getActiveMedia(): AnyMedia | undefined {
+    const activeIndex = this.swiper?.activeIndex ?? this.activeSlideIndex();
+    const images =
+      this.data.media?.filter((m: AnyMedia) => m.type === "image") ?? [];
+    return images[activeIndex];
+  }
+
+  getActiveExternalSourceUrl(): string | null {
+    const active = this.getActiveMedia();
+    if (!active || !(active instanceof ExternalImage)) {
+      return null;
+    }
+    return active.attribution?.source_url || active.src;
+  }
+
+  getActiveAttributionText(): string | null {
+    const active = this.getActiveMedia();
+    if (!active || !(active instanceof ExternalImage)) {
+      return null;
+    }
+    const parts = [
+      active.attribution?.title,
+      active.attribution?.author,
+      active.attribution?.license,
+    ].filter((p) => !!p);
+    if (parts.length === 0) {
+      return null;
+    }
+    return parts.join(" · ");
   }
 
   ngAfterViewInit() {

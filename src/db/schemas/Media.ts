@@ -5,6 +5,12 @@ import { UserReferenceSchema } from "./UserSchema";
 export interface MediaSchema {
   type: MediaType;
   src: string;
+  attribution?: {
+    title?: string;
+    author?: string;
+    source_url?: string;
+    license?: string;
+  };
   uid?: string; // old
   user?: UserReferenceSchema;
   isInStorage: boolean;
@@ -18,6 +24,7 @@ export enum StorageBucket {
   ProfilePictures = "profile_pictures",
   SpotPictures = "spot_pictures",
   Challenges = "challenges",
+  Imports = "imports",
 }
 
 /**

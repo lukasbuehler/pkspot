@@ -274,24 +274,25 @@ export class SpotMapDataManager {
     // because clusters don't show enough detail.
     // However, for CLUSTERS themselves, we revert to the tile-based loading (handled below)
     // to ensure smooth transitions and caching.
-    if (
-      this._spotClusterService &&
-      zoom >= this.serviceClusterMinZoom &&
-      zoom <= this.serviceClusterMaxZoom
-    ) {
-      // Fetch highlights using Typesense for better performance than client-side filtering
-      // Only if "Highlights" (No Filter) is active
+    if (zoom < this.spotZoom) {
+      // Fetch highlights using Typesense for better performance than client-side filtering.
+      // This is useful across all cluster zoom levels, not only 10-12.
       const activeFilter = this.spotFilterMode
         ? this.spotFilterMode()
         : SpotFilterMode.None;
 
       if (activeFilter === SpotFilterMode.None) {
+        const useServiceDots =
+          this._spotClusterService &&
+          zoom >= this.serviceClusterMinZoom &&
+          zoom <= this.serviceClusterMaxZoom;
         const now = Date.now();
-        // Throttle: Allow updates while moving (at least every X ms)
         // Throttle: Allow updates while moving (at least every X ms)
         if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
           this._loadHighlightsForTiles(visibleTilesObj);
-          this._loadClusterDotsViaService(visibleTilesObj);
+          if (useServiceDots) {
+            this._loadClusterDotsViaService(visibleTilesObj);
+          }
           this._lastHighlightFetchTime = now;
         }
 
@@ -303,7 +304,9 @@ export class SpotMapDataManager {
         this._clusterDebounceTimer = setTimeout(() => {
           this._clusterDebounceTimer = null;
           this._loadHighlightsForTiles(visibleTilesObj);
-          this._loadClusterDotsViaService(visibleTilesObj);
+          if (useServiceDots) {
+            this._loadClusterDotsViaService(visibleTilesObj);
+          }
           this._lastHighlightFetchTime = Date.now();
         }, this.CLUSTER_DEBOUNCE_MS);
       }
@@ -785,9 +788,16 @@ export class SpotMapDataManager {
 
     this._visibleDots.set([]);
 
+    this._visibleHighlightedSpots.set(highlightedSpots);
+
     if (activeFilter === SpotFilterMode.None) {
-      this._visibleHighlightedSpots.set(highlightedSpots);
       this._visibleSpots.set(spots);
+    } else {
+      // Keep map usable even if async Typesense highlight fetch fails.
+      // We still render locally loaded spots that match the active filter.
+      this._visibleSpots.set(
+        spots.filter((spot) => this._spotMatchesFilter(spot, activeFilter))
+      );
     }
 
     this._visibleAmenityMarkers.set(markers);
@@ -888,6 +898,9 @@ export class SpotMapDataManager {
     // When none of the requested tiles are available yet, keep the previous state
     // But return TRUE to signal that we processed a change and the caller should check for missing loads.
     if (dots.length === 0 && missingTileKeys.length > 0) {
+      if (this._spotClusterService && tiles.viewportBounds) {
+        this._loadClusterDotsViaService(tiles);
+      }
       return true;
     }
 
@@ -920,6 +933,9 @@ export class SpotMapDataManager {
     const signalStart = Date.now();
     this._visibleSpots.set([]);
     this._visibleDots.set(dots);
+    if (dots.length === 0 && this._spotClusterService && tiles.viewportBounds) {
+      this._loadClusterDotsViaService(tiles);
+    }
     // console.log(`[${Date.now()}] DataManager: signal update time=${Date.now() - signalStart}ms`);
     // Disable legacy highlight setting from clusters to avoid conflict with Typesense highlights
     // Only set highlights if no filter is active (preserve filtered results)
@@ -966,7 +982,7 @@ export class SpotMapDataManager {
         this.locale
       )
     )
-      .then((spots) => this._addLoadedSpots(spots))
+      .then((spots) => this._addLoadedSpots(spots, tilesToLoad))
       .catch((err) => {
         console.error("[SpotMapDataManager] Load Error:", err);
         // Clear loading state on error so we can retry
@@ -1174,7 +1190,9 @@ export class SpotMapDataManager {
     firstValueFrom(
       this._spotsService.getSpotClusterTiles(Array.from(tilesToLoad))
     )
-      .then((spotClusters) => this._addLoadedSpotClusters(spotClusters))
+      .then((spotClusters) =>
+        this._addLoadedSpotClusters(spotClusters, tilesToLoad)
+      )
       .catch((err) => {
         console.error("[SpotMapDataManager] Cluster Load Error:", err);
         tilesToLoad.forEach((key) => this._tilesLoading.delete(key));
@@ -1561,8 +1579,24 @@ export class SpotMapDataManager {
   /**
    * Add loaded Spot objects into the internal cache keyed by their z16 tile.
    */
-  private _addLoadedSpots(spots: Spot[]) {
+  private _addLoadedSpots(
+    spots: Spot[],
+    requestedTiles?: Set<MapTileKey>
+  ) {
+    if (requestedTiles && requestedTiles.size > 0) {
+      requestedTiles.forEach((tileKey) => {
+        if (!this._spots.has(tileKey)) {
+          this._spots.set(tileKey, []);
+        }
+        this._tilesLoading.delete(tileKey);
+      });
+    }
+
     if (!spots || spots.length === 0) {
+      const _lastVisibleTiles = this._lastVisibleTiles();
+      if (_lastVisibleTiles) {
+        this._showCachedSpotsAndMarkersForTiles(_lastVisibleTiles);
+      }
       return;
     }
 
@@ -1635,19 +1669,43 @@ export class SpotMapDataManager {
     }
   }
 
-  private _addLoadedSpotClusters(spotClusters: SpotClusterTileSchema[]) {
-    if (!spotClusters || spotClusters.length === 0) {
-      return;
+  private _addLoadedSpotClusters(
+    spotClusters: SpotClusterTileSchema[],
+    requestedTiles?: Set<MapTileKey>
+  ) {
+    if (requestedTiles && requestedTiles.size > 0) {
+      requestedTiles.forEach((tileKey) => {
+        this._tilesLoading.delete(tileKey);
+      });
     }
 
-    spotClusters.forEach((spotCluster) => {
+    const loadedKeys = new Set<MapTileKey>();
+    (spotClusters ?? []).forEach((spotCluster) => {
       const key: MapTileKey = getClusterTileKey(
         spotCluster.zoom,
         spotCluster.x,
         spotCluster.y
       );
       this._spotClusterTiles.set(key, spotCluster);
+      loadedKeys.add(key);
     });
+
+    // Cache empty tiles for misses so they don't remain in a "missing/loading" loop.
+    if (requestedTiles && requestedTiles.size > 0) {
+      requestedTiles.forEach((tileKey) => {
+        if (loadedKeys.has(tileKey) || this._spotClusterTiles.has(tileKey)) {
+          return;
+        }
+        const tileData = getDataFromClusterTileKey(tileKey);
+        this._spotClusterTiles.set(tileKey, {
+          zoom: tileData.zoom,
+          x: tileData.x,
+          y: tileData.y,
+          dots: [],
+          spots: [],
+        });
+      });
+    }
 
     const _lastVisibleTiles = this._lastVisibleTiles();
     if (_lastVisibleTiles) {

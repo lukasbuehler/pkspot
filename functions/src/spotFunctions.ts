@@ -9,6 +9,7 @@ import { SpotSchema } from "./spotHelpers";
 import {
   parseStorageMediaUrl,
   buildStorageMediaUrl,
+  getMediaPreviewImageUrl,
 } from "../../src/db/schemas/Media";
 
 import { googleAPIKey } from "./secrets";
@@ -41,24 +42,34 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
     Array.isArray(spotData.media) &&
     spotData.media.length > 0
   ) {
-    const firstMediaItem = spotData.media.filter(
-      (mediaSchema) => mediaSchema.isInStorage && mediaSchema.type === "image"
-    )[0];
+    const firstMediaItem = spotData.media.find(
+      (mediaSchema) => mediaSchema.type === "image"
+    );
 
     // use the storage media utilities to get the thumbnail URL from the media schema
     if (firstMediaItem) {
       try {
-        const parsed = parseStorageMediaUrl(firstMediaItem.src);
-        spotDataToUpdate.thumbnail_small_url = buildStorageMediaUrl(
-          parsed,
-          undefined,
-          `_200x200`
-        );
-        spotDataToUpdate.thumbnail_medium_url = buildStorageMediaUrl(
-          parsed,
-          undefined,
-          `_400x400`
-        );
+        if (firstMediaItem.isInStorage) {
+          const parsed = parseStorageMediaUrl(firstMediaItem.src);
+          spotDataToUpdate.thumbnail_small_url = buildStorageMediaUrl(
+            parsed,
+            undefined,
+            `_200x200`
+          );
+          spotDataToUpdate.thumbnail_medium_url = buildStorageMediaUrl(
+            parsed,
+            undefined,
+            `_400x400`
+          );
+        } else {
+          // External images have no resized variants. Reuse the source URL so
+          // image-based Typesense filters still include these spots.
+          const previewSrc = getMediaPreviewImageUrl(firstMediaItem);
+          if (previewSrc) {
+            spotDataToUpdate.thumbnail_small_url = previewSrc;
+            spotDataToUpdate.thumbnail_medium_url = previewSrc;
+          }
+        }
       } catch (e) {
         console.error("Error generating thumbnail URLs for spot:", e);
       }
@@ -184,7 +195,7 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
         spotDataToUpdate.address = address;
       } catch (e) {
         console.error("Error fetching address for spot:", e);
-        return null;
+        // Continue and still update derived Typesense fields even if geocoding fails.
       }
     }
 

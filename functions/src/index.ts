@@ -26,6 +26,7 @@ export { computeRatingOnWrite } from "./spotRatingFunctions";
 
 // spot edit functions
 export { applySpotEditOnCreate } from "./spotEditFunctions";
+export { processImportChunkOnCreate } from "./importFunctions";
 
 // spot clustering functions
 export {

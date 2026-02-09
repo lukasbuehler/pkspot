@@ -97,11 +97,14 @@ export const routes: Routes = [
     pathMatch: "full",
     data: { routeName: "Spot map" },
   },
-  // {
-  //   path: "kml-import",
-  //   component: KmlImportPageComponent,
-  //   data: { routeName: "KML Import" },
-  // },
+  {
+    path: "kml-import",
+    loadComponent: () =>
+      import("./components/kml-import-page/kml-import-page.component").then(
+        (m) => m.KmlImportPageComponent
+      ),
+    data: { routeName: "KML Import" },
+  },
 
   // Embedded stuff
   {

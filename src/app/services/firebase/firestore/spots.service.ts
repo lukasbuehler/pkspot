@@ -170,10 +170,20 @@ export class SpotsService extends ConsentAwareService {
         )
       ).pipe(
         map((arr) => {
-          return arr.map(
-            (docObj) =>
-              new Spot(docObj.id as SpotId, docObj as SpotSchema, locale)
-          );
+          const spots: Spot[] = [];
+          arr.forEach((docObj) => {
+            try {
+              spots.push(
+                new Spot(docObj.id as SpotId, docObj as SpotSchema, locale)
+              );
+            } catch (error) {
+              console.error(
+                `[SpotsService] Failed to hydrate spot ${docObj.id}`,
+                error
+              );
+            }
+          });
+          return spots;
         }),
         catchError((err) => {
           console.error(
@@ -285,7 +295,14 @@ export class SpotsService extends ConsentAwareService {
           const spotData = transformFirestoreData(
             result.document.fields
           ) as SpotSchema;
-          spots.push(new Spot(spotId, spotData, locale));
+          try {
+            spots.push(new Spot(spotId, spotData, locale));
+          } catch (error) {
+            console.error(
+              `[SpotsService HTTP] Failed to hydrate spot ${spotId}`,
+              error
+            );
+          }
         }
       }
 
@@ -375,8 +392,15 @@ export class SpotsService extends ConsentAwareService {
       const data: any = doc.data();
       const spotData: SpotSchema = data as SpotSchema;
       if (spotData) {
-        let newSpot: Spot = new Spot(doc.id as SpotId, spotData, locale);
-        newSpots.push(newSpot);
+        try {
+          let newSpot: Spot = new Spot(doc.id as SpotId, spotData, locale);
+          newSpots.push(newSpot);
+        } catch (error) {
+          console.error(
+            `[SpotsService] Failed to parse spot snapshot ${doc.id}`,
+            error
+          );
+        }
       } else {
         console.error("Spot could not be cast to Spot.Schema!");
       }

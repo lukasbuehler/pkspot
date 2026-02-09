@@ -48,8 +48,9 @@ export const applySpotEditOnCreate = onDocumentCreated(
 
       // For CREATE edits, update the existing (initially empty) spot document with the data
       if (editData.type === "CREATE") {
+        const { source: _ignoredSource, ...createPayload } = editData.data || {};
         const createData: any = {
-          ...editData.data,
+          ...createPayload,
           // Set source to pkspot for user-created spots
           source: "pkspot",
           // Initialize is_iconic to false (will be computed by scheduled function)
@@ -102,9 +103,11 @@ export const applySpotEditOnCreate = onDocumentCreated(
         // Extract fields that need special merge logic
         const { media, external_references, amenities, ...regularData } =
           editData.data;
+        const { source: _ignoredSource, ...regularDataWithoutSource } =
+          regularData || {};
 
         let updateData: any = {
-          ...regularData,
+          ...regularDataWithoutSource,
           updated_at: admin.firestore.FieldValue.serverTimestamp(),
         };
 

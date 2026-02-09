@@ -85,35 +85,72 @@
                 <mat-accordion multi>
                   @for(folder of kmlParserService.setupInfo?.folders; track
                   $index) {
-                  <div class="folder-row d-flex align-items-center mb-2">
-                    <mat-checkbox
-                      class="flex-grow-1"
-                      [(ngModel)]="folder.import"
-                      [ngModelOptions]="{ standalone: true }"
-                    >
-                      {{ folder.name }} ({{ folder.spotCount }} spots)
-                    </mat-checkbox>
+                  <div class="folder-row border rounded p-2 mb-2">
+                    <div class="d-flex align-items-center mb-2">
+                      <mat-checkbox
+                        class="flex-grow-1"
+                        [(ngModel)]="folder.import"
+                        [ngModelOptions]="{ standalone: true }"
+                      >
+                        {{ folder.name }} ({{ folder.spotCount }} spots)
+                      </mat-checkbox>
+                    </div>
 
-                    <mat-form-field
-                      appearance="outline"
-                      subscriptSizing="dynamic"
-                      class="ml-3"
-                      style="width: 200px"
-                    >
-                      <mat-label>Type</mat-label>
-                      <mat-select [(value)]="folder.type">
-                        @for(type of SpotTypes | keyvalue; track type) {
-                        <mat-option [value]="type.value">
-                          <div class="d-flex align-items-center">
-                            <mat-icon class="mr-2">{{
-                              spotTypesIcons[type.value]
-                            }}</mat-icon>
-                            {{ spotTypesNames[type.value] }}
-                          </div>
-                        </mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
+                    <div class="d-flex gap-2 flex-wrap">
+                      <mat-form-field
+                        appearance="outline"
+                        subscriptSizing="dynamic"
+                        style="width: 220px"
+                      >
+                        <mat-label>Type</mat-label>
+                        <mat-select [(value)]="folder.type">
+                          @for(type of SpotTypes | keyvalue; track type) {
+                          <mat-option [value]="type.value">
+                            <div class="d-flex align-items-center">
+                              <mat-icon class="mr-2">{{
+                                spotTypesIcons[type.value]
+                              }}</mat-icon>
+                              {{ spotTypesNames[type.value] }}
+                            </div>
+                          </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+
+                      <mat-form-field
+                        appearance="outline"
+                        subscriptSizing="dynamic"
+                        style="width: 220px"
+                      >
+                        <mat-label>Access</mat-label>
+                        <mat-select [(value)]="folder.access">
+                          @for(access of SpotAccess | keyvalue; track access) {
+                          <mat-option [value]="access.value">
+                            <div class="d-flex align-items-center">
+                              <mat-icon class="mr-2">{{
+                                spotAccessIcons[access.value]
+                              }}</mat-icon>
+                              {{ spotAccessNames[access.value] }}
+                            </div>
+                          </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="folder-amenities mt-1 d-flex align-items-center gap-2">
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="openFolderAmenitiesDialog(folder)"
+                      >
+                        <mat-icon class="mr-1">tune</mat-icon>
+                        Amenities
+                      </button>
+                      <span class="mat-body-small">{{
+                        getFolderAmenitySummary(folder)
+                      }}</span>
+                    </div>
                   </div>
                   }
                 </mat-accordion>
@@ -143,8 +180,6 @@
 
                   <mat-expansion-panel
                     class="regex-panel mt-3"
-                    (opened)="setRegexEnabled(true)"
-                    (closed)="setRegexEnabled(false)"
                   >
                     <mat-expansion-panel-header>
                       <mat-panel-title>
@@ -169,12 +204,80 @@
                 </div>
               </form>
 
+              <form [formGroup]="creditsFormGroup!" class="setup-form mt-3">
+                <h3 class="mat-title-medium">Import Credits & Legal</h3>
+                <div class="d-flex flex-wrap gap-2">
+                  <mat-form-field appearance="outline" style="min-width: 250px">
+                    <mat-label>Source / Community Name</mat-label>
+                    <input matInput formControlName="sourceNameCtrl" />
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" style="min-width: 250px">
+                    <mat-label>Import ID (optional)</mat-label>
+                    <input matInput formControlName="importIdCtrl" />
+                    <mat-hint
+                      >Readable ID for source tracking (lowercase letters,
+                      numbers, dashes)</mat-hint
+                    >
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" style="min-width: 250px">
+                    <mat-label>Attribution Text</mat-label>
+                    <input matInput formControlName="attributionTextCtrl" />
+                  </mat-form-field>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                  <mat-form-field appearance="outline" style="min-width: 250px">
+                    <mat-label>Website URL</mat-label>
+                    <input matInput formControlName="websiteUrlCtrl" />
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" style="min-width: 250px">
+                    <mat-label>Instagram URL</mat-label>
+                    <input matInput formControlName="instagramUrlCtrl" />
+                  </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" style="min-width: 250px">
+                  <mat-label>License</mat-label>
+                  <input matInput formControlName="licenseCtrl" />
+                </mat-form-field>
+
+                <div class="d-flex flex-column gap-2 mb-2">
+                  <mat-checkbox formControlName="rightsConfirmedCtrl">
+                    I confirm I have the rights/permission to import this data.
+                  </mat-checkbox>
+                  <mat-checkbox
+                    formControlName="externalImagesRightsConfirmedCtrl"
+                  >
+                    If importing external images, I confirm copyright permission.
+                  </mat-checkbox>
+                  <mat-checkbox formControlName="allowFutureAutoUpdateCtrl">
+                    Keep source URL for future auto-update support.
+                  </mat-checkbox>
+                </div>
+
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Auto-update source URL (optional)</mat-label>
+                  <input matInput formControlName="autoUpdateUrlCtrl" />
+                  @if(kmlParserService.setupInfo?.networkLinks?.length) {
+                  <mat-hint>
+                    Detected NetworkLinks:
+                    {{ kmlParserService.setupInfo?.networkLinks?.join(", ") }}
+                  </mat-hint>
+                  }
+                </mat-form-field>
+              </form>
+
               <div class="actions mt-3 d-flex justify-content-between">
                 <button mat-button matStepperPrevious>Back</button>
                 <button
                   mat-flat-button
                   color="primary"
-                  [disabled]="setupFormGroup!.invalid"
+                  [disabled]="
+                    setupFormGroup!.invalid || creditsFormGroup!.invalid
+                  "
                   (click)="continueToVerification()"
                 >
                   Next
@@ -190,53 +293,195 @@
             </ng-template>
             <div class="step-content full-width">
               <div class="verification-container row">
-                <div
-                  class="col-md-4 spots-list"
-                  style="max-height: 500px; overflow-y: auto"
-                >
-                  <h3 class="h5 mb-3">
-                    Spots to Import ({{ spotsToImport().length }})
-                  </h3>
-                  <div class="list-group">
-                    @for(spot of spotsToImport(); track spot; let i = $index) {
-                    <button
-                      mat-button
-                      class="list-group-item list-group-item-action"
-                      [class.active]="spot === selectedSpot()"
-                      (click)="selectedSpot.set(spot)"
+                <div class="col-md-4 spots-list verify-left">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h3 class="h5 m-0">Verify Spots</h3>
+                    <span class="mat-body-small"
+                      >{{ includedSpotCount() }} /
+                      {{ totalVerificationCount() }}</span
                     >
-                      <div class="d-flex align-items-center w-100">
-                        <mat-icon class="mr-3">{{
-                          spotTypesIcons[getSpotType(spot)]
-                        }}</mat-icon>
-                        <div class="text-truncate">
-                          <div class="spot-name font-weight-bold">
-                            {{ spot.spot.name }}
-                          </div>
-                          <small class="spot-folder text-muted">{{
-                            spot.folder
-                          }}</small>
-                        </div>
+                  </div>
+                  <div class="verify-groups">
+                    @for(group of verificationGroups(); track group.folder) {
+                    <div class="folder-group">
+                      <div
+                        class="d-flex align-items-center justify-content-between folder-header"
+                      >
+                        <strong>{{ group.folder }}</strong>
+                        <span class="mat-body-small text-muted"
+                          >{{ group.includedCount }} / {{ group.items.length
+                          }}</span
+                        >
                       </div>
-                    </button>
+                      <div class="d-flex flex-column gap-2">
+                        @for(item of group.items; track
+                        item.spot.importIndex ?? $index) {
+                        <div
+                          class="verify-item border rounded"
+                          [class.active]="item.spot === selectedSpot()"
+                        >
+                          <div class="d-flex align-items-start gap-1">
+                            <button
+                              mat-icon-button
+                              (click)="
+                                toggleSpotIncluded(item.spot);
+                                $event.stopPropagation()
+                              "
+                              [color]="item.include ? 'primary' : undefined"
+                            >
+                              <mat-icon>{{
+                                item.include
+                                  ? "check_circle"
+                                  : "remove_circle_outline"
+                              }}</mat-icon>
+                            </button>
+
+                            <button
+                              mat-button
+                              class="verify-item-button text-left flex-grow-1"
+                              (click)="selectVerificationSpot(item.spot)"
+                            >
+                              <span class="verify-item-number"
+                                >#{{ item.spot.importIndex ?? "?" }}</span
+                              >
+                              <app-spot-preview-card
+                                [spotData]="item.localSpot"
+                                [isCompact]="true"
+                                [hasBorder]="false"
+                                [showInfoButton]="false"
+                              ></app-spot-preview-card>
+                            </button>
+                          </div>
+                          @if(verificationSpotReasonText(item); as reason) {
+                          <div class="mat-body-small text-muted px-2 pb-2">
+                            {{ reason }}
+                          </div>
+                          }
+                        </div>
+                        }
+                      </div>
+                    </div>
                     }
                   </div>
                 </div>
                 <div class="col-md-8 map-preview">
-                  @if(selectedVerificationSpot()) {
-                  <div class="card h-100">
+                  @if(selectedSpot()) {
+                  <div class="card h-100 d-flex flex-column">
+                    <div
+                      class="card-header d-flex justify-content-between align-items-center gap-2"
+                    >
+                      <div class="d-flex gap-2">
+                        <button
+                          mat-stroked-button
+                          [color]="previewMode() === 'map' ? 'primary' : undefined"
+                          (click)="previewMode.set('map')"
+                        >
+                          Map
+                        </button>
+                        <button
+                          mat-stroked-button
+                          [color]="
+                            previewMode() === 'details' ? 'primary' : undefined
+                          "
+                          (click)="previewMode.set('details')"
+                        >
+                          Details
+                        </button>
+                      </div>
+                      <mat-checkbox
+                        [checked]="isSpotIncluded(selectedSpot()!)"
+                        (change)="setSpotIncluded(selectedSpot()!, $event.checked)"
+                      >
+                        Import this spot
+                      </mat-checkbox>
+                    </div>
+
+                    @if(previewMode() === "map") {
                     <div class="card-body p-0 h-100 position-relative">
                       <app-spot-map
                         #spotMap
                         [spots]="[]"
                         [selectedSpot]="selectedVerificationSpot()"
                         [isEditing]="true"
-                        [priorityMarkers]="getSpotMarkers(spotsToImport())"
+                        [mapStyle]="'hybrid'"
+                        [priorityMarkers]="getSpotMarkers(includedSpots())"
                         [boundRestriction]="importedSpotsBounds()"
                         [polygons]="polygons()"
                         class="w-100 h-100 d-block"
                       ></app-spot-map>
                     </div>
+                    } @else {
+                    <div class="card-body overflow-auto">
+                      @if(selectedVerificationSpot()) {
+                      <app-spot-preview-card
+                        [spotData]="selectedVerificationSpot()"
+                        [showInfoButton]="false"
+                        [hasBorder]="false"
+                      ></app-spot-preview-card>
+                      }
+
+                      @if(selectedSpot()?.spot?.description) {
+                      <h4 class="mat-title-small mt-3">Description</h4>
+                      <div
+                        class="mat-body-small"
+                        [innerHTML]="selectedSpot()?.spot?.description"
+                      ></div>
+                      }
+
+                      <h4 class="mat-title-small mt-3 mb-1">Import Data</h4>
+                      <div class="mat-body-small text-muted">
+                        Language: {{ selectedSpot()?.language }}
+                      </div>
+                      <div class="mat-body-small text-muted">
+                        Type:
+                        {{
+                          selectedVerificationSpot()
+                            ? spotTypesNames[selectedVerificationSpot()!.type()]
+                            : "-"
+                        }}
+                      </div>
+                      <div class="mat-body-small text-muted">
+                        Access:
+                        {{
+                          selectedVerificationSpot()
+                            ? spotAccessNames[selectedVerificationSpot()!.access()]
+                            : "-"
+                        }}
+                      </div>
+                      <div class="mat-body-small text-muted">
+                        Polygon bounds:
+                        {{ selectedSpot()?.spot?.bounds?.length ?? 0 }} points
+                      </div>
+                      <div class="mat-body-small text-muted">
+                        Duplicate candidates:
+                        {{ selectedSpot()?.possibleDuplicateOf?.length ?? 0 }}
+                      </div>
+                      <div class="mat-body-small text-muted">
+                        Folder: {{ selectedSpot()?.folder ?? "Ungrouped" }}
+                      </div>
+
+                      @if(selectedAmenitiesEntries().length > 0) {
+                      <h4 class="mat-title-small mt-3 mb-1">Amenities</h4>
+                      <div class="d-flex flex-wrap gap-1">
+                        @for(amenity of selectedAmenitiesEntries(); track
+                        amenity[0]) {
+                        <span class="amenity-chip">
+                          {{ amenity[0] }}:
+                          {{ amenity[1] === true ? "on" : "off" }}
+                        </span>
+                        }
+                      </div>
+                      }
+
+                      <h4 class="mat-title-small mt-3">Imported Media</h4>
+                      @if(selectedSpotMedia().length > 0) {
+                      <app-img-carousel [media]="selectedSpotMedia()">
+                      </app-img-carousel>
+                      } @else {
+                      <p class="mat-body-small text-muted">No media detected.</p>
+                      }
+                    </div>
+                    }
                   </div>
                   } @else {
                   <div
@@ -250,8 +495,13 @@
 
               <div class="actions mt-4 d-flex justify-content-between">
                 <button mat-button matStepperPrevious>Back</button>
-                <button mat-flat-button color="primary" (click)="importSpots()">
-                  Import {{ spotsToImport().length }} Spots
+                <button
+                  mat-flat-button
+                  color="primary"
+                  [disabled]="includedSpotCount() === 0"
+                  (click)="importSpots()"
+                >
+                  Import {{ includedSpotCount() }} Spots
                 </button>
               </div>
             </div>

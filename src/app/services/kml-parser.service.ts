@@ -7,7 +7,8 @@ import { SpotsService } from "./firebase/firestore/spots.service";
 import { MapsApiService } from "./maps-api.service";
 import { LocaleCode } from "../../db/models/Interfaces";
 
-import { SpotTypes } from "../../db/schemas/SpotTypeAndAccess";
+import { SpotAccess, SpotTypes } from "../../db/schemas/SpotTypeAndAccess";
+import { AmenitiesMap } from "../../db/schemas/Amenities";
 
 export interface KMLSetupInfo {
   name?: string;
@@ -19,8 +20,11 @@ export interface KMLSetupInfo {
     spotCount: number;
     import: boolean;
     type?: SpotTypes;
+    access?: SpotAccess;
+    amenities?: Partial<AmenitiesMap>;
   }[];
   regex: RegExp | null;
+  networkLinks?: string[];
 }
 
 export interface KMLSpot {
@@ -28,11 +32,14 @@ export interface KMLSpot {
     name: string;
     location: google.maps.LatLngLiteral;
     bounds?: google.maps.LatLngLiteral[];
+    description?: string;
+    mediaUrls?: string[];
   };
   folder?: string;
   language: LocaleCode;
   possibleDuplicateOf: Spot[];
   paths?: Map<number, google.maps.LatLngLiteral[]>;
+  importIndex?: number;
 }
 
 @Injectable({
@@ -57,6 +64,7 @@ export class KmlParserService {
     lang: this.locale || "en",
     folders: [],
     regex: null,
+    networkLinks: [],
   };
 
   private _spotFolders: { [key: number]: KMLSpot[] } | null = null;
@@ -90,6 +98,7 @@ export class KmlParserService {
           lang: this.locale || "en",
           folders: [],
           regex: null,
+          networkLinks: [],
           // @ts-ignore
           bounds: null,
         };
@@ -135,6 +144,8 @@ export class KmlParserService {
               spotCount: numberOfSpotsinFolder,
               import: true,
               type: undefined,
+              access: undefined,
+              amenities: {},
             });
 
             // load the spots from the folder.
@@ -175,6 +186,12 @@ export class KmlParserService {
                 const placemarkName =
                   this.getChildNode(placemark, "name")?.textContent ||
                   "Unnamed";
+                const placemarkDescription = (
+                  this.getChildNode(placemark, "description")?.textContent ?? ""
+                ).trim();
+                const mediaUrls = this.extractImageUrlsFromDescription(
+                  placemarkDescription
+                );
 
                 if (!coordinates) {
                   console.warn(
@@ -257,6 +274,8 @@ export class KmlParserService {
                   name: placemarkName || "Unnamed spot",
                   location: location!,
                   bounds: bounds,
+                  description: placemarkDescription || undefined,
+                  mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
                 };
 
                 let paths: Map<number, google.maps.LatLngLiteral[]> | undefined;
@@ -280,6 +299,16 @@ export class KmlParserService {
             this._spotFolders![folderIndex] = kmlSpots;
           }
         );
+
+        const networkLinks = Array.from(
+          docNode.getElementsByTagName("NetworkLink")
+        )
+          .map((networkLink) => {
+            const hrefNode = networkLink.getElementsByTagName("href")[0];
+            return hrefNode?.textContent?.trim() ?? "";
+          })
+          .filter((href) => href.length > 0);
+        this.setupInfo!.networkLinks = networkLinks;
 
         // parsing was successful
         this._parsingWasSuccessful = true;
@@ -326,6 +355,9 @@ export class KmlParserService {
 
     // 2. Clustering / Merging of close spots
     const mergedSpots = this.mergeSpots(allCandidateSpots);
+    mergedSpots.forEach((spot, index) => {
+      spot.importIndex = index;
+    });
 
     // 3. Prepare for Duplicate Check (Load Tiles)
     let tilesToLoad: { x: number; y: number }[] = [];
@@ -483,6 +515,63 @@ export class KmlParserService {
 
   private deg2rad(deg: number) {
     return deg * (Math.PI / 180);
+  }
+
+  private extractImageUrlsFromDescription(description: string): string[] {
+    if (!description) {
+      return [];
+    }
+    const urls = new Set<string>();
+
+    try {
+      const parser = new DOMParser();
+      const html = parser.parseFromString(description, "text/html");
+      const imgNodes = Array.from(html.querySelectorAll("img[src]"));
+      imgNodes.forEach((img) => {
+        const src = this.normalizeExternalUrl(img.getAttribute("src") ?? "");
+        if (src) {
+          urls.add(src);
+        }
+      });
+
+      const anchorNodes = Array.from(html.querySelectorAll("a[href]"));
+      anchorNodes.forEach((anchor) => {
+        const href = this.normalizeExternalUrl(
+          anchor.getAttribute("href") ?? ""
+        );
+        if (!href) {
+          return;
+        }
+        if (/\.(jpe?g|png|webp|gif)(\?|$)/i.test(href)) {
+          urls.add(href);
+        }
+      });
+    } catch (error) {
+      console.warn("Failed parsing description HTML for media URLs", error);
+    }
+
+    const urlRegex = /(https?:\/\/[^\s"'<>]+?\.(?:jpe?g|png|webp|gif)(?:\?[^\s"'<>]*)?)/gi;
+    const regexMatches = description.match(urlRegex) ?? [];
+    regexMatches.forEach((rawUrl) => {
+      const normalized = this.normalizeExternalUrl(rawUrl);
+      if (normalized) {
+        urls.add(normalized);
+      }
+    });
+
+    return Array.from(urls).slice(0, 12);
+  }
+
+  private normalizeExternalUrl(raw: string): string | null {
+    const value = raw.trim();
+    if (!value) {
+      return null;
+    }
+    const withProtocol = value.startsWith("//") ? `https:${value}` : value;
+    if (!/^https?:\/\//i.test(withProtocol)) {
+      return null;
+    }
+    return withProtocol;
   }
 
   findPossibleDuplicatesForSpot(spot: KMLSpot) {}
