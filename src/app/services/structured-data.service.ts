@@ -12,6 +12,16 @@ import { environment } from "../../environments/environment";
   providedIn: "root",
 })
 export class StructuredDataService {
+  static readonly BRAND_NAME = "PK Spot";
+  static readonly BRAND_URL = "https://pkspot.app";
+  static readonly LOGO_URL = "https://pkspot.app/assets/icons/icon-512.webp";
+  static readonly INSTAGRAM_LINKTREE_URL = "https://linktr.ee/pkspot";
+  static readonly INSTAGRAM_PROFILE_URL = "https://instagram.com/pkspot.app";
+  static readonly APPLE_APP_STORE_URL =
+    "https://apps.apple.com/app/pk-spot-parkour-freerunning/id6757597683";
+  static readonly GOOGLE_PLAY_STORE_URL =
+    "https://play.google.com/store/apps/details?id=com.pkspot.app";
+
   locale: string = inject(LOCALE_ID);
   platformId = inject(PLATFORM_ID);
   private document = inject(DOCUMENT);
@@ -22,6 +32,61 @@ export class StructuredDataService {
 
   constructor(private meta: Meta, private titleService: Title) {
     this.isServer = isPlatformServer(this.platformId);
+  }
+
+  get sameAsLinks(): string[] {
+    return [
+      StructuredDataService.INSTAGRAM_LINKTREE_URL,
+      StructuredDataService.INSTAGRAM_PROFILE_URL,
+      StructuredDataService.APPLE_APP_STORE_URL,
+      StructuredDataService.GOOGLE_PLAY_STORE_URL,
+    ];
+  }
+
+  generateOrganizationData(): Record<string, unknown> {
+    return {
+      "@type": "Organization",
+      "@id": `${StructuredDataService.BRAND_URL}/#organization`,
+      name: StructuredDataService.BRAND_NAME,
+      url: StructuredDataService.BRAND_URL,
+      logo: StructuredDataService.LOGO_URL,
+      sameAs: this.sameAsLinks,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Zurich",
+        addressCountry: "CH",
+      },
+    };
+  }
+
+  generateSoftwareApplicationData(): Record<string, unknown> {
+    return {
+      "@type": "SoftwareApplication",
+      "@id": `${StructuredDataService.BRAND_URL}/#software-application`,
+      name: StructuredDataService.BRAND_NAME,
+      url: StructuredDataService.BRAND_URL,
+      logo: StructuredDataService.LOGO_URL,
+      sameAs: this.sameAsLinks,
+      operatingSystem: "iOS, Android",
+      applicationCategory: "SportsApplication",
+      downloadUrl: [
+        StructuredDataService.APPLE_APP_STORE_URL,
+        StructuredDataService.GOOGLE_PLAY_STORE_URL,
+      ],
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "CHF",
+      },
+      publisher: {
+        "@id": `${StructuredDataService.BRAND_URL}/#organization`,
+      },
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Zurich",
+        addressCountry: "CH",
+      },
+    };
   }
 
   /**
@@ -85,13 +150,29 @@ export class StructuredDataService {
     // Add address if available
     const address = spot.address();
     if (address) {
+      const addressLocality =
+        address.locality || address.sublocality || this.getSpotLocality(spot);
       placeData.address = {
         "@type": "PostalAddress",
-        streetAddress: address.formatted,
-        addressLocality: address.locality,
-        addressRegion: address.sublocality,
+        streetAddress: this.withLocalityInStreetAddress(
+          address.formatted,
+          addressLocality
+        ),
+        addressLocality: addressLocality,
+        addressRegion:
+          address.sublocality && address.sublocality !== addressLocality
+            ? address.sublocality
+            : undefined,
         addressCountry: address.country?.code,
       };
+    } else {
+      const fallbackLocality = this.getSpotLocality(spot);
+      if (fallbackLocality) {
+        placeData.address = {
+          "@type": "PostalAddress",
+          addressLocality: fallbackLocality,
+        };
+      }
     }
 
     // Add aggregate rating if available
@@ -106,6 +187,52 @@ export class StructuredDataService {
     }
 
     return placeData;
+  }
+
+  private getSpotLocality(spot: Spot | LocalSpot): string | undefined {
+    const locality = spot.localityString()?.trim();
+    if (!locality) {
+      return undefined;
+    }
+
+    const parts = locality
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    if (parts.length === 0) {
+      return undefined;
+    }
+
+    if (parts.length > 1 && /^[a-z]{2}$/i.test(parts[parts.length - 1])) {
+      parts.pop();
+    }
+
+    return parts[parts.length - 1];
+  }
+
+  private withLocalityInStreetAddress(
+    streetAddress?: string,
+    locality?: string
+  ): string | undefined {
+    const cleanStreetAddress = streetAddress?.trim();
+    const cleanLocality = locality?.trim();
+
+    if (!cleanLocality) {
+      return cleanStreetAddress;
+    }
+
+    if (!cleanStreetAddress) {
+      return cleanLocality;
+    }
+
+    if (
+      cleanStreetAddress.toLowerCase().includes(cleanLocality.toLowerCase())
+    ) {
+      return cleanStreetAddress;
+    }
+
+    return `${cleanStreetAddress}, ${cleanLocality}`;
   }
 
   /**

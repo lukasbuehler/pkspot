@@ -841,20 +841,15 @@ export class SpotDetailsComponent
         void this._preloadNearbyPlaces();
       }
     });
+
+    // Keep spot-specific structured data and meta tags in sync as spot changes.
+    effect(() => {
+      this._syncSpotSeoData(this.spot());
+    });
   }
 
   ngOnInit() {
-    // add structured data and meta tags for place
-    if (this.spot instanceof Spot) {
-      const placeData = this._structuredDataService.generateSpotPlaceData(
-        this.spot
-      );
-      this._structuredDataService.addStructuredData("spot", placeData);
-
-      // Set meta tags with canonical URL (use slug if available, otherwise ID)
-      const canonicalPath = `/map/${this.spot.slug ?? this.spot.id}`;
-      this._metaTagService.setSpotMetaTags(this.spot, canonicalPath);
-    }
+    this._syncSpotSeoData(this.spot());
   }
 
   ngAfterViewInit() {
@@ -872,6 +867,19 @@ export class SpotDetailsComponent
   ngOnDestroy(): void {
     this._structuredDataService.removeStructuredData("spot");
     this._unsubscribeFromLiveSpot();
+  }
+
+  private _syncSpotSeoData(spot: Spot | LocalSpot | null) {
+    if (spot instanceof Spot) {
+      const placeData = this._structuredDataService.generateSpotPlaceData(spot);
+      this._structuredDataService.addStructuredData("spot", placeData);
+
+      const canonicalPath = `/map/${spot.slug ?? spot.id}`;
+      this._metaTagService.setSpotMetaTags(spot, canonicalPath);
+      return;
+    }
+
+    this._structuredDataService.removeStructuredData("spot");
   }
 
   private _filterCountries(value: string): any[] {

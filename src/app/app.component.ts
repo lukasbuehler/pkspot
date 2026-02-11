@@ -395,16 +395,24 @@ export class AppComponent implements OnInit, AfterViewInit {
     // structured data
     const json: WebSite = {
       "@type": "WebSite",
-      name: "PK Spot",
+      name: StructuredDataService.BRAND_NAME,
       alternateName: [
         "pkspot.app",
         "PK Spot App",
         "Parkour Spot",
         "Parkour Spot App",
       ],
-      url: "https://pkspot.app/",
+      url: StructuredDataService.BRAND_URL,
     };
     this._structuredDataService.addStructuredData("website", json);
+    this._structuredDataService.addStructuredData(
+      "organization",
+      this._structuredDataService.generateOrganizationData()
+    );
+    this._structuredDataService.addStructuredData(
+      "software-application",
+      this._structuredDataService.generateSoftwareApplicationData()
+    );
 
     // Setup route events and consent dialog logic immediately (before consent)
     this.router.events

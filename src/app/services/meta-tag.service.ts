@@ -103,34 +103,27 @@ export class MetaTagService {
    * Sets meta tags for a spot with canonical URL
    */
   public setSpotMetaTags(spot: Spot | LocalSpot, canonicalPath?: string): void {
-    const title = spot.name();
+    const title = this.buildSpotTitle(spot);
     const image =
       spot.previewImageSrc() ?? "https://pkspot.app/assets/banner_1200x630.png";
+    const localityString = spot.localityString().trim();
+    const firstSentence = localityString
+      ? `Parkour spot in ${localityString}.`
+      : "Parkour spot on PK Spot.";
 
-    let description = "";
-
-    // Add locality information
-    if (spot.localityString()) {
-      description =
-        $localize`:The text before the localized location of the spot. E.g. Parkour spot in Wiedikon, Zurich, CH@@spot.locality.pretext:Parkour spot in ` +
-        spot.localityString();
-    }
-
-    // Add rating if available
-    if (description && spot.rating) {
-      description += " - ";
-    }
+    const detailSegments: string[] = [];
     if (spot.rating) {
-      description += $localize`Rating: ${Math.round(spot.rating * 10) / 10} ⭐`;
-    }
-
-    // Add description if available
-    if (description && spot.description()) {
-      description += " - ";
+      detailSegments.push(`Rated ${Math.round(spot.rating * 10) / 10} out of 5`);
     }
     if (spot.description()) {
-      description += spot.description();
+      detailSegments.push(spot.description());
     }
+
+    const secondSentence =
+      detailSegments.length > 0
+        ? `${detailSegments.join(". ")}.`
+        : "Discover photos, details, and training info.";
+    const description = `${firstSentence} ${secondSentence}`;
 
     // Build canonical URL using slug if available
     const canonical = canonicalPath
@@ -298,5 +291,42 @@ export class MetaTagService {
   private buildCanonicalUrl(path: string): string {
     // Use the default locale (en) for canonical URLs to avoid duplicate content signals
     return `https://pkspot.app/en${path}`;
+  }
+
+  private buildSpotTitle(spot: Spot | LocalSpot): string {
+    const spotName = spot.name();
+    const locality = this.getSpotTitleLocality(spot);
+
+    if (locality) {
+      return `${spotName} - ${locality} | PK Spot`;
+    }
+
+    return `${spotName} | PK Spot`;
+  }
+
+  private getSpotTitleLocality(spot: Spot | LocalSpot): string | undefined {
+    const address = spot.address();
+    if (address?.locality) {
+      return address.locality;
+    }
+    if (address?.sublocality) {
+      return address.sublocality;
+    }
+
+    const localityString = spot.localityString().trim();
+    if (!localityString) {
+      return undefined;
+    }
+
+    const parts = localityString
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    if (parts.length > 1 && /^[a-z]{2}$/i.test(parts[parts.length - 1])) {
+      parts.pop();
+    }
+
+    return parts.length > 0 ? parts[parts.length - 1] : undefined;
   }
 }
