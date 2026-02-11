@@ -137,6 +137,7 @@ export class GoogleMap2dComponent
   extends MapBase
   implements OnChanges, AfterViewInit
 {
+  readonly autoStartLocationWatch = environment.features.checkIns;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
   // @ViewChildren(MapPolygon, { read: ElementRef })
   polygonElements: QueryList<ElementRef> | undefined;
@@ -757,7 +758,9 @@ export class GoogleMap2dComponent
       return;
     }
 
-    this.initGeolocation();
+    if (this.autoStartLocationWatch) {
+      this.initGeolocation();
+    }
 
     if (this.boundRestriction) {
       this.mapOptions.restriction = {

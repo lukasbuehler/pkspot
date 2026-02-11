@@ -145,7 +145,7 @@
     } } }
 
     <!-- Proactive Check-in Chip -->
-    @if(checkInService.showGlobalChip() &&
+    @if(checkInEnabled && checkInService.showGlobalChip() &&
     checkInService.currentProximitySpot(); as spot) {
     <div
       class="check-in-chip-container d-flex justify-content-center w-100 p-2 overflow-hidden"

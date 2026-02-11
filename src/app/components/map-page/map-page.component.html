@@ -1,5 +1,5 @@
 <ng-template #sidebarContent>
-  @if(checkInService.currentProximitySpot(); as spot) {
+  @if(checkInEnabled && checkInService.currentProximitySpot(); as spot) {
   <div
     @fadeInOut
     style="height: 42px; margin-bottom: 18px"

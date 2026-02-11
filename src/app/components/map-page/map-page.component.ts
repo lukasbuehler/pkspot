@@ -105,6 +105,7 @@ import {
 import { BackHandlingService } from "../../services/back-handling.service";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { AppSettingsService } from "../../services/app-settings.service";
+import { environment } from "../../../environments/environment";
 
 import { PoiData } from "../../../db/models/PoiData";
 import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
@@ -202,6 +203,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   geolocationService = inject(GeolocationService);
   checkInService = inject(CheckInService);
+  readonly checkInEnabled = environment.features.checkIns;
 
   geolocationIcon = computed(() => {
     if (this.geolocationService.error()) return "location_disabled";
@@ -676,7 +678,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Trigger Google Maps API loading since this page needs it
     // this.tryLoadMapsApi(); // TODO wtf
 
-    this.checkInService.showGlobalChip.set(false);
+    if (this.checkInEnabled) {
+      this.checkInService.showGlobalChip.set(false);
+    }
 
     // Listen for consent changes to retry Maps API loading when consent is granted
     this._consentService.consentGranted$.subscribe((hasConsent) => {
@@ -1611,7 +1615,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     console.debug("destroying map page");
-    this.checkInService.showGlobalChip.set(true);
+    if (this.checkInEnabled) {
+      this.checkInService.showGlobalChip.set(true);
+    }
     this.closeSpot();
     this._routerSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();

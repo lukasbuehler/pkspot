@@ -178,6 +178,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private _backHandlingService = inject(BackHandlingService);
   public checkInService = inject(CheckInService);
+  readonly checkInEnabled = environment.features.checkIns;
+  readonly activityEnabled = environment.features.activity;
 
   constructor(
     public router: Router,
@@ -1127,24 +1129,21 @@ export class AppComponent implements OnInit, AfterViewInit {
   navbarConfig = computed<NavbarButtonConfig | undefined>(() => {
     const shortUserDisplayName = this.shortUserDisplayName();
     const userPhoto = this.userPhoto();
-
-    return [
+    const buttons: NavbarButtonConfig = [
       {
         name: $localize`:Map navbar button label|A very short label for the navbar map label@@map_label:Map`,
         link: "/map",
         icon: "map",
       },
-      {
+    ];
+    if (this.activityEnabled) {
+      buttons.push({
         name: $localize`Activity`,
         link: "/activity",
         icon: "vital_signs",
-      },
-
-      // {
-      //   name: $localize`:@@train.nav_label:Train`,
-      //   link: "/train",
-      //   icon: "sprint", // "directions_run", fast_forward,  "exercise"
-      // },
+      });
+    }
+    buttons.push(
       {
         name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
         link: "/about",
@@ -1157,6 +1156,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         icon: "person",
         image: shortUserDisplayName && userPhoto ? userPhoto : "",
       },
-    ];
+    );
+
+    return buttons;
   });
 }

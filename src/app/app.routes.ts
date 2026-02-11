@@ -1,5 +1,6 @@
 import { Routes } from "@angular/router";
 import { contentResolver } from "./resolvers/content.resolver";
+import { environment } from "../environments/environment";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
   "/about",
@@ -20,16 +21,19 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
   },
 
-  // Activity
-  {
-    path: "activity",
-    loadComponent: () =>
-      import("./components/activity-page/activity-page.component").then(
-        (m) => m.ActivityPageComponent
-      ),
-    resolve: { content: contentResolver },
-    data: { routeName: "Activity" },
-  },
+  ...(environment.features.activity
+    ? [
+        {
+          path: "activity",
+          loadComponent: () =>
+            import("./components/activity-page/activity-page.component").then(
+              (m) => m.ActivityPageComponent
+            ),
+          resolve: { content: contentResolver },
+          data: { routeName: "Activity" },
+        },
+      ]
+    : []),
 
   // Posts
   // { path: "feed", component: HomePageComponent, data: { routeName: "Feed" } },

@@ -66,6 +66,7 @@ import { AnyMedia } from "../../../db/models/Media";
 
 import { GeolocationService } from "../../services/geolocation.service";
 import { CheckInService } from "../../services/check-in.service";
+import { environment } from "../../../environments/environment";
 
 @Component({
   selector: "app-spot-map",
@@ -147,6 +148,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   // Check-In Service integration
   private _checkInService = inject(CheckInService);
+  readonly checkInEnabled = environment.features.checkIns;
 
   // Expose check-in spot to template
   checkInSpot = this._checkInService.currentProximitySpot;
@@ -286,6 +288,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     // Update check-in service with selected spot
     effect(() => {
+      if (!this.checkInEnabled) return;
       this._checkInService.selectedSpot.set(this.selectedSpot() as Spot | null);
     });
 

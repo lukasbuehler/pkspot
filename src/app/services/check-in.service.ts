@@ -1,8 +1,8 @@
 import {
   Injectable,
-  computed,
   effect,
   inject,
+  Injector,
   signal,
   PLATFORM_ID,
 } from "@angular/core";
@@ -12,13 +12,17 @@ import { SearchService } from "./search.service";
 import { Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
+import { environment } from "../../environments/environment";
 
 @Injectable({
   providedIn: "root",
 })
 export class CheckInService {
-  private _geolocationService = inject(GeolocationService);
-  private _searchService = inject(SearchService);
+  readonly isEnabled = environment.features.checkIns;
+  private _platformId = inject(PLATFORM_ID);
+  private _injector = inject(Injector);
+  private _geolocationService?: GeolocationService;
+  private _searchService?: SearchService;
 
   // Configuration
   private readonly PROXIMITY_THRESHOLD_METERS = 50;
@@ -32,7 +36,7 @@ export class CheckInService {
 
   // State
   public currentProximitySpot = signal<SpotPreviewData | null>(null);
-  public showGlobalChip = signal<boolean>(true);
+  public showGlobalChip = signal<boolean>(this.isEnabled);
 
   // Track selected spot to allow checking in to it if in range, overriding closest
   public selectedSpot = signal<Spot | null>(null);
@@ -41,11 +45,13 @@ export class CheckInService {
   private _cooldowns = signal<Record<string, number>>({});
 
   constructor() {
+    if (!this.isEnabled) return;
+
     this._loadCooldowns();
 
     // Effect to monitor location changes and selected spot changes
     effect(() => {
-      const locationState = this._geolocationService.currentLocation();
+      const locationState = this._getGeolocationService().currentLocation();
       const selected = this.selectedSpot(); // depend on selected spot
 
       if (locationState && locationState.location) {
@@ -63,17 +69,29 @@ export class CheckInService {
     });
 
     // Attempt to start watching if we already have permissions
-    this._geolocationService.checkPermissions().then((granted) => {
+    this._getGeolocationService().checkPermissions().then((granted) => {
       if (granted) {
         console.debug(
           "Geolocation permissions already granted, starting watch..."
         );
-        this._geolocationService.startWatching();
+        this._getGeolocationService().startWatching();
       }
     });
   }
 
-  private _platformId = inject(PLATFORM_ID);
+  private _getGeolocationService(): GeolocationService {
+    if (!this._geolocationService) {
+      this._geolocationService = this._injector.get(GeolocationService);
+    }
+    return this._geolocationService;
+  }
+
+  private _getSearchService(): SearchService {
+    if (!this._searchService) {
+      this._searchService = this._injector.get(SearchService);
+    }
+    return this._searchService;
+  }
 
   private _loadCooldowns() {
     if (!isPlatformBrowser(this._platformId)) return;
@@ -110,6 +128,8 @@ export class CheckInService {
   }
 
   public dismissSpot(spotId: string) {
+    if (!this.isEnabled) return;
+
     const current = this._cooldowns();
     const updated = { ...current, [spotId]: Date.now() };
     this._cooldowns.set(updated);
@@ -193,7 +213,7 @@ export class CheckInService {
 
     // Use Typesense geo-radius search (single fast query vs 9 Firestore tile queries)
     // Search within 500m to catch spots with large bounds
-    this._searchService
+    this._getSearchService()
       .searchSpotsNearLocation(location, 500, 50)
       .then((result) => {
         this._isQuerying = false;
@@ -289,7 +309,7 @@ export class CheckInService {
   ) {
     // Convert hits to SpotPreviewData objects
     const spots: SpotPreviewData[] = hits
-      .map((hit) => this._searchService.getSpotPreviewFromHit(hit))
+      .map((hit) => this._getSearchService().getSpotPreviewFromHit(hit))
       .filter((spot): spot is SpotPreviewData => !!spot);
 
     console.debug(
@@ -485,6 +505,7 @@ export class CheckInService {
   }
 
   public checkIn(spotId: SpotId) {
+    if (!this.isEnabled) return;
     console.log(`Check-in: ${spotId}`);
   }
 }

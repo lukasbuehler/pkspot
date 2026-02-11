@@ -3,6 +3,10 @@ export const environment = {
   production: true,
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
+  features: {
+    checkIns: false,
+    activity: false,
+  },
   keys: {
     firebaseConfig: {
       projectId: "parkour-base-project",
