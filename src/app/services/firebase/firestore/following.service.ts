@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "@angular/fire/firestore";
-import { map, Observable, from } from "rxjs";
+import { map, Observable, from, Subscription } from "rxjs";
 import {
   FollowingDataSchema,
   FollowingSchema,
@@ -25,7 +25,12 @@ export class FollowingService extends ConsentAwareService {
 
   isFollowingUser$(myUserId: string, otherUserId: string): Observable<boolean> {
     return new Observable<boolean>((obs) => {
+      let innerSub: Subscription | null = null;
+      let isUnsubscribed = false;
+
       this.executeWhenConsent(() => {
+        if (isUnsubscribed) return;
+
         console.debug(
           "FollowingService: Checking if user",
           myUserId,
@@ -39,14 +44,21 @@ export class FollowingService extends ConsentAwareService {
           )
           .pipe(map((d) => !!d));
 
-        const sub = obs$.subscribe({
+        innerSub = obs$.subscribe({
           next: (v) => obs.next(v),
           error: (e) => obs.error(e),
         });
-        return () => sub.unsubscribe();
       }).catch((error) => {
-        obs.error(error);
+        if (!isUnsubscribed) {
+          obs.error(error);
+        }
       });
+
+      return () => {
+        isUnsubscribed = true;
+        innerSub?.unsubscribe();
+        innerSub = null;
+      };
     });
   }
 

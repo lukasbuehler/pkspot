@@ -1,7 +1,7 @@
 import { inject, Injectable } from "@angular/core";
 import { arrayRemove, arrayUnion } from "@angular/fire/firestore";
 import { map, switchMap } from "rxjs/operators";
-import { Observable, from } from "rxjs";
+import { Observable, from, Subscription } from "rxjs";
 import { User } from "../../../../db/models/User";
 import {
   UserReferenceSchema,
@@ -44,18 +44,30 @@ export class UsersService extends ConsentAwareService {
   getUserById(userId: string): Observable<User | null> {
     console.debug("UsersService: Fetching user by ID:", userId);
     return new Observable<User | null>((observer) => {
+      let innerSub: Subscription | null = null;
+      let isUnsubscribed = false;
+
       this.executeWhenConsent(() => {
+        if (isUnsubscribed) return;
+
         const obs$ = this._firestoreAdapter
           .documentSnapshots<UserSchema & { id: string }>(`users/${userId}`)
           .pipe(map((d) => (d ? new User(d.id, d as UserSchema) : null)));
-        const sub = obs$.subscribe({
+        innerSub = obs$.subscribe({
           next: (v) => observer.next(v),
           error: (e) => observer.error(e),
         });
-        return () => sub.unsubscribe();
       }).catch((error) => {
-        observer.error(error);
+        if (!isUnsubscribed) {
+          observer.error(error);
+        }
       });
+
+      return () => {
+        isUnsubscribed = true;
+        innerSub?.unsubscribe();
+        innerSub = null;
+      };
     });
   }
 

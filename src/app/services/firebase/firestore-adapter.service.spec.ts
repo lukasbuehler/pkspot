@@ -454,4 +454,24 @@ describe("FirestoreAdapterService (native)", () => {
       expect(result).toEqual([{ id: "all-edits", field: "value" }]);
     });
   });
+
+  describe("native realtime listener cleanup", () => {
+    it("removes document listener if unsubscribed before callbackId resolves", async () => {
+      FirebaseFirestore.addDocumentSnapshotListener.mockReturnValueOnce(
+        Promise.resolve("late-listener-id")
+      );
+
+      const subscription = service
+        .documentSnapshots("collection/doc-id")
+        .subscribe();
+      subscription.unsubscribe();
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(FirebaseFirestore.removeSnapshotListener).toHaveBeenCalledWith({
+        callbackId: "late-listener-id",
+      });
+    });
+  });
 });

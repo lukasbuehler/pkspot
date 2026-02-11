@@ -1,4 +1,10 @@
-import { Component, OnInit, inject, PLATFORM_ID } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  inject,
+  PLATFORM_ID,
+  ChangeDetectorRef,
+} from "@angular/core";
 import { CommonModule, isPlatformBrowser } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { MatTableModule } from "@angular/material/table";
@@ -49,6 +55,7 @@ export class LeaderboardPageComponent implements OnInit {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _authService = inject(AuthenticationService);
   private _platformId = inject(PLATFORM_ID);
+  private _cdr = inject(ChangeDetectorRef);
 
   leaderboardData: LeaderboardEntry[] = [];
   isLoading = true;
@@ -69,6 +76,7 @@ export class LeaderboardPageComponent implements OnInit {
       this.loadLeaderboard();
     } else {
       this.isLoading = false;
+      this._cdr.detectChanges();
     }
   }
 
@@ -117,10 +125,12 @@ export class LeaderboardPageComponent implements OnInit {
       }
 
       this.leaderboardData = entries;
+      this._cdr.detectChanges();
     } catch (error) {
       console.error("Error loading leaderboard:", error);
     } finally {
       this.isLoading = false;
+      this._cdr.detectChanges();
     }
   }
 
@@ -144,5 +154,6 @@ export class LeaderboardPageComponent implements OnInit {
     });
 
     this.leaderboardData = data;
+    this._cdr.detectChanges();
   }
 }

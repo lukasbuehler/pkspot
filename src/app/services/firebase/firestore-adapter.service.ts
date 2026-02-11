@@ -99,6 +99,15 @@ export class FirestoreAdapterService {
     );
   }
 
+  private removeSnapshotListenerSafe(callbackId: string): void {
+    FirebaseFirestore.removeSnapshotListener({ callbackId }).catch((error) => {
+      console.warn(
+        `[FirestoreAdapter] Failed to remove snapshot listener ${callbackId}:`,
+        error
+      );
+    });
+  }
+
   // ============================================================================
   // DOCUMENT OPERATIONS
   // ============================================================================
@@ -431,6 +440,7 @@ export class FirestoreAdapterService {
   private documentSnapshotsNative<T>(path: string): Observable<T | null> {
     return new Observable<T | null>((observer) => {
       let callbackId: string | null = null;
+      let isUnsubscribed = false;
 
       FirebaseFirestore.addDocumentSnapshotListener(
         { reference: path },
@@ -452,14 +462,23 @@ export class FirestoreAdapterService {
             }
           });
         }
-      ).then((id) => {
-        callbackId = id;
-      });
+      )
+        .then((id) => {
+          callbackId = id;
+          if (isUnsubscribed) {
+            this.removeSnapshotListenerSafe(id);
+          }
+        })
+        .catch((error) => {
+          this.ngZone.run(() => observer.error(error));
+        });
 
       // Cleanup function
       return () => {
+        isUnsubscribed = true;
         if (callbackId) {
-          FirebaseFirestore.removeSnapshotListener({ callbackId });
+          this.removeSnapshotListenerSafe(callbackId);
+          callbackId = null;
         }
       };
     });
@@ -528,6 +547,7 @@ export class FirestoreAdapterService {
   ): Observable<T[]> {
     return new Observable<T[]>((observer) => {
       let callbackId: string | null = null;
+      let isUnsubscribed = false;
 
       const options: any = {
         reference: collectionPath,
@@ -587,14 +607,23 @@ export class FirestoreAdapterService {
             }
           });
         }
-      ).then((id) => {
-        callbackId = id;
-      });
+      )
+        .then((id) => {
+          callbackId = id;
+          if (isUnsubscribed) {
+            this.removeSnapshotListenerSafe(id);
+          }
+        })
+        .catch((error) => {
+          this.ngZone.run(() => observer.error(error));
+        });
 
       // Cleanup function
       return () => {
+        isUnsubscribed = true;
         if (callbackId) {
-          FirebaseFirestore.removeSnapshotListener({ callbackId });
+          this.removeSnapshotListenerSafe(callbackId);
+          callbackId = null;
         }
       };
     });
@@ -967,6 +996,7 @@ export class FirestoreAdapterService {
   ): Observable<T[]> {
     return new Observable<T[]>((observer) => {
       let callbackId: string | null = null;
+      let isUnsubscribed = false;
 
       const options: any = {
         reference: collectionId,
@@ -1026,14 +1056,23 @@ export class FirestoreAdapterService {
             }
           });
         }
-      ).then((id) => {
-        callbackId = id;
-      });
+      )
+        .then((id) => {
+          callbackId = id;
+          if (isUnsubscribed) {
+            this.removeSnapshotListenerSafe(id);
+          }
+        })
+        .catch((error) => {
+          this.ngZone.run(() => observer.error(error));
+        });
 
       // Cleanup function
       return () => {
+        isUnsubscribed = true;
         if (callbackId) {
-          FirebaseFirestore.removeSnapshotListener({ callbackId });
+          this.removeSnapshotListenerSafe(callbackId);
+          callbackId = null;
         }
       };
     });
@@ -1047,6 +1086,7 @@ export class FirestoreAdapterService {
     return new Observable<Array<T & { id: string; path: string }>>(
       (observer) => {
         let callbackId: string | null = null;
+        let isUnsubscribed = false;
 
         const options: any = {
           reference: collectionId,
@@ -1109,14 +1149,23 @@ export class FirestoreAdapterService {
               }
             });
           }
-        ).then((id) => {
-          callbackId = id;
-        });
+        )
+          .then((id) => {
+            callbackId = id;
+            if (isUnsubscribed) {
+              this.removeSnapshotListenerSafe(id);
+            }
+          })
+          .catch((error) => {
+            this.ngZone.run(() => observer.error(error));
+          });
 
         // Cleanup function
         return () => {
+          isUnsubscribed = true;
           if (callbackId) {
-            FirebaseFirestore.removeSnapshotListener({ callbackId });
+            this.removeSnapshotListenerSafe(callbackId);
+            callbackId = null;
           }
         };
       }

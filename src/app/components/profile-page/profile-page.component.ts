@@ -123,6 +123,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   countries = countries;
   blockedUsers: string[] = [];
   private _subscriptions = new Subscription();
+  private _profileSubscriptions = new Subscription();
 
   followDialogRef: MatDialogRef<FollowListComponent> | null = null;
 
@@ -200,6 +201,13 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   }
 
   init() {
+    this._profileSubscriptions.unsubscribe();
+    this._profileSubscriptions = new Subscription();
+    if (this._userSubscription) {
+      this._userSubscription.unsubscribe();
+      this._userSubscription = null;
+    }
+
     // clear info
     this.user = null;
     this.postsFromUser = [];
@@ -224,6 +232,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private _userSubscription: Subscription | null = null;
 
   loadProfile(userId: string) {
+    this.isLoading = true;
+
     if (this._userSubscription) {
       this._userSubscription.unsubscribe();
       this._userSubscription = null;
@@ -232,6 +242,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       (user) => {
         if (!user) {
           this.isLoading = false;
+          this._cdr.detectChanges();
           return;
         }
 
@@ -287,6 +298,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
               (isFollowing) => {
                 this.loadingFollowing = false;
                 this.isFollowing = isFollowing;
+                this._cdr.detectChanges();
               },
               (err) => {
                 this.loadingFollowing = false;
@@ -294,9 +306,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
                   "There was an error checking if you follow this user"
                 );
                 console.error(err);
+                this._cdr.detectChanges();
               }
             );
-          this._subscriptions.add(followingSub);
+          this._profileSubscriptions.add(followingSub);
         }
 
         // Load User Stats
@@ -318,16 +331,19 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
         // Load the groups of this user
         // TODO
+        this._cdr.detectChanges();
       },
       (err) => {
         console.error(err);
         this.isLoading = false;
+        this._cdr.detectChanges();
       }
     );
-    this.isLoading = true;
+    this._profileSubscriptions.add(this._userSubscription);
   }
 
   loadPostsForUser(userId: string) {
+    this.postsFromUserLoading = true;
     const postsSub = this._postsService.getPostsFromUser(userId).subscribe(
       (postMap: Record<string, Post.Schema>) => {
         for (let postId in postMap) {
@@ -350,14 +366,15 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           }
         }
         this.postsFromUserLoading = false;
+        this._cdr.detectChanges();
       },
       (err) => {
         console.error(err);
         this.postsFromUserLoading = false;
+        this._cdr.detectChanges();
       }
     );
-    this._subscriptions.add(postsSub);
-    this.postsFromUserLoading = true;
+    this._profileSubscriptions.add(postsSub);
   }
 
   followButtonClick() {
@@ -538,5 +555,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this._structuredDataService.removeStructuredData("profile");
     this._subscriptions.unsubscribe();
+    this._profileSubscriptions.unsubscribe();
+    this._userSubscription?.unsubscribe();
+    this._userSubscription = null;
   }
 }

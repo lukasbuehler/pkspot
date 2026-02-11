@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { Firestore, doc } from "@angular/fire/firestore";
-import { Observable, from } from "rxjs";
+import { Observable, from, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
 import { Post } from "../../../../db/models/Post";
 import { Spot } from "../../../../db/models/Spot";
@@ -115,7 +115,12 @@ export class PostsService extends ConsentAwareService {
   getPostsFromUser(userId: string): Observable<Record<string, Post.Schema>> {
     // Wait for consent before making Firestore calls
     return new Observable<Record<string, Post.Schema>>((observer) => {
+      let innerSub: Subscription | null = null;
+      let isUnsubscribed = false;
+
       this.executeWhenConsent(() => {
+        if (isUnsubscribed) return;
+
         const filters: QueryFilter[] = [
           { fieldPath: "user.uid", opStr: "==", value: userId },
         ];
@@ -139,15 +144,21 @@ export class PostsService extends ConsentAwareService {
             })
           );
 
-        const sub = obs$.subscribe({
+        innerSub = obs$.subscribe({
           next: (v) => observer.next(v as Record<string, Post.Schema>),
           error: (e) => observer.error(e),
         });
-
-        return () => sub.unsubscribe();
       }).catch((error) => {
-        observer.error(error);
+        if (!isUnsubscribed) {
+          observer.error(error);
+        }
       });
+
+      return () => {
+        isUnsubscribed = true;
+        innerSub?.unsubscribe();
+        innerSub = null;
+      };
     });
   }
 

@@ -45,6 +45,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
   ) {}
 
   private _updatesSubscription: Subscription | null = null;
+  private _todaysTopPostsSubscription: Subscription | null = null;
+  private _authStateSubscription: Subscription | null = null;
   updatePosts: Post.Class[] = [];
   todaysTopPosts: Post.Class[] = [];
   loadingUpdates: boolean = false;
@@ -61,7 +63,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
     if (this.authService.isSignedIn) {
       this._subscribeToUpdates(this.authService.user.uid!);
     }
-    this.authService.authState$.subscribe(
+    this._authStateSubscription = this.authService.authState$.subscribe(
       (user) => {
         console.log("User, changed, getting new updates");
         this.updatePosts = [];
@@ -80,6 +82,17 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this._unsubscribeFromUpdates();
+    if (
+      this._todaysTopPostsSubscription &&
+      !this._todaysTopPostsSubscription.closed
+    ) {
+      this._todaysTopPostsSubscription.unsubscribe();
+      this._todaysTopPostsSubscription = null;
+    }
+    if (this._authStateSubscription && !this._authStateSubscription.closed) {
+      this._authStateSubscription.unsubscribe();
+      this._authStateSubscription = null;
+    }
   }
 
   getMorePosts() {
@@ -146,7 +159,15 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   getTodaysTopPosts() {
     this.loadingTodaysTopPosts = true;
-    this._postsService.getTodaysTopPosts().subscribe(
+    if (
+      this._todaysTopPostsSubscription &&
+      !this._todaysTopPostsSubscription.closed
+    ) {
+      this._todaysTopPostsSubscription.unsubscribe();
+    }
+    this._todaysTopPostsSubscription = this._postsService
+      .getTodaysTopPosts()
+      .subscribe(
       (postMap) => {
         for (let postId in postMap) {
           let docIndex = this.todaysTopPosts.findIndex((post, index, obj) => {

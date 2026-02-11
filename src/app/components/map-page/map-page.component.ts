@@ -305,6 +305,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
   private _breakpointSubscription?: Subscription;
+  private _consentSubscription?: Subscription;
 
   spotEdits: WritableSignal<SpotEdit[]> = signal([]);
 
@@ -529,41 +530,47 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     // Effect to load spot edits when showSpotEditHistory changes
-    effect(() => {
+    effect((onCleanup) => {
       const showEditHistory = this.showSpotEditHistory();
       const spot = this.selectedSpot();
 
       if (showEditHistory && spot instanceof Spot) {
         // Load edits for this spot
-        this._spotEditsService.getSpotEditsBySpotId$(spot.id).subscribe({
-          next: (editsWithIds) => {
-            // Convert to SpotEdit instances with proper IDs
-            let spotEdits = editsWithIds.map(
-              (item) => new SpotEdit(item.id, item.schema)
-            );
-            // Sort by timestamp descending (newest first)
-            spotEdits.sort((a, b) => {
-              const timeA =
-                a.timestamp instanceof Timestamp
-                  ? a.timestamp.toMillis()
-                  : typeof a.timestamp_raw_ms === "number"
-                  ? a.timestamp_raw_ms
-                  : 0;
-              const timeB =
-                b.timestamp instanceof Timestamp
-                  ? b.timestamp.toMillis()
-                  : typeof b.timestamp_raw_ms === "number"
-                  ? b.timestamp_raw_ms
-                  : 0;
-              return timeB - timeA;
-            });
-            this.spotEdits.set(spotEdits);
-            console.log("Loaded spot edits:", spotEdits);
-          },
-          error: (err) => {
-            console.error("Error loading spot edits:", err);
-            this.spotEdits.set([]);
-          },
+        const spotEditsSub = this._spotEditsService
+          .getSpotEditsBySpotId$(spot.id)
+          .subscribe({
+            next: (editsWithIds) => {
+              // Convert to SpotEdit instances with proper IDs
+              let spotEdits = editsWithIds.map(
+                (item) => new SpotEdit(item.id, item.schema)
+              );
+              // Sort by timestamp descending (newest first)
+              spotEdits.sort((a, b) => {
+                const timeA =
+                  a.timestamp instanceof Timestamp
+                    ? a.timestamp.toMillis()
+                    : typeof a.timestamp_raw_ms === "number"
+                    ? a.timestamp_raw_ms
+                    : 0;
+                const timeB =
+                  b.timestamp instanceof Timestamp
+                    ? b.timestamp.toMillis()
+                    : typeof b.timestamp_raw_ms === "number"
+                    ? b.timestamp_raw_ms
+                    : 0;
+                return timeB - timeA;
+              });
+              this.spotEdits.set(spotEdits);
+              console.log("Loaded spot edits:", spotEdits);
+            },
+            error: (err) => {
+              console.error("Error loading spot edits:", err);
+              this.spotEdits.set([]);
+            },
+          });
+
+        onCleanup(() => {
+          spotEditsSub.unsubscribe();
         });
       } else {
         // Clear edits if not showing edit history
@@ -683,11 +690,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Listen for consent changes to retry Maps API loading when consent is granted
-    this._consentService.consentGranted$.subscribe((hasConsent) => {
-      if (hasConsent && !this.mapsService.isApiLoaded()) {
-        this.tryLoadMapsApi();
+    this._consentSubscription = this._consentService.consentGranted$.subscribe(
+      (hasConsent) => {
+        if (hasConsent && !this.mapsService.isApiLoaded()) {
+          this.tryLoadMapsApi();
+        }
       }
-    });
+    );
 
     // Check if we have resolved data from the resolver
     const contentData = this.activatedRoute.snapshot.data?.["content"] as
@@ -1621,6 +1630,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.closeSpot();
     this._routerSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();
+    this._breakpointSubscription?.unsubscribe();
+    this._consentSubscription?.unsubscribe();
     this._structuredDataService.removeStructuredData("highlighted-spots");
     try {
       if (this._sidebarScrollEl && this._sidebarScrollListener) {

@@ -32,7 +32,7 @@ import {
   AuthProvider,
 } from "@angular/fire/auth";
 import { FirebaseApp } from "@angular/fire/app";
-import { BehaviorSubject, firstValueFrom } from "rxjs";
+import { BehaviorSubject, firstValueFrom, Subscription } from "rxjs";
 import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
 import { UserSchema } from "../../../db/schemas/UserSchema";
@@ -91,6 +91,7 @@ export class AuthenticationService extends ConsentAwareService {
 
   // Local override for profile picture to prevent flickering/reversion during session
   public overrideProfilePicture: any | null = null;
+  private _userDataSubscription: Subscription | null = null;
 
   // Google Web Client ID for OAuth fallback (Chrome Custom Tabs)
   private readonly GOOGLE_WEB_CLIENT_ID =
@@ -333,6 +334,8 @@ export class AuthenticationService extends ConsentAwareService {
       this._currentFirebaseUser = null;
       this.isSignedIn = false;
       this.user.uid = "";
+      this._userDataSubscription?.unsubscribe();
+      this._userDataSubscription = null;
 
       this.user.uid = "";
 
@@ -352,7 +355,8 @@ export class AuthenticationService extends ConsentAwareService {
   private _fetchUserData(uid: string, sendUpdate = true) {
     // Only fetch user data if consent is granted
     this.executeWithConsent(() => {
-      this._userService.getUserById(uid).subscribe(
+      this._userDataSubscription?.unsubscribe();
+      this._userDataSubscription = this._userService.getUserById(uid).subscribe(
         (_user) => {
           if (_user) {
             // Apply local override for profile picture if set (prevents flicker/reversion to remote URL)
