@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild, LOCALE_ID, Inject } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgClass, NgSwitch, NgSwitchCase } from "@angular/common";
@@ -25,6 +25,10 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { AppSettingsService } from "../../services/app-settings.service";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
+import { MatDialog } from "@angular/material/dialog";
+import { LocaleCode } from "../../../db/models/Interfaces";
+import { languageCodes } from "../../../scripts/Languages";
+import { Capacitor } from "@capacitor/core";
 
 @Component({
   selector: "app-settings-page",
@@ -63,8 +67,21 @@ export class SettingsPageComponent implements OnInit {
     private router: Router,
     private _snackbar: MatSnackBar,
     private _metaTagService: MetaTagService,
-    public appSettings: AppSettingsService
+    public appSettings: AppSettingsService,
+    private _dialog: MatDialog,
+    @Inject(LOCALE_ID) private _locale: string
   ) {}
+
+  availableLanguageCodes: LocaleCode[] = [
+    "en",
+    "de",
+    "de-CH",
+    "fr",
+    "it",
+    "es",
+    "nl",
+  ];
+  languageCodes = languageCodes;
 
   menuPoints = [
     {
@@ -177,6 +194,93 @@ export class SettingsPageComponent implements OnInit {
 
   updateURL(selectedPoint: string) {
     this.router.navigate(["/settings", selectedPoint]);
+  }
+
+  private _normalizeLocale(locale?: string | null): LocaleCode {
+    if (!locale) {
+      return "en";
+    }
+    if (this.availableLanguageCodes.includes(locale as LocaleCode)) {
+      return locale as LocaleCode;
+    }
+    return "en";
+  }
+
+  get currentUiLocale(): LocaleCode {
+    if (typeof window === "undefined") {
+      return this._normalizeLocale(this._locale);
+    }
+    const segmentLocale = window.location.pathname.split("/")[1];
+    return this._normalizeLocale(segmentLocale || this._locale);
+  }
+
+  changeLanguage() {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const url = new URL(window.location.href);
+    const segments = url.pathname.split("/");
+    const currentLocale = this.currentUiLocale;
+
+    import(
+      "../select-language-dialog/select-language-dialog.component"
+    ).then(({ SelectLanguageDialogComponent }) => {
+      const dialogRef = this._dialog.open(SelectLanguageDialogComponent, {
+        data: {
+          locale: currentLocale,
+          supportedUiLocales: this.availableLanguageCodes,
+          mode: "ui",
+        },
+        width: "400px",
+        maxWidth: "90vw",
+      });
+      dialogRef.afterClosed().subscribe((localeCode?: LocaleCode) => {
+        if (!localeCode || localeCode === currentLocale) {
+          return;
+        }
+
+        try {
+          localStorage.setItem("language", localeCode);
+        } catch (error) {
+          console.error("Could not save language preference", error);
+        }
+
+        segments[1] = localeCode;
+        url.pathname = segments.join("/");
+
+        if (Capacitor.isNativePlatform() && !url.pathname.endsWith("index.html")) {
+          const baseUrl = window.location.href.split(`/${currentLocale}/`)[0];
+          window.location.href = `${baseUrl}/${localeCode}/index.html`;
+          return;
+        }
+
+        window.location.href = url.toString();
+      });
+    });
+  }
+
+  logOut() {
+    this.authService
+      .logUserOut()
+      .then(() => {
+        this._snackbar.open($localize`You were successfully signed out!`, "OK", {
+          duration: 2000,
+          horizontalPosition: "center",
+          verticalPosition: "bottom",
+        });
+        this.router.navigate(["/sign-in"]);
+      })
+      .catch(() => {
+        this._snackbar.open(
+          $localize`Error, there was a problem signing out!`,
+          "Dismiss",
+          {
+            duration: 5000,
+            horizontalPosition: "center",
+            verticalPosition: "bottom",
+          }
+        );
+      });
   }
 
   verifyUserEmailAddress() {

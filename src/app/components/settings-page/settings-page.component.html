@@ -75,6 +75,18 @@
             deletion.
           </p>
 
+          <div class="my-4 p-3 rounded border">
+            <div class="d-flex justify-content-between align-items-center gap-3">
+              <div>
+                <h3 class="mat-h3 m-0" i18n>Session</h3>
+                <p class="mat-body m-0" i18n>Sign out of your account.</p>
+              </div>
+              <button mat-stroked-button color="primary" (click)="logOut()" i18n>
+                Sign out
+              </button>
+            </div>
+          </div>
+
           <!-- Email Section -->
           <div class="my-4 p-3 rounded border">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -324,6 +336,21 @@
           <h3 class="mat-body" i18n>
             General settings to tune your experience on PK Spot.
           </h3>
+
+          <div class="my-4 p-3 rounded border">
+            <h3 class="mat-h3 m-0" i18n>Language</h3>
+            <p class="mat-body mt-2 mb-3" i18n>
+              Choose the language used in the app.
+            </p>
+            <button mat-stroked-button color="primary" (click)="changeLanguage()">
+              <mat-icon>language</mat-icon>
+              <span>
+                {{
+                  languageCodes[currentUiLocale]?.name_native ?? currentUiLocale
+                }}
+              </span>
+            </button>
+          </div>
 
           <div class="my-4">
             <h3 class="mat-h3">Map Debug Mode</h3>

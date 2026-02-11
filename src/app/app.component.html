@@ -27,11 +27,12 @@
       <app-mat3-nav-button
         [icon]="button.icon"
         [label]="button.name"
+        [image]="button.image ?? ''"
       ></app-mat3-nav-button>
     </a>
-    } @else {
+    } @else if(button.function) {
     <app-mat3-nav-button
-      [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
+      (click)="button.function()"
       [icon]="button.icon"
       [image]="button.image ?? ''"
       [label]="button.name"
@@ -84,29 +85,34 @@
       @for(button of navbarConfig(); track $index) { @if(button.link) {
       <a [routerLink]="button.link">
         <button mat-menu-item>
+          @if(button.image) {
+          <img
+            [ngSrc]="button.image"
+            width="24"
+            height="24"
+            alt=""
+            class="rounded-circle"
+            style="margin-right: 12px"
+          />
+          } @else {
           <mat-icon>{{ button.icon }}</mat-icon>
+          }
           <span>{{ button.name }}</span>
         </button>
       </a>
-      }@else if(button.function) {
+      } @else if(button.function) {
       <button mat-menu-item (click)="button.function()">
-        <mat-icon>{{ button.icon }}</mat-icon>
-        <span>{{ button.name }}</span>
-      </button>
-      } @else {
-      <button
-        mat-menu-item
-        [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
-      >
         @if(button.image) {
         <img
           [ngSrc]="button.image"
           width="24"
           height="24"
+          alt=""
           class="rounded-circle"
           style="margin-right: 12px"
         />
-        } @else {<mat-icon>{{ button.icon }}</mat-icon>
+        } @else {
+        <mat-icon>{{ button.icon }}</mat-icon>
         }
         <span>{{ button.name }}</span>
       </button>
@@ -125,17 +131,12 @@
         <app-mat3-nav-button
           [icon]="button.icon"
           [label]="button.name"
+          [image]="button.image ?? ''"
         ></app-mat3-nav-button>
       </a>
       } @else if(button.function) {
       <app-mat3-nav-button
         (click)="button.function()"
-        [icon]="button.icon"
-        [label]="button.name"
-      ></app-mat3-nav-button>
-      } @else {
-      <app-mat3-nav-button
-        [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
         [icon]="button.icon"
         [image]="button.image ?? ''"
         [label]="button.name"
@@ -266,29 +267,3 @@
   </div>
 </div>
 }
-
-<mat-menu #userMenu="matMenu" id="userMenu">
-  @for(button of (authService.isSignedIn ? authenticatedUserMenuConfig :
-  unauthenticatedUserMenuConfig); track $index) { @if(button.link) {
-  <a [routerLink]="button.link">
-    <button mat-menu-item>
-      <mat-icon>{{ button.icon }}</mat-icon>
-      <span>{{ button.name }}</span>
-    </button>
-  </a>
-  } @else if(button.function) {
-  <button mat-menu-item (click)="button.function()">
-    <mat-icon>{{ button.icon }}</mat-icon>
-    <span>{{ button.name }}</span>
-  </button>
-
-  } @else {
-  <button
-    mat-menu-item
-    [matMenuTriggerFor]="button.menu == 'user' ? userMenu : null"
-  >
-    <mat-icon>{{ button.icon }}</mat-icon>
-    <span>{{ button.name }}</span>
-  </button>
-  } }
-</mat-menu>

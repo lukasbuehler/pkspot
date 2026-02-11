@@ -44,7 +44,6 @@ import {
   MatMenuTrigger,
   MatMenu,
   MatMenuItem,
-  MatMenuPanel,
   MatMenuModule,
 } from "@angular/material/menu";
 import { MatToolbar } from "@angular/material/toolbar";
@@ -54,7 +53,6 @@ import { NavRailComponent } from "./components/nav-rail/nav-rail.component";
 import { NavRailContainerComponent } from "./components/nav-rail-container/nav-rail-container.component";
 import { WelcomeDialogComponent } from "./components/welcome-dialog/welcome-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { languageCodes } from "../scripts/Languages";
 import { LocaleCode } from "../db/models/Interfaces";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebSite } from "schema-dts";
@@ -78,30 +76,19 @@ interface ButtonBase {
 
 interface LinkButton extends ButtonBase {
   link: string;
-  menu?: never;
-  function?: never;
-}
-
-interface MenuButton extends ButtonBase {
-  menu: "lang" | "user";
-  link?: never;
   function?: never;
 }
 
 interface FunctionButton extends ButtonBase {
   function: () => void;
   link?: never;
-  menu?: never;
 }
 
-type LinkMenuButton = LinkButton | MenuButton | FunctionButton;
-
-type NavbarButton = LinkMenuButton & {
+type NavbarButton = (LinkButton | FunctionButton) & {
   spacerBefore?: boolean;
 };
 
 type NavbarButtonConfig = NavbarButton[];
-type ButtonConfig = LinkMenuButton[];
 
 @Component({
   selector: "app-root",
@@ -217,8 +204,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     "es",
     "nl",
   ];
-
-  languageCodes = languageCodes;
 
   @HostListener("window:resize", ["$event"])
   onResize(event: Event) {
@@ -744,6 +729,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           }
           isAuthenticated = true;
         }
+        this.isSignedIn.set(isAuthenticated);
 
         if (user && user.uid) {
           this.shortUserDisplayName.set(
@@ -938,59 +924,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       });
   }
 
-  changeLanguage() {
-    const url = new URL(window.location.href);
-    const segments = url.pathname.split("/");
-    console.log("segments", segments);
-    const currentLocale = segments[1];
-
-    // open language dialog
-    // open language dialog
-    import(
-      "./components/select-language-dialog/select-language-dialog.component"
-    ).then(({ SelectLanguageDialogComponent }) => {
-      const dialogRef = this.dialog.open(SelectLanguageDialogComponent, {
-        data: {
-          locale: currentLocale as LocaleCode,
-          supportedUiLocales: this.availableLanguageCodes,
-          mode: "ui",
-        },
-        width: "400px",
-        maxWidth: "90vw",
-      });
-      dialogRef.afterClosed().subscribe((localeCode) => {
-        if (localeCode) {
-          // save the new language preference
-          try {
-            localStorage.setItem("language", localeCode);
-          } catch (e) {
-            console.error("Could not save language preference", e);
-          }
-
-          // set the new language
-          segments[1] = localeCode;
-          url.pathname = segments.join("/");
-
-          // Fix for Capacitor/Native: Ensure we point to index.html and handle deep links if needed
-          if (Capacitor.isNativePlatform()) {
-            // If the path doesn't end with index.html, append it or reset to root to avoid 404s on folder paths
-            if (!url.pathname.endsWith("index.html")) {
-              // If we are on a deep path (e.g. /en/map), simple replacement to /de/map might fail without server support.
-              // Safest is to redirect to the root index.html of the new language.
-              const baseUrl = window.location.href.split(
-                `/${currentLocale}/`
-              )[0];
-              window.location.href = `${baseUrl}/${localeCode}/index.html`;
-              return;
-            }
-          }
-
-          window.location.href = url.toString();
-        }
-      });
-    });
-  }
-
   /**
    * Returns the current URL minus '/embedded' if present.
    * Used to open the actual site that was embedded.
@@ -1007,24 +940,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     return url.toString();
   }
 
-  unauthenticatedUserMenuConfig: ButtonConfig = [
-    {
-      name: $localize`:@@login.nav_label:Login`,
-      icon: "login",
-      function: () => this.navigateToSignIn(),
-    },
-    {
-      name: $localize`:@@create_acc.nav_label:Create Account`,
-      icon: "person_add",
-      function: () => this.navigateToSignUp(),
-    },
-    {
-      name: $localize`:Language button label|The label of the change language button@@lang_btn_label:Language`,
-      icon: "language",
-      function: () => this.changeLanguage(),
-    },
-  ];
-
   /**
    * Navigate to sign-in page with the current URL as the return URL
    */
@@ -1033,100 +948,27 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.router.navigate(["/sign-in"], { queryParams: { returnUrl } });
   }
 
-  /**
-   * Navigate to sign-up page with the current URL as the return URL
-   */
-  navigateToSignUp() {
-    const returnUrl = this.router.url;
-    this.router.navigate(["/sign-up"], { queryParams: { returnUrl } });
-  }
-
-  authenticatedUserMenuConfig: ButtonConfig = [
-    {
-      name: $localize`:@@profile.nav_label:My Profile`,
-      link: "/profile",
-      icon: "face",
-    },
-    {
-      name: $localize`:Language button label|The label of the change language button@@lang_btn_label:Language`,
-      icon: "language",
-      function: () => this.changeLanguage(),
-    },
-    {
-      name: $localize`:@@settings.nav_label:Settings`,
-      link: "/settings",
-      icon: "settings",
-    },
-    {
-      name: $localize`:@@logout.nav_label:Logout`,
-      function: () => {
-        return this.logUserOut();
-      },
-      icon: "logout",
-    },
-  ];
-
   shortUserDisplayName = signal<string | undefined>(undefined);
   userPhoto = signal<string | undefined>(undefined);
+  isSignedIn = signal(false);
 
   // Engagement tracking state (initialized in ngOnInit)
   private _engagement: any = null;
-
-  // Safe computed properties for template to prevent SSR issues
-  isSignedIn = computed(() => {
-    // Only access authService when not during SSR
-    if (typeof window === "undefined") {
-      return false;
-    }
-    try {
-      return this.authService?.isSignedIn ?? false;
-    } catch {
-      return false;
-    }
-  });
 
   spotCheckIn(spotId: SpotId) {
     this.checkInService.checkIn(spotId);
   }
 
-  userMenuConfig = computed(() => {
-    return this.isSignedIn()
-      ? this.authenticatedUserMenuConfig
-      : this.unauthenticatedUserMenuConfig;
-  });
-
   hasUserProfilePicture = computed(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-    try {
-      return (
-        this.authService?.isSignedIn &&
-        this.authService?.user?.data?.profilePicture
-      );
-    } catch {
-      return false;
-    }
+    return this.isSignedIn() && !!this.userPhoto();
   });
 
   userProfilePictureUrl = computed(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-    try {
-      if (
-        this.authService?.isSignedIn &&
-        this.authService?.user?.data?.profilePicture
-      ) {
-        return this.authService.user.data.profilePicture.getSrc(200);
-      }
-      return "";
-    } catch {
-      return "";
-    }
+    return this.userPhoto() || "";
   });
 
   navbarConfig = computed<NavbarButtonConfig | undefined>(() => {
+    const signedIn = this.isSignedIn();
     const shortUserDisplayName = this.shortUserDisplayName();
     const userPhoto = this.userPhoto();
     const buttons: NavbarButtonConfig = [
@@ -1151,10 +993,19 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
       {
         spacerBefore: true,
-        name: shortUserDisplayName ? shortUserDisplayName : $localize`Account`,
-        menu: "user",
-        icon: "person",
-        image: shortUserDisplayName && userPhoto ? userPhoto : "",
+        name: signedIn
+          ? shortUserDisplayName || $localize`Profile`
+          : $localize`:@@login.nav_label:sign-in`,
+        ...(signedIn
+          ? {
+              link: "/profile",
+              icon: "person",
+              image: userPhoto || "",
+            }
+          : {
+              function: () => this.navigateToSignIn(),
+              icon: "login",
+            }),
       },
     );
 

@@ -172,13 +172,21 @@
               </div>
               } @else {
               <div
-                class="profile-overview__actions w-100"
+                class="profile-overview__actions w-100 d-flex gap-2"
                 aria-label="Profile management actions"
               >
                 <button
+                  matButton="filled"
+                  color="primary"
+                  class="profile-overview__action flex-grow-1"
+                  routerLink="/settings/general"
+                >
+                  Settings
+                </button>
+                <button
                   mat-stroked-button
                   color="accent"
-                  class="profile-overview__action w-100"
+                  class="profile-overview__action flex-grow-1"
                   routerLink="/settings/profile"
                 >
                   Edit Profile
