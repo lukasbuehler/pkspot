@@ -26,38 +26,6 @@ scripts/
 
 ## 🎯 Quick Start
 
-### Horizn Import
-
-For importing Horizn parkour spot data:
-
-```bash
-# 1. Configure
-# Edit scripts/horizn-import/import.ts and set your Firebase Storage bucket
-
-# 2. Validate data
-npm run import:horizn:validate
-
-# 3. Test with 3 spots
-npm run import:horizn:test
-
-# 4. Import all spots
-npm run import:horizn
-```
-
-**📖 Full documentation:** See [horizn-import/README.md](./horizn-import/README.md)
-
-## 📋 Available Commands
-
-From project root:
-
-```bash
-# Horizn Import
-npm run import:horizn:validate   # Check data quality
-npm run import:horizn:test        # Import 3 spots (test mode)
-npm run import:horizn:dry         # Validate without writing
-npm run import:horizn             # Full import
-```
-
 ## 🔐 Security
 
 **Never commit:**
