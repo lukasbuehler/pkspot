@@ -12,15 +12,18 @@ export class SpotEdit implements SpotEditSchema {
   readonly user: SpotEditSchema["user"];
   readonly type: SpotEditSchema["type"];
   readonly timestamp: SpotEditSchema["timestamp"];
+  readonly timestamp_raw_ms?: SpotEditSchema["timestamp_raw_ms"];
   readonly likes: SpotEditSchema["likes"];
   readonly approved: SpotEditSchema["approved"];
 
   constructor(id: string, private readonly _spotEditSchema: SpotEditSchema) {
     this.id = id;
     this.data = _spotEditSchema.data;
+    this.prevData = _spotEditSchema.prevData;
     this.user = _spotEditSchema.user;
     this.type = _spotEditSchema.type;
     this.timestamp = _spotEditSchema.timestamp;
+    this.timestamp_raw_ms = _spotEditSchema.timestamp_raw_ms;
     this.likes = _spotEditSchema.likes;
     this.approved = _spotEditSchema.approved;
   }
@@ -82,13 +85,20 @@ export class SpotEdit implements SpotEditSchema {
           message = isCreate ? "Set location.</br>" : "Updated location.</br>";
           break;
         case "media":
-          if (
-            value &&
-            Array.isArray(value) &&
-            value.length === 0 &&
-            !isCreate
-          ) {
-            message = isCreate ? "Added media.</br>" : "Updated media.</br>";
+          if (Array.isArray(value)) {
+            if (isCreate) {
+              message =
+                value.length === 1
+                  ? "Added 1 media item.</br>"
+                  : `Added ${value.length} media items.</br>`;
+            } else if (value.length === 0) {
+              message = "Removed all media.</br>";
+            } else {
+              message =
+                value.length === 1
+                  ? "Updated media (1 item).</br>"
+                  : `Updated media (${value.length} items).</br>`;
+            }
           }
           break;
         case "bounds":
@@ -139,7 +149,11 @@ export class SpotEdit implements SpotEditSchema {
   }
 
   getTimestampString(): string {
-    const date = parseFirestoreTimestamp(this.timestamp) ?? new Date();
+    const date =
+      parseFirestoreTimestamp(this.timestamp) ??
+      (typeof this.timestamp_raw_ms === "number"
+        ? new Date(this.timestamp_raw_ms)
+        : new Date());
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   }
 }

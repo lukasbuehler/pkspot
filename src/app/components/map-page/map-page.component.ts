@@ -542,9 +542,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             // Sort by timestamp descending (newest first)
             spotEdits.sort((a, b) => {
               const timeA =
-                a.timestamp instanceof Timestamp ? a.timestamp.toMillis() : 0;
+                a.timestamp instanceof Timestamp
+                  ? a.timestamp.toMillis()
+                  : typeof a.timestamp_raw_ms === "number"
+                  ? a.timestamp_raw_ms
+                  : 0;
               const timeB =
-                b.timestamp instanceof Timestamp ? b.timestamp.toMillis() : 0;
+                b.timestamp instanceof Timestamp
+                  ? b.timestamp.toMillis()
+                  : typeof b.timestamp_raw_ms === "number"
+                  ? b.timestamp_raw_ms
+                  : 0;
               return timeB - timeA;
             });
             this.spotEdits.set(spotEdits);

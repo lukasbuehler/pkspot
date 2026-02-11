@@ -55,6 +55,11 @@
           [isCompact]="true"
         ></app-spot-preview-card>
       </a>
+      <app-spot-edit-summary
+        class="d-block mt-2"
+        [edit]="item.edit"
+        [compact]="true"
+      ></app-spot-edit-summary>
     </mat-card-content>
   </mat-card>
   } } @if (isLoading$ | async) {

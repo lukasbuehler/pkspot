@@ -21,6 +21,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatChipsModule } from "@angular/material/chips";
 import { ProfileButtonComponent } from "../profile-button/profile-button.component";
+import { SpotEditSummaryComponent } from "../spot-edit-summary/spot-edit-summary.component";
 
 interface FeedItem {
   editId?: string;
@@ -41,6 +42,7 @@ interface FeedItem {
     MatCardModule,
     MatChipsModule,
     ProfileButtonComponent,
+    SpotEditSummaryComponent,
     KeyValuePipe,
   ],
   templateUrl: "./activity-page.component.html",
@@ -197,7 +199,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
           edit: item.edit,
           spot: spot || null,
           spotId: item.spotId,
-          formattedTimestamp: this._getJsDate(item.edit.timestamp),
+          formattedTimestamp: this._getJsDate(item.edit),
         };
       } catch (err) {
         console.error(`Could not load spot ${item.spotId}`, err);
@@ -206,7 +208,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
           edit: item.edit,
           spot: null,
           spotId: item.spotId,
-          formattedTimestamp: this._getJsDate(item.edit.timestamp),
+          formattedTimestamp: this._getJsDate(item.edit),
         };
       }
     });
@@ -233,33 +235,67 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     return request;
   }
 
-  private _getJsDate(timestamp: Timestamp | any): Date {
+  private _getJsDate(editOrTimestamp: SpotEditSchema | Timestamp | any): Date {
+    const rawMs =
+      editOrTimestamp &&
+      typeof editOrTimestamp === "object" &&
+      "timestamp_raw_ms" in editOrTimestamp
+        ? Number((editOrTimestamp as any).timestamp_raw_ms)
+        : undefined;
+
+    const timestamp =
+      editOrTimestamp &&
+      typeof editOrTimestamp === "object" &&
+      "timestamp" in editOrTimestamp
+        ? (editOrTimestamp as any).timestamp
+        : editOrTimestamp;
+
     if (timestamp instanceof Timestamp) {
       return timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      return timestamp;
     } else if (timestamp && typeof timestamp.toDate === "function") {
       return timestamp.toDate();
-    } else if (timestamp && timestamp.seconds) {
+    } else if (timestamp && typeof timestamp.seconds === "number") {
       return new Date(timestamp.seconds * 1000);
+    } else if (typeof rawMs === "number" && Number.isFinite(rawMs)) {
+      return new Date(rawMs);
     }
     return new Date();
   }
 
-  private _getTimestampMs(timestamp: Timestamp | any): number {
+  private _getTimestampMs(editOrTimestamp: SpotEditSchema | Timestamp | any): number {
+    const rawMs =
+      editOrTimestamp &&
+      typeof editOrTimestamp === "object" &&
+      "timestamp_raw_ms" in editOrTimestamp
+        ? Number((editOrTimestamp as any).timestamp_raw_ms)
+        : undefined;
+
+    const timestamp =
+      editOrTimestamp &&
+      typeof editOrTimestamp === "object" &&
+      "timestamp" in editOrTimestamp
+        ? (editOrTimestamp as any).timestamp
+        : editOrTimestamp;
+
     if (timestamp instanceof Timestamp) {
       return timestamp.toMillis();
+    } else if (timestamp instanceof Date) {
+      return timestamp.getTime();
     } else if (timestamp && typeof timestamp.toMillis === "function") {
       return timestamp.toMillis();
     } else if (timestamp && typeof timestamp.seconds === "number") {
       return timestamp.seconds * 1000;
+    } else if (typeof rawMs === "number" && Number.isFinite(rawMs)) {
+      return rawMs;
     }
     return 0;
   }
 
   private _sortFeedItems(items: FeedItem[]): FeedItem[] {
     return [...items].sort((a, b) => {
-      const timeDiff =
-        this._getTimestampMs(b.edit.timestamp) -
-        this._getTimestampMs(a.edit.timestamp);
+      const timeDiff = this._getTimestampMs(b.edit) - this._getTimestampMs(a.edit);
       if (timeDiff !== 0) return timeDiff;
       return this._itemKey(a).localeCompare(this._itemKey(b));
     });
@@ -269,7 +305,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     if (item.editId) {
       return `${item.spotId}_${item.editId}`;
     }
-    return `${item.spotId}_${this._getTimestampMs(item.edit.timestamp)}_${item.edit.type}_${item.edit.user.uid}`;
+    return `${item.spotId}_${this._getTimestampMs(item.edit)}_${item.edit.type}_${item.edit.user.uid}`;
   }
 
   openSpot(spot: Spot | null) {
@@ -281,6 +317,16 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   getActionText(edit: SpotEditSchema): string {
     if (edit.type === "CREATE") {
       return "added a spot";
+    } else if (
+      edit.type === "UPDATE" &&
+      edit.data &&
+      Object.prototype.hasOwnProperty.call(edit.data, "media")
+    ) {
+      const media = edit.data.media;
+      if (Array.isArray(media) && media.length === 0) {
+        return "removed spot media";
+      }
+      return "added media to a spot";
     } else if (edit.type === "UPDATE") {
       return "updated a spot";
     }

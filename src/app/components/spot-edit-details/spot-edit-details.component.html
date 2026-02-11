@@ -21,10 +21,7 @@
       class="d-flex flex-row gap-2 align-items-start justify-content-between"
     >
       <div class="d-flex flex-column gap-1 overflow-hidden pt-2">
-        <div
-          class="mat-body-small"
-          [innerHTML]="spotEdit()!.getEditDetailsHTML()"
-        ></div>
+        <app-spot-edit-summary [edit]="spotEdit() ?? null"></app-spot-edit-summary>
       </div>
       @if(false) {
       <div class="d-flex flex-column align-items-center gap-1">

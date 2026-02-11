@@ -1,4 +1,5 @@
-import { Injectable, signal, effect } from "@angular/core";
+import { Injectable, signal, effect, PLATFORM_ID, Inject } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 
 @Injectable({
   providedIn: "root",
@@ -9,7 +10,7 @@ export class AppSettingsService {
   // Signals for settings
   debugMode = signal<boolean>(false);
 
-  constructor() {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this._loadSettings();
 
     // Auto-save changes
@@ -19,6 +20,10 @@ export class AppSettingsService {
   }
 
   private _loadSettings() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
@@ -33,6 +38,10 @@ export class AppSettingsService {
   }
 
   private _saveSettings() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     try {
       const settings = {
         debugMode: this.debugMode(),
