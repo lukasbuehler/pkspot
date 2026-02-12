@@ -1,0 +1,12 @@
+PK Spot v1.0.9 — Performance & Precision
+
+What’s New:
+
+• Performance Boost: Significant optimizations to loading speeds and image handling. The map now feels faster and more responsive.
+• Hybrid Map: Now featuring the hybrid satellite map with location names.
+• Privacy & Stability: Under-the-hood fixes for analytics transmission and persistent session handling.
+
+Bug Fixes:
+
+• Resolved an issue where spot image edits would have funny side effects.
+• Fixed the splash screens
