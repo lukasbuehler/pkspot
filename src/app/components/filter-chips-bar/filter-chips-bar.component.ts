@@ -31,6 +31,9 @@ export class FilterChipsBarComponent {
   /** Whether to show the saved spots chip */
   @Input() showSavedChip: boolean = false;
 
+  /** Whether to show the visited spots chip */
+  @Input() showVisitedChip: boolean = false;
+
   /** Whether a custom filter is currently active */
   @Input() customFilterActive: boolean = false;
 
@@ -77,6 +80,7 @@ export class FilterChipsBarComponent {
   /** Label for the filters button */
   readonly filtersLabel = $localize`:@@filters_chip_label:Filters`;
   readonly savedLabel = $localize`:@@saved_spots_chip_label:Saved`;
+  readonly visitedLabel = $localize`:@@visited_spots_chip_label:Visited`;
 
   onChipChange(value: string): void {
     this.filterChange.emit(value);

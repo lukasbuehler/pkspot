@@ -12,6 +12,13 @@
       </mat-chip-option>
       }
 
+      @if (showVisitedChip) {
+      <mat-chip-option class="glass" value="visited">
+        <mat-icon matChipAvatar>beenhere</mat-icon>
+        <span>{{ visitedLabel }}</span>
+      </mat-chip-option>
+      }
+
       @for (filter of presetFilters; track filter.urlParam) {
       <mat-chip-option class="glass" [value]="filter.urlParam">
         <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>

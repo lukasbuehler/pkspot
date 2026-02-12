@@ -28,6 +28,7 @@ import {
 } from "@angular/material/stepper";
 import {
   KmlParserService,
+  KMLImportStats,
   KMLSetupInfo,
   KMLSpot,
 } from "../../services/kml-parser.service";
@@ -41,12 +42,7 @@ import {
   SpotTypesNames,
 } from "../../../db/schemas/SpotTypeAndAccess";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
-import {
-  firstValueFrom,
-  map,
-  Observable,
-  startWith,
-} from "rxjs";
+import { firstValueFrom, map, Observable, startWith } from "rxjs";
 import {
   MyRegex,
   RegexInputComponent,
@@ -153,9 +149,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   @ViewChild("spotMap") spotMap: SpotMapComponent | undefined;
   @ViewChild("regex") regex: RegexInputComponent | undefined;
 
+  legalFormGroup?: UntypedFormGroup;
+  creditsFormGroup?: UntypedFormGroup;
   uploadFormGroup?: UntypedFormGroup;
   setupFormGroup?: UntypedFormGroup;
-  creditsFormGroup?: UntypedFormGroup;
 
   kmlUploadFile: File | null = null;
 
@@ -327,6 +324,11 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       setupLangCtrl: [this.locale, Validators.required],
       setupRegexCtrl: [{ value: "", disabled: true }, []],
     });
+    this.legalFormGroup = this._formBuilder.group({
+      rightsConfirmedCtrl: [false, Validators.requiredTrue],
+      externalImagesRightsConfirmedCtrl: [false],
+      allowFutureAutoUpdateCtrl: [false],
+    });
     this.creditsFormGroup = this._formBuilder.group({
       sourceNameCtrl: ["", Validators.required],
       importIdCtrl: [""],
@@ -334,9 +336,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       websiteUrlCtrl: [""],
       instagramUrlCtrl: [""],
       licenseCtrl: ["CC BY-NC-SA 4.0", Validators.required],
-      rightsConfirmedCtrl: [false, Validators.requiredTrue],
-      externalImagesRightsConfirmedCtrl: [false],
-      allowFutureAutoUpdateCtrl: [false],
       autoUpdateUrlCtrl: [""],
     });
 
@@ -363,6 +362,11 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
   regexEnabled: boolean = false;
   regexValue: RegExp | null = null;
+  isParsingSetup = false;
+
+  get importStats(): KMLImportStats {
+    return this.kmlParserService.getImportStats();
+  }
 
   setRegexEnabled(enabled: boolean) {
     if (!this.kmlParserService.setupInfo) {
@@ -491,6 +495,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
   onUploadMediaSelect(file: File) {
     this.kmlUploadFile = file;
+    this.continueToSetup();
   }
 
   getSpotLocations(spots: KMLSpot[]): google.maps.LatLngLiteral[] {
@@ -641,93 +646,98 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return SpotTypes.Other;
   }
 
-  continueToSetup() {
+  async continueToSetup() {
     if (!this.kmlUploadFile) {
       // the file doesn't exist
       console.error("The KML file was not set properly or is invalid!");
       return;
     }
+    if (this.isParsingSetup) {
+      return;
+    }
 
-    const fileExtension = this.kmlUploadFile.name
-      .split(".")
-      .pop()
-      ?.toLowerCase();
+    this.isParsingSetup = true;
 
-    if (fileExtension === "kmz") {
-      const zip = new JSZip();
-      zip.loadAsync(this.kmlUploadFile).then(
-        (zipContents) => {
-          // Find the first .kml file
-          const kmlFilename = Object.keys(zipContents.files).find((filename) =>
-            filename.toLowerCase().endsWith(".kml")
-          );
+    try {
+      const fileExtension = this.kmlUploadFile.name
+        .split(".")
+        .pop()
+        ?.toLowerCase();
 
-          if (kmlFilename) {
-            zipContents.files[kmlFilename].async("string").then((data) => {
-              this.parseKmlString(data);
-            });
-          } else {
-            console.error("No KML file found inside KMZ!");
-            // Handle error
-          }
-        },
-        (err) => {
-          console.error("Error reading KMZ:", err);
+      if (fileExtension === "kmz") {
+        const zip = new JSZip();
+        const zipContents = await zip.loadAsync(this.kmlUploadFile);
+        // Find the first .kml file
+        const kmlFilename = Object.keys(zipContents.files).find((filename) =>
+          filename.toLowerCase().endsWith(".kml")
+        );
+
+        if (kmlFilename) {
+          const data = await zipContents.files[kmlFilename].async("string");
+          await this.parseKmlString(data);
+        } else {
+          console.error("No KML file found inside KMZ!");
         }
-      );
-    } else {
-      this.kmlUploadFile.text().then((data) => {
-        this.parseKmlString(data);
-      });
+      } else {
+        const data = await this.kmlUploadFile.text();
+        await this.parseKmlString(data);
+      }
+    } catch (error) {
+      console.error("Error preparing import file:", error);
+    } finally {
+      this.isParsingSetup = false;
     }
   }
 
-  parseKmlString(data: string) {
-    this.kmlParserService.parseKMLFromString(data).then(
-      () => {
-        if (!this.stepperHorizontal || !this.stepperHorizontal.selected) {
-          console.error("stepperHorizontal is not defined");
-          return;
-        }
-
-        // Pre-calculate spot types for folders
-        if (this.kmlParserService.setupInfo?.folders) {
-          this.kmlParserService.setupInfo.folders.forEach((folder) => {
-            folder.type = this.getSpotTypeFromName(folder.name);
-            folder.access = SpotAccess.Other;
-          });
-        }
-
-        const autoUpdateUrlControl = this.creditsFormGroup?.get("autoUpdateUrlCtrl");
-        if (
-          autoUpdateUrlControl &&
-          !autoUpdateUrlControl.value &&
-          this.kmlParserService.setupInfo?.networkLinks?.length
-        ) {
-          autoUpdateUrlControl.setValue(
-            this.kmlParserService.setupInfo.networkLinks[0]
-          );
-        }
-
-        // parsing was successful
-        this.stepperHorizontal.selected.completed = true;
-        this.stepperHorizontal.next();
-        //this.cdr.detectChanges();
-      },
-      (error: any) => {
-        // parsing was not successful
-        console.error(error);
+  async parseKmlString(data: string): Promise<void> {
+    try {
+      await this.kmlParserService.parseKMLFromString(data);
+      if (!this.stepperHorizontal || !this.stepperHorizontal.selected) {
+        console.error("stepperHorizontal is not defined");
+        return;
       }
-    );
+
+      // Pre-calculate spot types for folders
+      if (this.kmlParserService.setupInfo?.folders) {
+        this.kmlParserService.setupInfo.folders.forEach((folder) => {
+          folder.type = this.getSpotTypeFromName(folder.name);
+          folder.access = SpotAccess.Other;
+        });
+      }
+
+      const autoUpdateUrlControl =
+        this.creditsFormGroup?.get("autoUpdateUrlCtrl");
+      if (
+        autoUpdateUrlControl &&
+        !autoUpdateUrlControl.value &&
+        this.kmlParserService.setupInfo?.networkLinks?.length
+      ) {
+        autoUpdateUrlControl.setValue(
+          this.kmlParserService.setupInfo.networkLinks[0]
+        );
+      }
+
+      // parsing was successful
+      this.stepperHorizontal.selected.completed = true;
+      this.stepperHorizontal.next();
+    } catch (error: unknown) {
+      // parsing was not successful
+      console.error(error);
+    }
   }
 
   continueToVerification() {
-    if (!this.setupFormGroup || !this.creditsFormGroup) {
+    if (!this.setupFormGroup || !this.creditsFormGroup || !this.legalFormGroup) {
       return;
     }
-    if (this.setupFormGroup.invalid || this.creditsFormGroup.invalid) {
+    if (
+      this.setupFormGroup.invalid ||
+      this.creditsFormGroup.invalid ||
+      this.legalFormGroup.invalid
+    ) {
       this.setupFormGroup.markAllAsTouched();
       this.creditsFormGroup.markAllAsTouched();
+      this.legalFormGroup.markAllAsTouched();
       return;
     }
     if (this.kmlParserService.setupInfo) {
@@ -844,7 +854,11 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         this._spotImportFailed();
         return;
       }
-      if (!this.creditsFormGroup?.valid || !this.setupFormGroup?.valid) {
+      if (
+        !this.creditsFormGroup?.valid ||
+        !this.setupFormGroup?.valid ||
+        !this.legalFormGroup?.valid
+      ) {
         this._spotImportFailed();
         return;
       }
@@ -878,9 +892,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
               chunk_index: index,
               spot_count: chunk.length,
               spots: chunk.map((kmlSpot) => {
-                const folderInfo = this.kmlParserService.setupInfo?.folders.find(
-                  (f) => f.name === kmlSpot.folder
-                );
+                const folderInfo =
+                  this.kmlParserService.setupInfo?.folders.find(
+                    (f) => f.name === kmlSpot.folder
+                  );
                 const type =
                   folderInfo?.type && folderInfo.type !== SpotTypes.Other
                     ? folderInfo.type
@@ -890,8 +905,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
                 return {
                   name: kmlSpot.spot.name.trim(),
                   language:
-                    ((this.setupFormGroup?.get("setupLangCtrl")?.value as LocaleCode) ||
-                      this.locale) ?? "en",
+                    ((this.setupFormGroup?.get("setupLangCtrl")
+                      ?.value as LocaleCode) ||
+                      this.locale) ??
+                    "en",
                   description: kmlSpot.spot.description,
                   media_urls: kmlSpot.spot.mediaUrls,
                   location: kmlSpot.spot.location,
@@ -958,7 +975,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     const sourceUrl = this._sanitizeUrl(
       this.creditsFormGroup?.get("autoUpdateUrlCtrl")?.value
     );
-    const allowFutureAutoUpdate = !!this.creditsFormGroup?.get(
+    const allowFutureAutoUpdate = !!this.legalFormGroup?.get(
       "allowFutureAutoUpdateCtrl"
     )?.value;
     const preferredImportId = this.creditsFormGroup?.get("importIdCtrl")?.value;
@@ -989,9 +1006,9 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         license: license,
       },
       legal: {
-        confirmed_rights: !!this.creditsFormGroup?.get("rightsConfirmedCtrl")
+        confirmed_rights: !!this.legalFormGroup?.get("rightsConfirmedCtrl")
           ?.value,
-        confirmed_external_image_rights: !!this.creditsFormGroup?.get(
+        confirmed_external_image_rights: !!this.legalFormGroup?.get(
           "externalImagesRightsConfirmedCtrl"
         )?.value,
       },
@@ -1005,12 +1022,14 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         .map((spot) => spot.importIndex)
         .filter((v): v is number => typeof v === "number")
         .sort((a, b) => a - b),
-      folder_templates: this.kmlParserService.setupInfo?.folders.map((folder) => ({
-        name: folder.name,
-        type: folder.type,
-        access: folder.access,
-        amenities: folder.amenities,
-      })),
+      folder_templates: this.kmlParserService.setupInfo?.folders.map(
+        (folder) => ({
+          name: folder.name,
+          type: folder.type,
+          access: folder.access,
+          amenities: folder.amenities,
+        })
+      ),
       chunk_count_total: chunkCount,
       chunk_count_processed: 0,
     };
@@ -1048,10 +1067,9 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       this._authService.user?.uid ??
       "user";
     const date = new Date();
-    const dateToken = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}${String(date.getDate()).padStart(2, "0")}`;
+    const dateToken = `${date.getFullYear()}${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
     const sourceToken = this._slugify(sourceName || "import");
     const userToken = this._slugify(username || "user");
     const random = generateUUID().split("-")[0];

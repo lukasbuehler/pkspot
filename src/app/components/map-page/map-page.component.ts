@@ -313,8 +313,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isSignedIn = signal<boolean>(false);
   savedSpotIds = signal<string[]>([]);
+  visitedSpotIds = signal<string[]>([]);
   private _savedSpotPreviewCache = new Map<string, SpotPreviewData>();
+  private _visitedSpotPreviewCache = new Map<string, SpotPreviewData>();
   private _savedPreviewLoadPromise: Promise<void> | null = null;
+  private _visitedPreviewLoadPromise: Promise<void> | null = null;
 
   spotEdits: WritableSignal<SpotEdit[]> = signal([]);
 
@@ -707,8 +710,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isSignedIn.set(!!uid);
         this._syncPrivateDataSubscription(uid);
 
-        // If user signs out while saved filter is active, clear it.
-        if (!uid && this.selectedFilter() === "saved") {
+        // If user signs out while a private filter is active, clear it.
+        if (
+          !uid &&
+          (this.selectedFilter() === "saved" ||
+            this.selectedFilter() === "visited")
+        ) {
           this.filterChipChanged("");
         }
       }
@@ -1136,6 +1143,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       void this._applySavedFilter(bounds);
       return;
     }
+    if (this._activeFilter === "visited") {
+      void this._applyVisitedFilter(bounds);
+      return;
+    }
 
     // Handle custom filter mode with stored params
     if (this._activeFilter === "custom") {
@@ -1240,7 +1251,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (selectedChip === "visited") {
-      // TODO: Implement visited filter
+      if (!this.isSignedIn()) {
+        this._snackbar.open($localize`Sign in to view visited spots`, "OK", {
+          duration: 2500,
+        });
+        this.filterChipChanged("");
+        return;
+      }
+
+      // Reuse Custom mode to trigger filterBoundsChange on pan for this user-defined filter.
+      if (this.spotMap) {
+        this.spotMap.spotFilterMode.set(SpotFilterMode.Custom);
+      }
+
+      const bounds = this.spotMap?.bounds;
+      if (!bounds) {
+        console.debug("Visited filter set, waiting for bounds...");
+        return;
+      }
+
+      if (this.selectedSpot()) {
+        this.selectedSpot.set(null);
+      }
+
+      void this._applyVisitedFilter(bounds);
       return;
     }
 
@@ -1689,7 +1723,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._privateDataSubscription?.unsubscribe();
     this._privateDataSubscription = undefined;
     this.savedSpotIds.set([]);
+    this.visitedSpotIds.set([]);
     this._savedSpotPreviewCache.clear();
+    this._visitedSpotPreviewCache.clear();
 
     if (!uid) {
       return;
@@ -1699,25 +1735,38 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .getPrivateData(uid)
       .subscribe(
         (privateData) => {
-          const ids = Array.from(
+          const savedIds = Array.from(
             new Set((privateData?.bookmarks || []).filter((id) => !!id))
           );
-          this.savedSpotIds.set(ids);
+          const visitedIds = Array.from(
+            new Set((privateData?.visited_spots || []).filter((id) => !!id))
+          );
+          this.savedSpotIds.set(savedIds);
+          this.visitedSpotIds.set(visitedIds);
 
           // Prune stale cache entries that are no longer saved.
-          const idSet = new Set(ids);
+          const savedIdSet = new Set(savedIds);
           for (const cachedId of this._savedSpotPreviewCache.keys()) {
-            if (!idSet.has(cachedId)) {
+            if (!savedIdSet.has(cachedId)) {
               this._savedSpotPreviewCache.delete(cachedId);
+            }
+          }
+          const visitedIdSet = new Set(visitedIds);
+          for (const cachedId of this._visitedSpotPreviewCache.keys()) {
+            if (!visitedIdSet.has(cachedId)) {
+              this._visitedSpotPreviewCache.delete(cachedId);
             }
           }
 
           if (this._activeFilter === "saved" && this.spotMap?.bounds) {
             void this._applySavedFilter(this.spotMap.bounds);
           }
+          if (this._activeFilter === "visited" && this.spotMap?.bounds) {
+            void this._applyVisitedFilter(this.spotMap.bounds);
+          }
         },
         (error) => {
-          console.error("Failed to load private saved spots", error);
+          console.error("Failed to load private spot lists", error);
         }
       );
   }
@@ -1754,6 +1803,38 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     await this._savedPreviewLoadPromise;
   }
 
+  private async _ensureVisitedSpotPreviewsLoaded(
+    orderedVisitedIds: string[]
+  ): Promise<void> {
+    const missingIds = orderedVisitedIds.filter(
+      (id) => !this._visitedSpotPreviewCache.has(id)
+    );
+
+    if (missingIds.length === 0) {
+      return;
+    }
+
+    if (!this._visitedPreviewLoadPromise) {
+      this._visitedPreviewLoadPromise = this._searchService
+        .searchSpotPreviewsByIds(missingIds)
+        .then((previews) => {
+          previews.forEach((preview) => {
+            if (preview.id) {
+              this._visitedSpotPreviewCache.set(preview.id, preview);
+            }
+          });
+        })
+        .catch((error) => {
+          console.error("Failed to load visited spot previews", error);
+        })
+        .finally(() => {
+          this._visitedPreviewLoadPromise = null;
+        });
+    }
+
+    await this._visitedPreviewLoadPromise;
+  }
+
   private async _applySavedFilter(
     bounds: google.maps.LatLngBounds
   ): Promise<void> {
@@ -1769,6 +1850,34 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const previewsInBounds: SpotPreviewData[] = [];
     for (const id of savedIds) {
       const preview = this._savedSpotPreviewCache.get(id);
+      if (!preview) continue;
+
+      const loc = this._getPreviewLocation(preview);
+      if (!loc) continue;
+
+      if (bounds.contains(loc)) {
+        previewsInBounds.push(preview);
+      }
+    }
+
+    this.spotMap.setFilteredSpots(previewsInBounds);
+  }
+
+  private async _applyVisitedFilter(
+    bounds: google.maps.LatLngBounds
+  ): Promise<void> {
+    const visitedIds = this.visitedSpotIds();
+
+    if (!this.spotMap || visitedIds.length === 0) {
+      this.spotMap?.setFilteredSpots([]);
+      return;
+    }
+
+    await this._ensureVisitedSpotPreviewsLoaded(visitedIds);
+
+    const previewsInBounds: SpotPreviewData[] = [];
+    for (const id of visitedIds) {
+      const preview = this._visitedSpotPreviewCache.get(id);
       if (!preview) continue;
 
       const loc = this._getPreviewLocation(preview);

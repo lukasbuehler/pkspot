@@ -470,6 +470,30 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     }
   }
 
+  logOut() {
+    this._authService
+      .logUserOut()
+      .then(() => {
+        this._snackbar.open($localize`You were successfully signed out!`, "OK", {
+          duration: 2000,
+          horizontalPosition: "center",
+          verticalPosition: "bottom",
+        });
+        this._router.navigate(["/sign-in"]);
+      })
+      .catch(() => {
+        this._snackbar.open(
+          $localize`Error, there was a problem signing out!`,
+          "Dismiss",
+          {
+            duration: 5000,
+            horizontalPosition: "center",
+            verticalPosition: "bottom",
+          }
+        );
+      });
+  }
+
   viewFollowers() {
     if (this.isMyProfile) {
       this.followDialogRef = this.followListDialog.open(FollowListComponent, {

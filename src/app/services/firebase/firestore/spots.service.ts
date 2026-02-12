@@ -154,6 +154,10 @@ export class SpotsService extends ConsentAwareService {
     tiles: { x: number; y: number }[],
     locale: LocaleCode
   ): Observable<Spot[]> {
+    if (tiles.length === 0) {
+      return of([]);
+    }
+
     // Use adapter - it handles platform detection internally
     // On native: uses native Capacitor Firebase SDK
     // On web: uses @angular/fire

@@ -367,6 +367,7 @@
     @fadeInOut
     [selectedFilter]="selectedFilter()"
     [showSavedChip]="isSignedIn()"
+    [showVisitedChip]="isSignedIn()"
     [customFilterActive]="!!customFilterParams()"
     (filterChange)="filterChipChanged($event)"
     (filtersClick)="openCustomFilterDialog()"

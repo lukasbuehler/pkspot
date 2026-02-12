@@ -98,6 +98,13 @@
                   <strong>{{ user.startTimeDiffString }}</strong>
                 </div>
                 }
+                <div
+                  class="mat-body-large profile-overview__tenure d-flex align-items-center"
+                >
+                  <mat-icon class="m-1 icon-size-small">beenhere</mat-icon>
+                  <span i18n>Visited spots</span>&nbsp;
+                  <strong>{{ user.visitedSpotsCount }}</strong>
+                </div>
               </div>
 
               @if (profileSocialLinks.length > 0) {
@@ -189,7 +196,7 @@
               </div>
               } @else {
               <div
-                class="profile-overview__actions w-100 d-flex gap-2"
+                class="profile-overview__actions w-100 d-flex flex-wrap gap-2"
                 aria-label="Profile management actions"
               >
                 <button
@@ -207,6 +214,15 @@
                   routerLink="/settings/profile"
                 >
                   Edit Profile
+                </button>
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  class="profile-overview__action flex-grow-1"
+                  (click)="logOut()"
+                  i18n
+                >
+                  Log out
                 </button>
               </div>
               }

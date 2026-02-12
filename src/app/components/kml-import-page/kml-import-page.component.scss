@@ -74,6 +74,10 @@ ul.checkbox-list {
   }
 }
 
+.folder-stats-row + .folder-stats-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .verification-container {
   min-height: 560px;
 }

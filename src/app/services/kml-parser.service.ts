@@ -42,6 +42,25 @@ export interface KMLSpot {
   importIndex?: number;
 }
 
+export interface KMLFolderStats {
+  name: string;
+  selected: boolean;
+  spotCount: number;
+  imageCount: number;
+  spotsWithImages: number;
+}
+
+export interface KMLImportStats {
+  folderCount: number;
+  selectedFolderCount: number;
+  spotCount: number;
+  selectedSpotCount: number;
+  imageCount: number;
+  selectedImageCount: number;
+  spotsWithImages: number;
+  folders: KMLFolderStats[];
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -76,6 +95,63 @@ export class KmlParserService {
   public spotsNotToImport$: Observable<KMLSpot[]> = this._spotsNotToImport$;
 
   private _parsedKml: Document | null = null;
+
+  getImportStats(): KMLImportStats {
+    if (!this.setupInfo || !this._spotFolders) {
+      return {
+        folderCount: 0,
+        selectedFolderCount: 0,
+        spotCount: 0,
+        selectedSpotCount: 0,
+        imageCount: 0,
+        selectedImageCount: 0,
+        spotsWithImages: 0,
+        folders: [],
+      };
+    }
+
+    const folders = this.setupInfo.folders.map((folder, folderIndex) => {
+      const folderSpots = this._spotFolders?.[folderIndex] ?? [];
+      let imageCount = 0;
+      let spotsWithImages = 0;
+
+      folderSpots.forEach((spot) => {
+        const mediaCount = spot.spot.mediaUrls?.length ?? 0;
+        imageCount += mediaCount;
+        if (mediaCount > 0) {
+          spotsWithImages += 1;
+        }
+      });
+
+      return {
+        name: folder.name,
+        selected: folder.import,
+        spotCount: folderSpots.length,
+        imageCount,
+        spotsWithImages,
+      };
+    });
+
+    return {
+      folderCount: folders.length,
+      selectedFolderCount: folders.filter((folder) => folder.selected).length,
+      spotCount: folders.reduce((sum, folder) => sum + folder.spotCount, 0),
+      selectedSpotCount: folders.reduce(
+        (sum, folder) => sum + (folder.selected ? folder.spotCount : 0),
+        0
+      ),
+      imageCount: folders.reduce((sum, folder) => sum + folder.imageCount, 0),
+      selectedImageCount: folders.reduce(
+        (sum, folder) => sum + (folder.selected ? folder.imageCount : 0),
+        0
+      ),
+      spotsWithImages: folders.reduce(
+        (sum, folder) => sum + folder.spotsWithImages,
+        0
+      ),
+      folders,
+    };
+  }
 
   parseKMLFromString(kmlString: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -377,9 +453,13 @@ export class KmlParserService {
     });
 
     // 4. Load potential duplicates from DB
-    let spotsToCheckForDuplicates: Spot[] = await firstValueFrom(
-      this.spotsService.getSpotsForTiles(tilesToLoad, this.locale)
-    );
+    let spotsToCheckForDuplicates: Spot[] = [];
+    if (tilesToLoad.length > 0) {
+      spotsToCheckForDuplicates = await firstValueFrom(
+        this.spotsService.getSpotsForTiles(tilesToLoad, this.locale),
+        { defaultValue: [] }
+      );
+    }
 
     // 5. Check against DB
     let spotsToImport: KMLSpot[] = [];
