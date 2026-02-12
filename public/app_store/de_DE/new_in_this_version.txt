@@ -1,0 +1,12 @@
+PK Spot v1.0.9 — Leistung & Präzision
+
+Was ist neu:
+
+• Leistungs-Boost: Deutliche Optimierungen bei Ladezeiten und Bildverarbeitung. Die Karte fühlt sich jetzt schneller und reaktionsfreudiger an.
+• Hybrid-Karte: Jetzt mit hybrider Satellitenkarte inklusive Ortsnamen.
+• Datenschutz & Stabilität: Verbesserungen unter der Haube für Analytics-Übertragung und persistente Sitzungen.
+
+Fehlerbehebungen:
+
+• Ein Problem wurde behoben, bei dem Bearbeitungen von Spot-Bildern unerwartete Nebeneffekte hatten.
+• Splash-Screens wurden korrigiert.

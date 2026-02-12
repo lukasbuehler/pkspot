@@ -1,0 +1,12 @@
+PK Spot v1.0.9 — Prestaties & Precisie
+
+Wat is er nieuw:
+
+• Prestatieboost: Aanzienlijke optimalisaties voor laadsnelheid en beeldverwerking. De kaart voelt nu sneller en responsiever.
+• Hybride kaart: Nu met de hybride satellietkaart inclusief plaatsnamen.
+• Privacy & stabiliteit: Verbeteringen onder de motorkap voor analytics-overdracht en blijvende sessieverwerking.
+
+Bugfixes:
+
+• Een probleem opgelost waarbij het bewerken van spotafbeeldingen onverwachte bijwerkingen veroorzaakte.
+• De opstartschermen zijn opgelost.

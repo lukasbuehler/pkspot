@@ -1,0 +1,12 @@
+PK Spot v1.0.9 — Rendimiento y Precisión
+
+Novedades:
+
+• Mejora de rendimiento: Optimizaciones significativas en velocidad de carga y manejo de imágenes. Ahora el mapa se siente más rápido y responsivo.
+• Mapa híbrido: Ahora incluye el mapa satelital híbrido con nombres de lugares.
+• Privacidad y estabilidad: Ajustes internos para la transmisión de analíticas y el manejo persistente de sesiones.
+
+Correcciones de errores:
+
+• Se resolvió un problema por el que las ediciones de imágenes de spots causaban efectos secundarios inesperados.
+• Se corrigieron las pantallas de inicio.

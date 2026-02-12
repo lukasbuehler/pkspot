@@ -1,0 +1,1 @@
+Finde verifizierte Parkour-Spots, filtere nach Wetter und protokolliere deine Trainingssessions.

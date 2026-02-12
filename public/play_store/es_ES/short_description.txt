@@ -1,0 +1,1 @@
+Encuentra spots de parkour verificados, filtra por clima y registra tus sesiones.

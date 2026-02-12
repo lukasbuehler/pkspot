@@ -1,0 +1,12 @@
+PK Spot v1.0.9 — Performance & Précision
+
+Nouveautés :
+
+• Gain de performance : Optimisations importantes des temps de chargement et du traitement des images. La carte est désormais plus rapide et plus réactive.
+• Carte hybride : La carte satellite hybride avec noms de lieux est maintenant disponible.
+• Confidentialité & stabilité : Correctifs internes pour la transmission analytique et la gestion persistante des sessions.
+
+Corrections de bugs :
+
+• Correction d'un problème où les modifications d'images de spots provoquaient des effets secondaires inattendus.
+• Écrans de lancement corrigés.

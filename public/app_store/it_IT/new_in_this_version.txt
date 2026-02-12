@@ -1,0 +1,12 @@
+PK Spot v1.0.9 — Prestazioni & Precisione
+
+Novità:
+
+• Boost prestazionale: Ottimizzazioni significative su velocità di caricamento e gestione delle immagini. La mappa ora è più veloce e reattiva.
+• Mappa ibrida: Ora con mappa satellitare ibrida con nomi delle località.
+• Privacy & stabilità: Correzioni interne per la trasmissione analytics e la gestione persistente delle sessioni.
+
+Correzioni bug:
+
+• Risolto un problema per cui le modifiche alle immagini degli spot causavano effetti collaterali indesiderati.
+• Corrette le schermate di avvio.

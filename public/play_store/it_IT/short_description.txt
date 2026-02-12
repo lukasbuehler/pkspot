@@ -1,0 +1,1 @@
+Trova spot di parkour verificati, filtra per meteo e registra le tue sessioni di allenamento.
