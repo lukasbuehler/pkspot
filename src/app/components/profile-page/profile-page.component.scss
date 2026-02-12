@@ -175,6 +175,30 @@
   gap: 16px;
 }
 
+.private-spot-loading {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.private-spot-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.private-spot-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.private-spot-count {
+  font-weight: 600;
+}
+
 .badge-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 80px);

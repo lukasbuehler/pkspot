@@ -247,3 +247,11 @@ div.google-img-container {
     color: #fff28f !important;
   }
 }
+
+.bookmark-icon--outline {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.bookmark-icon--filled {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}

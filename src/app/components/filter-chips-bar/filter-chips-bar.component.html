@@ -5,6 +5,13 @@
       [multiple]="false"
       (change)="onChipChange($event.value)"
     >
+      @if (showSavedChip) {
+      <mat-chip-option class="glass" value="saved">
+        <mat-icon matChipAvatar>bookmark</mat-icon>
+        <span>{{ savedLabel }}</span>
+      </mat-chip-option>
+      }
+
       @for (filter of presetFilters; track filter.urlParam) {
       <mat-chip-option class="glass" [value]="filter.urlParam">
         <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>

@@ -53,6 +53,7 @@ import { BadgeService } from "../../services/badge.service";
 import { Badge } from "../../shared/badge-definitions";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { NgOptimizedImage } from "@angular/common";
+import { PrivateSpotListsDialogComponent } from "../private-spot-lists-dialog/private-spot-lists-dialog.component";
 
 @Component({
   selector: "app-profile-page",
@@ -110,6 +111,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   isMyProfile: boolean = false;
   loadingFollowing: boolean = false;
   isFollowing: boolean = false;
+  privateDataLoading: boolean = false;
+  savedSpotIds: string[] = [];
+  visitedSpotIds: string[] = [];
 
   createdSpotsCount: number = 0;
   editedSpotsCount: number = 0;
@@ -124,6 +128,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   blockedUsers: string[] = [];
   private _subscriptions = new Subscription();
   private _profileSubscriptions = new Subscription();
+  private _privateDataSubscription: Subscription | null = null;
 
   followDialogRef: MatDialogRef<FollowListComponent> | null = null;
 
@@ -146,6 +151,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     const authSub = this._authService.authState$.subscribe((authUser) => {
       if (authUser) {
         this.isMyProfile = this.userId === authUser.uid;
+        this._syncPrivateDataSubscription();
 
         // Load blocked users list for UI state
         if (authUser.data?.data?.blocked_users) {
@@ -163,6 +169,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       } else {
         this.isMyProfile = false;
         this.isFollowing = false;
+        this._syncPrivateDataSubscription();
 
         // Auth has now loaded and user is null (not signed in)
         // If we're on /profile without a specific userID, redirect to sign-in
@@ -221,6 +228,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     if (this.userId) {
       // load stuff
       this.isMyProfile = this.userId === this._authService.user.uid;
+      this._syncPrivateDataSubscription();
       this.loadProfile(this.userId);
     }
 
@@ -479,6 +487,56 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     }
   }
 
+  openPrivateSpotListsDialog(initialTab: "saved" | "visited") {
+    if (!this.isMyProfile) {
+      return;
+    }
+
+    this.followListDialog.open(PrivateSpotListsDialogComponent, {
+      ...this.dialogConfig,
+      width: "840px",
+      maxWidth: "96vw",
+      data: {
+        savedSpotIds: this.savedSpotIds,
+        visitedSpotIds: this.visitedSpotIds,
+        initialTab,
+      },
+    });
+  }
+
+  private _syncPrivateDataSubscription() {
+    this._privateDataSubscription?.unsubscribe();
+    this._privateDataSubscription = null;
+    this.privateDataLoading = false;
+    this.savedSpotIds = [];
+    this.visitedSpotIds = [];
+
+    if (!this.isMyProfile || !this.userId) {
+      return;
+    }
+
+    this.privateDataLoading = true;
+    this._privateDataSubscription = this._usersService
+      .getPrivateData(this.userId)
+      .subscribe(
+        (privateData) => {
+          this.savedSpotIds = Array.from(
+            new Set((privateData?.bookmarks || []).filter((id) => !!id))
+          );
+          this.visitedSpotIds = Array.from(
+            new Set((privateData?.visited_spots || []).filter((id) => !!id))
+          );
+          this.privateDataLoading = false;
+          this._cdr.detectChanges();
+        },
+        (error) => {
+          console.error("Failed to load private spot lists", error);
+          this.privateDataLoading = false;
+          this._cdr.detectChanges();
+        }
+      );
+  }
+
   toggleBlockUser() {
     if (!this.user || !this._authService.user.uid) return;
 
@@ -556,6 +614,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._structuredDataService.removeStructuredData("profile");
     this._subscriptions.unsubscribe();
     this._profileSubscriptions.unsubscribe();
+    this._privateDataSubscription?.unsubscribe();
+    this._privateDataSubscription = null;
     this._userSubscription?.unsubscribe();
     this._userSubscription = null;
   }

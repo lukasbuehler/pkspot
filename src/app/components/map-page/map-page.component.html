@@ -366,6 +366,7 @@
   <app-filter-chips-bar
     @fadeInOut
     [selectedFilter]="selectedFilter()"
+    [showSavedChip]="isSignedIn()"
     [customFilterActive]="!!customFilterParams()"
     (filterChange)="filterChipChanged($event)"
     (filtersClick)="openCustomFilterDialog()"

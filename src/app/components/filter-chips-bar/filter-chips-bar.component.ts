@@ -1,10 +1,7 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
-import {
-  SpotFilterMode,
-  SPOT_FILTER_CONFIGS,
-} from "../spot-map/spot-filter-config";
+import { SpotFilterMode } from "../spot-map/spot-filter-config";
 
 /**
  * Preset filter chip definition for display.
@@ -30,6 +27,9 @@ interface PresetFilterChip {
 export class FilterChipsBarComponent {
   /** Currently selected filter value (matches urlParam) */
   @Input() selectedFilter: string = "";
+
+  /** Whether to show the saved spots chip */
+  @Input() showSavedChip: boolean = false;
 
   /** Whether a custom filter is currently active */
   @Input() customFilterActive: boolean = false;
@@ -76,6 +76,7 @@ export class FilterChipsBarComponent {
 
   /** Label for the filters button */
   readonly filtersLabel = $localize`:@@filters_chip_label:Filters`;
+  readonly savedLabel = $localize`:@@saved_spots_chip_label:Saved`;
 
   onChipChange(value: string): void {
     this.filterChange.emit(value);

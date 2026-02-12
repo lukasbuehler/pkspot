@@ -112,12 +112,12 @@ export class SettingsPageComponent implements OnInit {
     mainButton: {
       icon: "save",
       tooltip: "Save all changes",
-      color: "accent",
+      color: "primary",
     },
     miniButtonColor: "default",
     miniButtons: [
       {
-        icon: "clear",
+        icon: "cancel",
         tooltip: "Discard all changes",
       },
     ],
@@ -222,52 +222,59 @@ export class SettingsPageComponent implements OnInit {
     const segments = url.pathname.split("/");
     const currentLocale = this.currentUiLocale;
 
-    import(
-      "../select-language-dialog/select-language-dialog.component"
-    ).then(({ SelectLanguageDialogComponent }) => {
-      const dialogRef = this._dialog.open(SelectLanguageDialogComponent, {
-        data: {
-          locale: currentLocale,
-          supportedUiLocales: this.availableLanguageCodes,
-          mode: "ui",
-        },
-        width: "400px",
-        maxWidth: "90vw",
-      });
-      dialogRef.afterClosed().subscribe((localeCode?: LocaleCode) => {
-        if (!localeCode || localeCode === currentLocale) {
-          return;
-        }
+    import("../select-language-dialog/select-language-dialog.component").then(
+      ({ SelectLanguageDialogComponent }) => {
+        const dialogRef = this._dialog.open(SelectLanguageDialogComponent, {
+          data: {
+            locale: currentLocale,
+            supportedUiLocales: this.availableLanguageCodes,
+            mode: "ui",
+          },
+          width: "400px",
+          maxWidth: "90vw",
+        });
+        dialogRef.afterClosed().subscribe((localeCode?: LocaleCode) => {
+          if (!localeCode || localeCode === currentLocale) {
+            return;
+          }
 
-        try {
-          localStorage.setItem("language", localeCode);
-        } catch (error) {
-          console.error("Could not save language preference", error);
-        }
+          try {
+            localStorage.setItem("language", localeCode);
+          } catch (error) {
+            console.error("Could not save language preference", error);
+          }
 
-        segments[1] = localeCode;
-        url.pathname = segments.join("/");
+          segments[1] = localeCode;
+          url.pathname = segments.join("/");
 
-        if (Capacitor.isNativePlatform() && !url.pathname.endsWith("index.html")) {
-          const baseUrl = window.location.href.split(`/${currentLocale}/`)[0];
-          window.location.href = `${baseUrl}/${localeCode}/index.html`;
-          return;
-        }
+          if (
+            Capacitor.isNativePlatform() &&
+            !url.pathname.endsWith("index.html")
+          ) {
+            const baseUrl = window.location.href.split(`/${currentLocale}/`)[0];
+            window.location.href = `${baseUrl}/${localeCode}/index.html`;
+            return;
+          }
 
-        window.location.href = url.toString();
-      });
-    });
+          window.location.href = url.toString();
+        });
+      }
+    );
   }
 
   logOut() {
     this.authService
       .logUserOut()
       .then(() => {
-        this._snackbar.open($localize`You were successfully signed out!`, "OK", {
-          duration: 2000,
-          horizontalPosition: "center",
-          verticalPosition: "bottom",
-        });
+        this._snackbar.open(
+          $localize`You were successfully signed out!`,
+          "OK",
+          {
+            duration: 2000,
+            horizontalPosition: "center",
+            verticalPosition: "bottom",
+          }
+        );
         this.router.navigate(["/sign-in"]);
       })
       .catch(() => {

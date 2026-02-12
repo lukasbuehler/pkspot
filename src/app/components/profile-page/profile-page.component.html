@@ -198,12 +198,64 @@
         </mat-card-content>
       </mat-card>
 
+      <!-- saved and visited spots -->
+      @if (isMyProfile) {
+      <mat-card class="profile-section mat-elevation-z1">
+        <mat-card-header class="profile-section__header d-flex flex-column">
+          <mat-card-title class="mat-title-small" i18n>
+            Your Private Spot Lists
+          </mat-card-title>
+          <p class="mat-body-small text-muted m-0" i18n>Only visible to you.</p>
+        </mat-card-header>
+        <mat-card-content class="profile-section__content">
+          @if(privateDataLoading) {
+          <div class="private-spot-loading">
+            <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
+          </div>
+          }
+
+          <div class="private-spot-actions">
+            <button
+              mat-stroked-button
+              color="primary"
+              (click)="openPrivateSpotListsDialog('saved')"
+              [disabled]="privateDataLoading"
+              class="private-spot-action"
+            >
+              <mat-icon>bookmark</mat-icon>
+              <span i18n>Saved Spots</span>
+              <span class="private-spot-count">
+                ({{ savedSpotIds.length }})</span
+              >
+            </button>
+
+            <button
+              mat-stroked-button
+              color="accent"
+              (click)="openPrivateSpotListsDialog('visited')"
+              [disabled]="privateDataLoading"
+              class="private-spot-action"
+            >
+              <mat-icon>beenhere</mat-icon>
+              <span i18n>Visited Spots</span>
+              <span class="private-spot-count">
+                ({{ visitedSpotIds.length }})</span
+              >
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      }
+
       <!-- homespots -->
       @if(homeSpotsObjects.length > 0) {
       <mat-card>
         <mat-card-header class="profile-section__header">
-          <mat-card-title class="mat-title-small" i18n
-            >Home Spots</mat-card-title
+          <mat-card-title
+            class="mat-title-small d-flex align-items-center gap-3"
+            ><span i18n>Home Spots</span> @if(isMyProfile) {
+            <span class="mat-body-small border rounded p-1" i18n>Public</span>
+            }</mat-card-title
           >
         </mat-card-header>
         <mat-card-content class="profile-section__content home-spots-container">

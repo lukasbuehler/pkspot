@@ -125,6 +125,7 @@ import { SpotReportsService } from "../../services/firebase/firestore/spot-repor
 import { PostsService } from "../../services/firebase/firestore/posts.service";
 import { SpotReviewSchema } from "../../../db/schemas/SpotReviewSchema";
 import { SpotReviewsService } from "../../services/firebase/firestore/spot-reviews.service";
+import { UsersService } from "../../services/firebase/firestore/users.service";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
 import { StructuredDataService } from "../../services/structured-data.service";
 import {
@@ -286,6 +287,7 @@ export class SpotDetailsComponent
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
   private _analyticsService = inject(AnalyticsService);
+  private _usersService = inject(UsersService);
 
   /**
    * Sets the --open-progress CSS custom property on the host element.
@@ -453,8 +455,10 @@ export class SpotDetailsComponent
     return "unknown";
   });
 
-  visited: boolean = false;
-  bookmarked: boolean = false;
+  visited = signal<boolean>(false);
+  bookmarked = signal<boolean>(false);
+  isBookmarkUpdating = signal<boolean>(false);
+  isVisitedUpdating = signal<boolean>(false);
 
   allSpotSlugs: string[] = [];
   newSlug: string = "";
@@ -589,6 +593,10 @@ export class SpotDetailsComponent
   // Live updates subscription for the current Spot
   private _spotSnapshotSub: Subscription | null = null;
   private _lastSubscribedSpotId: string | null = null;
+  private _privateDataSub: Subscription | null = null;
+  private _authStateSub: Subscription | null = null;
+  private _bookmarkedSpotIds = new Set<string>();
+  private _visitedSpotIds = new Set<string>();
 
   async searchPlaces(query: string) {
     const spot = this.spot();
@@ -846,10 +854,17 @@ export class SpotDetailsComponent
     effect(() => {
       this._syncSpotSeoData(this.spot());
     });
+
+    // Keep bookmark/visited button state aligned with current spot.
+    effect(() => {
+      this.spot();
+      this._syncPrivateSpotButtonState();
+    });
   }
 
   ngOnInit() {
     this._syncSpotSeoData(this.spot());
+    this._subscribeToPrivateData();
   }
 
   ngAfterViewInit() {
@@ -867,6 +882,7 @@ export class SpotDetailsComponent
   ngOnDestroy(): void {
     this._structuredDataService.removeStructuredData("spot");
     this._unsubscribeFromLiveSpot();
+    this._unsubscribeFromPrivateData();
   }
 
   private _syncSpotSeoData(spot: Spot | LocalSpot | null) {
@@ -965,12 +981,68 @@ export class SpotDetailsComponent
     // TODO
   }
 
-  bookmarkClick() {
-    this.bookmarked = !this.bookmarked;
+  async bookmarkClick(event?: Event) {
+    event?.stopPropagation();
+
+    const spot = this.spot();
+    const uid = this.authenticationService.user.uid;
+
+    if (!(spot instanceof Spot) || !uid || this.isBookmarkUpdating()) {
+      return;
+    }
+
+    const shouldBookmark = !this.bookmarked();
+    this.isBookmarkUpdating.set(true);
+    this.bookmarked.set(shouldBookmark);
+
+    try {
+      await this._usersService.updateSavedSpot(uid, spot.id, shouldBookmark);
+      if (shouldBookmark) {
+        this._bookmarkedSpotIds.add(spot.id);
+      } else {
+        this._bookmarkedSpotIds.delete(spot.id);
+      }
+    } catch (error) {
+      this.bookmarked.set(!shouldBookmark);
+      console.error("Failed to update saved spot", error);
+      this._snackbar.open($localize`Failed to update saved spot`, undefined, {
+        duration: 2500,
+      });
+    } finally {
+      this.isBookmarkUpdating.set(false);
+    }
   }
 
-  visitedClick() {
-    this.visited = !this.visited;
+  async visitedClick(event?: Event) {
+    event?.stopPropagation();
+
+    const spot = this.spot();
+    const uid = this.authenticationService.user.uid;
+
+    if (!(spot instanceof Spot) || !uid || this.isVisitedUpdating()) {
+      return;
+    }
+
+    const shouldBeVisited = !this.visited();
+    this.isVisitedUpdating.set(true);
+    this.visited.set(shouldBeVisited);
+
+    try {
+      await this._usersService.updateVisitedSpot(uid, spot.id, shouldBeVisited);
+      if (shouldBeVisited) {
+        this._visitedSpotIds.add(spot.id);
+      } else {
+        this._visitedSpotIds.delete(spot.id);
+      }
+    } catch (error) {
+      this.visited.set(!shouldBeVisited);
+      console.error("Failed to update visited spot", error);
+      this._snackbar.open($localize`Failed to update visited spot`, undefined, {
+        duration: 2500,
+      });
+    } finally {
+      this.isVisitedUpdating.set(false);
+    }
   }
 
   // addressChanged(newAddress: SpotAddressSchema) {
@@ -1552,5 +1624,57 @@ export class SpotDetailsComponent
       this._spotSnapshotSub = null;
     }
     this._lastSubscribedSpotId = null;
+  }
+
+  private _subscribeToPrivateData() {
+    this._unsubscribeFromPrivateData();
+    this._authStateSub = this.authenticationService.authState$.subscribe(
+      (authState) => {
+        const uid = authState?.uid;
+        this._privateDataSub?.unsubscribe();
+        this._privateDataSub = null;
+        this._bookmarkedSpotIds.clear();
+        this._visitedSpotIds.clear();
+        this._syncPrivateSpotButtonState();
+
+        if (!uid) {
+          return;
+        }
+
+        this._privateDataSub = this._usersService.getPrivateData(uid).subscribe(
+          (privateData) => {
+            this._bookmarkedSpotIds = new Set(privateData?.bookmarks || []);
+            this._visitedSpotIds = new Set(privateData?.visited_spots || []);
+            this._syncPrivateSpotButtonState();
+          },
+          (error) => {
+            console.error("Failed to load private user data", error);
+          }
+        );
+      }
+    );
+  }
+
+  private _unsubscribeFromPrivateData() {
+    if (this._privateDataSub) {
+      this._privateDataSub.unsubscribe();
+      this._privateDataSub = null;
+    }
+    if (this._authStateSub) {
+      this._authStateSub.unsubscribe();
+      this._authStateSub = null;
+    }
+  }
+
+  private _syncPrivateSpotButtonState() {
+    const spot = this.spot();
+    if (!(spot instanceof Spot) || !this.authenticationService.isSignedIn) {
+      this.bookmarked.set(false);
+      this.visited.set(false);
+      return;
+    }
+
+    this.bookmarked.set(this._bookmarkedSpotIds.has(spot.id));
+    this.visited.set(this._visitedSpotIds.has(spot.id));
   }
 }

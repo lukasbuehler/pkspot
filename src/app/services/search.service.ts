@@ -159,6 +159,66 @@ export class SearchService {
   }
 
   /**
+   * Fetch spot previews by explicit spot IDs using Typesense.
+   * IDs are queried in chunks to keep the filter string and response size bounded.
+   */
+  public async searchSpotPreviewsByIds(
+    spotIds: string[],
+    chunkSize: number = 180
+  ): Promise<SpotPreviewData[]> {
+    const uniqueIds = Array.from(
+      new Set((spotIds || []).filter((id) => typeof id === "string" && !!id))
+    );
+
+    if (uniqueIds.length === 0) {
+      return [];
+    }
+
+    const safeChunkSize = Math.max(1, Math.min(240, chunkSize));
+    const chunks: string[][] = [];
+
+    for (let i = 0; i < uniqueIds.length; i += safeChunkSize) {
+      chunks.push(uniqueIds.slice(i, i + safeChunkSize));
+    }
+
+    const settled = await Promise.allSettled(
+      chunks.map((idsChunk) =>
+        this.client
+          .collections(this.TYPESENSE_COLLECTION_SPOTS)
+          .documents()
+          .search(
+            {
+              q: "*",
+              filter_by: `id:=[${idsChunk.join(",")}]`,
+              per_page: idsChunk.length,
+              page: 1,
+            },
+            {}
+          )
+      )
+    );
+
+    const previewById = new Map<string, SpotPreviewData>();
+
+    for (const result of settled) {
+      if (result.status !== "fulfilled") continue;
+
+      const hits = ((result.value as any)?.hits || []) as any[];
+      for (const hit of hits) {
+        const preview = this.getSpotPreviewFromHit(hit);
+        if (preview?.id) {
+          previewById.set(preview.id, preview);
+        }
+      }
+    }
+
+    // Preserve caller order for deterministic list/map behavior.
+    return uniqueIds
+      .map((id) => previewById.get(id))
+      .filter((preview): preview is SpotPreviewData => !!preview);
+  }
+
+  /**
    * Search for spots in bounds using a filter mode from the centralized config.
    * This is the preferred method for filter-based searches.
    */

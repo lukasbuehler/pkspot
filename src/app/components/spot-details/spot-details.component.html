@@ -172,22 +172,27 @@
         @if(!isLocalSpot()) { @if(authenticationService.isSignedIn) {
         <button
           mat-icon-button
-          [color]="bookmarked ? 'primary' : 'white'"
+          color="primary"
+          [disabled]="isBookmarkUpdating()"
           matTooltip="Bookmark this spot"
           aria-label="Icon button with a bookmark icon"
-          (click)="bookmarked = !bookmarked; $event.stopPropagation()"
+          (click)="bookmarkClick($event)"
         >
-          <mat-icon>{{ bookmarked ? "bookmark" : "bookmark_border" }}</mat-icon>
+          <mat-icon
+            class="bookmark-icon"
+            [class.bookmark-icon--filled]="bookmarked()"
+            [class.bookmark-icon--outline]="!bookmarked()"
+            >bookmark</mat-icon
+          >
         </button>
 
         <button
           mat-icon-button
-          [color]="visited ? 'accent' : 'white'"
+          [color]="visited() ? 'accent' : 'white'"
+          [disabled]="isVisitedUpdating()"
           matTooltip="Mark this spot as visited"
           aria-label="Icon button with a flag icon"
-          (click)="
-            visited = !visited; bookmarked = false; $event.stopPropagation()
-          "
+          (click)="visitedClick($event)"
         >
           <mat-icon>beenhere</mat-icon>
         </button>

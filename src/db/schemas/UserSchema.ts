@@ -20,6 +20,14 @@ export interface UserSchema {
   verified_email?: boolean;
   invite_code?: string;
   home_city?: string;
+  socials?: {
+    instagram_handle?: string;
+    youtube_handle?: string;
+    other: {
+      name: string;
+      url: string;
+    }[];
+  };
 
   creationDate?: Timestamp;
   // NOTE: bookmarks, visited_spots, and settings are now in private_data subcollection

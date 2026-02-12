@@ -1,0 +1,69 @@
+<h2 mat-dialog-title i18n>My Spots</h2>
+
+<mat-dialog-content class="private-spots-dialog-content">
+  <mat-tab-group
+    [selectedIndex]="selectedTab() === 'visited' ? 1 : 0"
+    (selectedTabChange)="onTabChange($event)"
+    dynamicHeight
+  >
+    <mat-tab label="Saved">
+      <div class="tab-content">
+        @if(isSavedLoading()) {
+        <div class="loading-state">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+        } @else if(savedSpots().length === 0) {
+        <p class="mat-body-medium empty-state" i18n>
+          You have not saved any spots yet.
+        </p>
+        } @else {
+        <div class="spot-list">
+          @for(spot of savedSpots(); track spot.id) {
+          <a [routerLink]="['/s', spot.slug ?? spot.id]" (click)="closeDialog()">
+            <app-spot-preview-card
+              [spotData]="spot"
+              [infoOnly]="true"
+              [clickable]="true"
+              [isCompact]="true"
+              class="w-100"
+            />
+          </a>
+          }
+        </div>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Visited">
+      <div class="tab-content">
+        @if(isVisitedLoading()) {
+        <div class="loading-state">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+        } @else if(visitedSpots().length === 0) {
+        <p class="mat-body-medium empty-state" i18n>
+          You have not marked any spots as visited yet.
+        </p>
+        } @else {
+        <div class="spot-list">
+          @for(spot of visitedSpots(); track spot.id) {
+          <a [routerLink]="['/s', spot.slug ?? spot.id]" (click)="closeDialog()">
+            <app-spot-preview-card
+              [spotData]="spot"
+              [infoOnly]="true"
+              [clickable]="true"
+              [isCompact]="true"
+              class="w-100"
+            />
+          </a>
+          }
+        </div>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="closeDialog()" i18n>Close</button>
+</mat-dialog-actions>

@@ -38,11 +38,11 @@ button.menuButton.selected {
   z-index: 2;
   right: 50px;
 
-  @media (max-width: 599px) {
+  @media (max-width: 959px) {
     // small screen
     bottom: calc(110px);
   }
-  @media (min-width: 600px) {
+  @media (min-width: 960px) {
     // desktop (large screen)
     bottom: calc(30px);
   }

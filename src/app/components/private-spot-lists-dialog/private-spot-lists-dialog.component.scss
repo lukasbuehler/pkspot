@@ -1,0 +1,32 @@
+.private-spots-dialog-content {
+  min-height: 320px;
+  min-width: min(860px, 92vw);
+  max-width: 92vw;
+}
+
+.tab-content {
+  padding-top: 12px;
+  min-height: 280px;
+}
+
+.loading-state {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+}
+
+.empty-state {
+  margin: 12px 0;
+  color: var(--mat-sys-color-on-surface-variant, rgba(0, 0, 0, 0.7));
+}
+
+.spot-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}

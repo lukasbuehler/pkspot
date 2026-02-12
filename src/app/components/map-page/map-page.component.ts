@@ -61,6 +61,7 @@ import { StorageService } from "../../services/firebase/storage.service";
 import { GlobalVariables } from "../../../scripts/global";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
+import { UsersService } from "../../services/firebase/firestore/users.service";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
 import { GeolocationService } from "../../services/geolocation.service";
 import { CheckInService } from "../../services/check-in.service";
@@ -306,6 +307,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _routerSubscription?: Subscription;
   private _breakpointSubscription?: Subscription;
   private _consentSubscription?: Subscription;
+  private _authStateSubscription?: Subscription;
+  private _privateDataSubscription?: Subscription;
+  private _privateDataUserId: string | null = null;
+
+  isSignedIn = signal<boolean>(false);
+  savedSpotIds = signal<string[]>([]);
+  private _savedSpotPreviewCache = new Map<string, SpotPreviewData>();
+  private _savedPreviewLoadPromise: Promise<void> | null = null;
 
   spotEdits: WritableSignal<SpotEdit[]> = signal([]);
 
@@ -457,6 +466,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     public storageService: StorageService,
     private metaTagService: MetaTagService,
     private _spotsService: SpotsService,
+    private _usersService: UsersService,
     private _challengesService: SpotChallengesService,
     private _searchService: SearchService,
     private _slugsService: SlugsService,
@@ -688,6 +698,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.checkInEnabled) {
       this.checkInService.showGlobalChip.set(false);
     }
+
+    // Keep user-private saved spot state in sync for the "saved" chip/filter.
+    this.isSignedIn.set(this.authService.isSignedIn);
+    this._authStateSubscription = this.authService.authState$.subscribe(
+      (authUser) => {
+        const uid = authUser?.uid ?? null;
+        this.isSignedIn.set(!!uid);
+        this._syncPrivateDataSubscription(uid);
+
+        // If user signs out while saved filter is active, clear it.
+        if (!uid && this.selectedFilter() === "saved") {
+          this.filterChipChanged("");
+        }
+      }
+    );
 
     // Listen for consent changes to retry Maps API loading when consent is granted
     this._consentSubscription = this._consentService.consentGranted$.subscribe(
@@ -1107,6 +1132,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   onFilterBoundsChange(bounds: google.maps.LatLngBounds): void {
     if (!this._activeFilter || !this.spotMap) return;
 
+    if (this._activeFilter === "saved") {
+      void this._applySavedFilter(bounds);
+      return;
+    }
+
     // Handle custom filter mode with stored params
     if (this._activeFilter === "custom") {
       const customParams = this.customFilterParams();
@@ -1181,8 +1211,36 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const filterMode = getFilterModeFromUrlParam(selectedChip);
 
     // Handle special cases that don't have search implementations yet
-    if (selectedChip === "saved" || selectedChip === "visited") {
-      // TODO: Implement saved/visited filter
+    if (selectedChip === "saved") {
+      if (!this.isSignedIn()) {
+        this._snackbar.open($localize`Sign in to view saved spots`, "OK", {
+          duration: 2500,
+        });
+        this.filterChipChanged("");
+        return;
+      }
+
+      // Reuse Custom mode to trigger filterBoundsChange on pan for this user-defined filter.
+      if (this.spotMap) {
+        this.spotMap.spotFilterMode.set(SpotFilterMode.Custom);
+      }
+
+      const bounds = this.spotMap?.bounds;
+      if (!bounds) {
+        console.debug("Saved filter set, waiting for bounds...");
+        return;
+      }
+
+      if (this.selectedSpot()) {
+        this.selectedSpot.set(null);
+      }
+
+      void this._applySavedFilter(bounds);
+      return;
+    }
+
+    if (selectedChip === "visited") {
+      // TODO: Implement visited filter
       return;
     }
 
@@ -1622,6 +1680,132 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private _syncPrivateDataSubscription(uid: string | null): void {
+    if (uid === this._privateDataUserId) {
+      return;
+    }
+
+    this._privateDataUserId = uid;
+    this._privateDataSubscription?.unsubscribe();
+    this._privateDataSubscription = undefined;
+    this.savedSpotIds.set([]);
+    this._savedSpotPreviewCache.clear();
+
+    if (!uid) {
+      return;
+    }
+
+    this._privateDataSubscription = this._usersService
+      .getPrivateData(uid)
+      .subscribe(
+        (privateData) => {
+          const ids = Array.from(
+            new Set((privateData?.bookmarks || []).filter((id) => !!id))
+          );
+          this.savedSpotIds.set(ids);
+
+          // Prune stale cache entries that are no longer saved.
+          const idSet = new Set(ids);
+          for (const cachedId of this._savedSpotPreviewCache.keys()) {
+            if (!idSet.has(cachedId)) {
+              this._savedSpotPreviewCache.delete(cachedId);
+            }
+          }
+
+          if (this._activeFilter === "saved" && this.spotMap?.bounds) {
+            void this._applySavedFilter(this.spotMap.bounds);
+          }
+        },
+        (error) => {
+          console.error("Failed to load private saved spots", error);
+        }
+      );
+  }
+
+  private async _ensureSavedSpotPreviewsLoaded(
+    orderedSavedIds: string[]
+  ): Promise<void> {
+    const missingIds = orderedSavedIds.filter(
+      (id) => !this._savedSpotPreviewCache.has(id)
+    );
+
+    if (missingIds.length === 0) {
+      return;
+    }
+
+    if (!this._savedPreviewLoadPromise) {
+      this._savedPreviewLoadPromise = this._searchService
+        .searchSpotPreviewsByIds(missingIds)
+        .then((previews) => {
+          previews.forEach((preview) => {
+            if (preview.id) {
+              this._savedSpotPreviewCache.set(preview.id, preview);
+            }
+          });
+        })
+        .catch((error) => {
+          console.error("Failed to load saved spot previews", error);
+        })
+        .finally(() => {
+          this._savedPreviewLoadPromise = null;
+        });
+    }
+
+    await this._savedPreviewLoadPromise;
+  }
+
+  private async _applySavedFilter(
+    bounds: google.maps.LatLngBounds
+  ): Promise<void> {
+    const savedIds = this.savedSpotIds();
+
+    if (!this.spotMap || savedIds.length === 0) {
+      this.spotMap?.setFilteredSpots([]);
+      return;
+    }
+
+    await this._ensureSavedSpotPreviewsLoaded(savedIds);
+
+    const previewsInBounds: SpotPreviewData[] = [];
+    for (const id of savedIds) {
+      const preview = this._savedSpotPreviewCache.get(id);
+      if (!preview) continue;
+
+      const loc = this._getPreviewLocation(preview);
+      if (!loc) continue;
+
+      if (bounds.contains(loc)) {
+        previewsInBounds.push(preview);
+      }
+    }
+
+    this.spotMap.setFilteredSpots(previewsInBounds);
+  }
+
+  private _getPreviewLocation(
+    preview: SpotPreviewData
+  ): google.maps.LatLngLiteral | null {
+    const location: any = preview.location;
+    if (!location) return null;
+
+    if (typeof location.lat === "number" && typeof location.lng === "number") {
+      return { lat: location.lat, lng: location.lng };
+    }
+
+    if (
+      typeof location.latitude === "number" &&
+      typeof location.longitude === "number"
+    ) {
+      return { lat: location.latitude, lng: location.longitude };
+    }
+
+    if (typeof location.lat === "function" && typeof location.lng === "function") {
+      return { lat: location.lat(), lng: location.lng() };
+    }
+
+    return null;
+  }
+
   ngOnDestroy() {
     console.debug("destroying map page");
     if (this.checkInEnabled) {
@@ -1632,6 +1816,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._alainModeSubscription?.unsubscribe();
     this._breakpointSubscription?.unsubscribe();
     this._consentSubscription?.unsubscribe();
+    this._authStateSubscription?.unsubscribe();
+    this._privateDataSubscription?.unsubscribe();
     this._structuredDataService.removeStructuredData("highlighted-spots");
     try {
       if (this._sidebarScrollEl && this._sidebarScrollListener) {

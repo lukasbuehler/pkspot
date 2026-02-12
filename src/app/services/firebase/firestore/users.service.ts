@@ -1,5 +1,4 @@
 import { inject, Injectable } from "@angular/core";
-import { arrayRemove, arrayUnion } from "@angular/fire/firestore";
 import { map, switchMap } from "rxjs/operators";
 import { Observable, from, Subscription } from "rxjs";
 import { User } from "../../../../db/models/User";
@@ -18,6 +17,7 @@ import { FirestoreAdapterService } from "../firestore-adapter.service";
 })
 export class UsersService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private readonly _privateDataDocId = "main";
 
   constructor() {
     super();
@@ -164,26 +164,67 @@ export class UsersService extends ConsentAwareService {
   }
 
   async toggleBookmark(userId: string, spotId: string): Promise<void> {
+    return this.updateSavedSpot(userId, spotId, undefined);
+  }
+
+  async updateSavedSpot(
+    userId: string,
+    spotId: string,
+    isSaved?: boolean
+  ): Promise<void> {
+    return this._updatePrivateSpotList(userId, "bookmarks", spotId, isSaved);
+  }
+
+  async updateVisitedSpot(
+    userId: string,
+    spotId: string,
+    isVisited?: boolean
+  ): Promise<void> {
+    return this._updatePrivateSpotList(
+      userId,
+      "visited_spots",
+      spotId,
+      isVisited
+    );
+  }
+
+  private async _updatePrivateSpotList(
+    userId: string,
+    key: "bookmarks" | "visited_spots",
+    spotId: string,
+    nextState?: boolean
+  ): Promise<void> {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+    if (!spotId) {
+      throw new Error("Spot ID is required");
+    }
+
     return this.executeWithConsent(async () => {
-      const privateDataRef = `users/${userId}/private_data/main`;
+      const privateDataRef = `users/${userId}/private_data/${this._privateDataDocId}`;
       const privateData =
         await this._firestoreAdapter.getDocument<PrivateUserDataSchema>(
           privateDataRef
         );
 
-      let bookmarks = privateData?.bookmarks || [];
-      const isBookmarked = bookmarks.includes(spotId);
+      let spotIds = privateData?.[key] || [];
+      const currentlySet = spotIds.includes(spotId);
+      const shouldBeSet =
+        typeof nextState === "boolean" ? nextState : !currentlySet;
 
-      if (isBookmarked) {
-        bookmarks = bookmarks.filter((id) => id !== spotId);
-      } else {
-        bookmarks.push(spotId);
+      if (shouldBeSet === currentlySet) {
+        return;
       }
+
+      spotIds = shouldBeSet
+        ? [...spotIds, spotId]
+        : spotIds.filter((id) => id !== spotId);
 
       // Use setDocument with merge to create if not exists
       await this._firestoreAdapter.setDocument(
         privateDataRef,
-        { bookmarks: bookmarks },
+        { [key]: spotIds } as Partial<PrivateUserDataSchema>,
         { merge: true }
       );
     });
@@ -219,7 +260,7 @@ export class UsersService extends ConsentAwareService {
     return from(
       this.executeWhenConsent(() => {
         return this._firestoreAdapter.documentSnapshots<PrivateUserDataSchema>(
-          `users/${userId}/private_data/main`
+          `users/${userId}/private_data/${this._privateDataDocId}`
         );
       })
     ).pipe(switchMap((obs) => obs));
@@ -235,7 +276,7 @@ export class UsersService extends ConsentAwareService {
   ): Promise<void> {
     return this.executeWithConsent(async () => {
       await this._firestoreAdapter.setDocument(
-        `users/${userId}/private_data/main`,
+        `users/${userId}/private_data/${this._privateDataDocId}`,
         data,
         { merge: true }
       );
@@ -252,7 +293,7 @@ export class UsersService extends ConsentAwareService {
   ): Promise<void> {
     return this.executeWithConsent(async () => {
       await this._firestoreAdapter.setDocument(
-        `users/${userId}/private_data/main`,
+        `users/${userId}/private_data/${this._privateDataDocId}`,
         data,
         { merge: true }
       );
