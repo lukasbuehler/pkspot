@@ -180,6 +180,107 @@
     />
   </mat-form-field>
 
+  <mat-accordion>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Social Links</mat-panel-title>
+        <mat-panel-description>
+          Optional links shown on your public profile
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div class="d-flex flex-column gap-3 pt-2">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Instagram</mat-label>
+          <input
+            matInput
+            type="text"
+            [value]="instagramHandle"
+            placeholder="@yourhandle or full profile URL"
+            (input)="
+              instagramHandle = getValueFromEventTarget($event.target) ?? '';
+              detectIfChanges()
+            "
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>YouTube</mat-label>
+          <input
+            matInput
+            type="text"
+            [value]="youtubeHandle"
+            placeholder="@yourhandle, channel/id, or full profile URL"
+            (input)="
+              youtubeHandle = getValueFromEventTarget($event.target) ?? '';
+              detectIfChanges()
+            "
+          />
+        </mat-form-field>
+
+        <div class="social-links-section d-flex flex-column gap-2">
+          <div class="d-flex align-items-center justify-content-between">
+            <h4 class="mat-title-small m-0">Custom links</h4>
+            <button mat-stroked-button type="button" (click)="addCustomSocialLink()">
+              <mat-icon>add</mat-icon>
+              Add link
+            </button>
+          </div>
+
+          @if (customSocialLinks.length === 0) {
+          <p class="mat-body-small text-muted m-0">
+            Add any extra profile links (website, sponsor page, portfolio, etc.).
+          </p>
+          }
+
+          <div class="d-flex flex-column gap-2">
+            @for (link of customSocialLinks; track $index) {
+            <div class="custom-social-link-row">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Name</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  [value]="link.name"
+                  placeholder="Website"
+                  (input)="
+                    link.name = getValueFromEventTarget($event.target) ?? '';
+                    detectIfChanges()
+                  "
+                />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>URL</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  [value]="link.url"
+                  placeholder="https://example.com"
+                  (input)="
+                    link.url = getValueFromEventTarget($event.target) ?? '';
+                    detectIfChanges()
+                  "
+                />
+              </mat-form-field>
+
+              <button
+                mat-icon-button
+                type="button"
+                color="warn"
+                (click)="removeCustomSocialLink($index)"
+                aria-label="Remove custom social link"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+
   <div class="mb-3">
     <h3 class="mat-title-small mb-2">
       <ng-container i18n="home spots label@@editProfile.homeSpots"

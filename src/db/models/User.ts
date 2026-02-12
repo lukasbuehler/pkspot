@@ -1,5 +1,5 @@
 import { humanTimeSince, parseFirestoreTimestamp } from "../../scripts/Helpers";
-import { UserSchema } from "../schemas/UserSchema";
+import { UserSchema, UserSocialsSchema } from "../schemas/UserSchema";
 import { StorageImage, ImageMedia } from "./Media";
 
 export class User {
@@ -13,6 +13,7 @@ export class User {
   public followerCount: number = 0;
   public nationalityCode: string | null = null;
   public homeCity: string | null = null;
+  public socials: UserSocialsSchema | null = null;
 
   // NOTE: bookmarks, visitedSpots, and settings are now loaded separately via UsersService.getPrivateData()
 
@@ -55,6 +56,15 @@ export class User {
 
     this.nationalityCode = this._data.nationality_code ?? null;
     this.homeCity = this._data.home_city ?? null;
+    this.socials = this._data.socials
+      ? {
+          instagram_handle: this._data.socials.instagram_handle,
+          youtube_handle: this._data.socials.youtube_handle,
+          other: (this._data.socials.other ?? []).filter(
+            (link) => !!link?.name && !!link?.url
+          ),
+        }
+      : null;
 
     // Data
     this.data = this._data;

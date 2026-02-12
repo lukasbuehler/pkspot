@@ -117,7 +117,7 @@ export class SettingsPageComponent implements OnInit {
     miniButtonColor: "default",
     miniButtons: [
       {
-        icon: "cancel",
+        icon: "close",
         tooltip: "Discard all changes",
       },
     ],

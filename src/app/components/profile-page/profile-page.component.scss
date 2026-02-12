@@ -104,6 +104,16 @@
   gap: 12px;
 }
 
+.profile-overview__socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-social-link {
+  text-decoration: none;
+}
+
 @media (min-width: 560px) {
   .profile-overview__actions {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

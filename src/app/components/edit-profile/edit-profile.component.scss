@@ -15,3 +15,22 @@
   > .mat-badge-content {
   top: calc(-8px + 0.25em);
 }
+
+.social-links-section {
+  border-top: 1px solid rgba(127, 127, 127, 0.25);
+  padding-top: 12px;
+}
+
+.custom-social-link-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 2fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .custom-social-link-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

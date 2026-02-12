@@ -50,6 +50,17 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 import { ExternalImage } from "../../../db/models/Media";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+import { MatExpansionModule } from "@angular/material/expansion";
+import {
+  UserSocialCustomLinkSchema,
+  UserSocialsSchema,
+} from "../../../db/schemas/UserSchema";
+
+type NormalizedSocials = {
+  instagram_handle?: string;
+  youtube_handle?: string;
+  other: UserSocialCustomLinkSchema[];
+};
 
 @Component({
   selector: "app-edit-profile",
@@ -77,6 +88,7 @@ import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card
     MatSuffix,
     MatProgressSpinner,
     SpotPreviewCardComponent,
+    MatExpansionModule,
   ],
 })
 export class EditProfileComponent implements OnInit {
@@ -90,6 +102,9 @@ export class EditProfileComponent implements OnInit {
   startDate: Date | null = null;
   nationalityCode: string | null = null;
   homeCity: string | null = null;
+  instagramHandle: string = "";
+  youtubeHandle: string = "";
+  customSocialLinks: UserSocialCustomLinkSchema[] = [];
 
   newProfilePicture: File | null = null;
   newProfilePictureSrc: string = "";
@@ -181,6 +196,13 @@ export class EditProfileComponent implements OnInit {
       this.homeSpots = [...(this.user.homeSpots ?? [])];
       this.nationalityCode = this.user.nationalityCode ?? null;
       this.homeCity = this.user.homeCity ?? null;
+      this.instagramHandle = this.user.socials?.instagram_handle ?? "";
+      this.youtubeHandle = this.user.socials?.youtube_handle ?? "";
+      this.customSocialLinks = (this.user.socials?.other ?? []).map((link) => ({
+        name: link.name,
+        url: link.url,
+      }));
+      this.homeSpotsObjects = [];
 
       if (this.nationalityCode && this.countries[this.nationalityCode]) {
         this.countryControl.setValue(this.countries[this.nationalityCode].name);
@@ -437,9 +459,24 @@ export class EditProfileComponent implements OnInit {
     this.detectIfChanges();
   }
 
+  addCustomSocialLink() {
+    this.customSocialLinks.push({
+      name: "",
+      url: "",
+    });
+    this.detectIfChanges();
+  }
+
+  removeCustomSocialLink(index: number) {
+    this.customSocialLinks.splice(index, 1);
+    this.detectIfChanges();
+  }
+
   detectIfChanges() {
     const currentHomeSpots = [...this.homeSpots].sort();
     const originalHomeSpots = [...(this.user?.homeSpots || [])].sort();
+    const currentSocials = this._buildCurrentSocials();
+    const originalSocials = this._buildOriginalSocials();
 
     if (
       this.displayName !== this.user?.displayName ||
@@ -447,6 +484,7 @@ export class EditProfileComponent implements OnInit {
       this.biography !== this.user?.biography ||
       this.nationalityCode !== (this.user?.nationalityCode ?? null) ||
       this.homeCity !== (this.user?.homeCity ?? null) ||
+      JSON.stringify(currentSocials) !== JSON.stringify(originalSocials) ||
       JSON.stringify(currentHomeSpots) !== JSON.stringify(originalHomeSpots)
     ) {
       this.changes.emit(true);
@@ -494,6 +532,21 @@ export class EditProfileComponent implements OnInit {
       data.home_city = this.homeCity ?? undefined;
     }
 
+    const currentSocials = this._buildCurrentSocials();
+    const originalSocials = this._buildOriginalSocials();
+    if (JSON.stringify(currentSocials) !== JSON.stringify(originalSocials)) {
+      const socials: UserSocialsSchema = {
+        other: currentSocials.other,
+      };
+      if (currentSocials.instagram_handle) {
+        socials.instagram_handle = currentSocials.instagram_handle;
+      }
+      if (currentSocials.youtube_handle) {
+        socials.youtube_handle = currentSocials.youtube_handle;
+      }
+      data.socials = socials;
+    }
+
     // Save profile picture first if any
     let promise = Promise.resolve();
     if (this.newProfilePicture) {
@@ -506,5 +559,128 @@ export class EditProfileComponent implements OnInit {
       }
       return Promise.resolve();
     });
+  }
+
+  private _buildCurrentSocials(): NormalizedSocials {
+    return this._normalizeSocials({
+      instagram_handle: this.instagramHandle,
+      youtube_handle: this.youtubeHandle,
+      other: this.customSocialLinks,
+    });
+  }
+
+  private _buildOriginalSocials(): NormalizedSocials {
+    return this._normalizeSocials(this.user?.socials);
+  }
+
+  private _normalizeSocials(socials?: UserSocialsSchema | null): NormalizedSocials {
+    const instagramHandle = this._normalizeInstagramHandle(
+      socials?.instagram_handle
+    );
+    const youtubeHandle = this._normalizeYoutubeHandle(socials?.youtube_handle);
+
+    const otherLinks: UserSocialCustomLinkSchema[] = [];
+    for (const link of socials?.other ?? []) {
+      const name = (link?.name ?? "").trim();
+      const url = this._normalizeExternalUrl(link?.url ?? "");
+      if (!name || !url) {
+        continue;
+      }
+      otherLinks.push({
+        name,
+        url,
+      });
+    }
+
+    return {
+      instagram_handle: instagramHandle,
+      youtube_handle: youtubeHandle,
+      other: otherLinks,
+    };
+  }
+
+  private _normalizeInstagramHandle(value?: string | null): string | undefined {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        const parsed = new URL(trimmed);
+        const firstPathSegment = parsed.pathname
+          .split("/")
+          .map((segment) => segment.trim())
+          .filter(Boolean)[0];
+        if (firstPathSegment) {
+          return firstPathSegment.replace(/^@+/, "").trim() || undefined;
+        }
+      } catch (error) {
+        console.warn("Invalid Instagram URL", trimmed, error);
+      }
+    }
+
+    const cleaned = trimmed.replace(/^@+/, "").split("/")[0].trim();
+    return cleaned || undefined;
+  }
+
+  private _normalizeYoutubeHandle(value?: string | null): string | undefined {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        const parsed = new URL(trimmed);
+        const pathParts = parsed.pathname
+          .split("/")
+          .map((segment) => segment.trim())
+          .filter(Boolean);
+
+        if (pathParts.length === 0) {
+          return undefined;
+        }
+
+        if (pathParts[0].startsWith("@")) {
+          return pathParts[0];
+        }
+
+        if (
+          ["channel", "c", "user"].includes(pathParts[0]) &&
+          pathParts[1]
+        ) {
+          return `${pathParts[0]}/${pathParts[1]}`;
+        }
+
+        return pathParts.join("/");
+      } catch (error) {
+        console.warn("Invalid YouTube URL", trimmed, error);
+      }
+    }
+
+    if (trimmed.startsWith("@")) {
+      return trimmed;
+    }
+
+    return trimmed.includes("/") ? trimmed : `@${trimmed}`;
+  }
+
+  private _normalizeExternalUrl(value?: string | null): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`;
+
+    try {
+      return new URL(withProtocol).toString();
+    } catch (error) {
+      console.warn("Invalid custom social URL", value, error);
+      return null;
+    }
   }
 }

@@ -54,6 +54,14 @@ import { Badge } from "../../shared/badge-definitions";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { NgOptimizedImage } from "@angular/common";
 import { PrivateSpotListsDialogComponent } from "../private-spot-lists-dialog/private-spot-lists-dialog.component";
+import { AnalyticsService } from "../../services/analytics.service";
+
+type ProfileSocialLink = {
+  id: string;
+  label: string;
+  icon: string;
+  url: string;
+};
 
 @Component({
   selector: "app-profile-page",
@@ -103,6 +111,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     private _router: Router,
     private _snackbar: MatSnackBar,
     private _storageService: StorageService,
+    private _analytics: AnalyticsService,
     private _cdr: ChangeDetectorRef,
     @Inject(LOCALE_ID) public locale: LocaleCode
   ) {}
@@ -123,6 +132,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   homeSpotsObjects: Spot[] = [];
   badges: Badge[] = [];
+  profileSocialLinks: ProfileSocialLink[] = [];
 
   countries = countries;
   blockedUsers: string[] = [];
@@ -220,6 +230,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this.postsFromUser = [];
     this.profilePicture = "";
     this.isFollowing = false;
+    this.profileSocialLinks = [];
 
     this.followingCount = 0;
     this.user = null; // Ensure user is null so UI shows loading or empty state correctly for counts that rely on user object
@@ -249,12 +260,14 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._userSubscription = this._usersService.getUserById(userId).subscribe(
       (user) => {
         if (!user) {
+          this.profileSocialLinks = [];
           this.isLoading = false;
           this._cdr.detectChanges();
           return;
         }
 
         this.user = user;
+        this.profileSocialLinks = this._buildProfileSocialLinks(user);
         this.isLoading = false;
 
         // Add structured data for this user profile
@@ -608,6 +621,177 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   get isBlocked(): boolean {
     return this.blockedUsers?.includes(this.userId) ?? false;
+  }
+
+  private _buildProfileSocialLinks(user: User): ProfileSocialLink[] {
+    const links: ProfileSocialLink[] = [];
+
+    const instagramUrl = this._buildInstagramUrl(user.socials?.instagram_handle);
+    this._pushProfileSocialLink(links, {
+      id: "instagram",
+      label: "Instagram",
+      icon: "photo_camera",
+      url: instagramUrl,
+      campaign: "profile_social_instagram",
+    });
+
+    const youtubeUrl = this._buildYoutubeUrl(user.socials?.youtube_handle);
+    this._pushProfileSocialLink(links, {
+      id: "youtube",
+      label: "YouTube",
+      icon: "smart_display",
+      url: youtubeUrl,
+      campaign: "profile_social_youtube",
+    });
+
+    for (const [index, custom] of (user.socials?.other ?? []).entries()) {
+      this._pushProfileSocialLink(links, {
+        id: `custom-${index}`,
+        label: custom.name.trim() || "Link",
+        icon: "link",
+        url: this._normalizeExternalUrl(custom.url),
+        campaign: "profile_social_custom",
+      });
+    }
+
+    return links;
+  }
+
+  private _pushProfileSocialLink(
+    links: ProfileSocialLink[],
+    config: {
+      id: string;
+      label: string;
+      icon: string;
+      url: string | null;
+      campaign: string;
+    }
+  ) {
+    if (!config.url) {
+      return;
+    }
+
+    const taggedUrl = this._analytics.addUtmToUrl(
+      config.url,
+      config.campaign,
+      "pkspot",
+      "profile"
+    );
+    if (!taggedUrl) {
+      return;
+    }
+
+    links.push({
+      id: config.id,
+      label: config.label,
+      icon: config.icon,
+      url: taggedUrl,
+    });
+  }
+
+  private _buildInstagramUrl(handle?: string): string | null {
+    const normalizedHandle = this._normalizeInstagramHandle(handle);
+    if (!normalizedHandle) {
+      return null;
+    }
+    return `https://instagram.com/${normalizedHandle}`;
+  }
+
+  private _buildYoutubeUrl(handle?: string): string | null {
+    const normalizedHandle = this._normalizeYoutubeHandle(handle);
+    if (!normalizedHandle) {
+      return null;
+    }
+
+    if (normalizedHandle.startsWith("http://") || normalizedHandle.startsWith("https://")) {
+      return this._normalizeExternalUrl(normalizedHandle);
+    }
+
+    return `https://www.youtube.com/${normalizedHandle}`;
+  }
+
+  private _normalizeInstagramHandle(value?: string | null): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        const parsed = new URL(trimmed);
+        const firstPathSegment = parsed.pathname
+          .split("/")
+          .map((segment) => segment.trim())
+          .filter(Boolean)[0];
+        if (firstPathSegment) {
+          return firstPathSegment.replace(/^@+/, "").trim();
+        }
+      } catch (error) {
+        console.warn("Invalid Instagram URL", trimmed, error);
+      }
+    }
+
+    return trimmed.replace(/^@+/, "").split("/")[0].trim() || null;
+  }
+
+  private _normalizeYoutubeHandle(value?: string | null): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        const parsed = new URL(trimmed);
+        const pathParts = parsed.pathname
+          .split("/")
+          .map((segment) => segment.trim())
+          .filter(Boolean);
+
+        if (pathParts.length === 0) {
+          return null;
+        }
+
+        if (pathParts[0].startsWith("@")) {
+          return pathParts[0];
+        }
+
+        if (
+          ["channel", "c", "user"].includes(pathParts[0]) &&
+          pathParts[1]
+        ) {
+          return `${pathParts[0]}/${pathParts[1]}`;
+        }
+
+        return pathParts.join("/");
+      } catch (error) {
+        console.warn("Invalid YouTube URL", trimmed, error);
+      }
+    }
+
+    if (trimmed.startsWith("@")) {
+      return trimmed;
+    }
+
+    return trimmed.includes("/") ? trimmed : `@${trimmed}`;
+  }
+
+  private _normalizeExternalUrl(value?: string | null): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`;
+
+    try {
+      return new URL(withProtocol).toString();
+    } catch (error) {
+      console.warn("Invalid custom social URL", value, error);
+      return null;
+    }
   }
 
   ngOnDestroy(): void {

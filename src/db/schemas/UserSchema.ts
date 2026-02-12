@@ -1,5 +1,16 @@
 import { DocumentReference, Timestamp } from "firebase/firestore";
 
+export interface UserSocialCustomLinkSchema {
+  name: string;
+  url: string;
+}
+
+export interface UserSocialsSchema {
+  instagram_handle?: string;
+  youtube_handle?: string;
+  other?: UserSocialCustomLinkSchema[];
+}
+
 export interface UserSchema {
   display_name?: string;
   biography?: string;
@@ -20,14 +31,7 @@ export interface UserSchema {
   verified_email?: boolean;
   invite_code?: string;
   home_city?: string;
-  socials?: {
-    instagram_handle?: string;
-    youtube_handle?: string;
-    other: {
-      name: string;
-      url: string;
-    }[];
-  };
+  socials?: UserSocialsSchema;
 
   creationDate?: Timestamp;
   // NOTE: bookmarks, visited_spots, and settings are now in private_data subcollection
