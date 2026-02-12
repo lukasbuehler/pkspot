@@ -68,6 +68,9 @@ export {
   assignSignupNumberOnCreate,
 } from "./authFunctions";
 
-export { onCheckInCreate } from "./userFunctions";
+export {
+  onCheckInCreate,
+  syncVisitedSpotsCountOnPrivateDataWrite,
+} from "./userFunctions";
 
 export { cleanupAllOrphanedMedia } from "./mediaCleanupFunctions";

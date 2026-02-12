@@ -123,6 +123,7 @@ def main():
         "outlined_flag": "flag",  # relies on fill=0
         "help_outline": "help",  # relies on fill=0
         "star_border": "star",  # relies on fill=0
+        "create": "edit",
     }
 
     # 5. Post-processing: Rebuild 'liga' feature for names

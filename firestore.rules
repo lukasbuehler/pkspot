@@ -141,9 +141,9 @@ service cloud.firestore {
       allow read: if true;
       // It is not allowed to update protected fields. These are handled by cloud functions.
       allow create: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.keys().hasAny(['follower_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'special_badges']);
+         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'special_badges']);
       allow update: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'special_badges']);
+         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'special_badges']);
       allow delete: if request.auth.uid != null && request.auth.uid == userId;
 
       match /following/{otherUserId} {

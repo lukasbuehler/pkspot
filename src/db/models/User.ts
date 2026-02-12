@@ -11,6 +11,7 @@ export class User {
   public startTimeDiffString: string | null = null;
   public startDate: Date | null = null;
   public followerCount: number = 0;
+  public visitedSpotsCount: number = 0;
   public nationalityCode: string | null = null;
   public homeCity: string | null = null;
   public socials: UserSocialsSchema | null = null;
@@ -53,6 +54,7 @@ export class User {
     if (this._data.follower_count) {
       this.followerCount = this._data.follower_count;
     }
+    this.visitedSpotsCount = this._data.visited_spots_count ?? 0;
 
     this.nationalityCode = this._data.nationality_code ?? null;
     this.homeCity = this._data.home_city ?? null;

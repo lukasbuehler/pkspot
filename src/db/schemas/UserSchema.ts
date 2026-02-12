@@ -18,6 +18,7 @@ export interface UserSchema {
   profile_picture?: string;
   follower_count?: number;
   following_count?: number;
+  visited_spots_count?: number;
   spot_creates_count?: number; // Spots created by this user (set by Cloud Function)
   spot_edits_count?: number; // Total edits made by this user (set by Cloud Function)
   media_added_count?: number; // Media items added by this user (set by Cloud Function)
