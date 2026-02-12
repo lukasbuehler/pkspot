@@ -15,6 +15,7 @@ edit
 report
 content_copy
 image
+photo_camera
 delete
 more_vert
 checklist
@@ -53,6 +54,7 @@ read_more
 outlined_flag
 link_off
 link
+smart_display
 tune
 grid_view
 view_list

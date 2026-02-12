@@ -25,7 +25,7 @@ import {
   MatSuffix,
 } from "@angular/material/form-field";
 import { FormsModule, ReactiveFormsModule, FormControl } from "@angular/forms";
-import { NgIf, NgFor, AsyncPipe } from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 import {
   MatButton,
   MatIconButton,

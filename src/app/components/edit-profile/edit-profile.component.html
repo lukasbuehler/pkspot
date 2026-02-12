@@ -146,12 +146,11 @@
       [matAutocomplete]="auto"
     />
     <mat-autocomplete #auto="matAutocomplete">
-      <mat-option
-        *ngFor="let code of filteredCountries | async"
-        [value]="countries[code].name"
-      >
+      @for (code of filteredCountries | async; track code) {
+      <mat-option [value]="countries[code].name">
         <span>{{ countries[code].emoji }} {{ countries[code].name }}</span>
       </mat-option>
+      }
     </mat-autocomplete>
     <!-- <mat-hint i18n="nationality code hint@@editProfile.nationalityCodeHint"
       >Select your nationality.</mat-hint
