@@ -12,7 +12,7 @@
         <div class="loading-state">
           <mat-spinner diameter="32"></mat-spinner>
         </div>
-        } @else if(savedSpots().length === 0) {
+        } @else if(savedSpotIdsCount === 0) {
         <p class="mat-body-medium empty-state" i18n>
           You have not saved any spots yet.
         </p>
@@ -30,6 +30,27 @@
           </a>
           }
         </div>
+        <div class="pagination-controls">
+          <button
+            mat-button
+            (click)="previousPage('saved')"
+            [disabled]="!canGoToPreviousPage('saved')"
+            i18n
+          >
+            Previous
+          </button>
+          <span class="mat-body-small page-label">
+            {{ getPageLabel("saved") }}
+          </span>
+          <button
+            mat-button
+            (click)="nextPage('saved')"
+            [disabled]="!canGoToNextPage('saved')"
+            i18n
+          >
+            Next
+          </button>
+        </div>
         }
       </div>
     </mat-tab>
@@ -40,7 +61,7 @@
         <div class="loading-state">
           <mat-spinner diameter="32"></mat-spinner>
         </div>
-        } @else if(visitedSpots().length === 0) {
+        } @else if(visitedSpotIdsCount === 0) {
         <p class="mat-body-medium empty-state" i18n>
           You have not marked any spots as visited yet.
         </p>
@@ -57,6 +78,27 @@
             />
           </a>
           }
+        </div>
+        <div class="pagination-controls">
+          <button
+            mat-button
+            (click)="previousPage('visited')"
+            [disabled]="!canGoToPreviousPage('visited')"
+            i18n
+          >
+            Previous
+          </button>
+          <span class="mat-body-small page-label">
+            {{ getPageLabel("visited") }}
+          </span>
+          <button
+            mat-button
+            (click)="nextPage('visited')"
+            [disabled]="!canGoToNextPage('visited')"
+            i18n
+          >
+            Next
+          </button>
         </div>
         }
       </div>

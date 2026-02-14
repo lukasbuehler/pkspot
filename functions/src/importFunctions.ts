@@ -39,13 +39,19 @@ export const processImportChunkOnCreate = onDocumentCreated(
     const importSnap = await importRef.get();
     const importData = importSnap.data() as any;
     const importCredits = importData?.credits || {};
+    const strippingMode =
+      importData?.stripping_mode === true ||
+      importData?.legal?.public_abandoned_clause_used === true;
     const importAttribution = {
       title:
         importCredits.attribution_text ||
         importCredits.source_name ||
         `Import ${importId}`,
       author: importCredits.source_name || undefined,
-      source_url: importCredits.website_url || importData?.source_url,
+      source_url:
+        importData?.viewer_url ||
+        importCredits.website_url ||
+        importData?.source_url,
       license: importCredits.license || undefined,
     };
 
@@ -86,13 +92,15 @@ export const processImportChunkOnCreate = onDocumentCreated(
 
         batch.set(spotRef, {
           name: nameMap,
-          description: spot.description
+          description: !strippingMode && spot.description
             ? {
                 [spot.language || "en"]: spot.description,
               }
             : undefined,
           media:
-            Array.isArray(spot.media_urls) && spot.media_urls.length > 0
+            !strippingMode &&
+            Array.isArray(spot.media_urls) &&
+            spot.media_urls.length > 0
               ? spot.media_urls.map((url) => ({
                   type: "image",
                   src: url,

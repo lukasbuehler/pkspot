@@ -534,11 +534,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       const challenge = this.selectedChallenge();
 
       if (challenge && challenge instanceof SpotChallenge) {
-        this.metaTagService.setChallengeMetaTags(challenge);
+        const spotPathSegment = challenge.spot.slug ?? challenge.spot.id;
+        this.metaTagService.setChallengeMetaTags(
+          challenge,
+          `/map/${spotPathSegment}/c/${challenge.id}`
+        );
       } else if (spot) {
-        this.metaTagService.setSpotMetaTags(spot);
+        const canonicalPath =
+          spot instanceof Spot ? `/map/${spot.slug ?? spot.id}` : undefined;
+        this.metaTagService.setSpotMetaTags(spot, canonicalPath);
       } else {
-        this.metaTagService.setDefaultMapMetaTags();
+        this.metaTagService.setDefaultMapMetaTags("/map");
       }
     });
 

@@ -78,19 +78,13 @@
             </ng-template>
 
             <div class="step-content">
-              <p class="mat-body-1">
-                Loaded {{ importStats.spotCount }} spots from
-                {{ importStats.folderCount }} folders, with
-                {{ importStats.imageCount }} images.
-              </p>
-              <p class="mat-body-small text-muted">
-                Selected: {{ importStats.selectedSpotCount }} spots,
-                {{ importStats.selectedImageCount }} images from
-                {{ importStats.selectedFolderCount }} folders.
-              </p>
               @if(importStats.folderCount > 0) {
               <div class="folder-stats border rounded p-2 mb-3">
                 <div class="mat-title-small mb-2">Folder stats</div>
+                <div class="mat-body-small text-muted mb-2">
+                  {{ importStats.spotCount }} total spots,
+                  {{ importStats.imageCount }} images
+                </div>
                 @for(folderStat of importStats.folders; track folderStat.name +
                 $index) {
                 <div
@@ -100,8 +94,7 @@
                   <span class="mat-body-small text-muted">
                     {{ folderStat.spotCount }} spots,
                     {{ folderStat.imageCount }} images,
-                    {{ folderStat.spotsWithImages }} spots with images,
-                    {{ folderStat.selected ? "selected" : "excluded" }}
+                    {{ folderStat.spotsWithImages }} spots with images
                   </span>
                 </div>
                 }
@@ -114,70 +107,88 @@
 
               <form [formGroup]="legalFormGroup!" class="setup-form mt-3">
                 <div class="d-flex flex-column gap-2 mb-2">
-                  <mat-checkbox formControlName="rightsConfirmedCtrl">
-                    I confirm I have the rights/permission to import this data.
+                  <mat-checkbox formControlName="ownershipPermissionCtrl">
+                    I am the original creator of this data OR I have explicit
+                    permission from the author to share it.
                   </mat-checkbox>
-                  <mat-checkbox
-                    formControlName="externalImagesRightsConfirmedCtrl"
-                  >
-                    If importing external images, I confirm copyright
-                    permission.
+                  @if(importStats.spotCount < 100) {
+                  <mat-checkbox formControlName="publicAbandonedCtrl">
+                    This is a public/abandoned map (anonymous/public good), and
+                    I accept automated stripping mode.
                   </mat-checkbox>
-                  <mat-checkbox formControlName="allowFutureAutoUpdateCtrl">
-                    Keep source URL for future auto-update support.
+                  }
+                  <mat-checkbox formControlName="strippingConsentCtrl">
+                    I understand that any creative content (photos/descriptions)
+                    will be stripped to respect copyright and protect the
+                    database's integrity.
+                  </mat-checkbox>
+                  <mat-checkbox formControlName="nonCompetitorCtrl">
+                    I confirm this is a community resource/personal map and not
+                    a substantial extract from a competitor's proprietary
+                    database.
                   </mat-checkbox>
                 </div>
+                @if(importStats.spotCount >= 100) {
+                <p class="mat-body-small text-muted mb-2">
+                  100+ spots: ownership/permission confirmation is mandatory.
+                </p>
+                } @else {
+                <p class="mat-body-small text-muted mb-2">
+                  Below 100 spots: you may use the public/abandoned option,
+                  which enables stripping mode.
+                </p>
+                } @if(legalValidationMessage(); as legalMessage) {
+                <p class="mat-body-small text-danger mb-2">
+                  {{ legalMessage }}
+                </p>
+                }
               </form>
 
               <form [formGroup]="creditsFormGroup!" class="setup-form mt-3">
                 <h3 class="mat-title-medium">Credits and Attribution</h3>
-                <div class="d-flex flex-wrap gap-2">
-                  <mat-form-field appearance="outline" style="min-width: 250px">
-                    <mat-label>Source / Community Name</mat-label>
-                    <input matInput formControlName="sourceNameCtrl" />
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" style="min-width: 250px">
-                    <mat-label>Import ID (optional)</mat-label>
-                    <input matInput formControlName="importIdCtrl" />
-                    <mat-hint
-                      >Readable ID for source tracking (lowercase letters,
-                      numbers, dashes)</mat-hint
-                    >
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" style="min-width: 250px">
-                    <mat-label>Attribution Text</mat-label>
-                    <input matInput formControlName="attributionTextCtrl" />
-                  </mat-form-field>
-                </div>
-
-                <div class="d-flex flex-wrap gap-2">
-                  <mat-form-field appearance="outline" style="min-width: 250px">
-                    <mat-label>Website URL</mat-label>
-                    <input matInput formControlName="websiteUrlCtrl" />
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" style="min-width: 250px">
-                    <mat-label>Instagram URL</mat-label>
-                    <input matInput formControlName="instagramUrlCtrl" />
-                  </mat-form-field>
-                </div>
-
-                <mat-form-field appearance="outline" style="min-width: 250px">
-                  <mat-label>License</mat-label>
-                  <input matInput formControlName="licenseCtrl" />
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Source / Community Name</mat-label>
+                  <input matInput formControlName="sourceNameCtrl" />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="w-100">
-                  <mat-label>Auto-update source URL (optional)</mat-label>
-                  <input matInput formControlName="autoUpdateUrlCtrl" />
-                  @if(kmlParserService.setupInfo?.networkLinks?.length) {
-                  <mat-hint>
-                    Detected NetworkLinks:
-                    {{ kmlParserService.setupInfo?.networkLinks?.join(", ") }}
-                  </mat-hint>
-                  }
+                  <mat-label>Import ID (optional)</mat-label>
+                  <input matInput formControlName="importIdCtrl" />
+                  <mat-hint
+                    >Readable ID for source tracking (lowercase letters,
+                    numbers, dashes)</mat-hint
+                  >
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Attribution Text</mat-label>
+                  <input matInput formControlName="attributionTextCtrl" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Viewer URL</mat-label>
+                  <input matInput formControlName="websiteUrlCtrl" />
+                </mat-form-field>
+                <div class="mb-2">
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="openViewerUrl()"
+                    [disabled]="!creditsFormGroup?.get('websiteUrlCtrl')?.value"
+                  >
+                    <mat-icon class="mr-1">open_in_new</mat-icon>
+                    Test Viewer Link
+                  </button>
+                </div>
+
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Instagram URL</mat-label>
+                  <input matInput formControlName="instagramUrlCtrl" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>License</mat-label>
+                  <input matInput formControlName="licenseCtrl" />
                 </mat-form-field>
               </form>
 
@@ -207,9 +218,9 @@
                           @for(type of SpotTypes | keyvalue; track type) {
                           <mat-option [value]="type.value">
                             <div class="d-flex align-items-center">
-                              <mat-icon class="mr-2">{{
+                              <!-- <mat-icon class="mr-2">{{
                                 spotTypesIcons[type.value]
-                              }}</mat-icon>
+                              }}</mat-icon> -->
                               {{ spotTypesNames[type.value] }}
                             </div>
                           </mat-option>
@@ -227,9 +238,9 @@
                           @for(access of SpotAccess | keyvalue; track access) {
                           <mat-option [value]="access.value">
                             <div class="d-flex align-items-center">
-                              <mat-icon class="mr-2">{{
+                              <!-- <mat-icon class="mr-2">{{
                                 spotAccessIcons[access.value]
-                              }}</mat-icon>
+                              }}</mat-icon> -->
                               {{ spotAccessNames[access.value] }}
                             </div>
                           </mat-option>
@@ -316,11 +327,7 @@
                 <button
                   mat-flat-button
                   color="primary"
-                  [disabled]="
-                    setupFormGroup!.invalid ||
-                    legalFormGroup!.invalid ||
-                    creditsFormGroup!.invalid
-                  "
+                  [disabled]="isSetupNextDisabled()"
                   (click)="continueToVerification()"
                 >
                   Next

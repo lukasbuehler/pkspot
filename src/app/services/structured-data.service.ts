@@ -140,10 +140,20 @@ export class StructuredDataService {
     // Add images
     const images = this.generateSpotImageObjects(spot);
     if (images.length > 0) {
-      placeData.image = images.length === 1 ? images[0] : images;
+      const imageUrls = images
+        .map((image) =>
+          typeof image.contentUrl === "string" ? image.contentUrl : undefined
+        )
+        .filter((imageUrl): imageUrl is string => !!imageUrl);
+      if (imageUrls.length > 0) {
+        placeData.image = imageUrls.length === 1 ? imageUrls[0] : imageUrls;
+      }
       // Add photos as well for richer schema
-      if (images.length > 0) {
-        placeData.photo = images;
+      placeData.photo = images;
+    } else {
+      const previewImageUrl = this.normalizeAbsoluteUrl(spot.previewImageSrc());
+      if (previewImageUrl) {
+        placeData.image = previewImageUrl;
       }
     }
 
@@ -244,17 +254,29 @@ export class StructuredDataService {
 
     for (const m of media) {
       if (m.type === "image") {
+        const highResImage = this.getMediaSrcAtSize(m, 800);
+        const previewImage = this.normalizeAbsoluteUrl(m.getPreviewImageSrc());
+        const contentUrl = highResImage || previewImage;
+        if (!contentUrl) {
+          continue;
+        }
+
+        const thumbnailUrl =
+          this.getMediaSrcAtSize(m, 400) || this.getMediaSrcAtSize(m, 200);
+
         const imageObject: ImageObject = {
           "@type": "ImageObject",
-          contentUrl: m.getPreviewImageSrc(),
+          contentUrl: contentUrl,
+          url: contentUrl,
+          thumbnailUrl: thumbnailUrl,
           description: `Photo of ${spot.name()} parkour spot`,
         };
 
         // Add thumbnail if available (for StorageImage)
-        if ("getSrc" in m && typeof m.getSrc === "function") {
+        if (thumbnailUrl) {
           imageObject.thumbnail = {
             "@type": "ImageObject",
-            contentUrl: m.getSrc(200),
+            contentUrl: thumbnailUrl,
           };
         }
 
@@ -351,7 +373,7 @@ export class StructuredDataService {
         }
 
         if (spot.imageSrc) {
-          placeItem.image = spot.imageSrc;
+          placeItem.image = this.normalizeAbsoluteUrl(spot.imageSrc);
         }
 
         if (spot.rating) {
@@ -377,5 +399,38 @@ export class StructuredDataService {
       numberOfItems: spots.length,
       itemListElement: listItems,
     };
+  }
+
+  private getMediaSrcAtSize(media: unknown, size: number): string | undefined {
+    if (typeof media !== "object" || media === null) {
+      return undefined;
+    }
+    const candidate = media as { getSrc?: (size: number) => string };
+    if (typeof candidate.getSrc !== "function") {
+      return undefined;
+    }
+
+    try {
+      return this.normalizeAbsoluteUrl(candidate.getSrc(size));
+    } catch {
+      return undefined;
+    }
+  }
+
+  private normalizeAbsoluteUrl(url?: string): string | undefined {
+    const trimmed = url?.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    if (trimmed.startsWith("//")) {
+      return `https:${trimmed}`;
+    }
+    if (trimmed.startsWith("/")) {
+      return `${environment.baseUrl}${trimmed}`;
+    }
+    return `${environment.baseUrl}/${trimmed.replace(/^\/+/, "")}`;
   }
 }

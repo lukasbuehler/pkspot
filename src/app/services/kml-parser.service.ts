@@ -44,7 +44,6 @@ export interface KMLSpot {
 
 export interface KMLFolderStats {
   name: string;
-  selected: boolean;
   spotCount: number;
   imageCount: number;
   spotsWithImages: number;
@@ -52,11 +51,8 @@ export interface KMLFolderStats {
 
 export interface KMLImportStats {
   folderCount: number;
-  selectedFolderCount: number;
   spotCount: number;
-  selectedSpotCount: number;
   imageCount: number;
-  selectedImageCount: number;
   spotsWithImages: number;
   folders: KMLFolderStats[];
 }
@@ -100,11 +96,8 @@ export class KmlParserService {
     if (!this.setupInfo || !this._spotFolders) {
       return {
         folderCount: 0,
-        selectedFolderCount: 0,
         spotCount: 0,
-        selectedSpotCount: 0,
         imageCount: 0,
-        selectedImageCount: 0,
         spotsWithImages: 0,
         folders: [],
       };
@@ -125,7 +118,6 @@ export class KmlParserService {
 
       return {
         name: folder.name,
-        selected: folder.import,
         spotCount: folderSpots.length,
         imageCount,
         spotsWithImages,
@@ -134,17 +126,8 @@ export class KmlParserService {
 
     return {
       folderCount: folders.length,
-      selectedFolderCount: folders.filter((folder) => folder.selected).length,
       spotCount: folders.reduce((sum, folder) => sum + folder.spotCount, 0),
-      selectedSpotCount: folders.reduce(
-        (sum, folder) => sum + (folder.selected ? folder.spotCount : 0),
-        0
-      ),
       imageCount: folders.reduce((sum, folder) => sum + folder.imageCount, 0),
-      selectedImageCount: folders.reduce(
-        (sum, folder) => sum + (folder.selected ? folder.imageCount : 0),
-        0
-      ),
       spotsWithImages: folders.reduce(
         (sum, folder) => sum + folder.spotsWithImages,
         0
@@ -179,13 +162,28 @@ export class KmlParserService {
           bounds: null,
         };
 
-        // Find the main Document element
-        // KML structure is usually kml -> Document -> Folder(s)
-        const kmlNode = xmlDoc.getElementsByTagName("kml")[0];
-        const docNode = xmlDoc.getElementsByTagName("Document")[0]; // Use helper or querySelector
+        // Find the main Document element. Some files contain multiple Document
+        // nodes (style wrappers + data), so pick the one with most placemarks.
+        const documentNodes = this.getElementsByTagNameAnyNs(xmlDoc, "Document");
+        let docNode: Element | null = null;
+        if (documentNodes.length > 0) {
+          docNode = documentNodes.reduce((bestNode, currentNode) => {
+            const bestCount = this.getElementsByTagNameAnyNs(
+              bestNode,
+              "Placemark"
+            ).length;
+            const currentCount = this.getElementsByTagNameAnyNs(
+              currentNode,
+              "Placemark"
+            ).length;
+            return currentCount > bestCount ? currentNode : bestNode;
+          });
+        } else {
+          docNode = xmlDoc.documentElement;
+        }
 
         if (!docNode) {
-          reject("KML file is invalid! No Document in parsed KML found.");
+          reject("KML file is invalid! No valid KML root element found.");
           return;
         }
 
@@ -198,26 +196,209 @@ export class KmlParserService {
           this.setupInfo.description = docDescNode?.textContent || "";
         }
 
+        const parsePlacemarks = (
+          placemarks: Element[],
+          folderName: string
+        ): KMLSpot[] =>
+          placemarks
+            .map((placemark: Element) => {
+              let parsedPoints: google.maps.LatLngLiteral[] = [];
+              let geometryType: "point" | "polygon" | "line" = "point";
+
+              // Try to find Point coordinates
+              const pointNode = this.getElementsByTagNameAnyNs(
+                placemark,
+                "Point"
+              )[0];
+              const polygonNode = this.getElementsByTagNameAnyNs(
+                placemark,
+                "Polygon"
+              )[0];
+
+              if (pointNode) {
+                const coordsNode = this.getElementsByTagNameAnyNs(
+                  pointNode,
+                  "coordinates"
+                )[0];
+                if (coordsNode) {
+                  parsedPoints = this.parseCoordinatesValue(
+                    coordsNode.textContent
+                  );
+                }
+              } else if (polygonNode) {
+                // Polygon -> outerBoundaryIs -> LinearRing -> coordinates
+                geometryType = "polygon";
+                const outerBoundary = this.getElementsByTagNameAnyNs(
+                  polygonNode,
+                  "outerBoundaryIs"
+                )[0];
+                if (outerBoundary) {
+                  const linearRing = this.getElementsByTagNameAnyNs(
+                    outerBoundary,
+                    "LinearRing"
+                  )[0];
+                  if (linearRing) {
+                    const coordsNode = this.getElementsByTagNameAnyNs(
+                      linearRing,
+                      "coordinates"
+                    )[0];
+                    if (coordsNode) {
+                      parsedPoints = this.parseCoordinatesValue(
+                        coordsNode.textContent
+                      );
+                    }
+                  }
+                }
+              }
+
+              // Fallback for LineString / namespace variants / gx:coord based formats.
+              if (parsedPoints.length === 0) {
+                const lineStringNode = this.getElementsByTagNameAnyNs(
+                  placemark,
+                  "LineString"
+                )[0];
+                if (lineStringNode) {
+                  const coordsNode = this.getElementsByTagNameAnyNs(
+                    lineStringNode,
+                    "coordinates"
+                  )[0];
+                  if (coordsNode) {
+                    parsedPoints = this.parseCoordinatesValue(
+                      coordsNode.textContent
+                    );
+                    geometryType = "line";
+                  }
+                }
+              }
+              if (parsedPoints.length === 0) {
+                const gxCoordNodes = this.getElementsByTagNameAnyNs(
+                  placemark,
+                  "coord"
+                );
+                if (gxCoordNodes.length > 0) {
+                  parsedPoints = gxCoordNodes
+                    .map((node) =>
+                      this.parseCoordinateToken(node.textContent ?? "")
+                    )
+                    .filter(
+                      (value): value is google.maps.LatLngLiteral =>
+                        value !== null
+                    );
+                  geometryType = "line";
+                }
+              }
+              if (parsedPoints.length === 0) {
+                const genericCoordinatesNode = this.getElementsByTagNameAnyNs(
+                  placemark,
+                  "coordinates"
+                )[0];
+                if (genericCoordinatesNode) {
+                  parsedPoints = this.parseCoordinatesValue(
+                    genericCoordinatesNode.textContent
+                  );
+                  const parentName =
+                    genericCoordinatesNode.parentElement?.localName?.toLowerCase() ??
+                    "";
+                  if (parentName === "linearring" || parentName === "polygon") {
+                    geometryType = "polygon";
+                  } else if (parentName === "linestring") {
+                    geometryType = "line";
+                  }
+                }
+              }
+
+              const placemarkName =
+                this.getChildNode(placemark, "name")?.textContent || "Unnamed";
+              const placemarkDescription = (
+                this.getChildNode(placemark, "description")?.textContent ?? ""
+              ).trim();
+              const mediaUrls = this.extractImageUrlsFromDescription(
+                placemarkDescription
+              );
+
+              if (parsedPoints.length === 0) {
+                console.warn(
+                  "Skipping placemark with no valid coordinates:",
+                  placemarkName
+                );
+                return null;
+              }
+
+              let location: google.maps.LatLngLiteral;
+              let bounds: google.maps.LatLngLiteral[] | undefined;
+              if (geometryType === "polygon" || geometryType === "line") {
+                const latSum = parsedPoints.reduce((sum, p) => sum + p.lat, 0);
+                const lngSum = parsedPoints.reduce((sum, p) => sum + p.lng, 0);
+                location = {
+                  lat: latSum / parsedPoints.length,
+                  lng: lngSum / parsedPoints.length,
+                };
+                bounds = parsedPoints;
+              } else {
+                location = parsedPoints[0];
+              }
+
+              const spot: KMLSpot["spot"] = {
+                name: placemarkName || "Unnamed spot",
+                location: location!,
+                bounds: bounds,
+                description: placemarkDescription || undefined,
+                mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
+              };
+
+              let paths: Map<number, google.maps.LatLngLiteral[]> | undefined;
+              if (bounds) {
+                paths = new Map();
+                paths.set(0, bounds);
+              }
+
+              const kmlSpot: KMLSpot = {
+                spot: spot,
+                folder: folderName,
+                language: "en",
+                possibleDuplicateOf: [],
+                paths: paths,
+              };
+
+              return kmlSpot;
+            })
+            .filter((spot: KMLSpot | null): spot is KMLSpot => spot !== null);
+
         // Process Folders
-        const folderNodes = docNode.getElementsByTagName("Folder");
+        const folderNodes = this.getElementsByTagNameAnyNs(docNode, "Folder");
         if (folderNodes.length === 0) {
-          console.error("No folders found in KML file");
-        }
-
-        Array.from(folderNodes).forEach(
-          (folder: Element, folderIndex: number) => {
+          const rootPlacemarks = this.getElementsByTagNameAnyNs(
+            docNode,
+            "Placemark"
+          );
+          const fallbackFolderName =
+            docNameNode?.textContent?.trim() || "Untitled layer";
+          const parsedSpots = parsePlacemarks(rootPlacemarks, fallbackFolderName);
+          this.setupInfo!.spotCount += parsedSpots.length;
+          this.setupInfo!.folders.push({
+            name: fallbackFolderName,
+            spotCount: parsedSpots.length,
+            import: true,
+            type: undefined,
+            access: undefined,
+            amenities: {},
+          });
+          this._spotFolders![0] = parsedSpots;
+        } else {
+          Array.from(folderNodes).forEach((folder: Element, folderIndex: number) => {
             const folderName =
-              this.getChildNode(folder, "name")?.textContent ||
-              "Unnamed folder";
-            const placemarks = folder.getElementsByTagName("Placemark");
-            let numberOfSpotsinFolder = placemarks.length;
-
-            this.setupInfo!.spotCount += numberOfSpotsinFolder;
+              this.getChildNode(folder, "name")?.textContent || "Unnamed folder";
+            const placemarks = this.getElementsByTagNameAnyNs(
+              folder,
+              "Placemark"
+            );
+            const parsedSpots = parsePlacemarks(placemarks, folderName);
+            this.setupInfo!.spotCount += parsedSpots.length;
 
             // add the folder name to the folders.
             this.setupInfo!.folders.push({
               name: folderName,
-              spotCount: numberOfSpotsinFolder,
+              spotCount: parsedSpots.length,
               import: true,
               type: undefined,
               access: undefined,
@@ -225,162 +406,45 @@ export class KmlParserService {
             });
 
             // load the spots from the folder.
-            let kmlSpots: KMLSpot[] = Array.from(placemarks)
-              .map((placemark: Element) => {
-                let coordinates: string | null = null;
-                let isPolygon = false;
+            this._spotFolders![folderIndex] = parsedSpots;
+          });
 
-                // Try to find Point coordinates
-                const pointNode = placemark.getElementsByTagName("Point")[0];
-                const polygonNode =
-                  placemark.getElementsByTagName("Polygon")[0];
+          // Some KML files include placemarks at Document level instead of inside folders.
+          if (this.setupInfo!.spotCount === 0) {
+            const documentPlacemarks = this.getElementsByTagNameAnyNs(
+              docNode,
+              "Placemark"
+            );
+            const fallbackFolderName =
+              docNameNode?.textContent?.trim() || "Untitled layer";
+            const parsedSpots = parsePlacemarks(
+              documentPlacemarks,
+              fallbackFolderName
+            );
 
-                if (pointNode) {
-                  const coordsNode =
-                    pointNode.getElementsByTagName("coordinates")[0];
-                  if (coordsNode) {
-                    coordinates = coordsNode.textContent;
-                  }
-                } else if (polygonNode) {
-                  // Polygon -> outerBoundaryIs -> LinearRing -> coordinates
-                  const outerBoundary =
-                    polygonNode.getElementsByTagName("outerBoundaryIs")[0];
-                  if (outerBoundary) {
-                    const linearRing =
-                      outerBoundary.getElementsByTagName("LinearRing")[0];
-                    if (linearRing) {
-                      const coordsNode =
-                        linearRing.getElementsByTagName("coordinates")[0];
-                      if (coordsNode) {
-                        coordinates = coordsNode.textContent;
-                        isPolygon = true;
-                      }
-                    }
-                  }
-                }
-
-                const placemarkName =
-                  this.getChildNode(placemark, "name")?.textContent ||
-                  "Unnamed";
-                const placemarkDescription = (
-                  this.getChildNode(placemark, "description")?.textContent ?? ""
-                ).trim();
-                const mediaUrls = this.extractImageUrlsFromDescription(
-                  placemarkDescription
-                );
-
-                if (!coordinates) {
-                  console.warn(
-                    "Skipping placemark with no valid coordinates:",
-                    placemarkName
-                  );
-                  return null;
-                }
-
-                let location: google.maps.LatLngLiteral;
-                let bounds: google.maps.LatLngLiteral[] | undefined;
-
-                if (isPolygon) {
-                  // Parse all coordinates from the polygon string
-                  // Format: lon,lat,alt lon,lat,alt ...
-                  const rawCoords = coordinates.trim().split(/\s+/);
-                  const path: google.maps.LatLngLiteral[] = [];
-
-                  rawCoords.forEach((coordStr) => {
-                    const parts = coordStr.split(",");
-                    if (parts.length >= 2) {
-                      const lng = parseFloat(parts[0]);
-                      const lat = parseFloat(parts[1]);
-                      if (!isNaN(lat) && !isNaN(lng)) {
-                        path.push({ lat, lng });
-                      }
-                    }
-                  });
-
-                  if (path.length > 0) {
-                    // Calculate centroid
-                    const latSum = path.reduce((sum, p) => sum + p.lat, 0);
-                    const lngSum = path.reduce((sum, p) => sum + p.lng, 0);
-                    location = {
-                      lat: latSum / path.length,
-                      lng: lngSum / path.length,
-                    };
-                    bounds = path;
-                  } else {
-                    console.warn(
-                      "Could not parse polygon path:",
-                      placemarkName
-                    );
-                    return null;
-                  }
-                } else {
-                  // Parse single point
-                  // KML coordinates are lon,lat[,alt]
-                  const parts = coordinates.trim().split(",");
-                  if (parts.length >= 2) {
-                    const lng = parseFloat(parts[0]);
-                    const lat = parseFloat(parts[1]);
-                    location = { lat, lng };
-                  } else {
-                    // Fallback to regex if simple split fails (though split is safer for KML standard)
-                    const regex = /(-?\d+\.\d+),(-?\d+\.\d+)/;
-                    const matches = coordinates.match(regex);
-                    if (matches) {
-                      // matches[1] is usually first capture group (lon), matches[2] (lat)??
-                      // Wait, regex above captures group 1 and 2.
-                      // Standard KML is lon,lat.
-                      // The original code had: location = { lat: parseFloat(matches[2]), lng: parseFloat(matches[1]) };
-                      // Let's stick to the split logic which is clearer for "lon,lat"
-                      console.warn(
-                        "Could not parse coordinates for placemark (regex fallback failed):",
-                        placemarkName
-                      );
-                      return null;
-                    } else {
-                      console.warn(
-                        "Could not parse coordinates for placemark:",
-                        placemarkName
-                      );
-                      return null;
-                    }
-                  }
-                }
-
-                const spot: KMLSpot["spot"] = {
-                  name: placemarkName || "Unnamed spot",
-                  location: location!,
-                  bounds: bounds,
-                  description: placemarkDescription || undefined,
-                  mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
-                };
-
-                let paths: Map<number, google.maps.LatLngLiteral[]> | undefined;
-                if (bounds) {
-                  paths = new Map();
-                  paths.set(0, bounds);
-                }
-
-                let kmlSpot: KMLSpot = {
-                  spot: spot,
-                  folder: folderName,
-                  language: "en",
-                  possibleDuplicateOf: [],
-                  paths: paths,
-                };
-
-                return kmlSpot;
-              })
-              .filter((spot: KMLSpot | null) => spot !== null) as KMLSpot[];
-
-            this._spotFolders![folderIndex] = kmlSpots;
+            if (parsedSpots.length > 0) {
+              this.setupInfo!.spotCount = parsedSpots.length;
+              this.setupInfo!.folders = [
+                {
+                  name: fallbackFolderName,
+                  spotCount: parsedSpots.length,
+                  import: true,
+                  type: undefined,
+                  access: undefined,
+                  amenities: {},
+                },
+              ];
+              this._spotFolders = { 0: parsedSpots };
+            }
           }
-        );
+        }
 
-        const networkLinks = Array.from(
-          docNode.getElementsByTagName("NetworkLink")
-        )
+        const networkLinks = this.getElementsByTagNameAnyNs(docNode, "NetworkLink")
           .map((networkLink) => {
-            const hrefNode = networkLink.getElementsByTagName("href")[0];
+            const hrefNode = this.getElementsByTagNameAnyNs(
+              networkLink,
+              "href"
+            )[0];
             return hrefNode?.textContent?.trim() ?? "";
           })
           .filter((href) => href.length > 0);
@@ -399,10 +463,96 @@ export class KmlParserService {
   /**
    * Helper to get immediate child node by tag name (ignoring deep descendants)
    */
+  private getElementsByTagNameAnyNs(
+    root: Document | Element,
+    tagName: string
+  ): Element[] {
+    const byNamespace = Array.from(root.getElementsByTagNameNS("*", tagName));
+    if (byNamespace.length > 0) {
+      return byNamespace;
+    }
+    return Array.from(root.getElementsByTagName(tagName));
+  }
+
+  private parseCoordinateToken(
+    coordinateToken: string
+  ): google.maps.LatLngLiteral | null {
+    const csvParts = coordinateToken
+      .split(",")
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0);
+    if (csvParts.length >= 2) {
+      const lng = parseFloat(csvParts[0]);
+      const lat = parseFloat(csvParts[1]);
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        return { lat, lng };
+      }
+    }
+
+    const whitespaceParts = coordinateToken
+      .trim()
+      .split(/\s+/)
+      .filter((part) => part.length > 0);
+    if (whitespaceParts.length >= 2) {
+      const lng = parseFloat(whitespaceParts[0]);
+      const lat = parseFloat(whitespaceParts[1]);
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        return { lat, lng };
+      }
+    }
+
+    return null;
+  }
+
+  private parseCoordinatesValue(
+    coordinates: string | null | undefined
+  ): google.maps.LatLngLiteral[] {
+    const value = (coordinates ?? "").trim();
+    if (!value) {
+      return [];
+    }
+
+    const points: google.maps.LatLngLiteral[] = [];
+    if (value.includes(",")) {
+      value
+        .split(/\s+/)
+        .filter((token) => token.length > 0)
+        .forEach((token) => {
+          const parsed = this.parseCoordinateToken(token);
+          if (parsed) {
+            points.push(parsed);
+          }
+        });
+      return points;
+    }
+
+    const numericParts = value
+      .split(/\s+/)
+      .map((part) => parseFloat(part))
+      .filter((part) => !Number.isNaN(part));
+    if (numericParts.length < 2) {
+      return [];
+    }
+
+    const stride = numericParts.length % 3 === 0 ? 3 : 2;
+    for (let index = 0; index + 1 < numericParts.length; index += stride) {
+      const lng = numericParts[index];
+      const lat = numericParts[index + 1];
+      points.push({ lat, lng });
+    }
+
+    return points;
+  }
+
   private getChildNode(element: Element, tagName: string): Element | undefined {
     for (let i = 0; i < element.children.length; i++) {
-      if (element.children[i].tagName === tagName) {
-        return element.children[i];
+      const child = element.children[i];
+      if (
+        child.localName === tagName ||
+        child.tagName === tagName ||
+        child.tagName.endsWith(`:${tagName}`)
+      ) {
+        return child;
       }
     }
     return undefined;

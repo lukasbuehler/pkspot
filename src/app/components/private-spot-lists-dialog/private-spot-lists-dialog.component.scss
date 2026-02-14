@@ -26,6 +26,20 @@
   gap: 10px;
 }
 
+.pagination-controls {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-label {
+  min-width: 64px;
+  text-align: center;
+  color: var(--mat-sys-color-on-surface-variant, rgba(0, 0, 0, 0.7));
+}
+
 a {
   text-decoration: none;
   color: inherit;

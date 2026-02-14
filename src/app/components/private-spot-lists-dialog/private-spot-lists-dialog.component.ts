@@ -40,6 +40,8 @@ export interface PrivateSpotListsDialogData {
   ],
 })
 export class PrivateSpotListsDialogComponent implements OnInit {
+  private readonly _pageSize = 12;
+
   public data = inject<PrivateSpotListsDialogData>(MAT_DIALOG_DATA);
   public locale: LocaleCode = inject(LOCALE_ID);
 
@@ -47,6 +49,8 @@ export class PrivateSpotListsDialogComponent implements OnInit {
   private _dialogRef = inject(MatDialogRef<PrivateSpotListsDialogComponent>);
 
   selectedTab = signal<PrivateSpotListType>("saved");
+  savedPageIndex = signal<number>(0);
+  visitedPageIndex = signal<number>(0);
 
   savedSpots = signal<Spot[]>([]);
   visitedSpots = signal<Spot[]>([]);
@@ -54,13 +58,29 @@ export class PrivateSpotListsDialogComponent implements OnInit {
   isSavedLoading = signal<boolean>(false);
   isVisitedLoading = signal<boolean>(false);
 
-  private _savedLoaded = false;
-  private _visitedLoaded = false;
+  savedSpotIdsCount = 0;
+  visitedSpotIdsCount = 0;
+
+  private _savedSpotIds: SpotId[] = [];
+  private _visitedSpotIds: SpotId[] = [];
+
+  private _savedPagesCache = new Map<number, Spot[]>();
+  private _visitedPagesCache = new Map<number, Spot[]>();
+
+  private _savedLoadToken = 0;
+  private _visitedLoadToken = 0;
 
   ngOnInit(): void {
+    this._savedSpotIds = this._normalizeSpotIds(this.data.savedSpotIds || []);
+    this._visitedSpotIds = this._normalizeSpotIds(
+      this.data.visitedSpotIds || []
+    );
+    this.savedSpotIdsCount = this._savedSpotIds.length;
+    this.visitedSpotIdsCount = this._visitedSpotIds.length;
+
     const initialTab = this.data.initialTab === "visited" ? "visited" : "saved";
     this.selectedTab.set(initialTab);
-    void this._ensureLoaded(initialTab);
+    void this._ensureCurrentPageLoaded(initialTab);
   }
 
   closeDialog() {
@@ -70,68 +90,165 @@ export class PrivateSpotListsDialogComponent implements OnInit {
   onTabChange(event: MatTabChangeEvent) {
     const nextTab: PrivateSpotListType = event.index === 1 ? "visited" : "saved";
     this.selectedTab.set(nextTab);
-    void this._ensureLoaded(nextTab);
+    void this._ensureCurrentPageLoaded(nextTab);
   }
 
-  private async _ensureLoaded(type: PrivateSpotListType): Promise<void> {
-    if (type === "saved") {
-      if (this._savedLoaded || this.isSavedLoading()) return;
-      await this._loadSpots("saved", this.data.savedSpotIds || []);
-      this._savedLoaded = true;
+  getTotalPages(type: PrivateSpotListType): number {
+    const count =
+      type === "saved" ? this.savedSpotIdsCount : this.visitedSpotIdsCount;
+    return count > 0 ? Math.ceil(count / this._pageSize) : 0;
+  }
+
+  getPageLabel(type: PrivateSpotListType): string {
+    const totalPages = this.getTotalPages(type);
+    if (totalPages === 0) {
+      return "0 / 0";
+    }
+
+    return `${this._getCurrentPageIndex(type) + 1} / ${totalPages}`;
+  }
+
+  canGoToPreviousPage(type: PrivateSpotListType): boolean {
+    return this._getCurrentPageIndex(type) > 0;
+  }
+
+  canGoToNextPage(type: PrivateSpotListType): boolean {
+    return this._getCurrentPageIndex(type) + 1 < this.getTotalPages(type);
+  }
+
+  previousPage(type: PrivateSpotListType) {
+    if (!this.canGoToPreviousPage(type)) {
       return;
     }
 
-    if (this._visitedLoaded || this.isVisitedLoading()) return;
-    await this._loadSpots("visited", this.data.visitedSpotIds || []);
-    this._visitedLoaded = true;
-  }
-
-  private async _loadSpots(
-    type: PrivateSpotListType,
-    rawSpotIds: string[]
-  ): Promise<void> {
-    const spotIds = Array.from(
-      new Set((rawSpotIds || []).filter((id) => typeof id === "string" && id))
-    );
-
     if (type === "saved") {
-      this.isSavedLoading.set(true);
+      this.savedPageIndex.update((value) => value - 1);
     } else {
-      this.isVisitedLoading.set(true);
+      this.visitedPageIndex.update((value) => value - 1);
     }
 
+    void this._ensureCurrentPageLoaded(type);
+  }
+
+  nextPage(type: PrivateSpotListType) {
+    if (!this.canGoToNextPage(type)) {
+      return;
+    }
+
+    if (type === "saved") {
+      this.savedPageIndex.update((value) => value + 1);
+    } else {
+      this.visitedPageIndex.update((value) => value + 1);
+    }
+
+    void this._ensureCurrentPageLoaded(type);
+  }
+
+  private _normalizeSpotIds(rawSpotIds: string[]): SpotId[] {
+    const filtered = (rawSpotIds || []).filter(
+      (id): id is SpotId => typeof id === "string" && !!id
+    );
+    const seen = new Set<SpotId>();
+    const newestFirst: SpotId[] = [];
+
+    // Iterate from the end so newest items (last in private_data arrays) come first.
+    for (let i = filtered.length - 1; i >= 0; i -= 1) {
+      const spotId = filtered[i];
+      if (!seen.has(spotId)) {
+        seen.add(spotId);
+        newestFirst.push(spotId);
+      }
+    }
+
+    return newestFirst;
+  }
+
+  private _getCurrentPageIndex(type: PrivateSpotListType): number {
+    return type === "saved" ? this.savedPageIndex() : this.visitedPageIndex();
+  }
+
+  private _getSpotIds(type: PrivateSpotListType): SpotId[] {
+    return type === "saved" ? this._savedSpotIds : this._visitedSpotIds;
+  }
+
+  private _getPageCache(type: PrivateSpotListType): Map<number, Spot[]> {
+    return type === "saved" ? this._savedPagesCache : this._visitedPagesCache;
+  }
+
+  private _setLoading(type: PrivateSpotListType, loading: boolean) {
+    if (type === "saved") {
+      this.isSavedLoading.set(loading);
+    } else {
+      this.isVisitedLoading.set(loading);
+    }
+  }
+
+  private _setSpots(type: PrivateSpotListType, spots: Spot[]) {
+    if (type === "saved") {
+      this.savedSpots.set(spots);
+    } else {
+      this.visitedSpots.set(spots);
+    }
+  }
+
+  private async _ensureCurrentPageLoaded(type: PrivateSpotListType): Promise<void> {
+    const pageIndex = this._getCurrentPageIndex(type);
+    const pageCache = this._getPageCache(type);
+    const cachedPage = pageCache.get(pageIndex);
+
+    if (cachedPage) {
+      this._setSpots(type, cachedPage);
+      return;
+    }
+
+    const spotIds = this._getSpotIds(type);
+    const pageStart = pageIndex * this._pageSize;
+    const pageSpotIds = spotIds.slice(pageStart, pageStart + this._pageSize);
+    await this._loadSpotsPage(type, pageIndex, pageSpotIds);
+  }
+
+  private async _loadSpotsPage(
+    type: PrivateSpotListType,
+    pageIndex: number,
+    pageSpotIds: SpotId[]
+  ): Promise<void> {
+    const loadToken =
+      type === "saved" ? ++this._savedLoadToken : ++this._visitedLoadToken;
+    this._setLoading(type, true);
+
     try {
-      if (spotIds.length === 0) {
-        if (type === "saved") {
-          this.savedSpots.set([]);
-        } else {
-          this.visitedSpots.set([]);
-        }
+      if (pageSpotIds.length === 0) {
+        this._getPageCache(type).set(pageIndex, []);
+        this._setSpots(type, []);
         return;
       }
 
       const loaded = await Promise.allSettled(
-        spotIds.map((spotId) =>
-          this._spotsService.getSpotById(spotId as SpotId, this.locale)
-        )
+        pageSpotIds.map((spotId) => this._spotsService.getSpotById(spotId, this.locale))
       );
+
+      const isLatestToken =
+        type === "saved"
+          ? loadToken === this._savedLoadToken
+          : loadToken === this._visitedLoadToken;
+      if (!isLatestToken) {
+        return;
+      }
 
       const spots = loaded
         .filter((result): result is PromiseFulfilledResult<Spot> => {
           return result.status === "fulfilled";
         })
         .map((result) => result.value);
-
-      if (type === "saved") {
-        this.savedSpots.set(spots);
-      } else {
-        this.visitedSpots.set(spots);
-      }
+      this._getPageCache(type).set(pageIndex, spots);
+      this._setSpots(type, spots);
     } finally {
-      if (type === "saved") {
-        this.isSavedLoading.set(false);
-      } else {
-        this.isVisitedLoading.set(false);
+      const isLatestToken =
+        type === "saved"
+          ? loadToken === this._savedLoadToken
+          : loadToken === this._visitedLoadToken;
+      if (isLatestToken) {
+        this._setLoading(type, false);
       }
     }
   }

@@ -28,6 +28,9 @@ export interface ImportCreditSchema {
 export interface ImportLegalSchema {
   confirmed_rights: boolean;
   confirmed_external_image_rights: boolean;
+  stripping_consent_confirmed?: boolean;
+  non_competitor_confirmed?: boolean;
+  public_abandoned_clause_used?: boolean;
 }
 
 export interface ImportSchema {
@@ -46,6 +49,9 @@ export interface ImportSchema {
   legal: ImportLegalSchema;
 
   source_url?: string;
+  viewer_url?: string;
+  auto_update_url?: string;
+  stripping_mode?: boolean;
   allow_future_auto_update?: boolean;
 
   language?: string;

@@ -325,9 +325,11 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       setupRegexCtrl: [{ value: "", disabled: true }, []],
     });
     this.legalFormGroup = this._formBuilder.group({
-      rightsConfirmedCtrl: [false, Validators.requiredTrue],
-      externalImagesRightsConfirmedCtrl: [false],
-      allowFutureAutoUpdateCtrl: [false],
+      ownershipPermissionCtrl: [false],
+      publicAbandonedCtrl: [false],
+      strippingConsentCtrl: [false, Validators.requiredTrue],
+      nonCompetitorCtrl: [false, Validators.requiredTrue],
+      allowFutureAutoUpdateCtrl: [true],
     });
     this.creditsFormGroup = this._formBuilder.group({
       sourceNameCtrl: ["", Validators.required],
@@ -363,6 +365,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   regexEnabled: boolean = false;
   regexValue: RegExp | null = null;
   isParsingSetup = false;
+  legalValidationMessage = signal<string | null>(null);
 
   get importStats(): KMLImportStats {
     return this.kmlParserService.getImportStats();
@@ -483,6 +486,72 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       return v;
     }
     return `https://${v}`;
+  }
+
+  private _toViewerUrlFromKmlUrl(url: string): string {
+    try {
+      const parsed = new URL(url);
+      const isGoogleMyMapsKml =
+        parsed.hostname.includes("google.com") &&
+        parsed.pathname.includes("/maps/d/kml");
+      if (!isGoogleMyMapsKml) {
+        return url;
+      }
+
+      const mid = parsed.searchParams.get("mid");
+      if (!mid) {
+        return url;
+      }
+
+      return `https://www.google.com/maps/d/u/0/viewer?mid=${encodeURIComponent(
+        mid
+      )}`;
+    } catch {
+      return url;
+    }
+  }
+
+  private _extractFirstUrlFromText(
+    value: string | undefined
+  ): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    try {
+      const html = new DOMParser().parseFromString(value, "text/html");
+      const href = html.querySelector("a[href]")?.getAttribute("href");
+      const sanitizedHref = this._sanitizeUrl(href);
+      if (sanitizedHref) {
+        return sanitizedHref;
+      }
+    } catch {
+      // Fall back to plain text URL extraction.
+    }
+
+    const urlMatch = value.match(/https?:\/\/[^\s"'<>]+/i);
+    return this._sanitizeUrl(urlMatch?.[0]);
+  }
+
+  private _detectViewerUrl(): string | undefined {
+    const fromDescription = this._extractFirstUrlFromText(
+      this.kmlParserService.setupInfo?.description
+    );
+    if (fromDescription) {
+      return this._toViewerUrlFromKmlUrl(fromDescription);
+    }
+
+    const firstNetworkLink = this.kmlParserService.setupInfo?.networkLinks?.[0];
+    if (!firstNetworkLink) {
+      return undefined;
+    }
+
+    const normalized = this._sanitizeUrl(firstNetworkLink);
+    if (!normalized) {
+      return undefined;
+    }
+
+    return this._toViewerUrlFromKmlUrl(normalized);
   }
 
   private _spotKey(spot: KMLSpot): string {
@@ -667,14 +736,32 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       if (fileExtension === "kmz") {
         const zip = new JSZip();
         const zipContents = await zip.loadAsync(this.kmlUploadFile);
-        // Find the first .kml file
-        const kmlFilename = Object.keys(zipContents.files).find((filename) =>
-          filename.toLowerCase().endsWith(".kml")
+        // Some KMZ exports include a wrapper KML as first file and real placemarks in another KML.
+        // Prefer the KML with the highest placemark count.
+        const kmlFilenames = Object.keys(zipContents.files).filter(
+          (filename) =>
+            filename.toLowerCase().endsWith(".kml") &&
+            !zipContents.files[filename].dir
         );
 
-        if (kmlFilename) {
-          const data = await zipContents.files[kmlFilename].async("string");
-          await this.parseKmlString(data);
+        if (kmlFilenames.length > 0) {
+          let bestKmlData: string | null = null;
+          let bestPlacemarkCount = -1;
+
+          for (const filename of kmlFilenames) {
+            const candidateData = await zipContents.files[filename].async(
+              "string"
+            );
+            const placemarkCount = this._countPlacemarksInKml(candidateData);
+            if (placemarkCount > bestPlacemarkCount) {
+              bestPlacemarkCount = placemarkCount;
+              bestKmlData = candidateData;
+            }
+          }
+
+          if (bestKmlData) {
+            await this.parseKmlString(bestKmlData);
+          }
         } else {
           console.error("No KML file found inside KMZ!");
         }
@@ -686,6 +773,22 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       console.error("Error preparing import file:", error);
     } finally {
       this.isParsingSetup = false;
+    }
+  }
+
+  private _countPlacemarksInKml(kmlData: string): number {
+    try {
+      const xmlDoc = new DOMParser().parseFromString(kmlData, "text/xml");
+      if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+        return 0;
+      }
+      const byNamespace = xmlDoc.getElementsByTagNameNS("*", "Placemark");
+      if (byNamespace.length > 0) {
+        return byNamespace.length;
+      }
+      return xmlDoc.getElementsByTagName("Placemark").length;
+    } catch {
+      return 0;
     }
   }
 
@@ -717,6 +820,35 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         );
       }
 
+      const sourceNameControl = this.creditsFormGroup?.get("sourceNameCtrl");
+      if (
+        sourceNameControl &&
+        !sourceNameControl.value &&
+        this.kmlParserService.setupInfo?.name
+      ) {
+        sourceNameControl.setValue(this.kmlParserService.setupInfo.name);
+      }
+
+      const importIdControl = this.creditsFormGroup?.get("importIdCtrl");
+      if (importIdControl && !importIdControl.value) {
+        importIdControl.setValue(
+          this._makeReadableImportId(
+            (sourceNameControl?.value as string) ||
+              this.kmlParserService.setupInfo?.name ||
+              "",
+            ""
+          )
+        );
+      }
+
+      const sourceUrlControl = this.creditsFormGroup?.get("websiteUrlCtrl");
+      if (sourceUrlControl && !sourceUrlControl.value) {
+        const viewerUrl = this._detectViewerUrl();
+        if (viewerUrl) {
+          sourceUrlControl.setValue(viewerUrl);
+        }
+      }
+
       // parsing was successful
       this.stepperHorizontal.selected.completed = true;
       this.stepperHorizontal.next();
@@ -726,20 +858,90 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private _isHighVolumeImport(): boolean {
+    return this.importStats.spotCount >= 100;
+  }
+
+  private _isStrippingModeActive(): boolean {
+    if (!this.legalFormGroup) {
+      return false;
+    }
+    const ownershipPermission = !!this.legalFormGroup.get(
+      "ownershipPermissionCtrl"
+    )?.value;
+    const publicAbandoned = !!this.legalFormGroup.get("publicAbandonedCtrl")
+      ?.value;
+    return (
+      !ownershipPermission && publicAbandoned && !this._isHighVolumeImport()
+    );
+  }
+
+  private _validateLegalForCurrentImport(): string | null {
+    if (!this.legalFormGroup) {
+      return "Legal confirmation form is not ready.";
+    }
+
+    const ownershipPermission = !!this.legalFormGroup.get(
+      "ownershipPermissionCtrl"
+    )?.value;
+    const publicAbandoned = !!this.legalFormGroup.get("publicAbandonedCtrl")
+      ?.value;
+    const strippingConsent = !!this.legalFormGroup.get("strippingConsentCtrl")
+      ?.value;
+    const nonCompetitor = !!this.legalFormGroup.get("nonCompetitorCtrl")?.value;
+
+    if (!strippingConsent || !nonCompetitor) {
+      return "Please confirm stripping consent and the non-competitor clause.";
+    }
+
+    if (this._isHighVolumeImport()) {
+      if (!ownershipPermission) {
+        return 'For imports with 100+ spots, you must confirm creator/permission ownership. If you cannot, choose "Contact the Author" or "Submit a smaller, curated selection."';
+      }
+      return null;
+    }
+
+    if (!ownershipPermission && !publicAbandoned) {
+      return 'For imports below 100 spots, confirm ownership/permission or select "public/abandoned map".';
+    }
+
+    return null;
+  }
+
+  isSetupNextDisabled(): boolean {
+    if (
+      !this.setupFormGroup ||
+      !this.creditsFormGroup ||
+      !this.legalFormGroup
+    ) {
+      return true;
+    }
+    return this.setupFormGroup.invalid || this.creditsFormGroup.invalid;
+  }
+
   continueToVerification() {
-    if (!this.setupFormGroup || !this.creditsFormGroup || !this.legalFormGroup) {
+    if (
+      !this.setupFormGroup ||
+      !this.creditsFormGroup ||
+      !this.legalFormGroup
+    ) {
       return;
     }
-    if (
-      this.setupFormGroup.invalid ||
-      this.creditsFormGroup.invalid ||
-      this.legalFormGroup.invalid
-    ) {
+    if (this.setupFormGroup.invalid || this.creditsFormGroup.invalid) {
       this.setupFormGroup.markAllAsTouched();
       this.creditsFormGroup.markAllAsTouched();
       this.legalFormGroup.markAllAsTouched();
       return;
     }
+
+    const legalValidationError = this._validateLegalForCurrentImport();
+    if (legalValidationError) {
+      this.legalValidationMessage.set(legalValidationError);
+      this.legalFormGroup.markAllAsTouched();
+      return;
+    }
+    this.legalValidationMessage.set(null);
+
     if (this.kmlParserService.setupInfo) {
       this.kmlParserService.setupInfo.lang = this.setupFormGroup.get(
         "setupLangCtrl"
@@ -854,14 +1056,17 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         this._spotImportFailed();
         return;
       }
-      if (
-        !this.creditsFormGroup?.valid ||
-        !this.setupFormGroup?.valid ||
-        !this.legalFormGroup?.valid
-      ) {
+      if (!this.creditsFormGroup?.valid || !this.setupFormGroup?.valid) {
         this._spotImportFailed();
         return;
       }
+      const legalValidationError = this._validateLegalForCurrentImport();
+      if (legalValidationError) {
+        this.legalValidationMessage.set(legalValidationError);
+        this._spotImportFailed();
+        return;
+      }
+      this.legalValidationMessage.set(null);
 
       const includedItems = this.verificationItems().filter(
         (item) => item.include
@@ -871,6 +1076,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       );
       const kmlSpots = includedItems.map((item) => item.spot);
       const skippedSpots = excludedItems.map((item) => item.spot);
+      const strippingMode = this._isStrippingModeActive();
 
       const chunkSize = 25;
       const chunks = this._chunkSpots(kmlSpots, chunkSize);
@@ -909,8 +1115,12 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
                       ?.value as LocaleCode) ||
                       this.locale) ??
                     "en",
-                  description: kmlSpot.spot.description,
-                  media_urls: kmlSpot.spot.mediaUrls,
+                  description: strippingMode
+                    ? undefined
+                    : kmlSpot.spot.description,
+                  media_urls: strippingMode
+                    ? undefined
+                    : kmlSpot.spot.mediaUrls,
                   location: kmlSpot.spot.location,
                   bounds: kmlSpot.spot.bounds,
                   type,
@@ -975,6 +1185,22 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     const sourceUrl = this._sanitizeUrl(
       this.creditsFormGroup?.get("autoUpdateUrlCtrl")?.value
     );
+    const viewerUrl = this._sanitizeUrl(
+      this.creditsFormGroup?.get("websiteUrlCtrl")?.value
+    );
+    const autoUpdateUrl = this._sanitizeUrl(
+      this.creditsFormGroup?.get("autoUpdateUrlCtrl")?.value
+    );
+    const ownershipPermission = !!this.legalFormGroup?.get(
+      "ownershipPermissionCtrl"
+    )?.value;
+    const publicAbandoned = !!this.legalFormGroup?.get("publicAbandonedCtrl")
+      ?.value;
+    const strippingConsent = !!this.legalFormGroup?.get("strippingConsentCtrl")
+      ?.value;
+    const nonCompetitor =
+      !!this.legalFormGroup?.get("nonCompetitorCtrl")?.value;
+    const strippingMode = this._isStrippingModeActive();
     const allowFutureAutoUpdate = !!this.legalFormGroup?.get(
       "allowFutureAutoUpdateCtrl"
     )?.value;
@@ -1006,13 +1232,19 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         license: license,
       },
       legal: {
-        confirmed_rights: !!this.legalFormGroup?.get("rightsConfirmedCtrl")
-          ?.value,
-        confirmed_external_image_rights: !!this.legalFormGroup?.get(
-          "externalImagesRightsConfirmedCtrl"
-        )?.value,
+        confirmed_rights: ownershipPermission,
+        confirmed_external_image_rights: ownershipPermission,
+        stripping_consent_confirmed: strippingConsent,
+        non_competitor_confirmed: nonCompetitor,
+        public_abandoned_clause_used:
+          !ownershipPermission &&
+          publicAbandoned &&
+          !this._isHighVolumeImport(),
       },
       source_url: sourceUrl,
+      viewer_url: viewerUrl,
+      auto_update_url: autoUpdateUrl,
+      stripping_mode: strippingMode,
       allow_future_auto_update: allowFutureAutoUpdate,
       language: this.setupFormGroup?.get("setupLangCtrl")?.value,
       spot_count_total: spotsToImport.length + skippedSpots.length,
@@ -1074,6 +1306,18 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     const userToken = this._slugify(username || "user");
     const random = generateUUID().split("-")[0];
     return `${sourceToken}-${userToken}-${dateToken}-${random}`;
+  }
+
+  openViewerUrl() {
+    const viewerUrl = this._sanitizeUrl(
+      this.creditsFormGroup?.get("websiteUrlCtrl")?.value
+    );
+    if (!viewerUrl) {
+      return;
+    }
+    if (typeof window !== "undefined") {
+      window.open(viewerUrl, "_blank", "noopener,noreferrer");
+    }
   }
 
   private _spotImportSuccessful() {

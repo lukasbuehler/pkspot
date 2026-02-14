@@ -1,4 +1,4 @@
-import { isPlatformServer } from "@angular/common";
+import { DOCUMENT, isPlatformServer } from "@angular/common";
 import { inject, Injectable, LOCALE_ID, PLATFORM_ID } from "@angular/core";
 import { Meta, Title } from "@angular/platform-browser";
 import { Spot, LocalSpot } from "../../db/models/Spot";
@@ -7,6 +7,7 @@ import {
   LocalSpotChallenge,
 } from "../../db/models/SpotChallenge";
 import { LocaleCode } from "../../db/models/Interfaces";
+import { environment } from "../../environments/environment";
 
 export interface MetaTagData {
   title: string;
@@ -19,8 +20,11 @@ export interface MetaTagData {
   providedIn: "root",
 })
 export class MetaTagService {
+  private static readonly DEFAULT_IMAGE_PATH = "/assets/banner_1200x630.png";
+
   locale: LocaleCode = inject(LOCALE_ID);
   platformId = inject(PLATFORM_ID);
+  private document = inject(DOCUMENT);
 
   isServer: boolean;
 
@@ -34,7 +38,8 @@ export class MetaTagService {
     description: string,
     canonicalUrl?: string
   ) {
-    image_src = image_src.trim();
+    const normalizedImage =
+      this.normalizeAbsoluteUrl(image_src) || this.defaultImageUrl;
 
     // Title
     this.titleService.setTitle(title);
@@ -46,15 +51,27 @@ export class MetaTagService {
       name: "twitter:title",
       content: title,
     });
+    this.meta.updateTag({
+      property: "og:type",
+      content: "website",
+    });
+    this.meta.updateTag({
+      name: "twitter:card",
+      content: "summary_large_image",
+    });
 
     // Image
     this.meta.updateTag({
       property: "og:image",
-      content: image_src,
+      content: normalizedImage,
+    });
+    this.meta.updateTag({
+      property: "og:image:secure_url",
+      content: normalizedImage,
     });
     this.meta.updateTag({
       name: "twitter:image",
-      content: image_src,
+      content: normalizedImage,
     });
 
     // Description
@@ -70,9 +87,18 @@ export class MetaTagService {
       name: "twitter:description",
       content: description,
     });
+    this.meta.updateTag({
+      name: "robots",
+      content:
+        "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
+    });
 
     // Canonical URL
     if (canonicalUrl) {
+      this.meta.updateTag({
+        property: "og:url",
+        content: canonicalUrl,
+      });
       this.setCanonicalUrl(canonicalUrl);
     }
   }
@@ -81,22 +107,23 @@ export class MetaTagService {
    * Sets the canonical URL for the current page
    */
   public setCanonicalUrl(url: string): void {
-    // Skip DOM manipulation on server-side rendering
-    if (this.isServer) {
+    if (!this.document?.head) {
       return;
     }
 
     // Remove existing canonical tag if present
-    const existingCanonical = document.querySelector('link[rel="canonical"]');
+    const existingCanonical = this.document.querySelector(
+      'link[rel="canonical"]'
+    );
     if (existingCanonical) {
       existingCanonical.remove();
     }
 
     // Add new canonical tag
-    const link = document.createElement("link");
+    const link = this.document.createElement("link");
     link.rel = "canonical";
     link.href = url;
-    document.head.appendChild(link);
+    this.document.head.appendChild(link);
   }
 
   /**
@@ -104,8 +131,7 @@ export class MetaTagService {
    */
   public setSpotMetaTags(spot: Spot | LocalSpot, canonicalPath?: string): void {
     const title = this.buildSpotTitle(spot);
-    const image =
-      spot.previewImageSrc() ?? "https://pkspot.app/assets/banner_1200x630.png";
+    const image = this.getSpotSeoImage(spot);
     const localityString = spot.localityString().trim();
     const firstSentence = localityString
       ? `Parkour spot in ${localityString}.`
@@ -144,8 +170,7 @@ export class MetaTagService {
     const title = $localize`${challengeName} - ${spotName}`;
 
     const image =
-      challenge.spot.previewImageSrc() ??
-      "https://pkspot.app/assets/banner_1200x630.png";
+      this.getSpotSeoImage(challenge.spot) ?? this.defaultImageUrl;
 
     let description = $localize`Challenge at ${spotName}`;
 
@@ -181,7 +206,7 @@ export class MetaTagService {
     // TODO: Replace 'any' with proper Event type when you have it
     const title = event.name || "Event";
     const image =
-      event.image || "https://pkspot.app/assets/banner_1200x630.png";
+      event.image || this.defaultImageUrl;
     const description =
       event.description || "Join us for this exciting parkour event!";
 
@@ -199,7 +224,7 @@ export class MetaTagService {
     const title = `${user.displayName || user.name || "User"} - PK Spot`;
     const image =
       user.profilePicture?.getPreviewImageSrc() ||
-      "https://pkspot.app/assets/banner_1200x630.png";
+      this.defaultImageUrl;
     const displayName = user.displayName || "this user";
     const possessive = displayName.endsWith("s")
       ? `${displayName}'`
@@ -219,7 +244,7 @@ export class MetaTagService {
   public setPostMetaTags(post: any, canonicalPath?: string): void {
     // TODO: Replace 'any' with proper Post type when you have it
     const title = post.title || "Post - PK Spot";
-    const image = post.image || "https://pkspot.app/assets/banner_1200x630.png";
+    const image = post.image || this.defaultImageUrl;
     const description =
       post.description || post.content || "Check out this post on PK Spot.";
 
@@ -239,7 +264,7 @@ export class MetaTagService {
     canonicalPath?: string
   ): void {
     const title = `${pageTitle} - PK Spot`;
-    const image = pageImage || "https://pkspot.app/assets/banner_1200x630.png";
+    const image = pageImage || this.defaultImageUrl;
     const description = pageDescription;
 
     const canonical = canonicalPath
@@ -255,7 +280,7 @@ export class MetaTagService {
     const title = $localize`:@@pk.spotmap.title:PK Spot Map`;
     const description =
       "Discover, Train, Share. Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world.";
-    const image = "/assets/banner_1200x630.png";
+    const image = this.defaultImageUrl;
 
     const canonical = canonicalPath
       ? this.buildCanonicalUrl(canonicalPath)
@@ -270,7 +295,7 @@ export class MetaTagService {
     const title = "PK Spot - Discover, Train, Share";
     const description =
       "The ultimate platform for parkour and freerunning enthusiasts. Discover spots, plan training sessions, and share your achievements with the community.";
-    const image = "/assets/banner_1200x630.png";
+    const image = this.defaultImageUrl;
 
     const canonical = canonicalPath
       ? this.buildCanonicalUrl(canonicalPath)
@@ -291,6 +316,60 @@ export class MetaTagService {
   private buildCanonicalUrl(path: string): string {
     // Use the default locale (en) for canonical URLs to avoid duplicate content signals
     return `https://pkspot.app/en${path}`;
+  }
+
+  private get defaultImageUrl(): string {
+    return this.normalizeAbsoluteUrl(MetaTagService.DEFAULT_IMAGE_PATH);
+  }
+
+  private getSpotSeoImage(spot: Spot | LocalSpot): string {
+    const firstImageMedia = spot
+      .media()
+      .find((media) => media.type === "image" && !media.isReported);
+
+    const highResImage = firstImageMedia
+      ? this.getHighResImageFromMedia(firstImageMedia)
+      : undefined;
+    if (highResImage) {
+      return highResImage;
+    }
+
+    const previewImage = this.normalizeAbsoluteUrl(spot.previewImageSrc());
+    return previewImage || this.defaultImageUrl;
+  }
+
+  private getHighResImageFromMedia(media: unknown): string | undefined {
+    if (typeof media !== "object" || media === null) {
+      return undefined;
+    }
+    const candidate = media as { getSrc?: (size: number) => string };
+    if (typeof candidate.getSrc !== "function") {
+      return undefined;
+    }
+
+    try {
+      const imageUrl = candidate.getSrc(800);
+      return this.normalizeAbsoluteUrl(imageUrl) || undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private normalizeAbsoluteUrl(url: string): string {
+    const trimmed = url?.trim();
+    if (!trimmed) {
+      return "";
+    }
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    if (trimmed.startsWith("//")) {
+      return `https:${trimmed}`;
+    }
+    if (trimmed.startsWith("/")) {
+      return `${environment.baseUrl}${trimmed}`;
+    }
+    return `${environment.baseUrl}/${trimmed.replace(/^\/+/, "")}`;
   }
 
   private buildSpotTitle(spot: Spot | LocalSpot): string {
