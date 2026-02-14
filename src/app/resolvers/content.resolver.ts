@@ -4,6 +4,7 @@ import { LOCALE_ID } from "@angular/core";
 import { SpotsService } from "../services/firebase/firestore/spots.service";
 import { SpotChallengesService } from "../services/firebase/firestore/spot-challenges.service";
 import { SlugsService } from "../services/firebase/firestore/slugs.service";
+import { UsersService } from "../services/firebase/firestore/users.service";
 import { ConsentService } from "../services/consent.service";
 import { MetaTagService } from "../services/meta-tag.service";
 import { Spot } from "../../db/models/Spot";
@@ -41,6 +42,7 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
   const spotsService = inject(SpotsService);
   const challengesService = inject(SpotChallengesService);
   const slugsService = inject(SlugsService);
+  const usersService = inject(UsersService);
   const consentService = inject(ConsentService);
   const metaTagService = inject(MetaTagService);
   const locale = inject(LOCALE_ID);
@@ -66,7 +68,9 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
       return await resolveEventContent(route, result, metaTagService);
 
     case "user":
-      return await resolveUserContent(route, result, metaTagService);
+      return await resolveUserContent(route, result, metaTagService, {
+        usersService,
+      });
 
     case "post":
       return await resolvePostContent(route, result, metaTagService);
@@ -245,30 +249,31 @@ async function resolveEventContent(
 async function resolveUserContent(
   route: ActivatedRouteSnapshot,
   result: RouteContentData,
-  metaTagService: MetaTagService
+  metaTagService: MetaTagService,
+  services: {
+    usersService: UsersService;
+  }
 ): Promise<RouteContentData> {
   const userId = route.paramMap.get("userID");
 
   if (userId) {
     try {
-      // TODO: Load user data from Firestore
-      // const user = await userService.getUserById(userId);
-      // result.user = user;
-
-      // TODO: When social card generation is implemented, use:
-      // const socialCardUrl = `https://storage.googleapis.com/pkspot-social-cards/social-cards/profiles/${userId}.png`;
-      const socialCardUrl = "/assets/banner_1200x630.png"; // Fallback for now
-
-      metaTagService.setStaticPageMetaTags(
-        `${userId}'s Profile | PK Spot`,
-        "Check out this user's profile and achievements on PK Spot.",
-        socialCardUrl,
-        `/u/${userId}`
-      );
+      const user = await services.usersService.getUserByIdHttp(userId);
+      if (user) {
+        result.user = user;
+        metaTagService.setUserMetaTags(user, `/u/${userId}`);
+      } else {
+        metaTagService.setStaticPageMetaTags(
+          `${userId} Profile`,
+          "Check out this user's profile and achievements on PK Spot.",
+          "/assets/banner_1200x630.png",
+          `/u/${userId}`
+        );
+      }
     } catch (error) {
       console.error("Error loading user profile:", error);
       metaTagService.setStaticPageMetaTags(
-        "User Profile",
+        `${userId} Profile`,
         "Check out this user's profile and achievements on PK Spot.",
         "/assets/banner_1200x630.png",
         `/u/${userId}`

@@ -21,6 +21,16 @@ export interface MetaTagData {
 })
 export class MetaTagService {
   private static readonly DEFAULT_IMAGE_PATH = "/assets/banner_1200x630.png";
+  private static readonly SUPPORTED_LOCALES = [
+    "en",
+    "de",
+    "de-CH",
+    "fr",
+    "it",
+    "es",
+    "nl",
+  ] as const;
+  private static readonly DEFAULT_LOCALE = "en";
 
   locale: LocaleCode = inject(LOCALE_ID);
   platformId = inject(PLATFORM_ID);
@@ -99,8 +109,22 @@ export class MetaTagService {
         property: "og:url",
         content: canonicalUrl,
       });
-      this.setCanonicalUrl(canonicalUrl);
+      this.setCanonicalAndHreflang(canonicalUrl);
     }
+  }
+
+  /**
+   * Updates canonical + hreflang tags for a route path (e.g. "/map/slug").
+   * Useful for pages that don't set full SEO metadata through content-specific methods.
+   */
+  public syncCanonicalAndHreflangForPath(path: string): void {
+    const cleanPath = (path || "/").split("?")[0].split("#")[0] || "/";
+    const canonicalUrl = this.buildCanonicalUrl(cleanPath);
+    this.meta.updateTag({
+      property: "og:url",
+      content: canonicalUrl,
+    });
+    this.setCanonicalAndHreflang(canonicalUrl);
   }
 
   /**
@@ -124,6 +148,58 @@ export class MetaTagService {
     link.rel = "canonical";
     link.href = url;
     this.document.head.appendChild(link);
+  }
+
+  private setCanonicalAndHreflang(canonicalUrl: string): void {
+    this.setCanonicalUrl(canonicalUrl);
+    const canonicalPath = this.extractPathWithoutLocale(canonicalUrl);
+    this.setHreflangLinks(canonicalPath);
+  }
+
+  private setHreflangLinks(path: string): void {
+    if (!this.document?.head) {
+      return;
+    }
+
+    this.document
+      .querySelectorAll('link[rel="alternate"][hreflang]')
+      .forEach((link) => link.remove());
+
+    for (const locale of MetaTagService.SUPPORTED_LOCALES) {
+      const link = this.document.createElement("link");
+      link.rel = "alternate";
+      link.hreflang = locale;
+      link.href = `${environment.baseUrl}/${locale}${path}`;
+      this.document.head.appendChild(link);
+    }
+
+    const defaultLink = this.document.createElement("link");
+    defaultLink.rel = "alternate";
+    defaultLink.hreflang = "x-default";
+    defaultLink.href = `${environment.baseUrl}/${MetaTagService.DEFAULT_LOCALE}${path}`;
+    this.document.head.appendChild(defaultLink);
+  }
+
+  private extractPathWithoutLocale(url: string): string {
+    try {
+      const parsed = new URL(url);
+      const pathname = parsed.pathname || "/";
+
+      for (const locale of MetaTagService.SUPPORTED_LOCALES) {
+        const localePrefix = `/${locale}`;
+        if (pathname === localePrefix) {
+          return "/";
+        }
+        if (pathname.startsWith(`${localePrefix}/`)) {
+          const strippedPath = pathname.slice(localePrefix.length);
+          return strippedPath || "/";
+        }
+      }
+
+      return pathname;
+    } catch {
+      return "/";
+    }
   }
 
   /**
@@ -314,8 +390,29 @@ export class MetaTagService {
    * Builds a full canonical URL from a path
    */
   private buildCanonicalUrl(path: string): string {
-    // Use the default locale (en) for canonical URLs to avoid duplicate content signals
-    return `https://pkspot.app/en${path}`;
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    const canonicalLocale = this.getCanonicalLocale();
+    return `https://pkspot.app/${canonicalLocale}${normalizedPath}`;
+  }
+
+  private getCanonicalLocale(): string {
+    const rawLocale = this.locale?.trim();
+    if (!rawLocale) {
+      return MetaTagService.DEFAULT_LOCALE;
+    }
+    return this.normalizeLocale(rawLocale);
+  }
+
+  private normalizeLocale(locale: string): string {
+    const normalizedLocale = locale.replace("_", "-");
+    const [language, region] = normalizedLocale.split("-");
+    const normalizedLanguage = language.toLowerCase();
+
+    if (!region) {
+      return normalizedLanguage;
+    }
+
+    return `${normalizedLanguage}-${region.toUpperCase()}`;
   }
 
   private get defaultImageUrl(): string {

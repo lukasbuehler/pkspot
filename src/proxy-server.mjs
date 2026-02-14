@@ -70,6 +70,7 @@ function detectLanguage(req, res, next) {
 function run() {
   const port = process.env.PORT || 8080;
   const server = express();
+  const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
   server.use(compression());
 
@@ -94,8 +95,33 @@ function run() {
     next();
   });
 
+  const rootIconPaths = {
+    "/favicon.ico": "../browser/en/favicon.ico",
+    "/favicon-16x16.png": "../browser/en/assets/icons/favicon-16x16.png",
+    "/favicon-32x32.png": "../browser/en/assets/icons/favicon-32x32.png",
+    "/favicon-48x48.png": "../browser/en/assets/icons/favicon-48x48.png",
+    "/apple-touch-icon.png": "../browser/en/assets/icons/apple-touch-icon.png",
+  };
+
+  server.get(Object.keys(rootIconPaths), (req, res) => {
+    const iconRelativePath = rootIconPaths[req.path];
+    if (!iconRelativePath) {
+      return res.status(404).send(`Icon not found: ${req.path}`);
+    }
+
+    const iconPath = path.join(__dirname, iconRelativePath);
+    console.log(`Serving root icon: ${req.path} from ${iconPath}`);
+
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    return res.sendFile(iconPath, (err) => {
+      if (err) {
+        console.error(`Failed to serve root icon ${req.path}:`, err.message);
+        res.status(404).send(`Icon not found: ${req.path}`);
+      }
+    });
+  });
+
   server.get("/assets/*", (req, res) => {
-    const __dirname = path.dirname(new URL(import.meta.url).pathname);
     const assetPath = path.join(__dirname, "../browser/en", req.path);
     console.log(`Serving asset: ${req.path} from ${assetPath}`);
 
@@ -115,7 +141,6 @@ function run() {
   server.get("/:lang/assets/*", (req, res) => {
     const { lang } = req.params;
     if (supportedLanguageCodes.includes(lang)) {
-      const __dirname = path.dirname(new URL(import.meta.url).pathname);
       const assetPath = path.join(
         __dirname,
         `../browser/${lang}`,
@@ -144,7 +169,6 @@ function run() {
 
   // Serve .well-known files for iOS Universal Links and Android App Links
   server.get("/.well-known/*", (req, res) => {
-    const __dirname = path.dirname(new URL(import.meta.url).pathname);
     const wellKnownPath = path.join(
       __dirname,
       "../browser/en/assets",
@@ -172,7 +196,6 @@ function run() {
   });
 
   server.get("/robots.txt", (req, res) => {
-    const __dirname = path.dirname(new URL(import.meta.url).pathname);
     res.sendFile(path.join(__dirname, "../browser/en/robots.txt"));
   });
 

@@ -276,9 +276,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this._structuredDataService.addStructuredData("profile", personData);
 
         // Set meta tags with canonical URL
-        const canonicalPath = `/u/${userId}`;
+        const canonicalPath = `/u/${user.uid}`;
         this._metaTagService.setUserMetaTags(user, canonicalPath);
-        this._metaTagService.setUserMetaTags(this.user);
 
         this.homeSpotsObjects = [];
         if (this.user.homeSpots && this.user.homeSpots.length > 0) {

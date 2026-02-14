@@ -92,7 +92,8 @@ function generateSitemapXml(
     </image:image>`;
     }
 
-    // If a slug exists, add it as the primary URL with higher priority
+    // If a slug exists, use it as the only sitemap URL for this spot.
+    // Sitemaps should list canonical URLs only.
     if (slug) {
       const slugPath = `/map/${encodeURIComponent(slug)}`;
       xml += generateUrlWithHreflang(
@@ -101,17 +102,6 @@ function generateSitemapXml(
         "weekly",
         "0.9", // Higher priority for slug-based URL
         imageXml
-      );
-
-      // Also add ID-based URL with lower priority, with canonical link to slug version
-      const idPath = `/map/${spot.id}`;
-      xml += generateUrlWithHreflangWithCanonical(
-        idPath,
-        lastmod,
-        "weekly",
-        "0.6", // Lower priority
-        imageXml,
-        `${BASE_URL}/en${slugPath}` // Canonical URL points to slug version
       );
     } else {
       // No slug, use ID as main URL
@@ -149,58 +139,6 @@ function generateSitemapXml(
   }
 
   xml += `</urlset>`;
-  return xml;
-}
-
-/**
- * Generates a URL entry with hreflang annotations and canonical link
- */
-function generateUrlWithHreflangWithCanonical(
-  path: string,
-  lastmod: string,
-  changefreq: string,
-  priority: string,
-  additionalXml: string = "",
-  canonicalUrl: string
-): string {
-  let xml = "";
-
-  // Generate one <url> entry per locale
-  for (const locale of SUPPORTED_LOCALES) {
-    const fullUrl = `${BASE_URL}/${locale}${path}`;
-
-    xml += `  <url>
-    <loc>${fullUrl}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
-`;
-
-    // Add canonical link pointing to the preferred version (slug-based URL)
-    xml += `    <xhtml:link rel="canonical" href="${canonicalUrl}"/>
-`;
-
-    // Add hreflang links to all alternate language versions
-    for (const altLocale of SUPPORTED_LOCALES) {
-      const altUrl = `${BASE_URL}/${altLocale}${path}`;
-      const hreflangCode = getHreflangCode(altLocale);
-      xml += `    <xhtml:link rel="alternate" hreflang="${hreflangCode}" href="${altUrl}"/>
-`;
-    }
-
-    // Add x-default pointing to the default locale
-    xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/${DEFAULT_LOCALE}${path}"/>
-`;
-
-    // Add any additional XML (like images)
-    if (additionalXml) {
-      xml += additionalXml;
-    }
-
-    xml += `  </url>
-`;
-  }
-
   return xml;
 }
 
@@ -359,15 +297,15 @@ async function _generateAndUploadSitemap(): Promise<{
 
   // Calculate total URLs
   // Static pages: 1 per locale
-  // Spots with slug: 2 URLs per spot (slug + id) per locale
-  // Spots without slug: 1 URL per spot per locale
+  // Spots: 1 canonical URL per spot per locale (slug if available, otherwise ID)
   // Users: 1 per user per locale
-  const spotsWithSlugs = Array.from(slugMap.values()).filter((spotId) =>
-    spots.some((s) => s.id === spotId)
-  ).length;
+  const spotIdSet = new Set(spots.map((spot) => spot.id));
+  const spotsWithSlugs = new Set(
+    Array.from(slugMap.values()).filter((spotId) => spotIdSet.has(spotId))
+  ).size;
   const spotsWithoutSlugs = spots.length - spotsWithSlugs;
   const spotUrlCount =
-    (spotsWithSlugs * 2 + spotsWithoutSlugs) * SUPPORTED_LOCALES.length;
+    (spotsWithSlugs + spotsWithoutSlugs) * SUPPORTED_LOCALES.length;
   const staticPageUrls = STATIC_PAGES.length * SUPPORTED_LOCALES.length;
   const userUrls = users.length * SUPPORTED_LOCALES.length;
   const totalUrls = staticPageUrls + spotUrlCount + userUrls;

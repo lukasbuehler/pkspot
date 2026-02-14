@@ -64,9 +64,9 @@ import { AnalyticsService } from "./services/analytics.service";
 import { ConsentService } from "./services/consent.service";
 import { Capacitor } from "@capacitor/core";
 import { BackHandlingService } from "./services/back-handling.service";
-import { CanonicalService } from "./services/canonical.service";
 import { CheckInService } from "./services/check-in.service";
 import { SpotId } from "../db/schemas/SpotSchema";
+import { MetaTagService } from "./services/meta-tag.service";
 
 interface ButtonBase {
   name: string;
@@ -174,7 +174,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private matIconRegistry: MatIconRegistry,
     private _analyticsService: AnalyticsService,
     private _consentService: ConsentService,
-    private _canonicalService: CanonicalService
+    private _metaTagService: MetaTagService
   ) {
     this.matIconRegistry.setDefaultFontSetClass("material-symbols-rounded");
 
@@ -649,7 +649,9 @@ export class AppComponent implements OnInit, AfterViewInit {
             });
 
             // Update Canonical URL and Hreflang tags
-            this._canonicalService.setCanonicalURL();
+            this._metaTagService.syncCanonicalAndHreflangForPath(
+              nav.urlAfterRedirects
+            );
 
             // Start new engagement tracking for this page (browser-only)
             if (isBrowser && document.visibilityState === "visible") {

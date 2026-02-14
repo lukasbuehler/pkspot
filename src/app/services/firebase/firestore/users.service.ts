@@ -11,6 +11,7 @@ import { PrivateUserDataSchema } from "../../../../db/schemas/PrivateUserDataSch
 import { ConsentAwareService } from "../../consent-aware.service";
 import { StorageImage } from "../../../../db/models/Media";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { transformFirestoreData } from "../../../../scripts/Helpers";
 
 @Injectable({
   providedIn: "root",
@@ -69,6 +70,39 @@ export class UsersService extends ConsentAwareService {
         innerSub = null;
       };
     });
+  }
+
+  async getUserByIdHttp(userId: string): Promise<User | null> {
+    if (!userId) {
+      return null;
+    }
+
+    try {
+      const encodedUserId = encodeURIComponent(userId);
+      const response = await fetch(
+        `https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/users/${encodedUserId}`
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(
+          `Failed to fetch user ${userId}: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      if (!data?.fields) {
+        return null;
+      }
+
+      const userData = transformFirestoreData(data.fields) as UserSchema;
+      return new User(userId, userData);
+    } catch (error) {
+      console.error("UsersService HTTP fetch failed:", error);
+      return null;
+    }
   }
 
   getUserRefernceById(
