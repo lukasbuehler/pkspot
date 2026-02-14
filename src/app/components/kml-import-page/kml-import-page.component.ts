@@ -746,14 +746,22 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
         if (kmlFilenames.length > 0) {
           let bestKmlData: string | null = null;
+          let bestImportableSpotCount = -1;
           let bestPlacemarkCount = -1;
 
           for (const filename of kmlFilenames) {
             const candidateData = await zipContents.files[filename].async(
               "string"
             );
+            const importableSpotCount =
+              this._estimateImportableSpotsInKml(candidateData);
             const placemarkCount = this._countPlacemarksInKml(candidateData);
-            if (placemarkCount > bestPlacemarkCount) {
+            const isBetterCandidate =
+              importableSpotCount > bestImportableSpotCount ||
+              (importableSpotCount === bestImportableSpotCount &&
+                placemarkCount > bestPlacemarkCount);
+            if (isBetterCandidate) {
+              bestImportableSpotCount = importableSpotCount;
               bestPlacemarkCount = placemarkCount;
               bestKmlData = candidateData;
             }
@@ -782,14 +790,94 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
         return 0;
       }
-      const byNamespace = xmlDoc.getElementsByTagNameNS("*", "Placemark");
-      if (byNamespace.length > 0) {
-        return byNamespace.length;
-      }
-      return xmlDoc.getElementsByTagName("Placemark").length;
+      const placemarks = this._getElementsByTagNameAnyNsCaseInsensitive(
+        xmlDoc,
+        "Placemark"
+      );
+      return placemarks.length;
     } catch {
       return 0;
     }
+  }
+
+  private _estimateImportableSpotsInKml(kmlData: string): number {
+    try {
+      const xmlDoc = new DOMParser().parseFromString(kmlData, "text/xml");
+      if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+        return 0;
+      }
+
+      const placemarks = this._getElementsByTagNameAnyNsCaseInsensitive(
+        xmlDoc,
+        "Placemark"
+      );
+      let importableCount = 0;
+
+      placemarks.forEach((placemark) => {
+        const coordinatesNodes = this._getElementsByTagNameAnyNsCaseInsensitive(
+          placemark,
+          "coordinates"
+        );
+        const gxCoordNodes = this._getElementsByTagNameAnyNsCaseInsensitive(
+          placemark,
+          "coord"
+        );
+        const latitudeNode = this._getElementsByTagNameAnyNsCaseInsensitive(
+          placemark,
+          "latitude"
+        )[0];
+        const longitudeNode = this._getElementsByTagNameAnyNsCaseInsensitive(
+          placemark,
+          "longitude"
+        )[0];
+
+        const hasCoordinateText = coordinatesNodes.some((node) =>
+          this._hasNumericCoordinateText(node.textContent)
+        );
+        const hasGxCoordinateText = gxCoordNodes.some((node) =>
+          this._hasNumericCoordinateText(node.textContent)
+        );
+        const hasLatLng =
+          this._hasNumericCoordinateText(latitudeNode?.textContent) &&
+          this._hasNumericCoordinateText(longitudeNode?.textContent);
+
+        if (hasCoordinateText || hasGxCoordinateText || hasLatLng) {
+          importableCount += 1;
+        }
+      });
+
+      return importableCount;
+    } catch {
+      return 0;
+    }
+  }
+
+  private _getElementsByTagNameAnyNsCaseInsensitive(
+    root: Document | Element,
+    tagName: string
+  ): Element[] {
+    const byNamespace = Array.from(root.getElementsByTagNameNS("*", tagName));
+    if (byNamespace.length > 0) {
+      return byNamespace;
+    }
+
+    const byTag = Array.from(root.getElementsByTagName(tagName));
+    if (byTag.length > 0) {
+      return byTag;
+    }
+
+    const tagLower = tagName.toLowerCase();
+    return Array.from(root.getElementsByTagName("*")).filter(
+      (element) => (element.localName ?? element.tagName).toLowerCase() === tagLower
+    );
+  }
+
+  private _hasNumericCoordinateText(value: string | null | undefined): boolean {
+    const text = (value ?? "").trim();
+    if (!text) {
+      return false;
+    }
+    return /-?\d+(?:\.\d+)?/.test(text);
   }
 
   async parseKmlString(data: string): Promise<void> {

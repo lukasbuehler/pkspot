@@ -184,6 +184,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   hasAds = false;
   userId: string = "";
   policyAccepted: boolean = false;
+  private _lastTrackedAuthState: boolean | null = null;
+  private _lastConsentState: boolean | null = null;
 
   alainMode: boolean = false;
 
@@ -418,15 +420,23 @@ export class AppComponent implements OnInit, AfterViewInit {
     // Track when consent is granted so we can correlate accepters vs non-accepters
     this._consentService.consentGranted$.subscribe((granted) => {
       try {
+        const previousConsentState = this._lastConsentState;
+        const consentChangedToGranted =
+          previousConsentState === false && granted;
+        this._lastConsentState = granted;
+
         if (granted) {
           // set person + super-properties for consent so future events are labeled
           const version = this._consentService.CURRENT_TERMS_VERSION;
           this._analyticsService.setConsentProperties(true, version);
 
-          this._analyticsService.trackEvent("Consent Granted", {
-            source: "welcome_dialog_or_flow",
-            accepted_version: version,
-          });
+          if (consentChangedToGranted) {
+            this._analyticsService.trackEvent("Consent Granted", {
+              source: "welcome_dialog_or_flow",
+              accepted_version: version,
+              is_user_action: false,
+            });
+          }
 
           // If we're currently tracking engagement for a page, start sending pings
           if (this._engagement) {
@@ -711,23 +721,24 @@ export class AppComponent implements OnInit, AfterViewInit {
       (user) => {
         let isAuthenticated: boolean = false;
         if (user && user.uid) {
-          if (user.uid !== this.userId) {
-            this.userId = user.uid;
-            // Inform analytics about the identified user
-            try {
-              const props: Record<string, unknown> = {};
-              if (user?.data?.displayName)
-                props["display_name"] = user.data.displayName;
-              if (user?.email) props["email"] = user.email;
-              this._analyticsService.identifyUser(user.uid, props);
-              if (Object.keys(props).length > 0) {
-                this._analyticsService.setUserProperties(props);
-              }
-            } catch (e) {
-              console.error("Failed to identify user in analytics", e);
+          this.userId = user.uid;
+          try {
+            const props: Record<string, unknown> = {};
+            if (user?.data?.displayName) {
+              props["display_name"] = user.data.displayName;
             }
+            if (user?.email) {
+              props["email"] = user.email;
+            }
+            if (Object.keys(props).length > 0) {
+              this._analyticsService.setUserProperties(props);
+            }
+          } catch (e) {
+            console.error("Failed to update analytics user properties", e);
           }
           isAuthenticated = true;
+        } else {
+          this.userId = "";
         }
         this.isSignedIn.set(isAuthenticated);
 
@@ -752,16 +763,12 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.userPhoto.set(undefined);
         }
 
-        this._analyticsService.trackEvent("User Authenticated", {
-          authenticated: isAuthenticated,
-        });
-        // If the user logged out, reset analytics identity
-        if (!isAuthenticated) {
-          try {
-            this._analyticsService.resetUser();
-          } catch (e) {
-            console.error("Failed to reset analytics user", e);
-          }
+        if (this._lastTrackedAuthState !== isAuthenticated) {
+          this._analyticsService.trackEvent("User Authenticated", {
+            authenticated: isAuthenticated,
+            is_user_action: false,
+          });
+          this._lastTrackedAuthState = isAuthenticated;
         }
       },
       (error) => {

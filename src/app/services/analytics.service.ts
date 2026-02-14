@@ -24,6 +24,10 @@ export class AnalyticsService {
   private router = inject(Router);
   private _initialized = false;
   private readonly appVersion = version;
+  private readonly distinctIdStorageKey = "ph_distinct_id_v1";
+  private readonly initialReferrerStorageKey = "ph_initial_referrer_v1";
+  private readonly initialReferringDomainStorageKey =
+    "ph_initial_referring_domain_v1";
 
   constructor() {
     // no-op
@@ -148,7 +152,7 @@ export class AnalyticsService {
 
     // 1. Attempt to load persisted distinct_id
     let bootstrapConfig: any = {};
-    const persistedId = localStorage.getItem("ph_distinct_id_v1");
+    const persistedId = localStorage.getItem(this.distinctIdStorageKey);
     if (persistedId) {
       console.log(
         `[AnalyticsDebug] Bootstrapping with persisted ID: ${persistedId}`
@@ -160,6 +164,8 @@ export class AnalyticsService {
         },
       };
     }
+
+    const initialAttributionProps = this.getInitialAttributionProperties();
 
     posthog.init(apiKey, {
       api_host: host,
@@ -177,7 +183,10 @@ export class AnalyticsService {
         // 2. Persist the distinct_id for future sessions
         const currentId = ph.get_distinct_id();
         if (currentId) {
-          localStorage.setItem("ph_distinct_id_v1", currentId);
+          localStorage.setItem(this.distinctIdStorageKey, currentId);
+        }
+        if (Object.keys(initialAttributionProps).length > 0) {
+          ph.register(initialAttributionProps);
         }
       },
       before_send: (event) => {
@@ -194,6 +203,10 @@ export class AnalyticsService {
         return event;
       },
     });
+
+    if (Object.keys(initialAttributionProps).length > 0) {
+      posthog.register(initialAttributionProps);
+    }
   }
 
   /**
@@ -253,13 +266,18 @@ export class AnalyticsService {
       return;
     }
 
+    const normalizedProperties = this.normalizeEventProperties(
+      eventName,
+      properties
+    );
+
     if (this.isNative()) {
       CapacitorPostHog.capture({
         event: eventName,
-        properties: properties,
+        properties: normalizedProperties,
       });
     } else {
-      posthog.capture(eventName, properties);
+      posthog.capture(eventName, normalizedProperties);
     }
   }
 
@@ -314,7 +332,10 @@ export class AnalyticsService {
 
       // Make sure future events are marked unauthenticated
       try {
-        posthog.register({ authenticated: false });
+        posthog.register({
+          authenticated: false,
+          ...this.getInitialAttributionProperties(),
+        });
         if (posthog.people && typeof posthog.people.set === "function") {
           posthog.people.set({ authenticated: false });
         }
@@ -470,10 +491,75 @@ export class AnalyticsService {
       if (this.isNative()) {
         await this.registerNativeSuperProperty(props);
       } else {
-        posthog.register(props);
+        posthog.register({
+          ...props,
+          ...this.getInitialAttributionProperties(),
+        });
       }
     } catch (e) {
       // ignore
+    }
+  }
+
+  private normalizeEventProperties(
+    eventName: string,
+    properties?: Record<string, unknown>
+  ): Record<string, unknown> | undefined {
+    const normalized = { ...(properties ?? {}) };
+
+    if (eventName === "Engaged Ping") {
+      if (normalized["is_user_action"] === undefined) {
+        normalized["is_user_action"] = false;
+      }
+      if (normalized["event_type"] === undefined) {
+        normalized["event_type"] = "heartbeat";
+      }
+    }
+
+    return Object.keys(normalized).length > 0 ? normalized : undefined;
+  }
+
+  private getInitialAttributionProperties(): Record<string, string> {
+    if (!isPlatformBrowser(this._platformId)) {
+      return {};
+    }
+
+    try {
+      let initialReferrer = localStorage.getItem(this.initialReferrerStorageKey);
+      let initialReferringDomain = localStorage.getItem(
+        this.initialReferringDomainStorageKey
+      );
+
+      if (!initialReferrer || !initialReferringDomain) {
+        const rawReferrer = document.referrer?.trim() ?? "";
+        initialReferrer = rawReferrer.length > 0 ? rawReferrer : "$direct";
+        initialReferringDomain = "$direct";
+
+        if (rawReferrer.length > 0) {
+          try {
+            const parsedReferrer = new URL(rawReferrer);
+            initialReferringDomain =
+              parsedReferrer.hostname || initialReferringDomain;
+          } catch (e) {
+            // keep "$direct" fallback when referrer parsing fails
+          }
+        }
+
+        localStorage.setItem(this.initialReferrerStorageKey, initialReferrer);
+        localStorage.setItem(
+          this.initialReferringDomainStorageKey,
+          initialReferringDomain
+        );
+      }
+
+      return {
+        $initial_referrer: initialReferrer,
+        $initial_referring_domain: initialReferringDomain,
+        initial_referrer: initialReferrer,
+        initial_referring_domain: initialReferringDomain,
+      };
+    } catch (e) {
+      return {};
     }
   }
 

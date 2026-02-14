@@ -97,7 +97,7 @@
                   <span i18n>Freerunner since</span>&nbsp;
                   <strong>{{ user.startTimeDiffString }}</strong>
                 </div>
-                }
+                } @if (user.visitedSpotsCount) {
                 <div
                   class="mat-body-large profile-overview__tenure d-flex align-items-center"
                 >
@@ -106,6 +106,7 @@
                   >&nbsp;
                   <span i18n>spots visited</span>
                 </div>
+                }
               </div>
 
               @if (profileSocialLinks.length > 0) {

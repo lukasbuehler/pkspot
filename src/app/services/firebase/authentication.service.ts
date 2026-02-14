@@ -79,6 +79,8 @@ export class AuthenticationService extends ConsentAwareService {
     return this._auth;
   }
   private _authStateListenerInitialized = false;
+  private _lastAnalyticsIdentifiedUid: string | null = null;
+  private _analyticsHasIdentifiedUser = false;
 
   // Guard against concurrent account creation attempts
   private _isCreatingAccount = false;
@@ -317,18 +319,31 @@ export class AuthenticationService extends ConsentAwareService {
         this.user.providerId = fbUser.providerData[0]?.providerId;
       }
 
+      if (this.hasConsent() && this._lastAnalyticsIdentifiedUid !== user.uid) {
+        const identifyProps: Record<string, unknown> = {};
+        if (user.email) {
+          identifyProps["email"] = user.email;
+        }
+        const displayName = (user as FirebaseUser).displayName;
+        if (displayName) {
+          identifyProps["display_name"] = displayName;
+        }
+
+        this._analyticsService.identifyUser(
+          user.uid,
+          Object.keys(identifyProps).length > 0 ? identifyProps : undefined
+        );
+        this._lastAnalyticsIdentifiedUid = user.uid;
+      }
+      if (this.hasConsent()) {
+        this._analyticsHasIdentifiedUser = true;
+      }
+
       // Send basic auth state immediately (with Firebase user data)
       this.authState$.next(this.user);
 
       // Fetch user data from Firestore immediately (already consent-gated by executeWhenConsent wrapper)
       this._fetchUserData(user.uid, true);
-
-      // Identify user in PostHog
-      this.executeWithConsent(() => {
-        this._analyticsService.identifyUser(user.uid);
-      }).catch(() => {
-        // Ignore if no consent yet, it will be handled if consent is granted later via other flows or next session
-      });
     } else {
       // We don't have a firebase user, we are not signed in
       this._currentFirebaseUser = null;
@@ -339,8 +354,13 @@ export class AuthenticationService extends ConsentAwareService {
 
       this.user.uid = "";
 
+      if (this._analyticsHasIdentifiedUser) {
+        this._analyticsService.resetUser();
+      }
+      this._analyticsHasIdentifiedUser = false;
+      this._lastAnalyticsIdentifiedUid = null;
+
       this.authState$.next(null);
-      this._analyticsService.resetUser();
     }
   }
 

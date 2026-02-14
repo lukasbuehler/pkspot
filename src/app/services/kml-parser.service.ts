@@ -317,6 +317,23 @@ export class KmlParserService {
               );
 
               if (parsedPoints.length === 0) {
+                const latitudeNode = this.getElementsByTagNameAnyNs(
+                  placemark,
+                  "latitude"
+                )[0];
+                const longitudeNode = this.getElementsByTagNameAnyNs(
+                  placemark,
+                  "longitude"
+                )[0];
+                const lat = parseFloat(latitudeNode?.textContent ?? "");
+                const lng = parseFloat(longitudeNode?.textContent ?? "");
+                if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+                  parsedPoints = [{ lat, lng }];
+                  geometryType = "point";
+                }
+              }
+
+              if (parsedPoints.length === 0) {
                 console.warn(
                   "Skipping placemark with no valid coordinates:",
                   placemarkName
@@ -471,7 +488,15 @@ export class KmlParserService {
     if (byNamespace.length > 0) {
       return byNamespace;
     }
-    return Array.from(root.getElementsByTagName(tagName));
+    const byTag = Array.from(root.getElementsByTagName(tagName));
+    if (byTag.length > 0) {
+      return byTag;
+    }
+
+    const tagLower = tagName.toLowerCase();
+    return Array.from(root.getElementsByTagName("*")).filter(
+      (element) => (element.localName ?? element.tagName).toLowerCase() === tagLower
+    );
   }
 
   private parseCoordinateToken(
@@ -545,12 +570,17 @@ export class KmlParserService {
   }
 
   private getChildNode(element: Element, tagName: string): Element | undefined {
+    const tagLower = tagName.toLowerCase();
     for (let i = 0; i < element.children.length; i++) {
       const child = element.children[i];
+      const localName = child.localName?.toLowerCase();
+      const tagNameExact = child.tagName;
+      const tagNameLower = tagNameExact?.toLowerCase();
       if (
-        child.localName === tagName ||
-        child.tagName === tagName ||
-        child.tagName.endsWith(`:${tagName}`)
+        localName === tagLower ||
+        tagNameExact === tagName ||
+        tagNameLower === tagLower ||
+        tagNameLower?.endsWith(`:${tagLower}`)
       ) {
         return child;
       }
