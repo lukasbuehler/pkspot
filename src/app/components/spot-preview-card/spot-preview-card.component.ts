@@ -107,8 +107,6 @@ export class SpotPreviewCardComponent implements OnChanges {
   spotLocality?: string;
   media = computed<string[]>(() => {
     const spot = this.spotData();
-    // Add dependency on imageLoadError to trigger re-computation when error occurs
-    this.imageLoadError();
 
     if (!spot) {
       return [];
@@ -164,6 +162,17 @@ export class SpotPreviewCardComponent implements OnChanges {
       }
     }
     return mediaArr;
+  });
+  failedMediaSrcs = signal<string[]>([]);
+  primaryMediaSrc = computed<string | null>(() => {
+    const failed = new Set(this.failedMediaSrcs());
+    const media = this.media();
+    for (const src of media) {
+      if (!failed.has(src)) {
+        return src;
+      }
+    }
+    return null;
   });
 
   countryCode = computed(() => {
@@ -254,8 +263,6 @@ export class SpotPreviewCardComponent implements OnChanges {
   bookmarked = false;
   visited = false;
 
-  imageLoadError = signal(false);
-
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
     private _router: Router,
@@ -266,8 +273,7 @@ export class SpotPreviewCardComponent implements OnChanges {
   ngOnChanges() {
     const spot = this.spotData();
     if (spot) {
-      // Reset error state when spot changes
-      this.imageLoadError.set(false);
+      this.failedMediaSrcs.set([]);
 
       if (spot instanceof Spot || spot instanceof LocalSpot) {
         this.spotName = spot.name();
@@ -290,9 +296,21 @@ export class SpotPreviewCardComponent implements OnChanges {
   //   }
   // }
 
-  onImageError() {
-    console.log("Image load error");
-    this.imageLoadError.set(true);
+  onImageError(event?: Event) {
+    const target = event?.target as HTMLImageElement | null;
+    const failedSrc = target?.currentSrc || target?.src;
+    if (failedSrc) {
+      this.failedMediaSrcs.update((current) =>
+        current.includes(failedSrc) ? current : [...current, failedSrc]
+      );
+    }
+
+    console.log("Image load error", failedSrc || "");
+
+    if (!failedSrc || !this._isStreetViewUrl(failedSrc)) {
+      return;
+    }
+
     const spot = this.spotData();
     if (spot && spot instanceof Spot) {
       this.mapsApiService.reportStreetViewError(spot.id);
@@ -300,6 +318,10 @@ export class SpotPreviewCardComponent implements OnChanges {
       // Spot Preview Data
       this.mapsApiService.reportStreetViewError(spot.id);
     }
+  }
+
+  private _isStreetViewUrl(url: string): boolean {
+    return /maps\.googleapis\.com\/maps\/api\/streetview/i.test(url);
   }
 
   shareSpot() {

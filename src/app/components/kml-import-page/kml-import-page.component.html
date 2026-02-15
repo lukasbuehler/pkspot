@@ -1,473 +1,537 @@
 <div class="kml-import-page-container">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12 pt-5 pb-3">
-        <h1 class="mat-headline-4 text-center" i18n>
-          Spot Import from KML / KMZ
-        </h1>
-        <p class="mat-body" i18n>
-          Here you can upload KML or KMZ files to transfer spots to PK Spot for
-          free. Anyone can then see, share and review the uploaded spots.
-        </p>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <mat-horizontal-stepper
-          [linear]="true"
-          #stepperHorizontal
-          color="primary"
-        >
-          <!-- Icon overrides -->
-          <ng-template matStepperIcon="select">
-            <mat-icon>description</mat-icon>
-          </ng-template>
-          <ng-template matStepperIcon="setup">
-            <mat-icon>settings</mat-icon>
-          </ng-template>
-          <ng-template matStepperIcon="import">
-            <mat-icon>add</mat-icon>
-          </ng-template>
-          <ng-template matStepperIcon="verify">
-            <mat-icon>where_to_vote</mat-icon>
-          </ng-template>
-          <ng-template matStepperIcon="save">
-            <mat-icon>publish</mat-icon>
-          </ng-template>
-          <ng-template matStepperIcon="done">
-            <mat-icon>done</mat-icon>
-          </ng-template>
+  <div class="kml-import-shell">
+    <header class="kml-import-header">
+      <h1 class="mat-headline-4 m-0" i18n>Spot Import from KML / KMZ</h1>
+    </header>
 
-          <!-- Steps -->
-          <!-- Select step -->
-          <mat-step [stepControl]="uploadFormGroup!" state="select">
-            <ng-template matStepLabel>
-              @if(responsive.isDesktop()) {<span>Select</span>
-              }
-            </ng-template>
-            <form class="pt-3 px-3" [formGroup]="uploadFormGroup!">
-              <h3 class="mat-h3">Please select a KML file.</h3>
-              <app-media-upload
-                acceptString=".kml, .xml, .kmz"
-                [required]="true"
-                [uploadToStorage]="false"
-                (fileSelected)="onUploadMediaSelect($event)"
-              ></app-media-upload>
-              <div class="mt-5">
-                <button
-                  mat-raised-button
-                  color="accent"
-                  class="float-right"
-                  [disabled]="!kmlUploadFile || isParsingSetup"
-                  (click)="continueToSetup()"
-                >
-                  {{
-                    isParsingSetup ? "Preparing file..." : "Continue to setup"
-                  }}
-                </button>
+    <mat-horizontal-stepper [linear]="true" #stepperHorizontal color="primary">
+      <!-- Icon overrides -->
+      <ng-template matStepperIcon="select">
+        <mat-icon>description</mat-icon>
+      </ng-template>
+      <ng-template matStepperIcon="setup">
+        <mat-icon>settings</mat-icon>
+      </ng-template>
+      <ng-template matStepperIcon="import">
+        <mat-icon>add</mat-icon>
+      </ng-template>
+      <ng-template matStepperIcon="verify">
+        <mat-icon>where_to_vote</mat-icon>
+      </ng-template>
+      <ng-template matStepperIcon="save">
+        <mat-icon>publish</mat-icon>
+      </ng-template>
+      <ng-template matStepperIcon="done">
+        <mat-icon>done</mat-icon>
+      </ng-template>
+
+      <!-- Steps -->
+      <!-- Select step -->
+      <mat-step [stepControl]="uploadFormGroup!" state="select">
+        <ng-template matStepLabel>
+          @if(responsive.isDesktop()) {<span>Select</span>
+          }
+        </ng-template>
+        <form class="pt-3 px-3" [formGroup]="uploadFormGroup!">
+          <h3 class="mat-h3">Please select a KML file.</h3>
+          @if(!canUploadImport()) {
+          <p class="mat-body-small text-danger mb-2">
+            Please sign in to import KML/KMZ files.
+          </p>
+          }
+          @if(uploadAuthMessage(); as uploadAuthError) {
+          <p class="mat-body-small text-danger mb-2">
+            {{ uploadAuthError }}
+          </p>
+          }
+          @if(canUploadImport()) {
+          <app-media-upload
+            acceptString=".kml, .xml, .kmz"
+            [required]="true"
+            [uploadToStorage]="false"
+            (fileSelected)="onUploadMediaSelect($event)"
+          ></app-media-upload>
+          }
+          <div class="mt-5">
+            <button
+              mat-raised-button
+              color="accent"
+              class="float-right"
+              [disabled]="!kmlUploadFile || isParsingSetup || !canUploadImport()"
+              (click)="continueToSetup()"
+            >
+              {{ isParsingSetup ? "Preparing file..." : "Continue to setup" }}
+            </button>
+          </div>
+          @if( isParsingSetup && setupMediaValidationProgress(); as
+          mediaValidation ) {
+          <div class="mt-3">
+            <p class="mat-body-small mb-1">
+              {{ mediaValidation.stage }} ({{ mediaValidation.processed }} /
+              {{ mediaValidation.total }})
+            </p>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="
+                mediaValidation.total > 0
+                  ? (mediaValidation.processed / mediaValidation.total) * 100
+                  : 0
+              "
+            ></mat-progress-bar>
+          </div>
+          }
+        </form>
+      </mat-step>
+
+      <!-- Setup step -->
+      <mat-step [stepControl]="setupFormGroup!" state="setup">
+        <br />
+        <ng-template matStepLabel>
+          @if(responsive.isDesktop()) {<span>Import Setup</span>
+          }
+        </ng-template>
+
+        <div class="step-content">
+          @if(setupWarningMessage(); as setupWarning) {
+          <p class="mat-body-small text-danger mb-2">
+            {{ setupWarning }}
+          </p>
+          @if(setupDownloadKmlUrl(); as setupDownloadUrl) {
+          <div class="mb-3">
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="openSetupDownloadKmlUrl()"
+            >
+              <mat-icon class="mr-1">download</mat-icon>
+              Open Direct KML Download
+            </button>
+            <div class="mat-body-small text-muted mt-1">
+              {{ setupDownloadUrl }}
+            </div>
+          </div>
+          } } @if(setupMediaErrorMessage(); as mediaError) {
+          <p class="mat-body-small text-danger mb-2">
+            {{ mediaError }}
+          </p>
+          } @if(importStats.folderCount > 0) {
+          <div class="folder-stats border rounded p-2 mb-3">
+            <div class="mat-title-small mb-2">Folder stats</div>
+            <div class="mat-body-small text-muted mb-2">
+              {{ importStats.spotCount }} total spots,
+              {{ importStats.imageCount }} images
+            </div>
+            @for(folderStat of importStats.folders; track folderStat.name +
+            $index) {
+            <div
+              class="folder-stats-row d-flex align-items-center justify-content-between py-1"
+            >
+              <strong>{{ folderStat.name }}</strong>
+              <span class="mat-body-small text-muted">
+                {{ folderStat.spotCount }} spots,
+                {{ folderStat.imageCount }} images,
+                {{ folderStat.spotsWithImages }} spots with images
+              </span>
+            </div>
+            }
+          </div>
+          }
+          <p class="mat-body-1">
+            Review the folders and their content. Select which folders to
+            import.
+          </p>
+
+          <form [formGroup]="legalFormGroup!" class="setup-form mt-3">
+            <div class="d-flex flex-column gap-2 mb-2">
+              <div class="mat-body-medium">
+                1. Do you have explicit permission to import this data?
               </div>
-            </form>
-          </mat-step>
+              <mat-button-toggle-group
+                formControlName="permissionStatusCtrl"
+                [multiple]="false"
+                aria-label="Import permission"
+              >
+                <mat-button-toggle value="yes">Yes</mat-button-toggle>
+                <mat-button-toggle value="no">No</mat-button-toggle>
+              </mat-button-toggle-group>
 
-          <!-- Setup step -->
-          <mat-step [stepControl]="setupFormGroup!" state="setup">
-            <br />
-            <ng-template matStepLabel>
-              @if(responsive.isDesktop()) {<span>Import Setup</span>
-              }
-            </ng-template>
-
-            <div class="step-content">
-              @if(importStats.folderCount > 0) {
-              <div class="folder-stats border rounded p-2 mb-3">
-                <div class="mat-title-small mb-2">Folder stats</div>
-                <div class="mat-body-small text-muted mb-2">
-                  {{ importStats.spotCount }} total spots,
-                  {{ importStats.imageCount }} images
-                </div>
-                @for(folderStat of importStats.folders; track folderStat.name +
-                $index) {
-                <div
-                  class="folder-stats-row d-flex align-items-center justify-content-between py-1"
-                >
-                  <strong>{{ folderStat.name }}</strong>
-                  <span class="mat-body-small text-muted">
-                    {{ folderStat.spotCount }} spots,
-                    {{ folderStat.imageCount }} images,
-                    {{ folderStat.spotsWithImages }} spots with images
-                  </span>
-                </div>
-                }
+              @if(legalFormGroup?.get("permissionStatusCtrl")?.value === "no" &&
+              !isHighVolumeImport()) {
+              <div class="mat-body-medium mt-2">
+                1a. Is this an abandonware/public map import?
               </div>
+              <mat-button-toggle-group
+                formControlName="abandonwareStatusCtrl"
+                [multiple]="false"
+                aria-label="Abandonware import"
+              >
+                <mat-button-toggle value="yes">Yes</mat-button-toggle>
+                <mat-button-toggle value="no">No</mat-button-toggle>
+              </mat-button-toggle-group>
               }
-              <p class="mat-body-1">
-                Review the folders and their content. Select which folders to
-                import.
+
+              @if(legalFormGroup?.get("permissionStatusCtrl")?.value === "no" &&
+              isHighVolumeImport()) {
+              <p class="mat-body-small text-danger mt-2 mb-0">
+                Imports with more than 100 spots require explicit permission
+                from the author.
               </p>
+              }
 
-              <form [formGroup]="legalFormGroup!" class="setup-form mt-3">
-                <div class="d-flex flex-column gap-2 mb-2">
-                  <mat-checkbox formControlName="ownershipPermissionCtrl">
-                    I am the original creator of this data OR I have explicit
-                    permission from the author to share it.
-                  </mat-checkbox>
-                  @if(importStats.spotCount < 100) {
-                  <mat-checkbox formControlName="publicAbandonedCtrl">
-                    This is a public/abandoned map (anonymous/public good), and
-                    I accept automated stripping mode.
-                  </mat-checkbox>
-                  }
-                  <mat-checkbox formControlName="strippingConsentCtrl">
-                    I understand that any creative content (photos/descriptions)
-                    will be stripped to respect copyright and protect the
-                    database's integrity.
-                  </mat-checkbox>
-                  <mat-checkbox formControlName="nonCompetitorCtrl">
-                    I confirm this is a community resource/personal map and not
-                    a substantial extract from a competitor's proprietary
-                    database.
+              @if(hasDetectedImages()) {
+              <div class="mat-body-medium mt-2">
+                2. Do you own the pictures or have a license to grant PKSpot
+                rights to use them?
+              </div>
+              <mat-button-toggle-group
+                formControlName="imageRightsStatusCtrl"
+                [multiple]="false"
+                aria-label="Image rights"
+              >
+                <mat-button-toggle value="yes">Yes</mat-button-toggle>
+                <mat-button-toggle value="no">No</mat-button-toggle>
+              </mat-button-toggle-group>
+              }
+            </div>
+
+            @if(hasDetectedImages()) {
+            <p class="mat-body-small text-muted mb-2">
+              For abandonware/public imports, descriptions and images are
+              stripped automatically. If image rights are not confirmed, images
+              are stripped.
+            </p>
+            } @else {
+            <p class="mat-body-small text-muted mb-2">
+              No images were detected in this import file.
+            </p>
+            }
+            @if(legalValidationMessage(); as legalMessage) {
+            <p class="mat-body-small text-danger mb-2">
+              {{ legalMessage }}
+            </p>
+            }
+          </form>
+
+          <form [formGroup]="creditsFormGroup!" class="setup-form mt-3">
+            <h3 class="mat-title-medium">Credits and Attribution</h3>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Source / Community Name</mat-label>
+              <input matInput formControlName="sourceNameCtrl" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Import ID (optional)</mat-label>
+              <input matInput formControlName="importIdCtrl" />
+              <mat-hint
+                >Readable ID for source tracking (lowercase letters, numbers,
+                dashes)</mat-hint
+              >
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Attribution Text</mat-label>
+              <input matInput formControlName="attributionTextCtrl" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Viewer Map ID</mat-label>
+              <input matInput formControlName="viewerMapIdCtrl" />
+              <mat-hint
+                >Paste map ID or a full Google My Maps URL; we build the
+                viewer link automatically.</mat-hint
+              >
+            </mat-form-field>
+            <div class="mb-2">
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="openViewerUrl()"
+                [disabled]="!creditsFormGroup?.get('viewerMapIdCtrl')?.value"
+              >
+                <mat-icon class="mr-1">open_in_new</mat-icon>
+                Test Viewer Link
+              </button>
+            </div>
+
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Instagram handle</mat-label>
+              <input matInput formControlName="instagramHandleCtrl" />
+              <mat-hint
+                >Enter handle with or without @ (for example: `pkspot`).</mat-hint
+              >
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>License</mat-label>
+              <input matInput formControlName="licenseCtrl" />
+            </mat-form-field>
+          </form>
+
+          <form [formGroup]="setupFormGroup!" class="setup-form">
+            <mat-accordion multi>
+              @for(folder of kmlParserService.setupInfo?.folders; track $index)
+              {
+              <div class="folder-row border rounded p-2 mb-2">
+                <div class="d-flex align-items-center mb-2">
+                  <mat-checkbox
+                    class="flex-grow-1"
+                    [(ngModel)]="folder.import"
+                    [ngModelOptions]="{ standalone: true }"
+                  >
+                    {{ folder.name }} ({{ folder.spotCount }} spots)
                   </mat-checkbox>
                 </div>
-                @if(importStats.spotCount >= 100) {
-                <p class="mat-body-small text-muted mb-2">
-                  100+ spots: ownership/permission confirmation is mandatory.
-                </p>
-                } @else {
-                <p class="mat-body-small text-muted mb-2">
-                  Below 100 spots: you may use the public/abandoned option,
-                  which enables stripping mode.
-                </p>
-                } @if(legalValidationMessage(); as legalMessage) {
-                <p class="mat-body-small text-danger mb-2">
-                  {{ legalMessage }}
-                </p>
-                }
-              </form>
 
-              <form [formGroup]="creditsFormGroup!" class="setup-form mt-3">
-                <h3 class="mat-title-medium">Credits and Attribution</h3>
-                <mat-form-field appearance="outline" class="w-100">
-                  <mat-label>Source / Community Name</mat-label>
-                  <input matInput formControlName="sourceNameCtrl" />
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="w-100">
-                  <mat-label>Import ID (optional)</mat-label>
-                  <input matInput formControlName="importIdCtrl" />
-                  <mat-hint
-                    >Readable ID for source tracking (lowercase letters,
-                    numbers, dashes)</mat-hint
+                <div class="d-flex gap-2 flex-wrap">
+                  <mat-form-field
+                    appearance="outline"
+                    subscriptSizing="dynamic"
+                    style="width: 220px"
                   >
-                </mat-form-field>
+                    <mat-label>Type</mat-label>
+                    <mat-select [(value)]="folder.type">
+                      @for(type of SpotTypes | keyvalue; track type) {
+                      <mat-option [value]="type.value">
+                        <div class="d-flex align-items-center">
+                          <!-- <mat-icon class="mr-2">{{
+                                spotTypesIcons[type.value]
+                              }}</mat-icon> -->
+                          {{ spotTypesNames[type.value] }}
+                        </div>
+                      </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
 
-                <mat-form-field appearance="outline" class="w-100">
-                  <mat-label>Attribution Text</mat-label>
-                  <input matInput formControlName="attributionTextCtrl" />
-                </mat-form-field>
+                  <mat-form-field
+                    appearance="outline"
+                    subscriptSizing="dynamic"
+                    style="width: 220px"
+                  >
+                    <mat-label>Access</mat-label>
+                    <mat-select [(value)]="folder.access">
+                      @for(access of SpotAccess | keyvalue; track access) {
+                      <mat-option [value]="access.value">
+                        <div class="d-flex align-items-center">
+                          <!-- <mat-icon class="mr-2">{{
+                                spotAccessIcons[access.value]
+                              }}</mat-icon> -->
+                          {{ spotAccessNames[access.value] }}
+                        </div>
+                      </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
 
-                <mat-form-field appearance="outline" class="w-100">
-                  <mat-label>Viewer URL</mat-label>
-                  <input matInput formControlName="websiteUrlCtrl" />
-                </mat-form-field>
-                <div class="mb-2">
+                <div
+                  class="folder-amenities mt-1 d-flex align-items-center gap-2"
+                >
                   <button
                     mat-stroked-button
                     type="button"
-                    (click)="openViewerUrl()"
-                    [disabled]="!creditsFormGroup?.get('websiteUrlCtrl')?.value"
+                    (click)="openFolderAmenitiesDialog(folder)"
                   >
-                    <mat-icon class="mr-1">open_in_new</mat-icon>
-                    Test Viewer Link
+                    <mat-icon class="mr-1">tune</mat-icon>
+                    Amenities
                   </button>
+                  <span class="mat-body-small">{{
+                    getFolderAmenitySummary(folder)
+                  }}</span>
                 </div>
-
-                <mat-form-field appearance="outline" class="w-100">
-                  <mat-label>Instagram URL</mat-label>
-                  <input matInput formControlName="instagramUrlCtrl" />
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="w-100">
-                  <mat-label>License</mat-label>
-                  <input matInput formControlName="licenseCtrl" />
-                </mat-form-field>
-              </form>
-
-              <form [formGroup]="setupFormGroup!" class="setup-form">
-                <mat-accordion multi>
-                  @for(folder of kmlParserService.setupInfo?.folders; track
-                  $index) {
-                  <div class="folder-row border rounded p-2 mb-2">
-                    <div class="d-flex align-items-center mb-2">
-                      <mat-checkbox
-                        class="flex-grow-1"
-                        [(ngModel)]="folder.import"
-                        [ngModelOptions]="{ standalone: true }"
-                      >
-                        {{ folder.name }} ({{ folder.spotCount }} spots)
-                      </mat-checkbox>
-                    </div>
-
-                    <div class="d-flex gap-2 flex-wrap">
-                      <mat-form-field
-                        appearance="outline"
-                        subscriptSizing="dynamic"
-                        style="width: 220px"
-                      >
-                        <mat-label>Type</mat-label>
-                        <mat-select [(value)]="folder.type">
-                          @for(type of SpotTypes | keyvalue; track type) {
-                          <mat-option [value]="type.value">
-                            <div class="d-flex align-items-center">
-                              <!-- <mat-icon class="mr-2">{{
-                                spotTypesIcons[type.value]
-                              }}</mat-icon> -->
-                              {{ spotTypesNames[type.value] }}
-                            </div>
-                          </mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-
-                      <mat-form-field
-                        appearance="outline"
-                        subscriptSizing="dynamic"
-                        style="width: 220px"
-                      >
-                        <mat-label>Access</mat-label>
-                        <mat-select [(value)]="folder.access">
-                          @for(access of SpotAccess | keyvalue; track access) {
-                          <mat-option [value]="access.value">
-                            <div class="d-flex align-items-center">
-                              <!-- <mat-icon class="mr-2">{{
-                                spotAccessIcons[access.value]
-                              }}</mat-icon> -->
-                              {{ spotAccessNames[access.value] }}
-                            </div>
-                          </mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
-                    </div>
-
-                    <div
-                      class="folder-amenities mt-1 d-flex align-items-center gap-2"
-                    >
-                      <button
-                        mat-stroked-button
-                        type="button"
-                        (click)="openFolderAmenitiesDialog(folder)"
-                      >
-                        <mat-icon class="mr-1">tune</mat-icon>
-                        Amenities
-                      </button>
-                      <span class="mat-body-small">{{
-                        getFolderAmenitySummary(folder)
-                      }}</span>
-                    </div>
-                  </div>
-                  }
-                </mat-accordion>
-
-                <div class="setup-inputs mt-4">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Language</mat-label>
-                    <input
-                      type="text"
-                      matInput
-                      formControlName="setupLangCtrl"
-                      [matAutocomplete]="auto"
-                    />
-                    <mat-autocomplete
-                      #auto="matAutocomplete"
-                      [displayWith]="displayFn"
-                    >
-                      @for(lang of filteredLanguages | async; track lang) {
-                      <mat-option [value]="lang">
-                        <span>{{ languages[lang].emoji }} </span
-                        >{{ languages[lang].name_native }}
-                      </mat-option>
-                      }
-                    </mat-autocomplete>
-                    <mat-hint>Language of the imported spots</mat-hint>
-                  </mat-form-field>
-
-                  <mat-expansion-panel class="mt-3 mat-elevation-z0 border">
-                    <mat-expansion-panel-header>
-                      <mat-panel-title> Advanced options </mat-panel-title>
-                    </mat-expansion-panel-header>
-
-                    <mat-slide-toggle
-                      [checked]="regexEnabled"
-                      (change)="setRegexEnabled($event.checked)"
-                    >
-                      Use Regex
-                    </mat-slide-toggle>
-
-                    @if(regexEnabled) {
-                    <div class="mt-3">
-                      <app-regex-input
-                        (valueChange)="updateRegex($any($event))"
-                      ></app-regex-input>
-                      <p class="mat-body-small mt-2 mb-0">
-                        Use Regex to extract spot names from the KML description
-                        or name field.
-                      </p>
-                    </div>
-                    } @else {
-                    <p class="mat-body-small mt-2 mb-0">
-                      Enable Regex if your source needs custom parsing.
-                    </p>
-                    }
-                  </mat-expansion-panel>
-                </div>
-              </form>
-
-              <div class="actions mt-3 d-flex justify-content-between">
-                <button mat-button matStepperPrevious>Back</button>
-                <button
-                  mat-flat-button
-                  color="primary"
-                  [disabled]="isSetupNextDisabled()"
-                  (click)="continueToVerification()"
-                >
-                  Next
-                </button>
               </div>
-            </div>
-          </mat-step>
-
-          <mat-step state="verify">
-            <ng-template matStepLabel>
-              @if(responsive.isDesktop()) {<span>Verify</span>
               }
-            </ng-template>
-            <div class="step-content full-width">
-              <div class="verification-container row">
-                <div class="col-md-4 spots-list verify-left">
+            </mat-accordion>
+
+            <div class="setup-inputs mt-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Language</mat-label>
+                <input
+                  type="text"
+                  matInput
+                  formControlName="setupLangCtrl"
+                  [matAutocomplete]="auto"
+                />
+                <mat-autocomplete
+                  #auto="matAutocomplete"
+                  [displayWith]="displayFn"
+                >
+                  @for(lang of filteredLanguages | async; track lang) {
+                  <mat-option [value]="lang">
+                    <span>{{ languages[lang].emoji }} </span
+                    >{{ languages[lang].name_native }}
+                  </mat-option>
+                  }
+                </mat-autocomplete>
+                <mat-hint>Language of the imported spots</mat-hint>
+              </mat-form-field>
+
+              <mat-expansion-panel class="mt-3 mat-elevation-z0 border">
+                <mat-expansion-panel-header>
+                  <mat-panel-title> Advanced options </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <mat-slide-toggle
+                  [checked]="regexEnabled"
+                  (change)="setRegexEnabled($event.checked)"
+                >
+                  Use Regex
+                </mat-slide-toggle>
+
+                @if(regexEnabled) {
+                <div class="mt-3">
+                  <app-regex-input
+                    (valueChange)="updateRegex($any($event))"
+                  ></app-regex-input>
+                  <p class="mat-body-small mt-2 mb-0">
+                    Use Regex to extract spot names from the KML description or
+                    name field.
+                  </p>
+                </div>
+                } @else {
+                <p class="mat-body-small mt-2 mb-0">
+                  Enable Regex if your source needs custom parsing.
+                </p>
+                }
+              </mat-expansion-panel>
+            </div>
+          </form>
+
+          <div class="actions mt-3 d-flex justify-content-between">
+            <button mat-button matStepperPrevious>Back</button>
+            <button
+              mat-flat-button
+              color="primary"
+              [disabled]="isSetupNextDisabled()"
+              (click)="continueToVerification()"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </mat-step>
+
+      <mat-step state="verify">
+        <ng-template matStepLabel>
+          @if(responsive.isDesktop()) {<span>Verify</span>
+          }
+        </ng-template>
+        <div class="step-content full-width">
+          <div class="verification-container verification-layout">
+            <section class="spots-list verify-left">
+              <div
+                class="d-flex align-items-center justify-content-between mb-2"
+              >
+                <h3 class="h5 m-0">Verify Spots</h3>
+                <span class="mat-body-small"
+                  >{{ includedSpotCount() }} /
+                  {{ totalVerificationCount() }}</span
+                >
+              </div>
+              <div class="verify-groups">
+                @for(group of verificationGroups(); track group.folder) {
+                <div class="folder-group">
                   <div
-                    class="d-flex align-items-center justify-content-between mb-2"
+                    class="d-flex align-items-center justify-content-between folder-header"
                   >
-                    <h3 class="h5 m-0">Verify Spots</h3>
-                    <span class="mat-body-small"
-                      >{{ includedSpotCount() }} /
-                      {{ totalVerificationCount() }}</span
+                    <strong>{{ group.folder }}</strong>
+                    <span class="mat-body-small text-muted"
+                      >{{ group.includedCount }} /
+                      {{ group.items.length }}</span
                     >
                   </div>
-                  <div class="verify-groups">
-                    @for(group of verificationGroups(); track group.folder) {
-                    <div class="folder-group">
+                  <div class="d-flex flex-column gap-2">
+                    @for(item of group.items; track item.spot.importIndex ??
+                    $index) {
+                    <div
+                      class="verify-item border rounded"
+                      [class.active]="item.spot === selectedSpot()"
+                    >
                       <div
-                        class="d-flex align-items-center justify-content-between folder-header"
+                        class="d-flex align-items-center justify-content-start gap-1"
                       >
-                        <strong>{{ group.folder }}</strong>
-                        <span class="mat-body-small text-muted"
-                          >{{ group.includedCount }} /
-                          {{ group.items.length }}</span
-                        >
-                      </div>
-                      <div class="d-flex flex-column gap-2">
-                        @for(item of group.items; track item.spot.importIndex ??
-                        $index) {
                         <div
-                          class="verify-item border rounded"
-                          [class.active]="item.spot === selectedSpot()"
+                          class="d-flex flex-column align-items-center justify-content-center"
                         >
-                          <div class="d-flex align-items-start gap-1">
-                            <button
-                              mat-icon-button
-                              (click)="
-                                toggleSpotIncluded(item.spot);
-                                $event.stopPropagation()
-                              "
-                              [color]="item.include ? 'primary' : undefined"
-                            >
-                              <mat-icon>{{
-                                item.include
-                                  ? "check_circle"
-                                  : "remove_circle_outline"
-                              }}</mat-icon>
-                            </button>
-
-                            <button
-                              mat-button
-                              class="verify-item-button text-left flex-grow-1"
-                              (click)="selectVerificationSpot(item.spot)"
-                            >
-                              <span class="verify-item-number"
-                                >#{{ item.spot.importIndex ?? "?" }}</span
-                              >
-                              <app-spot-preview-card
-                                [spotData]="item.localSpot"
-                                [isCompact]="true"
-                                [hasBorder]="false"
-                                [showInfoButton]="false"
-                              ></app-spot-preview-card>
-                            </button>
-                          </div>
-                          @if(verificationSpotReasonText(item); as reason) {
-                          <div class="mat-body-small text-muted px-2 pb-2">
-                            {{ reason }}
-                          </div>
-                          }
+                          <button
+                            mat-icon-button
+                            (click)="
+                              toggleSpotIncluded(item.spot);
+                              $event.stopPropagation()
+                            "
+                            [color]="item.include ? 'primary' : undefined"
+                          >
+                            <mat-icon>{{
+                              item.include ? "check_circle" : "block"
+                            }}</mat-icon>
+                          </button>
+                          <span class="text-center"
+                            >#{{ item.spot.importIndex ?? "?" }}</span
+                          >
                         </div>
-                        }
+
+                        <app-spot-preview-card
+                          class="flex-grow-1 overflow-hidden"
+                          [spotData]="item.localSpot"
+                          [isCompact]="true"
+                          [hasBorder]="false"
+                          [showInfoButton]="false"
+                          (click)="selectVerificationSpot(item.spot)"
+                        ></app-spot-preview-card>
                       </div>
+                      @if(verificationSpotReasonText(item); as reason) {
+                      <div class="mat-body-small text-muted px-2 pb-2">
+                        {{ reason }}
+                      </div>
+                      }
                     </div>
                     }
                   </div>
                 </div>
-                <div class="col-md-8 map-preview">
-                  @if(selectedSpot()) {
-                  <div class="card h-100 d-flex flex-column">
-                    <div
-                      class="card-header d-flex justify-content-between align-items-center gap-2"
+                }
+              </div>
+            </section>
+            <section class="map-preview">
+              @if(selectedSpot()) {
+              <div class="card h-100 d-flex flex-column verify-preview-card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center gap-2"
+                >
+                  <div class="d-flex gap-2">
+                    <button
+                      mat-stroked-button
+                      [color]="previewMode() === 'map' ? 'primary' : undefined"
+                      (click)="previewMode.set('map')"
                     >
-                      <div class="d-flex gap-2">
-                        <button
-                          mat-stroked-button
-                          [color]="
-                            previewMode() === 'map' ? 'primary' : undefined
-                          "
-                          (click)="previewMode.set('map')"
-                        >
-                          Map
-                        </button>
-                        <button
-                          mat-stroked-button
-                          [color]="
-                            previewMode() === 'details' ? 'primary' : undefined
-                          "
-                          (click)="previewMode.set('details')"
-                        >
-                          Details
-                        </button>
-                      </div>
-                      <mat-checkbox
-                        [checked]="isSpotIncluded(selectedSpot()!)"
-                        (change)="
-                          setSpotIncluded(selectedSpot()!, $event.checked)
-                        "
-                      >
-                        Import this spot
-                      </mat-checkbox>
-                    </div>
-
-                    @if(previewMode() === "map") {
-                    <div class="card-body p-0 h-100 position-relative">
-                      <app-spot-map
-                        #spotMap
-                        [spots]="[]"
-                        [selectedSpot]="selectedVerificationSpot()"
-                        [isEditing]="true"
-                        [mapStyle]="'hybrid'"
-                        [priorityMarkers]="getSpotMarkers(includedSpots())"
-                        [boundRestriction]="importedSpotsBounds()"
-                        [polygons]="polygons()"
-                        class="w-100 h-100 d-block"
-                      ></app-spot-map>
-                    </div>
-                    } @else {
-                    <div class="card-body overflow-auto">
+                      Map
+                    </button>
+                    <button
+                      mat-stroked-button
+                      [color]="
+                        previewMode() === 'details' ? 'primary' : undefined
+                      "
+                      (click)="previewMode.set('details')"
+                    >
+                      Details
+                    </button>
+                  </div>
+                  <mat-checkbox
+                    [checked]="isSpotIncluded(selectedSpot()!)"
+                    (change)="setSpotIncluded(selectedSpot()!, $event.checked)"
+                  >
+                    Import this spot
+                  </mat-checkbox>
+                </div>
+                <mat-drawer-container
+                  class="verify-drawer-container flex-grow-1 bg-transparent"
+                >
+                  <mat-drawer
+                    position="end"
+                    [mode]="responsive.isDesktop() ? 'side' : 'over'"
+                    [opened]="previewMode() === 'details'"
+                    class="verify-drawer"
+                  >
+                    <div class="verify-drawer-content">
                       @if(selectedVerificationSpot()) {
                       <app-spot-preview-card
                         [spotData]="selectedVerificationSpot()"
@@ -486,27 +550,40 @@
                       <div class="mat-body-small text-muted">
                         Language: {{ selectedSpot()?.language }}
                       </div>
-                      <div class="mat-body-small text-muted">
-                        Type:
-                        {{
-                          selectedVerificationSpot()
-                            ? spotTypesNames[selectedVerificationSpot()!.type()]
-                            : "-"
-                        }}
-                      </div>
-                      <div class="mat-body-small text-muted">
-                        Access:
-                        {{
-                          selectedVerificationSpot()
-                            ? spotAccessNames[
-                                selectedVerificationSpot()!.access()
-                              ]
-                            : "-"
-                        }}
-                      </div>
+                      @if(selectedVerificationSpot()) {
+                      <mat-form-field appearance="outline" class="w-100 mt-2">
+                        <mat-label>Type</mat-label>
+                        <mat-select
+                          [value]="selectedVerificationSpot()!.type()"
+                          (valueChange)="setSelectedVerificationType($event)"
+                        >
+                          @for(type of SpotTypes | keyvalue; track type.key) {
+                          <mat-option [value]="type.value">
+                            {{ spotTypesNames[type.value] }}
+                          </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Access</mat-label>
+                        <mat-select
+                          [value]="selectedVerificationSpot()!.access()"
+                          (valueChange)="setSelectedVerificationAccess($event)"
+                        >
+                          @for(access of SpotAccess | keyvalue; track access.key)
+                          {
+                          <mat-option [value]="access.value">
+                            {{ spotAccessNames[access.value] }}
+                          </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                      }
                       <div class="mat-body-small text-muted">
                         Polygon bounds:
-                        {{ selectedSpot()?.spot?.bounds?.length ?? 0 }} points
+                        {{ selectedSpot()?.spot?.bounds?.length ?? 0 }}
+                        points
                       </div>
                       <div class="mat-body-small text-muted">
                         Duplicate candidates:
@@ -514,6 +591,17 @@
                       </div>
                       <div class="mat-body-small text-muted">
                         Folder: {{ selectedSpot()?.folder ?? "Ungrouped" }}
+                      </div>
+
+                      <div class="mt-2 mb-2">
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          (click)="openSelectedSpotAmenitiesDialog()"
+                        >
+                          <mat-icon class="mr-1">tune</mat-icon>
+                          Edit amenities
+                        </button>
                       </div>
 
                       @if(selectedAmenitiesEntries().length > 0) {
@@ -530,67 +618,134 @@
                       }
 
                       <h4 class="mat-title-small mt-3">Imported Media</h4>
+                      @if(selectedVerificationItem(); as selectedItem) {
+                      <p class="mat-body-small text-muted mb-2">
+                        {{ selectedItem.selectedMediaUrls.length }} /
+                        {{ selectedItem.originalMediaUrls.length }} images
+                        selected for import.
+                      </p>
+
+                      @if(selectedItem.originalMediaUrls.length > 0) {
+                      <div class="d-flex align-items-center gap-2 mb-2">
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          (click)="removeAllMediaFromSelectedSpotImport()"
+                          [disabled]="
+                            selectedItem.selectedMediaUrls.length === 0
+                          "
+                        >
+                          Remove all media from this spot
+                        </button>
+                        <button
+                          mat-button
+                          type="button"
+                          (click)="restoreAllMediaForSelectedSpotImport()"
+                          [disabled]="
+                            selectedItem.selectedMediaUrls.length ===
+                            selectedItem.originalMediaUrls.length
+                          "
+                        >
+                          Restore all
+                        </button>
+                      </div>
+
                       @if(selectedSpotMedia().length > 0) {
                       <app-img-carousel [media]="selectedSpotMedia()">
                       </app-img-carousel>
                       } @else {
                       <p class="mat-body-small text-muted">
-                        No media detected.
+                        No media selected for import.
                       </p>
                       }
-                    </div>
-                    }
-                  </div>
-                  } @else {
-                  <div
-                    class="d-flex justify-content-center align-items-center h-100 bg-light"
-                  >
-                    <p class="text-muted">Select a spot to preview</p>
-                  </div>
-                  }
-                </div>
-              </div>
 
-              <div class="actions mt-4 d-flex justify-content-between">
-                <button mat-button matStepperPrevious>Back</button>
-                <button
-                  mat-flat-button
-                  color="primary"
-                  [disabled]="includedSpotCount() === 0"
-                  (click)="importSpots()"
-                >
-                  Import {{ includedSpotCount() }} Spots
-                </button>
+                      <div class="d-flex flex-column mt-2">
+                        @for(mediaUrl of selectedItem.originalMediaUrls; track
+                        mediaUrl) {
+                        <mat-checkbox
+                          [checked]="
+                            selectedItem.selectedMediaUrls.includes(mediaUrl)
+                          "
+                          (change)="
+                            setSelectedSpotMediaIncluded(
+                              mediaUrl,
+                              $event.checked
+                            )
+                          "
+                        >
+                          <span class="mat-body-small">{{ mediaUrl }}</span>
+                        </mat-checkbox>
+                        }
+                      </div>
+                      } @else {
+                      <p class="mat-body-small text-muted">
+                        No media detected.
+                      </p>
+                      } }
+                    </div>
+                  </mat-drawer>
+
+                  <div class="verify-map-content">
+                    <app-spot-map
+                      #spotMap
+                      [spots]="[]"
+                      [selectedSpot]="selectedVerificationSpot()"
+                      [isEditing]="true"
+                      [mapStyle]="'hybrid'"
+                      [priorityMarkers]="getSpotMarkers(includedSpots())"
+                      [boundRestriction]="importedSpotsBounds()"
+                      [polygons]="polygons()"
+                      class="w-100 h-100 d-block"
+                    ></app-spot-map>
+                  </div>
+                </mat-drawer-container>
               </div>
-            </div>
-          </mat-step>
-          <mat-step [editable]="false" state="save">
-            <ng-template matStepLabel>
-              @if(responsive.isDesktop()) {<span>Save</span>
+              } @else {
+              <div
+                class="d-flex justify-content-center align-items-center h-100 bg-light"
+              >
+                <p class="text-muted">Select a spot to preview</p>
+              </div>
               }
-            </ng-template>
-            <div
-              class="d-flex flex-column justify-content-center align-items-center p-5"
+            </section>
+          </div>
+
+          <div class="actions mt-4 d-flex justify-content-between">
+            <button mat-button matStepperPrevious>Back</button>
+            <button
+              mat-flat-button
+              color="primary"
+              [disabled]="includedSpotCount() === 0"
+              (click)="importSpots()"
             >
-              <mat-spinner diameter="40"></mat-spinner>
-              <p class="mt-3">Importing spots...</p>
-            </div>
-          </mat-step>
-          <mat-step [editable]="false" state="done">
-            <ng-template matStepLabel>
-              @if(responsive.isDesktop()) {<span>Done</span>
-              }
-            </ng-template>
-            <p>You are now done.</p>
-            <div>
-              <button mat-button matStepperPrevious>Back</button>
-              <button mat-button (click)="stepperHorizontal.reset()">
-                Reset
-              </button>
-            </div>
-          </mat-step>
-        </mat-horizontal-stepper>
-      </div>
-    </div>
+              Import {{ includedSpotCount() }} Spots
+            </button>
+          </div>
+        </div>
+      </mat-step>
+      <mat-step [editable]="false" state="save">
+        <ng-template matStepLabel>
+          @if(responsive.isDesktop()) {<span>Save</span>
+          }
+        </ng-template>
+        <div
+          class="d-flex flex-column justify-content-center align-items-center p-5"
+        >
+          <mat-spinner diameter="40"></mat-spinner>
+          <p class="mt-3">Importing spots...</p>
+        </div>
+      </mat-step>
+      <mat-step [editable]="false" state="done">
+        <ng-template matStepLabel>
+          @if(responsive.isDesktop()) {<span>Done</span>
+          }
+        </ng-template>
+        <p>You are now done.</p>
+        <div>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button (click)="stepperHorizontal.reset()">Reset</button>
+        </div>
+      </mat-step>
+    </mat-horizontal-stepper>
   </div>
 </div>

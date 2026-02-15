@@ -33,6 +33,8 @@ import {
   KMLSpot,
 } from "../../services/kml-parser.service";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import {
   SpotAccess,
   SpotTypes,
@@ -42,7 +44,13 @@ import {
   SpotTypesNames,
 } from "../../../db/schemas/SpotTypeAndAccess";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
-import { firstValueFrom, map, Observable, startWith } from "rxjs";
+import {
+  combineLatest,
+  firstValueFrom,
+  map,
+  Observable,
+  startWith,
+} from "rxjs";
 import {
   MyRegex,
   RegexInputComponent,
@@ -84,6 +92,7 @@ import { ImportSchema } from "../../../db/schemas/ImportSchema";
 import { StorageService } from "../../services/firebase/storage.service";
 import { StorageBucket } from "../../../db/schemas/Media";
 import { MatDialog } from "@angular/material/dialog";
+import { MatSidenavModule } from "@angular/material/sidenav";
 import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
@@ -95,7 +104,11 @@ interface VerificationSpotItem {
   reason?: "duplicate" | "regex" | "manual";
   folder: string;
   localSpot: LocalSpot;
+  originalMediaUrls: string[];
+  selectedMediaUrls: string[];
 }
+
+type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
 
 @Component({
   selector: "app-kml-import-page",
@@ -139,8 +152,11 @@ interface VerificationSpotItem {
     MatSelect,
     KeyValuePipe,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
+    MatButtonToggleModule,
     SpotPreviewCardComponent,
     ImgCarouselComponent,
+    MatSidenavModule,
   ],
 })
 export class KmlImportPageComponent implements OnInit, AfterViewInit {
@@ -282,11 +298,12 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   });
 
   selectedSpotMedia = computed<AnyMedia[]>(() => {
+    const selectedItem = this.selectedVerificationItem();
     const selected = this.selectedSpot();
-    if (!selected?.spot.mediaUrls || selected.spot.mediaUrls.length === 0) {
+    if (!selectedItem || !selected || selectedItem.selectedMediaUrls.length === 0) {
       return [];
     }
-    return selected.spot.mediaUrls.map(
+    return selectedItem.selectedMediaUrls.map(
       (url) =>
         new ExternalImage(
           url,
@@ -325,18 +342,17 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       setupRegexCtrl: [{ value: "", disabled: true }, []],
     });
     this.legalFormGroup = this._formBuilder.group({
-      ownershipPermissionCtrl: [false],
-      publicAbandonedCtrl: [false],
-      strippingConsentCtrl: [false, Validators.requiredTrue],
-      nonCompetitorCtrl: [false, Validators.requiredTrue],
+      permissionStatusCtrl: [null as "yes" | "no" | null],
+      abandonwareStatusCtrl: [null as "yes" | "no" | null],
+      imageRightsStatusCtrl: ["no" as "yes" | "no"],
       allowFutureAutoUpdateCtrl: [true],
     });
     this.creditsFormGroup = this._formBuilder.group({
       sourceNameCtrl: ["", Validators.required],
       importIdCtrl: [""],
       attributionTextCtrl: [""],
-      websiteUrlCtrl: [""],
-      instagramUrlCtrl: [""],
+      viewerMapIdCtrl: [""],
+      instagramHandleCtrl: [""],
       licenseCtrl: ["CC BY-NC-SA 4.0", Validators.required],
       autoUpdateUrlCtrl: [""],
     });
@@ -350,6 +366,52 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         startWith(""),
         map((value) => this._filterLanguages(value || ""))
       );
+
+    const permissionStatusCtrl = this.legalFormGroup.get(
+      "permissionStatusCtrl"
+    );
+    const abandonwareStatusCtrl = this.legalFormGroup.get(
+      "abandonwareStatusCtrl"
+    );
+    const imageRightsStatusCtrl = this.legalFormGroup.get(
+      "imageRightsStatusCtrl"
+    );
+
+    if (permissionStatusCtrl && abandonwareStatusCtrl && imageRightsStatusCtrl) {
+      combineLatest([
+        permissionStatusCtrl.valueChanges.pipe(
+          startWith(permissionStatusCtrl.value)
+        ),
+        abandonwareStatusCtrl.valueChanges.pipe(
+          startWith(abandonwareStatusCtrl.value)
+        ),
+      ]).subscribe(() => this._syncLegalControlState());
+
+      this._syncLegalControlState();
+    }
+
+    const instagramHandleCtrl = this.creditsFormGroup.get("instagramHandleCtrl");
+    if (instagramHandleCtrl) {
+      instagramHandleCtrl.valueChanges.subscribe((value) => {
+        const normalized = this._normalizeInstagramHandle(value);
+        const normalizedValue = normalized ?? "";
+        if (value !== normalizedValue) {
+          instagramHandleCtrl.setValue(normalizedValue, { emitEvent: false });
+        }
+      });
+    }
+
+    const viewerMapIdCtrl = this.creditsFormGroup.get("viewerMapIdCtrl");
+    if (viewerMapIdCtrl) {
+      viewerMapIdCtrl.valueChanges.subscribe((value) => {
+        const normalized = this._extractViewerMapId(value);
+        const normalizedValue = normalized ?? "";
+        if (value !== normalizedValue) {
+          viewerMapIdCtrl.setValue(normalizedValue, { emitEvent: false });
+        }
+      });
+    }
+
   }
 
   private _filterLanguages(value: string): LocaleCode[] {
@@ -366,9 +428,91 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   regexValue: RegExp | null = null;
   isParsingSetup = false;
   legalValidationMessage = signal<string | null>(null);
+  uploadAuthMessage = signal<string | null>(null);
+  setupWarningMessage = signal<string | null>(null);
+  setupMediaErrorMessage = signal<string | null>(null);
+  setupDownloadKmlUrl = signal<string | null>(null);
+  setupMediaValidationProgress = signal<{
+    stage: string;
+    processed: number;
+    total: number;
+  } | null>(null);
 
   get importStats(): KMLImportStats {
     return this.kmlParserService.getImportStats();
+  }
+
+  canUploadImport(): boolean {
+    return !!(this._authService.isSignedIn && this._authService.user.uid);
+  }
+
+  private _ensureAuthenticatedForUpload(): boolean {
+    if (this.canUploadImport()) {
+      this.uploadAuthMessage.set(null);
+      return true;
+    }
+    this.uploadAuthMessage.set("Please sign in to import KML/KMZ files.");
+    return false;
+  }
+
+  isHighVolumeImport(): boolean {
+    return this.importStats.spotCount > 100;
+  }
+
+  hasDetectedImages(): boolean {
+    return this.importStats.imageCount > 0;
+  }
+
+  private _syncLegalControlState() {
+    if (!this.legalFormGroup) {
+      return;
+    }
+
+    const permissionStatusCtrl = this.legalFormGroup.get(
+      "permissionStatusCtrl"
+    );
+    const abandonwareStatusCtrl = this.legalFormGroup.get(
+      "abandonwareStatusCtrl"
+    );
+    const imageRightsStatusCtrl = this.legalFormGroup.get(
+      "imageRightsStatusCtrl"
+    );
+
+    if (!permissionStatusCtrl || !abandonwareStatusCtrl || !imageRightsStatusCtrl) {
+      return;
+    }
+
+    const permissionStatus = permissionStatusCtrl.value as "yes" | "no" | null;
+    const abandonwareStatus = abandonwareStatusCtrl.value as
+      | "yes"
+      | "no"
+      | null;
+
+    const allowAbandonware = permissionStatus === "no" && !this.isHighVolumeImport();
+    if (!allowAbandonware) {
+      if (abandonwareStatusCtrl.value !== null) {
+        abandonwareStatusCtrl.setValue(null, { emitEvent: false });
+      }
+      if (abandonwareStatusCtrl.enabled) {
+        abandonwareStatusCtrl.disable({ emitEvent: false });
+      }
+    } else if (abandonwareStatusCtrl.disabled) {
+      abandonwareStatusCtrl.enable({ emitEvent: false });
+    }
+
+    const isAbandonwarePath = allowAbandonware && abandonwareStatus === "yes";
+    const disableImageRights = isAbandonwarePath || !this.hasDetectedImages();
+    if (disableImageRights && imageRightsStatusCtrl.value !== "no") {
+      imageRightsStatusCtrl.setValue("no", { emitEvent: false });
+    }
+
+    if (disableImageRights) {
+      if (imageRightsStatusCtrl.enabled) {
+        imageRightsStatusCtrl.disable({ emitEvent: false });
+      }
+    } else if (imageRightsStatusCtrl.disabled) {
+      imageRightsStatusCtrl.enable({ emitEvent: false });
+    }
   }
 
   setRegexEnabled(enabled: boolean) {
@@ -420,6 +564,45 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       (value) => value !== undefined && value !== null
     ).length;
     return setCount === 0 ? "No template" : `${setCount} configured`;
+  }
+
+  setSelectedVerificationType(type: SpotTypes | null | undefined) {
+    if (!type) {
+      return;
+    }
+    const item = this.selectedVerificationItem();
+    if (!item) {
+      return;
+    }
+    item.localSpot.type.set(type);
+  }
+
+  setSelectedVerificationAccess(access: SpotAccess | null | undefined) {
+    if (!access) {
+      return;
+    }
+    const item = this.selectedVerificationItem();
+    if (!item) {
+      return;
+    }
+    item.localSpot.access.set(access);
+  }
+
+  openSelectedSpotAmenitiesDialog() {
+    const item = this.selectedVerificationItem();
+    if (!item) {
+      return;
+    }
+    const dialogRef = this._dialog.open(SpotAmenitiesDialogComponent, {
+      data: {
+        amenities: { ...(item.localSpot.amenities() ?? {}) },
+      },
+    });
+    dialogRef.afterClosed().subscribe((result?: AmenitiesMap) => {
+      if (result) {
+        item.localSpot.amenities.set(result);
+      }
+    });
   }
 
   setSpotIncluded(spot: KMLSpot, include: boolean) {
@@ -488,13 +671,103 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return `https://${v}`;
   }
 
+  private _normalizeInstagramHandle(
+    value: string | null | undefined
+  ): string | undefined {
+    const raw = (value ?? "").trim();
+    if (!raw) {
+      return undefined;
+    }
+
+    const normalizedRaw = raw.replace(/^@+/, "");
+
+    try {
+      if (/^https?:\/\//i.test(normalizedRaw)) {
+        const parsed = new URL(normalizedRaw);
+        if (parsed.hostname.toLowerCase().includes("instagram.com")) {
+          const firstPathSegment = parsed.pathname
+            .split("/")
+            .map((part) => part.trim())
+            .filter((part) => part.length > 0)[0];
+          if (firstPathSegment) {
+            return firstPathSegment.replace(/^@+/, "");
+          }
+        }
+      }
+    } catch {
+      // fall through to text parsing
+    }
+
+    const fromDomainMatch = normalizedRaw.match(
+      /instagram\.com\/@?([A-Za-z0-9._]+)/i
+    );
+    if (fromDomainMatch?.[1]) {
+      return fromDomainMatch[1];
+    }
+
+    return normalizedRaw.split("/")[0];
+  }
+
+  private _instagramUrlFromHandle(
+    value: string | null | undefined
+  ): string | undefined {
+    const handle = this._normalizeInstagramHandle(value);
+    if (!handle) {
+      return undefined;
+    }
+    return `https://instagram.com/${encodeURIComponent(handle)}`;
+  }
+
+  private _extractViewerMapId(value: string | null | undefined): string | undefined {
+    const raw = (value ?? "").trim();
+    if (!raw) {
+      return undefined;
+    }
+
+    try {
+      if (/^https?:\/\//i.test(raw)) {
+        const parsed = new URL(raw);
+        const mid = parsed.searchParams.get("mid");
+        if (mid) {
+          return mid.trim();
+        }
+      }
+    } catch {
+      // fall through to regex parsing
+    }
+
+    const midMatch = raw.match(/[?&]mid=([A-Za-z0-9_-]+)/i);
+    if (midMatch?.[1]) {
+      return midMatch[1];
+    }
+
+    const candidate = raw.replace(/^@+/, "").trim();
+    if (/^[A-Za-z0-9_-]{8,}$/.test(candidate)) {
+      return candidate;
+    }
+
+    return undefined;
+  }
+
+  private _viewerUrlFromMapId(
+    mapId: string | null | undefined
+  ): string | undefined {
+    const normalizedMapId = this._extractViewerMapId(mapId);
+    if (!normalizedMapId) {
+      return undefined;
+    }
+    return `https://www.google.com/maps/d/u/0/viewer?mid=${encodeURIComponent(
+      normalizedMapId
+    )}`;
+  }
+
   private _toViewerUrlFromKmlUrl(url: string): string {
     try {
       const parsed = new URL(url);
-      const isGoogleMyMapsKml =
-        parsed.hostname.includes("google.com") &&
-        parsed.pathname.includes("/maps/d/kml");
-      if (!isGoogleMyMapsKml) {
+      const isGoogleHost = parsed.hostname.includes("google.com");
+      const pathLower = parsed.pathname.toLowerCase();
+      const isMyMapsPath = pathLower.includes("/maps/d/");
+      if (!isGoogleHost || !isMyMapsPath) {
         return url;
       }
 
@@ -504,6 +777,23 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       }
 
       return `https://www.google.com/maps/d/u/0/viewer?mid=${encodeURIComponent(
+        mid
+      )}`;
+    } catch {
+      return url;
+    }
+  }
+
+  private _toDirectKmlUrl(url: string): string {
+    try {
+      const parsed = new URL(url);
+      const isGoogleHost = parsed.hostname.includes("google.com");
+      const pathLower = parsed.pathname.toLowerCase();
+      const mid = parsed.searchParams.get("mid");
+      if (!isGoogleHost || !pathLower.includes("/maps/d/") || !mid) {
+        return url;
+      }
+      return `https://www.google.com/maps/d/u/0/kml?mid=${encodeURIComponent(
         mid
       )}`;
     } catch {
@@ -560,9 +850,81 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     }`;
   }
 
+  private _normalizeMediaUrls(
+    mediaUrls: string[] | null | undefined
+  ): string[] {
+    return Array.from(
+      new Set((mediaUrls ?? []).map((url) => url.trim()).filter((url) => !!url))
+    );
+  }
+
+  private _setSelectedMediaUrlsForSpot(
+    spot: KMLSpot,
+    selectedMediaUrls: string[]
+  ) {
+    const key = this._spotKey(spot);
+    this.verificationItems.update((items) =>
+      items.map((item) => {
+        if (this._spotKey(item.spot) !== key) {
+          return item;
+        }
+        const normalizedSelected = this
+          ._normalizeMediaUrls(selectedMediaUrls)
+          .filter((url) => item.originalMediaUrls.includes(url));
+        const localSpot = this.kmlSpotToLocalSpot(item.spot, normalizedSelected)!;
+        localSpot.type.set(item.localSpot.type());
+        localSpot.access.set(item.localSpot.access());
+        localSpot.amenities.set({ ...(item.localSpot.amenities() ?? {}) });
+        return {
+          ...item,
+          selectedMediaUrls: normalizedSelected,
+          localSpot,
+        };
+      })
+    );
+  }
+
+  setSelectedSpotMediaIncluded(url: string, include: boolean) {
+    const selectedItem = this.selectedVerificationItem();
+    if (!selectedItem) {
+      return;
+    }
+    if (!selectedItem.originalMediaUrls.includes(url)) {
+      return;
+    }
+    const nextUrls = include
+      ? Array.from(new Set([...selectedItem.selectedMediaUrls, url]))
+      : selectedItem.selectedMediaUrls.filter(
+          (selectedUrl) => selectedUrl !== url
+        );
+    this._setSelectedMediaUrlsForSpot(selectedItem.spot, nextUrls);
+  }
+
+  removeAllMediaFromSelectedSpotImport() {
+    const selectedItem = this.selectedVerificationItem();
+    if (!selectedItem) {
+      return;
+    }
+    this._setSelectedMediaUrlsForSpot(selectedItem.spot, []);
+  }
+
+  restoreAllMediaForSelectedSpotImport() {
+    const selectedItem = this.selectedVerificationItem();
+    if (!selectedItem) {
+      return;
+    }
+    this._setSelectedMediaUrlsForSpot(
+      selectedItem.spot,
+      selectedItem.originalMediaUrls
+    );
+  }
+
   ngAfterViewInit(): void {}
 
   onUploadMediaSelect(file: File) {
+    if (!this._ensureAuthenticatedForUpload()) {
+      return;
+    }
     this.kmlUploadFile = file;
     this.continueToSetup();
   }
@@ -601,11 +963,17 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return this.importedSpotsBounds;
   }
 
-  kmlSpotToLocalSpot(kmlSpot: KMLSpot | null | undefined): LocalSpot | null {
+  kmlSpotToLocalSpot(
+    kmlSpot: KMLSpot | null | undefined,
+    mediaUrlsOverride?: string[]
+  ): LocalSpot | null {
     if (!kmlSpot) return null;
     let type = this.getSpotType(kmlSpot);
     const folderInfo = this.kmlParserService.setupInfo?.folders.find(
       (f) => f.name === kmlSpot.folder
+    );
+    const selectedMediaUrls = this._normalizeMediaUrls(
+      mediaUrlsOverride ?? kmlSpot.spot.mediaUrls
     );
 
     let localSpot = new LocalSpot(
@@ -614,13 +982,12 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         description: kmlSpot.spot.description
           ? { [kmlSpot.language]: kmlSpot.spot.description }
           : undefined,
-        media:
-          kmlSpot.spot.mediaUrls?.map((url) => ({
-            type: MediaType.Image,
-            src: url,
-            isInStorage: false,
-            origin: "other",
-          })) ?? undefined,
+        media: selectedMediaUrls.map((url) => ({
+          type: MediaType.Image,
+          src: url,
+          isInStorage: false,
+          origin: "other",
+        })),
         location: new GeoPoint(
           kmlSpot.spot.location.lat,
           kmlSpot.spot.location.lng
@@ -716,6 +1083,9 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   async continueToSetup() {
+    if (!this._ensureAuthenticatedForUpload()) {
+      return;
+    }
     if (!this.kmlUploadFile) {
       // the file doesn't exist
       console.error("The KML file was not set properly or is invalid!");
@@ -726,6 +1096,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     }
 
     this.isParsingSetup = true;
+    this.setupWarningMessage.set(null);
+    this.setupMediaErrorMessage.set(null);
+    this.setupDownloadKmlUrl.set(null);
+    this.setupMediaValidationProgress.set(null);
 
     try {
       const fileExtension = this.kmlUploadFile.name
@@ -768,7 +1142,31 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
           }
 
           if (bestKmlData) {
-            await this.parseKmlString(bestKmlData);
+            let kmlDataToParse = bestKmlData;
+            if (bestImportableSpotCount <= 0) {
+              const wrapperNetworkLinks =
+                this._extractNetworkLinksFromKmlData(bestKmlData);
+              const resolvedLinkedKml = await this._resolveNetworkLinkedKml(
+                bestKmlData
+              );
+              if (resolvedLinkedKml) {
+                kmlDataToParse = resolvedLinkedKml;
+              } else if (wrapperNetworkLinks.length > 0) {
+                console.warn(
+                  "KMZ contains only NetworkLink references and linked KML could not be fetched in-browser."
+                );
+                const firstWrapperLink = this._sanitizeUrl(wrapperNetworkLinks[0]);
+                if (firstWrapperLink) {
+                  this.setupDownloadKmlUrl.set(
+                    this._toDirectKmlUrl(firstWrapperLink)
+                  );
+                }
+                this.setupWarningMessage.set(
+                  "This KMZ is only a wrapper file. Open the direct KML link below, download it, and upload that .kml file."
+                );
+              }
+            }
+            await this.parseKmlString(kmlDataToParse);
           }
         } else {
           console.error("No KML file found inside KMZ!");
@@ -780,6 +1178,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     } catch (error) {
       console.error("Error preparing import file:", error);
     } finally {
+      this.setupMediaValidationProgress.set(null);
       this.isParsingSetup = false;
     }
   }
@@ -880,9 +1279,159 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return /-?\d+(?:\.\d+)?/.test(text);
   }
 
+  private _extractNetworkLinksFromKmlData(kmlData: string): string[] {
+    try {
+      const xmlDoc = new DOMParser().parseFromString(kmlData, "text/xml");
+      if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+        return [];
+      }
+
+      const networkLinks = this._getElementsByTagNameAnyNsCaseInsensitive(
+        xmlDoc,
+        "NetworkLink"
+      );
+      const links = networkLinks
+        .map((networkLink) =>
+          this._getElementsByTagNameAnyNsCaseInsensitive(networkLink, "href")[0]
+            ?.textContent?.trim()
+        )
+        .filter((href): href is string => !!href && href.length > 0);
+      return Array.from(new Set(links));
+    } catch {
+      return [];
+    }
+  }
+
+  private _toKmlUrlCandidates(url: string): string[] {
+    const sanitized = this._sanitizeUrl(url);
+    if (!sanitized) {
+      return [];
+    }
+
+    const candidates = new Set<string>([sanitized]);
+    try {
+      const parsed = new URL(sanitized);
+      const mid = parsed.searchParams.get("mid");
+      const isGoogleHost = parsed.hostname.includes("google.com");
+      const pathLower = parsed.pathname.toLowerCase();
+      const hasKmlPath = pathLower.includes("/kml");
+      const hasViewerPath = pathLower.includes("/viewer");
+
+      if (isGoogleHost && mid) {
+        if (hasViewerPath || !hasKmlPath) {
+          candidates.add(
+            `https://www.google.com/maps/d/u/0/kml?mid=${encodeURIComponent(
+              mid
+            )}`
+          );
+          candidates.add(
+            `https://www.google.com/maps/d/kml?mid=${encodeURIComponent(mid)}`
+          );
+        }
+
+        const forceKmlUrl = new URL(
+          hasKmlPath
+            ? parsed.toString()
+            : `https://www.google.com/maps/d/u/0/kml?mid=${encodeURIComponent(
+                mid
+              )}`
+        );
+        forceKmlUrl.searchParams.set("forcekml", "1");
+        candidates.add(forceKmlUrl.toString());
+      } else if (isGoogleHost && hasKmlPath) {
+        const withForceKml = new URL(parsed.toString());
+        withForceKml.searchParams.set("forcekml", "1");
+        candidates.add(withForceKml.toString());
+      }
+    } catch {
+      // Ignore malformed URL conversion errors.
+    }
+
+    return Array.from(candidates);
+  }
+
+  private async _fetchTextFromUrl(url: string): Promise<string | null> {
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        mode: "cors",
+        credentials: "omit",
+      });
+      if (!response.ok) {
+        return null;
+      }
+      const body = await response.text();
+      return body.trim().length > 0 ? body : null;
+    } catch (error) {
+      console.warn("Linked KML fetch blocked in browser:", error);
+      return null;
+    }
+  }
+
+  private async _resolveNetworkLinkedKml(
+    kmlData: string,
+    depth: number = 0
+  ): Promise<string | undefined> {
+    if (depth > 3) {
+      return undefined;
+    }
+
+    const networkLinks = this._extractNetworkLinksFromKmlData(kmlData);
+    for (const networkLink of networkLinks) {
+      const kmlUrlCandidates = this._toKmlUrlCandidates(networkLink);
+      for (const candidateUrl of kmlUrlCandidates) {
+        const fetchedKml = await this._fetchTextFromUrl(candidateUrl);
+        if (!fetchedKml) {
+          continue;
+        }
+
+        const importableSpotCount =
+          this._estimateImportableSpotsInKml(fetchedKml);
+        if (importableSpotCount > 0) {
+          return fetchedKml;
+        }
+
+        const resolvedNested = await this._resolveNetworkLinkedKml(
+          fetchedKml,
+          depth + 1
+        );
+        if (resolvedNested) {
+          return resolvedNested;
+        }
+      }
+    }
+
+    return undefined;
+  }
+
   async parseKmlString(data: string): Promise<void> {
     try {
       await this.kmlParserService.parseKMLFromString(data);
+      const mediaCleanup = await this._removeBrokenSetupMediaUrls();
+      if (mediaCleanup.restoredAfterValidation) {
+        this.setupMediaErrorMessage.set(
+          "Could not confidently verify image links, so all detected spot images were kept."
+        );
+      } else if (mediaCleanup.unknownUrlCount > 0) {
+        this.setupMediaErrorMessage.set(
+          `Verified ${mediaCleanup.checkedUrlCount} image links. Kept ${mediaCleanup.unknownUrlCount} unverified links and removed ${mediaCleanup.removedUrlCount} broken links.`
+        );
+      } else if (mediaCleanup.removedUrlCount > 0) {
+        const sampleList =
+          mediaCleanup.sampleRemovedUrls.length > 0
+            ? ` Examples: ${mediaCleanup.sampleRemovedUrls.join(", ")}`
+            : "";
+        this.setupMediaErrorMessage.set(
+          `Removed ${mediaCleanup.removedUrlCount} broken image URLs from ${mediaCleanup.affectedSpotCount} spots.${sampleList}`
+        );
+      } else {
+        this.setupMediaErrorMessage.set(null);
+      }
+
+      if (mediaCleanup.debugSummary) {
+        console.info("[KML import] setup media diagnostics", mediaCleanup.debugSummary);
+      }
+
       if (!this.stepperHorizontal || !this.stepperHorizontal.selected) {
         console.error("stepperHorizontal is not defined");
         return;
@@ -929,13 +1478,16 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         );
       }
 
-      const sourceUrlControl = this.creditsFormGroup?.get("websiteUrlCtrl");
-      if (sourceUrlControl && !sourceUrlControl.value) {
-        const viewerUrl = this._detectViewerUrl();
-        if (viewerUrl) {
-          sourceUrlControl.setValue(viewerUrl);
+      const viewerMapIdControl = this.creditsFormGroup?.get("viewerMapIdCtrl");
+      if (viewerMapIdControl && !viewerMapIdControl.value) {
+        const detectedViewerUrl = this._detectViewerUrl();
+        const detectedMapId = this._extractViewerMapId(detectedViewerUrl);
+        if (detectedMapId) {
+          viewerMapIdControl.setValue(detectedMapId);
         }
       }
+
+      this._syncLegalControlState();
 
       // parsing was successful
       this.stepperHorizontal.selected.completed = true;
@@ -946,22 +1498,31 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private _isHighVolumeImport(): boolean {
-    return this.importStats.spotCount >= 100;
+  private _hasDirectImportPermission(): boolean {
+    return (
+      this.legalFormGroup?.get("permissionStatusCtrl")?.value === "yes"
+    );
   }
 
-  private _isStrippingModeActive(): boolean {
+  private _isAbandonwareImport(): boolean {
+    return (
+      this.legalFormGroup?.get("permissionStatusCtrl")?.value === "no" &&
+      this.legalFormGroup?.get("abandonwareStatusCtrl")?.value === "yes" &&
+      !this.isHighVolumeImport()
+    );
+  }
+
+  private _shouldStripDescriptionsForImport(): boolean {
+    return !this._hasDirectImportPermission();
+  }
+
+  private _shouldStripMediaForImport(): boolean {
     if (!this.legalFormGroup) {
       return false;
     }
-    const ownershipPermission = !!this.legalFormGroup.get(
-      "ownershipPermissionCtrl"
-    )?.value;
-    const publicAbandoned = !!this.legalFormGroup.get("publicAbandonedCtrl")
-      ?.value;
-    return (
-      !ownershipPermission && publicAbandoned && !this._isHighVolumeImport()
-    );
+    const hasImageRights =
+      this.legalFormGroup.get("imageRightsStatusCtrl")?.value === "yes";
+    return this._shouldStripDescriptionsForImport() || !hasImageRights;
   }
 
   private _validateLegalForCurrentImport(): string | null {
@@ -969,28 +1530,25 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       return "Legal confirmation form is not ready.";
     }
 
-    const ownershipPermission = !!this.legalFormGroup.get(
-      "ownershipPermissionCtrl"
-    )?.value;
-    const publicAbandoned = !!this.legalFormGroup.get("publicAbandonedCtrl")
-      ?.value;
-    const strippingConsent = !!this.legalFormGroup.get("strippingConsentCtrl")
-      ?.value;
-    const nonCompetitor = !!this.legalFormGroup.get("nonCompetitorCtrl")?.value;
+    const permissionStatus = this.legalFormGroup.get("permissionStatusCtrl")
+      ?.value as "yes" | "no" | null;
+    const abandonwareStatus = this.legalFormGroup.get("abandonwareStatusCtrl")
+      ?.value as "yes" | "no" | null;
 
-    if (!strippingConsent || !nonCompetitor) {
-      return "Please confirm stripping consent and the non-competitor clause.";
+    if (!permissionStatus) {
+      return "Please answer whether you have permission to import this data.";
     }
 
-    if (this._isHighVolumeImport()) {
-      if (!ownershipPermission) {
-        return 'For imports with 100+ spots, you must confirm creator/permission ownership. If you cannot, choose "Contact the Author" or "Submit a smaller, curated selection."';
-      }
+    if (permissionStatus === "yes") {
       return null;
     }
 
-    if (!ownershipPermission && !publicAbandoned) {
-      return 'For imports below 100 spots, confirm ownership/permission or select "public/abandoned map".';
+    if (this.isHighVolumeImport()) {
+      return "Imports with more than 100 spots require explicit permission from the author.";
+    }
+
+    if (permissionStatus === "no" && abandonwareStatus !== "yes") {
+      return "Without explicit permission, you can proceed only for an abandonware/public map.";
     }
 
     return null;
@@ -1088,6 +1646,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         const regexApplied = !!this.kmlParserService.setupInfo?.regex;
         const items: VerificationSpotItem[] = uniqueSpots.map((spot) => {
           const include = includedKeys.has(this._spotKey(spot));
+          const initialMediaUrls = this._normalizeMediaUrls(spot.spot.mediaUrls);
           return {
             spot,
             include,
@@ -1098,10 +1657,34 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
                 ? "regex"
                 : undefined,
             folder: spot.folder ?? "Ungrouped",
-            localSpot: this.kmlSpotToLocalSpot(spot)!,
+            localSpot: this.kmlSpotToLocalSpot(spot, initialMediaUrls)!,
+            originalMediaUrls: initialMediaUrls,
+            selectedMediaUrls: [...initialMediaUrls],
           };
         });
         this.verificationItems.set(items);
+        const spotsWithMedia = items.filter(
+          (item) => (item.spot.spot.mediaUrls?.length ?? 0) > 0
+        ).length;
+        const totalMediaRefs = items.reduce(
+          (sum, item) => sum + (item.spot.spot.mediaUrls?.length ?? 0),
+          0
+        );
+        const localSpotMediaEntries = items.reduce(
+          (sum, item) => sum + item.localSpot.media().length,
+          0
+        );
+        const totalSelectedMediaRefs = items.reduce(
+          (sum, item) => sum + item.selectedMediaUrls.length,
+          0
+        );
+        console.info("[KML import] verification media diagnostics", {
+          verificationItems: items.length,
+          spotsWithMedia,
+          totalMediaRefs,
+          localSpotMediaEntries,
+          totalSelectedMediaRefs,
+        });
 
         const firstIncluded = items.find((item) => item.include)?.spot;
         this.selectedSpot.set(firstIncluded ?? items[0].spot);
@@ -1164,10 +1747,11 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       );
       const kmlSpots = includedItems.map((item) => item.spot);
       const skippedSpots = excludedItems.map((item) => item.spot);
-      const strippingMode = this._isStrippingModeActive();
+      const stripDescriptions = this._shouldStripDescriptionsForImport();
+      const stripMedia = this._shouldStripMediaForImport();
 
       const chunkSize = 25;
-      const chunks = this._chunkSpots(kmlSpots, chunkSize);
+      const chunks = this._chunkItems(includedItems, chunkSize);
       const storageUrl = await this._uploadImportFileToStorage();
       const importId = await this._createImportDocument(
         kmlSpots,
@@ -1185,17 +1769,8 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
               status: "PENDING",
               chunk_index: index,
               spot_count: chunk.length,
-              spots: chunk.map((kmlSpot) => {
-                const folderInfo =
-                  this.kmlParserService.setupInfo?.folders.find(
-                    (f) => f.name === kmlSpot.folder
-                  );
-                const type =
-                  folderInfo?.type && folderInfo.type !== SpotTypes.Other
-                    ? folderInfo.type
-                    : this.getSpotTypeFromName(kmlSpot.spot.name);
-                const access = folderInfo?.access ?? SpotAccess.Other;
-                const amenities = folderInfo?.amenities;
+              spots: chunk.map((item) => {
+                const kmlSpot = item.spot;
                 return {
                   name: kmlSpot.spot.name.trim(),
                   language:
@@ -1203,17 +1778,19 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
                       ?.value as LocaleCode) ||
                       this.locale) ??
                     "en",
-                  description: strippingMode
+                  description: stripDescriptions
                     ? undefined
                     : kmlSpot.spot.description,
-                  media_urls: strippingMode
+                  media_urls: stripMedia
                     ? undefined
-                    : kmlSpot.spot.mediaUrls,
+                    : item.selectedMediaUrls.length > 0
+                    ? item.selectedMediaUrls
+                    : undefined,
                   location: kmlSpot.spot.location,
                   bounds: kmlSpot.spot.bounds,
-                  type,
-                  access,
-                  amenities,
+                  type: item.localSpot.type(),
+                  access: item.localSpot.access(),
+                  amenities: item.localSpot.amenities(),
                 };
               }),
             }
@@ -1263,32 +1840,27 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     const attributionText = this.creditsFormGroup?.get(
       "attributionTextCtrl"
     )?.value;
-    const websiteUrl = this._sanitizeUrl(
-      this.creditsFormGroup?.get("websiteUrlCtrl")?.value
+    const viewerMapId = this._extractViewerMapId(
+      this.creditsFormGroup?.get("viewerMapIdCtrl")?.value
     );
-    const instagramUrl = this._sanitizeUrl(
-      this.creditsFormGroup?.get("instagramUrlCtrl")?.value
+    const viewerUrl = this._viewerUrlFromMapId(viewerMapId);
+    const websiteUrl = viewerUrl;
+    const instagramUrl = this._instagramUrlFromHandle(
+      this.creditsFormGroup?.get("instagramHandleCtrl")?.value
     );
     const license = this.creditsFormGroup?.get("licenseCtrl")?.value;
     const sourceUrl = this._sanitizeUrl(
       this.creditsFormGroup?.get("autoUpdateUrlCtrl")?.value
     );
-    const viewerUrl = this._sanitizeUrl(
-      this.creditsFormGroup?.get("websiteUrlCtrl")?.value
-    );
     const autoUpdateUrl = this._sanitizeUrl(
       this.creditsFormGroup?.get("autoUpdateUrlCtrl")?.value
     );
-    const ownershipPermission = !!this.legalFormGroup?.get(
-      "ownershipPermissionCtrl"
-    )?.value;
-    const publicAbandoned = !!this.legalFormGroup?.get("publicAbandonedCtrl")
-      ?.value;
-    const strippingConsent = !!this.legalFormGroup?.get("strippingConsentCtrl")
-      ?.value;
-    const nonCompetitor =
-      !!this.legalFormGroup?.get("nonCompetitorCtrl")?.value;
-    const strippingMode = this._isStrippingModeActive();
+    const ownershipPermission = this._hasDirectImportPermission();
+    const hasImageRights =
+      this.legalFormGroup?.get("imageRightsStatusCtrl")?.value === "yes";
+    const strippingMode =
+      this._shouldStripDescriptionsForImport() ||
+      this._shouldStripMediaForImport();
     const allowFutureAutoUpdate = !!this.legalFormGroup?.get(
       "allowFutureAutoUpdateCtrl"
     )?.value;
@@ -1321,13 +1893,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       },
       legal: {
         confirmed_rights: ownershipPermission,
-        confirmed_external_image_rights: ownershipPermission,
-        stripping_consent_confirmed: strippingConsent,
-        non_competitor_confirmed: nonCompetitor,
-        public_abandoned_clause_used:
-          !ownershipPermission &&
-          publicAbandoned &&
-          !this._isHighVolumeImport(),
+        confirmed_external_image_rights: hasImageRights,
+        stripping_consent_confirmed: undefined,
+        non_competitor_confirmed: undefined,
+        public_abandoned_clause_used: this._isAbandonwareImport(),
       },
       source_url: sourceUrl,
       viewer_url: viewerUrl,
@@ -1357,10 +1926,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return this._importsService.createImport(importDoc, importId);
   }
 
-  private _chunkSpots(spots: KMLSpot[], chunkSize: number): KMLSpot[][] {
-    const result: KMLSpot[][] = [];
-    for (let i = 0; i < spots.length; i += chunkSize) {
-      result.push(spots.slice(i, i + chunkSize));
+  private _chunkItems<T>(items: T[], chunkSize: number): T[][] {
+    const result: T[][] = [];
+    for (let i = 0; i < items.length; i += chunkSize) {
+      result.push(items.slice(i, i + chunkSize));
     }
     return result;
   }
@@ -1397,8 +1966,8 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   openViewerUrl() {
-    const viewerUrl = this._sanitizeUrl(
-      this.creditsFormGroup?.get("websiteUrlCtrl")?.value
+    const viewerUrl = this._viewerUrlFromMapId(
+      this.creditsFormGroup?.get("viewerMapIdCtrl")?.value
     );
     if (!viewerUrl) {
       return;
@@ -1406,6 +1975,299 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     if (typeof window !== "undefined") {
       window.open(viewerUrl, "_blank", "noopener,noreferrer");
     }
+  }
+
+  openSetupDownloadKmlUrl() {
+    const downloadUrl = this.setupDownloadKmlUrl();
+    if (!downloadUrl) {
+      return;
+    }
+    if (typeof window !== "undefined") {
+      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+    }
+  }
+
+  private async _removeBrokenSetupMediaUrls(): Promise<{
+    checkedUrlCount: number;
+    removedUrlCount: number;
+    affectedSpotCount: number;
+    sampleRemovedUrls: string[];
+    unknownUrlCount: number;
+    restoredAfterValidation: boolean;
+    debugSummary: {
+      spots: number;
+      spotsWithMediaBefore: number;
+      spotsWithMediaAfter: number;
+      totalMediaRefsBefore: number;
+      totalMediaRefsAfter: number;
+      checkedUrlCount: number;
+      validUrlCount: number;
+      invalidUrlCount: number;
+      unknownUrlCount: number;
+      restoredAfterValidation: boolean;
+    } | null;
+  }> {
+    const spots = this.kmlParserService.getParsedSpots();
+    if (spots.length === 0) {
+      return {
+        checkedUrlCount: 0,
+        removedUrlCount: 0,
+        affectedSpotCount: 0,
+        sampleRemovedUrls: [],
+        unknownUrlCount: 0,
+        restoredAfterValidation: false,
+        debugSummary: null,
+      };
+    }
+
+    spots.forEach((spot) => {
+      spot.spot.description = this._stripImageContentFromDescription(
+        spot.spot.description
+      );
+    });
+
+    const statsBefore = this._collectMediaStats(spots);
+
+    const uniqueUrls = Array.from(
+      new Set(
+        spots.flatMap((spot) => spot.spot.mediaUrls ?? []).filter((url) => !!url)
+      )
+    );
+    if (uniqueUrls.length === 0) {
+      return {
+        checkedUrlCount: 0,
+        removedUrlCount: 0,
+        affectedSpotCount: 0,
+        sampleRemovedUrls: [],
+        unknownUrlCount: 0,
+        restoredAfterValidation: false,
+        debugSummary: {
+          spots: statsBefore.spotCount,
+          spotsWithMediaBefore: statsBefore.spotsWithMedia,
+          spotsWithMediaAfter: statsBefore.spotsWithMedia,
+          totalMediaRefsBefore: statsBefore.totalMediaRefs,
+          totalMediaRefsAfter: statsBefore.totalMediaRefs,
+          checkedUrlCount: 0,
+          validUrlCount: 0,
+          invalidUrlCount: 0,
+          unknownUrlCount: 0,
+          restoredAfterValidation: false,
+        },
+      };
+    }
+
+    this.setupMediaValidationProgress.set({
+      stage: "Checking image links",
+      processed: 0,
+      total: uniqueUrls.length,
+    });
+
+    const validationMap = await this._validateImageUrls(uniqueUrls, 12);
+    const validUrlCount = uniqueUrls.filter(
+      (url) => validationMap.get(url) === "valid"
+    ).length;
+    const invalidUrlCount = uniqueUrls.filter(
+      (url) => validationMap.get(url) === "invalid"
+    ).length;
+    const unknownUrlCount = uniqueUrls.filter(
+      (url) => validationMap.get(url) === "unknown"
+    ).length;
+    let removedUrlCount = 0;
+    let affectedSpotCount = 0;
+    const removedSamples = new Set<string>();
+    const originalMediaBySpot = new Map<KMLSpot, string[]>();
+
+    spots.forEach((spot) => {
+      const mediaUrls = spot.spot.mediaUrls ?? [];
+      if (mediaUrls.length === 0) {
+        return;
+      }
+      originalMediaBySpot.set(spot, [...mediaUrls]);
+      const filteredUrls = mediaUrls
+        .filter((url) => validationMap.get(url) !== "invalid")
+        .sort((a, b) => {
+          const aStatus = validationMap.get(a) ?? "unknown";
+          const bStatus = validationMap.get(b) ?? "unknown";
+          const rank = (status: SetupMediaValidationStatus) =>
+            status === "valid" ? 0 : status === "unknown" ? 1 : 2;
+          return rank(aStatus) - rank(bStatus);
+        });
+      if (filteredUrls.length !== mediaUrls.length) {
+        affectedSpotCount += 1;
+        const removedForSpot = mediaUrls.filter(
+          (url) => validationMap.get(url) === "invalid"
+        );
+        removedForSpot.forEach((url) => {
+          removedUrlCount += 1;
+          if (removedSamples.size < 3) {
+            removedSamples.add(url);
+          }
+        });
+      }
+      spot.spot.mediaUrls = filteredUrls.length > 0 ? filteredUrls : undefined;
+    });
+
+    const statsAfter = this._collectMediaStats(spots);
+    const restoredAfterValidation =
+      statsBefore.totalMediaRefs > 0 &&
+      statsAfter.totalMediaRefs === 0 &&
+      invalidUrlCount === 0;
+
+    if (restoredAfterValidation) {
+      originalMediaBySpot.forEach((urls, spot) => {
+        spot.spot.mediaUrls = urls.length > 0 ? [...urls] : undefined;
+      });
+    }
+
+    const finalStats = restoredAfterValidation
+      ? this._collectMediaStats(spots)
+      : statsAfter;
+
+    return {
+      checkedUrlCount: uniqueUrls.length,
+      removedUrlCount: restoredAfterValidation ? 0 : removedUrlCount,
+      affectedSpotCount: restoredAfterValidation ? 0 : affectedSpotCount,
+      sampleRemovedUrls: restoredAfterValidation
+        ? []
+        : Array.from(removedSamples),
+      unknownUrlCount,
+      restoredAfterValidation,
+      debugSummary: {
+        spots: finalStats.spotCount,
+        spotsWithMediaBefore: statsBefore.spotsWithMedia,
+        spotsWithMediaAfter: finalStats.spotsWithMedia,
+        totalMediaRefsBefore: statsBefore.totalMediaRefs,
+        totalMediaRefsAfter: finalStats.totalMediaRefs,
+        checkedUrlCount: uniqueUrls.length,
+        validUrlCount,
+        invalidUrlCount,
+        unknownUrlCount,
+        restoredAfterValidation,
+      },
+    };
+  }
+
+  private async _validateImageUrls(
+    urls: string[],
+    concurrency: number
+  ): Promise<Map<string, SetupMediaValidationStatus>> {
+    const result = new Map<string, SetupMediaValidationStatus>();
+    if (urls.length === 0) {
+      return result;
+    }
+
+    let cursor = 0;
+    const workerCount = Math.max(1, Math.min(concurrency, urls.length));
+    const workers = Array.from({ length: workerCount }, async () => {
+      while (true) {
+        const currentIndex = cursor;
+        cursor += 1;
+        if (currentIndex >= urls.length) {
+          break;
+        }
+        const url = urls[currentIndex];
+        const status = await this._checkImageUrlExists(url);
+        result.set(url, status);
+        this.setupMediaValidationProgress.set({
+          stage: "Checking image links",
+          processed: result.size,
+          total: urls.length,
+        });
+      }
+    });
+
+    await Promise.all(workers);
+    return result;
+  }
+
+  private _checkImageUrlExists(
+    url: string,
+    timeoutMs: number = 3000
+  ): Promise<SetupMediaValidationStatus> {
+    if (!url || !/^https?:\/\//i.test(url)) {
+      return Promise.resolve("invalid");
+    }
+    return new Promise<SetupMediaValidationStatus>((resolve) => {
+      if (typeof Image === "undefined") {
+        resolve("unknown");
+        return;
+      }
+
+      const image = new Image();
+      image.referrerPolicy = "no-referrer";
+
+      let completed = false;
+      const finalize = (status: SetupMediaValidationStatus) => {
+        if (completed) {
+          return;
+        }
+        completed = true;
+        clearTimeout(timeoutId);
+        image.onload = null;
+        image.onerror = null;
+        resolve(status);
+      };
+
+      const timeoutId = setTimeout(() => finalize("unknown"), timeoutMs);
+      image.onload = () => finalize("valid");
+      image.onerror = () => finalize("invalid");
+      image.src = url;
+    });
+  }
+
+  private _collectMediaStats(spots: KMLSpot[]): {
+    spotCount: number;
+    spotsWithMedia: number;
+    totalMediaRefs: number;
+  } {
+    let spotsWithMedia = 0;
+    let totalMediaRefs = 0;
+    spots.forEach((spot) => {
+      const mediaCount = spot.spot.mediaUrls?.length ?? 0;
+      if (mediaCount > 0) {
+        spotsWithMedia += 1;
+        totalMediaRefs += mediaCount;
+      }
+    });
+    return {
+      spotCount: spots.length,
+      spotsWithMedia,
+      totalMediaRefs,
+    };
+  }
+
+  private _stripImageContentFromDescription(
+    description: string | undefined
+  ): string | undefined {
+    const value = (description ?? "").trim();
+    if (!value) {
+      return undefined;
+    }
+
+    let cleaned = value;
+    try {
+      const html = new DOMParser().parseFromString(value, "text/html");
+      html.querySelectorAll("img").forEach((img) => img.remove());
+      html.querySelectorAll("a[href]").forEach((anchor) => {
+        const href = (anchor.getAttribute("href") ?? "").trim();
+        if (/\.(jpe?g|png|webp|gif)(\?|$)/i.test(href)) {
+          anchor.remove();
+        }
+      });
+      cleaned = html.body.innerHTML;
+    } catch {
+      cleaned = value;
+    }
+
+    cleaned = cleaned
+      .replace(
+        /https?:\/\/[^\s"'<>]+?\.(?:jpe?g|png|webp|gif)(?:\?[^\s"'<>]*)?/gi,
+        ""
+      )
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
+    return cleaned.length > 0 ? cleaned : undefined;
   }
 
   private _spotImportSuccessful() {

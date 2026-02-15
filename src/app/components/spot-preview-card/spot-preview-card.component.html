@@ -117,19 +117,19 @@
       <mat-icon>share</mat-icon>
     </button>
   </div> -->
-  @if((media() && media().length > 0 && media()[0] && !imageLoadError()) ||
-  !isCompact) {
+  @if(primaryMediaSrc() || !isCompact) {
   <div
     [attr.mat-card-sm-image]="isCompact ? '' : null"
     class="img-container"
     [class.isCompact]="isCompact"
   >
-    @if(media() && media().length > 0 && media()[0] && !imageLoadError()) {
+    @if(primaryMediaSrc()) {
     <img
-      [ngSrc]="media()[0]"
+      [ngSrc]="primaryMediaSrc()!"
       fill
       [priority]="loadingPriority()"
-      (error)="onImageError()"
+      referrerpolicy="no-referrer"
+      (error)="onImageError($event)"
     />
     } @else {
     <img [ngSrc]="fallbackImgSrc" fill priority />

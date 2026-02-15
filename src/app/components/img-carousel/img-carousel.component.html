@@ -17,6 +17,7 @@
       [ngSrc]="mediaObj.getPreviewImageSrc()!"
       fill
       priority
+      referrerpolicy="no-referrer"
       (error)="onImageError($event, $index, mediaObj)"
       (load)="onImageLoad($index, mediaObj)"
       [class.hidden]="isImageProcessing($index, mediaObj)"

@@ -184,7 +184,11 @@ export class ImgCarouselComponent {
         <div class="swiper-slide">
           <div class="swiper-zoom-container">
             <div class="swiper-img-container">
-              <img ngSrc="{{ getSrc(mediaObj) }}" fill />
+              <img
+                ngSrc="{{ getSrc(mediaObj) }}"
+                fill
+                referrerpolicy="no-referrer"
+              />
             </div>
           </div>
         </div>

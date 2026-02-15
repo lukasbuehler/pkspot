@@ -136,6 +136,13 @@ export class KmlParserService {
     };
   }
 
+  getParsedSpots(): KMLSpot[] {
+    if (!this._spotFolders) {
+      return [];
+    }
+    return Object.values(this._spotFolders).flatMap((folderSpots) => folderSpots);
+  }
+
   parseKMLFromString(kmlString: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       try {
@@ -703,7 +710,18 @@ export class KmlParserService {
       processed.add(spots[i]);
       // IMPORTANT: Deep clone the spot object so we don't mutate the original source (currentChain)
       // which is referenced in _spotFolders.
-      let mergedSpot = { ...currentChain, spot: { ...currentChain.spot } };
+      let mergedSpot: KMLSpot = {
+        ...currentChain,
+        spot: {
+          ...currentChain.spot,
+          bounds: currentChain.spot.bounds
+            ? [...currentChain.spot.bounds]
+            : undefined,
+          mediaUrls: currentChain.spot.mediaUrls
+            ? [...currentChain.spot.mediaUrls]
+            : undefined,
+        },
+      };
 
       // Check against all other subsequent spots
       // (Greedy approach: once merged, 'j' is consumed)
@@ -728,10 +746,26 @@ export class KmlParserService {
             mergedSpot.spot.name = candidate.spot.name;
           }
 
+          // 1.5. Keep the richer description and merge media URLs so previews don't lose images.
+          const mergedDescription = (mergedSpot.spot.description ?? "").trim();
+          const candidateDescription = (candidate.spot.description ?? "").trim();
+          if (candidateDescription.length > mergedDescription.length) {
+            mergedSpot.spot.description = candidate.spot.description;
+          }
+
+          const mergedMediaUrls = Array.from(
+            new Set([
+              ...(mergedSpot.spot.mediaUrls ?? []),
+              ...(candidate.spot.mediaUrls ?? []),
+            ])
+          );
+          mergedSpot.spot.mediaUrls =
+            mergedMediaUrls.length > 0 ? mergedMediaUrls : undefined;
+
           // 2. Geometry: Prefer Polygon (bounds)
           if (candidate.spot.bounds && !mergedSpot.spot.bounds) {
             // Adopt the polygon
-            mergedSpot.spot.bounds = candidate.spot.bounds;
+            mergedSpot.spot.bounds = [...candidate.spot.bounds];
             mergedSpot.spot.location = candidate.spot.location;
             mergedSpot.paths = candidate.paths;
           } else if (candidate.spot.bounds && mergedSpot.spot.bounds) {
@@ -747,7 +781,14 @@ export class KmlParserService {
       // Push a safe clone for the next steps
       merged.push({
         ...mergedSpot,
-        spot: { ...mergedSpot.spot, name: mergedSpot.spot.name.trim() },
+        spot: {
+          ...mergedSpot.spot,
+          name: mergedSpot.spot.name.trim(),
+          mediaUrls:
+            mergedSpot.spot.mediaUrls && mergedSpot.spot.mediaUrls.length > 0
+              ? Array.from(new Set(mergedSpot.spot.mediaUrls))
+              : undefined,
+        },
       });
     }
 
