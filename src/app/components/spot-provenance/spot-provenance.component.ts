@@ -45,10 +45,9 @@ export class SpotProvenanceComponent {
     }
 
     const source = this.sourceRaw();
-    const earlyPKSpotSource = $localize`:@@map.spot.source.earlyPKSpot:Early PK Spot Community Contribution`;
-    if (!source) {
-      return earlyPKSpotSource;
-    }
+
+    // actually, let's not show any source for PK Spot spots
+    if (!source || source === "pkspot") return "";
 
     const sourceMap: Record<string, string> = {
       "horizn-app": "Horizn Community",

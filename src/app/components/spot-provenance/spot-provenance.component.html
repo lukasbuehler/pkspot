@@ -1,7 +1,7 @@
 @if(sourceDisplayText()) {
 <div class="mb-4">
   <h4 class="mat-title-medium" i18n>Source</h4>
-  <p class="m-0 mat-body-medium">{{ sourceDisplayText() }}</p>
+  <h5 class="m-0 mat-title-small">{{ sourceDisplayText() }}</h5>
 
   @if(importedAttributionText()) {
   <p class="m-0 mt-2 mat-body-medium">{{ importedAttributionText() }}</p>
@@ -40,15 +40,14 @@
 </div>
 }
 
-<p class="m-0 mat-body-small mt-4 license-note" i18n>
-  <strong>Public License:</strong>
+<h4 class="mat-title-medium" i18n>License</h4>
+<p class="m-0 mat-body-medium" i18n>
   This spot's data is made available under the
   <a
     href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
     target="_blank"
     rel="noopener noreferrer"
+    >CC BY-NC-SA 4.0</a
   >
-    CC BY-NC-SA 4.0
-  </a>
   license.
 </p>
