@@ -12,14 +12,35 @@ import {
 export class ImportsService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
 
+  private _removeUndefinedDeep<T>(value: T): T {
+    if (Array.isArray(value)) {
+      return value
+        .map((entry) => this._removeUndefinedDeep(entry))
+        .filter((entry) => entry !== undefined) as T;
+    }
+
+    if (value && typeof value === "object") {
+      const result: Record<string, unknown> = {};
+      Object.entries(value as Record<string, unknown>).forEach(([key, entry]) => {
+        if (entry === undefined) {
+          return;
+        }
+        result[key] = this._removeUndefinedDeep(entry);
+      });
+      return result as T;
+    }
+
+    return value;
+  }
+
   createImport(
     data: Omit<ImportSchema, "created_at">,
     importId?: string
   ): Promise<string> {
-    const payload: ImportSchema = {
+    const payload = this._removeUndefinedDeep({
       ...data,
       created_at: Timestamp.now(),
-    };
+    }) as ImportSchema;
     if (importId) {
       return this._firestoreAdapter
         .setDocument(`imports/${importId}`, payload)
@@ -29,10 +50,11 @@ export class ImportsService {
   }
 
   updateImport(importId: string, data: Partial<ImportSchema>): Promise<void> {
-    return this._firestoreAdapter.updateDocument(`imports/${importId}`, {
+    const payload = this._removeUndefinedDeep({
       ...data,
       updated_at: Timestamp.now(),
     });
+    return this._firestoreAdapter.updateDocument(`imports/${importId}`, payload);
   }
 
   getImportById(importId: string): Promise<(ImportSchema & { id: string }) | null> {
@@ -46,10 +68,10 @@ export class ImportsService {
     chunkId: string,
     chunk: Omit<ImportChunkSchema, "created_at">
   ): Promise<void> {
-    const payload: ImportChunkSchema = {
+    const payload = this._removeUndefinedDeep({
       ...chunk,
       created_at: Timestamp.now(),
-    };
+    }) as ImportChunkSchema;
     return this._firestoreAdapter.setDocument(
       `imports/${importId}/chunks/${chunkId}`,
       payload

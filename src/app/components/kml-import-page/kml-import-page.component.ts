@@ -97,6 +97,7 @@ import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amen
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 import { AnyMedia, ExternalImage } from "../../../db/models/Media";
+import { isKmlImportUserAllowed } from "./kml-import-allowed-users";
 
 interface VerificationSpotItem {
   spot: KMLSpot;
@@ -443,15 +444,32 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   canUploadImport(): boolean {
-    return !!(this._authService.isSignedIn && this._authService.user.uid);
+    const uid = this._authService.user.uid;
+    return !!(
+      this._authService.isSignedIn &&
+      uid &&
+      isKmlImportUserAllowed(uid)
+    );
+  }
+
+  uploadAccessMessage(): string | null {
+    const uid = this._authService.user.uid;
+    if (!this._authService.isSignedIn || !uid) {
+      return "Please sign in to import KML/KMZ files.";
+    }
+    if (!isKmlImportUserAllowed(uid)) {
+      return "Your account is currently not allowed to import spots.";
+    }
+    return null;
   }
 
   private _ensureAuthenticatedForUpload(): boolean {
-    if (this.canUploadImport()) {
+    const message = this.uploadAccessMessage();
+    if (!message) {
       this.uploadAuthMessage.set(null);
       return true;
     }
-    this.uploadAuthMessage.set("Please sign in to import KML/KMZ files.");
+    this.uploadAuthMessage.set(message);
     return false;
   }
 
@@ -588,6 +606,14 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     item.localSpot.access.set(access);
   }
 
+  applySelectedTypeAndAccessToFolder() {
+    this._applySelectedTypeAndAccess("folder");
+  }
+
+  applySelectedTypeAndAccessToAll() {
+    this._applySelectedTypeAndAccess("all");
+  }
+
   openSelectedSpotAmenitiesDialog() {
     const item = this.selectedVerificationItem();
     if (!item) {
@@ -638,6 +664,24 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     this.selectedSpot.set(spot);
   }
 
+  onVerifyMapMarkerClick(
+    event: number | { marker: MarkerSchema; index?: number }
+  ) {
+    const markerSpots = this._spotsShownAsVerifyMarkers(this.includedSpots());
+    const markerIndex =
+      typeof event === "number"
+        ? event
+        : typeof event?.index === "number"
+          ? event.index
+          : -1;
+
+    if (markerIndex < 0 || markerIndex >= markerSpots.length) {
+      return;
+    }
+
+    this.selectVerificationSpot(markerSpots[markerIndex]!);
+  }
+
   verificationSpotReasonText(item: VerificationSpotItem): string | null {
     if (item.reason === "duplicate" && !item.include) {
       return "Duplicate detected";
@@ -660,6 +704,25 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return Object.entries(amenities ?? {}).filter(
       ([, value]) => value !== undefined
     );
+  }
+
+  private _applySelectedTypeAndAccess(scope: "folder" | "all") {
+    const selectedItem = this.selectedVerificationItem();
+    if (!selectedItem) {
+      return;
+    }
+
+    const selectedType = selectedItem.localSpot.type();
+    const selectedAccess = selectedItem.localSpot.access();
+    const targetFolder = selectedItem.folder;
+
+    this.verificationItems().forEach((item) => {
+      if (scope === "folder" && item.folder !== targetFolder) {
+        return;
+      }
+      item.localSpot.type.set(selectedType);
+      item.localSpot.access.set(selectedAccess);
+    });
   }
 
   private _sanitizeUrl(value: string | null | undefined): string | undefined {
@@ -934,33 +997,170 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   getSpotMarkers(spots: KMLSpot[] | null): MarkerSchema[] {
-    if (!spots) return [];
-
-    const selected = this.selectedVerificationSpot();
-
-    return spots
-      .filter((spot) => {
-        if (!selected) return true;
-        // Don't show marker for the selected spot (it has its own marker)
-        // Use small epsilon for float comparison or just exact since they come from same source
-        return (
-          spot.spot.location.lat !== selected.location().lat ||
-          spot.spot.location.lng !== selected.location().lng
-        );
-      })
-      .map((spot) => {
-        // Use location_on icon for priority markers
-        return {
-          color: "tertiary",
-          location: spot.spot.location,
-          icons: ["location_on"],
-          priority: 100000,
-        };
-      });
+    return this._spotsShownAsVerifyMarkers(spots).map((spot) => ({
+      color: "tertiary",
+      location: spot.spot.location,
+      icons: ["location_on"],
+      priority: 100000,
+    }));
   }
 
   get totalBounds() {
     return this.importedSpotsBounds;
+  }
+
+  private _spotsShownAsVerifyMarkers(spots: KMLSpot[] | null): KMLSpot[] {
+    if (!spots) {
+      return [];
+    }
+
+    const selected = this.selectedVerificationSpot();
+    if (!selected) {
+      return spots;
+    }
+
+    // Keep marker ordering/filtering aligned with rendered map markers.
+    return spots.filter(
+      (spot) =>
+        spot.spot.location.lat !== selected.location().lat ||
+        spot.spot.location.lng !== selected.location().lng
+    );
+  }
+
+  private _normalizeSpotName(value: string | null | undefined): string {
+    return (value ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+  }
+
+  private _distanceMeters(a: KMLSpot, b: KMLSpot): number {
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const lat1 = a.spot.location.lat;
+    const lng1 = a.spot.location.lng;
+    const lat2 = b.spot.location.lat;
+    const lng2 = b.spot.location.lng;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLng = Math.sin(dLng / 2);
+    const aa =
+      sinDLat * sinDLat +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * sinDLng * sinDLng;
+    const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+    return 6371000 * c;
+  }
+
+  private _clusterNearbyItems(
+    items: VerificationSpotItem[],
+    maxDistanceMeters: number
+  ): VerificationSpotItem[][] {
+    const clusters: VerificationSpotItem[][] = [];
+    const visited = new Set<number>();
+
+    for (let i = 0; i < items.length; i++) {
+      if (visited.has(i)) {
+        continue;
+      }
+
+      const clusterIndexes: number[] = [];
+      const queue: number[] = [i];
+      visited.add(i);
+
+      while (queue.length > 0) {
+        const currentIndex = queue.shift()!;
+        clusterIndexes.push(currentIndex);
+
+        for (let j = 0; j < items.length; j++) {
+          if (visited.has(j)) {
+            continue;
+          }
+          const distance = this._distanceMeters(
+            items[currentIndex]!.spot,
+            items[j]!.spot
+          );
+          if (distance <= maxDistanceMeters) {
+            visited.add(j);
+            queue.push(j);
+          }
+        }
+      }
+
+      clusters.push(clusterIndexes.map((index) => items[index]!));
+    }
+
+    return clusters;
+  }
+
+  private _setVerificationItemName(item: VerificationSpotItem, name: string) {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      return;
+    }
+    const language = item.spot.language || this.locale;
+    item.spot.spot.name = trimmedName;
+
+    const currentNames = { ...(item.localSpot.names() ?? {}) };
+    currentNames[language] = {
+      text: trimmedName,
+      provider: currentNames[language]?.provider ?? "kml-import",
+      timestamp: currentNames[language]?.timestamp,
+    };
+    item.localSpot.names.set(currentNames);
+  }
+
+  private _applyNearbyDuplicateNameDisambiguation(items: VerificationSpotItem[]) {
+    const byFolderAndName = new Map<string, VerificationSpotItem[]>();
+
+    items.forEach((item) => {
+      const normalizedName = this._normalizeSpotName(item.spot.spot.name);
+      if (!normalizedName) {
+        return;
+      }
+      const key = `${item.folder}::${normalizedName}`;
+      const group = byFolderAndName.get(key) ?? [];
+      group.push(item);
+      byFolderAndName.set(key, group);
+    });
+
+    const nearbyDuplicateDistanceMeters = 300;
+    byFolderAndName.forEach((groupItems) => {
+      if (groupItems.length <= 1) {
+        return;
+      }
+
+      const nearbyClusters = this._clusterNearbyItems(
+        groupItems,
+        nearbyDuplicateDistanceMeters
+      );
+
+      nearbyClusters.forEach((clusterItems) => {
+        if (clusterItems.length <= 1) {
+          return;
+        }
+
+        const sortedItems = [...clusterItems].sort((a, b) => {
+          const ai = a.spot.importIndex ?? Number.MAX_SAFE_INTEGER;
+          const bi = b.spot.importIndex ?? Number.MAX_SAFE_INTEGER;
+          if (ai !== bi) {
+            return ai - bi;
+          }
+          if (a.spot.spot.location.lat !== b.spot.spot.location.lat) {
+            return a.spot.spot.location.lat - b.spot.spot.location.lat;
+          }
+          return a.spot.spot.location.lng - b.spot.spot.location.lng;
+        });
+
+        const baseName = (sortedItems[0]?.spot.spot.name ?? "").trim();
+        if (!baseName) {
+          return;
+        }
+
+        sortedItems.forEach((item, index) => {
+          this._setVerificationItemName(item, `${baseName} ${index + 1}`);
+        });
+      });
+    });
   }
 
   kmlSpotToLocalSpot(
@@ -1662,6 +1862,9 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
             selectedMediaUrls: [...initialMediaUrls],
           };
         });
+
+        this._applyNearbyDuplicateNameDisambiguation(items);
+
         this.verificationItems.set(items);
         const spotsWithMedia = items.filter(
           (item) => (item.spot.spot.mediaUrls?.length ?? 0) > 0
@@ -1717,8 +1920,14 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     this.stepperHorizontal.next();
 
     try {
-      if (!this._authService.isSignedIn || !this._authService.user.uid) {
+      const uid = this._authService.user.uid;
+      if (!this._authService.isSignedIn || !uid) {
         console.error("User must be authenticated to import spots");
+        this._spotImportFailed();
+        return;
+      }
+      if (!isKmlImportUserAllowed(uid)) {
+        console.error("User is not allowed to import spots", { uid });
         this._spotImportFailed();
         return;
       }
@@ -1771,8 +1980,9 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
               spot_count: chunk.length,
               spots: chunk.map((item) => {
                 const kmlSpot = item.spot;
+                const localName = item.localSpot.name().trim();
                 return {
-                  name: kmlSpot.spot.name.trim(),
+                  name: localName.length > 0 ? localName : kmlSpot.spot.name.trim(),
                   language:
                     ((this.setupFormGroup?.get("setupLangCtrl")
                       ?.value as LocaleCode) ||
@@ -1810,6 +2020,11 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   private async _uploadImportFileToStorage(): Promise<string | undefined> {
+    const uid = this._authService.user.uid;
+    if (!this._authService.isSignedIn || !uid || !isKmlImportUserAllowed(uid)) {
+      throw new Error("Current user is not allowed to upload import files.");
+    }
+
     if (!this.kmlUploadFile) {
       return undefined;
     }
@@ -1873,7 +2088,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
     const importDoc: Omit<ImportSchema, "created_at"> = {
       status: "PENDING",
-      updated_at: undefined,
       user: createUserReference(this._authService.user.data!),
       file_name: this.kmlUploadFile?.name ?? "unknown",
       file_type:
@@ -1894,8 +2108,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       legal: {
         confirmed_rights: ownershipPermission,
         confirmed_external_image_rights: hasImageRights,
-        stripping_consent_confirmed: undefined,
-        non_competitor_confirmed: undefined,
         public_abandoned_clause_used: this._isAbandonwareImport(),
       },
       source_url: sourceUrl,

@@ -34,9 +34,9 @@
         </ng-template>
         <form class="pt-3 px-3" [formGroup]="uploadFormGroup!">
           <h3 class="mat-h3">Please select a KML file.</h3>
-          @if(!canUploadImport()) {
+          @if(uploadAccessMessage(); as uploadAccessMessage) {
           <p class="mat-body-small text-danger mb-2">
-            Please sign in to import KML/KMZ files.
+            {{ uploadAccessMessage }}
           </p>
           }
           @if(uploadAuthMessage(); as uploadAuthError) {
@@ -579,6 +579,23 @@
                           }
                         </mat-select>
                       </mat-form-field>
+
+                      <div class="d-flex flex-wrap gap-2 mb-2">
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          (click)="applySelectedTypeAndAccessToFolder()"
+                        >
+                          Apply type + access to this folder
+                        </button>
+                        <button
+                          mat-button
+                          type="button"
+                          (click)="applySelectedTypeAndAccessToAll()"
+                        >
+                          Apply to all spots
+                        </button>
+                      </div>
                       }
                       <div class="mat-body-small text-muted">
                         Polygon bounds:
@@ -695,6 +712,7 @@
                       [priorityMarkers]="getSpotMarkers(includedSpots())"
                       [boundRestriction]="importedSpotsBounds()"
                       [polygons]="polygons()"
+                      (markerClickEvent)="onVerifyMapMarkerClick($event)"
                       class="w-100 h-100 d-block"
                     ></app-spot-map>
                   </div>

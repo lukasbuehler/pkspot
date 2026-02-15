@@ -164,7 +164,7 @@
                 <button
                   [matButton]="isFollowing ? 'outlined' : 'filled'"
                   color="primary"
-                  class="profile-overview__action flex-grow-1"
+                  class="profile-overview__action flex-grow-1 flex-basis-0"
                   (click)="followButtonClick()"
                 >
                   @if (loadingFollowing) {
@@ -190,7 +190,7 @@
                 <button
                   mat-stroked-button
                   color="warn"
-                  class="profile-overview__action flex-grow-1"
+                  class="profile-overview__action flex-grow-1 flex-basis-0"
                   (click)="toggleBlockUser()"
                 >
                   {{ isBlocked ? "Unblock" : "Block" }}
@@ -204,7 +204,7 @@
                 <button
                   matButton="filled"
                   color="primary"
-                  class="profile-overview__action flex-grow-1"
+                  class="profile-overview__action flex-grow-1 flex-basis-0"
                   routerLink="/settings/general"
                 >
                   Settings
@@ -212,7 +212,7 @@
                 <button
                   mat-stroked-button
                   color="accent"
-                  class="profile-overview__action flex-grow-1"
+                  class="profile-overview__action flex-grow-1 flex-basis-0"
                   routerLink="/settings/profile"
                 >
                   Edit Profile
@@ -220,7 +220,7 @@
                 <button
                   mat-stroked-button
                   color="warn"
-                  class="profile-overview__action flex-grow-1"
+                  class="profile-overview__action flex-grow-1 flex-basis-0"
                   (click)="logOut()"
                   i18n
                 >
