@@ -150,3 +150,6 @@ polyline
 save
 upload
 check_circle
+badge
+streetview
+notes

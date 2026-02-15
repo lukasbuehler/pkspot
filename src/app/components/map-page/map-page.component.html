@@ -136,18 +136,29 @@
     </a>
   </div>
 
-  <div class="p-3" @slideInOut>
-    @for(spotEdit of spotEdits(); track $index) {
-    <app-spot-edit-details
-      class="d-block"
-      [spotEdit]="spotEdit"
-    ></app-spot-edit-details>
-    }
+  <div class="spot-edits-panel p-3" @slideInOut>
+    <div class="spot-edits-header pb-3">
+      <h4 class="mat-title-large m-0" i18n>Spot Edits</h4>
+      <p class="mat-body-small m-0" i18n>
+        Newest changes first. Each entry shows exactly what was edited.
+      </p>
+      <p class="mat-label-small m-0">
+        @if (spotEdits().length === 1) {
+        <span i18n>1 edit</span>
+        } @else {
+        {{ spotEdits().length }}
+        <span i18n>edits</span>
+        }
+      </p>
+    </div>
 
-    <p class="mat-body-medium m-0 mt-2">
-      <strong>Source:</strong>
-      {{ spotSourceDisplayText() }}
-    </p>
+    @if (spotEdits().length === 0) {
+    <div class="spot-edits-empty mat-body-medium" i18n>
+      No edits yet for this spot.
+    </div>
+    } @else { @for(spotEdit of spotEdits(); track spotEdit.id) {
+    <app-spot-edit-details class="d-block" [spotEdit]="spotEdit"></app-spot-edit-details>
+    } }
   </div>
 
   } @else {

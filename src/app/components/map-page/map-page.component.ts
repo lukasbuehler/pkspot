@@ -629,30 +629,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Get a nice display text for the source field
-   */
-  getSourceDisplayText(source: string | undefined): string {
-    const earlyPKSpotSource = $localize`:@@map.spot.source.earlyPKSpot:Early PK Spot Community Contribution`;
-    if (!source) {
-      return earlyPKSpotSource;
-    }
-
-    // Map specific sources to nice display names
-    const sourceMap: Record<string, string> = {
-      "horizn-app": "Horizn Community",
-      pkspot: "PK Spot Community",
-    };
-
-    return sourceMap[source] || source;
-  }
-
-  spotSourceDisplayText = computed(() => {
-    const spot = this.selectedSpot();
-    if (!spot) return "";
-    return this.getSourceDisplayText(spot.source());
-  });
-
   // Speed dial FAB //////////////////////////////////////////////////////////
 
   speedDialButtonConfig: SpeedDialFabButtonConfig = {
@@ -1914,7 +1890,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return { lat: location.latitude, lng: location.longitude };
     }
 
-    if (typeof location.lat === "function" && typeof location.lng === "function") {
+    if (
+      typeof location.lat === "function" &&
+      typeof location.lng === "function"
+    ) {
       return { lat: location.lat(), lng: location.lng() };
     }
 

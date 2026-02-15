@@ -6,11 +6,18 @@ import {
   ImportSchema,
 } from "../../../../db/schemas/ImportSchema";
 
+type ImportDocument = ImportSchema & { id: string };
+
 @Injectable({
   providedIn: "root",
 })
 export class ImportsService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private _importCache = new Map<string, ImportDocument | null>();
+  private _inFlightImportRequests = new Map<
+    string,
+    Promise<ImportDocument | null>
+  >();
 
   private _removeUndefinedDeep<T>(value: T): T {
     if (Array.isArray(value)) {
@@ -44,9 +51,25 @@ export class ImportsService {
     if (importId) {
       return this._firestoreAdapter
         .setDocument(`imports/${importId}`, payload)
-        .then(() => importId);
+        .then(() => {
+          this._importCache.set(importId, {
+            id: importId,
+            ...payload,
+          });
+          this._inFlightImportRequests.delete(importId);
+          return importId;
+        });
     }
-    return this._firestoreAdapter.addDocument("imports", payload);
+    return this._firestoreAdapter
+      .addDocument("imports", payload)
+      .then((newImportId) => {
+        this._importCache.set(newImportId, {
+          id: newImportId,
+          ...payload,
+        });
+        this._inFlightImportRequests.delete(newImportId);
+        return newImportId;
+      });
   }
 
   updateImport(importId: string, data: Partial<ImportSchema>): Promise<void> {
@@ -54,13 +77,43 @@ export class ImportsService {
       ...data,
       updated_at: Timestamp.now(),
     });
-    return this._firestoreAdapter.updateDocument(`imports/${importId}`, payload);
+    return this._firestoreAdapter
+      .updateDocument(`imports/${importId}`, payload)
+      .then(() => {
+        const cached = this._importCache.get(importId);
+        if (!cached) {
+          return;
+        }
+
+        this._importCache.set(importId, {
+          ...cached,
+          ...(payload as Partial<ImportSchema>),
+        });
+      });
   }
 
-  getImportById(importId: string): Promise<(ImportSchema & { id: string }) | null> {
-    return this._firestoreAdapter.getDocument<ImportSchema & { id: string }>(
-      `imports/${importId}`
-    );
+  getImportById(importId: string): Promise<ImportDocument | null> {
+    if (this._importCache.has(importId)) {
+      return Promise.resolve(this._importCache.get(importId) ?? null);
+    }
+
+    const inFlightRequest = this._inFlightImportRequests.get(importId);
+    if (inFlightRequest) {
+      return inFlightRequest;
+    }
+
+    const request = this._firestoreAdapter
+      .getDocument<ImportDocument>(`imports/${importId}`)
+      .then((importDoc) => {
+        this._importCache.set(importId, importDoc);
+        return importDoc;
+      })
+      .finally(() => {
+        this._inFlightImportRequests.delete(importId);
+      });
+
+    this._inFlightImportRequests.set(importId, request);
+    return request;
   }
 
   setImportChunk(

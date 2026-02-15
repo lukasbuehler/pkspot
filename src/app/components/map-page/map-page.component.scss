@@ -189,3 +189,19 @@ mat-chip {
 ::ng-deep .glass .mdc-evolution-chip__action--primary::before {
   border: none !important;
 }
+
+.spot-edits-panel {
+  .spot-edits-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .spot-edits-empty {
+    border: 1px dashed var(--mat-sys-outline-variant);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    opacity: 0.85;
+  }
+}

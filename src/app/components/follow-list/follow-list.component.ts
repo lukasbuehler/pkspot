@@ -1,4 +1,12 @@
-import { Component, Inject, OnInit, Pipe, PipeTransform } from "@angular/core";
+import {
+  Component,
+  Inject,
+  inject,
+  LOCALE_ID,
+  OnInit,
+  Pipe,
+  PipeTransform,
+} from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialogTitle,
@@ -49,12 +57,16 @@ export interface FollowListDialogData {
   standalone: true,
 })
 export class FollowDurationPipe implements PipeTransform {
+  private _locale = inject(LOCALE_ID);
+
   transform(timestamp: Timestamp | any, args?: any): string {
     const data = parseFirestoreTimestamp(timestamp);
     if (!data) {
       return "Unknown";
     }
-    return `${humanTimeSince(data)} (since ${data.toLocaleDateString()})`;
+    return `${humanTimeSince(data)} (since ${data.toLocaleDateString(
+      this._locale
+    )})`;
   }
 }
 

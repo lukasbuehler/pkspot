@@ -1,54 +1,23 @@
-@if(spotEdit()) {
-<div
-  class="border rounded p-3 mb-2 d-flex flex-row align-items-center gap-2 overflow-hidden"
->
-  <div class="d-flex flex-column gap-1 flex-grow-1 overflow-hidden">
-    <div
-      class="d-flex flex-row gap-3 align-items-center justify-content-between"
-    >
-      <div class="d-flex flex-column gap-1">
-        <span class="mat-label-small">
-          @if(spotEdit()!.type === 'CREATE') { Created Spot } @else { Updated
-          Spot }
-        </span>
-        <span class="mat-label-medium text-truncate">{{
-          spotEdit()!.getTimestampString()
-        }}</span>
-      </div>
-      <app-profile-button [user]="spotEdit()!.user"></app-profile-button>
+@if(spotEdit(); as edit) {
+<article class="spot-edit-card border rounded p-3 mb-3 overflow-hidden">
+  <div
+    class="spot-edit-card__header d-flex flex-row gap-3 align-items-start justify-content-between"
+  >
+    <div class="d-flex flex-column gap-1">
+      <span class="mat-label-medium spot-edit-card__type">
+        @if(edit.type === 'CREATE') { <span i18n>Spot created</span> } @else {
+        <span i18n>Spot updated</span> }
+      </span>
+      <span class="mat-body-small spot-edit-card__timestamp">
+        {{ edit.getTimestampString(locale) }}
+      </span>
     </div>
-    <div
-      class="d-flex flex-row gap-2 align-items-start justify-content-between"
-    >
-      <div class="d-flex flex-column gap-1 overflow-hidden pt-2">
-        <app-spot-edit-summary [edit]="spotEdit() ?? null"></app-spot-edit-summary>
-      </div>
-      @if(false) {
-      <div class="d-flex flex-column align-items-center gap-1">
-        <div class="d-flex flex-row">
-          <button
-            mat-icon-button
-            class="d-flex justify-content-center align-items-center"
-          >
-            <mat-icon>thumb_up</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            class="d-flex justify-content-center align-items-center"
-          >
-            <mat-icon>thumb_down</mat-icon>
-          </button>
-          <!-- <button
-      mat-icon-button
-      class="d-flex justify-content-center align-items-center"
-    >
-      <mat-icon>report</mat-icon>
-    </button> -->
-        </div>
-        <span class="mat-body-small">{{ spotEdit()!.likes }} likes</span>
-      </div>
-      }
-    </div>
+    <app-profile-button [user]="edit.user"></app-profile-button>
   </div>
-</div>
+
+  <div class="spot-edit-card__content pt-2">
+    <div class="mat-label-small pb-2" i18n>What changed</div>
+    <app-spot-edit-summary [edit]="edit"></app-spot-edit-summary>
+  </div>
+</article>
 }

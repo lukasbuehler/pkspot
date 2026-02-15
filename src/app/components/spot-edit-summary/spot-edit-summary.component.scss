@@ -3,6 +3,63 @@
     display: flex;
   }
 
+  .change-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+
+    @media (min-width: 420px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .change-row {
+      grid-column: 1 / -1;
+      border: 1px solid var(--mat-sys-outline-variant);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgb(255 255 255 / 3%);
+    }
+
+    .change-row-half {
+      grid-column: auto;
+    }
+
+    .change-row-negative {
+      border-color: rgb(198 40 40 / 35%);
+      background-color: rgb(244 67 54 / 10%);
+    }
+
+    .change-row__label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 18px;
+      }
+    }
+
+    .change-row__values {
+      margin-left: 26px;
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .change-row__value-previous {
+      opacity: 0.78;
+      word-break: break-word;
+    }
+
+    .change-row__value-current {
+      font-weight: 600;
+      word-break: break-word;
+    }
+  }
+
   .chip-default {
     border: 1px solid var(--mat-sys-outline-variant);
   }

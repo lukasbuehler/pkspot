@@ -148,12 +148,22 @@ export class SpotEdit implements SpotEditSchema {
     return detailString;
   }
 
-  getTimestampString(): string {
+  getTimestampString(locale?: string): string {
     const date =
       parseFirestoreTimestamp(this.timestamp) ??
       (typeof this.timestamp_raw_ms === "number"
         ? new Date(this.timestamp_raw_ms)
         : new Date());
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+
+    try {
+      return new Intl.DateTimeFormat(locale, {
+        dateStyle: "short",
+        timeStyle: "medium",
+      }).format(date);
+    } catch {
+      return `${date.toLocaleDateString(locale)} ${date.toLocaleTimeString(
+        locale
+      )}`;
+    }
   }
 }

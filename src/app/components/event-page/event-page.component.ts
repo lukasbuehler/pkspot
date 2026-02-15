@@ -626,6 +626,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
     // Set meta tags with canonical URL
     const canonicalPath = `/events/${this.eventId}`;
+    const startDateText = this._formatDateForMeta(this.start);
+    const endDateText = this._formatDateForMeta(this.end);
     const eventData = {
       name: this.name,
       image: this.bannerImageSrc,
@@ -633,11 +635,9 @@ export class EventPageComponent implements OnInit, OnDestroy {
         $localize`Event in ` +
         this.localityString +
         ", (" +
-        (this.start.toLocaleDateString() === this.end.toLocaleDateString()
-          ? this.start.toLocaleDateString()
-          : this.start.toLocaleDateString() +
-            " - " +
-            this.end.toLocaleDateString()) +
+        (this._isSameDay(this.start, this.end)
+          ? startDateText
+          : `${startDateText} - ${endDateText}`) +
         ")",
     };
     this.metaTagService.setEventMetaTags(eventData, canonicalPath);
@@ -872,5 +872,17 @@ export class EventPageComponent implements OnInit, OnDestroy {
     } else {
       console.warn("markerClickEvent payload missing index", event);
     }
+  }
+
+  private _formatDateForMeta(date: Date): string {
+    return date.toLocaleDateString(this.locale, { dateStyle: "medium" });
+  }
+
+  private _isSameDay(a: Date, b: Date): boolean {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
   }
 }

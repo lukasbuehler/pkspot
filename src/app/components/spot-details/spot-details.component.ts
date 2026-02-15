@@ -168,6 +168,7 @@ import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { createUserReference } from "../../../scripts/Helpers";
 import { AnalyticsService } from "../../services/analytics.service";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { SpotProvenanceComponent } from "../spot-provenance/spot-provenance.component";
 
 @Pipe({ name: "reverse", standalone: true })
 export class ReversePipe implements PipeTransform {
@@ -276,6 +277,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     // For change-detection-friendly stringification in animation binding
     JsonPipe,
     RouterLink,
+    SpotProvenanceComponent,
   ],
   schemas: [],
 })
