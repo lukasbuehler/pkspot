@@ -5,6 +5,12 @@
   trgLang="de-CH"
 >
   <file id="ngi18n" original="ng.template">
+    <unit id="3753871980492025915">
+      <segment state="initial">
+        <source>spots visited</source>
+        <target>Spots bsuecht</target>
+      </segment>
+    </unit>
     <unit id="3762050401268226469">
       <segment state="initial">
         <source>Unknown Action</source>
@@ -15,6 +21,12 @@
       <segment state="initial">
         <source>Save</source>
         <target>Speichere</target>
+      </segment>
+    </unit>
+    <unit id="3771736044227824217">
+      <segment state="initial">
+        <source>1 edit</source>
+        <target>1 Bearbeitig</target>
       </segment>
     </unit>
     <unit id="2788928704037276887">
@@ -73,6 +85,12 @@
       <segment state="initial">
         <source>Find spots and places</source>
         <target>Find Spots und Ort</target>
+      </segment>
+    </unit>
+    <unit id="8112656553208307790">
+      <segment state="initial">
+        <source>Spot Import from KML / KMZ</source>
+        <target>Spot Import vo KML / KMZ</target>
       </segment>
     </unit>
     <unit id="8115083664628466958">
@@ -158,6 +176,12 @@
         <target>Bearbeite</target>
       </segment>
     </unit>
+    <unit id="7589136797201485434">
+      <segment state="initial">
+        <source>Open source</source>
+        <target>Quelle öffne</target>
+      </segment>
+    </unit>
     <unit id="spot.report.tooltip">
       <notes>
         <note category="description">Tooltip for report spot button</note>
@@ -166,6 +190,12 @@
       <segment state="initial">
         <source>Report this spot</source>
         <target>De Spot melde</target>
+      </segment>
+    </unit>
+    <unit id="3209433866980480523">
+      <segment state="initial">
+        <source> Sign out </source>
+        <target> Abmelde </target>
       </segment>
     </unit>
     <unit id="3228321309780982411">
@@ -219,6 +249,12 @@
         <target>Beschriibig</target>
       </segment>
     </unit>
+    <unit id="4915431133669985304">
+      <segment state="initial">
+        <source>Profile</source>
+        <target>Profil</target>
+      </segment>
+    </unit>
     <unit id="4930506384627295710">
       <segment state="initial">
         <source>Settings</source>
@@ -231,6 +267,12 @@
         <target>Zrugg zum Ahmelde</target>
       </segment>
     </unit>
+    <unit id="8928816882866356838">
+      <segment state="initial">
+        <source>Public</source>
+        <target>Öffentlich</target>
+      </segment>
+    </unit>
     <unit id="8942517704279686805">
       <notes>
         <note
@@ -241,6 +283,12 @@
       <segment state="initial">
         <source>Description of the spot, its features and more...</source>
         <target>Beschriibig vom Spot, de Eigenschafte und meh...</target>
+      </segment>
+    </unit>
+    <unit id="8945709171355335928">
+      <segment state="initial">
+        <source>Spot updated</source>
+        <target>Spot aktualisiert</target>
       </segment>
     </unit>
     <unit id="8958570874759054860">
@@ -261,6 +309,12 @@
         <target> Grundriss hinzufüge </target>
       </segment>
     </unit>
+    <unit id="6877113876835666202">
+      <segment state="initial">
+        <source>License</source>
+        <target>Lizenz</target>
+      </segment>
+    </unit>
     <unit id="4470656372477479316">
       <notes>
         <note
@@ -271,6 +325,20 @@
       <segment state="initial">
         <source> Discard changes </source>
         <target> Änderige verwerfe </target>
+      </segment>
+    </unit>
+    <unit id="8470446025763473581">
+      <segment state="initial">
+        <source>Added media</source>
+        <target>Medie hinzuegfüegt</target>
+      </segment>
+    </unit>
+    <unit id="8473658733830175441">
+      <segment state="initial">
+        <source
+        > Newest changes first. Each entry shows exactly what was edited. </source>
+        <target
+        > Neuschti Änderige zerscht. Jede Eintrag zeigt gnau, was bearbeitet worde isch. </target>
       </segment>
     </unit>
     <unit id="8482930840277475324">
@@ -366,6 +434,12 @@
         > This spot is not eligible for highlights. To be eligible, it needs at least one user-submitted picture and at least one rating. </source>
         <target
         > De Spot cha nöd i de Highlights erschine. Defür bruchts mindestens eis Bild vome Benutzer und mindestens ei Bewertig. </target>
+      </segment>
+    </unit>
+    <unit id="5574909544126829265">
+      <segment state="initial">
+        <source>What changed</source>
+        <target>Was sich gänderet het</target>
       </segment>
     </unit>
     <unit id="5596960263969935910">
@@ -465,20 +539,6 @@
         <target>E-Mail Support</target>
       </segment>
     </unit>
-    <unit id="134280351162314914">
-      <segment state="initial">
-        <source>Rating: <ph
-            id="0"
-            equiv="PH"
-            disp="Math.round(spot.rating * 10) / 10"
-          /> ⭐</source>
-        <target>Bewertig: <ph
-            id="0"
-            equiv="PH"
-            disp="Math.round(spot.rating * 10) / 10"
-          /> ⭐</target>
-      </segment>
-    </unit>
     <unit id="1347241542439262355">
       <segment state="initial">
         <source>General settings</source>
@@ -573,10 +633,10 @@
         <target>Policy</target>
       </segment>
     </unit>
-    <unit id="profile.nav_label">
+    <unit id="saved_spots_chip_label">
       <segment state="initial">
-        <source>My Profile</source>
-        <target>Mis Profil</target>
+        <source>Saved</source>
+        <target>Gspeicheret</target>
       </segment>
     </unit>
     <unit id="settings.account.description">
@@ -599,15 +659,9 @@
         <target> Konto </target>
       </segment>
     </unit>
-    <unit id="settings.nav_label">
+    <unit id="4250467317941972098">
       <segment state="initial">
-        <source>Settings</source>
-        <target>Ihstellige</target>
-      </segment>
-    </unit>
-    <unit id="logout.nav_label">
-      <segment state="initial">
-        <source>Logout</source>
+        <source> Log out </source>
         <target>Abmelde</target>
       </segment>
     </unit>
@@ -675,12 +729,6 @@
       <segment state="initial">
         <source>Import spots from a file</source>
         <target>Spots vonere Datei importiere</target>
-      </segment>
-    </unit>
-    <unit id="map.spot.source.earlyPKSpot">
-      <segment state="initial">
-        <source>Early PK Spot Community Contribution</source>
-        <target>Frühe PK Spot Community Biitrag</target>
       </segment>
     </unit>
     <unit id="map_label">
@@ -965,6 +1013,12 @@
         <target>Ahzeigename</target>
       </segment>
     </unit>
+    <unit id="3080109816219994129">
+      <segment state="initial">
+        <source>Instagram</source>
+        <target>Instagram</target>
+      </segment>
+    </unit>
     <unit id="3088718992754147096">
       <segment state="initial">
         <source> Fueled by Passion, Community and Partners </source>
@@ -1010,16 +1064,40 @@
         <target>Live &amp; Verified</target>
       </segment>
     </unit>
+    <unit id="1053544786475957394">
+      <segment state="initial">
+        <source> Choose the language used in the app. </source>
+        <target> Wähl d&apos;Sprach, wo im App verwendet wird. </target>
+      </segment>
+    </unit>
     <unit id="1096271480010782204">
       <segment state="initial">
         <source>Founder</source>
         <target>Gründer</target>
       </segment>
     </unit>
+    <unit id="1218334388194408974">
+      <segment state="initial">
+        <source>Before</source>
+        <target>Vorher</target>
+      </segment>
+    </unit>
     <unit id="1267967133679326155">
       <segment state="initial">
         <source>Create Account</source>
         <target>Account erstelle</target>
+      </segment>
+    </unit>
+    <unit id="1274247756500564795">
+      <segment state="initial">
+        <source>Community</source>
+        <target>Community</target>
+      </segment>
+    </unit>
+    <unit id="1292744805065412409">
+      <segment state="initial">
+        <source>Sign in to view visited spots</source>
+        <target>Meld dich zum die bsuechte Spots gseh</target>
       </segment>
     </unit>
     <unit id="6454977624040653568">
@@ -1046,6 +1124,12 @@
       <segment state="initial">
         <source>Password and repeated password don&apos;t match</source>
         <target>D&apos;Passwörter stimmed nöd überein.</target>
+      </segment>
+    </unit>
+    <unit id="6480390330423300875">
+      <segment state="initial">
+        <source>View source</source>
+        <target>Quelle ahluege</target>
       </segment>
     </unit>
     <unit id="1927584134608367160">
@@ -1244,6 +1328,12 @@
         <target>Spot erfolgrich gspeicheret</target>
       </segment>
     </unit>
+    <unit id="1509543645001749494">
+      <segment state="initial">
+        <source>Visited Spots</source>
+        <target>Bsuchti Spots</target>
+      </segment>
+    </unit>
     <unit id="1512782188681945283">
       <segment state="initial">
         <source>Initializing map...</source>
@@ -1335,6 +1425,12 @@
         <target>Dateschutzerklärig</target>
       </segment>
     </unit>
+    <unit id="844013166562960658">
+      <segment state="initial">
+        <source>Saved Spots</source>
+        <target>Gspeichereti Spots</target>
+      </segment>
+    </unit>
     <unit id="8450335284128633458">
       <segment state="initial">
         <source>Failed to link Google Place</source>
@@ -1379,6 +1475,12 @@
         <target>Nützlichi Links</target>
       </segment>
     </unit>
+    <unit id="1165007284037457711">
+      <segment state="initial">
+        <source> Your Private Spot Lists </source>
+        <target> Dini private Spot-Liste </target>
+      </segment>
+    </unit>
     <unit id="8374523856907728400">
       <segment state="initial">
         <source>Does not exist</source>
@@ -1391,6 +1493,12 @@
         >It&apos;s a private spot and should not be on this spot map.</source>
         <target
         >Es isch en private Spot und er sött öd auf dere Spot Charte sii.</target>
+      </segment>
+    </unit>
+    <unit id="8637857575623979078">
+      <segment state="initial">
+        <source> No edits yet for this spot. </source>
+        <target> Kei Bearbeitungen für de Spot . </target>
       </segment>
     </unit>
     <unit id="8656126574213649581">
@@ -1967,6 +2075,208 @@
         <target>Wohngebiet</target>
       </segment>
     </unit>
+    <unit id="spot-edit-summary.field.bounds">
+      <segment state="initial">
+        <source>Bounds</source>
+        <target>Areal</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.description">
+      <segment state="initial">
+        <source>Description</source>
+        <target>Beschriibig</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.external-refs">
+      <segment state="initial">
+        <source>External refs</source>
+        <target>Externi Verbindige</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.location">
+      <segment state="initial">
+        <source>Location</source>
+        <target>Standort</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.name">
+      <segment state="initial">
+        <source>Name</source>
+        <target>Name</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.slug">
+      <segment state="initial">
+        <source>Slug</source>
+        <target>Slug</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.streetview-hidden">
+      <segment state="initial">
+        <source>Street View hidden</source>
+        <target>Street View verborge</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.streetview-visible">
+      <segment state="initial">
+        <source>Street View shown</source>
+        <target>Street View sichtbar</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.access">
+      <segment state="initial">
+        <source>Access</source>
+        <target>Zuegang</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.amenity-no">
+      <segment state="initial">
+        <source>No</source>
+        <target>Nei</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.amenity-yes">
+      <segment state="initial">
+        <source>Yes</source>
+        <target>Ja</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.bounds">
+      <segment state="initial">
+        <source>Bounds</source>
+        <target>Areal</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.bounds.points">
+      <segment state="initial">
+        <source><ph
+            id="0"
+            equiv="pointCount"
+            disp="bounds.length"
+          /> points</source>
+        <target><ph
+            id="0"
+            equiv="pointCount"
+            disp="bounds.length"
+          /> Pünkt</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.bounds.single-point">
+      <segment state="initial">
+        <source>1 point</source>
+        <target>1 Punkt</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.description">
+      <segment state="initial">
+        <source>Description</source>
+        <target>Beschriibig</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.empty">
+      <segment state="initial">
+        <source>Not set</source>
+        <target>Nöd gsetzt</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.external-refs">
+      <segment state="initial">
+        <source>External references</source>
+        <target>Externi Referenze</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.external-refs.google">
+      <segment state="initial">
+        <source>Google Maps ID</source>
+        <target>Google Maps ID</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.external-refs.website">
+      <segment state="initial">
+        <source>Website</source>
+        <target>Websiite</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.location">
+      <segment state="initial">
+        <source>Location</source>
+        <target>Standort</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.media">
+      <segment state="initial">
+        <source>Media</source>
+        <target>Medie</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.media.multiple">
+      <segment state="initial">
+        <source><ph
+            id="0"
+            equiv="itemCount"
+            disp="value.length"
+          /> items</source>
+        <target><ph
+            id="0"
+            equiv="itemCount"
+            disp="value.length"
+          /> Medie</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.media.none">
+      <segment state="initial">
+        <source>No media</source>
+        <target>Kei Medie</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.media.single">
+      <segment state="initial">
+        <source>1 item</source>
+        <target>1 Medium</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.name">
+      <segment state="initial">
+        <source>Name</source>
+        <target>Name</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.none">
+      <segment state="initial">
+        <source>None</source>
+        <target>Kei</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.slug">
+      <segment state="initial">
+        <source>Slug</source>
+        <target>Slug</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.streetview">
+      <segment state="initial">
+        <source>Street View</source>
+        <target>Street View</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.streetview.hidden">
+      <segment state="initial">
+        <source>Hidden</source>
+        <target>Verborge</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.streetview.visible">
+      <segment state="initial">
+        <source>Visible</source>
+        <target>Sichtbar</target>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.type">
+      <segment state="initial">
+        <source>Type</source>
+        <target>Art</target>
+      </segment>
+    </unit>
     <unit id="spot-type-description.art">
       <segment state="initial">
         <source
@@ -2246,17 +2556,6 @@
         <target>Wasser Spot</target>
       </segment>
     </unit>
-    <unit id="spot.locality.pretext">
-      <notes>
-        <note
-          category="description"
-        >The text before the localized location of the spot. E.g. Parkour spot in Wiedikon, Zurich, CH</note>
-      </notes>
-      <segment state="initial">
-        <source>Parkour spot in </source>
-        <target>Parkour Spot in </target>
-      </segment>
-    </unit>
     <unit id="question.covered">
       <segment state="initial">
         <source>Is the area covered?</source>
@@ -2334,18 +2633,6 @@
         > There are no highlighted spots for this area, zoom in on dots in the map to discover other spots. </source>
         <target
         > Es git kei Spot Highlights i dere Region, zoom uf Pünkt ine uf de Karte zum meh Spots entdecke </target>
-      </segment>
-    </unit>
-    <unit id="lang_btn_label">
-      <notes>
-        <note
-          category="description"
-        >The label of the change language button</note>
-        <note category="meaning">Language button label</note>
-      </notes>
-      <segment state="initial">
-        <source>Language</source>
-        <target>Sprach</target>
       </segment>
     </unit>
     <unit id="spot.ratings.header">
@@ -2466,10 +2753,22 @@
           /></target>
       </segment>
     </unit>
+    <unit id="9131908454374854077">
+      <segment state="initial">
+        <source>Sign out of your account.</source>
+        <target>Vo dim Konto Abmelde.</target>
+      </segment>
+    </unit>
     <unit id="9147694429145547851">
       <segment state="initial">
         <source>Validating your reset link...</source>
         <target>Din Reset-Link wir validiert...</target>
+      </segment>
+    </unit>
+    <unit id="9155608366859514313">
+      <segment state="initial">
+        <source>Source</source>
+        <target>Quelle</target>
       </segment>
     </unit>
     <unit id="9156829285909106416">
@@ -2646,6 +2945,12 @@
         <target>Heim-Spots</target>
       </segment>
     </unit>
+    <unit id="8170263490734712002">
+      <segment state="initial">
+        <source> You have not saved any spots yet. </source>
+        <target> Du hesch no kei Spots gspeicheret. </target>
+      </segment>
+    </unit>
     <unit id="8182413566453831074">
       <segment state="initial">
         <source>Freerunner since</source>
@@ -2720,6 +3025,12 @@
       <segment state="initial">
         <source> Agree and Continue </source>
         <target> Zuestimme und Wiiter </target>
+      </segment>
+    </unit>
+    <unit id="visited_spots_chip_label">
+      <segment state="initial">
+        <source>Visited</source>
+        <target>Bsuecht</target>
       </segment>
     </unit>
     <unit id="water_spots_chip_label">
@@ -2832,6 +3143,12 @@
         > For formal inquiries, partnerships, or issues that require privacy, reach out via email. </source>
         <target
         > Für offizielli Ahfrage, Partnerschafte, oder privati Ahglegeheite, melded Sie sich per E-Mail. </target>
+      </segment>
+    </unit>
+    <unit id="7672282077901429954">
+      <segment state="initial">
+        <source>Error, there was a problem signing out!</source>
+        <target>Fehler, es het es Problem geh bim Abmelde!</target>
       </segment>
     </unit>
     <unit id="7675878133592710280">
@@ -3209,40 +3526,6 @@
         <target>Aktuelli E-mail</target>
       </segment>
     </unit>
-    <unit id="28674972039900875">
-      <segment state="initial">
-        <source><pc
-            id="0"
-            equivStart="START_TAG_STRONG"
-            equivEnd="CLOSE_TAG_STRONG"
-            type="other"
-            dispStart="&lt;strong&gt;"
-            dispEnd="&lt;/strong&gt;"
-          >Public License:</pc> This spot&apos;s data is made available under the <pc
-            id="1"
-            equivStart="START_LINK"
-            equivEnd="CLOSE_LINK"
-            type="link"
-            dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
-            dispEnd="&lt;/a&gt;"
-          > CC BY-NC-SA 4.0 </pc> license. </source>
-        <target><pc
-            id="0"
-            equivStart="START_TAG_STRONG"
-            equivEnd="CLOSE_TAG_STRONG"
-            type="other"
-            dispStart="&lt;strong&gt;"
-            dispEnd="&lt;/strong&gt;"
-          >Öffentlichi Lizenz:</pc> Die Date vo dem Spot sind verfüegbar under de <pc
-            id="1"
-            equivStart="START_LINK"
-            equivEnd="CLOSE_LINK"
-            type="link"
-            dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
-            dispEnd="&lt;/a&gt;"
-          > CC BY-NC-SA 4.0 </pc> Lizenz. </target>
-      </segment>
-    </unit>
     <unit id="2874252575916172948">
       <segment state="initial">
         <source> Delete my account </source>
@@ -3319,6 +3602,12 @@
         <target>HTML Ihbettigs Code</target>
       </segment>
     </unit>
+    <unit id="8235805970201248247">
+      <segment state="initial">
+        <source>Now</source>
+        <target>Jetzt</target>
+      </segment>
+    </unit>
     <unit id="5807661245547880377">
       <notes>
         <note
@@ -3387,14 +3676,8 @@
     </unit>
     <unit id="login.nav_label">
       <segment state="initial">
-        <source>Login</source>
+        <source>sign-in</source>
         <target>Ahmelde</target>
-      </segment>
-    </unit>
-    <unit id="create_acc.nav_label">
-      <segment state="initial">
-        <source>Create Account</source>
-        <target>Konto erstelle</target>
       </segment>
     </unit>
     <unit id="crop.cancel">
@@ -3483,16 +3766,34 @@
         <target>Isch nöd gange zum mit Apple ihlogge!</target>
       </segment>
     </unit>
+    <unit id="8749228736834878459">
+      <segment state="initial">
+        <source>Sign in to view saved spots</source>
+        <target>Meld dich ah zum die gspeicherete Spots z'gseh</target>
+      </segment>
+    </unit>
     <unit id="8755396282893693521">
       <segment state="initial">
         <source>Event spots</source>
         <target>Verahstaltigs Spots</target>
       </segment>
     </unit>
+    <unit id="8773657518706700849">
+      <segment state="initial">
+        <source>Spot Edits</source>
+        <target>Spot Bearbeitige</target>
+      </segment>
+    </unit>
     <unit id="8784425134270344261">
       <segment state="initial">
         <source>Early Bird</source>
         <target>Frühe Vogel</target>
+      </segment>
+    </unit>
+    <unit id="8799693346420796055">
+      <segment state="initial">
+        <source> You have not marked any spots as visited yet. </source>
+        <target> Du hesch no kei Spots als bsuecht markiert. </target>
       </segment>
     </unit>
     <unit id="amenities.heated">
@@ -3619,6 +3920,12 @@
         <target>Ufeglade vo: </target>
       </segment>
     </unit>
+    <unit id="5903110565317428249">
+      <segment state="initial">
+        <source>Session</source>
+        <target>Session</target>
+      </segment>
+    </unit>
     <unit id="5911495341996816625">
       <segment state="initial">
         <source>Please wait while we verify your email address...</source>
@@ -3666,6 +3973,12 @@
         <target>Ungültigi E-Mail Adresse.</target>
       </segment>
     </unit>
+    <unit id="2151577293637140730">
+      <segment state="initial">
+        <source>Data Imports</source>
+        <target>Date Importierige</target>
+      </segment>
+    </unit>
     <unit id="2157223865323513041">
       <segment state="initial">
         <source>Please fill in all fields</source>
@@ -3694,6 +4007,12 @@
       <segment state="initial">
         <source> Save </source>
         <target> Speichere </target>
+      </segment>
+    </unit>
+    <unit id="7819314041543176992">
+      <segment state="initial">
+        <source>Close</source>
+        <target>Gschlüsse</target>
       </segment>
     </unit>
     <unit id="4104301377423880524">
@@ -3800,6 +4119,12 @@
         <source>Error changing email. Please check your password.</source>
         <target
         >Fehler bim ändere vo dinere E-Mail. Bitte prüef dis Passwort.</target>
+      </segment>
+    </unit>
+    <unit id="8342138617515825905">
+      <segment state="initial">
+        <source>Dev Log</source>
+        <target>Dev Log</target>
       </segment>
     </unit>
     <unit id="3249513483374643425">
@@ -3943,6 +4268,12 @@
         <target>Medie hinzuefüege</target>
       </segment>
     </unit>
+    <unit id="3114906098813455469">
+      <segment state="initial">
+        <source>Spot created</source>
+        <target>Spot erstellt</target>
+      </segment>
+    </unit>
     <unit id="3143510854025741393">
       <segment state="initial">
         <source
@@ -4005,6 +4336,12 @@
       <segment state="initial">
         <source>Description</source>
         <target>Beschriibig</target>
+      </segment>
+    </unit>
+    <unit id="158781460362336598">
+      <segment state="initial">
+        <source>You were successfully signed out!</source>
+        <target>Du bisch erfolgriich abgmeldet worde!</target>
       </segment>
     </unit>
     <unit id="spot.location.header">
@@ -4299,6 +4636,12 @@
       <segment state="initial">
         <source>Creative</source>
         <target>Kreativ</target>
+      </segment>
+    </unit>
+    <unit id="6575164270960732036">
+      <segment state="initial">
+        <source> Previous </source>
+        <target> Vorherigi </target>
       </segment>
     </unit>
     <unit id="657631833222600301">
@@ -4673,6 +5016,12 @@
         <target>Fehler bim Aamälde mit Google!</target>
       </segment>
     </unit>
+    <unit id="3971100408152984961">
+      <segment state="initial">
+        <source> Next </source>
+        <target> Nöchst </target>
+      </segment>
+    </unit>
     <unit id="3973931101896534797">
       <segment state="initial">
         <source>Date</source>
@@ -4782,6 +5131,26 @@
         <target>Challenge bim <ph id="0" equiv="PH" disp="spotName" /></target>
       </segment>
     </unit>
+    <unit id="7214717827274759008">
+      <segment state="initial">
+        <source> This spot&apos;s data is made available under the <pc
+            id="0"
+            equivStart="START_LINK"
+            equivEnd="CLOSE_LINK"
+            type="link"
+            dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
+            dispEnd="&lt;/a &gt;"
+          >CC BY-NC-SA 4.0</pc> license. </source>
+        <target> Die Spot-Date sind verfügbar under de <pc
+            id="0"
+            equivStart="START_LINK"
+            equivEnd="CLOSE_LINK"
+            type="link"
+            dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;"
+            dispEnd="&lt;/a &gt;"
+          >CC BY-NC-SA 4.0</pc> Lizenz. </target>
+      </segment>
+    </unit>
     <unit id="7215101881367554791">
       <segment state="initial">
         <source>Show more</source>
@@ -4792,6 +5161,12 @@
       <segment state="initial">
         <source>Pathfinder</source>
         <target>Pfadfinder</target>
+      </segment>
+    </unit>
+    <unit id="7276436554511308696">
+      <segment state="initial">
+        <source>edits</source>
+        <target>Bearbeitige</target>
       </segment>
     </unit>
     <unit id="6607382385355290684">
@@ -4969,6 +5344,46 @@
         <target>All Arte</target>
       </segment>
     </unit>
+    <unit id="checkin.at_spot_short">
+      <segment state="initial">
+        <source>At <pc
+            id="0"
+            equivStart="START_TAG_STRONG"
+            equivEnd="CLOSE_TAG_STRONG"
+            type="other"
+            dispStart="&lt;strong&gt;"
+            dispEnd="&lt;/strong&gt;"
+          ><ph
+              id="1"
+              equiv="INTERPOLATION"
+              disp="{{ spot.name }}"
+            /></pc> spot?</source>
+        <target>Am <pc
+            id="0"
+            equivStart="START_TAG_STRONG"
+            equivEnd="CLOSE_TAG_STRONG"
+            type="other"
+            dispStart="&lt;strong&gt;"
+            dispEnd="&lt;/strong&gt;"
+          ><ph
+              id="1"
+              equiv="INTERPOLATION"
+              disp="{{ spot.name }}"
+            /></pc> Spot?</target>
+      </segment>
+    </unit>
+    <unit id="checkin.check_in">
+      <segment state="initial">
+        <source> Check In </source>
+        <target> Ihchecke </target>
+      </segment>
+    </unit>
+    <unit id="1731452447994913749">
+      <segment state="initial">
+        <source>Failed to update saved spot</source>
+        <target>Fehler bim Update vo de gspeicherete Spots</target>
+      </segment>
+    </unit>
     <unit id="1737753151350322492">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="this.label" /></source>
@@ -4979,6 +5394,12 @@
       <segment state="initial">
         <source>Loading Google Maps® API...</source>
         <target>Google Maps® API ladt...</target>
+      </segment>
+    </unit>
+    <unit id="1764129256318376973">
+      <segment state="initial">
+        <source>My Spots</source>
+        <target>Mini Spots</target>
       </segment>
     </unit>
     <unit id="1772658275500241538">
@@ -5025,6 +5446,12 @@
         <target>Passwort zruggsetze</target>
       </segment>
     </unit>
+    <unit id="1675135336563892261">
+      <segment state="initial">
+        <source>Failed to update visited spot</source>
+        <target>Fehler bim Update vo de bsuechte Spots</target>
+      </segment>
+    </unit>
     <unit id="3857035781062897227">
       <segment state="initial">
         <source>Instagram DMs</source>
@@ -5047,6 +5474,12 @@
       <segment state="initial">
         <source>Search Google Places near this spot</source>
         <target>Suech nach Google Places i de nöchi vo dem Spot</target>
+      </segment>
+    </unit>
+    <unit id="7793821153334609761">
+      <segment state="initial">
+        <source>Only visible to you.</source>
+        <target>Nur für dich sichtbar.</target>
       </segment>
     </unit>
     <unit id="7796156979263266819">
