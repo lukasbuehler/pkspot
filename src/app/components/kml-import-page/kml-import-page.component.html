@@ -552,6 +552,17 @@
                       </div>
                       @if(selectedVerificationSpot()) {
                       <mat-form-field appearance="outline" class="w-100 mt-2">
+                        <mat-label>Name</mat-label>
+                        <input
+                          matInput
+                          [value]="selectedVerificationSpot()!.name()"
+                          (input)="
+                            setSelectedVerificationName($any($event.target).value)
+                          "
+                        />
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline" class="w-100 mt-2">
                         <mat-label>Type</mat-label>
                         <mat-select
                           [value]="selectedVerificationSpot()!.type()"

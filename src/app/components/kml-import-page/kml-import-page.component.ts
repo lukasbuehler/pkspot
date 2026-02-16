@@ -606,6 +606,14 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     item.localSpot.access.set(access);
   }
 
+  setSelectedVerificationName(name: string | null | undefined) {
+    const item = this.selectedVerificationItem();
+    if (!item) {
+      return;
+    }
+    this._setVerificationItemName(item, name ?? "");
+  }
+
   applySelectedTypeAndAccessToFolder() {
     this._applySelectedTypeAndAccess("folder");
   }
@@ -1034,6 +1042,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       .replace(/\s+/g, " ");
   }
 
+  private _stripTrailingCounter(value: string | null | undefined): string {
+    return (value ?? "").trim().replace(/\s+\d+$/, "").trim();
+  }
+
   private _distanceMeters(a: KMLSpot, b: KMLSpot): number {
     const toRad = (deg: number) => (deg * Math.PI) / 180;
     const lat1 = a.spot.location.lat;
@@ -1159,6 +1171,67 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         sortedItems.forEach((item, index) => {
           this._setVerificationItemName(item, `${baseName} ${index + 1}`);
         });
+      });
+    });
+
+    // Safety pass: if exact duplicate names still exist, normalize by base name and
+    // re-number sequentially to avoid repeated names like "X", "X 1", "X 1".
+    const byExactFolderAndName = new Map<string, VerificationSpotItem[]>();
+    items.forEach((item) => {
+      const exactName = this._normalizeSpotName(item.spot.spot.name);
+      if (!exactName) {
+        return;
+      }
+      const key = `${item.folder}::${exactName}`;
+      const group = byExactFolderAndName.get(key) ?? [];
+      group.push(item);
+      byExactFolderAndName.set(key, group);
+    });
+
+    const processedBaseKeys = new Set<string>();
+    byExactFolderAndName.forEach((exactGroup) => {
+      if (exactGroup.length <= 1) {
+        return;
+      }
+      const folder = exactGroup[0]!.folder;
+      const baseName = this._stripTrailingCounter(exactGroup[0]!.spot.spot.name);
+      const normalizedBaseName = this._normalizeSpotName(baseName);
+      if (!normalizedBaseName) {
+        return;
+      }
+
+      const baseKey = `${folder}::${normalizedBaseName}`;
+      if (processedBaseKeys.has(baseKey)) {
+        return;
+      }
+      processedBaseKeys.add(baseKey);
+
+      const relatedItems = items
+        .filter(
+          (item) =>
+            item.folder === folder &&
+            this._normalizeSpotName(
+              this._stripTrailingCounter(item.spot.spot.name)
+            ) === normalizedBaseName
+        )
+        .sort((a, b) => {
+          const ai = a.spot.importIndex ?? Number.MAX_SAFE_INTEGER;
+          const bi = b.spot.importIndex ?? Number.MAX_SAFE_INTEGER;
+          if (ai !== bi) {
+            return ai - bi;
+          }
+          if (a.spot.spot.location.lat !== b.spot.spot.location.lat) {
+            return a.spot.spot.location.lat - b.spot.spot.location.lat;
+          }
+          return a.spot.spot.location.lng - b.spot.spot.location.lng;
+        });
+
+      if (relatedItems.length <= 1) {
+        return;
+      }
+
+      relatedItems.forEach((item, index) => {
+        this._setVerificationItemName(item, `${baseName} ${index + 1}`);
       });
     });
   }
