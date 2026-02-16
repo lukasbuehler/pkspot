@@ -18,36 +18,12 @@
     </unit>
     <unit id="login.nav_label">
       <segment>
-        <source>Login</source>
+        <source>sign-in</source>
       </segment>
     </unit>
-    <unit id="create_acc.nav_label">
+    <unit id="4250467317941972098">
       <segment>
-        <source>Create Account</source>
-      </segment>
-    </unit>
-    <unit id="lang_btn_label">
-      <notes>
-        <note category="description">The label of the change language button</note>
-        <note category="meaning">Language button label</note>
-      </notes>
-      <segment>
-        <source>Language</source>
-      </segment>
-    </unit>
-    <unit id="profile.nav_label">
-      <segment>
-        <source>My Profile</source>
-      </segment>
-    </unit>
-    <unit id="settings.nav_label">
-      <segment>
-        <source>Settings</source>
-      </segment>
-    </unit>
-    <unit id="logout.nav_label">
-      <segment>
-        <source>Logout</source>
+        <source> Log out </source>
       </segment>
     </unit>
     <unit id="map_label">
@@ -131,6 +107,11 @@
     <unit id="1048224077750217239">
       <segment>
         <source>Live &amp; Verified</source>
+      </segment>
+    </unit>
+    <unit id="1053544786475957394">
+      <segment>
+        <source> Choose the language used in the app. </source>
       </segment>
     </unit>
     <unit id="7433077905899310281">
@@ -226,6 +207,11 @@
     <unit id="69041188957873463">
       <segment>
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">policy</pc> Privacy Policy </source>
+      </segment>
+    </unit>
+    <unit id="3080109816219994129">
+      <segment>
+        <source>Instagram</source>
       </segment>
     </unit>
     <unit id="3088718992754147096">
@@ -383,6 +369,11 @@
         <source>Invalid Link</source>
       </segment>
     </unit>
+    <unit id="3114906098813455469">
+      <segment>
+        <source>Spot created</source>
+      </segment>
+    </unit>
     <unit id="3143510854025741393">
       <segment>
         <source>This link is invalid or has expired. Please request a new one.</source>
@@ -398,9 +389,19 @@
         <source>Unable to process this request. Please try again later.</source>
       </segment>
     </unit>
+    <unit id="3753871980492025915">
+      <segment>
+        <source>spots visited</source>
+      </segment>
+    </unit>
     <unit id="3762050401268226469">
       <segment>
         <source>Unknown Action</source>
+      </segment>
+    </unit>
+    <unit id="7672282077901429954">
+      <segment>
+        <source>Error, there was a problem signing out!</source>
       </segment>
     </unit>
     <unit id="7675878133592710280">
@@ -411,6 +412,11 @@
     <unit id="5411574545284988510">
       <segment>
         <source>Verifying Email</source>
+      </segment>
+    </unit>
+    <unit id="5903110565317428249">
+      <segment>
+        <source>Session</source>
       </segment>
     </unit>
     <unit id="5911495341996816625">
@@ -436,6 +442,11 @@
     <unit id="6972105223770675605">
       <segment>
         <source>Reset Password</source>
+      </segment>
+    </unit>
+    <unit id="9131908454374854077">
+      <segment>
+        <source>Sign out of your account.</source>
       </segment>
     </unit>
     <unit id="9147694429145547851">
@@ -548,6 +559,11 @@
         <source>Edit</source>
       </segment>
     </unit>
+    <unit id="7589136797201485434">
+      <segment>
+        <source>Open source</source>
+      </segment>
+    </unit>
     <unit id="7008439939460403347">
       <segment>
         <source>Report</source>
@@ -588,6 +604,11 @@
         <source>Description</source>
       </segment>
     </unit>
+    <unit id="4915431133669985304">
+      <segment>
+        <source>Profile</source>
+      </segment>
+    </unit>
     <unit id="8828059408146193176">
       <segment>
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
@@ -601,6 +622,11 @@
     <unit id="5992560285899135152">
       <segment>
         <source> The Challenge will be public right away after it is added. </source>
+      </segment>
+    </unit>
+    <unit id="3971100408152984961">
+      <segment>
+        <source> Next </source>
       </segment>
     </unit>
     <unit id="3973931101896534797">
@@ -634,6 +660,11 @@
         <source> Save </source>
       </segment>
     </unit>
+    <unit id="7819314041543176992">
+      <segment>
+        <source>Close</source>
+      </segment>
+    </unit>
     <unit id="8387795974331999553">
       <segment>
         <source>Challenge media is required!</source>
@@ -664,6 +695,21 @@
         <source>All Types</source>
       </segment>
     </unit>
+    <unit id="checkin.at_spot_short">
+      <segment>
+        <source>At <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ spot.name }}"/></pc> spot?</source>
+      </segment>
+    </unit>
+    <unit id="checkin.check_in">
+      <segment>
+        <source> Check In </source>
+      </segment>
+    </unit>
+    <unit id="1731452447994913749">
+      <segment>
+        <source>Failed to update saved spot</source>
+      </segment>
+    </unit>
     <unit id="1737753151350322492">
       <segment>
         <source><ph id="0" equiv="PH" disp="this.label"/></source>
@@ -677,6 +723,11 @@
     <unit id="3881818169480672345">
       <segment>
         <source>other</source>
+      </segment>
+    </unit>
+    <unit id="7793821153334609761">
+      <segment>
+        <source>Only visible to you.</source>
       </segment>
     </unit>
     <unit id="7796156979263266819">
@@ -986,6 +1037,11 @@
         <source>HTML Embed Code</source>
       </segment>
     </unit>
+    <unit id="8235805970201248247">
+      <segment>
+        <source>Now</source>
+      </segment>
+    </unit>
     <unit id="5176605689144016167">
       <segment>
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
@@ -1014,6 +1070,11 @@
     <unit id="3483311644139102304">
       <segment>
         <source>All Event Challenges</source>
+      </segment>
+    </unit>
+    <unit id="8749228736834878459">
+      <segment>
+        <source>Sign in to view saved spots</source>
       </segment>
     </unit>
     <unit id="8755396282893693521">
@@ -1095,6 +1156,11 @@
         <source>Lighting</source>
       </segment>
     </unit>
+    <unit id="visited_spots_chip_label">
+      <segment>
+        <source>Visited</source>
+      </segment>
+    </unit>
     <unit id="water_spots_chip_label">
       <segment>
         <source>Water</source>
@@ -1126,6 +1192,11 @@
         <source> Enter your E-mail address and you will receive an E-mail with instructions to reset your password. </source>
       </segment>
     </unit>
+    <unit id="8112656553208307790">
+      <segment>
+        <source>Spot Import from KML / KMZ</source>
+      </segment>
+    </unit>
     <unit id="8115083664628466958">
       <segment>
         <source>E-Mail</source>
@@ -1144,6 +1215,11 @@
     <unit id="1636934520301910285">
       <segment>
         <source>Reset password</source>
+      </segment>
+    </unit>
+    <unit id="1675135336563892261">
+      <segment>
+        <source>Failed to update visited spot</source>
       </segment>
     </unit>
     <unit id="7097945335364423857">
@@ -1228,6 +1304,11 @@
         <source>Show less</source>
       </segment>
     </unit>
+    <unit id="7214717827274759008">
+      <segment>
+        <source> This spot&apos;s data is made available under the <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> license. </source>
+      </segment>
+    </unit>
     <unit id="7215101881367554791">
       <segment>
         <source>Show more</source>
@@ -1253,6 +1334,11 @@
         <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </source>
       </segment>
     </unit>
+    <unit id="1509543645001749494">
+      <segment>
+        <source>Visited Spots</source>
+      </segment>
+    </unit>
     <unit id="1512782188681945283">
       <segment>
         <source>Initializing map...</source>
@@ -1274,11 +1360,6 @@
       </notes>
       <segment>
         <source>There are no spots matching the filter in this area.</source>
-      </segment>
-    </unit>
-    <unit id="map.spot.source.earlyPKSpot">
-      <segment>
-        <source>Early PK Spot Community Contribution</source>
       </segment>
     </unit>
     <unit id="map.add_spot.tooltip">
@@ -1412,6 +1493,11 @@
         <source>from</source>
       </segment>
     </unit>
+    <unit id="8170263490734712002">
+      <segment>
+        <source> You have not saved any spots yet. </source>
+      </segment>
+    </unit>
     <unit id="8182413566453831074">
       <segment>
         <source>Freerunner since</source>
@@ -1465,6 +1551,11 @@
     <unit id="565319861201250432">
       <segment>
         <source>Edits Made</source>
+      </segment>
+    </unit>
+    <unit id="6575164270960732036">
+      <segment>
+        <source> Previous </source>
       </segment>
     </unit>
     <unit id="657631833222600301">
@@ -1525,6 +1616,11 @@
       </notes>
       <segment>
         <source> Account </source>
+      </segment>
+    </unit>
+    <unit id="saved_spots_chip_label">
+      <segment>
+        <source>Saved</source>
       </segment>
     </unit>
     <unit id="settings.account.description">
@@ -1603,6 +1699,11 @@
     <unit id="6431756795596367554">
       <segment>
         <source>Minimum 6 characters</source>
+      </segment>
+    </unit>
+    <unit id="8637857575623979078">
+      <segment>
+        <source> No edits yet for this spot. </source>
       </segment>
     </unit>
     <unit id="8656126574213649581">
@@ -1690,6 +1791,11 @@
         <source>Manage your <ph id="0" equiv="PH" disp="point.name"/> settings.</source>
       </segment>
     </unit>
+    <unit id="2151577293637140730">
+      <segment>
+        <source>Data Imports</source>
+      </segment>
+    </unit>
     <unit id="2157223865323513041">
       <segment>
         <source>Please fill in all fields</source>
@@ -1703,6 +1809,11 @@
     <unit id="8334401359656001773">
       <segment>
         <source>Error changing email. Please check your password.</source>
+      </segment>
+    </unit>
+    <unit id="8342138617515825905">
+      <segment>
+        <source>Dev Log</source>
       </segment>
     </unit>
     <unit id="6945945395354199350">
@@ -1945,14 +2056,34 @@
         <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you will contribute content under the license terms described within.</source>
       </segment>
     </unit>
+    <unit id="1218334388194408974">
+      <segment>
+        <source>Before</source>
+      </segment>
+    </unit>
     <unit id="1267967133679326155">
       <segment>
         <source>Create Account</source>
       </segment>
     </unit>
+    <unit id="1274247756500564795">
+      <segment>
+        <source>Community</source>
+      </segment>
+    </unit>
+    <unit id="1292744805065412409">
+      <segment>
+        <source>Sign in to view visited spots</source>
+      </segment>
+    </unit>
     <unit id="6464436780502674570">
       <segment>
         <source>Password and repeated password don&apos;t match</source>
+      </segment>
+    </unit>
+    <unit id="6480390330423300875">
+      <segment>
+        <source>View source</source>
       </segment>
     </unit>
     <unit id="1948163304836345687">
@@ -1988,6 +2119,11 @@
     <unit id="3768927257183755959">
       <segment>
         <source>Save</source>
+      </segment>
+    </unit>
+    <unit id="3771736044227824217">
+      <segment>
+        <source>1 edit</source>
       </segment>
     </unit>
     <unit id="2807800733729323332">
@@ -2073,6 +2209,11 @@
         <source> This spot is not eligible for highlights. To be eligible, it needs at least one user-submitted picture and at least one rating. </source>
       </segment>
     </unit>
+    <unit id="5574909544126829265">
+      <segment>
+        <source>What changed</source>
+      </segment>
+    </unit>
     <unit id="spot.details.header">
       <notes>
         <note category="description">Header for the spot details section</note>
@@ -2107,6 +2248,11 @@
       </notes>
       <segment>
         <source>Description</source>
+      </segment>
+    </unit>
+    <unit id="158781460362336598">
+      <segment>
+        <source>You were successfully signed out!</source>
       </segment>
     </unit>
     <unit id="spot.details.type_access.header">
@@ -2304,11 +2450,6 @@
         <source>Report</source>
       </segment>
     </unit>
-    <unit id="28674972039900875">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Public License:</pc> This spot&apos;s data is made available under the <pc id="1" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;" dispEnd="&lt;/a&gt;"> CC BY-NC-SA 4.0 </pc> license. </source>
-      </segment>
-    </unit>
     <unit id="4470656372477479316">
       <notes>
         <note category="description">Label of the button to discard changes</note>
@@ -2386,6 +2527,11 @@
         <source> Description </source>
       </segment>
     </unit>
+    <unit id="8928816882866356838">
+      <segment>
+        <source>Public</source>
+      </segment>
+    </unit>
     <unit id="8942517704279686805">
       <notes>
         <note category="description">Placeholder of the spot description edit field</note>
@@ -2393,6 +2539,11 @@
       </notes>
       <segment>
         <source>Description of the spot, its features and more...</source>
+      </segment>
+    </unit>
+    <unit id="8945709171355335928">
+      <segment>
+        <source>Spot updated</source>
       </segment>
     </unit>
     <unit id="4658982717700339898">
@@ -2417,6 +2568,11 @@
       </notes>
       <segment>
         <source> Add bounds </source>
+      </segment>
+    </unit>
+    <unit id="6877113876835666202">
+      <segment>
+        <source>License</source>
       </segment>
     </unit>
     <unit id="spot.edit.type_access.header">
@@ -2492,6 +2648,16 @@
     <unit id="6377092763030946894">
       <segment>
         <source>Custom URL added</source>
+      </segment>
+    </unit>
+    <unit id="8470446025763473581">
+      <segment>
+        <source>Added media</source>
+      </segment>
+    </unit>
+    <unit id="8473658733830175441">
+      <segment>
+        <source> Newest changes first. Each entry shows exactly what was edited. </source>
       </segment>
     </unit>
     <unit id="8482930840277475324">
@@ -2617,6 +2783,11 @@
         <source> Note: Spot reports are public and will be displayed on the spot itself together with your profile and user name. </source>
       </segment>
     </unit>
+    <unit id="3209433866980480523">
+      <segment>
+        <source> Sign out </source>
+      </segment>
+    </unit>
     <unit id="3228321309780982411">
       <notes>
         <note category="meaning">report button label</note>
@@ -2711,6 +2882,11 @@
         <source>Quick Links</source>
       </segment>
     </unit>
+    <unit id="1165007284037457711">
+      <segment>
+        <source> Your Private Spot Lists </source>
+      </segment>
+    </unit>
     <unit id="5526007558904938886">
       <segment>
         <source>About PK Spot</source>
@@ -2721,6 +2897,11 @@
         <source>Privacy Policy</source>
       </segment>
     </unit>
+    <unit id="844013166562960658">
+      <segment>
+        <source>Saved Spots</source>
+      </segment>
+    </unit>
     <unit id="2029980907058777630">
       <segment>
         <source>Terms of Service</source>
@@ -2729,6 +2910,11 @@
     <unit id="1534029177398918729">
       <segment>
         <source>GitHub</source>
+      </segment>
+    </unit>
+    <unit id="9155608366859514313">
+      <segment>
+        <source>Source</source>
       </segment>
     </unit>
     <unit id="9156829285909106416">
@@ -2895,19 +3081,6 @@
         <source>Submitting...</source>
       </segment>
     </unit>
-    <unit id="spot.locality.pretext">
-      <notes>
-        <note category="description">The text before the localized location of the spot. E.g. Parkour spot in Wiedikon, Zurich, CH</note>
-      </notes>
-      <segment>
-        <source>Parkour spot in </source>
-      </segment>
-    </unit>
-    <unit id="134280351162314914">
-      <segment>
-        <source>Rating: <ph id="0" equiv="PH" disp="Math.round(spot.rating * 10) / 10"/> ⭐</source>
-      </segment>
-    </unit>
     <unit id="8436223332064456837">
       <segment>
         <source><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></source>
@@ -2953,9 +3126,19 @@
         <source>Early Adopter</source>
       </segment>
     </unit>
+    <unit id="8773657518706700849">
+      <segment>
+        <source>Spot Edits</source>
+      </segment>
+    </unit>
     <unit id="8784425134270344261">
       <segment>
         <source>Early Bird</source>
+      </segment>
+    </unit>
+    <unit id="8799693346420796055">
+      <segment>
+        <source> You have not marked any spots as visited yet. </source>
       </segment>
     </unit>
     <unit id="7881945331295450373">
@@ -2981,6 +3164,11 @@
     <unit id="7224722019363844519">
       <segment>
         <source>Pathfinder</source>
+      </segment>
+    </unit>
+    <unit id="7276436554511308696">
+      <segment>
+        <source>edits</source>
       </segment>
     </unit>
     <unit id="2882100937757413407">
@@ -3026,6 +3214,11 @@
     <unit id="8124605615260157091">
       <segment>
         <source>Documenter</source>
+      </segment>
+    </unit>
+    <unit id="1764129256318376973">
+      <segment>
+        <source>My Spots</source>
       </segment>
     </unit>
     <unit id="1772658275500241538">
@@ -3531,6 +3724,161 @@
     <unit id="spot-access.residential">
       <segment>
         <source>Residential</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.bounds">
+      <segment>
+        <source>Bounds</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.description">
+      <segment>
+        <source>Description</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.external-refs">
+      <segment>
+        <source>External refs</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.location">
+      <segment>
+        <source>Location</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.name">
+      <segment>
+        <source>Name</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.slug">
+      <segment>
+        <source>Slug</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.streetview-hidden">
+      <segment>
+        <source>Street View hidden</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.field.streetview-visible">
+      <segment>
+        <source>Street View shown</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.access">
+      <segment>
+        <source>Access</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.amenity-no">
+      <segment>
+        <source>No</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.amenity-yes">
+      <segment>
+        <source>Yes</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.bounds">
+      <segment>
+        <source>Bounds</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.bounds.points">
+      <segment>
+        <source><ph id="0" equiv="pointCount" disp="bounds.length"/> points</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.bounds.single-point">
+      <segment>
+        <source>1 point</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.description">
+      <segment>
+        <source>Description</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.empty">
+      <segment>
+        <source>Not set</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.external-refs">
+      <segment>
+        <source>External references</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.external-refs.google">
+      <segment>
+        <source>Google Maps ID</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.external-refs.website">
+      <segment>
+        <source>Website</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.location">
+      <segment>
+        <source>Location</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.media">
+      <segment>
+        <source>Media</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.media.multiple">
+      <segment>
+        <source><ph id="0" equiv="itemCount" disp="value.length"/> items</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.media.none">
+      <segment>
+        <source>No media</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.media.single">
+      <segment>
+        <source>1 item</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.name">
+      <segment>
+        <source>Name</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.none">
+      <segment>
+        <source>None</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.slug">
+      <segment>
+        <source>Slug</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.streetview">
+      <segment>
+        <source>Street View</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.streetview.hidden">
+      <segment>
+        <source>Hidden</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.streetview.visible">
+      <segment>
+        <source>Visible</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.type">
+      <segment>
+        <source>Type</source>
       </segment>
     </unit>
     <unit id="spot-access.private">
