@@ -15,6 +15,7 @@ export interface SpotPreviewData {
   countryName?: string;
   imageSrc: string;
   isIconic: boolean;
+  hideStreetview?: boolean;
   rating?: number; // whole number 1-10
   amenities?: AmenitiesMap;
   bounds?: GeoPoint[];

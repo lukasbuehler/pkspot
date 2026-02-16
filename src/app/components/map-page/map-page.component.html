@@ -186,6 +186,7 @@
     @fadeInOut
     [spots]="visibleSpots"
     [highlightedSpots]="highlightedSpots"
+    [mapZoom]="spotMap ? spotMap.mapZoom : null"
     [limit]="spotListLimit()"
     [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
   ></app-spot-list>

@@ -278,6 +278,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     JsonPipe,
     RouterLink,
     SpotProvenanceComponent,
+    NgOptimizedImage,
   ],
   schemas: [],
 })
@@ -415,6 +416,7 @@ export class SpotDetailsComponent
   @Input() border: boolean = false;
   @Input() clickable: boolean = false;
   @Input() editable: boolean = false;
+  readonly streetViewPlaceholderSrc = "assets/spot_placeholder.png";
 
   /**
    * Controls the visibility of collapsible header info when used in bottom sheet.
@@ -1496,6 +1498,21 @@ export class SpotDetailsComponent
       spot.hideStreetview = event.checked;
       return spot;
     });
+
+    const spot = this.spot();
+    if (!(spot instanceof LocalSpot)) {
+      return;
+    }
+
+    if (event.checked) {
+      // Apply the visibility setting immediately in the current UI state.
+      spot.removeStreetView();
+      return;
+    }
+
+    if (spot instanceof Spot && this._mapsApiService.isApiLoaded()) {
+      void spot.loadStreetview(this._mapsApiService);
+    }
   }
 
   updateAmenityFromToggle(

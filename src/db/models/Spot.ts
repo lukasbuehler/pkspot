@@ -642,6 +642,8 @@ export class LocalSpot {
    * the spot's media via the internal `_streetview` signal.
    */
   public async loadStreetview(mapsApiService: MapsApiService): Promise<void> {
+    if (!mapsApiService.isStreetViewDetailEnabled()) return;
+
     if (this.hideStreetview) return;
 
     // If the spot already has user media or a streetview, skip loading
@@ -766,6 +768,7 @@ export class Spot extends LocalSpot {
       countryName: this.address()?.country?.name,
       imageSrc: this.previewImageSrc(),
       isIconic: this.isIconic,
+      hideStreetview: this.hideStreetview,
       rating: this.rating || undefined,
       amenities: this.amenities(),
       bounds: this.data().bounds,

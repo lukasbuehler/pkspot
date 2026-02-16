@@ -6,6 +6,10 @@ export const environment = {
   features: {
     checkIns: false,
     activity: false,
+    streetView: {
+      preview: true,
+      detail: true,
+    },
   },
   keys: {
     firebaseConfig: {

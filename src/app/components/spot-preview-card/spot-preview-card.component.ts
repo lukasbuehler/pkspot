@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   Input,
   Output,
@@ -11,7 +12,7 @@ import {
   input,
   computed,
   signal,
-  effect,
+  OnDestroy,
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { MapsApiService } from "../../services/maps-api.service";
@@ -53,7 +54,9 @@ import { MatTooltipModule } from "@angular/material/tooltip";
     MatTooltipModule,
   ],
 })
-export class SpotPreviewCardComponent implements OnChanges {
+export class SpotPreviewCardComponent
+  implements OnChanges, AfterViewInit, OnDestroy
+{
   public elementRef = inject(ElementRef);
 
   // Spot Types and Access
@@ -65,6 +68,7 @@ export class SpotPreviewCardComponent implements OnChanges {
   hasBorder = input<boolean>(true);
   imgSize = input<200 | 400 | 800>(200);
   loadingPriority = input<boolean>(false);
+  mapZoom = input<number | null>(null);
 
   spotData = input<Spot | LocalSpot | SpotPreviewData | null>(null);
   spotAmenitiesArray = computed<
@@ -102,6 +106,25 @@ export class SpotPreviewCardComponent implements OnChanges {
   @Output() edit: EventEmitter<any> = new EventEmitter<any>();
 
   fallbackImgSrc = "assets/no_media.png";
+  private _intersectionObserver: IntersectionObserver | null = null;
+  private _isInViewport = signal(false);
+  private _streetViewPreviewEnabled = computed(() =>
+    this.mapsApiService.isStreetViewPreviewEnabled()
+  );
+  shouldLoadMedia = computed(
+    () => this.loadingPriority() || this._isInViewport()
+  );
+  private _allowStreetViewPreview = computed(() => {
+    if (!this._streetViewPreviewEnabled()) {
+      return false;
+    }
+
+    if (!this.shouldLoadMedia()) {
+      return false;
+    }
+
+    return this.mapsApiService.isStreetViewPreviewAllowedAtZoom(this.mapZoom());
+  });
 
   spotName?: string;
   spotLocality?: string;
@@ -112,8 +135,11 @@ export class SpotPreviewCardComponent implements OnChanges {
       return [];
     }
 
+    const allowStreetViewPreview = this._allowStreetViewPreview();
+
     let mediaArr: string[] = [];
     let location: google.maps.LatLngLiteral | null = null;
+    let isStreetViewHidden = false;
 
     if (!(spot instanceof Spot || spot instanceof LocalSpot)) {
       // Spot is a SpotPreviewData object
@@ -123,21 +149,27 @@ export class SpotPreviewCardComponent implements OnChanges {
           lng: spot.location.longitude,
         };
       }
+      isStreetViewHidden = !!spot.hideStreetview;
       if (spot.imageSrc) {
         mediaArr = [spot.imageSrc];
       }
     } else {
       location = spot.location();
+      isStreetViewHidden = spot.hideStreetview;
       mediaArr = spot
         .media()
         .filter((m) => m.type === MediaType.Image)
         .map((m) => m.getPreviewImageSrc());
     }
 
+    if (!allowStreetViewPreview) {
+      mediaArr = mediaArr.filter((src) => !this._isStreetViewUrl(src));
+    }
+
     if (mediaArr.length === 0) {
       // Return Street View Static API image if available
 
-      if (location) {
+      if (location && allowStreetViewPreview && !isStreetViewHidden) {
         let spotId: string | undefined;
 
         if (spot instanceof Spot) {
@@ -283,6 +315,40 @@ export class SpotPreviewCardComponent implements OnChanges {
         this.spotLocality = spot.locality;
       }
     }
+  }
+
+  ngAfterViewInit() {
+    if (this.loadingPriority()) {
+      this._isInViewport.set(true);
+      return;
+    }
+
+    if (
+      typeof window === "undefined" ||
+      typeof IntersectionObserver === "undefined"
+    ) {
+      this._isInViewport.set(true);
+      return;
+    }
+
+    this._intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        this._isInViewport.set(entry?.isIntersecting ?? false);
+      },
+      {
+        root: null,
+        rootMargin: "200px 0px",
+        threshold: 0.01,
+      }
+    );
+
+    this._intersectionObserver.observe(this.elementRef.nativeElement);
+  }
+
+  ngOnDestroy() {
+    this._intersectionObserver?.disconnect();
+    this._intersectionObserver = null;
   }
 
   capitalize(s: string) {

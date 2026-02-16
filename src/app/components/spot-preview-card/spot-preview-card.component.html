@@ -123,7 +123,7 @@
     class="img-container"
     [class.isCompact]="isCompact"
   >
-    @if(primaryMediaSrc()) {
+    @if(shouldLoadMedia() && primaryMediaSrc()) {
     <img
       [ngSrc]="primaryMediaSrc()!"
       fill

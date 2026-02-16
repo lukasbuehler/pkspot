@@ -257,7 +257,15 @@
         (mediaRemove)="mediaRemoved($event)"
       >
       </app-img-carousel>
-
+      } @else {
+      <img
+        class="spot-placeholder-img mb-3"
+        [ngSrc]="streetViewPlaceholderSrc"
+        width="800"
+        height="800"
+        priority
+        alt="Spot placeholder wireframe"
+      />
       }
       <!-- if the user is signed in, show an add media button to upload new media -->
       @if(authenticationService.isSignedIn) {

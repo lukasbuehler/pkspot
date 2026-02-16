@@ -36,6 +36,7 @@ import { AutoAnimateDirective } from "../../directives/auto-animate.directive";
 export class SpotListComponent {
   highlightedSpots = input<SpotPreviewData[]>([]);
   spots = input<(Spot | LocalSpot)[]>([]);
+  mapZoom = input<number | null>(null);
 
   limit = input<number | undefined>(undefined);
   enableAnimation = input<boolean>(true);

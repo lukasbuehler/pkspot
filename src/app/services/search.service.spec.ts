@@ -289,4 +289,43 @@ describe("SearchService", () => {
       expect(config).toBeDefined();
     });
   });
+
+  describe("sort order fallback", () => {
+    it("should keep sort_by rating in spot search parameters", () => {
+      expect(service.spotSearchParameters.sort_by).toBe("rating:desc");
+    });
+
+    it("should prioritize media within unrated hits while keeping rated hits first", () => {
+      const hits = [
+        {
+          document: {
+            id: "unrated-no-media",
+            rating: 0,
+          },
+        },
+        {
+          document: {
+            id: "rated",
+            rating: 4.2,
+          },
+        },
+        {
+          document: {
+            id: "unrated-with-media",
+            rating: 0,
+            thumbnail_small_url: "https://example.com/thumb.jpg",
+          },
+        },
+      ];
+
+      const ordered = (service as any).sortHitsByRatingThenMedia(hits);
+      const orderedIds = ordered.map((hit: any) => hit.document.id);
+
+      expect(orderedIds).toEqual([
+        "rated",
+        "unrated-with-media",
+        "unrated-no-media",
+      ]);
+    });
+  });
 });

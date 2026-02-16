@@ -49,6 +49,7 @@
     },
     { "name": "type", "type": "string", "facet": true, "optional": true },
     { "name": "access", "type": "string", "facet": true, "optional": true },
+    { "name": "hide_streetview", "type": "bool", "optional": true },
 
     { "name": "rating", "type": "float", "optional": false },
     { "name": "location", "type": "geopoint" },

@@ -184,6 +184,7 @@
           @fadeInOut
           class="d-block p-3 h-100 overflow-y-scroll overflow-x-hidden"
           [spots]="spots()"
+          [mapZoom]="getSpotPreviewZoom()"
           [withHrefLink]="false"
           (spotClickIndex)="spotClickedIndex($event)"
           text="Event spots"

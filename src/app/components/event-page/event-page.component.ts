@@ -810,6 +810,18 @@ export class EventPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  getSpotPreviewZoom(): number | null {
+    if (this.spotMap instanceof SpotMapComponent) {
+      return this.spotMap.mapZoom;
+    }
+
+    if (this.spotMap instanceof GoogleMap2dComponent) {
+      return this.spotMap.zoom;
+    }
+
+    return null;
+  }
+
   challengeClickedIndex(challengeIndex: number) {
     const challenge = this.challenges()[challengeIndex];
     if (challenge) {

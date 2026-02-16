@@ -19,6 +19,7 @@ export class SearchService {
   constructor(private _mapsService: MapsApiService) {}
 
   readonly TYPESENSE_COLLECTION_SPOTS = "spots_v2";
+  readonly SPOT_SORT_BY_RATING = "rating:desc";
 
   private readonly client: SearchClient = new SearchClient({
     nodes: [
@@ -33,10 +34,48 @@ export class SearchService {
 
   spotSearchParameters = {
     query_by: "name_search,description_search,address.formatted",
-    sort_by: "rating:desc",
+    sort_by: this.SPOT_SORT_BY_RATING,
     per_page: 5,
     page: 1,
   };
+
+  private getNumericRating(hit: any): number | undefined {
+    const doc = hit?.document || hit;
+    const rating = doc?.rating;
+    if (typeof rating !== "number" || !Number.isFinite(rating) || rating <= 0) {
+      return undefined;
+    }
+    return rating;
+  }
+
+  private hasSpotMedia(hit: any): boolean {
+    const doc = hit?.document || hit;
+    return !!(doc?.thumbnail_small_url || doc?.thumbnail_medium_url);
+  }
+
+  /**
+   * Keep rated spots first by rating (desc). Within the unrated group, prioritize spots with media.
+   */
+  private sortHitsByRatingThenMedia(hits: any[]): any[] {
+    return hits.sort((a, b) => {
+      const ratingA = this.getNumericRating(a);
+      const ratingB = this.getNumericRating(b);
+
+      if (ratingA !== undefined && ratingB !== undefined) {
+        if (ratingA !== ratingB) return ratingB - ratingA;
+        return 0;
+      }
+
+      if (ratingA !== undefined) return -1;
+      if (ratingB !== undefined) return 1;
+
+      const hasMediaA = this.hasSpotMedia(a);
+      const hasMediaB = this.hasSpotMedia(b);
+
+      if (hasMediaA === hasMediaB) return 0;
+      return hasMediaA ? -1 : 1;
+    });
+  }
 
   public getSpotPreviewFromHit(hit: any): SpotPreviewData {
     try {
@@ -116,6 +155,16 @@ export class SearchService {
         isIconic = rawIsIconic === 1;
       }
 
+      let hideStreetview = false;
+      const rawHideStreetview = doc.hideStreetview ?? doc.hide_streetview;
+      if (typeof rawHideStreetview === "boolean") {
+        hideStreetview = rawHideStreetview;
+      } else if (typeof rawHideStreetview === "number") {
+        hideStreetview = rawHideStreetview === 1;
+      } else if (typeof rawHideStreetview === "string") {
+        hideStreetview = rawHideStreetview.toLowerCase() === "true";
+      }
+
       const preview: SpotPreviewData = {
         name: displayName,
         id: doc.id || hit.document?.id || "",
@@ -130,6 +179,7 @@ export class SearchService {
           doc.image_url ||
           "",
         isIconic: isIconic,
+        hideStreetview: hideStreetview,
         rating: doc.rating ?? undefined,
         amenities: amenities || undefined,
         bounds:
@@ -389,7 +439,7 @@ export class SearchService {
         {
           q: "*",
           filter_by: filterByString,
-          sort_by: "rating:desc",
+          sort_by: this.SPOT_SORT_BY_RATING,
           per_page: perPage,
           page: 1,
         },
@@ -403,6 +453,7 @@ export class SearchService {
 
     // If we already satisfied the requested number (after filtering)
     if (allHits.length >= num_spots || found <= perPage) {
+      allHits = this.sortHitsByRatingThenMedia(allHits);
       return {
         hits: allHits.slice(0, num_spots),
         found: found,
@@ -423,7 +474,7 @@ export class SearchService {
             {
               q: "*",
               filter_by: filterByString,
-              sort_by: "rating:desc",
+              sort_by: this.SPOT_SORT_BY_RATING,
               per_page: perPage,
               page: i,
             },
@@ -438,6 +489,7 @@ export class SearchService {
         allHits.push(...res.value.hits);
       }
     }
+    allHits = this.sortHitsByRatingThenMedia(allHits);
 
     // Build a merged result object similar to Typesense response shape
     const mergedResult = { ...(firstPage as any) } as any;
@@ -593,7 +645,10 @@ export class SearchService {
 
     // If we have typesense hits, attach a simple SpotPreview-like `preview` object
     if (spotsResult && Array.isArray((spotsResult as any).hits)) {
-      (spotsResult as any).hits = (spotsResult as any).hits.map((hit: any) => {
+      const orderedHits = this.sortHitsByRatingThenMedia(
+        (spotsResult as any).hits
+      );
+      (spotsResult as any).hits = orderedHits.map((hit: any) => {
         hit.preview = this.getSpotPreviewFromHit(hit);
         return hit;
       });
@@ -614,7 +669,9 @@ export class SearchService {
       .documents()
       .search(searchParams, {});
 
-    const hits = (typesenseSpotSearchResults as any).hits || [];
+    const hits = this.sortHitsByRatingThenMedia(
+      (typesenseSpotSearchResults as any).hits || []
+    );
 
     // Attach preview
     const spotsWithPreview = hits.map((hit: any) => {

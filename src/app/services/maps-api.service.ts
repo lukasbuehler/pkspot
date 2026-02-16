@@ -24,6 +24,8 @@ interface LocationAndZoom {
   zoom: number;
 }
 
+type StreetViewMetadataStatus = "OK" | "ZERO_RESULTS" | "UNKNOWN";
+
 import { AnalyticsService } from "./analytics.service";
 
 @Injectable({
@@ -45,55 +47,23 @@ export class MapsApiService extends ConsentAwareService {
 
   /**
    * Cache for street view URLs.
-   * Maps spotId -> street view URL or null (if error/not available)
+   * Maps spotId -> street view URL or null (if error/not available).
+   * Keep this in-memory only to avoid persistent Street View content caching.
    */
   private streetViewCache = new Map<string, string | null>();
-
-  private readonly FAILED_SV_CACHE_KEY = "failed_street_view_ids";
+  /**
+   * Session cache for Street View metadata availability.
+   * Maps spot/location cache key -> whether a panorama is available.
+   */
+  private streetViewMetadataCache = new Map<string, boolean>();
+  /**
+   * Dedupes concurrent metadata checks for the same location.
+   */
+  private streetViewMetadataInFlight = new Map<string, Promise<boolean>>();
+  private readonly STREET_VIEW_PREVIEW_MIN_ZOOM = 12;
 
   constructor() {
     super();
-    // Do not auto-load anything - components will explicitly request loading when needed
-    this._loadFailedStreetViewCache();
-  }
-
-  private _loadFailedStreetViewCache() {
-    if (typeof localStorage === "undefined") return;
-    try {
-      const stored = localStorage.getItem(this.FAILED_SV_CACHE_KEY);
-      if (stored) {
-        const ids = JSON.parse(stored);
-        if (Array.isArray(ids)) {
-          ids.forEach((id) => this.streetViewCache.set(id, null));
-        }
-      }
-    } catch (e) {
-      console.warn("Failed to load street view error cache", e);
-    }
-  }
-
-  private _saveFailedStreetViewToCache(spotId: string) {
-    if (typeof localStorage === "undefined") return;
-
-    // Get all IDs that are currently null in the cache
-    const failedIds: string[] = [];
-    // We can't easily iterate and filter efficiently if we mix URLs and nulls in the same map,
-    // but for now, let's just grab the ones we know are failing.
-    // Actually, simpler: read existing, add new one, save.
-
-    try {
-      let ids: string[] = [];
-      const stored = localStorage.getItem(this.FAILED_SV_CACHE_KEY);
-      if (stored) {
-        ids = JSON.parse(stored);
-      }
-      if (!ids.includes(spotId)) {
-        ids.push(spotId);
-        localStorage.setItem(this.FAILED_SV_CACHE_KEY, JSON.stringify(ids));
-      }
-    } catch (e) {
-      console.warn("Failed to save street view error to cache", e);
-    }
   }
 
   loadGoogleMapsApi() {
@@ -433,6 +403,10 @@ export class MapsApiService extends ConsentAwareService {
     imageHeight: number = 400,
     spotId?: string
   ): string | null {
+    if (!this.isStreetViewPreviewEnabled()) {
+      return null;
+    }
+
     // Only return URL if consent is granted
     if (!this.hasConsent()) {
       console.warn("Cannot generate Street View URL: User consent required");
@@ -453,11 +427,7 @@ export class MapsApiService extends ConsentAwareService {
       }
     }
 
-    const url = `https://maps.googleapis.com/maps/api/streetview?size=${imageWidth}x${imageHeight}&location=${
-      location.lat
-    },${location.lng}&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-      environment.keys.firebaseConfig.apiKey
-    }`;
+    const url = this._makeStreetViewImageUrl(location, imageWidth, imageHeight);
 
     if (spotId) {
       //   console.debug(
@@ -472,7 +442,118 @@ export class MapsApiService extends ConsentAwareService {
   reportStreetViewError(spotId: string) {
     // console.log(`Marking Street View as unavailable for spot ${spotId}`);
     this.streetViewCache.set(spotId, null);
-    this._saveFailedStreetViewToCache(spotId);
+    this.streetViewMetadataCache.set(
+      this._getStreetViewMetadataCacheKey(spotId),
+      false
+    );
+  }
+
+  isStreetViewPreviewEnabled(): boolean {
+    return environment.features.streetView.preview;
+  }
+
+  isStreetViewDetailEnabled(): boolean {
+    return environment.features.streetView.detail;
+  }
+
+  getStreetViewPreviewMinZoom(): number {
+    return this.STREET_VIEW_PREVIEW_MIN_ZOOM;
+  }
+
+  isStreetViewPreviewAllowedAtZoom(zoom: number | null | undefined): boolean {
+    return typeof zoom === "number" && zoom > this.STREET_VIEW_PREVIEW_MIN_ZOOM;
+  }
+
+  private _getStreetViewMetadataCacheKey(
+    spotIdOrLocation: string | google.maps.LatLngLiteral
+  ): string {
+    if (typeof spotIdOrLocation === "string") {
+      return `spot:${spotIdOrLocation}`;
+    }
+
+    const { lat, lng } = spotIdOrLocation;
+    return `loc:${lat.toFixed(6)},${lng.toFixed(6)}`;
+  }
+
+  private _makeStreetViewMetadataUrl(location: google.maps.LatLngLiteral): string {
+    return `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
+      location.lat
+    },${
+      location.lng
+    }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
+      environment.keys.firebaseConfig.apiKey
+    }`;
+  }
+
+  private _makeStreetViewImageUrl(
+    location: google.maps.LatLngLiteral,
+    imageWidth: number,
+    imageHeight: number
+  ): string {
+    return `https://maps.googleapis.com/maps/api/streetview?size=${imageWidth}x${imageHeight}&location=${
+      location.lat
+    },${
+      location.lng
+    }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
+      environment.keys.firebaseConfig.apiKey
+    }`;
+  }
+
+  async hasStreetViewPanoramaForLocation(
+    location: google.maps.LatLngLiteral,
+    spotId?: string
+  ): Promise<boolean> {
+    if (!this.isStreetViewDetailEnabled()) {
+      return false;
+    }
+
+    if (!this.hasConsent()) {
+      return false;
+    }
+
+    const cacheKey = spotId
+      ? this._getStreetViewMetadataCacheKey(spotId)
+      : this._getStreetViewMetadataCacheKey(location);
+
+    if (this.streetViewMetadataCache.has(cacheKey)) {
+      return this.streetViewMetadataCache.get(cacheKey)!;
+    }
+
+    const inFlight = this.streetViewMetadataInFlight.get(cacheKey);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const request = this.executeWithConsent(async () => {
+      const response = await fetch(this._makeStreetViewMetadataUrl(location));
+      const data = (await response.json()) as { status?: string };
+
+      const status: StreetViewMetadataStatus =
+        data.status === "OK"
+          ? "OK"
+          : data.status === "ZERO_RESULTS"
+          ? "ZERO_RESULTS"
+          : "UNKNOWN";
+
+      const hasPanorama = status === "OK";
+      this.streetViewMetadataCache.set(cacheKey, hasPanorama);
+
+      if (!hasPanorama && status === "ZERO_RESULTS" && spotId) {
+        this.reportStreetViewError(spotId);
+      }
+
+      return hasPanorama;
+    })
+      .catch((error) => {
+        console.warn("Street View metadata check failed", error);
+        return false;
+      })
+      .finally(() => {
+        this.streetViewMetadataInFlight.delete(cacheKey);
+      });
+
+    this.streetViewMetadataInFlight.set(cacheKey, request);
+    return request;
   }
 
   // Instance method instead of static to access consent checking
@@ -480,6 +561,10 @@ export class MapsApiService extends ConsentAwareService {
     location: google.maps.LatLngLiteral,
     spotId?: string
   ): Promise<ExternalImage | undefined> {
+    if (!this.isStreetViewDetailEnabled()) {
+      return undefined;
+    }
+
     // Check persistent cache first if spotId is provided
     if (spotId && this.streetViewCache.has(spotId)) {
       if (this.streetViewCache.get(spotId) === null) {
@@ -488,37 +573,19 @@ export class MapsApiService extends ConsentAwareService {
       }
     }
 
-    // Use consent-aware execution
-    return this.executeWithConsent(async () => {
-      // street view metadata
-      return fetch(
-        `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
-          location.lat
-        },${
-          location.lng
-        }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-          environment.keys.firebaseConfig.apiKey
-        }`
-      )
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          if (data.status !== "ZERO_RESULTS") {
-            // street view media
-            return new ExternalImage(
-              `https://maps.googleapis.com/maps/api/streetview?size=800x800&location=${
-                location.lat
-              },${
-                location.lng
-              }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-                environment.keys.firebaseConfig.apiKey
-              }`,
-              "streetview"
-            );
-          }
-        });
-    });
+    const hasPanorama = await this.hasStreetViewPanoramaForLocation(
+      location,
+      spotId
+    );
+
+    if (!hasPanorama) {
+      return undefined;
+    }
+
+    return new ExternalImage(
+      this._makeStreetViewImageUrl(location, 800, 800),
+      "streetview"
+    );
   }
 
   /**
