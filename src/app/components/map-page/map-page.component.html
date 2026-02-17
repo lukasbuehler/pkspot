@@ -157,7 +157,11 @@
       No edits yet for this spot.
     </div>
     } @else { @for(spotEdit of spotEdits(); track spotEdit.id) {
-    <app-spot-edit-details class="d-block" [spotEdit]="spotEdit"></app-spot-edit-details>
+    <app-spot-edit-details
+      class="d-block"
+      [spotEdit]="spotEdit"
+      [spotId]="selectedSpotIdForEdits()"
+    ></app-spot-edit-details>
     } }
   </div>
 
@@ -173,6 +177,7 @@
     [infoOnly]="false"
     [editable]="true"
     [isEditing]="isEditing()"
+    [pendingVoteCount]="pendingSpotEditsCount()"
     [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
     (isEditingChange)="$event ? spotMap!.startEdit() : spotMap!.discardEdit()"
     (dismiss)="closeSpot()"

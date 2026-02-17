@@ -265,10 +265,16 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       } else {
         this.currentOffset = targetOffset;
         sheetEl.style.transform = `translateY(${targetOffset}px)`;
+        this.syncContentOverflow();
         this.emitSheetState(targetOffset, alwaysVisible);
       }
     };
     window.requestAnimationFrame(step);
+  }
+
+  private syncContentOverflow(): void {
+    if (!this.contentElement) return;
+    this.contentElement.style.overflowY = this.currentOffset === 0 ? "scroll" : "hidden";
   }
 
   // ─── Lifecycle ─────────────────────────────────────────────────────
@@ -373,10 +379,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       const startY = event.pageY;
       let hasDragged = false;
 
-      // Prevent content scrolling during drag if sheet is not fully open
-      if (this.currentOffset !== 0) {
-        this.contentElement!.style.overflowY = "hidden";
-      }
+      // Prevent content scrolling during drag if sheet is not fully open.
+      this.syncContentOverflow();
 
       const moveAt = (moveEvent: PointerEvent) => {
         if (moveEvent.pointerId !== this.activePointerId) return;
@@ -430,6 +434,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         }
 
         if (!hasDragged) {
+          this.syncContentOverflow();
           this.activePointerId = null;
           return;
         }
@@ -454,17 +459,17 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       };
 
       const removePointerMove = this.renderer.listen(
-        sheetEl,
+        "document",
         "pointermove",
         moveAt
       );
       const removePointerUp = this.renderer.listen(
-        sheetEl,
+        "document",
         "pointerup",
         stopDrag
       );
       const removePointerCancel = this.renderer.listen(
-        sheetEl,
+        "document",
         "pointercancel",
         stopDrag
       );
@@ -580,10 +585,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       isScrollableUp = this.checkScrollableUp(target, sheetEl);
       isScrollableDown = this.checkScrollableDown(target, sheetEl);
 
-      // Prevent content scrolling during drag if sheet is not fully open
-      if (this.currentOffset !== 0) {
-        this.contentElement!.style.overflowY = "hidden";
-      }
+      // Prevent content scrolling during drag if sheet is not fully open.
+      this.syncContentOverflow();
 
       // Attach move/end listeners to document so we receive events even if
       // touch started on a button or other interactive element
@@ -674,6 +677,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       );
 
       if (!hasDragged) {
+        this.syncContentOverflow();
         this.activeTouchId = null;
         originalTarget = null;
         originalTouch = null;

@@ -257,15 +257,6 @@
         (mediaRemove)="mediaRemoved($event)"
       >
       </app-img-carousel>
-      } @else {
-      <img
-        class="spot-placeholder-img mb-3"
-        [ngSrc]="streetViewPlaceholderSrc"
-        width="800"
-        height="800"
-        priority
-        alt="Spot placeholder wireframe"
-      />
       }
       <!-- if the user is signed in, show an add media button to upload new media -->
       @if(authenticationService.isSignedIn) {
@@ -560,6 +551,21 @@
         >
       </button>
       }
+    </div>
+    }
+
+    @if(pendingVoteCount() > 0) {
+    <div class="pending-vote-banner mb-4">
+      <mat-icon>where_to_vote</mat-icon>
+      <p class="mat-body-small m-0">
+        @if(pendingVoteCount() === 1) {
+        <span i18n>1 edit is waiting for community voting.</span>
+        } @else {
+        <span i18n>{{
+          pendingVoteCount()
+        }} edits are waiting for community voting.</span>
+        }
+      </p>
     </div>
     }
 

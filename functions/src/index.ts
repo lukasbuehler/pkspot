@@ -25,7 +25,11 @@ export {
 export { computeRatingOnWrite } from "./spotRatingFunctions";
 
 // spot edit functions
-export { applySpotEditOnCreate } from "./spotEditFunctions";
+export {
+  applySpotEditOnCreate,
+  evaluateSpotEditVotesOnVoteWrite,
+  evaluatePendingSpotEditVotesOnSchedule,
+} from "./spotEditFunctions";
 export {
   processImportChunkOnCreate,
   retryFailedImportChunksOnCreate,

@@ -105,7 +105,7 @@ export class SpotPreviewCardComponent
   @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() edit: EventEmitter<any> = new EventEmitter<any>();
 
-  fallbackImgSrc = "assets/no_media.png";
+  fallbackImgSrc = "assets/spot_placeholder.png";
   private _intersectionObserver: IntersectionObserver | null = null;
   private _isInViewport = signal(false);
   private _streetViewPreviewEnabled = computed(() =>

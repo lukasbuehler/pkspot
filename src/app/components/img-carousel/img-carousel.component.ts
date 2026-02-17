@@ -289,8 +289,7 @@ export class SwiperDialogComponent implements AfterViewInit {
     const index = this.activeSlideIndex();
     const media = this.data.media?.[index];
     if (!media) return false;
-    // Hide report button for street view media
-    console.log("media", media);
+    // Hide report button for Street View media
     return media.userId !== "streetview";
   });
 
@@ -325,6 +324,9 @@ export class SwiperDialogComponent implements AfterViewInit {
   getActiveExternalSourceUrl(): string | null {
     const active = this.getActiveMedia();
     if (!active || !(active instanceof ExternalImage)) {
+      return null;
+    }
+    if (active.userId === "streetview") {
       return null;
     }
     return active.attribution?.source_url || active.src;
@@ -436,4 +438,5 @@ export class SwiperDialogComponent implements AfterViewInit {
       }
     });
   }
+
 }

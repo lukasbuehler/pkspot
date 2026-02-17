@@ -2212,7 +2212,7 @@
             id="0"
             equiv="itemCount"
             disp="value.length"
-          /> items</target>
+          /> Einträge</target>
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.media.none">

@@ -15,6 +15,11 @@ export class SpotEdit implements SpotEditSchema {
   readonly timestamp_raw_ms?: SpotEditSchema["timestamp_raw_ms"];
   readonly likes: SpotEditSchema["likes"];
   readonly approved: SpotEditSchema["approved"];
+  readonly processing_status?: SpotEditSchema["processing_status"];
+  readonly blocked_reason?: SpotEditSchema["blocked_reason"];
+  readonly processed_at?: SpotEditSchema["processed_at"];
+  readonly decision_at?: SpotEditSchema["decision_at"];
+  readonly vote_summary?: SpotEditSchema["vote_summary"];
 
   constructor(id: string, private readonly _spotEditSchema: SpotEditSchema) {
     this.id = id;
@@ -26,6 +31,11 @@ export class SpotEdit implements SpotEditSchema {
     this.timestamp_raw_ms = _spotEditSchema.timestamp_raw_ms;
     this.likes = _spotEditSchema.likes;
     this.approved = _spotEditSchema.approved;
+    this.processing_status = _spotEditSchema.processing_status;
+    this.blocked_reason = _spotEditSchema.blocked_reason;
+    this.processed_at = _spotEditSchema.processed_at;
+    this.decision_at = _spotEditSchema.decision_at;
+    this.vote_summary = _spotEditSchema.vote_summary;
   }
 
   getSchema(): SpotEditSchema {

@@ -69,7 +69,7 @@ export class AnalyticsService {
         this.initWeb(apiKey, host);
       }
       this._initialized = true;
-      this.registerSuperProperties();
+      await this.registerSuperProperties();
     } catch (e) {
       console.error("[Analytics] Initialization failed", e);
     }
@@ -87,9 +87,14 @@ export class AnalyticsService {
       const fullUrl = `${baseUrl}${
         screenName.startsWith("/") ? "" : "/"
       }${screenName}`;
+      const normalizedProperties = {
+        ...(properties ?? {}),
+        ...this.getPlatformProperties(),
+        ...this.getAppVersionProperties(),
+      };
       CapacitorPostHog.screen({
         screenTitle: fullUrl,
-        properties: properties,
+        properties: normalizedProperties,
       });
 
       // Register current URL/Screen as super properties so they are attached to all subsequent events (like trackEvent)
@@ -128,7 +133,13 @@ export class AnalyticsService {
       host,
     });
 
-    // Auto-track screen views for Native
+    // Register native platform globals immediately after setup so they are present on all $screen events.
+    await this.registerNativeSuperProperty({
+      ...this.getPlatformProperties(),
+      ...this.getAppVersionProperties(),
+    });
+
+    // Auto-track screen views for Native (router-driven)
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
@@ -326,7 +337,10 @@ export class AnalyticsService {
 
     if (this.isNative()) {
       CapacitorPostHog.reset();
-      this.registerNativeSuperProperty({ authenticated: false });
+      this.registerNativeSuperProperty({
+        authenticated: false,
+        ...this.getAppVersionProperties(),
+      });
     } else {
       posthog.reset();
 
@@ -334,6 +348,7 @@ export class AnalyticsService {
       try {
         posthog.register({
           authenticated: false,
+          ...this.getAppVersionProperties(),
           ...this.getInitialAttributionProperties(),
         });
         if (posthog.people && typeof posthog.people.set === "function") {
@@ -458,34 +473,37 @@ export class AnalyticsService {
     return Capacitor.isNativePlatform();
   }
 
+  private getPlatformProperties(): Record<string, string | boolean> {
+    const platform = Capacitor.getPlatform();
+    const isNative = this.isNative();
+
+    let isPwa = false;
+    if (!isNative && typeof window !== "undefined") {
+      isPwa =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone === true ||
+        document.referrer.includes("android-app://");
+    }
+
+    return {
+      platform: platform,
+      is_native: isNative,
+      is_pwa: isPwa,
+      app_type: isNative ? platform : isPwa ? "pwa" : "web",
+    };
+  }
+
   private async registerSuperProperties(): Promise<void> {
     try {
       const accepted =
         typeof window !== "undefined" &&
         !!localStorage.getItem("acceptedVersion");
 
-      const platform = Capacitor.getPlatform();
-      const isNative = Capacitor.isNativePlatform();
-
-      let isPwa = false;
-      if (!isNative && typeof window !== "undefined") {
-        isPwa =
-          window.matchMedia("(display-mode: standalone)").matches ||
-          (window.navigator as any).standalone === true ||
-          document.referrer.includes("android-app://");
-      }
-
-      const appType = isNative ? platform : isPwa ? "pwa" : "web";
-
       const props = {
         authenticated: false,
         consent_granted: accepted,
-        platform: platform,
-        is_native: isNative,
-        is_pwa: isPwa,
-        app_type: appType,
-        client_version: this.appVersion,
-        app_version: this.appVersion,
+        ...this.getPlatformProperties(),
+        ...this.getAppVersionProperties(),
       };
 
       if (this.isNative()) {
@@ -516,7 +534,17 @@ export class AnalyticsService {
       }
     }
 
+    Object.assign(normalized, this.getAppVersionProperties());
+
     return Object.keys(normalized).length > 0 ? normalized : undefined;
+  }
+
+  private getAppVersionProperties(): Record<string, string> {
+    return {
+      client_version: this.appVersion,
+      app_version: this.appVersion,
+      $app_version: this.appVersion,
+    };
   }
 
   private getInitialAttributionProperties(): Record<string, string> {

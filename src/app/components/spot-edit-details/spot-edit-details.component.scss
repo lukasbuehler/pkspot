@@ -10,3 +10,19 @@
 .spot-edit-card__timestamp {
   opacity: 0.85;
 }
+
+.spot-edit-card__voting {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.spot-edit-card__status {
+  opacity: 0.85;
+}
+
+.spot-edit-card__vote-stats {
+  opacity: 0.9;
+}
+
+.vote-selected {
+  border-width: 2px;
+}

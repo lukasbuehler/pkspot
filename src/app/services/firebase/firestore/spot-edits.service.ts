@@ -13,6 +13,11 @@ import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
 import { AnyMedia } from "../../../../db/models/Media";
 import { MediaSchema } from "../../../../db/schemas/Media";
 import {
+  SpotEditVoteLabel,
+  SpotEditVoteSchema,
+  SpotEditVoteValue,
+} from "../../../../db/schemas/SpotEditVoteSchema";
+import {
   FirestoreAdapterService,
   QueryFilter,
   QueryConstraintOptions,
@@ -293,6 +298,39 @@ export class SpotEditsService extends ConsentAwareService {
       `spots/${spotId}/edits/${editId}`,
       { approved: false }
     );
+  }
+
+  setSpotEditVote(
+    spotId: string,
+    editId: string,
+    voteValue: SpotEditVoteValue,
+    userReference: UserReferenceSchema
+  ): Promise<void> {
+    const voteLabel: SpotEditVoteLabel = voteValue === 1 ? "yes" : "no";
+    const voteData: SpotEditVoteSchema = {
+      value: voteValue,
+      vote: voteLabel,
+      user: userReference,
+      timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
+    };
+
+    return this._firestoreAdapter.setDocument(
+      `spots/${spotId}/edits/${editId}/votes/${userReference.uid}`,
+      voteData
+    );
+  }
+
+  getSpotEditVoteByUserId$(
+    spotId: string,
+    editId: string,
+    userId: string
+  ): Observable<SpotEditVoteSchema | null> {
+    return this._firestoreAdapter.documentSnapshots<
+      SpotEditVoteSchema & { id: string }
+    >(`spots/${spotId}/edits/${editId}/votes/${userId}`) as Observable<
+      SpotEditVoteSchema | null
+    >;
   }
 
   /**

@@ -37,8 +37,20 @@ export interface SpotEditSchema {
   timestamp_raw_ms?: number;
   likes?: number;
   approved?: boolean;
+  processing_status?: string;
+  blocked_reason?: string;
+  processed_at?: Timestamp;
+  decision_at?: Timestamp;
   user: UserReferenceSchema;
   data: SpotEditDataSchema;
   prevData?: SpotEditDataSchema;
   modification_type?: "APPEND" | "OVERWRITE";
+  vote_summary?: {
+    yes_count: number;
+    no_count: number;
+    total_count: number;
+    ratio_yes_to_no: number | null;
+    submitter_vote: "yes" | "no" | null;
+    eligible_for_auto_approval: boolean;
+  };
 }

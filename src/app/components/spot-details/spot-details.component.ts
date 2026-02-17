@@ -98,7 +98,6 @@ import { MatIconButton, MatButton } from "@angular/material/button";
 import {
   KeyValuePipe,
   LocationStrategy,
-  NgOptimizedImage,
   JsonPipe,
 } from "@angular/common";
 import {
@@ -278,7 +277,6 @@ export class AsRatingKeyPipe implements PipeTransform {
     JsonPipe,
     RouterLink,
     SpotProvenanceComponent,
-    NgOptimizedImage,
   ],
   schemas: [],
 })
@@ -416,7 +414,6 @@ export class SpotDetailsComponent
   @Input() border: boolean = false;
   @Input() clickable: boolean = false;
   @Input() editable: boolean = false;
-  readonly streetViewPlaceholderSrc = "assets/spot_placeholder.png";
 
   /**
    * Controls the visibility of collapsible header info when used in bottom sheet.
@@ -424,6 +421,7 @@ export class SpotDetailsComponent
    * On desktop sidebar this should always be 1.
    */
   openProgress = input<number>(1);
+  pendingVoteCount = input<number>(0);
 
   @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() addBoundsClick: EventEmitter<void> = new EventEmitter<void>();

@@ -1,5 +1,9 @@
 import * as admin from "firebase-admin";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import {
+  onDocumentCreated,
+  onDocumentWritten,
+} from "firebase-functions/v2/firestore";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import { getStorage } from "firebase-admin/storage";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 
@@ -15,7 +19,39 @@ interface SpotEditSchema {
   data: any;
   prevData?: any;
   modification_type?: "APPEND" | "OVERWRITE";
+  timestamp_raw_ms?: number;
+  processing_status?: string;
+  vote_summary?: SpotEditVoteSummary;
 }
+
+interface SpotEditVoteSchema {
+  value: 1 | -1;
+  vote: "yes" | "no";
+  user: {
+    uid: string;
+    [key: string]: any;
+  };
+  timestamp?: FirebaseFirestore.Timestamp;
+  timestamp_raw_ms?: number;
+}
+
+interface SpotEditVoteSummary {
+  yes_count: number;
+  no_count: number;
+  total_count: number;
+  ratio_yes_to_no: number | null;
+  submitter_vote: "yes" | "no" | null;
+  eligible_for_auto_approval: boolean;
+}
+
+const VOTE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const MIN_TOTAL_VOTES = 2;
+const MIN_YES_NO_RATIO = 3;
+
+// Rollout control:
+// Keep legacy "instant apply" behavior for iconic/verified spots until clients
+// with voting UI are broadly deployed. Flip to true when ready.
+const VOTING_ON_LOCKED_SPOTS_ENABLED = false;
 
 /**
  * Triggered when a new spot edit is created.
@@ -45,6 +81,48 @@ export const applySpotEditOnCreate = onDocumentCreated(
 
       const db = admin.firestore();
       const spotRef = db.collection("spots").doc(spotId);
+      const spotSnapshot = await spotRef.get();
+      const spotData = spotSnapshot.exists ? (spotSnapshot.data() as any) : null;
+
+      // Soft lock: do not auto-apply edits to iconic or verification-locked spots.
+      // Keep the edit document as a pending/moderation artifact for future voting flows.
+      if (editData.type === "UPDATE" && spotData) {
+        const isIconicSpot = spotData.is_iconic === true;
+        const isVerificationLockedSpot =
+          spotData.verification?.lock_edits === true ||
+          spotData.verification?.status === "verified";
+        // Per-spot override to test voting UI before global rollout.
+        // Set `edit_policy.force_voting = true` on a spot document to force vote flow.
+        const forceVotingForSpot = spotData.edit_policy?.force_voting === true;
+        const useVotingForLockedSpots =
+          VOTING_ON_LOCKED_SPOTS_ENABLED && (isIconicSpot || isVerificationLockedSpot);
+
+        if (useVotingForLockedSpots || forceVotingForSpot) {
+          const processingStatus = forceVotingForSpot
+            ? "VOTING_FORCED_TEST"
+            : isIconicSpot
+            ? "BLOCKED_ICONIC_SPOT"
+            : "BLOCKED_VERIFIED_SPOT";
+          const blockedReason = forceVotingForSpot
+            ? "Spot edit forced into voting flow for testing."
+            : isIconicSpot
+            ? "Spot is iconic and locked for public edits."
+            : "Spot is verified and locked for public edits.";
+
+          await editSnapshot.ref.update({
+            approved: false,
+            processing_status: processingStatus,
+            blocked_reason: blockedReason,
+            vote_summary: createEmptyVoteSummary(),
+            processed_at: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          console.log(
+            `Blocked edit ${editId} for spot ${spotId} (${processingStatus})`
+          );
+          return;
+        }
+      }
 
       // For CREATE edits, update the existing (initially empty) spot document with the data
       if (editData.type === "CREATE") {
@@ -100,209 +178,428 @@ export const applySpotEditOnCreate = onDocumentCreated(
       }
       // For UPDATE edits, merge the changes into the existing spot
       else if (editData.type === "UPDATE") {
-        // Extract fields that need special merge logic
-        const { media, external_references, amenities, ...regularData } =
-          editData.data;
-        const { source: _ignoredSource, ...regularDataWithoutSource } =
-          regularData || {};
-
-        let updateData: any = {
-          ...regularDataWithoutSource,
-          updated_at: admin.firestore.FieldValue.serverTimestamp(),
-        };
-
-        // Ensure location is a proper GeoPoint if it exists and compute tile coordinates
-        if (updateData.location) {
-          let latitude: number;
-          let longitude: number;
-
-          // If location is already a GeoPoint, keep it; otherwise convert it
-          if (
-            updateData.location._latitude === undefined &&
-            updateData.location.latitude !== undefined
-          ) {
-            // It's a plain object with latitude/longitude, convert to GeoPoint
-            latitude = updateData.location.latitude;
-            longitude = updateData.location.longitude;
-            updateData.location = new admin.firestore.GeoPoint(
-              latitude,
-              longitude
-            );
-          } else if (updateData.location._latitude !== undefined) {
-            // It's already a GeoPoint, extract coordinates
-            latitude = updateData.location._latitude;
-            longitude = updateData.location._longitude;
-          } else {
-            console.error("Invalid location format for spot", spotId);
-            throw new Error("Invalid location format");
-          }
-
-          // Compute tile coordinates for the new location
-          updateData.tile_coordinates = computeTileCoordinates(
-            latitude,
-            longitude
-          );
-
-          // Always write location_raw
-          updateData.location_raw = { lat: latitude, lng: longitude };
-        }
-
-        // For media, we handle two cases based on modification_type:
-        // 1. OVERWRITE: Completely replace the media list (used by new clients supporting deletions)
-        // 2. APPEND (default): Add new items only (used by legacy clients)
-        if (media && Array.isArray(media)) {
-          if (editData.modification_type === "OVERWRITE") {
-            // Check for deleted media and remove from storage
-            const spotSnapshot = await spotRef.get();
-            if (spotSnapshot.exists) {
-              const currentMedia = (spotSnapshot.data() as any)["media"] || [];
-              const newMediaSrcs = new Set(media.map((m: any) => m.src));
-
-              const removedMedia = currentMedia.filter(
-                (m: any) => !newMediaSrcs.has(m.src) && m.isInStorage
-              );
-
-              if (removedMedia.length > 0) {
-                console.log(
-                  `Found ${removedMedia.length} removed media items. Attempting deletion.`
-                );
-                const bucket = getStorage().bucket();
-
-                for (const item of removedMedia) {
-                  try {
-                    // Extract path from URL.
-                    // Format: https://firebasestorage.googleapis.com/v0/b/[bucket]/o/[path]?alt=media...
-                    // Or gs://[bucket]/[path]
-
-                    let path = "";
-                    if (item.src.startsWith("gs://")) {
-                      path = item.src.split(bucket.name + "/")[1];
-                    } else if (item.src.includes("/o/")) {
-                      const urlObj = new URL(item.src);
-                      const pathWithToken = urlObj.pathname.split("/o/")[1];
-                      path = decodeURIComponent(pathWithToken);
-                    }
-
-                    if (path) {
-                      console.log(`Deleting orphaned file: ${path}`);
-                      await bucket.file(path).delete();
-                    }
-                  } catch (e) {
-                    console.error(
-                      `Failed to delete orphaned media ${item.src}:`,
-                      e
-                    );
-                    // Continue execution, do not fail the spot update
-                  }
-                }
-              }
-            }
-
-            updateData.media = media;
-          } else {
-            // Legacy/Default behavior: Append only
-            const spotSnapshot = await spotRef.get();
-            if (spotSnapshot.exists) {
-              const currentMedia = (spotSnapshot.data() as any)["media"] || [];
-              // Append new media items to existing ones, avoiding duplicates
-              const newMedia = media.filter(
-                (newItem: any) =>
-                  !currentMedia.some((item: any) => item.src === newItem.src)
-              );
-              updateData.media = [...currentMedia, ...newMedia];
-            } else {
-              // Spot doesn't exist yet, just set the media
-              updateData.media = media;
-            }
-          }
-        }
-
-        // Handle external references: merge instead of replace
-        if (external_references) {
-          const spotSnapshot = await spotRef.get();
-          if (spotSnapshot.exists) {
-            const spotData = spotSnapshot.data() as any;
-            const currentRefs = spotData["external_references"] || {};
-            updateData.external_references = {
-              ...currentRefs,
-              ...external_references,
-            };
-            // If a value is explicitly null, delete the field
-            Object.keys(updateData.external_references).forEach((key) => {
-              if (updateData.external_references[key] === null) {
-                updateData.external_references[key] =
-                  admin.firestore.FieldValue.delete() as any;
-              }
-            });
-          } else {
-            // Spot doesn't exist yet
-            updateData.external_references = external_references;
-          }
-        }
-
-        // Handle amenities: merge instead of replace
-        if (amenities) {
-          const spotSnapshot = await spotRef.get();
-          if (spotSnapshot.exists) {
-            const spotData = spotSnapshot.data() as any;
-            const currentAmenities = spotData["amenities"] || {};
-            updateData.amenities = {
-              ...currentAmenities,
-              ...amenities,
-            };
-            // If a value is explicitly null, delete the field
-            Object.keys(updateData.amenities).forEach((key) => {
-              if (updateData.amenities[key] === null) {
-                updateData.amenities[key] =
-                  admin.firestore.FieldValue.delete() as any;
-              }
-            });
-          } else {
-            // Spot doesn't exist yet
-            updateData.amenities = amenities;
-          }
-        }
-
-        await spotRef.update(updateData);
+        await applyUpdateEditToSpot(spotRef, editData, spotId);
         console.log(`Updated spot ${spotId} from edit ${editId}`);
       }
 
-      // Mark the edit as approved
-      await editSnapshot.ref.update({
-        approved: true,
-      });
-
-      console.log(`Marked edit ${editId} as approved`);
-
-      // Increment user contribution counters
-      const userRef = db.collection("users").doc(editData.user.uid);
-      const incrementData: Record<string, FirebaseFirestore.FieldValue> = {
-        spot_edits_count: admin.firestore.FieldValue.increment(1),
-      };
-
-      if (editData.type === "CREATE") {
-        incrementData["spot_creates_count"] =
-          admin.firestore.FieldValue.increment(1);
-      }
-
-      // Count media items added in this edit
-      const mediaItems = editData.data?.media;
-      if (Array.isArray(mediaItems) && mediaItems.length > 0) {
-        incrementData["media_added_count"] =
-          admin.firestore.FieldValue.increment(mediaItems.length);
-      }
-
-      await userRef.set(incrementData, { merge: true });
-      console.log(`Updated user ${editData.user.uid} contribution counters`);
-
-      // Update leaderboards
-      await updateLeaderboards(editData.user.uid, editData.type, db);
+      await markEditApprovedAndUpdateContributions(
+        editSnapshot.ref,
+        editData,
+        db,
+        "APPROVED_IMMEDIATE"
+      );
     } catch (error) {
       console.error(
         `Error processing spot edit ${editId} for spot ${spotId}:`,
         error
       );
       throw error;
+    }
+  }
+);
+
+function getEditTimestampMs(editData: SpotEditSchema): number {
+  if (typeof editData.timestamp_raw_ms === "number") {
+    return editData.timestamp_raw_ms;
+  }
+  const ts = editData.timestamp as FirebaseFirestore.Timestamp | undefined;
+  if (ts && typeof ts.toMillis === "function") {
+    return ts.toMillis();
+  }
+  return Date.now();
+}
+
+function createEmptyVoteSummary(): SpotEditVoteSummary {
+  return {
+    yes_count: 0,
+    no_count: 0,
+    total_count: 0,
+    ratio_yes_to_no: null,
+    submitter_vote: null,
+    eligible_for_auto_approval: false,
+  };
+}
+
+function summarizeVotes(
+  votes: SpotEditVoteSchema[],
+  submitterUid: string | undefined,
+  isVoteWindowElapsed: boolean
+): SpotEditVoteSummary {
+  const yesCount = votes.filter((v) => v.value === 1).length;
+  const noCount = votes.filter((v) => v.value === -1).length;
+  const totalCount = yesCount + noCount;
+  const ratioYesToNo = noCount === 0 ? null : yesCount / noCount;
+
+  let submitterVote: "yes" | "no" | null = null;
+  if (submitterUid) {
+    const voteBySubmitter = votes.find((v) => v.user?.uid === submitterUid);
+    if (voteBySubmitter?.value === 1) {
+      submitterVote = "yes";
+    } else if (voteBySubmitter?.value === -1) {
+      submitterVote = "no";
+    }
+  }
+
+  const meetsVoteCount = totalCount >= MIN_TOTAL_VOTES;
+  const meetsRatio =
+    (noCount === 0 && yesCount > 0) ||
+    (ratioYesToNo !== null && ratioYesToNo >= MIN_YES_NO_RATIO);
+  const submitterSupports = submitterVote === "yes";
+
+  return {
+    yes_count: yesCount,
+    no_count: noCount,
+    total_count: totalCount,
+    ratio_yes_to_no:
+      ratioYesToNo === null ? null : Number(ratioYesToNo.toFixed(2)),
+    submitter_vote: submitterVote,
+    eligible_for_auto_approval:
+      isVoteWindowElapsed && meetsVoteCount && meetsRatio && submitterSupports,
+  };
+}
+
+async function applyUpdateEditToSpot(
+  spotRef: FirebaseFirestore.DocumentReference,
+  editData: SpotEditSchema,
+  spotId: string
+): Promise<void> {
+  // Extract fields that need special merge logic
+  const { media, external_references, amenities, ...regularData } =
+    editData.data;
+  const { source: _ignoredSource, ...regularDataWithoutSource } =
+    regularData || {};
+
+  let updateData: any = {
+    ...regularDataWithoutSource,
+    updated_at: admin.firestore.FieldValue.serverTimestamp(),
+  };
+
+  // Ensure location is a proper GeoPoint if it exists and compute tile coordinates
+  if (updateData.location) {
+    let latitude: number;
+    let longitude: number;
+
+    // If location is already a GeoPoint, keep it; otherwise convert it
+    if (
+      updateData.location._latitude === undefined &&
+      updateData.location.latitude !== undefined
+    ) {
+      // It's a plain object with latitude/longitude, convert to GeoPoint
+      latitude = updateData.location.latitude;
+      longitude = updateData.location.longitude;
+      updateData.location = new admin.firestore.GeoPoint(
+        latitude,
+        longitude
+      );
+    } else if (updateData.location._latitude !== undefined) {
+      // It's already a GeoPoint, extract coordinates
+      latitude = updateData.location._latitude;
+      longitude = updateData.location._longitude;
+    } else {
+      console.error("Invalid location format for spot", spotId);
+      throw new Error("Invalid location format");
+    }
+
+    // Compute tile coordinates for the new location
+    updateData.tile_coordinates = computeTileCoordinates(
+      latitude,
+      longitude
+    );
+
+    // Always write location_raw
+    updateData.location_raw = { lat: latitude, lng: longitude };
+  }
+
+  // For media, we handle two cases based on modification_type:
+  // 1. OVERWRITE: Completely replace the media list (used by new clients supporting deletions)
+  // 2. APPEND (default): Add new items only (used by legacy clients)
+  if (media && Array.isArray(media)) {
+    if (editData.modification_type === "OVERWRITE") {
+      // Check for deleted media and remove from storage
+      const spotSnapshot = await spotRef.get();
+      if (spotSnapshot.exists) {
+        const currentMedia = (spotSnapshot.data() as any)["media"] || [];
+        const newMediaSrcs = new Set(media.map((m: any) => m.src));
+
+        const removedMedia = currentMedia.filter(
+          (m: any) => !newMediaSrcs.has(m.src) && m.isInStorage
+        );
+
+        if (removedMedia.length > 0) {
+          console.log(
+            `Found ${removedMedia.length} removed media items. Attempting deletion.`
+          );
+          const bucket = getStorage().bucket();
+
+          for (const item of removedMedia) {
+            try {
+              // Extract path from URL.
+              // Format: https://firebasestorage.googleapis.com/v0/b/[bucket]/o/[path]?alt=media...
+              // Or gs://[bucket]/[path]
+              let path = "";
+              if (item.src.startsWith("gs://")) {
+                path = item.src.split(bucket.name + "/")[1];
+              } else if (item.src.includes("/o/")) {
+                const urlObj = new URL(item.src);
+                const pathWithToken = urlObj.pathname.split("/o/")[1];
+                path = decodeURIComponent(pathWithToken);
+              }
+
+              if (path) {
+                console.log(`Deleting orphaned file: ${path}`);
+                await bucket.file(path).delete();
+              }
+            } catch (e) {
+              console.error(
+                `Failed to delete orphaned media ${item.src}:`,
+                e
+              );
+              // Continue execution, do not fail the spot update
+            }
+          }
+        }
+      }
+
+      updateData.media = media;
+    } else {
+      // Legacy/Default behavior: Append only
+      const spotSnapshot = await spotRef.get();
+      if (spotSnapshot.exists) {
+        const currentMedia = (spotSnapshot.data() as any)["media"] || [];
+        // Append new media items to existing ones, avoiding duplicates
+        const newMedia = media.filter(
+          (newItem: any) =>
+            !currentMedia.some((item: any) => item.src === newItem.src)
+        );
+        updateData.media = [...currentMedia, ...newMedia];
+      } else {
+        // Spot doesn't exist yet, just set the media
+        updateData.media = media;
+      }
+    }
+  }
+
+  // Handle external references: merge instead of replace
+  if (external_references) {
+    const spotSnapshot = await spotRef.get();
+    if (spotSnapshot.exists) {
+      const spotData = spotSnapshot.data() as any;
+      const currentRefs = spotData["external_references"] || {};
+      updateData.external_references = {
+        ...currentRefs,
+        ...external_references,
+      };
+      // If a value is explicitly null, delete the field
+      Object.keys(updateData.external_references).forEach((key) => {
+        if (updateData.external_references[key] === null) {
+          updateData.external_references[key] =
+            admin.firestore.FieldValue.delete() as any;
+        }
+      });
+    } else {
+      // Spot doesn't exist yet
+      updateData.external_references = external_references;
+    }
+  }
+
+  // Handle amenities: merge instead of replace
+  if (amenities) {
+    const spotSnapshot = await spotRef.get();
+    if (spotSnapshot.exists) {
+      const spotData = spotSnapshot.data() as any;
+      const currentAmenities = spotData["amenities"] || {};
+      updateData.amenities = {
+        ...currentAmenities,
+        ...amenities,
+      };
+      // If a value is explicitly null, delete the field
+      Object.keys(updateData.amenities).forEach((key) => {
+        if (updateData.amenities[key] === null) {
+          updateData.amenities[key] =
+            admin.firestore.FieldValue.delete() as any;
+        }
+      });
+    } else {
+      // Spot doesn't exist yet
+      updateData.amenities = amenities;
+    }
+  }
+
+  await spotRef.update(updateData);
+}
+
+async function markEditApprovedAndUpdateContributions(
+  editRef: FirebaseFirestore.DocumentReference,
+  editData: SpotEditSchema,
+  db: FirebaseFirestore.Firestore,
+  processingStatus: string
+): Promise<void> {
+  await editRef.update({
+    approved: true,
+    processing_status: processingStatus,
+    blocked_reason: admin.firestore.FieldValue.delete(),
+    processed_at: admin.firestore.FieldValue.serverTimestamp(),
+    decision_at: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  console.log(`Marked edit ${editRef.id} as approved`);
+
+  // Increment user contribution counters
+  const userRef = db.collection("users").doc(editData.user.uid);
+  const incrementData: Record<string, FirebaseFirestore.FieldValue> = {
+    spot_edits_count: admin.firestore.FieldValue.increment(1),
+  };
+
+  if (editData.type === "CREATE") {
+    incrementData["spot_creates_count"] =
+      admin.firestore.FieldValue.increment(1);
+  }
+
+  // Count media items added in this edit
+  const mediaItems = editData.data?.media;
+  if (Array.isArray(mediaItems) && mediaItems.length > 0) {
+    incrementData["media_added_count"] =
+      admin.firestore.FieldValue.increment(mediaItems.length);
+  }
+
+  await userRef.set(incrementData, { merge: true });
+  console.log(`Updated user ${editData.user.uid} contribution counters`);
+
+  // Update leaderboards
+  await updateLeaderboards(editData.user.uid, editData.type, db);
+}
+
+async function tryAcquireEditApplyLock(
+  editRef: FirebaseFirestore.DocumentReference
+): Promise<boolean> {
+  const db = editRef.firestore;
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(editRef);
+    if (!snap.exists) {
+      return false;
+    }
+    const data = snap.data() as SpotEditSchema;
+    if (data.approved === true || data.processing_status === "APPLYING_VOTE") {
+      return false;
+    }
+    tx.update(editRef, {
+      processing_status: "APPLYING_VOTE",
+      processed_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return true;
+  });
+}
+
+async function evaluatePendingEditVotes(
+  spotId: string,
+  editId: string,
+  reason: "vote_write" | "scheduled"
+): Promise<void> {
+  const db = admin.firestore();
+  const editRef = db.collection("spots").doc(spotId).collection("edits").doc(editId);
+  const editSnap = await editRef.get();
+
+  if (!editSnap.exists) {
+    return;
+  }
+
+  const editData = editSnap.data() as SpotEditSchema;
+  if (!editData || editData.type !== "UPDATE" || editData.approved === true) {
+    return;
+  }
+
+  const votesSnap = await editRef.collection("votes").get();
+  const votes = votesSnap.docs.map((doc) => doc.data() as SpotEditVoteSchema);
+  const editAgeMs = Date.now() - getEditTimestampMs(editData);
+  const isVoteWindowElapsed = editAgeMs >= VOTE_WINDOW_MS;
+  const voteSummary = summarizeVotes(votes, editData.user?.uid, isVoteWindowElapsed);
+
+  // Keep summary fields fresh even before eligibility.
+  await editRef.update({
+    vote_summary: voteSummary,
+    processing_status:
+      editData.processing_status === "BLOCKED_ICONIC_SPOT" ||
+      editData.processing_status === "BLOCKED_VERIFIED_SPOT" ||
+      editData.processing_status === "VOTING_FORCED_TEST"
+        ? editData.processing_status
+        : "VOTING_OPEN",
+    processed_at: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  if (!voteSummary.eligible_for_auto_approval) {
+    return;
+  }
+
+  const hasLock = await tryAcquireEditApplyLock(editRef);
+  if (!hasLock) {
+    return;
+  }
+
+  try {
+    const spotRef = db.collection("spots").doc(spotId);
+    await applyUpdateEditToSpot(spotRef, editData, spotId);
+    await markEditApprovedAndUpdateContributions(
+      editRef,
+      editData,
+      db,
+      "APPROVED_VOTING"
+    );
+
+    await editRef.update({
+      vote_summary: {
+        ...voteSummary,
+        eligible_for_auto_approval: true,
+      },
+      approval_reason: reason,
+    });
+  } catch (error) {
+    await editRef.update({
+      processing_status: "VOTING_ERROR",
+      blocked_reason: String(error),
+      processed_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    throw error;
+  }
+}
+
+export const evaluateSpotEditVotesOnVoteWrite = onDocumentWritten(
+  "spots/{spotId}/edits/{editId}/votes/{userId}",
+  async (event) => {
+    const spotId = event.params.spotId;
+    const editId = event.params.editId;
+
+    if (!event.data?.after.exists) {
+      return;
+    }
+
+    await evaluatePendingEditVotes(spotId, editId, "vote_write");
+  }
+);
+
+export const evaluatePendingSpotEditVotesOnSchedule = onSchedule(
+  "every 60 minutes",
+  async () => {
+    const db = admin.firestore();
+    const pendingEditsSnap = await db
+      .collectionGroup("edits")
+      .where("approved", "==", false)
+      .limit(300)
+      .get();
+
+    for (const editDoc of pendingEditsSnap.docs) {
+      const spotRef = editDoc.ref.parent.parent;
+      if (!spotRef) {
+        continue;
+      }
+
+      try {
+        await evaluatePendingEditVotes(spotRef.id, editDoc.id, "scheduled");
+      } catch (error) {
+        console.error(
+          `Error evaluating pending edit votes for ${spotRef.id}/${editDoc.id}:`,
+          error
+        );
+      }
     }
   }
 );

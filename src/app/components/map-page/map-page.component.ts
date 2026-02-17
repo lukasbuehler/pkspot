@@ -193,6 +193,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
   selectedPoi = signal<PoiData | null>(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
+  selectedSpotIdForEdits = computed(() => {
+    const spot = this.selectedSpot();
+    return spot instanceof Spot ? spot.id : null;
+  });
   showAllChallenges: WritableSignal<boolean> = signal(false);
   allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
   showSpotEditHistory: WritableSignal<boolean> = signal(false);
@@ -320,6 +324,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _visitedPreviewLoadPromise: Promise<void> | null = null;
 
   spotEdits: WritableSignal<SpotEdit[]> = signal([]);
+  pendingSpotEditsCount = signal<number>(0);
 
   noSpotsForFilter: WritableSignal<boolean> = signal(false);
 
@@ -595,6 +600,36 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         // Clear edits if not showing edit history
         this.spotEdits.set([]);
       }
+    });
+
+    // Keep a lightweight pending-edit count for the selected spot so the
+    // main detail view can show that voting/review is pending.
+    effect((onCleanup) => {
+      const spot = this.selectedSpot();
+
+      if (!(spot instanceof Spot)) {
+        this.pendingSpotEditsCount.set(0);
+        return;
+      }
+
+      const pendingSub = this._spotEditsService
+        .getSpotEditsBySpotId$(spot.id)
+        .subscribe({
+          next: (editsWithIds) => {
+            const pendingCount = editsWithIds.filter(
+              (item) => item.schema.approved !== true
+            ).length;
+            this.pendingSpotEditsCount.set(pendingCount);
+          },
+          error: (err) => {
+            console.error("Error loading pending spot edits count:", err);
+            this.pendingSpotEditsCount.set(0);
+          },
+        });
+
+      onCleanup(() => {
+        pendingSub.unsubscribe();
+      });
     });
 
     // Open sidenav by default on desktop once responsive detection is confirmed

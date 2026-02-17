@@ -19,5 +19,54 @@
     <div class="mat-label-small pb-2" i18n>What changed</div>
     <app-spot-edit-summary [edit]="edit"></app-spot-edit-summary>
   </div>
+
+  @if(edit.type === 'UPDATE') {
+  <div class="spot-edit-card__voting mt-3 pt-3">
+    <div
+      class="d-flex flex-row align-items-center justify-content-between gap-2 mb-2"
+    >
+      <div class="mat-label-medium d-flex align-items-center gap-1">
+        <mat-icon>where_to_vote</mat-icon>
+        <span i18n>Vote to merge</span>
+      </div>
+      <span class="mat-label-small spot-edit-card__status">{{ statusText() }}</span>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 mb-2 spot-edit-card__vote-stats">
+      <span class="mat-body-small">Yes {{ yesVotes() }}</span>
+      <span class="mat-body-small">No {{ noVotes() }}</span>
+      <span class="mat-body-small">Total {{ totalVotes() }}</span>
+    </div>
+
+    @if(canVote()) {
+    <div class="d-flex gap-2">
+      <button
+        mat-stroked-button
+        type="button"
+        color="primary"
+        [disabled]="isSubmittingVote()"
+        [class.vote-selected]="userVoteValue() === 1"
+        (click)="voteYes()"
+      >
+        <mat-icon>done</mat-icon>
+        <span i18n>Yes</span>
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        color="warn"
+        [disabled]="isSubmittingVote()"
+        [class.vote-selected]="userVoteValue() === -1"
+        (click)="voteNo()"
+      >
+        <mat-icon>close</mat-icon>
+        <span i18n>No</span>
+      </button>
+    </div>
+    } @else if(!authenticationService.isSignedIn) {
+    <p class="mat-body-small m-0" i18n>Sign in to vote on this edit.</p>
+    }
+  </div>
+  }
 </article>
 }
