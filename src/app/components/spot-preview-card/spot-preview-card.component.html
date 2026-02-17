@@ -129,8 +129,9 @@
       fill
       [priority]="loadingPriority()"
       [alt]="spotName || ''"
-      referrerpolicy="no-referrer"
+      [attr.referrerpolicy]="getReferrerPolicyForSrc(primaryMediaSrc())"
       (error)="onImageError($event)"
+      (load)="onImageLoad($event)"
     />
     } @else {
     @if(showNoMediaLabel()) {

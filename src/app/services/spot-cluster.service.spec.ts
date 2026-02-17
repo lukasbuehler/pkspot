@@ -98,7 +98,7 @@ describe("SpotClusterService", () => {
         bbox: { north: 10, south: 0, east: 10, west: 0 },
       };
 
-      // Zoom 4, standard small viewport -> fetchZoom = 6
+      // Zoom 4, standard small viewport -> fetchZoom = 3
       // Should fetch a small grid of tiles
       await service.getClustersForViewport(viewport, 4);
 
@@ -351,6 +351,33 @@ describe("SpotClusterService", () => {
       // -1 % 4 = 3, so should go 3 -> 0 -> 1
       expect(range).toContain(0);
       expect(range).toContain(1);
+    });
+  });
+
+  describe("_getFetchZoomForViewportZoom (private method via casting)", () => {
+    let getFetchZoom: (zoom: number) => number;
+
+    beforeEach(() => {
+      getFetchZoom = (service as any)["_getFetchZoomForViewportZoom"].bind(
+        service
+      );
+    });
+
+    it("should fetch one zoom level up for normal cluster zooms", () => {
+      expect(getFetchZoom(15)).toBe(14);
+      expect(getFetchZoom(12)).toBe(11);
+      expect(getFetchZoom(10)).toBe(9);
+    });
+
+    it("should clamp low zooms to minimum fetch zoom", () => {
+      expect(getFetchZoom(2)).toBe(2);
+      expect(getFetchZoom(1)).toBe(2);
+      expect(getFetchZoom(0)).toBe(2);
+    });
+
+    it("should clamp high zooms to maximum fetch zoom", () => {
+      expect(getFetchZoom(16)).toBe(14);
+      expect(getFetchZoom(20)).toBe(14);
     });
   });
 

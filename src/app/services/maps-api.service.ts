@@ -583,7 +583,7 @@ export class MapsApiService extends ConsentAwareService {
     }
 
     return new ExternalImage(
-      this._makeStreetViewImageUrl(location, 800, 800),
+      this._makeStreetViewImageUrl(location, 400, 400),
       "streetview"
     );
   }

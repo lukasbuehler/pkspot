@@ -19,6 +19,9 @@ export interface ClusterResult {
 
 @Injectable({ providedIn: "root" })
 export class SpotClusterService {
+  private readonly MIN_FETCH_ZOOM = 2;
+  private readonly MAX_FETCH_ZOOM = 14;
+
   // Caches
   private _tileCache = new Map<
     string,
@@ -53,18 +56,9 @@ export class SpotClusterService {
     zoom: number
   ): Promise<ClusterResult> {
     // 1. Calculate which tiles cover this viewport
-    // Adaptive fetch zoom to optimize caching and performance at different zoom levels
-    // We aim to fetch a manageable number of tiles (e.g. ~16) regardless of the map zoom
-    let fetchZoom = 12;
-    if (zoom < 4) {
-      fetchZoom = 2;
-    } else if (zoom < 8) {
-      fetchZoom = 6;
-    } else if (zoom < 12) {
-      fetchZoom = 10;
-    } else {
-      fetchZoom = 12;
-    }
+    // Fetch from one zoom level up to keep transitions smooth
+    // (e.g. render zoom 15 reads cluster source zoom 14).
+    const fetchZoom = this._getFetchZoomForViewportZoom(zoom);
 
     // Don't fetch if zoom is too low (server-side clustering should handle < 10 or so in a real app,
     // but here we just follow existing logic or return empty if very far out)
@@ -76,13 +70,13 @@ export class SpotClusterService {
 
     // Create a stable tile key for caching - sorted to ensure consistent key regardless of tile order
     const tileKey = tilesToFetch
-      .map((t) => `${t.x}:${t.y}`)
+      .map((t) => `${fetchZoom}:${t.x}:${t.y}`)
       .sort()
       .join("|");
 
     // If we already have an in-flight request for the same tile set, reuse it
     if (this._clusterInFlight && this._clusterInFlightTileKey === tileKey) {
-      const result = await this._clusterInFlight;
+      await this._clusterInFlight;
       // Return fresh clusters for current viewport using cached index
       return this._getClusterResultForViewport(viewport, zoom);
     }
@@ -326,6 +320,15 @@ export class SpotClusterService {
       lng,
       ...doc,
     };
+  }
+
+  private _getFetchZoomForViewportZoom(zoom: number): number {
+    const intZoom = Math.max(0, Math.floor(zoom));
+    const preferredZoom = intZoom - 1;
+    return Math.max(
+      this.MIN_FETCH_ZOOM,
+      Math.min(this.MAX_FETCH_ZOOM, preferredZoom)
+    );
   }
 
   private _getTilesCoveringViewport(

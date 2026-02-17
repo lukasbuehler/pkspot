@@ -88,7 +88,7 @@ export class SpotMapDataManager {
 
   readonly spotZoom = 16;
   readonly serviceClusterMinZoom = 10;
-  readonly serviceClusterMaxZoom = 12;
+  readonly serviceClusterMaxZoom = 15;
   readonly amenityMarkerZoom = 14;
   readonly amenityMarkerDisplayZoom = 16;
   readonly clusterZooms = [2, 4, 6, 8, 10, 12];
@@ -328,6 +328,10 @@ export class SpotMapDataManager {
     // await this._yieldToMain();
 
     if (zoom >= this.spotZoom) {
+      // Reset cluster render key cache while in spot mode so transitioning back to
+      // cluster mode (e.g. 16 -> 15) always re-renders dots immediately.
+      this._lastRenderedClusterKeys = null;
+
       // show spots and markers
       this._showCachedSpotsAndMarkersForTiles(visibleTilesObj);
 
@@ -338,7 +342,7 @@ export class SpotMapDataManager {
       // load spots for missing tiles
       this._loadSpotsForTiles(spotTilesToLoad16);
     } else {
-      // 10-12: Typesense cluster service only (no Firestore cluster tiles)
+      // 10-15: Typesense cluster service only (no Firestore cluster tiles)
       if (
         this._spotClusterService &&
         zoom >= this.serviceClusterMinZoom &&
@@ -861,6 +865,7 @@ export class SpotMapDataManager {
 
     if (
       !forceRender &&
+      this._visibleDots().length > 0 &&
       this._areKeySetsEqual(this._lastRenderedClusterKeys, currentKeys)
     ) {
       return false;

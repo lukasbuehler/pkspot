@@ -145,6 +145,10 @@ export class ImgCarouselComponent {
     return false;
   }
 
+  getReferrerPolicyForMedia(mediaObj: AnyMedia): "no-referrer" | null {
+    return mediaObj.userId === "streetview" ? null : "no-referrer";
+  }
+
   imageClick(index: number) {
     this.openImageViewer(index);
   }
@@ -187,7 +191,7 @@ export class ImgCarouselComponent {
               <img
                 ngSrc="{{ getSrc(mediaObj) }}"
                 fill
-                referrerpolicy="no-referrer"
+                [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"
               />
             </div>
           </div>
@@ -310,8 +314,15 @@ export class SwiperDialogComponent implements AfterViewInit {
     if (mediaObj instanceof StorageImage) {
       return mediaObj.getSrc(800);
     } else {
+      if (mediaObj.userId === "streetview") {
+        return mediaObj.src.replace(/size=\d+x\d+/i, "size=800x800");
+      }
       return mediaObj.src;
     }
+  }
+
+  getReferrerPolicyForMedia(mediaObj: AnyMedia): "no-referrer" | null {
+    return mediaObj.userId === "streetview" ? null : "no-referrer";
   }
 
   getActiveMedia(): AnyMedia | undefined {

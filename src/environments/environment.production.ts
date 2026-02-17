@@ -21,7 +21,7 @@ export const environment = {
       authDomain: "parkour-base-project.firebaseapp.com",
       messagingSenderId: "294969617102",
       measurementId: "G-K7E4HFP8NM",
-      apiKey: "AIzaSyB_Ttp8sb80ykt_OdgXdGk61cXzgfFCnZk",
+      apiKey: "AIzaSyBweX0jjdbdrIy2slKPf6ZAhvl6XHz4AlI",
     },
     typesense: {
       host: "g5re3ouiqm0j8bc9p-1.a1.typesense.net",

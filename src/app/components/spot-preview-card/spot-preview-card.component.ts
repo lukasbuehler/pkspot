@@ -110,11 +110,12 @@ export class SpotPreviewCardComponent
   fallbackImgSrc = "assets/spot_placeholder.png";
   private _intersectionObserver: IntersectionObserver | null = null;
   private _isInViewport = signal(false);
+  private _hasLoadedMedia = signal(false);
   private _streetViewPreviewEnabled = computed(() =>
     this.mapsApiService.isStreetViewPreviewEnabled()
   );
   shouldLoadMedia = computed(
-    () => this.loadingPriority() || this._isInViewport()
+    () => this.loadingPriority() || this._isInViewport() || this._hasLoadedMedia()
   );
   private _allowStreetViewPreview = computed(() => {
     if (!this._streetViewPreviewEnabled()) {
@@ -312,6 +313,7 @@ export class SpotPreviewCardComponent
     const spot = this.spotData();
     if (spot) {
       this.failedMediaSrcs.set([]);
+      this._hasLoadedMedia.set(false);
 
       if (spot instanceof Spot || spot instanceof LocalSpot) {
         this.spotName = spot.name();
@@ -340,7 +342,12 @@ export class SpotPreviewCardComponent
     this._intersectionObserver = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        this._isInViewport.set(entry?.isIntersecting ?? false);
+        const isIntersecting = entry?.isIntersecting ?? false;
+        this._isInViewport.set(isIntersecting);
+        if (isIntersecting) {
+          // Allow a retry when the card comes back into view.
+          this.failedMediaSrcs.set([]);
+        }
       },
       {
         root: null,
@@ -377,23 +384,29 @@ export class SpotPreviewCardComponent
       );
     }
 
-    console.log("Image load error", failedSrc || "");
-
     if (!failedSrc || !this._isStreetViewUrl(failedSrc)) {
       return;
     }
+  }
 
-    const spot = this.spotData();
-    if (spot && spot instanceof Spot) {
-      this.mapsApiService.reportStreetViewError(spot.id);
-    } else if (spot && !(spot instanceof LocalSpot)) {
-      // Spot Preview Data
-      this.mapsApiService.reportStreetViewError(spot.id);
-    }
+  onImageLoad(event?: Event) {
+    const target = event?.target as HTMLImageElement | null;
+    const loadedSrc = target?.currentSrc || target?.src;
+    if (!loadedSrc) return;
+
+    this._hasLoadedMedia.set(true);
+    this.failedMediaSrcs.update((current) =>
+      current.filter((src) => src !== loadedSrc)
+    );
   }
 
   private _isStreetViewUrl(url: string): boolean {
     return /maps\.googleapis\.com\/maps\/api\/streetview/i.test(url);
+  }
+
+  getReferrerPolicyForSrc(src: string | null): "no-referrer" | null {
+    if (!src) return "no-referrer";
+    return this._isStreetViewUrl(src) ? null : "no-referrer";
   }
 
   shareSpot() {
