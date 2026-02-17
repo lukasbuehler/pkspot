@@ -128,11 +128,16 @@
       [ngSrc]="primaryMediaSrc()!"
       fill
       [priority]="loadingPriority()"
+      [alt]="spotName || ''"
       referrerpolicy="no-referrer"
       (error)="onImageError($event)"
     />
     } @else {
-    <img [ngSrc]="fallbackImgSrc" fill priority />
+    @if(showNoMediaLabel()) {
+    <app-media-placeholder [src]="fallbackImgSrc"></app-media-placeholder>
+    } @else {
+    <img [ngSrc]="fallbackImgSrc" fill priority [alt]="spotName || ''" />
+    }
     }
   </div>
   }

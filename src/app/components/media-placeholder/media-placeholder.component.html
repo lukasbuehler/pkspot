@@ -1,0 +1,16 @@
+<img
+  class="placeholder-image"
+  [ngSrc]="src()"
+  fill
+  priority
+  alt=""
+  aria-hidden="true"
+/>
+@if(showLabel()) {
+<span
+  class="placeholder-label"
+  i18n="No media placeholder label shown on spot preview cards@@spot-edit-summary.row.media.none"
+>
+  No media
+</span>
+}

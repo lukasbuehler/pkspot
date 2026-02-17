@@ -38,6 +38,7 @@ import {
 } from "../../../db/schemas/SpotTypeAndAccess";
 
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 
 @Component({
   selector: "app-spot-preview-card",
@@ -49,6 +50,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
     MatIconModule,
     NgOptimizedImage,
     SpotRatingComponent,
+    MediaPlaceholderComponent,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -206,6 +208,10 @@ export class SpotPreviewCardComponent
     }
     return null;
   });
+  showNoMediaLabel = computed(
+    () =>
+      this.shouldLoadMedia() && !this.primaryMediaSrc() && this.media().length === 0
+  );
 
   countryCode = computed(() => {
     const spot = this.spotData();
