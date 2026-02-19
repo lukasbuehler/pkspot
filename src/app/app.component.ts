@@ -184,8 +184,9 @@ export class AppComponent implements OnInit, AfterViewInit {
   hasAds = false;
   userId: string = "";
   policyAccepted: boolean = false;
-  private _lastTrackedAuthState: boolean | null = null;
+  private _lastTrackedAuthUid: string | null = null;
   private _lastConsentState: boolean | null = null;
+  private readonly _engagedPingEnabled = false;
 
   alainMode: boolean = false;
 
@@ -505,6 +506,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       pingIntervalMs: 15000,
 
       startPingsIfNeeded: () => {
+        if (!this._engagedPingEnabled) return;
         // start periodic pings only if consent granted
         try {
           if (!this._consentService.hasConsent()) return;
@@ -639,14 +641,16 @@ export class AppComponent implements OnInit, AfterViewInit {
 
             // Emit manual pageview using PostHog's standard $pageview event
 
-            this._analyticsService.trackEvent("$pageview", {
-              path: nav.urlAfterRedirects,
-              current_url: url,
-              authenticated: authenticated,
-              consent_granted: consentGranted,
-              accepted_version: acceptedVersion,
-              source: "manual",
-            });
+            if (!this.isNativePlatform) {
+              this._analyticsService.trackEvent("$pageview", {
+                path: nav.urlAfterRedirects,
+                current_url: url,
+                authenticated: authenticated,
+                consent_granted: consentGranted,
+                accepted_version: acceptedVersion,
+                source: "manual",
+              });
+            }
 
             // Update Canonical URL and Hreflang tags
             this._metaTagService.syncCanonicalAndHreflangForPath(
@@ -690,7 +694,12 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
 
             // start periodic pings if consent already granted (browser-only)
-            if (this._consentService.hasConsent() && isBrowser) {
+            if (
+              this._engagedPingEnabled &&
+              this._consentService.hasConsent() &&
+              isBrowser &&
+              !this.isNativePlatform
+            ) {
               this._engagement.startPingsIfNeeded();
             }
           } catch (e) {
@@ -765,12 +774,13 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.userPhoto.set(undefined);
         }
 
-        if (this._lastTrackedAuthState !== isAuthenticated) {
+        const currentAuthUid = user?.uid ?? null;
+        if (currentAuthUid && this._lastTrackedAuthUid !== currentAuthUid) {
           this._analyticsService.trackEvent("User Authenticated", {
-            authenticated: isAuthenticated,
+            authenticated: true,
             is_user_action: false,
           });
-          this._lastTrackedAuthState = isAuthenticated;
+          this._lastTrackedAuthUid = currentAuthUid;
         }
       },
       (error) => {

@@ -694,9 +694,14 @@ export class KmlParserService {
   }
 
   /**
-   * Merges spots that are close to each other (approx 30m).
-   * Prioritizes Polygons over Points.
-   * Keeps the longest name.
+   * Merges near-duplicate spots that are close to each other (approx 30m).
+   * Merge scope is intentionally constrained:
+   * - only within the same folder
+   * - only when geometry classes match (point<->point, area/line<->area/line),
+   *   unless names are exactly the same
+   *
+   * This prevents helper layers (e.g. night/wet subsets, route lines) from
+   * collapsing unrelated spots across folders.
    */
   private mergeSpots(spots: KMLSpot[]): KMLSpot[] {
     const merged: KMLSpot[] = [];
@@ -729,6 +734,24 @@ export class KmlParserService {
         if (processed.has(spots[j])) continue;
 
         const candidate = spots[j];
+        const mergedFolder = (mergedSpot.folder ?? "").trim();
+        const candidateFolder = (candidate.folder ?? "").trim();
+        if (mergedFolder !== candidateFolder) {
+          continue;
+        }
+
+        const mergedHasBounds = (mergedSpot.spot.bounds?.length ?? 0) > 0;
+        const candidateHasBounds = (candidate.spot.bounds?.length ?? 0) > 0;
+        const sameGeometryClass = mergedHasBounds === candidateHasBounds;
+        const normalizedMergedName = mergedSpot.spot.name.trim().toLowerCase();
+        const normalizedCandidateName = candidate.spot.name.trim().toLowerCase();
+        const sameName =
+          normalizedMergedName.length > 0 &&
+          normalizedMergedName === normalizedCandidateName;
+        if (!sameGeometryClass && !sameName) {
+          continue;
+        }
+
         const dist = this.getDistanceFromLatLonInM(
           mergedSpot.spot.location,
           candidate.spot.location

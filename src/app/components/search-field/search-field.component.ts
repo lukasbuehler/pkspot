@@ -16,7 +16,7 @@ import {
 } from "@angular/material/autocomplete";
 import { MatFormField, MatSuffix } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
-import { BehaviorSubject, Subscription } from "rxjs";
+import { BehaviorSubject, from, of, Subscription } from "rxjs";
 import { SearchResponse } from "typesense/lib/Typesense/Documents";
 import { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { AsyncPipe } from "@angular/common";
@@ -38,6 +38,13 @@ import {
 } from "../../../db/schemas/SpotTypeAndAccess";
 import { AmenitiesMap } from "../../../db/schemas/Amenities";
 import { getImportantAmenities } from "../../../db/models/Amenities";
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  switchMap,
+} from "rxjs/operators";
 
 @Component({
   selector: "app-search-field",
@@ -69,6 +76,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
   private _searchService = inject(SearchService);
   private _spotSearchSubscription?: Subscription;
+  private readonly _minSearchQueryLength = 2;
 
   spotSearchControl = new FormControl();
   // Use a loose result type to allow runtime-attached `preview` property
@@ -82,32 +90,41 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   @Input() onlySpots: boolean = false;
 
   ngOnInit() {
-    // subscribe to the spot search control and update the search results
-    this._spotSearchSubscription =
-      this.spotSearchControl.valueChanges.subscribe((query) => {
-        if (query) {
-          if (this.onlySpots) {
-            this._searchService.searchSpotsOnly(query).then((results) => {
-              if (results.spots && results.spots.hits) {
-                results.spots.hits = results.spots.hits.slice(0, 5);
-              }
-              this.spotAndPlaceSearchResults$.next(results);
-            });
-          } else {
-            this._searchService.searchSpotsAndPlaces(query).then((results) => {
-              // Limit places to 3 and spots to 5
+    // Debounce and cancel stale lookups to reduce API usage.
+    this._spotSearchSubscription = this.spotSearchControl.valueChanges
+      .pipe(
+        map((value) => (typeof value === "string" ? value : "")),
+        map((value) => value.trim()),
+        debounceTime(350),
+        distinctUntilChanged(),
+        switchMap((query) => {
+          if (query.length < this._minSearchQueryLength) {
+            return of(null);
+          }
+
+          const searchRequest = this.onlySpots
+            ? this._searchService.searchSpotsOnly(query)
+            : this._searchService.searchSpotsAndPlaces(query);
+
+          return from(searchRequest).pipe(
+            map((results) => {
               if (results.places) {
                 results.places = results.places.slice(0, 3);
               }
               if (results.spots && results.spots.hits) {
                 results.spots.hits = results.spots.hits.slice(0, 5);
               }
-              this.spotAndPlaceSearchResults$.next(results);
-            });
-          }
-        } else {
-          this.spotAndPlaceSearchResults$.next(null);
-        }
+              return results;
+            }),
+            catchError((error) => {
+              console.error("Search failed:", error);
+              return of(null);
+            })
+          );
+        })
+      )
+      .subscribe((results) => {
+        this.spotAndPlaceSearchResults$.next(results);
       });
   }
 

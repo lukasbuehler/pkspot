@@ -98,6 +98,7 @@ export class SpotMapDataManager {
   private _clusterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly CLUSTER_DEBOUNCE_MS = 200;
   private readonly HIGHLIGHT_THROTTLE_MS = 500;
+  private readonly HIGHLIGHT_MAX_COUNT = 8;
   private _lastHighlightFetchTime: number = 0;
 
   private currentSearchRequestId: ReturnType<typeof setTimeout> | undefined;
@@ -746,7 +747,7 @@ export class SpotMapDataManager {
         promisedResult = this._searchService.searchSpotsInBoundsWithFilter(
           bounds,
           activeFilter,
-          20
+          this.HIGHLIGHT_MAX_COUNT
         );
 
         promisedResult
@@ -755,7 +756,9 @@ export class SpotMapDataManager {
             const searchHighlights = searchResult.hits.map((hit) =>
               this._searchService.getSpotPreviewFromHit(hit)
             );
-            this._visibleHighlightedSpots.set(searchHighlights);
+            this._visibleHighlightedSpots.set(
+              searchHighlights.slice(0, this.HIGHLIGHT_MAX_COUNT)
+            );
           })
           .catch((err) => {
             console.error("Search for highlights failed:", err);
@@ -770,12 +773,14 @@ export class SpotMapDataManager {
     if (activeFilter === SpotFilterMode.None) {
       highlightedSpots = spots
         .filter((spot) => (spot.rating ?? 0) > 0 || spot.isIconic)
-        .map((spot) => this._getOrCreateSpotPreview(spot));
+        .map((spot) => this._getOrCreateSpotPreview(spot))
+        .slice(0, this.HIGHLIGHT_MAX_COUNT);
     } else {
       // When a filter is active, replace highlights with the filter pins only
       highlightedSpots = spots
         .filter((spot) => this._spotMatchesFilter(spot, activeFilter))
-        .map((spot) => this._getOrCreateSpotPreview(spot));
+        .map((spot) => this._getOrCreateSpotPreview(spot))
+        .slice(0, this.HIGHLIGHT_MAX_COUNT);
     }
 
     // Only show amenity markers at zoom >= 16 (amenityMarkerDisplayZoom) to maintain performance
@@ -980,19 +985,24 @@ export class SpotMapDataManager {
       tilesToLoad.size
     );
 
-    // load the spots and add them
-    firstValueFrom(
-      this._spotsService.getSpotsForTileKeys(
-        Array.from(tilesToLoad),
-        this.locale
+    // Load each tile independently so transient failures don't mark an entire
+    // batch as loaded-empty and can be retried on the next viewport refresh.
+    Array.from(tilesToLoad).forEach((tileKey) => {
+      firstValueFrom(
+        this._spotsService.getSpotsForTileKeys([tileKey], this.locale, {
+          suppressTileErrors: false,
+        })
       )
-    )
-      .then((spots) => this._addLoadedSpots(spots, tilesToLoad))
-      .catch((err) => {
-        console.error("[SpotMapDataManager] Load Error:", err);
-        // Clear loading state on error so we can retry
-        tilesToLoad.forEach((key) => this._tilesLoading.delete(key));
-      });
+        .then((spots) => this._addLoadedSpots(spots, new Set([tileKey])))
+        .catch((err) => {
+          console.error(
+            `[SpotMapDataManager] Tile load error for ${tileKey}:`,
+            err
+          );
+          // Clear loading state for failed tile so it can be retried.
+          this._tilesLoading.delete(tileKey);
+        });
+    });
   }
 
   private _getMarkerTilesToLoad(visibleTilesObj: TilesObject): Set<MapTileKey> {
@@ -1257,7 +1267,7 @@ export class SpotMapDataManager {
               south,
               mid1,
               west,
-              10,
+              this.HIGHLIGHT_MAX_COUNT,
               undefined,
               undefined,
               undefined,
@@ -1271,7 +1281,7 @@ export class SpotMapDataManager {
               south,
               180,
               mid1,
-              10,
+              this.HIGHLIGHT_MAX_COUNT,
               undefined,
               undefined,
               undefined,
@@ -1286,7 +1296,7 @@ export class SpotMapDataManager {
               south,
               180,
               west,
-              10,
+              this.HIGHLIGHT_MAX_COUNT,
               undefined,
               undefined,
               undefined,
@@ -1306,7 +1316,7 @@ export class SpotMapDataManager {
               south,
               mid2,
               -180,
-              10,
+              this.HIGHLIGHT_MAX_COUNT,
               undefined,
               undefined,
               undefined,
@@ -1320,7 +1330,7 @@ export class SpotMapDataManager {
               south,
               east,
               mid2,
-              10,
+              this.HIGHLIGHT_MAX_COUNT,
               undefined,
               undefined,
               undefined,
@@ -1335,7 +1345,7 @@ export class SpotMapDataManager {
               south,
               east,
               -180,
-              10,
+              this.HIGHLIGHT_MAX_COUNT,
               undefined,
               undefined,
               undefined,
@@ -1357,7 +1367,7 @@ export class SpotMapDataManager {
               south,
               mid,
               west,
-              10,
+              this.HIGHLIGHT_MAX_COUNT,
               undefined,
               undefined,
               undefined,
@@ -1371,7 +1381,7 @@ export class SpotMapDataManager {
               south,
               east,
               mid,
-              10,
+              this.HIGHLIGHT_MAX_COUNT,
               undefined,
               undefined,
               undefined,
@@ -1386,7 +1396,7 @@ export class SpotMapDataManager {
               south,
               east,
               west,
-              20,
+              this.HIGHLIGHT_MAX_COUNT,
               undefined,
               undefined,
               undefined,
@@ -1419,9 +1429,10 @@ export class SpotMapDataManager {
           }
         });
 
-        const previews = Array.from(uniqueHits.values()).map((hit) =>
-          this._getOrCreateSpotPreviewFromHit(hit)
-        );
+        const previews = Array.from(uniqueHits.values())
+          .map((hit) => this._getOrCreateSpotPreviewFromHit(hit))
+          .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+          .slice(0, this.HIGHLIGHT_MAX_COUNT);
 
         // Check for equality to prevent unnecessary signal updates
         const currentSpots = this._visibleHighlightedSpots();

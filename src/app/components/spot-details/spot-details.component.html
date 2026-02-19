@@ -175,7 +175,13 @@
           color="primary"
           [disabled]="isBookmarkUpdating()"
           matTooltip="Bookmark this spot"
+          i18n-matTooltip="
+            Bookmark spot tooltip|The tooltip of the bookmark spot icon
+            button@@bookmark_spot_tooltip"
           aria-label="Icon button with a bookmark icon"
+          i18n-aria-label="
+            Bookmark spot aria label|The aria label of the bookmark spot icon
+            button@@bookmark_spot_aria_label"
           (click)="bookmarkClick($event)"
         >
           <mat-icon
@@ -191,7 +197,13 @@
           [color]="visited() ? 'accent' : 'white'"
           [disabled]="isVisitedUpdating()"
           matTooltip="Mark this spot as visited"
-          aria-label="Icon button with a flag icon"
+          i18n-matTooltip="
+            Mark this spot as visited tooltip|The tooltip of the mark this spot
+            as visited icon button@@mark_this_spot_as_visited_tooltip"
+          aria-label="Icon button with a banner and checkmark icon"
+          i18n-aria-label="
+            Mark this spot as visited aria label|The aria label of the mark this
+            spot as visited icon button@@mark_this_spot_as_visited_aria_label"
           (click)="visitedClick($event)"
         >
           <mat-icon>beenhere</mat-icon>
@@ -552,18 +564,17 @@
       </button>
       }
     </div>
-    }
-
-    @if(pendingVoteCount() > 0) {
+    } @if(pendingVoteCount() > 0) {
     <div class="pending-vote-banner mb-4">
       <mat-icon>where_to_vote</mat-icon>
       <p class="mat-body-small m-0">
         @if(pendingVoteCount() === 1) {
         <span i18n>1 edit is waiting for community voting.</span>
         } @else {
-        <span i18n>{{
-          pendingVoteCount()
-        }} edits are waiting for community voting.</span>
+        <span i18n
+          >{{ pendingVoteCount() }} edits are waiting for community
+          voting.</span
+        >
         }
       </p>
     </div>
@@ -892,10 +903,7 @@
           <input
             matInput
             [value]="placeSearch.value"
-            (input)="
-              placeSearch.setValue($any($event.target).value);
-              searchPlaces($any($event.target).value)
-            "
+            (input)="searchPlaces($any($event.target).value)"
             [placeholder]="
               googlePlace() ? googlePlace()!.name : 'Type to search'
             "
@@ -920,6 +928,11 @@
               <span class="mat-label-small text-secondary"
                 >— {{ pred.structured_formatting.secondary_text }}</span
               >
+              @if (getPredictionDistanceText(pred); as distanceText) {
+              <span class="mat-label-small text-secondary">
+                · {{ distanceText }}
+              </span>
+              }
             </span>
             <mat-icon>link</mat-icon>
           </button>
@@ -940,6 +953,11 @@
           >
             <span class="text-truncate">
               <mat-icon class="me-1">place</mat-icon>{{ res.displayName }}
+              @if (getNearbyPlaceDistanceText(res); as distanceText) {
+              <span class="mat-label-small text-secondary">
+                · {{ distanceText }}
+              </span>
+              }
             </span>
             <mat-icon>link</mat-icon>
           </button>

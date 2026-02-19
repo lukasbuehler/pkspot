@@ -785,6 +785,8 @@ export class GoogleMap2dComponent
     this.positionGoogleMapsLogo();
     if (this.isDebug()) {
       this._startFpsLoop();
+    } else {
+      this._stopFpsLoop(true);
     }
   }
 
@@ -855,14 +857,21 @@ export class GoogleMap2dComponent
     if (changes["boundRestriction"] && this.googleMap?.googleMap) {
       this._applyBoundRestriction();
     }
+
+    if (changes["isDebug"]) {
+      if (this.isDebug()) {
+        this._startFpsLoop();
+      } else {
+        this._stopFpsLoop(true);
+      }
+    }
   }
 
   ngOnDestroy() {
     if (this.isApiLoadedSubscription)
       this.isApiLoadedSubscription.unsubscribe();
     if (this.consentSubscription) this.consentSubscription.unsubscribe();
-    if (this._fpsAnimationFrameId)
-      cancelAnimationFrame(this._fpsAnimationFrameId);
+    this._stopFpsLoop();
   }
 
   private _geoPointToLatLng(
@@ -1027,7 +1036,32 @@ export class GoogleMap2dComponent
   private _lastFpsUpdate = 0;
   private _fpsAnimationFrameId: number | null = null;
 
+  private _resetFpsCounters() {
+    this.fps.set(0);
+    this._lastFrameTime = 0;
+    this._frameCount = 0;
+    this._lastFpsUpdate = 0;
+  }
+
+  private _stopFpsLoop(resetCounters: boolean = false) {
+    if (this._fpsAnimationFrameId !== null) {
+      cancelAnimationFrame(this._fpsAnimationFrameId);
+      this._fpsAnimationFrameId = null;
+    }
+
+    if (resetCounters) {
+      this._resetFpsCounters();
+    }
+  }
+
   private _startFpsLoop() {
+    // Prevent multiple RAF loops from running concurrently.
+    if (this._fpsAnimationFrameId !== null) {
+      return;
+    }
+
+    this._resetFpsCounters();
+
     const loop = (time: number) => {
       if (this._lastFrameTime === 0) {
         this._lastFrameTime = time;

@@ -39,7 +39,7 @@ import {
 } from "../../../db/schemas/SpotTypeAndAccess";
 import { Post } from "../../../db/models/Post";
 import { StorageService } from "../../services/firebase/storage.service";
-import { Observable, Subscription } from "rxjs";
+import { from, Observable, of, Subscription } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
   MediaType,
@@ -70,7 +70,14 @@ import {
   isMobileDevice,
 } from "../../../scripts/Helpers";
 import { UntypedFormControl, FormsModule } from "@angular/forms";
-import { map, startWith } from "rxjs/operators";
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  startWith,
+  switchMap,
+} from "rxjs/operators";
 import {
   trigger,
   transition,
@@ -580,6 +587,12 @@ export class SpotDetailsComponent
   placeSearch = new UntypedFormControl("");
   placePredictions: google.maps.places.AutocompletePrediction[] = [];
   nearbyPlaceResults: google.maps.places.Place[] = [];
+  private _placeSearchSubscription: Subscription | null = null;
+  private _nearbyPlacesPreloadInFlight: Promise<void> | null = null;
+  private _nearbyPlacesPreloadedSpotId: string | null = null;
+  private _placeSearchSpotId: string | null = null;
+  private readonly _placeSearchMinQueryLength = 2;
+  private readonly _placeSearchDebounceMs = 350;
   linkingPlace = signal<boolean>(false);
   unlinkingPlace = signal<boolean>(false);
 
@@ -600,74 +613,104 @@ export class SpotDetailsComponent
   private _bookmarkedSpotIds = new Set<string>();
   private _visitedSpotIds = new Set<string>();
 
-  async searchPlaces(query: string) {
+  searchPlaces(query: string) {
+    this.placeSearch.setValue(query);
+  }
+
+  private async _runPlaceSearchRequest(query: string): Promise<{
+    predictions: google.maps.places.AutocompletePrediction[];
+    nearbyPlaces: google.maps.places.Place[] | null;
+  }> {
     const spot = this.spot();
-    if (!this._mapsApiService.isApiLoaded()) {
-      // try to load if consent allows
-      this._mapsApiService.loadGoogleMapsApi();
+    if (!(spot instanceof Spot)) {
+      return { predictions: [], nearbyPlaces: [] };
     }
-    let biasRect: google.maps.LatLngBoundsLiteral | undefined;
-    if (spot) {
-      const loc = spot.location();
-      const d = 0.001; // ~100m bias box
-      biasRect = {
-        south: loc.lat - d,
-        west: loc.lng - d,
-        north: loc.lat + d,
-        east: loc.lng + d,
-      };
-    }
-    try {
-      if (!query || query.trim().length === 0) {
-        // No query: seed with nearby places (sorted by distance)
-        if (spot) {
-          this.nearbyPlaceResults =
-            await this._mapsApiService.getNearbyPlacesByDistance(
-              spot.location(),
-              undefined,
-              5
-            );
-        } else {
-          this.nearbyPlaceResults = [];
-        }
-        this.placePredictions = [];
-        return;
+
+    // Don't call Places API until query is meaningful.
+    if (query.length < this._placeSearchMinQueryLength) {
+      if (query.length === 0) {
+        await this._preloadNearbyPlaces();
+        return { predictions: [], nearbyPlaces: this.nearbyPlaceResults };
       }
-      // With query: use autocomplete filtered by name, biased to location, show only top 1 result
-      const preds = await this._mapsApiService.autocompletePlaceSearch(
-        query,
-        undefined,
-        biasRect
-      );
-      // Show only the top Google result before nearby places
-      this.placePredictions = preds.slice(0, 1);
-    } catch (e) {
-      console.warn("Place autocomplete failed", e);
-      this.placePredictions = [];
-      this.nearbyPlaceResults = [];
+      return { predictions: [], nearbyPlaces: null };
     }
+
+    if (!this._mapsApiService.isApiLoaded()) {
+      this._mapsApiService.loadGoogleMapsApi();
+      return { predictions: [], nearbyPlaces: null };
+    }
+
+    const loc = spot.location();
+    const d = 0.001; // ~100m bias box
+    const biasRect: google.maps.LatLngBoundsLiteral = {
+      south: loc.lat - d,
+      west: loc.lng - d,
+      north: loc.lat + d,
+      east: loc.lng + d,
+    };
+
+    const predictions = await this._mapsApiService.autocompletePlaceSearch(
+      query,
+      undefined,
+      biasRect,
+      loc
+    );
+
+    return {
+      predictions: predictions.slice(0, 1),
+      nearbyPlaces: null,
+    };
   }
 
   private async _preloadNearbyPlaces() {
     const spot = this.spot();
-    if (!spot) return;
+    if (!(spot instanceof Spot)) return;
+    const spotId = spot.id;
 
-    // Don't load if Maps API is not available
+    if (this._nearbyPlacesPreloadedSpotId === spotId) {
+      return;
+    }
+    if (this._nearbyPlacesPreloadInFlight) {
+      return this._nearbyPlacesPreloadInFlight;
+    }
+
+    // Don't load if Maps API is not available.
     if (!this._mapsApiService.isApiLoaded()) {
       this._mapsApiService.loadGoogleMapsApi();
       return;
     }
 
-    try {
-      this.nearbyPlaceResults =
-        await this._mapsApiService.getNearbyPlacesByDistance(
+    const request = (async () => {
+      try {
+        const places = await this._mapsApiService.getNearbyPlacesByDistance(
           spot.location(),
           undefined, // No type filter - get all nearby POIs
           5
         );
-    } catch (e) {
-      console.warn("Failed to preload nearby places", e);
-      this.nearbyPlaceResults = [];
+
+        const currentSpot = this.spot();
+        if (currentSpot instanceof Spot && currentSpot.id === spotId) {
+          this.nearbyPlaceResults = places;
+          this._nearbyPlacesPreloadedSpotId = spotId;
+        }
+      } catch (e) {
+        console.warn("Failed to preload nearby places", e);
+
+        const currentSpot = this.spot();
+        if (currentSpot instanceof Spot && currentSpot.id === spotId) {
+          this.nearbyPlaceResults = [];
+          this._nearbyPlacesPreloadedSpotId = spotId;
+        }
+      }
+    })();
+
+    this._nearbyPlacesPreloadInFlight = request;
+    try {
+      await request;
+    } finally {
+      if (this._nearbyPlacesPreloadInFlight === request) {
+        this._nearbyPlacesPreloadInFlight = null;
+      }
     }
   }
 
@@ -741,6 +784,66 @@ export class SpotDetailsComponent
     return !(this.spot() instanceof Spot);
   }
 
+  getPredictionDistanceText(
+    pred: google.maps.places.AutocompletePrediction
+  ): string | null {
+    const meters = (pred as any)?.distance_meters;
+    if (typeof meters !== "number" || !Number.isFinite(meters)) return null;
+    return this._formatDistanceMeters(meters);
+  }
+
+  getNearbyPlaceDistanceText(place: google.maps.places.Place): string | null {
+    const spot = this.spot();
+    if (!spot || !place.location) return null;
+
+    const placeLocation = place.location as any;
+    const lat =
+      typeof placeLocation.lat === "function"
+        ? placeLocation.lat()
+        : placeLocation.lat;
+    const lng =
+      typeof placeLocation.lng === "function"
+        ? placeLocation.lng()
+        : placeLocation.lng;
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+    const meters = this._haversineDistanceMeters(spot.location(), { lat, lng });
+    return this._formatDistanceMeters(meters);
+  }
+
+  private _formatDistanceMeters(meters: number): string {
+    if (meters < 1000) return `${Math.round(meters)} m`;
+
+    const km = meters / 1000;
+    if (km < 10) return `${km.toFixed(1)} km`;
+
+    return `${Math.round(km)} km`;
+  }
+
+  private _haversineDistanceMeters(
+    from: google.maps.LatLngLiteral,
+    to: google.maps.LatLngLiteral
+  ): number {
+    const toRadians = (value: number) => (value * Math.PI) / 180;
+    const earthRadiusMeters = 6_371_000;
+
+    const dLat = toRadians(to.lat - from.lat);
+    const dLng = toRadians(to.lng - from.lng);
+    const fromLatRad = toRadians(from.lat);
+    const toLatRad = toRadians(to.lat);
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(fromLatRad) *
+        Math.cos(toLatRad) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusMeters * c;
+  }
+
   startHeight: number = 0;
 
   @HostBinding("@grow") get grow() {
@@ -772,6 +875,16 @@ export class SpotDetailsComponent
 
     effect(() => {
       const spot = this.spot();
+      const spotId = spot instanceof Spot ? spot.id : null;
+
+      if (spotId !== this._placeSearchSpotId) {
+        this._placeSearchSpotId = spotId;
+        this._nearbyPlacesPreloadedSpotId = null;
+        this._nearbyPlacesPreloadInFlight = null;
+        this.placePredictions = [];
+        this.nearbyPlaceResults = [];
+        this.placeSearch.setValue("", { emitEvent: false });
+      }
 
       // Reset slug-related UI state on spot change to avoid stale state
       this.allSpotSlugs = [];
@@ -867,6 +980,30 @@ export class SpotDetailsComponent
   ngOnInit() {
     this._syncSpotSeoData(this.spot());
     this._subscribeToPrivateData();
+
+    this._placeSearchSubscription = this.placeSearch.valueChanges
+      .pipe(
+        map((value) => (typeof value === "string" ? value.trim() : "")),
+        debounceTime(this._placeSearchDebounceMs),
+        distinctUntilChanged(),
+        switchMap((query) =>
+          from(this._runPlaceSearchRequest(query)).pipe(
+            catchError((error) => {
+              console.warn("Place autocomplete failed", error);
+              return of({
+                predictions: [],
+                nearbyPlaces: null,
+              });
+            })
+          )
+        )
+      )
+      .subscribe(({ predictions, nearbyPlaces }) => {
+        this.placePredictions = predictions;
+        if (nearbyPlaces !== null) {
+          this.nearbyPlaceResults = nearbyPlaces;
+        }
+      });
   }
 
   ngAfterViewInit() {
@@ -885,6 +1022,7 @@ export class SpotDetailsComponent
     this._structuredDataService.removeStructuredData("spot");
     this._unsubscribeFromLiveSpot();
     this._unsubscribeFromPrivateData();
+    this._placeSearchSubscription?.unsubscribe();
   }
 
   private _syncSpotSeoData(spot: Spot | LocalSpot | null) {

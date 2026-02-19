@@ -20,7 +20,7 @@ import {
   getDocs,
   deleteField,
 } from "@angular/fire/firestore";
-import { Observable, forkJoin, of, from } from "rxjs";
+import { Observable, forkJoin, of, from, throwError } from "rxjs";
 import { map, take, timeout, catchError } from "rxjs/operators";
 import { Spot } from "../../../../db/models/Spot";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
@@ -144,19 +144,23 @@ export class SpotsService extends ConsentAwareService {
 
   getSpotsForTileKeys(
     tileKeys: MapTileKey[],
-    locale: LocaleCode
+    locale: LocaleCode,
+    options?: { suppressTileErrors?: boolean }
   ): Observable<Spot[]> {
     const tiles = tileKeys.map((key) => getDataFromClusterTileKey(key));
-    return this.getSpotsForTiles(tiles, locale);
+    return this.getSpotsForTiles(tiles, locale, options);
   }
 
   getSpotsForTiles(
     tiles: { x: number; y: number }[],
-    locale: LocaleCode
+    locale: LocaleCode,
+    options?: { suppressTileErrors?: boolean }
   ): Observable<Spot[]> {
     if (tiles.length === 0) {
       return of([]);
     }
+
+    const suppressTileErrors = options?.suppressTileErrors ?? true;
 
     // Use adapter - it handles platform detection internally
     // On native: uses native Capacitor Firebase SDK
@@ -195,7 +199,10 @@ export class SpotsService extends ConsentAwareService {
             JSON.stringify(err, Object.getOwnPropertyNames(err))
           );
           console.error(err);
-          return of([]);
+          if (suppressTileErrors) {
+            return of([]);
+          }
+          return throwError(() => err);
         })
       );
     });

@@ -60,7 +60,6 @@ export class MapsApiService extends ConsentAwareService {
    * Dedupes concurrent metadata checks for the same location.
    */
   private streetViewMetadataInFlight = new Map<string, Promise<boolean>>();
-  private readonly STREET_VIEW_PREVIEW_MIN_ZOOM = 12;
 
   constructor() {
     super();
@@ -259,7 +258,8 @@ export class MapsApiService extends ConsentAwareService {
   async autocompletePlaceSearch(
     input: string,
     types?: string[],
-    biasRect?: google.maps.LatLngBoundsLiteral
+    biasRect?: google.maps.LatLngBoundsLiteral,
+    origin?: google.maps.LatLngLiteral
   ): Promise<google.maps.places.AutocompletePrediction[]> {
     if (!input || input.length === 0) return Promise.resolve([]);
 
@@ -274,6 +274,10 @@ export class MapsApiService extends ConsentAwareService {
       // Add location bias if provided
       if (biasRect) {
         request.locationBias = biasRect;
+      }
+      if (origin) {
+        // Include origin so Google can return distanceMeters in predictions.
+        (request as any).origin = origin;
       }
 
       // Note: The new API doesn't support type filtering in the same way.
@@ -314,6 +318,10 @@ export class MapsApiService extends ConsentAwareService {
                 },
               ],
               types: placePrediction.types || [],
+              distance_meters:
+                typeof (placePrediction as any).distanceMeters === "number"
+                  ? (placePrediction as any).distanceMeters
+                  : undefined,
               matched_substrings: [],
               getPlacePrediction: () => {
                 return placePrediction;
@@ -413,17 +421,35 @@ export class MapsApiService extends ConsentAwareService {
       return null;
     }
 
+    const metadataCacheKey = spotId
+      ? this._getStreetViewMetadataCacheKey(spotId)
+      : this._getStreetViewMetadataCacheKey(location);
+    const cachedMetadataAvailability =
+      this.streetViewMetadataCache.get(metadataCacheKey);
+
+    // Preview images are only requested after metadata confirms a panorama.
+    // This avoids paid image calls for spots that have no Street View.
+    if (cachedMetadataAvailability === false) {
+      return null;
+    }
+    if (cachedMetadataAvailability !== true) {
+      void this.hasStreetViewPanoramaForLocation(location, spotId);
+      return null;
+    }
+
     if (spotId && this.streetViewCache.has(spotId)) {
       const cached = this.streetViewCache.get(spotId);
-      if (cached === null) {
-        // console.log(
-        //   `Street View for spot ${spotId} is known to be unavailable (cached).`
-        // );
-        return null;
-      }
       // Return cached URL if not undefined
       if (cached !== undefined) {
-        return cached;
+        if (cached === null && cachedMetadataAvailability !== true) {
+          return null;
+        }
+        if (cached === null) {
+          // stale error marker while metadata says panorama exists -> recover
+          this.streetViewCache.delete(spotId);
+        } else {
+          return cached;
+        }
       }
     }
 
@@ -442,7 +468,7 @@ export class MapsApiService extends ConsentAwareService {
   reportStreetViewError(spotId: string) {
     // console.log(`Marking Street View as unavailable for spot ${spotId}`);
     this.streetViewCache.set(spotId, null);
-    this.streetViewMetadataCache.set(
+    this._setStreetViewMetadataAvailability(
       this._getStreetViewMetadataCacheKey(spotId),
       false
     );
@@ -457,11 +483,13 @@ export class MapsApiService extends ConsentAwareService {
   }
 
   getStreetViewPreviewMinZoom(): number {
-    return this.STREET_VIEW_PREVIEW_MIN_ZOOM;
+    return environment.features.streetView.previewMinZoom;
   }
 
   isStreetViewPreviewAllowedAtZoom(zoom: number | null | undefined): boolean {
-    return typeof zoom === "number" && zoom > this.STREET_VIEW_PREVIEW_MIN_ZOOM;
+    return (
+      typeof zoom === "number" && zoom >= this.getStreetViewPreviewMinZoom()
+    );
   }
 
   private _getStreetViewMetadataCacheKey(
@@ -473,6 +501,16 @@ export class MapsApiService extends ConsentAwareService {
 
     const { lat, lng } = spotIdOrLocation;
     return `loc:${lat.toFixed(6)},${lng.toFixed(6)}`;
+  }
+
+  getCachedStreetViewPanoramaAvailability(
+    location: google.maps.LatLngLiteral,
+    spotId?: string
+  ): boolean | undefined {
+    const cacheKey = spotId
+      ? this._getStreetViewMetadataCacheKey(spotId)
+      : this._getStreetViewMetadataCacheKey(location);
+    return this.streetViewMetadataCache.get(cacheKey);
   }
 
   private _makeStreetViewMetadataUrl(location: google.maps.LatLngLiteral): string {
@@ -503,7 +541,7 @@ export class MapsApiService extends ConsentAwareService {
     location: google.maps.LatLngLiteral,
     spotId?: string
   ): Promise<boolean> {
-    if (!this.isStreetViewDetailEnabled()) {
+    if (!this._isAnyStreetViewEnabled()) {
       return false;
     }
 
@@ -535,14 +573,20 @@ export class MapsApiService extends ConsentAwareService {
           ? "ZERO_RESULTS"
           : "UNKNOWN";
 
-      const hasPanorama = status === "OK";
-      this.streetViewMetadataCache.set(cacheKey, hasPanorama);
-
-      if (!hasPanorama && status === "ZERO_RESULTS" && spotId) {
-        this.reportStreetViewError(spotId);
+      if (status === "OK") {
+        this._setStreetViewMetadataAvailability(cacheKey, true);
+        return true;
       }
 
-      return hasPanorama;
+      if (status === "ZERO_RESULTS") {
+        this._setStreetViewMetadataAvailability(cacheKey, false);
+        if (spotId) {
+          this.reportStreetViewError(spotId);
+        }
+      }
+
+      // UNKNOWN/REQUEST_DENIED etc: do not poison cache permanently.
+      return false;
     })
       .catch((error) => {
         console.warn("Street View metadata check failed", error);
@@ -554,6 +598,22 @@ export class MapsApiService extends ConsentAwareService {
 
     this.streetViewMetadataInFlight.set(cacheKey, request);
     return request;
+  }
+
+  private _isAnyStreetViewEnabled(): boolean {
+    return this.isStreetViewPreviewEnabled() || this.isStreetViewDetailEnabled();
+  }
+
+  private _setStreetViewMetadataAvailability(
+    cacheKey: string,
+    value: boolean
+  ): void {
+    const currentValue = this.streetViewMetadataCache.get(cacheKey);
+    if (currentValue === value && this.streetViewMetadataCache.has(cacheKey)) {
+      return;
+    }
+
+    this.streetViewMetadataCache.set(cacheKey, value);
   }
 
   // Instance method instead of static to access consent checking
@@ -568,8 +628,19 @@ export class MapsApiService extends ConsentAwareService {
     // Check persistent cache first if spotId is provided
     if (spotId && this.streetViewCache.has(spotId)) {
       if (this.streetViewCache.get(spotId) === null) {
-        // console.log(`Skipping Street View load for spot ${spotId} (known failure)`);
-        return undefined;
+        const cachedAvailability = this.getCachedStreetViewPanoramaAvailability(
+          location,
+          spotId
+        );
+        if (cachedAvailability !== true) {
+          return undefined;
+        }
+        this.streetViewCache.delete(spotId);
+      }
+
+      const cached = this.streetViewCache.get(spotId);
+      if (cached) {
+        return new ExternalImage(cached, "streetview");
       }
     }
 

@@ -7,8 +7,9 @@ export const environment = {
     checkIns: false,
     activity: false,
     streetView: {
-      preview: true,
+      preview: false,
       detail: true,
+      previewMinZoom: 13,
     },
   },
   keys: {
