@@ -72,6 +72,7 @@ interface ButtonBase {
   name: string;
   icon: string;
   image?: string;
+  active?: boolean;
 }
 
 interface LinkButton extends ButtonBase {
@@ -611,6 +612,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         const nav = event as NavigationEnd;
+        this.currentNavUrl.set(nav.urlAfterRedirects);
 
         const send = () => {
           try {
@@ -970,6 +972,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   shortUserDisplayName = signal<string | undefined>(undefined);
   userPhoto = signal<string | undefined>(undefined);
   isSignedIn = signal(false);
+  currentNavUrl = signal<string>(this.router.url);
 
   // Engagement tracking state (initialized in ngOnInit)
   private _engagement: any = null;
@@ -990,6 +993,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     const signedIn = this.isSignedIn();
     const shortUserDisplayName = this.shortUserDisplayName();
     const userPhoto = this.userPhoto();
+    const currentNavUrl = this.currentNavUrl();
     const buttons: NavbarButtonConfig = [
       {
         name: $localize`:Map navbar button label|A very short label for the navbar map label@@map_label:Map`,
@@ -1020,10 +1024,14 @@ export class AppComponent implements OnInit, AfterViewInit {
               link: "/profile",
               icon: "person",
               image: userPhoto || "",
+              active:
+                currentNavUrl.startsWith("/profile") ||
+                currentNavUrl.startsWith("/u/"),
             }
           : {
               function: () => this.navigateToSignIn(),
               icon: "login",
+              active: currentNavUrl.startsWith("/sign-in"),
             }),
       },
     );

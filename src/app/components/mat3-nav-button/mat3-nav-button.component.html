@@ -1,4 +1,4 @@
-<button class="button-container" routerLinkActive="active">
+<button class="button-container" [class.active]="active()">
   @if(image()) {
   <div class="image">
     <img [ngSrc]="image()!" width="24" height="24" class="rounded-circle" />

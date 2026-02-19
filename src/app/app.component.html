@@ -23,11 +23,17 @@
     @for (button of navbarConfig(); track $index) { @if(button.spacerBefore) {
     <div class="spacer"></div>
     } @if(button.link) {
-    <a [routerLink]="button.link" tabindex="-1">
+    <a
+      [routerLink]="button.link"
+      tabindex="-1"
+      routerLinkActive="active"
+      #desktopButtonRla="routerLinkActive"
+    >
       <app-mat3-nav-button
         [icon]="button.icon"
         [label]="button.name"
         [image]="button.image ?? ''"
+        [active]="desktopButtonRla.isActive || !!button.active"
       ></app-mat3-nav-button>
     </a>
     } @else if(button.function) {
@@ -36,6 +42,7 @@
       [icon]="button.icon"
       [image]="button.image ?? ''"
       [label]="button.name"
+      [active]="!!button.active"
     ></app-mat3-nav-button>
     } }
 
@@ -127,11 +134,17 @@
       [class.native-platform]="isNativePlatform"
     >
       @for (button of navbarConfig(); track $index) { @if(button.link) {
-      <a [routerLink]="button.link" tabindex="-1">
+      <a
+        [routerLink]="button.link"
+        tabindex="-1"
+        routerLinkActive="active"
+        #mobileButtonRla="routerLinkActive"
+      >
         <app-mat3-nav-button
           [icon]="button.icon"
           [label]="button.name"
           [image]="button.image ?? ''"
+          [active]="mobileButtonRla.isActive || !!button.active"
         ></app-mat3-nav-button>
       </a>
       } @else if(button.function) {
@@ -140,6 +153,7 @@
         [icon]="button.icon"
         [image]="button.image ?? ''"
         [label]="button.name"
+        [active]="!!button.active"
       ></app-mat3-nav-button>
       } }
     </mat-toolbar>
