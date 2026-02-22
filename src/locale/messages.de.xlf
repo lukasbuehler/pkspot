@@ -136,6 +136,12 @@
         <target>Diesen Spot in Karten öffnen</target>
       </segment>
     </unit>
+    <unit id="openMapSourceButtonLabel">
+      <segment state="initial">
+        <source>Open Map</source>
+        <target>Karte öffnen</target>
+      </segment>
+    </unit>
     <unit id="open_google_maps_button_label">
       <segment state="initial">
         <source>Open in Google Maps</source>
@@ -174,12 +180,6 @@
       <segment state="initial">
         <source>Edit</source>
         <target>Bearbeiten</target>
-      </segment>
-    </unit>
-    <unit id="7589136797201485434">
-      <segment state="initial">
-        <source>Open source</source>
-        <target>Open Source</target>
       </segment>
     </unit>
     <unit id="spot.report.tooltip">
@@ -467,6 +467,12 @@
         <target>Ja</target>
       </segment>
     </unit>
+    <unit id="2814854262892312665">
+      <segment state="initial">
+        <source>Voting test mode</source>
+        <target>Abstimmungs-Testmodus</target>
+      </segment>
+    </unit>
     <unit id="1431416938026210429">
       <segment state="initial">
         <source>Password</source>
@@ -613,6 +619,12 @@
         <target>Anmelden</target>
       </segment>
     </unit>
+    <unit id="5209352913608652642">
+      <segment state="initial">
+        <source>Voting open</source>
+        <target>Abstimmung offen</target>
+      </segment>
+    </unit>
     <unit id="5223089976416033243">
       <segment state="initial">
         <source> General settings to tune your experience on PK Spot. </source>
@@ -740,6 +752,30 @@
       <segment state="initial">
         <source>Map</source>
         <target>Karte</target>
+      </segment>
+    </unit>
+    <unit id="mark_this_spot_as_visited_aria_label">
+      <notes>
+        <note
+          category="description"
+        >The aria label of the mark this spot as visited icon button</note>
+        <note category="meaning">Mark this spot as visited aria label</note>
+      </notes>
+      <segment state="initial">
+        <source>Icon button with a banner and checkmark icon</source>
+        <target>Icon-Button mit Banner- und Häkchen-Symbol</target>
+      </segment>
+    </unit>
+    <unit id="mark_this_spot_as_visited_tooltip">
+      <notes>
+        <note
+          category="description"
+        >The tooltip of the mark this spot as visited icon button</note>
+        <note category="meaning">Mark this spot as visited tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>Mark this spot as visited</source>
+        <target>Diesen Spot als besucht markieren</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -1015,7 +1051,7 @@
     <unit id="3080109816219994129">
       <segment state="initial">
         <source>Instagram</source>
-        <target>Instagram</target>
+        <target>Instagram-App</target>
       </segment>
     </unit>
     <unit id="3088718992754147096">
@@ -1067,6 +1103,12 @@
       <segment state="initial">
         <source> Choose the language used in the app. </source>
         <target> Wähle die Sprache, die in der App verwendet wird. </target>
+      </segment>
+    </unit>
+    <unit id="1083158108298637572">
+      <segment state="initial">
+        <source>Failed to submit vote</source>
+        <target>Stimme konnte nicht abgegeben werden</target>
       </segment>
     </unit>
     <unit id="1096271480010782204">
@@ -1553,6 +1595,12 @@
         >Ein Fehler ist aufgetreten. Bitte versuche es erneut oder fordere einen neuen Link an.</target>
       </segment>
     </unit>
+    <unit id="202472216784225575">
+      <segment state="initial">
+        <source>1 edit is waiting for community voting.</source>
+        <target>1 Bearbeitung wartet auf die Community-Abstimmung.</target>
+      </segment>
+    </unit>
     <unit id="2029717048910432760">
       <segment state="initial">
         <source>Spot</source>
@@ -1611,6 +1659,12 @@
             dispStart="&lt;mat-icon&gt;"
             dispEnd="&lt;/mat-icon&gt;"
           >steps</pc> Finde Parkour-Parks und Hallen </target>
+      </segment>
+    </unit>
+    <unit id="4416413576346763682">
+      <segment state="initial">
+        <source>Pending</source>
+        <target>Ausstehend</target>
       </segment>
     </unit>
     <unit id="2325032840535506648">
@@ -1986,49 +2040,49 @@
     <unit id="spot-access-description.commercial">
       <segment state="initial">
         <source
-        >This is a commercial facility that requires membership or paid entry. You must be a member or pay a fee to access this spot. Please respect the facility&apos;s rules and hours of operation.</source>
+        >You usually need to pay, book, or have a membership to use this spot. Follow staff and venue rules.</source>
         <target
-        >Dies ist eine kommerzielle Einrichtung, die eine Mitgliedschaft oder bezahlten Eintritt erfordert. Du musst Mitglied sein oder eine Gebühr zahlen, um diesen Spot zu betreten. Bitte respektiere die Regeln und Öffnungszeiten der Einrichtung.</target>
+        >Fuer die Nutzung dieses Spots braucht man meist Zahlung, Buchung oder Mitgliedschaft. Beachte Personal- und Hausregeln.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
       <segment state="initial">
         <source
-        >This is private property and strictly off-limits without explicit, prior permission from the owner. Unauthorized access may result in legal action or injury.</source>
+        >This spot should not be used unless you have clear permission from the owner or manager.</source>
         <target
-        >Dies ist Privatgrundstück und der Zugang streng verboten ohne ausdrückliche, vorherige Erlaubnis des Eigentümers. Unbefugter Zugang kann zu rechtlichen Schritten oder Verletzungen führen.</target>
+        >Diesen Spot nur mit klarer Erlaubnis von Eigentuemer oder Verwaltung nutzen.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.other">
       <segment state="initial">
         <source
-        >The access type of this spot is not specified. Please check local regulations and guidelines before visiting.</source>
+        >Access is unclear for this spot. Check locally before training.</source>
         <target
-        >Der Zugangstyp dieses Spots ist nicht spezifiziert. Bitte überprüfe lokale Bestimmungen und Richtlinien vor dem Besuch.</target>
+        >Der Zugang zu diesem Spot ist unklar. Pruefe es vor Ort vor dem Training.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.private">
       <segment state="initial">
         <source
-        >This is private property. While some respectful practice may be tolerated, permission is always recommended to avoid issues.</source>
+        >This spot is on private property. Ask for permission before training here.</source>
         <target
-        >Dies ist Privateigentum. Während respektvolles Training möglicherweise toleriert wird, ist eine Erlaubnis immer empfohlen, um Probleme zu vermeiden.</target>
+        >Dieser Spot liegt auf Privatgrund. Frage vor dem Training um Erlaubnis.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.public">
       <segment state="initial">
         <source
-        >This is a public spot, which is open to everyone and can be accessed freely without restrictions.</source>
+        >People usually can access this spot. Check signs, hours, and local rules when you arrive.</source>
         <target
-        >Dies ist ein öffentlicher Spot, der für alle zugänglich ist und frei ohne Einschränkungen betreten werden kann.</target>
+        >Dieser Spot ist in der Regel zugaenglich. Pruefe bei Ankunft Schilder, Zeiten und lokale Regeln.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.residential">
       <segment state="initial">
         <source
-        >This is a residential area and private property. Access is generally limited to residents or their guests. Please be especially mindful of noise and privacy. Training here may lead to being asked to leave.</source>
+        >This spot is in a residential area. Access may be limited if you are not a resident or guest.</source>
         <target
-        >Dies ist ein Wohngebiet und Privateigentum. Der Zugang ist normalerweise auf Bewohner oder ihre Gäste beschränkt. Bitte sei besonders aufmerksam bezüglich Lärm und Privatsphäre. Training hier kann dazu führen, dass du gebeten wirst zu gehen.</target>
+        >Dieser Spot liegt in einem Wohngebiet. Der Zugang kann eingeschraenkt sein, wenn du kein Bewohner oder Gast bist.</target>
       </segment>
     </unit>
     <unit id="spot-access.commercial">
@@ -2216,9 +2270,14 @@
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.media.none">
+      <notes>
+        <note
+          category="description"
+        >No media placeholder label shown on spot preview cards</note>
+      </notes>
       <segment state="initial">
-        <source>No media</source>
-        <target>Keine Medien</target>
+        <source> No media </source>
+        <target> Keine Medien </target>
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.media.single">
@@ -2272,161 +2331,161 @@
     <unit id="spot-type-description.art">
       <segment state="initial">
         <source
-        >This is an art installation or sculpture that can be used for Parkour practice. Please respect the artwork and surrounding area.</source>
+        >This spot is an art or cultural structure where training may be possible. Respect, preservation, and site-specific rules are essential.</source>
         <target
-        > Dies ist eine Kunstinstallation oder Skulptur, die für Parkour-Training genutzt werden kann. Bitte respektiere das Kunstwerk und die Umgebung.</target>
+        >Dieser Spot ist eine Kunst- oder Kulturstruktur, an der Training moeglich sein kann. Respekt, Erhalt und ortsspezifische Regeln sind wesentlich.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.calisthenics">
       <segment state="initial">
         <source
-        >This is a calisthenics park with bars and beams suitable for training. Be respectful to others and use the equipment carefully.</source>
+        >This spot is a fitness-equipment area with shared-use expectations where equipment should be used respectfully and according to guidance.</source>
         <target
-        >Dies ist ein Calisthenics-Park mit Stangen und Balken, die sich zum Training eignen. Sei respektvoll gegenüber anderen und benutze die Geräte vorsichtig.</target>
+        >Dieser Spot ist ein Bereich mit Fitnessgeraeten und gemeinsamem Nutzungsanspruch, in dem Geraete respektvoll und gemaess Hinweisen genutzt werden sollten.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.descent">
       <segment state="initial">
         <source
-        >This is a spot primarily used for descending techniques.</source>
+        >This spot is mainly defined by descending movement where landings, exits, and public impact should be assessed beforehand.</source>
         <target
-        > Dies ist ein Spot, der hauptsächlich für Abstiegstechniken genutzt wird.</target>
+        >Dieser Spot ist hauptsaechlich durch Abwaertsbewegung definiert, bei der Landungen, Ausstiege und oeffentliche Auswirkungen vorher bewertet werden sollten.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.garage">
       <segment state="initial">
         <source
-        >This is a parking garage or car park with ramps, columns, and concrete structures suitable for training.</source>
+        >This spot is in a parking structure where vehicles, security policies, and time-based access limits need to be considered.</source>
         <target
-        >Dies ist ein Parkhaus oder eine Tiefgarage mit Rampen, Säulen und Betonkonstruktionen, die sich zum Training eignen.</target>
+        >Dieser Spot liegt in einer Parkstruktur, bei der Fahrzeuge, Sicherheitsrichtlinien und zeitliche Zugangsbeschraenkungen beruecksichtigt werden muessen.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.gymnastics-gym">
       <segment state="initial">
         <source
-        >This is a gymnastics facility with mats, bars, beams, and tumbling equipment suitable for acrobatic training.</source>
+        >This spot is a gymnastics-oriented facility where access and use may depend on supervision, classes, or permission.</source>
         <target
-        >Dies ist eine Turnhalle mit Matten, Reck, Balken und Turngeräten, die sich für Akrobatik-Training eignen.</target>
+        >Dieser Spot ist eine turnorientierte Anlage, bei der Zugang und Nutzung von Aufsicht, Kursen oder Erlaubnis abhaengen koennen.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.monument">
       <segment state="initial">
         <source
-        >This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.</source>
+        >This spot is at a monument or heritage location where respectful behavior and cultural, legal, and preservation rules are essential.</source>
         <target
-        > Dieser Ort ist ein Denkmal, eine historische Ruine, ein Steindenkmal oder eine kulturell bedeutende Struktur. Bitte sei respektvoll und vorsichtig beim Training hier. </target>
+        >Dieser Spot liegt an einem Monument oder Denkmalort, bei dem respektvolles Verhalten sowie kulturelle, rechtliche und Erhaltungsregeln wesentlich sind.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.natural-landscape">
       <segment state="initial">
         <source
-        >This is a natural area with trees, rocks, logs, and terrain features.</source>
+        >This spot is in a nature-based area where environmental impact should be minimized and seasonal or conservation restrictions may apply.</source>
         <target
-        >Dies ist ein natürliches Gebiet mit Bäumen, Felsen, Baumstämmen und Geländemerkmalen.</target>
+        >Dieser Spot liegt in einem naturnahen Bereich, in dem Umwelteinfluesse minimiert werden sollten und saisonale oder Schutzauflagen gelten koennen.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.other">
       <segment state="initial">
         <source
-        >This is a location that doesn&apos;t fit standard categories but offers training opportunities.</source>
+        >This spot does not fit listed categories. Specifics can be captured through amenities and the main spot description.</source>
         <target
-        >Dies ist ein Ort, der nicht in Standardkategorien passt, aber Trainingsmöglichkeiten bietet.</target>
+        >Dieser Spot passt nicht in die aufgefuehrten Kategorien. Details koennen ueber Ausstattungen und die Hauptbeschreibung des Spots erfasst werden.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.park">
       <segment state="initial">
         <source
-        >This is a public park with paths, benches, and landscaping features.</source>
+        >This spot is in a general park environment with mixed public use where local park regulations apply.</source>
         <target
-        >Dies ist ein öffentlicher Park mit Wegen, Bänken und Landschaftselementen.</target>
+        >Dieser Spot liegt in einer allgemeinen Parkumgebung mit gemischter oeffentlicher Nutzung, fuer die lokale Parkregeln gelten.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.parkour-gym">
       <segment state="initial">
         <source
-        >This is an indoor training facility with dedicated equipment and obstacles for Parkour practice.</source>
+        >This spot is a dedicated indoor Parkour training facility with focused equipment and obstacles. Venue rules, hours, and required permission should be checked before training.</source>
         <target
-        >Dies ist eine Indoor-Trainingseinrichtung mit spezieller Ausrüstung und Hindernissen für Parkour-Training.</target>
+        >Dieser Spot ist eine dedizierte Indoor-Parkouranlage mit gezielter Ausruestung und Hindernissen. Regeln, Oeffnungszeiten und noetige Erlaubnisse sollten vor dem Training geprueft werden.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.parkour-park">
       <segment state="initial">
         <source
-        >This is a purpose-built outdoor space with designed obstacles and structures for Parkour training.</source>
+        >This spot is a purpose-built outdoor Parkour area designed for training. Posted rules and shared community use apply.</source>
         <target
-        >Dies ist ein speziell gebauter Außenbereich mit entworfenen Hindernissen und Strukturen für Parkour-Training.</target>
+        >Dieser Spot ist ein speziell gebauter Outdoor-Parkourbereich fuer Training. Ausgeschilderte Regeln und gemeinsame Nutzung gelten.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.playground">
       <segment state="initial">
         <source
-        >This is a playground area with swings, slides, and climbing structures suitable for Parkour training.</source>
+        >This spot is a playground space that can support movement training. Child safety, shared use, and local guidance are especially important.</source>
         <target
-        >Dies ist ein Spielplatzbereich mit Schaukeln, Rutschen und Kletterstrukturen, die für Parkour-Training geeignet sind.</target>
+        >Dieser Spot ist ein Spielplatzbereich, der Bewegungstraining ermoeglichen kann. Kindersicherheit, gemeinsame Nutzung und lokale Hinweise sind besonders wichtig.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.roof-gap">
       <segment state="initial">
         <source
-        >This is a roof gap requiring precision jumping between buildings.</source>
+        >This spot involves movement between separate elevated structures where access, safety, and legality must be clearly confirmed before training.</source>
         <target
-        >Dies ist ein Roof-Gap (Dacklücke), wo man von Dach zu Dach springt.</target>
+        >Dieser Spot umfasst Bewegung zwischen getrennten erhoehten Strukturen, bei der Zugang, Sicherheit und Rechtmaessigkeit vor dem Training klar bestaetigt sein muessen.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.rooftop">
       <segment state="initial">
         <source
-        >This is a rooftop area with ledges, walls, and elevated structures.</source>
+        >This spot is in an elevated roof area with high access, safety, and legal risk where permission should be verified first.</source>
         <target
-        >Dies ist ein Dachbereich mit Simsen, Wänden und erhöhten Strukturen.</target>
+        >Dieser Spot liegt in einem erhoehten Dachbereich mit hohem Zugangs-, Sicherheits- und Rechtsrisiko, bei dem Erlaubnis zuerst verifiziert werden sollte.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.school">
       <segment state="initial">
         <source
-        >This is a school facility with walls, benches, and architectural features for practice.</source>
+        >This spot is on school grounds or at an education facility where access can change by schedule and institutional rules.</source>
         <target
-        >Dies ist eine Schuleinrichtung mit Wänden, Bänken und architektonischen Merkmalen zum Trainieren.</target>
+        >Dieser Spot liegt auf Schulgelaende oder an einer Bildungseinrichtung, bei der der Zugang je nach Zeitplan und Einrichtungsregeln variieren kann.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.skate-park">
       <segment state="initial">
         <source
-        >This is a skate park with ramps, rails, and concrete structures suitable for training. Make sure to give way to skaters and be respectful at the skate park.</source>
+        >This spot is a skate-focused shared facility where local etiquette and posted rules should be followed and right of way respected.</source>
         <target
-        >Dies ist ein Skatepark mit Rampen, Rails und Betonstrukturen, die sich zum Training eignen. Achte auf Skater und verhalte dich respektvoll.</target>
+        >Dieser Spot ist eine skateorientierte Gemeinschaftsanlage, bei der lokale Etikette und ausgeschilderte Regeln befolgt sowie Vorfahrt respektiert werden sollte.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.trampoline-park">
       <segment state="initial">
         <source
-        >This is a trampoline park facility that has aerial training areas.</source>
+        >This spot is a commercial trampoline-focused venue with aerial training areas. On-site safety rules, booking terms, and staff instructions apply.</source>
         <target
-        >Dies ist eine Trampolinpark-Anlage mit Bereichen für Lufttraining.</target>
+        >Dieser Spot ist eine kommerzielle, trampolinorientierte Anlage mit Bereichen fuer Lufttraining. Sicherheitsregeln vor Ort, Buchungsbedingungen und Anweisungen des Personals gelten.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.university-campus">
       <segment state="initial">
         <source
-        >This is a university campus with varied buildings, courtyards, and outdoor structures.</source>
+        >This spot is on university or college grounds where some areas may be open while others require permission.</source>
         <target
-        >Dies ist ein Universitätscampus mit verschiedenen Gebäuden, Innenhöfen und Außenstrukturen.</target>
+        >Dieser Spot liegt auf Hochschul- oder Universitaetsgelaende, auf dem einige Bereiche offen sind und andere Erlaubnis erfordern.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.urban-landscape">
       <segment state="initial">
         <source
-        >This is an urban area with walls, railings, stairs, and architectural elements.</source>
+        >This spot is in a built city environment where pedestrian flow, nearby property boundaries, and local restrictions must be considered.</source>
         <target
-        >Dies ist ein urbanes Gebiet mit Wänden, Geländern, Treppen und architektonischen Elementen.</target>
+        >Dieser Spot liegt in einer bebauten Stadtumgebung, in der Fussgaengerfluss, nahe Grundstuecksgrenzen und lokale Einschraenkungen beruecksichtigt werden muessen.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.water">
       <segment state="initial">
         <source
-        >This spot centers around water (fountain, riverbank, lakeside structure, etc.) offering unique movement or aesthetic value. Surfaces may be slippery—use caution.</source>
+        >This spot is centered around water where conditions can change quickly and safety plus local restrictions must be verified on arrival.</source>
         <target
-        > Dieser Spot dreht sich um Wasser (Brunnen, Flussufer, Seeuferstruktur, etc.) und bietet einzigartige Bewegungs- oder ästhetische Werte. Die Oberflächen können rutschig sein— sei vorsichtig. </target>
+        >Dieser Spot liegt rund ums Wasser, bei dem sich Bedingungen schnell aendern koennen und Sicherheit plus lokale Regeln bei Ankunft verifiziert werden muessen.</target>
       </segment>
     </unit>
     <unit id="spot-type.art">
@@ -3885,6 +3944,12 @@
         > Training findet draussen statt, nicht am Schreibtisch. Nimm die volle Power von PK Spot mit - verifizierte Spots, Smart Filters und Session-Protokollierung, direkt in deiner Tasche. </target>
       </segment>
     </unit>
+    <unit id="4881902536872851671">
+      <segment state="initial">
+        <source>Sign in to vote on this edit.</source>
+        <target>Melde dich an, um über diese Bearbeitung abzustimmen.</target>
+      </segment>
+    </unit>
     <unit id="7059749880989073519">
       <segment state="initial">
         <source>Water challenge</source>
@@ -3921,6 +3986,12 @@
       <segment state="initial">
         <source>Session</source>
         <target>Sitzung</target>
+      </segment>
+    </unit>
+    <unit id="5906272961955453157">
+      <segment state="initial">
+        <source>Approved</source>
+        <target>Genehmigt</target>
       </segment>
     </unit>
     <unit id="5911495341996816625">
@@ -4265,6 +4336,12 @@
         <target>Medien hinzufügen</target>
       </segment>
     </unit>
+    <unit id="3101932482196295919">
+      <segment state="initial">
+        <source>Vote to merge</source>
+        <target>Für das Zusammenführen abstimmen</target>
+      </segment>
+    </unit>
     <unit id="3114906098813455469">
       <segment state="initial">
         <source>Spot created</source>
@@ -4311,6 +4388,14 @@
       <segment state="initial">
         <source> Spot Type and Access </source>
         <target> Spot Typ and Zugang </target>
+      </segment>
+    </unit>
+    <unit id="spot.details.type_access_disclaimer">
+      <segment state="initial">
+        <source
+        > Info can be outdated or wrong. Always check signs and local rules on site. </source>
+        <target
+        > Info can be outdated or wrong. Always check signs and local rules on site. </target>
       </segment>
     </unit>
     <unit id="1577979859082287846">
@@ -4391,6 +4476,20 @@
       <segment state="initial">
         <source>Go Home</source>
         <target>Nach Hause gehen</target>
+      </segment>
+    </unit>
+    <unit id="5311639828224503795">
+      <segment state="initial">
+        <source><ph
+            id="0"
+            equiv="INTERPOLATION"
+            disp="{{ pendingVoteCount() }}"
+          /> edits are waiting for community voting.</source>
+        <target><ph
+            id="0"
+            equiv="INTERPOLATION"
+            disp="{{ pendingVoteCount() }}"
+          /> edits are waiting for community voting.</target>
       </segment>
     </unit>
     <unit id="5340498030552368470">
@@ -4590,6 +4689,12 @@
         <target>Unbenannte Challenge</target>
       </segment>
     </unit>
+    <unit id="2523161892325205973">
+      <segment state="initial">
+        <source>Pending community vote (verified spot)</source>
+        <target>Ausstehende Community-Abstimmung (verifizierter Spot)</target>
+      </segment>
+    </unit>
     <unit id="2523505136253356900">
       <segment state="initial">
         <source>Invalid Link</source>
@@ -4742,6 +4847,12 @@
       <segment state="initial">
         <source>This challenge is for fun! </source>
         <target>Diese Challenge ist einfach nur zum Spaß!</target>
+      </segment>
+    </unit>
+    <unit id="5111811857121425885">
+      <segment state="initial">
+        <source>Pending community vote (iconic spot)</source>
+        <target>Ausstehende Community-Abstimmung (ikonischer Spot)</target>
       </segment>
     </unit>
     <unit id="5133096532155335173">
@@ -5341,6 +5452,30 @@
       <segment state="initial">
         <source>Open this on PK Spot</source>
         <target>Auf PK Spot öffnen</target>
+      </segment>
+    </unit>
+    <unit id="bookmark_spot_aria_label">
+      <notes>
+        <note
+          category="description"
+        >The aria label of the bookmark spot icon button</note>
+        <note category="meaning">Bookmark spot aria label</note>
+      </notes>
+      <segment state="initial">
+        <source>Icon button with a bookmark icon</source>
+        <target>Icon-Button mit Lesezeichen-Symbol</target>
+      </segment>
+    </unit>
+    <unit id="bookmark_spot_tooltip">
+      <notes>
+        <note
+          category="description"
+        >The tooltip of the bookmark spot icon button</note>
+        <note category="meaning">Bookmark spot tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>Bookmark this spot</source>
+        <target>Diesen Spot als Lesezeichen speichern</target>
       </segment>
     </unit>
     <unit id="challenge-list.all-label">

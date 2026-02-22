@@ -68,26 +68,26 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
 };
 
 export const SpotTypesDescriptions: Record<SpotTypes, string> = {
-  [SpotTypes.ParkourGym]: $localize`:@@spot-type-description.parkour-gym:This is an indoor training facility with dedicated equipment and obstacles for Parkour practice.`,
-  [SpotTypes.TrampolinePark]: $localize`:@@spot-type-description.trampoline-park:This is a trampoline park facility that has aerial training areas.`,
-  [SpotTypes.GymnasticsGym]: $localize`:@@spot-type-description.gymnastics-gym:This is a gymnastics facility with mats, bars, beams, and tumbling equipment suitable for acrobatic training.`,
-  [SpotTypes.PkPark]: $localize`:@@spot-type-description.parkour-park:This is a purpose-built outdoor space with designed obstacles and structures for Parkour training.`,
-  [SpotTypes.Playground]: $localize`:@@spot-type-description.playground:This is a playground area with swings, slides, and climbing structures suitable for Parkour training.`,
-  [SpotTypes.School]: $localize`:@@spot-type-description.school:This is a school facility with walls, benches, and architectural features for practice.`,
-  [SpotTypes.Park]: $localize`:@@spot-type-description.park:This is a public park with paths, benches, and landscaping features.`,
-  [SpotTypes.UrbanLandscape]: $localize`:@@spot-type-description.urban-landscape:This is an urban area with walls, railings, stairs, and architectural elements.`,
-  [SpotTypes.NaturalLandscape]: $localize`:@@spot-type-description.natural-landscape:This is a natural area with trees, rocks, logs, and terrain features.`,
-  [SpotTypes.UniversityCampus]: $localize`:@@spot-type-description.university-campus:This is a university campus with varied buildings, courtyards, and outdoor structures.`,
-  [SpotTypes.Art]: $localize`:@@spot-type-description.art:This is an art installation or sculpture that can be used for Parkour practice. Please respect the artwork and surrounding area.`,
-  [SpotTypes.Rooftop]: $localize`:@@spot-type-description.rooftop:This is a rooftop area with ledges, walls, and elevated structures.`,
-  [SpotTypes.RoofGap]: $localize`:@@spot-type-description.roof-gap:This is a roof gap requiring precision jumping between buildings.`,
-  [SpotTypes.Descent]: $localize`:@@spot-type-description.descent:This is a spot primarily used for descending techniques.`,
-  [SpotTypes.Monument]: $localize`:@@spot-type-description.monument:This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.`,
-  [SpotTypes.Water]: $localize`:@@spot-type-description.water:This spot centers around water (fountain, riverbank, lakeside structure, etc.) offering unique movement or aesthetic value. Surfaces may be slippery—use caution.`,
-  [SpotTypes.Garage]: $localize`:@@spot-type-description.garage:This is a parking garage or car park with ramps, columns, and concrete structures suitable for training.`,
-  [SpotTypes.SkatePark]: $localize`:@@spot-type-description.skate-park:This is a skate park with ramps, rails, and concrete structures suitable for training. Make sure to give way to skaters and be respectful at the skate park.`,
-  [SpotTypes.Calisthenics]: $localize`:@@spot-type-description.calisthenics:This is a calisthenics park with bars and beams suitable for training. Be respectful to others and use the equipment carefully.`,
-  [SpotTypes.Other]: $localize`:@@spot-type-description.other:This is a location that doesn't fit standard categories but offers training opportunities.`,
+  [SpotTypes.ParkourGym]: $localize`:@@spot-type-description.parkour-gym:This spot is a dedicated indoor Parkour training facility with focused equipment and obstacles. Venue rules, hours, and required permission should be checked before training.`,
+  [SpotTypes.TrampolinePark]: $localize`:@@spot-type-description.trampoline-park:This spot is a commercial trampoline-focused venue with aerial training areas. On-site safety rules, booking terms, and staff instructions apply.`,
+  [SpotTypes.GymnasticsGym]: $localize`:@@spot-type-description.gymnastics-gym:This spot is a gymnastics-oriented facility where access and use may depend on supervision, classes, or permission.`,
+  [SpotTypes.PkPark]: $localize`:@@spot-type-description.parkour-park:This spot is a purpose-built outdoor Parkour area designed for training. Posted rules and shared community use apply.`,
+  [SpotTypes.Playground]: $localize`:@@spot-type-description.playground:This spot is a playground space that can support movement training. Child safety, shared use, and local guidance are especially important.`,
+  [SpotTypes.School]: $localize`:@@spot-type-description.school:This spot is on school grounds or at an education facility where access can change by schedule and institutional rules.`,
+  [SpotTypes.Park]: $localize`:@@spot-type-description.park:This spot is in a general park environment with mixed public use where local park regulations apply.`,
+  [SpotTypes.UrbanLandscape]: $localize`:@@spot-type-description.urban-landscape:This spot is in a built city environment where pedestrian flow, nearby property boundaries, and local restrictions must be considered.`,
+  [SpotTypes.NaturalLandscape]: $localize`:@@spot-type-description.natural-landscape:This spot is in a nature-based area where environmental impact should be minimized and seasonal or conservation restrictions may apply.`,
+  [SpotTypes.UniversityCampus]: $localize`:@@spot-type-description.university-campus:This spot is on university or college grounds where some areas may be open while others require permission.`,
+  [SpotTypes.Art]: $localize`:@@spot-type-description.art:This spot is an art or cultural structure where training may be possible. Respect, preservation, and site-specific rules are essential.`,
+  [SpotTypes.Rooftop]: $localize`:@@spot-type-description.rooftop:This spot is in an elevated roof area with high access, safety, and legal risk where permission should be verified first.`,
+  [SpotTypes.RoofGap]: $localize`:@@spot-type-description.roof-gap:This spot involves movement between separate elevated structures where access, safety, and legality must be clearly confirmed before training.`,
+  [SpotTypes.Descent]: $localize`:@@spot-type-description.descent:This spot is mainly defined by descending movement where landings, exits, and public impact should be assessed beforehand.`,
+  [SpotTypes.Monument]: $localize`:@@spot-type-description.monument:This spot is at a monument or heritage location where respectful behavior and cultural, legal, and preservation rules are essential.`,
+  [SpotTypes.Water]: $localize`:@@spot-type-description.water:This spot is centered around water where conditions can change quickly and safety plus local restrictions must be verified on arrival.`,
+  [SpotTypes.Garage]: $localize`:@@spot-type-description.garage:This spot is in a parking structure where vehicles, security policies, and time-based access limits need to be considered.`,
+  [SpotTypes.SkatePark]: $localize`:@@spot-type-description.skate-park:This spot is a skate-focused shared facility where local etiquette and posted rules should be followed and right of way respected.`,
+  [SpotTypes.Calisthenics]: $localize`:@@spot-type-description.calisthenics:This spot is a fitness-equipment area with shared-use expectations where equipment should be used respectfully and according to guidance.`,
+  [SpotTypes.Other]: $localize`:@@spot-type-description.other:This spot does not fit listed categories. Specifics can be captured through amenities and the main spot description.`,
 };
 
 export enum SpotAccess {
@@ -118,12 +118,12 @@ export const SpotAccessIcons: Record<SpotAccess, string> = {
 };
 
 export const SpotAccessDescriptions: Record<SpotAccess, string> = {
-  [SpotAccess.Public]: $localize`:@@spot-access-description.public:This is a public spot, which is open to everyone and can be accessed freely without restrictions.`,
-  [SpotAccess.Commercial]: $localize`:@@spot-access-description.commercial:This is a commercial facility that requires membership or paid entry. You must be a member or pay a fee to access this spot. Please respect the facility's rules and hours of operation.`,
-  [SpotAccess.Residential]: $localize`:@@spot-access-description.residential:This is a residential area and private property. Access is generally limited to residents or their guests. Please be especially mindful of noise and privacy. Training here may lead to being asked to leave.`,
-  [SpotAccess.Private]: $localize`:@@spot-access-description.private:This is private property. While some respectful practice may be tolerated, permission is always recommended to avoid issues.`,
-  [SpotAccess.OffLimits]: $localize`:@@spot-access-description.off-limits:This is private property and strictly off-limits without explicit, prior permission from the owner. Unauthorized access may result in legal action or injury.`,
-  [SpotAccess.Other]: $localize`:@@spot-access-description.other:The access type of this spot is not specified. Please check local regulations and guidelines before visiting.`,
+  [SpotAccess.Public]: $localize`:@@spot-access-description.public:People usually can access this spot. Check signs, hours, and local rules when you arrive.`,
+  [SpotAccess.Commercial]: $localize`:@@spot-access-description.commercial:You usually need to pay, book, or have a membership to use this spot. Follow staff and venue rules.`,
+  [SpotAccess.Residential]: $localize`:@@spot-access-description.residential:This spot is in a residential area. Access may be limited if you are not a resident or guest.`,
+  [SpotAccess.Private]: $localize`:@@spot-access-description.private:This spot is on private property. Ask for permission before training here.`,
+  [SpotAccess.OffLimits]: $localize`:@@spot-access-description.off-limits:This spot should not be used unless you have clear permission from the owner or manager.`,
+  [SpotAccess.Other]: $localize`:@@spot-access-description.other:Access is unclear for this spot. Check locally before training.`,
 };
 
 // Helper: parse arbitrary string to SpotTypes with fallback to Other

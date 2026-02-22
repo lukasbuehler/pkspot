@@ -35,6 +35,24 @@
         <source>Map</source>
       </segment>
     </unit>
+    <unit id="mark_this_spot_as_visited_aria_label">
+      <notes>
+        <note category="description">The aria label of the mark this spot as visited icon button</note>
+        <note category="meaning">Mark this spot as visited aria label</note>
+      </notes>
+      <segment>
+        <source>Icon button with a banner and checkmark icon</source>
+      </segment>
+    </unit>
+    <unit id="mark_this_spot_as_visited_tooltip">
+      <notes>
+        <note category="description">The tooltip of the mark this spot as visited icon button</note>
+        <note category="meaning">Mark this spot as visited tooltip</note>
+      </notes>
+      <segment>
+        <source>Mark this spot as visited</source>
+      </segment>
+    </unit>
     <unit id="about_page_label">
       <notes>
         <note category="description">A very short label for the navbar about page button</note>
@@ -99,6 +117,11 @@
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">steps</pc> Find Parkour parks and gyms </source>
       </segment>
     </unit>
+    <unit id="4416413576346763682">
+      <segment>
+        <source>Pending</source>
+      </segment>
+    </unit>
     <unit id="697121102743047551">
       <segment>
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">water</pc> Find Water Spots </source>
@@ -127,6 +150,11 @@
     <unit id="4872378010635024789">
       <segment>
         <source> Training happens outside, not behind a desk. Take the full power of PK Spot with you - verified spots, smart filters, and session logging, right in your pocket. </source>
+      </segment>
+    </unit>
+    <unit id="4881902536872851671">
+      <segment>
+        <source>Sign in to vote on this edit.</source>
       </segment>
     </unit>
     <unit id="5788860025290749857">
@@ -364,9 +392,19 @@
         <source>Reset Password</source>
       </segment>
     </unit>
+    <unit id="2523161892325205973">
+      <segment>
+        <source>Pending community vote (verified spot)</source>
+      </segment>
+    </unit>
     <unit id="2523505136253356900">
       <segment>
         <source>Invalid Link</source>
+      </segment>
+    </unit>
+    <unit id="3101932482196295919">
+      <segment>
+        <source>Vote to merge</source>
       </segment>
     </unit>
     <unit id="3114906098813455469">
@@ -417,6 +455,11 @@
     <unit id="5903110565317428249">
       <segment>
         <source>Session</source>
+      </segment>
+    </unit>
+    <unit id="5906272961955453157">
+      <segment>
+        <source>Approved</source>
       </segment>
     </unit>
     <unit id="5911495341996816625">
@@ -559,14 +602,14 @@
         <source>Edit</source>
       </segment>
     </unit>
-    <unit id="7589136797201485434">
-      <segment>
-        <source>Open source</source>
-      </segment>
-    </unit>
     <unit id="7008439939460403347">
       <segment>
         <source>Report</source>
+      </segment>
+    </unit>
+    <unit id="202472216784225575">
+      <segment>
+        <source>1 edit is waiting for community voting.</source>
       </segment>
     </unit>
     <unit id="2029717048910432760">
@@ -688,6 +731,24 @@
     <unit id="5078551942621038511">
       <segment>
         <source>Link to challenge copied to clipboard</source>
+      </segment>
+    </unit>
+    <unit id="bookmark_spot_aria_label">
+      <notes>
+        <note category="description">The aria label of the bookmark spot icon button</note>
+        <note category="meaning">Bookmark spot aria label</note>
+      </notes>
+      <segment>
+        <source>Icon button with a bookmark icon</source>
+      </segment>
+    </unit>
+    <unit id="bookmark_spot_tooltip">
+      <notes>
+        <note category="description">The tooltip of the bookmark spot icon button</note>
+        <note category="meaning">Bookmark spot tooltip</note>
+      </notes>
+      <segment>
+        <source>Bookmark this spot</source>
       </segment>
     </unit>
     <unit id="challenge-list.all-label">
@@ -1458,6 +1519,11 @@
         <source>Go Home</source>
       </segment>
     </unit>
+    <unit id="5311639828224503795">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> edits are waiting for community voting.</source>
+      </segment>
+    </unit>
     <unit id="1927584134608367160">
       <segment>
         <source>No Google account found on this device. Please add a Google account in your device settings and try again.</source>
@@ -2007,6 +2073,11 @@
         <source>Sign in</source>
       </segment>
     </unit>
+    <unit id="5209352913608652642">
+      <segment>
+        <source>Voting open</source>
+      </segment>
+    </unit>
     <unit id="6969445338945867053">
       <segment>
         <source>Create a new account</source>
@@ -2129,6 +2200,11 @@
     <unit id="2807800733729323332">
       <segment>
         <source>Yes</source>
+      </segment>
+    </unit>
+    <unit id="2814854262892312665">
+      <segment>
+        <source>Voting test mode</source>
       </segment>
     </unit>
     <unit id="3542042671420335679">
@@ -2260,6 +2336,11 @@
         <source> Spot Type and Access </source>
       </segment>
     </unit>
+    <unit id="spot.details.type_access_disclaimer">
+      <segment>
+        <source> Info can be outdated or wrong. Always check signs and local rules on site. </source>
+      </segment>
+    </unit>
     <unit id="spot.details.spot_type_chip">
       <segment>
         <source>Spot Type</source>
@@ -2295,6 +2376,11 @@
       </notes>
       <segment>
         <source>Open the location of this spot in Maps</source>
+      </segment>
+    </unit>
+    <unit id="openMapSourceButtonLabel">
+      <segment>
+        <source>Open Map</source>
       </segment>
     </unit>
     <unit id="open_maps_button_label">
@@ -3111,6 +3197,11 @@
         <source>Unnamed Toilet</source>
       </segment>
     </unit>
+    <unit id="1083158108298637572">
+      <segment>
+        <source>Failed to submit vote</source>
+      </segment>
+    </unit>
     <unit id="1096271480010782204">
       <segment>
         <source>Founder</source>
@@ -3491,6 +3582,11 @@
         <source>This challenge is for fun! </source>
       </segment>
     </unit>
+    <unit id="5111811857121425885">
+      <segment>
+        <source>Pending community vote (iconic spot)</source>
+      </segment>
+    </unit>
     <unit id="2369409944839137310">
       <segment>
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
@@ -3613,102 +3709,102 @@
     </unit>
     <unit id="spot-type-description.parkour-gym">
       <segment>
-        <source>This is an indoor training facility with dedicated equipment and obstacles for Parkour practice.</source>
+        <source>This spot is a dedicated indoor Parkour training facility with focused equipment and obstacles. Venue rules, hours, and required permission should be checked before training.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.trampoline-park">
       <segment>
-        <source>This is a trampoline park facility that has aerial training areas.</source>
+        <source>This spot is a commercial trampoline-focused venue with aerial training areas. On-site safety rules, booking terms, and staff instructions apply.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.gymnastics-gym">
       <segment>
-        <source>This is a gymnastics facility with mats, bars, beams, and tumbling equipment suitable for acrobatic training.</source>
+        <source>This spot is a gymnastics-oriented facility where access and use may depend on supervision, classes, or permission.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.parkour-park">
       <segment>
-        <source>This is a purpose-built outdoor space with designed obstacles and structures for Parkour training.</source>
+        <source>This spot is a purpose-built outdoor Parkour area designed for training. Posted rules and shared community use apply.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.playground">
       <segment>
-        <source>This is a playground area with swings, slides, and climbing structures suitable for Parkour training.</source>
+        <source>This spot is a playground space that can support movement training. Child safety, shared use, and local guidance are especially important.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.school">
       <segment>
-        <source>This is a school facility with walls, benches, and architectural features for practice.</source>
+        <source>This spot is on school grounds or at an education facility where access can change by schedule and institutional rules.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.park">
       <segment>
-        <source>This is a public park with paths, benches, and landscaping features.</source>
+        <source>This spot is in a general park environment with mixed public use where local park regulations apply.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.urban-landscape">
       <segment>
-        <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
+        <source>This spot is in a built city environment where pedestrian flow, nearby property boundaries, and local restrictions must be considered.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.natural-landscape">
       <segment>
-        <source>This is a natural area with trees, rocks, logs, and terrain features.</source>
+        <source>This spot is in a nature-based area where environmental impact should be minimized and seasonal or conservation restrictions may apply.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.university-campus">
       <segment>
-        <source>This is a university campus with varied buildings, courtyards, and outdoor structures.</source>
+        <source>This spot is on university or college grounds where some areas may be open while others require permission.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.art">
       <segment>
-        <source>This is an art installation or sculpture that can be used for Parkour practice. Please respect the artwork and surrounding area.</source>
+        <source>This spot is an art or cultural structure where training may be possible. Respect, preservation, and site-specific rules are essential.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.rooftop">
       <segment>
-        <source>This is a rooftop area with ledges, walls, and elevated structures.</source>
+        <source>This spot is in an elevated roof area with high access, safety, and legal risk where permission should be verified first.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.roof-gap">
       <segment>
-        <source>This is a roof gap requiring precision jumping between buildings.</source>
+        <source>This spot involves movement between separate elevated structures where access, safety, and legality must be clearly confirmed before training.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.descent">
       <segment>
-        <source>This is a spot primarily used for descending techniques.</source>
+        <source>This spot is mainly defined by descending movement where landings, exits, and public impact should be assessed beforehand.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.monument">
       <segment>
-        <source>This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.</source>
+        <source>This spot is at a monument or heritage location where respectful behavior and cultural, legal, and preservation rules are essential.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.water">
       <segment>
-        <source>This spot centers around water (fountain, riverbank, lakeside structure, etc.) offering unique movement or aesthetic value. Surfaces may be slippery—use caution.</source>
+        <source>This spot is centered around water where conditions can change quickly and safety plus local restrictions must be verified on arrival.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.garage">
       <segment>
-        <source>This is a parking garage or car park with ramps, columns, and concrete structures suitable for training.</source>
+        <source>This spot is in a parking structure where vehicles, security policies, and time-based access limits need to be considered.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.skate-park">
       <segment>
-        <source>This is a skate park with ramps, rails, and concrete structures suitable for training. Make sure to give way to skaters and be respectful at the skate park.</source>
+        <source>This spot is a skate-focused shared facility where local etiquette and posted rules should be followed and right of way respected.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.calisthenics">
       <segment>
-        <source>This is a calisthenics park with bars and beams suitable for training. Be respectful to others and use the equipment carefully.</source>
+        <source>This spot is a fitness-equipment area with shared-use expectations where equipment should be used respectfully and according to guidance.</source>
       </segment>
     </unit>
     <unit id="spot-type-description.other">
       <segment>
-        <source>This is a location that doesn&apos;t fit standard categories but offers training opportunities.</source>
+        <source>This spot does not fit listed categories. Specifics can be captured through amenities and the main spot description.</source>
       </segment>
     </unit>
     <unit id="spot-access.public">
@@ -3837,8 +3933,11 @@
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.media.none">
+      <notes>
+        <note category="description">No media placeholder label shown on spot preview cards</note>
+      </notes>
       <segment>
-        <source>No media</source>
+        <source> No media </source>
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.media.single">
@@ -3898,32 +3997,32 @@
     </unit>
     <unit id="spot-access-description.public">
       <segment>
-        <source>This is a public spot, which is open to everyone and can be accessed freely without restrictions.</source>
+        <source>People usually can access this spot. Check signs, hours, and local rules when you arrive.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.commercial">
       <segment>
-        <source>This is a commercial facility that requires membership or paid entry. You must be a member or pay a fee to access this spot. Please respect the facility&apos;s rules and hours of operation.</source>
+        <source>You usually need to pay, book, or have a membership to use this spot. Follow staff and venue rules.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.residential">
       <segment>
-        <source>This is a residential area and private property. Access is generally limited to residents or their guests. Please be especially mindful of noise and privacy. Training here may lead to being asked to leave.</source>
+        <source>This spot is in a residential area. Access may be limited if you are not a resident or guest.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.private">
       <segment>
-        <source>This is private property. While some respectful practice may be tolerated, permission is always recommended to avoid issues.</source>
+        <source>This spot is on private property. Ask for permission before training here.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
       <segment>
-        <source>This is private property and strictly off-limits without explicit, prior permission from the owner. Unauthorized access may result in legal action or injury.</source>
+        <source>This spot should not be used unless you have clear permission from the owner or manager.</source>
       </segment>
     </unit>
     <unit id="spot-access-description.other">
       <segment>
-        <source>The access type of this spot is not specified. Please check local regulations and guidelines before visiting.</source>
+        <source>Access is unclear for this spot. Check locally before training.</source>
       </segment>
     </unit>
   </file>

@@ -117,6 +117,12 @@
         <target>Open de locatie van deze spot in Kaarten</target>
       </segment>
     </unit>
+    <unit id="openMapSourceButtonLabel">
+      <segment state="initial">
+        <source>Open Map</source>
+        <target>Kaart openen</target>
+      </segment>
+    </unit>
     <unit id="open_google_maps_button_label">
       <segment state="initial">
         <source>Open in Google Maps</source>
@@ -147,12 +153,6 @@
       <segment state="initial">
         <source>Edit</source>
         <target>Bewerken</target>
-      </segment>
-    </unit>
-    <unit id="7589136797201485434">
-      <segment state="initial">
-        <source>Open source</source>
-        <target>Openbron</target>
       </segment>
     </unit>
     <unit id="spot.report.tooltip">
@@ -416,6 +416,12 @@
         <target>Ja</target>
       </segment>
     </unit>
+    <unit id="2814854262892312665">
+      <segment state="initial">
+        <source>Voting test mode</source>
+        <target>Testmodus voor stemmen</target>
+      </segment>
+    </unit>
     <unit id="1431416938026210429">
       <segment state="initial">
         <source>Password</source>
@@ -511,6 +517,12 @@
       <segment state="initial">
         <source>Sign in</source>
         <target>Inloggen</target>
+      </segment>
+    </unit>
+    <unit id="5209352913608652642">
+      <segment state="initial">
+        <source>Voting open</source>
+        <target>Stemmen geopend</target>
       </segment>
     </unit>
     <unit id="5223089976416033243">
@@ -625,6 +637,26 @@
       <segment state="initial">
         <source>Map</source>
         <target>Kaart</target>
+      </segment>
+    </unit>
+    <unit id="mark_this_spot_as_visited_aria_label">
+      <notes>
+        <note category="description">The aria label of the mark this spot as visited icon button</note>
+        <note category="meaning">Mark this spot as visited aria label</note>
+      </notes>
+      <segment state="initial">
+        <source>Icon button with a banner and checkmark icon</source>
+        <target>Icoonknop met een banner- en vinkje-icoon</target>
+      </segment>
+    </unit>
+    <unit id="mark_this_spot_as_visited_tooltip">
+      <notes>
+        <note category="description">The tooltip of the mark this spot as visited icon button</note>
+        <note category="meaning">Mark this spot as visited tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>Mark this spot as visited</source>
+        <target>Markeer deze Spot als bezocht</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -907,6 +939,12 @@
       <segment state="initial">
         <source> Choose the language used in the app. </source>
         <target> Kies de taal die in de app wordt gebruikt. </target>
+      </segment>
+    </unit>
+    <unit id="1083158108298637572">
+      <segment state="initial">
+        <source>Failed to submit vote</source>
+        <target>Stem indienen mislukt</target>
       </segment>
     </unit>
     <unit id="1096271480010782204">
@@ -1308,6 +1346,12 @@
         <target>Er is een fout opgetreden. Probeer het opnieuw of vraag een nieuwe link aan.</target>
       </segment>
     </unit>
+    <unit id="202472216784225575">
+      <segment state="initial">
+        <source>1 edit is waiting for community voting.</source>
+        <target>1 bewerking wacht op communitystemming.</target>
+      </segment>
+    </unit>
     <unit id="2029717048910432760">
       <segment state="initial">
         <source>Spot</source>
@@ -1336,6 +1380,12 @@
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">steps</pc> Find Parkour parks and gyms </source>
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">steps</pc> Vind Parkour parken en gyms </target>
+      </segment>
+    </unit>
+    <unit id="4416413576346763682">
+      <segment state="initial">
+        <source>Pending</source>
+        <target>In behandeling</target>
       </segment>
     </unit>
     <unit id="2325032840535506648">
@@ -1710,38 +1760,38 @@
     </unit>
     <unit id="spot-access-description.commercial">
       <segment state="initial">
-        <source>This is a commercial facility that requires membership or paid entry. You must be a member or pay a fee to access this spot. Please respect the facility&apos;s rules and hours of operation.</source>
-        <target>Dit is een commerciële faciliteit die lidmaatschap of betaalde toegang vereist. Je moet lid zijn of een vergoeding betalen om deze spot te betreden. Respecteer alstublieft de regels en openingstijden van de faciliteit.</target>
+        <source>You usually need to pay, book, or have a membership to use this spot. Follow staff and venue rules.</source>
+        <target>Voor deze spot heb je meestal betaling, reservering of lidmaatschap nodig. Respecteer personeel en locatieregels.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.off-limits">
       <segment state="initial">
-        <source>This is private property and strictly off-limits without explicit, prior permission from the owner. Unauthorized access may result in legal action or injury.</source>
-        <target>Dit is privé-eigendom en strikt verboden zonder expliciete, voorafgaande toestemming van de eigenaar. Ongeautoriseerde toegang kan resulteren in juridische stappen of letsel.</target>
+        <source>This spot should not be used unless you have clear permission from the owner or manager.</source>
+        <target>Gebruik deze spot alleen met duidelijke toestemming van de eigenaar of beheerder.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.other">
       <segment state="initial">
-        <source>The access type of this spot is not specified. Please check local regulations and guidelines before visiting.</source>
-        <target>Het toegangstype van deze spot is niet gespecificeerd. Controleer lokale regelgeving en richtlijnen voordat je een bezoek brengt.</target>
+        <source>Access is unclear for this spot. Check locally before training.</source>
+        <target>Toegang tot deze spot is onduidelijk. Controleer dit lokaal voor je training.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.private">
       <segment state="initial">
-        <source>This is private property. While some respectful practice may be tolerated, permission is always recommended to avoid issues.</source>
-        <target>Dit is privé-eigendom. Hoewel respectvol trainen mogelijk wordt getolereerd, wordt toestemming altijd aanbevolen om problemen te voorkomen.</target>
+        <source>This spot is on private property. Ask for permission before training here.</source>
+        <target>Deze spot ligt op priveterrein. Vraag toestemming voordat je hier traint.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.public">
       <segment state="initial">
-        <source>This is a public spot, which is open to everyone and can be accessed freely without restrictions.</source>
-        <target>Dit is een openbare spot, die voor iedereen toegankelijk is en vrij kan worden betreden zonder beperkingen.</target>
+        <source>People usually can access this spot. Check signs, hours, and local rules when you arrive.</source>
+        <target>Deze spot is meestal toegankelijk. Controleer bij aankomst borden, tijden en lokale regels.</target>
       </segment>
     </unit>
     <unit id="spot-access-description.residential">
       <segment state="initial">
-        <source>This is a residential area and private property. Access is generally limited to residents or their guests. Please be especially mindful of noise and privacy. Training here may lead to being asked to leave.</source>
-        <target>Dit is een woongebied en privé-eigendom. Toegang is over het algemeen beperkt tot bewoners of hun gasten. Wees vooral bewust van geluid en privacy. Trainen hier kan ertoe leiden dat je wordt gevraagd om te vertrekken.</target>
+        <source>This spot is in a residential area. Access may be limited if you are not a resident or guest.</source>
+        <target>Deze spot ligt in een woongebied. Toegang kan beperkt zijn als je geen bewoner of gast bent.</target>
       </segment>
     </unit>
     <unit id="spot-access.commercial">
@@ -1913,9 +1963,12 @@
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.media.none">
+      <notes>
+        <note category="description">No media placeholder label shown on spot preview cards</note>
+      </notes>
       <segment state="initial">
-        <source>No media</source>
-        <target>Geen media</target>
+        <source> No media </source>
+        <target> Geen media </target>
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.media.single">
@@ -1968,122 +2021,122 @@
     </unit>
     <unit id="spot-type-description.art">
       <segment state="initial">
-        <source>This is an art installation or sculpture that can be used for Parkour practice. Please respect the artwork and surrounding area.</source>
-        <target>Dit is een kunstinstallatie of sculptuur die kan worden gebruikt voor parkourtraining. Respecteer alstublieft het kunstwerk en de omgeving.</target>
+        <source>This spot is an art or cultural structure where training may be possible. Respect, preservation, and site-specific rules are essential.</source>
+        <target>Deze Spot is een kunst- of culturele structuur waar training mogelijk kan zijn. Respect, behoud en locatiespecifieke regels zijn essentieel.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.calisthenics">
       <segment state="initial">
-        <source>This is a calisthenics park with bars and beams suitable for training. Be respectful to others and use the equipment carefully.</source>
-        <target>Dit is een calisthenics park met rekken en balken, geschikt voor training. Wees respectvol naar anderen en gebruik de apparatuur voorzichtig.</target>
+        <source>This spot is a fitness-equipment area with shared-use expectations where equipment should be used respectfully and according to guidance.</source>
+        <target>Deze Spot is een zone met fitnessapparatuur en gedeeld-gebruikverwachtingen waarbij apparatuur respectvol en volgens richtlijnen gebruikt moet worden.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.descent">
       <segment state="initial">
-        <source>This is a spot primarily used for descending techniques.</source>
-        <target>Dit is een spot die voornamelijk wordt gebruikt voor afdaaltechnieken.</target>
+        <source>This spot is mainly defined by descending movement where landings, exits, and public impact should be assessed beforehand.</source>
+        <target>Deze Spot wordt vooral bepaald door neerwaartse beweging, waarbij landingen, uitgangen en publieke impact vooraf beoordeeld moeten worden.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.garage">
       <segment state="initial">
-        <source>This is a parking garage or car park with ramps, columns, and concrete structures suitable for training.</source>
-        <target>Dit is een parkeergarage of parkeerplaats met hellingen, zuilen en betonnen structuren geschikt voor training.</target>
+        <source>This spot is in a parking structure where vehicles, security policies, and time-based access limits need to be considered.</source>
+        <target>Deze Spot ligt in een parkeerstructuur waarbij voertuigen, veiligheidsbeleid en tijdsgebonden toegangsbeperkingen moeten worden meegenomen.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.gymnastics-gym">
       <segment state="initial">
-        <source>This is a gymnastics facility with mats, bars, beams, and tumbling equipment suitable for acrobatic training.</source>
-        <target>Dit is een gymnastiekfaciliteit met matten, rekken, balken en tumblingapparatuur geschikt voor acrobatische training.</target>
+        <source>This spot is a gymnastics-oriented facility where access and use may depend on supervision, classes, or permission.</source>
+        <target>Deze Spot is een gymnastiekgerichte voorziening waarbij toegang en gebruik kunnen afhangen van toezicht, lessen of toestemming.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.monument">
       <segment state="initial">
-        <source>This location is a monument, historical ruin, stone marker, or culturally significant structure. Please be respectful and cautious while training here.</source>
-        <target>Deze locatie is een monument, historische ruïne, steenmarkering of cultureel belangrijke structuur. Wees respectvol en voorzichtig tijdens het trainen hier.</target>
+        <source>This spot is at a monument or heritage location where respectful behavior and cultural, legal, and preservation rules are essential.</source>
+        <target>Deze Spot ligt bij een monument of erfgoedlocatie waarbij respectvol gedrag en naleving van culturele, juridische en behoudsregels essentieel zijn.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.natural-landscape">
       <segment state="initial">
-        <source>This is a natural area with trees, rocks, logs, and terrain features.</source>
-        <target>Dit is een natuurgebied met bomen, rotsen, boomstammen en terreinkenmerken.</target>
+        <source>This spot is in a nature-based area where environmental impact should be minimized and seasonal or conservation restrictions may apply.</source>
+        <target>Deze Spot ligt in een natuurlijk gebied waar milieubelasting beperkt moet blijven en seizoens- of natuurbeperkingen kunnen gelden.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.other">
       <segment state="initial">
-        <source>This is a location that doesn&apos;t fit standard categories but offers training opportunities.</source>
-        <target>Dit is een locatie die niet in standaardcategorieën past maar trainingsmogelijkheden biedt.</target>
+        <source>This spot does not fit listed categories. Specifics can be captured through amenities and the main spot description.</source>
+        <target>Deze Spot valt niet binnen de vermelde categorieen. Details kunnen worden vastgelegd via voorzieningen en de hoofdbeschrijving van de Spot.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.park">
       <segment state="initial">
-        <source>This is a public park with paths, benches, and landscaping features.</source>
-        <target>Dit is een openbaar park met paden, banken en landschapselementen.</target>
+        <source>This spot is in a general park environment with mixed public use where local park regulations apply.</source>
+        <target>Deze Spot ligt in een algemene parkomgeving met gemengd openbaar gebruik, waar lokale parkregels gelden.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.parkour-gym">
       <segment state="initial">
-        <source>This is an indoor training facility with dedicated equipment and obstacles for Parkour practice.</source>
-        <target>Dit is een overdekte trainingsfaciliteit met specifieke uitrusting en obstakels voor parkourtraining.</target>
+        <source>This spot is a dedicated indoor Parkour training facility with focused equipment and obstacles. Venue rules, hours, and required permission should be checked before training.</source>
+        <target>Deze Spot is een speciale indoor Parkour-trainingsfaciliteit met gerichte uitrusting en obstakels. Locatieregels, openingstijden en vereiste toestemming moeten voor training worden gecontroleerd.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.parkour-park">
       <segment state="initial">
-        <source>This is a purpose-built outdoor space with designed obstacles and structures for Parkour training.</source>
-        <target>Dit is een speciaal gebouwde buitenruimte met ontworpen obstakels en structuren voor parkourtraining.</target>
+        <source>This spot is a purpose-built outdoor Parkour area designed for training. Posted rules and shared community use apply.</source>
+        <target>Deze Spot is een speciaal gebouwd outdoor Parkour-gebied voor training. Aangegeven regels en gedeeld gebruik zijn van toepassing.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.playground">
       <segment state="initial">
-        <source>This is a playground area with swings, slides, and climbing structures suitable for Parkour training.</source>
-        <target>Dit is een speeltuingebied met schommels, glijbanen en klimstructuren geschikt voor parkourtraining.</target>
+        <source>This spot is a playground space that can support movement training. Child safety, shared use, and local guidance are especially important.</source>
+        <target>Deze Spot is een speelplek die bewegingstraining kan ondersteunen. Kindveiligheid, gedeeld gebruik en lokale richtlijnen zijn extra belangrijk.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.roof-gap">
       <segment state="initial">
-        <source>This is a roof gap requiring precision jumping between buildings.</source>
-        <target>Dit is een daksprong die precisiespringen tussen gebouwen vereist.</target>
+        <source>This spot involves movement between separate elevated structures where access, safety, and legality must be clearly confirmed before training.</source>
+        <target>Deze Spot omvat bewegingen tussen gescheiden verhoogde structuren waarbij toegang, veiligheid en legaliteit voor training duidelijk bevestigd moeten zijn.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.rooftop">
       <segment state="initial">
-        <source>This is a rooftop area with ledges, walls, and elevated structures.</source>
-        <target>Dit is een dakgebied met richels, muren en verhoogde structuren.</target>
+        <source>This spot is in an elevated roof area with high access, safety, and legal risk where permission should be verified first.</source>
+        <target>Deze Spot ligt in een verhoogde dakzone met hoog risico voor toegang, veiligheid en juridische status, waarbij toestemming eerst moet worden geverifieerd.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.school">
       <segment state="initial">
-        <source>This is a school facility with walls, benches, and architectural features for practice.</source>
-        <target>Dit is een schoolfaciliteit met muren, banken en architecturale kenmerken voor training.</target>
+        <source>This spot is on school grounds or at an education facility where access can change by schedule and institutional rules.</source>
+        <target>Deze Spot ligt op schoolterrein of bij een onderwijsfaciliteit waarbij toegang kan veranderen per rooster en instellingsregels.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.skate-park">
       <segment state="initial">
-        <source>This is a skate park with ramps, rails, and concrete structures suitable for training. Make sure to give way to skaters and be respectful at the skate park.</source>
-        <target>Dit is een skatepark met hellingen, rails en betonnen structuren, geschikt voor training. Geef voorrang aan skaters en wees respectvol in het skatepark.</target>
+        <source>This spot is a skate-focused shared facility where local etiquette and posted rules should be followed and right of way respected.</source>
+        <target>Deze Spot is een gedeelde skategerichte voorziening waarbij lokale etiquette en aangegeven regels gevolgd moeten worden, met respect voor voorrang.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.trampoline-park">
       <segment state="initial">
-        <source>This is a trampoline park facility that has aerial training areas.</source>
-        <target>Dit is een trampolineparkfaciliteit met zones voor luchtacrobatiek training.</target>
+        <source>This spot is a commercial trampoline-focused venue with aerial training areas. On-site safety rules, booking terms, and staff instructions apply.</source>
+        <target>Deze Spot is een commerciele trampolinegerichte locatie met zones voor luchttraining. Veiligheidsregels op locatie, boekingsvoorwaarden en instructies van personeel zijn van toepassing.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.university-campus">
       <segment state="initial">
-        <source>This is a university campus with varied buildings, courtyards, and outdoor structures.</source>
-        <target>Dit is een universiteitscampus met gevarieerde gebouwen, binnenplaatsen en buitenstructuren.</target>
+        <source>This spot is on university or college grounds where some areas may be open while others require permission.</source>
+        <target>Deze Spot ligt op universiteits- of hogeschoolterreinen waar sommige zones open kunnen zijn en andere toestemming vereisen.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.urban-landscape">
       <segment state="initial">
-        <source>This is an urban area with walls, railings, stairs, and architectural elements.</source>
-        <target>Dit is een stedelijk gebied met muren, leuningen, trappen en architecturale elementen.</target>
+        <source>This spot is in a built city environment where pedestrian flow, nearby property boundaries, and local restrictions must be considered.</source>
+        <target>Deze Spot ligt in een bebouwde stedelijke omgeving waar voetgangersstromen, nabijgelegen perceelgrenzen en lokale beperkingen moeten worden meegewogen.</target>
       </segment>
     </unit>
     <unit id="spot-type-description.water">
       <segment state="initial">
-        <source>This spot centers around water (fountain, riverbank, lakeside structure, etc.) offering unique movement or aesthetic value. Surfaces may be slippery—use caution.</source>
-        <target>Deze spot draait om water (fontein, rivierbank, structuur aan het meer, enz.) en biedt een unieke bewegings- of esthetische waarde. Oppervlakken kunnen glad zijn — wees voorzichtig.</target>
+        <source>This spot is centered around water where conditions can change quickly and safety plus local restrictions must be verified on arrival.</source>
+        <target>Deze Spot ligt rond water waarbij omstandigheden snel kunnen veranderen en veiligheid plus lokale beperkingen bij aankomst moeten worden gecontroleerd.</target>
       </segment>
     </unit>
     <unit id="spot-type.art">
@@ -3296,6 +3349,12 @@
         <target> Training gebeurt buiten, niet achter een bureau. Neem de volledige kracht van PK Spot mee - geverifieerde spots, smart filters en sessie-registratie, direct in je zak. </target>
       </segment>
     </unit>
+    <unit id="4881902536872851671">
+      <segment state="initial">
+        <source>Sign in to vote on this edit.</source>
+        <target>Meld je aan om op deze bewerking te stemmen.</target>
+      </segment>
+    </unit>
     <unit id="7059749880989073519">
       <segment state="initial">
         <source>Water challenge</source>
@@ -3318,6 +3377,12 @@
       <segment state="initial">
         <source>Session</source>
         <target>Sessie</target>
+      </segment>
+    </unit>
+    <unit id="5906272961955453157">
+      <segment state="initial">
+        <source>Approved</source>
+        <target>Goedgekeurd</target>
       </segment>
     </unit>
     <unit id="5911495341996816625">
@@ -3609,6 +3674,12 @@
         <target>Media toevoegen</target>
       </segment>
     </unit>
+    <unit id="3101932482196295919">
+      <segment state="initial">
+        <source>Vote to merge</source>
+        <target>Stem om samen te voegen</target>
+      </segment>
+    </unit>
     <unit id="3114906098813455469">
       <segment state="initial">
         <source>Spot created</source>
@@ -3653,6 +3724,12 @@
       <segment state="initial">
         <source> Spot Type and Access </source>
         <target> Type Spot en Toegang </target>
+      </segment>
+    </unit>
+    <unit id="spot.details.type_access_disclaimer">
+      <segment state="initial">
+        <source> Info can be outdated or wrong. Always check signs and local rules on site. </source>
+        <target> Info kan verouderd of onjuist zijn. Controleer altijd borden en lokale regels ter plaatse. </target>
       </segment>
     </unit>
     <unit id="1577979859082287846">
@@ -3733,6 +3810,12 @@
       <segment state="initial">
         <source>Go Home</source>
         <target>Ga naar Home</target>
+      </segment>
+    </unit>
+    <unit id="5311639828224503795">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> edits are waiting for community voting.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> edits are waiting for community voting.</target>
       </segment>
     </unit>
     <unit id="5340498030552368470">
@@ -3891,6 +3974,12 @@
         <target>Naamloze Challenge</target>
       </segment>
     </unit>
+    <unit id="2523161892325205973">
+      <segment state="initial">
+        <source>Pending community vote (verified spot)</source>
+        <target>Communitystemming in behandeling (geverifieerde Spot)</target>
+      </segment>
+    </unit>
     <unit id="2523505136253356900">
       <segment state="initial">
         <source>Invalid Link</source>
@@ -4039,6 +4128,12 @@
       <segment state="initial">
         <source>This challenge is for fun! </source>
         <target>Deze Challenge is voor de lol! </target>
+      </segment>
+    </unit>
+    <unit id="5111811857121425885">
+      <segment state="initial">
+        <source>Pending community vote (iconic spot)</source>
+        <target>Communitystemming in behandeling (iconische Spot)</target>
       </segment>
     </unit>
     <unit id="5133096532155335173">
@@ -4495,6 +4590,26 @@
       <segment state="initial">
         <source>Open this on PK Spot</source>
         <target>Open dit op PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="bookmark_spot_aria_label">
+      <notes>
+        <note category="description">The aria label of the bookmark spot icon button</note>
+        <note category="meaning">Bookmark spot aria label</note>
+      </notes>
+      <segment state="initial">
+        <source>Icon button with a bookmark icon</source>
+        <target>Icoonknop met een bladwijzer-icoon</target>
+      </segment>
+    </unit>
+    <unit id="bookmark_spot_tooltip">
+      <notes>
+        <note category="description">The tooltip of the bookmark spot icon button</note>
+        <note category="meaning">Bookmark spot tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>Bookmark this spot</source>
+        <target>Deze Spot opslaan als bladwijzer</target>
       </segment>
     </unit>
     <unit id="challenge-list.all-label">
