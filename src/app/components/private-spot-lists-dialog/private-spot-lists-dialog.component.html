@@ -1,10 +1,10 @@
 <h2 mat-dialog-title i18n>My Spots</h2>
 
-<mat-dialog-content class="private-spots-dialog-content">
+<mat-dialog-content class="private-spots-dialog-content px-0">
   <mat-tab-group
+    class="private-spots-tabs"
     [selectedIndex]="selectedTab() === 'visited' ? 1 : 0"
     (selectedTabChange)="onTabChange($event)"
-    dynamicHeight
   >
     <mat-tab label="Saved">
       <div class="tab-content">
@@ -17,39 +17,44 @@
           You have not saved any spots yet.
         </p>
         } @else {
-        <div class="spot-list">
-          @for(spot of savedSpots(); track spot.id) {
-          <a [routerLink]="['/s', spot.slug ?? spot.id]" (click)="closeDialog()">
-            <app-spot-preview-card
-              [spotData]="spot"
-              [infoOnly]="true"
-              [clickable]="true"
-              [isCompact]="true"
-              class="w-100"
-            />
-          </a>
-          }
-        </div>
-        <div class="pagination-controls">
-          <button
-            mat-button
-            (click)="previousPage('saved')"
-            [disabled]="!canGoToPreviousPage('saved')"
-            i18n
-          >
-            Previous
-          </button>
-          <span class="mat-body-small page-label">
-            {{ getPageLabel("saved") }}
-          </span>
-          <button
-            mat-button
-            (click)="nextPage('saved')"
-            [disabled]="!canGoToNextPage('saved')"
-            i18n
-          >
-            Next
-          </button>
+        <div class="tab-list-layout">
+          <div class="spot-list">
+            @for(spot of savedSpots(); track spot.id) {
+            <a
+              [routerLink]="['/s', spot.slug ?? spot.id]"
+              (click)="closeDialog()"
+            >
+              <app-spot-preview-card
+                [spotData]="spot"
+                [infoOnly]="true"
+                [clickable]="true"
+                [isCompact]="true"
+                class="w-100"
+              />
+            </a>
+            }
+          </div>
+          <div class="pagination-controls">
+            <button
+              mat-button
+              (click)="previousPage('saved')"
+              [disabled]="!canGoToPreviousPage('saved')"
+              i18n
+            >
+              Previous
+            </button>
+            <span class="mat-body-small page-label">
+              {{ getPageLabel("saved") }}
+            </span>
+            <button
+              mat-button
+              (click)="nextPage('saved')"
+              [disabled]="!canGoToNextPage('saved')"
+              i18n
+            >
+              Next
+            </button>
+          </div>
         </div>
         }
       </div>
@@ -66,39 +71,44 @@
           You have not marked any spots as visited yet.
         </p>
         } @else {
-        <div class="spot-list">
-          @for(spot of visitedSpots(); track spot.id) {
-          <a [routerLink]="['/s', spot.slug ?? spot.id]" (click)="closeDialog()">
-            <app-spot-preview-card
-              [spotData]="spot"
-              [infoOnly]="true"
-              [clickable]="true"
-              [isCompact]="true"
-              class="w-100"
-            />
-          </a>
-          }
-        </div>
-        <div class="pagination-controls">
-          <button
-            mat-button
-            (click)="previousPage('visited')"
-            [disabled]="!canGoToPreviousPage('visited')"
-            i18n
-          >
-            Previous
-          </button>
-          <span class="mat-body-small page-label">
-            {{ getPageLabel("visited") }}
-          </span>
-          <button
-            mat-button
-            (click)="nextPage('visited')"
-            [disabled]="!canGoToNextPage('visited')"
-            i18n
-          >
-            Next
-          </button>
+        <div class="tab-list-layout">
+          <div class="spot-list">
+            @for(spot of visitedSpots(); track spot.id) {
+            <a
+              [routerLink]="['/s', spot.slug ?? spot.id]"
+              (click)="closeDialog()"
+            >
+              <app-spot-preview-card
+                [spotData]="spot"
+                [infoOnly]="true"
+                [clickable]="true"
+                [isCompact]="true"
+                class="w-100"
+              />
+            </a>
+            }
+          </div>
+          <div class="pagination-controls">
+            <button
+              mat-button
+              (click)="previousPage('visited')"
+              [disabled]="!canGoToPreviousPage('visited')"
+              i18n
+            >
+              Previous
+            </button>
+            <span class="mat-body-small page-label">
+              {{ getPageLabel("visited") }}
+            </span>
+            <button
+              mat-button
+              (click)="nextPage('visited')"
+              [disabled]="!canGoToNextPage('visited')"
+              i18n
+            >
+              Next
+            </button>
+          </div>
         </div>
         }
       </div>

@@ -304,6 +304,7 @@ describe("FirestoreAdapterService (native)", () => {
   let service: FirestoreAdapterService;
   let FirebaseFirestore: any;
   let nativeMockPlatformService: ReturnType<typeof createMockPlatformService>;
+  let fetchMock: Mock;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -311,6 +312,8 @@ describe("FirestoreAdapterService (native)", () => {
     FirebaseFirestore = (await import("@capacitor-firebase/firestore"))
       .FirebaseFirestore;
     nativeMockPlatformService = createMockPlatformService(true, "ios");
+    fetchMock = vi.fn().mockRejectedValue(new Error("mock fetch not configured"));
+    vi.stubGlobal("fetch", fetchMock);
 
     TestBed.configureTestingModule({
       providers: [
@@ -389,7 +392,8 @@ describe("FirestoreAdapterService (native)", () => {
   });
 
   describe("getCollection (native)", () => {
-    it("should call native getCollection", async () => {
+    it("should call native getCollection on Android", async () => {
+      nativeMockPlatformService.getPlatform.mockReturnValue("android");
       const result = await service.getCollection<{ name: string; id: string }>(
         "collection"
       );
@@ -398,7 +402,8 @@ describe("FirestoreAdapterService (native)", () => {
       expect(result).toEqual([{ id: "doc1", name: "Doc 1" }]);
     });
 
-    it("should build composite filter for multiple conditions", async () => {
+    it("should build composite filter for multiple conditions on Android", async () => {
+      nativeMockPlatformService.getPlatform.mockReturnValue("android");
       const filters: QueryFilter[] = [
         { fieldPath: "status", opStr: "==", value: "active" },
         { fieldPath: "type", opStr: "==", value: "spot" },
@@ -415,10 +420,82 @@ describe("FirestoreAdapterService (native)", () => {
         })
       );
     });
+
+    it("should use web query on iOS and skip native getCollection", async () => {
+      const { getDocs } = await import("@angular/fire/firestore");
+      (getDocs as Mock).mockResolvedValueOnce({
+        docs: [{ id: "ios-doc", data: () => ({ name: "iOS" }) }],
+      });
+
+      const result = await service.getCollection<{ name: string; id: string }>(
+        "users"
+      );
+
+      expect(FirebaseFirestore.getCollection).not.toHaveBeenCalled();
+      expect(getDocs).toHaveBeenCalled();
+      expect(result).toEqual([{ id: "ios-doc", name: "iOS" }]);
+    });
+
+    it("should use HTTP query on iOS when REST succeeds", async () => {
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue([
+          {
+            document: {
+              name: "projects/parkour-base-project/databases/(default)/documents/users/http-doc",
+              fields: {
+                display_name: { stringValue: "HTTP User" },
+                spot_edits_count: { integerValue: "12" },
+              },
+            },
+          },
+        ]),
+      });
+      const { getDocs } = await import("@angular/fire/firestore");
+
+      const result = await service.getCollection<{
+        id: string;
+        display_name: string;
+        spot_edits_count: number;
+      }>("users", [], [
+        { type: "orderBy", fieldPath: "spot_edits_count", direction: "desc" },
+        { type: "limit", limit: 100 },
+      ]);
+
+      expect(fetchMock).toHaveBeenCalled();
+      expect(FirebaseFirestore.getCollection).not.toHaveBeenCalled();
+      expect(getDocs).not.toHaveBeenCalled();
+      expect(result).toEqual([
+        { id: "http-doc", display_name: "HTTP User", spot_edits_count: 12 },
+      ]);
+    });
+
+    it("should time out iOS web getCollection query if it hangs", async () => {
+      vi.useFakeTimers();
+      try {
+        const { getDocs } = await import("@angular/fire/firestore");
+        (getDocs as Mock).mockReturnValueOnce(new Promise(() => {}));
+        fetchMock.mockReturnValueOnce(new Promise(() => {}));
+
+        const handled = service.getCollection("users").catch((error) => error);
+        await vi.advanceTimersByTimeAsync(15001);
+
+        const error = await handled;
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain(
+          "getCollection timed out after 15000ms"
+        );
+        expect(getDocs).not.toHaveBeenCalled();
+        expect(FirebaseFirestore.getCollection).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 
   describe("getCollectionGroup (native)", () => {
-    it("should call native getCollectionGroup", async () => {
+    it("should call native getCollectionGroup on Android", async () => {
+      nativeMockPlatformService.getPlatform.mockReturnValue("android");
       const filters: QueryFilter[] = [
         { fieldPath: "user.uid", opStr: "==", value: "user123" },
       ];
@@ -439,7 +516,8 @@ describe("FirestoreAdapterService (native)", () => {
       expect(result).toEqual([{ id: "group-doc1", name: "Group Doc 1" }]);
     });
 
-    it("should work without filters", async () => {
+    it("should work without filters on Android", async () => {
+      nativeMockPlatformService.getPlatform.mockReturnValue("android");
       FirebaseFirestore.getCollectionGroup.mockResolvedValueOnce({
         snapshots: [{ id: "all-edits", data: { field: "value" } }],
       });
@@ -452,6 +530,33 @@ describe("FirestoreAdapterService (native)", () => {
         })
       );
       expect(result).toEqual([{ id: "all-edits", field: "value" }]);
+    });
+
+    it("should use HTTP query on iOS for getCollectionGroup when REST succeeds", async () => {
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue([
+          {
+            document: {
+              name: "projects/parkour-base-project/databases/(default)/documents/spots/s1/edits/g1",
+              fields: {
+                field: { stringValue: "value" },
+              },
+            },
+          },
+        ]),
+      });
+      const { getDocs } = await import("@angular/fire/firestore");
+
+      const result = await service.getCollectionGroup<{
+        field: string;
+        id: string;
+      }>("edits");
+
+      expect(fetchMock).toHaveBeenCalled();
+      expect(FirebaseFirestore.getCollectionGroup).not.toHaveBeenCalled();
+      expect(getDocs).not.toHaveBeenCalled();
+      expect(result).toEqual([{ id: "g1", field: "value" }]);
     });
   });
 

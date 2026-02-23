@@ -41,6 +41,7 @@ import {
   QueryNonFilterConstraint,
   DocumentSnapshot,
 } from "@capacitor-firebase/firestore";
+import { transformFirestoreData } from "../../../scripts/Helpers";
 
 /**
  * Query filter for Firestore queries.
@@ -89,6 +90,8 @@ export class FirestoreAdapterService {
   private firestore = inject(Firestore);
   private ngZone = inject(NgZone);
   private injector = inject(Injector);
+  private readonly iosWebCollectionTimeoutMs = 15000;
+  private readonly firestoreRestBaseUrl = "https://firestore.googleapis.com/v1";
 
   // Track active listeners for cleanup
   private activeListeners = new Map<string, () => void>();
@@ -105,6 +108,380 @@ export class FirestoreAdapterService {
         `[FirestoreAdapter] Failed to remove snapshot listener ${callbackId}:`,
         error
       );
+    });
+  }
+
+  /**
+   * iOS has known serialization issues in the native Firestore collection bridge.
+   * Keep document operations native, but use web SDK for collection queries on iOS.
+   */
+  private shouldUseNativeQueryBridge(): boolean {
+    return (
+      this.platformService.isNative() && this.platformService.getPlatform() !== "ios"
+    );
+  }
+
+  private summarizeFilters(
+    filters?: QueryFilter[]
+  ): Array<{ fieldPath: string; opStr: QueryFilter["opStr"] }> {
+    return (filters || []).map((filter) => ({
+      fieldPath: filter.fieldPath,
+      opStr: filter.opStr,
+    }));
+  }
+
+  private summarizeConstraints(
+    constraints?: QueryConstraintOptions[]
+  ): Array<{
+    type: QueryConstraintOptions["type"];
+    fieldPath?: string;
+    direction?: "asc" | "desc";
+    limit?: number;
+  }> {
+    return (constraints || []).map((constraint) => ({
+      type: constraint.type,
+      fieldPath: constraint.fieldPath,
+      direction: constraint.direction,
+      limit: constraint.limit,
+    }));
+  }
+
+  private withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    timeoutMessage: string
+  ): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timeoutId = setTimeout(
+        () => reject(new Error(timeoutMessage)),
+        timeoutMs
+      );
+
+      promise
+        .then((result) => {
+          clearTimeout(timeoutId);
+          resolve(result);
+        })
+        .catch((error) => {
+          clearTimeout(timeoutId);
+          reject(error);
+        });
+    });
+  }
+
+  private async runCollectionQuery<T>(
+    operation: "getCollection" | "getCollectionGroup",
+    target: string,
+    useNativeBridge: boolean,
+    filters: QueryFilter[] | undefined,
+    constraints: QueryConstraintOptions[] | undefined,
+    execute: () => Promise<T>
+  ): Promise<T> {
+    const platform = this.platformService.getPlatform();
+    const timeoutMs =
+      platform === "ios" && !useNativeBridge
+        ? this.iosWebCollectionTimeoutMs
+        : null;
+    const filterSummary = this.summarizeFilters(filters);
+    const constraintSummary = this.summarizeConstraints(constraints);
+    const startedAt = Date.now();
+
+    console.debug(`[FirestoreAdapter] ${operation} START`, {
+      platform,
+      target,
+      useNativeBridge,
+      timeoutMs,
+      filters: filterSummary,
+      constraints: constraintSummary,
+    });
+
+    const operationPromise = execute();
+    const wrappedPromise = timeoutMs
+      ? this.withTimeout(
+          operationPromise,
+          timeoutMs,
+          `${operation} timed out after ${timeoutMs}ms`
+        )
+      : operationPromise;
+
+    try {
+      const result = await wrappedPromise;
+      const durationMs = Date.now() - startedAt;
+      const resultCount = Array.isArray(result) ? result.length : undefined;
+      console.debug(`[FirestoreAdapter] ${operation} OK`, {
+        platform,
+        target,
+        durationMs,
+        resultCount,
+      });
+      return result;
+    } catch (error) {
+      const durationMs = Date.now() - startedAt;
+      console.error(`[FirestoreAdapter] ${operation} FAIL`, {
+        platform,
+        target,
+        durationMs,
+        useNativeBridge,
+        timeoutMs,
+        filters: filterSummary,
+        constraints: constraintSummary,
+      }, error);
+      throw error;
+    }
+  }
+
+  private getFirestoreProjectId(): string {
+    const projectId = (this.firestore as any)?.app?.options?.projectId;
+    return typeof projectId === "string" && projectId.length > 0
+      ? projectId
+      : "parkour-base-project";
+  }
+
+  private buildRunQueryUrl(): string {
+    const projectId = this.getFirestoreProjectId();
+    return `${this.firestoreRestBaseUrl}/projects/${projectId}/databases/(default)/documents:runQuery`;
+  }
+
+  private mapQueryOperatorToRestOperator(op: QueryFilter["opStr"]): string {
+    const map: Record<QueryFilter["opStr"], string> = {
+      "<": "LESS_THAN",
+      "<=": "LESS_THAN_OR_EQUAL",
+      "==": "EQUAL",
+      ">=": "GREATER_THAN_OR_EQUAL",
+      ">": "GREATER_THAN",
+      "!=": "NOT_EQUAL",
+      "array-contains": "ARRAY_CONTAINS",
+      "array-contains-any": "ARRAY_CONTAINS_ANY",
+      in: "IN",
+      "not-in": "NOT_IN",
+    };
+    return map[op];
+  }
+
+  private toFirestoreRestValue(value: unknown): Record<string, unknown> {
+    if (value === null) {
+      return { nullValue: null };
+    }
+    if (value === undefined) {
+      throw new Error("Undefined filter values are not supported.");
+    }
+    if (typeof value === "string") {
+      return { stringValue: value };
+    }
+    if (typeof value === "boolean") {
+      return { booleanValue: value };
+    }
+    if (typeof value === "number") {
+      if (Number.isInteger(value)) {
+        return { integerValue: value.toString() };
+      }
+      return { doubleValue: value };
+    }
+    if (value instanceof Date) {
+      return { timestampValue: value.toISOString() };
+    }
+    if (Array.isArray(value)) {
+      return {
+        arrayValue: {
+          values: value.map((v) => this.toFirestoreRestValue(v)),
+        },
+      };
+    }
+    if (typeof value === "object") {
+      const obj = value as Record<string, unknown>;
+
+      if (
+        typeof obj["seconds"] === "number" &&
+        typeof obj["nanoseconds"] === "number"
+      ) {
+        const ms =
+          (obj["seconds"] as number) * 1000 +
+          (obj["nanoseconds"] as number) / 1_000_000;
+        return { timestampValue: new Date(ms).toISOString() };
+      }
+
+      if (
+        typeof obj["latitude"] === "number" &&
+        typeof obj["longitude"] === "number"
+      ) {
+        return {
+          geoPointValue: {
+            latitude: obj["latitude"],
+            longitude: obj["longitude"],
+          },
+        };
+      }
+
+      const fields: Record<string, unknown> = {};
+      for (const [key, nestedValue] of Object.entries(obj)) {
+        if (nestedValue === undefined) {
+          continue;
+        }
+        fields[key] = this.toFirestoreRestValue(nestedValue);
+      }
+      return { mapValue: { fields } };
+    }
+
+    throw new Error(`Unsupported filter value type: ${typeof value}`);
+  }
+
+  private buildStructuredWhere(filters?: QueryFilter[]): Record<string, unknown> | null {
+    if (!filters || filters.length === 0) {
+      return null;
+    }
+
+    const fieldFilters = filters.map((filter) => ({
+      fieldFilter: {
+        field: { fieldPath: filter.fieldPath },
+        op: this.mapQueryOperatorToRestOperator(filter.opStr),
+        value: this.toFirestoreRestValue(filter.value),
+      },
+    }));
+
+    if (fieldFilters.length === 1) {
+      return fieldFilters[0];
+    }
+
+    return {
+      compositeFilter: {
+        op: "AND",
+        filters: fieldFilters,
+      },
+    };
+  }
+
+  private buildStructuredQuery(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[],
+    options?: { allDescendants?: boolean }
+  ): {
+    from: Array<{ collectionId: string; allDescendants?: boolean }>;
+    where?: Record<string, unknown>;
+    orderBy?: Array<{
+      field: { fieldPath?: string };
+      direction: "ASCENDING" | "DESCENDING";
+    }>;
+    limit?: number;
+  } {
+    const query: {
+      from: Array<{ collectionId: string; allDescendants?: boolean }>;
+      where?: Record<string, unknown>;
+      orderBy?: Array<{
+        field: { fieldPath?: string };
+        direction: "ASCENDING" | "DESCENDING";
+      }>;
+      limit?: number;
+    } = {
+      from: [
+        {
+          collectionId,
+          ...(options?.allDescendants ? { allDescendants: true } : {}),
+        },
+      ],
+    };
+
+    const whereClause = this.buildStructuredWhere(filters);
+    if (whereClause) {
+      query.where = whereClause;
+    }
+
+    const orderByConstraints = (constraints || []).filter(
+      (constraint) => constraint.type === "orderBy" && constraint.fieldPath
+    );
+    if (orderByConstraints.length > 0) {
+      query.orderBy = orderByConstraints.map((constraint) => ({
+        field: { fieldPath: constraint.fieldPath },
+        direction:
+          constraint.direction === "desc" ? "DESCENDING" : "ASCENDING",
+      }));
+    }
+
+    const limitConstraint = (constraints || []).find(
+      (constraint) =>
+        (constraint.type === "limit" || constraint.type === "limitToLast") &&
+        typeof constraint.limit === "number"
+    );
+    if (limitConstraint?.limit !== undefined) {
+      query.limit = limitConstraint.limit;
+    }
+
+    return query;
+  }
+
+  private extractIdFromDocumentName(documentName: string): string {
+    const parts = documentName.split("/");
+    return parts[parts.length - 1] ?? "";
+  }
+
+  private async runQueryHttp<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[],
+    options?: { allDescendants?: boolean }
+  ): Promise<T[]> {
+    const response = await fetch(this.buildRunQueryUrl(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        structuredQuery: this.buildStructuredQuery(
+          collectionId,
+          filters,
+          constraints,
+          options
+        ),
+      }),
+    });
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw new Error(
+        `Firestore REST runQuery failed: ${response.status} ${response.statusText} ${responseText}`
+      );
+    }
+
+    const raw = (await response.json()) as Array<{
+      document?: {
+        name: string;
+        fields?: Record<string, unknown>;
+      };
+    }>;
+
+    const rows = Array.isArray(raw) ? raw : [raw];
+    const documents = rows
+      .filter((row) => row?.document?.name)
+      .map((row) => row.document as { name: string; fields?: Record<string, unknown> });
+
+    return documents.map((document) => ({
+      id: this.extractIdFromDocumentName(document.name),
+      ...(transformFirestoreData(document.fields || {}) as Record<string, unknown>),
+    })) as T[];
+  }
+
+  private async getCollectionHttp<T>(
+    collectionPath: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Promise<T[]> {
+    if (collectionPath.includes("/")) {
+      throw new Error(
+        `Collection path '${collectionPath}' is not supported by REST runQuery helper.`
+      );
+    }
+    return this.runQueryHttp<T>(collectionPath, filters, constraints, {
+      allDescendants: false,
+    });
+  }
+
+  private async getCollectionGroupHttp<T>(
+    collectionId: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[]
+  ): Promise<T[]> {
+    return this.runQueryHttp<T>(collectionId, filters, constraints, {
+      allDescendants: true,
     });
   }
 
@@ -307,10 +684,44 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
-    if (this.platformService.isNative()) {
-      return this.getCollectionNative<T>(collectionPath, filters, constraints);
+    const platform = this.platformService.getPlatform();
+    if (platform === "ios") {
+      return this.runCollectionQuery(
+        "getCollection",
+        collectionPath,
+        false,
+        filters,
+        constraints,
+        async () => {
+          try {
+            return await this.getCollectionHttp<T>(
+              collectionPath,
+              filters,
+              constraints
+            );
+          } catch (httpError) {
+            console.warn(
+              `[FirestoreAdapter] iOS getCollection HTTP failed, falling back to web SDK for ${collectionPath}.`,
+              httpError
+            );
+            return this.getCollectionWeb<T>(collectionPath, filters, constraints);
+          }
+        }
+      );
     }
-    return this.getCollectionWeb<T>(collectionPath, filters, constraints);
+
+    const useNativeBridge = this.shouldUseNativeQueryBridge();
+    return this.runCollectionQuery(
+      "getCollection",
+      collectionPath,
+      useNativeBridge,
+      filters,
+      constraints,
+      () =>
+        useNativeBridge
+          ? this.getCollectionNative<T>(collectionPath, filters, constraints)
+          : this.getCollectionWeb<T>(collectionPath, filters, constraints)
+    );
   }
 
   private async getCollectionWeb<T>(
@@ -663,14 +1074,44 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
-    if (this.platformService.isNative()) {
-      return this.getCollectionGroupNative<T>(
+    const platform = this.platformService.getPlatform();
+    if (platform === "ios") {
+      return this.runCollectionQuery(
+        "getCollectionGroup",
         collectionId,
+        false,
         filters,
-        constraints
+        constraints,
+        async () => {
+          try {
+            return await this.getCollectionGroupHttp<T>(
+              collectionId,
+              filters,
+              constraints
+            );
+          } catch (httpError) {
+            console.warn(
+              `[FirestoreAdapter] iOS getCollectionGroup HTTP failed, falling back to web SDK for ${collectionId}.`,
+              httpError
+            );
+            return this.getCollectionGroupWeb<T>(collectionId, filters, constraints);
+          }
+        }
       );
     }
-    return this.getCollectionGroupWeb<T>(collectionId, filters, constraints);
+
+    const useNativeBridge = this.shouldUseNativeQueryBridge();
+    return this.runCollectionQuery(
+      "getCollectionGroup",
+      collectionId,
+      useNativeBridge,
+      filters,
+      constraints,
+      () =>
+        useNativeBridge
+          ? this.getCollectionGroupNative<T>(collectionId, filters, constraints)
+          : this.getCollectionGroupWeb<T>(collectionId, filters, constraints)
+    );
   }
 
   private async getCollectionGroupWeb<T>(
@@ -720,7 +1161,7 @@ export class FirestoreAdapterService {
     constraints?: QueryConstraintOptions[],
     startAfterDoc?: any
   ): Promise<{ data: Array<T & { id: string; path: string }>; lastDoc: any }> {
-    if (this.platformService.isNative()) {
+    if (this.shouldUseNativeQueryBridge()) {
       console.warn(
         "getCollectionGroupWithMetadata pagination not fully supported on native yet."
       );

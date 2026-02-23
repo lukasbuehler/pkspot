@@ -532,6 +532,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       ...this.dialogConfig,
       width: "840px",
       maxWidth: "96vw",
+      maxHeight: "92dvh",
       data: {
         savedSpotIds: this.savedSpotIds,
         visitedSpotIds: this.visitedSpotIds,
