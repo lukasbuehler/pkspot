@@ -1018,7 +1018,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         spacerBefore: true,
         name: signedIn
           ? shortUserDisplayName || $localize`Profile`
-          : $localize`:@@login.nav_label:sign-in`,
+          : $localize`:@@login.nav_label:Sign in`,
         ...(signedIn
           ? {
               link: "/profile",
@@ -1033,7 +1033,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               icon: "login",
               active: currentNavUrl.startsWith("/sign-in"),
             }),
-      },
+      }
     );
 
     return buttons;

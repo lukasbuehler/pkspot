@@ -530,8 +530,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
     this.followListDialog.open(PrivateSpotListsDialogComponent, {
       ...this.dialogConfig,
-      width: "840px",
+      width: "min(840px, 96vw)",
       maxWidth: "96vw",
+      height: "min(760px, 92dvh)",
       maxHeight: "92dvh",
       data: {
         savedSpotIds: this.savedSpotIds,

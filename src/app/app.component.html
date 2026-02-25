@@ -84,6 +84,7 @@
       [matMenuTriggerFor]="mainMenu"
       (click)="mainMenuTrigger.openMenu()"
       id="alainMenuButton"
+      [class.native-platform]="isNativePlatform"
       color="primary"
     >
       <mat-icon>menu</mat-icon>
