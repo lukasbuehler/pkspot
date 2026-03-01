@@ -1,6 +1,20 @@
-# Allow all crawlers
 User-agent: *
+Disallow: /settings
+Disallow: /profile/edit
+
+User-agent: facebookexternalhit
 Allow: /
 
-# Sitemap location (generated nightly)
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
 Sitemap: https://pkspot.app/sitemap.xml

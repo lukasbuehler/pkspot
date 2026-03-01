@@ -2,18 +2,12 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { getStorage } from "firebase-admin/storage";
-import {
-  PartialSpotSchema,
-  getSpotName,
-  getSpotPreviewImage,
-} from "./spotHelpers";
-import {
-  buildStorageMediaUrl,
-  parseStorageMediaUrl,
-} from "../../src/db/schemas/Media";
+import { once } from "node:events";
+import type { Writable } from "node:stream";
 
 const BASE_URL = "https://pkspot.app";
 const BUCKET_NAME = "parkour-base-project.appspot.com";
+const XML_BUFFER_TARGET_BYTES = 64 * 1024;
 
 // Supported languages - must match your Angular i18n setup
 const SUPPORTED_LOCALES = ["en", "de", "de-CH", "fr", "it", "es", "nl"];
@@ -37,109 +31,50 @@ const STATIC_PAGES = [
 
 interface UserData {
   display_name?: string;
-  profile_picture?: string;
 }
 
-/**
- * Generates XML sitemap content with hreflang annotations for multilingual support
- */
-function generateSitemapXml(
-  spots: { id: string; slug?: string; data: PartialSpotSchema }[],
-  users: { id: string; data: UserData }[],
-  slugMap: Map<string, string> // Maps slug -> spot_id
-): string {
-  const now = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+interface SpotSitemapData {
+  slug?: string;
+  time_updated?: { seconds: number; nanoseconds: number };
+}
 
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+interface SitemapGenerationStats {
+  spotCount: number;
+  userCount: number;
+  slugCount: number;
+  staticPageCount: number;
+  totalUrls: number;
+}
+
+class BufferedXmlWriter {
+  private buffer = "";
+
+  constructor(private readonly writeStream: Writable) {}
+
+  async append(chunk: string): Promise<void> {
+    this.buffer += chunk;
+    if (this.buffer.length >= XML_BUFFER_TARGET_BYTES) {
+      await this.flush();
+    }
+  }
+
+  async flush(): Promise<void> {
+    if (!this.buffer) {
+      return;
+    }
+
+    if (!this.writeStream.write(this.buffer)) {
+      await once(this.writeStream, "drain");
+    }
+    this.buffer = "";
+  }
+}
+
+function buildSitemapHeader(): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
 `;
-
-  // Add static pages with hreflang
-  for (const page of STATIC_PAGES) {
-    xml += generateUrlWithHreflang(
-      page.path,
-      now,
-      page.changefreq,
-      page.priority
-    );
-  }
-
-  // Add spot pages with hreflang
-  for (const spot of spots) {
-    // Check if this spot has a slug
-    const slug = Array.from(slugMap.entries()).find(
-      ([_, spotId]) => spotId === spot.id
-    )?.[0];
-
-    // Get the spot's last update time if available, otherwise use now
-    const lastmod = spot.data.time_updated
-      ? new Date(spot.data.time_updated.seconds * 1000)
-          .toISOString()
-          .split("T")[0]
-      : now;
-
-    // Get image info for this spot
-    let imageXml = "";
-    const previewImageUrl = getSpotPreviewImage(spot.data);
-    if (previewImageUrl) {
-      const spotName = getSpotName(spot.data, "en");
-      imageXml = `
-    <image:image>
-      <image:loc>${escapeXml(previewImageUrl)}</image:loc>
-      <image:title>${escapeXml(spotName)}</image:title>
-    </image:image>`;
-    }
-
-    // If a slug exists, use it as the only sitemap URL for this spot.
-    // Sitemaps should list canonical URLs only.
-    if (slug) {
-      const slugPath = `/map/${encodeURIComponent(slug)}`;
-      xml += generateUrlWithHreflang(
-        slugPath,
-        lastmod,
-        "weekly",
-        "0.9", // Higher priority for slug-based URL
-        imageXml
-      );
-    } else {
-      // No slug, use ID as main URL
-      const idPath = `/map/${spot.id}`;
-      xml += generateUrlWithHreflang(
-        idPath,
-        lastmod,
-        "weekly",
-        "0.8",
-        imageXml
-      );
-    }
-  }
-
-  // Add user profile pages with hreflang
-  for (const user of users) {
-    const path = `/u/${user.id}`;
-
-    // Get image info for this user
-    let imageXml = "";
-    if (user.data.profile_picture) {
-      const userName = user.data.display_name || "User";
-      const mediaSrc = buildStorageMediaUrl(
-        parseStorageMediaUrl(user.data.profile_picture)
-      );
-      imageXml = `
-
-    <image:image>
-      <image:loc>${escapeXml(mediaSrc)}</image:loc>
-      <image:title>${escapeXml(userName)}</image:title>
-    </image:image>`;
-    }
-
-    xml += generateUrlWithHreflang(path, now, "weekly", "0.6", imageXml);
-  }
-
-  xml += `</urlset>`;
-  return xml;
 }
 
 /**
@@ -149,8 +84,7 @@ function generateUrlWithHreflang(
   path: string,
   lastmod: string,
   changefreq: string,
-  priority: string,
-  additionalXml: string = ""
+  priority: string
 ): string {
   let xml = "";
 
@@ -168,7 +102,6 @@ function generateUrlWithHreflang(
     // Add hreflang links to all alternate language versions
     for (const altLocale of SUPPORTED_LOCALES) {
       const altUrl = `${BASE_URL}/${altLocale}${path}`;
-      // Use language code only for hreflang (e.g., "de" not "de-CH")
       const hreflangCode = getHreflangCode(altLocale);
       xml += `    <xhtml:link rel="alternate" hreflang="${hreflangCode}" href="${altUrl}"/>
 `;
@@ -177,11 +110,6 @@ function generateUrlWithHreflang(
     // Add x-default pointing to the default locale
     xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/${DEFAULT_LOCALE}${path}"/>
 `;
-
-    // Add any additional XML (like images)
-    if (additionalXml) {
-      xml += additionalXml;
-    }
 
     xml += `  </url>
 `;
@@ -200,20 +128,30 @@ function getHreflangCode(locale: string): string {
   return locale;
 }
 
-/**
- * Escapes special XML characters
- */
-function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
+function getNowDateString(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
+function getLastModDate(
+  timeUpdated: SpotSitemapData["time_updated"],
+  fallbackDate: string
+): string {
+  if (!timeUpdated?.seconds) {
+    return fallbackDate;
+  }
+
+  return new Date(timeUpdated.seconds * 1000).toISOString().split("T")[0];
+}
+
+function toError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error;
+  }
+  return new Error(String(error));
 }
 
 /**
- * Fetches all spots and users from Firestore and generates sitemap
+ * Streams spots and users from Firestore and streams sitemap XML to Storage.
  */
 async function _generateAndUploadSitemap(): Promise<{
   success: boolean;
@@ -227,101 +165,113 @@ async function _generateAndUploadSitemap(): Promise<{
   const db = admin.firestore();
   const storage = getStorage();
   const bucket = storage.bucket(BUCKET_NAME);
-
-  console.log("Fetching all spots from Firestore...");
-
-  // Fetch all spots
-  const spotsSnapshot = await db.collection("spots").get();
-  const spots: { id: string; slug?: string; data: PartialSpotSchema }[] = [];
-
-  spotsSnapshot.forEach((doc) => {
-    const data = doc.data() as PartialSpotSchema;
-    spots.push({
-      id: doc.id,
-      slug: data.slug,
-      data: data,
-    });
-  });
-
-  console.log(`Fetched ${spots.length} spots`);
-
-  // Fetch all spot slugs
-  console.log("Fetching spot slugs from Firestore...");
-  const slugsSnapshot = await db.collection("spot_slugs").get();
-  const slugMap = new Map<string, string>(); // Maps slug -> spot_id
-
-  slugsSnapshot.forEach((doc) => {
-    const data = doc.data() as { spot_id: string };
-    if (data.spot_id) {
-      slugMap.set(doc.id, data.spot_id);
-    }
-  });
-
-  console.log(`Fetched ${slugMap.size} spot slugs`);
-
-  // Fetch all users (only public profiles with display names)
-  console.log("Fetching all users from Firestore...");
-  const usersSnapshot = await db.collection("users").get();
-  const users: { id: string; data: UserData }[] = [];
-
-  usersSnapshot.forEach((doc) => {
-    const data = doc.data() as UserData;
-    // Only include users with display names (public profiles)
-    if (data.display_name) {
-      users.push({
-        id: doc.id,
-        data: data,
-      });
-    }
-  });
-
-  console.log(`Fetched ${users.length} users with public profiles`);
-
-  // Generate sitemap XML
-  const sitemapXml = generateSitemapXml(spots, users, slugMap);
-
-  // Upload to Firebase Storage with public access
   const file = bucket.file("sitemap.xml");
+  const now = getNowDateString();
 
-  await file.save(sitemapXml, {
+  const writeStream = file.createWriteStream({
+    resumable: false,
     metadata: {
       contentType: "application/xml",
       cacheControl: "public, max-age=86400", // Cache for 24 hours
     },
   });
+  const writer = new BufferedXmlWriter(writeStream);
+
+  const uploadCompletePromise = new Promise<void>((resolve, reject) => {
+    writeStream.on("finish", resolve);
+    writeStream.on("error", reject);
+  });
+
+  let spotCount = 0;
+  let userCount = 0;
+  let slugCount = 0;
+
+  try {
+    await writer.append(buildSitemapHeader());
+
+    for (const page of STATIC_PAGES) {
+      await writer.append(
+        generateUrlWithHreflang(page.path, now, page.changefreq, page.priority)
+      );
+    }
+
+    console.log("Streaming spots from Firestore...");
+    const spotsStream = db
+      .collection("spots")
+      .select("slug", "time_updated")
+      .stream();
+
+    for await (const doc of spotsStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
+      const data = doc.data() as SpotSitemapData;
+      const slug = data.slug?.trim();
+      const path = slug
+        ? `/map/${encodeURIComponent(slug)}`
+        : `/map/${encodeURIComponent(doc.id)}`;
+
+      if (slug) {
+        slugCount += 1;
+      }
+
+      spotCount += 1;
+      const lastmod = getLastModDate(data.time_updated, now);
+      const priority = slug ? "0.9" : "0.8";
+      await writer.append(generateUrlWithHreflang(path, lastmod, "weekly", priority));
+    }
+
+    console.log(`Streamed ${spotCount} spots`);
+
+    console.log("Streaming users from Firestore...");
+    const usersStream = db.collection("users").select("display_name").stream();
+    for await (const doc of usersStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
+      const data = doc.data() as UserData;
+      if (!data.display_name) {
+        continue;
+      }
+
+      userCount += 1;
+      await writer.append(
+        generateUrlWithHreflang(`/u/${encodeURIComponent(doc.id)}`, now, "weekly", "0.6")
+      );
+    }
+    console.log(`Streamed ${userCount} users with public profiles`);
+
+    await writer.append("</urlset>");
+    await writer.flush();
+    writeStream.end();
+    await uploadCompletePromise;
+  } catch (error) {
+    writeStream.destroy(toError(error));
+    await uploadCompletePromise.catch(() => undefined);
+    throw error;
+  }
 
   // Make the file publicly accessible
   await file.makePublic();
 
   const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/sitemap.xml`;
-
-  // Calculate total URLs
-  // Static pages: 1 per locale
-  // Spots: 1 canonical URL per spot per locale (slug if available, otherwise ID)
-  // Users: 1 per user per locale
-  const spotIdSet = new Set(spots.map((spot) => spot.id));
-  const spotsWithSlugs = new Set(
-    Array.from(slugMap.values()).filter((spotId) => spotIdSet.has(spotId))
-  ).size;
-  const spotsWithoutSlugs = spots.length - spotsWithSlugs;
-  const spotUrlCount =
-    (spotsWithSlugs + spotsWithoutSlugs) * SUPPORTED_LOCALES.length;
-  const staticPageUrls = STATIC_PAGES.length * SUPPORTED_LOCALES.length;
-  const userUrls = users.length * SUPPORTED_LOCALES.length;
-  const totalUrls = staticPageUrls + spotUrlCount + userUrls;
+  const stats: SitemapGenerationStats = {
+    spotCount,
+    userCount,
+    slugCount,
+    staticPageCount: STATIC_PAGES.length,
+    totalUrls:
+      (STATIC_PAGES.length + spotCount + userCount) * SUPPORTED_LOCALES.length,
+  };
 
   console.log(`Sitemap uploaded successfully to ${publicUrl}`);
   console.log(
-    `Total URLs in sitemap: ${totalUrls} (${STATIC_PAGES.length} static + ${spots.length} spots (${spotsWithSlugs} with slugs) + ${users.length} users) × ${SUPPORTED_LOCALES.length} locales`
+    `Total URLs in sitemap: ${stats.totalUrls} (${stats.staticPageCount} static + ` +
+      `${stats.spotCount} spots (${stats.slugCount} with slugs) + ${stats.userCount} users) × ` +
+      `${SUPPORTED_LOCALES.length} locales`
   );
 
   return {
     success: true,
-    spotCount: spots.length,
-    userCount: users.length,
-    staticPageCount: STATIC_PAGES.length,
-    slugCount: slugMap.size,
-    totalUrls: totalUrls,
+    spotCount: stats.spotCount,
+    userCount: stats.userCount,
+    staticPageCount: stats.staticPageCount,
+    slugCount: stats.slugCount,
+    totalUrls: stats.totalUrls,
     url: publicUrl,
   };
 }
@@ -334,6 +284,8 @@ export const generateSitemapOnSchedule = onSchedule(
     schedule: "0 3 * * *", // Every day at 3:00 AM UTC
     timeZone: "UTC",
     region: "europe-west1",
+    memory: "512MiB",
+    timeoutSeconds: 540,
   },
   async () => {
     console.log("Starting scheduled sitemap generation...");
@@ -353,14 +305,10 @@ export const generateSitemapManual = onRequest(
   {
     region: "europe-west1",
     cors: false,
+    memory: "512MiB",
+    timeoutSeconds: 540,
   },
-  async (req, res) => {
-    // Optional: Add authentication check here
-    // if (req.headers.authorization !== 'your-secret-key') {
-    //   res.status(403).send('Unauthorized');
-    //   return;
-    // }
-
+  async (_req, res) => {
     try {
       console.log("Manual sitemap generation triggered...");
       const result = await _generateAndUploadSitemap();

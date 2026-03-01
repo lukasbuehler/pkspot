@@ -47,6 +47,8 @@ interface SpotEditVoteSummary {
 const VOTE_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MIN_TOTAL_VOTES = 2;
 const MIN_YES_NO_RATIO = 3;
+const PENDING_VOTE_EDITS_LIMIT = 300;
+const PENDING_VOTE_EDITS_FALLBACK_SCAN_LIMIT = 900;
 
 // Rollout control:
 // Keep legacy "instant apply" behavior for iconic/verified spots until clients
@@ -218,6 +220,57 @@ function createEmptyVoteSummary(): SpotEditVoteSummary {
     submitter_vote: null,
     eligible_for_auto_approval: false,
   };
+}
+
+function getErrorCode(error: unknown): string {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return "";
+  }
+
+  const code = (error as { code?: string | number }).code;
+  return typeof code === "number" ? String(code) : (code ?? "");
+}
+
+function isFailedPreconditionError(error: unknown): boolean {
+  const code = getErrorCode(error);
+  if (
+    code === "9" ||
+    code === "FAILED_PRECONDITION" ||
+    code === "failed-precondition"
+  ) {
+    return true;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof (error as { message?: unknown }).message === "string"
+  ) {
+    const message = (error as { message: string }).message;
+    return message.includes("FAILED_PRECONDITION");
+  }
+
+  return false;
+}
+
+function extractFirestoreIndexUrl(error: unknown): string | null {
+  if (
+    typeof error !== "object" ||
+    error === null ||
+    !("message" in error) ||
+    typeof (error as { message?: unknown }).message !== "string"
+  ) {
+    return null;
+  }
+
+  const message = (error as { message: string }).message;
+  const urlMatch = message.match(/https:\/\/console\.firebase\.google\.com\/\S+/);
+  if (!urlMatch || !urlMatch[0]) {
+    return null;
+  }
+
+  return urlMatch[0].replace(/[),.;]+$/, "");
 }
 
 function summarizeVotes(
@@ -497,14 +550,56 @@ async function evaluatePendingEditVotes(
 ): Promise<void> {
   const db = admin.firestore();
   const editRef = db.collection("spots").doc(spotId).collection("edits").doc(editId);
+  const context = {
+    reason,
+    spotId,
+    editId,
+    editPath: editRef.path,
+  };
+
   const editSnap = await editRef.get();
 
   if (!editSnap.exists) {
+    console.warn("Pending vote evaluation skipped because edit was not found", context);
     return;
   }
 
   const editData = editSnap.data() as SpotEditSchema;
-  if (!editData || editData.type !== "UPDATE" || editData.approved === true) {
+  if (!editData) {
+    console.warn(
+      "Pending vote evaluation skipped because edit payload is missing",
+      context
+    );
+    return;
+  }
+
+  if (editData.type !== "UPDATE" || editData.approved === true) {
+    return;
+  }
+
+  if (!editData.user?.uid) {
+    console.error(
+      "Pending vote evaluation skipped because edit.user.uid is missing",
+      context
+    );
+    await editRef.update({
+      processing_status: "VOTING_ERROR",
+      blocked_reason: "Missing required field edit.user.uid",
+      processed_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return;
+  }
+
+  if (!editData.data || typeof editData.data !== "object") {
+    console.error(
+      "Pending vote evaluation skipped because edit.data is missing or invalid",
+      context
+    );
+    await editRef.update({
+      processing_status: "VOTING_ERROR",
+      blocked_reason: "Missing required field edit.data",
+      processed_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
     return;
   }
 
@@ -537,6 +632,20 @@ async function evaluatePendingEditVotes(
 
   try {
     const spotRef = db.collection("spots").doc(spotId);
+    const spotSnap = await spotRef.get();
+    if (!spotSnap.exists) {
+      await editRef.update({
+        processing_status: "VOTING_ERROR",
+        blocked_reason: `Referenced spot missing at ${spotRef.path}`,
+        processed_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      console.error("Pending vote evaluation failed because spot is missing", {
+        ...context,
+        spotPath: spotRef.path,
+      });
+      return;
+    }
+
     await applyUpdateEditToSpot(spotRef, editData, spotId);
     await markEditApprovedAndUpdateContributions(
       editRef,
@@ -553,11 +662,28 @@ async function evaluatePendingEditVotes(
       approval_reason: reason,
     });
   } catch (error) {
-    await editRef.update({
-      processing_status: "VOTING_ERROR",
-      blocked_reason: String(error),
-      processed_at: admin.firestore.FieldValue.serverTimestamp(),
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Pending vote evaluation threw an error", {
+      ...context,
+      code: getErrorCode(error),
+      message: errorMessage,
     });
+
+    try {
+      await editRef.update({
+        processing_status: "VOTING_ERROR",
+        blocked_reason: errorMessage,
+        processed_at: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    } catch (updateError) {
+      console.error("Failed to write VOTING_ERROR state for edit", {
+        ...context,
+        updateCode: getErrorCode(updateError),
+        updateMessage:
+          updateError instanceof Error ? updateError.message : String(updateError),
+      });
+    }
+
     throw error;
   }
 }
@@ -580,15 +706,62 @@ export const evaluatePendingSpotEditVotesOnSchedule = onSchedule(
   "every 60 minutes",
   async () => {
     const db = admin.firestore();
-    const pendingEditsSnap = await db
-      .collectionGroup("edits")
-      .where("approved", "==", false)
-      .limit(300)
-      .get();
+    let pendingEditDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
 
-    for (const editDoc of pendingEditsSnap.docs) {
+    try {
+      const pendingEditsSnap = await db
+        .collectionGroup("edits")
+        .where("approved", "==", false)
+        .limit(PENDING_VOTE_EDITS_LIMIT)
+        .get();
+      pendingEditDocs = pendingEditsSnap.docs;
+    } catch (error) {
+      const errorCode = getErrorCode(error);
+      const indexUrl = extractFirestoreIndexUrl(error);
+
+      if (!isFailedPreconditionError(error)) {
+        console.error(
+          "Failed loading pending spot edit votes from Firestore query",
+          {
+            errorCode,
+            message: error instanceof Error ? error.message : String(error),
+          }
+        );
+        throw error;
+      }
+
+      console.error(
+        "Primary pending-edits query hit FAILED_PRECONDITION. " +
+          "Use the Firestore index URL from this error (if present) or deploy firestore.indexes.json.",
+        {
+          errorCode,
+          message: error instanceof Error ? error.message : String(error),
+          indexUrl,
+          fallback: "collectionGroup(edits).limit + in-memory approved===false",
+        }
+      );
+
+      const fallbackSnap = await db
+        .collectionGroup("edits")
+        .limit(PENDING_VOTE_EDITS_FALLBACK_SCAN_LIMIT)
+        .get();
+      pendingEditDocs = fallbackSnap.docs
+        .filter((doc) => doc.get("approved") === false)
+        .slice(0, PENDING_VOTE_EDITS_LIMIT);
+      console.warn("Running scheduled vote evaluation with fallback query result", {
+        scanned: fallbackSnap.size,
+        pendingCount: pendingEditDocs.length,
+      });
+    }
+
+    for (const editDoc of pendingEditDocs) {
       const spotRef = editDoc.ref.parent.parent;
-      if (!spotRef) {
+      const expectedParentCollection = spotRef?.parent?.id;
+      if (!spotRef || expectedParentCollection !== "spots") {
+        console.warn("Skipping edit outside expected spots/{spotId}/edits/{editId} path", {
+          editPath: editDoc.ref.path,
+          parentCollection: expectedParentCollection ?? null,
+        });
         continue;
       }
 
@@ -596,8 +769,14 @@ export const evaluatePendingSpotEditVotesOnSchedule = onSchedule(
         await evaluatePendingEditVotes(spotRef.id, editDoc.id, "scheduled");
       } catch (error) {
         console.error(
-          `Error evaluating pending edit votes for ${spotRef.id}/${editDoc.id}:`,
-          error
+          "Error evaluating pending edit votes during scheduled run",
+          {
+            spotId: spotRef.id,
+            editId: editDoc.id,
+            editPath: editDoc.ref.path,
+            errorCode: getErrorCode(error),
+            message: error instanceof Error ? error.message : String(error),
+          }
         );
       }
     }
