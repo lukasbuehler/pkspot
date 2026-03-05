@@ -175,12 +175,10 @@ export class FollowingService extends ConsentAwareService {
         return users.sort((a, b) => {
           const timeA =
             a.start_following_raw_ms ??
-            (a.start_following as any)?.seconds * 1000 ??
-            0;
+            (((a.start_following as any)?.seconds ?? 0) * 1000);
           const timeB =
             b.start_following_raw_ms ??
-            (b.start_following as any)?.seconds * 1000 ??
-            0;
+            (((b.start_following as any)?.seconds ?? 0) * 1000);
           return timeB - timeA;
         });
       })
@@ -224,12 +222,10 @@ export class FollowingService extends ConsentAwareService {
         return users.sort((a, b) => {
           const timeA =
             a.start_following_raw_ms ??
-            (a.start_following as any)?.seconds * 1000 ??
-            0;
+            (((a.start_following as any)?.seconds ?? 0) * 1000);
           const timeB =
             b.start_following_raw_ms ??
-            (b.start_following as any)?.seconds * 1000 ??
-            0;
+            (((b.start_following as any)?.seconds ?? 0) * 1000);
           return timeB - timeA;
         });
       })

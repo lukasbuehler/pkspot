@@ -242,6 +242,11 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     targetOffset: number,
     alwaysVisible: number
   ): void {
+    if (this.contentElement) {
+      this.contentElement.style.overflowY =
+        targetOffset === 0 ? "scroll" : "hidden";
+    }
+
     const distance = targetOffset - fromOffset;
     let start = 0;
 
