@@ -47,6 +47,7 @@ export class UsersService extends ConsentAwareService {
     return new Observable<User | null>((observer) => {
       let innerSub: Subscription | null = null;
       let isUnsubscribed = false;
+      let hasFallenBackToHttp = false;
 
       this.executeWhenConsent(() => {
         if (isUnsubscribed) return;
@@ -56,7 +57,36 @@ export class UsersService extends ConsentAwareService {
           .pipe(map((d) => (d ? new User(d.id, d as UserSchema) : null)));
         innerSub = obs$.subscribe({
           next: (v) => observer.next(v),
-          error: (e) => observer.error(e),
+          error: (e) => {
+            if (
+              hasFallenBackToHttp ||
+              !this._shouldFallbackToHttpUserFetch(e)
+            ) {
+              observer.error(e);
+              return;
+            }
+
+            hasFallenBackToHttp = true;
+            innerSub?.unsubscribe();
+            innerSub = null;
+
+            console.warn(
+              "UsersService: Falling back to HTTP profile fetch after Firestore listener failure.",
+              e
+            );
+
+            this.getUserByIdHttp(userId)
+              .then((fallbackUser) => {
+                if (!isUnsubscribed) {
+                  observer.next(fallbackUser);
+                }
+              })
+              .catch((fallbackError) => {
+                if (!isUnsubscribed) {
+                  observer.error(fallbackError);
+                }
+              });
+          },
         });
       }).catch((error) => {
         if (!isUnsubscribed) {
@@ -70,6 +100,24 @@ export class UsersService extends ConsentAwareService {
         innerSub = null;
       };
     });
+  }
+
+  private _shouldFallbackToHttpUserFetch(error: unknown): boolean {
+    const message =
+      error instanceof Error ? error.message : String(error ?? "");
+    const code =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      typeof (error as { code?: unknown }).code === "string"
+        ? String((error as { code: string }).code)
+        : "";
+
+    return (
+      message.includes("Expected type") ||
+      code === "invalid-argument" ||
+      code === "firestore/invalid-argument"
+    );
   }
 
   async getUserByIdHttp(userId: string): Promise<User | null> {

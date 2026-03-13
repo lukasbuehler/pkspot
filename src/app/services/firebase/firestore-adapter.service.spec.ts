@@ -228,6 +228,25 @@ describe("FirestoreAdapterService", () => {
 
       expect(Array.isArray(result)).toBe(true);
     });
+
+    it("should ignore malformed limit constraints instead of forwarding them", async () => {
+      const mockDocs = [{ id: "doc1", data: () => ({ name: "Doc 1" }) }];
+      const { getDocs, limit } = await import("@angular/fire/firestore");
+      (getDocs as Mock).mockResolvedValueOnce({ docs: mockDocs });
+
+      const constraints = [
+        { type: "limit", limit: { bad: true } },
+      ] as unknown as QueryConstraintOptions[];
+
+      const result = await service.getCollection(
+        "collection",
+        undefined,
+        constraints
+      );
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(limit).not.toHaveBeenCalled();
+    });
   });
 
   describe("getCollectionGroup (web)", () => {
@@ -561,6 +580,76 @@ describe("FirestoreAdapterService (native)", () => {
   });
 
   describe("native realtime listener cleanup", () => {
+    it("emits document snapshots via the native listener", async () => {
+      FirebaseFirestore.addDocumentSnapshotListener.mockImplementationOnce(
+        (_options: unknown, callback: Function) => {
+          callback(
+            {
+              snapshot: {
+                id: "native-doc",
+                data: { name: "Native Realtime Doc" },
+              },
+            },
+            undefined
+          );
+          return Promise.resolve("listener-doc");
+        }
+      );
+
+      let received: { id: string; name: string } | null | undefined;
+      const subscription = service
+        .documentSnapshots<{ id: string; name: string }>("collection/doc-id")
+        .subscribe((value) => {
+          received = value;
+        });
+
+      expect(FirebaseFirestore.addDocumentSnapshotListener).toHaveBeenCalledWith(
+        { reference: "collection/doc-id" },
+        expect.any(Function)
+      );
+      expect(received).toEqual({
+        id: "native-doc",
+        name: "Native Realtime Doc",
+      });
+
+      subscription.unsubscribe();
+    });
+
+    it("emits collection snapshots via the native listener", async () => {
+      FirebaseFirestore.addCollectionSnapshotListener.mockImplementationOnce(
+        (_options: unknown, callback: Function) => {
+          callback(
+            {
+              snapshots: [
+                { id: "doc-a", data: { name: "Alpha" } },
+                { id: "doc-b", data: { name: "Beta" } },
+              ],
+            },
+            undefined
+          );
+          return Promise.resolve("listener-collection");
+        }
+      );
+
+      let received: Array<{ id: string; name: string }> | undefined;
+      const subscription = service
+        .collectionSnapshots<{ id: string; name: string }>("collection")
+        .subscribe((value) => {
+          received = value;
+        });
+
+      expect(FirebaseFirestore.addCollectionSnapshotListener).toHaveBeenCalledWith(
+        expect.objectContaining({ reference: "collection" }),
+        expect.any(Function)
+      );
+      expect(received).toEqual([
+        { id: "doc-a", name: "Alpha" },
+        { id: "doc-b", name: "Beta" },
+      ]);
+
+      subscription.unsubscribe();
+    });
+
     it("removes document listener if unsubscribed before callbackId resolves", async () => {
       FirebaseFirestore.addDocumentSnapshotListener.mockReturnValueOnce(
         Promise.resolve("late-listener-id")

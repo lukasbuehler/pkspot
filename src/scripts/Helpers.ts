@@ -134,6 +134,17 @@ export function parseFirestoreTimestamp(timestamp: any): Date | null {
     return new Date(timestamp.seconds * 1000);
   }
 
+  // Firestore REST timestamp object
+  if (
+    typeof timestamp === "object" &&
+    typeof timestamp.timestampValue === "string"
+  ) {
+    const parsedDate = new Date(timestamp.timestampValue);
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return parsedDate;
+    }
+  }
+
   // String representation like "Timestamp(seconds=1706742000, nanoseconds=0)"
   if (typeof timestamp === "string") {
     const match = timestamp.match(/Timestamp\(seconds=(\d+)/);
