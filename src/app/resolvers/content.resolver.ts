@@ -160,13 +160,10 @@ async function resolveSpotContent(
   try {
     // Get the spot
     const spotId = await services.slugsService
-      .getSpotIdFromSpotSlugHttp(spotIdOrSlug)
+      .getSpotIdFromSpotSlug(spotIdOrSlug)
       .catch(() => spotIdOrSlug as SpotId);
 
-    const spot = await services.spotsService.getSpotByIdHttp(
-      spotId,
-      services.locale
-    );
+    const spot = await services.spotsService.getSpotById(spotId, services.locale);
     result.spot = spot;
 
     // If we also have a challenge, get that too

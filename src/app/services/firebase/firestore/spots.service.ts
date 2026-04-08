@@ -91,28 +91,35 @@ export class SpotsService extends ConsentAwareService {
   }
 
   getSpotByIdHttp(spotId: SpotId, locale: LocaleCode): Promise<Spot> {
-    return fetch(
-      `https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/spots/${spotId}`
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (!data.fields) {
-          throw new Error("No 'fields' property in JSON response");
-        }
+    return this.getSpotById(spotId, locale).catch((adapterError) => {
+      console.warn(
+        "SpotsService: adapter-backed spot load failed, falling back to HTTP fetch.",
+        adapterError
+      );
 
-        const spotData = transformFirestoreData(data.fields) as SpotSchema;
+      return fetch(
+        `https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/spots/${spotId}`
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (!data.fields) {
+            throw new Error("No 'fields' property in JSON response");
+          }
 
-        return new Spot(spotId, spotData, locale);
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-        throw error;
-      });
+          const spotData = transformFirestoreData(data.fields) as SpotSchema;
+
+          return new Spot(spotId, spotData, locale);
+        })
+        .catch((error) => {
+          console.error("There was a problem with the fetch operation:", error);
+          throw error;
+        });
+    });
   }
 
   getSpotById$(spotId: SpotId, locale: LocaleCode): Observable<Spot> {

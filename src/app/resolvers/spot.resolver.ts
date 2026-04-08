@@ -30,11 +30,11 @@ export const spotResolver: ResolveFn<Spot | null> = async (
   try {
     // First try to get spot ID from slug
     const spotId = await slugsService
-      .getSpotIdFromSpotSlugHttp(spotIdOrSlug)
+      .getSpotIdFromSpotSlug(spotIdOrSlug)
       .catch(() => spotIdOrSlug as SpotId); // If it fails, assume it's already an ID
 
     // Then fetch the spot
-    const spot = await spotsService.getSpotByIdHttp(spotId, locale);
+    const spot = await spotsService.getSpotById(spotId, locale);
     return spot;
   } catch (error) {
     console.error("Error resolving spot:", error);

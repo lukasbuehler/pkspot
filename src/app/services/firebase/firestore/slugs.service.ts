@@ -84,16 +84,28 @@ export class SlugsService extends ConsentAwareService {
   }
 
   getSpotIdFromSpotSlugHttp(slug: string): Promise<SpotId> {
-    return fetch(
-      `https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/spot_slugs/${slug}`
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.fields) {
-          return Promise.reject("No spot found for this slug.");
-        }
-        const fields: any = data.fields;
-        return fields.spot_id.stringValue as SpotId;
-      });
+    return this.getSpotIdFromSpotSlug(slug).catch((adapterError) => {
+      console.warn(
+        "SlugsService: adapter-backed slug lookup failed, falling back to HTTP fetch.",
+        adapterError
+      );
+
+      return fetch(
+        `https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/spot_slugs/${slug}`
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (!data.fields) {
+            return Promise.reject("No spot found for this slug.");
+          }
+          const fields: any = data.fields;
+          return fields.spot_id.stringValue as SpotId;
+        });
+    });
   }
 }

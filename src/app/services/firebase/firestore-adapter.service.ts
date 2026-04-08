@@ -26,19 +26,9 @@ import {
   orderBy,
   limit,
   getDocs,
+  onSnapshot,
   QueryConstraint as AngularFireQueryConstraint,
 } from "@angular/fire/firestore";
-import {
-  collection as rawCollection,
-  collectionGroup as rawCollectionGroup,
-  doc as rawDoc,
-  onSnapshot as rawOnSnapshot,
-  orderBy as rawOrderBy,
-  limit as rawLimit,
-  query as rawQuery,
-  where as rawWhere,
-  QueryConstraint as RawQueryConstraint,
-} from "firebase/firestore";
 
 // Native imports (Capacitor Firebase)
 import {
@@ -264,24 +254,24 @@ export class FirestoreAdapterService {
       typeof candidate.path === "string" &&
       candidate.path.length > 0
     ) {
-      return rawDoc(this.firestore, candidate.path);
+      return doc(this.firestore, candidate.path);
     }
 
     return value;
   }
 
-  private buildRawWebQueryConstraints(
+  private buildWebQueryConstraints(
     target: string,
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
-  ): RawQueryConstraint[] {
-    const rawConstraints: RawQueryConstraint[] = [];
+  ): AngularFireQueryConstraint[] {
+    const queryConstraints: AngularFireQueryConstraint[] = [];
     const sanitizedConstraints = this.sanitizeQueryConstraints(constraints, target);
 
     if (filters) {
       for (const filter of filters) {
-        rawConstraints.push(
-          rawWhere(
+        queryConstraints.push(
+          where(
             filter.fieldPath,
             filter.opStr,
             this.normalizeWebFilterValue(filter.value)
@@ -292,15 +282,13 @@ export class FirestoreAdapterService {
 
     for (const constraint of sanitizedConstraints) {
       if (constraint.type === "orderBy" && constraint.fieldPath) {
-        rawConstraints.push(
-          rawOrderBy(constraint.fieldPath, constraint.direction)
-        );
+        queryConstraints.push(orderBy(constraint.fieldPath, constraint.direction));
       } else if (constraint.type === "limit" && constraint.limit) {
-        rawConstraints.push(rawLimit(constraint.limit));
+        queryConstraints.push(limit(constraint.limit));
       }
     }
 
-    return rawConstraints;
+    return queryConstraints;
   }
 
   private withTimeout<T>(
@@ -898,7 +886,11 @@ export class FirestoreAdapterService {
       if (filters) {
         for (const filter of filters) {
           queryConstraints.push(
-            where(filter.fieldPath, filter.opStr, filter.value)
+            where(
+              filter.fieldPath,
+              filter.opStr,
+              this.normalizeWebFilterValue(filter.value)
+            )
           );
         }
       }
@@ -1005,25 +997,28 @@ export class FirestoreAdapterService {
   }
 
   private documentSnapshotsWeb<T>(path: string): Observable<T | null> {
-    return new Observable<T | null>((observer) => {
-      const docRef = rawDoc(this.firestore, path);
-      const unsubscribe = rawOnSnapshot(
-        docRef,
-        (snapshot) => {
-          if (!snapshot.exists()) {
-            observer.next(null);
-            return;
-          }
+    return runInInjectionContext(this.injector, () => {
+      const docRef = doc(this.firestore, path);
 
-          observer.next({
-            id: snapshot.id,
-            ...snapshot.data(),
-          } as T);
-        },
-        (error) => observer.error(error)
-      );
+      return new Observable<T | null>((observer) => {
+        const unsubscribe = onSnapshot(
+          docRef,
+          (snapshot) => {
+            if (!snapshot.exists()) {
+              observer.next(null);
+              return;
+            }
 
-      return () => unsubscribe();
+            observer.next({
+              id: snapshot.id,
+              ...snapshot.data(),
+            } as T);
+          },
+          (error) => observer.error(error)
+        );
+
+        return () => unsubscribe();
+      });
     });
   }
 
@@ -1101,27 +1096,29 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Observable<T[]> {
-    return new Observable<T[]>((observer) => {
-      const collRef = rawCollection(this.firestore, collectionPath);
-      const q = rawQuery(
+    return runInInjectionContext(this.injector, () => {
+      const collRef = collection(this.firestore, collectionPath);
+      const q = query(
         collRef,
-        ...this.buildRawWebQueryConstraints(collectionPath, filters, constraints)
+        ...this.buildWebQueryConstraints(collectionPath, filters, constraints)
       );
 
-      const unsubscribe = rawOnSnapshot(
-        q,
-        (snapshot) => {
-          observer.next(
-            snapshot.docs.map((docSnapshot) => ({
-              id: docSnapshot.id,
-              ...docSnapshot.data(),
-            })) as T[]
-          );
-        },
-        (error) => observer.error(error)
-      );
+      return new Observable<T[]>((observer) => {
+        const unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            observer.next(
+              snapshot.docs.map((docSnapshot) => ({
+                id: docSnapshot.id,
+                ...docSnapshot.data(),
+              })) as T[]
+            );
+          },
+          (error) => observer.error(error)
+        );
 
-      return () => unsubscribe();
+        return () => unsubscribe();
+      });
     });
   }
 
@@ -1305,7 +1302,11 @@ export class FirestoreAdapterService {
       if (filters) {
         for (const filter of filters) {
           queryConstraints.push(
-            where(filter.fieldPath, filter.opStr, filter.value)
+            where(
+              filter.fieldPath,
+              filter.opStr,
+              this.normalizeWebFilterValue(filter.value)
+            )
           );
         }
       }
@@ -1495,27 +1496,29 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Observable<T[]> {
-    return new Observable<T[]>((observer) => {
-      const collGroupRef = rawCollectionGroup(this.firestore, collectionId);
-      const q = rawQuery(
+    return runInInjectionContext(this.injector, () => {
+      const collGroupRef = collectionGroup(this.firestore, collectionId);
+      const q = query(
         collGroupRef,
-        ...this.buildRawWebQueryConstraints(collectionId, filters, constraints)
+        ...this.buildWebQueryConstraints(collectionId, filters, constraints)
       );
 
-      const unsubscribe = rawOnSnapshot(
-        q,
-        (snapshot) => {
-          observer.next(
-            snapshot.docs.map((docSnapshot) => ({
-              id: docSnapshot.id,
-              ...docSnapshot.data(),
-            })) as T[]
-          );
-        },
-        (error) => observer.error(error)
-      );
+      return new Observable<T[]>((observer) => {
+        const unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            observer.next(
+              snapshot.docs.map((docSnapshot) => ({
+                id: docSnapshot.id,
+                ...docSnapshot.data(),
+              })) as T[]
+            );
+          },
+          (error) => observer.error(error)
+        );
 
-      return () => unsubscribe();
+        return () => unsubscribe();
+      });
     });
   }
 
@@ -1538,15 +1541,15 @@ export class FirestoreAdapterService {
     }
 
     return runInInjectionContext(injector, () => {
-      const collGroupRef = rawCollectionGroup(this.firestore, collectionId);
-      const q = rawQuery(
+      const collGroupRef = collectionGroup(this.firestore, collectionId);
+      const q = query(
         collGroupRef,
-        ...this.buildRawWebQueryConstraints(collectionId, filters, constraints)
+        ...this.buildWebQueryConstraints(collectionId, filters, constraints)
       );
 
       return new Observable<Array<T & { id: string; path: string }>>(
         (observer) => {
-          const unsubscribe = rawOnSnapshot(
+          const unsubscribe = onSnapshot(
             q,
             (snapshot) => {
               const docs = snapshot.docs.map((docSnapshot) => ({

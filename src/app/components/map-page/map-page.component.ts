@@ -850,7 +850,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (spotIdOrSlug) {
       return this._slugsService
-        .getSpotIdFromSpotSlugHttp(spotIdOrSlug)
+        .getSpotIdFromSpotSlug(spotIdOrSlug)
         .catch(() => spotIdOrSlug as SpotId);
     } else {
       // don't emit anything if no spot is provided
@@ -1098,7 +1098,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        const spot: Spot = await this._spotsService.getSpotByIdHttp(
+        const spot: Spot = await this._spotsService.getSpotById(
           spotId,
           this.locale
         );

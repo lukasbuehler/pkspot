@@ -153,3 +153,13 @@ check_circle
 badge
 streetview
 notes
+tram
+directions_bus
+restaurant
+video_camera_front
+psychology
+biotech
+mood
+adjust
+groups_2
+groups

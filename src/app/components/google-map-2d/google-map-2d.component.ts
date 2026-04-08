@@ -16,6 +16,7 @@ import {
   model,
   ModelSignal,
   OnChanges,
+  OnDestroy,
   SimpleChanges,
   signal,
   effect,
@@ -135,7 +136,7 @@ export interface TilesObject {
 })
 export class GoogleMap2dComponent
   extends MapBase
-  implements OnChanges, AfterViewInit
+  implements OnChanges, AfterViewInit, OnDestroy
 {
   readonly autoStartLocationWatch = environment.features.checkIns;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
@@ -712,9 +713,7 @@ export class GoogleMap2dComponent
       }
 
       if (this.googleMap) {
-        this.googleMap.headingChanged.subscribe(() => {
-          this.headingIsNotNorth.set(this.googleMap!.getHeading() !== 0);
-        });
+        this._subscribeToHeadingChanges();
       }
     });
 
@@ -740,6 +739,7 @@ export class GoogleMap2dComponent
 
   isApiLoadedSubscription: Subscription | null = null;
   consentSubscription: Subscription | null = null;
+  private _headingChangedSubscription: Subscription | null = null;
 
   ngAfterViewInit() {
     if (!this.mapsApiService.isApiLoaded()) {
@@ -776,13 +776,17 @@ export class GoogleMap2dComponent
       this.googleMap.googleMap?.setOptions({ minZoom: this.minZoom });
     }
 
-    // Apply vector rendering type safely
-    this.mapOptions.renderingType = google.maps.RenderingType.VECTOR;
-    // this.googleMap.googleMap?.setOptions({
-    //   renderingType: google.maps.RenderingType.VECTOR,
-    // });
+    const vectorRenderingType = this._getVectorRenderingType();
+    if (vectorRenderingType) {
+      this.mapOptions.renderingType = vectorRenderingType;
+      this.googleMap.googleMap?.setOptions({
+        renderingType: vectorRenderingType,
+      } as google.maps.MapOptions);
+    }
 
     this.positionGoogleMapsLogo();
+    this._subscribeToHeadingChanges();
+
     if (this.isDebug()) {
       this._startFpsLoop();
     } else {
@@ -792,18 +796,32 @@ export class GoogleMap2dComponent
 
   private async _updateMapConfig() {
     const desiredMapTypeId = this.mapTypeId();
+    const nextOptions: google.maps.MapOptions = {
+      ...this.mapOptions,
+      mapTypeId: desiredMapTypeId,
+    };
+    const vectorRenderingType = this._getVectorRenderingType();
+    const colorScheme = await this._loadDarkColorScheme();
+
+    if (vectorRenderingType) {
+      nextOptions.renderingType = vectorRenderingType;
+    } else {
+      delete (nextOptions as Partial<google.maps.MapOptions>).renderingType;
+    }
+
+    if (colorScheme) {
+      (nextOptions as google.maps.MapOptions & { colorScheme: string }).colorScheme =
+        colorScheme;
+    } else {
+      delete (nextOptions as google.maps.MapOptions & {
+        colorScheme?: unknown;
+      }).colorScheme;
+    }
 
     // If map is already initialized, use setOptions
     if (this.googleMap?.googleMap) {
       try {
-        const { ColorScheme } = (await google.maps.importLibrary(
-          "core"
-        )) as any;
-        // Always force Dark mode for the map as requested
-        this.googleMap.googleMap.setOptions({
-          mapTypeId: desiredMapTypeId,
-          colorScheme: ColorScheme.DARK,
-        } as any);
+        this.googleMap.googleMap.setOptions(nextOptions);
       } catch (e) {
         console.warn("Failed to update map config:", e);
       }
@@ -812,20 +830,48 @@ export class GoogleMap2dComponent
 
     // Otherwise update mapOptions before initialization
     try {
-      // Use dynamic import for Core library to get ColorScheme
-      // @ts-ignore - Handle potential missing types for newer Maps features
-      const { ColorScheme } = await google.maps.importLibrary("core");
-
-      this.mapOptions = {
-        ...this.mapOptions,
-        mapTypeId: desiredMapTypeId,
-        // @ts-ignore
-        colorScheme: ColorScheme.DARK,
-      };
+      this.mapOptions = nextOptions;
       this.optionsInitialized.set(true);
     } catch (e) {
       console.warn("Failed to set map config:", e);
       this.optionsInitialized.set(true); // Proceed anyway
+    }
+  }
+
+  private _getGoogleMapsApi(): (typeof google)["maps"] | null {
+    if (typeof google === "undefined" || !google.maps) {
+      return null;
+    }
+
+    return google.maps;
+  }
+
+  private _getVectorRenderingType(): google.maps.RenderingType | null {
+    const mapsApi = this._getGoogleMapsApi();
+    return mapsApi?.RenderingType?.VECTOR ?? null;
+  }
+
+  private async _loadDarkColorScheme(): Promise<string | null> {
+    const mapsApi = this._getGoogleMapsApi() as
+      | ((typeof google)["maps"] & {
+          importLibrary?: (libraryName: string) => Promise<{
+            ColorScheme?: { DARK?: unknown };
+          }>;
+        })
+      | null;
+
+    if (!mapsApi || typeof mapsApi.importLibrary !== "function") {
+      return null;
+    }
+
+    try {
+      const coreLibrary = (await mapsApi.importLibrary("core")) as {
+        ColorScheme?: { DARK?: string };
+      };
+      return coreLibrary.ColorScheme?.DARK ?? null;
+    } catch (error) {
+      console.warn("Failed to load Google Maps core library:", error);
+      return null;
     }
   }
 
@@ -871,7 +917,19 @@ export class GoogleMap2dComponent
     if (this.isApiLoadedSubscription)
       this.isApiLoadedSubscription.unsubscribe();
     if (this.consentSubscription) this.consentSubscription.unsubscribe();
+    if (this._headingChangedSubscription)
+      this._headingChangedSubscription.unsubscribe();
     this._stopFpsLoop();
+  }
+
+  private _subscribeToHeadingChanges(): void {
+    if (this._headingChangedSubscription || !this.googleMap) return;
+
+    this._headingChangedSubscription = this.googleMap.headingChanged.subscribe(
+      () => {
+        this.headingIsNotNorth.set(this.googleMap!.getHeading() !== 0);
+      }
+    );
   }
 
   private _geoPointToLatLng(
@@ -943,7 +1001,6 @@ export class GoogleMap2dComponent
     disableDefaultUI: true,
     tilt: 0,
     headingInteractionEnabled: true,
-    renderingType: "VECTOR" as any, // Force Vector Map
   };
 
   optionsInitialized = signal<boolean>(false);

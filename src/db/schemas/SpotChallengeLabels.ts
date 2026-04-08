@@ -28,7 +28,7 @@ export const ChallengeParticipantTypeIcons: Record<
   string
 > = {
   solo: "person",
-  pair: "people",
+  pair: "groups_2",
   team: "groups",
 };
 
