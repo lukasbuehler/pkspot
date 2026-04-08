@@ -37,10 +37,8 @@ import {
   MatRowDef,
   MatRow,
 } from "@angular/material/table";
-// NgIf removed (unused) to silence compiler warning
 import { FollowingService } from "../../services/firebase/firestore/following.service.js";
 import { FollowingDataSchema } from "../../../db/schemas/UserSchema";
-import { NgOptimizedImage } from "@angular/common";
 
 export interface FollowListDialogData {
   userId: string;
@@ -92,7 +90,6 @@ export class FollowDurationPipe implements PipeTransform {
     MatProgressSpinner,
     MatButton,
     FollowDurationPipe,
-    NgOptimizedImage,
   ],
 })
 export class FollowListComponent implements OnInit {

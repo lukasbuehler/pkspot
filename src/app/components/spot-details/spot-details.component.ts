@@ -164,7 +164,6 @@ import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.compo
 import { StorageBucket } from "../../../db/schemas/Media";
 import { Timestamp } from "firebase/firestore";
 import { Router, RouterLink } from "@angular/router";
-import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 // import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
 import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
@@ -273,7 +272,6 @@ export class AsRatingKeyPipe implements PipeTransform {
     MatFormFieldModule,
     MatInputModule,
     LocaleMapViewComponent,
-    ChallengeListComponent,
     MatButtonToggleModule,
     MatDialogModule,
     // New reusable Google Place preview

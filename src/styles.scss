@@ -118,14 +118,6 @@ app-root {
 
   /* Apply safe area padding here to the scrolling container */
   --status-bar-height: 0px;
-  // Only apply status bar height on Android native - not on iOS or macOS
-  .native-platform.platform-android:not(.running-on-macos-or-ipad) & {
-    @media (orientation: portrait) {
-      --status-bar-height: 24px;
-    }
-    // In landscape, we hide the status bar via JS, so height should be 0 (default)
-  }
-
   padding-top: max(
     var(--safe-area-inset-top, env(safe-area-inset-top, 0px)),
     var(--status-bar-height)
@@ -142,6 +134,14 @@ app-root {
   // Create a positioning context so absolute children (like the menu button)
   // are positioned relative to this container (starting below the safe area padding)
   position: relative;
+
+  // Only apply status bar height on Android native - not on iOS or macOS
+  .native-platform.platform-android:not(.running-on-macos-or-ipad) & {
+    @media (orientation: portrait) {
+      --status-bar-height: 24px;
+    }
+    // In landscape, we hide the status bar via JS, so height should be 0 (default)
+  }
 }
 
 /* Alternative: Hide the badge entirely if preferred (only if you show the reCAPTCHA terms elsewhere) */

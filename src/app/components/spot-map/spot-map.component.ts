@@ -49,7 +49,7 @@ import {
 } from "../../../db/schemas/SpotClusterTile";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
-import { AsyncPipe, isPlatformServer } from "@angular/common";
+import { isPlatformServer } from "@angular/common";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { LocaleCode } from "../../../db/models/Interfaces";
@@ -72,7 +72,7 @@ import { environment } from "../../../environments/environment";
   selector: "app-spot-map",
   templateUrl: "./spot-map.component.html",
   styleUrls: ["./spot-map.component.scss"],
-  imports: [GoogleMap2dComponent, MatSnackBarModule, AsyncPipe],
+  imports: [GoogleMap2dComponent, MatSnackBarModule],
   standalone: true,
   animations: [],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -106,7 +106,7 @@
             @if(!isEmailExpanded) {
             <div class="d-flex align-items-center gap-2">
               <span class="mat-body-strong">{{ emailAddress }}</span>
-              @if(authService.user?.emailVerified) {
+              @if(authService.user.emailVerified) {
               <mat-icon
                 i18n-matTooltip
                 matTooltip="Verified"
@@ -137,7 +137,7 @@
               <mat-form-field appearance="outline">
                 <mat-label i18n>Current E-mail</mat-label>
                 <input matInput type="email" [value]="emailAddress" disabled />
-                @if(!authService.user?.emailVerified) {
+                @if(!authService.user.emailVerified) {
                 <mat-icon
                   matSuffix
                   i18n-matTooltip

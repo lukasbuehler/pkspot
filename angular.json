@@ -78,7 +78,9 @@
               "@angular/fire",
               "@angular/fire/firestore",
               "dialog-polyfill",
-
+              "jszip",
+              "@grpc/grpc-js",
+              "@grpc/proto-loader",
               "typesense"
             ],
             "server": "src/main.server.ts",
