@@ -60,6 +60,27 @@ const hasAddressData = (address: AddressType | null | undefined): boolean => {
   );
 };
 
+const removeUndefinedValues = <T>(value: T): T => {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => removeUndefinedValues(entry))
+      .filter((entry) => entry !== undefined) as T;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, entryValue]) => entryValue !== undefined)
+      .map(([entryKey, entryValue]) => [
+        entryKey,
+        removeUndefinedValues(entryValue),
+      ]);
+
+    return Object.fromEntries(entries) as T;
+  }
+
+  return value;
+};
+
 const GEOCODE_RESULT_TYPES =
   "street_address|country|locality|sublocality|administrative_area_level_1";
 
@@ -285,7 +306,7 @@ export const updateAllSpotAddresses = onDocumentCreated(
       });
 
       if (hasAddressData(address)) {
-        await spot.ref.update({ address: address });
+        await spot.ref.update({ address: removeUndefinedValues(address) });
         console.log("Updated address for spot", spot.id, address);
       } else {
         console.warn(
