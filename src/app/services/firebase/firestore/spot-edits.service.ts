@@ -351,6 +351,8 @@ export class SpotEditsService extends ConsentAwareService {
       "tile_coordinates",
       "is_iconic",
       "address",
+      "landing",
+      "slug",
       "top_challenges",
       "num_challenges",
       // System fields

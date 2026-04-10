@@ -8,6 +8,7 @@ import {
 } from "../../db/models/SpotChallenge";
 import { LocaleCode } from "../../db/models/Interfaces";
 import { environment } from "../../environments/environment";
+import { getDisplayLocalityName } from "../../scripts/AddressHelpers";
 
 export interface MetaTagData {
   title: string;
@@ -97,11 +98,9 @@ export class MetaTagService {
       name: "twitter:description",
       content: description,
     });
-    this.meta.updateTag({
-      name: "robots",
-      content:
-        "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
-    });
+    this.setRobotsContent(
+      "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
+    );
 
     // Canonical URL
     if (canonicalUrl) {
@@ -349,6 +348,55 @@ export class MetaTagService {
     this.setMetaTags(title, image, description, canonical);
   }
 
+  public setCountryLandingMetaTags(
+    countryName: string,
+    topRatedCount: number,
+    dryCount: number,
+    canonicalPath?: string
+  ): void {
+    const title = `${countryName} Parkour Spots | PK Spot`;
+    const description = `Discover ${topRatedCount} top rated parkour spots and ${dryCount} dry training options across ${countryName} on PK Spot.`;
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+
+    this.setMetaTags(title, this.defaultImageUrl, description, canonical);
+  }
+
+  public setCommunityLandingMetaTags(
+    title: string,
+    description: string,
+    imageUrl?: string,
+    canonicalPath?: string
+  ): void {
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+
+    this.setMetaTags(
+      title,
+      imageUrl || this.defaultImageUrl,
+      description,
+      canonical
+    );
+  }
+
+  public setLocalityLandingMetaTags(
+    countryName: string,
+    localityName: string,
+    topRatedCount: number,
+    dryCount: number,
+    canonicalPath?: string
+  ): void {
+    const title = `${localityName}, ${countryName} Parkour Spots | PK Spot`;
+    const description = `Discover ${topRatedCount} top rated parkour spots and ${dryCount} dry training options in ${localityName}, ${countryName} on PK Spot.`;
+    const canonical = canonicalPath
+      ? this.buildCanonicalUrl(canonicalPath)
+      : undefined;
+
+    this.setMetaTags(title, this.defaultImageUrl, description, canonical);
+  }
+
   /**
    * Sets default map meta tags with canonical URL
    */
@@ -377,6 +425,13 @@ export class MetaTagService {
       ? this.buildCanonicalUrl(canonicalPath)
       : undefined;
     this.setMetaTags(title, image, description, canonical);
+  }
+
+  public setRobotsContent(content: string): void {
+    this.meta.updateTag({
+      name: "robots",
+      content,
+    });
   }
 
   /**
@@ -482,11 +537,9 @@ export class MetaTagService {
 
   private getSpotTitleLocality(spot: Spot | LocalSpot): string | undefined {
     const address = spot.address();
-    if (address?.locality) {
-      return address.locality;
-    }
-    if (address?.sublocality) {
-      return address.sublocality;
+    const displayLocality = getDisplayLocalityName(address);
+    if (displayLocality) {
+      return displayLocality;
     }
 
     const localityString = spot.localityString().trim();

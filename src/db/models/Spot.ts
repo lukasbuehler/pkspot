@@ -31,6 +31,11 @@ import {
   makeAnyMediaFromMediaSchema,
   parseFirestoreGeoPoint,
 } from "../../scripts/Helpers";
+import {
+  getDisplayCountryName,
+  getDisplayFormattedAddress,
+  getDisplayLocalityString,
+} from "../../scripts/AddressHelpers";
 import { MapsApiService } from "../../app/services/maps-api.service";
 import { SpotChallengePreview } from "./SpotChallenge";
 import {
@@ -335,21 +340,10 @@ export class LocalSpot {
     this.numChallenges = signal(data.num_challenges ?? 0);
 
     this.address = signal(data.address ?? null);
-    this.formattedAddress = computed(() => this.address()?.formatted ?? "");
-    this.localityString = computed(() => {
-      const address = this.address();
-      let str = "";
-      if (address?.sublocality) {
-        str += address.sublocality + ", ";
-      }
-      if (address?.locality) {
-        str += address.locality + ", ";
-      }
-      if (address?.country) {
-        str += address.country.code.toUpperCase();
-      }
-      return str;
-    });
+    this.formattedAddress = computed(
+      () => getDisplayFormattedAddress(this.address()) ?? ""
+    );
+    this.localityString = computed(() => getDisplayLocalityString(this.address()));
 
     // set google place id
     if (data.external_references?.google_maps_place_id) {
@@ -765,7 +759,7 @@ export class Spot extends LocalSpot {
       access: this.access(),
       locality: this.localityString(),
       countryCode: this.address()?.country?.code,
-      countryName: this.address()?.country?.name,
+      countryName: getDisplayCountryName(this.address()),
       imageSrc: this.previewImageSrc(),
       isIconic: this.isIconic,
       hideStreetview: this.hideStreetview,

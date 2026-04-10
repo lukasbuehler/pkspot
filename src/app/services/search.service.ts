@@ -8,6 +8,10 @@ import { SpotAccess, SpotTypes } from "../../db/schemas/SpotTypeAndAccess";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { GeoPoint } from "firebase/firestore";
 import {
+  getDisplayCountryName,
+  getDisplayLocalityString,
+} from "../../scripts/AddressHelpers";
+import {
   SpotFilterMode,
   SPOT_FILTER_CONFIGS,
 } from "../components/spot-map/spot-filter-config";
@@ -109,20 +113,7 @@ export class SearchService {
       }
 
       // Build a complete locality string matching the cluster logic
-      let localityString = "";
-      if (doc.address) {
-        if (doc.address.sublocality) {
-          localityString += doc.address.sublocality + ", ";
-        }
-        if (doc.address.locality) {
-          localityString += doc.address.locality + ", ";
-        }
-        if (doc.address.country && doc.address.country.code) {
-          localityString += doc.address.country.code.toUpperCase();
-        }
-      }
-      // Trim trailing comma and space if country is missing
-      localityString = localityString.replace(/, $/, "");
+      const localityString = getDisplayLocalityString(doc.address ?? null);
 
       // Reconstruct AmenitiesMap from separate arrays if needed (matching cluster logic)
       let amenities = doc.amenities;
@@ -173,6 +164,7 @@ export class SearchService {
         type: doc.type,
         access: doc.access,
         locality: localityString,
+        countryName: getDisplayCountryName(doc.address ?? null),
         imageSrc:
           doc.thumbnail_medium_url ||
           doc.thumbnail_small_url ||

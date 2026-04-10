@@ -15,12 +15,19 @@ export {
 export {
   updateSpotFieldsOnWrite,
   updateAllSpotsWithTypesenseFields,
+  backfillAllSpotsWithLandingFields,
+  auditReservedSpotSlugs,
 } from "./spotFunctions";
 
 export {
   updateAllSpotAddresses,
   // updateAllEmptyAddressesOnSchedule,
 } from "./spotAddressFunctions";
+
+export {
+  rebuildCommunityPagesOnSpotWrite,
+  rebuildAllCommunityPages,
+} from "./communityFunctions";
 
 export { computeRatingOnWrite } from "./spotRatingFunctions";
 

@@ -6,6 +6,10 @@ import {
   FirestoreAdapterService,
   QueryFilter,
 } from "../firestore-adapter.service";
+import {
+  getSpotSlugValidationError,
+  normalizeSpotSlug,
+} from "../../../../scripts/SpotLandingHelpers";
 
 @Injectable({
   providedIn: "root",
@@ -18,11 +22,12 @@ export class SlugsService extends ConsentAwareService {
   }
 
   addSpotSlug(spotId: string, slug: string): Promise<void> {
-    // validate that the slug only contains alphanumeric characters and hyphens
-    if (!slug.match(/^[a-z0-9-]+$/))
-      return Promise.reject(
-        "The slug must only contain lowercase alphanumeric characters and hyphens."
-      );
+    const normalizedSlug = normalizeSpotSlug(slug);
+    const slugValidationError = getSpotSlugValidationError(slug);
+
+    if (slugValidationError) {
+      return Promise.reject(slugValidationError);
+    }
 
     // Ensure this spot doesn't already have a slug
     const filters: QueryFilter[] = [
@@ -38,7 +43,7 @@ export class SlugsService extends ConsentAwareService {
       })
       .then(() =>
         this._firestoreAdapter.getDocument<SpotSlugSchema & { id: string }>(
-          `spot_slugs/${slug}`
+          `spot_slugs/${normalizedSlug}`
         )
       )
       .then((existingDoc) => {
@@ -53,7 +58,10 @@ export class SlugsService extends ConsentAwareService {
         const data: SpotSlugSchema = {
           spot_id: spotId,
         };
-        return this._firestoreAdapter.setDocument(`spot_slugs/${slug}`, data);
+        return this._firestoreAdapter.setDocument(
+          `spot_slugs/${normalizedSlug}`,
+          data
+        );
       });
   }
 

@@ -1,5 +1,6 @@
 import { Routes } from "@angular/router";
 import { contentResolver } from "./resolvers/content.resolver";
+import { communityLandingResolver } from "./resolvers/community-landing.resolver";
 import { environment } from "../environments/environment";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
@@ -34,6 +35,16 @@ export const routes: Routes = [
         },
       ]
     : []),
+
+  {
+    path: "map/community/:slug",
+    loadComponent: () =>
+      import(
+        "./components/community-landing-page/community-landing-page.component"
+      ).then((m) => m.CommunityLandingPageComponent),
+    resolve: { communityLanding: communityLandingResolver },
+    data: { routeName: "Community Landing" },
+  },
 
   // Posts
   // { path: "feed", component: HomePageComponent, data: { routeName: "Feed" } },

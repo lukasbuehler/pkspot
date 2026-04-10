@@ -11,6 +11,10 @@ import {
   buildStorageMediaUrl,
   getMediaPreviewImageUrl,
 } from "../../src/db/schemas/Media";
+import {
+  RESERVED_SPOT_SLUGS,
+  deriveSpotLandingData,
+} from "../../src/scripts/SpotLandingHelpers";
 
 import { googleAPIKey } from "./secrets";
 import { getAddressAndLocaleFromGeopoint } from "./spotAddressFunctions";
@@ -109,7 +113,17 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
     spotDataToUpdate.rating = 0;
   }
 
-  //// 7. Serialize bounds for Typesense proximity queries and mobile compatibility
+  if (spotData.num_reviews === undefined || spotData.num_reviews === null) {
+    spotDataToUpdate.num_reviews = 0;
+  }
+
+  //// 8. Landing page helper fields
+  const landingData = deriveSpotLandingData(spotData);
+  if (landingData) {
+    spotDataToUpdate.landing = landingData;
+  }
+
+  //// 9. Serialize bounds for Typesense proximity queries and mobile compatibility
   const boundsResult = calculateBoundsData(spotData.bounds);
 
   if (boundsResult.boundsRaw && boundsResult.boundsRaw.length >= 3) {
@@ -148,8 +162,17 @@ const _hasUsableAddress = (address: SpotSchema["address"]): boolean => {
   if (!address) return false;
   return Boolean(
     (typeof address.formatted === "string" && address.formatted.trim()) ||
+      (typeof address.formattedLocal === "string" &&
+        address.formattedLocal.trim()) ||
       (typeof address.locality === "string" && address.locality.trim()) ||
+      (typeof address.localityLocal === "string" &&
+        address.localityLocal.trim()) ||
       (typeof address.sublocality === "string" && address.sublocality.trim()) ||
+      (typeof address.sublocalityLocal === "string" &&
+        address.sublocalityLocal.trim()) ||
+      (typeof address.region?.name === "string" && address.region.name.trim()) ||
+      (typeof address.region?.localName === "string" &&
+        address.region.localName.trim()) ||
       (address.country?.code && address.country?.name)
   );
 };
@@ -226,9 +249,15 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
       }
     }
 
+    const mergedSpotData = {
+      ...afterData,
+      ...spotDataToUpdate,
+      address: spotDataToUpdate.address ?? afterData.address,
+    } as SpotSchema;
+
     spotDataToUpdate = {
       ...spotDataToUpdate,
-      ..._addTypesenseFields(afterData),
+      ..._addTypesenseFields(mergedSpotData),
     };
 
     if (Object.keys(spotDataToUpdate).length > 0) {
@@ -245,6 +274,10 @@ export const updateAllSpotsWithTypesenseFields = onDocumentCreated(
     const spots = await admin.firestore().collection("spots").get();
 
     for (const spot of spots.docs) {
+      if (spot.id === "typesense" || spot.id.startsWith("run-")) {
+        continue;
+      }
+
       const spotData = spot.data() as SpotSchema;
 
       const typesenseFields = _addTypesenseFields(spotData);
@@ -256,5 +289,103 @@ export const updateAllSpotsWithTypesenseFields = onDocumentCreated(
 
     // delete the run document
     return event.data?.ref.delete();
+  }
+);
+
+export const backfillAllSpotsWithLandingFields = onDocumentCreated(
+  { document: "spots/run-backfill-landing" },
+  async (event) => {
+    const spots = await admin.firestore().collection("spots").get();
+    const batchSize = 400;
+    let batch = admin.firestore().batch();
+    let queuedWrites = 0;
+    let updatedCount = 0;
+
+    for (const spot of spots.docs) {
+      if (spot.id === "typesense" || spot.id.startsWith("run-")) {
+        continue;
+      }
+
+      const derivedFields = _addTypesenseFields(spot.data() as SpotSchema);
+      if (Object.keys(derivedFields).length === 0) {
+        continue;
+      }
+
+      batch.update(spot.ref, derivedFields);
+      queuedWrites += 1;
+      updatedCount += 1;
+
+      if (queuedWrites >= batchSize) {
+        await batch.commit();
+        batch = admin.firestore().batch();
+        queuedWrites = 0;
+      }
+    }
+
+    if (queuedWrites > 0) {
+      await batch.commit();
+    }
+
+    await event.data?.ref.set(
+      {
+        status: "DONE",
+        updated_count: updatedCount,
+        completed_at: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  }
+);
+
+export const auditReservedSpotSlugs = onDocumentCreated(
+  { document: "spots/run-audit-reserved-slugs" },
+  async (event) => {
+    const db = admin.firestore();
+    const conflicts: Array<{ source: "spot_slugs" | "spots"; slug: string; id: string }> =
+      [];
+
+    for (const slug of RESERVED_SPOT_SLUGS) {
+      const slugDoc = await db.collection("spot_slugs").doc(slug).get();
+      if (slugDoc.exists) {
+        conflicts.push({
+          source: "spot_slugs",
+          slug,
+          id: String(slugDoc.data()?.spot_id ?? slugDoc.id),
+        });
+      }
+    }
+
+    const spotDocs = await db
+      .collection("spots")
+      .where("slug", "in", [...RESERVED_SPOT_SLUGS])
+      .get();
+
+    for (const spotDoc of spotDocs.docs) {
+      const spotSlug = String((spotDoc.data() as SpotSchema).slug ?? "").trim();
+      if (!spotSlug) {
+        continue;
+      }
+
+      conflicts.push({
+        source: "spots",
+        slug: spotSlug,
+        id: spotDoc.id,
+      });
+    }
+
+    await event.data?.ref.set(
+      {
+        status: conflicts.length > 0 ? "FAILED" : "DONE",
+        conflicts,
+        completed_at: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    if (conflicts.length > 0) {
+      throw new Error(
+        `Reserved spot slug audit failed with ${conflicts.length} conflict(s).`
+      );
+    }
   }
 );

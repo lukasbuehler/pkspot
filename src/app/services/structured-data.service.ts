@@ -7,6 +7,12 @@ import { User } from "../../db/models/User";
 import { StorageImage } from "../../db/models/Media";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { environment } from "../../environments/environment";
+import type { CommunityLandingPageData } from "./firebase/firestore/landing-pages.service";
+import {
+  getDisplayFormattedAddress,
+  getDisplayLocalityName,
+  getDisplaySublocalityName,
+} from "../../scripts/AddressHelpers";
 
 @Injectable({
   providedIn: "root",
@@ -89,6 +95,65 @@ export class StructuredDataService {
     };
   }
 
+  buildCommunityBreadcrumbs(
+    pageData: CommunityLandingPageData
+  ): Array<{ name: string; url: string }> {
+    return (pageData.breadcrumbs ?? []).map((breadcrumb) => ({
+      name: breadcrumb.name,
+      url: `${environment.baseUrl}/${this.locale}${breadcrumb.path}`,
+    }));
+  }
+
+  generateBreadcrumbList(
+    items: Array<{ name: string; url: string }>
+  ): Record<string, unknown> {
+    return {
+      "@type": "BreadcrumbList",
+      itemListElement: items.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        item: item.url,
+      })),
+    };
+  }
+
+  generateCommunityLandingPageData(
+    pageData: CommunityLandingPageData
+  ): Record<string, unknown> {
+    return {
+      "@type": "CollectionPage",
+      name: pageData.title,
+      description: pageData.description,
+      url: `${environment.baseUrl}/${this.locale}${pageData.canonicalPath}`,
+      isPartOf: {
+        "@type": "WebSite",
+        name: StructuredDataService.BRAND_NAME,
+        url: StructuredDataService.BRAND_URL,
+      },
+      publisher: {
+        "@id": `${StructuredDataService.BRAND_URL}/#organization`,
+      },
+      about: {
+        "@type": "Place",
+        name:
+          pageData.scope === "locality" && pageData.locality
+            ? `${pageData.locality.name}, ${pageData.country.name}`
+            : pageData.displayName,
+      },
+      mainEntity: [
+        {
+          "@type": "Thing",
+          name: "Top Rated Spots",
+        },
+        {
+          "@type": "Thing",
+          name: "Dry Spots",
+        },
+      ],
+    };
+  }
+
   /**
    * Adds structured data JSON-LD script to the document head.
    * Works on both server and client side for SSR support.
@@ -161,17 +226,20 @@ export class StructuredDataService {
     const address = spot.address();
     if (address) {
       const addressLocality =
-        address.locality || address.sublocality || this.getSpotLocality(spot);
+        getDisplayLocalityName(address) ||
+        getDisplaySublocalityName(address) ||
+        this.getSpotLocality(spot);
       placeData.address = {
         "@type": "PostalAddress",
         streetAddress: this.withLocalityInStreetAddress(
-          address.formatted,
+          getDisplayFormattedAddress(address),
           addressLocality
         ),
         addressLocality: addressLocality,
         addressRegion:
-          address.sublocality && address.sublocality !== addressLocality
-            ? address.sublocality
+          getDisplaySublocalityName(address) &&
+          getDisplaySublocalityName(address) !== addressLocality
+            ? getDisplaySublocalityName(address)
             : undefined,
         addressCountry: address.country?.code,
       };

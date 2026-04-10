@@ -3,6 +3,10 @@ import { LocaleCode } from "../../src/db/models/Interfaces";
 // import { AnyMedia } from "../../src/db/models/Media";
 import { SpotSchema as DbSpotSchema } from "../../src/db/schemas/SpotSchema";
 import { getMediaPreviewImageUrl } from "../../src/db/schemas/Media";
+import {
+  getDisplayCountryName,
+  getDisplayLocalityString,
+} from "../../src/scripts/AddressHelpers";
 
 export type SpotSchema = DbSpotSchema;
 export type PartialSpotSchema = Partial<SpotSchema>;
@@ -115,19 +119,11 @@ export function getSpotPreviewImage(spotSchema: PartialSpotSchema): string {
 }
 
 export function getSpotLocalityString(spotSchema: PartialSpotSchema): string {
-  let str = "";
-  const { address } = spotSchema;
+  return getDisplayLocalityString(spotSchema.address ?? null);
+}
 
-  if (address) {
-    if (address.sublocality) {
-      str += `${address.sublocality}, `;
-    }
-    if (address.locality) {
-      str += `${address.locality}, `;
-    }
-    if (address.country) {
-      str += address.country.code.toUpperCase();
-    }
-  }
-  return str;
+export function getSpotCountryDisplayName(
+  spotSchema: PartialSpotSchema
+): string | undefined {
+  return getDisplayCountryName(spotSchema.address ?? null);
 }

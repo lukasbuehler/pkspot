@@ -5,18 +5,28 @@ import { AmenitiesMap } from "./Amenities";
 import { MediaSchema } from "../schemas/Media";
 import { ChallengePreviewSchema } from "./SpotChallengeSchema";
 import { SpotReportReason } from "./SpotReportSchema";
+import { SpotLandingSchema } from "./SpotLandingSchema";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
 
 export interface SpotAddressSchema {
   sublocality?: string;
+  sublocalityLocal?: string;
   locality?: string;
+  localityLocal?: string;
+  region?: {
+    code?: string;
+    name: string;
+    localName?: string;
+  };
   country?: {
     code: string; // alpha 2
     name: string;
+    localName?: string;
   };
   formatted?: string;
+  formattedLocal?: string;
 }
 
 export interface SpotSchema {
@@ -77,6 +87,8 @@ export interface SpotSchema {
 
   // Preffered slug
   slug?: string;
+
+  landing?: SpotLandingSchema | null;
 
   hide_streetview?: boolean;
 

@@ -173,6 +173,7 @@ import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { createUserReference } from "../../../scripts/Helpers";
 import { AnalyticsService } from "../../services/analytics.service";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { normalizeSpotSlug } from "../../../scripts/SpotLandingHelpers";
 import { SpotProvenanceComponent } from "../spot-provenance/spot-provenance.component";
 
 @Pipe({ name: "reverse", standalone: true })
@@ -501,7 +502,7 @@ export class SpotDetailsComponent
   async addSlug() {
     const spot = this.spot();
     if (!(spot instanceof Spot)) return;
-    const slug = (this.newSlug || "").trim().toLowerCase();
+    const slug = normalizeSpotSlug(this.newSlug || "");
     if (!slug) return;
     this.addingSlug.set(true);
     try {

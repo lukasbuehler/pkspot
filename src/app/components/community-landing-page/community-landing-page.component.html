@@ -1,0 +1,103 @@
+@if(landingData(); as data) {
+<div class="community-page">
+  <section class="hero-section">
+    <mat-card class="hero-card">
+      <mat-card-content>
+        @if(parentBreadcrumb(); as parent) {
+        <p class="eyebrow m-0">
+          <a [routerLink]="parent.path">{{ parent.name }}</a>
+          / {{ heading() }}
+        </p>
+        } @else {
+        <p class="eyebrow m-0">{{ scopeLabel() }}</p>
+        }
+
+        <h1 class="mat-display-small mt-2 mb-2">{{ heading() }}</h1>
+        <p class="mat-body-large intro-copy mb-4">{{ introText() }}</p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">{{ totalSpotCount() }}</div>
+            <div class="stat-label">Total Spots</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ topRatedCount() }}</div>
+            <div class="stat-label">Top Rated Spots</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ dryCount() }}</div>
+            <div class="stat-label">Dry Spots</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  @if(data.notFound) {
+  <mat-card class="empty-state-card">
+    <mat-card-content>
+      <p class="mat-body-large m-0">
+        We do not have enough locality data for this page yet. Try another
+        community route or check the map for nearby spots.
+      </p>
+    </mat-card-content>
+  </mat-card>
+  } @else {
+  <section class="content-section">
+    <app-spot-list
+      [highlightedSpots]="data.topRatedSpots"
+      [spots]="[]"
+      [enableAnimation]="false"
+      [withHrefLink]="true"
+      [text]="'Top Rated Spots'"
+    ></app-spot-list>
+  </section>
+
+  <section class="content-section">
+    <app-spot-list
+      [highlightedSpots]="data.drySpots"
+      [spots]="[]"
+      [enableAnimation]="false"
+      [withHrefLink]="true"
+      [text]="'Dry Spots'"
+    ></app-spot-list>
+  </section>
+  }
+
+  <section class="placeholder-grid">
+    <app-community-placeholder-section
+      [title]="'Local Community Links'"
+      [description]="
+        'WhatsApp, Telegram, and other locality-specific community links will be added here.'
+      "
+    ></app-community-placeholder-section>
+
+    <app-community-placeholder-section
+      [title]="'Upcoming Events'"
+      [description]="
+        'Upcoming jams, meetups, and community sessions for this area will appear here later.'
+      "
+    ></app-community-placeholder-section>
+
+    <app-community-placeholder-section
+      [title]="'Organisations'"
+      [description]="
+        'Verified organisations and clubs connected to this community will appear here later.'
+      "
+    ></app-community-placeholder-section>
+
+    <app-community-placeholder-section
+      [title]="'Local Athletes'"
+      [description]="
+        'Featured athletes and ambassadors from this community will appear here later.'
+      "
+    ></app-community-placeholder-section>
+  </section>
+
+  @if(lastUpdatedDate(); as lastUpdated) {
+  <p class="mat-body-small page-updated-text">
+    Source data updated {{ lastUpdated | date: "longDate" }}.
+  </p>
+  }
+</div>
+}
