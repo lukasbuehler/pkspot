@@ -1,10 +1,18 @@
-import { GeoPoint } from "firebase-admin/firestore";
+import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import * as admin from "firebase-admin";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 
 import { googleAPIKey } from "./secrets";
 import { SpotSchema } from "./spotHelpers";
 import { LocaleCode } from "../../src/db/models/Interfaces";
+
+const isEmulatorEnvironment =
+  process.env.FUNCTIONS_EMULATOR === "true" ||
+  !!process.env.FIRESTORE_EMULATOR_HOST;
+
+const geocodeTriggerSecrets = isEmulatorEnvironment ? [] : [googleAPIKey];
+const MAINTENANCE_COLLECTION = "maintenance";
+const RUN_UPDATE_ADDRESSES_DOC = `${MAINTENANCE_COLLECTION}/run-update-addresses`;
 
 type AddressType = {
   sublocality?: string;
@@ -60,6 +68,35 @@ const hasAddressData = (address: AddressType | null | undefined): boolean => {
   );
 };
 
+const hasLocalizedAddressData = (
+  address: AddressType | SpotSchema["address"] | null | undefined
+): boolean => {
+  if (!address) return false;
+
+  return Boolean(
+    (typeof address.formattedLocal === "string" &&
+      address.formattedLocal.trim()) ||
+      (typeof address.localityLocal === "string" &&
+        address.localityLocal.trim()) ||
+      (typeof address.sublocalityLocal === "string" &&
+        address.sublocalityLocal.trim()) ||
+      (typeof address.region?.localName === "string" &&
+        address.region.localName.trim()) ||
+      (typeof address.country?.localName === "string" &&
+        address.country.localName.trim())
+  );
+};
+
+const shouldRefreshAddress = (
+  address: AddressType | SpotSchema["address"] | null | undefined
+): boolean => {
+  if (!hasAddressData(address)) {
+    return true;
+  }
+
+  return !hasLocalizedAddressData(address);
+};
+
 const removeUndefinedValues = <T>(value: T): T => {
   if (Array.isArray(value)) {
     return value
@@ -83,6 +120,116 @@ const removeUndefinedValues = <T>(value: T): T => {
 
 const GEOCODE_RESULT_TYPES =
   "street_address|country|locality|sublocality|administrative_area_level_1";
+
+const EMULATOR_MOCK_ADDRESS_DATA: Array<{
+  center: { lat: number; lng: number };
+  radius: number;
+  english: AddressType;
+  local?: AddressType;
+}> = [
+  {
+    center: { lat: 47.3769, lng: 8.5417 },
+    radius: 0.15,
+    english: {
+      formatted: "Zurich, Zurich, Switzerland",
+      locality: "Zurich",
+      region: { code: "ZH", name: "Zurich" },
+      country: { code: "CH", name: "Switzerland" },
+    },
+    local: {
+      formatted: "Zurich, ZH, Schweiz",
+      locality: "Zürich",
+      region: { code: "ZH", name: "Zürich" },
+      country: { code: "CH", name: "Schweiz" },
+    },
+  },
+  {
+    center: { lat: 47.3688, lng: 8.7854 },
+    radius: 0.08,
+    english: {
+      formatted: "Pfaffikon, Zurich, Switzerland",
+      locality: "Pfaffikon",
+      region: { code: "ZH", name: "Zurich" },
+      country: { code: "CH", name: "Switzerland" },
+    },
+    local: {
+      formatted: "Pfäffikon, ZH, Schweiz",
+      locality: "Pfäffikon",
+      region: { code: "ZH", name: "Zürich" },
+      country: { code: "CH", name: "Schweiz" },
+    },
+  },
+  {
+    center: { lat: 47.2018, lng: 8.7785 },
+    radius: 0.08,
+    english: {
+      formatted: "Pfaffikon, Schwyz, Switzerland",
+      locality: "Pfaffikon",
+      region: { code: "SZ", name: "Schwyz" },
+      country: { code: "CH", name: "Switzerland" },
+    },
+    local: {
+      formatted: "Pfäffikon, SZ, Schweiz",
+      locality: "Pfäffikon",
+      region: { code: "SZ", name: "Schwyz" },
+      country: { code: "CH", name: "Schweiz" },
+    },
+  },
+  {
+    center: { lat: 48.8566, lng: 2.3522 },
+    radius: 0.2,
+    english: {
+      formatted: "Paris, Ile-de-France, France",
+      locality: "Paris",
+      region: { code: "IDF", name: "Ile-de-France" },
+      country: { code: "FR", name: "France" },
+    },
+    local: {
+      formatted: "Paris, Île-de-France, France",
+      locality: "Paris",
+      region: { code: "IDF", name: "Île-de-France" },
+      country: { code: "FR", name: "France" },
+    },
+  },
+];
+
+const getDistanceInDegrees = (
+  left: { lat: number; lng: number },
+  right: { lat: number; lng: number }
+): number => {
+  const latDiff = left.lat - right.lat;
+  const lngDiff = left.lng - right.lng;
+  return Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
+};
+
+const getMockAddressAndLocalesFromGeopoint = (
+  location: GeoPoint
+): [AddressType, LocaleCode[]] => {
+  const point = { lat: location.latitude, lng: location.longitude };
+  const matchedMock = EMULATOR_MOCK_ADDRESS_DATA.find(
+    (candidate) => getDistanceInDegrees(point, candidate.center) <= candidate.radius
+  );
+
+  if (!matchedMock) {
+    return [
+      {
+        formatted: `Test Spot ${point.lat.toFixed(3)}, ${point.lng.toFixed(3)}`,
+        locality: `test-locality-${Math.abs(Math.round(point.lat * 100))}`,
+        localityLocal: `test-locality-${Math.abs(Math.round(point.lat * 100))}`,
+        region: { code: "TS", name: "Test State", localName: "Test State" },
+        country: { code: "TS", name: "Testland", localName: "Testland" },
+      },
+      ["en"],
+    ];
+  }
+
+  return [
+    removeUndefinedValues(
+      mergeEnglishAndLocalAddress(matchedMock.english, matchedMock.local)
+    ),
+    ["en"],
+  ];
+};
 
 const fetchReverseGeocodeResponse = async (
   location: GeoPoint,
@@ -245,6 +392,9 @@ export const getAddressAndLocaleFromGeopoint = async (
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     return Promise.reject("Location is invalid");
   }
+  if (isEmulatorEnvironment) {
+    return getMockAddressAndLocalesFromGeopoint(location);
+  }
   if (!apiKey) {
     return Promise.reject("Google API Key is missing");
   }
@@ -279,44 +429,82 @@ export const getAddressAndLocaleFromGeopoint = async (
  * Update the addresses of all existing spots.
  */
 export const updateAllSpotAddresses = onDocumentCreated(
-  { document: "spots/run-update-addresses", secrets: [googleAPIKey] },
+  {
+    document: RUN_UPDATE_ADDRESSES_DOC,
+    secrets: geocodeTriggerSecrets,
+    timeoutSeconds: 540,
+  },
   async (event) => {
     const spots = await admin.firestore().collection("spots").get();
-    const apiKey: string = googleAPIKey.value();
+    const apiKey: string = isEmulatorEnvironment ? "" : googleAPIKey.value();
+    let updatedCount = 0;
+    let skippedCount = 0;
+    let failedCount = 0;
 
     for (const spot of spots.docs) {
-      const location = (spot.data() as SpotSchema).location;
+      if (spot.id === "typesense" || spot.id.startsWith("run-")) {
+        skippedCount += 1;
+        continue;
+      }
+
+      const spotData = spot.data() as SpotSchema;
+      if (!shouldRefreshAddress(spotData.address)) {
+        skippedCount += 1;
+        continue;
+      }
+
+      const location = spotData.location;
       if (!location) {
         console.warn("Spot has no location", spot.id);
+        failedCount += 1;
         continue;
       }
       const lat = location?.latitude;
       const lng = location?.longitude;
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
         console.warn("Spot location is invalid", spot.id, location);
+        failedCount += 1;
         continue;
       }
 
-      const [address, _] = await getAddressAndLocaleFromGeopoint(
-        location,
-        apiKey
-      ).catch((err) => {
-        console.error("Error updating address for spot", spot.id, err);
-        return Promise.reject(err);
-      });
-
-      if (hasAddressData(address)) {
-        await spot.ref.update({ address: removeUndefinedValues(address) });
-        console.log("Updated address for spot", spot.id, address);
-      } else {
-        console.warn(
-          "Skipping empty/incomplete address update for spot",
-          spot.id
+      try {
+        const [address, _] = await getAddressAndLocaleFromGeopoint(
+          location,
+          apiKey
         );
+
+        if (hasAddressData(address)) {
+          await spot.ref.update({ address: removeUndefinedValues(address) });
+          updatedCount += 1;
+          console.log("Updated address for spot", spot.id, address);
+        } else {
+          skippedCount += 1;
+          console.warn(
+            "Skipping empty/incomplete address update for spot",
+            spot.id
+          );
+        }
+      } catch (err) {
+        failedCount += 1;
+        console.error("Error updating address for spot", spot.id, err);
       }
     }
 
-    // delete the run document
+    await event.data?.ref.set(
+      {
+        status: failedCount > 0 ? "DONE_WITH_ERRORS" : "DONE",
+        updated_count: updatedCount,
+        skipped_count: skippedCount,
+        failed_count: failedCount,
+        completed_at: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    if (failedCount > 0) {
+      return null;
+    }
+
     return event.data?.ref.delete();
   }
 );

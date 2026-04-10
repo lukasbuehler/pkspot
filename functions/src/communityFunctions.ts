@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import {
   onDocumentCreated,
   onDocumentWritten,
@@ -28,8 +29,9 @@ import {
 
 const COMMUNITY_PAGES_COLLECTION = "community_pages";
 const COMMUNITY_SLUGS_COLLECTION = "community_slugs";
+const MAINTENANCE_COLLECTION = "maintenance";
 const SPOTS_COLLECTION = "spots";
-const MANUAL_REBUILD_DOC = "communities/run-rebuild-pages";
+const MANUAL_REBUILD_DOC = `${MAINTENANCE_COLLECTION}/run-rebuild-community-pages`;
 const DEFAULT_LOCALE = "en";
 const MAX_SPOTS_PER_SECTION = 12;
 
@@ -37,6 +39,56 @@ type CommunitySlugDoc = CommunitySlugSchema & { id: string };
 
 const isSpotRuntimeDoc = (docId: string): boolean =>
   docId !== "typesense" && !docId.startsWith("run-");
+
+const isTimestampValue = (
+  value:
+    | admin.firestore.Timestamp
+    | { seconds: number; nanoseconds: number }
+    | undefined
+    | null
+): value is admin.firestore.Timestamp | { seconds: number; nanoseconds: number } => {
+  if (!value) {
+    return false;
+  }
+
+  if (value instanceof Timestamp) {
+    return true;
+  }
+
+  const adminTimestampCtor = (admin.firestore as unknown as {
+    Timestamp?: typeof Timestamp;
+  }).Timestamp;
+
+  if (
+    typeof adminTimestampCtor === "function" &&
+    value instanceof adminTimestampCtor
+  ) {
+    return true;
+  }
+
+  return typeof (value as { seconds?: unknown }).seconds === "number";
+};
+
+const removeUndefinedValues = <T>(value: T): T => {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => removeUndefinedValues(entry))
+      .filter((entry) => entry !== undefined) as T;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, entryValue]) => entryValue !== undefined)
+      .map(([entryKey, entryValue]) => [
+        entryKey,
+        removeUndefinedValues(entryValue),
+      ]);
+
+    return Object.fromEntries(entries) as T;
+  }
+
+  return value;
+};
 
 const toMillis = (
   value:
@@ -49,7 +101,7 @@ const toMillis = (
     return 0;
   }
 
-  if (value instanceof admin.firestore.Timestamp) {
+  if (isTimestampValue(value) && "toMillis" in value && typeof value.toMillis === "function") {
     return value.toMillis();
   }
 
@@ -81,25 +133,26 @@ const compareSpotsForCommunity = (left: SpotSchema, right: SpotSchema): number =
 const buildSpotPreview = (
   spotId: string,
   spot: SpotSchema
-): SpotPreviewData => ({
-  id: spotId as SpotPreviewData["id"],
-  slug: spot.slug,
-  name: getSpotName(spot, DEFAULT_LOCALE),
-  location: spot.location,
-  location_raw: spot.location_raw,
-  type: spot.type,
-  access: spot.access,
-  locality: getSpotLocalityString(spot),
-  countryCode: spot.address?.country?.code,
-  countryName: getSpotCountryDisplayName(spot),
-  imageSrc: getSpotPreviewImage(spot),
-  isIconic: spot.is_iconic ?? false,
-  hideStreetview: spot.hide_streetview,
-  rating: spot.rating,
-  amenities: spot.amenities,
-  bounds: spot.bounds,
-  bounds_raw: spot.bounds_raw,
-}) as SpotPreviewData;
+): SpotPreviewData =>
+  removeUndefinedValues({
+    id: spotId as SpotPreviewData["id"],
+    slug: spot.slug,
+    name: getSpotName(spot, DEFAULT_LOCALE),
+    location: spot.location,
+    location_raw: spot.location_raw,
+    type: spot.type,
+    access: spot.access,
+    locality: getSpotLocalityString(spot),
+    countryCode: spot.address?.country?.code,
+    countryName: getSpotCountryDisplayName(spot),
+    imageSrc: getSpotPreviewImage(spot),
+    isIconic: spot.is_iconic ?? false,
+    hideStreetview: spot.hide_streetview,
+    rating: spot.rating,
+    amenities: spot.amenities,
+    bounds: spot.bounds,
+    bounds_raw: spot.bounds_raw,
+  }) as SpotPreviewData;
 
 const isSpotPartOfCommunity = (
   spot: SpotSchema,
@@ -123,7 +176,7 @@ const getSourceMaxUpdatedAt = (
   }, 0);
 
   return latestMillis > 0
-    ? admin.firestore.Timestamp.fromMillis(latestMillis)
+    ? Timestamp.fromMillis(latestMillis)
     : null;
 };
 
@@ -215,32 +268,49 @@ const choosePreferredSlug = async (
 
 const syncCommunitySlugs = async (
   db: admin.firestore.Firestore,
+  candidate: CommunityCandidate,
   communityKey: string,
   preferredSlug: string,
   existingSlugs: CommunitySlugDoc[]
 ): Promise<string[]> => {
   const batch = db.batch();
-  const allSlugs = new Set<string>([preferredSlug, ...existingSlugs.map((slug) => slug.id)]);
+  const desiredSlugs = new Set<string>([
+    preferredSlug,
+    ...buildCommunitySlugCandidates(candidate),
+    ...existingSlugs.map((slug) => slug.id),
+  ]);
   const createdAtBySlug = new Map(
     existingSlugs.map((slug) => [slug.id, slug.createdAt ?? null])
   );
+  const syncedSlugs = new Set<string>();
 
-  for (const slug of allSlugs) {
+  for (const slug of desiredSlugs) {
+    const slugRef = db.collection(COMMUNITY_SLUGS_COLLECTION).doc(slug);
+    const existingSlugSnapshot = await slugRef.get();
+    const existingSlugData = existingSlugSnapshot.data() as
+      | CommunitySlugSchema
+      | undefined;
+
+    if (existingSlugData && existingSlugData.communityKey !== communityKey) {
+      continue;
+    }
+
     batch.set(
-      db.collection(COMMUNITY_SLUGS_COLLECTION).doc(slug),
+      slugRef,
       {
         communityKey,
         isPreferred: slug === preferredSlug,
         createdAt:
-          createdAtBySlug.get(slug) ?? admin.firestore.FieldValue.serverTimestamp(),
+          createdAtBySlug.get(slug) ?? FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
+    syncedSlugs.add(slug);
   }
 
   await batch.commit();
 
-  return [...allSlugs].sort((left, right) => {
+  return [...syncedSlugs].sort((left, right) => {
     if (left === preferredSlug) {
       return -1;
     }
@@ -296,6 +366,7 @@ const buildCommunityPageDoc = async (
   );
   const allSlugs = await syncCommunitySlugs(
     db,
+    candidate,
     candidate.communityKey,
     preferredSlug,
     existingSlugs
@@ -327,7 +398,7 @@ const buildCommunityPageDoc = async (
         url: COMMUNITY_DEFAULT_IMAGE_PATH,
       };
 
-  return {
+  return removeUndefinedValues({
     communityKey: candidate.communityKey,
     scope: candidate.scope,
     displayName: candidate.displayName,
@@ -382,9 +453,9 @@ const buildCommunityPageDoc = async (
     events: existingPage?.events ?? [],
     image,
     published: true,
-    generatedAt: admin.firestore.Timestamp.now(),
+    generatedAt: Timestamp.now(),
     sourceMaxUpdatedAt: sourceMaxUpdatedAt ?? undefined,
-  };
+  }) as CommunityPageSchema;
 };
 
 const fetchSpotsForCommunity = async (
@@ -451,6 +522,10 @@ const collectGeneratedCommunities = (
 export const rebuildCommunityPagesOnSpotWrite = onDocumentWritten(
   { document: "spots/{spotId}" },
   async (event) => {
+    if (!isSpotRuntimeDoc(String(event.params.spotId ?? ""))) {
+      return null;
+    }
+
     const db = admin.firestore();
     const impactedCandidates = new Map<string, CommunityCandidate>();
     const beforeData = event.data?.before?.exists
@@ -509,6 +584,9 @@ export const rebuildAllCommunityPages = onDocumentCreated(
 
     const existingPages = await db.collection(COMMUNITY_PAGES_COLLECTION).get();
     for (const page of existingPages.docs) {
+      if (page.id.startsWith("run-")) {
+        continue;
+      }
       if (!writtenKeys.has(page.id)) {
         await page.ref.delete().catch(() => undefined);
       }
@@ -518,7 +596,7 @@ export const rebuildAllCommunityPages = onDocumentCreated(
       {
         status: "DONE",
         generated_count: writtenKeys.size,
-        completed_at: admin.firestore.FieldValue.serverTimestamp(),
+        completed_at: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );

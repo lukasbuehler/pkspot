@@ -1,4 +1,4 @@
-import { GeoPoint } from "firebase-admin/firestore";
+import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import {
   onDocumentCreated,
   onDocumentWritten,
@@ -19,6 +19,112 @@ import {
 import { googleAPIKey } from "./secrets";
 import { getAddressAndLocaleFromGeopoint } from "./spotAddressFunctions";
 import { calculateBoundsData } from "./boundsHelpers";
+
+const isEmulatorEnvironment =
+  process.env.FUNCTIONS_EMULATOR === "true" ||
+  !!process.env.FIRESTORE_EMULATOR_HOST;
+const geocodeTriggerSecrets = isEmulatorEnvironment ? [] : [googleAPIKey];
+const MAINTENANCE_COLLECTION = "maintenance";
+const RUN_BACKFILL_TYPESENSE_DOC =
+  `${MAINTENANCE_COLLECTION}/run-backfill-typesense-fields`;
+const RUN_BACKFILL_LANDING_DOC =
+  `${MAINTENANCE_COLLECTION}/run-backfill-landing`;
+const RUN_AUDIT_RESERVED_SLUGS_DOC =
+  `${MAINTENANCE_COLLECTION}/run-audit-reserved-slugs`;
+const isSpotRuntimeDoc = (docId: string): boolean =>
+  docId !== "typesense" && !docId.startsWith("run-");
+
+const isGeoPointValue = (value: unknown): value is GeoPoint => {
+  if (value instanceof GeoPoint) {
+    return true;
+  }
+
+  const adminGeoPointCtor = (admin.firestore as unknown as {
+    GeoPoint?: typeof GeoPoint;
+  }).GeoPoint;
+
+  if (typeof adminGeoPointCtor === "function" && value instanceof adminGeoPointCtor) {
+    return true;
+  }
+
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof (value as { latitude?: unknown }).latitude === "number" &&
+      typeof (value as { longitude?: unknown }).longitude === "number"
+  );
+};
+
+const _removeUndefinedValues = <T>(value: T): T => {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => _removeUndefinedValues(entry))
+      .filter((entry) => entry !== undefined) as T;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, entryValue]) => entryValue !== undefined)
+      .map(([entryKey, entryValue]) => [
+        entryKey,
+        _removeUndefinedValues(entryValue),
+      ]);
+
+    return Object.fromEntries(entries) as T;
+  }
+
+  return value;
+};
+
+const _normalizeComparableValue = (value: unknown): unknown => {
+  if (isGeoPointValue(value)) {
+    return {
+      latitude: value.latitude,
+      longitude: value.longitude,
+    };
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => _normalizeComparableValue(entry));
+  }
+
+  if (value && typeof value === "object") {
+    const normalizedEntries = Object.entries(value as Record<string, unknown>)
+      .filter(([, entryValue]) => entryValue !== undefined)
+      .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+      .map(([entryKey, entryValue]) => [
+        entryKey,
+        _normalizeComparableValue(entryValue),
+      ]);
+
+    return Object.fromEntries(normalizedEntries);
+  }
+
+  return value;
+};
+
+const _areValuesEqual = (left: unknown, right: unknown): boolean => {
+  return (
+    JSON.stringify(_normalizeComparableValue(left)) ===
+    JSON.stringify(_normalizeComparableValue(right))
+  );
+};
+
+const _getChangedFields = (
+  currentData: SpotSchema,
+  proposedData: Partial<SpotSchema>
+): Partial<SpotSchema> => {
+  const changedEntries = Object.entries(
+    _removeUndefinedValues(proposedData) as Record<string, unknown>
+  ).filter(([fieldPath, proposedValue]) => {
+    const currentValue = (currentData as unknown as Record<string, unknown>)[
+      fieldPath
+    ];
+    return !_areValuesEqual(currentValue, proposedValue);
+  });
+
+  return Object.fromEntries(changedEntries) as Partial<SpotSchema>;
+};
 
 const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
   const spotDataToUpdate: Partial<SpotSchema> = {};
@@ -155,7 +261,7 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
 
   //// Return the fields to update
 
-  return spotDataToUpdate;
+  return _removeUndefinedValues(spotDataToUpdate);
 };
 
 const _hasUsableAddress = (address: SpotSchema["address"]): boolean => {
@@ -183,14 +289,18 @@ const _hasUsableAddress = (address: SpotSchema["address"]): boolean => {
  * things like writing an array for typesense to filter the amenities.
  */
 export const updateSpotFieldsOnWrite = onDocumentWritten(
-  { document: "spots/{spotId}", secrets: [googleAPIKey] },
+  { document: "spots/{spotId}", secrets: geocodeTriggerSecrets },
   async (event) => {
     if (!event.data?.after?.exists) {
       // Ignore deletes.
       return null;
     }
 
-    const apiKey: string = googleAPIKey.value();
+    if (!isSpotRuntimeDoc(String(event.params.spotId ?? ""))) {
+      return null;
+    }
+
+    const apiKey: string = isEmulatorEnvironment ? "" : googleAPIKey.value();
     const beforeData = event.data?.before?.data() as SpotSchema;
     const afterData = event.data?.after?.data() as SpotSchema;
     if (!afterData) {
@@ -260,21 +370,23 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
       ..._addTypesenseFields(mergedSpotData),
     };
 
-    if (Object.keys(spotDataToUpdate).length > 0) {
-      return event.data?.after?.ref.update(spotDataToUpdate);
+    const changedFields = _getChangedFields(afterData, spotDataToUpdate);
+
+    if (Object.keys(changedFields).length > 0) {
+      return event.data?.after?.ref.update(changedFields);
     }
     return null;
   }
 );
 
 export const updateAllSpotsWithTypesenseFields = onDocumentCreated(
-  { document: "spots/typesense" },
+  { document: RUN_BACKFILL_TYPESENSE_DOC },
   async (event) => {
     // get all spots
     const spots = await admin.firestore().collection("spots").get();
 
     for (const spot of spots.docs) {
-      if (spot.id === "typesense" || spot.id.startsWith("run-")) {
+      if (!isSpotRuntimeDoc(spot.id)) {
         continue;
       }
 
@@ -293,7 +405,7 @@ export const updateAllSpotsWithTypesenseFields = onDocumentCreated(
 );
 
 export const backfillAllSpotsWithLandingFields = onDocumentCreated(
-  { document: "spots/run-backfill-landing" },
+  { document: RUN_BACKFILL_LANDING_DOC },
   async (event) => {
     const spots = await admin.firestore().collection("spots").get();
     const batchSize = 400;
@@ -302,7 +414,7 @@ export const backfillAllSpotsWithLandingFields = onDocumentCreated(
     let updatedCount = 0;
 
     for (const spot of spots.docs) {
-      if (spot.id === "typesense" || spot.id.startsWith("run-")) {
+      if (!isSpotRuntimeDoc(spot.id)) {
         continue;
       }
 
@@ -330,7 +442,7 @@ export const backfillAllSpotsWithLandingFields = onDocumentCreated(
       {
         status: "DONE",
         updated_count: updatedCount,
-        completed_at: admin.firestore.FieldValue.serverTimestamp(),
+        completed_at: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
@@ -338,7 +450,7 @@ export const backfillAllSpotsWithLandingFields = onDocumentCreated(
 );
 
 export const auditReservedSpotSlugs = onDocumentCreated(
-  { document: "spots/run-audit-reserved-slugs" },
+  { document: RUN_AUDIT_RESERVED_SLUGS_DOC },
   async (event) => {
     const db = admin.firestore();
     const conflicts: Array<{ source: "spot_slugs" | "spots"; slug: string; id: string }> =
@@ -377,7 +489,7 @@ export const auditReservedSpotSlugs = onDocumentCreated(
       {
         status: conflicts.length > 0 ? "FAILED" : "DONE",
         conflicts,
-        completed_at: admin.firestore.FieldValue.serverTimestamp(),
+        completed_at: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );

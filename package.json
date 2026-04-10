@@ -27,6 +27,8 @@
     "test:e2e:report": "playwright show-report",
     "test:visual": "playwright test --grep @visual",
     "test:visual:update": "playwright test --grep @visual --update-snapshots",
+    "emulators:start": "node scripts/run_firebase_with_local_java.js emulators:start --only firestore,functions --project demo-pkspot",
+    "emulators:test:community": "node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,functions --project demo-pkspot \"node scripts/emulator_run_community_flow.js\"",
     "lint": "ng lint",
     "e2e": "ng e2e",
     "deploy:rules:firestore": "npx firebase deploy --only firestore:rules",
