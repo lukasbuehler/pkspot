@@ -73,6 +73,11 @@ describe("communityLandingResolver", () => {
       dryCount: 2,
       topRatedSpots: [{ id: "spot-1", name: "Southbank" }] as any,
       drySpots: [{ id: "spot-2", name: "Brixton" }] as any,
+      links: {},
+      resources: [],
+      organisations: [],
+      athletes: [],
+      events: [],
     });
 
     const route = {

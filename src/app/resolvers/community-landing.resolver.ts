@@ -71,6 +71,11 @@ export const communityLandingResolver: ResolveFn<
       dryCount: 0,
       topRatedSpots: [],
       drySpots: [],
+      links: {},
+      resources: [],
+      organisations: [],
+      athletes: [],
+      events: [],
       notFound: true,
     };
   }

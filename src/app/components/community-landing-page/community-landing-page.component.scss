@@ -62,3 +62,30 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
 }
+
+.detail-card {
+  height: 100%;
+  border-radius: 24px;
+}
+
+.detail-card-wide {
+  grid-column: 1 / -1;
+}
+
+.detail-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.detail-list li + li {
+  margin-top: 8px;
+}
+
+.detail-list a {
+  color: inherit;
+}
+
+.page-updated-text {
+  margin-top: 24px;
+  color: rgba(0, 0, 0, 0.65);
+}

@@ -110,6 +110,18 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Materialized community landing pages and slug aliases are public read-only
+    // data used by SSR and crawlers. Writes are owned by backend rebuild jobs.
+    match /community_pages/{communityKey} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /community_slugs/{slug} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /posts/{post}
     {
       // every post is publicy available to everyone.

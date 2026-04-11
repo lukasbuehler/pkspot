@@ -65,33 +65,144 @@
   }
 
   <section class="placeholder-grid">
+    @if(communityLinks().length > 0) {
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>Local Community Links</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ul class="detail-list">
+          @for(link of communityLinks(); track link.label) {
+          <li>
+            <a [href]="link.url" target="_blank" rel="noopener noreferrer">
+              {{ link.label }}
+            </a>
+          </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+    } @else {
     <app-community-placeholder-section
       [title]="'Local Community Links'"
       [description]="
         'WhatsApp, Telegram, and other locality-specific community links will be added here.'
       "
     ></app-community-placeholder-section>
+    }
 
+    @if(events().length > 0) {
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>Upcoming Events</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ul class="detail-list">
+          @for(item of events(); track item.name) {
+          <li>
+            @if(item.url) {
+            <a [href]="item.url" target="_blank" rel="noopener noreferrer">
+              {{ item.name }}
+            </a>
+            } @else {
+            <span>{{ item.name }}</span>
+            }
+          </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+    } @else {
     <app-community-placeholder-section
       [title]="'Upcoming Events'"
       [description]="
         'Upcoming jams, meetups, and community sessions for this area will appear here later.'
       "
     ></app-community-placeholder-section>
+    }
 
+    @if(organisations().length > 0) {
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>Organisations</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ul class="detail-list">
+          @for(item of organisations(); track item.name) {
+          <li>
+            @if(item.url) {
+            <a [href]="item.url" target="_blank" rel="noopener noreferrer">
+              {{ item.name }}
+            </a>
+            } @else {
+            <span>{{ item.name }}</span>
+            }
+          </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+    } @else {
     <app-community-placeholder-section
       [title]="'Organisations'"
       [description]="
         'Verified organisations and clubs connected to this community will appear here later.'
       "
     ></app-community-placeholder-section>
+    }
 
+    @if(athletes().length > 0) {
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>Local Athletes</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ul class="detail-list">
+          @for(item of athletes(); track item.name) {
+          <li>
+            @if(item.url) {
+            <a [href]="item.url" target="_blank" rel="noopener noreferrer">
+              {{ item.name }}
+            </a>
+            } @else {
+            <span>{{ item.name }}</span>
+            }
+          </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+    } @else {
     <app-community-placeholder-section
       [title]="'Local Athletes'"
       [description]="
         'Featured athletes and ambassadors from this community will appear here later.'
       "
     ></app-community-placeholder-section>
+    }
+
+    @if(resources().length > 0) {
+    <mat-card class="detail-card detail-card-wide">
+      <mat-card-header>
+        <mat-card-title>Community Resources</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ul class="detail-list">
+          @for(item of resources(); track item.name) {
+          <li>
+            @if(item.url) {
+            <a [href]="item.url" target="_blank" rel="noopener noreferrer">
+              {{ item.name }}
+            </a>
+            } @else {
+            <span>{{ item.name }}</span>
+            }
+          </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+    }
   </section>
 
   @if(lastUpdatedDate(); as lastUpdated) {

@@ -4,7 +4,7 @@ import { LandingPagesService } from "./landing-pages.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 
 const createMockFirestoreAdapter = () => ({
-  getCollection: vi.fn(),
+  getDocument: vi.fn(),
 });
 
 const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
@@ -68,7 +68,13 @@ describe("LandingPagesService", () => {
   });
 
   it("should build a community landing page from a single Firestore document", async () => {
-    mockFirestoreAdapter.getCollection.mockResolvedValueOnce([buildCommunityDoc()]);
+    mockFirestoreAdapter.getDocument
+      .mockResolvedValueOnce({
+        id: "london-uk",
+        communityKey: "locality:gb:london",
+        isPreferred: false,
+      })
+      .mockResolvedValueOnce(buildCommunityDoc());
 
     const result = await service.getCommunityPage("london-uk");
 
@@ -86,22 +92,35 @@ describe("LandingPagesService", () => {
     expect(result?.topRatedSpots.length).toBe(1);
     expect(result?.drySpots.length).toBe(1);
 
-    expect(mockFirestoreAdapter.getCollection).toHaveBeenCalledWith(
-      "community_pages",
-      [
-        {
-          fieldPath: "allSlugs",
-          opStr: "array-contains",
-          value: "london-uk",
-        },
-      ],
-      [{ type: "limit", limit: 1 }]
+    expect(mockFirestoreAdapter.getDocument).toHaveBeenNthCalledWith(
+      1,
+      "community_slugs/london-uk"
+    );
+    expect(mockFirestoreAdapter.getDocument).toHaveBeenNthCalledWith(
+      2,
+      "community_pages/locality:gb:london"
     );
   });
 
   it("should return null when a community page does not exist", async () => {
-    mockFirestoreAdapter.getCollection.mockResolvedValueOnce([]);
+    mockFirestoreAdapter.getDocument.mockResolvedValueOnce(null);
 
     await expect(service.getCommunityPage("missing")).resolves.toBeNull();
+  });
+
+  it("should return null when the materialized page is unpublished", async () => {
+    mockFirestoreAdapter.getDocument
+      .mockResolvedValueOnce({
+        id: "london",
+        communityKey: "locality:gb:london",
+        isPreferred: true,
+      })
+      .mockResolvedValueOnce(
+        buildCommunityDoc({
+          published: false,
+        })
+      );
+
+    await expect(service.getCommunityPage("london")).resolves.toBeNull();
   });
 });

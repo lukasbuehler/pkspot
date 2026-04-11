@@ -1,5 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { CommunityPageSchema } from "../../../../db/schemas/CommunityPageSchema";
+import { CommunitySlugSchema } from "../../../../db/schemas/CommunitySlugSchema";
 import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
 import {
   buildCommunityLandingPath,
@@ -7,8 +8,6 @@ import {
 } from "../../../../scripts/CommunityHelpers";
 import {
   FirestoreAdapterService,
-  QueryConstraintOptions,
-  QueryFilter,
 } from "../firestore-adapter.service";
 
 export type CommunityLandingScope = CommunityPageSchema["scope"];
@@ -43,12 +42,18 @@ export interface CommunityLandingPageData {
   dryCount: number;
   topRatedSpots: SpotPreviewData[];
   drySpots: SpotPreviewData[];
+  links: CommunityPageSchema["links"];
+  resources: CommunityPageSchema["resources"];
+  organisations: CommunityPageSchema["organisations"];
+  athletes: CommunityPageSchema["athletes"];
+  events: CommunityPageSchema["events"];
   generatedAt?: CommunityPageSchema["generatedAt"];
   sourceMaxUpdatedAt?: CommunityPageSchema["sourceMaxUpdatedAt"];
   notFound?: boolean;
 }
 
 type CommunityPageDocument = CommunityPageSchema & { id: string };
+type CommunitySlugDocument = CommunitySlugSchema & { id: string };
 
 @Injectable({
   providedIn: "root",
@@ -65,24 +70,23 @@ export class LandingPagesService {
       return null;
     }
 
-    const filters: QueryFilter[] = [
-      {
-        fieldPath: "allSlugs",
-        opStr: "array-contains",
-        value: normalizedSlug,
-      },
-    ];
-    const constraints: QueryConstraintOptions[] = [
-      { type: "limit", limit: 1 },
-    ];
+    const slugDoc = await this._firestoreAdapter.getDocument<CommunitySlugDocument>(
+      `community_slugs/${normalizedSlug}`
+    );
 
-    const [pageDoc] = await this._firestoreAdapter.getCollection<CommunityPageDocument>(
-      "community_pages",
-      filters,
-      constraints
+    if (!slugDoc?.communityKey) {
+      return null;
+    }
+
+    const pageDoc = await this._firestoreAdapter.getDocument<CommunityPageDocument>(
+      `community_pages/${slugDoc.communityKey}`
     );
 
     if (!pageDoc) {
+      return null;
+    }
+
+    if (pageDoc.published === false) {
       return null;
     }
 
@@ -138,6 +142,11 @@ export class LandingPagesService {
       dryCount: pageDoc.counts?.dry ?? drySpots.length,
       topRatedSpots,
       drySpots,
+      links: pageDoc.links ?? {},
+      resources: pageDoc.resources ?? [],
+      organisations: pageDoc.organisations ?? [],
+      athletes: pageDoc.athletes ?? [],
+      events: pageDoc.events ?? [],
       generatedAt: pageDoc.generatedAt,
       sourceMaxUpdatedAt: pageDoc.sourceMaxUpdatedAt,
     };
