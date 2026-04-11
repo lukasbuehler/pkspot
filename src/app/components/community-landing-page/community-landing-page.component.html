@@ -1,5 +1,5 @@
 @if(landingData(); as data) {
-<div class="community-page">
+<div class="community-page" [class.community-page-panel]="panelMode()">
   <section class="hero-section">
     <mat-card class="hero-card">
       <mat-card-content>
@@ -43,6 +43,7 @@
     </mat-card-content>
   </mat-card>
   } @else {
+  @if(data.topRatedSpots.length > 0) {
   <section class="content-section">
     <app-spot-list
       [highlightedSpots]="data.topRatedSpots"
@@ -52,7 +53,9 @@
       [text]="'Top Rated Spots'"
     ></app-spot-list>
   </section>
+  }
 
+  @if(data.drySpots.length > 0) {
   <section class="content-section">
     <app-spot-list
       [highlightedSpots]="data.drySpots"
@@ -64,7 +67,18 @@
   </section>
   }
 
-  <section class="placeholder-grid">
+  @if(data.topRatedSpots.length === 0 && data.drySpots.length === 0) {
+  <section class="manual-state">
+    <p class="mat-body-medium m-0">
+      This community page is live, but it does not have featured spot sections
+      yet.
+    </p>
+  </section>
+  }
+  }
+
+  @if(hasManualSections()) {
+  <section class="detail-grid">
     @if(communityLinks().length > 0) {
     <mat-card class="detail-card">
       <mat-card-header>
@@ -82,13 +96,6 @@
         </ul>
       </mat-card-content>
     </mat-card>
-    } @else {
-    <app-community-placeholder-section
-      [title]="'Local Community Links'"
-      [description]="
-        'WhatsApp, Telegram, and other locality-specific community links will be added here.'
-      "
-    ></app-community-placeholder-section>
     }
 
     @if(events().length > 0) {
@@ -112,13 +119,6 @@
         </ul>
       </mat-card-content>
     </mat-card>
-    } @else {
-    <app-community-placeholder-section
-      [title]="'Upcoming Events'"
-      [description]="
-        'Upcoming jams, meetups, and community sessions for this area will appear here later.'
-      "
-    ></app-community-placeholder-section>
     }
 
     @if(organisations().length > 0) {
@@ -142,13 +142,6 @@
         </ul>
       </mat-card-content>
     </mat-card>
-    } @else {
-    <app-community-placeholder-section
-      [title]="'Organisations'"
-      [description]="
-        'Verified organisations and clubs connected to this community will appear here later.'
-      "
-    ></app-community-placeholder-section>
     }
 
     @if(athletes().length > 0) {
@@ -172,13 +165,6 @@
         </ul>
       </mat-card-content>
     </mat-card>
-    } @else {
-    <app-community-placeholder-section
-      [title]="'Local Athletes'"
-      [description]="
-        'Featured athletes and ambassadors from this community will appear here later.'
-      "
-    ></app-community-placeholder-section>
     }
 
     @if(resources().length > 0) {
@@ -204,6 +190,14 @@
     </mat-card>
     }
   </section>
+  } @else if(!data.notFound) {
+  <section class="manual-state">
+    <p class="mat-body-medium m-0">
+      Community links, organisations, athletes, events, and local resources
+      will appear here as this page grows.
+    </p>
+  </section>
+  }
 
   @if(lastUpdatedDate(); as lastUpdated) {
   <p class="mat-body-small page-updated-text">

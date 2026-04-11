@@ -138,6 +138,8 @@ export class GoogleMap2dComponent
   extends MapBase
   implements OnChanges, AfterViewInit, OnDestroy
 {
+  private static readonly ZOOM_SYNC_EPSILON = 0.5;
+
   readonly autoStartLocationWatch = environment.features.checkIns;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
   // @ViewChildren(MapPolygon, { read: ElementRef })
@@ -201,9 +203,15 @@ export class GoogleMap2dComponent
     this._zoom.set(newZoom);
     if (this.googleMap) {
       const currentZoom = this.googleMap.getZoom();
-      // Only set zoom if it differs significantly or we're not continuously updating
-      // This prevents interrupting smooth zoom inertia when the parent component reflects the value back
-      if (currentZoom === undefined || Math.abs(currentZoom - newZoom) > 0.01) {
+      // Only push zoom back into Google Maps when it differs meaningfully.
+      // Vector maps can emit many tiny fractional wheel-zoom updates; if we
+      // mirror those straight back through Angular input binding, the map ends
+      // up fighting the user's scroll gesture and feels like it barely moves.
+      if (
+        currentZoom === undefined ||
+        Math.abs(currentZoom - newZoom) >
+          GoogleMap2dComponent.ZOOM_SYNC_EPSILON
+      ) {
         this.googleMap.zoom = newZoom;
       }
     }
@@ -776,14 +784,6 @@ export class GoogleMap2dComponent
       this.googleMap.googleMap?.setOptions({ minZoom: this.minZoom });
     }
 
-    const vectorRenderingType = this._getVectorRenderingType();
-    if (vectorRenderingType) {
-      this.mapOptions.renderingType = vectorRenderingType;
-      this.googleMap.googleMap?.setOptions({
-        renderingType: vectorRenderingType,
-      } as google.maps.MapOptions);
-    }
-
     this.positionGoogleMapsLogo();
     this._subscribeToHeadingChanges();
 
@@ -796,6 +796,7 @@ export class GoogleMap2dComponent
 
   private async _updateMapConfig() {
     const desiredMapTypeId = this.mapTypeId();
+    const isMapInitialized = !!this.googleMap?.googleMap;
     const nextOptions: google.maps.MapOptions = {
       ...this.mapOptions,
       mapTypeId: desiredMapTypeId,
@@ -803,7 +804,7 @@ export class GoogleMap2dComponent
     const vectorRenderingType = this._getVectorRenderingType();
     const colorScheme = await this._loadDarkColorScheme();
 
-    if (vectorRenderingType) {
+    if (!isMapInitialized && vectorRenderingType) {
       nextOptions.renderingType = vectorRenderingType;
     } else {
       delete (nextOptions as Partial<google.maps.MapOptions>).renderingType;
@@ -818,8 +819,9 @@ export class GoogleMap2dComponent
       }).colorScheme;
     }
 
-    // If map is already initialized, use setOptions
-    if (this.googleMap?.googleMap) {
+    // If map is already initialized, use setOptions.
+    // `renderingType` must not be changed after instantiation.
+    if (isMapInitialized && this.googleMap?.googleMap) {
       try {
         this.googleMap.googleMap.setOptions(nextOptions);
       } catch (e) {
@@ -999,6 +1001,10 @@ export class GoogleMap2dComponent
     clickableIcons: true,
     gestureHandling: "greedy",
     disableDefaultUI: true,
+    // The map shell and clustering logic assume classic step-based zoom.
+    // Fractional wheel zoom on vector maps causes noisy zoom feedback loops
+    // with Angular bindings and feels broken on desktop.
+    isFractionalZoomEnabled: false,
     tilt: 0,
     headingInteractionEnabled: true,
   };

@@ -366,6 +366,51 @@ describe("FirestoreAdapterService (native)", () => {
 
       expect(result).toBeNull();
     });
+
+    it("should preserve plain mobile firestore values when Timestamp and GeoPoint classes are absent", async () => {
+      FirebaseFirestore.getDocument.mockResolvedValueOnce({
+        snapshot: {
+          id: "mobile-doc",
+          data: {
+            location: { latitude: 48.1234, longitude: 11.5678 },
+            updated_at: {
+              seconds: 1_700_000_000,
+              nanoseconds: 123_000_000,
+            },
+            nested: {
+              release_date: {
+                seconds: 1_700_000_100,
+                nanoseconds: 0,
+              },
+            },
+          },
+        },
+      });
+
+      const result = await service.getDocument<{
+        id: string;
+        location: { latitude: number; longitude: number };
+        updated_at: { seconds: number; nanoseconds: number };
+        nested: {
+          release_date: { seconds: number; nanoseconds: number };
+        };
+      }>("spots/mobile-doc");
+
+      expect(result).toEqual({
+        id: "mobile-doc",
+        location: { latitude: 48.1234, longitude: 11.5678 },
+        updated_at: {
+          seconds: 1_700_000_000,
+          nanoseconds: 123_000_000,
+        },
+        nested: {
+          release_date: {
+            seconds: 1_700_000_100,
+            nanoseconds: 0,
+          },
+        },
+      });
+    });
   });
 
   describe("setDocument (native)", () => {
@@ -486,6 +531,72 @@ describe("FirestoreAdapterService (native)", () => {
       expect(getDocs).not.toHaveBeenCalled();
       expect(result).toEqual([
         { id: "http-doc", display_name: "HTTP User", spot_edits_count: 12 },
+      ]);
+    });
+
+    it("should normalize REST timestamps and geopoints for iOS fallbacks", async () => {
+      const createdAt = "2024-02-03T10:20:30.456Z";
+      const createdAtMs = Date.parse(createdAt);
+
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue([
+          {
+            document: {
+              name: "projects/parkour-base-project/databases/(default)/documents/spots/http-doc",
+              fields: {
+                location: {
+                  geoPointValue: {
+                    latitude: 48.1234,
+                    longitude: 11.5678,
+                  },
+                },
+                created_at: { timestampValue: createdAt },
+                nested: {
+                  mapValue: {
+                    fields: {
+                      checkpoints: {
+                        arrayValue: {
+                          values: [
+                            {
+                              geoPointValue: {
+                                latitude: 47.0,
+                                longitude: 8.0,
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ]),
+      });
+
+      const result = await service.getCollection<{
+        id: string;
+        location: { latitude: number; longitude: number };
+        created_at: { seconds: number; nanoseconds: number };
+        nested: {
+          checkpoints: Array<{ latitude: number; longitude: number }>;
+        };
+      }>("spots");
+
+      expect(result).toEqual([
+        {
+          id: "http-doc",
+          location: { latitude: 48.1234, longitude: 11.5678 },
+          created_at: {
+            seconds: Math.floor(createdAtMs / 1000),
+            nanoseconds: 456_000_000,
+          },
+          nested: {
+            checkpoints: [{ latitude: 47.0, longitude: 8.0 }],
+          },
+        },
       ]);
     });
 

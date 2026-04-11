@@ -168,6 +168,7 @@ export class SearchService {
         imageSrc:
           doc.thumbnail_medium_url ||
           doc.thumbnail_small_url ||
+          doc.thumbnail_url ||
           doc.image_url ||
           "",
         isIconic: isIconic,

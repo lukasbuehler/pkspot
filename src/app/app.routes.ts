@@ -39,9 +39,9 @@ export const routes: Routes = [
   {
     path: "map/community/:slug",
     loadComponent: () =>
-      import(
-        "./components/community-landing-page/community-landing-page.component"
-      ).then((m) => m.CommunityLandingPageComponent),
+      import("./components/map-page/map-page.component").then(
+        (m) => m.MapPageComponent
+      ),
     resolve: { communityLanding: communityLandingResolver },
     data: { routeName: "Community Landing" },
   },

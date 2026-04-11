@@ -4,13 +4,13 @@ import {
   Component,
   computed,
   inject,
+  input,
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatCardModule } from "@angular/material/card";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { map } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
-import { CommunityPlaceholderSectionComponent } from "../community-placeholder-section/community-placeholder-section.component";
 import { CommunityLandingPageData } from "../../services/firebase/firestore/landing-pages.service";
 
 interface CommunityExternalLink {
@@ -30,7 +30,6 @@ interface CommunitySectionItem {
     MatCardModule,
     RouterLink,
     SpotListComponent,
-    CommunityPlaceholderSectionComponent,
   ],
   templateUrl: "./community-landing-page.component.html",
   styleUrl: "./community-landing-page.component.scss",
@@ -38,6 +37,10 @@ interface CommunitySectionItem {
 })
 export class CommunityLandingPageComponent {
   private _route = inject(ActivatedRoute);
+  landingDataInput = input<CommunityLandingPageData | null | undefined>(
+    undefined
+  );
+  panelMode = input(false);
 
   private _landingData = toSignal(
     this._route.data.pipe(
@@ -53,7 +56,9 @@ export class CommunityLandingPageComponent {
     }
   );
 
-  landingData = computed(() => this._landingData());
+  landingData = computed(
+    () => this.landingDataInput() ?? this._landingData() ?? undefined
+  );
 
   heading = computed(() => {
     const data = this.landingData();
@@ -105,6 +110,15 @@ export class CommunityLandingPageComponent {
     this._toSectionItems(this.landingData()?.athletes ?? [])
   );
   events = computed(() => this._toSectionItems(this.landingData()?.events ?? []));
+  hasManualSections = computed(() => {
+    return (
+      this.communityLinks().length > 0 ||
+      this.resources().length > 0 ||
+      this.organisations().length > 0 ||
+      this.athletes().length > 0 ||
+      this.events().length > 0
+    );
+  });
 
   lastUpdatedDate = computed(() => {
     const data = this.landingData();

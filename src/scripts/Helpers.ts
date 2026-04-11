@@ -38,6 +38,9 @@ export function transformFirestoreData(data: any): any {
 function transformFirestoreField(field: any): any {
   if (field === null || field === undefined) return field;
 
+  if ("nullValue" in field) {
+    return null;
+  }
   if ("stringValue" in field) {
     return field.stringValue;
   }
@@ -49,6 +52,19 @@ function transformFirestoreField(field: any): any {
   }
   if ("booleanValue" in field) {
     return field.booleanValue;
+  }
+  if ("timestampValue" in field && typeof field.timestampValue === "string") {
+    const parsedDate = new Date(field.timestampValue);
+    if (!Number.isNaN(parsedDate.getTime())) {
+      const timestampMs = parsedDate.getTime();
+      const seconds = Math.floor(timestampMs / 1000);
+      const nanoseconds = (timestampMs % 1000) * 1_000_000;
+      return {
+        seconds,
+        nanoseconds,
+      };
+    }
+    return field.timestampValue;
   }
   if ("geoPointValue" in field) {
     return {
@@ -116,7 +132,6 @@ export function humanTimeSince(date: Date): string {
  * @returns The parsed Date, or null if parsing fails
  */
 export function parseFirestoreTimestamp(timestamp: any): Date | null {
-  console.log("parseFirestoreTimestamp input:", JSON.stringify(timestamp));
   if (!timestamp) return null;
 
   // Already a Date
@@ -131,7 +146,9 @@ export function parseFirestoreTimestamp(timestamp: any): Date | null {
 
   // Plain object with seconds property (from Capacitor Firestore plugin)
   if (typeof timestamp.seconds === "number") {
-    return new Date(timestamp.seconds * 1000);
+    const nanoseconds =
+      typeof timestamp.nanoseconds === "number" ? timestamp.nanoseconds : 0;
+    return new Date(timestamp.seconds * 1000 + nanoseconds / 1_000_000);
   }
 
   // Firestore REST timestamp object

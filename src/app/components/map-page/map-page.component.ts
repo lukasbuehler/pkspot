@@ -111,6 +111,8 @@ import { environment } from "../../../environments/environment";
 import { PoiData } from "../../../db/models/PoiData";
 import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
 import { AmenityNames, AmenitiesMap } from "../../../db/models/Amenities";
+import { CommunityLandingPageData } from "../../services/firebase/firestore/landing-pages.service";
+import { CommunityLandingPageComponent } from "../community-landing-page/community-landing-page.component";
 
 @Component({
   selector: "app-map-page",
@@ -172,6 +174,7 @@ import { AmenityNames, AmenitiesMap } from "../../../db/models/Amenities";
     MatCardModule,
     FilterChipsBarComponent,
     NgOptimizedImage,
+    CommunityLandingPageComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -191,6 +194,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   searchResultSpots: WritableSignal<Spot[]> = signal([]);
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
+  selectedCommunityLanding = signal<CommunityLandingPageData | null>(null);
   selectedPoi = signal<PoiData | null>(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
   selectedSpotIdForEdits = computed(() => {
@@ -494,6 +498,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     this.isServer = isPlatformServer(platformId);
+    this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
 
     effect(() => {
       // Read all relevant routing state signals so URL stays in sync
@@ -765,60 +770,29 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedChallenge.set(contentData.challenge);
     }
 
+    this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
+
     // Parse URL to handle the edits route correctly since Angular router
     // might interpret /map/:spot/edits as /map/:spot where :spot="edits"
+    const routeState = this._parseMapRouteState(this.router.url);
     const urlParts = this.router.url.split("/").filter((segment) => segment);
     // urlParts will be like ['map', 'spotId', 'edits'] or ['map', 'spotId', 'c', 'challengeId']
-
-    let spotIdOrSlug: string | null = null;
-    let showChallenges = false;
-    let challengeId: string | null = null;
-    let showEditHistory = false;
-
-    if (urlParts.length >= 2 && urlParts[0] === "map") {
-      // Decode and strip any potential query parameters from the spot ID segment
-      const potentialSpot = decodeURIComponent(urlParts[1]).split("?")[0];
-
-      if (urlParts.length === 2) {
-        // /map/:spot
-        spotIdOrSlug = potentialSpot;
-      } else if (urlParts.length >= 3) {
-        const nextSegment = urlParts[2].split("?")[0];
-
-        if (nextSegment === "c") {
-          // /map/:spot/c or /map/:spot/c/:challenge
-          spotIdOrSlug = potentialSpot;
-          showChallenges = true;
-          if (urlParts.length >= 4) {
-            challengeId = decodeURIComponent(urlParts[3].split("?")[0]);
-          }
-        } else if (nextSegment === "edits") {
-          // /map/:spot/edits
-          spotIdOrSlug = potentialSpot;
-          showEditHistory = true;
-        } else {
-          // Might be /map/:spot where :spot is actually a multi-part ID like "edits"
-          // Check if the potential spot looks like a real spot ID (not a known reserved word)
-          spotIdOrSlug = potentialSpot;
-        }
-      }
-    }
 
     console.debug("DEBUG ngOnInit URL parsing:", {
       url: this.router.url,
       urlParts,
-      spotIdOrSlug,
-      showChallenges,
-      challengeId,
-      showEditHistory,
+      spotIdOrSlug: routeState.spotIdOrSlug,
+      showChallenges: routeState.showChallenges,
+      challengeId: routeState.challengeId,
+      showEditHistory: routeState.showEditHistory,
     });
 
     this.pendingTasks.run(async () => {
       this._handleURLParamsChange(
-        spotIdOrSlug,
-        showChallenges,
-        challengeId,
-        showEditHistory,
+        routeState.spotIdOrSlug,
+        routeState.showChallenges,
+        routeState.challengeId,
+        routeState.showEditHistory,
         contentData?.spot || null,
         contentData?.challenge || null
       );
@@ -884,13 +858,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             // Navigating away from map, do not interfere
             return;
           }
-          const match = navEvent.urlAfterRedirects.match(
-            /^\/map(?:\/([^\/?]+))?(?:\/(c)(?:\/([^\/]+))?)?(\/(edits)(?:\/)?)?/
-          );
-          const spotIdOrSlug = match?.[1] ?? null;
-          const showChallenges = !!match?.[2];
-          const challengeId = match?.[3] ?? null;
-          const showEditHistory = !!match?.[4];
+          this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
+          const routeState = this._parseMapRouteState(navEvent.urlAfterRedirects);
 
           // Also extract filter query param from URL to keep it in sync
           const queryIndex = navEvent.urlAfterRedirects.indexOf("?");
@@ -906,10 +875,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           }
 
           this._handleURLParamsChange(
-            spotIdOrSlug,
-            showChallenges,
-            challengeId,
-            showEditHistory
+            routeState.spotIdOrSlug,
+            routeState.showChallenges,
+            routeState.challengeId,
+            routeState.showEditHistory
           );
         });
 
@@ -1427,6 +1396,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const selectedChallenge = this.selectedChallenge();
     const showEditHistory = this.showSpotEditHistory();
     const activeFilter = this.selectedFilter();
+    const communityLanding = this.selectedCommunityLanding();
+    const currentPathWithoutQuery =
+      this.router.url.split("?")[0].split("#")[0] || "/map";
 
     // Get the spot - prefer selectedSpot, but fall back to challenge's spot
     const spot =
@@ -1452,6 +1424,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}/c`;
     } else if (spot) {
       path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}`;
+    } else if (communityLanding) {
+      path = communityLanding.canonicalPath;
+    } else if (currentPathWithoutQuery.startsWith("/map/community/")) {
+      path = currentPathWithoutQuery;
     } else {
       path = `/map`;
     }
@@ -1657,6 +1633,79 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       el.scrollTo({ top: 0 });
       this.sidebarContentIsScrolling.set(false);
     }
+  }
+
+  private _parseMapRouteState(url: string): {
+    spotIdOrSlug: string | null;
+    showChallenges: boolean;
+    challengeId: string | null;
+    showEditHistory: boolean;
+  } {
+    const cleanUrl = (url || "").split("?")[0].split("#")[0];
+
+    if (/^\/map\/community\/[^/]+$/u.test(cleanUrl)) {
+      return {
+        spotIdOrSlug: null,
+        showChallenges: false,
+        challengeId: null,
+        showEditHistory: false,
+      };
+    }
+
+    const urlParts = cleanUrl.split("/").filter((segment) => segment);
+
+    let spotIdOrSlug: string | null = null;
+    let showChallenges = false;
+    let challengeId: string | null = null;
+    let showEditHistory = false;
+
+    if (urlParts.length >= 2 && urlParts[0] === "map") {
+      const potentialSpot = decodeURIComponent(urlParts[1]);
+
+      if (urlParts.length === 2) {
+        spotIdOrSlug = potentialSpot;
+      } else if (urlParts.length >= 3) {
+        const nextSegment = urlParts[2];
+
+        if (nextSegment === "c") {
+          spotIdOrSlug = potentialSpot;
+          showChallenges = true;
+          if (urlParts.length >= 4) {
+            challengeId = decodeURIComponent(urlParts[3]);
+          }
+        } else if (nextSegment === "edits") {
+          spotIdOrSlug = potentialSpot;
+          showEditHistory = true;
+        } else {
+          spotIdOrSlug = potentialSpot;
+        }
+      }
+    }
+
+    return {
+      spotIdOrSlug,
+      showChallenges,
+      challengeId,
+      showEditHistory,
+    };
+  }
+
+  private _getCommunityLandingFromRoute(): CommunityLandingPageData | null {
+    let currentSnapshot = this.activatedRoute.snapshot;
+
+    while (currentSnapshot.firstChild) {
+      currentSnapshot = currentSnapshot.firstChild;
+    }
+
+    return (
+      (currentSnapshot.data?.["communityLanding"] as
+        | CommunityLandingPageData
+        | undefined) ??
+      (this.activatedRoute.snapshot.data?.["communityLanding"] as
+        | CommunityLandingPageData
+        | undefined) ??
+      null
+    );
   }
 
   private _openInfoPanel() {

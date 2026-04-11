@@ -185,7 +185,14 @@
     (focusClick)="spotMap!.focusSpot(selectedSpot()!)"
     (saveClick)="spotMap!.saveSpot($event)"
   ></app-spot-details>
-  } } @else {
+  } } @else if(selectedCommunityLanding(); as communityLanding) {
+  <app-community-landing-page
+    class="d-block community-map-panel"
+    @fadeInOut
+    [landingDataInput]="communityLanding"
+    [panelMode]="true"
+  ></app-community-landing-page>
+  } @else {
   <app-spot-list
     class="px-3 d-block"
     @fadeInOut
