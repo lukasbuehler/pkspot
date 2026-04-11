@@ -5,6 +5,7 @@ import { FirestoreAdapterService } from "../firestore-adapter.service";
 
 const createMockFirestoreAdapter = () => ({
   getDocument: vi.fn(),
+  getCollection: vi.fn(),
 });
 
 const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
@@ -122,5 +123,82 @@ describe("LandingPagesService", () => {
       );
 
     await expect(service.getCommunityPage("london")).resolves.toBeNull();
+  });
+
+  it("should include child communities for country pages", async () => {
+    mockFirestoreAdapter.getDocument
+      .mockResolvedValueOnce({
+        id: "united-kingdom",
+        communityKey: "country:gb",
+        isPreferred: true,
+      })
+      .mockResolvedValueOnce(
+        buildCommunityDoc({
+          id: "country:gb",
+          communityKey: "country:gb",
+          scope: "country",
+          displayName: "United Kingdom",
+          preferredSlug: "united-kingdom",
+          canonicalPath: "/map/community/united-kingdom",
+          breadcrumbs: [
+            { name: "Map", path: "/map" },
+            { name: "United Kingdom", path: "/map/community/united-kingdom" },
+          ],
+          geography: {
+            countryCode: "GB",
+            countryName: "United Kingdom",
+            countrySlug: "united-kingdom",
+          },
+        })
+      );
+    mockFirestoreAdapter.getCollection.mockResolvedValue([
+      buildCommunityDoc({
+        id: "locality:gb:manchester",
+        communityKey: "locality:gb:manchester",
+        displayName: "Manchester",
+        preferredSlug: "manchester",
+        canonicalPath: "/map/community/manchester",
+        counts: {
+          totalSpots: 12,
+          topRated: 5,
+          dry: 1,
+        },
+      }),
+      buildCommunityDoc({
+        id: "locality:gb:london",
+        communityKey: "locality:gb:london",
+        displayName: "London",
+        preferredSlug: "london",
+        canonicalPath: "/map/community/london",
+        counts: {
+          totalSpots: 18,
+          topRated: 7,
+          dry: 3,
+        },
+      }),
+    ]);
+
+    const result = await service.getCommunityPage("united-kingdom");
+
+    expect(mockFirestoreAdapter.getCollection).toHaveBeenCalledWith(
+      "community_pages",
+      [
+        {
+          fieldPath: "relationships.parentKeys",
+          opStr: "array-contains",
+          value: "country:gb",
+        },
+      ]
+    );
+    expect(result?.childCommunities).toEqual([
+      expect.objectContaining({
+        displayName: "London",
+        totalSpotCount: 18,
+      }),
+      expect.objectContaining({
+        displayName: "Manchester",
+        totalSpotCount: 12,
+      }),
+    ]);
   });
 });

@@ -220,6 +220,7 @@
     [(isEditing)]="isEditing"
     [(mapStyle)]="mapStyle"
     [showAmenities]="showAmenities()"
+    [showSpotPreview]="responsiveService.isDesktop() && !selectedSpot()"
     [minZoom]="2"
     (visibleSpotsChange)="setVisibleSpots($event)"
     (hightlightedSpotsChange)="highlightedSpots = $event"
@@ -411,6 +412,7 @@
       class="position-relative w-100 mat-elevation-z3 overflow-hidden"
       style="border-radius: 16px"
       (spotSelected)="openSpotOrGooglePlace($event)"
+      (placePreviewChange)="onSearchPlacePreviewChange($event)"
     ></app-search-field>
   </div>
   @if(!sidebarContentIsScrolling() || !sidenavOpen()) {
@@ -484,6 +486,7 @@
         class="w-100 mat-elevation-z3 overflow-hidden"
         style="border-radius: 16px"
         (spotSelected)="openSpotOrGooglePlace($event)"
+        (placePreviewChange)="onSearchPlacePreviewChange($event)"
       ></app-search-field>
     </div>
     <ng-container *ngTemplateOutlet="chips"></ng-container>

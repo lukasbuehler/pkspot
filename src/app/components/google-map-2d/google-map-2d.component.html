@@ -63,6 +63,8 @@
   <app-highlight-marker
     [spot]="spot"
     [zIndex]="getHighlightZIndex(spot)"
+    [mapZoom]="zoom"
+    [hoverPreviewEnabled]="showSpotPreview()"
     (markerClick)="onHighlightedSpotClick($event)"
   ></app-highlight-marker>
   } @if(zoom < 16) { @for (dot of dots; track trackDot($index, dot)) {
@@ -262,6 +264,19 @@
     [radius]="geolocation()!.accuracy"
     [options]="geolocationCircleOptions"
   ></map-circle>
+  }
+
+  @if(zoom >= 16 && showSpotPreview()) {
+  @for(spot of spots; track trackSpotMarker($index, spot)) {
+  @if(!isSelectedSpotBeingEdited(spot) && !isSameAsSelectedSpot(spot)) {
+  <app-spot-preview-marker
+    [spot]="spot"
+    [mapZoom]="zoom"
+    [hoverPreviewEnabled]="showSpotPreview()"
+    (markerClick)="spotClick.emit($event)"
+  ></app-spot-preview-marker>
+  }
+  }
   }
 
   <!-- Priority Markers (always visible) -->

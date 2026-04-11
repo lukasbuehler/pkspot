@@ -204,6 +204,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   showAllChallenges: WritableSignal<boolean> = signal(false);
   allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
   showSpotEditHistory: WritableSignal<boolean> = signal(false);
+  searchPreviewPlaceId = signal<string | null>(null);
 
   isEditing: WritableSignal<boolean> = signal(false);
   mapStyle: "roadmap" | "satellite" | "hybrid" | "terrain" | null = null;
@@ -275,6 +276,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _sidebarScrollListener?: (e: Event) => void;
   private _bottomSheetContentEl?: HTMLElement | null;
   private _bottomSheetContentListener?: (e: Event) => void;
+  private _lastFocusedCommunityKey: string | null = null;
 
   filterCtrl = new FormControl<string[]>([], { nonNullable: true });
   selectedFilters = signal<string[]>([]);
@@ -337,6 +339,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** MatDialog for opening the custom filter dialog */
   private _dialog = inject(MatDialog);
+  private _searchPreviewRequestVersion = 0;
 
   /**
    * Handle clicks on POIs or Amenity Markers
@@ -536,6 +539,76 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         this.selectedSpotIdOrSlug.set("");
       }
+    });
+
+    effect(() => {
+      const communityLanding = this.selectedCommunityLanding();
+      const isMapReady = this.mapReady();
+      const selectedSpot = this.selectedSpot();
+      const selectedChallenge = this.selectedChallenge();
+
+      if (!communityLanding) {
+        this._lastFocusedCommunityKey = null;
+        return;
+      }
+
+      if (!isMapReady || !this.spotMap || selectedSpot || selectedChallenge) {
+        return;
+      }
+
+      this._openInfoPanel();
+      this.resetSidebarContentToTop();
+      this.resetBottomSheetContentToTop();
+
+      if (this._lastFocusedCommunityKey === communityLanding.communityKey) {
+        return;
+      }
+
+      if (this._focusCommunityOnMap(communityLanding)) {
+        this._lastFocusedCommunityKey = communityLanding.communityKey;
+      }
+    });
+
+    effect((onCleanup) => {
+      const isMapReady = this.mapReady();
+      const placeId = this.searchPreviewPlaceId();
+
+      if (!isMapReady || !this.spotMap || !placeId) {
+        return;
+      }
+
+      const requestVersion = ++this._searchPreviewRequestVersion;
+      let isCancelled = false;
+
+      this.mapsService
+        .getGooglePlaceById(placeId)
+        .then((place) => {
+          if (isCancelled) {
+            return;
+          }
+
+          if (requestVersion !== this._searchPreviewRequestVersion) {
+            return;
+          }
+
+          if (this.searchPreviewPlaceId() !== placeId) {
+            return;
+          }
+
+          this._focusGooglePlace(place);
+        })
+        .catch((error) => {
+          if (!isCancelled) {
+            console.error(
+              "[ERROR search place preview] Error fetching place:",
+              error
+            );
+          }
+        });
+
+      onCleanup(() => {
+        isCancelled = true;
+      });
     });
 
     // Effect to update meta tags when spot/challenge changes (for client-side navigation)
@@ -1004,6 +1077,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openSpotOrGooglePlace(value: { type: "place" | "spot"; id: string }) {
+    this.clearSearchPlacePreview();
+
     if (value.type === "place") {
       this.openGooglePlaceById(value.id);
     } else {
@@ -1011,50 +1086,57 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  onSearchPlacePreviewChange(placeId: string | null) {
+    if (placeId === this.searchPreviewPlaceId()) {
+      return;
+    }
+
+    if (!placeId) {
+      this.clearSearchPlacePreview();
+      return;
+    }
+
+    this.searchPreviewPlaceId.set(placeId);
+  }
+
+  private clearSearchPlacePreview() {
+    this._searchPreviewRequestVersion += 1;
+    this.searchPreviewPlaceId.set(null);
+  }
+
   openGooglePlaceById(id: string) {
+    this.clearSearchPlacePreview();
     console.debug("[DEBUG openGooglePlaceById] Opening place with id:", id);
     this.mapsService
       .getGooglePlaceById(id)
       .then((place) => {
         console.debug("[DEBUG openGooglePlaceById] Got place:", place);
-        if (!place?.location) {
-          console.warn("[WARN openGooglePlaceById] No location found");
-          return;
-        }
-
-        // Try to use viewport bounds if available (preferred for proper framing)
-        const viewport = (place as any).viewport as
-          | google.maps.LatLngBounds
-          | undefined;
-        if (viewport) {
-          console.debug(
-            "[DEBUG openGooglePlaceById] Using viewport bounds for place"
-          );
-          this.spotMap?.focusBounds(viewport);
-          return;
-        }
-
-        // Fallback: Calculate appropriate zoom based on place type
-        const zoomLevel = this.mapsService.getZoomForPlaceType(place);
-        console.debug(
-          "[DEBUG openGooglePlaceById] Calculated zoom level:",
-          zoomLevel
-        );
-
-        // Convert LatLng to LatLngLiteral - location is a LatLng object with functions
-        const lat = (place.location as any).lat();
-        const lng = (place.location as any).lng();
-        const locationLiteral: google.maps.LatLngLiteral = { lat, lng };
-        console.debug(
-          "[DEBUG openGooglePlaceById] Location literal:",
-          locationLiteral
-        );
-        console.debug("[DEBUG openGooglePlaceById] spotMap:", this.spotMap);
-        this.spotMap?.focusPoint(locationLiteral, zoomLevel);
+        this._focusGooglePlace(place);
       })
       .catch((err) => {
         console.error("[ERROR openGooglePlaceById] Error fetching place:", err);
       });
+  }
+
+  private _focusGooglePlace(place: google.maps.places.Place) {
+    if (!place?.location) {
+      console.warn("[WARN focusGooglePlace] No location found");
+      return;
+    }
+
+    const viewport = (place as any).viewport as
+      | google.maps.LatLngBounds
+      | undefined;
+    if (viewport) {
+      this.spotMap?.focusBounds(viewport);
+      return;
+    }
+
+    const zoomLevel = this.mapsService.getZoomForPlaceType(place);
+    const lat = (place.location as any).lat();
+    const lng = (place.location as any).lng();
+
+    this.spotMap?.focusPoint({ lat, lng }, zoomLevel);
   }
 
   async loadSpotById(spotId: SpotId, updateUrl: boolean = true): Promise<Spot> {
@@ -1706,6 +1788,127 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         | undefined) ??
       null
     );
+  }
+
+  private _focusCommunityOnMap(communityLanding: CommunityLandingPageData): boolean {
+    if (!isPlatformBrowser(this.platformId) || !this.spotMap) {
+      return false;
+    }
+
+    const coordinates = this._extractCommunityCoordinates(communityLanding);
+    if (coordinates.length === 0) {
+      return false;
+    }
+
+    let minLat = coordinates[0].lat;
+    let maxLat = coordinates[0].lat;
+    let minLng = coordinates[0].lng;
+    let maxLng = coordinates[0].lng;
+
+    for (const coordinate of coordinates) {
+      minLat = Math.min(minLat, coordinate.lat);
+      maxLat = Math.max(maxLat, coordinate.lat);
+      minLng = Math.min(minLng, coordinate.lng);
+      maxLng = Math.max(maxLng, coordinate.lng);
+    }
+
+    const latSpan = Math.abs(maxLat - minLat);
+    const lngSpan = Math.abs(maxLng - minLng);
+
+    if (latSpan > 0.02 || lngSpan > 0.02) {
+      this.spotMap.focusBounds(
+        new google.maps.LatLngBounds(
+          { lat: minLat, lng: minLng },
+          { lat: maxLat, lng: maxLng }
+        )
+      );
+      return true;
+    }
+
+    const center = {
+      lat: (minLat + maxLat) / 2,
+      lng: (minLng + maxLng) / 2,
+    };
+
+    this.spotMap.focusPoint(center, this._getCommunityFocusZoom(communityLanding));
+    return true;
+  }
+
+  private _extractCommunityCoordinates(
+    communityLanding: CommunityLandingPageData
+  ): google.maps.LatLngLiteral[] {
+    const previews = [
+      ...communityLanding.topRatedSpots,
+      ...communityLanding.drySpots,
+    ];
+    const coordinates: google.maps.LatLngLiteral[] = [];
+
+    for (const preview of previews) {
+      const previewBounds = preview.bounds_raw ?? [];
+      for (const coordinate of previewBounds) {
+        if (this._isFiniteLatLng(coordinate)) {
+          coordinates.push(coordinate);
+        }
+      }
+
+      const rawLocation = preview.location_raw;
+      if (this._isFiniteLatLng(rawLocation)) {
+        coordinates.push(rawLocation);
+      }
+
+      const geoLocation = preview.location;
+      const normalizedGeoLocation = geoLocation
+        ? { lat: geoLocation.latitude, lng: geoLocation.longitude }
+        : null;
+      if (this._isFiniteLatLng(normalizedGeoLocation)) {
+        coordinates.push(normalizedGeoLocation);
+      }
+
+      const geoBounds = preview.bounds ?? [];
+      for (const coordinate of geoBounds) {
+        const normalizedCoordinate = {
+          lat: coordinate.latitude,
+          lng: coordinate.longitude,
+        };
+        if (this._isFiniteLatLng(normalizedCoordinate)) {
+          coordinates.push(normalizedCoordinate);
+        }
+      }
+
+      const boundsCenter = preview.bounds_center
+        ? {
+            lat: preview.bounds_center.latitude,
+            lng: preview.bounds_center.longitude,
+          }
+        : null;
+      if (this._isFiniteLatLng(boundsCenter)) {
+        coordinates.push(boundsCenter);
+      }
+    }
+
+    return coordinates;
+  }
+
+  private _getCommunityFocusZoom(
+    communityLanding: CommunityLandingPageData
+  ): number {
+    switch (communityLanding.scope) {
+      case "country":
+        return 5;
+      case "region":
+        return 8;
+      case "locality":
+      default:
+        return 11;
+    }
+  }
+
+  private _isFiniteLatLng(
+    coordinate: google.maps.LatLngLiteral | null | undefined
+  ): coordinate is google.maps.LatLngLiteral {
+    return !!coordinate &&
+      Number.isFinite(coordinate.lat) &&
+      Number.isFinite(coordinate.lng);
   }
 
   private _openInfoPanel() {

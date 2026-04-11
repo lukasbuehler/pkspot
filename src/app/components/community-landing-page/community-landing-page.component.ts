@@ -99,6 +99,7 @@ export class CommunityLandingPageComponent {
   totalSpotCount = computed(() => this.landingData()?.totalSpotCount ?? 0);
   topRatedCount = computed(() => this.landingData()?.topRatedCount ?? 0);
   dryCount = computed(() => this.landingData()?.dryCount ?? 0);
+  childCommunities = computed(() => this.landingData()?.childCommunities ?? []);
   communityLinks = computed(() => this._toCommunityLinks(this.landingData()));
   resources = computed(() =>
     this._toSectionItems(this.landingData()?.resources ?? [])
@@ -118,6 +119,10 @@ export class CommunityLandingPageComponent {
       this.athletes().length > 0 ||
       this.events().length > 0
     );
+  });
+  hasFeaturedSpots = computed(() => {
+    const data = this.landingData();
+    return (data?.topRatedSpots.length ?? 0) > 0 || (data?.drySpots.length ?? 0) > 0;
   });
 
   lastUpdatedDate = computed(() => {

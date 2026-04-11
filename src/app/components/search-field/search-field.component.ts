@@ -1,12 +1,12 @@
 import {
+  ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   inject,
-  Input,
+  input,
   LOCALE_ID,
   OnDestroy,
   OnInit,
-  Output,
+  output,
 } from "@angular/core";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import {
@@ -17,7 +17,6 @@ import {
 import { MatFormField, MatSuffix } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { BehaviorSubject, from, of, Subscription } from "rxjs";
-import { SearchResponse } from "typesense/lib/Typesense/Documents";
 import { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { AsyncPipe } from "@angular/common";
 import { MatDividerModule } from "@angular/material/divider";
@@ -46,6 +45,55 @@ import {
   switchMap,
 } from "rxjs/operators";
 
+interface SearchSelection {
+  type: "place" | "spot";
+  id: string;
+}
+
+interface SearchSpotHitDocument {
+  id: string;
+  name?: unknown;
+  thumbnail_url?: string;
+  rating?: number;
+  type?: string;
+  access?: string;
+  amenities?: AmenitiesMap;
+  address?: {
+    locality?: string;
+    country?: {
+      code?: string;
+    } | null;
+  } | null;
+}
+
+interface SearchSpotPreview {
+  name?: string;
+  imageSrc?: string;
+  rating?: number;
+  amenities?: AmenitiesMap;
+}
+
+interface SearchSpotHit {
+  document: SearchSpotHitDocument;
+  preview?: SearchSpotPreview;
+}
+
+interface SearchSpotResults {
+  hits: SearchSpotHit[];
+  found?: number;
+}
+
+interface SearchFieldResults {
+  displayedPlace: google.maps.places.AutocompletePrediction | null;
+  displayedPlacePlacement: "top" | "bottom";
+  previewPlaceId: string | null;
+  spots: SearchSpotResults | null;
+}
+
+interface NamedSearchResultLike {
+  name?: unknown;
+}
+
 @Component({
   selector: "app-search-field",
   imports: [
@@ -63,31 +111,56 @@ import {
   ],
   templateUrl: "./search-field.component.html",
   styleUrl: "./search-field.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchFieldComponent implements OnInit, OnDestroy {
   readonly locale = inject(LOCALE_ID);
 
-  @Input() appearance: "fill" | "outline" = "fill";
+  appearance = input<"fill" | "outline">("fill");
 
-  @Output() spotSelected = new EventEmitter<{
-    type: "place" | "spot";
-    id: string;
-  }>();
+  spotSelected = output<SearchSelection>();
+  placePreviewChange = output<string | null>();
 
   private _searchService = inject(SearchService);
   private _spotSearchSubscription?: Subscription;
   private readonly _minSearchQueryLength = 2;
+  private _lastPreviewPlaceId: string | null = null;
+  private readonly _locationLikePlaceTypes = new Set([
+    "geocode",
+    "country",
+    "administrative_area_level_1",
+    "administrative_area_level_2",
+    "administrative_area_level_3",
+    "administrative_area_level_4",
+    "administrative_area_level_5",
+    "locality",
+    "postal_town",
+    "sublocality",
+    "sublocality_level_1",
+    "sublocality_level_2",
+    "sublocality_level_3",
+    "sublocality_level_4",
+    "sublocality_level_5",
+    "neighborhood",
+    "postal_code",
+    "route",
+    "street_address",
+    "intersection",
+    "plus_code",
+  ]);
+  private readonly _nonLocationPlaceTypes = new Set([
+    "establishment",
+    "point_of_interest",
+    "premise",
+    "subpremise",
+  ]);
 
-  spotSearchControl = new FormControl();
-  // Use a loose result type to allow runtime-attached `preview` property
-  spotAndPlaceSearchResults$ = new BehaviorSubject<{
-    places: google.maps.places.AutocompletePrediction[] | null;
-    // Typesense SearchResponse is kept at runtime, but we allow `any` here
-    // so the template can access runtime-attached `preview` safely.
-    spots: any | null;
-  } | null>(null);
+  spotSearchControl = new FormControl<string | SearchSelection>("");
+  spotAndPlaceSearchResults$ = new BehaviorSubject<SearchFieldResults | null>(
+    null
+  );
 
-  @Input() onlySpots: boolean = false;
+  onlySpots = input(false);
 
   ngOnInit() {
     // Debounce and cancel stale lookups to reduce API usage.
@@ -102,19 +175,39 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
             return of(null);
           }
 
-          const searchRequest = this.onlySpots
+          const searchRequest = this.onlySpots()
             ? this._searchService.searchSpotsOnly(query)
             : this._searchService.searchSpotsAndPlaces(query);
 
           return from(searchRequest).pipe(
             map((results) => {
-              if (results.places) {
-                results.places = results.places.slice(0, 3);
-              }
-              if (results.spots && results.spots.hits) {
-                results.spots.hits = results.spots.hits.slice(0, 5);
-              }
-              return results;
+              const rawSpotResults = results.spots as SearchSpotResults | null;
+              const displayedPlace = this.onlySpots()
+                ? null
+                : (results.places?.[0] ?? null);
+              const spotResults =
+                rawSpotResults && Array.isArray(rawSpotResults.hits)
+                  ? {
+                      ...rawSpotResults,
+                      hits: rawSpotResults.hits.slice(0, 5),
+                    }
+                  : rawSpotResults;
+              const hasSpotHits = (spotResults?.hits?.length ?? 0) > 0;
+
+              return {
+                displayedPlace,
+                displayedPlacePlacement:
+                  displayedPlace &&
+                  hasSpotHits &&
+                  !this.isGoodLocationMatch(displayedPlace, query)
+                    ? "bottom"
+                    : "top",
+                previewPlaceId:
+                  displayedPlace && this.isLocationLikePlace(displayedPlace)
+                    ? displayedPlace.place_id
+                    : null,
+                spots: spotResults,
+              } satisfies SearchFieldResults;
             }),
             catchError((error) => {
               console.error("Search failed:", error);
@@ -125,10 +218,12 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       )
       .subscribe((results) => {
         this.spotAndPlaceSearchResults$.next(results);
+        this.emitPlacePreviewChange(results?.previewPlaceId ?? null);
       });
   }
 
   ngOnDestroy(): void {
+    this.emitPlacePreviewChange(null);
     this.spotAndPlaceSearchResults$.complete();
     this._spotSearchSubscription?.unsubscribe();
   }
@@ -136,13 +231,89 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   optionSelected(event: MatAutocompleteSelectedEvent) {
     console.log("optionSelected:", event);
 
+    this.emitPlacePreviewChange(null);
     this.spotSearchControl.setValue("");
 
-    this.spotSelected.emit(event.option.value);
+    this.spotSelected.emit(event.option.value as SearchSelection);
   }
 
-  getSpotName(spot: Partial<SpotSchema & { id: string }>): string {
-    const rawName: any = (spot as any)?.name;
+  private emitPlacePreviewChange(placeId: string | null): void {
+    if (this._lastPreviewPlaceId === placeId) {
+      return;
+    }
+
+    this._lastPreviewPlaceId = placeId;
+    this.placePreviewChange.emit(placeId);
+  }
+
+  private isLocationLikePlace(
+    place: google.maps.places.AutocompletePrediction
+  ): boolean {
+    const placeTypes = (place.types ?? []).map((type) => type.toLowerCase());
+
+    if (placeTypes.length === 0) {
+      return false;
+    }
+
+    if (placeTypes.some((type) => this._nonLocationPlaceTypes.has(type))) {
+      return false;
+    }
+
+    return placeTypes.some((type) => this._locationLikePlaceTypes.has(type));
+  }
+
+  private isGoodLocationMatch(
+    place: google.maps.places.AutocompletePrediction,
+    query: string
+  ): boolean {
+    if (!this.isLocationLikePlace(place)) {
+      return false;
+    }
+
+    const normalizedQuery = this.normalizeSearchText(query);
+    if (normalizedQuery.length < this._minSearchQueryLength) {
+      return false;
+    }
+
+    const mainText = this.normalizeSearchText(
+      place.structured_formatting?.main_text || place.description || ""
+    );
+    const description = this.normalizeSearchText(place.description || "");
+
+    if (
+      mainText === normalizedQuery ||
+      description === normalizedQuery ||
+      mainText.startsWith(normalizedQuery) ||
+      description.startsWith(normalizedQuery)
+    ) {
+      return true;
+    }
+
+    const queryTokens = normalizedQuery
+      .split(" ")
+      .map((token) => token.trim())
+      .filter((token) => token.length > 1);
+
+    return (
+      queryTokens.length > 0 &&
+      queryTokens.every(
+        (token) =>
+          mainText.includes(token) || description.includes(token)
+      )
+    );
+  }
+
+  private normalizeSearchText(text: string): string {
+    return text
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  getSpotName(spot: NamedSearchResultLike | null | undefined): string {
+    const rawName = spot?.name;
 
     if (!rawName) return $localize`Unnamed Spot`;
 
@@ -151,28 +322,52 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
     // If the name is an object keyed by locale codes, try to pick the best one
     if (typeof rawName === "object") {
-      const nameLocales = Object.keys(rawName);
+      const localizedNames = rawName as Record<string, unknown>;
+      const nameLocales = Object.keys(localizedNames);
       if (nameLocales.length === 0) return $localize`Unnamed Spot`;
 
       const localeToShow: LocaleCode = nameLocales.includes(this.locale)
         ? (this.locale as LocaleCode)
         : (nameLocales[0] as LocaleCode);
 
-      const candidate = rawName[localeToShow];
+      const candidate = localizedNames[localeToShow];
 
       if (typeof candidate === "string") return candidate;
-      if (candidate && typeof candidate.text === "string")
+      if (
+        candidate &&
+        typeof candidate === "object" &&
+        "text" in candidate &&
+        typeof candidate.text === "string"
+      ) {
         return candidate.text;
+      }
 
       // Fallback: try to find any string-ish value in the object
       for (const k of nameLocales) {
-        const v = rawName[k];
+        const v = localizedNames[k];
         if (typeof v === "string") return v;
-        if (v && typeof v.text === "string") return v.text;
+        if (
+          v &&
+          typeof v === "object" &&
+          "text" in v &&
+          typeof v.text === "string"
+        ) {
+          return v.text;
+        }
       }
     }
 
     return $localize`Unnamed Spot`;
+  }
+
+  getPositiveSpotRating(hit: SearchSpotHit): number | null {
+    const rating = hit.preview?.rating ?? hit.document.rating ?? null;
+
+    if (typeof rating !== "number" || !Number.isFinite(rating) || rating <= 0) {
+      return null;
+    }
+
+    return rating;
   }
 
   /**

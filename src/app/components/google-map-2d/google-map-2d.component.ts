@@ -62,6 +62,7 @@ import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.c
 import { CustomMarkerComponent } from "../custom-marker/custom-marker.component";
 import { ClusterDotMarkerComponent } from "../cluster-dot-marker/cluster-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
+import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-marker.component";
 
 function enumerateTileRangeX(
   start: number,
@@ -116,6 +117,7 @@ export interface TilesObject {
     HighlightMarkerComponent,
     CustomMarkerComponent,
     ClusterDotMarkerComponent,
+    SpotPreviewMarkerComponent,
     MatSnackBarModule,
   ],
   animations: [
@@ -1258,6 +1260,24 @@ export class GoogleMap2dComponent
     return result;
   }
 
+  isSameAsSelectedSpot(spot: LocalSpot | Spot): boolean {
+    const selectedSpot = this.selectedSpot();
+    if (!selectedSpot) return false;
+
+    if (selectedSpot === spot) {
+      return true;
+    }
+
+    if ("id" in selectedSpot && "id" in spot) {
+      return (selectedSpot as Spot).id === (spot as Spot).id;
+    }
+
+    const selectedLoc = selectedSpot.location();
+    const spotLoc = spot.location();
+
+    return selectedLoc.lat === spotLoc.lat && selectedLoc.lng === spotLoc.lng;
+  }
+
   /**
    * Debug method to check the state of the selectedSpotPolygon ViewChild
    * Can be called from browser console for debugging
@@ -1718,5 +1738,14 @@ export class GoogleMap2dComponent
     if (marker.name)
       return `${marker.name}_${marker.location.lat}_${marker.location.lng}`;
     return `${index}_${marker.location.lat}_${marker.location.lng}`;
+  }
+
+  trackSpotMarker(index: number, spot: LocalSpot | Spot): string {
+    if ("id" in spot && spot.id) {
+      return spot.id as string;
+    }
+
+    const location = spot.location();
+    return `${index}_${location.lat}_${location.lng}`;
   }
 }

@@ -78,6 +78,7 @@ describe("communityLandingResolver", () => {
       organisations: [],
       athletes: [],
       events: [],
+      childCommunities: [],
     });
 
     const route = {

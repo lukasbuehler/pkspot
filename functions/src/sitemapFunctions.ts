@@ -38,9 +38,19 @@ interface SpotSitemapData {
   time_updated?: { seconds: number; nanoseconds: number };
 }
 
+interface CommunitySitemapData {
+  canonicalPath?: string;
+  preferredSlug?: string;
+  published?: boolean;
+  scope?: "country" | "region" | "locality";
+  generatedAt?: { seconds: number; nanoseconds: number };
+  sourceMaxUpdatedAt?: { seconds: number; nanoseconds: number };
+}
+
 interface SitemapGenerationStats {
   spotCount: number;
   userCount: number;
+  communityCount: number;
   slugCount: number;
   staticPageCount: number;
   totalUrls: number;
@@ -133,7 +143,10 @@ function getNowDateString(): string {
 }
 
 function getLastModDate(
-  timeUpdated: SpotSitemapData["time_updated"],
+  timeUpdated:
+    | SpotSitemapData["time_updated"]
+    | CommunitySitemapData["generatedAt"]
+    | CommunitySitemapData["sourceMaxUpdatedAt"],
   fallbackDate: string
 ): string {
   if (!timeUpdated?.seconds) {
@@ -157,6 +170,7 @@ async function _generateAndUploadSitemap(): Promise<{
   success: boolean;
   spotCount: number;
   userCount: number;
+  communityCount: number;
   staticPageCount: number;
   totalUrls: number;
   slugCount: number;
@@ -184,6 +198,7 @@ async function _generateAndUploadSitemap(): Promise<{
 
   let spotCount = 0;
   let userCount = 0;
+  let communityCount = 0;
   let slugCount = 0;
 
   try {
@@ -235,6 +250,52 @@ async function _generateAndUploadSitemap(): Promise<{
     }
     console.log(`Streamed ${userCount} users with public profiles`);
 
+    console.log("Streaming communities from Firestore...");
+    const communitiesStream = db
+      .collection("community_pages")
+      .select(
+        "canonicalPath",
+        "preferredSlug",
+        "published",
+        "scope",
+        "generatedAt",
+        "sourceMaxUpdatedAt"
+      )
+      .stream();
+
+    for await (const doc of communitiesStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
+      const data = doc.data() as CommunitySitemapData;
+      if (data.published === false) {
+        continue;
+      }
+
+      const path =
+        data.canonicalPath?.trim() ||
+        (data.preferredSlug
+          ? `/map/community/${encodeURIComponent(data.preferredSlug)}`
+          : "");
+
+      if (!path) {
+        continue;
+      }
+
+      communityCount += 1;
+      const lastmod = getLastModDate(
+        data.sourceMaxUpdatedAt ?? data.generatedAt,
+        now
+      );
+      const priority =
+        data.scope === "country"
+          ? "0.8"
+          : data.scope === "region"
+          ? "0.75"
+          : "0.7";
+      await writer.append(
+        generateUrlWithHreflang(path, lastmod, "weekly", priority)
+      );
+    }
+    console.log(`Streamed ${communityCount} published communities`);
+
     await writer.append("</urlset>");
     await writer.flush();
     writeStream.end();
@@ -252,16 +313,19 @@ async function _generateAndUploadSitemap(): Promise<{
   const stats: SitemapGenerationStats = {
     spotCount,
     userCount,
+    communityCount,
     slugCount,
     staticPageCount: STATIC_PAGES.length,
     totalUrls:
-      (STATIC_PAGES.length + spotCount + userCount) * SUPPORTED_LOCALES.length,
+      (STATIC_PAGES.length + spotCount + userCount + communityCount) *
+      SUPPORTED_LOCALES.length,
   };
 
   console.log(`Sitemap uploaded successfully to ${publicUrl}`);
   console.log(
     `Total URLs in sitemap: ${stats.totalUrls} (${stats.staticPageCount} static + ` +
-      `${stats.spotCount} spots (${stats.slugCount} with slugs) + ${stats.userCount} users) × ` +
+      `${stats.spotCount} spots (${stats.slugCount} with slugs) + ${stats.userCount} users + ` +
+      `${stats.communityCount} communities) × ` +
       `${SUPPORTED_LOCALES.length} locales`
   );
 
@@ -269,6 +333,7 @@ async function _generateAndUploadSitemap(): Promise<{
     success: true,
     spotCount: stats.spotCount,
     userCount: stats.userCount,
+    communityCount: stats.communityCount,
     staticPageCount: stats.staticPageCount,
     slugCount: stats.slugCount,
     totalUrls: stats.totalUrls,
@@ -292,7 +357,8 @@ export const generateSitemapOnSchedule = onSchedule(
     const result = await _generateAndUploadSitemap();
     console.log(
       `Sitemap generation complete. ${result.totalUrls} URLs indexed ` +
-        `(${result.staticPageCount} static pages, ${result.spotCount} spots, ${result.userCount} users).`
+        `(${result.staticPageCount} static pages, ${result.spotCount} spots, ${result.userCount} users, ` +
+        `${result.communityCount} communities).`
     );
   }
 );

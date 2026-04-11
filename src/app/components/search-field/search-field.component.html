@@ -1,4 +1,4 @@
-<mat-form-field [appearance]="appearance" class="w-100 spot-search-field">
+<mat-form-field [appearance]="appearance()" class="w-100 spot-search-field">
   <mat-icon matSuffix>search</mat-icon>
 
   <input
@@ -16,13 +16,42 @@
     (optionSelected)="optionSelected($event)"
     class="mt-2"
   >
-    @if(((spotAndPlaceSearchResults$ | async)?.spots?.hits?.length ?? 0) > 0) {
+    @if(spotAndPlaceSearchResults$ | async; as results) {
+    @if(
+      results.displayedPlace && results.displayedPlacePlacement === "top"
+    ) {
+    <div>
+      <p class="mat-label-medium ps-3 pt-1 mb-1">Google Place</p>
+      <mat-divider></mat-divider>
+    </div>
+    <mat-option
+      class="spotAutocompleteOption"
+      [value]="{ type: 'place', id: results.displayedPlace.place_id }"
+    >
+      <div class="d-flex flex-row align-items-center p-1 gap-2">
+        <div
+          class="rounded border d-flex justify-content-center align-items-center"
+          style="width: 50px; height: 50px"
+        >
+          <mat-icon>{{ getPlaceIcon(results.displayedPlace.types) }}</mat-icon>
+        </div>
+        <span class="mat-body-large text-truncate p-1">{{
+          results.displayedPlace.description
+        }}</span>
+      </div>
+    </mat-option>
+    } @if(
+      results.displayedPlace &&
+      results.displayedPlacePlacement === "top" &&
+      (results.spots?.hits?.length ?? 0) > 0
+    ) {
+    <div class="pt-2"></div>
+    } @if((results.spots?.hits?.length ?? 0) > 0) {
     <div>
       <p class="mat-label-medium ps-3 pt-1 mb-1">Spots</p>
       <mat-divider></mat-divider>
     </div>
-    } @for(hit of (spotAndPlaceSearchResults$ | async)?.spots?.hits; track
-    $index) {
+    } @for(hit of results.spots?.hits; track $index) {
     <mat-option
       class="spotAutocompleteOption"
       [value]="{ type: 'spot', id: hit.document.id }"
@@ -58,11 +87,10 @@
             <span class="mat-title-medium text-truncate">{{
               getSpotName(hit.preview || hit.document)
             }}</span>
-            @if((hit.preview?.rating ?? hit.document.rating) &&
-            (hit.preview?.rating ?? hit.document.rating) > 0) {
+            @if(getPositiveSpotRating(hit); as spotRating) {
             <app-spot-rating
               class="mat-title-small"
-              [rating1to5]="hit.preview?.rating ?? hit.document.rating"
+              [rating1to5]="spotRating"
               [isCompact]="true"
             ></app-spot-rating>
             } @for(amenity of getSpotImportantAmenities(hit.preview?.amenities
@@ -113,32 +141,36 @@
         >
       </div>
     </mat-option>
-    } @if(((spotAndPlaceSearchResults$ | async)?.spots?.hits?.length ?? 0) > 0)
-    {
+    } @if(
+      (results.spots?.hits?.length ?? 0) > 0 &&
+      results.displayedPlace &&
+      results.displayedPlacePlacement === "bottom"
+    ) {
     <div class="pt-2"></div>
-    } @if(((spotAndPlaceSearchResults$ | async)?.places?.length ?? 0) > 0) {
+    } @if(
+      results.displayedPlace && results.displayedPlacePlacement === "bottom"
+    ) {
     <div>
-      <p class="mat-label-medium ps-3 pt-1 mb-1">Google Places</p>
+      <p class="mat-label-medium ps-3 pt-1 mb-1">Google Place</p>
       <mat-divider></mat-divider>
     </div>
-    } @for(place of (spotAndPlaceSearchResults$ | async)?.places; track $index)
-    {
     <mat-option
       class="spotAutocompleteOption"
-      [value]="{ type: 'place', id: place.place_id }"
+      [value]="{ type: 'place', id: results.displayedPlace.place_id }"
     >
       <div class="d-flex flex-row align-items-center p-1 gap-2">
         <div
           class="rounded border d-flex justify-content-center align-items-center"
           style="width: 50px; height: 50px"
         >
-          <mat-icon>{{ getPlaceIcon(place.types) }}</mat-icon>
+          <mat-icon>{{ getPlaceIcon(results.displayedPlace.types) }}</mat-icon>
         </div>
         <span class="mat-body-large text-truncate p-1">{{
-          place.description
+          results.displayedPlace.description
         }}</span>
       </div>
     </mat-option>
+    }
     }
   </mat-autocomplete>
   <!-- <button

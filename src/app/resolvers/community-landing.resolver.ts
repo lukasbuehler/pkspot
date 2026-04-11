@@ -76,6 +76,7 @@ export const communityLandingResolver: ResolveFn<
       organisations: [],
       athletes: [],
       events: [],
+      childCommunities: [],
       notFound: true,
     };
   }

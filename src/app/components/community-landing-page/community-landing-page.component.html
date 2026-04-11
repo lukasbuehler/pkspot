@@ -43,8 +43,165 @@
     </mat-card-content>
   </mat-card>
   } @else {
+  @if(childCommunities().length > 0) {
+  <section class="content-section">
+    <div class="section-heading">
+      <p class="section-eyebrow m-0">Country Directory</p>
+      <h2 class="mat-title-large m-0">Communities in {{ heading() }}</h2>
+    </div>
+
+    <div class="community-directory-grid">
+      @for(child of childCommunities(); track child.communityKey) {
+      <a class="community-link-card" [routerLink]="child.canonicalPath">
+        <span class="community-link-name">{{ child.displayName }}</span>
+        <span class="community-link-meta">
+          {{ child.totalSpotCount }} spots
+          @if(child.dryCount > 0) {
+          <span>· {{ child.dryCount }} dry</span>
+          }
+        </span>
+      </a>
+      }
+    </div>
+  </section>
+  }
+
+  @if(hasManualSections()) {
+  <section class="content-section">
+    <div class="section-heading">
+      <p class="section-eyebrow m-0">Community Guide</p>
+      <h2 class="mat-title-large m-0">Links, groups, and local knowledge</h2>
+    </div>
+
+    <div class="detail-grid">
+      @if(communityLinks().length > 0) {
+      <mat-card class="detail-card">
+        <mat-card-header>
+          <mat-card-title>Local Community Links</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="detail-list">
+            @for(link of communityLinks(); track link.label) {
+            <li>
+              <a [href]="link.url" target="_blank" rel="noopener noreferrer">
+                {{ link.label }}
+              </a>
+            </li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      }
+
+      @if(events().length > 0) {
+      <mat-card class="detail-card">
+        <mat-card-header>
+          <mat-card-title>Upcoming Events</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="detail-list">
+            @for(item of events(); track item.name) {
+            <li>
+              @if(item.url) {
+              <a [href]="item.url" target="_blank" rel="noopener noreferrer">
+                {{ item.name }}
+              </a>
+              } @else {
+              <span>{{ item.name }}</span>
+              }
+            </li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      }
+
+      @if(organisations().length > 0) {
+      <mat-card class="detail-card">
+        <mat-card-header>
+          <mat-card-title>Organisations</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="detail-list">
+            @for(item of organisations(); track item.name) {
+            <li>
+              @if(item.url) {
+              <a [href]="item.url" target="_blank" rel="noopener noreferrer">
+                {{ item.name }}
+              </a>
+              } @else {
+              <span>{{ item.name }}</span>
+              }
+            </li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      }
+
+      @if(athletes().length > 0) {
+      <mat-card class="detail-card">
+        <mat-card-header>
+          <mat-card-title>Local Athletes</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="detail-list">
+            @for(item of athletes(); track item.name) {
+            <li>
+              @if(item.url) {
+              <a [href]="item.url" target="_blank" rel="noopener noreferrer">
+                {{ item.name }}
+              </a>
+              } @else {
+              <span>{{ item.name }}</span>
+              }
+            </li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      }
+
+      @if(resources().length > 0) {
+      <mat-card class="detail-card detail-card-wide">
+        <mat-card-header>
+          <mat-card-title>Community Resources</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="detail-list">
+            @for(item of resources(); track item.name) {
+            <li>
+              @if(item.url) {
+              <a [href]="item.url" target="_blank" rel="noopener noreferrer">
+                {{ item.name }}
+              </a>
+              } @else {
+              <span>{{ item.name }}</span>
+              }
+            </li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      }
+    </div>
+  </section>
+  } @else {
+  <section class="manual-state">
+    <p class="mat-body-medium m-0">
+      Community links, organisations, athletes, events, and local resources
+      will appear here as this page grows.
+    </p>
+  </section>
+  }
+
   @if(data.topRatedSpots.length > 0) {
   <section class="content-section">
+    <div class="section-heading">
+      <p class="section-eyebrow m-0">Featured Spots</p>
+      <h2 class="mat-title-large m-0">Top Rated Spots</h2>
+    </div>
+
     <app-spot-list
       [highlightedSpots]="data.topRatedSpots"
       [spots]="[]"
@@ -57,6 +214,11 @@
 
   @if(data.drySpots.length > 0) {
   <section class="content-section">
+    <div class="section-heading">
+      <p class="section-eyebrow m-0">Featured Spots</p>
+      <h2 class="mat-title-large m-0">Dry Spots</h2>
+    </div>
+
     <app-spot-list
       [highlightedSpots]="data.drySpots"
       [spots]="[]"
@@ -67,7 +229,7 @@
   </section>
   }
 
-  @if(data.topRatedSpots.length === 0 && data.drySpots.length === 0) {
+  @if(!hasFeaturedSpots()) {
   <section class="manual-state">
     <p class="mat-body-medium m-0">
       This community page is live, but it does not have featured spot sections
@@ -75,128 +237,6 @@
     </p>
   </section>
   }
-  }
-
-  @if(hasManualSections()) {
-  <section class="detail-grid">
-    @if(communityLinks().length > 0) {
-    <mat-card class="detail-card">
-      <mat-card-header>
-        <mat-card-title>Local Community Links</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <ul class="detail-list">
-          @for(link of communityLinks(); track link.label) {
-          <li>
-            <a [href]="link.url" target="_blank" rel="noopener noreferrer">
-              {{ link.label }}
-            </a>
-          </li>
-          }
-        </ul>
-      </mat-card-content>
-    </mat-card>
-    }
-
-    @if(events().length > 0) {
-    <mat-card class="detail-card">
-      <mat-card-header>
-        <mat-card-title>Upcoming Events</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <ul class="detail-list">
-          @for(item of events(); track item.name) {
-          <li>
-            @if(item.url) {
-            <a [href]="item.url" target="_blank" rel="noopener noreferrer">
-              {{ item.name }}
-            </a>
-            } @else {
-            <span>{{ item.name }}</span>
-            }
-          </li>
-          }
-        </ul>
-      </mat-card-content>
-    </mat-card>
-    }
-
-    @if(organisations().length > 0) {
-    <mat-card class="detail-card">
-      <mat-card-header>
-        <mat-card-title>Organisations</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <ul class="detail-list">
-          @for(item of organisations(); track item.name) {
-          <li>
-            @if(item.url) {
-            <a [href]="item.url" target="_blank" rel="noopener noreferrer">
-              {{ item.name }}
-            </a>
-            } @else {
-            <span>{{ item.name }}</span>
-            }
-          </li>
-          }
-        </ul>
-      </mat-card-content>
-    </mat-card>
-    }
-
-    @if(athletes().length > 0) {
-    <mat-card class="detail-card">
-      <mat-card-header>
-        <mat-card-title>Local Athletes</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <ul class="detail-list">
-          @for(item of athletes(); track item.name) {
-          <li>
-            @if(item.url) {
-            <a [href]="item.url" target="_blank" rel="noopener noreferrer">
-              {{ item.name }}
-            </a>
-            } @else {
-            <span>{{ item.name }}</span>
-            }
-          </li>
-          }
-        </ul>
-      </mat-card-content>
-    </mat-card>
-    }
-
-    @if(resources().length > 0) {
-    <mat-card class="detail-card detail-card-wide">
-      <mat-card-header>
-        <mat-card-title>Community Resources</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <ul class="detail-list">
-          @for(item of resources(); track item.name) {
-          <li>
-            @if(item.url) {
-            <a [href]="item.url" target="_blank" rel="noopener noreferrer">
-              {{ item.name }}
-            </a>
-            } @else {
-            <span>{{ item.name }}</span>
-            }
-          </li>
-          }
-        </ul>
-      </mat-card-content>
-    </mat-card>
-    }
-  </section>
-  } @else if(!data.notFound) {
-  <section class="manual-state">
-    <p class="mat-body-medium m-0">
-      Community links, organisations, athletes, events, and local resources
-      will appear here as this page grows.
-    </p>
-  </section>
   }
 
   @if(lastUpdatedDate(); as lastUpdated) {

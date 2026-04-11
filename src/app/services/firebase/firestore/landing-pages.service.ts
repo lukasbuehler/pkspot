@@ -23,6 +23,16 @@ export interface CommunityLandingBreadcrumb {
   path: string;
 }
 
+export interface CommunityChildSummary {
+  communityKey: string;
+  scope: CommunityLandingScope;
+  displayName: string;
+  preferredSlug: string;
+  canonicalPath: string;
+  totalSpotCount: number;
+  dryCount: number;
+}
+
 export interface CommunityLandingPageData {
   communityKey: string;
   scope: CommunityLandingScope;
@@ -47,6 +57,7 @@ export interface CommunityLandingPageData {
   organisations: CommunityPageSchema["organisations"];
   athletes: CommunityPageSchema["athletes"];
   events: CommunityPageSchema["events"];
+  childCommunities: CommunityChildSummary[];
   generatedAt?: CommunityPageSchema["generatedAt"];
   sourceMaxUpdatedAt?: CommunityPageSchema["sourceMaxUpdatedAt"];
   notFound?: boolean;
@@ -90,13 +101,19 @@ export class LandingPagesService {
       return null;
     }
 
-    return this._mapPageDoc(pageDoc, normalizedSlug, limitCount);
+    const childCommunities =
+      pageDoc.scope === "country"
+        ? await this.getChildCommunities(pageDoc.communityKey)
+        : [];
+
+    return this._mapPageDoc(pageDoc, normalizedSlug, limitCount, childCommunities);
   }
 
   private _mapPageDoc(
     pageDoc: CommunityPageDocument,
     requestedSlug: string,
-    limitCount: number
+    limitCount: number,
+    childCommunities: CommunityChildSummary[]
   ): CommunityLandingPageData {
     const topRatedSpots = (pageDoc.topRatedSpots ?? []).slice(0, limitCount);
     const drySpots = (pageDoc.drySpots ?? []).slice(0, limitCount);
@@ -147,9 +164,46 @@ export class LandingPagesService {
       organisations: pageDoc.organisations ?? [],
       athletes: pageDoc.athletes ?? [],
       events: pageDoc.events ?? [],
+      childCommunities,
       generatedAt: pageDoc.generatedAt,
       sourceMaxUpdatedAt: pageDoc.sourceMaxUpdatedAt,
     };
+  }
+
+  async getChildCommunities(
+    parentCommunityKey: string,
+    limitCount: number = 24
+  ): Promise<CommunityChildSummary[]> {
+    const childDocs = await this._firestoreAdapter.getCollection<CommunityPageDocument>(
+      "community_pages",
+      [
+        {
+          fieldPath: "relationships.parentKeys",
+          opStr: "array-contains",
+          value: parentCommunityKey,
+        },
+      ]
+    );
+
+    return childDocs
+      .filter((doc) => doc.published !== false)
+      .map((doc) => ({
+        communityKey: doc.communityKey,
+        scope: doc.scope,
+        displayName: doc.displayName,
+        preferredSlug: doc.preferredSlug,
+        canonicalPath:
+          doc.canonicalPath || buildCommunityLandingPath(doc.preferredSlug),
+        totalSpotCount: doc.counts?.totalSpots ?? 0,
+        dryCount: doc.counts?.dry ?? 0,
+      }))
+      .sort((left, right) => {
+        if (right.totalSpotCount !== left.totalSpotCount) {
+          return right.totalSpotCount - left.totalSpotCount;
+        }
+        return left.displayName.localeCompare(right.displayName);
+      })
+      .slice(0, limitCount);
   }
 
   private _getSlugFromPath(path: string | undefined): string | undefined {
