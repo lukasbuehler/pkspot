@@ -1,6 +1,6 @@
 {
   "name": "pkspot",
-  "version": "1.0.12",
+  "version": "1.1.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -19,9 +19,11 @@
     "build:ios:dev": "node scripts/build-mobile.js iosdev && npx cap sync ios",
     "build:mobile:prod": "node scripts/build-mobile.js ios && npx cap sync ios && node scripts/build-mobile.js android && npx cap sync android",
     "test": "vitest",
+    "test:all": "npm run test:unit && npm run test:build",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:unit:coverage": "vitest run --coverage",
+    "test:build": "node scripts/test-build-pipeline.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",

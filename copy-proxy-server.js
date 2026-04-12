@@ -2,8 +2,13 @@ const fs = require("fs");
 const path = require("path");
 
 const sourcePath = "src/proxy-server.mjs";
+const helperSourcePath = "src/proxy-server-helpers.mjs";
 const destinationDir = "dist/pkspot/server";
 const destinationFile = path.join(destinationDir, "server.mjs");
+const helperDestinationFile = path.join(
+  destinationDir,
+  "proxy-server-helpers.mjs"
+);
 const buildInfoFile = path.join(destinationDir, "build-info.mjs");
 
 // Function to extract supported languages from angular.json
@@ -53,9 +58,13 @@ function getSupportedLanguageCodes() {
 }
 
 // Check if the source file exists
-if (fs.existsSync(sourcePath)) {
+if (fs.existsSync(sourcePath) && fs.existsSync(helperSourcePath)) {
   const sourceAbsolutePath = path.resolve(sourcePath);
+  const helperSourceAbsolutePath = path.resolve(helperSourcePath);
   const destinationAbsolutePath = path.resolve(destinationFile);
+  const helperDestinationAbsolutePath = path.resolve(helperDestinationFile);
+
+  fs.mkdirSync(path.resolve(destinationDir), { recursive: true });
 
   // Copy the source file to the destination
   fs.copyFile(sourceAbsolutePath, destinationAbsolutePath, (err) => {
@@ -75,8 +84,6 @@ export const SUPPORTED_LANGUAGE_CODES = ${JSON.stringify(
       )};
 `;
 
-      // Ensure the destination directory exists
-      fs.mkdirSync(path.resolve(destinationDir), { recursive: true });
       // Write the build-info.mjs file
       fs.writeFile(buildInfoFile, buildInfoContent, (err) => {
         if (err) {
@@ -87,6 +94,18 @@ export const SUPPORTED_LANGUAGE_CODES = ${JSON.stringify(
       });
     }
   });
+
+  fs.copyFile(
+    helperSourceAbsolutePath,
+    helperDestinationAbsolutePath,
+    (err) => {
+      if (err) {
+        console.error("Error copying the proxy helper file:", err);
+      } else {
+        console.log("Proxy helper copied successfully.");
+      }
+    }
+  );
 } else {
-  console.error("The source file does not exist.");
+  console.error("The proxy server source files do not exist.");
 }

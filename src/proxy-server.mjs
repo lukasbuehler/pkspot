@@ -1,6 +1,7 @@
 import path from "node:path";
 import express from "express";
 import compression from "compression";
+import { applyTrustedClientRegionHeader } from "./proxy-server-helpers.mjs";
 import {
   LAST_MODIFIED,
   SUPPORTED_LANGUAGE_CODES as supportedLanguageCodes,
@@ -73,6 +74,10 @@ function run() {
   const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
   server.use(compression());
+  server.use((req, _res, next) => {
+    applyTrustedClientRegionHeader(req.headers);
+    next();
+  });
 
   // Global caching middleware that sets Cache-Control and Last-Modified,
   // and checks for a conditional GET request.

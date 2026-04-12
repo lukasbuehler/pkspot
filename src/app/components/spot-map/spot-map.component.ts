@@ -67,6 +67,11 @@ import { AnyMedia } from "../../../db/models/Media";
 import { GeolocationService } from "../../services/geolocation.service";
 import { CheckInService } from "../../services/check-in.service";
 import { environment } from "../../../environments/environment";
+import { StartRegionService } from "../../services/start-region.service";
+import {
+  resolveInitialMapViewport,
+  StoredMapViewport,
+} from "./spot-map-initial-viewport";
 
 @Component({
   selector: "app-spot-map",
@@ -86,6 +91,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   geolocationLoading = this.geolocationService.loading;
 
   mapsApiService = inject(MapsApiService);
+  startRegionService = inject(StartRegionService);
 
   private _router = inject(Router);
 
@@ -377,59 +383,37 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       centerStart
     );
 
-    if (selectedSpot) {
-      // If we have a selected spot, focus on it
-      console.log(
-        "SpotMap: Setting center to selected spot",
-        selectedSpot.location()
-      );
-      this.map.center = selectedSpot.location();
-      this.mapZoom = this.focusZoom();
-    } else if (centerStart) {
-      // Use the provided center start
-      this.map.center = centerStart;
-      this.mapZoom = this.focusZoom();
-    } else if (this.boundRestriction) {
-      // Use bound restriction center
-      console.debug("Using start center since we have bounds restriction");
-      this.map.center = new google.maps.LatLngBounds(this.boundRestriction)
-        .getCenter()
-        .toJSON();
-      this.mapZoom = this.focusZoom();
-    } else {
-      // Load last location from memory or use default
-      try {
-        const lastLocationAndZoom =
-          await this.mapsAPIService.loadLastLocationAndZoom();
-        if (this._isDestroyed) return;
+    let lastLocationAndZoom: StoredMapViewport | null = null;
 
-        if (this.map) {
-          if (lastLocationAndZoom) {
-            this.map.center = lastLocationAndZoom.location;
-            this.mapZoom = lastLocationAndZoom.zoom;
-          } else {
-            this.map.center = {
-              lat: 48.6270939,
-              lng: 2.4305363,
-            };
-            this.mapZoom = this.startZoom;
-          }
-        }
+    if (!selectedSpot && !centerStart && !this.boundRestriction) {
+      try {
+        lastLocationAndZoom = await this.mapsAPIService.loadLastLocationAndZoom();
       } catch (error) {
         console.warn(
-          "Failed to load last location from storage, using default:",
+          "Failed to load last location from storage, using regional fallback:",
           error
         );
-        if (this._isDestroyed) return;
-        if (this.map) {
-          this.map.center = {
-            lat: 48.6270939,
-            lng: 2.4305363,
-          };
-          this.mapZoom = this.startZoom;
-        }
       }
     }
+
+    if (this._isDestroyed) return;
+
+    const boundsCenter = this.boundRestriction
+      ? new google.maps.LatLngBounds(this.boundRestriction).getCenter().toJSON()
+      : null;
+    const viewport = resolveInitialMapViewport({
+      selectedSpotLocation: selectedSpot?.location() ?? null,
+      centerStart,
+      boundsCenter,
+      lastLocationAndZoom,
+      fallbackPreset: this.startRegionService.resolveInitialPreset(
+        this.startZoom
+      ),
+      focusZoom: this.focusZoom(),
+    });
+
+    this.map.center = viewport.center;
+    this.mapZoom = viewport.zoom;
 
     // TODO this is not sufficient if the input changes
     this.visibleMarkers.set(this.markers()); // ?????

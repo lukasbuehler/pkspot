@@ -7,6 +7,16 @@ import bootstrap from "./src/main.server";
 import { LOCALE_ID } from "@angular/core";
 import { REQUEST, RESPONSE } from "./src/express.token";
 
+function getAllowedHosts(): string[] {
+  const defaultHosts = ["localhost", "127.0.0.1", "[::1]"];
+  const configuredHosts = (process.env["NG_ALLOWED_HOSTS"] ?? "")
+    .split(",")
+    .map((host) => host.trim())
+    .filter((host) => host.length > 0);
+
+  return [...new Set([...defaultHosts, ...configuredHosts])];
+}
+
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
   const server = express();
@@ -19,7 +29,9 @@ export function app(): express.Express {
   const browserDistFolder = resolve(serverDistFolder, `../../browser/${lang}`);
   const indexHtml = join(serverDistFolder, "index.server.html");
 
-  const commonEngine = new CommonEngine();
+  const commonEngine = new CommonEngine({
+    allowedHosts: getAllowedHosts(),
+  });
 
   server.set("view engine", "html");
   server.set("views", browserDistFolder);
