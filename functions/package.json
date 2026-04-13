@@ -29,9 +29,30 @@
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@google-cloud/secret-manager": "^6.1.1",
-    "firebase-admin": "^13.7.0",
+    "firebase-admin": "^13.8.0",
     "firebase-functions": "^6.6.0",
     "fluent-ffmpeg": "^2.1.3",
     "supercluster": "^8.0.1"
+  },
+  "overrides": {
+    "fast-xml-parser": "^5.5.7",
+    "node-forge": "^1.4.0",
+    "flatted": "^3.4.2",
+    "lodash": "^4.18.1",
+    "express": {
+      "path-to-regexp": "0.1.13"
+    },
+    "anymatch": {
+      "picomatch": "^2.3.2"
+    },
+    "readdirp": {
+      "picomatch": "^2.3.2"
+    },
+    "micromatch": {
+      "picomatch": "^2.3.2"
+    },
+    "jest-util": {
+      "picomatch": "^4.0.4"
+    }
   }
 }

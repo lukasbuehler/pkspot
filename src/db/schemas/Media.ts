@@ -63,7 +63,7 @@ export function parseStorageMediaUrl(src: string): ParsedStorageMediaUrl {
 
   return {
     uriBeforeBucket: match[1] ?? "",
-    bucket: (match[2] as StorageBucket) ?? "",
+    bucket: match[2] as StorageBucket,
     filename: match[3] ?? "",
     extension: match[4] ?? "",
     options: match[5] ?? "",
