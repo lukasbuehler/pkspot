@@ -380,8 +380,8 @@
     <span class="mat-title-small" i18n="Filter helper text@@filter_helper_text"
       >There are no spots matching the filter in this area.</span
     >
-    <button class="flex-shrink-0" matButton="outlined">
-      <mat-icon>filter_alt_off</mat-icon>Clear
+    <button class="flex-shrink-0" matButton="outlined" (click)="clearActiveFilter()">
+      <mat-icon>filter_alt_off</mat-icon><span i18n="@@filter_clear">Clear</span>
     </button>
   </div>
 </ng-template>
@@ -395,6 +395,7 @@
     [showVisitedChip]="isSignedIn()"
     [customFilterActive]="!!customFilterParams()"
     (filterChange)="filterChipChanged($event)"
+    (clearClick)="clearActiveFilter()"
     (filtersClick)="openCustomFilterDialog()"
   ></app-filter-chips-bar>
 </ng-template>

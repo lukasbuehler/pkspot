@@ -182,9 +182,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this._syncPrivateDataSubscription();
 
         // Auth has now loaded and user is null (not signed in)
-        // If we're on /profile without a specific userID, redirect to sign-in
+        // If we're on /profile without a specific userID, redirect to account
         if (!this._route.snapshot.paramMap.get("userID") && !this.userId) {
-          this._router.navigate(["/sign-in"], {
+          this._router.navigate(["/account"], {
             queryParams: { returnUrl: "/profile" },
           });
         }
@@ -478,7 +478,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           horizontalPosition: "center",
           verticalPosition: "bottom",
         });
-        this._router.navigate(["/sign-in"]);
+        this._router.navigate(["/account"]);
       })
       .catch(() => {
         this._snackbar.open(

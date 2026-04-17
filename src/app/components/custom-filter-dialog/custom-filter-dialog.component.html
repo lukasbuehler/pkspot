@@ -1,6 +1,18 @@
 <h2 mat-dialog-title>{{ dialogTitle }}</h2>
 
 <mat-dialog-content>
+  @if (seededFromQuickFilter) {
+  <section class="filter-context">
+    <mat-icon>tune</mat-icon>
+    <div class="filter-context-copy">
+      <p class="filter-context-title">{{ editingQuickFilterLabel }}</p>
+      <p class="filter-context-description">
+        {{ editingQuickFilterDescription }}
+      </p>
+    </div>
+  </section>
+  }
+
   <!-- Spot Types Section -->
   <section class="filter-section">
     <h3>{{ typesSectionLabel }}</h3>

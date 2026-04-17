@@ -962,11 +962,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Navigate to sign-in page with the current URL as the return URL
+   * Navigate to the account page with the current URL as the return URL.
    */
-  navigateToSignIn() {
+  navigateToAccount() {
     const returnUrl = this.router.url;
-    this.router.navigate(["/sign-in"], { queryParams: { returnUrl } });
+    this.router.navigate(["/account"], { queryParams: { returnUrl } });
   }
 
   shortUserDisplayName = signal<string | undefined>(undefined);
@@ -1018,7 +1018,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         spacerBefore: true,
         name: signedIn
           ? shortUserDisplayName || $localize`Profile`
-          : $localize`:@@login.nav_label:Sign in`,
+          : $localize`:@@login.nav_label:Account`,
         ...(signedIn
           ? {
               link: "/profile",
@@ -1029,9 +1029,11 @@ export class AppComponent implements OnInit, AfterViewInit {
                 currentNavUrl.startsWith("/u/"),
             }
           : {
-              function: () => this.navigateToSignIn(),
-              icon: "login",
-              active: currentNavUrl.startsWith("/sign-in"),
+              function: () => this.navigateToAccount(),
+              icon: "manage_accounts",
+              active:
+                currentNavUrl.startsWith("/account") ||
+                currentNavUrl.startsWith("/sign-in"),
             }),
       }
     );

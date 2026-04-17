@@ -1,4 +1,4 @@
-import { Component, Inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import {
@@ -41,6 +41,7 @@ export interface CustomFilterParams {
  */
 export interface CustomFilterDialogData {
   currentParams?: CustomFilterParams;
+  seededFromQuickFilter?: boolean;
 }
 
 /**
@@ -87,6 +88,7 @@ type AmenityState = "any" | "yes" | "no";
   ],
   templateUrl: "./custom-filter-dialog.component.html",
   styleUrl: "./custom-filter-dialog.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomFilterDialogComponent {
   // All available spot types
@@ -108,7 +110,7 @@ export class CustomFilterDialogComponent {
   // Selected values
   selectedTypes: SpotTypes[] = [];
   selectedAccesses: SpotAccess[] = [];
-  amenityStates: Record<keyof AmenitiesMap, AmenityState> = {} as any;
+  amenityStates = {} as Record<keyof AmenitiesMap, AmenityState>;
 
   // Localized strings
   readonly dialogTitle = $localize`:@@custom_filter_dialog_title:Custom Filters`;
@@ -120,11 +122,18 @@ export class CustomFilterDialogComponent {
   readonly anyLabel = $localize`:@@filter_any:Any`;
   readonly yesLabel = $localize`:@@filter_yes:Yes`;
   readonly noLabel = $localize`:@@filter_no:No`;
+  readonly editingQuickFilterLabel =
+    $localize`:@@filter_editing_quick_filter_label:Editing quick filter`;
+  readonly editingQuickFilterDescription =
+    $localize`:@@filter_editing_quick_filter_description:The options below already match the selected quick filter, so you can fine-tune it instead of starting from scratch.`;
+  readonly seededFromQuickFilter: boolean;
 
   constructor(
     private dialogRef: MatDialogRef<CustomFilterDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CustomFilterDialogData | null
   ) {
+    this.seededFromQuickFilter = !!data?.seededFromQuickFilter;
+
     // Initialize amenity states to 'any'
     for (const amenity of this.allAmenities) {
       this.amenityStates[amenity] = "any";
@@ -145,12 +154,9 @@ export class CustomFilterDialogComponent {
   }
 
   toggleType(type: SpotTypes): void {
-    const index = this.selectedTypes.indexOf(type);
-    if (index >= 0) {
-      this.selectedTypes.splice(index, 1);
-    } else {
-      this.selectedTypes.push(type);
-    }
+    this.selectedTypes = this.selectedTypes.includes(type)
+      ? this.selectedTypes.filter((selectedType) => selectedType !== type)
+      : [...this.selectedTypes, type];
   }
 
   isTypeSelected(type: SpotTypes): boolean {
@@ -158,12 +164,11 @@ export class CustomFilterDialogComponent {
   }
 
   toggleAccess(access: SpotAccess): void {
-    const index = this.selectedAccesses.indexOf(access);
-    if (index >= 0) {
-      this.selectedAccesses.splice(index, 1);
-    } else {
-      this.selectedAccesses.push(access);
-    }
+    this.selectedAccesses = this.selectedAccesses.includes(access)
+      ? this.selectedAccesses.filter(
+          (selectedAccess) => selectedAccess !== access
+        )
+      : [...this.selectedAccesses, access];
   }
 
   isAccessSelected(access: SpotAccess): boolean {

@@ -37,8 +37,10 @@
           } @if (mode === 'resetPassword') {
           <button mat-flat-button (click)="navigateToSignIn()">
             <mat-icon>login</mat-icon>
-            <span i18n="sign in now|Button to sign in@@auth_action.sign_in_now"
-              >Sign in now</span
+            <span
+              i18n="
+                continue to account|Button to go to the account page@@auth_action.sign_in_now"
+              >Continue to account</span
             >
           </button>
           } @if (mode === 'recoverEmail') {
@@ -74,10 +76,8 @@
           <button mat-stroked-button (click)="navigateToSignIn()">
             <mat-icon>login</mat-icon>
             <span
-              i18n="
-                back to sign in|Button to go back to sign
-                in@@auth_action.back_to_signin"
-              >Back to Sign in</span
+              i18n="back to account|Button to go back to account@@auth_action.back_to_signin"
+              >Back to Account</span
             >
           </button>
         </div>

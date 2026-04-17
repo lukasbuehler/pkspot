@@ -6,33 +6,36 @@
 .filter-chips-container {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 10px;
   width: 100%;
   position: relative;
 }
 
-.chips-scroll-area {
+.chips-scroll-shell {
   flex: 1;
-  min-width: 0; // Allow shrinking
+  min-width: 0;
+  position: relative;
+}
+
+.chips-scroll-area {
+  min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none; // Firefox
   -ms-overflow-style: none; // IE/Edge
-  padding-right: 16px; // Space for fade effect
+  padding-inline: 16px;
 
-  margin-left: -16px;
-  padding-left: 16px;
-
-  // Fade-out gradient on the right edge
   -webkit-mask-image: linear-gradient(
     to right,
-    black 0%,
+    transparent 0%,
+    black 16px,
     black calc(100% - 16px),
     transparent 100%
   );
   mask-image: linear-gradient(
     to right,
-    black 0%,
+    transparent 0%,
+    black 16px,
     black calc(100% - 16px),
     transparent 100%
   );
@@ -53,6 +56,36 @@
   }
 }
 
+.scroll-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  background: rgba(28, 28, 28, 0.82);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  &.left {
+    left: 0;
+  }
+
+  &.right {
+    right: 0;
+  }
+}
+
+.action-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 // All chips should have round shape
 mat-chip-option,
 mat-chip {
@@ -65,7 +98,6 @@ mat-chip {
 .filters-chip {
   flex-shrink: 0;
   cursor: pointer;
-  margin-left: 8px;
 
   // When active, match the selected chip appearance
   &.mat-mdc-chip-selected {
@@ -78,6 +110,15 @@ mat-chip {
       .mat-icon {
         color: var(--mat-sys-on-secondary-container) !important;
       }
+    }
+  }
+}
+
+.clear-chip {
+  ::ng-deep {
+    .mdc-evolution-chip__text-label,
+    .mat-icon {
+      color: var(--mat-sys-on-surface) !important;
     }
   }
 }
@@ -107,6 +148,12 @@ mat-chip {
 
   // Disable backdrop-filter on iOS to prevent flickering during navigation
   html.platform-ios {
+    .scroll-button {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(28, 28, 28, 0.96) !important;
+    }
+
     .glass .mdc-evolution-chip__action--primary,
     .glass .mdc-evolution-chip__action--secondary {
       backdrop-filter: none !important;

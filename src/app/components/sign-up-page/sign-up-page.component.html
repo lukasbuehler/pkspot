@@ -15,14 +15,14 @@
       <div class="oauth-buttons d-flex flex-row justify-content-center">
         <button
           mat-flat-button
-          routerLink="/sign-in"
+          routerLink="/account"
           queryParamsHandling="merge"
         >
           <mat-icon>login</mat-icon><span i18n>Sign in</span>
         </button>
         <button
           mat-stroked-button
-          routerLink="/sign-in"
+          routerLink="/account"
           [queryParams]="{ startWith: 'apple' }"
           queryParamsHandling="merge"
         >
@@ -38,7 +38,7 @@
         </button>
         <button
           mat-stroked-button
-          routerLink="/sign-in"
+          routerLink="/account"
           [queryParams]="{ startWith: 'google' }"
           queryParamsHandling="merge"
         >

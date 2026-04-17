@@ -159,6 +159,6 @@ export class ForgotPasswordPageComponent implements OnInit {
   }
 
   goBack() {
-    this._router.navigate(["/sign-in"]);
+    this._router.navigate(["/account"]);
   }
 }

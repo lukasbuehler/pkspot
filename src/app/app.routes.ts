@@ -246,12 +246,30 @@ export const routes: Routes = [
     data: { routeName: "Profile" },
   },
   {
-    path: "sign-in",
+    path: "account",
     loadComponent: () =>
       import("./components/sign-in-page/sign-in-page.component").then(
         (m) => m.SignInPageComponent
       ),
-    data: { routeName: "Sign-in" },
+    data: { routeName: "Account" },
+  },
+  {
+    path: "sign-in",
+    redirectTo: (route) => {
+      const query = new URLSearchParams(
+        Object.entries(route.queryParams).flatMap(([key, value]) => {
+          if (Array.isArray(value)) {
+            return value.map((item) => [key, String(item)] as [string, string]);
+          }
+          if (value === undefined || value === null) {
+            return [];
+          }
+          return [[key, String(value)] as [string, string]];
+        })
+      ).toString();
+      return query ? `/account?${query}` : "/account";
+    },
+    pathMatch: "full",
   },
   {
     path: "sign-up",

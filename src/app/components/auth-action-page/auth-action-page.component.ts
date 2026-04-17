@@ -276,7 +276,7 @@ export class AuthActionPageComponent implements OnInit {
   }
 
   navigateToSignIn(): void {
-    this._router.navigate(["/sign-in"]);
+    this._router.navigate(["/account"]);
   }
 
   navigateToProfile(): void {

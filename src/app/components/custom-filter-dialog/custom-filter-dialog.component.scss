@@ -12,6 +12,47 @@ mat-dialog-content {
   overflow-y: auto;
 }
 
+.filter-context {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(220, 242, 230, 0.7), rgba(255, 255, 255, 0.9)),
+    var(--mat-sys-surface-container-low);
+  border: 1px solid rgba(49, 94, 72, 0.18);
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+    margin-top: 2px;
+  }
+}
+
+.filter-context-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-context-title,
+.filter-context-description {
+  margin: 0;
+}
+
+.filter-context-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.filter-context-description {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .filter-section {
   padding: 16px 0;
 

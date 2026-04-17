@@ -22,6 +22,7 @@ import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotMapDataManager } from "../spot-map/SpotMapDataManager";
 import {
   SpotFilterMode,
+  getFilterConfig,
   getFilterModeFromUrlParam,
 } from "../spot-map/spot-filter-config";
 import { SpotId } from "../../../db/schemas/SpotSchema";
@@ -1201,6 +1202,124 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private _pendingFilter: string | null = null;
 
+  private _cloneCustomFilterParams(
+    params: CustomFilterParams | null | undefined
+  ): CustomFilterParams | null {
+    if (!params) {
+      return null;
+    }
+
+    return {
+      types: [...(params.types ?? [])],
+      accesses: [...(params.accesses ?? [])],
+      amenities_true: [...(params.amenities_true ?? [])],
+      amenities_false: [...(params.amenities_false ?? [])],
+    };
+  }
+
+  private _getPresetFilterParams(filterParam: string): CustomFilterParams | null {
+    const filterConfig = getFilterConfig(getFilterModeFromUrlParam(filterParam));
+    if (!filterConfig) {
+      return null;
+    }
+
+    return {
+      types: [...(filterConfig.types ?? [])],
+      accesses: [...(filterConfig.accesses ?? [])],
+      amenities_true: [...(filterConfig.amenities_true ?? [])],
+      amenities_false: [...(filterConfig.amenities_false ?? [])],
+    };
+  }
+
+  private _getEditableFilterParams(): {
+    params: CustomFilterParams | null;
+    seededFromQuickFilter: boolean;
+  } {
+    const customParams = this._cloneCustomFilterParams(this.customFilterParams());
+    if (customParams) {
+      return {
+        params: customParams,
+        seededFromQuickFilter: false,
+      };
+    }
+
+    const presetParams = this._getPresetFilterParams(this.selectedFilter());
+    return {
+      params: presetParams,
+      seededFromQuickFilter: !!presetParams,
+    };
+  }
+
+  private _toSortedUniqueList<T extends string>(
+    values: readonly T[] | null | undefined
+  ): T[] {
+    return [...new Set(values ?? [])].sort();
+  }
+
+  private _hasFilters(params: CustomFilterParams | null | undefined): boolean {
+    if (!params) {
+      return false;
+    }
+
+    return (
+      (params.types?.length ?? 0) > 0 ||
+      (params.accesses?.length ?? 0) > 0 ||
+      (params.amenities_true?.length ?? 0) > 0 ||
+      (params.amenities_false?.length ?? 0) > 0
+    );
+  }
+
+  private _areFilterParamsEqual(
+    left: CustomFilterParams | null | undefined,
+    right: CustomFilterParams | null | undefined
+  ): boolean {
+    if (!left && !right) {
+      return true;
+    }
+
+    if (!left || !right) {
+      return false;
+    }
+
+    return (
+      JSON.stringify(this._toSortedUniqueList(left.types)) ===
+        JSON.stringify(this._toSortedUniqueList(right.types)) &&
+      JSON.stringify(this._toSortedUniqueList(left.accesses)) ===
+        JSON.stringify(this._toSortedUniqueList(right.accesses)) &&
+      JSON.stringify(this._toSortedUniqueList(left.amenities_true)) ===
+        JSON.stringify(this._toSortedUniqueList(right.amenities_true)) &&
+      JSON.stringify(this._toSortedUniqueList(left.amenities_false)) ===
+        JSON.stringify(this._toSortedUniqueList(right.amenities_false))
+    );
+  }
+
+  private _getMatchingPresetFilter(
+    params: CustomFilterParams | null | undefined
+  ): string | null {
+    if (!params) {
+      return null;
+    }
+
+    for (const filterMode of [
+      SpotFilterMode.ForParkour,
+      SpotFilterMode.Dry,
+      SpotFilterMode.Indoor,
+      SpotFilterMode.Lighting,
+      SpotFilterMode.Water,
+    ]) {
+      const presetParams = this._getPresetFilterParams(filterMode);
+      if (this._areFilterParamsEqual(params, presetParams)) {
+        return filterMode;
+      }
+    }
+
+    return null;
+  }
+
+  clearActiveFilter(): void {
+    this.filterChipChanged("");
+  }
+
   /**
    * Handle filter bounds change - re-run the filter search for the new bounds.
    */
@@ -1395,11 +1514,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * Opens the custom filter dialog and applies the selected filters.
    */
   openCustomFilterDialog(): void {
+    const editableState = this._getEditableFilterParams();
     const dialogRef = this._dialog.open(CustomFilterDialogComponent, {
       width: "400px",
       maxWidth: "90vw",
       maxHeight: "90vh",
-      data: { currentParams: this.customFilterParams() },
+      data: {
+        currentParams: editableState.params,
+        seededFromQuickFilter: editableState.seededFromQuickFilter,
+      },
     });
 
     dialogRef.afterClosed().subscribe((result: CustomFilterParams | null) => {
@@ -1408,22 +1531,22 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
-      // Check if result has any selections
-      const hasFilters =
-        (result.types?.length ?? 0) > 0 ||
-        (result.accesses?.length ?? 0) > 0 ||
-        (result.amenities_true?.length ?? 0) > 0 ||
-        (result.amenities_false?.length ?? 0) > 0;
-
-      if (!hasFilters) {
+      if (!this._hasFilters(result)) {
         // Clear custom filter and reset to no filter
         this.customFilterParams.set(null);
         this.filterChipChanged("");
         return;
       }
 
+      const matchingPreset = this._getMatchingPresetFilter(result);
+      if (matchingPreset) {
+        this.customFilterParams.set(null);
+        this.filterChipChanged(matchingPreset);
+        return;
+      }
+
       // Store the custom filter params
-      this.customFilterParams.set(result);
+      this.customFilterParams.set(this._cloneCustomFilterParams(result));
 
       // Update the selected filter to custom mode
       this.selectedFilter.set("custom");

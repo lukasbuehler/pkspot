@@ -7,7 +7,6 @@ import {
   AfterViewInit,
 } from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { ResponsiveService } from "../../services/responsive.service";
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -24,6 +23,8 @@ import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { OAuthSignInButtonsComponent } from "../oauth-sign-in-buttons/oauth-sign-in-buttons.component";
+import { UiLanguageService } from "../../services/ui-language.service";
+import { languageCodes } from "../../../scripts/Languages";
 
 @Component({
   selector: "app-sign-in-page",
@@ -45,10 +46,34 @@ import { OAuthSignInButtonsComponent } from "../oauth-sign-in-buttons/oauth-sign
   ],
 })
 export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
-  readonly responsive = inject(ResponsiveService);
+  readonly uiLanguage = inject(UiLanguageService);
 
   @ViewChild(OAuthSignInButtonsComponent)
   oauthButtons?: OAuthSignInButtonsComponent;
+
+  readonly languageCodes = languageCodes;
+  readonly accountBenefits = [
+    {
+      icon: "public",
+      title: $localize`Create and improve spots`,
+      description: $localize`Add new spots, fix details, and help keep local knowledge useful for everyone.`,
+    },
+    {
+      icon: "photo_camera",
+      title: $localize`Share media`,
+      description: $localize`Upload photos and videos so people can quickly understand a spot before they go.`,
+    },
+    {
+      icon: "groups",
+      title: $localize`Join the community`,
+      description: $localize`Follow what others discover, contribute updates, and help keep the map alive.`,
+    },
+    {
+      icon: "bookmark",
+      title: $localize`Keep your own list`,
+      description: $localize`Save favorites and come back to the spots you want to session later.`,
+    },
+  ];
 
   signInForm?: UntypedFormGroup;
   signInError: string = "";
