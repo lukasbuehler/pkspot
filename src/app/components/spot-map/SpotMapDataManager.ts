@@ -101,8 +101,6 @@ export class SpotMapDataManager {
   private readonly HIGHLIGHT_MAX_COUNT = 8;
   private _lastHighlightFetchTime: number = 0;
 
-  private currentSearchRequestId: ReturnType<typeof setTimeout> | undefined;
-
   private _lastRenderedClusterKeys: Set<string> | null = null;
   private _updateRequestId = 0;
 
@@ -213,6 +211,7 @@ export class SpotMapDataManager {
    */
   clearManualHighlightedSpots() {
     this._manualHighlightedSpots.set([]);
+    this._visibleHighlightedSpots.set([]);
     this._filteredSpotsCache.clear();
   }
 
@@ -282,11 +281,11 @@ export class SpotMapDataManager {
         ? this.spotFilterMode()
         : SpotFilterMode.None;
 
+      const useServiceDots =
+        this._spotClusterService &&
+        zoom >= this.serviceClusterMinZoom &&
+        zoom <= this.serviceClusterMaxZoom;
       if (activeFilter === SpotFilterMode.None) {
-        const useServiceDots =
-          this._spotClusterService &&
-          zoom >= this.serviceClusterMinZoom &&
-          zoom <= this.serviceClusterMaxZoom;
         const now = Date.now();
         // Throttle: Allow updates while moving (at least every X ms)
         if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
@@ -310,6 +309,8 @@ export class SpotMapDataManager {
           }
           this._lastHighlightFetchTime = Date.now();
         }, this.CLUSTER_DEBOUNCE_MS);
+      } else if (useServiceDots) {
+        this._loadClusterDotsViaService(visibleTilesObj);
       }
     }
 
@@ -714,59 +715,12 @@ export class SpotMapDataManager {
       return 0;
     });
 
-    // Extract highlighted spots (rated or iconic) at zoom 16+
-    // Build highlighted or filtered spots depending on active filter mode
+    // Extract highlighted spots (rated or iconic) at zoom 16+.
+    // Active filters use manually supplied search results for pins/list, while
+    // base spot geometry remains visible as map coverage.
     const activeFilter = this.spotFilterMode
       ? this.spotFilterMode()
       : SpotFilterMode.None;
-
-    if (activeFilter !== SpotFilterMode.None) {
-      if (this.currentSearchRequestId) {
-        clearTimeout(this.currentSearchRequestId);
-      }
-
-      this.currentSearchRequestId = setTimeout(() => {
-        // ... search logic ...
-        // Ensure we search for "Everything" or just "Spots" based on filter
-        // If Filter is None, use a default "Top Rated" search to get highlights?
-
-        let promisedResult;
-        // Use _currentViewport which is stored in the class
-        const visibleViewport = this._currentViewport;
-        if (!visibleViewport) {
-          console.warn("No visible viewport to search within.");
-          return;
-        }
-
-        const bounds = new google.maps.LatLngBounds(
-          { lat: visibleViewport.bbox.south, lng: visibleViewport.bbox.west },
-          { lat: visibleViewport.bbox.north, lng: visibleViewport.bbox.east }
-        );
-
-        // Pass the filter mode correctly
-        promisedResult = this._searchService.searchSpotsInBoundsWithFilter(
-          bounds,
-          activeFilter,
-          this.HIGHLIGHT_MAX_COUNT
-        );
-
-        promisedResult
-          .then((searchResult) => {
-            // Use SearchService to map hits to previews
-            const searchHighlights = searchResult.hits.map((hit) =>
-              this._searchService.getSpotPreviewFromHit(hit)
-            );
-            this._visibleHighlightedSpots.set(
-              searchHighlights.slice(0, this.HIGHLIGHT_MAX_COUNT)
-            );
-          })
-          .catch((err) => {
-            console.error("Search for highlights failed:", err);
-          });
-
-        this.currentSearchRequestId = undefined;
-      }, 300); // Debounce search requests
-    }
 
     let highlightedSpots: SpotPreviewData[] = [];
 
@@ -776,11 +730,14 @@ export class SpotMapDataManager {
         .map((spot) => this._getOrCreateSpotPreview(spot))
         .slice(0, this.HIGHLIGHT_MAX_COUNT);
     } else {
-      // When a filter is active, replace highlights with the filter pins only
-      highlightedSpots = spots
-        .filter((spot) => this._spotMatchesFilter(spot, activeFilter))
-        .map((spot) => this._getOrCreateSpotPreview(spot))
-        .slice(0, this.HIGHLIGHT_MAX_COUNT);
+      const manualHighlights = this._manualHighlightedSpots();
+      highlightedSpots =
+        manualHighlights.length > 0
+          ? manualHighlights
+          : spots
+              .filter((spot) => this._spotMatchesFilter(spot, activeFilter))
+              .map((spot) => this._getOrCreateSpotPreview(spot))
+              .slice(0, this.HIGHLIGHT_MAX_COUNT);
     }
 
     // Only show amenity markers at zoom >= 16 (amenityMarkerDisplayZoom) to maintain performance
@@ -799,15 +756,7 @@ export class SpotMapDataManager {
 
     this._visibleHighlightedSpots.set(highlightedSpots);
 
-    if (activeFilter === SpotFilterMode.None) {
-      this._visibleSpots.set(spots);
-    } else {
-      // Keep map usable even if async Typesense highlight fetch fails.
-      // We still render locally loaded spots that match the active filter.
-      this._visibleSpots.set(
-        spots.filter((spot) => this._spotMatchesFilter(spot, activeFilter))
-      );
-    }
+    this._visibleSpots.set(spots);
 
     this._visibleAmenityMarkers.set(markers);
   }

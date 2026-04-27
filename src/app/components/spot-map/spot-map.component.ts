@@ -204,6 +204,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   visibleDots = this._spotMapDataManager.visibleDots;
   visibleHighlightedSpots = this._spotMapDataManager.visibleHighlightedSpots;
   visibleAmenityMarkers = this._spotMapDataManager.visibleAmenityMarkers;
+  hideRegularSpotPins = computed(
+    () => this.spotFilterMode() !== SpotFilterMode.None
+  );
 
   visibleMarkers = signal<MarkerSchema[]>([]);
 
@@ -284,7 +287,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     effect(() => {
       const spots = this.visibleSpots();
-      this.visibleSpotsChange.emit(spots);
+      this.visibleSpotsChange.emit(this.hideRegularSpotPins() ? [] : spots);
     });
 
     effect(() => {

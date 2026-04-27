@@ -15,6 +15,7 @@ import {
   computed,
   NgZone,
   ChangeDetectionStrategy,
+  untracked,
 } from "@angular/core";
 import { Location, NgOptimizedImage } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -292,21 +293,24 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * This handles the initial load race condition where filter param exists but map isn't ready.
    */
   filterEffect = effect(() => {
-    const filter = this.selectedFilter();
     const isMapReady = this.mapReady();
+    const selectedFilter = untracked(() => this.selectedFilter());
 
     console.debug("filterEffect running:", {
-      filter,
+      filter: selectedFilter,
       isMapReady,
       hasSpotMap: !!this.spotMap,
     });
 
     // Only proceed if we have a map instance that's ready
-    if (isMapReady && this.spotMap) {
+    if (isMapReady && this.spotMap && selectedFilter) {
       // filterChipChanged handles both cases: bounds available (immediate search)
       // and bounds not available (sets filter mode, waits for filterBoundsChange event)
-      console.debug("filterEffect: calling filterChipChanged with:", filter);
-      setTimeout(() => this.filterChipChanged(filter), 0);
+      console.debug(
+        "filterEffect: calling filterChipChanged with:",
+        selectedFilter
+      );
+      setTimeout(() => this.filterChipChanged(selectedFilter), 0);
     }
   });
 
@@ -343,60 +347,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _searchPreviewRequestVersion = 0;
 
   /**
-   * Handle clicks on POIs or Amenity Markers
+   * Google POI clicks are intentionally disabled for now.
    */
-  /**
-   * Handle clicks on POIs or Amenity Markers
-   */
-  async onPoiClick(event: {
+  onPoiClick(_event: {
     location: google.maps.LatLngLiteral;
     placeId: string;
-  }) {
-    this.ngZone.run(async () => {
-      console.log("POI Clicked", event);
-
-      // Set a placeholder POI to prevent the spot list from showing up
-      // during the transition (template logic: if selectedPoi -> show POI, else if selectedSpot -> show Spot, else -> show List)
-      this.selectedPoi.set({
-        type: "google-poi",
-        id: event.placeId,
-        name: "Loading...",
-        location: event.location,
-        googlePlace: undefined,
-      });
-
-      // Clear spot selection manually (don't use closeSpot() as it clears selectedPoi)
-      this.selectedSpot.set(null);
-      this.showSpotEditHistory.set(false);
-      this.closeChallenge(false);
-      this.updateMapURL();
-
-      if (event.placeId) {
-        // It's a Google Maps POI
-        try {
-          // Fetch details to get the name
-          const place = await this.mapsService.getGooglePlaceById(
-            event.placeId
-          );
-
-          this.selectedPoi.set({
-            type: "google-poi",
-            id: event.placeId,
-            name: place.displayName || "Point of Interest",
-            location: place.location?.toJSON() || event.location,
-            googlePlace: place,
-          });
-
-          // Focus the map on it
-          if (this.spotMap) {
-            this.spotMap.focusPoint(this.selectedPoi()!.location);
-          }
-        } catch (error) {
-          console.error("Failed to load POI details:", error);
-        }
-      }
-    });
-  }
+  }): void {}
 
   // Handle click on map background (bubbled up from SpotMap)
   onMapClick(event: google.maps.LatLngLiteral) {
@@ -937,15 +893,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
           // Also extract filter query param from URL to keep it in sync
           const queryIndex = navEvent.urlAfterRedirects.indexOf("?");
-          if (queryIndex >= 0) {
-            const queryString = navEvent.urlAfterRedirects.substring(
-              queryIndex + 1
-            );
-            const params = new URLSearchParams(queryString);
-            const filterParam = params.get("filter");
-            if (filterParam && this.selectedFilter() !== filterParam) {
-              this.selectedFilter.set(filterParam);
-            }
+          const queryString =
+            queryIndex >= 0
+              ? navEvent.urlAfterRedirects.substring(queryIndex + 1)
+              : "";
+          const params = new URLSearchParams(queryString);
+          const filterParam = params.get("filter") ?? "";
+          if (this.selectedFilter() !== filterParam) {
+            this.filterChipChanged(filterParam);
           }
 
           this._handleURLParamsChange(
@@ -1081,10 +1036,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.clearSearchPlacePreview();
 
     if (value.type === "place") {
-      this.openGooglePlaceById(value.id);
-    } else {
-      this.loadSpotById(value.id as SpotId).then(() => {});
+      return;
     }
+
+    this.loadSpotById(value.id as SpotId).then(() => {});
   }
 
   onSearchPlacePreviewChange(placeId: string | null) {

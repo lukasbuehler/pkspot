@@ -23,20 +23,19 @@
   overflow-y: hidden;
   scrollbar-width: none; // Firefox
   -ms-overflow-style: none; // IE/Edge
-  padding-inline: 16px;
 
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0%,
-    black 16px,
-    black calc(100% - 16px),
+    black 28px,
+    black calc(100% - 28px),
     transparent 100%
   );
   mask-image: linear-gradient(
     to right,
     transparent 0%,
-    black 16px,
-    black calc(100% - 16px),
+    black 28px,
+    black calc(100% - 28px),
     transparent 100%
   );
 

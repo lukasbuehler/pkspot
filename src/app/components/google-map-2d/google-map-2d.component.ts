@@ -248,15 +248,12 @@ export class GoogleMap2dComponent
     const placeId = (event as google.maps.IconMouseEvent).placeId;
 
     if (placeId) {
-      // Prevent the default info window
+      // Prevent Google Maps POIs from opening a default info window or app panel.
       event.stop();
-      this.poiClick.emit({
-        location: event.latLng.toJSON(),
-        placeId: placeId,
-      });
-    } else {
-      this.mapClick.emit(event.latLng.toJSON());
+      return;
     }
+
+    this.mapClick.emit(event.latLng.toJSON());
   }
 
   @Output() boundsChange = new EventEmitter<google.maps.LatLngBounds>();
@@ -354,6 +351,8 @@ export class GoogleMap2dComponent
 
   @Input() showGeolocation: boolean = false;
   @Input() selectedMarker: google.maps.LatLngLiteral | null = null;
+  hideRegularSpotPins = input(false);
+  readonly hoveredCircleSpot = signal<Spot | LocalSpot | null>(null);
 
   @Input() boundRestriction: {
     north: number;
@@ -1000,7 +999,7 @@ export class GoogleMap2dComponent
   mapOptions: google.maps.MapOptions = {
     mapId: environment.mapId,
     backgroundColor: "#000000",
-    clickableIcons: true,
+    clickableIcons: false,
     gestureHandling: "greedy",
     disableDefaultUI: true,
     // The map shell and clustering logic assume classic step-based zoom.
@@ -1276,6 +1275,16 @@ export class GoogleMap2dComponent
     const spotLoc = spot.location();
 
     return selectedLoc.lat === spotLoc.lat && selectedLoc.lng === spotLoc.lng;
+  }
+
+  showCirclePreview(spot: LocalSpot | Spot): void {
+    this.hoveredCircleSpot.set(spot);
+  }
+
+  hideCirclePreview(spot: LocalSpot | Spot): void {
+    if (this.hoveredCircleSpot() === spot) {
+      this.hoveredCircleSpot.set(null);
+    }
   }
 
   /**

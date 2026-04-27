@@ -33,7 +33,8 @@ import {
       #markerShell
       class="spot-preview-marker"
       [class.preview-enabled]="hoverPreviewActive()"
-      [class.preview-visible]="previewVisible()"
+      [class.preview-visible]="effectivePreviewVisible()"
+      [class.force-preview-visible]="forcePreviewVisible()"
       [class.has-media]="hasMedia()"
       [class.no-media]="!hasMedia()"
       tabindex="0"
@@ -55,7 +56,7 @@ import {
           [hasBorder]="false"
           [isCompact]="true"
           [imgSize]="200"
-          [loadingPriority]="previewVisible()"
+          [loadingPriority]="effectivePreviewVisible()"
         ></app-spot-preview-card>
         <svg
           class="spot-preview-marker__tail"
@@ -160,6 +161,10 @@ import {
       z-index: 1;
     }
 
+    .spot-preview-marker.force-preview-visible {
+      pointer-events: none;
+    }
+
     .spot-preview-marker.preview-enabled.preview-visible
       .spot-preview-marker__preview {
       opacity: 1;
@@ -201,6 +206,7 @@ export class SpotPreviewMarkerComponent {
   spot = input.required<Spot | LocalSpot | SpotPreviewData>();
   mapZoom = input<number | null>(null);
   hoverPreviewEnabled = input<boolean>(true);
+  forcePreviewVisible = input<boolean>(false);
   color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
   zIndexBase = input<number>(4200);
   markerClick = output<Spot | LocalSpot | SpotPreviewData>();
@@ -209,6 +215,11 @@ export class SpotPreviewMarkerComponent {
 
   hoverPreviewActive = computed(
     () => this.hoverPreviewEnabled() && this.responsive.isDesktop()
+  );
+  effectivePreviewVisible = computed(
+    () =>
+      this.hoverPreviewActive() &&
+      (this.previewVisible() || this.forcePreviewVisible())
   );
 
   position = computed<google.maps.LatLngLiteral | null>(() => {
@@ -300,7 +311,7 @@ export class SpotPreviewMarkerComponent {
 
   computedZIndex = computed(() => {
     const rating = this.markerNumber() ?? 0;
-    const hoverBoost = this.previewVisible() ? 1_000_000 : 0;
+    const hoverBoost = this.effectivePreviewVisible() ? 1_000_000 : 0;
     return this.zIndexBase() + Math.round(rating * 40) + hoverBoost;
   });
 

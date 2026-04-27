@@ -74,15 +74,15 @@
         <mat-icon matChipAvatar>filter_alt_off</mat-icon>
         <span>{{ clearLabel }}</span>
       </mat-chip-option>
+    } @else {
+      <mat-chip-option
+        class="filters-chip glass"
+        [selected]="customFilterActive()"
+        (click)="onFiltersClick()"
+      >
+        <mat-icon matChipAvatar>tune</mat-icon>
+        <span>{{ filtersLabel }}</span>
+      </mat-chip-option>
     }
-
-    <mat-chip-option
-      class="filters-chip glass"
-      [selected]="customFilterActive()"
-      (click)="onFiltersClick()"
-    >
-      <mat-icon matChipAvatar>tune</mat-icon>
-      <span>{{ filtersLabel }}</span>
-    </mat-chip-option>
   </div>
 </div>
