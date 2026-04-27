@@ -4,57 +4,23 @@ import * as admin from "firebase-admin";
 import { getStorage } from "firebase-admin/storage";
 import { once } from "node:events";
 import type { Writable } from "node:stream";
+import {
+  STATIC_PAGES,
+  SUPPORTED_LOCALES,
+  buildCommunitySitemapEntry,
+  buildSitemapHeader,
+  buildSpotSitemapEntry,
+  buildUserSitemapEntry,
+  generateUrlWithHreflang,
+  getNowDateString,
+  type CommunitySitemapData,
+  type SitemapGenerationStats,
+  type SpotSitemapData,
+  type UserSitemapData,
+} from "./sitemapXml";
 
-const BASE_URL = "https://pkspot.app";
 const BUCKET_NAME = "parkour-base-project.appspot.com";
 const XML_BUFFER_TARGET_BYTES = 64 * 1024;
-
-// Supported languages - must match your Angular i18n setup
-const SUPPORTED_LOCALES = ["en", "de", "de-CH", "fr", "it", "es", "nl"];
-const DEFAULT_LOCALE = "en";
-
-// Static pages from app.routes.ts (excluding redirects, auth-required, and embedded pages)
-const STATIC_PAGES = [
-  { path: "/map", priority: "1.0", changefreq: "daily" },
-  { path: "/events", priority: "0.8", changefreq: "weekly" },
-  { path: "/events/swissjam25", priority: "0.7", changefreq: "weekly" },
-  { path: "/about", priority: "0.7", changefreq: "monthly" },
-  { path: "/support", priority: "0.5", changefreq: "monthly" },
-  { path: "/sign-in", priority: "0.5", changefreq: "monthly" },
-  { path: "/sign-up", priority: "0.5", changefreq: "monthly" },
-  { path: "/forgot-password", priority: "0.3", changefreq: "monthly" },
-  { path: "/terms-of-service", priority: "0.3", changefreq: "yearly" },
-  { path: "/privacy-policy", priority: "0.3", changefreq: "yearly" },
-  { path: "/impressum", priority: "0.3", changefreq: "yearly" },
-  { path: "/embed", priority: "0.4", changefreq: "monthly" },
-];
-
-interface UserData {
-  display_name?: string;
-}
-
-interface SpotSitemapData {
-  slug?: string;
-  time_updated?: { seconds: number; nanoseconds: number };
-}
-
-interface CommunitySitemapData {
-  canonicalPath?: string;
-  preferredSlug?: string;
-  published?: boolean;
-  scope?: "country" | "region" | "locality";
-  generatedAt?: { seconds: number; nanoseconds: number };
-  sourceMaxUpdatedAt?: { seconds: number; nanoseconds: number };
-}
-
-interface SitemapGenerationStats {
-  spotCount: number;
-  userCount: number;
-  communityCount: number;
-  slugCount: number;
-  staticPageCount: number;
-  totalUrls: number;
-}
 
 class BufferedXmlWriter {
   private buffer = "";
@@ -78,82 +44,6 @@ class BufferedXmlWriter {
     }
     this.buffer = "";
   }
-}
-
-function buildSitemapHeader(): string {
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-`;
-}
-
-/**
- * Generates a URL entry with hreflang annotations for all supported locales
- */
-function generateUrlWithHreflang(
-  path: string,
-  lastmod: string,
-  changefreq: string,
-  priority: string
-): string {
-  let xml = "";
-
-  // Generate one <url> entry per locale
-  for (const locale of SUPPORTED_LOCALES) {
-    const fullUrl = `${BASE_URL}/${locale}${path}`;
-
-    xml += `  <url>
-    <loc>${fullUrl}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
-`;
-
-    // Add hreflang links to all alternate language versions
-    for (const altLocale of SUPPORTED_LOCALES) {
-      const altUrl = `${BASE_URL}/${altLocale}${path}`;
-      const hreflangCode = getHreflangCode(altLocale);
-      xml += `    <xhtml:link rel="alternate" hreflang="${hreflangCode}" href="${altUrl}"/>
-`;
-    }
-
-    // Add x-default pointing to the default locale
-    xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/${DEFAULT_LOCALE}${path}"/>
-`;
-
-    xml += `  </url>
-`;
-  }
-
-  return xml;
-}
-
-/**
- * Converts locale code to hreflang format
- * e.g., "de-CH" stays "de-CH", "en" stays "en"
- */
-function getHreflangCode(locale: string): string {
-  // hreflang uses lowercase language, uppercase region
-  // e.g., "de-CH" is correct, "de-ch" is not
-  return locale;
-}
-
-function getNowDateString(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-function getLastModDate(
-  timeUpdated:
-    | SpotSitemapData["time_updated"]
-    | CommunitySitemapData["generatedAt"]
-    | CommunitySitemapData["sourceMaxUpdatedAt"],
-  fallbackDate: string
-): string {
-  if (!timeUpdated?.seconds) {
-    return fallbackDate;
-  }
-
-  return new Date(timeUpdated.seconds * 1000).toISOString().split("T")[0];
 }
 
 function toError(error: unknown): Error {
@@ -218,19 +108,22 @@ async function _generateAndUploadSitemap(): Promise<{
 
     for await (const doc of spotsStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
       const data = doc.data() as SpotSitemapData;
+      const entry = buildSpotSitemapEntry(doc.id, data, now);
       const slug = data.slug?.trim();
-      const path = slug
-        ? `/map/${encodeURIComponent(slug)}`
-        : `/map/${encodeURIComponent(doc.id)}`;
 
       if (slug) {
         slugCount += 1;
       }
 
       spotCount += 1;
-      const lastmod = getLastModDate(data.time_updated, now);
-      const priority = slug ? "0.9" : "0.8";
-      await writer.append(generateUrlWithHreflang(path, lastmod, "weekly", priority));
+      await writer.append(
+        generateUrlWithHreflang(
+          entry.path,
+          entry.lastmod,
+          entry.changefreq,
+          entry.priority
+        )
+      );
     }
 
     console.log(`Streamed ${spotCount} spots`);
@@ -238,14 +131,20 @@ async function _generateAndUploadSitemap(): Promise<{
     console.log("Streaming users from Firestore...");
     const usersStream = db.collection("users").select("display_name").stream();
     for await (const doc of usersStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
-      const data = doc.data() as UserData;
-      if (!data.display_name) {
+      const data = doc.data() as UserSitemapData;
+      const entry = buildUserSitemapEntry(doc.id, data, now);
+      if (!entry) {
         continue;
       }
 
       userCount += 1;
       await writer.append(
-        generateUrlWithHreflang(`/u/${encodeURIComponent(doc.id)}`, now, "weekly", "0.6")
+        generateUrlWithHreflang(
+          entry.path,
+          entry.lastmod,
+          entry.changefreq,
+          entry.priority
+        )
       );
     }
     console.log(`Streamed ${userCount} users with public profiles`);
@@ -265,33 +164,19 @@ async function _generateAndUploadSitemap(): Promise<{
 
     for await (const doc of communitiesStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
       const data = doc.data() as CommunitySitemapData;
-      if (data.published === false) {
-        continue;
-      }
-
-      const path =
-        data.canonicalPath?.trim() ||
-        (data.preferredSlug
-          ? `/map/community/${encodeURIComponent(data.preferredSlug)}`
-          : "");
-
-      if (!path) {
+      const entry = buildCommunitySitemapEntry(data, now);
+      if (!entry) {
         continue;
       }
 
       communityCount += 1;
-      const lastmod = getLastModDate(
-        data.sourceMaxUpdatedAt ?? data.generatedAt,
-        now
-      );
-      const priority =
-        data.scope === "country"
-          ? "0.8"
-          : data.scope === "region"
-          ? "0.75"
-          : "0.7";
       await writer.append(
-        generateUrlWithHreflang(path, lastmod, "weekly", priority)
+        generateUrlWithHreflang(
+          entry.path,
+          entry.lastmod,
+          entry.changefreq,
+          entry.priority
+        )
       );
     }
     console.log(`Streamed ${communityCount} published communities`);
