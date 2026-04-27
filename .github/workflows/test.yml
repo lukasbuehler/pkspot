@@ -157,5 +157,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build application
-        run: npm run build:dev
+      - name: Build and smoke-test SSR
+        run: npm run test:build

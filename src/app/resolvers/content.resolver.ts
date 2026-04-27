@@ -379,12 +379,21 @@ function getParamFromRouteTree(
   route: ActivatedRouteSnapshot,
   paramName: string
 ): string | null {
-  // Check current route
+  // Check current route.
   if (route.paramMap.has(paramName)) {
     return route.paramMap.get(paramName);
   }
 
-  // Check parent routes
+  // Check child routes. Parent resolvers run before the routed component is
+  // created, so SSR metadata for /map/:spot needs to see descendant params too.
+  for (const child of route.children) {
+    const childParam = getParamFromRouteTree(child, paramName);
+    if (childParam) {
+      return childParam;
+    }
+  }
+
+  // Check parent routes.
   let parent = route.parent;
   while (parent) {
     if (parent.paramMap.has(paramName)) {

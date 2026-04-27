@@ -202,4 +202,25 @@ describe("contentResolver", () => {
       "https://pkspot.app/en/map/imax"
     );
   });
+
+  it("should render spot social tags when the map parent resolver sees a child spot route", async () => {
+    const imaxSpot = buildImaxSpot();
+    const childRoute = createRouteSnapshot("imax");
+    const parentRoute = childRoute.parent;
+
+    slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot-imax");
+    spotsService.getSpotById.mockResolvedValue(imaxSpot);
+
+    const result = await TestBed.runInInjectionContext(() =>
+      contentResolver(parentRoute as any)
+    );
+
+    expect(result.spot).toBe(imaxSpot);
+    expect(getMetaContent(testDocument, 'meta[property="og:title"]')).toBe(
+      "IMAX - Zurich | PK Spot"
+    );
+    expect(
+      getMetaContent(testDocument, 'meta[property="og:url"]')
+    ).toBe("https://pkspot.app/en/map/imax");
+  });
 });

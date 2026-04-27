@@ -254,6 +254,36 @@ async function main() {
       "SSR request should not fall back to client-side rendering"
     );
 
+    const socialPreviewResponse = await fetch(
+      `${baseUrl}/en/map/josefhalle`,
+      {
+        redirect: "manual",
+        headers: {
+          "user-agent": "WhatsApp/2.24.1 A",
+        },
+      }
+    );
+    assert.equal(
+      socialPreviewResponse.status,
+      200,
+      "Spot SSR route should render for social crawlers"
+    );
+    const socialPreviewHtml = await socialPreviewResponse.text();
+    assert.match(
+      socialPreviewHtml,
+      /<meta property="og:title"[^>]+content="Sportzentrum Josef - Zürich \| PK Spot"/,
+      "Spot SSR HTML should include the spot-specific OpenGraph title"
+    );
+    assert.match(
+      socialPreviewHtml,
+      /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/josefhalle"/,
+      "Spot SSR HTML should include the canonical spot OpenGraph URL"
+    );
+    assert.doesNotMatch(
+      socialPreviewHtml,
+      /<meta property="og:title"[^>]+content="PK Spot - The spot for Parkour and Freerunning"/,
+      "Spot SSR HTML should not fall back to the default OpenGraph title"
+    );
 
     const robotsResponse = await fetch(`${baseUrl}/robots.txt`);
     assert.equal(robotsResponse.status, 200, "robots.txt should be served");

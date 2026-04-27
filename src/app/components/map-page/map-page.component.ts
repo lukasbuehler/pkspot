@@ -583,7 +583,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         const canonicalPath =
           spot instanceof Spot ? `/map/${spot.slug ?? spot.id}` : undefined;
         this.metaTagService.setSpotMetaTags(spot, canonicalPath);
-      } else {
+      } else if (!this.isServer) {
         this.metaTagService.setDefaultMapMetaTags("/map");
       }
     });
