@@ -1,76 +1,79 @@
 <div class="filter-chips-container">
   <div class="chips-scroll-shell">
     @if (canScrollLeft()) {
-    <button
-      type="button"
-      mat-icon-button
-      class="scroll-button left"
-      [attr.aria-label]="scrollLeftLabel"
-      (click)="scrollChips('left')"
-    >
-      <mat-icon>chevron_left</mat-icon>
-    </button>
+      <button
+        type="button"
+        mat-icon-button
+        class="scroll-button left d-flex align-items-center justify-content-center"
+        [attr.aria-label]="scrollLeftLabel"
+        (click)="scrollChips('left')"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
     }
 
     <div #scrollArea class="chips-scroll-area">
-      <mat-chip-listbox [multiple]="false" [attr.aria-label]="quickFiltersLabel">
+      <mat-chip-listbox
+        [multiple]="false"
+        [attr.aria-label]="quickFiltersLabel"
+      >
         @if (showSavedChip()) {
-        <mat-chip-option
-          class="glass"
-          [selected]="selectedFilter() === 'saved'"
-          (click)="onPresetChipClick('saved')"
-        >
-        <mat-icon matChipAvatar>bookmark</mat-icon>
-        <span>{{ savedLabel }}</span>
-        </mat-chip-option>
+          <mat-chip-option
+            class="glass"
+            [selected]="selectedFilter() === 'saved'"
+            (click)="onPresetChipClick('saved')"
+          >
+            <mat-icon matChipAvatar>bookmark</mat-icon>
+            <span>{{ savedLabel }}</span>
+          </mat-chip-option>
         }
 
         @if (showVisitedChip()) {
-        <mat-chip-option
-          class="glass"
-          [selected]="selectedFilter() === 'visited'"
-          (click)="onPresetChipClick('visited')"
-        >
-        <mat-icon matChipAvatar>beenhere</mat-icon>
-        <span>{{ visitedLabel }}</span>
-        </mat-chip-option>
+          <mat-chip-option
+            class="glass"
+            [selected]="selectedFilter() === 'visited'"
+            (click)="onPresetChipClick('visited')"
+          >
+            <mat-icon matChipAvatar>beenhere</mat-icon>
+            <span>{{ visitedLabel }}</span>
+          </mat-chip-option>
         }
 
         @for (filter of presetFilters; track filter.urlParam) {
-        <mat-chip-option
-          class="glass"
-          [selected]="selectedFilter() === filter.urlParam"
-          (click)="onPresetChipClick(filter.urlParam)"
-        >
-        <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
-        <span>{{ filter.label }}</span>
-        </mat-chip-option>
+          <mat-chip-option
+            class="glass"
+            [selected]="selectedFilter() === filter.urlParam"
+            (click)="onPresetChipClick(filter.urlParam)"
+          >
+            <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
+            <span>{{ filter.label }}</span>
+          </mat-chip-option>
         }
       </mat-chip-listbox>
     </div>
 
     @if (canScrollRight()) {
-    <button
-      type="button"
-      mat-icon-button
-      class="scroll-button right"
-      [attr.aria-label]="scrollRightLabel"
-      (click)="scrollChips('right')"
-    >
-      <mat-icon>chevron_right</mat-icon>
-    </button>
+      <button
+        type="button"
+        mat-icon-button
+        class="scroll-button right d-flex align-items-center justify-content-center"
+        [attr.aria-label]="scrollRightLabel"
+        (click)="scrollChips('right')"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
     }
   </div>
 
   <div class="action-chips">
     @if (selectedFilter()) {
-    <mat-chip-option
-      class="filters-chip clear-chip glass"
-      (click)="onClearClick()"
-    >
-      <mat-icon matChipAvatar>filter_alt_off</mat-icon>
-      <span>{{ clearLabel }}</span>
-    </mat-chip-option>
+      <mat-chip-option
+        class="filters-chip clear-chip glass"
+        (click)="onClearClick()"
+      >
+        <mat-icon matChipAvatar>filter_alt_off</mat-icon>
+        <span>{{ clearLabel }}</span>
+      </mat-chip-option>
     }
 
     <mat-chip-option

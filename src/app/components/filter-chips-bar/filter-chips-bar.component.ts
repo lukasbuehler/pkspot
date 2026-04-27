@@ -5,12 +5,14 @@ import {
   ElementRef,
   NgZone,
   OnDestroy,
+  PLATFORM_ID,
   inject,
   input,
   output,
   signal,
   viewChild,
 } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
@@ -32,7 +34,6 @@ interface PresetFilterChip {
  */
 @Component({
   selector: "app-filter-chips-bar",
-  standalone: true,
   imports: [MatButtonModule, MatChipsModule, MatIconModule],
   templateUrl: "./filter-chips-bar.component.html",
   styleUrl: "./filter-chips-bar.component.scss",
@@ -63,12 +64,15 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   private readonly scrollArea =
     viewChild<ElementRef<HTMLDivElement>>("scrollArea");
   private readonly ngZone = inject(NgZone);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly canScrollLeft = signal(false);
   readonly canScrollRight = signal(false);
 
   private _resizeObserver: ResizeObserver | null = null;
   private _removeScrollListener: (() => void) | null = null;
+  private _animationFrameId: number | null = null;
 
   /** Preset filter chips derived from SPOT_FILTER_CONFIGS */
   readonly presetFilters: PresetFilterChip[] = [
@@ -114,6 +118,10 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   readonly scrollRightLabel = $localize`:@@filter_scroll_right:Scroll filters right`;
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     const scrollElement = this.scrollArea()?.nativeElement;
     if (!scrollElement) {
       return;
@@ -142,6 +150,11 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this._resizeObserver?.disconnect();
     this._removeScrollListener?.();
+
+    if (this._animationFrameId !== null) {
+      window.cancelAnimationFrame(this._animationFrameId);
+      this._animationFrameId = null;
+    }
   }
 
   onPresetChipClick(value: string): void {
@@ -170,7 +183,14 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   }
 
   private _scheduleScrollStateUpdate(): void {
-    requestAnimationFrame(() => this._updateScrollState());
+    if (!this.isBrowser || this._animationFrameId !== null) {
+      return;
+    }
+
+    this._animationFrameId = window.requestAnimationFrame(() => {
+      this._animationFrameId = null;
+      this._updateScrollState();
+    });
   }
 
   private _updateScrollState(): void {
