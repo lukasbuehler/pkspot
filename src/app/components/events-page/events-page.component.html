@@ -4,32 +4,52 @@
       <h2 class="mat-heading-large" i18n=":@@events.title">Events</h2>
     </div>
   </div>
-  <div class="row mb-5">
-    <div class="col-md-12">
-      <a
-        routerLink="/events/swissjam25"
-        class="text-decoration-none"
-        style="color: inherit"
-      >
-        <mat-card class="overflow-hidden">
-          <div mat-card-image style="position: relative; height: 200px">
-            <img
-              ngSrc="assets/swissjam/swissjam0.jpg"
-              fill
-              class="object-fit-cover"
-            />
-          </div>
-          <mat-card-header>
-            <mat-card-title>Swiss Jam 25</mat-card-title>
-            <mat-card-subtitle>{{
-              readableStartDate !== readableEndDate
-                ? readableStartDate + " - " + readableEndDate
-                : readableStartDate
-            }}</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content></mat-card-content>
-        </mat-card>
-      </a>
+
+  @if (loading()) {
+    <div class="row mb-5">
+      <div class="col-md-12">
+        <p class="mat-body-medium" i18n>Loading events…</p>
+      </div>
     </div>
-  </div>
+  } @else if (events().length === 0) {
+    <div class="row mb-5">
+      <div class="col-md-12">
+        <p class="mat-body-medium" i18n>No events scheduled yet.</p>
+      </div>
+    </div>
+  } @else {
+    <div class="row mb-5">
+      @for (event of events(); track event.id) {
+        <div class="col-md-6 col-lg-4 mb-3">
+          <a
+            [routerLink]="['/events', event.slug ?? event.id]"
+            class="text-decoration-none"
+            style="color: inherit"
+          >
+            <mat-card class="overflow-hidden h-100">
+              <div mat-card-image style="position: relative; height: 200px">
+                <img
+                  [ngSrc]="event.bannerSrc"
+                  fill
+                  class="object-fit-cover"
+                  [alt]="event.name"
+                />
+              </div>
+              <mat-card-header>
+                <mat-card-title>{{ event.name }}</mat-card-title>
+                <mat-card-subtitle>
+                  {{ formatDateRange(event) }}
+                </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <p class="mat-body-small mb-0">
+                  {{ event.venueString }}, {{ event.localityString }}
+                </p>
+              </mat-card-content>
+            </mat-card>
+          </a>
+        </div>
+      }
+    </div>
+  }
 </div>

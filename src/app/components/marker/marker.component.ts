@@ -15,6 +15,11 @@ export interface MarkerSchema {
   color?: "primary" | "secondary" | "tertiary" | "gray";
   location: google.maps.LatLngLiteral;
   icons?: string[];
+  /**
+   * Optional image source rendered as a small badge in place of `icons`.
+   * Used for event/sponsor logos on map pins.
+   */
+  imageSrc?: string;
   number?: number;
   priority?: "required" | number;
   type?: string;
@@ -31,6 +36,8 @@ export class MarkerComponent {
   public elementRef = inject(ElementRef);
 
   icons = input<string[] | null | undefined>(null);
+  /** Image source — when set, renders an inline image badge in the marker. */
+  imageSrc = input<string | null | undefined>(null);
   // Can be number or pre-formatted string (e.g., rating with one decimal)
   number = input<number | string | null | undefined>(null);
   // If true, always show 1 decimal place (for ratings); if false, only show decimals for non-integers (for challenge numbers)

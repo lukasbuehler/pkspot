@@ -72,6 +72,7 @@ import { NgClass } from "@angular/common";
       [@fadeInOut]
       style="pointer-events: none"
       [icons]="marker().icons"
+      [imageSrc]="marker().imageSrc"
       [number]="marker().number"
       [color]="marker().color ?? 'primary'"
       [size]="0.8"

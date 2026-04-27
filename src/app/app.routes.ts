@@ -205,6 +205,15 @@ export const routes: Routes = [
     pathMatch: "full",
     data: { routeName: "Event" },
   },
+  {
+    path: "events/:slug",
+    loadComponent: () =>
+      import("./components/event-page/event-page.component").then(
+        (m) => m.EventPageComponent
+      ),
+    resolve: { content: contentResolver },
+    data: { routeName: "Event" },
+  },
 
   // Community, Groups, Teams, Sessions
   //   {

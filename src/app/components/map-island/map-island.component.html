@@ -1,0 +1,104 @@
+@if (content(); as island) {
+  @switch (island.kind) {
+    @case ('filter') {
+      <div
+        class="map-island glass d-flex flex-row align-items-center ps-4 gap-3 p-3"
+      >
+        <span class="mat-title-small">{{ island.message }}</span>
+        <button
+          type="button"
+          class="flex-shrink-0"
+          matButton="outlined"
+          (click)="onClearFilter()"
+        >
+          <mat-icon>filter_alt_off</mat-icon>
+          <span i18n="@@filter_clear">Clear</span>
+        </button>
+      </div>
+    }
+
+    @case ('event') {
+      <div class="map-island glass d-flex flex-row align-items-center gap-3 p-2 ps-3">
+        @if (island.event.effectiveBadgeLogoSrc(); as logoSrc) {
+          <div class="island-logo flex-shrink-0">
+            <img [ngSrc]="logoSrc" alt="" fill />
+          </div>
+        } @else {
+          <mat-icon class="flex-shrink-0" color="accent">event</mat-icon>
+        }
+
+        <button
+          type="button"
+          class="island-text bg-transparent border-0 p-0 text-start flex-grow-1 overflow-hidden"
+          (click)="onOpenEvent()"
+        >
+          <div class="mat-title-small text-truncate">{{ island.event.name }}</div>
+          <div class="mat-label-small text-truncate opacity-75">
+            {{ island.event.localityString }}
+          </div>
+        </button>
+
+        <button
+          type="button"
+          mat-flat-button
+          color="accent"
+          class="flex-shrink-0"
+          (click)="onOpenEvent()"
+        >
+          <span i18n="@@map_island.event_open">Open</span>
+        </button>
+
+        <button
+          type="button"
+          mat-icon-button
+          class="flex-shrink-0"
+          (click)="onDismissEvent()"
+          aria-label="Dismiss event chip"
+          i18n-aria-label
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    @case ('community') {
+      <div class="map-island glass d-flex flex-row align-items-center gap-3 p-2 ps-3">
+        <mat-icon class="flex-shrink-0" color="primary">groups</mat-icon>
+
+        <button
+          type="button"
+          class="island-text bg-transparent border-0 p-0 text-start flex-grow-1 overflow-hidden"
+          (click)="onOpenCommunity()"
+        >
+          <div class="mat-title-small text-truncate">
+            {{ island.community.displayName }}
+          </div>
+          <div class="mat-label-small text-truncate opacity-75" i18n>
+            Community
+          </div>
+        </button>
+
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          class="flex-shrink-0"
+          (click)="onOpenCommunity()"
+        >
+          <span i18n="@@map_island.community_open">View</span>
+        </button>
+
+        <button
+          type="button"
+          mat-icon-button
+          class="flex-shrink-0"
+          (click)="onDismissCommunity()"
+          aria-label="Dismiss community chip"
+          i18n-aria-label
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+  }
+}

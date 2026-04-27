@@ -24,6 +24,13 @@
     <mat-icon style="height: 20px; font-size: 20px; width: 20px"
       >beenhere</mat-icon
     >
+    } @else if(imageSrc()) {
+    <img
+      [src]="imageSrc()"
+      alt=""
+      class="marker-image"
+      style="height: 20px; width: 20px; object-fit: cover; border-radius: 4px"
+    />
     } @else if(icons()) { @for(icon of icons()!; track $index) {
     <mat-icon style="height: 20px; font-size: 20px; width: 20px">
       {{ icon }}

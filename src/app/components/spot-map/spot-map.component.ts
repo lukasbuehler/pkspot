@@ -144,6 +144,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
    * Parent component should re-run the filter search for the new bounds.
    */
   @Output() filterBoundsChange = new EventEmitter<google.maps.LatLngBounds>();
+  /**
+   * Emits whenever the visible viewport changes, regardless of filter state.
+   * Used by map-page to drive the map-island content (events near here,
+   * matching community, etc.).
+   */
+  @Output() viewportBoundsChange = new EventEmitter<google.maps.LatLngBounds>();
 
   uneditedSpot?: Spot | LocalSpot;
 
@@ -499,6 +505,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   mapBoundsChanged(bounds: google.maps.LatLngBounds, zoom: number) {
     // update the local bounds variable
     this.bounds = bounds;
+
+    // Always emit viewport change so map-page can drive the map-island.
+    this.viewportBoundsChange.emit(bounds);
 
     if (!this.boundRestriction) {
       // store the new last location in the browser memory to restore it on next visit

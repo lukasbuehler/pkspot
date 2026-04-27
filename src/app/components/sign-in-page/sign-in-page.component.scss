@@ -9,17 +9,12 @@
 }
 
 .account-panel {
-  background:
-    radial-gradient(circle at top right, rgba(209, 231, 221, 0.85), transparent 40%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 248, 250, 0.98));
-  border: 1px solid rgba(24, 36, 51, 0.08);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 28px;
   padding: 1.5rem;
-  box-shadow: 0 18px 40px rgba(24, 36, 51, 0.08);
-}
-
-.account-hero {
-  margin-bottom: 1.5rem;
+  box-shadow: var(--mat-sys-level1, 0 2px 6px rgba(0, 0, 0, 0.08));
 }
 
 .eyebrow,
@@ -27,13 +22,13 @@
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #496152;
+  color: var(--mat-sys-primary);
 }
 
 .hero-copy,
 .section-copy {
   max-width: 52rem;
-  color: #4d5a68;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .language-panel {
@@ -85,8 +80,8 @@
   border-radius: 16px;
   display: grid;
   place-items: center;
-  background: #eff6f1;
-  color: #274f38;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
 }
 
 .privacy-box {
@@ -94,14 +89,15 @@
   gap: 0.75rem;
   padding: 1rem 1.125rem;
   border-radius: 20px;
-  background: rgba(239, 246, 241, 0.8);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
 }
 
 .privacy-header {
   display: flex;
   gap: 0.75rem;
   align-items: center;
-  color: #274f38;
+  color: var(--mat-sys-primary);
 }
 
 .legal-actions {
@@ -118,6 +114,11 @@
 
 .support-copy {
   margin-top: 1.25rem;
+  color: var(--mat-sys-on-surface-variant);
+
+  a {
+    color: var(--mat-sys-primary);
+  }
 }
 
 .oauth-buttons {
@@ -129,9 +130,11 @@
 }
 
 .alert.alert-danger {
-  color: #f44336;
-  border-color: #f44336;
+  color: var(--mat-sys-error);
+  border: 1px solid var(--mat-sys-error);
   background-color: transparent;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
 }
 
 @media (max-width: 991.98px) {

@@ -115,6 +115,13 @@ import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
 import { AmenityNames, AmenitiesMap } from "../../../db/models/Amenities";
 import { CommunityLandingPageData } from "../../services/firebase/firestore/landing-pages.service";
 import { CommunityLandingPageComponent } from "../community-landing-page/community-landing-page.component";
+import { EventsService } from "../../services/firebase/firestore/events.service";
+import { Event as PkEvent } from "../../../db/models/Event";
+import {
+  MapIslandComponent,
+  MapIslandContent,
+} from "../map-island/map-island.component";
+import { afterNextRender } from "@angular/core";
 
 @Component({
   selector: "app-map-page",
@@ -177,6 +184,7 @@ import { CommunityLandingPageComponent } from "../community-landing-page/communi
     FilterChipsBarComponent,
     NgOptimizedImage,
     CommunityLandingPageComponent,
+    MapIslandComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -339,6 +347,90 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   noSpotsForFilter: WritableSignal<boolean> = signal(false);
 
+  // ----- Map island state -----
+  private _eventsService = inject(EventsService);
+  /** All events whose promo is currently active (loaded once on init). */
+  private _promotableEvents = signal<PkEvent[]>([]);
+  /** Latest visible viewport, expressed as a bounds box for intersection checks. */
+  private _viewport = signal<{
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  } | null>(null);
+  /** Events the user has dismissed in the current session. */
+  private _dismissedEventIds = signal<Set<string>>(new Set());
+  /** Communities the user has dismissed in the current session. */
+  private _dismissedCommunityKeys = signal<Set<string>>(new Set());
+
+  /**
+   * Active map-island content. Picks the most relevant variant for the
+   * visible viewport. Filter helper takes precedence (it points at user
+   * action), then event promo, then community context.
+   */
+  islandContent = computed<MapIslandContent | null>(() => {
+    if (this.noSpotsForFilter()) {
+      return {
+        kind: "filter",
+        message: $localize`:Filter helper text@@filter_helper_text:There are no spots matching the filter in this area.`,
+      };
+    }
+
+    const viewport = this._viewport();
+    if (viewport) {
+      const dismissed = this._dismissedEventIds();
+      const event = this._promotableEvents().find(
+        (e) => !dismissed.has(e.id) && e.intersectsViewport(viewport)
+      );
+      if (event) return { kind: "event", event };
+    }
+
+    const community = this.selectedCommunityLanding();
+    if (
+      community &&
+      !this._dismissedCommunityKeys().has(community.communityKey)
+    ) {
+      return { kind: "community", community };
+    }
+
+    return null;
+  });
+
+  onViewportBoundsChange(bounds: google.maps.LatLngBounds): void {
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    this._viewport.set({
+      north: ne.lat(),
+      south: sw.lat(),
+      east: ne.lng(),
+      west: sw.lng(),
+    });
+  }
+
+  onIslandDismissEvent(event: PkEvent): void {
+    this._dismissedEventIds.update((set) => {
+      const next = new Set(set);
+      next.add(event.id);
+      return next;
+    });
+  }
+
+  onIslandDismissCommunity(community: CommunityLandingPageData): void {
+    this._dismissedCommunityKeys.update((set) => {
+      const next = new Set(set);
+      next.add(community.communityKey);
+      return next;
+    });
+  }
+
+  onIslandOpenEvent(event: PkEvent): void {
+    void this.router.navigate(["/events", event.slug ?? event.id]);
+  }
+
+  onIslandOpenCommunity(community: CommunityLandingPageData): void {
+    void this.router.navigateByUrl(community.canonicalPath);
+  }
+
   /** Stores custom filter parameters when using the Filters dialog */
   customFilterParams: WritableSignal<CustomFilterParams | null> = signal(null);
 
@@ -459,6 +551,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.isServer = isPlatformServer(platformId);
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
+
+    // Load events whose map-island promo is currently active. One-shot fetch
+    // is fine for now: the events collection is small and an admin-driven
+    // change won't need live propagation in a session.
+    if (isPlatformBrowser(this.platformId)) {
+      afterNextRender(() => {
+        this._eventsService
+          .getPromotableEvents()
+          .then((events) => this._promotableEvents.set(events))
+          .catch((err) =>
+            console.warn("MapPage: failed to load promotable events", err)
+          );
+      });
+    }
 
     effect(() => {
       // Read all relevant routing state signals so URL stays in sync

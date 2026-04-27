@@ -1,0 +1,28 @@
+:host {
+  display: block;
+  pointer-events: none;
+}
+
+.map-island {
+  pointer-events: auto;
+  border-radius: 34px;
+  max-width: 480px;
+  min-height: 56px;
+}
+
+.island-logo {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+
+  img {
+    object-fit: cover;
+  }
+}
+
+.island-text {
+  cursor: pointer;
+  min-width: 0;
+}

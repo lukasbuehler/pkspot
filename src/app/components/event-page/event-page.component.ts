@@ -292,6 +292,50 @@ export class EventPageComponent implements OnInit, OnDestroy {
         }
       });
 
+      // Push meta tags + structured data once the event has loaded.
+      effect(() => {
+        const event = this.event();
+        if (!event) return;
+
+        const canonicalPath = `/events/${event.slug ?? event.id}`;
+        const startDateText = event.start.toLocaleDateString(this.locale, {
+          dateStyle: "medium",
+        });
+        const endDateText = event.end.toLocaleDateString(this.locale, {
+          dateStyle: "medium",
+        });
+        const sameDay =
+          event.start.getFullYear() === event.end.getFullYear() &&
+          event.start.getMonth() === event.end.getMonth() &&
+          event.start.getDate() === event.end.getDate();
+
+        this.metaTagService.setEventMetaTags(
+          {
+            name: event.name,
+            image: event.bannerSrc,
+            description:
+              event.description ??
+              $localize`Event in ` +
+                event.localityString +
+                ", (" +
+                (sameDay ? startDateText : `${startDateText} - ${endDateText}`) +
+                ")",
+          },
+          canonicalPath
+        );
+
+        if (typeof document !== "undefined" && event.structuredData) {
+          if (this._structuredDataElement) {
+            this._structuredDataElement.remove();
+          }
+          const script = document.createElement("script");
+          script.type = "application/ld+json";
+          script.textContent = JSON.stringify(event.structuredData);
+          document.body.appendChild(script);
+          this._structuredDataElement = script;
+        }
+      });
+
       // Build challenge markers + listings from the event's challenge_spot_map.
       effect(() => {
         const event = this.event();
@@ -403,50 +447,6 @@ export class EventPageComponent implements OnInit, OnDestroy {
     if (!this.mapsApiService.isApiLoaded()) {
       this.mapsApiService.loadGoogleMapsApi();
     }
-
-    // Push meta tags + structured data once the event has loaded.
-    effect(() => {
-      const event = this.event();
-      if (!event) return;
-
-      const canonicalPath = `/events/${event.slug ?? event.id}`;
-      const startDateText = event.start.toLocaleDateString(this.locale, {
-        dateStyle: "medium",
-      });
-      const endDateText = event.end.toLocaleDateString(this.locale, {
-        dateStyle: "medium",
-      });
-      const sameDay =
-        event.start.getFullYear() === event.end.getFullYear() &&
-        event.start.getMonth() === event.end.getMonth() &&
-        event.start.getDate() === event.end.getDate();
-
-      this.metaTagService.setEventMetaTags(
-        {
-          name: event.name,
-          image: event.bannerSrc,
-          description:
-            event.description ??
-            $localize`Event in ` +
-              event.localityString +
-              ", (" +
-              (sameDay ? startDateText : `${startDateText} - ${endDateText}`) +
-              ")",
-        },
-        canonicalPath
-      );
-
-      if (typeof document !== "undefined" && event.structuredData) {
-        if (this._structuredDataElement) {
-          this._structuredDataElement.remove();
-        }
-        const script = document.createElement("script");
-        script.type = "application/ld+json";
-        script.textContent = JSON.stringify(event.structuredData);
-        document.body.appendChild(script);
-        this._structuredDataElement = script;
-      }
-    }, { injector: undefined as any });
   }
 
   spotClickedIndex(spotIndex: number) {
