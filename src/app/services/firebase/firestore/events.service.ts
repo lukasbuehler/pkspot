@@ -1,33 +1,104 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
+import { Event } from "../../../../db/models/Event";
 import {
-  collection,
-  doc,
-  Firestore,
-  getDoc,
-  getDocs,
-  query,
-  setDoc,
-  where,
-} from "@angular/fire/firestore";
-import { SpotSlugSchema } from "../../../../db/schemas/SpotSlugSchema";
-import { SpotId } from "../../../../db/schemas/SpotSchema";
+  EventId,
+  EventSchema,
+  EventSlugSchema,
+} from "../../../../db/schemas/EventSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
+import {
+  FirestoreAdapterService,
+  QueryFilter,
+} from "../firestore-adapter.service";
+
+type EventDocument = EventSchema & { id: string };
+type EventSlugDocument = EventSlugSchema & { id: string };
 
 @Injectable({
   providedIn: "root",
 })
-export class SlugsService extends ConsentAwareService {
-  constructor(private firestore: Firestore) {
+export class EventsService extends ConsentAwareService {
+  private _firestoreAdapter = inject(FirestoreAdapterService);
+
+  constructor() {
     super();
   }
 
-  addEvent() {}
+  /** Resolve a public slug or raw ID to a loaded Event, or null if not found. */
+  async getEventBySlugOrId(slugOrId: string): Promise<Event | null> {
+    const id = await this._resolveEventId(slugOrId);
+    if (!id) return null;
+    return this.getEventById(id as EventId);
+  }
 
-  getEventById() {}
+  async getEventById(eventId: EventId): Promise<Event | null> {
+    const doc = await this._firestoreAdapter.getDocument<EventDocument>(
+      `events/${eventId}`
+    );
+    if (!doc) return null;
+    if (doc.published === false) return null;
+    return new Event(eventId, doc as EventSchema);
+  }
 
-  getEvents(
-    sortByNext: boolean = true,
-    location?: any,
-    pageSize: number = 10
-  ) {}
+  /**
+   * Load all published events. Sorted by start date descending (newest first)
+   * unless `sortByNext` is true — in which case upcoming/live events come
+   * first (soonest first), then past events (most-recent first).
+   */
+  async getEvents(
+    options: { sortByNext?: boolean; includeUnpublished?: boolean } = {}
+  ): Promise<Event[]> {
+    const filters: QueryFilter[] = [];
+    const docs = await this._firestoreAdapter.getCollection<EventDocument>(
+      "events",
+      filters
+    );
+
+    const events = docs
+      .filter((d) => options.includeUnpublished || d.published !== false)
+      .map((d) => new Event(d.id as EventId, d as EventSchema));
+
+    if (options.sortByNext) {
+      const now = Date.now();
+      return events.sort((a, b) => {
+        const aFuture = a.end.getTime() >= now;
+        const bFuture = b.end.getTime() >= now;
+        if (aFuture && !bFuture) return -1;
+        if (!aFuture && bFuture) return 1;
+        if (aFuture) return a.start.getTime() - b.start.getTime();
+        return b.start.getTime() - a.start.getTime();
+      });
+    }
+
+    return events.sort((a, b) => b.start.getTime() - a.start.getTime());
+  }
+
+  /**
+   * Events whose map-island promo is currently active (promo_region set,
+   * promo_starts_at reached, end not passed). Used by the bounds-based
+   * map-island trigger to find candidates for the visible viewport.
+   */
+  async getPromotableEvents(now: Date = new Date()): Promise<Event[]> {
+    const all = await this.getEvents();
+    return all.filter((e) => e.isPromotable(now));
+  }
+
+  private async _resolveEventId(slugOrId: string): Promise<string | null> {
+    if (/^[a-z0-9-]+$/.test(slugOrId)) {
+      const slugDoc =
+        await this._firestoreAdapter.getDocument<EventSlugDocument>(
+          `event_slugs/${slugOrId}`
+        );
+      if (slugDoc?.event_id) {
+        return String(slugDoc.event_id);
+      }
+    }
+
+    const direct = await this._firestoreAdapter.getDocument<EventDocument>(
+      `events/${slugOrId}`
+    );
+    if (direct) return slugOrId;
+
+    return null;
+  }
 }

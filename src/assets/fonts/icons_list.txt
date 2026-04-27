@@ -163,3 +163,4 @@ mood
 adjust
 groups_2
 groups
+receipt_long
