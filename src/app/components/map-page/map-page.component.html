@@ -198,7 +198,7 @@
     @fadeInOut
     [spots]="visibleSpots"
     [highlightedSpots]="highlightedSpots"
-    [mapZoom]="spotMap ? spotMap.mapZoom : null"
+    [mapZoom]="spotMap ? spotMap.mapZoom() : null"
     [limit]="spotListLimit()"
     [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
   ></app-spot-list>
@@ -330,7 +330,7 @@
       id="amenitiesFab"
       color="accent"
       (click)="showAmenities.set(!showAmenities())"
-      [disabled]="spotMap ? spotMap.mapZoom < 16 : true"
+      [disabled]="spotMap ? spotMap.mapZoom() < 16 : true"
       i18n-matTootlip
       [matTooltip]="
         showAmenities() ? 'Hide amenity markers' : 'Show amenity markers'
@@ -344,7 +344,7 @@
     </button> -->
   </div>
 
-  @if( authService.isSignedIn && !isEditing() && spotMap.mapZoom >= 14 &&
+  @if( isSignedIn() && !isEditing() && spotMap.mapZoom() >= 14 &&
   !(responsiveService.isMobile() && (bottomSheetOpen() || bottomSheetProgress()
   > 0)) ) {
   <!-- Add / import spots speed dial-->

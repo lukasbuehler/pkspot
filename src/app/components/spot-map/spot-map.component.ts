@@ -149,7 +149,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   uneditedSpot?: Spot | LocalSpot;
 
   startZoom: number = 4;
-  mapZoom: number = this.startZoom;
+  mapZoom = signal<number>(this.startZoom);
   mapCenter?: google.maps.LatLngLiteral;
   bounds?: google.maps.LatLngBounds;
 
@@ -417,7 +417,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     });
 
     this.map.center = viewport.center;
-    this.mapZoom = viewport.zoom;
+    this.mapZoom.set(viewport.zoom);
 
     // TODO this is not sufficient if the input changes
     this.visibleMarkers.set(this.markers()); // ?????
@@ -432,7 +432,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   // Map events ///////////////////////////////////////////////////////////////
 
   zoomChanged(zoom: number) {
-    this.mapZoom = zoom;
+    this.mapZoom.set(zoom);
   }
 
   mapClick(event: google.maps.LatLngLiteral) {
@@ -505,7 +505,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       // store the new last location in the browser memory to restore it on next visit
       let newCenter: google.maps.LatLngLiteral = bounds.getCenter().toJSON();
       if (this.isInitiated && newCenter !== this.centerStart()) {
-        if (this.mapCenter !== newCenter || zoom !== this.mapZoom) {
+        if (this.mapCenter !== newCenter || zoom !== this.mapZoom()) {
           this.mapsAPIService.storeLastLocationAndZoom({
             location: newCenter,
             zoom: zoom,
@@ -652,7 +652,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   focusSpot(spot: Spot | LocalSpot) {
-    const zoom = Math.max(this.mapZoom, this.focusZoom());
+    const zoom = Math.max(this.mapZoom(), this.focusZoom());
 
     this.focusPoint(spot.location(), zoom);
   }
@@ -663,12 +663,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   ) {
     if (this.map?.googleMap) {
       this.map.googleMap.panTo(point);
-      this.mapZoom = Math.max(this.mapZoom, zoom);
+      this.mapZoom.set(Math.max(this.mapZoom(), zoom));
     } else {
       // If map is not ready yet, set the center directly
       if (this.map) {
         this.map.center = point;
-        this.mapZoom = Math.max(this.mapZoom, zoom);
+        this.mapZoom.set(Math.max(this.mapZoom(), zoom));
       }
     }
   }
