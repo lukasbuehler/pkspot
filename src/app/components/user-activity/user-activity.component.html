@@ -1,0 +1,62 @@
+<mat-card class="user-activity mat-elevation-z1">
+  <mat-card-header class="user-activity__header">
+    <mat-card-title class="mat-title-small">{{ sectionLabel() }}</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="user-activity__content">
+    @if (loadError()) {
+    <div class="user-activity__state mat-body-medium" role="status" i18n>
+      Activity could not be loaded.
+    </div>
+    } @else if (items().length === 0 && !isLoading()) {
+    <div class="user-activity__state mat-body-medium" role="status" i18n>
+      No public edits yet.
+    </div>
+    } @else {
+    <div class="user-activity__list">
+      @for (item of items(); track itemKey(item)) {
+      <article class="user-activity__item">
+        <div class="user-activity__meta">
+          <span class="mat-body-large">{{ getActionText(item.edit) }}</span>
+          <span class="mat-body-small text-muted">
+            {{ item.formattedTimestamp | date : "mediumDate" }}
+          </span>
+        </div>
+
+        <a
+          class="user-activity__spot-link"
+          [routerLink]="['/map', item.spot?.slug || item.spotId]"
+        >
+          <app-spot-preview-card
+            [spotData]="item.spot"
+            [clickable]="true"
+            [imgSize]="200"
+            [isCompact]="true"
+          ></app-spot-preview-card>
+        </a>
+
+        <app-spot-edit-summary
+          class="user-activity__summary"
+          [edit]="item.edit"
+          [compact]="true"
+        ></app-spot-edit-summary>
+      </article>
+      }
+    </div>
+    }
+
+    @if (isLoading()) {
+    <div class="user-activity__state mat-body-medium" role="status" i18n>
+      Loading activity...
+    </div>
+    }
+
+    @if (hasMore() && !isLoading()) {
+    <div class="user-activity__actions">
+      <button matButton="outlined" type="button" (click)="loadMore()" i18n>
+        Load more
+      </button>
+    </div>
+    }
+  </mat-card-content>
+</mat-card>

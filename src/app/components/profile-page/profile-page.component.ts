@@ -55,6 +55,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { NgOptimizedImage } from "@angular/common";
 import { PrivateSpotListsDialogComponent } from "../private-spot-lists-dialog/private-spot-lists-dialog.component";
 import { AnalyticsService } from "../../services/analytics.service";
+import { UserActivityComponent } from "../user-activity/user-activity.component";
 
 type ProfileSocialLink = {
   id: string;
@@ -86,6 +87,7 @@ type ProfileSocialLink = {
     SpotPreviewCardComponent,
     MatTooltipModule,
     NgOptimizedImage,
+    UserActivityComponent,
   ],
 })
 export class ProfilePageComponent implements OnInit, OnDestroy {

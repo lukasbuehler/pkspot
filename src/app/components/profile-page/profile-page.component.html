@@ -309,6 +309,13 @@
         </mat-card-content>
       </mat-card>
       }
+
+      @if (userId) {
+      <app-user-activity
+        [userId]="userId"
+        [displayName]="user.displayName || ''"
+      ></app-user-activity>
+      }
       <!-- 
       <mat-card class="profile-section mat-elevation-z1">
         <mat-card-header class="profile-section__header">

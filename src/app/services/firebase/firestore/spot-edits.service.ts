@@ -159,6 +159,41 @@ export class SpotEditsService extends ConsentAwareService {
   }
 
   /**
+   * Get a page of recent public spot edits submitted by a specific user.
+   * Check-ins are intentionally stored elsewhere and are not part of this feed.
+   */
+  async getSpotEditsPageByUserId(
+    userId: string,
+    limitCount: number = 10,
+    startAfterDoc?: unknown
+  ): Promise<{
+    edits: Array<{ edit: SpotEditSchema; spotId: string }>;
+    lastDoc: unknown;
+  }> {
+    const filters: QueryFilter[] = [
+      { fieldPath: "user.uid", opStr: "==", value: userId },
+    ];
+    const constraints: QueryConstraintOptions[] = [
+      { type: "orderBy", fieldPath: "timestamp", direction: "desc" },
+      { type: "limit", limit: limitCount },
+    ];
+
+    const result = await this._firestoreAdapter.getCollectionGroupWithMetadata<
+      SpotEditSchema & { id: string }
+    >("edits", filters, constraints, startAfterDoc);
+
+    const edits = result.data.map((item) => ({
+      edit: item,
+      spotId: this._extractSpotIdFromPath(item.path),
+    }));
+
+    return {
+      edits,
+      lastDoc: result.lastDoc,
+    };
+  }
+
+  /**
    * Listen for new spot edits since a given timestamp.
    * @param timestamp Timestamp to filter by
    */
