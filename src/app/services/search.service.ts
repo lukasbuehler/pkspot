@@ -58,7 +58,7 @@ export class SearchService {
   }
 
   /**
-   * Keep rated spots first by rating (desc). Within the unrated group, prioritize spots with media.
+   * Sort spots by rating (desc). When ratings match, prioritize spots with media.
    */
   private sortHitsByRatingThenMedia(hits: any[]): any[] {
     return hits.sort((a, b) => {
@@ -66,8 +66,16 @@ export class SearchService {
       const ratingB = this.getNumericRating(b);
 
       if (ratingA !== undefined && ratingB !== undefined) {
-        if (ratingA !== ratingB) return ratingB - ratingA;
-        return 0;
+        if (ratingA !== ratingB) {
+          return ratingB - ratingA;
+        }
+
+        const hasMediaA = this.hasSpotMedia(a);
+        const hasMediaB = this.hasSpotMedia(b);
+        if (hasMediaA === hasMediaB) {
+          return 0;
+        }
+        return hasMediaA ? -1 : 1;
       }
 
       if (ratingA !== undefined) return -1;

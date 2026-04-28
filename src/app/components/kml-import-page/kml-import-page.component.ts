@@ -31,6 +31,7 @@ import {
   KMLImportStats,
   KMLSetupInfo,
   KMLSpot,
+  applyKmlNameRegex,
 } from "../../services/kml-parser.service";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
@@ -107,6 +108,12 @@ interface VerificationSpotItem {
   localSpot: LocalSpot;
   originalMediaUrls: string[];
   selectedMediaUrls: string[];
+}
+
+interface RegexNamePreview {
+  originalName: string;
+  storedName: string | null;
+  importIndex: number | null;
 }
 
 type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
@@ -481,6 +488,21 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return this.importStats.imageCount > 0;
   }
 
+  regexNamePreviews(): RegexNamePreview[] {
+    if (!this.regexEnabled || !this.regexValue) {
+      return [];
+    }
+
+    return this.kmlParserService
+      .getParsedSpots()
+      .slice(0, 8)
+      .map((spot) => ({
+        originalName: spot.spot.name,
+        storedName: applyKmlNameRegex(spot.spot.name, this.regexValue!),
+        importIndex: spot.importIndex ?? null,
+      }));
+  }
+
   private _syncLegalControlState() {
     if (!this.legalFormGroup) {
       return;
@@ -553,7 +575,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   updateRegex(regex: MyRegex) {
-    this.regexValue = new RegExp(regex.regularExpression);
+    this.regexValue = new RegExp(
+      regex.regularExpression,
+      regex.expressionFlags ?? ""
+    );
     if (!this.kmlParserService.setupInfo) {
       console.error("setupInfo is invalid");
       return;

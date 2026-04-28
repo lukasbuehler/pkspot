@@ -72,6 +72,7 @@ import {
   resolveInitialMapViewport,
   StoredMapViewport,
 } from "./spot-map-initial-viewport";
+import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 
 @Component({
   selector: "app-spot-map",
@@ -155,7 +156,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   uneditedSpot?: Spot | LocalSpot;
 
   startZoom: number = 4;
-  mapZoom: number = this.startZoom;
+  mapZoom = signal<number>(this.startZoom);
   mapCenter?: google.maps.LatLngLiteral;
   bounds?: google.maps.LatLngBounds;
 
@@ -423,7 +424,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     });
 
     this.map.center = viewport.center;
-    this.mapZoom = viewport.zoom;
+    this.mapZoom.set(viewport.zoom);
 
     // TODO this is not sufficient if the input changes
     this.visibleMarkers.set(this.markers()); // ?????
@@ -438,7 +439,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   // Map events ///////////////////////////////////////////////////////////////
 
   zoomChanged(zoom: number) {
-    this.mapZoom = zoom;
+    this.mapZoom.set(zoom);
   }
 
   mapClick(event: google.maps.LatLngLiteral) {
@@ -514,7 +515,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       // store the new last location in the browser memory to restore it on next visit
       let newCenter: google.maps.LatLngLiteral = bounds.getCenter().toJSON();
       if (this.isInitiated && newCenter !== this.centerStart()) {
-        if (this.mapCenter !== newCenter || zoom !== this.mapZoom) {
+        if (this.mapCenter !== newCenter || zoom !== this.mapZoom()) {
           this.mapsAPIService.storeLastLocationAndZoom({
             location: newCenter,
             zoom: zoom,
@@ -661,7 +662,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   focusSpot(spot: Spot | LocalSpot) {
-    const zoom = Math.max(this.mapZoom, this.focusZoom());
+    const zoom = Math.max(this.mapZoom(), this.focusZoom());
 
     this.focusPoint(spot.location(), zoom);
   }
@@ -672,12 +673,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   ) {
     if (this.map?.googleMap) {
       this.map.googleMap.panTo(point);
-      this.mapZoom = Math.max(this.mapZoom, zoom);
+      this.mapZoom.set(Math.max(this.mapZoom(), zoom));
     } else {
       // If map is not ready yet, set the center directly
       if (this.map) {
         this.map.center = point;
-        this.mapZoom = Math.max(this.mapZoom, zoom);
+        this.mapZoom.set(Math.max(this.mapZoom(), zoom));
       }
     }
   }
@@ -787,6 +788,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       }
     }
 
+    if (spot instanceof LocalSpot && !this._hasEnoughDataForNewSpot(spot)) {
+      this.snackBar.open(
+        $localize`Add a name or some spot details before saving this new spot.`,
+        $localize`Dismiss`,
+        { duration: 6000 }
+      );
+      return;
+    }
+
     this._spotMapDataManager
       .saveSpot(spot, this.uneditedSpot)
       .then(async (spotId) => {
@@ -840,6 +850,35 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         console.error("Error saving spot:", error);
         this.snackBar.open($localize`Error saving spot`, $localize`Dismiss`);
       });
+  }
+
+  private _hasEnoughDataForNewSpot(spot: LocalSpot): boolean {
+    return (
+      this._hasCustomName(spot) ||
+      this._hasDescription(spot) ||
+      spot.userMedia().length > 0 ||
+      spot.hasBounds() ||
+      spot.type() !== SpotTypes.Other ||
+      spot.access() !== SpotAccess.Other ||
+      Boolean(spot.googlePlaceId()) ||
+      Object.values(spot.amenities() ?? {}).some(
+        (value) => value !== null && value !== undefined
+      )
+    );
+  }
+
+  private _hasCustomName(spot: LocalSpot): boolean {
+    const defaultName = $localize`Unnamed Spot`.trim().toLocaleLowerCase();
+    return Object.values(spot.names()).some((entry) => {
+      const name = entry?.text.trim();
+      return Boolean(name && name.toLocaleLowerCase() !== defaultName);
+    });
+  }
+
+  private _hasDescription(spot: LocalSpot): boolean {
+    return Object.values(spot.descriptions() ?? {}).some((entry) =>
+      Boolean(entry?.text.trim())
+    );
   }
 
   discardEdit() {

@@ -526,7 +526,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
   getSpotPreviewZoom(): number | null {
     if (this.spotMap instanceof SpotMapComponent) {
-      return this.spotMap.mapZoom;
+      return this.spotMap.mapZoom();
     }
     if (this.spotMap instanceof GoogleMap2dComponent) {
       return this.spotMap.zoom;

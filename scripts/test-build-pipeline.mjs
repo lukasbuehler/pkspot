@@ -206,6 +206,7 @@ async function main() {
     env: {
       ...runtimeEnv,
       PORT: serverPort,
+      NG_ALLOWED_HOSTS: "pkspot.app",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -307,6 +308,51 @@ async function main() {
     assert.ok(
       assetText.includes("location_on") || assetText.length > 0,
       "icons_list.txt should contain icon names"
+    );
+
+    console.log("\n==> verifying hostname validation and proxy trust");
+
+    const runCurl = (args) => {
+      return execFileSync("curl", ["-s", "-o", "/dev/null", "-w", "%{http_code}", ...args]).toString();
+    };
+
+    // 1. Verify that the configured allowed host works
+    const allowedHostStatus = runCurl(["-H", "Host: pkspot.app", `${baseUrl}/en/`]);
+    assert.equal(
+      allowedHostStatus,
+      "200",
+      "Should allow request with configured Host: pkspot.app"
+    );
+
+    // 2. Verify that localhost is still allowed by default
+    const localhostStatus = runCurl(["-H", "Host: localhost", `${baseUrl}/en/`]);
+    assert.equal(
+      localhostStatus,
+      "200",
+      "Should allow request with Host: localhost"
+    );
+
+    // 3. Verify that an unauthorized host is BLOCKED (returns 500)
+    const unauthorizedHostStatus = runCurl(["-H", "Host: unauthorized.example.com", `${baseUrl}/en/`]);
+    assert.equal(
+      unauthorizedHostStatus,
+      "500",
+      "Should block request with unauthorized Host"
+    );
+
+    // 4. Verify that proxy trust works: internal host + X-Forwarded-Host: pkspot.app
+    console.log(
+      "Verifying X-Forwarded-Host (this requires server.ts to use req.get('host'))"
+    );
+    const proxyStatus = runCurl([
+      "-H", "Host: t-2975313843---pkspot-nbklb32npa-ez.a.run.app",
+      "-H", "X-Forwarded-Host: pkspot.app",
+      `${baseUrl}/en/`
+    ]);
+    assert.equal(
+      proxyStatus,
+      "200",
+      "Should allow request with internal Host if X-Forwarded-Host is in allowed list"
     );
 
     console.log("\nBuild pipeline smoke test passed.");

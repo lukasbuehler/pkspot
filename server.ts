@@ -20,6 +20,7 @@ function getAllowedHosts(): string[] {
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
   const server = express();
+  server.set("trust proxy", 1);
   const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 
   // i18n with SSR: https://github.com/lostium/ssr-i18n-angular17
@@ -55,7 +56,7 @@ export function app(): express.Express {
       .render({
         bootstrap,
         documentFilePath: indexHtml,
-        url: `${protocol}://${headers.host}${originalUrl}`,
+        url: `${protocol}://${req.hostname}${originalUrl}`,
         publicPath: browserDistFolder,
         providers: [
           { provide: APP_BASE_HREF, useValue: langPath },

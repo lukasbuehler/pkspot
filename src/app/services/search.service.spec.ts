@@ -274,6 +274,44 @@ describe("SearchService", () => {
     });
   });
 
+  describe("searchSpotsAndPlaces", () => {
+    it("should include Google Places autocomplete results with spot results", async () => {
+      const places = [
+        {
+          place_id: "place-1",
+          description: "Bern, Switzerland",
+          types: ["locality", "political"],
+        },
+      ] as google.maps.places.AutocompletePrediction[];
+      mapsApiServiceSpy.autocompletePlaceSearch.mockResolvedValue(places);
+
+      const results = await service.searchSpotsAndPlaces("bern");
+
+      expect(mapsApiServiceSpy.autocompletePlaceSearch).toHaveBeenCalledWith(
+        "bern",
+        ["geocode"]
+      );
+      expect(results.places).toBe(places);
+      expect(results.spots).toMatchObject({ hits: [], found: 0 });
+    });
+
+    it("should keep place results when the spot search has no hits", async () => {
+      const places = [
+        {
+          place_id: "place-zurich",
+          description: "Zurich, Switzerland",
+          types: ["locality", "political"],
+        },
+      ] as google.maps.places.AutocompletePrediction[];
+      mapsApiServiceSpy.autocompletePlaceSearch.mockResolvedValue(places);
+
+      const results = await service.searchSpotsAndPlaces("zurich");
+
+      expect(results.places).toEqual(places);
+      expect((results.spots as any).hits).toEqual([]);
+    });
+  });
+
   describe("SPOT_FILTER_CONFIGS", () => {
     it("should have Valid filter configurations", () => {
       expect(SPOT_FILTER_CONFIGS.size).toBeGreaterThan(0);
@@ -295,25 +333,38 @@ describe("SearchService", () => {
       expect(service.spotSearchParameters.sort_by).toBe("rating:desc");
     });
 
-    it("should prioritize media within unrated hits while keeping rated hits first", () => {
+    it("should prioritize media within same-rating hits while keeping higher ratings first", () => {
       const hits = [
         {
           document: {
-            id: "unrated-no-media",
-            rating: 0,
+            id: "same-rating-no-media",
+            rating: 4.2,
           },
         },
         {
           document: {
-            id: "rated",
+            id: "higher-rated-no-media",
+            rating: 4.8,
+          },
+        },
+        {
+          document: {
+            id: "same-rating-with-media",
             rating: 4.2,
+            thumbnail_small_url: "https://example.com/thumb.jpg",
           },
         },
         {
           document: {
             id: "unrated-with-media",
             rating: 0,
-            thumbnail_small_url: "https://example.com/thumb.jpg",
+            thumbnail_medium_url: "https://example.com/unrated-thumb.jpg",
+          },
+        },
+        {
+          document: {
+            id: "unrated-no-media",
+            rating: 0,
           },
         },
       ];
@@ -322,7 +373,9 @@ describe("SearchService", () => {
       const orderedIds = ordered.map((hit: any) => hit.document.id);
 
       expect(orderedIds).toEqual([
-        "rated",
+        "higher-rated-no-media",
+        "same-rating-with-media",
+        "same-rating-no-media",
         "unrated-with-media",
         "unrated-no-media",
       ]);

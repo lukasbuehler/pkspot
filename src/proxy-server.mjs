@@ -74,6 +74,7 @@ function run() {
   const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
   server.use(compression());
+  server.set("trust proxy", 1); // Express trusts exactly 1 proxy hop (For Firebase App Hosting)
   server.use((req, _res, next) => {
     applyTrustedClientRegionHeader(req.headers);
     next();
@@ -149,10 +150,10 @@ function run() {
       const assetPath = path.join(
         __dirname,
         `../browser/${lang}`,
-        req.path.substring(lang.length + 1)
+        req.path.substring(lang.length + 1),
       );
       console.log(
-        `Serving language-specific asset: ${req.path} from ${assetPath}`
+        `Serving language-specific asset: ${req.path} from ${assetPath}`,
       );
 
       // Override global cache header for static assets
@@ -162,7 +163,7 @@ function run() {
         if (err) {
           console.error(
             `Failed to serve language-specific asset ${req.path}:`,
-            err.message
+            err.message,
           );
           res.status(404).send(`Asset not found: ${req.path}`);
         }
@@ -177,7 +178,7 @@ function run() {
     const wellKnownPath = path.join(
       __dirname,
       "../browser/en/assets",
-      req.path
+      req.path,
     );
     console.log(`Serving .well-known file: ${req.path} from ${wellKnownPath}`);
 
@@ -193,7 +194,7 @@ function run() {
       if (err) {
         console.error(
           `Failed to serve .well-known file ${req.path}:`,
-          err.message
+          err.message,
         );
         res.status(404).send(`File not found: ${req.path}`);
       }
@@ -231,7 +232,7 @@ function run() {
   server.get("/sitemap.xml", (req, res) => {
     res.redirect(
       301,
-      "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml"
+      "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml",
     );
   });
 
@@ -239,7 +240,7 @@ function run() {
   server.get("**/android-early-access", (req, res) => {
     res.redirect(
       301,
-      "https://play.google.com/store/apps/details?id=com.pkspot.app"
+      "https://play.google.com/store/apps/details?id=com.pkspot.app",
     );
   });
 

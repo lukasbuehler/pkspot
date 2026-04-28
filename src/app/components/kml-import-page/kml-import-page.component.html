@@ -387,6 +387,26 @@
                     Use Regex to extract spot names from the KML description or
                     name field.
                   </p>
+                  @if(regexNamePreviews(); as previews) { @if(previews.length
+                  > 0) {
+                  <div class="regex-preview mt-3">
+                    <div class="mat-title-small mb-2">Name preview</div>
+                    @for(preview of previews; track preview.importIndex ??
+                    preview.originalName) {
+                    <div class="regex-preview-row">
+                      <span class="regex-preview-name">{{
+                        preview.originalName
+                      }}</span>
+                      <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+                      <span
+                        class="regex-preview-name"
+                        [class.regex-preview-empty]="!preview.storedName"
+                        >{{ preview.storedName || "Skipped" }}</span
+                      >
+                    </div>
+                    }
+                  </div>
+                  } }
                 </div>
                 } @else {
                 <p class="mat-body-small mt-2 mb-0">
