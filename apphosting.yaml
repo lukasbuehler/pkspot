@@ -11,15 +11,21 @@ env:
   #   secret: googleAPIKey
   #   availability:
   #     - BUILD
-      
+
   - variable: HOST
     value: 0.0.0.0
     availability:
       - BUILD
       - RUNTIME
-      
+
   - variable: PORT
     value: 8080
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NG_ALLOWED_HOSTS
+    value: "pkspot.app"
     availability:
       - BUILD
       - RUNTIME
