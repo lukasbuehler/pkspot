@@ -27,14 +27,16 @@
             style="color: inherit"
           >
             <mat-card class="overflow-hidden h-100">
-              <div mat-card-image style="position: relative; height: 200px">
-                <img
-                  [ngSrc]="event.bannerSrc"
-                  fill
-                  class="object-fit-cover"
-                  [alt]="event.name"
-                />
-              </div>
+              @if (event.bannerSrc) {
+                <div mat-card-image style="position: relative; height: 200px">
+                  <img
+                    [ngSrc]="event.bannerSrc"
+                    fill
+                    class="object-fit-cover"
+                    [alt]="event.name"
+                  />
+                </div>
+              }
               <mat-card-header>
                 <mat-card-title>{{ event.name }}</mat-card-title>
                 <mat-card-subtitle>

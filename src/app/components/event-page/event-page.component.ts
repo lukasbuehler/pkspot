@@ -312,7 +312,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
         this.metaTagService.setEventMetaTags(
           {
             name: event.name,
-            image: event.bannerSrc,
+            image: event.bannerSrc ?? "",
             description:
               event.description ??
               $localize`Event in ` +
@@ -631,12 +631,14 @@ function buildInlineSpot(
   );
 }
 
-function toPolygonSchema(rings: { lat: number; lng: number }[][]): PolygonSchema {
+function toPolygonSchema(
+  rings: Array<{ points: Array<{ lat: number; lng: number }> }>
+): PolygonSchema {
   const paths = new google.maps.MVCArray<google.maps.MVCArray<google.maps.LatLng>>(
     rings.map(
       (ring) =>
         new google.maps.MVCArray<google.maps.LatLng>(
-          ring.map((p) => new google.maps.LatLng(p.lat, p.lng))
+          ring.points.map((p) => new google.maps.LatLng(p.lat, p.lng))
         )
     )
   );

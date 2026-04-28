@@ -994,6 +994,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     const shortUserDisplayName = this.shortUserDisplayName();
     const userPhoto = this.userPhoto();
     const currentNavUrl = this.currentNavUrl();
+    const isCompact = this.responsive.viewMode() !== "desktop";
+
     const buttons: NavbarButtonConfig = [
       {
         name: $localize`:Map navbar button label|A very short label for the navbar map label@@map_label:Map`,
@@ -1008,35 +1010,45 @@ export class AppComponent implements OnInit, AfterViewInit {
         icon: "vital_signs",
       });
     }
-    buttons.push(
-      {
+
+    buttons.push({
+      name: $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`,
+      link: "/events",
+      icon: "event",
+    });
+
+    // Drop "About" on tight viewports so the bottom toolbar fits 4 items
+    // (map, activity, events, profile/account).
+    if (!isCompact) {
+      buttons.push({
         name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
         link: "/about",
         icon: "info",
-      },
-      {
-        spacerBefore: true,
-        name: signedIn
-          ? shortUserDisplayName || $localize`Profile`
-          : $localize`:@@login.nav_label:Account`,
-        ...(signedIn
-          ? {
-              link: "/profile",
-              icon: "person",
-              image: userPhoto || "",
-              active:
-                currentNavUrl.startsWith("/profile") ||
-                currentNavUrl.startsWith("/u/"),
-            }
-          : {
-              function: () => this.navigateToAccount(),
-              icon: "manage_accounts",
-              active:
-                currentNavUrl.startsWith("/account") ||
-                currentNavUrl.startsWith("/sign-in"),
-            }),
-      }
-    );
+      });
+    }
+
+    buttons.push({
+      spacerBefore: true,
+      name: signedIn
+        ? shortUserDisplayName || $localize`Profile`
+        : $localize`:@@login.nav_label:Account`,
+      ...(signedIn
+        ? {
+            link: "/profile",
+            icon: "person",
+            image: userPhoto || "",
+            active:
+              currentNavUrl.startsWith("/profile") ||
+              currentNavUrl.startsWith("/u/"),
+          }
+        : {
+            function: () => this.navigateToAccount(),
+            icon: "manage_accounts",
+            active:
+              currentNavUrl.startsWith("/account") ||
+              currentNavUrl.startsWith("/sign-in"),
+          }),
+    });
 
     return buttons;
   });

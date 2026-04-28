@@ -70,8 +70,12 @@ export interface EventSchema {
   /** Preferred slug — canonical URL fragment under /events/. */
   slug?: string;
 
-  /** Banner image for event-page header and calendar card. */
-  banner_src: string;
+  /**
+   * Banner image for event-page header and calendar card. Optional —
+   * free-tier user-created events won't have one. Components should fall
+   * back gracefully when missing.
+   */
+  banner_src?: string;
   /** Optional event-specific logo (distinct from sponsor logo). */
   logo_src?: string;
 
@@ -117,10 +121,12 @@ export interface EventSchema {
 
   /**
    * Optional polygon dimming overlay drawn outside the event area. Each
-   * inner array is one ring; the first ring is typically the world outline
-   * and subsequent rings are the holes (event areas) cut out.
+   * entry is one ring (the first ring is typically the world outline and
+   * subsequent rings are holes cut out for the event area).
+   *
+   * Wrapped in `{ points: [...] }` because Firestore disallows nested arrays.
    */
-  area_polygon?: { lat: number; lng: number }[][];
+  area_polygon?: Array<{ points: Array<{ lat: number; lng: number }> }>;
 
   /**
    * Region that surfaces the event in the map-island. If absent, the event

@@ -22,7 +22,7 @@ export class Event {
   readonly name: string;
   readonly description?: string;
 
-  readonly bannerSrc: string;
+  readonly bannerSrc?: string;
   readonly logoSrc?: string;
 
   readonly venueString: string;
@@ -39,7 +39,7 @@ export class Event {
 
   readonly bounds: EventBoundsSchema;
   readonly focusZoom?: number;
-  readonly areaPolygon?: { lat: number; lng: number }[][];
+  readonly areaPolygon?: Array<{ points: Array<{ lat: number; lng: number }> }>;
   readonly promoRegion?: EventPromoRegionSchema;
 
   readonly sponsor?: EventSponsorSchema;
