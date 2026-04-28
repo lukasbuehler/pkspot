@@ -22,6 +22,7 @@ import {
   signal,
   Injector,
   ChangeDetectionStrategy,
+  untracked,
 } from "@angular/core";
 import {
   LocalSpot,
@@ -248,30 +249,40 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const spot = this.selectedSpot();
       if (spot) {
-        this.focusSpot(spot);
-
-        // Create a key for the current spot
-        const currentSpotKey =
-          "id" in spot
-            ? (spot.id as string)
-            : `local-${spot.location().lat}-${spot.location().lng}`;
-
-        // AGGRESSIVE POLYGON RESET: If spot changed and we're editing, restart the editing mode
-        if (previousSpotKey && previousSpotKey !== currentSpotKey && this.map) {
-          if (this.isEditing()) {
-            // Stop editing completely to destroy the polygon
-            this.isEditing.set(false);
-            this.cd.detectChanges();
-
-            // Wait a moment, then restart editing
-            setTimeout(() => {
-              this.isEditing.set(true);
-              this.cd.detectChanges();
-            }, 150);
+        untracked(() => {
+          if (spot instanceof Spot) {
+            this._spotMapDataManager.addLoadedSpot(spot);
           }
-        }
 
-        previousSpotKey = currentSpotKey;
+          this.focusSpot(spot);
+
+          // Create a key for the current spot
+          const currentSpotKey =
+            "id" in spot
+              ? (spot.id as string)
+              : `local-${spot.location().lat}-${spot.location().lng}`;
+
+          // AGGRESSIVE POLYGON RESET: If spot changed and we're editing, restart the editing mode
+          if (
+            previousSpotKey &&
+            previousSpotKey !== currentSpotKey &&
+            this.map
+          ) {
+            if (this.isEditing()) {
+              // Stop editing completely to destroy the polygon
+              this.isEditing.set(false);
+              this.cd.detectChanges();
+
+              // Wait a moment, then restart editing
+              setTimeout(() => {
+                this.isEditing.set(true);
+                this.cd.detectChanges();
+              }, 150);
+            }
+          }
+
+          previousSpotKey = currentSpotKey;
+        });
       } else {
         previousSpotKey = null;
       }

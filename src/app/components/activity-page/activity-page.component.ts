@@ -31,6 +31,8 @@ interface FeedItem {
   formattedTimestamp: Date;
 }
 
+const ACTIVITY_PAGE_SIZE = 25;
+
 @Component({
   selector: "app-activity-page",
   imports: [
@@ -90,7 +92,8 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   async initialLoad() {
     this.isLoading$.next(true);
     try {
-      const result = await this._spotEditsService.getSpotEditsPage(10);
+      const result =
+        await this._spotEditsService.getSpotEditsPage(ACTIVITY_PAGE_SIZE);
       this._lastDoc = result.lastDoc;
       this.hasMore$.next(!!result.lastDoc);
 
@@ -101,7 +104,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
       // Use the timestamp of the first item (newest) as the cutoff
       // If no items, use current time
       const latestTimestamp =
-        items.length > 0 ? items[0].edit.timestamp : Timestamp.now();
+        items.length > 0 ? this._getTimestampMs(items[0].edit) : Date.now();
       this._startRealtimeListener(latestTimestamp);
     } catch (error) {
       console.error("Error loading activity feed:", error);
@@ -116,7 +119,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     this.isLoading$.next(true);
     try {
       const result = await this._spotEditsService.getSpotEditsPage(
-        10,
+        ACTIVITY_PAGE_SIZE,
         this._lastDoc
       );
       this._lastDoc = result.lastDoc;
@@ -148,7 +151,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  private _startRealtimeListener(latestTimestamp: Timestamp) {
+  private _startRealtimeListener(latestTimestamp: number) {
     this._realtimeSubscription = this._spotEditsService
       .getNewSpotEditsSince(latestTimestamp)
       .pipe(

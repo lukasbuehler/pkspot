@@ -47,11 +47,15 @@ function makeInjector(): Injector {
   } as Injector;
 }
 
-function makeSpot(id: string, type: SpotTypes): Spot {
+function makeSpot(
+  id: string,
+  type: SpotTypes,
+  location: google.maps.LatLngLiteral = { lat: 0, lng: 0 }
+): Spot {
   const data = {
     name: { en: "Spot " + id },
-    location: new GeoPoint(0, 0),
-    location_raw: { lat: 0, lng: 0 },
+    location: new GeoPoint(location.lat, location.lng),
+    location_raw: location,
     type,
     amenities: {},
     media: [],
@@ -111,5 +115,30 @@ describe("SpotMapDataManager filters", () => {
 
     expect(manager.visibleSpots()).toEqual([parkourSpot, regularSpot]);
     expect(manager.visibleHighlightedSpots()).toEqual([manualPreview]);
+  });
+
+  it("adds a selected spot with missing tile coordinates to the z16 cache", () => {
+    const spot = makeSpot("missing-tile", SpotTypes.PkPark, {
+      lat: 47.38973830840186,
+      lng: 8.51731398695088,
+    });
+    const manager = new SpotMapDataManager("en", makeInjector());
+
+    manager.addLoadedSpot(spot);
+
+    expect(spot.tileCoordinates?.z16).toEqual({ x: 34318, y: 22946 });
+
+    (
+      manager as unknown as {
+        _showCachedSpotsAndMarkersForTiles: (tiles: TilesObject) => void;
+      }
+    )._showCachedSpotsAndMarkersForTiles({
+      zoom: 16,
+      tiles: [{ x: 34318, y: 22946 }],
+      sw: { x: 34318, y: 22946 },
+      ne: { x: 34318, y: 22946 },
+    });
+
+    expect(manager.visibleSpots()).toEqual([spot]);
   });
 });

@@ -136,7 +136,7 @@ export class SpotEditsService extends ConsentAwareService {
     lastDoc: any;
   }> {
     const constraints: QueryConstraintOptions[] = [
-      { type: "orderBy", fieldPath: "timestamp", direction: "desc" },
+      { type: "orderBy", fieldPath: "timestamp_raw_ms", direction: "desc" },
       { type: "limit", limit: limitCount },
     ];
 
@@ -174,7 +174,7 @@ export class SpotEditsService extends ConsentAwareService {
       { fieldPath: "user.uid", opStr: "==", value: userId },
     ];
     const constraints: QueryConstraintOptions[] = [
-      { type: "orderBy", fieldPath: "timestamp", direction: "desc" },
+      { type: "orderBy", fieldPath: "timestamp_raw_ms", direction: "desc" },
       { type: "limit", limit: limitCount },
     ];
 
@@ -195,17 +195,17 @@ export class SpotEditsService extends ConsentAwareService {
 
   /**
    * Listen for new spot edits since a given timestamp.
-   * @param timestamp Timestamp to filter by
+   * @param timestampRawMs Numeric timestamp to filter by
    */
   getNewSpotEditsSince(
-    timestamp: Timestamp
+    timestampRawMs: number
   ): Observable<Array<{ edit: SpotEditSchema; spotId: string }>> {
     const constraints: QueryConstraintOptions[] = [
-      { type: "orderBy", fieldPath: "timestamp", direction: "desc" },
+      { type: "orderBy", fieldPath: "timestamp_raw_ms", direction: "desc" },
     ];
 
-    const filters: any[] = [
-      { fieldPath: "timestamp", opStr: ">", value: timestamp },
+    const filters: QueryFilter[] = [
+      { fieldPath: "timestamp_raw_ms", opStr: ">", value: timestampRawMs },
     ];
 
     return this._firestoreAdapter
@@ -248,7 +248,7 @@ export class SpotEditsService extends ConsentAwareService {
     console.debug(`Getting ${limitCount} most recent spot edits`);
 
     const constraints: QueryConstraintOptions[] = [
-      { type: "orderBy", fieldPath: "timestamp", direction: "desc" },
+      { type: "orderBy", fieldPath: "timestamp_raw_ms", direction: "desc" },
       { type: "limit", limit: limitCount },
     ];
 

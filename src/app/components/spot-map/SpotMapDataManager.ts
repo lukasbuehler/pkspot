@@ -204,6 +204,15 @@ export class SpotMapDataManager {
   }
 
   /**
+   * Seed a full spot document into the close-zoom cache.
+   * This keeps directly selected spots renderable even when older documents are
+   * missing persisted tile coordinates; _addLoadedSpots computes them locally.
+   */
+  addLoadedSpot(spot: Spot): void {
+    this._addLoadedSpots([spot]);
+  }
+
+  /**
    * Manually set the highlighted spots, for example from a search result.
    * These spots persist across viewport changes when a filter mode is active.
    * Uses caching to maintain stable object references and prevent flickering.

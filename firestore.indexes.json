@@ -41,6 +41,20 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "edits",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "user.uid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp_raw_ms",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -59,6 +73,24 @@
         {
           "queryScope": "COLLECTION_GROUP",
           "arrayConfig": "CONTAINS"
+        },
+        {
+          "queryScope": "COLLECTION",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "edits",
+      "fieldPath": "timestamp_raw_ms",
+      "indexes": [
+        {
+          "queryScope": "COLLECTION_GROUP",
+          "order": "ASCENDING"
+        },
+        {
+          "queryScope": "COLLECTION_GROUP",
+          "order": "DESCENDING"
         },
         {
           "queryScope": "COLLECTION",

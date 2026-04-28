@@ -73,7 +73,7 @@ describe("SpotEditsService", () => {
       "edits",
       [{ fieldPath: "user.uid", opStr: "==", value: "user-1" }],
       [
-        { type: "orderBy", fieldPath: "timestamp", direction: "desc" },
+        { type: "orderBy", fieldPath: "timestamp_raw_ms", direction: "desc" },
         { type: "limit", limit: 5 },
       ],
       cursor
