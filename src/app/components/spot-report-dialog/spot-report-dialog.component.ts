@@ -1,4 +1,4 @@
-import { Component, Inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Inject } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import {
   MAT_DIALOG_DATA,
@@ -32,6 +32,7 @@ import { SpotReportsService } from "../../services/firebase/firestore/spot-repor
   ],
   templateUrl: "./spot-report-dialog.component.html",
   styleUrl: "./spot-report-dialog.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotReportDialogComponent {
   constructor(

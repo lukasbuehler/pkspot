@@ -96,6 +96,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   private _router = inject(Router);
 
   private _isDestroyed = false;
+  private readonly duplicateSpotCreateRadiusMeters = 5;
 
   selectedSpot = model<Spot | LocalSpot | null>(null); // input and output signal
   selectedSpotChallenges = model<SpotChallengePreview[]>([]);
@@ -713,6 +714,21 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     if (!center_coordinates) {
       console.error("Could not get center coordinates of the map");
+      return;
+    }
+
+    const nearbySpot = this._spotMapDataManager.findLoadedSpotWithinMeters(
+      center_coordinates,
+      this.duplicateSpotCreateRadiusMeters
+    );
+
+    if (nearbySpot) {
+      this.selectedSpot.set(nearbySpot.spot);
+      this.snackBar.open(
+        $localize`There is already a spot at this location.`,
+        $localize`Dismiss`,
+        { duration: 5000 }
+      );
       return;
     }
 

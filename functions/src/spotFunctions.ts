@@ -31,6 +31,9 @@ const RUN_BACKFILL_LANDING_DOC =
   `${MAINTENANCE_COLLECTION}/run-backfill-landing`;
 const RUN_AUDIT_RESERVED_SLUGS_DOC =
   `${MAINTENANCE_COLLECTION}/run-audit-reserved-slugs`;
+const RUN_DETECT_DUPLICATE_SPOTS_DOC =
+  `${MAINTENANCE_COLLECTION}/run-detect-duplicate-spots`;
+const DUPLICATE_SPOT_RADIUS_METERS = 5;
 const isSpotRuntimeDoc = (docId: string): boolean =>
   docId !== "typesense" && !docId.startsWith("run-");
 
@@ -107,6 +110,133 @@ const _areValuesEqual = (left: unknown, right: unknown): boolean => {
   return (
     JSON.stringify(_normalizeComparableValue(left)) ===
     JSON.stringify(_normalizeComparableValue(right))
+  );
+};
+
+const _toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
+
+const _getDistanceMeters = (
+  from: { lat: number; lng: number },
+  to: { lat: number; lng: number }
+): number => {
+  const earthRadiusMeters = 6371000;
+  const dLat = _toRadians(to.lat - from.lat);
+  const dLng = _toRadians(to.lng - from.lng);
+  const fromLat = _toRadians(from.lat);
+  const toLat = _toRadians(to.lat);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(fromLat) *
+      Math.cos(toLat) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+
+  return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const _getLocationLiteral = (
+  spotData: Partial<SpotSchema>
+): { lat: number; lng: number } | null => {
+  if (isGeoPointValue(spotData.location)) {
+    return {
+      lat: spotData.location.latitude,
+      lng: spotData.location.longitude,
+    };
+  }
+
+  if (
+    spotData.location_raw &&
+    Number.isFinite(spotData.location_raw.lat) &&
+    Number.isFinite(spotData.location_raw.lng)
+  ) {
+    return {
+      lat: spotData.location_raw.lat,
+      lng: spotData.location_raw.lng,
+    };
+  }
+
+  return null;
+};
+
+const _getSpotNameForDuplicateFlag = (
+  spotData: Partial<SpotSchema>
+): string | undefined => {
+  const name = spotData.name;
+  if (!name) return undefined;
+
+  const firstName = Object.values(name)[0];
+  if (typeof firstName === "string") return firstName;
+  if (firstName && typeof firstName === "object" && "text" in firstName) {
+    const text = (firstName as { text?: unknown }).text;
+    return typeof text === "string" ? text : undefined;
+  }
+
+  return undefined;
+};
+
+const _makeDuplicateCheck = (
+  candidates: {
+    spot_id: string;
+    distance_m: number;
+    name?: string;
+  }[]
+): NonNullable<SpotSchema["duplicate_check"]> => ({
+  status: candidates.length > 0 ? "possible_duplicate" : "clear",
+  radius_m: DUPLICATE_SPOT_RADIUS_METERS,
+  checked_at: admin.firestore.Timestamp.now(),
+  ...(candidates.length > 0 ? { candidates } : {}),
+});
+
+const _findNearbyDuplicateCandidates = async (
+  spotId: string,
+  spotData: SpotSchema
+): Promise<NonNullable<SpotSchema["duplicate_check"]>> => {
+  const location = _getLocationLiteral(spotData);
+  const z16Tile = spotData.tile_coordinates?.z16;
+
+  if (!location || !z16Tile) {
+    return _makeDuplicateCheck([]);
+  }
+
+  const candidateDocs = await Promise.all(
+    [-1, 0, 1].flatMap((xOffset) =>
+      [-1, 0, 1].map((yOffset) =>
+        admin
+          .firestore()
+          .collection("spots")
+          .where("tile_coordinates.z16.x", "==", z16Tile.x + xOffset)
+          .where("tile_coordinates.z16.y", "==", z16Tile.y + yOffset)
+          .get()
+      )
+    )
+  );
+
+  const candidates = new Map<
+    string,
+    { spot_id: string; distance_m: number; name?: string }
+  >();
+
+  candidateDocs.flatMap((snapshot) => snapshot.docs).forEach((doc) => {
+    if (doc.id === spotId || !isSpotRuntimeDoc(doc.id)) return;
+
+    const candidateData = doc.data() as SpotSchema;
+    const candidateLocation = _getLocationLiteral(candidateData);
+    if (!candidateLocation) return;
+
+    const distanceMeters = _getDistanceMeters(location, candidateLocation);
+    if (distanceMeters > DUPLICATE_SPOT_RADIUS_METERS) return;
+
+    candidates.set(doc.id, {
+      spot_id: doc.id,
+      distance_m: Math.round(distanceMeters * 10) / 10,
+      name: _getSpotNameForDuplicateFlag(candidateData),
+    });
+  });
+
+  return _makeDuplicateCheck(
+    Array.from(candidates.values()).sort(
+      (left, right) => left.distance_m - right.distance_m
+    )
   );
 };
 
@@ -323,6 +453,8 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
 
     const locationChanged = beforeLoc !== afterLoc;
     const addressMissingOrIncomplete = !_hasUsableAddress(afterData.address);
+    const shouldCheckDuplicates =
+      Boolean(afterLoc) && (locationChanged || !afterData.duplicate_check);
 
     if ((locationChanged && afterLoc) || (addressMissingOrIncomplete && afterLoc)) {
       let location: GeoPoint;
@@ -370,6 +502,16 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
       ..._addTypesenseFields(mergedSpotData),
     };
 
+    if (shouldCheckDuplicates) {
+      spotDataToUpdate.duplicate_check = await _findNearbyDuplicateCandidates(
+        String(event.params.spotId),
+        {
+          ...mergedSpotData,
+          ...spotDataToUpdate,
+        } as SpotSchema
+      );
+    }
+
     const changedFields = _getChangedFields(afterData, spotDataToUpdate);
 
     if (Object.keys(changedFields).length > 0) {
@@ -401,6 +543,53 @@ export const updateAllSpotsWithTypesenseFields = onDocumentCreated(
 
     // delete the run document
     return event.data?.ref.delete();
+  }
+);
+
+export const detectDuplicateSpots = onDocumentCreated(
+  {
+    document: RUN_DETECT_DUPLICATE_SPOTS_DOC,
+    timeoutSeconds: 540,
+    memory: "1GiB",
+  },
+  async () => {
+    const spots = await admin.firestore().collection("spots").get();
+    let batch = admin.firestore().batch();
+    let batchSize = 0;
+    let checkedCount = 0;
+    let flaggedCount = 0;
+
+    for (const spot of spots.docs) {
+      if (!isSpotRuntimeDoc(spot.id)) {
+        continue;
+      }
+
+      const duplicateCheck = await _findNearbyDuplicateCandidates(
+        spot.id,
+        spot.data() as SpotSchema
+      );
+
+      batch.update(spot.ref, { duplicate_check: duplicateCheck });
+      batchSize += 1;
+      checkedCount += 1;
+      if (duplicateCheck.status === "possible_duplicate") {
+        flaggedCount += 1;
+      }
+
+      if (batchSize >= 450) {
+        await batch.commit();
+        batch = admin.firestore().batch();
+        batchSize = 0;
+      }
+    }
+
+    if (batchSize > 0) {
+      await batch.commit();
+    }
+
+    console.log(
+      `Duplicate spot scan completed. Checked ${checkedCount}, flagged ${flaggedCount}.`
+    );
   }
 );
 
