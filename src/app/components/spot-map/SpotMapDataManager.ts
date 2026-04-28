@@ -16,7 +16,7 @@ import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotClusterService } from "../../services/spot-cluster.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
-import { LocaleCode } from "../../../db/models/Interfaces";
+import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { OsmDataService } from "../../services/osm-data.service";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { createUserReference } from "../../../scripts/Helpers";
@@ -106,6 +106,44 @@ export class SpotMapDataManager {
 
   private _yieldToMain() {
     return new Promise((resolve) => setTimeout(resolve, 0));
+  }
+
+  private _hasUserProvidedImage(spot: Spot): boolean {
+    return spot
+      .userMedia()
+      .some((media) => media.type === MediaType.Image && !media.isReported);
+  }
+
+  private _sortByRatingThenImage(a: Spot, b: Spot): number {
+    const ratingDifference =
+      (b.rating ?? this.defaultRating) - (a.rating ?? this.defaultRating);
+    if (ratingDifference !== 0) {
+      return ratingDifference;
+    }
+
+    const aHasImage = this._hasUserProvidedImage(a);
+    const bHasImage = this._hasUserProvidedImage(b);
+    if (aHasImage === bHasImage) {
+      return 0;
+    }
+    return aHasImage ? -1 : 1;
+  }
+
+  private _sortPreviewsByRatingThenImage(
+    a: SpotPreviewData,
+    b: SpotPreviewData
+  ): number {
+    const ratingDifference = (b.rating ?? 0) - (a.rating ?? 0);
+    if (ratingDifference !== 0) {
+      return ratingDifference;
+    }
+
+    const aHasImage = !!a.imageSrc;
+    const bHasImage = !!b.imageSrc;
+    if (aHasImage === bHasImage) {
+      return 0;
+    }
+    return aHasImage ? -1 : 1;
   }
 
   constructor(
@@ -695,25 +733,7 @@ export class SpotMapDataManager {
       }
     });
 
-    // sort the spots
-    spots.sort((a, b) => {
-      // sort rating in descending order
-      if (
-        (b.rating ?? this.defaultRating) !== (a.rating ?? this.defaultRating)
-      ) {
-        return (
-          (b.rating ?? this.defaultRating) - (a.rating ?? this.defaultRating)
-        );
-      }
-      // if same rating, spots with an image go first
-      if (a.hasMedia() && !b.hasMedia()) {
-        return -1;
-      }
-      if (!a.hasMedia() && b.hasMedia()) {
-        return 1;
-      }
-      return 0;
-    });
+    spots.sort((a, b) => this._sortByRatingThenImage(a, b));
 
     // Extract highlighted spots (rated or iconic) at zoom 16+.
     // Active filters use manually supplied search results for pins/list, while
@@ -863,26 +883,9 @@ export class SpotMapDataManager {
       return true;
     }
 
-    // sort the spots by rating, and if they have media
+    // Sort by rating first. If spots have the same rating, user images win.
     const sortStart = Date.now();
-    spots.sort((a, b) => {
-      // sort rating in descending order
-      if (
-        (b.rating ?? this.defaultRating) !== (a.rating ?? this.defaultRating)
-      ) {
-        return (
-          (b.rating ?? this.defaultRating) - (a.rating ?? this.defaultRating)
-        );
-      }
-      // if same rating, spots with an image go first
-      if (a.imageSrc && !b.imageSrc) {
-        return -1;
-      }
-      if (!a.imageSrc && b.imageSrc) {
-        return 1;
-      }
-      return 0;
-    });
+    spots.sort((a, b) => this._sortPreviewsByRatingThenImage(a, b));
     // console.log(`[${Date.now()}] DataManager: sort time=${Date.now() - sortStart}ms spots=${spots.length}`);
 
     // Don't show amenity markers in cluster view (zoom < 16) for performance
@@ -1419,7 +1422,7 @@ export class SpotMapDataManager {
 
         const previews = Array.from(uniqueHits.values())
           .map((hit) => this._getOrCreateSpotPreviewFromHit(hit))
-          .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+          .sort((a, b) => this._sortPreviewsByRatingThenImage(a, b))
           .slice(0, this.HIGHLIGHT_MAX_COUNT);
 
         // Check for equality to prevent unnecessary signal updates

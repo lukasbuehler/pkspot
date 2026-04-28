@@ -57,6 +57,18 @@ export interface KMLImportStats {
   folders: KMLFolderStats[];
 }
 
+export function applyKmlNameRegex(name: string, regex: RegExp): string | null {
+  regex.lastIndex = 0;
+  const matches = regex.exec(name);
+  if (!matches) {
+    return null;
+  }
+
+  const extractedName = matches[1] ?? matches[0];
+  const trimmedName = extractedName.trim();
+  return trimmedName.length > 0 ? trimmedName : null;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -657,13 +669,13 @@ export class KmlParserService {
       // Regex check
       const regex = this.setupInfo?.regex;
       if (regex) {
-        const matches = regex.exec(kmlSpot.spot.name);
-        if (matches) {
-          kmlSpot.spot.name = matches[0];
-        } else {
+        const extractedName = applyKmlNameRegex(kmlSpot.spot.name, regex);
+        if (!extractedName) {
           spotsNotToImport.push(kmlSpot);
           return;
         }
+
+        kmlSpot.spot.name = extractedName;
       }
 
       // Duplicate Check

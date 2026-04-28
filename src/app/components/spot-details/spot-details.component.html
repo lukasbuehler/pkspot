@@ -768,6 +768,7 @@
         matButton="filled"
         color="primary"
         (click)="saveButtonClick()"
+        [disabled]="!canSaveSpot()"
         class="flex-grow-1 flex-basis-0"
         i18n="Save changes button label|Label of the button to save changes"
       >
@@ -1190,6 +1191,7 @@
         matButton="filled"
         color="primary"
         (click)="saveButtonClick()"
+        [disabled]="!canSaveSpot()"
         class="flex-grow-1 flex-basis-0"
         i18n="Save changes button label|Label of the button to save changes"
       >

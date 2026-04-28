@@ -30,9 +30,11 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import {
+  SpotAccess,
   SpotAccessDescriptions,
   SpotAccessIcons,
   SpotAccessNames,
+  SpotTypes,
   SpotTypesDescriptions,
   SpotTypesIcons,
   SpotTypesNames,
@@ -92,7 +94,6 @@ import { SpotReviewDialogComponent } from "../spot-review-dialog/spot-review-dia
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { Inject } from "@angular/core";
 import { SpotReportSchema } from "../../../db/schemas/SpotReportSchema";
-import { SpotTypes, SpotAccess } from "../../../db/schemas/SpotTypeAndAccess";
 import { MatSelect, MatSelectModule } from "@angular/material/select";
 import { MediaPreviewGridComponent } from "../media-preview-grid/media-preview-grid.component";
 import { MatInput } from "@angular/material/input";
@@ -432,7 +433,9 @@ export class SpotDetailsComponent
   @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() addBoundsClick: EventEmitter<void> = new EventEmitter<void>();
   @Output() focusClick: EventEmitter<void> = new EventEmitter<void>();
-  @Output() saveClick: EventEmitter<Spot> = new EventEmitter<Spot>();
+  @Output() saveClick: EventEmitter<Spot | LocalSpot> = new EventEmitter<
+    Spot | LocalSpot
+  >();
   @Output() discardClick: EventEmitter<void> = new EventEmitter<void>();
 
   // Media upload is handled in a dialog now
@@ -448,6 +451,14 @@ export class SpotDetailsComponent
   IndoorAmenities = IndoorAmenities;
   OutdoorAmenities = OutdoorAmenities;
   GeneralAmenities = GeneralAmenities;
+
+  canSaveSpot = computed(() => {
+    const spot = this.spot();
+    if (!spot) return false;
+    if (spot instanceof Spot) return true;
+
+    return this._hasEnoughDataForNewSpot(spot);
+  });
 
   // Environment 4-state selection derived from amenities
   public environmentSelection = computed<
@@ -1075,9 +1086,43 @@ export class SpotDetailsComponent
   }
 
   saveButtonClick() {
+    const spot = this.spot();
+    if (!spot || !this.canSaveSpot()) {
+      return;
+    }
+
     this.isSaving = true;
 
-    this.saveClick.emit(this.spot() as Spot);
+    this.saveClick.emit(spot);
+  }
+
+  private _hasEnoughDataForNewSpot(spot: LocalSpot): boolean {
+    return (
+      this._hasCustomName(spot) ||
+      this._hasDescription(spot) ||
+      spot.userMedia().length > 0 ||
+      spot.hasBounds() ||
+      spot.type() !== SpotTypes.Other ||
+      spot.access() !== SpotAccess.Other ||
+      Boolean(spot.googlePlaceId()) ||
+      Object.values(spot.amenities() ?? {}).some(
+        (value) => value !== null && value !== undefined
+      )
+    );
+  }
+
+  private _hasCustomName(spot: LocalSpot): boolean {
+    const defaultName = $localize`Unnamed Spot`.trim().toLocaleLowerCase();
+    return Object.values(spot.names()).some((entry) => {
+      const name = entry?.text.trim();
+      return Boolean(name && name.toLocaleLowerCase() !== defaultName);
+    });
+  }
+
+  private _hasDescription(spot: LocalSpot): boolean {
+    return Object.values(spot.descriptions() ?? {}).some((entry) =>
+      Boolean(entry?.text.trim())
+    );
   }
 
   discardButtonClick() {

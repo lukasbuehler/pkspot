@@ -72,6 +72,7 @@ import {
   resolveInitialMapViewport,
   StoredMapViewport,
 } from "./spot-map-initial-viewport";
+import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 
 @Component({
   selector: "app-spot-map",
@@ -778,6 +779,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       }
     }
 
+    if (spot instanceof LocalSpot && !this._hasEnoughDataForNewSpot(spot)) {
+      this.snackBar.open(
+        $localize`Add a name or some spot details before saving this new spot.`,
+        $localize`Dismiss`,
+        { duration: 6000 }
+      );
+      return;
+    }
+
     this._spotMapDataManager
       .saveSpot(spot, this.uneditedSpot)
       .then(async (spotId) => {
@@ -831,6 +841,35 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         console.error("Error saving spot:", error);
         this.snackBar.open($localize`Error saving spot`, $localize`Dismiss`);
       });
+  }
+
+  private _hasEnoughDataForNewSpot(spot: LocalSpot): boolean {
+    return (
+      this._hasCustomName(spot) ||
+      this._hasDescription(spot) ||
+      spot.userMedia().length > 0 ||
+      spot.hasBounds() ||
+      spot.type() !== SpotTypes.Other ||
+      spot.access() !== SpotAccess.Other ||
+      Boolean(spot.googlePlaceId()) ||
+      Object.values(spot.amenities() ?? {}).some(
+        (value) => value !== null && value !== undefined
+      )
+    );
+  }
+
+  private _hasCustomName(spot: LocalSpot): boolean {
+    const defaultName = $localize`Unnamed Spot`.trim().toLocaleLowerCase();
+    return Object.values(spot.names()).some((entry) => {
+      const name = entry?.text.trim();
+      return Boolean(name && name.toLocaleLowerCase() !== defaultName);
+    });
+  }
+
+  private _hasDescription(spot: LocalSpot): boolean {
+    return Object.values(spot.descriptions() ?? {}).some((entry) =>
+      Boolean(entry?.text.trim())
+    );
   }
 
   discardEdit() {

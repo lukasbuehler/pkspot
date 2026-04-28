@@ -96,6 +96,43 @@ ul.checkbox-list {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.regex-preview {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.regex-preview-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 32px;
+
+  & + & {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    opacity: 0.72;
+  }
+}
+
+.regex-preview-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.regex-preview-empty {
+  opacity: 0.68;
+  font-style: italic;
+}
+
 .verification-container {
   min-height: 560px;
 }

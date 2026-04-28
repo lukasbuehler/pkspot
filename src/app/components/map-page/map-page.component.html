@@ -412,7 +412,6 @@
     <app-search-field
       class="position-relative w-100 mat-elevation-z3 overflow-hidden"
       style="border-radius: 16px"
-      [onlySpots]="true"
       (spotSelected)="openSpotOrGooglePlace($event)"
       (placePreviewChange)="onSearchPlacePreviewChange($event)"
     ></app-search-field>
@@ -487,7 +486,6 @@
       <app-search-field
         class="w-100 mat-elevation-z3 overflow-hidden"
         style="border-radius: 16px"
-        [onlySpots]="true"
         (spotSelected)="openSpotOrGooglePlace($event)"
         (placePreviewChange)="onSearchPlacePreviewChange($event)"
       ></app-search-field>
