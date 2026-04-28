@@ -17,6 +17,7 @@ export {
   updateAllSpotsWithTypesenseFields,
   backfillAllSpotsWithLandingFields,
   auditReservedSpotSlugs,
+  detectDuplicateSpots,
 } from "./spotFunctions";
 
 export {
@@ -64,6 +65,9 @@ export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
 
 // media report functions
 export { onMediaReportCreate } from "./mediaReportFunctions";
+
+// spot report functions
+export { onSpotReportCreate } from "./spotReportFunctions";
 
 // sitemap functions
 export {

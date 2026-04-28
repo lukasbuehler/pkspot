@@ -1133,6 +1133,45 @@ export class SpotMapDataManager {
     return allSpots;
   }
 
+  findLoadedSpotWithinMeters(
+    location: google.maps.LatLngLiteral,
+    radiusMeters: number
+  ): { spot: Spot; distanceMeters: number } | null {
+    let nearest: { spot: Spot; distanceMeters: number } | null = null;
+
+    for (const spot of this._getAllLoadedSpots()) {
+      const distanceMeters = this._getDistanceMeters(location, spot.location());
+      if (
+        distanceMeters <= radiusMeters &&
+        (!nearest || distanceMeters < nearest.distanceMeters)
+      ) {
+        nearest = { spot, distanceMeters };
+      }
+    }
+
+    return nearest;
+  }
+
+  private _getDistanceMeters(
+    from: google.maps.LatLngLiteral,
+    to: google.maps.LatLngLiteral
+  ): number {
+    const earthRadiusMeters = 6371000;
+    const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+    const dLat = toRadians(to.lat - from.lat);
+    const dLng = toRadians(to.lng - from.lng);
+    const fromLat = toRadians(from.lat);
+    const toLat = toRadians(to.lat);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(fromLat) *
+        Math.cos(toLat) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+
+    return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
   private _loadSpotClustersForTiles(tilesToLoad: Set<MapTileKey>) {
     if (tilesToLoad.size === 0) return;
 

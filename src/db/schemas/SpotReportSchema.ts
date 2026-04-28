@@ -15,4 +15,5 @@ export interface SpotReportSchema {
   reason: SpotReportReason | string;
   duplicateOf?: SpotData;
   user: UserReferenceSchema;
+  createdAt?: unknown;
 }

@@ -1,4 +1,5 @@
 import { Injectable, inject } from "@angular/core";
+import { Timestamp } from "@angular/fire/firestore";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import {
@@ -70,9 +71,9 @@ export class SpotReportsService extends ConsentAwareService {
       props: { spotId: spot_id },
     });
 
-    return this._firestoreAdapter.addDocument(
-      `spots/${spot_id}/reports`,
-      report
-    );
+    return this._firestoreAdapter.addDocument(`spots/${spot_id}/reports`, {
+      ...report,
+      createdAt: report.createdAt ?? Timestamp.now(),
+    });
   }
 }

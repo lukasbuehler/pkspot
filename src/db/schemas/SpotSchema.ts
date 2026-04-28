@@ -84,6 +84,16 @@ export interface SpotSchema {
 
   isReported?: boolean;
   reportReason?: SpotReportReason;
+  duplicate_check?: {
+    status: "clear" | "possible_duplicate";
+    radius_m: number;
+    checked_at?: Timestamp | { seconds: number; nanoseconds: number };
+    candidates?: {
+      spot_id: string;
+      distance_m: number;
+      name?: string;
+    }[];
+  };
 
   // Preffered slug
   slug?: string;
