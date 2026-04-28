@@ -19,10 +19,25 @@
       </mat-chip-listbox>
 
       @if(tab() == "event") {
-      <mat-form-field class="w-100 mb-3" appearance="outline">
-        <mat-label i18n>Event</mat-label>
-        <input matInput [value]="'Swiss Jam 25'" [disabled]="true" />
-      </mat-form-field>
+        <mat-form-field class="w-100 mb-3" appearance="outline">
+          <mat-label i18n>Event</mat-label>
+          <mat-select
+            [ngModel]="eventId()"
+            (ngModelChange)="eventId.set($event)"
+            [disabled]="eventsLoading() || events().length === 0"
+          >
+            @for (event of events(); track event.id) {
+              <mat-option [value]="event.slug ?? event.id">
+                {{ event.name }}
+              </mat-option>
+            }
+          </mat-select>
+          @if (eventsLoading()) {
+            <mat-hint i18n>Loading events…</mat-hint>
+          } @else if (events().length === 0) {
+            <mat-hint i18n>No events available to embed.</mat-hint>
+          }
+        </mat-form-field>
       }
 
       <h3 class="mat-title-large" i18n>Embedding Preferences</h3>

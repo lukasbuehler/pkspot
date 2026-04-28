@@ -118,6 +118,7 @@ export interface EventSchema {
   /** Map view defaults for the event page. */
   bounds: EventBoundsSchema;
   focus_zoom?: number;
+  min_zoom?: number;
 
   /**
    * Optional polygon dimming overlay drawn outside the event area. Each
@@ -137,6 +138,14 @@ export interface EventSchema {
 
   /** Sponsor metadata; presence drives sponsor-logo badges on event spots. */
   sponsor?: EventSponsorSchema;
+
+  /**
+   * Community page keys (e.g. "country:ch", "locality:ch:zh:zurich") that
+   * this event should surface under. Used by the community landing page
+   * to show an "Events" row. Multiple entries allowed — a national event
+   * can list under both its country and its host city.
+   */
+  community_keys?: string[];
 
   /** Optional pre-built JSON-LD blob for SEO. */
   structured_data?: Record<string, any>;

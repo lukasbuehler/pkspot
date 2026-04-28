@@ -17,6 +17,13 @@
   background-color: white;
 }
 
+.wpf-background {
+  background-color: black;
+  img {
+    transform: scale(0.85);
+  }
+}
+
 // ============================================
 // Hero Section
 // ============================================
@@ -164,11 +171,15 @@ mat-icon {
   font-weight: 500;
   z-index: 100; // Ensure it's on top
   transform: translateY(-8px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 mat-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-4px);
@@ -186,7 +197,9 @@ mat-card {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   img {
     object-fit: contain;

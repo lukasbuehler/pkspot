@@ -63,6 +63,7 @@ import {
 } from "../../../db/schemas/SpotChallengeLabels";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventsService } from "../../services/firebase/firestore/events.service";
+import { CountdownComponent } from "../countdown/countdown.component";
 import {
   EventCustomMarkerSchema,
   InlineEventSpotSchema,
@@ -100,6 +101,7 @@ export class ReversePipe implements PipeTransform {
     MarkerComponent,
     ReversePipe,
     ChipSelectComponent,
+    CountdownComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -169,21 +171,42 @@ export class EventPageComponent implements OnInit, OnDestroy {
   readonly focusZoom = computed(() => this.event()?.focusZoom ?? 18);
   readonly readableStartDate = computed(() => {
     const e = this.event();
-    return e ? e.start.toLocaleDateString(this.locale, { dateStyle: "full" }) : "";
+    return e
+      ? e.start.toLocaleDateString(this.locale, { dateStyle: "full" })
+      : "";
   });
   readonly readableEndDate = computed(() => {
     const e = this.event();
-    return e ? e.end.toLocaleDateString(this.locale, { dateStyle: "full" }) : "";
+    return e
+      ? e.end.toLocaleDateString(this.locale, { dateStyle: "full" })
+      : "";
+  });
+
+  /** Live event status, recomputed against the current event's dates. */
+  readonly eventStatus = computed<"upcoming" | "live" | "past" | null>(
+    () => this.event()?.status() ?? null,
+  );
+
+  /** What the countdown is counting down to: event.start (upcoming) or event.end (live). */
+  readonly countdownTarget = computed<Date | null>(() => {
+    const e = this.event();
+    if (!e) return null;
+    const status = e.status();
+    if (status === "upcoming") return e.start;
+    if (status === "live") return e.end;
+    return null;
   });
 
   readonly customMarkers = computed<MarkerSchema[]>(() =>
-    (this.event()?.customMarkers ?? []).map(toMarkerSchema)
+    (this.event()?.customMarkers ?? []).map(toMarkerSchema),
   );
   readonly markers = signal<MarkerSchema[]>([]);
   readonly areaPolygon = signal<PolygonSchema | null>(null);
 
   readonly challenges = signal<(SpotChallenge & { number: number })[]>([]);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
+
+  readonly minZoom = computed(() => this.event()?.minZoom ?? 14);
 
   platformId = inject(PLATFORM_ID);
 
@@ -241,7 +264,10 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
       effect(() => {
         this.selectedSpot();
-        if (this.spotScrollContainer && this.spotScrollContainer.nativeElement) {
+        if (
+          this.spotScrollContainer &&
+          this.spotScrollContainer.nativeElement
+        ) {
           setTimeout(() => {
             this.spotScrollContainer?.nativeElement.scrollTo({
               top: 0,
@@ -274,7 +300,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
         }
 
         const inline = event.inlineSpots.map((s) =>
-          buildInlineSpot(event.id, s, this.locale)
+          buildInlineSpot(event.id, s, this.locale),
         );
         this.spots.set(inline);
 
@@ -282,9 +308,9 @@ export class EventPageComponent implements OnInit, OnDestroy {
           Promise.all(
             event.spotIds.map((id) =>
               firstValueFrom(
-                this._spotService.getSpotById$(id as SpotId, this.locale)
-              ).catch(() => null)
-            )
+                this._spotService.getSpotById$(id as SpotId, this.locale),
+              ).catch(() => null),
+            ),
           ).then((loaded) => {
             const validLoaded = loaded.filter((s): s is Spot => !!s);
             this.spots.update((existing) => [...existing, ...validLoaded]);
@@ -318,10 +344,12 @@ export class EventPageComponent implements OnInit, OnDestroy {
               $localize`Event in ` +
                 event.localityString +
                 ", (" +
-                (sameDay ? startDateText : `${startDateText} - ${endDateText}`) +
+                (sameDay
+                  ? startDateText
+                  : `${startDateText} - ${endDateText}`) +
                 ")",
           },
-          canonicalPath
+          canonicalPath,
         );
 
         if (typeof document !== "undefined" && event.structuredData) {
@@ -348,20 +376,22 @@ export class EventPageComponent implements OnInit, OnDestroy {
           return;
         }
 
-        const challengePromises: Promise<SpotChallenge | null>[] = Object.entries(
-          event.challengeSpotMap
-        ).map(([challengeId, spotId]) => {
-          const spot = spots.find(
-            (s) => s instanceof Spot && (s as Spot).id === (spotId as SpotId)
+        const challengePromises: Promise<SpotChallenge | null>[] =
+          Object.entries(event.challengeSpotMap).map(
+            ([challengeId, spotId]) => {
+              const spot = spots.find(
+                (s) =>
+                  s instanceof Spot && (s as Spot).id === (spotId as SpotId),
+              );
+              if (spot && spot instanceof Spot) {
+                return this._challengeService
+                  .getSpotChallenge(spot, challengeId)
+                  .then((c) => c ?? null)
+                  .catch(() => null);
+              }
+              return Promise.resolve(null);
+            },
           );
-          if (spot && spot instanceof Spot) {
-            return this._challengeService
-              .getSpotChallenge(spot, challengeId)
-              .then((c) => c ?? null)
-              .catch(() => null);
-          }
-          return Promise.resolve(null);
-        });
 
         Promise.all(challengePromises).then((challengeArrays) => {
           const allChallenges = challengeArrays as (SpotChallenge | null)[];
@@ -369,10 +399,13 @@ export class EventPageComponent implements OnInit, OnDestroy {
             allChallenges
               .map((c, idx) => [c, idx] as const)
               .filter(([c]) => c instanceof SpotChallenge)
-              .map(([c, idx]) => ({
-                ...(c as SpotChallenge),
-                number: idx + 1,
-              }) as SpotChallenge & { number: number })
+              .map(
+                ([c, idx]) =>
+                  ({
+                    ...(c as SpotChallenge),
+                    number: idx + 1,
+                  }) as SpotChallenge & { number: number },
+              ),
           );
 
           const challengeMarkers: MarkerSchema[] = [];
@@ -380,10 +413,13 @@ export class EventPageComponent implements OnInit, OnDestroy {
             if (!challenge || !challenge.location()) return;
             const matchesFilter =
               (!selectedLabels.length ||
-                (challenge.label && selectedLabels.includes(challenge.label))) &&
+                (challenge.label &&
+                  selectedLabels.includes(challenge.label))) &&
               (!selectedParticipantTypes.length ||
                 (challenge.participantType &&
-                  selectedParticipantTypes.includes(challenge.participantType)));
+                  selectedParticipantTypes.includes(
+                    challenge.participantType,
+                  )));
             challengeMarkers.push({
               name: challenge.name(),
               location: challenge.location()!,
@@ -469,9 +505,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
     const event = this.event();
     if (!event) return;
 
-    const { buildAbsoluteUrlNoLocale } = await import(
-      "../../../scripts/Helpers"
-    );
+    const { buildAbsoluteUrlNoLocale } =
+      await import("../../../scripts/Helpers");
     const link = buildAbsoluteUrlNoLocale(`/events/${event.slug ?? event.id}`);
 
     const shareData = {
@@ -505,7 +540,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
           duration: 3000,
           horizontalPosition: "center",
           verticalPosition: "top",
-        }
+        },
       );
     }
   }
@@ -606,7 +641,7 @@ function toMarkerSchema(m: EventCustomMarkerSchema): MarkerSchema {
 function buildInlineSpot(
   eventId: string,
   inline: InlineEventSpotSchema,
-  locale: LocaleCode
+  locale: LocaleCode,
 ): Spot {
   const syntheticId = `inline-${eventId}-${inline.id}` as SpotId;
   return new Spot(
@@ -627,20 +662,22 @@ function buildInlineSpot(
       is_iconic: inline.is_iconic ?? false,
       amenities: {},
     },
-    locale
+    locale,
   );
 }
 
 function toPolygonSchema(
-  rings: Array<{ points: Array<{ lat: number; lng: number }> }>
+  rings: Array<{ points: Array<{ lat: number; lng: number }> }>,
 ): PolygonSchema {
-  const paths = new google.maps.MVCArray<google.maps.MVCArray<google.maps.LatLng>>(
+  const paths = new google.maps.MVCArray<
+    google.maps.MVCArray<google.maps.LatLng>
+  >(
     rings.map(
       (ring) =>
         new google.maps.MVCArray<google.maps.LatLng>(
-          ring.points.map((p) => new google.maps.LatLng(p.lat, p.lng))
-        )
-    )
+          ring.points.map((p) => new google.maps.LatLng(p.lat, p.lng)),
+        ),
+    ),
   );
   return {
     paths,

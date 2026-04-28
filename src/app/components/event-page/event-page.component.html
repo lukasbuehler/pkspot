@@ -3,73 +3,101 @@
   [class.p-3]="!isCompactView"
   [style]="{ 'padding-top': isCompactView ? '0 !important' : '1rem' }"
 >
-  @if(showHeader() && event()) {
-  <!-- Header info -->
-  <div class="d-flex flex-row gap-3 w-100 pb-3" [class.p-3]="isCompactView">
+  @if (showHeader() && event()) {
+    <!-- Header info -->
     <div
-      class="flex-grow-1 d-flex justify-content-start align-items-center gap-5"
+      class="d-flex flex-column gap-1 w-100 pb-3"
+      [class.p-3]="isCompactView"
     >
-      <h2 class="mat-heading-large m-0">{{ name() }}</h2>
-      @if(responsive.isDesktop()) {
-      <h4 class="mat-title-medium m-0">
-        {{ venueString() }}, {{ localityString() }}
-      </h4>
-      }
-      <h5 class="mat-title-medium m-0 d-none d-xl-block">
-        {{
-          readableStartDate() !== readableEndDate()
-            ? readableStartDate() + " - " + readableEndDate()
-            : readableStartDate()
-        }}
-      </h5>
-    </div>
-    @if(!isEmbedded) {
-    <div class="d-flex flex-row gap-2">
-      @if(url()) {
-      <a [href]="url()" target="_blank" mat-icon-button class="d-flex">
-        <mat-icon>open_in_new</mat-icon>
-      </a>
-      }
-      <button mat-icon-button class="d-flex" (click)="shareEvent()">
-        <mat-icon>share</mat-icon>
-      </button>
-      <button mat-icon-button class="d-flex" [matMenuTriggerFor]="menu">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-    </div>
-    }
-  </div>
+      <div class="d-flex flex-row gap-3">
+        <div
+          class="flex-grow-1 d-flex justify-content-start align-items-center gap-5"
+        >
+          <h2 class="mat-heading-large m-0">{{ name() }}</h2>
+          @if (responsive.isDesktop()) {
+            <h4 class="mat-title-medium m-0">
+              {{ venueString() }}, {{ localityString() }}
+            </h4>
+          }
+          <h5 class="mat-title-medium m-0 d-none d-xl-block">
+            {{
+              readableStartDate() !== readableEndDate()
+                ? readableStartDate() + " - " + readableEndDate()
+                : readableStartDate()
+            }}
+          </h5>
+        </div>
+        @if (!isEmbedded) {
+          <div class="d-flex flex-row gap-2">
+            @if (url()) {
+              <a [href]="url()" target="_blank" mat-icon-button class="d-flex">
+                <mat-icon>open_in_new</mat-icon>
+              </a>
+            }
+            <button mat-icon-button class="d-flex" (click)="shareEvent()">
+              <mat-icon>share</mat-icon>
+            </button>
+            <button mat-icon-button class="d-flex" [matMenuTriggerFor]="menu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
 
-  <mat-menu #menu="matMenu">
-    @if(event()?.id === 'swissjam25') {
-    <a
-      href="https://results.vertical-life.info/event/288/"
-      target="_blank"
-      mat-menu-item
-    >
-      <mat-icon>checklist</mat-icon><span i18n>Smart Scorecard</span></a
-    >
-    }
-    @if(markers().length > 1) {
-    <button
-      mat-menu-item
-      (click)="mapsApiService.openDirectionsInMaps(markers()[1].location)"
-    >
-      <mat-icon>directions</mat-icon>
-      <span i18n>Directions</span>
-    </button>
-    }
-    <a
-      [routerLink]="['/embed']"
-      [queryParams]="{ type: 'event' }"
-      class="text-decoration-none"
-    >
-      <button mat-menu-item>
-        <mat-icon>code</mat-icon>
-        <span i18n>Embed</span>
-      </button>
-    </a>
-  </mat-menu>
+      <!-- Status row: red 'past' notice / countdown for upcoming / 'ongoing' for live -->
+      @if (eventStatus() === "past") {
+        <p
+          class="mat-title-small status-line past"
+          i18n="@@event_page.status.past"
+        >
+          This event is over. Information shown below may be outdated.
+        </p>
+      } @else if (eventStatus() === "live" && countdownTarget(); as target) {
+        <p class="mat-label-large status-line live">
+          <span i18n="@@event_page.status.live_label">Ongoing — ends in</span>
+          <app-countdown class="ms-1" [timestamp]="target"></app-countdown>
+        </p>
+      } @else if (
+        eventStatus() === "upcoming" && countdownTarget();
+        as target
+      ) {
+        <p class="mat-label-large status-line upcoming">
+          <span i18n="@@event_page.status.upcoming_label">Starts in</span>
+          <app-countdown class="ms-1" [timestamp]="target"></app-countdown>
+        </p>
+      }
+    </div>
+
+    <mat-menu #menu="matMenu">
+      @if (event()?.id === "swissjam25") {
+        <a
+          href="https://results.vertical-life.info/event/288/"
+          target="_blank"
+          mat-menu-item
+        >
+          <mat-icon>checklist</mat-icon><span i18n>Smart Scorecard</span></a
+        >
+      }
+      @if (markers().length > 1) {
+        <button
+          mat-menu-item
+          (click)="mapsApiService.openDirectionsInMaps(markers()[1].location)"
+        >
+          <mat-icon>directions</mat-icon>
+          <span i18n>Directions</span>
+        </button>
+      }
+      <a
+        [routerLink]="['/embed']"
+        [queryParams]="{ type: 'event' }"
+        class="text-decoration-none"
+      >
+        <button mat-menu-item>
+          <mat-icon>code</mat-icon>
+          <span i18n>Embed</span>
+        </button>
+      </a>
+    </mat-menu>
   }
 
   <mat-drawer-container class="flex-grow-1 bg-transparent">
@@ -88,96 +116,109 @@
         [class.no-rounding]="isCompactView"
       >
         <mat-chip-listbox class="p-3" [value]="tab()">
-          @for (tabKeyVal of (tabs | keyvalue); track $index) {
-          <mat-chip-option
-            i18n
-            [value]="tabKeyVal.key"
-            (selectionChange)="tab.set(tabKeyVal.key)"
-            >{{ tabKeyVal.value }}</mat-chip-option
-          >
+          @for (tabKeyVal of tabs | keyvalue; track $index) {
+            <mat-chip-option
+              i18n
+              [value]="tabKeyVal.key"
+              (selectionChange)="tab.set(tabKeyVal.key)"
+              >{{ tabKeyVal.value }}</mat-chip-option
+            >
           }
         </mat-chip-listbox>
 
         <mat-divider></mat-divider>
-        @defer { @switch (tab()) { @case('challenges') {
-        <!-- Show challenges -->
-        @if(selectedChallenge()) {
-        <button
-          mat-button
-          (click)="selectedChallenge.set(null)"
-          class="flex-shrink-0 text-truncate mb-2 ms-1"
-        >
-          <mat-icon>arrow_back_ios</mat-icon>
-          <span class="d-flex flex-row gap-2 align-items-center">
-            <span i18n>All Event Challenges</span>
-          </span>
-        </button>
+        @defer {
+          @switch (tab()) {
+            @case ("challenges") {
+              <!-- Show challenges -->
+              @if (selectedChallenge()) {
+                <button
+                  mat-button
+                  (click)="selectedChallenge.set(null)"
+                  class="flex-shrink-0 text-truncate mb-2 ms-1"
+                >
+                  <mat-icon>arrow_back_ios</mat-icon>
+                  <span class="d-flex flex-row gap-2 align-items-center">
+                    <span i18n>All Event Challenges</span>
+                  </span>
+                </button>
 
-        <div
-          #scrollContainer
-          class="py-3 overflow-y-auto overflow-x-hidden flex-grow-1 w-100"
-        >
-          <app-challenge-detail
-            @fadeInOut
-            [challenge]="selectedChallenge()!"
-            [number]="selectedChallenge()!.number"
-          ></app-challenge-detail>
-        </div>
-        } @else {
-        <app-challenge-list
-          @fadeInOut
-          class="px-3 overflow-y-auto flex-grow-1"
-          [challenges]="challenges()"
-          [withHrefLink]="false"
-          [showFilterOptions]="true"
-          [showIndexAsNumber]="true"
-          [(selectedLabels)]="selectedLabels"
-          [(selectedParticipantTypes)]="selectedParticipantTypes"
-          (challengeClickIndex)="challengeClickedIndex($event)"
-        >
-        </app-challenge-list>
-        } } @case('event') {
-        <div class="d-flex flex-column gap-3 p-3 overflow-y-auto">
-          @for(marker of customMarkers() | reverse; track $index) {
-          <div
-            class="d-flex flex-row justify-content-start gap-2 align-items-center p-2"
-          >
-            <app-marker
-              [clickable]="false"
-              [color]="marker.color ?? 'primary'"
-              [icons]="marker.icons"
-            ></app-marker>
-            <span>{{ marker.name }}</span>
-          </div>
+                <div
+                  #scrollContainer
+                  class="py-3 overflow-y-auto overflow-x-hidden flex-grow-1 w-100"
+                >
+                  <app-challenge-detail
+                    @fadeInOut
+                    [challenge]="selectedChallenge()!"
+                    [number]="selectedChallenge()!.number"
+                  ></app-challenge-detail>
+                </div>
+              } @else {
+                <app-challenge-list
+                  @fadeInOut
+                  class="px-3 overflow-y-auto flex-grow-1"
+                  [challenges]="challenges()"
+                  [withHrefLink]="false"
+                  [showFilterOptions]="true"
+                  [showIndexAsNumber]="true"
+                  [(selectedLabels)]="selectedLabels"
+                  [(selectedParticipantTypes)]="selectedParticipantTypes"
+                  (challengeClickIndex)="challengeClickedIndex($event)"
+                >
+                </app-challenge-list>
+              }
+            }
+            @case ("event") {
+              <div class="d-flex flex-column gap-3 p-3 overflow-y-auto">
+                @for (marker of customMarkers() | reverse; track $index) {
+                  <div
+                    class="d-flex flex-row justify-content-start gap-2 align-items-center p-2"
+                  >
+                    <app-marker
+                      [clickable]="false"
+                      [color]="marker.color ?? 'primary'"
+                      [icons]="marker.icons"
+                    ></app-marker>
+                    <span>{{ marker.name }}</span>
+                  </div>
+                }
+              </div>
+            }
+            @case ("spots") {
+              <!-- Show spots -->
+              @if (selectedSpot()) {
+                <div
+                  #spotScrollContainer
+                  class="w-100 d-block overflow-x-hidden h-100"
+                >
+                  <app-spot-details
+                    @fadeInOut
+                    [spot]="selectedSpot()"
+                    [editable]="false"
+                    [isEditing]="false"
+                    [dismissable]="true"
+                    [border]="false"
+                    (dismiss)="selectedSpot.set(null)"
+                    class="w-100 d-block overflow-x-hidden h-100"
+                  ></app-spot-details>
+                </div>
+              } @else {
+                @if (spots() && spots()!.length > 0) {
+                  <app-spot-list
+                    @fadeInOut
+                    class="d-block p-3 h-100 overflow-y-scroll overflow-x-hidden"
+                    [spots]="spots()"
+                    [mapZoom]="getSpotPreviewZoom()"
+                    [withHrefLink]="false"
+                    (spotClickIndex)="spotClickedIndex($event)"
+                    text="Event spots"
+                    i18n-text
+                  ></app-spot-list>
+                }
+              }
+            }
           }
-        </div>
-        } @case('spots') {
-        <!-- Show spots -->
-        @if(selectedSpot()) {
-        <div #spotScrollContainer class="w-100 d-block overflow-x-hidden h-100">
-          <app-spot-details
-            @fadeInOut
-            [spot]="selectedSpot()"
-            [editable]="false"
-            [isEditing]="false"
-            [dismissable]="true"
-            [border]="false"
-            (dismiss)="selectedSpot.set(null)"
-            class="w-100 d-block overflow-x-hidden h-100"
-          ></app-spot-details>
-        </div>
-        } @else {@if(spots() && spots()!.length > 0) {
-        <app-spot-list
-          @fadeInOut
-          class="d-block p-3 h-100 overflow-y-scroll overflow-x-hidden"
-          [spots]="spots()"
-          [mapZoom]="getSpotPreviewZoom()"
-          [withHrefLink]="false"
-          (spotClickIndex)="spotClickedIndex($event)"
-          text="Event spots"
-          i18n-text
-        ></app-spot-list>
-        } } } } }
+        }
       </div>
     </mat-drawer>
 
@@ -187,61 +228,65 @@
       style="border-radius: 16px"
       [class.no-rounding]="isCompactView"
     >
-      @defer { @if(hasSpotIds || (event()?.inlineSpots?.length ?? 0) > 0) {
-      @if(spots() && spots()!.length > 0 && bounds()) {
-      <app-google-map-2d
-        @fadeInOut
-        #spotMap
-        id="spotMap"
-        [showGeolocation]="false"
-        [boundRestriction]="bounds()!"
-        [polygons]="areaPolygon() ? [areaPolygon()!] : []"
-        [minZoom]="16"
-        [focusZoom]="focusZoom()"
-        [mapStyle]="mapStyle"
-        [markers]="markers()"
-        [spots]="spots()"
-        [selectedSpot]="selectedSpot()"
-        (spotClick)="selectSpot($event)"
-        (mapClick)="deselectSpot()"
-        [showSpotPreview]="!sidenavOpen()"
-        (markerClickEvent)="onMarkerClickFromMap($event)"
-        class="w-100 h-100 overflow-hidden d-block"
-      ></app-google-map-2d>
-      } } @if(!sidenavOpen() && challenges().length > 0) {
-      <div
-        class="position-absolute d-flex flex-row flex-wrap gap-2 pb-3 overflow-x-hidden"
-        style="top: 10px; left: 10px; width: calc(100% - 20px)"
-      >
-        @defer {
-        <app-chip-select
-          icon="tune"
-          label="Challenge Type"
-          [options]="challengeLabels"
-          [optionNames]="challengeLabelNames"
-          [optionIcons]="challengeLabelIcons"
-          [formCtrl]="labelCtrl!"
-          [selected]="selectedLabels()"
-          (selectedChange)="selectedLabels.set($event)"
-          allLabel="All Types"
-          i18n-allLabel="challenge type label"
-        ></app-chip-select>
-
-        <app-chip-select
-          icon="tune"
-          label="Challenge Participants"
-          [options]="challengeParticipantTypes"
-          [optionNames]="challengeParticipantTypeNames"
-          [optionIcons]="challengeParticipantTypeIcons"
-          [formCtrl]="participantTypeCtrl!"
-          [selected]="selectedParticipantTypes()"
-          (selectedChange)="selectedParticipantTypes.set($event)"
-          allLabel="All Participants"
-          i18n-allLabel="challenge participant type"
-        ></app-chip-select>
+      @defer {
+        @if (hasSpotIds || (event()?.inlineSpots?.length ?? 0) > 0) {
+          @if (spots() && spots()!.length > 0 && bounds()) {
+            <app-google-map-2d
+              @fadeInOut
+              #spotMap
+              id="spotMap"
+              [showGeolocation]="false"
+              [boundRestriction]="bounds()!"
+              [polygons]="areaPolygon() ? [areaPolygon()!] : []"
+              [minZoom]="minZoom()"
+              [focusZoom]="focusZoom()"
+              [mapStyle]="mapStyle"
+              [markers]="markers()"
+              [spots]="spots()"
+              [selectedSpot]="selectedSpot()"
+              (spotClick)="selectSpot($event)"
+              (mapClick)="deselectSpot()"
+              [showSpotPreview]="!sidenavOpen()"
+              (markerClickEvent)="onMarkerClickFromMap($event)"
+              class="w-100 h-100 overflow-hidden d-block"
+            ></app-google-map-2d>
+          }
         }
-      </div>
-      } }
+        @if (!sidenavOpen() && challenges().length > 0) {
+          <div
+            class="position-absolute d-flex flex-row flex-wrap gap-2 pb-3 overflow-x-hidden"
+            style="top: 10px; left: 10px; width: calc(100% - 20px)"
+          >
+            @defer {
+              <app-chip-select
+                icon="tune"
+                label="Challenge Type"
+                [options]="challengeLabels"
+                [optionNames]="challengeLabelNames"
+                [optionIcons]="challengeLabelIcons"
+                [formCtrl]="labelCtrl!"
+                [selected]="selectedLabels()"
+                (selectedChange)="selectedLabels.set($event)"
+                allLabel="All Types"
+                i18n-allLabel="challenge type label"
+              ></app-chip-select>
+
+              <app-chip-select
+                icon="tune"
+                label="Challenge Participants"
+                [options]="challengeParticipantTypes"
+                [optionNames]="challengeParticipantTypeNames"
+                [optionIcons]="challengeParticipantTypeIcons"
+                [formCtrl]="participantTypeCtrl!"
+                [selected]="selectedParticipantTypes()"
+                (selectedChange)="selectedParticipantTypes.set($event)"
+                allLabel="All Participants"
+                i18n-allLabel="challenge participant type"
+              ></app-chip-select>
+            }
+          </div>
+        }
+      }
     </div>
 
     <div style="top: calc(50% - 36px / 2); right: 5px; position: absolute">
@@ -258,10 +303,11 @@
           border-width: 0.8px !important;
         "
       >
-        @if(sidenavOpen()) {
-        <mat-icon>chevron_right</mat-icon>
+        @if (sidenavOpen()) {
+          <mat-icon>chevron_right</mat-icon>
         } @else {
-        <mat-icon>chevron_left</mat-icon>}
+          <mat-icon>chevron_left</mat-icon>
+        }
       </button>
     </div>
   </mat-drawer-container>

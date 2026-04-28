@@ -83,6 +83,31 @@ export class EventsService extends ConsentAwareService {
     return all.filter((e) => e.isPromotable(now));
   }
 
+  /**
+   * Events to surface on a community landing page. Filters to events whose
+   * `community_keys` includes the given key, are not past, and start within
+   * `withinMonths` (default 6). Sorted soonest-first.
+   */
+  async getEventsForCommunity(
+    communityKey: string,
+    options: { withinMonths?: number; now?: Date } = {}
+  ): Promise<Event[]> {
+    const now = options.now ?? new Date();
+    const withinMonths = options.withinMonths ?? 6;
+    const cutoff = new Date(now);
+    cutoff.setMonth(cutoff.getMonth() + withinMonths);
+
+    const all = await this.getEvents();
+    return all
+      .filter(
+        (e) =>
+          e.communityKeys.includes(communityKey) &&
+          !e.isPast(now) &&
+          e.start.getTime() <= cutoff.getTime()
+      )
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+  }
+
   private async _resolveEventId(slugOrId: string): Promise<string | null> {
     if (/^[a-z0-9-]+$/.test(slugOrId)) {
       const slugDoc =

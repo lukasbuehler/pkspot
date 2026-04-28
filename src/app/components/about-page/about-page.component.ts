@@ -61,6 +61,12 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
       logoUrl: "assets/logos/parkour_earth_white.png",
       logoClass: "parkour-earth-background",
     },
+    {
+      name: "World's Parkour Family",
+      url: "https://worldsparkourfamily.ch/",
+      logoUrl: "assets/logos/wpf_white_trans.png",
+      logoClass: "wpf-background",
+    },
   ];
 
   // Repeat sufficiently to cover large screens and fast scrolling
@@ -76,7 +82,10 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
   private isBrowser: boolean;
   private scrollParent: HTMLElement | Window | null = null;
 
-  constructor(private ngZone: NgZone, @Inject(PLATFORM_ID) platformId: object) {
+  constructor(
+    private ngZone: NgZone,
+    @Inject(PLATFORM_ID) platformId: object,
+  ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
@@ -84,7 +93,7 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
     if (this.isBrowser) {
       if (this.carouselTrack?.nativeElement) {
         this.scrollParent = this.getScrollParent(
-          this.carouselTrack.nativeElement
+          this.carouselTrack.nativeElement,
         );
       } else {
         this.scrollParent = window;

@@ -4,7 +4,7 @@ import {
   inject,
   PLATFORM_ID,
   signal,
-  DOCUMENT,
+  afterNextRender,
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
@@ -20,6 +20,8 @@ import { MatInputModule } from "@angular/material/input";
 import { LocaleCode } from "../../../../db/models/Interfaces";
 import { MatSelectModule } from "@angular/material/select";
 import { languageCodes } from "../../../../scripts/Languages";
+import { Event as PkEvent } from "../../../../db/models/Event";
+import { EventsService } from "../../../services/firebase/firestore/events.service";
 
 type EmbedType = "map" | "event";
 
@@ -46,8 +48,6 @@ type EmbedType = "map" | "event";
       provide: APP_BASE_HREF,
       useFactory: (platformId: Object) => {
         if (isPlatformBrowser(platformId)) {
-          console.log("in factory platform id:", platformId);
-          const pathSegments = window.location.pathname.split("/");
           return window.location.origin;
         }
         return "/"; // fallback for server-side
@@ -58,10 +58,11 @@ type EmbedType = "map" | "event";
 })
 export class EmbedPageComponent {
   sanitizer = inject(DomSanitizer);
-  // doc = inject(DOCUMENT);
   baseHref = inject(APP_BASE_HREF);
+  private _platformId = inject(PLATFORM_ID);
+  private _eventsService = inject(EventsService);
 
-  supportedLanguageCodes = ["en", "de", "de-CH", "fr", "it", "nl", "es"]; // TODO get supported languages somehow
+  supportedLanguageCodes = ["en", "de", "de-CH", "fr", "it", "nl", "es"];
   languages: Record<string, { name_english: string; name_native?: string }> =
     languageCodes;
   embedLanguage = signal<LocaleCode | "auto">("auto");
@@ -69,8 +70,20 @@ export class EmbedPageComponent {
   showSatelliteToggle = signal<boolean>(true);
   showGeolocation = signal<boolean>(false);
 
-  eventId = signal<string>("swissjam25");
+  /** All events the user can pick from. Loaded on init. */
+  events = signal<PkEvent[]>([]);
+  eventsLoading = signal<boolean>(true);
+
+  /** Currently selected event id/slug for the embed. Empty until events load. */
+  eventId = signal<string>("");
   showEventHeader = signal<boolean>(false);
+
+  /** Display name for the currently selected event (for the form label). */
+  selectedEventName = computed<string>(() => {
+    const id = this.eventId();
+    const event = this.events().find((e) => (e.slug ?? e.id) === id);
+    return event?.name ?? "";
+  });
 
   defaultEmbedType: EmbedType = "event";
   embedTypes: EmbedType[] = ["event"]; // "map",
@@ -85,6 +98,7 @@ export class EmbedPageComponent {
     const baseUrl = `${this.baseHref}`;
     const tab = this.tab();
     const language = this.embedLanguage();
+    const eventId = this.eventId();
 
     let url =
       baseUrl + (language === "auto" ? "" : "/" + language) + "/embedded/";
@@ -94,13 +108,12 @@ export class EmbedPageComponent {
         url += "map/";
         break;
       case "event":
+        if (!eventId) return "";
         url += "events/";
-        url += this.eventId();
-        if (this.showEventHeader()) {
-          url += "?showHeader=true";
-        } else {
-          url += "?showHeader=false";
-        }
+        url += eventId;
+        url += this.showEventHeader()
+          ? "?showHeader=true"
+          : "?showHeader=false";
         break;
     }
 
@@ -113,6 +126,32 @@ export class EmbedPageComponent {
   });
 
   iframeCode = computed<string>(() => {
-    return `<iframe src="${this.unsafeIframeUrl()}" style="display: block;"></iframe>`;
+    const url = this.unsafeIframeUrl();
+    if (!url) return "";
+    return `<iframe src="${url}" style="display: block;"></iframe>`;
   });
+
+  constructor() {
+    if (isPlatformBrowser(this._platformId)) {
+      afterNextRender(() => {
+        void this._loadEvents();
+      });
+    }
+  }
+
+  private async _loadEvents() {
+    try {
+      const events = await this._eventsService.getEvents({ sortByNext: true });
+      this.events.set(events);
+      // Default-select the first non-past event, or the first event if all are past.
+      const firstUpcoming = events.find((e) => !e.isPast()) ?? events[0];
+      if (firstUpcoming) {
+        this.eventId.set(firstUpcoming.slug ?? firstUpcoming.id);
+      }
+    } catch (err) {
+      console.warn("EmbedPage: failed to load events", err);
+    } finally {
+      this.eventsLoading.set(false);
+    }
+  }
 }

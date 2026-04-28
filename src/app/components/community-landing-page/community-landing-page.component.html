@@ -1,5 +1,19 @@
 @if(landingData(); as data) {
 <div class="community-page" [class.community-page-panel]="panelMode()">
+  @if(data.notFound) {
+    <!-- Clean "not found" state — no fake stats. -->
+    <section class="not-found-state">
+      <h1 class="mat-display-small m-0" i18n>Community not found</h1>
+      <p class="mat-body-large mt-2">
+        <ng-container i18n>
+          We don't have a PK Spot community page for this route yet.
+        </ng-container>
+      </p>
+      <a mat-flat-button color="primary" routerLink="/map" class="mt-3">
+        <ng-container i18n>Back to the map</ng-container>
+      </a>
+    </section>
+  } @else {
   <section class="hero-section">
     <mat-card class="hero-card">
       <mat-card-content>
@@ -33,16 +47,54 @@
     </mat-card>
   </section>
 
-  @if(data.notFound) {
-  <mat-card class="empty-state-card">
-    <mat-card-content>
-      <p class="mat-body-large m-0">
-        We do not have enough locality data for this page yet. Try another
-        community route or check the map for nearby spots.
-      </p>
-    </mat-card-content>
-  </mat-card>
-  } @else {
+  @if (visibleEvents().length > 0) {
+    <section class="content-section events-section">
+      <div class="section-heading d-flex align-items-baseline justify-content-between gap-3">
+        <h2 class="mat-title-large m-0" i18n="@@community.events_heading">
+          Events
+        </h2>
+        <a routerLink="/events" class="discover-more mat-label-large" i18n="@@community.discover_more_events">
+          Discover more events →
+        </a>
+      </div>
+
+      <div class="events-grid">
+        @for (event of visibleEvents(); track event.id) {
+          <a
+            class="event-card"
+            [routerLink]="['/events', event.slug ?? event.id]"
+          >
+            <div class="event-image">
+              @if (event.bannerSrc) {
+                <img
+                  [ngSrc]="event.bannerSrc"
+                  fill
+                  class="object-fit-cover"
+                  [alt]="event.name"
+                />
+              } @else {
+                <app-media-placeholder
+                  src="assets/spot_placeholder.png"
+                  [label]="event.name"
+                ></app-media-placeholder>
+              }
+            </div>
+            <div class="event-body">
+              <h3 class="mat-title-medium m-0">{{ event.name }}</h3>
+              <p class="mat-body-small mb-1">
+                {{ formatEventDateRange(event) }}
+              </p>
+              <p class="mat-body-small mb-0 venue-line">
+                {{ event.venueString }}, {{ event.localityString }}
+              </p>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+
   @if(childCommunities().length > 0) {
   <section class="content-section">
     <div class="section-heading">

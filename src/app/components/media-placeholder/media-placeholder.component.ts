@@ -11,4 +11,10 @@ import { NgOptimizedImage } from "@angular/common";
 export class MediaPlaceholderComponent {
   src = input("assets/spot_placeholder.png");
   showLabel = input(true);
+  /**
+   * Optional override for the placeholder label. When set, replaces the
+   * default "No media" text — used e.g. on event cards to show the event
+   * name as the placeholder caption.
+   */
+  label = input<string | null>(null);
 }

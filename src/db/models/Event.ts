@@ -39,10 +39,12 @@ export class Event {
 
   readonly bounds: EventBoundsSchema;
   readonly focusZoom?: number;
+  readonly minZoom?: number;
   readonly areaPolygon?: Array<{ points: Array<{ lat: number; lng: number }> }>;
   readonly promoRegion?: EventPromoRegionSchema;
 
   readonly sponsor?: EventSponsorSchema;
+  readonly communityKeys: string[];
 
   readonly structuredData?: Record<string, any>;
   readonly published: boolean;
@@ -68,9 +70,11 @@ export class Event {
     this.challengeSpotMap = data.challenge_spot_map ?? {};
     this.bounds = data.bounds;
     this.focusZoom = data.focus_zoom;
+    this.minZoom = data.min_zoom;
     this.areaPolygon = data.area_polygon;
     this.promoRegion = data.promo_region;
     this.sponsor = data.sponsor;
+    this.communityKeys = data.community_keys ?? [];
     this.structuredData = data.structured_data;
     this.published = data.published ?? true;
   }
@@ -129,7 +133,7 @@ export class Event {
       return Event.viewportIntersectsCircle(
         viewport,
         this.promoRegion.center,
-        this.promoRegion.radius_m
+        this.promoRegion.radius_m,
       );
     }
 
@@ -152,26 +156,26 @@ export class Event {
   static viewportIntersectsCircle(
     viewport: EventBoundsSchema,
     center: { lat: number; lng: number },
-    radiusM: number
+    radiusM: number,
   ): boolean {
     const closestLat = Math.max(
       viewport.south,
-      Math.min(center.lat, viewport.north)
+      Math.min(center.lat, viewport.north),
     );
     const closestLng = Math.max(
       viewport.west,
-      Math.min(center.lng, viewport.east)
+      Math.min(center.lng, viewport.east),
     );
     const distanceM = Event.haversineMeters(
       { lat: center.lat, lng: center.lng },
-      { lat: closestLat, lng: closestLng }
+      { lat: closestLat, lng: closestLng },
     );
     return distanceM <= radiusM;
   }
 
   private static haversineMeters(
     a: { lat: number; lng: number },
-    b: { lat: number; lng: number }
+    b: { lat: number; lng: number },
   ): number {
     const R = 6371e3;
     const φ1 = (a.lat * Math.PI) / 180;
@@ -185,11 +189,7 @@ export class Event {
   }
 
   private static toDate(
-    value:
-      | Timestamp
-      | Date
-      | { seconds: number; nanoseconds: number }
-      | string
+    value: Timestamp | Date | { seconds: number; nanoseconds: number } | string,
   ): Date {
     if (value instanceof Date) return value;
     if (typeof value === "string") return new Date(value);
@@ -199,7 +199,7 @@ export class Event {
     const tsLike = value as { seconds: number; nanoseconds: number };
     if (typeof tsLike.seconds === "number") {
       return new Date(
-        tsLike.seconds * 1000 + Math.floor((tsLike.nanoseconds ?? 0) / 1e6)
+        tsLike.seconds * 1000 + Math.floor((tsLike.nanoseconds ?? 0) / 1e6),
       );
     }
     return new Date(NaN);

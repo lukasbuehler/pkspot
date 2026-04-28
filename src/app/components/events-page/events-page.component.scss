@@ -1,0 +1,49 @@
+.event-card {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.image-wrap {
+  // Lift base — past cards override.
+  filter: none;
+  transition:
+    filter 200ms ease,
+    opacity 200ms ease;
+}
+
+.past-card {
+  opacity: 0.85;
+
+  .image-wrap {
+    filter: grayscale(0.9);
+    opacity: 0.55;
+  }
+}
+
+.status-line {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.status-line[data-status="past"] {
+  color: var(--mat-sys-error, #d32f2f) !important;
+}
+
+.status-line[data-status="live"] {
+  color: var(--mat-sys-tertiary, var(--mat-sys-primary, #1976d2)) !important;
+}
+
+.status-line[data-status="upcoming"] {
+  color: var(--mat-sys-primary, #1976d2) !important;
+}
+
+.past-heading {
+  margin: 0 0 1rem 0;
+  color: var(--mat-sys-on-surface-variant);
+}

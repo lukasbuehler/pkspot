@@ -11,6 +11,70 @@
   padding: 0 12px 24px;
 }
 
+.not-found-state {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Events row above the spots grid
+.events-section {
+  margin-bottom: 24px;
+}
+
+.discover-more {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.event-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: var(--mat-sys-surface-container-highest);
+  }
+}
+
+.event-image {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  background: var(--mat-sys-surface-container);
+}
+
+.event-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px 16px;
+}
+
+.venue-line {
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .hero-section,
 .content-section {
   margin-bottom: 24px;
