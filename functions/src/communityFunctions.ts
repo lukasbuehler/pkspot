@@ -321,6 +321,79 @@ const syncCommunitySlugs = async (
   });
 };
 
+/**
+ * Compute a `bounds_center` (lat/lng centroid) and `bounds_radius_m`
+ * (distance from centroid to farthest spot, +25% buffer, min 1 km) for
+ * the spots in a community. Used by the map-island to surface the
+ * community automatically when its area intersects the visible viewport.
+ *
+ * Returns `null` if no spot has a usable location — in that case the
+ * fields are omitted and the community simply doesn't auto-surface
+ * (it's still reachable via its explicit `/map/community/<slug>` route).
+ *
+ * Centroid uses an arithmetic mean which is approximate but fine at
+ * city / country scale; for the use case (deciding which community to
+ * highlight for a viewport) this is plenty.
+ */
+const computeCommunityBounds = (
+  spots: SpotSchema[]
+): { bounds_center: [number, number]; bounds_radius_m: number } | null => {
+  const points: Array<{ lat: number; lng: number }> = [];
+  for (const spot of spots) {
+    if (
+      spot.location_raw &&
+      typeof spot.location_raw.lat === "number" &&
+      typeof spot.location_raw.lng === "number"
+    ) {
+      points.push({
+        lat: spot.location_raw.lat,
+        lng: spot.location_raw.lng,
+      });
+      continue;
+    }
+    const loc = spot.location as
+      | { latitude?: number; longitude?: number; _latitude?: number; _longitude?: number }
+      | undefined;
+    if (loc) {
+      const lat = loc.latitude ?? loc._latitude;
+      const lng = loc.longitude ?? loc._longitude;
+      if (typeof lat === "number" && typeof lng === "number") {
+        points.push({ lat, lng });
+      }
+    }
+  }
+
+  if (points.length === 0) return null;
+
+  const sum = points.reduce(
+    (acc, p) => ({ lat: acc.lat + p.lat, lng: acc.lng + p.lng }),
+    { lat: 0, lng: 0 }
+  );
+  const center = {
+    lat: sum.lat / points.length,
+    lng: sum.lng / points.length,
+  };
+
+  const R = 6371e3;
+  const distances = points.map((p) => {
+    const φ1 = (center.lat * Math.PI) / 180;
+    const φ2 = (p.lat * Math.PI) / 180;
+    const Δφ = ((p.lat - center.lat) * Math.PI) / 180;
+    const Δλ = ((p.lng - center.lng) * Math.PI) / 180;
+    const h =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  });
+  const maxDistanceM = distances.length > 0 ? Math.max(...distances) : 0;
+  const radius = Math.max(1000, Math.round(maxDistanceM * 1.25));
+
+  return {
+    bounds_center: [center.lat, center.lng],
+    bounds_radius_m: radius,
+  };
+};
+
 const getCountryPagePath = async (
   db: admin.firestore.Firestore,
   countryKey: string,
@@ -391,6 +464,7 @@ const buildCommunityPageDoc = async (
 
   const sourceSpots = spots.map((spot) => spot.data);
   const sourceMaxUpdatedAt = getSourceMaxUpdatedAt(sourceSpots);
+  const communityBounds = computeCommunityBounds(sourceSpots);
   const image = existingPage?.image?.url
     ? existingPage.image
     : {
@@ -455,6 +529,8 @@ const buildCommunityPageDoc = async (
     published: true,
     generatedAt: Timestamp.now(),
     sourceMaxUpdatedAt: sourceMaxUpdatedAt ?? undefined,
+    bounds_center: communityBounds?.bounds_center,
+    bounds_radius_m: communityBounds?.bounds_radius_m,
   }) as CommunityPageSchema;
 };
 

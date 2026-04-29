@@ -37,12 +37,22 @@
                   style="position: relative; height: 200px"
                 >
                   @if (event.bannerSrc) {
-                    <img
-                      [ngSrc]="event.bannerSrc"
-                      fill
-                      class="object-fit-cover"
-                      [alt]="event.name"
-                    />
+                    <div
+                      class="banner-frame"
+                      [style.background-color]="
+                        event.bannerFit === 'contain'
+                          ? (event.bannerAccentColor ?? null)
+                          : null
+                      "
+                    >
+                      <img
+                        [ngSrc]="event.bannerSrc"
+                        fill
+                        [class.object-fit-cover]="event.bannerFit === 'cover'"
+                        [class.object-fit-contain]="event.bannerFit === 'contain'"
+                        [alt]="event.name"
+                      />
+                    </div>
                   } @else {
                     <app-media-placeholder
                       src="assets/spot_placeholder.png"
@@ -97,12 +107,22 @@
                   style="position: relative; height: 200px"
                 >
                   @if (event.bannerSrc) {
-                    <img
-                      [ngSrc]="event.bannerSrc"
-                      fill
-                      class="object-fit-cover"
-                      [alt]="event.name"
-                    />
+                    <div
+                      class="banner-frame"
+                      [style.background-color]="
+                        event.bannerFit === 'contain'
+                          ? (event.bannerAccentColor ?? null)
+                          : null
+                      "
+                    >
+                      <img
+                        [ngSrc]="event.bannerSrc"
+                        fill
+                        [class.object-fit-cover]="event.bannerFit === 'cover'"
+                        [class.object-fit-contain]="event.bannerFit === 'contain'"
+                        [alt]="event.name"
+                      />
+                    </div>
                   } @else {
                     <app-media-placeholder
                       src="assets/spot_placeholder.png"

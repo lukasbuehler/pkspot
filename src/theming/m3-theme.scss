@@ -181,6 +181,24 @@ $dark-theme: mat.define-theme(
 @include mat.typography-hierarchy($dark-theme);
 
 html {
+  // Emit `--mat-sys-*` system tokens (primary, secondary, surface, error,
+  // outline, etc.) so component SCSS can use `var(--mat-sys-primary)` and
+  // friends without relying on hardcoded fallbacks. Without this, only the
+  // tokens consumed inside Material's own components were getting set —
+  // ad-hoc consumers fell through to their `var()` fallback.
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: $_primary,
+        tertiary: $_tertiary,
+      ),
+      density: (
+        scale: -1,
+      ),
+    )
+  );
+
   @include mat.all-component-themes($dark-theme);
   @include mat3-nav-button.theme($dark-theme);
   @include bottom-sheet.theme($dark-theme);

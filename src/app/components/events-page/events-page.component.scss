@@ -16,6 +16,15 @@
     opacity 200ms ease;
 }
 
+// Inner frame holds the banner accent color when `banner_fit === "contain"`.
+// Falls back to the surface container so a contained banner still has a
+// theme-appropriate backdrop if no accent color is set.
+.banner-frame {
+  position: absolute;
+  inset: 0;
+  background-color: var(--mat-sys-surface-container, #1c1b1f);
+}
+
 .past-card {
   opacity: 0.85;
 
@@ -32,15 +41,15 @@
 }
 
 .status-line[data-status="past"] {
-  color: var(--mat-sys-error, #d32f2f) !important;
+  color: var(--mat-sys-error, #ffb4ab) !important;
 }
 
 .status-line[data-status="live"] {
-  color: var(--mat-sys-tertiary, var(--mat-sys-primary, #1976d2)) !important;
+  color: var(--mat-sys-secondary, #8dd978) !important;
 }
 
 .status-line[data-status="upcoming"] {
-  color: var(--mat-sys-primary, #1976d2) !important;
+  color: var(--mat-sys-primary, #b8c4ff) !important;
 }
 
 .past-heading {

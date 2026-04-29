@@ -33,6 +33,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MatMenuModule } from "@angular/material/menu";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatChipListboxChange, MatChipsModule } from "@angular/material/chips";
 import { MapsApiService } from "../../services/maps-api.service";
@@ -91,6 +92,7 @@ export class ReversePipe implements PipeTransform {
     RouterLink,
     SpotDetailsComponent,
     MatMenuModule,
+    MatTooltipModule,
     MatChipsModule,
     GoogleMap2dComponent,
     MatSidenavModule,
@@ -157,6 +159,18 @@ export class EventPageComponent implements OnInit, OnDestroy {
   };
   tab = signal<(typeof this.tabs)[keyof typeof this.tabs]>("spots");
 
+  /**
+   * Tabs to render in the sidebar. Hides "Challenges" when there are none —
+   * an event without challenges shouldn't show an empty tab.
+   */
+  readonly visibleTabs = computed<Record<string, string>>(() => {
+    const out: Record<string, string> = { spots: this.tabs.spots };
+    if (this.challenges().length > 0) {
+      out["challenges"] = this.tabs.challenges;
+    }
+    return out;
+  });
+
   showHeader = signal<boolean>(true);
   isCompactView = false;
   private _isEmbedded = false;
@@ -203,10 +217,28 @@ export class EventPageComponent implements OnInit, OnDestroy {
   readonly markers = signal<MarkerSchema[]>([]);
   readonly areaPolygon = signal<PolygonSchema | null>(null);
 
+  /**
+   * Spots passed to the map's `highlightedSpots` input — these render as
+   * `<app-highlight-marker>` at every zoom level (whereas plain `[spots]`
+   * are only drawn at zoom ≥ 16). Used so an event with a low `focus_zoom`
+   * still shows its participating spot pins when zoomed out.
+   */
+  readonly highlightedSpots = computed<SpotPreviewData[]>(() =>
+    this.spots()
+      .filter((s): s is Spot => s instanceof Spot)
+      .map((s) => s.makePreviewData()),
+  );
+
   readonly challenges = signal<(SpotChallenge & { number: number })[]>([]);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
 
-  readonly minZoom = computed(() => this.event()?.minZoom ?? 14);
+  /**
+   * Lower bound on user zoom for the event-page map. Default is intentionally
+   * permissive (10) so events with a low `focus_zoom` (city/region scale, e.g.
+   * a multi-spot camp) still render — the previous default of 14 hid the
+   * markers and inline spots when zoomed out further than the event's focus.
+   */
+  readonly minZoom = computed(() => this.event()?.minZoom ?? 10);
 
   platformId = inject(PLATFORM_ID);
 
@@ -634,18 +666,18 @@ function toMarkerSchema(m: EventCustomMarkerSchema): MarkerSchema {
 }
 
 /**
- * Build a Spot instance from an inline event spot. Uses a synthetic id
- * prefixed with `inline-` so it never clashes with real Firestore spot ids
- * and never gets fetched from Firestore.
+ * Build a LocalSpot from an inline event spot. LocalSpot (no `id`) avoids
+ * triggering all the Firestore-spot UI affordances (edit, save bounds,
+ * report, etc.) — inline event spots are minimal display-only entries.
+ *
+ * The `eventId` argument is unused but kept for symmetry / future use.
  */
 function buildInlineSpot(
-  eventId: string,
+  _eventId: string,
   inline: InlineEventSpotSchema,
   locale: LocaleCode,
-): Spot {
-  const syntheticId = `inline-${eventId}-${inline.id}` as SpotId;
-  return new Spot(
-    syntheticId,
+): LocalSpot {
+  return new LocalSpot(
     {
       location: new GeoPoint(inline.location.lat, inline.location.lng),
       name: { [locale]: { text: inline.name, provider: "user" } } as any,

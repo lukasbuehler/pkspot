@@ -8,11 +8,14 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatCardModule } from "@angular/material/card";
 import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { map } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
@@ -38,6 +41,8 @@ interface CommunitySectionItem {
     NgOptimizedImage,
     MatCardModule,
     MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
     RouterLink,
     SpotListComponent,
     MediaPlaceholderComponent,
@@ -55,6 +60,30 @@ export class CommunityLandingPageComponent {
     undefined
   );
   panelMode = input(false);
+
+  /** Emitted when the user closes the panel (panel mode only). */
+  closePanel = output<void>();
+
+  /**
+   * Emitted when the user clicks an event card (panel mode). The host can
+   * use this to open the event in-place (e.g. as a preview on the map)
+   * rather than letting the link navigate to `/events/<slug>`.
+   */
+  selectEvent = output<PkEvent>();
+
+  onClose() {
+    this.closePanel.emit();
+  }
+
+  onEventCardClick(event: PkEvent, click: MouseEvent) {
+    // In panel mode the host wants to handle the selection itself (open
+    // the event preview on the map). Outside panel mode we let the
+    // routerLink navigate as before.
+    if (!this.panelMode()) return;
+    click.preventDefault();
+    click.stopPropagation();
+    this.selectEvent.emit(event);
+  }
 
   /** Maximum events shown above the spots before falling back to a "more" link. */
   private readonly EVENT_LIMIT = 3;

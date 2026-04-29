@@ -76,6 +76,18 @@ export interface EventSchema {
    * back gracefully when missing.
    */
   banner_src?: string;
+  /**
+   * How the banner image fills its container.
+   *  - `cover` (default): image fills the area, may be cropped.
+   *  - `contain`: image is fully visible, gaps filled with `banner_accent_color`.
+   */
+  banner_fit?: "cover" | "contain";
+  /**
+   * Hex color (e.g. "#1a1a1a") used as the background behind a `contain`
+   * banner. Ignored when `banner_fit` is `cover`. Lets sponsors match the
+   * banner art's bleed color rather than landing on a default surface.
+   */
+  banner_accent_color?: string;
   /** Optional event-specific logo (distinct from sponsor logo). */
   logo_src?: string;
 

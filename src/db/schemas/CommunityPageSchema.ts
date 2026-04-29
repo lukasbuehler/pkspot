@@ -73,4 +73,19 @@ export interface CommunityPageSchema {
   published: boolean;
   generatedAt?: Timestamp | { seconds: number; nanoseconds: number };
   sourceMaxUpdatedAt?: Timestamp | { seconds: number; nanoseconds: number };
+
+  /**
+   * Geographic center of the community (lat/lng). Used by the map-island to
+   * surface the community when the visible viewport intersects its area.
+   * Set together with `bounds_radius_m`. Optional — communities without
+   * these fields don't auto-surface in the island (only on their explicit
+   * `/map/community/<slug>` route).
+   *
+   * Stored as `[lat, lng]` to match the spot Typesense convention so a
+   * future communities Typesense collection can reuse the same geo-search
+   * shape.
+   */
+  bounds_center?: [number, number];
+  /** Radius in meters from `bounds_center` covering the community area. */
+  bounds_radius_m?: number;
 }

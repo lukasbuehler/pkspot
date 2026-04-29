@@ -23,9 +23,21 @@
   border-radius: 0px !important;
 }
 
-// Status row below the event date. Use !important + concrete fallback colors
-// because Angular Material 3 typography classes (mat-title-small etc.) can
-// resolve a `color` token after our class rules in some themes.
+.dates-line {
+  color: var(--mat-sys-on-surface);
+}
+
+// Status row below the event dates.
+// Color rules follow AGENTS.md "Theme colors": green = live, blue = upcoming,
+// red = past. The `--mat-sys-*` tokens aren't reliably emitted by the
+// current PK Spot theme setup (mat.all-component-themes only) so we use
+// the dark-theme palette hexes directly as fallback — these match the
+// "primary 80" and "secondary 80" values from `m3-theme.scss`, which is
+// the same light-blue / light-green users see on primary buttons in dark
+// mode.
+//
+// !important keeps these rules from being beaten by the typography
+// classes' own `color` resolution.
 .status-line {
   margin: 0;
   display: inline-flex;
@@ -33,16 +45,22 @@
   flex-wrap: wrap;
   gap: 0.25rem;
   font-weight: 600;
+  color: var(--mat-sys-on-surface);
 }
 
 .status-line.past {
-  color: var(--mat-sys-error, #d32f2f) !important;
-}
-
-.status-line.live {
-  color: var(--mat-sys-tertiary, var(--mat-sys-primary, #1976d2)) !important;
+  color: var(--mat-sys-error, #ffb4ab) !important;
 }
 
 .status-line.upcoming {
-  color: var(--mat-sys-primary, #1976d2) !important;
+  color: var(--mat-sys-primary, #b8c4ff) !important;
+}
+
+.status-line.live {
+  color: var(--mat-sys-secondary, #8dd978) !important;
+}
+
+// Hint text-overflow safety on a tight header row.
+.min-w-0 {
+  min-width: 0;
 }

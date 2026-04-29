@@ -9,26 +9,31 @@
       class="d-flex flex-column gap-1 w-100 pb-3"
       [class.p-3]="isCompactView"
     >
-      <div class="d-flex flex-row gap-3">
+      <div class="d-flex flex-row gap-3 align-items-center">
+        @if (!isEmbedded) {
+          <a
+            mat-icon-button
+            routerLink="/events"
+            class="d-flex flex-shrink-0"
+            matTooltip="Back to all events"
+            i18n-matTooltip="@@event_page.back_to_events"
+            aria-label="Back to all events"
+          >
+            <mat-icon>arrow_back</mat-icon>
+          </a>
+        }
         <div
-          class="flex-grow-1 d-flex justify-content-start align-items-center gap-5"
+          class="flex-grow-1 d-flex justify-content-start align-items-center gap-5 min-w-0"
         >
-          <h2 class="mat-heading-large m-0">{{ name() }}</h2>
+          <h2 class="mat-heading-large m-0 text-truncate">{{ name() }}</h2>
           @if (responsive.isDesktop()) {
-            <h4 class="mat-title-medium m-0">
+            <h4 class="mat-title-medium m-0 text-truncate">
               {{ venueString() }}, {{ localityString() }}
             </h4>
           }
-          <h5 class="mat-title-medium m-0 d-none d-xl-block">
-            {{
-              readableStartDate() !== readableEndDate()
-                ? readableStartDate() + " - " + readableEndDate()
-                : readableStartDate()
-            }}
-          </h5>
         </div>
         @if (!isEmbedded) {
-          <div class="d-flex flex-row gap-2">
+          <div class="d-flex flex-row gap-2 flex-shrink-0">
             @if (url()) {
               <a [href]="url()" target="_blank" mat-icon-button class="d-flex">
                 <mat-icon>open_in_new</mat-icon>
@@ -44,6 +49,15 @@
         }
       </div>
 
+      <!-- Dates row, always visible. -->
+      <p class="mat-title-medium m-0 dates-line">
+        {{
+          readableStartDate() !== readableEndDate()
+            ? readableStartDate() + " - " + readableEndDate()
+            : readableStartDate()
+        }}
+      </p>
+
       <!-- Status row: red 'past' notice / countdown for upcoming / 'ongoing' for live -->
       @if (eventStatus() === "past") {
         <p
@@ -55,7 +69,7 @@
       } @else if (eventStatus() === "live" && countdownTarget(); as target) {
         <p class="mat-label-large status-line live">
           <span i18n="@@event_page.status.live_label">Ongoing — ends in</span>
-          <app-countdown class="ms-1" [timestamp]="target"></app-countdown>
+          <app-countdown [timestamp]="target"></app-countdown>
         </p>
       } @else if (
         eventStatus() === "upcoming" && countdownTarget();
@@ -63,7 +77,7 @@
       ) {
         <p class="mat-label-large status-line upcoming">
           <span i18n="@@event_page.status.upcoming_label">Starts in</span>
-          <app-countdown class="ms-1" [timestamp]="target"></app-countdown>
+          <app-countdown [timestamp]="target"></app-countdown>
         </p>
       }
     </div>
@@ -116,7 +130,7 @@
         [class.no-rounding]="isCompactView"
       >
         <mat-chip-listbox class="p-3" [value]="tab()">
-          @for (tabKeyVal of tabs | keyvalue; track $index) {
+          @for (tabKeyVal of visibleTabs() | keyvalue; track $index) {
             <mat-chip-option
               i18n
               [value]="tabKeyVal.key"
@@ -243,6 +257,7 @@
               [mapStyle]="mapStyle"
               [markers]="markers()"
               [spots]="spots()"
+              [highlightedSpots]="highlightedSpots()"
               [selectedSpot]="selectedSpot()"
               (spotClick)="selectSpot($event)"
               (mapClick)="deselectSpot()"

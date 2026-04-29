@@ -13,6 +13,46 @@
         <ng-container i18n>Back to the map</ng-container>
       </a>
     </section>
+  } @else if (panelMode()) {
+    <!-- Compact panel-mode header: mirrors spot-preview-card shape so the
+         collapsed bottom-sheet shows community name + scope + key stats
+         without the user having to slide it up. The verbose intro and
+         stats grid land below in scroll territory. -->
+    <header class="panel-header pt-3 pb-2 px-3">
+      <div class="d-flex flex-row align-items-center gap-2">
+        <mat-icon class="flex-shrink-0">groups</mat-icon>
+        <span class="mat-title-medium text-truncate flex-grow-1">{{
+          heading()
+        }}</span>
+        <button
+          type="button"
+          mat-icon-button
+          class="flex-shrink-0"
+          (click)="onClose()"
+          matTooltip="Close"
+          i18n-matTooltip="@@community.close"
+          aria-label="Close community panel"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="mat-label-medium panel-subtitle text-truncate mt-1">
+        <span>{{ scopeLabel() }}</span>
+        <span class="dot" aria-hidden="true">·</span>
+        <span i18n="@@community.spots_count">{{ totalSpotCount() }} spots</span>
+        @if (topRatedCount() > 0) {
+          <span class="dot" aria-hidden="true">·</span>
+          <span i18n="@@community.top_rated_count">{{ topRatedCount() }} top-rated</span>
+        }
+        @if (dryCount() > 0) {
+          <span class="dot" aria-hidden="true">·</span>
+          <span i18n="@@community.dry_count">{{ dryCount() }} dry</span>
+        }
+      </div>
+      @if (introText()) {
+        <p class="mat-body-small intro-copy mb-0 mt-2">{{ introText() }}</p>
+      }
+    </header>
   } @else {
   <section class="hero-section">
     <mat-card class="hero-card">
@@ -63,6 +103,7 @@
           <a
             class="event-card"
             [routerLink]="['/events', event.slug ?? event.id]"
+            (click)="onEventCardClick(event, $event)"
           >
             <div class="event-image">
               @if (event.bannerSrc) {

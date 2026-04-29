@@ -23,6 +23,8 @@ export class Event {
   readonly description?: string;
 
   readonly bannerSrc?: string;
+  readonly bannerFit: "cover" | "contain";
+  readonly bannerAccentColor?: string;
   readonly logoSrc?: string;
 
   readonly venueString: string;
@@ -55,6 +57,8 @@ export class Event {
     this.name = data.name;
     this.description = data.description;
     this.bannerSrc = data.banner_src;
+    this.bannerFit = data.banner_fit ?? "cover";
+    this.bannerAccentColor = data.banner_accent_color;
     this.logoSrc = data.logo_src;
     this.venueString = data.venue_string;
     this.localityString = data.locality_string;

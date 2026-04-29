@@ -113,10 +113,14 @@ import { environment } from "../../../environments/environment";
 import { PoiData } from "../../../db/models/PoiData";
 import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
 import { AmenityNames, AmenitiesMap } from "../../../db/models/Amenities";
-import { CommunityLandingPageData } from "../../services/firebase/firestore/landing-pages.service";
+import {
+  CommunityLandingPageData,
+  LandingPagesService,
+} from "../../services/firebase/firestore/landing-pages.service";
 import { CommunityLandingPageComponent } from "../community-landing-page/community-landing-page.component";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { Event as PkEvent } from "../../../db/models/Event";
+import { EventPreviewComponent } from "../event-preview/event-preview.component";
 import {
   MapIslandComponent,
   MapIslandContent,
@@ -185,6 +189,7 @@ import { afterNextRender } from "@angular/core";
     NgOptimizedImage,
     CommunityLandingPageComponent,
     MapIslandComponent,
+    EventPreviewComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -205,6 +210,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   searchResultSpots: WritableSignal<Spot[]> = signal([]);
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
   selectedCommunityLanding = signal<CommunityLandingPageData | null>(null);
+  /**
+   * Event currently shown as a preview on the map (sidebar / bottom-sheet).
+   * Set when the user clicks an event from the community panel or the
+   * map island. Distinct from "navigated to /events/<slug>" — that's the
+   * full event page; this is the lightweight preview that keeps the map
+   * underneath.
+   */
+  selectedEvent = signal<PkEvent | null>(null);
   selectedPoi = signal<PoiData | null>(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
   selectedSpotIdForEdits = computed(() => {
@@ -349,8 +362,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ----- Map island state -----
   private _eventsService = inject(EventsService);
+  private _landingPagesService = inject(LandingPagesService);
   /** All events whose promo is currently active (loaded once on init). */
   private _promotableEvents = signal<PkEvent[]>([]);
+  /**
+   * All published community pages with `bounds_center` + `bounds_radius_m`,
+   * loaded once. Used to surface the community variant of the map island
+   * by viewport-intersection (no route required).
+   */
+  private _promotableCommunities = signal<
+    Array<{
+      data: CommunityLandingPageData;
+      center: { lat: number; lng: number };
+      radiusM: number;
+    }>
+  >([]);
   /** Latest visible viewport, expressed as a bounds box for intersection checks. */
   private _viewport = signal<{
     north: number;
@@ -385,16 +411,66 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (event) return { kind: "event", event };
     }
 
-    const community = this.selectedCommunityLanding();
+    // Route-driven community wins: if the user navigated to /map/community/...
+    // we definitely want to show that one. Falls back to a viewport match
+    // (so panning the map to an area surfaces its community without needing
+    // an explicit route).
+    const dismissedCommunities = this._dismissedCommunityKeys();
+    const routeCommunity = this.selectedCommunityLanding();
     if (
-      community &&
-      !this._dismissedCommunityKeys().has(community.communityKey)
+      routeCommunity &&
+      !dismissedCommunities.has(routeCommunity.communityKey)
     ) {
-      return { kind: "community", community };
+      return { kind: "community", community: routeCommunity };
+    }
+
+    if (viewport) {
+      // Pick the smallest-radius (most-specific) community whose center+radius
+      // intersects the visible viewport. "Smallest first" surfaces a city
+      // before its country when the user is zoomed in to that city.
+      const viewportCommunity = this._promotableCommunities()
+        .filter(
+          (c) =>
+            !dismissedCommunities.has(c.data.communityKey) &&
+            this._viewportIntersectsCircle(viewport, c.center, c.radiusM)
+        )
+        .sort((a, b) => a.radiusM - b.radiusM)[0];
+      if (viewportCommunity) {
+        return { kind: "community", community: viewportCommunity.data };
+      }
     }
 
     return null;
   });
+
+  /**
+   * Approximate intersection of a viewport rectangle and a geographic circle.
+   * Mirrors the helper on `Event` so we don't reach across model boundaries.
+   */
+  private _viewportIntersectsCircle(
+    viewport: { north: number; south: number; east: number; west: number },
+    center: { lat: number; lng: number },
+    radiusM: number
+  ): boolean {
+    const closestLat = Math.max(
+      viewport.south,
+      Math.min(center.lat, viewport.north)
+    );
+    const closestLng = Math.max(
+      viewport.west,
+      Math.min(center.lng, viewport.east)
+    );
+    const R = 6371e3;
+    const φ1 = (center.lat * Math.PI) / 180;
+    const φ2 = (closestLat * Math.PI) / 180;
+    const Δφ = ((closestLat - center.lat) * Math.PI) / 180;
+    const Δλ = ((closestLng - center.lng) * Math.PI) / 180;
+    const h =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const distanceM = 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+    return distanceM <= radiusM;
+  }
 
   onViewportBoundsChange(bounds: google.maps.LatLngBounds): void {
     const ne = bounds.getNorthEast();
@@ -427,8 +503,24 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     void this.router.navigate(["/events", event.slug ?? event.id]);
   }
 
+  /**
+   * Open the community panel without triggering a route navigation. The map
+   * page is mounted on a separate top-level route from `/map/community/<slug>`,
+   * so a normal `router.navigateByUrl` would unmount and remount the map
+   * (refreshing tiles, re-fetching spots, etc.). Instead we set the panel
+   * state directly and patch the URL via `Location.replaceState` so the page
+   * is still shareable / reloadable.
+   */
   onIslandOpenCommunity(community: CommunityLandingPageData): void {
-    void this.router.navigateByUrl(community.canonicalPath);
+    this.selectedCommunityLanding.set(community);
+    this._location.replaceState(community.canonicalPath);
+    this._dismissedCommunityKeys.update((set) => {
+      // Clearing a previous dismissal is the right thing here — the user
+      // just explicitly opened it.
+      const next = new Set(set);
+      next.delete(community.communityKey);
+      return next;
+    });
   }
 
   /** Stores custom filter parameters when using the Filters dialog */
@@ -460,12 +552,66 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         // also clear the placeholder if it was just loading
       }
 
+      // Tapping the map should also dismiss an open community panel or
+      // event preview — the user expects the same "click outside to close"
+      // behavior as for spots.
+      if (this.selectedEvent()) {
+        this.closeEventPreview();
+      }
+      if (this.selectedCommunityLanding()) {
+        this.closeCommunityPanel();
+      }
+
       this.showSpotEditHistory.set(false);
       this.closeChallenge(false);
 
       // Update URL to remove selected spot/poi
       this.updateMapURL();
     });
+  }
+
+  /**
+   * Open an event as a preview panel on the map (no navigation away). Used
+   * when the user clicks an event card inside the community panel — we want
+   * to keep them on the map rather than routing to `/events/<slug>`.
+   *
+   * Pans the map to the event's bounds when possible so the user sees the
+   * relevant area as soon as the preview opens.
+   */
+  openEventPreview(event: PkEvent): void {
+    this.selectedEvent.set(event);
+
+    const bounds = event.bounds;
+    if (this.spotMap && bounds && typeof google !== "undefined") {
+      try {
+        const latLngBounds = new google.maps.LatLngBounds(
+          { lat: bounds.south, lng: bounds.west },
+          { lat: bounds.north, lng: bounds.east }
+        );
+        this.spotMap.focusBounds?.(latLngBounds);
+      } catch (err) {
+        console.warn("openEventPreview: focusBounds failed", err);
+      }
+    }
+  }
+
+  closeEventPreview(): void {
+    this.selectedEvent.set(null);
+  }
+
+  /**
+   * Close the community landing panel without navigating. Same reasoning as
+   * `onIslandOpenCommunity`: a `router.navigate` would remount the map.
+   */
+  closeCommunityPanel(): void {
+    if (!this.selectedCommunityLanding()) {
+      return;
+    }
+    this.selectedCommunityLanding.set(null);
+    // Strip the /community/<slug> segment from the URL while preserving
+    // any query params the map page is using.
+    const queryString = window?.location?.search ?? "";
+    this._location.replaceState(`/map${queryString}`);
   }
 
   // Handle clicks on custom amenity markers (bubbled up from SpotMap via markerClickEvent)
@@ -552,9 +698,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isServer = isPlatformServer(platformId);
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
 
-    // Load events whose map-island promo is currently active. One-shot fetch
-    // is fine for now: the events collection is small and an admin-driven
-    // change won't need live propagation in a session.
+    // Load events + promotable communities for the map island. One-shot
+    // fetch — both collections are small and admin-curated, no need for
+    // live propagation within a session.
     if (isPlatformBrowser(this.platformId)) {
       afterNextRender(() => {
         this._eventsService
@@ -562,6 +708,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .then((events) => this._promotableEvents.set(events))
           .catch((err) =>
             console.warn("MapPage: failed to load promotable events", err)
+          );
+        this._landingPagesService
+          .getPromotableCommunityPages()
+          .then((communities) =>
+            this._promotableCommunities.set(communities)
+          )
+          .catch((err) =>
+            console.warn(
+              "MapPage: failed to load promotable communities",
+              err
+            )
           );
       });
     }

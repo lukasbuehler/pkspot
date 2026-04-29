@@ -30,6 +30,15 @@ These instructions apply to all work in this repository.
 - Use `providedIn: 'root'` for singleton services.
 - Use `inject()` instead of constructor injection where practical.
 
+## Theme colors
+
+- Use Material 3 system tokens (`var(--mat-sys-primary)`, `var(--mat-sys-secondary)`, etc.) — never hardcoded hex unless used as a fallback.
+- **Green (`--mat-sys-secondary`) is reserved for live / "happening now" things**: active check-ins, live events, the active nav-rail item, "ongoing" status badges, anything indicating a real-time presence.
+- **Blue (`--mat-sys-primary`) is the highlight color**: spot pins, primary CTAs ("Sign in", "Add Spot"), important buttons, active selections, links inside body copy.
+- **Red (`--mat-sys-error`) is reserved for destructive / past / error states**: past-event banners, validation errors, delete confirmations.
+- Tertiary, surface variants, and outline tokens are general-purpose and can be used freely for UI structure.
+- Do not use the green accent for static decoration — overuse breaks the "this is happening live" signal.
+
 ## Icon workflow
 
 - When introducing a new Material Symbols icon name in templates or code:
