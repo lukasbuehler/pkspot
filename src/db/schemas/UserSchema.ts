@@ -23,6 +23,7 @@ export interface UserSchema {
   spot_edits_count?: number; // Total edits made by this user (set by Cloud Function)
   media_added_count?: number; // Media items added by this user (set by Cloud Function)
   signup_number?: number; // Permanent user signup number for early adopter badges (set by Cloud Function)
+  is_admin?: boolean; // Admin-only moderation access (set manually/server-side)
   special_badges?: string[]; // Special badges granted by admin/events (e.g., 'beta_tester', 'swissjam_25')
   blocked_users?: string[]; // IDs of users blocked by this user
   pinned_badges?: string[]; // User's preferred display order for badges (max 5)

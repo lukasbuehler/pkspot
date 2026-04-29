@@ -12,6 +12,7 @@ export class User {
   public startDate: Date | null = null;
   public followerCount: number = 0;
   public visitedSpotsCount: number = 0;
+  public isAdmin: boolean = false;
   public nationalityCode: string | null = null;
   public homeCity: string | null = null;
   public socials: UserSocialsSchema | null = null;
@@ -55,6 +56,7 @@ export class User {
       this.followerCount = this._data.follower_count;
     }
     this.visitedSpotsCount = this._data.visited_spots_count ?? 0;
+    this.isAdmin = this._data.is_admin ?? false;
 
     this.nationalityCode = this._data.nationality_code ?? null;
     this.homeCity = this._data.home_city ?? null;

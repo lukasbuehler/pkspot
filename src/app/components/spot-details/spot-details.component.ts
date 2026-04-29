@@ -478,6 +478,7 @@ export class SpotDetailsComponent
   bookmarked = signal<boolean>(false);
   isBookmarkUpdating = signal<boolean>(false);
   isVisitedUpdating = signal<boolean>(false);
+  isDeletingSpot = signal<boolean>(false);
 
   allSpotSlugs: string[] = [];
   newSlug: string = "";
@@ -1159,6 +1160,42 @@ export class SpotDetailsComponent
   focusButtonClick() {
     console.log("Focus button clicked");
     this.focusClick.emit();
+  }
+
+  isAdmin(): boolean {
+    return this.authenticationService.user.data?.isAdmin === true;
+  }
+
+  async deleteSpotClick(): Promise<void> {
+    const spot = this.spot();
+    if (!(spot instanceof Spot) || !this.isAdmin() || this.isDeletingSpot()) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      $localize`Delete this spot and all of its reviews and edits? This cannot be undone.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.isDeletingSpot.set(true);
+    try {
+      await this._spotsService.deleteSpotCascade(spot.id);
+      this._analyticsService.trackEvent("Delete Spot", { spotId: spot.id });
+      this._snackbar.open($localize`Spot deleted`, undefined, {
+        duration: 2500,
+      });
+      this.dismiss.emit(true);
+      void this._router.navigate(["/map"]);
+    } catch (error) {
+      console.error("Failed to delete spot", error);
+      this._snackbar.open($localize`Failed to delete spot`, undefined, {
+        duration: 3000,
+      });
+    } finally {
+      this.isDeletingSpot.set(false);
+    }
   }
 
   rateClick() {

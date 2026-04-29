@@ -653,6 +653,23 @@
           >Report</span
         >
       </button>
+      @if (isAdmin()) {
+      <button
+        mat-stroked-button
+        color="warn"
+        matTooltip="Delete this spot"
+        aria-label="Delete spot"
+        class="flex-grow-1 flex-basis-0"
+        [disabled]="isDeletingSpot()"
+        (click)="deleteSpotClick()"
+      >
+        <mat-icon>delete</mat-icon>
+        <span
+          i18n="delete spot button label|Label of the button to delete the spot"
+          >Delete</span
+        >
+      </button>
+      }
     </div>
     <mat-divider class="mb-3"></mat-divider>
     }

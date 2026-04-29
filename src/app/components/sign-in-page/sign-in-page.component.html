@@ -1,256 +1,202 @@
-<div class="account-page container">
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-10">
-      <img
-        src="assets/logos/pkspot/pkspot_logo_oneline_dark.png"
-        alt="PK Spot"
-        class="brand-logo"
-      />
-
-      <section class="account-panel account-hero">
-        <p class="eyebrow mat-label-large" i18n="account page eyebrow@@account.eyebrow">
-          Account
-        </p>
-        <h1
-          class="mat-display-small"
-          i18n="account page title|Title of the account page@@account.title"
-        >
-          Make PK Spot yours
-        </h1>
-        <p
-          class="mat-body-large hero-copy"
-          i18n="account page intro|Intro text on the account page@@account.intro"
-        >
-          Choose your language, sign in when you are ready, and see what you
-          get with an account before you join.
-        </p>
-      </section>
-
-      <section class="account-panel language-panel">
-        <div class="section-header">
-          <div>
-            <p class="mat-label-large section-kicker" i18n="account language kicker@@account.language.kicker">
-              Language
-            </p>
-            <h2
-              class="mat-headline-small"
-              i18n="account language title|Heading for account language section@@account.language.title"
-            >
-              Pick the language used in the app
-            </h2>
-            <p
-              class="mat-body-large section-copy"
-              i18n="account language description|Description for account language section@@account.language.description"
-            >
-              You do not need an account to switch languages.
-            </p>
-          </div>
-          <button
-            mat-stroked-button
-            color="primary"
-            class="language-button"
-            (click)="uiLanguage.changeLanguage()"
-          >
-            <mat-icon>language</mat-icon>
-            <span>
-              {{
-                languageCodes[uiLanguage.currentUiLocale]?.name_native ??
-                  uiLanguage.currentUiLocale
-              }}
-            </span>
-          </button>
-        </div>
-      </section>
-
-      <div class="row g-4 align-items-stretch">
-        <div class="col-12 col-lg-7">
-          <section class="account-panel auth-panel h-100">
-            <p class="mat-label-large section-kicker" i18n="account auth kicker@@account.auth.kicker">
-              Sign in
-            </p>
-            <h2
-              class="mat-headline-small"
-              i18n="account auth title|Heading for account auth section@@account.auth.title"
-            >
-              Sign in or create an account
-            </h2>
-            <p
-              class="mat-body-large section-copy"
-              i18n="account auth description|Description for account auth section@@account.auth.description"
-            >
-              Use your email and password, or continue with Google or Apple.
-            </p>
-
-            <div class="oauth-box">
-              <h3
-                class="mat-title-medium"
-                i18n="other signin options header|Header for other sign-in options@@signin.other_options.header"
-              >
-                Quick sign-in options
-              </h3>
-              <app-oauth-sign-in-buttons
-                layout="column"
-                [disabled]="isSubmitting"
-                (start)="isSubmitting = true"
-                (success)="onOAuthSuccess()"
-                (error)="onOAuthError($event)"
-              ></app-oauth-sign-in-buttons>
-            </div>
-
-            <mat-divider class="section-divider"></mat-divider>
-
-            @if(signInForm) {
-            <form
-              [formGroup]="signInForm"
-              class="d-flex flex-column"
-              (ngSubmit)="trySignIn(signInForm.value)"
-            >
-              <h3
-                class="mat-title-medium"
-                i18n="email password section header|Header for email and password section@@signin.email_password.header"
-              >
-                E-Mail and password
-              </h3>
-              <mat-form-field appearance="outline">
-                <mat-label>E-Mail</mat-label>
-                <input matInput type="email" formControlName="email" />
-                @if(emailFieldHasError) {
-                <mat-error
-                  i18n="email validation error|Error message for invalid email@@signin.email.validation_error"
-                >
-                  This E-Mail address is not valid!
-                </mat-error>
-                }
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Password</mat-label>
-                <input matInput type="password" formControlName="password" />
-                @if(passwordFieldHasError) {
-                <mat-error
-                  i18n="password validation error|Error message for empty password@@signin.password.validation_error"
-                >
-                  The password field is empty!
-                </mat-error>
-                }
-              </mat-form-field>
-
-              @if(signInError) {
-              <div class="mt-3 alert alert-danger">
-                {{ signInError }}
-              </div>
-              }
-
-              <div class="auth-actions">
-                <button mat-flat-button type="submit" [disabled]="isSubmitting">
-                  <mat-icon>login</mat-icon>
-                  <span i18n="sign in button|Button to sign in@@signin.button">
-                    Sign in
-                  </span>
-                </button>
-                <button mat-stroked-button routerLink="/forgot-password">
-                  <mat-icon>lock_reset</mat-icon>
-                  <span
-                    i18n="forgot password button|Button to reset password@@signin.forgot_password.button"
-                  >
-                    Forgot password
-                  </span>
-                </button>
-                <button
-                  mat-stroked-button
-                  routerLink="/sign-up"
-                  queryParamsHandling="preserve"
-                >
-                  <mat-icon>person_add</mat-icon>
-                  <span i18n="sign up button|Button to sign up@@signin.signup.button">
-                    Create account
-                  </span>
-                </button>
-              </div>
-            </form>
-            }
-          </section>
-        </div>
-
-        <div class="col-12 col-lg-5">
-          <section class="account-panel benefits-panel h-100">
-            <p class="mat-label-large section-kicker" i18n="account benefits kicker@@account.benefits.kicker">
-              Why join
-            </p>
-            <h2
-              class="mat-headline-small"
-              i18n="account benefits title|Heading for account benefits section@@account.benefits.title"
-            >
-              Why create an account?
-            </h2>
-            <p
-              class="mat-body-large section-copy"
-              i18n="account benefits description|Description for account benefits section@@account.benefits.description"
-            >
-              PK Spot works without forcing sign-in first, but an account gives
-              you a better way to contribute and keep track of the spots you
-              care about.
-            </p>
-
-            <div class="benefits-list">
-              @for (benefit of accountBenefits; track benefit.title) {
-              <div class="benefit-item">
-                <div class="benefit-icon">
-                  <mat-icon>{{ benefit.icon }}</mat-icon>
-                </div>
-                <div>
-                  <h3 class="mat-title-medium">{{ benefit.title }}</h3>
-                  <p class="mat-body m-0">{{ benefit.description }}</p>
-                </div>
-              </div>
-              }
-            </div>
-
-            <mat-divider class="section-divider"></mat-divider>
-
-            <div class="privacy-box">
-              <div class="privacy-header">
-                <mat-icon>shield</mat-icon>
-                <h3
-                  class="mat-title-medium m-0"
-                  i18n="account privacy title|Heading for privacy note@@account.privacy.title"
-                >
-                  Privacy
-                </h3>
-              </div>
-              <p
-                class="mat-body m-0"
-                i18n="account privacy description|Short privacy note on account page@@account.privacy.description"
-              >
-                We only ask for the information we need to run your account and
-                the features you choose to use. You can read the full details in
-                our privacy policy and terms of service.
-              </p>
-            </div>
-          </section>
-        </div>
-      </div>
-
-      <section class="legal-actions">
-        <a mat-stroked-button routerLink="/privacy-policy" class="legal-button">
-          <mat-icon>policy</mat-icon>
-          <span i18n="account privacy policy button@@account.privacy_policy.button">
-            Privacy Policy
-          </span>
-        </a>
-        <a mat-stroked-button routerLink="/terms-of-service" class="legal-button">
-          <mat-icon>gavel</mat-icon>
-          <span i18n="account terms button@@account.terms.button">
-            Terms of Service
-          </span>
-        </a>
-      </section>
-
-      <div class="support-copy text-center">
-        <p class="mat-body-small text-muted" i18n>
-          Need help?
-          <a routerLink="/support">Visit our support page</a>
-        </p>
-      </div>
-    </div>
+<div class="account-page">
+  <div class="language-strip">
+    <span
+      class="mat-label-medium language-label"
+      i18n="account language inline label@@account.language.inline_label"
+    >
+      App language
+    </span>
+    <button
+      mat-stroked-button
+      color="primary"
+      class="language-button"
+      (click)="uiLanguage.changeLanguage()"
+    >
+      <mat-icon>language</mat-icon>
+      <span>
+        {{
+          languageCodes[uiLanguage.currentUiLocale]?.name_native ??
+            uiLanguage.currentUiLocale
+        }}
+      </span>
+    </button>
   </div>
+
+  <div class="account-grid">
+    <section class="account-panel auth-panel">
+      <p
+        class="mat-label-large section-kicker"
+        i18n="account auth kicker@@account.auth.kicker"
+      >
+        Sign in
+      </p>
+      <h2
+        class="mat-headline-small"
+        i18n="
+          account auth title|Heading for account auth
+          section@@account.auth.title"
+      >
+        Sign in or create an account
+      </h2>
+
+      <app-oauth-sign-in-buttons
+        layout="row"
+        [disabled]="isSubmitting"
+        (start)="isSubmitting = true"
+        (success)="onOAuthSuccess()"
+        (error)="onOAuthError($event)"
+      ></app-oauth-sign-in-buttons>
+
+      <div class="divider-row">
+        <mat-divider class="flex-grow-1"></mat-divider>
+        <span class="mat-label-medium" i18n="@@signin.divider_or">or</span>
+        <mat-divider class="flex-grow-1"></mat-divider>
+      </div>
+
+      @if (signInForm) {
+        <form
+          [formGroup]="signInForm"
+          class="d-flex flex-column"
+          (ngSubmit)="trySignIn(signInForm.value)"
+        >
+          <mat-form-field appearance="outline">
+            <mat-label>E-Mail</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+            />
+            @if (emailFieldHasError) {
+              <mat-error
+                i18n="
+                  email validation error|Error message for invalid
+                  email@@signin.email.validation_error"
+              >
+                This E-Mail address is not valid!
+              </mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Password</mat-label>
+            <input
+              matInput
+              type="password"
+              formControlName="password"
+              autocomplete="current-password"
+            />
+            @if (passwordFieldHasError) {
+              <mat-error
+                i18n="
+                  password validation error|Error message for empty
+                  password@@signin.password.validation_error"
+              >
+                The password field is empty!
+              </mat-error>
+            }
+          </mat-form-field>
+
+          @if (signInError) {
+            <div class="alert alert-danger mb-2">
+              {{ signInError }}
+            </div>
+          }
+
+          <div class="auth-actions">
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="isSubmitting"
+            >
+              <mat-icon>login</mat-icon>
+              <span i18n="sign in button|Button to sign in@@signin.button">
+                Sign in
+              </span>
+            </button>
+            <a mat-stroked-button routerLink="/forgot-password">
+              <mat-icon>lock_reset</mat-icon>
+              <span
+                i18n="
+                  forgot password button|Button to reset
+                  password@@signin.forgot_password.button"
+              >
+                Forgot password
+              </span>
+            </a>
+            <a
+              mat-stroked-button
+              routerLink="/sign-up"
+              queryParamsHandling="preserve"
+            >
+              <mat-icon>person_add</mat-icon>
+              <span
+                i18n="sign up button|Button to sign up@@signin.signup.button"
+              >
+                Create account
+              </span>
+            </a>
+          </div>
+        </form>
+      }
+    </section>
+
+    <section class="account-panel benefits-panel">
+      <p
+        class="mat-label-large section-kicker"
+        i18n="account benefits kicker@@account.benefits.kicker"
+      >
+        Why join
+      </p>
+      <h2
+        class="mat-headline-small"
+        i18n="
+          account benefits title|Heading for account benefits
+          section@@account.benefits.title"
+      >
+        Why create an account?
+      </h2>
+      <p
+        class="mat-body-medium section-copy"
+        i18n="
+          account benefits description|Description for account benefits
+          section@@account.benefits.description"
+      >
+        PK Spot works without forcing sign-in first, but an account gives you a
+        better way to contribute and keep track of the spots you care about.
+      </p>
+
+      <div class="benefits-list">
+        @for (benefit of accountBenefits; track benefit.title) {
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <mat-icon>{{ benefit.icon }}</mat-icon>
+            </div>
+            <div>
+              <h3 class="mat-title-medium m-0">{{ benefit.title }}</h3>
+              <p class="mat-body-small m-0">{{ benefit.description }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+
+  <footer class="account-footer">
+    <a routerLink="/privacy-policy" class="footer-link">
+      <span i18n="account privacy policy button@@account.privacy_policy.button">
+        Privacy Policy
+      </span>
+    </a>
+    <span class="dot" aria-hidden="true">·</span>
+    <a routerLink="/terms-of-service" class="footer-link">
+      <span i18n="account terms button@@account.terms.button">
+        Terms of Service
+      </span>
+    </a>
+    <span class="dot" aria-hidden="true">·</span>
+    <a routerLink="/support" class="footer-link">
+      <span i18n>Support</span>
+    </a>
+  </footer>
 </div>

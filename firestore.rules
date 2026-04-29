@@ -2,6 +2,10 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth.uid != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.is_admin == true;
+    }
 
     match /spots/{spotId}
     {
@@ -15,7 +19,8 @@ service cloud.firestore {
       // Updates are disabled - changes must go through the edits system
       allow create: if request.auth.uid != null 
         && request.resource.data.keys().size() == 0;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if isAdmin();
       // allow write: if request.auth.uid != null &&
       //   (resource == null || resource.data == null ?
       //      !request.resource.data.keys().hasAny(['rating', 'num_reviews', 'rating_histogram', 'highlighted_reviews']) :
@@ -37,9 +42,9 @@ service cloud.firestore {
           && request.resource.data.rating is int 
           && request.resource.data.rating >= 1 
           && request.resource.data.rating <= 5;
-        allow delete: if request.auth.uid != null
-          && request.auth.uid == request.resource.data.user.uid
-          && request.auth.uid == userId;
+        allow delete: if isAdmin() || (request.auth.uid != null
+          && request.auth.uid == resource.data.user.uid
+          && request.auth.uid == userId);
       }
 
       // Spot Reports
@@ -50,7 +55,8 @@ service cloud.firestore {
         allow read: if true;
         allow create: if request.auth.uid != null 
           && request.auth.uid == request.resource.data.user.uid;
-        allow update, delete: if false;
+        allow update: if false;
+        allow delete: if isAdmin();
       }
 
       // Spot Challenges
@@ -59,8 +65,9 @@ service cloud.firestore {
         allow read: if (!('release_date' in resource.data)) ||
           (resource.data.release_date <= request.time) ||
           (resource.data.user.uid == request.auth.uid);
-        allow write: if request.auth.uid != null 
+        allow create, update: if request.auth.uid != null 
           && request.auth.uid == request.resource.data.user.uid;
+        allow delete: if isAdmin();
       }
 
       match /edits/{editId}
@@ -68,7 +75,8 @@ service cloud.firestore {
         allow read: if true; // edits are publicly readable
         allow create: if request.auth.uid != null 
           && request.auth.uid == request.resource.data.user.uid;
-        allow update, delete: if false;
+        allow update: if false;
+        allow delete: if isAdmin();
 
         match /votes/{userId}
         {
@@ -76,7 +84,7 @@ service cloud.firestore {
           allow create, update: if request.auth.uid != null 
             && request.auth.uid == userId
             && request.auth.uid == request.resource.data.user.uid;
-          allow delete: if false;
+          allow delete: if isAdmin();
         }
       }
     }
@@ -96,7 +104,8 @@ service cloud.firestore {
         && !exists(/databases/$(database)/documents/spot_slugs/$(slug))
         && exists(/databases/$(database)/documents/spots/$(request.resource.data.spot_id));
 
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if isAdmin();
     }
 
     match /event_slugs/{slug} {
@@ -153,9 +162,9 @@ service cloud.firestore {
       allow read: if true;
       // It is not allowed to update protected fields. These are handled by cloud functions.
       allow create: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'special_badges']);
+         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges']);
       allow update: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'special_badges']);
+         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges']);
       allow delete: if request.auth.uid != null && request.auth.uid == userId;
 
       match /following/{otherUserId} {

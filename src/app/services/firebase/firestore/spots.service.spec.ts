@@ -161,6 +161,52 @@ describe("SpotsService", () => {
     });
   });
 
+  describe("deleteSpotCascade", () => {
+    it("should delete nested spot data and slug aliases before the spot document", async () => {
+      mockFirestoreAdapter.getCollection.mockImplementation(
+        (collectionPath: string) => {
+          const collections: Record<string, Array<{ id: string }>> = {
+            "spots/spot-delete/reviews": [{ id: "review-1" }],
+            "spots/spot-delete/reports": [{ id: "report-1" }],
+            "spots/spot-delete/challenges": [{ id: "challenge-1" }],
+            "spots/spot-delete/edits": [{ id: "edit-1" }],
+            "spots/spot-delete/edits/edit-1/votes": [{ id: "vote-1" }],
+            spot_slugs: [{ id: "old-slug" }],
+          };
+          return Promise.resolve(collections[collectionPath] ?? []);
+        }
+      );
+
+      await service.deleteSpotCascade("spot-delete" as SpotId);
+
+      expect(mockFirestoreAdapter.getCollection).toHaveBeenCalledWith(
+        "spot_slugs",
+        [{ fieldPath: "spot_id", opStr: "==", value: "spot-delete" }]
+      );
+      expect(mockFirestoreAdapter.deleteDocument).toHaveBeenCalledWith(
+        "spots/spot-delete/reviews/review-1"
+      );
+      expect(mockFirestoreAdapter.deleteDocument).toHaveBeenCalledWith(
+        "spots/spot-delete/reports/report-1"
+      );
+      expect(mockFirestoreAdapter.deleteDocument).toHaveBeenCalledWith(
+        "spots/spot-delete/challenges/challenge-1"
+      );
+      expect(mockFirestoreAdapter.deleteDocument).toHaveBeenCalledWith(
+        "spots/spot-delete/edits/edit-1/votes/vote-1"
+      );
+      expect(mockFirestoreAdapter.deleteDocument).toHaveBeenCalledWith(
+        "spots/spot-delete/edits/edit-1"
+      );
+      expect(mockFirestoreAdapter.deleteDocument).toHaveBeenCalledWith(
+        "spot_slugs/old-slug"
+      );
+      expect(mockFirestoreAdapter.deleteDocument).toHaveBeenLastCalledWith(
+        "spots/spot-delete"
+      );
+    });
+  });
+
   describe("getSpotsForTiles", () => {
     it("should query spots for each tile", async () => {
       const mockSpots = [

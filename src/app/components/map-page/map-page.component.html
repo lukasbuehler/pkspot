@@ -344,7 +344,7 @@
     </button> -->
   </div>
 
-  @if( isSignedIn() && !isEditing() && spotMap.mapZoom() >= 14 &&
+  @if( isSignedIn() && !selectedSpot() && !isEditing() && spotMap.mapZoom() >= 14 &&
   !(responsiveService.isMobile() && (bottomSheetOpen() || bottomSheetProgress()
   > 0)) ) {
   <!-- Add / import spots speed dial-->
