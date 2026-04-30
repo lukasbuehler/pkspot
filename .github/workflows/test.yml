@@ -159,3 +159,50 @@ jobs:
 
       - name: Build and smoke-test SSR
         run: npm run test:build
+
+  emulator-tests:
+    name: Firebase Emulator Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests, lint]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Functions dependencies
+        run: npm ci --prefix functions
+
+      - name: Build Functions
+        run: npm --prefix functions run build
+
+      - name: Run spot edit emulator tests
+        run: npm run test:emulator:spot-edits
+
+      - name: Run community emulator tests
+        run: npm run emulators:test:community
+
+      - name: Upload emulator logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firebase-emulator-logs
+          path: |
+            firebase-debug.log
+            firestore-debug.log
+            ui-debug.log
+          retention-days: 7

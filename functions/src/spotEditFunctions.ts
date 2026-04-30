@@ -4,6 +4,7 @@ import {
   onDocumentWritten,
 } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 
@@ -44,6 +45,11 @@ interface SpotEditVoteSummary {
   eligible_for_auto_approval: boolean;
 }
 
+interface Coordinate {
+  latitude: number;
+  longitude: number;
+}
+
 const VOTE_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MIN_TOTAL_VOTES = 2;
 const MIN_YES_NO_RATIO = 3;
@@ -54,6 +60,28 @@ const PENDING_VOTE_EDITS_FALLBACK_SCAN_LIMIT = 900;
 // Keep legacy "instant apply" behavior for iconic/verified spots until clients
 // with voting UI are broadly deployed. Flip to true when ready.
 const VOTING_ON_LOCKED_SPOTS_ENABLED = false;
+
+const PROTECTED_SPOT_EDIT_FIELDS = new Set([
+  "address",
+  "duplicate_check",
+  "highlighted_reviews",
+  "isMiniSpot",
+  "isReported",
+  "is_iconic",
+  "landing",
+  "name_search",
+  "num_challenges",
+  "num_reviews",
+  "rating",
+  "rating_histogram",
+  "reportReason",
+  "thumbnail_medium_url",
+  "thumbnail_small_url",
+  "tile_coordinates",
+  "time_created",
+  "time_updated",
+  "top_challenges",
+]);
 
 /**
  * Triggered when a new spot edit is created.
@@ -116,7 +144,7 @@ export const applySpotEditOnCreate = onDocumentCreated(
             processing_status: processingStatus,
             blocked_reason: blockedReason,
             vote_summary: createEmptyVoteSummary(),
-            processed_at: admin.firestore.FieldValue.serverTimestamp(),
+            processed_at: FieldValue.serverTimestamp(),
           });
 
           console.log(
@@ -128,7 +156,9 @@ export const applySpotEditOnCreate = onDocumentCreated(
 
       // For CREATE edits, update the existing (initially empty) spot document with the data
       if (editData.type === "CREATE") {
-        const { source: _ignoredSource, ...createPayload } = editData.data || {};
+        const { source: _ignoredSource, ...rawCreatePayload } =
+          editData.data || {};
+        const createPayload = removeProtectedSpotEditFields(rawCreatePayload);
         const createData: any = {
           ...createPayload,
           // Set source to pkspot for user-created spots
@@ -137,41 +167,8 @@ export const applySpotEditOnCreate = onDocumentCreated(
           is_iconic: false,
         };
 
-        // Ensure location is a proper GeoPoint if it exists and compute tile coordinates
-        if (createData.location) {
-          let latitude: number;
-          let longitude: number;
-
-          // If location is already a GeoPoint, keep it; otherwise convert it
-          if (
-            createData.location._latitude === undefined &&
-            createData.location.latitude !== undefined
-          ) {
-            // It's a plain object with latitude/longitude, convert to GeoPoint
-            latitude = createData.location.latitude;
-            longitude = createData.location.longitude;
-            createData.location = new admin.firestore.GeoPoint(
-              latitude,
-              longitude
-            );
-          } else if (createData.location._latitude !== undefined) {
-            // It's already a GeoPoint, extract coordinates
-            latitude = createData.location._latitude;
-            longitude = createData.location._longitude;
-          } else {
-            console.error("Invalid location format for spot", spotId);
-            throw new Error("Invalid location format");
-          }
-
-          // Compute tile coordinates for the location
-          createData.tile_coordinates = computeTileCoordinates(
-            latitude,
-            longitude
-          );
-
-          // Always write location_raw
-          createData.location_raw = { lat: latitude, lng: longitude };
-        }
+        applyLocationFields(createData, spotId);
+        applyBoundsFields(createData, spotId);
 
         await spotRef.update(createData);
         console.log(
@@ -191,11 +188,17 @@ export const applySpotEditOnCreate = onDocumentCreated(
         "APPROVED_IMMEDIATE"
       );
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(
         `Error processing spot edit ${editId} for spot ${spotId}:`,
         error
       );
-      throw error;
+      await event.data?.ref.update({
+        approved: false,
+        processing_status: "ERROR",
+        blocked_reason: errorMessage,
+        processed_at: FieldValue.serverTimestamp(),
+      });
     }
   }
 );
@@ -252,6 +255,107 @@ function isFailedPreconditionError(error: unknown): boolean {
   }
 
   return false;
+}
+
+function readCoordinate(value: unknown): Coordinate | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const latitude =
+    typeof candidate["latitude"] === "number"
+      ? candidate["latitude"]
+      : typeof candidate["_latitude"] === "number"
+      ? candidate["_latitude"]
+      : typeof candidate["lat"] === "number"
+      ? candidate["lat"]
+      : null;
+  const longitude =
+    typeof candidate["longitude"] === "number"
+      ? candidate["longitude"]
+      : typeof candidate["_longitude"] === "number"
+      ? candidate["_longitude"]
+      : typeof candidate["lng"] === "number"
+      ? candidate["lng"]
+      : null;
+
+  if (typeof latitude !== "number" || typeof longitude !== "number") {
+    return null;
+  }
+
+  return { latitude, longitude };
+}
+
+function applyLocationFields(data: Record<string, unknown>, spotId: string): void {
+  const coordinate =
+    readCoordinate(data["location"]) ?? readCoordinate(data["location_raw"]);
+
+  if (!coordinate) {
+    if (data["location"] || data["location_raw"]) {
+      console.error("Invalid location format for spot", spotId);
+      throw new Error("Invalid location format");
+    }
+    return;
+  }
+
+  data["location"] = new GeoPoint(coordinate.latitude, coordinate.longitude);
+  data["tile_coordinates"] = computeTileCoordinates(
+    coordinate.latitude,
+    coordinate.longitude
+  );
+  data["location_raw"] = {
+    lat: coordinate.latitude,
+    lng: coordinate.longitude,
+  };
+}
+
+function applyBoundsFields(data: Record<string, unknown>, spotId: string): void {
+  const rawBounds = data["bounds"] ?? data["bounds_raw"];
+
+  if (rawBounds === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(rawBounds)) {
+    console.error("Invalid bounds format for spot", spotId);
+    throw new Error("Invalid bounds format");
+  }
+
+  const coordinates = rawBounds.map((point) => readCoordinate(point));
+  if (coordinates.some((point) => point === null)) {
+    console.error("Invalid bounds coordinate format for spot", spotId);
+    throw new Error("Invalid bounds coordinate format");
+  }
+
+  const normalizedCoordinates = coordinates as Coordinate[];
+  data["bounds"] = normalizedCoordinates.map(
+    (point) => new GeoPoint(point.latitude, point.longitude)
+  );
+  data["bounds_raw"] = normalizedCoordinates.map((point) => ({
+    lat: point.latitude,
+    lng: point.longitude,
+  }));
+}
+
+function buildNestedMergeUpdate(
+  fieldName: string,
+  values: Record<string, unknown>
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [
+      `${fieldName}.${key}`,
+      value === null ? FieldValue.delete() : value,
+    ])
+  );
+}
+
+function removeProtectedSpotEditFields(
+  data: Record<string, unknown>
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(data).filter(([key]) => !PROTECTED_SPOT_EDIT_FIELDS.has(key))
+  );
 }
 
 function extractFirestoreIndexUrl(error: unknown): string | null {
@@ -319,49 +423,19 @@ async function applyUpdateEditToSpot(
   // Extract fields that need special merge logic
   const { media, external_references, amenities, ...regularData } =
     editData.data;
-  const { source: _ignoredSource, ...regularDataWithoutSource } =
+  const { source: _ignoredSource, ...rawRegularDataWithoutSource } =
     regularData || {};
+  const regularDataWithoutSource = removeProtectedSpotEditFields(
+    rawRegularDataWithoutSource
+  );
 
   let updateData: any = {
     ...regularDataWithoutSource,
-    updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    updated_at: FieldValue.serverTimestamp(),
   };
 
-  // Ensure location is a proper GeoPoint if it exists and compute tile coordinates
-  if (updateData.location) {
-    let latitude: number;
-    let longitude: number;
-
-    // If location is already a GeoPoint, keep it; otherwise convert it
-    if (
-      updateData.location._latitude === undefined &&
-      updateData.location.latitude !== undefined
-    ) {
-      // It's a plain object with latitude/longitude, convert to GeoPoint
-      latitude = updateData.location.latitude;
-      longitude = updateData.location.longitude;
-      updateData.location = new admin.firestore.GeoPoint(
-        latitude,
-        longitude
-      );
-    } else if (updateData.location._latitude !== undefined) {
-      // It's already a GeoPoint, extract coordinates
-      latitude = updateData.location._latitude;
-      longitude = updateData.location._longitude;
-    } else {
-      console.error("Invalid location format for spot", spotId);
-      throw new Error("Invalid location format");
-    }
-
-    // Compute tile coordinates for the new location
-    updateData.tile_coordinates = computeTileCoordinates(
-      latitude,
-      longitude
-    );
-
-    // Always write location_raw
-    updateData.location_raw = { lat: latitude, lng: longitude };
-  }
+  applyLocationFields(updateData, spotId);
+  applyBoundsFields(updateData, spotId);
 
   // For media, we handle two cases based on modification_type:
   // 1. OVERWRITE: Completely replace the media list (used by new clients supporting deletions)
@@ -434,48 +508,15 @@ async function applyUpdateEditToSpot(
 
   // Handle external references: merge instead of replace
   if (external_references) {
-    const spotSnapshot = await spotRef.get();
-    if (spotSnapshot.exists) {
-      const spotData = spotSnapshot.data() as any;
-      const currentRefs = spotData["external_references"] || {};
-      updateData.external_references = {
-        ...currentRefs,
-        ...external_references,
-      };
-      // If a value is explicitly null, delete the field
-      Object.keys(updateData.external_references).forEach((key) => {
-        if (updateData.external_references[key] === null) {
-          updateData.external_references[key] =
-            admin.firestore.FieldValue.delete() as any;
-        }
-      });
-    } else {
-      // Spot doesn't exist yet
-      updateData.external_references = external_references;
-    }
+    Object.assign(
+      updateData,
+      buildNestedMergeUpdate("external_references", external_references)
+    );
   }
 
   // Handle amenities: merge instead of replace
   if (amenities) {
-    const spotSnapshot = await spotRef.get();
-    if (spotSnapshot.exists) {
-      const spotData = spotSnapshot.data() as any;
-      const currentAmenities = spotData["amenities"] || {};
-      updateData.amenities = {
-        ...currentAmenities,
-        ...amenities,
-      };
-      // If a value is explicitly null, delete the field
-      Object.keys(updateData.amenities).forEach((key) => {
-        if (updateData.amenities[key] === null) {
-          updateData.amenities[key] =
-            admin.firestore.FieldValue.delete() as any;
-        }
-      });
-    } else {
-      // Spot doesn't exist yet
-      updateData.amenities = amenities;
-    }
+    Object.assign(updateData, buildNestedMergeUpdate("amenities", amenities));
   }
 
   await spotRef.update(updateData);
@@ -490,9 +531,9 @@ async function markEditApprovedAndUpdateContributions(
   await editRef.update({
     approved: true,
     processing_status: processingStatus,
-    blocked_reason: admin.firestore.FieldValue.delete(),
-    processed_at: admin.firestore.FieldValue.serverTimestamp(),
-    decision_at: admin.firestore.FieldValue.serverTimestamp(),
+    blocked_reason: FieldValue.delete(),
+    processed_at: FieldValue.serverTimestamp(),
+    decision_at: FieldValue.serverTimestamp(),
   });
 
   console.log(`Marked edit ${editRef.id} as approved`);
@@ -500,19 +541,19 @@ async function markEditApprovedAndUpdateContributions(
   // Increment user contribution counters
   const userRef = db.collection("users").doc(editData.user.uid);
   const incrementData: Record<string, FirebaseFirestore.FieldValue> = {
-    spot_edits_count: admin.firestore.FieldValue.increment(1),
+    spot_edits_count: FieldValue.increment(1),
   };
 
   if (editData.type === "CREATE") {
     incrementData["spot_creates_count"] =
-      admin.firestore.FieldValue.increment(1);
+      FieldValue.increment(1);
   }
 
   // Count media items added in this edit
   const mediaItems = editData.data?.media;
   if (Array.isArray(mediaItems) && mediaItems.length > 0) {
     incrementData["media_added_count"] =
-      admin.firestore.FieldValue.increment(mediaItems.length);
+      FieldValue.increment(mediaItems.length);
   }
 
   await userRef.set(incrementData, { merge: true });
@@ -537,7 +578,7 @@ async function tryAcquireEditApplyLock(
     }
     tx.update(editRef, {
       processing_status: "APPLYING_VOTE",
-      processed_at: admin.firestore.FieldValue.serverTimestamp(),
+      processed_at: FieldValue.serverTimestamp(),
     });
     return true;
   });
@@ -585,7 +626,7 @@ async function evaluatePendingEditVotes(
     await editRef.update({
       processing_status: "VOTING_ERROR",
       blocked_reason: "Missing required field edit.user.uid",
-      processed_at: admin.firestore.FieldValue.serverTimestamp(),
+      processed_at: FieldValue.serverTimestamp(),
     });
     return;
   }
@@ -598,7 +639,7 @@ async function evaluatePendingEditVotes(
     await editRef.update({
       processing_status: "VOTING_ERROR",
       blocked_reason: "Missing required field edit.data",
-      processed_at: admin.firestore.FieldValue.serverTimestamp(),
+      processed_at: FieldValue.serverTimestamp(),
     });
     return;
   }
@@ -618,7 +659,7 @@ async function evaluatePendingEditVotes(
       editData.processing_status === "VOTING_FORCED_TEST"
         ? editData.processing_status
         : "VOTING_OPEN",
-    processed_at: admin.firestore.FieldValue.serverTimestamp(),
+    processed_at: FieldValue.serverTimestamp(),
   });
 
   if (!voteSummary.eligible_for_auto_approval) {
@@ -637,7 +678,7 @@ async function evaluatePendingEditVotes(
       await editRef.update({
         processing_status: "VOTING_ERROR",
         blocked_reason: `Referenced spot missing at ${spotRef.path}`,
-        processed_at: admin.firestore.FieldValue.serverTimestamp(),
+        processed_at: FieldValue.serverTimestamp(),
       });
       console.error("Pending vote evaluation failed because spot is missing", {
         ...context,
@@ -673,7 +714,7 @@ async function evaluatePendingEditVotes(
       await editRef.update({
         processing_status: "VOTING_ERROR",
         blocked_reason: errorMessage,
-        processed_at: admin.firestore.FieldValue.serverTimestamp(),
+        processed_at: FieldValue.serverTimestamp(),
       });
     } catch (updateError) {
       console.error("Failed to write VOTING_ERROR state for edit", {
@@ -813,8 +854,10 @@ async function updateLeaderboards(
     const userEntry: Omit<LeaderboardEntry, "count"> = {
       uid: userId,
       display_name: userData["display_name"] || "Anonymous",
-      profile_picture: userData["profile_picture"],
     };
+    if (typeof userData["profile_picture"] === "string") {
+      userEntry.profile_picture = userData["profile_picture"];
+    }
 
     // Always update the edits leaderboard
     await updateSingleLeaderboard(
@@ -882,7 +925,7 @@ async function updateSingleLeaderboard(
 
     transaction.set(leaderboardRef, {
       entries: topEntries,
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp(),
     });
   });
 

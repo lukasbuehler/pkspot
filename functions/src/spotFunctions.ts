@@ -1,4 +1,4 @@
-import { FieldValue, GeoPoint } from "firebase-admin/firestore";
+import { FieldValue, GeoPoint, Timestamp } from "firebase-admin/firestore";
 import {
   onDocumentCreated,
   onDocumentWritten,
@@ -183,7 +183,7 @@ const _makeDuplicateCheck = (
 ): NonNullable<SpotSchema["duplicate_check"]> => ({
   status: candidates.length > 0 ? "possible_duplicate" : "clear",
   radius_m: DUPLICATE_SPOT_RADIUS_METERS,
-  checked_at: admin.firestore.Timestamp.now(),
+  checked_at: Timestamp.now(),
   ...(candidates.length > 0 ? { candidates } : {}),
 });
 
@@ -461,10 +461,7 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
       if (afterData.location) {
         location = afterData.location as GeoPoint;
       } else if (afterData.location_raw) {
-        location = new admin.firestore.GeoPoint(
-          afterData.location_raw.lat,
-          afterData.location_raw.lng
-        );
+        location = new GeoPoint(afterData.location_raw.lat, afterData.location_raw.lng);
       } else {
         // Should not happen due to check above
         return null;

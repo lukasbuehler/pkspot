@@ -29,4 +29,17 @@ describe("MapPageComponent search template", () => {
 
     expect(addSpotButton).toContain("!selectedSpot()");
   });
+
+  it("should keep the Add Spot button renderable when signed in and zoomed in", () => {
+    const template = readFileSync(templatePath, "utf8");
+    const addSpotButton = template.match(
+      /@if\([\s\S]*?isSignedIn\(\)[\s\S]*?spotMap\.mapZoom\(\) >= 14[\s\S]*?<button[\s\S]*?id="createSpotSpeedDial"[\s\S]*?<\/button>/
+    )?.[0];
+
+    expect(addSpotButton).toBeDefined();
+    expect(addSpotButton).toContain("mat-fab");
+    expect(addSpotButton).toContain("(click)=");
+    expect(addSpotButton).toContain("spotMap.createSpot()");
+    expect(addSpotButton).toContain("Add Spot");
+  });
 });

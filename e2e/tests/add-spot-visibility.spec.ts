@@ -25,56 +25,44 @@ test.describe("Add Spot Button Visibility", () => {
     await expect(addSpotButton).not.toBeVisible();
   });
 
-  /**
-   * This test uses a mock to simulate an authenticated state
-   * to verify the button appears when the conditions are met.
-   */
   test("should show the Add Spot button when signed in and zoom is 14+", async ({ page }) => {
-    // 1. Mock the signed-in state
-    // We can do this by overriding the isSignedIn signal in MapPageComponent if we can access it
-    // Or by mocking the AuthenticationService via window.
-    await page.evaluate(() => {
-      // Try to find the MapPage component and set its isSignedIn signal
+    const mockApplied = await page.evaluate(() => {
+      const angular = (window as unknown as { ng?: {
+        getComponent?: (element: Element) => unknown;
+        applyChanges?: (component: unknown) => void;
+      } }).ng;
+
+      if (!angular?.getComponent) {
+        return false;
+      }
+
       const mapPageEl = document.querySelector("app-map-page");
-      if (mapPageEl) {
-        // @ts-ignore - Accessing Angular internal for testing
-        const component = (window as any).ng.getComponent(mapPageEl);
-        if (component && component.isSignedIn) {
-          component.isSignedIn.set(true);
-        }
-      }
-    });
-
-    // 2. Set zoom to 14 or higher
-    // We can try to use the component's internal state for this too
-    await page.evaluate(() => {
       const spotMapEl = document.querySelector("app-spot-map");
-      if (spotMapEl) {
-        // @ts-ignore
-        const component = (window as any).ng.getComponent(spotMapEl);
-        if (component && component.mapZoom) {
-          component.mapZoom.set(15);
-        }
+      if (!mapPageEl || !spotMapEl) {
+        return false;
       }
+
+      const mapPageComponent = angular.getComponent(mapPageEl) as {
+        isSignedIn?: { set: (value: boolean) => void };
+      };
+      const spotMapComponent = angular.getComponent(spotMapEl) as {
+        mapZoom?: { set: (value: number) => void };
+      };
+
+      if (!mapPageComponent?.isSignedIn || !spotMapComponent?.mapZoom) {
+        return false;
+      }
+
+      mapPageComponent.isSignedIn.set(true);
+      spotMapComponent.mapZoom.set(15);
+      angular.applyChanges?.(mapPageComponent);
+      angular.applyChanges?.(spotMapComponent);
+      return true;
     });
 
-    // Wait for change detection and animations
-    await page.waitForTimeout(1000);
-
-    // 3. Verify the button is now visible
+    expect(mockApplied).toBe(true);
     const addSpotButton = page.locator("#createSpotSpeedDial");
-    
-    // Note: This might fail if Angular dev mode is not enabled or 'ng' is not available
-    // But in dev builds it should work.
-    const isVisible = await addSpotButton.isVisible();
-    
-    // If mocking failed, we at least documented the intent.
-    // In a real CI environment, we would use Firebase emulators and a real sign-in.
-    if (isVisible) {
-      await expect(addSpotButton).toBeVisible();
-      await expect(addSpotButton).toContainText(/Add Spot|Spot hinzufügen/);
-    } else {
-      console.log("Skipping visibility check as mock could not be applied (likely production build)");
-    }
+    await expect(addSpotButton).toBeVisible();
+    await expect(addSpotButton).toContainText(/Add Spot|Spot hinzufügen/);
   });
 });
