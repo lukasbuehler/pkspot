@@ -141,6 +141,7 @@ export class GoogleMap2dComponent
   implements OnChanges, AfterViewInit, OnDestroy
 {
   private static readonly ZOOM_SYNC_EPSILON = 0.5;
+  private _isInternalZoomChange = false;
 
   readonly autoStartLocationWatch = environment.features.checkIns;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
@@ -202,19 +203,20 @@ export class GoogleMap2dComponent
 
   _zoom = signal<number>(4);
   @Input() set zoom(newZoom: number) {
+    if (this._isInternalZoomChange) {
+      this._zoom.set(newZoom);
+      return;
+    }
+
     this._zoom.set(newZoom);
-    if (this.googleMap) {
-      const currentZoom = this.googleMap.getZoom();
-      // Only push zoom back into Google Maps when it differs meaningfully.
-      // Vector maps can emit many tiny fractional wheel-zoom updates; if we
-      // mirror those straight back through Angular input binding, the map ends
-      // up fighting the user's scroll gesture and feels like it barely moves.
+    if (this.googleMap?.googleMap) {
+      const currentZoom = this.googleMap.googleMap.getZoom();
       if (
         currentZoom === undefined ||
         Math.abs(currentZoom - newZoom) >
           GoogleMap2dComponent.ZOOM_SYNC_EPSILON
       ) {
-        this.googleMap.zoom = newZoom;
+        this.googleMap.googleMap.setZoom(newZoom);
       }
     }
   }
@@ -237,8 +239,14 @@ export class GoogleMap2dComponent
 
   getAndEmitChangedZoom() {
     if (!this.googleMap) return;
-    this._zoom.set(this.googleMap.getZoom()!);
-    this.zoomChange.emit(this._zoom());
+    const newZoom = this.googleMap.getZoom()!;
+    this._isInternalZoomChange = true;
+    this._zoom.set(newZoom);
+    this.zoomChange.emit(newZoom);
+    // Reset flag after change detection cycle
+    setTimeout(() => {
+      this._isInternalZoomChange = false;
+    }, 0);
   }
 
   onMapClick(event: google.maps.MapMouseEvent | google.maps.IconMouseEvent) {
@@ -767,6 +775,11 @@ export class GoogleMap2dComponent
       return;
     }
 
+    if (this.googleMap.googleMap) {
+      this.googleMap.googleMap.setCenter(this.center);
+      this.googleMap.googleMap.setZoom(this.zoom);
+    }
+
     if (this.autoStartLocationWatch) {
       this.initGeolocation();
     }
@@ -805,8 +818,13 @@ export class GoogleMap2dComponent
     const vectorRenderingType = this._getVectorRenderingType();
     const colorScheme = await this._loadDarkColorScheme();
 
-    if (!isMapInitialized && vectorRenderingType) {
-      nextOptions.renderingType = vectorRenderingType;
+    if (!isMapInitialized) {
+      if (vectorRenderingType) {
+        nextOptions.renderingType = vectorRenderingType;
+      } else if (environment.mapId) {
+        // Fallback: if Map ID is present but enum not loaded yet, force VECTOR string
+        (nextOptions as any).renderingType = "VECTOR";
+      }
     } else {
       delete (nextOptions as Partial<google.maps.MapOptions>).renderingType;
     }
@@ -1005,7 +1023,7 @@ export class GoogleMap2dComponent
     // The map shell and clustering logic assume classic step-based zoom.
     // Fractional wheel zoom on vector maps causes noisy zoom feedback loops
     // with Angular bindings and feels broken on desktop.
-    isFractionalZoomEnabled: false,
+    isFractionalZoomEnabled: true,
     tilt: 0,
     headingInteractionEnabled: true,
   };

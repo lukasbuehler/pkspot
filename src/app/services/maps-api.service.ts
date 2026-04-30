@@ -82,9 +82,10 @@ export class MapsApiService extends ConsentAwareService {
     this._loadingProgress$.next(25); // Starting to load
 
     const script = document.createElement("script");
+    const mapIdParam = environment.mapId ? `&map_ids=${environment.mapId}` : "";
     script.src =
       `https://maps.googleapis.com/maps/api/js?key=${environment.keys.firebaseConfig.apiKey}` +
-      `&libraries=visualization,places&loading=async&callback=mapsCallback`;
+      `&libraries=visualization,places,marker&v=weekly${mapIdParam}&loading=async&callback=mapsCallback`;
     script.async = true;
     script.defer = true;
 

@@ -2,8 +2,6 @@
 <google-map
   #googleMap
   id="googleMap"
-  [center]="center"
-  [zoom]="_zoom()"
   [options]="mapOptions"
   (mapClick)="onMapClick($event)"
   (boundsChanged)="boundsChanged()"
