@@ -47,6 +47,7 @@ import { MediaSchema } from "../../../../db/schemas/Media";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { SpotEditsService } from "./spot-edits.service";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
+import { SpotSlugSchema } from "../../../../db/schemas/SpotSlugSchema";
 import { PlatformService } from "../../platform.service";
 import {
   FirestoreAdapterService,
@@ -133,6 +134,56 @@ export class SpotsService extends ConsentAwareService {
           return new Spot(d.id as SpotId, d as SpotSchema, locale);
         })
       );
+  }
+
+  async deleteSpotCascade(spotId: SpotId): Promise<void> {
+    await this.deleteSpotNestedCollection(`spots/${spotId}/reviews`);
+    await this.deleteSpotNestedCollection(`spots/${spotId}/reports`);
+    await this.deleteSpotNestedCollection(`spots/${spotId}/challenges`);
+
+    const edits = await this._firestoreAdapter.getCollection<{ id: string }>(
+      `spots/${spotId}/edits`
+    );
+    for (const edit of edits) {
+      await this.deleteSpotNestedCollection(
+        `spots/${spotId}/edits/${edit.id}/votes`
+      );
+      await this.deleteSpotDocument(`spots/${spotId}/edits/${edit.id}`);
+    }
+
+    await this.deleteSpotSlugAliases(spotId);
+    await this.deleteSpotDocument(`spots/${spotId}`);
+  }
+
+  private async deleteSpotNestedCollection(
+    collectionPath: string
+  ): Promise<void> {
+    const docs = await this._firestoreAdapter.getCollection<{ id: string }>(
+      collectionPath
+    );
+
+    for (const doc of docs) {
+      await this.deleteSpotDocument(`${collectionPath}/${doc.id}`);
+    }
+  }
+
+  private async deleteSpotSlugAliases(spotId: SpotId): Promise<void> {
+    const slugs = await this._firestoreAdapter.getCollection<
+      SpotSlugSchema & { id: string }
+    >("spot_slugs", [{ fieldPath: "spot_id", opStr: "==", value: spotId }]);
+
+    for (const slug of slugs) {
+      await this.deleteSpotDocument(`spot_slugs/${slug.id}`);
+    }
+  }
+
+  private async deleteSpotDocument(path: string): Promise<void> {
+    try {
+      await this._firestoreAdapter.deleteDocument(path);
+    } catch (error) {
+      console.error(`[SpotsService] Failed to delete ${path}`, error);
+      throw error;
+    }
   }
 
   getSpotBySlug(slug: string, locale: LocaleCode): Promise<Spot | null> {

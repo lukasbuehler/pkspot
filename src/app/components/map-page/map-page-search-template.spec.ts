@@ -20,4 +20,13 @@ describe("MapPageComponent search template", () => {
       expect(searchField).toContain("(placePreviewChange)");
     }
   });
+
+  it("should hide the Add Spot button while a spot is selected", () => {
+    const template = readFileSync(templatePath, "utf8");
+    const addSpotButton = template.match(
+      /@if\([\s\S]*?#createSpotSpeedDial[\s\S]*?<\/button>/
+    )?.[0];
+
+    expect(addSpotButton).toContain("!selectedSpot()");
+  });
 });
