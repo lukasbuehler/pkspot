@@ -214,6 +214,49 @@
     [limit]="spotListLimit()"
     [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
   ></app-spot-list>
+
+  <!--
+    SEO body content: rendered at the bottom of the default sidebar so
+    crawlers see real text on /map, not just the map widget. Two short
+    paragraphs + a list of internal links to known parkour communities.
+    Visible to users (not screen-reader-only) — Google explicitly weights
+    "text humans can read" higher than hidden content.
+  -->
+  <section class="px-3 pt-4 pb-5 seo-blurb">
+    <h2 class="mat-title-large mb-2" i18n="@@map.seo.about_heading">
+      About PK Spot
+    </h2>
+    <p class="mat-body-medium" i18n="@@map.seo.about_p1">
+      PK Spot is a community map for parkour and freerunning. Use it to
+      discover parkour spots near you, save your favorites, plan training
+      sessions with friends, and add new spots so other athletes can find
+      them.
+    </p>
+    <p class="mat-body-medium" i18n="@@map.seo.about_p2">
+      Every spot is added by people who actually train there. You'll find
+      photos, ratings, and tags telling you whether a spot is good for
+      parkour, freerunning, dry training, indoor sessions, or beginners.
+    </p>
+
+    @if (popularCommunities().length > 0) {
+      <h2 class="mat-title-large mt-4 mb-2" i18n="@@map.seo.popular_heading">
+        Popular parkour communities
+      </h2>
+      <ul class="seo-community-list">
+        @for (community of popularCommunities(); track community.canonicalPath) {
+          <li>
+            <a [routerLink]="community.canonicalPath">
+              {{ community.displayName }}
+            </a>
+            <span class="seo-community-meta">
+              · {{ community.totalSpotCount }}
+              <span i18n="@@map.seo.spots_suffix">spots</span>
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
   }
 </ng-template>
 
@@ -409,6 +452,17 @@
     (filtersClick)="openCustomFilterDialog()"
   ></app-filter-chips-bar>
 </ng-template>
+
+<!--
+  SEO: a single, crawler-readable <h1> for the map route. Hidden visually
+  with Bootstrap's `.visually-hidden` (see styles.scss bootstrap import) so
+  the layout doesn't shift, but Google + screen readers see "Parkour Spot
+  Map" as the page heading. Placed outside the responsive branches so it
+  always renders.
+-->
+<h1 class="visually-hidden" i18n="@@map.h1">
+  Parkour Spot Map — find spots, communities, and events near you
+</h1>
 
 @if(responsiveService.isNotMobile()){
 <div

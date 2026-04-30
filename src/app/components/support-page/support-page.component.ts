@@ -1,9 +1,10 @@
-import { Component } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { RouterLink } from "@angular/router";
+import { MetaTagService } from "../../services/meta-tag.service";
 
 interface FaqItem {
   question: string;
@@ -28,7 +29,18 @@ interface FaqCategory {
     RouterLink,
   ],
 })
-export class SupportPageComponent {
+export class SupportPageComponent implements OnInit {
+  private readonly _metaTagService = inject(MetaTagService);
+
+  ngOnInit(): void {
+    this._metaTagService.setStaticPageMetaTags(
+      $localize`:@@support.meta.title:Support`,
+      $localize`:@@support.meta.description:Get help with PK Spot — answers to common questions about parkour spots, accounts, and the community.`,
+      undefined,
+      "/support"
+    );
+  }
+
   readonly faqCategories: FaqCategory[] = [
     {
       title: "Account & Profile",

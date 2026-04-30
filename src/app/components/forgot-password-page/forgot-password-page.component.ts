@@ -1,4 +1,5 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
+import { MetaTagService } from "../../services/meta-tag.service";
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -53,7 +54,16 @@ export class ForgotPasswordPageComponent implements OnInit {
     });
   }
 
+  private readonly _metaTagService = inject(MetaTagService);
+
   ngOnInit(): void {
+    this._metaTagService.setStaticPageMetaTags(
+      $localize`:@@forgot_password.meta.title:Reset password`,
+      $localize`:@@forgot_password.meta.description:Reset your PK Spot password to get back into your parkour spots account.`,
+      undefined,
+      "/forgot-password"
+    );
+
     // Don't setup reCAPTCHA immediately - wait for explicit user interaction
     // This prevents API calls during page load even if consent was previously granted
     console.log(

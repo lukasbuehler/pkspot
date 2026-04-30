@@ -390,6 +390,22 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _dismissedCommunityKeys = signal<Set<string>>(new Set());
 
   /**
+   * Top community pages by spot count, surfaced as a "Popular parkour
+   * communities" list at the bottom of the map sidebar. Pure SEO body
+   * text — gives crawlers internal links to community pages and gives
+   * users a way to browse parkour cities without zooming around.
+   *
+   * Derives from `_promotableCommunities` (already loaded for the map
+   * island) so we don't make a second Firestore read.
+   */
+  popularCommunities = computed(() =>
+    this._promotableCommunities()
+      .map((c) => c.data)
+      .sort((a, b) => (b.totalSpotCount ?? 0) - (a.totalSpotCount ?? 0))
+      .slice(0, 8)
+  );
+
+  /**
    * Active map-island content. Picks the most relevant variant for the
    * visible viewport. Filter helper takes precedence (it points at user
    * action), then event promo, then community context.

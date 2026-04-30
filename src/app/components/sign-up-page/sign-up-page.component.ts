@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, inject } from "@angular/core";
+import { MetaTagService } from "../../services/meta-tag.service";
 import {
   AbstractControl,
   UntypedFormBuilder,
@@ -59,8 +60,16 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
 
   private _recaptchaSolved = false;
   private _recaptchaSetupCompleted = false;
+  private readonly _metaTagService = inject(MetaTagService);
 
   ngOnInit(): void {
+    this._metaTagService.setStaticPageMetaTags(
+      $localize`:@@signup.meta.title:Create account`,
+      $localize`:@@signup.meta.description:Create a free PK Spot account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.`,
+      undefined,
+      "/sign-up"
+    );
+
     this.createAccountForm = this._formBuilder.group(
       {
         displayName: ["", [Validators.required]],

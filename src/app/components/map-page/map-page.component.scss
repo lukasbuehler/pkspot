@@ -209,3 +209,46 @@ mat-chip {
 .community-map-panel {
   padding-bottom: 12px;
 }
+
+// SEO body text shown at the bottom of the default sidebar (no spot /
+// community / event selected). Plain prose — crawler-readable, also a
+// useful hub of internal links for users.
+.seo-blurb {
+  color: var(--mat-sys-on-surface-variant);
+
+  h2 {
+    color: var(--mat-sys-on-surface);
+  }
+
+  p {
+    margin-bottom: 0.75rem;
+  }
+}
+
+.seo-community-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem 1rem;
+}
+
+.seo-community-list li {
+  margin: 0;
+}
+
+.seo-community-list a {
+  color: var(--mat-sys-primary, #b8c4ff);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.seo-community-meta {
+  color: var(--mat-sys-on-surface-variant);
+  margin-left: 0.25rem;
+  font-size: 0.85em;
+}

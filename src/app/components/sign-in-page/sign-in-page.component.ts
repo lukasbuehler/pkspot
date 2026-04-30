@@ -25,6 +25,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { OAuthSignInButtonsComponent } from "../oauth-sign-in-buttons/oauth-sign-in-buttons.component";
 import { UiLanguageService } from "../../services/ui-language.service";
 import { languageCodes } from "../../../scripts/Languages";
+import { MetaTagService } from "../../services/meta-tag.service";
 
 @Component({
   selector: "app-sign-in-page",
@@ -47,6 +48,7 @@ import { languageCodes } from "../../../scripts/Languages";
 })
 export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly uiLanguage = inject(UiLanguageService);
+  private readonly _metaTagService = inject(MetaTagService);
 
   @ViewChild(OAuthSignInButtonsComponent)
   oauthButtons?: OAuthSignInButtonsComponent;
@@ -90,6 +92,16 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit() {
+    // SEO: previous pages would leave their title behind on this route. Set
+    // a sign-in-specific title + description so the tab and crawlers
+    // both see something relevant.
+    this._metaTagService.setStaticPageMetaTags(
+      $localize`:@@signin.meta.title:Sign in`,
+      $localize`:@@signin.meta.description:Sign in to PK Spot or create a free account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.`,
+      undefined,
+      "/sign-in"
+    );
+
     this.signInForm = this._formBuilder.group({
       email: ["", [Validators.required, Validators.email]],
       password: ["", [Validators.required]],

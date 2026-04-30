@@ -23,7 +23,6 @@ import { NgClass } from "@angular/common";
  */
 @Component({
   selector: "app-custom-marker",
-  standalone: true,
   imports: [MapAdvancedMarker, MarkerComponent, NgClass],
   animations: [
     trigger("fadeInOut", [
@@ -47,43 +46,52 @@ import { NgClass } from "@angular/common";
     @if(useDotMode()) {
     <!-- Small dot marker for low zoom -->
     <div
-      #dotElement
-      [@fadeInOut]
-      class="shadow-sm border"
-      style="width: 8px; height: 8px; border-radius: 4px"
+      #dotShell
+      class="custom-marker-shell custom-marker-shell--dot"
       tabindex="0"
       role="button"
-      [ngClass]="{
-        'marker-primary-dark': marker().color === 'primary',
-        'marker-secondary-dark': marker().color === 'secondary',
-        'marker-tertiary-dark': marker().color === 'tertiary'
-      }"
-    ></div>
+    >
+      <div
+        [@fadeInOut]
+        class="custom-marker-dot shadow-sm border"
+        [ngClass]="{
+          'marker-primary-dark': marker().color === 'primary',
+          'marker-secondary-dark': marker().color === 'secondary',
+          'marker-tertiary-dark': marker().color === 'tertiary'
+        }"
+      ></div>
+    </div>
     <map-advanced-marker
       [position]="marker().location"
-      [content]="dotElement"
+      [content]="dotShell"
       [options]="dotMarkerOptions()"
-      (mapClick)="onDotMapClick(dotElement, $event)"
+      (mapClick)="onDotMapClick(dotShell, $event)"
     />
     } @else {
     <!-- Full marker for high zoom -->
-    <app-marker
-      #markerContent
-      [@fadeInOut]
-      style="pointer-events: none"
-      [icons]="marker().icons"
-      [imageSrc]="marker().imageSrc"
-      [number]="marker().number"
-      [color]="marker().color ?? 'primary'"
-      [size]="0.8"
-      [title]="marker().name"
-      (click)="onMarkerContentClick(markerContent)"
-    />
+    <div
+      #fullMarkerShell
+      class="custom-marker-shell custom-marker-shell--full"
+      tabindex="0"
+      role="button"
+    >
+      <app-marker
+        [@fadeInOut]
+        style="pointer-events: none"
+        [icons]="marker().icons"
+        [imageSrc]="marker().imageSrc"
+        [number]="marker().number"
+        [color]="marker().color ?? 'primary'"
+        [size]="0.8"
+        [title]="marker().name"
+        (click)="onMarkerContentClick(fullMarkerShell)"
+      />
+    </div>
     <map-advanced-marker
       [position]="marker().location"
-      [content]="markerContent.elementRef.nativeElement"
+      [content]="fullMarkerShell"
       [options]="fullMarkerOptions()"
-      (mapClick)="onMarkerContentClick(markerContent, $event)"
+      (mapClick)="onMarkerContentClick(fullMarkerShell, $event)"
     />
     }
   `,
@@ -91,6 +99,19 @@ import { NgClass } from "@angular/common";
     `
       :host {
         display: contents;
+      }
+
+      .custom-marker-shell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .custom-marker-shell--dot,
+      .custom-marker-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 4px;
       }
 
       .fade-in {
@@ -202,21 +223,32 @@ export class CustomMarkerComponent {
     } catch (e) {
       // ignore
     }
-    if ($event && typeof ($event as any).stopPropagation === "function") {
-      ($event as any).stopPropagation();
+    if (this.canStopPropagation($event)) {
+      $event.stopPropagation();
     }
   }
 
-  onMarkerContentClick(markerContent?: any, $event?: unknown): void {
+  onMarkerContentClick(markerContent?: HTMLElement, $event?: unknown): void {
     if (!markerContent) return;
     try {
-      markerContent?.elementRef?.nativeElement?.focus();
+      markerContent.focus();
     } catch (e) {
       // ignore
     }
-    if ($event && typeof ($event as any).stopPropagation === "function") {
-      ($event as any).stopPropagation();
+    if (this.canStopPropagation($event)) {
+      $event.stopPropagation();
     }
     this.markerClick.emit(this.index());
+  }
+
+  private canStopPropagation(
+    event: unknown
+  ): event is { stopPropagation: () => void } {
+    return (
+      typeof event === "object" &&
+      event !== null &&
+      "stopPropagation" in event &&
+      typeof event.stopPropagation === "function"
+    );
   }
 }

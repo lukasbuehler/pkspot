@@ -1,6 +1,6 @@
 @if (content(); as island) {
   @switch (island.kind) {
-    @case ('filter') {
+    @case ("filter") {
       <div
         class="map-island glass d-flex flex-row align-items-center ps-4 gap-3 p-3"
       >
@@ -17,8 +17,10 @@
       </div>
     }
 
-    @case ('event') {
-      <div class="map-island glass d-flex flex-row align-items-center gap-3 p-2 ps-3">
+    @case ("event") {
+      <div
+        class="map-island glass d-flex flex-row align-items-center gap-3 p-2 ps-3"
+      >
         @if (island.event.effectiveBadgeLogoSrc(); as logoSrc) {
           <div class="island-logo flex-shrink-0">
             <img [ngSrc]="logoSrc" alt="" fill />
@@ -32,37 +34,43 @@
           class="island-text bg-transparent border-0 p-0 text-start flex-grow-1 overflow-hidden"
           (click)="onOpenEvent()"
         >
-          <div class="mat-title-small text-truncate">{{ island.event.name }}</div>
+          <div class="mat-title-small text-truncate">
+            {{ island.event.name }}
+          </div>
           <div class="mat-label-small text-truncate opacity-75">
             {{ island.event.localityString }}
           </div>
         </button>
 
-        <button
-          type="button"
-          mat-flat-button
-          color="accent"
-          class="flex-shrink-0"
-          (click)="onOpenEvent()"
-        >
-          <span i18n="@@map_island.event_open">Open</span>
-        </button>
+        <div class="d-flex flex-row">
+          <button
+            type="button"
+            mat-flat-button
+            color="accent"
+            class="flex-shrink-0"
+            (click)="onOpenEvent()"
+          >
+            <span i18n="@@map_island.event_open">Open</span>
+          </button>
 
-        <button
-          type="button"
-          mat-icon-button
-          class="flex-shrink-0"
-          (click)="onDismissEvent()"
-          aria-label="Dismiss event chip"
-          i18n-aria-label
-        >
-          <mat-icon>close</mat-icon>
-        </button>
+          <button
+            type="button"
+            mat-icon-button
+            class="flex-shrink-0 d-flex"
+            (click)="onDismissEvent()"
+            aria-label="Dismiss event chip"
+            i18n-aria-label
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
       </div>
     }
 
-    @case ('community') {
-      <div class="map-island glass d-flex flex-row align-items-center gap-3 p-2 ps-3">
+    @case ("community") {
+      <div
+        class="map-island glass d-flex flex-row align-items-center gap-3 p-2 ps-3"
+      >
         <mat-icon class="flex-shrink-0" color="primary">groups</mat-icon>
 
         <button
@@ -78,26 +86,28 @@
           </div>
         </button>
 
-        <button
-          type="button"
-          mat-flat-button
-          color="primary"
-          class="flex-shrink-0"
-          (click)="onOpenCommunity()"
-        >
-          <span i18n="@@map_island.community_open">View</span>
-        </button>
+        <div class="d-flex flex-row">
+          <button
+            type="button"
+            mat-flat-button
+            color="primary"
+            class="flex-shrink-0"
+            (click)="onOpenCommunity()"
+          >
+            <span i18n="@@map_island.community_open">View</span>
+          </button>
 
-        <button
-          type="button"
-          mat-icon-button
-          class="flex-shrink-0"
-          (click)="onDismissCommunity()"
-          aria-label="Dismiss community chip"
-          i18n-aria-label
-        >
-          <mat-icon>close</mat-icon>
-        </button>
+          <button
+            type="button"
+            mat-icon-button
+            class="flex-shrink-0 d-flex"
+            (click)="onDismissCommunity()"
+            aria-label="Dismiss community chip"
+            i18n-aria-label
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
       </div>
     }
   }

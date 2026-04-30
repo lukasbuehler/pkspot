@@ -398,12 +398,16 @@ export class MetaTagService {
   }
 
   /**
-   * Sets default map meta tags with canonical URL
+   * Sets default map meta tags with canonical URL.
+   *
+   * Title leads with "Parkour Spot Map" because that's what users actually
+   * search for — the original "PK Spot Map" was strong on brand but weak
+   * on the head term. See AGENTS.md (or follow the pattern from
+   * setLocalityLandingMetaTags).
    */
   public setDefaultMapMetaTags(canonicalPath?: string): void {
-    const title = $localize`:@@pk.spotmap.title:PK Spot Map`;
-    const description =
-      "Discover, Train, Share. Discover spots and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world.";
+    const title = $localize`:@@pk.spotmap.title:Parkour Spot Map | PK Spot`;
+    const description = $localize`:@@pk.spotmap.description:Discover parkour spots near you, plan training sessions with friends, and share your spots with the freerunning community.`;
     const image = this.defaultImageUrl;
 
     const canonical = canonicalPath
@@ -416,9 +420,8 @@ export class MetaTagService {
    * Sets default home page meta tags with canonical URL
    */
   public setHomeMetaTags(canonicalPath?: string): void {
-    const title = "PK Spot - Discover, Train, Share";
-    const description =
-      "The ultimate platform for parkour and freerunning enthusiasts. Discover spots, plan training sessions, and share your achievements with the community.";
+    const title = $localize`:@@pk.home.title:Parkour Spot Finder | PK Spot`;
+    const description = $localize`:@@pk.home.description:PK Spot is a parkour and freerunning community map. Find spots, plan training sessions, and share what you discover.`;
     const image = this.defaultImageUrl;
 
     const canonical = canonicalPath
