@@ -21,7 +21,10 @@ export class User {
 
   public data: UserSchema | null = null;
 
-  constructor(private _uid: string, private _data: UserSchema) {
+  constructor(
+    private _uid: string,
+    private _data: UserSchema,
+  ) {
     this.uid = this._uid;
     this._updateData();
   }
@@ -56,7 +59,7 @@ export class User {
       this.followerCount = this._data.follower_count;
     }
     this.visitedSpotsCount = this._data.visited_spots_count ?? 0;
-    this.isAdmin = this._data.is_admin ?? false;
+    this.isAdmin = this._data.is_admin === true;
 
     this.nationalityCode = this._data.nationality_code ?? null;
     this.homeCity = this._data.home_city ?? null;
@@ -65,7 +68,7 @@ export class User {
           instagram_handle: this._data.socials.instagram_handle,
           youtube_handle: this._data.socials.youtube_handle,
           other: (this._data.socials.other ?? []).filter(
-            (link) => !!link?.name && !!link?.url
+            (link) => !!link?.name && !!link?.url,
           ),
         }
       : null;

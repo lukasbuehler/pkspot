@@ -148,13 +148,11 @@ export class SpotsService extends ConsentAwareService {
       await this.deleteSpotNestedCollection(
         `spots/${spotId}/edits/${edit.id}/votes`
       );
-      await this._firestoreAdapter.deleteDocument(
-        `spots/${spotId}/edits/${edit.id}`
-      );
+      await this.deleteSpotDocument(`spots/${spotId}/edits/${edit.id}`);
     }
 
     await this.deleteSpotSlugAliases(spotId);
-    await this._firestoreAdapter.deleteDocument(`spots/${spotId}`);
+    await this.deleteSpotDocument(`spots/${spotId}`);
   }
 
   private async deleteSpotNestedCollection(
@@ -165,7 +163,7 @@ export class SpotsService extends ConsentAwareService {
     );
 
     for (const doc of docs) {
-      await this._firestoreAdapter.deleteDocument(`${collectionPath}/${doc.id}`);
+      await this.deleteSpotDocument(`${collectionPath}/${doc.id}`);
     }
   }
 
@@ -175,7 +173,16 @@ export class SpotsService extends ConsentAwareService {
     >("spot_slugs", [{ fieldPath: "spot_id", opStr: "==", value: spotId }]);
 
     for (const slug of slugs) {
-      await this._firestoreAdapter.deleteDocument(`spot_slugs/${slug.id}`);
+      await this.deleteSpotDocument(`spot_slugs/${slug.id}`);
+    }
+  }
+
+  private async deleteSpotDocument(path: string): Promise<void> {
+    try {
+      await this._firestoreAdapter.deleteDocument(path);
+    } catch (error) {
+      console.error(`[SpotsService] Failed to delete ${path}`, error);
+      throw error;
     }
   }
 
