@@ -62,6 +62,35 @@ export interface EventSponsorSchema {
   url?: string;
 }
 
+/**
+ * Marks an event whose canonical home lives outside PK Spot (e.g. an
+ * EventFrog ticket page hosted by a partner). Used for two patterns:
+ *
+ *  1. Lightweight thin event docs that exist only to surface an external
+ *     event in PK Spot's calendar / map / community pages. These have
+ *     minimal PK Spot fields (name, dates, locality_string, bounds), no
+ *     spots, no banner upload — the user clicks through to the source.
+ *
+ *  2. Full PK Spot events that ALSO have an external ticket page (e.g.
+ *     WPF Camp's EventFrog listing). The CTA renders as "View on
+ *     EventFrog" instead of a generic `url`, with a provider-aware label.
+ */
+export interface EventExternalSourceSchema {
+  /**
+   * Source platform. `other` covers anything not yet first-class — the
+   * UI falls back to a generic "View source" label.
+   */
+  provider: "eventfrog" | "spt" | "spl" | "parkour_earth" | "other";
+  /**
+   * Provider-specific id (e.g. EventFrog event id). Optional for `other`
+   * URLs that don't have a stable id; used for de-duplication when
+   * importing batches.
+   */
+  id?: string;
+  /** Canonical link out to the source's event page. */
+  url: string;
+}
+
 export interface EventSchema {
   /** Display name (plain string; LocaleMap can be added later if needed). */
   name: string;
@@ -158,6 +187,24 @@ export interface EventSchema {
    * can list under both its country and its host city.
    */
   community_keys?: string[];
+
+  /**
+   * Series the event belongs to (e.g. `swiss-parkour-tour`,
+   * `parkour-earth`). Each id maps to a doc under `/series/{id}` carrying
+   * the series' name, logo, organizer, etc. Multiple entries allowed
+   * (e.g. an SPT event that's also a Parkour Earth qualifier). Used to
+   * group events on `/events` and to render branding chips on the event
+   * page.
+   */
+  series_ids?: string[];
+
+  /**
+   * If set, this event is canonically hosted somewhere else (typically
+   * EventFrog). UI shows a "View on <provider>" CTA and may hide PK
+   * Spot-specific affordances (challenges tab, spot map editing) for
+   * thin link-only events.
+   */
+  external_source?: EventExternalSourceSchema;
 
   /** Optional pre-built JSON-LD blob for SEO. */
   structured_data?: Record<string, any>;

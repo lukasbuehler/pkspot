@@ -98,14 +98,36 @@
       <p class="mat-body-small description">{{ event().description }}</p>
     }
 
-    <a
-      mat-flat-button
-      color="primary"
-      [routerLink]="fullEventLink()"
-      class="full-event-cta mt-2"
-    >
-      <mat-icon>open_in_new</mat-icon>
-      <span i18n="@@event_preview.see_full">See full event</span>
-    </a>
+    <div class="cta-row d-flex flex-wrap gap-2 mt-2">
+      @if (event().externalSource; as source) {
+        <!-- External-source events live elsewhere; primary CTA points there
+             ("View on EventFrog"), with a secondary "Details" link to the
+             PK Spot event page if extra data is worth showing. -->
+        <a
+          mat-flat-button
+          color="primary"
+          [href]="source.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="external-cta"
+        >
+          <mat-icon>open_in_new</mat-icon>
+          <span>{{ externalSourceLabel() }}</span>
+        </a>
+        <a mat-stroked-button [routerLink]="fullEventLink()">
+          <span i18n="@@event_preview.details">Details</span>
+        </a>
+      } @else {
+        <a
+          mat-flat-button
+          color="primary"
+          [routerLink]="fullEventLink()"
+          class="full-event-cta"
+        >
+          <mat-icon>open_in_new</mat-icon>
+          <span i18n="@@event_preview.see_full">See full event</span>
+        </a>
+      }
+    </div>
   </mat-card-content>
 </mat-card>

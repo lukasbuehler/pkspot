@@ -198,6 +198,13 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Series (Swiss Parkour Tour, SPL, Parkour Earth, ...) are admin-curated
+    // and publicly readable. Writes happen via the admin SDK / scripts.
+    match /series/{seriesId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Leaderboards are read-only; only cloud functions can write
     match /leaderboards/{leaderboardId} {
       allow read: if true;

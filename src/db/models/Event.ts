@@ -2,6 +2,7 @@ import { Timestamp } from "firebase/firestore";
 import {
   EventBoundsSchema,
   EventCustomMarkerSchema,
+  EventExternalSourceSchema,
   EventId,
   EventPromoRegionSchema,
   EventSchema,
@@ -47,6 +48,8 @@ export class Event {
 
   readonly sponsor?: EventSponsorSchema;
   readonly communityKeys: string[];
+  readonly seriesIds: string[];
+  readonly externalSource?: EventExternalSourceSchema;
 
   readonly structuredData?: Record<string, any>;
   readonly published: boolean;
@@ -79,6 +82,8 @@ export class Event {
     this.promoRegion = data.promo_region;
     this.sponsor = data.sponsor;
     this.communityKeys = data.community_keys ?? [];
+    this.seriesIds = data.series_ids ?? [];
+    this.externalSource = data.external_source;
     this.structuredData = data.structured_data;
     this.published = data.published ?? true;
   }

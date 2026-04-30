@@ -84,6 +84,27 @@ export class EventPreviewComponent {
     return ["/events", e.slug ?? e.id];
   });
 
+  /**
+   * Provider-aware label for the external-source CTA. Localized once in
+   * the host so the template stays declarative.
+   */
+  readonly externalSourceLabel = computed<string | null>(() => {
+    const source = this.event().externalSource;
+    if (!source) return null;
+    switch (source.provider) {
+      case "eventfrog":
+        return $localize`:@@event_preview.view_eventfrog:View on EventFrog`;
+      case "spt":
+        return $localize`:@@event_preview.view_spt:View on Swiss Parkour Tour`;
+      case "spl":
+        return $localize`:@@event_preview.view_spl:View on Sport Parkour League`;
+      case "parkour_earth":
+        return $localize`:@@event_preview.view_parkour_earth:View on Parkour Earth`;
+      default:
+        return $localize`:@@event_preview.view_source:View source`;
+    }
+  });
+
   onDismiss() {
     this.dismiss.emit();
   }
