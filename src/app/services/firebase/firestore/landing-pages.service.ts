@@ -60,6 +60,8 @@ export interface CommunityLandingPageData {
   childCommunities: CommunityChildSummary[];
   generatedAt?: CommunityPageSchema["generatedAt"];
   sourceMaxUpdatedAt?: CommunityPageSchema["sourceMaxUpdatedAt"];
+  boundsCenter?: CommunityPageSchema["bounds_center"];
+  boundsRadiusM?: CommunityPageSchema["bounds_radius_m"];
   notFound?: boolean;
 }
 
@@ -167,6 +169,8 @@ export class LandingPagesService {
       childCommunities,
       generatedAt: pageDoc.generatedAt,
       sourceMaxUpdatedAt: pageDoc.sourceMaxUpdatedAt,
+      boundsCenter: pageDoc.bounds_center,
+      boundsRadiusM: pageDoc.bounds_radius_m,
     };
   }
 

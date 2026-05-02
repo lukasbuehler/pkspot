@@ -7,7 +7,6 @@ import {
   signal,
   inject,
 } from "@angular/core";
-import { animate, style, transition, trigger } from "@angular/animations";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { MarkerComponent } from "../marker/marker.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
@@ -28,24 +27,6 @@ import {
 @Component({
   selector: "app-spot-preview-marker",
   imports: [MapAdvancedMarker, MarkerComponent, SpotPreviewCardComponent],
-  animations: [
-    trigger("markerFadeInOut", [
-      transition(":enter", [
-        style({ opacity: 0, transform: "translateY(12px) scale(0.92)" }),
-        animate(
-          "0.22s ease-out",
-          style({ opacity: 1, transform: "translateY(0) scale(1)" })
-        ),
-      ]),
-      transition(":leave", [
-        style({ opacity: 1, transform: "translateY(0) scale(1)" }),
-        animate(
-          "0.18s ease-in",
-          style({ opacity: 0, transform: "translateY(12px) scale(0.92)" })
-        ),
-      ]),
-    ]),
-  ],
   template: `
     @if(position()) {
     <div
@@ -66,7 +47,7 @@ import {
       (keydown.enter)="triggerMarkerFromKeyboard($event)"
       (keydown.space)="triggerMarkerFromKeyboard($event)"
     >
-      <div class="spot-preview-marker__content" @markerFadeInOut>
+      <div class="spot-preview-marker__content">
         @if(hoverPreviewActive()) {
         <div class="spot-preview-marker__preview">
           <app-spot-preview-card
@@ -135,6 +116,7 @@ import {
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
+      animation: markerEntrance 0.18s ease-out;
     }
 
     .spot-preview-marker__pin {
@@ -206,6 +188,17 @@ import {
 
     .spot-preview-marker:focus-visible {
       outline: none;
+    }
+
+    @keyframes markerEntrance {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.94);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     @media (hover: none), (pointer: coarse) {

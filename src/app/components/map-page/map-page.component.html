@@ -499,14 +499,8 @@
   <div class="position-relative overflow-hidden h-100 w-100">
     <ng-container *ngTemplateOutlet="mapContent"></ng-container>
     <div
-      class="position-absolute"
-      style="
-        left: 50%;
-        top: 20px;
-        transform: translate(-50%, 0);
-        z-index: 50;
-        max-width: calc(100% - 32px);
-      "
+      class="map-island-host"
+      [class.map-island-host--sidebar-open]="sidenavOpen()"
     >
       <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
     </div>

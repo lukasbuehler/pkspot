@@ -427,18 +427,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (event) return { kind: "event", event };
     }
 
-    // Route-driven community wins: if the user navigated to /map/community/...
-    // we definitely want to show that one. Falls back to a viewport match
-    // (so panning the map to an area surfaces its community without needing
-    // an explicit route).
     const dismissedCommunities = this._dismissedCommunityKeys();
-    const routeCommunity = this.selectedCommunityLanding();
-    if (
-      routeCommunity &&
-      !dismissedCommunities.has(routeCommunity.communityKey)
-    ) {
-      return { kind: "community", community: routeCommunity };
-    }
+    const selectedCommunityKey = this.selectedCommunityLanding()?.communityKey;
 
     if (viewport) {
       // Pick the smallest-radius (most-specific) community whose center+radius
@@ -447,6 +437,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       const viewportCommunity = this._promotableCommunities()
         .filter(
           (c) =>
+            c.data.communityKey !== selectedCommunityKey &&
             !dismissedCommunities.has(c.data.communityKey) &&
             this._viewportIntersectsCircle(viewport, c.center, c.radiusM)
         )
@@ -1836,8 +1827,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const showEditHistory = this.showSpotEditHistory();
     const activeFilter = this.selectedFilter();
     const communityLanding = this.selectedCommunityLanding();
-    const currentPathWithoutQuery =
-      this.router.url.split("?")[0].split("#")[0] || "/map";
 
     // Get the spot - prefer selectedSpot, but fall back to challenge's spot
     const spot =
@@ -1865,8 +1854,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}`;
     } else if (communityLanding) {
       path = communityLanding.canonicalPath;
-    } else if (currentPathWithoutQuery.startsWith("/map/community/")) {
-      path = currentPathWithoutQuery;
     } else {
       path = `/map`;
     }
@@ -2153,6 +2140,23 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const coordinates = this._extractCommunityCoordinates(communityLanding);
+    if (
+      communityLanding.boundsCenter &&
+      typeof communityLanding.boundsRadiusM === "number"
+    ) {
+      const [lat, lng] = communityLanding.boundsCenter;
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        const radiusDegrees = communityLanding.boundsRadiusM / 111_320;
+        this.spotMap.focusBounds(
+          new google.maps.LatLngBounds(
+            { lat: lat - radiusDegrees, lng: lng - radiusDegrees },
+            { lat: lat + radiusDegrees, lng: lng + radiusDegrees }
+          )
+        );
+        return true;
+      }
+    }
+
     if (coordinates.length === 0) {
       return false;
     }
