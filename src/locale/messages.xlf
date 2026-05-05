@@ -18,12 +18,22 @@
     </unit>
     <unit id="login.nav_label">
       <segment>
-        <source>sign-in</source>
+        <source>Account</source>
       </segment>
     </unit>
     <unit id="4250467317941972098">
       <segment>
         <source> Log out </source>
+      </segment>
+    </unit>
+    <unit id="map_island.community_open">
+      <segment>
+        <source>View</source>
+      </segment>
+    </unit>
+    <unit id="map_island.event_open">
+      <segment>
+        <source>Open</source>
       </segment>
     </unit>
     <unit id="map_label">
@@ -70,6 +80,11 @@
     <unit id="5888181835078469865">
       <segment>
         <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">Spot</pc> for Parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
+      </segment>
+    </unit>
+    <unit id="5897595860261783392">
+      <segment>
+        <source>Add a name or some spot details before saving this new spot.</source>
       </segment>
     </unit>
     <unit id="2252911490527310739">
@@ -197,6 +212,14 @@
         <source> We believe the map belongs to the athletes, not a corporation. That&apos;s why <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary pkspot-font&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot</pc> is built differently. </source>
       </segment>
     </unit>
+    <unit id="977584861053902811">
+      <notes>
+        <note category="description">seconds short</note>
+      </notes>
+      <segment>
+        <source>s.</source>
+      </segment>
+    </unit>
     <unit id="978733016608641076">
       <segment>
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">all_inclusive</pc> Your Data, Forever </source>
@@ -297,6 +320,11 @@
         <source>Support</source>
       </segment>
     </unit>
+    <unit id="229373374824614747">
+      <segment>
+        <source> Activity could not be loaded. </source>
+      </segment>
+    </unit>
     <unit id="5604123151232836009">
       <segment>
         <source>Join Discord</source>
@@ -313,11 +341,11 @@
     </unit>
     <unit id="auth_action.sign_in_now">
       <notes>
-        <note category="description">Button to sign in</note>
-        <note category="meaning">sign in now</note>
+        <note category="description">Button to go to the account page</note>
+        <note category="meaning">continue to account</note>
       </notes>
       <segment>
-        <source>Sign in now</source>
+        <source>Continue to account</source>
       </segment>
     </unit>
     <unit id="auth_action.try_again">
@@ -331,11 +359,11 @@
     </unit>
     <unit id="auth_action.back_to_signin">
       <notes>
-        <note category="description">Button to go back to sign in</note>
-        <note category="meaning">back to sign in</note>
+        <note category="description">Button to go back to account</note>
+        <note category="meaning">back to account</note>
       </notes>
       <segment>
-        <source>Back to Sign in</source>
+        <source>Back to Account</source>
       </segment>
     </unit>
     <unit id="auth_action.new_password">
@@ -577,6 +605,11 @@
         <source>Beginner friendly</source>
       </segment>
     </unit>
+    <unit id="4790823050110460547">
+      <segment>
+        <source> No public edits yet. </source>
+      </segment>
+    </unit>
     <unit id="7059749880989073519">
       <segment>
         <source>Water challenge</source>
@@ -682,6 +715,11 @@
         <source>Time</source>
       </segment>
     </unit>
+    <unit id="849977137876783288">
+      <segment>
+        <source>Share media</source>
+      </segment>
+    </unit>
     <unit id="2159130950882492111">
       <notes>
         <note category="description">cancel button label</note>
@@ -713,6 +751,11 @@
         <source>Challenge media is required!</source>
       </segment>
     </unit>
+    <unit id="8392044408171513189">
+      <segment>
+        <source> We don&apos;t have a PK Spot community page for this route yet. </source>
+      </segment>
+    </unit>
     <unit id="7150227608403439982">
       <segment>
         <source>I&apos;ll add media!</source>
@@ -721,6 +764,11 @@
     <unit id="4115668858470490289">
       <segment>
         <source>Challenge updated successfully</source>
+      </segment>
+    </unit>
+    <unit id="4118187447474362400">
+      <segment>
+        <source>Community not found</source>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -801,6 +849,11 @@
         <source>Copy</source>
       </segment>
     </unit>
+    <unit id="4392375821538337917">
+      <segment>
+        <source>No events scheduled yet.</source>
+      </segment>
+    </unit>
     <unit id="crop.preview">
       <notes>
         <note category="description">Preview heading</note>
@@ -817,6 +870,36 @@
       </notes>
       <segment>
         <source> Crop the image above </source>
+      </segment>
+    </unit>
+    <unit id="community.close">
+      <segment>
+        <source>Close</source>
+      </segment>
+    </unit>
+    <unit id="community.discover_more_events">
+      <segment>
+        <source> Discover more events → </source>
+      </segment>
+    </unit>
+    <unit id="community.dry_count">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ dryCount() }}"/> dry</source>
+      </segment>
+    </unit>
+    <unit id="community.events_heading">
+      <segment>
+        <source> Events </source>
+      </segment>
+    </unit>
+    <unit id="community.spots_count">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ totalSpotCount() }}"/> spots</source>
+      </segment>
+    </unit>
+    <unit id="community.top_rated_count">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ topRatedCount() }}"/> top-rated</source>
       </segment>
     </unit>
     <unit id="crop.cancel">
@@ -931,6 +1014,16 @@
         <source>Spot Type</source>
       </segment>
     </unit>
+    <unit id="filter_scroll_left">
+      <segment>
+        <source>Scroll filters left</source>
+      </segment>
+    </unit>
+    <unit id="filter_scroll_right">
+      <segment>
+        <source>Scroll filters right</source>
+      </segment>
+    </unit>
     <unit id="filter_section_access">
       <segment>
         <source>Access</source>
@@ -944,6 +1037,16 @@
     <unit id="filter_clear">
       <segment>
         <source>Clear</source>
+      </segment>
+    </unit>
+    <unit id="filter_editing_quick_filter_description">
+      <segment>
+        <source>The options below already match the selected quick filter, so you can fine-tune it instead of starting from scratch.</source>
+      </segment>
+    </unit>
+    <unit id="filter_editing_quick_filter_label">
+      <segment>
+        <source>Editing quick filter</source>
       </segment>
     </unit>
     <unit id="filter_apply">
@@ -1151,6 +1254,11 @@
         <source>All Types</source>
       </segment>
     </unit>
+    <unit id="5688462374174490321">
+      <segment>
+        <source> Load more </source>
+      </segment>
+    </unit>
     <unit id="4570725150232607497">
       <notes>
         <note category="description">challenge participant type</note>
@@ -1169,29 +1277,138 @@
         <source>Challenges</source>
       </segment>
     </unit>
-    <unit id="6019314900948916795">
-      <segment>
-        <source>WC</source>
-      </segment>
-    </unit>
-    <unit id="4218851671709080860">
-      <segment>
-        <source>Info stand</source>
-      </segment>
-    </unit>
-    <unit id="7457957151903874535">
-      <segment>
-        <source>Open Gym (ASVZ)</source>
-      </segment>
-    </unit>
     <unit id="7629436164719717851">
       <segment>
         <source>Event in </source>
       </segment>
     </unit>
+    <unit id="event_page.back_to_events">
+      <segment>
+        <source>Back to all events</source>
+      </segment>
+    </unit>
+    <unit id="event_page.status.live_label">
+      <segment>
+        <source>Ongoing — ends in</source>
+      </segment>
+    </unit>
+    <unit id="event_page.status.past">
+      <segment>
+        <source> This event is over. Information shown below may be outdated. </source>
+      </segment>
+    </unit>
+    <unit id="event_page.status.upcoming_label">
+      <segment>
+        <source>Starts in</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.close">
+      <segment>
+        <source>Close</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.details">
+      <segment>
+        <source>Details</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.see_full">
+      <segment>
+        <source>See full event</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.live">
+      <segment>
+        <source>Ongoing — ends in</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.past">
+      <segment>
+        <source>Past event</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.upcoming">
+      <segment>
+        <source>Starts in</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_eventfrog">
+      <segment>
+        <source>View on EventFrog</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_parkour_earth">
+      <segment>
+        <source>View on Parkour Earth</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_source">
+      <segment>
+        <source>View source</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_spl">
+      <segment>
+        <source>View on Sport Parkour League</source>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_spt">
+      <segment>
+        <source>View on Swiss Parkour Tour</source>
+      </segment>
+    </unit>
+    <unit id="events.in_n_days">
+      <segment>
+        <source>in <ph id="0" equiv="PH" disp="days"/> days</source>
+      </segment>
+    </unit>
+    <unit id="events.in_n_hours">
+      <segment>
+        <source>in <ph id="0" equiv="PH" disp="hours"/> hours</source>
+      </segment>
+    </unit>
+    <unit id="events.in_n_minutes">
+      <segment>
+        <source>in <ph id="0" equiv="PH" disp="minutes"/> minutes</source>
+      </segment>
+    </unit>
+    <unit id="events.past_heading">
+      <segment>
+        <source> Past events </source>
+      </segment>
+    </unit>
+    <unit id="events.soon">
+      <segment>
+        <source>soon</source>
+      </segment>
+    </unit>
+    <unit id="events.status.live_with_end">
+      <segment>
+        <source>Ongoing — ends <ph id="0" equiv="PH" disp="relative"/></source>
+      </segment>
+    </unit>
+    <unit id="events.status.past">
+      <segment>
+        <source>Past event</source>
+      </segment>
+    </unit>
+    <unit id="events.status.upcoming_starts">
+      <segment>
+        <source>Starts <ph id="0" equiv="PH" disp="relative"/></source>
+      </segment>
+    </unit>
     <unit id="events.title">
       <notes>
         <note category="description">:</note>
+      </notes>
+      <segment>
+        <source>Events</source>
+      </segment>
+    </unit>
+    <unit id="events_label">
+      <notes>
+        <note category="description">A very short label for the navbar events page button</note>
+        <note category="meaning">Events navbar button label</note>
       </notes>
       <segment>
         <source>Events</source>
@@ -1243,6 +1460,16 @@
       </notes>
       <segment>
         <source> Forgot password </source>
+      </segment>
+    </unit>
+    <unit id="forgot_password.meta.description">
+      <segment>
+        <source>Reset your PK Spot password to get back into your parkour spots account.</source>
+      </segment>
+    </unit>
+    <unit id="forgot_password.meta.title">
+      <segment>
+        <source>Reset password</source>
       </segment>
     </unit>
     <unit id="forgotPassword.description">
@@ -1432,9 +1659,24 @@
         <source>Add a new spot</source>
       </segment>
     </unit>
+    <unit id="pk.home.description">
+      <segment>
+        <source>PK Spot is a parkour and freerunning community map. Find spots, plan training sessions, and share what you discover.</source>
+      </segment>
+    </unit>
+    <unit id="pk.home.title">
+      <segment>
+        <source>Parkour Spot Finder | PK Spot</source>
+      </segment>
+    </unit>
     <unit id="pk.spotmap.addSpot">
       <segment>
         <source>Add spot</source>
+      </segment>
+    </unit>
+    <unit id="pk.spotmap.description">
+      <segment>
+        <source>Discover parkour spots near you, plan training sessions with friends, and share your spots with the freerunning community.</source>
       </segment>
     </unit>
     <unit id="map.add_challenge.tooltip">
@@ -1453,6 +1695,36 @@
       </notes>
       <segment>
         <source>Import spots from a file</source>
+      </segment>
+    </unit>
+    <unit id="map.seo.about_heading">
+      <segment>
+        <source> About PK Spot </source>
+      </segment>
+    </unit>
+    <unit id="map.seo.about_p1">
+      <segment>
+        <source> PK Spot is a community map for parkour and freerunning. Use it to discover parkour spots near you, save your favorites, plan training sessions with friends, and add new spots so other athletes can find them. </source>
+      </segment>
+    </unit>
+    <unit id="map.seo.about_p2">
+      <segment>
+        <source> Every spot is added by people who actually train there. You&apos;ll find photos, ratings, and tags telling you whether a spot is good for parkour, freerunning, dry training, indoor sessions, or beginners. </source>
+      </segment>
+    </unit>
+    <unit id="map.seo.popular_heading">
+      <segment>
+        <source> Popular parkour communities </source>
+      </segment>
+    </unit>
+    <unit id="map.seo.spots_suffix">
+      <segment>
+        <source>spots</source>
+      </segment>
+    </unit>
+    <unit id="map.h1">
+      <segment>
+        <source> Parkour Spot Map — find spots, communities, and events near you </source>
       </segment>
     </unit>
     <unit id="map.highlighted_spots.structured_data_name">
@@ -1524,6 +1796,11 @@
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> edits are waiting for community voting.</source>
       </segment>
     </unit>
+    <unit id="5324713868940196306">
+      <segment>
+        <source>There is already a spot at this location.</source>
+      </segment>
+    </unit>
     <unit id="1927584134608367160">
       <segment>
         <source>No Google account found on this device. Please add a Google account in your device settings and try again.</source>
@@ -1552,6 +1829,11 @@
     <unit id="2841739558138901231">
       <segment>
         <source>In</source>
+      </segment>
+    </unit>
+    <unit id="2846098641732030728">
+      <segment>
+        <source>Save favorites and come back to the spots you want to session later.</source>
       </segment>
     </unit>
     <unit id="23518581647153834">
@@ -1642,6 +1924,11 @@
     <unit id="3368417786821334758">
       <segment>
         <source>Abort</source>
+      </segment>
+    </unit>
+    <unit id="3370839803061654054">
+      <segment>
+        <source>hours</source>
       </segment>
     </unit>
     <unit id="2917314929120683887">
@@ -1802,6 +2089,11 @@
         <source> Are you sure? You will need to sign in with <ph id="0" equiv="INTERPOLATION" disp="{{ providerDisplayName }}"/> again to confirm deletion. </source>
       </segment>
     </unit>
+    <unit id="3736030085204656589">
+      <segment>
+        <source> Community </source>
+      </segment>
+    </unit>
     <unit id="3737580346792181367">
       <segment>
         <source> Are you sure? Enter your password to confirm deletion. </source>
@@ -1932,6 +2224,11 @@
         <source>Your account has been deleted. Goodbye!</source>
       </segment>
     </unit>
+    <unit id="3312843743465268399">
+      <segment>
+        <source>Join the community</source>
+      </segment>
+    </unit>
     <unit id="3315502019080545247">
       <segment>
         <source>Error deleting account. Please try again.</source>
@@ -1940,6 +2237,11 @@
     <unit id="420441727915604290">
       <segment>
         <source>Security check failed. Please sign in again and try deleting your account.</source>
+      </segment>
+    </unit>
+    <unit id="4223406000078729869">
+      <segment>
+        <source>Dismiss event chip</source>
       </segment>
     </unit>
     <unit id="3432396429990524008">
@@ -1957,22 +2259,76 @@
         <source>Please enter your password</source>
       </segment>
     </unit>
-    <unit id="signin.title">
+    <unit id="account.auth.kicker">
       <notes>
-        <note category="description">Title of the sign in page</note>
-        <note category="meaning">sign in page title</note>
+        <note category="description">account auth kicker</note>
       </notes>
       <segment>
         <source> Sign in </source>
       </segment>
     </unit>
-    <unit id="signin.email_password.header">
+    <unit id="account.auth.title">
       <notes>
-        <note category="description">Header for email and password section</note>
-        <note category="meaning">email password section header</note>
+        <note category="description">Heading for account auth section</note>
+        <note category="meaning">account auth title</note>
       </notes>
       <segment>
-        <source> E-Mail and password </source>
+        <source> Sign in or create an account </source>
+      </segment>
+    </unit>
+    <unit id="account.benefits.description">
+      <notes>
+        <note category="description">Description for account benefits section</note>
+        <note category="meaning">account benefits description</note>
+      </notes>
+      <segment>
+        <source> PK Spot works without forcing sign-in first, but an account gives you a better way to contribute and keep track of the spots you care about. </source>
+      </segment>
+    </unit>
+    <unit id="account.benefits.kicker">
+      <notes>
+        <note category="description">account benefits kicker</note>
+      </notes>
+      <segment>
+        <source> Why join </source>
+      </segment>
+    </unit>
+    <unit id="account.benefits.title">
+      <notes>
+        <note category="description">Heading for account benefits section</note>
+        <note category="meaning">account benefits title</note>
+      </notes>
+      <segment>
+        <source> Why create an account? </source>
+      </segment>
+    </unit>
+    <unit id="account.language.inline_label">
+      <notes>
+        <note category="description">account language inline label</note>
+      </notes>
+      <segment>
+        <source> App language </source>
+      </segment>
+    </unit>
+    <unit id="account.privacy_policy.button">
+      <notes>
+        <note category="description">account privacy policy button</note>
+      </notes>
+      <segment>
+        <source> Privacy Policy </source>
+      </segment>
+    </unit>
+    <unit id="account.terms.button">
+      <notes>
+        <note category="description">account terms button</note>
+      </notes>
+      <segment>
+        <source> Terms of Service </source>
+      </segment>
+    </unit>
+    <unit id="signin.divider_or">
+      <segment>
+        <source>or</source>
       </segment>
     </unit>
     <unit id="signin.email.validation_error">
@@ -1981,7 +2337,17 @@
         <note category="meaning">email validation error</note>
       </notes>
       <segment>
-        <source>This E-Mail address is not valid!</source>
+        <source> This E-Mail address is not valid! </source>
+      </segment>
+    </unit>
+    <unit id="signin.meta.description">
+      <segment>
+        <source>Sign in to PK Spot or create a free account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.</source>
+      </segment>
+    </unit>
+    <unit id="signin.meta.title">
+      <segment>
+        <source>Sign in</source>
       </segment>
     </unit>
     <unit id="signin.password.validation_error">
@@ -1990,7 +2356,7 @@
         <note category="meaning">password validation error</note>
       </notes>
       <segment>
-        <source>The password field is empty!</source>
+        <source> The password field is empty! </source>
       </segment>
     </unit>
     <unit id="signin.button">
@@ -1999,7 +2365,7 @@
         <note category="meaning">sign in button</note>
       </notes>
       <segment>
-        <source>Sign in</source>
+        <source> Sign in </source>
       </segment>
     </unit>
     <unit id="signin.forgot_password.button">
@@ -2008,25 +2374,7 @@
         <note category="meaning">forgot password button</note>
       </notes>
       <segment>
-        <source>Forgot password</source>
-      </segment>
-    </unit>
-    <unit id="signin.other_options.header">
-      <notes>
-        <note category="description">Header for other sign-in options</note>
-        <note category="meaning">other signin options header</note>
-      </notes>
-      <segment>
-        <source> Other sign-in options </source>
-      </segment>
-    </unit>
-    <unit id="signin.no_account.message">
-      <notes>
-        <note category="description">Message for users without an account</note>
-        <note category="meaning">no account message</note>
-      </notes>
-      <segment>
-        <source> Don&apos;t have an account yet? Simply sign in with your Google or Apple account or sign up below. </source>
+        <source> Forgot password </source>
       </segment>
     </unit>
     <unit id="signin.signup.button">
@@ -2035,12 +2383,17 @@
         <note category="meaning">sign up button</note>
       </notes>
       <segment>
-        <source>Sign up here</source>
+        <source> Create account </source>
       </segment>
     </unit>
-    <unit id="8096545544094225301">
+    <unit id="signup.meta.description">
       <segment>
-        <source> Need help? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/support&quot;&gt;" dispEnd="&lt;/a&gt;">Visit our support page</pc></source>
+        <source>Create a free PK Spot account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.</source>
+      </segment>
+    </unit>
+    <unit id="signup.meta.title">
+      <segment>
+        <source>Create account</source>
       </segment>
     </unit>
     <unit id="5726791725186220555">
@@ -2056,6 +2409,11 @@
     <unit id="1578341976423133065">
       <segment>
         <source>Invalid email or password.</source>
+      </segment>
+    </unit>
+    <unit id="7730768294447572928">
+      <segment>
+        <source>Delete this spot and all of its reviews and edits? This cannot be undone.</source>
       </segment>
     </unit>
     <unit id="7733953409417762446">
@@ -2088,9 +2446,19 @@
         <source>The e-mail address needs to be verified later.</source>
       </segment>
     </unit>
+    <unit id="6859805653263373747">
+      <segment>
+        <source>Keep your own list</source>
+      </segment>
+    </unit>
     <unit id="7486528540316266957">
       <segment>
         <source>Choose a strong password.</source>
+      </segment>
+    </unit>
+    <unit id="4518031035032344779">
+      <segment>
+        <source>Create and improve spots</source>
       </segment>
     </unit>
     <unit id="4541118533130714111">
@@ -2278,6 +2646,11 @@
       </notes>
       <segment>
         <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</source>
+      </segment>
+    </unit>
+    <unit id="5557620594634616784">
+      <segment>
+        <source>No events available to embed.</source>
       </segment>
     </unit>
     <unit id="5567404971286131139">
@@ -2482,6 +2855,11 @@
         <source>Edit Spot</source>
       </segment>
     </unit>
+    <unit id="8907222687260406825">
+      <segment>
+        <source>Upload photos and videos so people can quickly understand a spot before they go.</source>
+      </segment>
+    </unit>
     <unit id="spot.edit_history.tooltip">
       <notes>
         <note category="description">Tooltip for edit history button</note>
@@ -2679,6 +3057,16 @@
         <source>Spot Type</source>
       </segment>
     </unit>
+    <unit id="support.meta.description">
+      <segment>
+        <source>Get help with PK Spot — answers to common questions about parkour spots, accounts, and the community.</source>
+      </segment>
+    </unit>
+    <unit id="support.meta.title">
+      <segment>
+        <source>Support</source>
+      </segment>
+    </unit>
     <unit id="spot_access_label">
       <notes>
         <note category="description">Label for the spot access selection field</note>
@@ -2736,6 +3124,11 @@
         <source>Custom URL added</source>
       </segment>
     </unit>
+    <unit id="6396486314653699002">
+      <segment>
+        <source>Follow what others discover, contribute updates, and help keep the map alive.</source>
+      </segment>
+    </unit>
     <unit id="8470446025763473581">
       <segment>
         <source>Added media</source>
@@ -2774,6 +3167,14 @@
     <unit id="6670068416688791508">
       <segment>
         <source>Cannot share a spot that hasn&apos;t been saved yet</source>
+      </segment>
+    </unit>
+    <unit id="7522163249854323083">
+      <notes>
+        <note category="description">minutes short</note>
+      </notes>
+      <segment>
+        <source>min.</source>
       </segment>
     </unit>
     <unit id="7523630390926625638">
@@ -2874,6 +3275,11 @@
         <source> Sign out </source>
       </segment>
     </unit>
+    <unit id="3211354897773594472">
+      <segment>
+        <source> Loading activity... </source>
+      </segment>
+    </unit>
     <unit id="3228321309780982411">
       <notes>
         <note category="meaning">report button label</note>
@@ -2906,6 +3312,41 @@
       </notes>
       <segment>
         <source>Update Review</source>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.added-media">
+      <segment>
+        <source>Added media to a spot</source>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.added-spot">
+      <segment>
+        <source>Added a spot</source>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.edited-spot">
+      <segment>
+        <source>Edited a spot</source>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.removed-media">
+      <segment>
+        <source>Removed spot media</source>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.updated-spot">
+      <segment>
+        <source>Updated a spot</source>
+      </segment>
+    </unit>
+    <unit id="user-activity.title">
+      <segment>
+        <source>Activity</source>
+      </segment>
+    </unit>
+    <unit id="user-activity.title.named">
+      <segment>
+        <source><ph id="0" equiv="PH" disp="name"/>&apos;s activity</source>
       </segment>
     </unit>
     <unit id="7536618650694716867">
@@ -2948,6 +3389,11 @@
         <source>Instagram DMs</source>
       </segment>
     </unit>
+    <unit id="3865346423204416259">
+      <segment>
+        <source>Spot deleted</source>
+      </segment>
+    </unit>
     <unit id="5287661483037226366">
       <segment>
         <source> Feel free to slide into our DMs! We&apos;re happy to help with quick questions. </source>
@@ -2973,6 +3419,11 @@
         <source> Your Private Spot Lists </source>
       </segment>
     </unit>
+    <unit id="1166151569661333574">
+      <segment>
+        <source>Add new spots, fix details, and help keep local knowledge useful for everyone.</source>
+      </segment>
+    </unit>
     <unit id="5526007558904938886">
       <segment>
         <source>About PK Spot</source>
@@ -2986,6 +3437,11 @@
     <unit id="844013166562960658">
       <segment>
         <source>Saved Spots</source>
+      </segment>
+    </unit>
+    <unit id="8449806182355838394">
+      <segment>
+        <source>Dismiss community chip</source>
       </segment>
     </unit>
     <unit id="2029980907058777630">
@@ -3091,6 +3547,11 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This image is already present on this spot.</pc></source>
       </segment>
     </unit>
+    <unit id="4819272857647882401">
+      <segment>
+        <source>Loading events…</source>
+      </segment>
+    </unit>
     <unit id="4819326588611894685">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span &gt;"> Copyright infringement: This is my content and I did not give permission for it to be used here.</pc></source>
@@ -3109,6 +3570,11 @@
     <unit id="6772316127315505952">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Other</pc></source>
+      </segment>
+    </unit>
+    <unit id="2607510393198183286">
+      <segment>
+        <source>Failed to delete spot</source>
       </segment>
     </unit>
     <unit id="2662644497259948010">
@@ -3184,7 +3650,7 @@
     </unit>
     <unit id="pk.spotmap.title">
       <segment>
-        <source>PK Spot Map</source>
+        <source>Parkour Spot Map | PK Spot</source>
       </segment>
     </unit>
     <unit id="7724618434121262533">
@@ -3310,6 +3776,11 @@
     <unit id="1764129256318376973">
       <segment>
         <source>My Spots</source>
+      </segment>
+    </unit>
+    <unit id="1770355449441392558">
+      <segment>
+        <source>Back to the map</source>
       </segment>
     </unit>
     <unit id="1772658275500241538">
@@ -3522,6 +3993,11 @@
         <source>Are toilets (WC) available?</source>
       </segment>
     </unit>
+    <unit id="quick_filters_aria_label">
+      <segment>
+        <source>Quick filters</source>
+      </segment>
+    </unit>
     <unit id="question.drinking_water">
       <segment>
         <source>Is there drinking water available right at the spot?</source>
@@ -3555,6 +4031,11 @@
     <unit id="7027401708987643293">
       <segment>
         <source>Core</source>
+      </segment>
+    </unit>
+    <unit id="7036284206110282007">
+      <segment>
+        <source>days</source>
       </segment>
     </unit>
     <unit id="7037452207236778271">

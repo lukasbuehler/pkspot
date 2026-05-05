@@ -153,6 +153,12 @@
         <target> Disconnetti </target>
       </segment>
     </unit>
+    <unit id="3211354897773594472">
+      <segment state="initial">
+        <source> Loading activity... </source>
+        <target>Caricamento attività...</target>
+      </segment>
+    </unit>
     <unit id="3228321309780982411">
       <notes>
         <note category="meaning">report button label</note>
@@ -178,6 +184,12 @@
       <segment state="initial">
         <source>Custom URL added</source>
         <target>URL personalizzato aggiunto</target>
+      </segment>
+    </unit>
+    <unit id="6396486314653699002">
+      <segment state="initial">
+        <source>Follow what others discover, contribute updates, and help keep the map alive.</source>
+        <target>Segui ciò che scoprono gli altri, contribuisci con aggiornamenti e aiuta a mantenere viva la mappa.</target>
       </segment>
     </unit>
     <unit id="641716500460785755">
@@ -362,6 +374,12 @@
         <target>Il tuo indirizzo email è stato verificato con successo. Ora puoi accedere a tutte le funzionalità di PK Spot.</target>
       </segment>
     </unit>
+    <unit id="5557620594634616784">
+      <segment state="initial">
+        <source>No events available to embed.</source>
+        <target>Nessun evento disponibile da incorporare.</target>
+      </segment>
+    </unit>
     <unit id="5567404971286131139">
       <segment state="initial">
         <source> This spot is not eligible for highlights. To be eligible, it needs at least one user-submitted picture and at least one rating. </source>
@@ -495,6 +513,12 @@
         <target> Lo <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;text-primary&quot;&gt;" dispEnd="&lt;/span&gt;">Spot</pc> per il Parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></target>
       </segment>
     </unit>
+    <unit id="5897595860261783392">
+      <segment state="initial">
+        <source>Add a name or some spot details before saving this new spot.</source>
+        <target>Aggiungi un nome o alcuni dettagli prima di salvare questo nuovo spot.</target>
+      </segment>
+    </unit>
     <unit id="5207635742003539443">
       <segment state="initial">
         <source>Sign in</source>
@@ -595,6 +619,12 @@
         <target>OK</target>
       </segment>
     </unit>
+    <unit id="map.h1">
+      <segment state="initial">
+        <source> Parkour Spot Map — find spots, communities, and events near you </source>
+        <target>Mappa degli spot di parkour - trova spot, comunità ed eventi vicino a te</target>
+      </segment>
+    </unit>
     <unit id="map.highlighted_spots.structured_data_name">
       <segment state="initial">
         <source>Featured Parkour Spots</source>
@@ -609,6 +639,48 @@
       <segment state="initial">
         <source>Import spots from a file</source>
         <target>Importa spot da un file</target>
+      </segment>
+    </unit>
+    <unit id="map.seo.about_heading">
+      <segment state="initial">
+        <source> About PK Spot </source>
+        <target>Informazioni su PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="map.seo.about_p1">
+      <segment state="initial">
+        <source> PK Spot is a community map for parkour and freerunning. Use it to discover parkour spots near you, save your favorites, plan training sessions with friends, and add new spots so other athletes can find them. </source>
+        <target>PK Spot è una mappa comunitaria per parkour e freerunning. Usala per scoprire spot di parkour vicino a te, salvare i preferiti, pianificare allenamenti con gli amici e aggiungere nuovi spot così altri atleti possano trovarli.</target>
+      </segment>
+    </unit>
+    <unit id="map.seo.about_p2">
+      <segment state="initial">
+        <source> Every spot is added by people who actually train there. You&apos;ll find photos, ratings, and tags telling you whether a spot is good for parkour, freerunning, dry training, indoor sessions, or beginners. </source>
+        <target>Ogni spot viene aggiunto da persone che si allenano davvero lì. Troverai foto, valutazioni e tag che indicano se uno spot è adatto a parkour, freerunning, allenamento asciutto, sessioni indoor o principianti.</target>
+      </segment>
+    </unit>
+    <unit id="map.seo.popular_heading">
+      <segment state="initial">
+        <source> Popular parkour communities </source>
+        <target>Comunità parkour popolari</target>
+      </segment>
+    </unit>
+    <unit id="map.seo.spots_suffix">
+      <segment state="initial">
+        <source>spots</source>
+        <target>spot</target>
+      </segment>
+    </unit>
+    <unit id="map_island.community_open">
+      <segment state="initial">
+        <source>View</source>
+        <target>Vedi</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_open">
+      <segment state="initial">
+        <source>Open</source>
+        <target>Apri</target>
       </segment>
     </unit>
     <unit id="map_label">
@@ -687,24 +759,20 @@
         <target>solo lettere minuscole, numeri e trattini</target>
       </segment>
     </unit>
-    <unit id="signin.email_password.header">
-      <notes>
-        <note category="description">Header for email and password section</note>
-        <note category="meaning">email password section header</note>
-      </notes>
-      <segment state="initial">
-        <source> E-Mail and password </source>
-        <target> E-Mail e password </target>
-      </segment>
-    </unit>
     <unit id="signin.button">
       <notes>
         <note category="description">Button to sign in</note>
         <note category="meaning">sign in button</note>
       </notes>
       <segment state="initial">
-        <source>Sign in</source>
-        <target>Accedi</target>
+        <source> Sign in </source>
+        <target> Accedi </target>
+      </segment>
+    </unit>
+    <unit id="signin.divider_or">
+      <segment state="initial">
+        <source>or</source>
+        <target>oppure</target>
       </segment>
     </unit>
     <unit id="signin.email.validation_error">
@@ -713,8 +781,20 @@
         <note category="meaning">email validation error</note>
       </notes>
       <segment state="initial">
-        <source>This E-Mail address is not valid!</source>
-        <target>Questo indirizzo E-Mail non è valido!</target>
+        <source> This E-Mail address is not valid! </source>
+        <target> Questo indirizzo E-Mail non è valido! </target>
+      </segment>
+    </unit>
+    <unit id="signin.meta.description">
+      <segment state="initial">
+        <source>Sign in to PK Spot or create a free account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.</source>
+        <target>Accedi a PK Spot o crea un account gratuito per scoprire spot di parkour, pianificare allenamenti e condividere ciò che trovi con la comunità freerunning.</target>
+      </segment>
+    </unit>
+    <unit id="signin.meta.title">
+      <segment state="initial">
+        <source>Sign in</source>
+        <target>Accedi</target>
       </segment>
     </unit>
     <unit id="signin.password.validation_error">
@@ -723,8 +803,8 @@
         <note category="meaning">password validation error</note>
       </notes>
       <segment state="initial">
-        <source>The password field is empty!</source>
-        <target>Il campo della password è vuoto!</target>
+        <source> The password field is empty! </source>
+        <target> Il campo della password è vuoto! </target>
       </segment>
     </unit>
     <unit id="signin.forgot_password.button">
@@ -733,18 +813,8 @@
         <note category="meaning">forgot password button</note>
       </notes>
       <segment state="initial">
-        <source>Forgot password</source>
-        <target>Password dimenticata</target>
-      </segment>
-    </unit>
-    <unit id="signin.no_account.message">
-      <notes>
-        <note category="description">Message for users without an account</note>
-        <note category="meaning">no account message</note>
-      </notes>
-      <segment state="initial">
-        <source> Don&apos;t have an account yet? Simply sign in with your Google or Apple account or sign up below. </source>
-        <target> Non hai ancora un account? Accedi semplicemente con il tuo account Google o registrati qui sotto. </target>
+        <source> Forgot password </source>
+        <target> Password dimenticata </target>
       </segment>
     </unit>
     <unit id="signin.signup.button">
@@ -753,18 +823,95 @@
         <note category="meaning">sign up button</note>
       </notes>
       <segment state="initial">
-        <source>Sign up here</source>
+        <source> Create account </source>
         <target>Registrati qui</target>
       </segment>
     </unit>
-    <unit id="signin.title">
+    <unit id="signup.meta.description">
+      <segment state="initial">
+        <source>Create a free PK Spot account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.</source>
+        <target>Crea un account gratuito PK Spot per scoprire spot di parkour, pianificare allenamenti e condividere ciò che trovi con la comunità freerunning.</target>
+      </segment>
+    </unit>
+    <unit id="signup.meta.title">
+      <segment state="initial">
+        <source>Create account</source>
+        <target>Crea account</target>
+      </segment>
+    </unit>
+    <unit id="account.auth.kicker">
       <notes>
-        <note category="description">Title of the sign in page</note>
-        <note category="meaning">sign in page title</note>
+        <note category="description">account auth kicker</note>
       </notes>
       <segment state="initial">
         <source> Sign in </source>
         <target> Accedi </target>
+      </segment>
+    </unit>
+    <unit id="account.auth.title">
+      <notes>
+        <note category="description">Heading for account auth section</note>
+        <note category="meaning">account auth title</note>
+      </notes>
+      <segment state="initial">
+        <source> Sign in or create an account </source>
+        <target>Accedi o crea un account</target>
+      </segment>
+    </unit>
+    <unit id="account.benefits.description">
+      <notes>
+        <note category="description">Description for account benefits section</note>
+        <note category="meaning">account benefits description</note>
+      </notes>
+      <segment state="initial">
+        <source> PK Spot works without forcing sign-in first, but an account gives you a better way to contribute and keep track of the spots you care about. </source>
+        <target>PK Spot funziona senza obbligarti ad accedere subito, ma un account ti offre un modo migliore per contribuire e tenere traccia degli spot che ti interessano.</target>
+      </segment>
+    </unit>
+    <unit id="account.benefits.kicker">
+      <notes>
+        <note category="description">account benefits kicker</note>
+      </notes>
+      <segment state="initial">
+        <source> Why join </source>
+        <target>Perché unirti</target>
+      </segment>
+    </unit>
+    <unit id="account.benefits.title">
+      <notes>
+        <note category="description">Heading for account benefits section</note>
+        <note category="meaning">account benefits title</note>
+      </notes>
+      <segment state="initial">
+        <source> Why create an account? </source>
+        <target>Perché creare un account?</target>
+      </segment>
+    </unit>
+    <unit id="account.language.inline_label">
+      <notes>
+        <note category="description">account language inline label</note>
+      </notes>
+      <segment state="initial">
+        <source> App language </source>
+        <target>Lingua dell’app</target>
+      </segment>
+    </unit>
+    <unit id="account.privacy_policy.button">
+      <notes>
+        <note category="description">account privacy policy button</note>
+      </notes>
+      <segment state="initial">
+        <source> Privacy Policy </source>
+        <target>Informativa sulla privacy</target>
+      </segment>
+    </unit>
+    <unit id="account.terms.button">
+      <notes>
+        <note category="description">account terms button</note>
+      </notes>
+      <segment state="initial">
+        <source> Terms of Service </source>
+        <target>Termini di servizio</target>
       </segment>
     </unit>
     <unit id="5726791725186220555">
@@ -795,6 +942,12 @@
       <segment state="initial">
         <source>Unnamed Drinking Water spot</source>
         <target>Spot di acqua potabile senza nome</target>
+      </segment>
+    </unit>
+    <unit id="7730768294447572928">
+      <segment state="initial">
+        <source>Delete this spot and all of its reviews and edits? This cannot be undone.</source>
+        <target>Eliminare questo spot e tutte le sue recensioni e modifiche? Questa azione non può essere annullata.</target>
       </segment>
     </unit>
     <unit id="7733953409417762446">
@@ -869,10 +1022,22 @@
         <target>L&apos;indirizzo e-mail deve essere verificato in seguito.</target>
       </segment>
     </unit>
+    <unit id="6859805653263373747">
+      <segment state="initial">
+        <source>Keep your own list</source>
+        <target>Tieni la tua lista</target>
+      </segment>
+    </unit>
     <unit id="7486528540316266957">
       <segment state="initial">
         <source>Choose a strong password.</source>
         <target>Scegli una password sicura.</target>
+      </segment>
+    </unit>
+    <unit id="4518031035032344779">
+      <segment state="initial">
+        <source>Create and improve spots</source>
+        <target>Crea e migliora spot</target>
       </segment>
     </unit>
     <unit id="4541118533130714111">
@@ -1190,6 +1355,12 @@
         <target>Spot salvati</target>
       </segment>
     </unit>
+    <unit id="8449806182355838394">
+      <segment state="initial">
+        <source>Dismiss community chip</source>
+        <target>Nascondi chip comunità</target>
+      </segment>
+    </unit>
     <unit id="8450335284128633458">
       <segment state="initial">
         <source>Failed to link Google Place</source>
@@ -1236,6 +1407,12 @@
       <segment state="initial">
         <source> Your Private Spot Lists </source>
         <target> Le tue liste private di Spot </target>
+      </segment>
+    </unit>
+    <unit id="1166151569661333574">
+      <segment state="initial">
+        <source>Add new spots, fix details, and help keep local knowledge useful for everyone.</source>
+        <target>Aggiungi nuovi spot, correggi dettagli e aiuta a mantenere utile per tutti la conoscenza locale.</target>
       </segment>
     </unit>
     <unit id="8374523856907728400">
@@ -1354,7 +1531,7 @@
     </unit>
     <unit id="pk.spotmap.title">
       <segment state="initial">
-        <source>PK Spot Map</source>
+        <source>Parkour Spot Map | PK Spot</source>
         <target>Mappa PK Spot</target>
       </segment>
     </unit>
@@ -1505,7 +1682,7 @@
     <unit id="spot-edit-summary.row.bounds.points">
       <segment state="initial">
         <source><ph id="0" equiv="pointCount" disp="bounds.length"/> points</source>
-        <target><ph id="0" equiv="pointCount" disp="bounds.length"/> points</target>
+        <target><ph id="0" equiv="pointCount" disp="bounds.length"/> punti</target>
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.bounds.single-point">
@@ -1559,7 +1736,7 @@
     <unit id="spot-edit-summary.row.media.multiple">
       <segment state="initial">
         <source><ph id="0" equiv="itemCount" disp="value.length"/> items</source>
-        <target><ph id="0" equiv="itemCount" disp="value.length"/> items</target>
+        <target><ph id="0" equiv="itemCount" disp="value.length"/> elementi</target>
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.media.none">
@@ -2065,11 +2242,11 @@
     </unit>
     <unit id="auth_action.back_to_signin">
       <notes>
-        <note category="description">Button to go back to sign in</note>
-        <note category="meaning">back to sign in</note>
+        <note category="description">Button to go back to account</note>
+        <note category="meaning">back to account</note>
       </notes>
       <segment state="initial">
-        <source>Back to Sign in</source>
+        <source>Back to Account</source>
         <target>Torna all&apos;accesso</target>
       </segment>
     </unit>
@@ -2145,11 +2322,11 @@
     </unit>
     <unit id="auth_action.sign_in_now">
       <notes>
-        <note category="description">Button to sign in</note>
-        <note category="meaning">sign in now</note>
+        <note category="description">Button to go to the account page</note>
+        <note category="meaning">continue to account</note>
       </notes>
       <segment state="initial">
-        <source>Sign in now</source>
+        <source>Continue to account</source>
         <target>Accedi ora</target>
       </segment>
     </unit>
@@ -2269,6 +2446,12 @@
       <segment state="initial">
         <source>Are toilets (WC) available?</source>
         <target>Sono disponibili servizi igienici (WC)?</target>
+      </segment>
+    </unit>
+    <unit id="quick_filters_aria_label">
+      <segment state="initial">
+        <source>Quick filters</source>
+        <target>Filtri rapidi</target>
       </segment>
     </unit>
     <unit id="regular_spots_text">
@@ -2440,6 +2623,15 @@
       <segment state="initial">
         <source>This E-Mail address is not valid!</source>
         <target>Questo indirizzo email non è valido!</target>
+      </segment>
+    </unit>
+    <unit id="977584861053902811">
+      <notes>
+        <note category="description">seconds short</note>
+      </notes>
+      <segment state="initial">
+        <source>s.</source>
+        <target>s</target>
       </segment>
     </unit>
     <unit id="978733016608641076">
@@ -2785,6 +2977,144 @@
         <target>Questa è la data in cui hai iniziato a praticare Parkour e Freerunning. Verrà arrotondata ad anni interi dopo un anno o più, quindi non preoccuparti troppo.</target>
       </segment>
     </unit>
+    <unit id="event_page.back_to_events">
+      <segment state="initial">
+        <source>Back to all events</source>
+        <target>Torna a tutti gli eventi</target>
+      </segment>
+    </unit>
+    <unit id="event_page.status.live_label">
+      <segment state="initial">
+        <source>Ongoing — ends in</source>
+        <target>In corso - termina tra</target>
+      </segment>
+    </unit>
+    <unit id="event_page.status.past">
+      <segment state="initial">
+        <source> This event is over. Information shown below may be outdated. </source>
+        <target>Questo evento è terminato. Le informazioni mostrate sotto potrebbero essere obsolete.</target>
+      </segment>
+    </unit>
+    <unit id="event_page.status.upcoming_label">
+      <segment state="initial">
+        <source>Starts in</source>
+        <target>Inizia tra</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.close">
+      <segment state="initial">
+        <source>Close</source>
+        <target>Chiudi</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.details">
+      <segment state="initial">
+        <source>Details</source>
+        <target>Dettagli</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.see_full">
+      <segment state="initial">
+        <source>See full event</source>
+        <target>Vedi evento completo</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.live">
+      <segment state="initial">
+        <source>Ongoing — ends in</source>
+        <target>In corso - termina tra</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.past">
+      <segment state="initial">
+        <source>Past event</source>
+        <target>Evento passato</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.upcoming">
+      <segment state="initial">
+        <source>Starts in</source>
+        <target>Inizia tra</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_eventfrog">
+      <segment state="initial">
+        <source>View on EventFrog</source>
+        <target>Vedi su EventFrog</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_parkour_earth">
+      <segment state="initial">
+        <source>View on Parkour Earth</source>
+        <target>Vedi su Parkour Earth</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_source">
+      <segment state="initial">
+        <source>View source</source>
+        <target>Vedi fonte</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_spl">
+      <segment state="initial">
+        <source>View on Sport Parkour League</source>
+        <target>Vedi su Sport Parkour League</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.view_spt">
+      <segment state="initial">
+        <source>View on Swiss Parkour Tour</source>
+        <target>Vedi su Swiss Parkour Tour</target>
+      </segment>
+    </unit>
+    <unit id="events.in_n_days">
+      <segment state="initial">
+        <source>in <ph id="0" equiv="PH" disp="days"/> days</source>
+        <target>tra <ph id="0" equiv="PH" disp="days"/> giorni</target>
+      </segment>
+    </unit>
+    <unit id="events.in_n_hours">
+      <segment state="initial">
+        <source>in <ph id="0" equiv="PH" disp="hours"/> hours</source>
+        <target>tra <ph id="0" equiv="PH" disp="hours"/> ore</target>
+      </segment>
+    </unit>
+    <unit id="events.in_n_minutes">
+      <segment state="initial">
+        <source>in <ph id="0" equiv="PH" disp="minutes"/> minutes</source>
+        <target>tra <ph id="0" equiv="PH" disp="minutes"/> minuti</target>
+      </segment>
+    </unit>
+    <unit id="events.past_heading">
+      <segment state="initial">
+        <source> Past events </source>
+        <target>Eventi passati</target>
+      </segment>
+    </unit>
+    <unit id="events.soon">
+      <segment state="initial">
+        <source>soon</source>
+        <target>presto</target>
+      </segment>
+    </unit>
+    <unit id="events.status.live_with_end">
+      <segment state="initial">
+        <source>Ongoing — ends <ph id="0" equiv="PH" disp="relative"/></source>
+        <target>In corso - termina <ph id="0" equiv="PH" disp="relative"/></target>
+      </segment>
+    </unit>
+    <unit id="events.status.past">
+      <segment state="initial">
+        <source>Past event</source>
+        <target>Evento passato</target>
+      </segment>
+    </unit>
+    <unit id="events.status.upcoming_starts">
+      <segment state="initial">
+        <source>Starts <ph id="0" equiv="PH" disp="relative"/></source>
+        <target>Inizia <ph id="0" equiv="PH" disp="relative"/></target>
+      </segment>
+    </unit>
     <unit id="events.title">
       <notes>
         <note category="description">:</note>
@@ -2794,16 +3124,20 @@
         <target>Eventi</target>
       </segment>
     </unit>
+    <unit id="events_label">
+      <notes>
+        <note category="description">A very short label for the navbar events page button</note>
+        <note category="meaning">Events navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Events</source>
+        <target>Events</target>
+      </segment>
+    </unit>
     <unit id="6018246591673612412">
       <segment state="initial">
         <source>Follow</source>
         <target>Segui</target>
-      </segment>
-    </unit>
-    <unit id="6019314900948916795">
-      <segment state="initial">
-        <source>WC</source>
-        <target>Toilette</target>
       </segment>
     </unit>
     <unit id="420441727915604290">
@@ -2812,10 +3146,10 @@
         <target>Controllo di sicurezza fallito. Accedi nuovamente e prova a eliminare il tuo account.</target>
       </segment>
     </unit>
-    <unit id="4218851671709080860">
+    <unit id="4223406000078729869">
       <segment state="initial">
-        <source>Info stand</source>
-        <target>Punto informazioni</target>
+        <source>Dismiss event chip</source>
+        <target>Nascondi chip evento</target>
       </segment>
     </unit>
     <unit id="spot.close.tooltip">
@@ -2866,6 +3200,18 @@
         <target>Cancella</target>
       </segment>
     </unit>
+    <unit id="filter_editing_quick_filter_description">
+      <segment state="initial">
+        <source>The options below already match the selected quick filter, so you can fine-tune it instead of starting from scratch.</source>
+        <target>Le opzioni qui sotto corrispondono già al filtro rapido selezionato, quindi puoi perfezionarlo invece di ricominciare da capo.</target>
+      </segment>
+    </unit>
+    <unit id="filter_editing_quick_filter_label">
+      <segment state="initial">
+        <source>Editing quick filter</source>
+        <target>Modifica filtro rapido</target>
+      </segment>
+    </unit>
     <unit id="filter_helper_text">
       <notes>
         <note category="description">Filter helper text</note>
@@ -2879,6 +3225,18 @@
       <segment state="initial">
         <source>No</source>
         <target>No</target>
+      </segment>
+    </unit>
+    <unit id="filter_scroll_left">
+      <segment state="initial">
+        <source>Scroll filters left</source>
+        <target>Scorri filtri a sinistra</target>
+      </segment>
+    </unit>
+    <unit id="filter_scroll_right">
+      <segment state="initial">
+        <source>Scroll filters right</source>
+        <target>Scorri filtri a destra</target>
       </segment>
     </unit>
     <unit id="filter_section_access">
@@ -2915,6 +3273,18 @@
       <segment state="initial">
         <source>For Parkour</source>
         <target>Per Parkour</target>
+      </segment>
+    </unit>
+    <unit id="forgot_password.meta.description">
+      <segment state="initial">
+        <source>Reset your PK Spot password to get back into your parkour spots account.</source>
+        <target>Reimposta la password di PK Spot per rientrare nel tuo account di spot di parkour.</target>
+      </segment>
+    </unit>
+    <unit id="forgot_password.meta.title">
+      <segment state="initial">
+        <source>Reset password</source>
+        <target>Reimposta password</target>
       </segment>
     </unit>
     <unit id="forgotPassword.description">
@@ -2959,6 +3329,12 @@
         <target>Copia</target>
       </segment>
     </unit>
+    <unit id="4392375821538337917">
+      <segment state="initial">
+        <source>No events scheduled yet.</source>
+        <target>Nessun evento programmato al momento.</target>
+      </segment>
+    </unit>
     <unit id="4973187879197257053">
       <segment state="initial">
         <source>Embed Type</source>
@@ -2969,6 +3345,12 @@
       <segment state="initial">
         <source>Event</source>
         <target>Evento</target>
+      </segment>
+    </unit>
+    <unit id="3312843743465268399">
+      <segment state="initial">
+        <source>Join the community</source>
+        <target>Unisciti alla comunità</target>
       </segment>
     </unit>
     <unit id="3315502019080545247">
@@ -2993,6 +3375,12 @@
       <segment state="initial">
         <source>In</source>
         <target>A</target>
+      </segment>
+    </unit>
+    <unit id="2846098641732030728">
+      <segment state="initial">
+        <source>Save favorites and come back to the spots you want to session later.</source>
+        <target>Salva i preferiti e torna più tardi agli spot in cui vuoi allenarti.</target>
       </segment>
     </unit>
     <unit id="2855049153368933927">
@@ -3115,8 +3503,44 @@
     </unit>
     <unit id="login.nav_label">
       <segment state="initial">
-        <source>sign-in</source>
+        <source>Account</source>
         <target>Accedi</target>
+      </segment>
+    </unit>
+    <unit id="community.close">
+      <segment state="initial">
+        <source>Close</source>
+        <target>Chiudi</target>
+      </segment>
+    </unit>
+    <unit id="community.discover_more_events">
+      <segment state="initial">
+        <source> Discover more events → </source>
+        <target>Scopri altri eventi →</target>
+      </segment>
+    </unit>
+    <unit id="community.dry_count">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ dryCount() }}"/> dry</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ dryCount() }}"/> asciutti</target>
+      </segment>
+    </unit>
+    <unit id="community.events_heading">
+      <segment state="initial">
+        <source> Events </source>
+        <target> Events </target>
+      </segment>
+    </unit>
+    <unit id="community.spots_count">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ totalSpotCount() }}"/> spots</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ totalSpotCount() }}"/> spot</target>
+      </segment>
+    </unit>
+    <unit id="community.top_rated_count">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ topRatedCount() }}"/> top-rated</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ topRatedCount() }}"/> con valutazione alta</target>
       </segment>
     </unit>
     <unit id="crop.cancel">
@@ -3191,6 +3615,48 @@
       <segment state="initial">
         <source>Update Review</source>
         <target>Aggiorna recensione</target>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.added-media">
+      <segment state="initial">
+        <source>Added media to a spot</source>
+        <target>Ha aggiunto media a uno spot</target>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.added-spot">
+      <segment state="initial">
+        <source>Added a spot</source>
+        <target>Ha aggiunto uno spot</target>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.edited-spot">
+      <segment state="initial">
+        <source>Edited a spot</source>
+        <target>Ha modificato uno spot</target>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.removed-media">
+      <segment state="initial">
+        <source>Removed spot media</source>
+        <target>Ha rimosso media dallo spot</target>
+      </segment>
+    </unit>
+    <unit id="user-activity.action.updated-spot">
+      <segment state="initial">
+        <source>Updated a spot</source>
+        <target>Ha aggiornato uno spot</target>
+      </segment>
+    </unit>
+    <unit id="user-activity.title">
+      <segment state="initial">
+        <source>Activity</source>
+        <target>Attività</target>
+      </segment>
+    </unit>
+    <unit id="user-activity.title.named">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="name"/>&apos;s activity</source>
+        <target>Attività di <ph id="0" equiv="PH" disp="name"/></target>
       </segment>
     </unit>
     <unit id="8726138323871139597">
@@ -3277,10 +3743,22 @@
         <target>Adatto ai principianti</target>
       </segment>
     </unit>
+    <unit id="4790823050110460547">
+      <segment state="initial">
+        <source> No public edits yet. </source>
+        <target>Ancora nessuna modifica pubblica.</target>
+      </segment>
+    </unit>
     <unit id="4813152754732689397">
       <segment state="initial">
         <source>Contributor</source>
         <target>Contributore</target>
+      </segment>
+    </unit>
+    <unit id="4819272857647882401">
+      <segment state="initial">
+        <source>Loading events…</source>
+        <target>Caricamento eventi…</target>
       </segment>
     </unit>
     <unit id="4819326588611894685">
@@ -3439,6 +3917,12 @@
         <target>Challenge aggiornato con successo</target>
       </segment>
     </unit>
+    <unit id="4118187447474362400">
+      <segment state="initial">
+        <source>Community not found</source>
+        <target>Comunità non trovata</target>
+      </segment>
+    </unit>
     <unit id="4122763657542193970">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">home</pc> Find Indoor Spots </source>
@@ -3505,6 +3989,12 @@
         <target>Aggiungi</target>
       </segment>
     </unit>
+    <unit id="2607510393198183286">
+      <segment state="initial">
+        <source>Failed to delete spot</source>
+        <target>Impossibile eliminare lo spot</target>
+      </segment>
+    </unit>
     <unit id="2662644497259948010">
       <notes>
         <note category="description">report comment label</note>
@@ -3538,10 +4028,28 @@
         <target>Google Place scollegato</target>
       </segment>
     </unit>
+    <unit id="pk.home.description">
+      <segment state="initial">
+        <source>PK Spot is a parkour and freerunning community map. Find spots, plan training sessions, and share what you discover.</source>
+        <target>PK Spot è una mappa comunitaria di parkour e freerunning. Trova spot, pianifica allenamenti e condividi ciò che scopri.</target>
+      </segment>
+    </unit>
+    <unit id="pk.home.title">
+      <segment state="initial">
+        <source>Parkour Spot Finder | PK Spot</source>
+        <target>Trova spot di parkour | PK Spot</target>
+      </segment>
+    </unit>
     <unit id="pk.spotmap.addSpot">
       <segment state="initial">
         <source>Add spot</source>
         <target>Aggiungi Spot</target>
+      </segment>
+    </unit>
+    <unit id="pk.spotmap.description">
+      <segment state="initial">
+        <source>Discover parkour spots near you, plan training sessions with friends, and share your spots with the freerunning community.</source>
+        <target>Scopri spot di parkour vicino a te, pianifica allenamenti con gli amici e condividi i tuoi spot con la comunità freerunning.</target>
       </segment>
     </unit>
     <unit id="801213320890707566">
@@ -3562,16 +4070,16 @@
         <target> Crediamo che la mappa appartenga agli atleti, non a una corporazione. Ecco perché <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary pkspot-font&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot</pc> è costruito diversamente. </target>
       </segment>
     </unit>
-    <unit id="8096545544094225301">
-      <segment state="initial">
-        <source> Need help? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/support&quot;&gt;" dispEnd="&lt;/a&gt;">Visit our support page</pc></source>
-        <target> Hai bisogno di aiuto? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/support&quot;&gt;" dispEnd="&lt;/a&gt;">Visita la nostra pagina di supporto</pc></target>
-      </segment>
-    </unit>
     <unit id="3368417786821334758">
       <segment state="initial">
         <source>Abort</source>
         <target>Interrompi</target>
+      </segment>
+    </unit>
+    <unit id="3370839803061654054">
+      <segment state="initial">
+        <source>hours</source>
+        <target>ore</target>
       </segment>
     </unit>
     <unit id="2917314929120683887">
@@ -3584,16 +4092,6 @@
       <segment state="initial">
         <source>Recovering Email</source>
         <target>Recupero email</target>
-      </segment>
-    </unit>
-    <unit id="signin.other_options.header">
-      <notes>
-        <note category="description">Header for other sign-in options</note>
-        <note category="meaning">other signin options header</note>
-      </notes>
-      <segment state="initial">
-        <source> Other sign-in options </source>
-        <target> Altre opzioni di accesso </target>
       </segment>
     </unit>
     <unit id="3297238960219201653">
@@ -3724,6 +4222,12 @@
         <target>Modifica Spot</target>
       </segment>
     </unit>
+    <unit id="8907222687260406825">
+      <segment state="initial">
+        <source>Upload photos and videos so people can quickly understand a spot before they go.</source>
+        <target>Carica foto e video così le persone possono capire rapidamente uno spot prima di andarci.</target>
+      </segment>
+    </unit>
     <unit id="spot.report.aria_label">
       <notes>
         <note category="description">Aria label for report spot button</note>
@@ -3749,7 +4253,13 @@
     <unit id="5311639828224503795">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> edits are waiting for community voting.</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> edits are waiting for community voting.</target>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> modifiche attendono il voto della comunità.</target>
+      </segment>
+    </unit>
+    <unit id="5324713868940196306">
+      <segment state="initial">
+        <source>There is already a spot at this location.</source>
+        <target>Esiste già uno spot in questa posizione.</target>
       </segment>
     </unit>
     <unit id="5340498030552368470">
@@ -3890,6 +4400,15 @@
         <target> Per mantenere i server attivi, collaboriamo con l&apos;ecosistema del Parkour — Associazioni Nazionali, marchi etici e palestre. Sosteniamo le organizzazioni che sostengono lo sport. </target>
       </segment>
     </unit>
+    <unit id="7522163249854323083">
+      <notes>
+        <note category="description">minutes short</note>
+      </notes>
+      <segment state="initial">
+        <source>min.</source>
+        <target>min</target>
+      </segment>
+    </unit>
     <unit id="7523630390926625638">
       <segment state="initial">
         <source>Link to spot copied to clipboard</source>
@@ -4013,6 +4532,12 @@
         <target>Essenziale</target>
       </segment>
     </unit>
+    <unit id="7036284206110282007">
+      <segment state="initial">
+        <source>days</source>
+        <target>giorni</target>
+      </segment>
+    </unit>
     <unit id="7037452207236778271">
       <segment state="initial">
         <source> Download PK Spot from the Google Play Store. Get the seamless experience on your Android device. </source>
@@ -4125,6 +4650,12 @@
       <segment state="initial">
         <source>Support</source>
         <target>Supporto</target>
+      </segment>
+    </unit>
+    <unit id="229373374824614747">
+      <segment state="initial">
+        <source> Activity could not be loaded. </source>
+        <target>Impossibile caricare l’attività.</target>
       </segment>
     </unit>
     <unit id="spot.edit.type_access.header">
@@ -4257,6 +4788,12 @@
         <target>Ora</target>
       </segment>
     </unit>
+    <unit id="849977137876783288">
+      <segment state="initial">
+        <source>Share media</source>
+        <target>Condividi media</target>
+      </segment>
+    </unit>
     <unit id="8535056559014052836">
       <segment state="initial">
         <source>Please enter your email address</source>
@@ -4284,6 +4821,12 @@
         <target>È necessario aggiungere un media alla challenge!</target>
       </segment>
     </unit>
+    <unit id="8392044408171513189">
+      <segment state="initial">
+        <source> We don&apos;t have a PK Spot community page for this route yet. </source>
+        <target>Non abbiamo ancora una pagina comunità PK Spot per questo percorso.</target>
+      </segment>
+    </unit>
     <unit id="spot_type_label">
       <notes>
         <note category="description">Label for the spot type selection field</note>
@@ -4292,6 +4835,18 @@
       <segment state="initial">
         <source>Spot Type</source>
         <target>Tipo di Spot</target>
+      </segment>
+    </unit>
+    <unit id="support.meta.description">
+      <segment state="initial">
+        <source>Get help with PK Spot — answers to common questions about parkour spots, accounts, and the community.</source>
+        <target>Ricevi aiuto con PK Spot - risposte alle domande frequenti su spot di parkour, account e comunità.</target>
+      </segment>
+    </unit>
+    <unit id="support.meta.title">
+      <segment state="initial">
+        <source>Support</source>
+        <target>Support</target>
       </segment>
     </unit>
     <unit id="terms.long">
@@ -4385,6 +4940,12 @@
         <target>Tutti i tipi</target>
       </segment>
     </unit>
+    <unit id="5688462374174490321">
+      <segment state="initial">
+        <source> Load more </source>
+        <target>Carica altro</target>
+      </segment>
+    </unit>
     <unit id="4565748598505088180">
       <segment state="initial">
         <source>This link is invalid or has already been used. Please request a new one.</source>
@@ -4475,6 +5036,12 @@
         <target>Squadra</target>
       </segment>
     </unit>
+    <unit id="3736030085204656589">
+      <segment state="initial">
+        <source> Community </source>
+        <target>Comunità</target>
+      </segment>
+    </unit>
     <unit id="3737580346792181367">
       <segment state="initial">
         <source> Are you sure? Enter your password to confirm deletion. </source>
@@ -4561,6 +5128,12 @@
         <target>I miei Spot</target>
       </segment>
     </unit>
+    <unit id="1770355449441392558">
+      <segment state="initial">
+        <source>Back to the map</source>
+        <target>Torna alla mappa</target>
+      </segment>
+    </unit>
     <unit id="1772658275500241538">
       <segment state="initial">
         <source>Snapper</source>
@@ -4613,6 +5186,12 @@
       <segment state="initial">
         <source>Instagram DMs</source>
         <target>DM di Instagram</target>
+      </segment>
+    </unit>
+    <unit id="3865346423204416259">
+      <segment state="initial">
+        <source>Spot deleted</source>
+        <target>Spot eliminato</target>
       </segment>
     </unit>
     <unit id="3881818169480672345">
@@ -4730,12 +5309,6 @@
       <segment state="initial">
         <source> Sign Up </source>
         <target> Iscriviti </target>
-      </segment>
-    </unit>
-    <unit id="7457957151903874535">
-      <segment state="initial">
-        <source>Open Gym (ASVZ)</source>
-        <target>Palestra Aperta (ASVZ)</target>
       </segment>
     </unit>
   </file>
