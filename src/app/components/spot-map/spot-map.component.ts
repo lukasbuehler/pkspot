@@ -129,6 +129,16 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   } | null = null;
   @Input() spots: (Spot | LocalSpot)[] = [];
 
+  /**
+   * Geographic extent of the currently-active community, drawn as a low-
+   * opacity circle on the map. Pass-through to google-map-2d. Driven by
+   * the community page's `bounds_center` + `bounds_radius_m`.
+   */
+  @Input() communityArea: {
+    center: { lat: number; lng: number };
+    radiusM: number;
+  } | null = null;
+
   @Output() hasGeolocationChange = new EventEmitter<boolean>();
   @Output() visibleSpotsChange = new EventEmitter<Spot[]>();
   @Output() hightlightedSpotsChange = new EventEmitter<SpotPreviewData[]>();

@@ -66,7 +66,18 @@ function getDistanceMeters(
 
 /**
  * Compute a `bounds_center` (lat/lng centroid) and `bounds_radius_m`
- * (distance from centroid to farthest spot, +25% buffer, min 1 km).
+ * for a community.
+ *
+ * Algorithm:
+ *  - Centroid = arithmetic mean of all spot coordinates.
+ *  - Radius = **80th percentile** distance from centroid to a spot, with
+ *    a 5 % cushion. Using a percentile (not the max) keeps a single
+ *    outlier spot from blowing up the circle — e.g. an overseas territory
+ *    spot that would otherwise stretch France's circle across half of
+ *    Europe. 80 % covers the vast majority of the community without
+ *    chasing extremes.
+ *  - Floor of 1 km so single-spot or tightly-clustered communities still
+ *    have a visible footprint.
  */
 export function computeCommunityBounds(
   spots: CommunityBoundsSpot[]
@@ -91,12 +102,23 @@ export function computeCommunityBounds(
     lng: sum.lng / points.length,
   };
 
-  const maxDistanceM = Math.max(
-    ...points.map((point) => getDistanceMeters(center, point))
-  );
+  const distances = points
+    .map((point) => getDistanceMeters(center, point))
+    .sort((left, right) => left - right);
+
+  // 80th-percentile distance (linear interpolation between the two nearest
+  // ranks). For n=1 this collapses to that one distance (which is 0).
+  const percentile = 0.8;
+  const rank = (distances.length - 1) * percentile;
+  const lowIndex = Math.floor(rank);
+  const highIndex = Math.ceil(rank);
+  const fraction = rank - lowIndex;
+  const percentileDistance =
+    distances[lowIndex] +
+    (distances[highIndex] - distances[lowIndex]) * fraction;
 
   return {
     bounds_center: [center.lat, center.lng],
-    bounds_radius_m: Math.max(1000, Math.round(maxDistanceM * 1.25)),
+    bounds_radius_m: Math.max(1000, Math.round(percentileDistance * 1.05)),
   };
 }

@@ -75,7 +75,7 @@ export const countries: {
   IQ: { name: "Iraq", emoji: "🇮🇶" },
   IE: { name: "Ireland", emoji: "🇮🇪" },
   IL: { name: "Israel", emoji: "🇮🇱" },
-  IT: { name: "Italian", emoji: "🇮🇹" },
+  IT: { name: "Italy", emoji: "🇮🇹" },
   CI: { name: "Ivory Coast", emoji: "🇨🇮" },
   JM: { name: "Jamaica", emoji: "🇯🇲" },
   JP: { name: "Japan", emoji: "🇯🇵" },

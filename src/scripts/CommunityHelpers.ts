@@ -39,7 +39,10 @@ export function normalizeCommunitySlug(
 export function buildCommunityLandingPath(
   slug: string | null | undefined
 ): string {
-  return `/map/community/${normalizeCommunitySlug(slug)}`;
+  // Plural "communities" matches /events for URL consistency. The singular
+  // /map/community/:slug path 301-redirects in app.routes.ts so legacy
+  // links (sitemap, social shares, Google index) keep working.
+  return `/map/communities/${normalizeCommunitySlug(slug)}`;
 }
 
 export function getCommunityCountrySuffix(

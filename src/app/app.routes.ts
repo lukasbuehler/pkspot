@@ -36,14 +36,35 @@ export const routes: Routes = [
       ]
     : []),
 
+  // Community on map. Plural "communities" matches /events for URL
+  // consistency. The singular legacy path still 301-redirects below so
+  // existing Google-indexed URLs / social shares don't break.
   {
-    path: "map/community/:slug",
+    path: "map/communities/:slug",
     loadComponent: () =>
       import("./components/map-page/map-page.component").then(
         (m) => m.MapPageComponent
       ),
     resolve: { communityLanding: communityLandingResolver },
     data: { routeName: "Community Landing" },
+  },
+  {
+    path: "map/community/:slug",
+    redirectTo: "map/communities/:slug",
+    pathMatch: "full",
+    data: { routeName: "Community Landing (legacy redirect)" },
+  },
+
+  // Event-on-map preview. Stays on the map and opens the event preview
+  // panel; the full /events/:slug page is reached via the preview's
+  // "See full event" CTA.
+  {
+    path: "map/events/:eventId",
+    loadComponent: () =>
+      import("./components/map-page/map-page.component").then(
+        (m) => m.MapPageComponent
+      ),
+    data: { routeName: "Event on Map" },
   },
 
   // Posts

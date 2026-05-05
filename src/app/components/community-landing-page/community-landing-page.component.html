@@ -113,10 +113,15 @@
 
           <div class="events-grid">
             @for (event of visibleEvents(); track event.id) {
+              <!--
+                Link to /map/events/<id> (preview-on-map). The route IS
+                the source of truth: navigating opens the preview without
+                leaving the map. The /events/<id> full page is reachable
+                via the preview's "See full event" CTA.
+              -->
               <a
                 class="event-card"
-                [routerLink]="['/events', event.slug ?? event.id]"
-                (click)="onEventCardClick(event, $event)"
+                [routerLink]="['/map/events', event.slug ?? event.id]"
               >
                 <div class="event-image">
                   @if (event.bannerSrc) {

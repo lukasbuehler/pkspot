@@ -390,6 +390,35 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _dismissedCommunityKeys = signal<Set<string>>(new Set());
 
   /**
+   * Geographic extent of the community currently surfaced in the map-island
+   * (either route-driven or viewport-detected). Drawn as a low-opacity
+   * circle on the map so the user can see what area the chip refers to.
+   * Null when no community variant is active.
+   */
+  activeCommunityArea = computed<
+    { center: { lat: number; lng: number }; radiusM: number } | null
+  >(() => {
+    const content = this.islandContent();
+    if (!content || content.kind !== "community") return null;
+
+    const data = content.community;
+    if (
+      !data.boundsCenter ||
+      typeof data.boundsRadiusM !== "number" ||
+      data.boundsCenter.length < 2
+    ) {
+      return null;
+    }
+    const [lat, lng] = data.boundsCenter;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+    return {
+      center: { lat, lng },
+      radiusM: data.boundsRadiusM,
+    };
+  });
+
+  /**
    * Top community pages by spot count, surfaced as a "Popular parkour
    * communities" list at the bottom of the map sidebar. Pure SEO body
    * text — gives crawlers internal links to community pages and gives
@@ -431,17 +460,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const selectedCommunityKey = this.selectedCommunityLanding()?.communityKey;
 
     if (viewport) {
-      // Pick the smallest-radius (most-specific) community whose center+radius
-      // intersects the visible viewport. "Smallest first" surfaces a city
-      // before its country when the user is zoomed in to that city.
-      const viewportCommunity = this._promotableCommunities()
-        .filter(
-          (c) =>
-            c.data.communityKey !== selectedCommunityKey &&
-            !dismissedCommunities.has(c.data.communityKey) &&
-            this._viewportIntersectsCircle(viewport, c.center, c.radiusM)
-        )
-        .sort((a, b) => a.radiusM - b.radiusM)[0];
+      // Heuristic: prefer communities whose CENTER is inside the visible
+      // viewport, then take the largest radius (most context) of those.
+      // - Zoomed into Zurich: only Zurich's center is in viewport, so
+      //   Zurich wins (Switzerland's center isn't visible).
+      // - Zoomed out to Europe: centers of both Switzerland and Zurich
+      //   are in viewport, so Switzerland (largest radius) wins.
+      // Falls back to the smallest intersecting community when no
+      // center-in-viewport candidate exists (e.g., panning across a
+      // border with no community center on screen).
+      const candidates = this._promotableCommunities().filter(
+        (c) =>
+          c.data.communityKey !== selectedCommunityKey &&
+          !dismissedCommunities.has(c.data.communityKey) &&
+          this._viewportIntersectsCircle(viewport, c.center, c.radiusM)
+      );
+
+      const centerIn = candidates.filter((c) =>
+        this._pointInViewport(c.center, viewport)
+      );
+
+      const viewportCommunity =
+        centerIn.length > 0
+          ? centerIn.sort((a, b) => b.radiusM - a.radiusM)[0]
+          : candidates.sort((a, b) => a.radiusM - b.radiusM)[0];
       if (viewportCommunity) {
         return { kind: "community", community: viewportCommunity.data };
       }
@@ -454,6 +496,24 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * Approximate intersection of a viewport rectangle and a geographic circle.
    * Mirrors the helper on `Event` so we don't reach across model boundaries.
    */
+  /**
+   * True when a `{lat, lng}` point falls within the viewport rectangle.
+   * Used by the map-island ranking to prefer communities whose center is
+   * actually visible to the user.
+   */
+  private _pointInViewport(
+    point: { lat: number; lng: number },
+    viewport: { north: number; south: number; east: number; west: number }
+  ): boolean {
+    if (point.lat < viewport.south || point.lat > viewport.north) return false;
+    // Antimeridian handling (defensive — viewports rarely cross it in
+    // practice, but the math is cheap).
+    if (viewport.west <= viewport.east) {
+      return point.lng >= viewport.west && point.lng <= viewport.east;
+    }
+    return point.lng >= viewport.west || point.lng <= viewport.east;
+  }
+
   private _viewportIntersectsCircle(
     viewport: { north: number; south: number; east: number; west: number },
     center: { lat: number; lng: number },
@@ -507,7 +567,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onIslandOpenEvent(event: PkEvent): void {
-    void this.router.navigate(["/events", event.slug ?? event.id]);
+    // Open the event preview in-place (no route navigation). Same pattern
+    // as the community island: `openEventPreview` already syncs the URL
+    // to /map/events/<id> via Location.replaceState so the result is
+    // bookmarkable. The full /events/<id> page is reachable via the
+    // preview's "See full event" CTA.
+    this.openEventPreview(event);
   }
 
   /**
@@ -588,6 +653,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   openEventPreview(event: PkEvent): void {
     this.selectedEvent.set(event);
 
+    // Sync the URL so the preview is bookmarkable / shareable. Using
+    // replaceState (no router.navigate) keeps the map mounted — same
+    // pattern as the community panel.
+    const eventPathId = event.slug ?? event.id;
+    if (eventPathId) {
+      const queryString =
+        (typeof window !== "undefined" && window.location.search) || "";
+      this._location.replaceState(`/map/events/${eventPathId}${queryString}`);
+    }
+
     const bounds = event.bounds;
     if (this.spotMap && bounds && typeof google !== "undefined") {
       try {
@@ -603,7 +678,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   closeEventPreview(): void {
+    if (!this.selectedEvent()) return;
     this.selectedEvent.set(null);
+    // Strip the /events/<id> segment from the URL.
+    const cleanUrl = (this.router.url || "").split("?")[0];
+    if (/^\/map\/events\//u.test(cleanUrl)) {
+      const queryString =
+        (typeof window !== "undefined" && window.location.search) || "";
+      this._location.replaceState(`/map${queryString}`);
+    }
   }
 
   /**
@@ -769,17 +852,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     effect(() => {
+      // Only TWO tracked deps: a community arrived/changed, or the map
+      // became ready. selectedSpot/selectedChallenge are GUARDS — read
+      // with untracked so toggling spot selection doesn't re-fire this
+      // effect (which used to cause "click spot → glitches back to
+      // community" once the spot was dismissed).
       const communityLanding = this.selectedCommunityLanding();
       const isMapReady = this.mapReady();
-      const selectedSpot = this.selectedSpot();
-      const selectedChallenge = this.selectedChallenge();
 
       if (!communityLanding) {
-        this._lastFocusedCommunityKey = null;
+        // Don't reset `_lastFocusedCommunityKey` here — a navigation that
+        // briefly nulls selectedCommunityLanding (e.g. /map/community/zurich
+        // → /map → /map/community/zurich again) used to trip a re-focus
+        // on the way back. Keeping the last key means re-arriving at the
+        // same community is a no-op.
         return;
       }
 
-      if (!isMapReady || !this.spotMap || selectedSpot || selectedChallenge) {
+      if (!isMapReady || !this.spotMap) {
+        return;
+      }
+
+      const selectedSpot = untracked(() => this.selectedSpot());
+      const selectedChallenge = untracked(() => this.selectedChallenge());
+      if (selectedSpot || selectedChallenge) {
         return;
       }
 
@@ -1071,6 +1167,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
+    this._loadEventFromRouteIfPresent(this.router.url);
 
     // Parse URL to handle the edits route correctly since Angular router
     // might interpret /map/:spot/edits as /map/:spot where :spot="edits"
@@ -1159,6 +1256,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             return;
           }
           this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
+          this._loadEventFromRouteIfPresent(navEvent.urlAfterRedirects);
           const routeState = this._parseMapRouteState(navEvent.urlAfterRedirects);
 
           // Also extract filter query param from URL to keep it in sync
@@ -2069,7 +2167,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   } {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
 
-    if (/^\/map\/community\/[^/]+$/u.test(cleanUrl)) {
+    // Match new plural path AND the legacy singular path (until the
+    // redirect rewrites the URL). Also short-circuit for event-on-map.
+    if (
+      /^\/map\/(community|communities)\/[^/]+$/u.test(cleanUrl) ||
+      /^\/map\/events\/[^/]+$/u.test(cleanUrl)
+    ) {
       return {
         spotIdOrSlug: null,
         showChallenges: false,
@@ -2114,6 +2217,51 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       challengeId,
       showEditHistory,
     };
+  }
+
+  /**
+   * If the URL is `/map/events/<id-or-slug>`, fetch the event and open
+   * the preview panel. Mirrors the route-driven community pattern but
+   * with an async fetch since events aren't pre-resolved. Clearing
+   * happens automatically when navigating away from this URL shape.
+   *
+   * No-op when the URL doesn't match — keeps existing selectedEvent
+   * intact (e.g., user opened the event programmatically via the
+   * island chip and the URL was patched via replaceState).
+   */
+  private _loadEventFromRouteIfPresent(url: string): void {
+    const cleanUrl = (url || "").split("?")[0].split("#")[0];
+    const match = cleanUrl.match(/^\/map\/events\/([^/]+)$/u);
+    if (!match) {
+      // Outside of /map/events/<x>: only clear if a previously route-loaded
+      // event is no longer reflected in the URL. Programmatic opens via
+      // the island chip use replaceState and may leave the URL pattern
+      // intact, so we don't blanket-clear here.
+      return;
+    }
+
+    const eventIdOrSlug = decodeURIComponent(match[1]);
+    const current = this.selectedEvent();
+    if (
+      current &&
+      (current.slug === eventIdOrSlug || current.id === (eventIdOrSlug as any))
+    ) {
+      return; // already showing
+    }
+
+    void this._eventsService
+      .getEventBySlugOrId(eventIdOrSlug)
+      .then((event) => {
+        if (!event) return;
+        // Only apply if the URL is still on this event — guard against
+        // navigation racing with the fetch.
+        const currentUrl = (this.router.url || "").split("?")[0];
+        if (!currentUrl.endsWith(`/${eventIdOrSlug}`)) return;
+        this.openEventPreview(event);
+      })
+      .catch((err) =>
+        console.warn("MapPage: failed to load event from route", err)
+      );
   }
 
   private _getCommunityLandingFromRoute(): CommunityLandingPageData | null {

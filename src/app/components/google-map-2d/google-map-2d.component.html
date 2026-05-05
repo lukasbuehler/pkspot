@@ -315,6 +315,19 @@
   @for(polygon of polygons(); track $index) {
   <map-polygon [options]="polygon" [paths]="polygon.paths"></map-polygon>
   }
+
+  <!-- Community area: low-opacity tinted circle showing the geographic
+       extent of the active community. Center+radius from
+       `community_pages.bounds_center` / `bounds_radius_m` (computed by the
+       cloud function from member spot locations). Non-interactive — it's
+       a label, not a hit target. -->
+  @if (communityArea) {
+    <map-circle
+      [center]="communityArea.center"
+      [radius]="communityArea.radiusM"
+      [options]="communityAreaCircleOptions"
+    ></map-circle>
+  }
 </google-map>
 } @else {
 <div

@@ -65,24 +65,16 @@ export class CommunityLandingPageComponent {
   closePanel = output<void>();
 
   /**
-   * Emitted when the user clicks an event card (panel mode). The host can
-   * use this to open the event in-place (e.g. as a preview on the map)
-   * rather than letting the link navigate to `/events/<slug>`.
+   * Emitted when the user clicks an event card (panel mode).
+   * @deprecated Routing now drives event preview directly via
+   * `/map/events/:id` — the link's `routerLink` opens the preview
+   * without a click-handler race. Kept for backward-compat in case any
+   * host still listens; no longer emitted from the template.
    */
   selectEvent = output<PkEvent>();
 
   onClose() {
     this.closePanel.emit();
-  }
-
-  onEventCardClick(event: PkEvent, click: MouseEvent) {
-    // In panel mode the host wants to handle the selection itself (open
-    // the event preview on the map). Outside panel mode we let the
-    // routerLink navigate as before.
-    if (!this.panelMode()) return;
-    click.preventDefault();
-    click.stopPropagation();
-    this.selectEvent.emit(event);
   }
 
   /** Maximum events shown above the spots before falling back to a "more" link. */

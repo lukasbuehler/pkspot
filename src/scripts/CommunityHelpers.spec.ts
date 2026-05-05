@@ -77,4 +77,27 @@ describe("CommunityHelpers", () => {
       },
     ]);
   });
+
+  it("should use country names for country community display names", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          country: {
+            code: "IT",
+            name: "Italy",
+          },
+        },
+        landing: null,
+      })
+    ).toMatchObject([
+      {
+        communityKey: "country:it",
+        displayName: "Italy",
+        geography: {
+          countryName: "Italy",
+          countrySlug: "italy",
+        },
+      },
+    ]);
+  });
 });

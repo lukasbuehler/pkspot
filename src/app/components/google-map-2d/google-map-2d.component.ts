@@ -375,6 +375,28 @@ export class GoogleMap2dComponent
    */
   @Input() bottomSheetOffset: boolean = false;
 
+  /**
+   * If set, draws a light, transparent circle on the map showing the
+   * geographic area of the active community. Driven by the community's
+   * `bounds_center` + `bounds_radius_m` (see CommunityPageSchema).
+   */
+  @Input() communityArea: {
+    center: { lat: number; lng: number };
+    radiusM: number;
+  } | null = null;
+
+  /** Visual style for the active-community area circle. */
+  communityAreaCircleOptions: google.maps.CircleOptions = {
+    fillColor: "#b8c4ff",
+    strokeColor: "#b8c4ff",
+    fillOpacity: 0.06,
+    strokeOpacity: 0.5,
+    strokeWeight: 1.5,
+    clickable: false,
+    draggable: false,
+    zIndex: 1,
+  };
+
   mapStyle = input<"roadmap" | "satellite" | "hybrid" | "terrain">("roadmap");
   polygons = input<PolygonSchema[]>([]);
 
