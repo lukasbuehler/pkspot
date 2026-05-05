@@ -398,10 +398,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   activeCommunityArea = computed<
     { center: { lat: number; lng: number }; radiusM: number } | null
   >(() => {
-    const content = this.islandContent();
-    if (!content || content.kind !== "community") return null;
-
-    const data = content.community;
+    const data = this.selectedCommunityLanding();
+    if (!data) return null;
     if (
       !data.boundsCenter ||
       typeof data.boundsRadiusM !== "number" ||
@@ -450,8 +448,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const viewport = this._viewport();
     if (viewport) {
       const dismissed = this._dismissedEventIds();
+      const selectedEventId = this.selectedEvent()?.id;
       const event = this._promotableEvents().find(
-        (e) => !dismissed.has(e.id) && e.intersectsViewport(viewport)
+        (e) =>
+          e.id !== selectedEventId &&
+          !dismissed.has(e.id) &&
+          e.intersectsViewport(viewport)
       );
       if (event) return { kind: "event", event };
     }
@@ -459,7 +461,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const dismissedCommunities = this._dismissedCommunityKeys();
     const selectedCommunityKey = this.selectedCommunityLanding()?.communityKey;
 
-    if (viewport) {
+    if (viewport && !selectedCommunityKey) {
       // Heuristic: prefer communities whose CENTER is inside the visible
       // viewport, then take the largest radius (most context) of those.
       // - Zoomed into Zurich: only Zurich's center is in viewport, so
@@ -584,8 +586,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * is still shareable / reloadable.
    */
   onIslandOpenCommunity(community: CommunityLandingPageData): void {
+    this.selectedEvent.set(null);
+    this.selectedSpot.set(null);
+    this.selectedPoi.set(null);
+    this.closeChallenge(false);
     this.selectedCommunityLanding.set(community);
-    this._location.replaceState(community.canonicalPath);
+    this._location.go(community.canonicalPath);
     this._dismissedCommunityKeys.update((set) => {
       // Clearing a previous dismissal is the right thing here — the user
       // just explicitly opened it.
@@ -650,17 +656,34 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * Pans the map to the event's bounds when possible so the user sees the
    * relevant area as soon as the preview opens.
    */
-  openEventPreview(event: PkEvent): void {
+  openEventPreview(
+    event: PkEvent,
+    options: { updateUrl?: boolean; replaceUrl?: boolean } = {}
+  ): void {
+    const updateUrl = options.updateUrl ?? true;
+    const replaceUrl = options.replaceUrl ?? false;
+    this.selectedSpot.set(null);
+    this.selectedPoi.set(null);
+    this.selectedCommunityLanding.set(null);
+    this.closeChallenge(false);
+    this.showSpotEditHistory.set(false);
     this.selectedEvent.set(event);
+    this._openInfoPanel();
+    this.resetSidebarContentToTop();
+    this.resetBottomSheetContentToTop();
 
-    // Sync the URL so the preview is bookmarkable / shareable. Using
-    // replaceState (no router.navigate) keeps the map mounted — same
-    // pattern as the community panel.
+    // Sync the URL so the preview is bookmarkable / shareable without
+    // remounting the map through Router navigation.
     const eventPathId = event.slug ?? event.id;
-    if (eventPathId) {
+    if (updateUrl && eventPathId) {
       const queryString =
         (typeof window !== "undefined" && window.location.search) || "";
-      this._location.replaceState(`/map/events/${eventPathId}${queryString}`);
+      const path = `/map/events/${eventPathId}${queryString}`;
+      if (replaceUrl) {
+        this._location.replaceState(path);
+      } else {
+        this._location.go(path);
+      }
     }
 
     const bounds = event.bounds;
@@ -817,6 +840,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       // Read all relevant routing state signals so URL stays in sync
       this.selectedSpot();
       this.selectedChallenge();
+      this.selectedEvent();
+      this.selectedCommunityLanding();
       this.showAllChallenges();
       this.showSpotEditHistory();
       this.selectedFilter(); // Include filter in URL sync
@@ -1925,6 +1950,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const showEditHistory = this.showSpotEditHistory();
     const activeFilter = this.selectedFilter();
     const communityLanding = this.selectedCommunityLanding();
+    const selectedEvent = this.selectedEvent();
 
     // Get the spot - prefer selectedSpot, but fall back to challenge's spot
     const spot =
@@ -1950,6 +1976,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}/c`;
     } else if (spot) {
       path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}`;
+    } else if (selectedEvent) {
+      path = `/map/events/${encodeURIComponent(
+        selectedEvent.slug ?? selectedEvent.id
+      )}`;
     } else if (communityLanding) {
       path = communityLanding.canonicalPath;
     } else {
@@ -1959,6 +1989,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Use Location.path() to get the actual browser URL including query params
     // This is necessary because Location.replaceState() doesn't update router.url
     const currentUrl = this._location.path();
+    const currentPath = currentUrl.split("?")[0];
+    if (/^\/map\/events\/[^/]+$/u.test(currentPath) && !selectedEvent) {
+      return;
+    }
     const queryIndex = currentUrl.indexOf("?");
     const existingParams = new URLSearchParams(
       queryIndex >= 0 ? currentUrl.substring(queryIndex + 1) : ""
@@ -2106,6 +2140,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       this.closeChallenge(false);
+      this.selectedEvent.set(null);
+      this.selectedCommunityLanding.set(null);
       this.selectedPoi.set(null);
       this.selectedSpot.set(spot);
       // When a new spot is selected, jump the sidebar/bottom-sheet content to top
@@ -2233,10 +2269,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
     const match = cleanUrl.match(/^\/map\/events\/([^/]+)$/u);
     if (!match) {
-      // Outside of /map/events/<x>: only clear if a previously route-loaded
-      // event is no longer reflected in the URL. Programmatic opens via
-      // the island chip use replaceState and may leave the URL pattern
-      // intact, so we don't blanket-clear here.
+      if (this.selectedEvent()) {
+        this.selectedEvent.set(null);
+      }
       return;
     }
 
@@ -2257,7 +2292,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         // navigation racing with the fetch.
         const currentUrl = (this.router.url || "").split("?")[0];
         if (!currentUrl.endsWith(`/${eventIdOrSlug}`)) return;
-        this.openEventPreview(event);
+        this.openEventPreview(event, { updateUrl: false });
       })
       .catch((err) =>
         console.warn("MapPage: failed to load event from route", err)

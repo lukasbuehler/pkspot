@@ -22,16 +22,6 @@
   margin-bottom: 24px;
 }
 
-.discover-more {
-  color: var(--mat-sys-primary);
-  text-decoration: none;
-  white-space: nowrap;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 // Always 2 columns — works in both the sidebar panel mode (narrow) and the
 // full-page view. Min 0 lets the cards shrink to fit narrow widths.
 .events-grid {
@@ -44,12 +34,16 @@
 .event-card {
   display: flex;
   flex-direction: column;
+  border: 0;
   border-radius: 18px;
   overflow: hidden;
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
   text-decoration: none;
-  min-width: 0; // allow truncation in narrow panel mode
+  text-align: left;
+  min-width: 0;
+  padding: 0;
+  cursor: pointer;
   transition:
     transform 160ms ease,
     background-color 160ms ease;
@@ -109,31 +103,24 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.hero-card,
-.empty-state-card {
+.hero-card {
   border-radius: 24px;
   background: var(--mat-sys-surface-container);
   color: var(--mat-sys-on-surface);
   position: relative;
+  overflow: hidden;
 }
 
-// Panel-mode header — mirrors spot-preview-card shape so the collapsed
-// bottom-sheet shows the most important community info above the fold.
+.hero-image {
+  position: relative;
+  width: 100%;
+  min-height: 180px;
+  aspect-ratio: 16 / 7;
+  background: var(--mat-sys-surface-container-high);
+}
+
 .panel-header {
   color: var(--mat-sys-on-surface);
-}
-
-.panel-subtitle {
-  color: var(--mat-sys-on-surface-variant);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-
-  .dot {
-    user-select: none;
-    opacity: 0.6;
-  }
 }
 
 .eyebrow {

@@ -2,15 +2,6 @@
   display: block;
 }
 
-.event-preview-card {
-  background: transparent;
-  box-shadow: none;
-}
-
-.dates-line {
-  color: var(--mat-sys-on-surface);
-}
-
 .status {
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -28,35 +19,6 @@
 
 .status.live {
   color: var(--mat-sys-secondary, #8dd978);
-}
-
-.venue-line {
-  color: var(--mat-sys-on-surface-variant);
-}
-
-// Banner area: outer container holds the aspect ratio; inner `.banner-frame`
-// fills with the accent color when `banner_fit === "contain"`.
-.banner-container {
-  position: relative;
-  width: 100%;
-  height: 180px;
-  overflow: hidden;
-  border-radius: 16px;
-  margin: 0 0 0.75rem;
-
-  &.compact {
-    height: 80px;
-    width: 80px;
-    border-radius: 10px;
-    margin: 0;
-    flex-shrink: 0;
-  }
-}
-
-.banner-frame {
-  position: absolute;
-  inset: 0;
-  background-color: var(--mat-sys-surface-container, #1c1b1f);
 }
 
 .description {

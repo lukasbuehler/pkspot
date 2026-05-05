@@ -484,6 +484,11 @@
   @if(!sidebarContentIsScrolling() || !sidenavOpen()) {
   <ng-container *ngTemplateOutlet="chips"></ng-container>
   }
+  @if(responsiveService.isTablet() && !sidenavOpen()) {
+  <div class="tablet-map-island">
+    <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+  </div>
+  }
 </div>
 
 <mat-drawer-container class="h-100 bg-transparent">
@@ -499,12 +504,11 @@
 
   <div class="position-relative overflow-hidden h-100 w-100">
     <ng-container *ngTemplateOutlet="mapContent"></ng-container>
-    <div
-      class="map-island-host"
-      [class.map-island-host--sidebar-open]="sidenavOpen()"
-    >
+    @if(responsiveService.isDesktop()) {
+    <div class="map-island-host">
       <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
     </div>
+    }
 
     <!-- sidenav toggle button -->
     <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">

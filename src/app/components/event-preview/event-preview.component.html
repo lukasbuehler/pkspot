@@ -1,108 +1,44 @@
-<mat-card
-  matRipple
-  [matRippleDisabled]="true"
-  [class.compact]="isCompact()"
-  class="event-preview-card"
->
-  <!-- Header: name + date + status. Always rendered first so the collapsed
-       bottom-sheet shows the most important info above the fold. -->
-  <mat-card-header class="pb-2">
-    <mat-card-title
-      class="pt-2 d-flex w-100 gap-2 align-items-center"
-    >
-      @if (event().sponsor) {
-        <mat-icon
-          style="width: 20px; flex-shrink: 0; margin: -2px"
-          [matTooltip]="event().sponsor!.name"
-          aria-hidden="false"
-        >stars</mat-icon>
-      }
-      <span class="text-truncate mat-title-medium">{{ event().name }}</span>
+<app-entity-preview-card
+  [title]="event().name"
+  [subtitle]="dateRange()"
+  [meta]="event().venueString + ', ' + event().localityString"
+  [icon]="'event'"
+  [badgeIcon]="event().sponsor ? 'stars' : ''"
+  [imageSrc]="event().bannerSrc"
+  [imageAlt]="event().name"
+  [imageFit]="event().bannerFit"
+  [imageAccentColor]="event().bannerAccentColor"
+  [fallbackLabel]="event().name"
+  [isCompact]="isCompact()"
+  [dismissable]="dismissable()"
+  (dismiss)="onDismiss()"
+></app-entity-preview-card>
 
-      @if (dismissable()) {
-        <button
-          mat-icon-button
-          type="button"
-          class="ms-auto flex-shrink-0"
-          (click)="onDismiss(); $event.stopPropagation()"
-          matTooltip="Close"
-          i18n-matTooltip="@@event_preview.close"
-          aria-label="Close event preview"
-        >
-          <mat-icon>close</mat-icon>
-        </button>
-      }
-    </mat-card-title>
-
-    <mat-card-subtitle class="d-flex flex-column gap-1">
-      <span class="mat-title-small dates-line">{{ dateRange() }}</span>
-      @if (status() === "past") {
-        <span
-          class="mat-label-medium status past"
-          i18n="@@event_preview.status.past"
-        >Past event</span>
-      } @else if (status() === "live" && countdownTarget(); as target) {
-        <span class="mat-label-medium status live d-inline-flex gap-1">
-          <span i18n="@@event_preview.status.live">Ongoing — ends in</span>
-          <app-countdown [timestamp]="target"></app-countdown>
-        </span>
-      } @else if (status() === "upcoming" && countdownTarget(); as target) {
-        <span class="mat-label-medium status upcoming d-inline-flex gap-1">
-          <span i18n="@@event_preview.status.upcoming">Starts in</span>
-          <app-countdown [timestamp]="target"></app-countdown>
-        </span>
-      }
-      <span class="mat-body-small venue-line text-truncate">
-        {{ event().venueString }}, {{ event().localityString }}
-      </span>
-    </mat-card-subtitle>
-  </mat-card-header>
-
-  <!-- Banner image: respects `banner_fit` + `banner_accent_color` from the
-       event document. Compact layout puts the image inline next to the
-       header (matching SpotPreviewCard); full layout puts it below. -->
-  @if (event().bannerSrc || !isCompact()) {
-    <div
-      [attr.mat-card-sm-image]="isCompact() ? '' : null"
-      class="banner-container"
-      [class.compact]="isCompact()"
-    >
-      @if (event().bannerSrc) {
-        <div
-          class="banner-frame"
-          [style.background-color]="
-            event().bannerFit === 'contain'
-              ? (event().bannerAccentColor ?? null)
-              : null
-          "
-        >
-          <img
-            [ngSrc]="event().bannerSrc!"
-            fill
-            [class.object-fit-cover]="event().bannerFit === 'cover'"
-            [class.object-fit-contain]="event().bannerFit === 'contain'"
-            [alt]="event().name"
-          />
-        </div>
-      } @else {
-        <app-media-placeholder
-          src="assets/spot_placeholder.png"
-          [label]="event().name"
-        ></app-media-placeholder>
-      }
-    </div>
+<div class="event-preview-body px-3 pb-3">
+  @if (status() === "past") {
+    <span
+      class="mat-label-medium status past"
+      i18n="@@event_preview.status.past"
+    >Past event</span>
+  } @else if (status() === "live" && countdownTarget(); as target) {
+    <span class="mat-label-medium status live d-inline-flex gap-1">
+      <span i18n="@@event_preview.status.live">Ongoing — ends in</span>
+      <app-countdown [timestamp]="target"></app-countdown>
+    </span>
+  } @else if (status() === "upcoming" && countdownTarget(); as target) {
+    <span class="mat-label-medium status upcoming d-inline-flex gap-1">
+      <span i18n="@@event_preview.status.upcoming">Starts in</span>
+      <app-countdown [timestamp]="target"></app-countdown>
+    </span>
   }
 
-  <mat-card-content class="pb-3">
-    @if (event().description) {
-      <p class="mat-body-small description">{{ event().description }}</p>
-    }
+  @if (!isCompact() && event().description) {
+    <p class="mat-body-small description mt-2">{{ event().description }}</p>
+  }
 
+  @if (!isCompact()) {
     <div class="cta-row d-flex flex-wrap gap-2 mt-2">
       @if (event().externalSource; as source) {
-        <!-- External-source events live elsewhere; primary CTA points there
-             ("View on EventFrog"), with a secondary "Details" link to the
-             PK Spot event page if extra data is worth showing. -->
         <a
           mat-flat-button
           color="primary"
@@ -129,5 +65,5 @@
         </a>
       }
     </div>
-  </mat-card-content>
-</mat-card>
+  }
+</div>

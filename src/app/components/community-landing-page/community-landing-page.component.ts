@@ -23,6 +23,7 @@ import { CommunityLandingPageData } from "../../services/firebase/firestore/land
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
+import { EntityPreviewCardComponent } from "../entity-preview-card/entity-preview-card.component";
 
 interface CommunityExternalLink {
   label: string;
@@ -46,6 +47,7 @@ interface CommunitySectionItem {
     RouterLink,
     SpotListComponent,
     MediaPlaceholderComponent,
+    EntityPreviewCardComponent,
   ],
   templateUrl: "./community-landing-page.component.html",
   styleUrl: "./community-landing-page.component.scss",
@@ -64,13 +66,7 @@ export class CommunityLandingPageComponent {
   /** Emitted when the user closes the panel (panel mode only). */
   closePanel = output<void>();
 
-  /**
-   * Emitted when the user clicks an event card (panel mode).
-   * @deprecated Routing now drives event preview directly via
-   * `/map/events/:id` — the link's `routerLink` opens the preview
-   * without a click-handler race. Kept for backward-compat in case any
-   * host still listens; no longer emitted from the template.
-   */
+  /** Emitted when the user clicks an event card in panel mode. */
   selectEvent = output<PkEvent>();
 
   onClose() {
@@ -210,6 +206,10 @@ export class CommunityLandingPageComponent {
       dateStyle: "medium",
     });
     return start === end ? start : `${start} – ${end}`;
+  }
+
+  onSelectEvent(event: PkEvent): void {
+    this.selectEvent.emit(event);
   }
 
   lastUpdatedDate = computed(() => {

@@ -1,0 +1,75 @@
+mat-card {
+  mat-card-header {
+    padding-top: 0;
+    flex-grow: 1;
+    overflow: hidden;
+
+    ::ng-deep div.mat-mdc-card-header-text {
+      width: 100%;
+    }
+  }
+}
+
+mat-card.compact {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 80px;
+  overflow: hidden;
+
+  > .img-container {
+    border-radius: 0;
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background-color: var(--mat-sys-surface-container-high);
+  }
+}
+
+mat-card:not(.compact) {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 100%;
+
+  > .img-container {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background-color: var(--mat-sys-surface-container-high);
+  }
+}
+
+.img-container {
+  > img {
+    transition:
+      filter 0.2s ease-in-out,
+      transform 0.2s ease-in-out;
+    filter: brightness(1);
+    transform: scale(1) translateZ(0);
+    backface-visibility: hidden;
+  }
+}
+
+mat-card.clickable:hover {
+  background-color: var(--mat-sys-surface-container-high);
+  transition: background-color 0.2s ease-in-out;
+
+  > .img-container > img {
+    filter: brightness(1.08);
+    transform: scale(1.05);
+  }
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.img-container.isCompact {
+  height: 100%;
+}
+
+.meta-line {
+  color: var(--mat-sys-on-surface-variant);
+}

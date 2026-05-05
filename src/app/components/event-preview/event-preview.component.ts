@@ -1,4 +1,3 @@
-import { NgOptimizedImage } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,15 +8,12 @@ import {
   output,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
-import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
-import { MatRippleModule } from "@angular/material/core";
-import { MatTooltipModule } from "@angular/material/tooltip";
 import { RouterLink } from "@angular/router";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { CountdownComponent } from "../countdown/countdown.component";
-import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
+import { EntityPreviewCardComponent } from "../entity-preview-card/entity-preview-card.component";
 
 /**
  * Compact preview card for an event, designed to slot into the map page's
@@ -31,15 +27,11 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
 @Component({
   selector: "app-event-preview",
   imports: [
-    NgOptimizedImage,
     MatButtonModule,
-    MatCardModule,
     MatIconModule,
-    MatRippleModule,
-    MatTooltipModule,
     RouterLink,
     CountdownComponent,
-    MediaPlaceholderComponent,
+    EntityPreviewCardComponent,
   ],
   templateUrl: "./event-preview.component.html",
   styleUrl: "./event-preview.component.scss",

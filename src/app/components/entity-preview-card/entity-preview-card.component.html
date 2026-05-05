@@ -1,0 +1,72 @@
+<mat-card
+  matRipple
+  [matRippleDisabled]="!clickable()"
+  [class.mat-elevation-z0]="true"
+  [class.compact]="isCompact()"
+  [class.clickable]="clickable()"
+  [class.rounded]="true"
+>
+  <mat-card-header class="pb-2">
+    <mat-card-title class="pt-2 d-flex w-100 gap-2 align-items-center">
+      @if (badgeIcon()) {
+        <mat-icon style="width: 24px; flex-shrink: 0; margin: -2px">
+          {{ badgeIcon() }}
+        </mat-icon>
+      } @else if (icon()) {
+        <mat-icon style="width: 24px; flex-shrink: 0; margin: -2px">
+          {{ icon() }}
+        </mat-icon>
+      }
+      <span class="text-truncate mat-title-medium">{{ title() }}</span>
+      @if (dismissable()) {
+        <button
+          mat-icon-button
+          type="button"
+          class="ms-auto flex-shrink-0"
+          (click)="onDismiss(); $event.stopPropagation()"
+          matTooltip="Close"
+          aria-label="Close preview"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-card-title>
+
+    <mat-card-subtitle class="d-flex flex-row gap-2">
+      <div class="d-flex flex-column w-100">
+        @if (subtitle()) {
+          <div class="mat-title-small text-truncate">{{ subtitle() }}</div>
+        }
+        @if (meta()) {
+          <span class="mat-title-small text-truncate meta-line">
+            {{ meta() }}
+          </span>
+        }
+      </div>
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  @if (imageSrc() || !isCompact()) {
+    <div
+      [attr.mat-card-sm-image]="isCompact() ? '' : null"
+      class="img-container"
+      [class.isCompact]="isCompact()"
+      [style.background-color]="imageFit() === 'contain' ? imageAccentColor() : null"
+    >
+      @if (imageSrc()) {
+        <img
+          [ngSrc]="imageSrc()!"
+          fill
+          [class.object-fit-cover]="imageFit() === 'cover'"
+          [class.object-fit-contain]="imageFit() === 'contain'"
+          [alt]="imageAlt()"
+        />
+      } @else {
+        <app-media-placeholder
+          src="assets/spot_placeholder.png"
+          [label]="fallbackLabel() || title()"
+        ></app-media-placeholder>
+      }
+    </div>
+  }
+</mat-card>

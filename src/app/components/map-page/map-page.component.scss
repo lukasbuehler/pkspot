@@ -183,22 +183,19 @@ mat-drawer,
 .map-island-host {
   position: absolute;
   top: 20px;
-  left: calc((100% + (100% - (80px + 5px * 2))) / 2);
-  transform: translate(-50%, 0);
+  left: 16px;
+  right: 60px;
+  display: flex;
+  justify-content: center;
   z-index: 50;
-  max-width: calc(100% - 32px);
-
-  @media (min-width: 768px) {
-    left: 75%;
-  }
-
-  @media (min-width: 1200px) {
-    left: 66.66%;
-  }
+  pointer-events: none;
 }
 
-.map-island-host--sidebar-open {
-  left: 50%;
+.tablet-map-island {
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px 0;
+  pointer-events: none;
 }
 
 mat-chip-option,
