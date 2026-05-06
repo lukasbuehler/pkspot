@@ -1,5 +1,9 @@
 <div class="filter-chips-container">
-  <div class="chips-scroll-shell">
+  <div
+    class="chips-scroll-shell"
+    [class.can-scroll-left]="canScrollLeft()"
+    [class.can-scroll-right]="canScrollRight()"
+  >
     @if (canScrollLeft()) {
       <button
         type="button"

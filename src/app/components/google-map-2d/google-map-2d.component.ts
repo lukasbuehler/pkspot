@@ -1045,7 +1045,7 @@ export class GoogleMap2dComponent
     // The map shell and clustering logic assume classic step-based zoom.
     // Fractional wheel zoom on vector maps causes noisy zoom feedback loops
     // with Angular bindings and feels broken on desktop.
-    isFractionalZoomEnabled: true,
+    isFractionalZoomEnabled: false,
     tilt: 0,
     headingInteractionEnabled: true,
   };

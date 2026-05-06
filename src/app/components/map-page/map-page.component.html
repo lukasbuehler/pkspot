@@ -431,7 +431,7 @@
 
 <ng-template #mapIsland>
   <app-map-island
-    [content]="islandContent()"
+    [content]="visibleIslandContent()"
     (clearFilter)="clearActiveFilter()"
     (openEvent)="onIslandOpenEvent($event)"
     (dismissEvent)="onIslandDismissEvent($event)"
@@ -555,12 +555,14 @@
       ></app-search-field>
     </div>
     <ng-container *ngTemplateOutlet="chips"></ng-container>
+    @if(visibleIslandContent()) {
     <div
       class="d-flex justify-content-center"
       style="padding-left: 16px; padding-right: 16px; padding-top: 12px"
     >
       <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
     </div>
+    }
   </div>
 
   <app-bottom-sheet

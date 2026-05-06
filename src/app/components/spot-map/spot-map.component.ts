@@ -99,6 +99,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   private _isDestroyed = false;
   private readonly duplicateSpotCreateRadiusMeters = 5;
+  private _spotOpenRequestVersion = 0;
+  private _lastFocusedSpotKey: string | null = null;
+  private _lastStoredMapViewport: StoredMapViewport | null = null;
 
   selectedSpot = model<Spot | LocalSpot | null>(null); // input and output signal
   selectedSpotChallenges = model<SpotChallengePreview[]>([]);
@@ -168,7 +171,6 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   startZoom: number = 4;
   mapZoom = signal<number>(this.startZoom);
-  mapCenter?: google.maps.LatLngLiteral;
   bounds?: google.maps.LatLngBounds;
 
   // Check-In Service integration
@@ -259,18 +261,17 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const spot = this.selectedSpot();
       if (spot) {
+        const currentSpotKey = untracked(() => this._getSpotFocusKey(spot));
+
         untracked(() => {
           if (spot instanceof Spot) {
             this._spotMapDataManager.addLoadedSpot(spot);
           }
 
-          this.focusSpot(spot);
-
-          // Create a key for the current spot
-          const currentSpotKey =
-            "id" in spot
-              ? (spot.id as string)
-              : `local-${spot.location().lat}-${spot.location().lng}`;
+          if (this._lastFocusedSpotKey !== currentSpotKey) {
+            this.focusSpot(spot);
+            this._lastFocusedSpotKey = currentSpotKey;
+          }
 
           // AGGRESSIVE POLYGON RESET: If spot changed and we're editing, restart the editing mode
           if (
@@ -295,6 +296,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         });
       } else {
         previousSpotKey = null;
+        this._lastFocusedSpotKey = null;
       }
     });
 
@@ -446,6 +448,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     this.map.center = viewport.center;
     this.mapZoom.set(viewport.zoom);
+    this.map.setZoom(viewport.zoom);
+    this._lastStoredMapViewport = {
+      location: viewport.center,
+      zoom: viewport.zoom,
+    };
 
     // TODO this is not sufficient if the input changes
     this.visibleMarkers.set(this.markers()); // ?????
@@ -534,16 +541,26 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     if (!this.boundRestriction) {
       // store the new last location in the browser memory to restore it on next visit
-      let newCenter: google.maps.LatLngLiteral = bounds.getCenter().toJSON();
+      const newCenter: google.maps.LatLngLiteral = bounds.getCenter().toJSON();
       if (this.isInitiated && newCenter !== this.centerStart()) {
-        if (this.mapCenter !== newCenter || zoom !== this.mapZoom()) {
-          this.mapsAPIService.storeLastLocationAndZoom({
+        const lastStored = this._lastStoredMapViewport;
+        if (
+          !lastStored ||
+          !this._isSameLatLng(lastStored.location, newCenter) ||
+          zoom !== lastStored.zoom
+        ) {
+          this._lastStoredMapViewport = {
             location: newCenter,
             zoom: zoom,
-          });
+          };
+          this.mapsAPIService.storeLastLocationAndZoom(
+            this._lastStoredMapViewport
+          );
         }
       }
     }
+
+    this.mapZoom.set(zoom);
 
     // If a filter is active, notify parent to re-run the filter search (debounced)
     if (this.spotFilterMode() !== SpotFilterMode.None) {
@@ -557,6 +574,28 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         this._filterBoundsDebounceTimer = null;
       }, 300);
     }
+  }
+
+  private _isSameLatLng(
+    left: google.maps.LatLngLiteral | undefined,
+    right: google.maps.LatLngLiteral
+  ): boolean {
+    if (!left) return false;
+
+    const epsilon = 0.000001;
+    return (
+      Math.abs(left.lat - right.lat) < epsilon &&
+      Math.abs(left.lng - right.lng) < epsilon
+    );
+  }
+
+  private _getSpotFocusKey(spot: Spot | LocalSpot): string {
+    if ("id" in spot) {
+      return spot.id as string;
+    }
+
+    const location = spot.location();
+    return `local-${location.lat}-${location.lng}`;
   }
 
   // Spot loading /////////////////////////////////////////////////////////////
@@ -628,6 +667,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       console.error("No spot ID or slug provided to open spot");
       return;
     }
+    const requestVersion = ++this._spotOpenRequestVersion;
 
     // Check if it's a slug by looking for typical slug patterns
     // Slugs are typically lowercase with hyphens, IDs are alphanumeric
@@ -643,6 +683,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           );
         })
         .then((spot) => {
+          if (requestVersion !== this._spotOpenRequestVersion) {
+            return;
+          }
           if (spot) {
             this.selectedSpot.set(spot);
             if (this.isInitiated) {
@@ -656,18 +699,24 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         })
         .catch((error) => {
           console.error("Error resolving slug or fetching spot:", error);
+          if (requestVersion !== this._spotOpenRequestVersion) {
+            return;
+          }
           // Fallback: try as ID anyway
-          this._fetchSpotById(spotIdOrSlug as SpotId);
+          this._fetchSpotById(spotIdOrSlug as SpotId, requestVersion);
         });
     } else {
       // It's an ID, fetch directly
-      this._fetchSpotById(spotIdOrSlug as SpotId);
+      this._fetchSpotById(spotIdOrSlug as SpotId, requestVersion);
     }
   }
 
-  private _fetchSpotById(spotId: SpotId) {
+  private _fetchSpotById(spotId: SpotId, requestVersion: number) {
     firstValueFrom(this._spotsService.getSpotById$(spotId, this.locale)).then(
       (spot) => {
+        if (requestVersion !== this._spotOpenRequestVersion) {
+          return;
+        }
         if (spot) {
           this.selectedSpot.set(spot);
           if (this.isInitiated) {
@@ -692,14 +741,16 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     point: google.maps.LatLngLiteral,
     zoom: number = this.focusZoom()
   ) {
+    const targetZoom = Math.max(this.mapZoom(), zoom);
+
     if (this.map?.googleMap) {
       this.map.googleMap.panTo(point);
-      this.mapZoom.set(Math.max(this.mapZoom(), zoom));
+      this.map.setZoom(targetZoom);
     } else {
       // If map is not ready yet, set the center directly
       if (this.map) {
         this.map.center = point;
-        this.mapZoom.set(Math.max(this.mapZoom(), zoom));
+        this.map.setZoom(targetZoom);
       }
     }
   }
@@ -949,6 +1000,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     }
 
     // unselect
+    this._spotOpenRequestVersion++;
     this.selectedSpot.set(null);
   }
 

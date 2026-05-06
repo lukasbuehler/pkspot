@@ -26,11 +26,6 @@
           [dismissable]="true"
           (dismiss)="onClose()"
         ></app-entity-preview-card>
-        @if (introText()) {
-          <p class="mat-body-small intro-copy mb-0 mt-2 px-3">
-            {{ introText() }}
-          </p>
-        }
       </header>
     } @else {
       <section class="hero-section">
@@ -179,6 +174,12 @@
             }
           </div>
         </section>
+      }
+
+      @if (panelMode() && introText()) {
+        <p class="mat-body-small intro-copy panel-disclaimer mb-4 px-1">
+          {{ introText() }}
+        </p>
       }
 
       @if (hasManualSections()) {

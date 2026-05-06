@@ -300,6 +300,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _bottomSheetContentEl?: HTMLElement | null;
   private _bottomSheetContentListener?: (e: Event) => void;
   private _lastFocusedCommunityKey: string | null = null;
+  private _spotLoadRequestVersion = 0;
 
   filterCtrl = new FormControl<string[]>([], { nonNullable: true });
   selectedFilters = signal<string[]>([]);
@@ -494,6 +495,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return null;
   });
 
+  visibleIslandContent = computed<MapIslandContent | null>(() => {
+    if (
+      this.responsiveService.isMobile() &&
+      (this.bottomSheetOpen() || this.bottomSheetProgress() > 0.05)
+    ) {
+      return null;
+    }
+
+    return this.islandContent();
+  });
+
   /**
    * Approximate intersection of a viewport rectangle and a geographic circle.
    * Mirrors the helper on `Event` so we don't reach across model boundaries.
@@ -587,11 +599,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   onIslandOpenCommunity(community: CommunityLandingPageData): void {
     this.selectedEvent.set(null);
+    this._spotLoadRequestVersion++;
     this.selectedSpot.set(null);
     this.selectedPoi.set(null);
     this.closeChallenge(false);
     this.selectedCommunityLanding.set(community);
     this._location.go(community.canonicalPath);
+    this.resetPanelContentToTop();
     this._dismissedCommunityKeys.update((set) => {
       // Clearing a previous dismissal is the right thing here — the user
       // just explicitly opened it.
@@ -621,6 +635,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.ngZone.run(() => {
       // Clear spot selection
       if (this.selectedSpot()) {
+        this._spotLoadRequestVersion++;
         this.selectedSpot.set(null);
       }
 
@@ -662,6 +677,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   ): void {
     const updateUrl = options.updateUrl ?? true;
     const replaceUrl = options.replaceUrl ?? false;
+    this._spotLoadRequestVersion++;
     this.selectedSpot.set(null);
     this.selectedPoi.set(null);
     this.selectedCommunityLanding.set(null);
@@ -669,8 +685,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showSpotEditHistory.set(false);
     this.selectedEvent.set(event);
     this._openInfoPanel();
-    this.resetSidebarContentToTop();
-    this.resetBottomSheetContentToTop();
+    this.resetPanelContentToTop();
 
     // Sync the URL so the preview is bookmarkable / shareable without
     // remounting the map through Router navigation.
@@ -703,6 +718,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   closeEventPreview(): void {
     if (!this.selectedEvent()) return;
     this.selectedEvent.set(null);
+    this.resetPanelContentToTop();
     // Strip the /events/<id> segment from the URL.
     const cleanUrl = (this.router.url || "").split("?")[0];
     if (/^\/map\/events\//u.test(cleanUrl)) {
@@ -721,6 +737,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.selectedCommunityLanding.set(null);
+    this.resetPanelContentToTop();
     // Strip the /community/<slug> segment from the URL while preserving
     // any query params the map page is using.
     const queryString = window?.location?.search ?? "";
@@ -905,8 +922,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       this._openInfoPanel();
-      this.resetSidebarContentToTop();
-      this.resetBottomSheetContentToTop();
+      this.resetPanelContentToTop();
 
       if (this._lastFocusedCommunityKey === communityLanding.communityKey) {
         return;
@@ -1490,6 +1506,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async loadSpotById(spotId: SpotId, updateUrl: boolean = true): Promise<Spot> {
     console.debug("loading spot by id", spotId);
+    const requestVersion = ++this._spotLoadRequestVersion;
 
     // Retry loading the spot if it's not yet populated by the cloud function
     let lastError: any;
@@ -1502,6 +1519,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           spotId,
           this.locale
         );
+        if (requestVersion !== this._spotLoadRequestVersion) {
+          return spot;
+        }
         this.selectSpot(spot, updateUrl);
         return spot;
       } catch (error) {
@@ -1778,6 +1798,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (this.selectedSpot()) {
+        this._spotLoadRequestVersion++;
         this.selectedSpot.set(null);
       }
 
@@ -1806,6 +1827,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (this.selectedSpot()) {
+        this._spotLoadRequestVersion++;
         this.selectedSpot.set(null);
       }
 
@@ -1833,6 +1855,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (this.selectedSpot()) {
+      this._spotLoadRequestVersion++;
       this.selectedSpot.set(null);
     }
 
@@ -1913,6 +1936,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (this.selectedSpot()) {
+        this._spotLoadRequestVersion++;
         this.selectedSpot.set(null);
       }
 
@@ -2140,13 +2164,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       this.closeChallenge(false);
+      this._spotLoadRequestVersion++;
       this.selectedEvent.set(null);
       this.selectedCommunityLanding.set(null);
       this.selectedPoi.set(null);
       this.selectedSpot.set(spot);
-      // When a new spot is selected, jump the sidebar/bottom-sheet content to top
-      this.resetSidebarContentToTop();
-      this.resetBottomSheetContentToTop();
+      this.resetPanelContentToTop();
 
       this._openInfoPanel();
 
@@ -2193,6 +2216,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       el.scrollTo({ top: 0 });
       this.sidebarContentIsScrolling.set(false);
     }
+  }
+
+  resetPanelContentToTop(): void {
+    this.resetSidebarContentToTop();
+    this.resetBottomSheetContentToTop();
+
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    window.setTimeout(() => {
+      this.resetSidebarContentToTop();
+      this.resetBottomSheetContentToTop();
+    }, 0);
   }
 
   private _parseMapRouteState(url: string): {
@@ -2470,6 +2505,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       // also open the info panel
       this._openInfoPanel();
+      this.resetPanelContentToTop();
 
       if (updateUrl) {
         this.updateMapURL();
@@ -2484,10 +2520,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   closeSpot(updateUrl: boolean = true) {
+    this._spotLoadRequestVersion++;
     this.selectedSpot.set(null);
     this.selectedPoi.set(null); // Clear selected POI
     this.showSpotEditHistory.set(false);
     this.closeChallenge(false);
+    this.spotMap?.selectedSpot.set(null);
+    this.resetPanelContentToTop();
 
     if (updateUrl) {
       this.updateMapURL();
@@ -2496,6 +2535,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   closeChallenge(updateUrl: boolean = true) {
     this.selectedChallenge.set(null);
+    this.resetPanelContentToTop();
 
     if (updateUrl) {
       this.updateMapURL();

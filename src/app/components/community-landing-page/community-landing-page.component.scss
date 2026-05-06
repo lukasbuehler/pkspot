@@ -143,6 +143,10 @@
   max-width: 760px;
 }
 
+.panel-disclaimer {
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

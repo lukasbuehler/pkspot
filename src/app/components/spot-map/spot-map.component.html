@@ -2,7 +2,6 @@
 <app-google-map-2d
   #map
   id="map"
-  [zoom]="mapZoom()"
   [focusZoom]="focusZoom()"
   [spots]="visibleSpots()"
   [dots]="visibleDots()"
@@ -25,12 +24,11 @@
   [showSpotPreview]="showSpotPreview()"
   [bottomSheetOffset]="bottomSheetOffset()"
   [isDebug]="isDebug()"
-  (boundsChange)="mapBoundsChanged($event, mapZoom())"
+  (boundsChange)="mapBoundsChanged($event, map.zoom)"
   (visibleTilesChange)="visibleTilesChanged($event)"
   (zoomChange)="zoomChanged($event)"
   (mapClick)="isClickable() ? mapClick($event) : null"
   (spotClick)="isClickable() ? openSpotByWhateverMeansNecessary($event) : null"
-  (centerChange)="mapCenter = $event"
   (hasGeolocationChange)="hasGeolocationChange.emit($event)"
   (markerClickEvent)="onMarkerClickFromMap($event)"
   (poiClick)="poiClick.emit($event)"
