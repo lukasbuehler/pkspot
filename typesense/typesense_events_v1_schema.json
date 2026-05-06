@@ -1,0 +1,47 @@
+{
+  "name": "events_v1",
+  "fields": [
+    { "name": "id", "type": "string" },
+    { "name": "name", "type": "string" },
+    { "name": "description", "type": "string", "optional": true },
+    { "name": "slug", "type": "string", "optional": true },
+    { "name": "venue_string", "type": "string", "optional": true },
+    { "name": "locality_string", "type": "string", "facet": true, "optional": true },
+    { "name": "url", "type": "string", "optional": true, "index": false },
+
+    { "name": "banner_src", "type": "string", "optional": true, "index": false },
+    { "name": "logo_src", "type": "string", "optional": true, "index": false },
+    { "name": "sponsor.name", "type": "string", "optional": true },
+    { "name": "sponsor.logo_src", "type": "string", "optional": true, "index": false },
+
+    { "name": "start_seconds", "type": "int64", "optional": true },
+    { "name": "end_seconds", "type": "int64", "optional": true },
+    { "name": "promo_starts_at_seconds", "type": "int64", "optional": true },
+
+    { "name": "spot_ids", "type": "string[]", "optional": true },
+    { "name": "community_keys", "type": "string[]", "facet": true, "optional": true },
+    { "name": "series_ids", "type": "string[]", "facet": true, "optional": true },
+    {
+      "name": "external_source.provider",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "external_source.url",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+
+    { "name": "bounds_center", "type": "geopoint", "optional": true },
+    { "name": "bounds_radius_m", "type": "float", "optional": true },
+    { "name": "promo_region_center", "type": "geopoint", "optional": true },
+    { "name": "promo_region_radius_m", "type": "float", "optional": true },
+
+    { "name": "published", "type": "bool", "facet": true, "optional": true },
+    { "name": "_force_sync", "type": "int64", "optional": true, "index": false }
+  ],
+  "default_sorting_field": "start_seconds",
+  "enable_nested_fields": true
+}
