@@ -1,0 +1,34 @@
+{
+  "name": "users_v1",
+  "fields": [
+    { "name": "id", "type": "string" },
+    { "name": "display_name", "type": "string", "optional": true },
+    { "name": "biography", "type": "string", "optional": true },
+    { "name": "profile_picture", "type": "string", "optional": true, "index": false },
+    { "name": "home_city", "type": "string", "facet": true, "optional": true },
+    { "name": "nationality_code", "type": "string", "facet": true, "optional": true },
+
+    { "name": "follower_count", "type": "int32", "optional": true },
+    { "name": "following_count", "type": "int32", "optional": true },
+    { "name": "visited_spots_count", "type": "int32", "optional": true },
+    { "name": "spot_creates_count", "type": "int32", "optional": true },
+    { "name": "spot_edits_count", "type": "int32", "optional": true },
+    { "name": "media_added_count", "type": "int32", "optional": true },
+    { "name": "signup_number", "type": "int32", "optional": true },
+    { "name": "start_date_raw_ms", "type": "int64", "optional": true },
+
+    { "name": "special_badges", "type": "string[]", "facet": true, "optional": true },
+    { "name": "pinned_badges", "type": "string[]", "optional": true },
+    {
+      "name": "socials.instagram_handle",
+      "type": "string",
+      "optional": true
+    },
+    { "name": "socials.youtube_handle", "type": "string", "optional": true },
+
+    { "name": "public_search", "type": "bool", "facet": true, "optional": true },
+    { "name": "_force_sync", "type": "int64", "optional": true, "index": false }
+  ],
+  "default_sorting_field": "follower_count",
+  "enable_nested_fields": true
+}
