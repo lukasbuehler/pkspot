@@ -19,7 +19,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { map } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
-import { CommunityLandingPageData } from "../../services/firebase/firestore/landing-pages.service";
+import { CommunityLandingPageData as CommunityPanelData } from "../../services/firebase/firestore/landing-pages.service";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
@@ -58,9 +58,7 @@ export class CommunityLandingPageComponent {
   private _platformId = inject(PLATFORM_ID);
   private _eventsService = inject(EventsService);
 
-  landingDataInput = input<CommunityLandingPageData | null | undefined>(
-    undefined
-  );
+  communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
 
   /** Emitted when the user closes the panel (panel mode only). */
@@ -82,37 +80,34 @@ export class CommunityLandingPageComponent {
    */
   communityEvents = signal<PkEvent[]>([]);
   visibleEvents = computed(() =>
-    this.communityEvents().slice(0, this.EVENT_LIMIT)
+    this.communityEvents().slice(0, this.EVENT_LIMIT),
   );
   hasMoreEvents = computed(
-    () => this.communityEvents().length > this.EVENT_LIMIT
+    () => this.communityEvents().length > this.EVENT_LIMIT,
   );
 
-  private _landingData = toSignal(
+  private _communityData = toSignal(
     this._route.data.pipe(
-      map(
-        (data) =>
-          data["communityLanding"] as CommunityLandingPageData | undefined
-      )
+      map((data) => data["communityLanding"] as CommunityPanelData | undefined),
     ),
     {
-      initialValue: this._route.snapshot.data[
-        "communityLanding"
-      ] as CommunityLandingPageData | undefined,
-    }
+      initialValue: this._route.snapshot.data["communityLanding"] as
+        | CommunityPanelData
+        | undefined,
+    },
   );
 
-  landingData = computed(
-    () => this.landingDataInput() ?? this._landingData() ?? undefined
+  communityData = computed(
+    () => this.communityDataInput() ?? this._communityData() ?? undefined,
   );
 
   heading = computed(() => {
-    const data = this.landingData();
+    const data = this.communityData();
     return data?.displayName ?? "";
   });
 
   introText = computed(() => {
-    const data = this.landingData();
+    const data = this.communityData();
     if (!data) {
       return "";
     }
@@ -125,7 +120,7 @@ export class CommunityLandingPageComponent {
   });
 
   scopeLabel = computed(() => {
-    const scope = this.landingData()?.scope;
+    const scope = this.communityData()?.scope;
     if (!scope) {
       return "Community";
     }
@@ -134,7 +129,7 @@ export class CommunityLandingPageComponent {
   });
 
   parentBreadcrumb = computed(() => {
-    const data = this.landingData();
+    const data = this.communityData();
     if (!data || data.breadcrumbs.length < 3) {
       return null;
     }
@@ -142,21 +137,25 @@ export class CommunityLandingPageComponent {
     return data.breadcrumbs[data.breadcrumbs.length - 2] ?? null;
   });
 
-  totalSpotCount = computed(() => this.landingData()?.totalSpotCount ?? 0);
-  topRatedCount = computed(() => this.landingData()?.topRatedCount ?? 0);
-  dryCount = computed(() => this.landingData()?.dryCount ?? 0);
-  childCommunities = computed(() => this.landingData()?.childCommunities ?? []);
-  communityLinks = computed(() => this._toCommunityLinks(this.landingData()));
+  totalSpotCount = computed(() => this.communityData()?.totalSpotCount ?? 0);
+  topRatedCount = computed(() => this.communityData()?.topRatedCount ?? 0);
+  dryCount = computed(() => this.communityData()?.dryCount ?? 0);
+  childCommunities = computed(
+    () => this.communityData()?.childCommunities ?? [],
+  );
+  communityLinks = computed(() => this._toCommunityLinks(this.communityData()));
   resources = computed(() =>
-    this._toSectionItems(this.landingData()?.resources ?? [])
+    this._toSectionItems(this.communityData()?.resources ?? []),
   );
   organisations = computed(() =>
-    this._toSectionItems(this.landingData()?.organisations ?? [])
+    this._toSectionItems(this.communityData()?.organisations ?? []),
   );
   athletes = computed(() =>
-    this._toSectionItems(this.landingData()?.athletes ?? [])
+    this._toSectionItems(this.communityData()?.athletes ?? []),
   );
-  events = computed(() => this._toSectionItems(this.landingData()?.events ?? []));
+  events = computed(() =>
+    this._toSectionItems(this.communityData()?.events ?? []),
+  );
   hasManualSections = computed(() => {
     return (
       this.communityLinks().length > 0 ||
@@ -167,8 +166,10 @@ export class CommunityLandingPageComponent {
     );
   });
   hasFeaturedSpots = computed(() => {
-    const data = this.landingData();
-    return (data?.topRatedSpots.length ?? 0) > 0 || (data?.drySpots.length ?? 0) > 0;
+    const data = this.communityData();
+    return (
+      (data?.topRatedSpots.length ?? 0) > 0 || (data?.drySpots.length ?? 0) > 0
+    );
   });
 
   constructor() {
@@ -176,7 +177,7 @@ export class CommunityLandingPageComponent {
       // Reload events whenever the landing data (and therefore the community
       // key) changes — e.g., navigating between communities in the panel.
       effect(() => {
-        const data = this.landingData();
+        const data = this.communityData();
         if (!data || data.notFound || !data.communityKey) {
           this.communityEvents.set([]);
           return;
@@ -186,7 +187,7 @@ export class CommunityLandingPageComponent {
           .getEventsForCommunity(key, { withinMonths: 6 })
           .then((events) => {
             // Guard against late returns after the user navigated away.
-            if (this.landingData()?.communityKey === key) {
+            if (this.communityData()?.communityKey === key) {
               this.communityEvents.set(events);
             }
           })
@@ -213,7 +214,7 @@ export class CommunityLandingPageComponent {
   }
 
   lastUpdatedDate = computed(() => {
-    const data = this.landingData();
+    const data = this.communityData();
     const timestamp = data?.sourceMaxUpdatedAt ?? data?.generatedAt;
 
     if (!timestamp) {
@@ -236,7 +237,7 @@ export class CommunityLandingPageComponent {
   });
 
   private _toCommunityLinks(
-    data: CommunityLandingPageData | undefined
+    data: CommunityPanelData | undefined,
   ): CommunityExternalLink[] {
     if (!data) {
       return [];
@@ -258,7 +259,7 @@ export class CommunityLandingPageComponent {
   }
 
   private _toSectionItems(
-    items: CommunityLandingPageData["resources"]
+    items: CommunityPanelData["resources"],
   ): CommunitySectionItem[] {
     return items
       .map((item) => ({

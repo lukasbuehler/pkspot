@@ -1,4 +1,4 @@
-@if (landingData(); as data) {
+@if (communityData(); as data) {
   <div class="community-page" [class.community-page-panel]="panelMode()">
     @if (data.notFound) {
       <!-- Clean "not found" state — no fake stats. -->
@@ -31,7 +31,12 @@
       <section class="hero-section">
         <mat-card class="hero-card">
           <div class="hero-image">
-            <img [ngSrc]="data.imageUrl" fill class="object-fit-cover" [alt]="heading()" />
+            <img
+              [ngSrc]="data.imageUrl"
+              fill
+              class="object-fit-cover"
+              [alt]="heading()"
+            />
           </div>
           <mat-card-content>
             @if (parentBreadcrumb(); as parent) {
@@ -87,66 +92,66 @@
           <div class="events-grid">
             @for (event of visibleEvents(); track event.id) {
               @if (panelMode()) {
-              <button
-                type="button"
-                class="event-card"
-                (click)="onSelectEvent(event)"
-              >
-                <div class="event-image">
-                  @if (event.bannerSrc) {
-                    <img
-                      [ngSrc]="event.bannerSrc"
-                      fill
-                      class="object-fit-cover"
-                      [alt]="event.name"
-                    />
-                  } @else {
-                    <app-media-placeholder
-                      src="assets/spot_placeholder.png"
-                      [label]="event.name"
-                    ></app-media-placeholder>
-                  }
-                </div>
-                <div class="event-body">
-                  <h3 class="mat-title-medium m-0">{{ event.name }}</h3>
-                  <p class="mat-body-small mb-1">
-                    {{ formatEventDateRange(event) }}
-                  </p>
-                  <p class="mat-body-small mb-0 venue-line">
-                    {{ event.venueString }}, {{ event.localityString }}
-                  </p>
-                </div>
-              </button>
+                <button
+                  type="button"
+                  class="event-card"
+                  (click)="onSelectEvent(event)"
+                >
+                  <div class="event-image">
+                    @if (event.bannerSrc) {
+                      <img
+                        [ngSrc]="event.bannerSrc"
+                        fill
+                        class="object-fit-cover"
+                        [alt]="event.name"
+                      />
+                    } @else {
+                      <app-media-placeholder
+                        src="assets/spot_placeholder.png"
+                        [label]="event.name"
+                      ></app-media-placeholder>
+                    }
+                  </div>
+                  <div class="event-body">
+                    <h3 class="mat-title-medium m-0">{{ event.name }}</h3>
+                    <p class="mat-body-small mb-1">
+                      {{ formatEventDateRange(event) }}
+                    </p>
+                    <p class="mat-body-small mb-0 venue-line">
+                      {{ event.venueString }}, {{ event.localityString }}
+                    </p>
+                  </div>
+                </button>
               } @else {
-              <a
-                class="event-card"
-                [routerLink]="['/events', event.slug ?? event.id]"
-              >
-                <div class="event-image">
-                  @if (event.bannerSrc) {
-                    <img
-                      [ngSrc]="event.bannerSrc"
-                      fill
-                      class="object-fit-cover"
-                      [alt]="event.name"
-                    />
-                  } @else {
-                    <app-media-placeholder
-                      src="assets/spot_placeholder.png"
-                      [label]="event.name"
-                    ></app-media-placeholder>
-                  }
-                </div>
-                <div class="event-body">
-                  <h3 class="mat-title-medium m-0">{{ event.name }}</h3>
-                  <p class="mat-body-small mb-1">
-                    {{ formatEventDateRange(event) }}
-                  </p>
-                  <p class="mat-body-small mb-0 venue-line">
-                    {{ event.venueString }}, {{ event.localityString }}
-                  </p>
-                </div>
-              </a>
+                <a
+                  class="event-card"
+                  [routerLink]="['/events', event.slug ?? event.id]"
+                >
+                  <div class="event-image">
+                    @if (event.bannerSrc) {
+                      <img
+                        [ngSrc]="event.bannerSrc"
+                        fill
+                        class="object-fit-cover"
+                        [alt]="event.name"
+                      />
+                    } @else {
+                      <app-media-placeholder
+                        src="assets/spot_placeholder.png"
+                        [label]="event.name"
+                      ></app-media-placeholder>
+                    }
+                  </div>
+                  <div class="event-body">
+                    <h3 class="mat-title-medium m-0">{{ event.name }}</h3>
+                    <p class="mat-body-small mb-1">
+                      {{ formatEventDateRange(event) }}
+                    </p>
+                    <p class="mat-body-small mb-0 venue-line">
+                      {{ event.venueString }}, {{ event.localityString }}
+                    </p>
+                  </div>
+                </a>
               }
             }
           </div>

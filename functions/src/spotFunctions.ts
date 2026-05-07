@@ -13,7 +13,7 @@ import {
 } from "../../src/db/schemas/Media";
 import {
   RESERVED_SPOT_SLUGS,
-  deriveSpotLandingData,
+  deriveSpotCommunityData,
 } from "../../src/scripts/SpotLandingHelpers";
 
 import { googleAPIKey } from "./secrets";
@@ -25,14 +25,10 @@ const isEmulatorEnvironment =
   !!process.env.FIRESTORE_EMULATOR_HOST;
 const geocodeTriggerSecrets = isEmulatorEnvironment ? [] : [googleAPIKey];
 const MAINTENANCE_COLLECTION = "maintenance";
-const RUN_BACKFILL_TYPESENSE_DOC =
-  `${MAINTENANCE_COLLECTION}/run-backfill-typesense-fields`;
-const RUN_BACKFILL_LANDING_DOC =
-  `${MAINTENANCE_COLLECTION}/run-backfill-landing`;
-const RUN_AUDIT_RESERVED_SLUGS_DOC =
-  `${MAINTENANCE_COLLECTION}/run-audit-reserved-slugs`;
-const RUN_DETECT_DUPLICATE_SPOTS_DOC =
-  `${MAINTENANCE_COLLECTION}/run-detect-duplicate-spots`;
+const RUN_BACKFILL_TYPESENSE_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-typesense-fields`;
+const RUN_BACKFILL_LANDING_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-landing`;
+const RUN_AUDIT_RESERVED_SLUGS_DOC = `${MAINTENANCE_COLLECTION}/run-audit-reserved-slugs`;
+const RUN_DETECT_DUPLICATE_SPOTS_DOC = `${MAINTENANCE_COLLECTION}/run-detect-duplicate-spots`;
 const DUPLICATE_SPOT_RADIUS_METERS = 5;
 const isSpotRuntimeDoc = (docId: string): boolean =>
   docId !== "typesense" && !docId.startsWith("run-");
@@ -42,19 +38,24 @@ const isGeoPointValue = (value: unknown): value is GeoPoint => {
     return true;
   }
 
-  const adminGeoPointCtor = (admin.firestore as unknown as {
-    GeoPoint?: typeof GeoPoint;
-  }).GeoPoint;
+  const adminGeoPointCtor = (
+    admin.firestore as unknown as {
+      GeoPoint?: typeof GeoPoint;
+    }
+  ).GeoPoint;
 
-  if (typeof adminGeoPointCtor === "function" && value instanceof adminGeoPointCtor) {
+  if (
+    typeof adminGeoPointCtor === "function" &&
+    value instanceof adminGeoPointCtor
+  ) {
     return true;
   }
 
   return Boolean(
     value &&
-      typeof value === "object" &&
-      typeof (value as { latitude?: unknown }).latitude === "number" &&
-      typeof (value as { longitude?: unknown }).longitude === "number"
+    typeof value === "object" &&
+    typeof (value as { latitude?: unknown }).latitude === "number" &&
+    typeof (value as { longitude?: unknown }).longitude === "number",
   );
 };
 
@@ -117,7 +118,7 @@ const _toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
 
 const _getDistanceMeters = (
   from: { lat: number; lng: number },
-  to: { lat: number; lng: number }
+  to: { lat: number; lng: number },
 ): number => {
   const earthRadiusMeters = 6371000;
   const dLat = _toRadians(to.lat - from.lat);
@@ -135,7 +136,7 @@ const _getDistanceMeters = (
 };
 
 const _getLocationLiteral = (
-  spotData: Partial<SpotSchema>
+  spotData: Partial<SpotSchema>,
 ): { lat: number; lng: number } | null => {
   if (isGeoPointValue(spotData.location)) {
     return {
@@ -159,7 +160,7 @@ const _getLocationLiteral = (
 };
 
 const _getSpotNameForDuplicateFlag = (
-  spotData: Partial<SpotSchema>
+  spotData: Partial<SpotSchema>,
 ): string | undefined => {
   const name = spotData.name;
   if (!name) return undefined;
@@ -179,7 +180,7 @@ const _makeDuplicateCheck = (
     spot_id: string;
     distance_m: number;
     name?: string;
-  }[]
+  }[],
 ): NonNullable<SpotSchema["duplicate_check"]> => ({
   status: candidates.length > 0 ? "possible_duplicate" : "clear",
   radius_m: DUPLICATE_SPOT_RADIUS_METERS,
@@ -189,7 +190,7 @@ const _makeDuplicateCheck = (
 
 const _findNearbyDuplicateCandidates = async (
   spotId: string,
-  spotData: SpotSchema
+  spotData: SpotSchema,
 ): Promise<NonNullable<SpotSchema["duplicate_check"]>> => {
   const location = _getLocationLiteral(spotData);
   const z16Tile = spotData.tile_coordinates?.z16;
@@ -206,9 +207,9 @@ const _findNearbyDuplicateCandidates = async (
           .collection("spots")
           .where("tile_coordinates.z16.x", "==", z16Tile.x + xOffset)
           .where("tile_coordinates.z16.y", "==", z16Tile.y + yOffset)
-          .get()
-      )
-    )
+          .get(),
+      ),
+    ),
   );
 
   const candidates = new Map<
@@ -216,36 +217,38 @@ const _findNearbyDuplicateCandidates = async (
     { spot_id: string; distance_m: number; name?: string }
   >();
 
-  candidateDocs.flatMap((snapshot) => snapshot.docs).forEach((doc) => {
-    if (doc.id === spotId || !isSpotRuntimeDoc(doc.id)) return;
+  candidateDocs
+    .flatMap((snapshot) => snapshot.docs)
+    .forEach((doc) => {
+      if (doc.id === spotId || !isSpotRuntimeDoc(doc.id)) return;
 
-    const candidateData = doc.data() as SpotSchema;
-    const candidateLocation = _getLocationLiteral(candidateData);
-    if (!candidateLocation) return;
+      const candidateData = doc.data() as SpotSchema;
+      const candidateLocation = _getLocationLiteral(candidateData);
+      if (!candidateLocation) return;
 
-    const distanceMeters = _getDistanceMeters(location, candidateLocation);
-    if (distanceMeters > DUPLICATE_SPOT_RADIUS_METERS) return;
+      const distanceMeters = _getDistanceMeters(location, candidateLocation);
+      if (distanceMeters > DUPLICATE_SPOT_RADIUS_METERS) return;
 
-    candidates.set(doc.id, {
-      spot_id: doc.id,
-      distance_m: Math.round(distanceMeters * 10) / 10,
-      name: _getSpotNameForDuplicateFlag(candidateData),
+      candidates.set(doc.id, {
+        spot_id: doc.id,
+        distance_m: Math.round(distanceMeters * 10) / 10,
+        name: _getSpotNameForDuplicateFlag(candidateData),
+      });
     });
-  });
 
   return _makeDuplicateCheck(
     Array.from(candidates.values()).sort(
-      (left, right) => left.distance_m - right.distance_m
-    )
+      (left, right) => left.distance_m - right.distance_m,
+    ),
   );
 };
 
 const _getChangedFields = (
   currentData: SpotSchema,
-  proposedData: Partial<SpotSchema>
+  proposedData: Partial<SpotSchema>,
 ): Partial<SpotSchema> => {
   const changedEntries = Object.entries(
-    _removeUndefinedValues(proposedData) as Record<string, unknown>
+    _removeUndefinedValues(proposedData) as Record<string, unknown>,
   ).filter(([fieldPath, proposedValue]) => {
     const currentValue = (currentData as unknown as Record<string, unknown>)[
       fieldPath
@@ -283,7 +286,7 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
     spotData.media.length > 0
   ) {
     const firstMediaItem = spotData.media.find(
-      (mediaSchema) => mediaSchema.type === "image"
+      (mediaSchema) => mediaSchema.type === "image",
     );
 
     // use the storage media utilities to get the thumbnail URL from the media schema
@@ -294,12 +297,12 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
           spotDataToUpdate.thumbnail_small_url = buildStorageMediaUrl(
             parsed,
             undefined,
-            `_200x200`
+            `_200x200`,
           );
           spotDataToUpdate.thumbnail_medium_url = buildStorageMediaUrl(
             parsed,
             undefined,
-            `_400x400`
+            `_400x400`,
           );
         } else {
           // External images have no resized variants. Reuse the source URL so
@@ -354,9 +357,9 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
   }
 
   //// 8. Landing page helper fields
-  const landingData = deriveSpotLandingData(spotData);
-  if (landingData) {
-    spotDataToUpdate.landing = landingData;
+  const communityData = deriveSpotCommunityData(spotData);
+  if (communityData) {
+    spotDataToUpdate.landing = communityData;
   }
 
   //// 9. Serialize bounds for Typesense proximity queries and mobile compatibility
@@ -378,7 +381,7 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
       const [centerLat, centerLng] = boundsResult.boundsCenter!;
       spotDataToUpdate.bounds_center = new GeoPoint(
         centerLat,
-        centerLng
+        centerLng,
       ) as any;
       spotDataToUpdate.bounds_radius_m = boundsResult.boundsRadiusM!;
     } else {
@@ -398,18 +401,18 @@ const _hasUsableAddress = (address: SpotSchema["address"]): boolean => {
   if (!address) return false;
   return Boolean(
     (typeof address.formatted === "string" && address.formatted.trim()) ||
-      (typeof address.formattedLocal === "string" &&
-        address.formattedLocal.trim()) ||
-      (typeof address.locality === "string" && address.locality.trim()) ||
-      (typeof address.localityLocal === "string" &&
-        address.localityLocal.trim()) ||
-      (typeof address.sublocality === "string" && address.sublocality.trim()) ||
-      (typeof address.sublocalityLocal === "string" &&
-        address.sublocalityLocal.trim()) ||
-      (typeof address.region?.name === "string" && address.region.name.trim()) ||
-      (typeof address.region?.localName === "string" &&
-        address.region.localName.trim()) ||
-      (address.country?.code && address.country?.name)
+    (typeof address.formattedLocal === "string" &&
+      address.formattedLocal.trim()) ||
+    (typeof address.locality === "string" && address.locality.trim()) ||
+    (typeof address.localityLocal === "string" &&
+      address.localityLocal.trim()) ||
+    (typeof address.sublocality === "string" && address.sublocality.trim()) ||
+    (typeof address.sublocalityLocal === "string" &&
+      address.sublocalityLocal.trim()) ||
+    (typeof address.region?.name === "string" && address.region.name.trim()) ||
+    (typeof address.region?.localName === "string" &&
+      address.region.localName.trim()) ||
+    (address.country?.code && address.country?.name),
   );
 };
 
@@ -456,12 +459,18 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
     const shouldCheckDuplicates =
       Boolean(afterLoc) && (locationChanged || !afterData.duplicate_check);
 
-    if ((locationChanged && afterLoc) || (addressMissingOrIncomplete && afterLoc)) {
+    if (
+      (locationChanged && afterLoc) ||
+      (addressMissingOrIncomplete && afterLoc)
+    ) {
       let location: GeoPoint;
       if (afterData.location) {
         location = afterData.location as GeoPoint;
       } else if (afterData.location_raw) {
-        location = new GeoPoint(afterData.location_raw.lat, afterData.location_raw.lng);
+        location = new GeoPoint(
+          afterData.location_raw.lat,
+          afterData.location_raw.lng,
+        );
       } else {
         // Should not happen due to check above
         return null;
@@ -470,7 +479,7 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
       try {
         const [address, _] = await getAddressAndLocaleFromGeopoint(
           location,
-          apiKey
+          apiKey,
         );
         // Only write usable address data. Avoid storing empty maps because
         // they block the "missing address" condition on future writes.
@@ -479,7 +488,7 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
         } else {
           console.warn(
             "Skipping empty/incomplete geocoded address for spot",
-            event.params.spotId
+            event.params.spotId,
           );
         }
       } catch (e) {
@@ -505,7 +514,7 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
         {
           ...mergedSpotData,
           ...spotDataToUpdate,
-        } as SpotSchema
+        } as SpotSchema,
       );
     }
 
@@ -515,7 +524,7 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
       return event.data?.after?.ref.update(changedFields);
     }
     return null;
-  }
+  },
 );
 
 export const updateAllSpotsWithTypesenseFields = onDocumentCreated(
@@ -540,7 +549,7 @@ export const updateAllSpotsWithTypesenseFields = onDocumentCreated(
 
     // delete the run document
     return event.data?.ref.delete();
-  }
+  },
 );
 
 export const detectDuplicateSpots = onDocumentCreated(
@@ -563,7 +572,7 @@ export const detectDuplicateSpots = onDocumentCreated(
 
       const duplicateCheck = await _findNearbyDuplicateCandidates(
         spot.id,
-        spot.data() as SpotSchema
+        spot.data() as SpotSchema,
       );
 
       batch.update(spot.ref, { duplicate_check: duplicateCheck });
@@ -585,9 +594,9 @@ export const detectDuplicateSpots = onDocumentCreated(
     }
 
     console.log(
-      `Duplicate spot scan completed. Checked ${checkedCount}, flagged ${flaggedCount}.`
+      `Duplicate spot scan completed. Checked ${checkedCount}, flagged ${flaggedCount}.`,
     );
-  }
+  },
 );
 
 export const backfillAllSpotsWithLandingFields = onDocumentCreated(
@@ -630,17 +639,20 @@ export const backfillAllSpotsWithLandingFields = onDocumentCreated(
         updated_count: updatedCount,
         completed_at: FieldValue.serverTimestamp(),
       },
-      { merge: true }
+      { merge: true },
     );
-  }
+  },
 );
 
 export const auditReservedSpotSlugs = onDocumentCreated(
   { document: RUN_AUDIT_RESERVED_SLUGS_DOC },
   async (event) => {
     const db = admin.firestore();
-    const conflicts: Array<{ source: "spot_slugs" | "spots"; slug: string; id: string }> =
-      [];
+    const conflicts: Array<{
+      source: "spot_slugs" | "spots";
+      slug: string;
+      id: string;
+    }> = [];
 
     for (const slug of RESERVED_SPOT_SLUGS) {
       const slugDoc = await db.collection("spot_slugs").doc(slug).get();
@@ -677,13 +689,13 @@ export const auditReservedSpotSlugs = onDocumentCreated(
         conflicts,
         completed_at: FieldValue.serverTimestamp(),
       },
-      { merge: true }
+      { merge: true },
     );
 
     if (conflicts.length > 0) {
       throw new Error(
-        `Reserved spot slug audit failed with ${conflicts.length} conflict(s).`
+        `Reserved spot slug audit failed with ${conflicts.length} conflict(s).`,
       );
     }
-  }
+  },
 );

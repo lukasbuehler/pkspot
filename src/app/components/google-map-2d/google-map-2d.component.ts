@@ -142,6 +142,8 @@ export class GoogleMap2dComponent
 {
   private static readonly ZOOM_SYNC_EPSILON = 0.5;
   private _isInternalZoomChange = false;
+  private _hasInitializedNativeMap = false;
+  private _hasStartedAutoLocationWatch = false;
 
   readonly autoStartLocationWatch = environment.features.checkIns;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
@@ -152,6 +154,10 @@ export class GoogleMap2dComponent
 
   @ViewChild("googleMap") set googleMapSetter(content: GoogleMap) {
     if (content) {
+      if (content === this.googleMap && this._hasInitializedNativeMap) {
+        return;
+      }
+
       this.googleMap = content;
       this.onMapReady();
     }
@@ -240,6 +246,7 @@ export class GoogleMap2dComponent
   getAndEmitChangedZoom() {
     if (!this.googleMap) return;
     const newZoom = this.googleMap.getZoom()!;
+    this._debugMapEvent("zoomChanged", { zoom: newZoom });
     this._isInternalZoomChange = true;
     this._zoom.set(newZoom);
     this.zoomChange.emit(newZoom);
@@ -797,12 +804,20 @@ export class GoogleMap2dComponent
       return;
     }
 
-    if (this.googleMap.googleMap) {
+    this._debugMapEvent("onMapReady", {
+      center: this.center,
+      zoom: this.zoom,
+      hasInitializedNativeMap: this._hasInitializedNativeMap,
+    });
+
+    if (this.googleMap.googleMap && !this._hasInitializedNativeMap) {
       this.googleMap.googleMap.setCenter(this.center);
       this.googleMap.googleMap.setZoom(this.zoom);
+      this._hasInitializedNativeMap = true;
     }
 
-    if (this.autoStartLocationWatch) {
+    if (this.autoStartLocationWatch && !this._hasStartedAutoLocationWatch) {
+      this._hasStartedAutoLocationWatch = true;
       this.initGeolocation();
     }
 
@@ -1042,10 +1057,7 @@ export class GoogleMap2dComponent
     clickableIcons: false,
     gestureHandling: "greedy",
     disableDefaultUI: true,
-    // The map shell and clustering logic assume classic step-based zoom.
-    // Fractional wheel zoom on vector maps causes noisy zoom feedback loops
-    // with Angular bindings and feels broken on desktop.
-    isFractionalZoomEnabled: false,
+    isFractionalZoomEnabled: true,
     tilt: 0,
     headingInteractionEnabled: true,
   };
@@ -1221,18 +1233,31 @@ export class GoogleMap2dComponent
     const bounds = this.googleMap.getBounds()!;
 
     this.boundsToRender.set(bounds);
+    this._debugMapEvent("boundsChanged", {
+      center: bounds.getCenter().toJSON(),
+      zoom: this.googleMap.getZoom(),
+      bounds: bounds.toJSON(),
+    });
     this.boundsChange.emit(this.boundsToRender() ?? undefined);
   }
 
   centerChanged() {
     if (!this.googleMap) return;
     const center = this.googleMap.getCenter()!;
+    this._debugMapEvent("centerChanged", {
+      center: center.toJSON(),
+      zoom: this.googleMap.getZoom(),
+    });
     this.centerChange.emit(center.toJSON());
   }
 
   fitBounds(bounds: google.maps.LatLngBounds) {
     if (!this.googleMap) return;
 
+    this._debugMapEvent("fitBounds", {
+      center: bounds.getCenter().toJSON(),
+      bounds: bounds.toJSON(),
+    });
     this.googleMap.fitBounds(bounds);
   }
 
@@ -1544,6 +1569,12 @@ export class GoogleMap2dComponent
       return;
     }
 
+    this._debugMapEvent("focusOnLocation", {
+      location: "toJSON" in location ? location.toJSON() : location,
+      zoom,
+      currentZoom: this.zoom,
+    });
+
     if (this.zoom !== zoom) {
       this.setZoom(zoom);
       setTimeout(() => {
@@ -1777,6 +1808,15 @@ export class GoogleMap2dComponent
     return index.toString();
   }
 
+  trackSpot(index: number, spot: LocalSpot | Spot): string {
+    if ("id" in spot && spot.id) {
+      return spot.id as string;
+    }
+
+    const location = spot.location();
+    return `local-${location.lat}_${location.lng}_${index}`;
+  }
+
   /**
    * Track function for custom markers
    */
@@ -1796,5 +1836,24 @@ export class GoogleMap2dComponent
 
     const location = spot.location();
     return `${index}_${location.lat}_${location.lng}`;
+  }
+
+  private _debugMapEvent(event: string, payload: Record<string, unknown>): void {
+    if (!this.isDebug()) return;
+
+    console.debug("[MapDebug][GoogleMap2d]", event, {
+      ...payload,
+      selectedSpot: this._debugSelectedSpotKey(),
+      timestamp: Math.round(performance.now()),
+    });
+  }
+
+  private _debugSelectedSpotKey(): string | null {
+    const spot = this.selectedSpot();
+    if (!spot) return null;
+    if ("id" in spot && spot.id) return spot.id as string;
+
+    const location = spot.location();
+    return `local-${location.lat}_${location.lng}`;
   }
 }

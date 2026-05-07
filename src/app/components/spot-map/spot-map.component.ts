@@ -448,6 +448,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     this.map.center = viewport.center;
     this.mapZoom.set(viewport.zoom);
+    this._debugMapEvent("initializeViewport", {
+      source: viewport.source,
+      center: viewport.center,
+      zoom: viewport.zoom,
+    });
     this.map.setZoom(viewport.zoom);
     this._lastStoredMapViewport = {
       location: viewport.center,
@@ -467,6 +472,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   // Map events ///////////////////////////////////////////////////////////////
 
   zoomChanged(zoom: number) {
+    this._debugMapEvent("zoomChanged", {
+      zoom,
+      previousZoom: this.mapZoom(),
+    });
     this.mapZoom.set(zoom);
   }
 
@@ -535,13 +544,22 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   mapBoundsChanged(bounds: google.maps.LatLngBounds, zoom: number) {
     // update the local bounds variable
     this.bounds = bounds;
+    const center = bounds.getCenter().toJSON();
+
+    this._debugMapEvent("mapBoundsChanged", {
+      center,
+      zoom,
+      storedCenter: this._lastStoredMapViewport?.location ?? null,
+      storedZoom: this._lastStoredMapViewport?.zoom ?? null,
+      selectedCommunity: Boolean(this.communityArea),
+    });
 
     // Always emit viewport change so map-page can drive the map-island.
     this.viewportBoundsChange.emit(bounds);
 
     if (!this.boundRestriction) {
       // store the new last location in the browser memory to restore it on next visit
-      const newCenter: google.maps.LatLngLiteral = bounds.getCenter().toJSON();
+      const newCenter: google.maps.LatLngLiteral = center;
       if (this.isInitiated && newCenter !== this.centerStart()) {
         const lastStored = this._lastStoredMapViewport;
         if (
@@ -556,6 +574,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           this.mapsAPIService.storeLastLocationAndZoom(
             this._lastStoredMapViewport
           );
+          this._debugMapEvent("storeLastViewport", {
+            location: this._lastStoredMapViewport.location,
+            zoom: this._lastStoredMapViewport.zoom,
+          });
         }
       }
     }
@@ -734,6 +756,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   focusSpot(spot: Spot | LocalSpot) {
     const zoom = Math.max(this.mapZoom(), this.focusZoom());
 
+    this._debugMapEvent("focusSpot", {
+      spot: this._getSpotFocusKey(spot),
+      location: spot.location(),
+      zoom,
+    });
     this.focusPoint(spot.location(), zoom);
   }
 
@@ -742,6 +769,13 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     zoom: number = this.focusZoom()
   ) {
     const targetZoom = Math.max(this.mapZoom(), zoom);
+
+    this._debugMapEvent("focusPoint", {
+      point,
+      requestedZoom: zoom,
+      targetZoom,
+      currentZoom: this.mapZoom(),
+    });
 
     if (this.map?.googleMap) {
       this.map.googleMap.panTo(point);
@@ -756,6 +790,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   focusBounds(bounds: google.maps.LatLngBounds) {
+    this._debugMapEvent("focusBounds", {
+      center: bounds.getCenter().toJSON(),
+      bounds: bounds.toJSON(),
+    });
     this.map?.fitBounds(bounds);
   }
 
@@ -1045,5 +1083,21 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         return spot;
       });
     }
+  }
+
+  private _debugMapEvent(event: string, payload: Record<string, unknown>): void {
+    if (!this.isDebug()) return;
+
+    console.debug("[MapDebug][SpotMap]", event, {
+      ...payload,
+      selectedSpot: this._getSelectedSpotKey(),
+      timestamp: Math.round(performance.now()),
+    });
+  }
+
+  private _getSelectedSpotKey(): string | null {
+    const spot = this.selectedSpot();
+    if (!spot) return null;
+    return this._getSpotFocusKey(spot);
   }
 }

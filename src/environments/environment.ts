@@ -2,7 +2,7 @@ export const environment = {
   name: "Default",
   production: false,
   baseUrl: "https://pkspot.app",
-  mapId: "",
+  mapId: "e2926e5bfb22860c",
   features: {
     checkIns: true,
     activity: true,

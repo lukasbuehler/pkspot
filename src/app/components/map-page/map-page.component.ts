@@ -929,6 +929,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (this._focusCommunityOnMap(communityLanding)) {
+        this._debugMapEvent("focusCommunityEffect", {
+          communityKey: communityLanding.communityKey,
+        });
         this._lastFocusedCommunityKey = communityLanding.communityKey;
       }
     });
@@ -2163,6 +2166,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
+      const previousSpotKey = this._getSelectedSpotKey(this.selectedSpot());
+      const nextSpotKey = this._getSelectedSpotKey(spot);
+      const spotChanged = previousSpotKey !== nextSpotKey;
+
       this.closeChallenge(false);
       this._spotLoadRequestVersion++;
       this.selectedEvent.set(null);
@@ -2173,12 +2180,47 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this._openInfoPanel();
 
-      this.spotMap?.focusSpot(spot);
+      if (spotChanged) {
+        this._debugMapEvent("selectSpotFocus", {
+          previousSpotKey,
+          nextSpotKey,
+        });
+        this.spotMap?.focusSpot(spot);
+      }
 
       if (updateUrl && spot instanceof Spot) {
         this.updateMapURL();
       }
     }
+  }
+
+  private _getSelectedSpotKey(
+    spot: Spot | LocalSpot | SpotPreviewData | null
+  ): string | null {
+    if (!spot) return null;
+
+    if ("id" in spot && spot.id) {
+      return spot.id as string;
+    }
+
+    if ("location" in spot && typeof spot.location === "function") {
+      const location = spot.location();
+      return `local-${location.lat}_${location.lng}`;
+    }
+
+    return null;
+  }
+
+  private _debugMapEvent(event: string, payload: Record<string, unknown>): void {
+    if (!this.appSettings.debugMode()) return;
+
+    console.debug("[MapDebug][MapPage]", event, {
+      ...payload,
+      selectedSpot: this._getSelectedSpotKey(this.selectedSpot()),
+      selectedCommunity: this.selectedCommunityLanding()?.communityKey ?? null,
+      selectedEvent: this.selectedEvent()?.id ?? null,
+      timestamp: Math.round(performance.now()),
+    });
   }
 
   /**

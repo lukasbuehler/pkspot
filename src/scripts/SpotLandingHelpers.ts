@@ -13,7 +13,7 @@ const DRY_SPOT_TYPES = new Set([
 
 export function slugifyUrlSegment(
   value: string | null | undefined,
-  maxLength: number = 80
+  maxLength: number = 80,
 ): string {
   const normalized = String(value ?? "")
     .replace(/ä/gi, "ae")
@@ -38,14 +38,16 @@ export function normalizeSpotSlug(value: string | null | undefined): string {
 export function isReservedSpotSlug(value: string | null | undefined): boolean {
   const normalized = normalizeSpotSlug(value);
   return RESERVED_SPOT_SLUGS.includes(
-    normalized as (typeof RESERVED_SPOT_SLUGS)[number]
+    normalized as (typeof RESERVED_SPOT_SLUGS)[number],
   );
 }
 
 export function getSpotSlugValidationError(
-  value: string | null | undefined
+  value: string | null | undefined,
 ): string | null {
-  const rawValue = String(value ?? "").trim().toLowerCase();
+  const rawValue = String(value ?? "")
+    .trim()
+    .toLowerCase();
   const normalized = normalizeSpotSlug(value);
 
   if (!normalized) {
@@ -65,7 +67,7 @@ export function getSpotSlugValidationError(
 
 export function getCountryMetadata(
   countryCode: string | null | undefined,
-  fallbackName?: string | null
+  fallbackName?: string | null,
 ): Pick<
   SpotLandingSchema,
   "countryCode" | "countryNameEn" | "countrySlug"
@@ -88,7 +90,7 @@ export function getCountryMetadata(
 }
 
 export function getSpotLocalityName(
-  address: SpotSchema["address"]
+  address: SpotSchema["address"],
 ): string | undefined {
   const locality = address?.locality?.trim();
   if (locality) {
@@ -100,7 +102,7 @@ export function getSpotLocalityName(
 }
 
 export function isDrySpotCandidate(
-  spotLike: Pick<SpotSchema, "type" | "amenities">
+  spotLike: Pick<SpotSchema, "type" | "amenities">,
 ): boolean {
   const type = String(spotLike.type ?? "")
     .trim()
@@ -114,12 +116,12 @@ export function isDrySpotCandidate(
   );
 }
 
-export function deriveSpotLandingData(
-  spotLike: Pick<SpotSchema, "address" | "type" | "amenities">
+export function deriveSpotCommunityData(
+  spotLike: Pick<SpotSchema, "address" | "type" | "amenities">,
 ): SpotLandingSchema | null {
   const country = getCountryMetadata(
     spotLike.address?.country?.code,
-    spotLike.address?.country?.name
+    spotLike.address?.country?.name,
   );
 
   if (!country) {
@@ -127,10 +129,14 @@ export function deriveSpotLandingData(
   }
 
   const localityName = getSpotLocalityName(spotLike.address);
-  const localitySlug = localityName ? slugifyUrlSegment(localityName) : undefined;
+  const localitySlug = localityName
+    ? slugifyUrlSegment(localityName)
+    : undefined;
   const regionName = spotLike.address?.region?.name?.trim() || undefined;
-  const regionCode = spotLike.address?.region?.code?.trim().toUpperCase() || undefined;
-  const regionSlug = slugifyUrlSegment(regionCode || regionName || "") || undefined;
+  const regionCode =
+    spotLike.address?.region?.code?.trim().toUpperCase() || undefined;
+  const regionSlug =
+    slugifyUrlSegment(regionCode || regionName || "") || undefined;
 
   return {
     ...country,

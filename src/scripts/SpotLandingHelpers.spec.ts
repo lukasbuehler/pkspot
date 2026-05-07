@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   RESERVED_SPOT_SLUGS,
-  deriveSpotLandingData,
+  deriveSpotCommunityData,
   getSpotSlugValidationError,
   isDrySpotCandidate,
   isReservedSpotSlug,
@@ -12,7 +12,7 @@ import {
 describe("SpotLandingHelpers", () => {
   it("should normalize spot slugs", () => {
     expect(normalizeSpotSlug("  Zuerich Hauptbahnhof  ")).toBe(
-      "zuerich-hauptbahnhof"
+      "zuerich-hauptbahnhof",
     );
   });
 
@@ -24,13 +24,13 @@ describe("SpotLandingHelpers", () => {
 
   it("should reject invalid slug characters", () => {
     expect(getSpotSlugValidationError("hello/world")).toContain(
-      "lowercase alphanumeric characters and hyphens"
+      "lowercase alphanumeric characters and hyphens",
     );
   });
 
   it("should derive country and locality landing data", () => {
     expect(
-      deriveSpotLandingData({
+      deriveSpotCommunityData({
         address: {
           locality: "London",
           country: {
@@ -40,7 +40,7 @@ describe("SpotLandingHelpers", () => {
         },
         type: "parkour gym",
         amenities: {},
-      })
+      }),
     ).toEqual({
       countryCode: "GB",
       countryNameEn: "United Kingdom",
@@ -60,13 +60,13 @@ describe("SpotLandingHelpers", () => {
       isDrySpotCandidate({
         type: "urban landscape",
         amenities: { covered: true },
-      })
+      }),
     ).toBe(true);
     expect(
       isDrySpotCandidate({
         type: "urban landscape",
         amenities: { indoor: true },
-      })
+      }),
     ).toBe(true);
   });
 

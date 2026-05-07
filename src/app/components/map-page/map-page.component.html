@@ -1,191 +1,207 @@
 <ng-template #sidebarContent>
-  @if(checkInEnabled && checkInService.currentProximitySpot(); as spot) {
-  <div
-    @fadeInOut
-    style="height: 42px; margin-bottom: 18px"
-    class="gap-1 d-flex px-3 flex-row justify-content-between align-items-center overflow-hidden"
-  >
-    <!-- Clickable spot info area - clicking selects the spot -->
-    <button
-      type="button"
-      class="d-flex align-items-center gap-2 overflow-hidden bg-transparent border-0 p-0 text-start"
-      style="cursor: pointer"
-      (click)="selectSpot(spot)"
+  @if (checkInEnabled && checkInService.currentProximitySpot(); as spot) {
+    <div
+      @fadeInOut
+      style="height: 42px; margin-bottom: 18px"
+      class="gap-1 d-flex px-3 flex-row justify-content-between align-items-center overflow-hidden"
     >
-      @if(spot.imageSrc) {
-      <div
-        style="
-          height: 42px;
-          width: 42px;
-          border-radius: 10px;
-          margin-right: 5px;
-        "
-        class="position-relative overflow-hidden flex-shrink-0"
-      >
-        <img [ngSrc]="spot.imageSrc" alt="" fill />
-      </div>
-      } @else {
-      <mat-icon class="flex-shrink-0" color="accent">beenhere</mat-icon>
-
-      }
-      <span
-        class="mat-title-medium text-truncate"
-        i18n="@@checkin.at_spot_short"
-        >At <strong>{{ spot.name }}</strong> spot?</span
-      >
-    </button>
-    <div class="d-flex gap-1 align-items-center flex-shrink-0">
+      <!-- Clickable spot info area - clicking selects the spot -->
       <button
-        mat-flat-button
-        color="accent"
-        class="flex-grow-1"
-        (click)="spotCheckIn(spot.id); $event.stopPropagation()"
+        type="button"
+        class="d-flex align-items-center gap-2 overflow-hidden bg-transparent border-0 p-0 text-start"
+        style="cursor: pointer"
+        (click)="selectSpot(spot)"
       >
-        <!-- <mat-icon>beenhere</mat-icon> -->
-        <span i18n="@@checkin.check_in">Check In</span>
+        @if (spot.imageSrc) {
+          <div
+            style="
+              height: 42px;
+              width: 42px;
+              border-radius: 10px;
+              margin-right: 5px;
+            "
+            class="position-relative overflow-hidden flex-shrink-0"
+          >
+            <img [ngSrc]="spot.imageSrc" alt="" fill />
+          </div>
+        } @else {
+          <mat-icon class="flex-shrink-0" color="accent">beenhere</mat-icon>
+        }
+        <span
+          class="mat-title-medium text-truncate"
+          i18n="@@checkin.at_spot_short"
+          >At <strong>{{ spot.name }}</strong> spot?</span
+        >
       </button>
-      <!-- <button
+      <div class="d-flex gap-1 align-items-center flex-shrink-0">
+        <button
+          mat-flat-button
+          color="accent"
+          class="flex-grow-1"
+          (click)="spotCheckIn(spot.id); $event.stopPropagation()"
+        >
+          <!-- <mat-icon>beenhere</mat-icon> -->
+          <span i18n="@@checkin.check_in">Check In</span>
+        </button>
+        <!-- <button
         mat-stroked-button
         (click)="checkInService.dismissSpot(spot.id)"
         i18n="@@checkin.dismiss"
       >
         Dismiss
       </button> -->
-      <button
-        mat-icon-button
-        (click)="checkInService.dismissSpot(spot.id); $event.stopPropagation()"
-        class="d-flex"
+        <button
+          mat-icon-button
+          (click)="
+            checkInService.dismissSpot(spot.id); $event.stopPropagation()
+          "
+          class="d-flex"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+    <mat-divider class="mb-2"></mat-divider>
+  }
+  @if (selectedPoi()) {
+    <app-poi-detail
+      [poi]="selectedPoi()!"
+      (dismiss)="closeSpot()"
+    ></app-poi-detail>
+  } @else if (selectedSpot()) {
+    @if (selectedChallenge()) {
+      <a
+        mat-button
+        [routerLink]="[
+          '/map',
+          selectedSpotIdOrSlug(),
+          showAllChallenges() ? 'c' : '',
+        ]"
+        queryParamsHandling="merge"
+        class="text-truncate"
       >
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-  </div>
-  <mat-divider class="mb-2"></mat-divider>
-  } @if(selectedPoi()) {
-  <app-poi-detail
-    [poi]="selectedPoi()!"
-    (dismiss)="closeSpot()"
-  ></app-poi-detail>
-  } @else if(selectedSpot()) { @if(selectedChallenge()) {
-  <a
-    mat-button
-    [routerLink]="[
-      '/map',
-      selectedSpotIdOrSlug(),
-      showAllChallenges() ? 'c' : ''
-    ]"
-    queryParamsHandling="merge"
-    class="text-truncate"
-  >
-    <mat-icon>arrow_back_ios</mat-icon>
-    <span class="d-flex flex-row gap-2 align-items-center">
-      <span>
-        @if(showAllChallenges()) {<span i18n>All Challenges of </span
-        >{{ selectedSpot()!.name() }}}
-      </span>
-      <span i18n class="mat-label-small px-1 border rounded me-1">Spot</span>
-    </span>
-  </a>
-  <app-challenge-detail
-    @slideInOut
-    class="d-block"
-    [(challenge)]="selectedChallenge"
-    [(isEditing)]="isEditing"
-  ></app-challenge-detail>
-  } @else if(showAllChallenges()) {
-  <div class="px-2">
-    <a
-      mat-button
-      [routerLink]="['/map', selectedSpotIdOrSlug()]"
-      queryParamsHandling="merge"
-      class="text-truncate"
-    >
-      <mat-icon>arrow_back_ios</mat-icon>
-      <span class="d-flex flex-row align-items-center gap-2">
-        <span>{{ selectedSpot()!.name() }}</span>
-        <span i18n class="mat-label-small px-1 border rounded me-1">Spot</span>
-      </span>
-    </a>
-  </div>
-
-  <div class="px-3 d-flex flex-column gap-2" @slideInOut>
-    <h4 class="mat-title-medium mt-2" i18n>
-      All Challenges of {{ selectedSpot()!.name() }}
-    </h4>
-    <app-challenge-list
-      class="w-100"
-      [challenges]="allSpotChallenges()"
-      [showFilterOptions]="true"
-    ></app-challenge-list>
-  </div>
-  } @else if(showSpotEditHistory()) {
-  <div class="px-2">
-    <a
-      mat-button
-      [routerLink]="['/map', selectedSpotIdOrSlug()]"
-      queryParamsHandling="merge"
-      class="text-truncate"
-    >
-      <mat-icon>arrow_back_ios</mat-icon>
-      <span class="d-flex flex-row gap-2 align-items-center">
-        <span>
-          {{ selectedSpot()!.name() }}
+        <mat-icon>arrow_back_ios</mat-icon>
+        <span class="d-flex flex-row gap-2 align-items-center">
+          <span>
+            @if (showAllChallenges()) {
+              <span i18n>All Challenges of </span>{{ selectedSpot()!.name() }}
+            }
+          </span>
+          <span i18n class="mat-label-small px-1 border rounded me-1"
+            >Spot</span
+          >
         </span>
-        <span i18n class="mat-label-small px-1 border rounded me-1">Spot</span>
-      </span>
-    </a>
-  </div>
+      </a>
+      <app-challenge-detail
+        @slideInOut
+        class="d-block"
+        [(challenge)]="selectedChallenge"
+        [(isEditing)]="isEditing"
+      ></app-challenge-detail>
+    } @else if (showAllChallenges()) {
+      <div class="px-2">
+        <a
+          mat-button
+          [routerLink]="['/map', selectedSpotIdOrSlug()]"
+          queryParamsHandling="merge"
+          class="text-truncate"
+        >
+          <mat-icon>arrow_back_ios</mat-icon>
+          <span class="d-flex flex-row align-items-center gap-2">
+            <span>{{ selectedSpot()!.name() }}</span>
+            <span i18n class="mat-label-small px-1 border rounded me-1"
+              >Spot</span
+            >
+          </span>
+        </a>
+      </div>
 
-  <div class="spot-edits-panel p-3" @slideInOut>
-    <div class="spot-edits-header pb-3">
-      <h4 class="mat-title-large m-0" i18n>Spot Edits</h4>
-      <p class="mat-body-small m-0" i18n>
-        Newest changes first. Each entry shows exactly what was edited.
-      </p>
-      <p class="mat-label-small m-0">
-        @if (spotEdits().length === 1) {
-        <span i18n>1 edit</span>
+      <div class="px-3 d-flex flex-column gap-2" @slideInOut>
+        <h4 class="mat-title-medium mt-2" i18n>
+          All Challenges of {{ selectedSpot()!.name() }}
+        </h4>
+        <app-challenge-list
+          class="w-100"
+          [challenges]="allSpotChallenges()"
+          [showFilterOptions]="true"
+        ></app-challenge-list>
+      </div>
+    } @else if (showSpotEditHistory()) {
+      <div class="px-2">
+        <a
+          mat-button
+          [routerLink]="['/map', selectedSpotIdOrSlug()]"
+          queryParamsHandling="merge"
+          class="text-truncate"
+        >
+          <mat-icon>arrow_back_ios</mat-icon>
+          <span class="d-flex flex-row gap-2 align-items-center">
+            <span>
+              {{ selectedSpot()!.name() }}
+            </span>
+            <span i18n class="mat-label-small px-1 border rounded me-1"
+              >Spot</span
+            >
+          </span>
+        </a>
+      </div>
+
+      <div class="spot-edits-panel p-3" @slideInOut>
+        <div class="spot-edits-header pb-3">
+          <h4 class="mat-title-large m-0" i18n>Spot Edits</h4>
+          <p class="mat-body-small m-0" i18n>
+            Newest changes first. Each entry shows exactly what was edited.
+          </p>
+          <p class="mat-label-small m-0">
+            @if (spotEdits().length === 1) {
+              <span i18n>1 edit</span>
+            } @else {
+              {{ spotEdits().length }}
+              <span i18n>edits</span>
+            }
+          </p>
+        </div>
+
+        @if (spotEdits().length === 0) {
+          <div class="spot-edits-empty mat-body-medium" i18n>
+            No edits yet for this spot.
+          </div>
         } @else {
-        {{ spotEdits().length }}
-        <span i18n>edits</span>
+          @for (spotEdit of spotEdits(); track spotEdit.id) {
+            <app-spot-edit-details
+              class="d-block"
+              [spotEdit]="spotEdit"
+              [spotId]="selectedSpotIdForEdits()"
+            ></app-spot-edit-details>
+          }
         }
-      </p>
-    </div>
-
-    @if (spotEdits().length === 0) {
-    <div class="spot-edits-empty mat-body-medium" i18n>
-      No edits yet for this spot.
-    </div>
-    } @else { @for(spotEdit of spotEdits(); track spotEdit.id) {
-    <app-spot-edit-details
-      class="d-block"
-      [spotEdit]="spotEdit"
-      [spotId]="selectedSpotIdForEdits()"
-    ></app-spot-edit-details>
-    } }
-  </div>
-
-  } @else {
-  <app-spot-details
-    @fadeInOut
-    #spotDetail
-    class="d-block"
-    [spot]="selectedSpot()"
-    [(challenge)]="selectedChallenge"
-    [border]="false"
-    [dismissable]="true"
-    [infoOnly]="false"
-    [editable]="true"
-    [isEditing]="isEditing()"
-    [pendingVoteCount]="pendingSpotEditsCount()"
-    [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
-    (isEditingChange)="$event ? spotMap!.startEdit() : spotMap!.discardEdit()"
-    (dismiss)="closeSpot()"
-    (addBoundsClick)="spotMap!.addBounds()"
-    (focusClick)="spotMap!.focusSpot(selectedSpot()!)"
-    (saveClick)="spotMap!.saveSpot($event)"
-  ></app-spot-details>
-  } } @else if (selectedEvent(); as event) {
+      </div>
+    } @else {
+      <app-spot-details
+        @fadeInOut
+        #spotDetail
+        class="d-block"
+        [spot]="selectedSpot()"
+        [(challenge)]="selectedChallenge"
+        [border]="false"
+        [dismissable]="true"
+        [infoOnly]="false"
+        [editable]="true"
+        [isEditing]="isEditing()"
+        [pendingVoteCount]="pendingSpotEditsCount()"
+        [openProgress]="
+          responsiveService.isMobile() ? bottomSheetProgress() : 1
+        "
+        (isEditingChange)="
+          $event ? spotMap!.startEdit() : spotMap!.discardEdit()
+        "
+        (dismiss)="closeSpot()"
+        (addBoundsClick)="spotMap!.addBounds()"
+        (focusClick)="spotMap!.focusSpot(selectedSpot()!)"
+        (saveClick)="spotMap!.saveSpot($event)"
+      ></app-spot-details>
+    }
+  } @else if (selectedEvent(); as event) {
     <!-- Event preview lives on the map (no route navigation). Triggered
          from the community panel's event card or the map-island. -->
     <app-event-preview
@@ -195,193 +211,200 @@
       [isCompact]="responsiveService.isMobile() && !bottomSheetOpen()"
       (dismiss)="closeEventPreview()"
     ></app-event-preview>
-  } @else if (selectedCommunityLanding(); as communityLanding) {
-  <app-community-landing-page
-    class="d-block community-map-panel"
-    @fadeInOut
-    [landingDataInput]="communityLanding"
-    [panelMode]="true"
-    (closePanel)="closeCommunityPanel()"
-    (selectEvent)="openEventPreview($event)"
-  ></app-community-landing-page>
+  } @else if (selectedCommunityLanding(); as communityData) {
+    <app-community-landing-page
+      class="d-block community-map-panel"
+      @fadeInOut
+      [communityDataInput]="communityData"
+      [panelMode]="true"
+      (closePanel)="closeCommunityPanel()"
+      (selectEvent)="openEventPreview($event)"
+    ></app-community-landing-page>
   } @else {
-  <app-spot-list
-    class="px-3 d-block"
-    @fadeInOut
-    [spots]="visibleSpots"
-    [highlightedSpots]="highlightedSpots"
-    [mapZoom]="spotMap ? spotMap.mapZoom() : null"
-    [limit]="spotListLimit()"
-    [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
-  ></app-spot-list>
+    <app-spot-list
+      class="px-3 d-block"
+      @fadeInOut
+      [spots]="visibleSpots"
+      [highlightedSpots]="highlightedSpots"
+      [mapZoom]="spotMap ? spotMap.mapZoom() : null"
+      [limit]="spotListLimit()"
+      [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
+    ></app-spot-list>
 
-  <!--
+    <!--
     SEO body content: rendered at the bottom of the default sidebar so
     crawlers see real text on /map, not just the map widget. Two short
     paragraphs + a list of internal links to known parkour communities.
     Visible to users (not screen-reader-only) — Google explicitly weights
     "text humans can read" higher than hidden content.
   -->
-  <section class="px-3 pt-4 pb-5 seo-blurb">
-    <h2 class="mat-title-large mb-2" i18n="@@map.seo.about_heading">
-      About PK Spot
-    </h2>
-    <p class="mat-body-medium" i18n="@@map.seo.about_p1">
-      PK Spot is a community map for parkour and freerunning. Use it to
-      discover parkour spots near you, save your favorites, plan training
-      sessions with friends, and add new spots so other athletes can find
-      them.
-    </p>
-    <p class="mat-body-medium" i18n="@@map.seo.about_p2">
-      Every spot is added by people who actually train there. You'll find
-      photos, ratings, and tags telling you whether a spot is good for
-      parkour, freerunning, dry training, indoor sessions, or beginners.
-    </p>
+    <section class="px-3 pt-4 pb-5 seo-blurb">
+      @if (popularCommunities().length > 0) {
+        <h2 class="mat-title-large mb-2" i18n="@@map.seo.popular_heading">
+          Popular parkour communities
+        </h2>
+        <ul class="seo-community-list">
+          @for (
+            community of popularCommunities();
+            track community.canonicalPath
+          ) {
+            <li>
+              <a [routerLink]="community.canonicalPath">
+                {{ community.displayName }}
+              </a>
+              <span class="seo-community-meta">
+                · {{ community.totalSpotCount }}
+                <span i18n="@@map.seo.spots_suffix">spots</span>
+              </span>
+            </li>
+          }
+        </ul>
+      }
 
-    @if (popularCommunities().length > 0) {
-      <h2 class="mat-title-large mt-4 mb-2" i18n="@@map.seo.popular_heading">
-        Popular parkour communities
+      <h2 class="mat-title-large mb-2 mt-4" i18n="@@map.seo.about_heading">
+        About PK Spot
       </h2>
-      <ul class="seo-community-list">
-        @for (community of popularCommunities(); track community.canonicalPath) {
-          <li>
-            <a [routerLink]="community.canonicalPath">
-              {{ community.displayName }}
-            </a>
-            <span class="seo-community-meta">
-              · {{ community.totalSpotCount }}
-              <span i18n="@@map.seo.spots_suffix">spots</span>
-            </span>
-          </li>
-        }
-      </ul>
-    }
-  </section>
+      <p class="mat-body-small" i18n="@@map.seo.about_p1">
+        PK Spot is a community map for Parkour and Freerunning. Use it to
+        discover Parkour spots near you, save your favorites, plan training
+        sessions with friends, and add new spots so other athletes can find
+        them.
+      </p>
+      <p class="mat-body-small" i18n="@@map.seo.about_p2">
+        Every spot can be edited by people who actually train there. You'll find
+        photos, ratings, and tags telling you whether a spot is good for
+        Parkour, Freerunning, dry training, indoor sessions, and more!
+      </p>
+    </section>
   }
 </ng-template>
 
 <ng-template #mapContent>
   <!-- The spot map, defer loading to make sure it is not loaded on the server. -->
-  @if(mapsService.isApiLoaded()) { @defer {
-  <app-spot-map
-    @fadeInOut
-    #spotMap
-    id="spotMap"
-    [isClickable]="true"
-    [selectedSpot]="selectedSpot()"
-    [selectedChallenge]="selectedChallenge()"
-    [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"
-    (selectedSpotChange)="selectSpot($event)"
-    [(isEditing)]="isEditing"
-    [(mapStyle)]="mapStyle"
-    [showAmenities]="showAmenities()"
-    [showSpotPreview]="responsiveService.isDesktop()"
-    [minZoom]="2"
-    (visibleSpotsChange)="setVisibleSpots($event)"
-    (hightlightedSpotsChange)="highlightedSpots = $event"
-    (filterBoundsChange)="onFilterBoundsChange($event)"
-    (viewportBoundsChange)="onViewportBoundsChange($event)"
-    [bottomSheetOffset]="true"
-    [isDebug]="appSettings.debugMode()"
-    [communityArea]="activeCommunityArea()"
-    (poiClick)="onPoiClick($event)"
-    (markerClickEvent)="onAmenityClick($event)"
-    (mapClickEvent)="onMapClick($event)"
-  ></app-spot-map>
-  } @placeholder {
-  <div
-    class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
-  >
-    <mat-icon style="height: 50px; width: 50px; font-size: 50px">map</mat-icon>
-    <p class="mat-title-medium" i18n>Initializing map...</p>
-  </div>
-  } } @else {
-  <div
-    class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
-  >
-    <mat-icon style="height: 50px; width: 50px; font-size: 50px"
-      >location_on</mat-icon
-    >
-    <p class="mat-title-medium" i18n>Loading Google Maps® API...</p>
-    @if(mapsService.isLoading$ | async) {
-    <mat-progress-bar
-      mode="determinate"
-      [value]="mapsService.loadingProgress$ | async"
-      class="w-50"
-    >
-    </mat-progress-bar>
-    } @else {
-    <mat-progress-bar mode="indeterminate" class="w-50"></mat-progress-bar>
+  @if (mapsService.isApiLoaded()) {
+    @defer {
+      <app-spot-map
+        @fadeInOut
+        #spotMap
+        id="spotMap"
+        [isClickable]="true"
+        [selectedSpot]="selectedSpot()"
+        [selectedChallenge]="selectedChallenge()"
+        [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"
+        (selectedSpotChange)="selectSpot($event)"
+        [(isEditing)]="isEditing"
+        [(mapStyle)]="mapStyle"
+        [showAmenities]="showAmenities()"
+        [showSpotPreview]="responsiveService.isDesktop()"
+        [minZoom]="2"
+        (visibleSpotsChange)="setVisibleSpots($event)"
+        (hightlightedSpotsChange)="highlightedSpots = $event"
+        (filterBoundsChange)="onFilterBoundsChange($event)"
+        (viewportBoundsChange)="onViewportBoundsChange($event)"
+        [bottomSheetOffset]="true"
+        [isDebug]="appSettings.debugMode()"
+        [communityArea]="activeCommunityArea()"
+        (poiClick)="onPoiClick($event)"
+        (markerClickEvent)="onAmenityClick($event)"
+        (mapClickEvent)="onMapClick($event)"
+      ></app-spot-map>
+    } @placeholder {
+      <div
+        class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
+      >
+        <mat-icon style="height: 50px; width: 50px; font-size: 50px"
+          >map</mat-icon
+        >
+        <p class="mat-title-medium" i18n>Initializing map...</p>
+      </div>
     }
-  </div>
+  } @else {
+    <div
+      class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
+    >
+      <mat-icon style="height: 50px; width: 50px; font-size: 50px"
+        >location_on</mat-icon
+      >
+      <p class="mat-title-medium" i18n>Loading Google Maps® API...</p>
+      @if (mapsService.isLoading$ | async) {
+        <mat-progress-bar
+          mode="determinate"
+          [value]="mapsService.loadingProgress$ | async"
+          class="w-50"
+        >
+        </mat-progress-bar>
+      } @else {
+        <mat-progress-bar mode="indeterminate" class="w-50"></mat-progress-bar>
+      }
+    </div>
   }
 
   <!-- FAB buttons -->
-  @if(spotMap) {
-  <div class="mini-fabs">
-    <button
-      @fadeInOut
-      mat-mini-fab
-      #mapStyleFab
-      id="mapStyleFab"
-      (click)="spotMap ? spotMap.toggleMapStyle() : null"
-      color="primary"
-      i18n-matTootlip
-      [matTooltip]="
-        mapStyle === 'roadmap' ? 'Show satellite map' : 'Show roadmap'
-      "
-      matTooltipPosition="left"
-      matTooltipShowDelay="500"
-    >
-      <mat-icon>
-        {{ mapStyle === "roadmap" ? "landscape" : "map" }}
-      </mat-icon>
-    </button>
+  @if (spotMap) {
+    <div class="mini-fabs">
+      <button
+        @fadeInOut
+        mat-mini-fab
+        #mapStyleFab
+        id="mapStyleFab"
+        (click)="spotMap ? spotMap.toggleMapStyle() : null"
+        color="primary"
+        i18n-matTootlip
+        [matTooltip]="
+          mapStyle === 'roadmap' ? 'Show satellite map' : 'Show roadmap'
+        "
+        matTooltipPosition="left"
+        matTooltipShowDelay="500"
+      >
+        <mat-icon>
+          {{ mapStyle === "roadmap" ? "landscape" : "map" }}
+        </mat-icon>
+      </button>
 
-    <button
-      @fadeInOut
-      mat-mini-fab
-      #geolocationFab
-      id="geolocationFab"
-      color="primary"
-      (click)="spotMap ? spotMap.focusOnGeolocation() : null"
-      i18n-matTootlip
-      matTooltip="Go to your location"
-      matTooltipPosition="left"
-      matTooltipShowDelay="500"
-    >
-      @if(spotMap.geolocationLoading()) {
-      <mat-progress-spinner
-        mode="indeterminate"
-        diameter="20"
-        color="accent"
-      ></mat-progress-spinner>
-      } @else {
-      <mat-icon>
-        {{ geolocationIcon() }}
-      </mat-icon>
+      <button
+        @fadeInOut
+        mat-mini-fab
+        #geolocationFab
+        id="geolocationFab"
+        color="primary"
+        (click)="spotMap ? spotMap.focusOnGeolocation() : null"
+        i18n-matTootlip
+        matTooltip="Go to your location"
+        matTooltipPosition="left"
+        matTooltipShowDelay="500"
+      >
+        @if (spotMap.geolocationLoading()) {
+          <mat-progress-spinner
+            mode="indeterminate"
+            diameter="20"
+            color="accent"
+          ></mat-progress-spinner>
+        } @else {
+          <mat-icon>
+            {{ geolocationIcon() }}
+          </mat-icon>
+        }
+      </button>
+
+      @if (spotMap.headingIsNotNorth()) {
+        <button
+          @fadeInOut
+          mat-mini-fab
+          #geolocationFab
+          id="geolocationFab"
+          color="primary"
+          (click)="spotMap ? spotMap.resetMapOrientation() : null"
+          i18n-matTootlip
+          matTooltip="Reset map orientation to north"
+          matTooltipPosition="left"
+          matTooltipShowDelay="500"
+        >
+          <mat-icon> north </mat-icon>
+        </button>
       }
-    </button>
 
-    @if(spotMap.headingIsNotNorth()) {
-    <button
-      @fadeInOut
-      mat-mini-fab
-      #geolocationFab
-      id="geolocationFab"
-      color="primary"
-      (click)="spotMap ? spotMap.resetMapOrientation() : null"
-      i18n-matTootlip
-      matTooltip="Reset map orientation to north"
-      matTooltipPosition="left"
-      matTooltipShowDelay="500"
-    >
-      <mat-icon> north </mat-icon>
-    </button>
-    }
-
-    <!-- Show amenity markers mini FAB-->
-    <!-- <button
+      <!-- Show amenity markers mini FAB-->
+      <!-- <button
       mat-mini-fab
       #amenitiesFab
       id="amenitiesFab"
@@ -399,13 +422,20 @@
         {{ showAmenities() ? "location_off" : "location_on" }}
       </mat-icon>
     </button> -->
-  </div>
+    </div>
 
-  @if( isSignedIn() && !selectedSpot() && !isEditing() && spotMap.mapZoom() >= 14 &&
-  !(responsiveService.isMobile() && (bottomSheetOpen() || bottomSheetProgress()
-  > 0)) ) {
-  <!-- Add / import spots speed dial-->
-  <!-- <app-speed-dial-fab
+    @if (
+      isSignedIn() &&
+      !selectedSpot() &&
+      !isEditing() &&
+      spotMap.mapZoom() >= 14 &&
+      !(
+        responsiveService.isMobile() &&
+        (bottomSheetOpen() || bottomSheetProgress() > 0)
+      )
+    ) {
+      <!-- Add / import spots speed dial-->
+      <!-- <app-speed-dial-fab
     #createSpotSpeedDial
     id="createSpotSpeedDial"
     [buttonConfig]="speedDialButtonConfig"
@@ -414,19 +444,20 @@
     (mainFabClick)="spotMap?.createSpot()"
     (miniFabClick)="speedDialMiniFabClick($event)"
   ></app-speed-dial-fab> -->
-  <button
-    @fadeInOut
-    mat-fab
-    extended
-    #createSpotSpeedDial
-    id="createSpotSpeedDial"
-    color="primary"
-    (click)="spotMap ? spotMap.createSpot() : null"
-  >
-    <mat-icon> add_location </mat-icon>
-    <span i18n class="mdc-button__label">Add Spot</span>
-  </button>
-  } }
+      <button
+        @fadeInOut
+        mat-fab
+        extended
+        #createSpotSpeedDial
+        id="createSpotSpeedDial"
+        color="primary"
+        (click)="spotMap ? spotMap.createSpot() : null"
+      >
+        <mat-icon> add_location </mat-icon>
+        <span i18n class="mdc-button__label">Add Spot</span>
+      </button>
+    }
+  }
 </ng-template>
 
 <ng-template #mapIsland>
@@ -465,123 +496,120 @@
   Parkour Spot Map — find spots, communities, and events near you
 </h1>
 
-@if(responsiveService.isNotMobile()){
-<div
-  class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
-  style="z-index: 100"
->
-  <div class="d-flex flex-row gap-3">
-    @if(alainMode) {
-    <div class="spacer" style="width: 56px"></div>
-    }
-    <app-search-field
-      class="position-relative w-100 mat-elevation-z3 overflow-hidden"
-      style="border-radius: 16px"
-      (spotSelected)="openSpotOrGooglePlace($event)"
-      (placePreviewChange)="onSearchPlacePreviewChange($event)"
-    ></app-search-field>
-  </div>
-  @if(!sidebarContentIsScrolling() || !sidenavOpen()) {
-  <ng-container *ngTemplateOutlet="chips"></ng-container>
-  }
-  @if(responsiveService.isTablet() && !sidenavOpen()) {
-  <div class="tablet-map-island">
-    <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-  </div>
-  }
-</div>
-
-<mat-drawer-container class="h-100 bg-transparent">
-  <mat-drawer
-    [opened]="sidenavOpen()"
-    position="start"
-    mode="side"
-    class="bg-transparent info-panel"
-  >
-    <div [style.height.px]="chipsSpacerHeight()"></div>
-    <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
-  </mat-drawer>
-
-  <div class="position-relative overflow-hidden h-100 w-100">
-    <ng-container *ngTemplateOutlet="mapContent"></ng-container>
-    @if(responsiveService.isDesktop()) {
-    <div class="map-island-host">
-      <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-    </div>
-    }
-
-    <!-- sidenav toggle button -->
-    <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">
-      <button
-        mat-icon-button
-        (click)="toggleSidenav()"
-        class="d-flex border justify-content-center align-items-center p-0"
-        style="
-          background-color: var(--mat-bottom-sheet-container-background-color);
-          border-color: var(
-            --mat-icon-button-icon-color,
-            var(--mat-sys-on-surface-variant)
-          ) !important;
-          border-width: 0.8px !important;
-        "
-      >
-        @if(sidenavOpen()) {
-        <mat-icon>chevron_left</mat-icon>
-        } @else {
-        <mat-icon>chevron_right</mat-icon>}
-      </button>
-    </div>
-  </div>
-</mat-drawer-container>
-} @else {
-<div class="position-relative flex-grow-1 h-100">
-  <ng-container
-    *ngTemplateOutlet="mapContent"
-    class="position-absolute flex-grow-1"
-  ></ng-container>
-
+@if (responsiveService.isNotMobile()) {
   <div
-    class="search-bar-overlay position-absolute top-0 start-0 end-0 p-2 d-flex flex-column gap-1"
+    class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
+    style="z-index: 100"
   >
     <div class="d-flex flex-row gap-3">
-      @if(alainMode && responsiveService.isMobile()) {
-      <div class="spacer" style="width: 56px"></div>
+      @if (alainMode) {
+        <div class="spacer" style="width: 56px"></div>
       }
       <app-search-field
-        class="w-100 mat-elevation-z3 overflow-hidden"
+        class="position-relative w-100 mat-elevation-z3 overflow-hidden"
         style="border-radius: 16px"
         (spotSelected)="openSpotOrGooglePlace($event)"
         (placePreviewChange)="onSearchPlacePreviewChange($event)"
       ></app-search-field>
     </div>
-    <ng-container *ngTemplateOutlet="chips"></ng-container>
-    @if(visibleIslandContent()) {
-    <div
-      class="d-flex justify-content-center"
-      style="padding-left: 16px; padding-right: 16px; padding-top: 12px"
-    >
-      <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-    </div>
+    @if (!sidebarContentIsScrolling() || !sidenavOpen()) {
+      <ng-container *ngTemplateOutlet="chips"></ng-container>
     }
   </div>
 
-  <app-bottom-sheet
-    class="d-flex"
-    style="
-      top: calc(
-        72px -
-          min(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
-      );
-      bottom: 0;
-      position: absolute;
-      width: 100%;
-    "
-    @fadeInOut
-    (isAtTopChange)="bottomSheetOpen.set($event)"
-    (openProgressChange)="bottomSheetProgress.set($event)"
-  >
-    <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
-  </app-bottom-sheet>
-</div>
+  <mat-drawer-container class="h-100 bg-transparent">
+    <mat-drawer
+      [opened]="sidenavOpen()"
+      position="start"
+      mode="side"
+      class="bg-transparent info-panel"
+    >
+      <div [style.height.px]="chipsSpacerHeight()"></div>
+      <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
+    </mat-drawer>
 
+    <div class="position-relative overflow-hidden h-100 w-100">
+      <ng-container *ngTemplateOutlet="mapContent"></ng-container>
+      @if (visibleIslandContent()) {
+        <div class="map-island-host">
+          <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+        </div>
+      }
+
+      <!-- sidenav toggle button -->
+      <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">
+        <button
+          mat-icon-button
+          (click)="toggleSidenav()"
+          class="d-flex border justify-content-center align-items-center p-0"
+          style="
+            background-color: var(
+              --mat-bottom-sheet-container-background-color
+            );
+            border-color: var(
+              --mat-icon-button-icon-color,
+              var(--mat-sys-on-surface-variant)
+            ) !important;
+            border-width: 0.8px !important;
+          "
+        >
+          @if (sidenavOpen()) {
+            <mat-icon>chevron_left</mat-icon>
+          } @else {
+            <mat-icon>chevron_right</mat-icon>
+          }
+        </button>
+      </div>
+    </div>
+  </mat-drawer-container>
+} @else {
+  <div class="position-relative flex-grow-1 h-100">
+    <ng-container
+      *ngTemplateOutlet="mapContent"
+      class="position-absolute flex-grow-1"
+    ></ng-container>
+
+    <div
+      class="search-bar-overlay position-absolute top-0 start-0 end-0 p-2 d-flex flex-column gap-1"
+    >
+      <div class="d-flex flex-row gap-3">
+        @if (alainMode && responsiveService.isMobile()) {
+          <div class="spacer" style="width: 56px"></div>
+        }
+        <app-search-field
+          class="w-100 mat-elevation-z3 overflow-hidden"
+          style="border-radius: 16px"
+          (spotSelected)="openSpotOrGooglePlace($event)"
+          (placePreviewChange)="onSearchPlacePreviewChange($event)"
+        ></app-search-field>
+      </div>
+      <ng-container *ngTemplateOutlet="chips"></ng-container>
+      @if (visibleIslandContent()) {
+        <div
+          class="d-flex justify-content-center"
+          style="padding-left: 16px; padding-right: 16px; padding-top: 12px"
+        >
+          <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+        </div>
+      }
+    </div>
+
+    <app-bottom-sheet
+      class="d-flex"
+      style="
+        top: calc(
+          72px -
+            min(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+        );
+        bottom: 0;
+        position: absolute;
+        width: 100%;
+      "
+      @fadeInOut
+      (isAtTopChange)="bottomSheetOpen.set($event)"
+      (openProgressChange)="bottomSheetProgress.set($event)"
+    >
+      <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
+    </app-bottom-sheet>
+  </div>
 }

@@ -76,7 +76,7 @@
   <!-- heatmap disabled: using cluster dots instead -->
 
   <!-- only display the bounds when close enough (zoom >= 16) -->
-  @if (zoom >= 16) { @for(spot of spots; track $index) {
+  @if (zoom >= 16) { @for(spot of spots; track trackSpot($index, spot)) {
   @if(!isSelectedSpotBeingEdited(spot)) { @if(!spot?.hasBounds()) {
   <map-circle
     [center]="spot.location()"

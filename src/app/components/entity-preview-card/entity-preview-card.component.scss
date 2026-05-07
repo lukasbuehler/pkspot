@@ -28,7 +28,7 @@ mat-card.compact {
 
 mat-card:not(.compact) {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   width: 100%;
 
   > .img-container {

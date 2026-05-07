@@ -21,6 +21,7 @@
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
+  border-radius: 100px;
   scrollbar-width: none; // Firefox
   -ms-overflow-style: none; // IE/Edge
 
@@ -47,12 +48,12 @@
   z-index: 2;
   width: 32px;
   height: 32px;
-  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 88%, transparent);
-  color: var(--mat-sys-on-surface);
-  border: 1px solid var(--mat-sys-outline-variant);
-  box-shadow:
-    0 10px 24px color-mix(in srgb, var(--mat-sys-shadow) 18%, transparent),
-    0 0 0 8px color-mix(in srgb, var(--mat-sys-surface) 72%, transparent);
+  background: rgba(60, 60, 60, 0.85);
+  color: white;
+  border: 0;
+  // box-shadow:
+  //   0 10px 24px rgba(0, 0, 0, 0.22),
+  //   0 0 0 8px var(--mat-bottom-sheet-container-background-color);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
@@ -115,6 +116,10 @@ mat-chip {
   // Target the chip action area which contains the background
   .glass .mdc-evolution-chip__action--primary,
   .glass .mdc-evolution-chip__action--secondary {
+    --mdc-chip-elevated-container-color: rgba(60, 60, 60, 0.85);
+    --mat-chip-elevated-container-color: rgba(60, 60, 60, 0.85);
+    --mdc-chip-outline-color: transparent;
+
     background: rgba(60, 60, 60, 0.85) !important;
     background-color: rgba(60, 60, 60, 0.85) !important;
 
@@ -127,6 +132,13 @@ mat-chip {
     -webkit-backface-visibility: hidden;
   }
 
+  .glass.mat-mdc-standard-chip {
+    --mdc-chip-elevated-container-color: rgba(60, 60, 60, 0.85);
+    --mat-chip-elevated-container-color: rgba(60, 60, 60, 0.85);
+    --mdc-chip-outline-color: transparent;
+    background: rgba(60, 60, 60, 0.85) !important;
+  }
+
   // Remove border on glass chips
   .glass .mdc-evolution-chip__action--primary::before {
     border: none !important;
@@ -137,7 +149,7 @@ mat-chip {
     .scroll-button {
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-      background: var(--mat-sys-surface-container-high) !important;
+      background: rgba(50, 50, 50, 0.95) !important;
     }
 
     .glass .mdc-evolution-chip__action--primary,
