@@ -22,6 +22,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatChipsModule } from "@angular/material/chips";
 import { ProfileButtonComponent } from "../profile-button/profile-button.component";
 import { SpotEditSummaryComponent } from "../spot-edit-summary/spot-edit-summary.component";
+import { buildSpotCanonicalPath } from "../../../scripts/SpotRouteHelpers";
 
 interface FeedItem {
   editId?: string;
@@ -313,7 +314,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
 
   openSpot(spot: Spot | null) {
     if (spot) {
-      this._router.navigate(["/map", spot.slug ?? spot.id]);
+      this._router.navigateByUrl(buildSpotCanonicalPath(spot.slug ?? spot.id));
     }
   }
 

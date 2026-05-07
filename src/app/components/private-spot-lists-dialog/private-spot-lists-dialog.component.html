@@ -21,7 +21,7 @@
           <div class="spot-list">
             @for(spot of savedSpots(); track spot.id) {
             <a
-              [routerLink]="['/s', spot.slug ?? spot.id]"
+              [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
               (click)="closeDialog()"
             >
               <app-spot-preview-card
@@ -75,7 +75,7 @@
           <div class="spot-list">
             @for(spot of visitedSpots(); track spot.id) {
             <a
-              [routerLink]="['/s', spot.slug ?? spot.id]"
+              [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
               (click)="closeDialog()"
             >
               <app-spot-preview-card

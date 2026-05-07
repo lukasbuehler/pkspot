@@ -296,7 +296,7 @@
         <mat-card-content class="profile-section__content home-spots-container">
           @for (spot of homeSpotsObjects; track spot.id) {
           <a
-            [routerLink]="['/s', spot.slug ?? spot.id]"
+            [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
             style="text-decoration: none; color: inherit"
           >
             <app-spot-preview-card

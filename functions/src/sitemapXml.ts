@@ -158,7 +158,9 @@ function getLastModDate(
 
 function getSpotPath(id: string, data: SpotSitemapData): string {
   const slug = data.slug?.trim();
-  return slug ? `/map/${encodeURIComponent(slug)}` : `/map/${encodeURIComponent(id)}`;
+  return slug
+    ? `/map/spots/${encodeURIComponent(slug)}`
+    : `/map/spots/${encodeURIComponent(id)}`;
 }
 
 function getCommunityPath(data: CommunitySitemapData): string {

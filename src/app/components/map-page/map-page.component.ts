@@ -109,6 +109,11 @@ import { BackHandlingService } from "../../services/back-handling.service";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { AppSettingsService } from "../../services/app-settings.service";
 import { environment } from "../../../environments/environment";
+import {
+  buildSpotCanonicalPath,
+  buildSpotChallengeCanonicalPath,
+  buildSpotEditHistoryCanonicalPath,
+} from "../../../scripts/SpotRouteHelpers";
 
 import { PoiData } from "../../../db/models/PoiData";
 import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
@@ -987,11 +992,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         const spotPathSegment = challenge.spot.slug ?? challenge.spot.id;
         this.metaTagService.setChallengeMetaTags(
           challenge,
-          `/map/${spotPathSegment}/c/${challenge.id}`
+          buildSpotChallengeCanonicalPath(spotPathSegment, challenge.id)
         );
       } else if (spot) {
         const canonicalPath =
-          spot instanceof Spot ? `/map/${spot.slug ?? spot.id}` : undefined;
+          spot instanceof Spot
+            ? buildSpotCanonicalPath(spot.slug ?? spot.id)
+            : undefined;
         this.metaTagService.setSpotMetaTags(spot, canonicalPath);
       } else if (!this.isServer) {
         this.metaTagService.setDefaultMapMetaTags("/map");
@@ -1213,8 +1220,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
     this._loadEventFromRouteIfPresent(this.router.url);
 
-    // Parse URL to handle the edits route correctly since Angular router
-    // might interpret /map/:spot/edits as /map/:spot where :spot="edits"
+    // Parse URL to handle legacy `/map/:spot` and canonical
+    // `/map/spots/:spot` shapes consistently.
     const routeState = this._parseMapRouteState(this.router.url);
     const urlParts = this.router.url.split("/").filter((segment) => segment);
     // urlParts will be like ['map', 'spotId', 'edits'] or ['map', 'spotId', 'c', 'challengeId']
@@ -1994,15 +2001,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       selectedChallenge instanceof SpotChallenge &&
       spot
     ) {
-      path = `/map/${encodeURIComponent(
-        spot.slug ?? spot.id
-      )}/c/${encodeURIComponent(selectedChallenge.id)}`;
+      path = buildSpotChallengeCanonicalPath(
+        spot.slug ?? spot.id,
+        selectedChallenge.id
+      );
     } else if (spot && showEditHistory) {
-      path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}/edits`;
+      path = buildSpotEditHistoryCanonicalPath(spot.slug ?? spot.id);
     } else if (spot && this.showAllChallenges()) {
-      path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}/c`;
+      path = buildSpotChallengeCanonicalPath(spot.slug ?? spot.id);
     } else if (spot) {
-      path = `/map/${encodeURIComponent(spot.slug ?? spot.id)}`;
+      path = buildSpotCanonicalPath(spot.slug ?? spot.id);
     } else if (selectedEvent) {
       path = `/map/events/${encodeURIComponent(
         selectedEvent.slug ?? selectedEvent.id
@@ -2302,18 +2310,32 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     let showEditHistory = false;
 
     if (urlParts.length >= 2 && urlParts[0] === "map") {
-      const potentialSpot = decodeURIComponent(urlParts[1]);
+      const hasSpotPrefix = urlParts[1] === "spots";
+      const spotSegmentIndex = hasSpotPrefix ? 2 : 1;
+      const actionSegmentIndex = spotSegmentIndex + 1;
+      const potentialSpot = urlParts[spotSegmentIndex]
+        ? decodeURIComponent(urlParts[spotSegmentIndex])
+        : null;
 
-      if (urlParts.length === 2) {
+      if (!potentialSpot) {
+        return {
+          spotIdOrSlug,
+          showChallenges,
+          challengeId,
+          showEditHistory,
+        };
+      }
+
+      if (urlParts.length === spotSegmentIndex + 1) {
         spotIdOrSlug = potentialSpot;
-      } else if (urlParts.length >= 3) {
-        const nextSegment = urlParts[2];
+      } else if (urlParts.length >= actionSegmentIndex + 1) {
+        const nextSegment = urlParts[actionSegmentIndex];
 
         if (nextSegment === "c") {
           spotIdOrSlug = potentialSpot;
           showChallenges = true;
-          if (urlParts.length >= 4) {
-            challengeId = decodeURIComponent(urlParts[3]);
+          if (urlParts.length >= actionSegmentIndex + 2) {
+            challengeId = decodeURIComponent(urlParts[actionSegmentIndex + 1]);
           }
         } else if (nextSegment === "edits") {
           spotIdOrSlug = potentialSpot;

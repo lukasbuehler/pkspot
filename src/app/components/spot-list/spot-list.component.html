@@ -28,7 +28,7 @@
   @for(spot of renderedHighlightedSpots(); track trackSpot($index, spot)) {
   <div>
     @if(withHrefLink()) {
-    <a [routerLink]="['/map', spot.slug ?? spot.id]">
+    <a [routerLink]="['/map', 'spots', spot.slug ?? spot.id]">
       <app-spot-preview-card
         [spotData]="spot"
         [mapZoom]="mapZoom()"
@@ -73,7 +73,7 @@
   @for(spot of renderedRemainingSpots(); track trackSpot($index, spot)) {
   <div>
     @if(withHrefLink()) {
-    <a [routerLink]="['/map', getSpotIdOrSlugForSpotObj(spot)]">
+    <a [routerLink]="['/map', 'spots', getSpotIdOrSlugForSpotObj(spot)]">
       <app-spot-preview-card
         [spotData]="spot"
         [mapZoom]="mapZoom()"

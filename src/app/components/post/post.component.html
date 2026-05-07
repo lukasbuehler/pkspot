@@ -59,7 +59,7 @@
     class="spot-container-link"
     [routerLink]="
       post.spot.ref
-        ? '/map/' + post.spot.ref.id
+        ? '/map/spots/' + post.spot.ref.id
         : '/map?lat=' +
           post.spot.spot_location.latitude +
           '&lng=' +

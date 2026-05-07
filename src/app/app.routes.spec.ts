@@ -12,4 +12,23 @@ describe("app routes", () => {
     expect(mapIndex).toBeGreaterThanOrEqual(0);
     expect(communityIndex).toBeLessThan(mapIndex);
   });
+
+  it("should only register canonical spot child routes under the map route", () => {
+    const mapRoute = routes.find((route) => route.path === "map");
+    const spotChildIndex = mapRoute?.children?.findIndex(
+      (route) => route.path === "spots/:spot"
+    );
+    const genericSpotChildIndex = mapRoute?.children?.findIndex(
+      (route) => route.path === ":spot"
+    );
+    const legacyRedirectIndex = routes.findIndex(
+      (route) => route.path === "map/:spot"
+    );
+    const mapIndex = routes.findIndex((route) => route.path === "map");
+
+    expect(spotChildIndex).toBeGreaterThanOrEqual(0);
+    expect(genericSpotChildIndex).toBe(-1);
+    expect(legacyRedirectIndex).toBeGreaterThanOrEqual(0);
+    expect(legacyRedirectIndex).toBeLessThan(mapIndex);
+  });
 });

@@ -19,6 +19,7 @@ import {
   getDisplayLocalityName,
   getDisplaySublocalityName,
 } from "../../scripts/AddressHelpers";
+import { buildSpotCanonicalPath } from "../../scripts/SpotRouteHelpers";
 
 type SpotStructuredData = Record<string, unknown> & {
   "@type": "Place" | "SportsActivityLocation";
@@ -223,7 +224,9 @@ export class StructuredDataService {
     if (spot instanceof Spot) {
       placeData["url"] =
         url ||
-        `${environment.baseUrl}/${this.locale}/map/${spot.slug ?? spot.id}`;
+        `${environment.baseUrl}/${this.locale}${buildSpotCanonicalPath(
+          spot.slug ?? spot.id
+        )}`;
       placeData["identifier"] = spot.id;
     }
 
@@ -458,9 +461,9 @@ export class StructuredDataService {
         const placeItem: SpotStructuredData = {
           "@type": isReviewEligible ? "SportsActivityLocation" : "Place",
           name: spot.name,
-          url: `${environment.baseUrl}/${this.locale}/map/${
+          url: `${environment.baseUrl}/${this.locale}${buildSpotCanonicalPath(
             spot.slug ?? spot.id
-          }`,
+          )}`,
         };
 
         if (spot.location) {

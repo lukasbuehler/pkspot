@@ -175,6 +175,10 @@ import { createUserReference } from "../../../scripts/Helpers";
 import { AnalyticsService } from "../../services/analytics.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { normalizeSpotSlug } from "../../../scripts/SpotLandingHelpers";
+import {
+  buildSpotCanonicalPath,
+  buildSpotChallengeCanonicalPath,
+} from "../../../scripts/SpotRouteHelpers";
 import { SpotProvenanceComponent } from "../spot-provenance/spot-provenance.component";
 
 @Pipe({ name: "reverse", standalone: true })
@@ -529,7 +533,7 @@ export class SpotDetailsComponent
         duration: 2000,
       });
       // Redirect to the canonical slug URL
-      void this._router.navigate(["/s", slug]);
+      void this._router.navigateByUrl(buildSpotCanonicalPath(slug));
     } catch (e: any) {
       this._snackbar.open(
         e?.message || e || $localize`Failed to add custom URL`,
@@ -1041,7 +1045,7 @@ export class SpotDetailsComponent
       const placeData = this._structuredDataService.generateSpotPlaceData(spot);
       this._structuredDataService.addStructuredData("spot", placeData);
 
-      const canonicalPath = `/map/${spot.slug ?? spot.id}`;
+      const canonicalPath = buildSpotCanonicalPath(spot.slug ?? spot.id);
       this._metaTagService.setSpotMetaTags(spot, canonicalPath);
       return;
     }
@@ -1348,9 +1352,7 @@ export class SpotDetailsComponent
       "../../../scripts/Helpers"
     );
     const idOrSlug = spot.slug ?? spot.id;
-    const link = buildAbsoluteUrlNoLocale(
-      spot.slug ? `/s/${idOrSlug}` : `/map/${idOrSlug}`
-    );
+    const link = buildAbsoluteUrlNoLocale(buildSpotCanonicalPath(idOrSlug));
 
     const shareData = {
       title: "Spot: " + spot.name(),
@@ -1693,7 +1695,7 @@ export class SpotDetailsComponent
       throw new Error("The spot is a local spot, it has no challenges");
     }
 
-    this._router.navigate(["/map", spot.id, "c"]);
+    this._router.navigateByUrl(buildSpotChallengeCanonicalPath(spot.slug ?? spot.id));
   }
 
   setSpotIconicFromToggle(event: MatSlideToggleChange) {

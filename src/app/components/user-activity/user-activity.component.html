@@ -25,7 +25,7 @@
 
         <a
           class="user-activity__spot-link"
-          [routerLink]="['/map', item.spot?.slug || item.spotId]"
+          [routerLink]="['/map', 'spots', item.spot?.slug || item.spotId]"
         >
           <app-spot-preview-card
             [spotData]="item.spot"

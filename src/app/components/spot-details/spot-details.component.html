@@ -653,7 +653,7 @@
             </button>
             <a
               mat-stroked-button
-              [routerLink]="['/map', spotSlugOrId(), 'edits']"
+              [routerLink]="['/map', 'spots', spotSlugOrId(), 'edits']"
               queryParamsHandling="merge"
               (click)="editHistoryButtonClick()"
               class="flex-grow-1 flex-basis-0"

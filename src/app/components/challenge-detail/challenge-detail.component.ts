@@ -63,6 +63,7 @@ import {
 } from "@angular/material/slide-toggle";
 import { MatSelectModule } from "@angular/material/select";
 import { AnalyticsService } from "../../services/analytics.service";
+import { buildSpotChallengeCanonicalPath } from "../../../scripts/SpotRouteHelpers";
 
 @Component({
   selector: "app-challenge-detail",
@@ -338,8 +339,9 @@ export class ChallengeDetailComponent {
     const { buildAbsoluteUrlNoLocale } = await import(
       "../../../scripts/Helpers"
     );
-    // TODO use slug instead of id if available
-    const link = buildAbsoluteUrlNoLocale(`/map/${spot.id}/c/${challenge.id}`);
+    const link = buildAbsoluteUrlNoLocale(
+      buildSpotChallengeCanonicalPath(spot.slug ?? spot.id, challenge.id)
+    );
 
     const shareData = {
       title: "Challenge: " + spot.name(),

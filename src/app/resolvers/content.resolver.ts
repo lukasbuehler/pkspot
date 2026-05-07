@@ -10,6 +10,10 @@ import { MetaTagService } from "../services/meta-tag.service";
 import { Spot } from "../../db/models/Spot";
 import { SpotChallenge } from "../../db/models/SpotChallenge";
 import { SpotId } from "../../db/schemas/SpotSchema";
+import {
+  buildSpotCanonicalPath,
+  buildSpotChallengeCanonicalPath,
+} from "../../scripts/SpotRouteHelpers";
 
 export type ContentType =
   | "spot"
@@ -176,9 +180,10 @@ async function resolveSpotContent(
         result.challenge = challenge;
 
         // Set challenge meta tags with canonical URL
-        const challengeCanonicalPath = spot.slug
-          ? `/map/${spot.slug}/c/${challengeId}`
-          : `/map/${spot.id}/c/${challengeId}`;
+        const challengeCanonicalPath = buildSpotChallengeCanonicalPath(
+          spot.slug ?? spot.id,
+          challengeId
+        );
         services.metaTagService.setChallengeMetaTags(
           challenge,
           challengeCanonicalPath
@@ -186,16 +191,12 @@ async function resolveSpotContent(
       } catch (error) {
         console.warn("Could not load challenge, showing spot instead:", error);
         // Fall back to spot meta tags
-        const spotCanonicalPath = spot.slug
-          ? `/map/${spot.slug}`
-          : `/map/${spot.id}`;
+        const spotCanonicalPath = buildSpotCanonicalPath(spot.slug ?? spot.id);
         services.metaTagService.setSpotMetaTags(spot, spotCanonicalPath);
       }
     } else {
       // Set spot meta tags with canonical URL (use slug if available)
-      const spotCanonicalPath = spot.slug
-        ? `/map/${spot.slug}`
-        : `/map/${spot.id}`;
+      const spotCanonicalPath = buildSpotCanonicalPath(spot.slug ?? spot.id);
       services.metaTagService.setSpotMetaTags(spot, spotCanonicalPath);
     }
 
@@ -385,7 +386,8 @@ function getParamFromRouteTree(
   }
 
   // Check child routes. Parent resolvers run before the routed component is
-  // created, so SSR metadata for /map/:spot needs to see descendant params too.
+  // created, so SSR metadata for /map/spots/:spot needs to see descendant
+  // params too.
   for (const child of route.children) {
     const childParam = getParamFromRouteTree(child, paramName);
     if (childParam) {

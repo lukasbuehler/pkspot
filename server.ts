@@ -6,6 +6,7 @@ import { dirname, join, resolve, basename } from "node:path";
 import bootstrap from "./src/main.server";
 import { LOCALE_ID } from "@angular/core";
 import { REQUEST, RESPONSE } from "./src/express.token";
+import { getLegacySsrRedirectTarget } from "./src/server-redirects";
 
 function getAllowedHosts(): string[] {
   const defaultHosts = ["localhost", "127.0.0.1", "[::1]"];
@@ -40,23 +41,15 @@ export function app(): express.Express {
   // Example Express Rest API endpoints
   // server.get('/api/**', (req, res) => { });
 
-  // SEO: 301-redirect the legacy singular community URL to the new plural
-  // path. We do this server-side (not just via Angular's `redirectTo`)
-  // because Angular's client-side redirect doesn't emit an HTTP 301 —
-  // crawlers need the real status code to pass the existing link equity
-  // to the new URL. The locale prefix (e.g. /de/...) is preserved.
-  // Pattern: /map/community/<slug>            → /map/communities/<slug>
-  //          /<locale>/map/community/<slug>   → /<locale>/map/communities/<slug>
-  server.get(/^(\/[a-z]{2}(?:-[A-Z]{2})?)?\/map\/community\/([^/?#]+)$/, (req, res) => {
-    const localePrefix = req.params[0] ?? "";
-    const slug = req.params[1] ?? "";
-    const queryString = req.url.includes("?")
-      ? req.url.substring(req.url.indexOf("?"))
-      : "";
-    res.redirect(
-      301,
-      `${localePrefix}/map/communities/${slug}${queryString}`
-    );
+  // SEO: server-side 301s for legacy content URLs. Angular route redirects
+  // clean up client navigation, but crawlers need real HTTP 301 responses.
+  server.get("*", (req, res, next) => {
+    const target = getLegacySsrRedirectTarget(req.originalUrl);
+    if (target) {
+      res.redirect(301, target);
+      return;
+    }
+    next();
   });
 
   // Serve static files from /browser

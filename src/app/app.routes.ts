@@ -66,6 +66,36 @@ export const routes: Routes = [
       ),
     data: { routeName: "Event on Map" },
   },
+  {
+    path: "map/spots",
+    redirectTo: "map",
+    pathMatch: "full",
+    data: { routeName: "Spot map" },
+  },
+  {
+    path: "map/:spot/edits",
+    redirectTo: "map/spots/:spot/edits",
+    pathMatch: "full",
+    data: { routeName: "Spot map (legacy redirect)" },
+  },
+  {
+    path: "map/:spot/c/:challenge",
+    redirectTo: "map/spots/:spot/c/:challenge",
+    pathMatch: "full",
+    data: { routeName: "Challenge (legacy redirect)" },
+  },
+  {
+    path: "map/:spot/c",
+    redirectTo: "map/spots/:spot/c",
+    pathMatch: "full",
+    data: { routeName: "Spot challenges (legacy redirect)" },
+  },
+  {
+    path: "map/:spot",
+    redirectTo: "map/spots/:spot",
+    pathMatch: "full",
+    data: { routeName: "Spot map (legacy redirect)" },
+  },
 
   // Posts
   // { path: "feed", component: HomePageComponent, data: { routeName: "Feed" } },
@@ -79,7 +109,8 @@ export const routes: Routes = [
   //   data: { routeName: "Post" },
   // },
 
-  // Map page (single matcher for all map routes)
+  // Map page. Spot detail routes are namespaced under /map/spots so they
+  // don't collide with other map-backed surfaces such as events/communities.
   {
     path: "map",
     loadComponent: () =>
@@ -89,7 +120,7 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
     children: [
       {
-        path: ":spot",
+        path: "spots/:spot",
         loadComponent: () =>
           import("./components/map-page/map-page.component").then(
             (m) => m.MapPageComponent
@@ -129,7 +160,7 @@ export const routes: Routes = [
 
   {
     path: "s/:slug",
-    redirectTo: "map/:slug",
+    redirectTo: "map/spots/:slug",
     pathMatch: "full",
     data: { routeName: "Spot map" },
   },

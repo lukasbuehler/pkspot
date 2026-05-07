@@ -9,6 +9,7 @@ import {
 import { LocaleCode } from "../../db/models/Interfaces";
 import { environment } from "../../environments/environment";
 import { getDisplayLocalityName } from "../../scripts/AddressHelpers";
+import { normalizeLegacySpotMapPath } from "../../scripts/SpotRouteHelpers";
 
 export interface MetaTagData {
   title: string;
@@ -113,11 +114,14 @@ export class MetaTagService {
   }
 
   /**
-   * Updates canonical + hreflang tags for a route path (e.g. "/map/slug").
+   * Updates canonical + hreflang tags for a route path (e.g. "/map/spots/slug").
    * Useful for pages that don't set full SEO metadata through content-specific methods.
    */
   public syncCanonicalAndHreflangForPath(path: string): void {
-    const cleanPath = (path || "/").split("?")[0].split("#")[0] || "/";
+    const cleanPath =
+      normalizeLegacySpotMapPath(
+        (path || "/").split("?")[0].split("#")[0] || "/"
+      ) || "/";
     const canonicalUrl = this.buildCanonicalUrl(cleanPath);
     this.meta.updateTag({
       property: "og:url",

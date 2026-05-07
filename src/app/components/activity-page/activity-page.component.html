@@ -45,7 +45,7 @@
     </mat-card-header>
     <mat-card-content>
       <a
-        [routerLink]="['/map', item.spot?.slug || item.spotId]"
+        [routerLink]="['/map', 'spots', item.spot?.slug || item.spotId]"
         class="activity-preview-link"
       >
         <app-spot-preview-card

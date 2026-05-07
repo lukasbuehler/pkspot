@@ -50,7 +50,10 @@ const createTitleMock = () => ({
   setTitle: vi.fn(),
 });
 
-const createRouteSnapshot = (spotSlug: string) => {
+const createRouteSnapshot = (
+  spotSlug: string,
+  routePath: ":spot" | "spots/:spot" = "spots/:spot"
+) => {
   const mapRoute = {
     routeConfig: { path: "map" },
     paramMap: convertToParamMap({}),
@@ -59,7 +62,7 @@ const createRouteSnapshot = (spotSlug: string) => {
   };
 
   const spotRoute = {
-    routeConfig: { path: ":spot" },
+    routeConfig: { path: routePath },
     paramMap: convertToParamMap({ spot: spotSlug }),
     parent: mapRoute,
     children: [] as any[],
@@ -193,13 +196,13 @@ describe("contentResolver", () => {
     ).toBe(description);
     expect(
       getMetaContent(testDocument, 'meta[property="og:url"]')
-    ).toBe("https://pkspot.app/en/map/imax");
+    ).toBe("https://pkspot.app/en/map/spots/imax");
 
     const canonicalLink = testDocument.head.querySelector(
       'link[rel="canonical"]'
     );
     expect(canonicalLink?.getAttribute("href")).toBe(
-      "https://pkspot.app/en/map/imax"
+      "https://pkspot.app/en/map/spots/imax"
     );
   });
 
@@ -221,6 +224,25 @@ describe("contentResolver", () => {
     );
     expect(
       getMetaContent(testDocument, 'meta[property="og:url"]')
-    ).toBe("https://pkspot.app/en/map/imax");
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+  });
+
+  it("should canonicalize legacy spot routes to the namespaced spot URL", async () => {
+    const imaxSpot = buildImaxSpot();
+    const legacyRoute = createRouteSnapshot("imax", ":spot");
+
+    slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot-imax");
+    spotsService.getSpotById.mockResolvedValue(imaxSpot);
+
+    await TestBed.runInInjectionContext(() => contentResolver(legacyRoute as any));
+
+    expect(
+      getMetaContent(testDocument, 'meta[property="og:url"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+    expect(
+      testDocument.head
+        .querySelector('link[rel="canonical"]')
+        ?.getAttribute("href")
+    ).toBe("https://pkspot.app/en/map/spots/imax");
   });
 });

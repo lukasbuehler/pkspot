@@ -23,7 +23,7 @@ describe("sitemapXml", () => {
         "2026-04-17"
       )
     ).toEqual({
-      path: "/map/imax",
+      path: "/map/spots/imax",
       lastmod: "2024-01-01",
       changefreq: "weekly",
       priority: "0.9",
@@ -32,7 +32,7 @@ describe("sitemapXml", () => {
     expect(
       buildSpotSitemapEntry("spot-dame-du-lac", {}, "2026-04-17")
     ).toEqual({
-      path: "/map/spot-dame-du-lac",
+      path: "/map/spots/spot-dame-du-lac",
       lastmod: "2026-04-17",
       changefreq: "weekly",
       priority: "0.8",
@@ -215,8 +215,8 @@ describe("sitemapXml", () => {
       ],
     });
 
-    expect(xml).toContain(`${BASE_URL}/en/map/imax`);
-    expect(xml).toContain(`${BASE_URL}/de-CH/map/dame-du-lac`);
+    expect(xml).toContain(`${BASE_URL}/en/map/spots/imax`);
+    expect(xml).toContain(`${BASE_URL}/de-CH/map/spots/dame-du-lac`);
     expect(xml).toContain(`${BASE_URL}/en/u/lukas`);
     expect(xml).not.toContain(`${BASE_URL}/en/u/private-user`);
     expect(xml).toContain(`${BASE_URL}/en/map/communities/lausanne`);
@@ -228,7 +228,7 @@ describe("sitemapXml", () => {
     )?.toHaveLength(SUPPORTED_LOCALES.length * 2 + 1);
 
     expect(xml).toContain(
-      `<loc>${BASE_URL}/${DEFAULT_LOCALE}/map/imax</loc>\n    <lastmod>2024-01-01</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>`
+      `<loc>${BASE_URL}/${DEFAULT_LOCALE}/map/spots/imax</loc>\n    <lastmod>2024-01-01</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>`
     );
     expect(xml).toContain(
       `<loc>${BASE_URL}/${DEFAULT_LOCALE}/u/lukas</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>`
@@ -237,7 +237,7 @@ describe("sitemapXml", () => {
       `<loc>${BASE_URL}/${DEFAULT_LOCALE}/map/communities/lausanne</loc>\n    <lastmod>2024-02-01</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>`
     );
     expect(xml).toContain(
-      `hreflang="x-default" href="${BASE_URL}/${DEFAULT_LOCALE}/map/imax"`
+      `hreflang="x-default" href="${BASE_URL}/${DEFAULT_LOCALE}/map/spots/imax"`
     );
 
     expect(stats).toEqual({
