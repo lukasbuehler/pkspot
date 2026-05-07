@@ -110,7 +110,9 @@ export class StructuredDataService {
   ): Array<{ name: string; url: string }> {
     return (pageData.breadcrumbs ?? []).map((breadcrumb) => ({
       name: breadcrumb.name,
-      url: `${environment.baseUrl}/${this.locale}${breadcrumb.path}`,
+      url:
+        `${environment.baseUrl}/${this.locale}` +
+        this.normalizeCommunityPath(breadcrumb.path),
     }));
   }
 
@@ -190,6 +192,10 @@ export class StructuredDataService {
     if (script) {
       script.remove();
     }
+  }
+
+  private normalizeCommunityPath(path: string): string {
+    return path.replace(/^\/map\/community\//u, "/map/communities/");
   }
 
   /**

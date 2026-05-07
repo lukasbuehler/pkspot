@@ -23,7 +23,7 @@ const buildCommunityLandingPageData = (): CommunityLandingPageData => ({
   displayName: "Pfaffikon",
   preferredSlug: "pfaeffikon",
   requestedSlug: "pfaeffikon",
-  canonicalPath: "/map/community/pfaeffikon",
+  canonicalPath: "/map/communities/pfaeffikon",
   title: "Pfaffikon, Switzerland Parkour Community | PK Spot",
   description: "Discover spots and community info in Pfaffikon.",
   imageUrl: "/assets/banner_1200x630.png",
@@ -43,8 +43,8 @@ const buildCommunityLandingPageData = (): CommunityLandingPageData => ({
   },
   breadcrumbs: [
     { name: "Map", path: "/map" },
-    { name: "Switzerland", path: "/map/community/switzerland" },
-    { name: "Pfaffikon", path: "/map/community/pfaeffikon" },
+    { name: "Switzerland", path: "/map/communities/switzerland" },
+    { name: "Pfaffikon", path: "/map/communities/pfaeffikon" },
   ],
   totalSpotCount: 8,
   topRatedCount: 4,
@@ -173,7 +173,7 @@ describe("StructuredDataService", () => {
     expect(parsed["@context"]).toBe("https://schema.org");
     expect(parsed["@type"]).toBe("CollectionPage");
     expect(parsed["url"]).toBe(
-      "https://pkspot.app/en/map/community/pfaeffikon"
+      "https://pkspot.app/en/map/communities/pfaeffikon"
     );
     expect(parsed["description"]).toBe(pageData.description);
   });

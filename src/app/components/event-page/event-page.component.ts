@@ -87,7 +87,6 @@ export class ReversePipe implements PipeTransform {
 @Component({
   selector: "app-event-page",
   imports: [
-    SpotMapComponent,
     SpotListComponent,
     MatButtonModule,
     MatIconModule,
@@ -147,7 +146,6 @@ export class EventPageComponent implements OnInit, OnDestroy {
   mapsApiService = inject(MapsApiService);
 
   private _routeSubscription?: Subscription;
-  private _structuredDataElement: HTMLScriptElement | null = null;
 
   /** The loaded event. Drives every visible field on the page. */
   event = signal<PkEvent | null>(null);
@@ -358,45 +356,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
         const event = this.event();
         if (!event) return;
 
-        const canonicalPath = `/events/${event.slug ?? event.id}`;
-        const startDateText = event.start.toLocaleDateString(this.locale, {
-          dateStyle: "medium",
-        });
-        const endDateText = event.end.toLocaleDateString(this.locale, {
-          dateStyle: "medium",
-        });
-        const sameDay =
-          event.start.getFullYear() === event.end.getFullYear() &&
-          event.start.getMonth() === event.end.getMonth() &&
-          event.start.getDate() === event.end.getDate();
-
-        this.metaTagService.setEventMetaTags(
-          {
-            name: event.name,
-            image: event.bannerSrc ?? "",
-            description:
-              event.description ??
-              $localize`Event in ` +
-                event.localityString +
-                ", (" +
-                (sameDay
-                  ? startDateText
-                  : `${startDateText} - ${endDateText}`) +
-                ")",
-          },
-          canonicalPath,
-        );
-
-        if (typeof document !== "undefined" && event.structuredData) {
-          if (this._structuredDataElement) {
-            this._structuredDataElement.remove();
-          }
-          const script = document.createElement("script");
-          script.type = "application/ld+json";
-          script.textContent = JSON.stringify(event.structuredData);
-          document.body.appendChild(script);
-          this._structuredDataElement = script;
-        }
+        this._syncEventSeoData(event);
       });
 
       // Build challenge markers + listings from the event's challenge_spot_map.
@@ -518,96 +478,6 @@ export class EventPageComponent implements OnInit, OnDestroy {
     if (!this.mapsApiService.isApiLoaded()) {
       this.mapsApiService.loadGoogleMapsApi();
     }
-
-    // Set meta tags with canonical URL
-    const canonicalPath = `/events/${this.eventId}`;
-    const startDateText = this._formatDateForMeta(this.start);
-    const endDateText = this._formatDateForMeta(this.end);
-    const eventData = {
-      name: this.name,
-      image: this.bannerImageSrc,
-      description:
-        $localize`Event in ` +
-        this.localityString +
-        ", (" +
-        (this._isSameDay(this.start, this.end)
-          ? startDateText
-          : `${startDateText} - ${endDateText}`) +
-        ")",
-    };
-    this.metaTagService.setEventMetaTags(eventData, canonicalPath);
-
-    if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
-      // API loading effect moved to constructor to fix NG0203
-    }
-
-    // add the structured data for the event
-    const structuredDataJson: Record<string, unknown> = {
-      "@type": "Event",
-      name: this.name,
-      startDate: this.start.toISOString(),
-      endDate: this.end.toISOString(),
-      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-      eventStatus: "https://schema.org/EventScheduled",
-      location: {
-        "@type": "Place",
-        name: "Universität Irchel",
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "Zürich",
-          postalCode: "8057",
-          streetAddress:
-            "Universitätscampus Irchel, Winterthurerstrasse 190, Zürich, CH",
-        },
-      },
-      image: [this._absoluteUrl(this.bannerImageSrc)],
-      description:
-        "The Swiss Jam 2025 invites the whole Parkour community to Zurich.\n" +
-        "The main event area is located at the Irchepark. Different workshops for all skill levels can be joined. A big spot with major extensions gives enough room for all kind of movements and inspirations. A big Video-Screeing shows our communitys creativity.\n" +
-        "Join the event to jam, to learn, to get inspired and inspire!",
-      offers: {
-        "@type": "AggregateOffer",
-        priceCurrency: "CHF",
-        highPrice: "29.90",
-        lowPrice: "14.90",
-        offerCount: "3",
-        offers: [
-          {
-            "@type": "Offer",
-            name: "All Workshops",
-            price: "29.90",
-            priceCurrency: "CHF",
-          },
-          {
-            "@type": "Offer",
-            name: "2x Workshops",
-            price: "24.90",
-            priceCurrency: "CHF",
-          },
-          {
-            "@type": "Offer",
-            name: "1x Workshops",
-            price: "14.90",
-            priceCurrency: "CHF",
-          },
-        ],
-        url: "https://eventfrog.ch/de/p/sport-fitness/sonstige-veranstaltungen/swiss-jam-2025-7291100335594076233.html",
-      },
-      organizer: {
-        "@type": "Organization",
-        name: "Swiss Parkour Tour",
-        url: "https://www.swissparkourtour.ch/",
-        memberOf: {
-          "@type": "Organization",
-          name: "Swiss Parkour Association",
-          url: "https://spka.ch",
-        },
-      },
-      url: `${environment.baseUrl}/${this.locale}/events/${this.eventId}`,
-      sameAs: this.url,
-    };
-
-    this._structuredDataService.addStructuredData("event", structuredDataJson);
   }
 
   spotClickedIndex(spotIndex: number) {
@@ -621,14 +491,85 @@ export class EventPageComponent implements OnInit, OnDestroy {
       window.removeEventListener("resize", this.updateCompactView);
     }
 
-    if (this._structuredDataElement) {
-      this._structuredDataElement.remove();
-      this._structuredDataElement = null;
-    }
-
     if (this._routeSubscription) {
       this._routeSubscription.unsubscribe();
     }
+  }
+
+  private _syncEventSeoData(event: PkEvent): void {
+    const canonicalPath = this._eventCanonicalPath(event);
+    const description = this._eventDescription(event);
+    const image = event.bannerSrc ?? "/assets/banner_1200x630.png";
+
+    this.metaTagService.setEventMetaTags(
+      {
+        name: event.name,
+        image,
+        description,
+      },
+      canonicalPath,
+    );
+
+    this._structuredDataService.addStructuredData(
+      "event",
+      event.structuredData ??
+        this._buildEventStructuredData(event, canonicalPath, description),
+    );
+  }
+
+  private _buildEventStructuredData(
+    event: PkEvent,
+    canonicalPath: string,
+    description: string,
+  ): Record<string, unknown> {
+    return {
+      "@type": "Event",
+      name: event.name,
+      startDate: event.start.toISOString(),
+      endDate: event.end.toISOString(),
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      eventStatus: "https://schema.org/EventScheduled",
+      location: {
+        "@type": "Place",
+        name: event.venueString || event.localityString || event.name,
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: event.localityString || undefined,
+        },
+      },
+      image: [
+        this._absoluteUrl(event.bannerSrc ?? "/assets/banner_1200x630.png"),
+      ],
+      description,
+      url: `${environment.baseUrl}/${this.locale}${canonicalPath}`,
+      sameAs: event.url,
+      offers: event.url
+        ? {
+            "@type": "Offer",
+            url: event.url,
+          }
+        : undefined,
+    };
+  }
+
+  private _eventCanonicalPath(event: PkEvent): string {
+    return `/events/${event.slug ?? event.id}`;
+  }
+
+  private _eventDescription(event: PkEvent): string {
+    const startDateText = this._formatDateForMeta(event.start);
+    const endDateText = this._formatDateForMeta(event.end);
+
+    return (
+      event.description ??
+      $localize`Event in ` +
+        event.localityString +
+        ", (" +
+        (this._isSameDay(event.start, event.end)
+          ? startDateText
+          : `${startDateText} - ${endDateText}`) +
+        ")"
+    );
   }
 
   private _absoluteUrl(path: string): string {

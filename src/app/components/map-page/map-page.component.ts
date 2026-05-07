@@ -591,7 +591,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Open the community panel without triggering a route navigation. The map
-   * page is mounted on a separate top-level route from `/map/community/<slug>`,
+   * page is mounted on a separate top-level route from `/map/communities/<slug>`,
    * so a normal `router.navigateByUrl` would unmount and remount the map
    * (refreshing tiles, re-fetching spots, etc.). Instead we set the panel
    * state directly and patch the URL via `Location.replaceState` so the page
@@ -904,8 +904,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (!communityLanding) {
         // Don't reset `_lastFocusedCommunityKey` here — a navigation that
-        // briefly nulls selectedCommunityLanding (e.g. /map/community/zurich
-        // → /map → /map/community/zurich again) used to trip a re-focus
+        // briefly nulls selectedCommunityLanding (e.g. /map/communities/zurich
+        // → /map → /map/communities/zurich again) used to trip a re-focus
         // on the way back. Keeping the last key means re-arriving at the
         // same community is a no-op.
         return;

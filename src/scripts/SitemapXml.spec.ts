@@ -43,7 +43,7 @@ describe("sitemapXml", () => {
     expect(
       buildCommunitySitemapEntry(
         {
-          canonicalPath: "/map/community/lausanne",
+          canonicalPath: "/map/communities/lausanne",
           preferredSlug: "lausanne-old",
           scope: "locality",
           sourceMaxUpdatedAt: { seconds: 1706745600, nanoseconds: 0 },
@@ -51,7 +51,7 @@ describe("sitemapXml", () => {
         "2026-04-17"
       )
     ).toEqual({
-      path: "/map/community/lausanne",
+      path: "/map/communities/lausanne",
       lastmod: "2024-02-01",
       changefreq: "weekly",
       priority: "0.7",
@@ -66,7 +66,7 @@ describe("sitemapXml", () => {
         "2026-04-17"
       )
     ).toEqual({
-      path: "/map/community/switzerland",
+      path: "/map/communities/switzerland",
       lastmod: "2026-04-17",
       changefreq: "weekly",
       priority: "0.8",
@@ -75,7 +75,7 @@ describe("sitemapXml", () => {
     expect(
       buildCommunitySitemapEntry(
         {
-          canonicalPath: "/map/community/draft-page",
+          canonicalPath: "/map/communities/draft-page",
           published: false,
         },
         "2026-04-17"
@@ -183,7 +183,7 @@ describe("sitemapXml", () => {
         {
           id: "lausanne",
           data: {
-            canonicalPath: "/map/community/lausanne",
+            canonicalPath: "/map/communities/lausanne",
             preferredSlug: "lausanne-old",
             scope: "locality",
             sourceMaxUpdatedAt: { seconds: 1706745600, nanoseconds: 0 },
@@ -219,9 +219,9 @@ describe("sitemapXml", () => {
     expect(xml).toContain(`${BASE_URL}/de-CH/map/dame-du-lac`);
     expect(xml).toContain(`${BASE_URL}/en/u/lukas`);
     expect(xml).not.toContain(`${BASE_URL}/en/u/private-user`);
-    expect(xml).toContain(`${BASE_URL}/en/map/community/lausanne`);
-    expect(xml).not.toContain(`${BASE_URL}/en/map/community/lausanne-old`);
-    expect(xml).toContain(`${BASE_URL}/en/map/community/switzerland`);
+    expect(xml).toContain(`${BASE_URL}/en/map/communities/lausanne`);
+    expect(xml).not.toContain(`${BASE_URL}/en/map/communities/lausanne-old`);
+    expect(xml).toContain(`${BASE_URL}/en/map/communities/switzerland`);
     expect(xml).toContain(`${BASE_URL}/en/events/city-jam`);
     expect(
       xml.match(/https:\/\/pkspot\.app\/en\/events\/swissjam25/g)
@@ -234,7 +234,7 @@ describe("sitemapXml", () => {
       `<loc>${BASE_URL}/${DEFAULT_LOCALE}/u/lukas</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>`
     );
     expect(xml).toContain(
-      `<loc>${BASE_URL}/${DEFAULT_LOCALE}/map/community/lausanne</loc>\n    <lastmod>2024-02-01</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>`
+      `<loc>${BASE_URL}/${DEFAULT_LOCALE}/map/communities/lausanne</loc>\n    <lastmod>2024-02-01</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>`
     );
     expect(xml).toContain(
       `hreflang="x-default" href="${BASE_URL}/${DEFAULT_LOCALE}/map/imax"`

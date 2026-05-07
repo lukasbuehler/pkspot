@@ -164,12 +164,12 @@ function getSpotPath(id: string, data: SpotSitemapData): string {
 function getCommunityPath(data: CommunitySitemapData): string {
   const canonicalPath = data.canonicalPath?.trim();
   if (canonicalPath) {
-    return canonicalPath;
+    return canonicalPath.replace(/^\/map\/community\//u, "/map/communities/");
   }
 
   const preferredSlug = data.preferredSlug?.trim();
   return preferredSlug
-    ? `/map/community/${encodeURIComponent(preferredSlug)}`
+    ? `/map/communities/${encodeURIComponent(preferredSlug)}`
     : "";
 }
 

@@ -125,14 +125,17 @@ export class LandingPagesService {
         : this._getSlugFromPath(pageDoc.breadcrumbs?.[1]?.path) ||
           pageDoc.geography.countrySlug;
 
+    const canonicalPath = this._normalizeCommunityPath(
+      pageDoc.canonicalPath || buildCommunityLandingPath(pageDoc.preferredSlug)
+    );
+
     return {
       communityKey: pageDoc.communityKey,
       scope: pageDoc.scope,
       displayName: pageDoc.displayName,
       preferredSlug: pageDoc.preferredSlug,
       requestedSlug,
-      canonicalPath:
-        pageDoc.canonicalPath || buildCommunityLandingPath(pageDoc.preferredSlug),
+      canonicalPath,
       title: pageDoc.title,
       description: pageDoc.description,
       imageUrl: pageDoc.image?.url || "/assets/banner_1200x630.png",
@@ -155,7 +158,10 @@ export class LandingPagesService {
               slug: pageDoc.preferredSlug,
             }
           : undefined,
-      breadcrumbs: pageDoc.breadcrumbs ?? [],
+      breadcrumbs: (pageDoc.breadcrumbs ?? []).map((breadcrumb) => ({
+        ...breadcrumb,
+        path: this._normalizeCommunityPath(breadcrumb.path),
+      })),
       totalSpotCount: pageDoc.counts?.totalSpots ?? 0,
       topRatedCount: pageDoc.counts?.topRated ?? topRatedSpots.length,
       dryCount: pageDoc.counts?.dry ?? drySpots.length,
@@ -172,6 +178,10 @@ export class LandingPagesService {
       boundsCenter: pageDoc.bounds_center,
       boundsRadiusM: pageDoc.bounds_radius_m,
     };
+  }
+
+  private _normalizeCommunityPath(path: string): string {
+    return path.replace(/^\/map\/community\//u, "/map/communities/");
   }
 
   async getChildCommunities(

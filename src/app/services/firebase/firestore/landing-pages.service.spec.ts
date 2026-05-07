@@ -15,7 +15,7 @@ const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
   displayName: "London",
   preferredSlug: "london",
   allSlugs: ["london", "london-uk"],
-  canonicalPath: "/map/community/london",
+  canonicalPath: "/map/communities/london",
   title: "London, United Kingdom Parkour Community | PK Spot",
   description:
     "Discover 7 parkour spots and 3 dry training options in London, United Kingdom on PK Spot.",
@@ -28,8 +28,8 @@ const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
   },
   breadcrumbs: [
     { name: "Map", path: "/map" },
-    { name: "United Kingdom", path: "/map/community/united-kingdom" },
-    { name: "London", path: "/map/community/london" },
+    { name: "United Kingdom", path: "/map/communities/united-kingdom" },
+    { name: "London", path: "/map/communities/london" },
   ],
   counts: {
     totalSpots: 7,
@@ -88,7 +88,7 @@ describe("LandingPagesService", () => {
         name: "United Kingdom",
         slug: "united-kingdom",
       },
-      canonicalPath: "/map/community/london",
+      canonicalPath: "/map/communities/london",
     });
     expect(result?.topRatedSpots.length).toBe(1);
     expect(result?.drySpots.length).toBe(1);
@@ -139,10 +139,10 @@ describe("LandingPagesService", () => {
           scope: "country",
           displayName: "United Kingdom",
           preferredSlug: "united-kingdom",
-          canonicalPath: "/map/community/united-kingdom",
+          canonicalPath: "/map/communities/united-kingdom",
           breadcrumbs: [
             { name: "Map", path: "/map" },
-            { name: "United Kingdom", path: "/map/community/united-kingdom" },
+            { name: "United Kingdom", path: "/map/communities/united-kingdom" },
           ],
           geography: {
             countryCode: "GB",
@@ -157,7 +157,7 @@ describe("LandingPagesService", () => {
         communityKey: "locality:gb:manchester",
         displayName: "Manchester",
         preferredSlug: "manchester",
-        canonicalPath: "/map/community/manchester",
+        canonicalPath: "/map/communities/manchester",
         counts: {
           totalSpots: 12,
           topRated: 5,
@@ -169,7 +169,7 @@ describe("LandingPagesService", () => {
         communityKey: "locality:gb:london",
         displayName: "London",
         preferredSlug: "london",
-        canonicalPath: "/map/community/london",
+        canonicalPath: "/map/communities/london",
         counts: {
           totalSpots: 18,
           topRated: 7,

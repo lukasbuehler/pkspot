@@ -79,7 +79,7 @@ export interface CommunityPageSchema {
    * surface the community when the visible viewport intersects its area.
    * Set together with `bounds_radius_m`. Optional — communities without
    * these fields don't auto-surface in the island (only on their explicit
-   * `/map/community/<slug>` route).
+   * `/map/communities/<slug>` route).
    *
    * Stored as `[lat, lng]` to match the spot Typesense convention so a
    * future communities Typesense collection can reuse the same geo-search
