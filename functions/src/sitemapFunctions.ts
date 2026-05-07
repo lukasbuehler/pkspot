@@ -8,12 +8,14 @@ import {
   STATIC_PAGES,
   SUPPORTED_LOCALES,
   buildCommunitySitemapEntry,
+  buildEventSitemapEntry,
   buildSitemapHeader,
   buildSpotSitemapEntry,
   buildUserSitemapEntry,
   generateUrlWithHreflang,
   getNowDateString,
   type CommunitySitemapData,
+  type EventSitemapData,
   type SitemapGenerationStats,
   type SpotSitemapData,
   type UserSitemapData,
@@ -61,6 +63,7 @@ async function _generateAndUploadSitemap(): Promise<{
   spotCount: number;
   userCount: number;
   communityCount: number;
+  eventCount: number;
   staticPageCount: number;
   totalUrls: number;
   slugCount: number;
@@ -89,7 +92,9 @@ async function _generateAndUploadSitemap(): Promise<{
   let spotCount = 0;
   let userCount = 0;
   let communityCount = 0;
+  let eventCount = 0;
   let slugCount = 0;
+  const staticPaths = new Set(STATIC_PAGES.map((page) => page.path));
 
   try {
     await writer.append(buildSitemapHeader());
@@ -181,6 +186,39 @@ async function _generateAndUploadSitemap(): Promise<{
     }
     console.log(`Streamed ${communityCount} published communities`);
 
+    console.log("Streaming events from Firestore...");
+    const eventsStream = db
+      .collection("events")
+      .select(
+        "slug",
+        "canonicalPath",
+        "published",
+        "status",
+        "time_updated",
+        "updatedAt",
+        "startDate"
+      )
+      .stream();
+
+    for await (const doc of eventsStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
+      const data = doc.data() as EventSitemapData;
+      const entry = buildEventSitemapEntry(doc.id, data, now);
+      if (!entry || staticPaths.has(entry.path)) {
+        continue;
+      }
+
+      eventCount += 1;
+      await writer.append(
+        generateUrlWithHreflang(
+          entry.path,
+          entry.lastmod,
+          entry.changefreq,
+          entry.priority
+        )
+      );
+    }
+    console.log(`Streamed ${eventCount} published events`);
+
     await writer.append("</urlset>");
     await writer.flush();
     writeStream.end();
@@ -199,10 +237,15 @@ async function _generateAndUploadSitemap(): Promise<{
     spotCount,
     userCount,
     communityCount,
+    eventCount,
     slugCount,
     staticPageCount: STATIC_PAGES.length,
     totalUrls:
-      (STATIC_PAGES.length + spotCount + userCount + communityCount) *
+      (STATIC_PAGES.length +
+        spotCount +
+        userCount +
+        communityCount +
+        eventCount) *
       SUPPORTED_LOCALES.length,
   };
 
@@ -210,7 +253,7 @@ async function _generateAndUploadSitemap(): Promise<{
   console.log(
     `Total URLs in sitemap: ${stats.totalUrls} (${stats.staticPageCount} static + ` +
       `${stats.spotCount} spots (${stats.slugCount} with slugs) + ${stats.userCount} users + ` +
-      `${stats.communityCount} communities) × ` +
+      `${stats.communityCount} communities + ${stats.eventCount} events) × ` +
       `${SUPPORTED_LOCALES.length} locales`
   );
 
@@ -219,6 +262,7 @@ async function _generateAndUploadSitemap(): Promise<{
     spotCount: stats.spotCount,
     userCount: stats.userCount,
     communityCount: stats.communityCount,
+    eventCount: stats.eventCount,
     staticPageCount: stats.staticPageCount,
     slugCount: stats.slugCount,
     totalUrls: stats.totalUrls,

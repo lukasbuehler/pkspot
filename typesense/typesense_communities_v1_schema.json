@@ -41,8 +41,12 @@
       "optional": true
     },
 
-    { "name": "relationships.parentKeys", "type": "string[]", "optional": true },
-    { "name": "counts.totalSpots", "type": "int32", "optional": true },
+    {
+      "name": "relationships.parentKeys",
+      "type": "string[]",
+      "optional": true
+    },
+    { "name": "counts.totalSpots", "type": "int32", "optional": false },
     { "name": "counts.topRated", "type": "int32", "optional": true },
     { "name": "counts.dry", "type": "int32", "optional": true },
 

@@ -27,6 +27,7 @@ import { firstValueFrom, Subscription, take } from "rxjs";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { StructuredDataService } from "../../services/structured-data.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -70,6 +71,7 @@ import {
   InlineEventSpotSchema,
 } from "../../../db/schemas/EventSchema";
 import { SWISSJAM25_STATIC } from "./swissjam25.static";
+import { environment } from "../../../environments/environment";
 
 @Pipe({
   name: "reverse",
@@ -132,6 +134,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   spotScrollContainer?: ElementRef<HTMLElement>;
 
   metaTagService = inject(MetaTagService);
+  private _structuredDataService = inject(StructuredDataService);
   locale = inject<LocaleCode>(LOCALE_ID);
   responsive = inject(ResponsiveService);
   private _spotService = inject(SpotsService);
@@ -515,6 +518,96 @@ export class EventPageComponent implements OnInit, OnDestroy {
     if (!this.mapsApiService.isApiLoaded()) {
       this.mapsApiService.loadGoogleMapsApi();
     }
+
+    // Set meta tags with canonical URL
+    const canonicalPath = `/events/${this.eventId}`;
+    const startDateText = this._formatDateForMeta(this.start);
+    const endDateText = this._formatDateForMeta(this.end);
+    const eventData = {
+      name: this.name,
+      image: this.bannerImageSrc,
+      description:
+        $localize`Event in ` +
+        this.localityString +
+        ", (" +
+        (this._isSameDay(this.start, this.end)
+          ? startDateText
+          : `${startDateText} - ${endDateText}`) +
+        ")",
+    };
+    this.metaTagService.setEventMetaTags(eventData, canonicalPath);
+
+    if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
+      // API loading effect moved to constructor to fix NG0203
+    }
+
+    // add the structured data for the event
+    const structuredDataJson: Record<string, unknown> = {
+      "@type": "Event",
+      name: this.name,
+      startDate: this.start.toISOString(),
+      endDate: this.end.toISOString(),
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      eventStatus: "https://schema.org/EventScheduled",
+      location: {
+        "@type": "Place",
+        name: "Universität Irchel",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Zürich",
+          postalCode: "8057",
+          streetAddress:
+            "Universitätscampus Irchel, Winterthurerstrasse 190, Zürich, CH",
+        },
+      },
+      image: [this._absoluteUrl(this.bannerImageSrc)],
+      description:
+        "The Swiss Jam 2025 invites the whole Parkour community to Zurich.\n" +
+        "The main event area is located at the Irchepark. Different workshops for all skill levels can be joined. A big spot with major extensions gives enough room for all kind of movements and inspirations. A big Video-Screeing shows our communitys creativity.\n" +
+        "Join the event to jam, to learn, to get inspired and inspire!",
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "CHF",
+        highPrice: "29.90",
+        lowPrice: "14.90",
+        offerCount: "3",
+        offers: [
+          {
+            "@type": "Offer",
+            name: "All Workshops",
+            price: "29.90",
+            priceCurrency: "CHF",
+          },
+          {
+            "@type": "Offer",
+            name: "2x Workshops",
+            price: "24.90",
+            priceCurrency: "CHF",
+          },
+          {
+            "@type": "Offer",
+            name: "1x Workshops",
+            price: "14.90",
+            priceCurrency: "CHF",
+          },
+        ],
+        url: "https://eventfrog.ch/de/p/sport-fitness/sonstige-veranstaltungen/swiss-jam-2025-7291100335594076233.html",
+      },
+      organizer: {
+        "@type": "Organization",
+        name: "Swiss Parkour Tour",
+        url: "https://www.swissparkourtour.ch/",
+        memberOf: {
+          "@type": "Organization",
+          name: "Swiss Parkour Association",
+          url: "https://spka.ch",
+        },
+      },
+      url: `${environment.baseUrl}/${this.locale}/events/${this.eventId}`,
+      sameAs: this.url,
+    };
+
+    this._structuredDataService.addStructuredData("event", structuredDataJson);
   }
 
   spotClickedIndex(spotIndex: number) {
@@ -522,15 +615,28 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this._structuredDataService.removeStructuredData("event");
+
     if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
       window.removeEventListener("resize", this.updateCompactView);
     }
-    this._routeSubscription?.unsubscribe();
 
     if (this._structuredDataElement) {
       this._structuredDataElement.remove();
       this._structuredDataElement = null;
     }
+
+    if (this._routeSubscription) {
+      this._routeSubscription.unsubscribe();
+    }
+  }
+
+  private _absoluteUrl(path: string): string {
+    if (/^https?:\/\//i.test(path)) {
+      return path;
+    }
+
+    return `${environment.baseUrl}/${path.replace(/^\/+/, "")}`;
   }
 
   async shareEvent() {
@@ -652,6 +758,18 @@ export class EventPageComponent implements OnInit, OnDestroy {
     } else {
       console.warn("markerClickEvent payload missing index", event);
     }
+  }
+
+  private _formatDateForMeta(date: Date): string {
+    return date.toLocaleDateString(this.locale, { dateStyle: "medium" });
+  }
+
+  private _isSameDay(a: Date, b: Date): boolean {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
   }
 }
 

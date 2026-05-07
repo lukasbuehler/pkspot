@@ -5,6 +5,7 @@ import {
   STATIC_PAGES,
   SUPPORTED_LOCALES,
   buildCommunitySitemapEntry,
+  buildEventSitemapEntry,
   buildSitemapXml,
   buildSpotSitemapEntry,
   buildUserSitemapEntry,
@@ -105,7 +106,52 @@ describe("sitemapXml", () => {
     ).toBeNull();
   });
 
-  it("builds sitemap XML with spot, profile, and community URLs using preferred paths", () => {
+  it("uses event slugs and skips draft events", () => {
+    expect(
+      buildEventSitemapEntry(
+        "fallback-event",
+        {
+          startDate: { seconds: 1772323200, nanoseconds: 0 },
+        },
+        "2026-04-17"
+      )
+    ).toEqual({
+      path: "/events/fallback-event",
+      lastmod: "2026-03-01",
+      changefreq: "weekly",
+      priority: "0.7",
+    });
+
+    expect(
+      buildEventSitemapEntry(
+        "ignored-draft",
+        {
+          slug: "ignored-draft",
+          status: "draft",
+        },
+        "2026-04-17"
+      )
+    ).toBeNull();
+
+    expect(
+      buildEventSitemapEntry(
+        "slug-event",
+        {
+          slug: "city-jam",
+          canonicalPath: "/events/canonical-city-jam",
+          updatedAt: { seconds: 1775001600, nanoseconds: 0 },
+        },
+        "2026-04-17"
+      )
+    ).toEqual({
+      path: "/events/canonical-city-jam",
+      lastmod: "2026-04-01",
+      changefreq: "weekly",
+      priority: "0.7",
+    });
+  });
+
+  it("builds sitemap XML with spot, profile, community, and Firestore event URLs using preferred paths", () => {
     const { xml, stats } = buildSitemapXml({
       now: "2026-04-17",
       spots: [
@@ -151,6 +197,22 @@ describe("sitemapXml", () => {
           },
         },
       ],
+      events: [
+        {
+          id: "city-jam",
+          data: {
+            slug: "city-jam",
+            updatedAt: { seconds: 1775001600, nanoseconds: 0 },
+          },
+        },
+        {
+          id: "swissjam25",
+          data: {
+            slug: "swissjam25",
+            updatedAt: { seconds: 1775001600, nanoseconds: 0 },
+          },
+        },
+      ],
     });
 
     expect(xml).toContain(`${BASE_URL}/en/map/imax`);
@@ -160,6 +222,10 @@ describe("sitemapXml", () => {
     expect(xml).toContain(`${BASE_URL}/en/map/community/lausanne`);
     expect(xml).not.toContain(`${BASE_URL}/en/map/community/lausanne-old`);
     expect(xml).toContain(`${BASE_URL}/en/map/community/switzerland`);
+    expect(xml).toContain(`${BASE_URL}/en/events/city-jam`);
+    expect(
+      xml.match(/https:\/\/pkspot\.app\/en\/events\/swissjam25/g)
+    )?.toHaveLength(SUPPORTED_LOCALES.length * 2 + 1);
 
     expect(xml).toContain(
       `<loc>${BASE_URL}/${DEFAULT_LOCALE}/map/imax</loc>\n    <lastmod>2024-01-01</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>`
@@ -179,8 +245,10 @@ describe("sitemapXml", () => {
       spotCount: 2,
       userCount: 1,
       communityCount: 2,
+      eventCount: 1,
       slugCount: 2,
-      totalUrls: (STATIC_PAGES.length + 2 + 1 + 2) * SUPPORTED_LOCALES.length,
+      totalUrls:
+        (STATIC_PAGES.length + 2 + 1 + 2 + 1) * SUPPORTED_LOCALES.length,
     });
   });
 });
