@@ -38,6 +38,16 @@ export interface CommunitySitemapData {
   sourceMaxUpdatedAt?: { seconds: number; nanoseconds: number };
 }
 
+export interface EventSitemapData {
+  slug?: string;
+  canonicalPath?: string;
+  published?: boolean;
+  status?: string;
+  time_updated?: { seconds: number; nanoseconds: number };
+  updatedAt?: { seconds: number; nanoseconds: number };
+  startDate?: { seconds: number; nanoseconds: number } | string;
+}
+
 export interface SitemapRecord<TData> {
   id: string;
   data: TData;
@@ -47,6 +57,7 @@ export interface SitemapGenerationStats {
   spotCount: number;
   userCount: number;
   communityCount: number;
+  eventCount: number;
   slugCount: number;
   staticPageCount: number;
   totalUrls: number;
@@ -125,9 +136,19 @@ function getLastModDate(
   timeUpdated:
     | SpotSitemapData["time_updated"]
     | CommunitySitemapData["generatedAt"]
-    | CommunitySitemapData["sourceMaxUpdatedAt"],
+    | CommunitySitemapData["sourceMaxUpdatedAt"]
+    | EventSitemapData["time_updated"]
+    | EventSitemapData["updatedAt"]
+    | EventSitemapData["startDate"],
   fallbackDate: string
 ): string {
+  if (typeof timeUpdated === "string") {
+    const parsed = new Date(timeUpdated);
+    return Number.isNaN(parsed.getTime())
+      ? fallbackDate
+      : parsed.toISOString().split("T")[0];
+  }
+
   if (!timeUpdated?.seconds) {
     return fallbackDate;
   }
@@ -152,6 +173,16 @@ function getCommunityPath(data: CommunitySitemapData): string {
     : "";
 }
 
+function getEventPath(id: string, data: EventSitemapData): string {
+  const canonicalPath = data.canonicalPath?.trim();
+  if (canonicalPath) {
+    return canonicalPath;
+  }
+
+  const slug = data.slug?.trim();
+  return `/events/${encodeURIComponent(slug || id)}`;
+}
+
 function buildStaticPageEntries(now: string): string {
   return STATIC_PAGES.map((page) =>
     generateUrlWithHreflang(page.path, now, page.changefreq, page.priority)
@@ -163,16 +194,18 @@ function buildStats(
   spotCount: number,
   userCount: number,
   communityCount: number,
+  eventCount: number,
   slugCount: number
 ): SitemapGenerationStats {
   return {
     spotCount,
     userCount,
     communityCount,
+    eventCount,
     slugCount,
     staticPageCount,
     totalUrls:
-      (staticPageCount + spotCount + userCount + communityCount) *
+      (staticPageCount + spotCount + userCount + communityCount + eventCount) *
       SUPPORTED_LOCALES.length,
   };
 }
@@ -257,6 +290,32 @@ function buildCommunityEntries(
   return { xml, communityCount };
 }
 
+function buildEventEntries(
+  events: SitemapRecord<EventSitemapData>[],
+  fallbackDate: string,
+  excludedPaths: Set<string> = new Set()
+): { xml: string; eventCount: number } {
+  let xml = "";
+  let eventCount = 0;
+
+  for (const event of events) {
+    const entry = buildEventSitemapEntry(event.id, event.data, fallbackDate);
+    if (!entry || excludedPaths.has(entry.path)) {
+      continue;
+    }
+
+    eventCount += 1;
+    xml += generateUrlWithHreflang(
+      entry.path,
+      entry.lastmod,
+      entry.changefreq,
+      entry.priority
+    );
+  }
+
+  return { xml, eventCount };
+}
+
 export function buildSpotSitemapEntry(
   id: string,
   data: SpotSitemapData,
@@ -312,26 +371,61 @@ export function buildCommunitySitemapEntry(
   };
 }
 
+export function buildEventSitemapEntry(
+  id: string,
+  data: EventSitemapData,
+  fallbackDate: string
+): ResolvedSitemapEntry | null {
+  if (data.published === false || data.status === "draft") {
+    return null;
+  }
+
+  const path = getEventPath(id, data);
+  if (!path) {
+    return null;
+  }
+
+  return {
+    path,
+    lastmod: getLastModDate(
+      data.time_updated ?? data.updatedAt ?? data.startDate,
+      fallbackDate
+    ),
+    changefreq: "weekly",
+    priority: "0.7",
+  };
+}
+
 export function buildSitemapXml(params: {
   now?: string;
   includeStaticPages?: boolean;
   spots?: SitemapRecord<SpotSitemapData>[];
   users?: SitemapRecord<UserSitemapData>[];
   communities?: SitemapRecord<CommunitySitemapData>[];
+  events?: SitemapRecord<EventSitemapData>[];
 }): SitemapBuildResult {
   const now = params.now ?? getNowDateString();
   const includeStaticPages = params.includeStaticPages ?? true;
   const spots = params.spots ?? [];
   const users = params.users ?? [];
   const communities = params.communities ?? [];
+  const events = params.events ?? [];
 
   const staticPageXml = includeStaticPages ? buildStaticPageEntries(now) : "";
   const staticPageCount = includeStaticPages ? STATIC_PAGES.length : 0;
+  const staticPaths = includeStaticPages
+    ? new Set(STATIC_PAGES.map((page) => page.path))
+    : new Set<string>();
   const { xml: spotXml, spotCount, slugCount } = buildSpotEntries(spots, now);
   const { xml: userXml, userCount } = buildUserEntries(users, now);
   const { xml: communityXml, communityCount } = buildCommunityEntries(
     communities,
     now
+  );
+  const { xml: eventXml, eventCount } = buildEventEntries(
+    events,
+    now,
+    staticPaths
   );
 
   return {
@@ -341,12 +435,14 @@ export function buildSitemapXml(params: {
       spotXml +
       userXml +
       communityXml +
+      eventXml +
       "</urlset>",
     stats: buildStats(
       staticPageCount,
       spotCount,
       userCount,
       communityCount,
+      eventCount,
       slugCount
     ),
   };
@@ -358,6 +454,7 @@ export {
   STATIC_PAGES,
   SUPPORTED_LOCALES,
   buildSitemapHeader,
+  buildEventEntries,
   generateUrlWithHreflang,
   getHreflangCode,
   getLastModDate,

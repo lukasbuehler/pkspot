@@ -36,6 +36,7 @@ import {
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { StructuredDataService } from "../../services/structured-data.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute, RouterLink } from "@angular/router";
@@ -72,6 +73,7 @@ import {
   ChallengeLabelIcons,
   ChallengeLabelValues,
 } from "../../../db/schemas/SpotChallengeLabels";
+import { environment } from "../../../environments/environment";
 
 @Pipe({
   name: "reverse",
@@ -135,6 +137,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   spotScrollContainer?: ElementRef<HTMLElement>;
 
   metaTagService = inject(MetaTagService);
+  private _structuredDataService = inject(StructuredDataService);
   locale = inject<LocaleCode>(LOCALE_ID);
   responsive = inject(ResponsiveService);
   private _spotService = inject(SpotsService);
@@ -647,8 +650,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
     }
 
     // add the structured data for the event
-    const structuredDataJson = {
-      "@context": "https://schema.org",
+    const structuredDataJson: Record<string, unknown> = {
       "@type": "Event",
       name: this.name,
       startDate: this.start.toISOString(),
@@ -666,7 +668,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
             "Universitätscampus Irchel, Winterthurerstrasse 190, Zürich, CH",
         },
       },
-      image: [this.bannerImageSrc],
+      image: [this._absoluteUrl(this.bannerImageSrc)],
       description:
         "The Swiss Jam 2025 invites the whole Parkour community to Zurich.\n" +
         "The main event area is located at the Irchepark. Different workshops for all skill levels can be joined. A big spot with major extensions gives enough room for all kind of movements and inspirations. A big Video-Screeing shows our communitys creativity.\n" +
@@ -709,15 +711,11 @@ export class EventPageComponent implements OnInit, OnDestroy {
           url: "https://spka.ch",
         },
       },
-      url: this.url,
+      url: `${environment.baseUrl}/${this.locale}/events/${this.eventId}`,
+      sameAs: this.url,
     };
 
-    if (typeof document !== "undefined") {
-      const script = document.createElement("script");
-      script.type = "application/ld+json";
-      script.textContent = JSON.stringify(structuredDataJson);
-      document.body.appendChild(script);
-    }
+    this._structuredDataService.addStructuredData("event", structuredDataJson);
   }
 
   spotClickedIndex(spotIndex: number) {
@@ -725,6 +723,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this._structuredDataService.removeStructuredData("event");
+
     if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
       window.removeEventListener("resize", this.updateCompactView);
     }
@@ -732,16 +732,14 @@ export class EventPageComponent implements OnInit, OnDestroy {
     if (this._routeSubscription) {
       this._routeSubscription.unsubscribe();
     }
+  }
 
-    // remove the event structured data element
-    if (typeof document !== "undefined") {
-      const script = document.querySelector(
-        'script[type="application/ld+json"]'
-      );
-      if (script) {
-        script.remove();
-      }
+  private _absoluteUrl(path: string): string {
+    if (/^https?:\/\//i.test(path)) {
+      return path;
     }
+
+    return `${environment.baseUrl}/${path.replace(/^\/+/, "")}`;
   }
 
   async shareEvent() {

@@ -17,6 +17,8 @@ export interface SpotPreviewData {
   isIconic: boolean;
   hideStreetview?: boolean;
   rating?: number; // whole number 1-10
+  numReviews?: number;
+  num_reviews?: number;
   amenities?: AmenitiesMap;
   bounds?: GeoPoint[];
   bounds_raw?: { lat: number; lng: number }[];

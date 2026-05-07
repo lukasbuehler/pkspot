@@ -182,6 +182,7 @@ export class SearchService {
         isIconic: isIconic,
         hideStreetview: hideStreetview,
         rating: doc.rating ?? undefined,
+        num_reviews: doc.num_reviews ?? undefined,
         amenities: amenities || undefined,
         bounds:
           doc.bounds_raw?.map(

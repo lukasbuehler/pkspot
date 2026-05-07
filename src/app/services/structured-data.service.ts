@@ -1,18 +1,28 @@
 import { DOCUMENT, isPlatformServer } from "@angular/common";
 import { inject, Injectable, LOCALE_ID, PLATFORM_ID } from "@angular/core";
 import { Meta, Title } from "@angular/platform-browser";
-import { Place, Person, ImageObject } from "schema-dts";
+import { Person, ImageObject } from "schema-dts";
 import { LocalSpot, Spot } from "../../db/models/Spot";
 import { User } from "../../db/models/User";
 import { StorageImage } from "../../db/models/Media";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { environment } from "../../environments/environment";
+import {
+  SpotAccess,
+  SpotTypes,
+  parseSpotAccess,
+  parseSpotType,
+} from "../../db/schemas/SpotTypeAndAccess";
 import type { CommunityLandingPageData } from "./firebase/firestore/landing-pages.service";
 import {
   getDisplayFormattedAddress,
   getDisplayLocalityName,
   getDisplaySublocalityName,
 } from "../../scripts/AddressHelpers";
+
+type SpotStructuredData = Record<string, unknown> & {
+  "@type": "Place" | "SportsActivityLocation";
+};
 
 @Injectable({
   providedIn: "root",
@@ -158,14 +168,18 @@ export class StructuredDataService {
    * Adds structured data JSON-LD script to the document head.
    * Works on both server and client side for SSR support.
    */
-  addStructuredData(id: string, data: any) {
+  addStructuredData(id: string, data: unknown) {
     // Remove existing script with same id first
     this.removeStructuredData(id);
 
     const script = this.document.createElement("script");
     script.type = "application/ld+json";
     script.id = this.structuredDataIdPrefix + id;
-    script.text = JSON.stringify({ "@context": "https://schema.org", ...data });
+    const payload = typeof data === "object" && data !== null ? data : {};
+    script.text = JSON.stringify({
+      "@context": "https://schema.org",
+      ...payload,
+    });
     this.document.head.appendChild(script);
   }
 
@@ -181,9 +195,13 @@ export class StructuredDataService {
   /**
    * Generates Place structured data for a spot
    */
-  generateSpotPlaceData(spot: Spot | LocalSpot, url?: string): Place {
-    const placeData: Place = {
-      "@type": "Place",
+  generateSpotPlaceData(
+    spot: Spot | LocalSpot,
+    url?: string
+  ): SpotStructuredData {
+    const isReviewEligible = this.isSpotReviewRichResultEligible(spot);
+    const placeData: SpotStructuredData = {
+      "@type": isReviewEligible ? "SportsActivityLocation" : "Place",
       name: spot.name(),
       description: spot.description() || undefined,
       geo: {
@@ -197,9 +215,10 @@ export class StructuredDataService {
 
     // Add URL if spot has an id (is persisted)
     if (spot instanceof Spot) {
-      placeData.url =
-        url || `${environment.baseUrl}/map/${spot.slug ?? spot.id}`;
-      placeData.identifier = spot.id;
+      placeData["url"] =
+        url ||
+        `${environment.baseUrl}/${this.locale}/map/${spot.slug ?? spot.id}`;
+      placeData["identifier"] = spot.id;
     }
 
     // Add images
@@ -211,14 +230,14 @@ export class StructuredDataService {
         )
         .filter((imageUrl): imageUrl is string => !!imageUrl);
       if (imageUrls.length > 0) {
-        placeData.image = imageUrls.length === 1 ? imageUrls[0] : imageUrls;
+        placeData["image"] = imageUrls.length === 1 ? imageUrls[0] : imageUrls;
       }
       // Add photos as well for richer schema
-      placeData.photo = images;
+      placeData["photo"] = images;
     } else {
       const previewImageUrl = this.normalizeAbsoluteUrl(spot.previewImageSrc());
       if (previewImageUrl) {
-        placeData.image = previewImageUrl;
+        placeData["image"] = previewImageUrl;
       }
     }
 
@@ -229,7 +248,7 @@ export class StructuredDataService {
         getDisplayLocalityName(address) ||
         getDisplaySublocalityName(address) ||
         this.getSpotLocality(spot);
-      placeData.address = {
+      placeData["address"] = {
         "@type": "PostalAddress",
         streetAddress: this.withLocalityInStreetAddress(
           getDisplayFormattedAddress(address),
@@ -246,7 +265,7 @@ export class StructuredDataService {
     } else {
       const fallbackLocality = this.getSpotLocality(spot);
       if (fallbackLocality) {
-        placeData.address = {
+        placeData["address"] = {
           "@type": "PostalAddress",
           addressLocality: fallbackLocality,
         };
@@ -254,13 +273,15 @@ export class StructuredDataService {
     }
 
     // Add aggregate rating if available
-    if (spot.rating && spot.numReviews && spot.numReviews > 0) {
-      placeData.aggregateRating = {
+    const reviewCount = this.getPositiveInteger(spot.numReviews);
+    if (isReviewEligible && spot.rating && reviewCount) {
+      placeData["aggregateRating"] = {
         "@type": "AggregateRating",
         ratingValue: spot.rating,
         bestRating: 5,
         worstRating: 1,
-        ratingCount: spot.numReviews,
+        ratingCount: reviewCount,
+        reviewCount: reviewCount,
       };
     }
 
@@ -416,7 +437,7 @@ export class StructuredDataService {
   generateSpotItemList(
     spots: (Spot | LocalSpot | SpotPreviewData)[],
     listName: string = "Parkour Spots"
-  ): any {
+  ): Record<string, unknown> {
     const listItems = spots.map((spot, index) => {
       if (spot instanceof Spot || spot instanceof LocalSpot) {
         return {
@@ -426,14 +447,18 @@ export class StructuredDataService {
         };
       } else {
         // SpotPreviewData - create minimal Place data
-        const placeItem: any = {
-          "@type": "Place",
+        const isReviewEligible =
+          this.isSpotPreviewReviewRichResultEligible(spot);
+        const placeItem: SpotStructuredData = {
+          "@type": isReviewEligible ? "SportsActivityLocation" : "Place",
           name: spot.name,
-          url: `${environment.baseUrl}/map/${spot.slug ?? spot.id}`,
+          url: `${environment.baseUrl}/${this.locale}/map/${
+            spot.slug ?? spot.id
+          }`,
         };
 
         if (spot.location) {
-          placeItem.geo = {
+          placeItem["geo"] = {
             "@type": "GeoCoordinates",
             latitude: spot.location.latitude,
             longitude: spot.location.longitude,
@@ -441,15 +466,18 @@ export class StructuredDataService {
         }
 
         if (spot.imageSrc) {
-          placeItem.image = this.normalizeAbsoluteUrl(spot.imageSrc);
+          placeItem["image"] = this.normalizeAbsoluteUrl(spot.imageSrc);
         }
 
-        if (spot.rating) {
-          placeItem.aggregateRating = {
+        const reviewCount = this.getSpotPreviewReviewCount(spot);
+        if (isReviewEligible && spot.rating && reviewCount) {
+          placeItem["aggregateRating"] = {
             "@type": "AggregateRating",
             ratingValue: spot.rating,
             bestRating: 5,
             worstRating: 1,
+            ratingCount: reviewCount,
+            reviewCount: reviewCount,
           };
         }
 
@@ -500,5 +528,51 @@ export class StructuredDataService {
       return `${environment.baseUrl}${trimmed}`;
     }
     return `${environment.baseUrl}/${trimmed.replace(/^\/+/, "")}`;
+  }
+
+  private getSpotPreviewReviewCount(
+    spot: SpotPreviewData
+  ): number | undefined {
+    return (
+      this.getPositiveInteger(spot.numReviews) ??
+      this.getPositiveInteger(spot.num_reviews)
+    );
+  }
+
+  private getPositiveInteger(value: unknown): number | undefined {
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+      return undefined;
+    }
+
+    return Math.floor(value);
+  }
+
+  private isSpotReviewRichResultEligible(spot: Spot | LocalSpot): boolean {
+    return this.isReviewRichResultEligibleSpotType(spot.type(), spot.access());
+  }
+
+  private isSpotPreviewReviewRichResultEligible(
+    spot: SpotPreviewData
+  ): boolean {
+    return this.isReviewRichResultEligibleSpotType(
+      parseSpotType(spot.type),
+      parseSpotAccess(spot.access)
+    );
+  }
+
+  private isReviewRichResultEligibleSpotType(
+    type: SpotTypes,
+    access: SpotAccess
+  ): boolean {
+    if (access === SpotAccess.Commercial) {
+      return [
+        SpotTypes.ParkourGym,
+        SpotTypes.PkPark,
+        SpotTypes.TrampolinePark,
+        SpotTypes.GymnasticsGym,
+      ].includes(type);
+    }
+
+    return false;
   }
 }
