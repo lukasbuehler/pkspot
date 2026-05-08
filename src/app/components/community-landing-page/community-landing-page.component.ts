@@ -24,6 +24,8 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
+import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { LocalSpot, Spot } from "../../../db/models/Spot";
 
 interface CommunityExternalLink {
   label: string;
@@ -61,15 +63,29 @@ export class CommunityLandingPageComponent {
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
   openProgress = input<number>(1);
+  backLabel = input<string | null>(null);
+  backTypeLabel = input<string | null>(null);
 
   /** Emitted when the user closes the panel (panel mode only). */
   closePanel = output<void>();
+  /** Emitted when the user taps the contextual panel back button. */
+  back = output<void>();
 
   /** Emitted when the user clicks an event card in panel mode. */
   selectEvent = output<PkEvent>();
 
+  /** Emitted when panel-mode navigation should stay inside the map panel. */
+  openCommunityPath = output<string>();
+
+  /** Emitted when the user clicks a spot card in panel mode. */
+  selectSpot = output<SpotPreviewData>();
+
   onClose() {
     this.closePanel.emit();
+  }
+
+  onBack() {
+    this.back.emit();
   }
 
   /** Maximum events shown above the spots before falling back to a "more" link. */
@@ -227,6 +243,19 @@ export class CommunityLandingPageComponent {
 
   onSelectEvent(event: PkEvent): void {
     this.selectEvent.emit(event);
+  }
+
+  onCommunityPathClick(event: MouseEvent, path: string): void {
+    event.preventDefault();
+    this.openCommunityPath.emit(path);
+  }
+
+  onSelectSpot(spot: SpotPreviewData | Spot | LocalSpot): void {
+    if ("clone" in spot) {
+      return;
+    }
+
+    this.selectSpot.emit(spot);
   }
 
   lastUpdatedDate = computed(() => {

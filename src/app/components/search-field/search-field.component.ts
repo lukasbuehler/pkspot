@@ -53,6 +53,8 @@ import {
 interface SearchSelection {
   type: "place" | "spot" | "community";
   id: string;
+  community?: CommunitySearchPreview;
+  spot?: SearchSpotPreview;
 }
 
 interface SearchSpotHitDocument {
@@ -73,7 +75,9 @@ interface SearchSpotHitDocument {
 
 interface SearchSpotPreview {
   name?: string;
+  slug?: string;
   imageSrc?: string;
+  locality?: string;
   rating?: number;
   amenities?: AmenitiesMap;
 }

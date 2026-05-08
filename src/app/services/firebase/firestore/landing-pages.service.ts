@@ -76,7 +76,8 @@ export class LandingPagesService {
 
   async getCommunityPage(
     slug: string,
-    limitCount: number = 12
+    limitCount: number = 12,
+    includeChildCommunities: boolean = true
   ): Promise<CommunityLandingPageData | null> {
     const normalizedSlug = normalizeCommunitySlug(slug);
     if (!normalizedSlug) {
@@ -104,7 +105,7 @@ export class LandingPagesService {
     }
 
     const childCommunities =
-      pageDoc.scope === "country"
+      includeChildCommunities && pageDoc.scope === "country"
         ? await this.getChildCommunities(pageDoc.communityKey)
         : [];
 

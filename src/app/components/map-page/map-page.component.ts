@@ -135,7 +135,27 @@ import {
   MapIslandCommunity,
   MapIslandContent,
 } from "../map-island/map-island.component";
+import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { afterNextRender } from "@angular/core";
+
+interface PendingSpotPanel {
+  id: string;
+  slug?: string;
+  name: string;
+  imageSrc?: string;
+  locality?: string;
+  rating?: number;
+}
+
+interface PendingEventPanel {
+  idOrSlug: string;
+}
+
+interface PanelBackTarget {
+  path: string;
+  label: string;
+  typeLabel: string;
+}
 
 @Component({
   selector: "app-map-page",
@@ -200,6 +220,7 @@ import { afterNextRender } from "@angular/core";
     CommunityLandingPageComponent,
     MapIslandComponent,
     EventPreviewComponent,
+    MapInfoPanelComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -219,7 +240,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   searchResultSpots: WritableSignal<Spot[]> = signal([]);
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
+  pendingSpotPreview = signal<PendingSpotPanel | null>(null);
   selectedCommunityLanding = signal<CommunityLandingPageData | null>(null);
+  pendingCommunityLanding = signal<MapIslandCommunity | null>(null);
+  panelBackTarget = signal<PanelBackTarget | null>(null);
   /**
    * Event currently shown as a preview on the map (sidebar / bottom-sheet).
    * Set when the user clicks an event from the community panel or the
@@ -228,6 +252,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * underneath.
    */
   selectedEvent = signal<PkEvent | null>(null);
+  pendingEventPreview = signal<PendingEventPanel | null>(null);
   selectedPoi = signal<PoiData | null>(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
   selectedSpotIdForEdits = computed(() => {
@@ -397,6 +422,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Communities the user has dismissed in the current session. */
   private _dismissedCommunityKeys = signal<Set<string>>(new Set());
   private _communityRouteLoadVersion = 0;
+  private _spotPreviewCache = new Map<string, PendingSpotPanel>();
+  private _eventPreviewCache = new Map<string, PkEvent>();
 
   /**
    * Geographic extent of the community currently surfaced in the map-island
@@ -407,7 +434,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   activeCommunityArea = computed<
     { center: { lat: number; lng: number }; radiusM: number } | null
   >(() => {
-    const data = this.selectedCommunityLanding();
+    const data =
+      this.selectedCommunityLanding() ?? this.pendingCommunityLanding();
     if (!data) return null;
     if (
       !data.boundsCenter ||
@@ -604,12 +632,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onIslandOpenEvent(event: PkEvent): void {
-    // Open the event preview in-place (no route navigation). Same pattern
-    // as the community island: `openEventPreview` already syncs the URL
-    // to /map/events/<id> via Location.replaceState so the result is
-    // bookmarkable. The full /events/<id> page is reachable via the
-    // preview's "See full event" CTA.
-    this.openEventPreview(event);
+    this.openEventPath(event.slug ?? event.id, event);
   }
 
   /**
@@ -623,12 +646,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   onIslandOpenCommunity(
     community: MapIslandCommunity | CommunityLandingPageData
   ): void {
-    this.selectedEvent.set(null);
-    this._spotLoadRequestVersion++;
-    this.selectedSpot.set(null);
-    this.selectedPoi.set(null);
-    this.closeChallenge(false);
-    this.resetPanelContentToTop();
+    this._prepareCommunityPanelOpen();
     this._dismissedCommunityKeys.update((set) => {
       // Clearing a previous dismissal is the right thing here — the user
       // just explicitly opened it.
@@ -638,26 +656,206 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     if (this._isFullCommunityLanding(community)) {
+      this.panelBackTarget.set(
+        this._getCurrentPanelBackTarget(community.canonicalPath)
+      );
       this.selectedCommunityLanding.set(community);
+      this.pendingCommunityLanding.set(null);
       this._location.go(community.canonicalPath);
+      this._hydrateCountryCommunityChildren(community);
       return;
     }
 
     // Lightweight typesense preview — patch URL optimistically, then lazy
     // load the full landing page data from Firestore.
+    const requestVersion = ++this._communityRouteLoadVersion;
+    this.pendingCommunityLanding.set(community);
+    this._openInfoPanel();
+    this._focusCommunityPreviewOnMap(community);
     if (community.canonicalPath) {
+      this.panelBackTarget.set(
+        this._getCurrentPanelBackTarget(community.canonicalPath)
+      );
       this._location.go(community.canonicalPath);
     }
     this._landingPagesService
-      .getCommunityPage(community.slug)
+      .getCommunityPage(community.slug, 12, false)
       .then((full) => {
-        if (full) {
+        if (
+          requestVersion !== this._communityRouteLoadVersion ||
+          !this.pendingCommunityLanding()
+        ) {
+          return;
+        }
+
+        if (full && full.communityKey === community.communityKey) {
           this.selectedCommunityLanding.set(full);
+          this._hydrateCountryCommunityChildren(full, requestVersion);
         }
       })
       .catch((err) => {
         console.error("Failed to load community landing page", err);
+      })
+      .finally(() => {
+        if (requestVersion === this._communityRouteLoadVersion) {
+          this.pendingCommunityLanding.set(null);
+        }
       });
+  }
+
+  openCommunityPath(path: string): void {
+    const cleanPath = path.split("?")[0].split("#")[0];
+    const slug = decodeURIComponent(
+      cleanPath.split("/").filter(Boolean).pop() ?? ""
+    );
+    if (!slug) {
+      return;
+    }
+
+    const nextPath = `/map/communities/${encodeURIComponent(slug)}`;
+    this.panelBackTarget.set(this._getCurrentPanelBackTarget(nextPath));
+    this._location.go(nextPath);
+    this._syncMapPanelStateFromUrl(nextPath);
+  }
+
+  openSpotPath(
+    spotIdOrSlug: string,
+    preview?: Partial<PendingSpotPanel> | null
+  ): void {
+    if (!spotIdOrSlug) {
+      return;
+    }
+
+    const pathId = encodeURIComponent(spotIdOrSlug);
+    const nextPath = `/map/spots/${pathId}`;
+    if (preview) {
+      this._spotPreviewCache.set(spotIdOrSlug, {
+        id: String(preview.id ?? spotIdOrSlug),
+        slug: preview.slug ?? spotIdOrSlug,
+        name: preview.name || $localize`:@@map.spot_loading_fallback:Spot`,
+        imageSrc: preview.imageSrc,
+        locality: preview.locality,
+        rating: preview.rating,
+      });
+    }
+    this.panelBackTarget.set(this._getCurrentPanelBackTarget(nextPath));
+    this._location.go(nextPath);
+
+    const routeState = this._parseMapRouteState(nextPath);
+    this._handleURLParamsChange(
+      routeState.spotIdOrSlug,
+      routeState.showChallenges,
+      routeState.challengeId,
+      routeState.showEditHistory
+    );
+  }
+
+  openEventPath(
+    eventIdOrSlug: string,
+    event?: PkEvent | null,
+    replaceUrl: boolean = false
+  ): void {
+    if (!eventIdOrSlug) {
+      return;
+    }
+
+    if (event) {
+      this._eventPreviewCache.set(eventIdOrSlug, event);
+      this._eventPreviewCache.set(event.id, event);
+      if (event.slug) {
+        this._eventPreviewCache.set(event.slug, event);
+      }
+    }
+
+    const nextPath = `/map/events/${encodeURIComponent(eventIdOrSlug)}`;
+    if (replaceUrl) {
+      this._location.replaceState(nextPath);
+    } else {
+      this.panelBackTarget.set(this._getCurrentPanelBackTarget(nextPath));
+      this._location.go(nextPath);
+    }
+    this._loadEventFromRouteIfPresent(nextPath);
+  }
+
+  private _prepareCommunityPanelOpen(): void {
+    this.selectedEvent.set(null);
+    this.pendingEventPreview.set(null);
+    this._spotLoadRequestVersion++;
+    this.selectedSpot.set(null);
+    this.pendingSpotPreview.set(null);
+    this.selectedPoi.set(null);
+    this.closeChallenge(false);
+    this.showSpotEditHistory.set(false);
+    this.selectedCommunityLanding.set(null);
+    this.resetPanelContentToTop();
+  }
+
+  goBackToPreviousPanel(): void {
+    this._location.back();
+  }
+
+  private _getCurrentPanelBackTarget(nextPath: string): PanelBackTarget | null {
+    const currentPath = (this._location.path() || this.router.url || "")
+      .split("?")[0]
+      .split("#")[0];
+    const cleanNextPath = nextPath.split("?")[0].split("#")[0];
+    if (
+      !currentPath ||
+      currentPath === cleanNextPath ||
+      !/^\/map\/(?:spots|events|communities|community)\//u.test(currentPath)
+    ) {
+      return null;
+    }
+
+    const label = this._getCurrentPanelBackLabel(currentPath);
+    return {
+      path: currentPath,
+      label,
+      typeLabel: this._getCurrentPanelBackTypeLabel(currentPath),
+    };
+  }
+
+  private _getCurrentPanelBackTypeLabel(path: string): string {
+    if (/^\/map\/(?:communities|community)\//u.test(path)) {
+      return $localize`:@@map.panel_back_type_community:Community`;
+    }
+    if (/^\/map\/events\//u.test(path)) {
+      return $localize`:@@map.panel_back_type_event:Event`;
+    }
+    if (/^\/map\/spots\//u.test(path)) {
+      return $localize`:@@map.panel_back_type_spot:Spot`;
+    }
+    return "";
+  }
+
+  private _getCurrentPanelBackLabel(path: string): string {
+    const community =
+      this.selectedCommunityLanding() ?? this.pendingCommunityLanding();
+    if (/^\/map\/(?:communities|community)\//u.test(path) && community) {
+      return community.displayName;
+    }
+
+    const event = this.selectedEvent();
+    if (/^\/map\/events\//u.test(path) && event) {
+      return event.name;
+    }
+
+    const pendingEvent = this.pendingEventPreview();
+    if (/^\/map\/events\//u.test(path) && pendingEvent) {
+      return pendingEvent.idOrSlug;
+    }
+
+    const spot = this.selectedSpot();
+    if (/^\/map\/spots\//u.test(path) && spot instanceof Spot) {
+      return spot.name();
+    }
+
+    const pendingSpot = this.pendingSpotPreview();
+    if (/^\/map\/spots\//u.test(path) && pendingSpot) {
+      return pendingSpot.name;
+    }
+
+    return decodeURIComponent(path.split("/").filter(Boolean).pop() ?? "Map");
   }
 
   private _isFullCommunityLanding(
@@ -731,29 +929,23 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   ): void {
     const updateUrl = options.updateUrl ?? true;
     const replaceUrl = options.replaceUrl ?? false;
+    if (updateUrl) {
+      this.openEventPath(event.slug ?? event.id, event, replaceUrl);
+      return;
+    }
+
     this._spotLoadRequestVersion++;
     this.selectedSpot.set(null);
+    this.pendingSpotPreview.set(null);
     this.selectedPoi.set(null);
     this.selectedCommunityLanding.set(null);
+    this.pendingCommunityLanding.set(null);
     this.closeChallenge(false);
     this.showSpotEditHistory.set(false);
+    this.pendingEventPreview.set(null);
     this.selectedEvent.set(event);
     this._openInfoPanel();
     this.resetPanelContentToTop();
-
-    // Sync the URL so the preview is bookmarkable / shareable without
-    // remounting the map through Router navigation.
-    const eventPathId = event.slug ?? event.id;
-    if (updateUrl && eventPathId) {
-      const queryString =
-        (typeof window !== "undefined" && window.location.search) || "";
-      const path = `/map/events/${eventPathId}${queryString}`;
-      if (replaceUrl) {
-        this._location.replaceState(path);
-      } else {
-        this._location.go(path);
-      }
-    }
 
     const bounds = event.bounds;
     if (this.spotMap && bounds && typeof google !== "undefined") {
@@ -770,8 +962,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   closeEventPreview(): void {
-    if (!this.selectedEvent()) return;
+    if (!this.selectedEvent() && !this.pendingEventPreview()) return;
     this.selectedEvent.set(null);
+    this.pendingEventPreview.set(null);
+    this.panelBackTarget.set(null);
     this.resetPanelContentToTop();
     // Strip the /events/<id> segment from the URL.
     const cleanUrl = (this.router.url || "").split("?")[0];
@@ -787,10 +981,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * `onIslandOpenCommunity`: a `router.navigate` would remount the map.
    */
   closeCommunityPanel(): void {
-    if (!this.selectedCommunityLanding()) {
+    if (!this.selectedCommunityLanding() && !this.pendingCommunityLanding()) {
       return;
     }
+    this._communityRouteLoadVersion++;
     this.selectedCommunityLanding.set(null);
+    this.pendingCommunityLanding.set(null);
+    this.panelBackTarget.set(null);
     this.resetPanelContentToTop();
     // Strip the /community/<slug> segment from the URL while preserving
     // any query params the map page is using.
@@ -910,9 +1107,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     effect(() => {
       // Read all relevant routing state signals so URL stays in sync
       this.selectedSpot();
+      this.pendingSpotPreview();
       this.selectedChallenge();
       this.selectedEvent();
+      this.pendingEventPreview();
       this.selectedCommunityLanding();
+      this.pendingCommunityLanding();
       this.showAllChallenges();
       this.showSpotEditHistory();
       this.selectedFilter(); // Include filter in URL sync
@@ -1355,9 +1555,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             // Navigating away from map, do not interfere
             return;
           }
-          this._syncMapPanelStateFromUrl(navEvent.urlAfterRedirects);
-          const routeState = this._parseMapRouteState(navEvent.urlAfterRedirects);
-
+          this._syncFullMapStateFromUrl(navEvent.urlAfterRedirects);
           // Also extract filter query param from URL to keep it in sync
           const queryIndex = navEvent.urlAfterRedirects.indexOf("?");
           const queryString =
@@ -1370,12 +1568,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             this.filterChipChanged(filterParam);
           }
 
-          this._handleURLParamsChange(
-            routeState.spotIdOrSlug,
-            routeState.showChallenges,
-            routeState.challengeId,
-            routeState.showEditHistory
-          );
         });
 
       this._locationSubscription = this._location.subscribe((event) => {
@@ -1388,7 +1580,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         // the map stays mounted. Browser back/forward can therefore update
         // the address bar without a fresh router resolver pass; keep the
         // selected panel state in step with that URL here.
-        this._syncMapPanelStateFromUrl(url);
+        this._syncFullMapStateFromUrl(url);
       });
 
       // Setup scroll listeners for the sidebar (desktop) and bottom-sheet (mobile)
@@ -1490,11 +1682,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.selectedChallenge()) this.closeChallenge();
       this.showAllChallenges.set(showChallenges);
       this.showSpotEditHistory.set(showEditHistory);
+      const pendingPreview = this._spotPreviewCache.get(spotIdOrSlug);
 
       // If we already have the resolved spot, use it
       if (resolvedSpot && this.selectedSpot() !== resolvedSpot) {
         this.selectSpot(resolvedSpot, false);
       } else if (this.selectedSpotIdOrSlug() !== spotIdOrSlug) {
+        this._openPendingSpotPanel(
+          pendingPreview ?? {
+            id: spotIdOrSlug,
+            slug: spotIdOrSlug,
+            name: spotIdOrSlug,
+          },
+          false
+        );
         this._getSpotIdFromSlugOrId(spotIdOrSlug).then((spotId) => {
           if (!spotId) {
             console.warn("Could not get spot id from slug or id.");
@@ -1515,6 +1716,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   openSpotOrGooglePlace(value: {
     type: "place" | "spot" | "community";
     id: string;
+    community?: CommunitySearchPreview;
+    spot?: {
+      name?: string;
+      slug?: string;
+      imageSrc?: string;
+      locality?: string;
+      rating?: number;
+    };
   }) {
     this.clearSearchPlacePreview();
 
@@ -1523,20 +1732,54 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (value.type === "community") {
+      const communityPreview =
+        value.community ??
+        this._promotableCommunities().find(
+          (community) =>
+            community.slug === value.id ||
+            community.communityKey === value.id ||
+            community.id === value.id
+        );
+
+      if (communityPreview) {
+        this.onIslandOpenCommunity(communityPreview);
+        return;
+      }
+
+      this._prepareCommunityPanelOpen();
+      this.pendingCommunityLanding.set({
+        id: value.id,
+        communityKey: value.id,
+        slug: value.id,
+        displayName: value.id,
+        canonicalPath: `/map/communities/${encodeURIComponent(value.id)}`,
+        totalSpots: 0,
+      });
+      this._openInfoPanel();
       this._landingPagesService
-        .getCommunityPage(value.id)
+        .getCommunityPage(value.id, 12, false)
         .then((community) => {
           if (community) {
-            this.onIslandOpenCommunity(community);
+            this.selectedCommunityLanding.set(community);
+            this._hydrateCountryCommunityChildren(community);
           }
         })
         .catch((err) => {
           console.error("Failed to load community from search:", err);
+        })
+        .finally(() => {
+          this.pendingCommunityLanding.set(null);
         });
       return;
     }
 
-    this.loadSpotById(value.id as SpotId).then(() => {});
+    this.openSpotPath(value.spot?.slug ?? value.id, {
+      id: value.id,
+      name: value.spot?.name,
+      imageSrc: value.spot?.imageSrc,
+      locality: value.spot?.locality,
+      rating: value.spot?.rating,
+    });
   }
 
   onSearchCommunityPreviewChange(
@@ -1632,9 +1875,26 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap?.focusPoint({ lat, lng }, zoomLevel);
   }
 
-  async loadSpotById(spotId: SpotId, updateUrl: boolean = true): Promise<Spot> {
+  async loadSpotById(
+    spotId: SpotId,
+    updateUrl: boolean = true,
+    preview?: Partial<PendingSpotPanel> | null
+  ): Promise<Spot> {
     console.debug("loading spot by id", spotId);
     const requestVersion = ++this._spotLoadRequestVersion;
+    if (preview) {
+      this._openPendingSpotPanel(
+        {
+          id: String(preview.id ?? spotId),
+          slug: preview.slug,
+          name: preview.name || $localize`:@@map.spot_loading_fallback:Spot`,
+          imageSrc: preview.imageSrc,
+          locality: preview.locality,
+          rating: preview.rating,
+        },
+        updateUrl
+      );
+    }
 
     // Retry loading the spot if it's not yet populated by the cloud function
     let lastError: any;
@@ -1650,6 +1910,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         if (requestVersion !== this._spotLoadRequestVersion) {
           return spot;
         }
+        this.pendingSpotPreview.set(null);
         this.selectSpot(spot, updateUrl);
         return spot;
       } catch (error) {
@@ -1671,6 +1932,27 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // All attempts failed
     console.error("Failed to load spot after retries:", lastError);
     throw lastError;
+  }
+
+  private _openPendingSpotPanel(
+    preview: PendingSpotPanel,
+    updateUrl: boolean
+  ): void {
+    this.selectedEvent.set(null);
+    this.pendingEventPreview.set(null);
+    this.selectedCommunityLanding.set(null);
+    this.pendingCommunityLanding.set(null);
+    this.selectedSpot.set(null);
+    this.selectedPoi.set(null);
+    this.closeChallenge(false);
+    this.showSpotEditHistory.set(false);
+    this.pendingSpotPreview.set(preview);
+    this._openInfoPanel();
+    this.resetPanelContentToTop();
+
+    if (updateUrl) {
+      this.updateMapURL();
+    }
   }
 
   async loadChallengeById(
@@ -2098,11 +2380,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const selectedSpot = this.selectedSpot();
+    const pendingSpot = this.pendingSpotPreview();
     const selectedChallenge = this.selectedChallenge();
     const showEditHistory = this.showSpotEditHistory();
     const activeFilter = this.selectedFilter();
     const communityLanding = this.selectedCommunityLanding();
+    const pendingCommunityLanding = this.pendingCommunityLanding();
     const selectedEvent = this.selectedEvent();
+    const pendingEvent = this.pendingEventPreview();
 
     // Get the spot - prefer selectedSpot, but fall back to challenge's spot
     const spot =
@@ -2129,12 +2414,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       path = buildSpotChallengeCanonicalPath(spot.slug ?? spot.id);
     } else if (spot) {
       path = buildSpotCanonicalPath(spot.slug ?? spot.id);
+    } else if (pendingSpot) {
+      path = buildSpotCanonicalPath(pendingSpot.slug ?? pendingSpot.id);
     } else if (selectedEvent) {
       path = `/map/events/${encodeURIComponent(
         selectedEvent.slug ?? selectedEvent.id
       )}`;
+    } else if (pendingEvent) {
+      path = `/map/events/${encodeURIComponent(pendingEvent.idOrSlug)}`;
     } else if (communityLanding) {
       path = communityLanding.canonicalPath;
+    } else if (pendingCommunityLanding?.canonicalPath) {
+      path = pendingCommunityLanding.canonicalPath;
     } else {
       path = `/map`;
     }
@@ -2287,8 +2578,39 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       // Check for SpotPreviewData
       if (!("clone" in spot)) {
-        const id = spot.slug || spot.id;
-        this.loadSpotById(id as SpotId).then(() => {});
+        if (updateUrl) {
+          this.openSpotPath(spot.slug ?? spot.id, {
+            id: spot.id,
+            slug: spot.slug,
+            name: spot.name,
+            imageSrc: spot.imageSrc,
+            locality: spot.locality,
+            rating: spot.rating,
+          });
+          return;
+        }
+
+        this.loadSpotById(spot.id as SpotId, false, {
+          id: spot.id,
+          slug: spot.slug,
+          name: spot.name,
+          imageSrc: spot.imageSrc,
+          locality: spot.locality,
+          rating: spot.rating,
+        }).then(() => {});
+        return;
+      }
+
+      if (updateUrl && spot instanceof Spot) {
+        const preview = spot.makePreviewData();
+        this.openSpotPath(spot.slug ?? spot.id, {
+          id: spot.id,
+          slug: spot.slug ?? undefined,
+          name: preview.name,
+          imageSrc: preview.imageSrc,
+          locality: preview.locality,
+          rating: preview.rating,
+        });
         return;
       }
 
@@ -2299,8 +2621,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.closeChallenge(false);
       this._spotLoadRequestVersion++;
       this.selectedEvent.set(null);
+      this.pendingEventPreview.set(null);
       this.selectedCommunityLanding.set(null);
+      this.pendingCommunityLanding.set(null);
       this.selectedPoi.set(null);
+      this.pendingSpotPreview.set(null);
       this.selectedSpot.set(spot);
       this.resetPanelContentToTop();
 
@@ -2486,8 +2811,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
     const match = cleanUrl.match(/^\/map\/events\/([^/]+)$/u);
     if (!match) {
-      if (this.selectedEvent()) {
+      if (this.selectedEvent() || this.pendingEventPreview()) {
         this.selectedEvent.set(null);
+        this.pendingEventPreview.set(null);
       }
       return;
     }
@@ -2498,7 +2824,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       current &&
       (current.slug === eventIdOrSlug || current.id === (eventIdOrSlug as any))
     ) {
+      this.pendingEventPreview.set(null);
       return; // already showing
+    }
+
+    this._openPendingEventFromRoute(eventIdOrSlug);
+    const cachedEvent = this._eventPreviewCache.get(eventIdOrSlug);
+    if (cachedEvent) {
+      this.pendingEventPreview.set(null);
+      this.openEventPreview(cachedEvent, { updateUrl: false });
+      return;
     }
 
     void this._eventsService
@@ -2507,13 +2842,48 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!event) return;
         // Only apply if the URL is still on this event — guard against
         // navigation racing with the fetch.
-        const currentUrl = (this.router.url || "").split("?")[0];
+        const currentUrl = (this._location.path() || this.router.url || "")
+          .split("?")[0]
+          .split("#")[0];
         if (!currentUrl.endsWith(`/${eventIdOrSlug}`)) return;
+        this.pendingEventPreview.set(null);
         this.openEventPreview(event, { updateUrl: false });
       })
       .catch((err) =>
         console.warn("MapPage: failed to load event from route", err)
-      );
+      )
+      .finally(() => {
+        if (this.pendingEventPreview()?.idOrSlug === eventIdOrSlug) {
+          this.pendingEventPreview.set(null);
+        }
+      });
+  }
+
+  private _openPendingEventFromRoute(eventIdOrSlug: string): void {
+    this._spotLoadRequestVersion++;
+    this.selectedSpot.set(null);
+    this.pendingSpotPreview.set(null);
+    this.selectedPoi.set(null);
+    this.selectedCommunityLanding.set(null);
+    this.pendingCommunityLanding.set(null);
+    this.closeChallenge(false);
+    this.showSpotEditHistory.set(false);
+    this.selectedEvent.set(null);
+    this.pendingEventPreview.set({ idOrSlug: eventIdOrSlug });
+    this._openInfoPanel();
+    this.resetPanelContentToTop();
+  }
+
+  private _syncFullMapStateFromUrl(url: string): void {
+    this.panelBackTarget.set(null);
+    this._syncMapPanelStateFromUrl(url);
+    const routeState = this._parseMapRouteState(url);
+    this._handleURLParamsChange(
+      routeState.spotIdOrSlug,
+      routeState.showChallenges,
+      routeState.challengeId,
+      routeState.showEditHistory
+    );
   }
 
   private _syncMapPanelStateFromUrl(url: string): void {
@@ -2526,8 +2896,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       const slug = decodeURIComponent(communityMatch[1]);
       const current = this.selectedCommunityLanding();
       this.selectedEvent.set(null);
+      this.pendingEventPreview.set(null);
+      this._spotLoadRequestVersion++;
+      this.selectedSpot.set(null);
+      this.pendingSpotPreview.set(null);
+      this.selectedPoi.set(null);
+      this.closeChallenge(false);
+      this.showSpotEditHistory.set(false);
 
       if (current && this._communityMatchesSlug(current, slug)) {
+        this._openInfoPanel();
         return;
       }
 
@@ -2537,12 +2915,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this._communityMatchesSlug(routedCommunity, slug)
       ) {
         this.selectedCommunityLanding.set(routedCommunity);
+        this.pendingCommunityLanding.set(null);
+        this._hydrateCountryCommunityChildren(routedCommunity);
         return;
       }
 
       const requestVersion = ++this._communityRouteLoadVersion;
+      const preview = this._findCommunityPreviewBySlug(slug);
+      this.pendingCommunityLanding.set(
+        preview ?? {
+          id: slug,
+          communityKey: slug,
+          slug,
+          displayName: slug,
+          canonicalPath: `/map/communities/${encodeURIComponent(slug)}`,
+          totalSpots: 0,
+        }
+      );
+      this.selectedCommunityLanding.set(null);
+      this._openInfoPanel();
+
       void this._landingPagesService
-        .getCommunityPage(slug)
+        .getCommunityPage(slug, 12, false)
         .then((community) => {
           if (!community) {
             return;
@@ -2560,15 +2954,70 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           }
 
           this.selectedCommunityLanding.set(community);
+          this._hydrateCountryCommunityChildren(community, requestVersion);
+          this.pendingCommunityLanding.set(null);
         })
         .catch((err) =>
           console.warn("MapPage: failed to load community from route", err)
-        );
+        )
+        .finally(() => {
+          if (requestVersion === this._communityRouteLoadVersion) {
+            this.pendingCommunityLanding.set(null);
+          }
+        });
       return;
     }
 
     this.selectedCommunityLanding.set(null);
+    this.pendingCommunityLanding.set(null);
     this._loadEventFromRouteIfPresent(url);
+  }
+
+  private _findCommunityPreviewBySlug(
+    slug: string
+  ): CommunitySearchPreview | null {
+    return (
+      this._promotableCommunities().find(
+        (community) =>
+          community.slug === slug ||
+          community.canonicalPath?.endsWith(`/${encodeURIComponent(slug)}`) ||
+          community.canonicalPath?.endsWith(`/${slug}`)
+      ) ?? null
+    );
+  }
+
+  private _hydrateCountryCommunityChildren(
+    community: CommunityLandingPageData,
+    requestVersion = this._communityRouteLoadVersion
+  ): void {
+    if (
+      community.scope !== "country" ||
+      community.childCommunities.length > 0
+    ) {
+      return;
+    }
+
+    void this._landingPagesService
+      .getChildCommunities(community.communityKey)
+      .then((childCommunities) => {
+        if (requestVersion !== this._communityRouteLoadVersion) {
+          return;
+        }
+
+        this.selectedCommunityLanding.update((current) => {
+          if (!current || current.communityKey !== community.communityKey) {
+            return current;
+          }
+
+          return {
+            ...current,
+            childCommunities,
+          };
+        });
+      })
+      .catch((err) => {
+        console.warn("MapPage: failed to load child communities", err);
+      });
   }
 
   private _communityMatchesSlug(
@@ -2660,6 +3109,31 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.spotMap.focusPoint(center, this._getCommunityFocusZoom(communityLanding));
     return true;
+  }
+
+  private _focusCommunityPreviewOnMap(community: MapIslandCommunity): void {
+    if (
+      !isPlatformBrowser(this.platformId) ||
+      !this.spotMap ||
+      !community.boundsCenter ||
+      typeof community.boundsRadiusM !== "number" ||
+      typeof google === "undefined"
+    ) {
+      return;
+    }
+
+    const [lat, lng] = community.boundsCenter;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return;
+    }
+
+    const radiusDegrees = community.boundsRadiusM / 111_320;
+    this.spotMap.focusBounds(
+      new google.maps.LatLngBounds(
+        { lat: lat - radiusDegrees, lng: lng - radiusDegrees },
+        { lat: lat + radiusDegrees, lng: lng + radiusDegrees }
+      )
+    );
   }
 
   private _extractCommunityCoordinates(
@@ -2771,6 +3245,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   closeSpot(updateUrl: boolean = true) {
     this._spotLoadRequestVersion++;
     this.selectedSpot.set(null);
+    this.pendingSpotPreview.set(null);
     this.selectedPoi.set(null); // Clear selected POI
     this.showSpotEditHistory.set(false);
     this.closeChallenge(false);

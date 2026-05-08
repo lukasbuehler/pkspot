@@ -7,6 +7,19 @@
 >
   <mat-card-header class="pb-2 px-3 d-flex flex-column-reverse">
     <mat-card-title class="d-flex align-items-center w-100 gap-1">
+      @if (backLabel(); as label) {
+        <button
+          mat-icon-button
+          type="button"
+          class="map-info-panel-back"
+          (click)="onBack(); $event.stopPropagation()"
+          [matTooltip]="'Go back to ' + label"
+          [attr.aria-label]="'Go back to ' + label"
+        >
+          <mat-icon>arrow_back_ios</mat-icon>
+        </button>
+      }
+
       <span
         class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
       >

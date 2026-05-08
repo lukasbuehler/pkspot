@@ -52,8 +52,13 @@ export class EventPreviewComponent {
 
   /** Allow the host to dismiss the preview (e.g. close button → clear selection). */
   dismissable = input<boolean>(true);
+  /** Optional browser-history back target shown when this preview came from another panel. */
+  backLabel = input<string | null>(null);
+  backTypeLabel = input<string | null>(null);
   /** Emitted when the user dismisses the preview. */
   dismiss = output<void>();
+  /** Emitted when the user taps the preview's contextual back button. */
+  back = output<void>();
 
   readonly status = computed(() => this.event().status());
   readonly countdownTarget = computed<Date | null>(() => {
@@ -108,5 +113,9 @@ export class EventPreviewComponent {
 
   onDismiss() {
     this.dismiss.emit();
+  }
+
+  onBack() {
+    this.back.emit();
   }
 }

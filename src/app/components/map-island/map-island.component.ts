@@ -18,10 +18,12 @@ import { LocationStrategy } from "@angular/common";
  * `preferredSlug`, not `slug`) — the host accepts both via a union.
  */
 export interface MapIslandCommunity {
+  id?: string;
   communityKey: string;
   displayName: string;
   slug: string;
   canonicalPath?: string;
+  totalSpots?: number;
   boundsCenter?: [number, number];
   boundsRadiusM?: number;
 }

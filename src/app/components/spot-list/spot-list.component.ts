@@ -1,8 +1,10 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   EventEmitter,
   input,
+  output,
   Output,
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -32,6 +34,7 @@ import { AutoAnimateDirective } from "../../directives/auto-animate.directive";
   ],
   templateUrl: "./spot-list.component.html",
   styleUrl: "./spot-list.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotListComponent {
   highlightedSpots = input<SpotPreviewData[]>([]);
@@ -46,6 +49,7 @@ export class SpotListComponent {
   text = input<string>($localize`Spots in this area`);
 
   @Output("spotClickIndex") spotClickIndexEvent = new EventEmitter<number>();
+  spotClick = output<SpotPreviewData | Spot | LocalSpot>();
 
   // Filter out highlighted spots from regular spots
   remainingSpots = computed(() => {
@@ -91,7 +95,8 @@ export class SpotListComponent {
     return remaining.slice(0, remainingLimit);
   });
 
-  spotClick(spotIndex: number) {
+  onSpotClick(spot: SpotPreviewData | Spot | LocalSpot, spotIndex: number) {
+    this.spotClick.emit(spot);
     this.spotClickIndexEvent.emit(spotIndex);
   }
 

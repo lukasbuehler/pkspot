@@ -22,7 +22,10 @@
           [icon]="'groups'"
           [iconTooltip]="scopeLabel()"
           [dismissable]="true"
+          [backLabel]="backLabel()"
+          [backTypeLabel]="backTypeLabel()"
           [openProgress]="openProgress()"
+          (back)="onBack()"
           (dismiss)="onClose()"
         >
           <div mapInfoMeta>
@@ -43,12 +46,23 @@
               } @else {
                 <span>{{ scopeLabel() }} in</span>
                 @if (countryBreadcrumb(); as country) {
-                  <a
-                    class="text-decoration-none"
-                    style="color: var(--mat-sys-primary)"
-                    [routerLink]="country.path"
-                    >{{ country.name }}</a
-                  >
+                  @if (panelMode()) {
+                    <a
+                      class="text-decoration-none"
+                      style="color: var(--mat-sys-primary)"
+                      [href]="country.path"
+                      (click)="onCommunityPathClick($event, country.path)"
+                    >
+                      {{ country.name }}
+                    </a>
+                  } @else {
+                    <a
+                      class="text-decoration-none"
+                      style="color: var(--mat-sys-primary)"
+                      [routerLink]="country.path"
+                      >{{ country.name }}</a
+                    >
+                  }
                 } @else if (data.country.name) {
                   <span>{{ data.country.name }}</span>
                 }
@@ -221,15 +235,35 @@
 
           <div class="community-directory-grid">
             @for (child of childCommunities(); track child.communityKey) {
-              <a class="community-link-card" [routerLink]="child.canonicalPath">
-                <span class="community-link-name">{{ child.displayName }}</span>
-                <span class="community-link-meta">
-                  {{ child.totalSpotCount }} spots
-                  @if (child.dryCount > 0) {
-                    <span>· {{ child.dryCount }} dry</span>
-                  }
-                </span>
-              </a>
+              @if (panelMode()) {
+                <a
+                  class="community-link-card"
+                  [href]="child.canonicalPath"
+                  (click)="onCommunityPathClick($event, child.canonicalPath)"
+                >
+                  <span class="community-link-name">
+                    {{ child.displayName }}
+                  </span>
+                  <span class="community-link-meta">
+                    {{ child.totalSpotCount }} spots
+                    @if (child.dryCount > 0) {
+                      <span>· {{ child.dryCount }} dry</span>
+                    }
+                  </span>
+                </a>
+              } @else {
+                <a class="community-link-card" [routerLink]="child.canonicalPath">
+                  <span class="community-link-name">
+                    {{ child.displayName }}
+                  </span>
+                  <span class="community-link-meta">
+                    {{ child.totalSpotCount }} spots
+                    @if (child.dryCount > 0) {
+                      <span>· {{ child.dryCount }} dry</span>
+                    }
+                  </span>
+                </a>
+              }
             }
           </div>
         </section>
@@ -397,8 +431,9 @@
             [highlightedSpots]="data.topRatedSpots"
             [spots]="[]"
             [enableAnimation]="false"
-            [withHrefLink]="true"
+            [withHrefLink]="!panelMode()"
             [text]="'Top Rated Spots'"
+            (spotClick)="onSelectSpot($event)"
           ></app-spot-list>
         </section>
       }
@@ -414,8 +449,9 @@
             [highlightedSpots]="data.drySpots"
             [spots]="[]"
             [enableAnimation]="false"
-            [withHrefLink]="true"
+            [withHrefLink]="!panelMode()"
             [text]="'Dry Spots'"
+            (spotClick)="onSelectSpot($event)"
           ></app-spot-list>
         </section>
       }

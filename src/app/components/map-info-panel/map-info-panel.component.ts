@@ -34,11 +34,19 @@ export class MapInfoPanelComponent {
   iconTooltip = input<string>("");
   dismissTooltip = input<string>("Close");
   dismissable = input<boolean>(false);
+  backLabel = input<string | null>(null);
+  backTypeLabel = input<string | null>(null);
+  backTooltip = input<string>("Go back");
   clickable = input<boolean>(false);
   border = input<boolean>(false);
   openProgress = input<number>(1);
 
+  back = output<void>();
   dismiss = output<void>();
+
+  onBack(): void {
+    this.back.emit();
+  }
 
   onDismiss(): void {
     this.dismiss.emit();

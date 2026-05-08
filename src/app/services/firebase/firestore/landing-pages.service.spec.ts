@@ -201,4 +201,38 @@ describe("LandingPagesService", () => {
       }),
     ]);
   });
+
+  it("should allow country pages to skip child communities for faster panel paint", async () => {
+    mockFirestoreAdapter.getDocument
+      .mockResolvedValueOnce({
+        id: "united-kingdom",
+        communityKey: "country:gb",
+        isPreferred: true,
+      })
+      .mockResolvedValueOnce(
+        buildCommunityDoc({
+          id: "country:gb",
+          communityKey: "country:gb",
+          scope: "country",
+          displayName: "United Kingdom",
+          preferredSlug: "united-kingdom",
+          canonicalPath: "/map/communities/united-kingdom",
+          breadcrumbs: [
+            { name: "Map", path: "/map" },
+            { name: "United Kingdom", path: "/map/communities/united-kingdom" },
+          ],
+          geography: {
+            countryCode: "GB",
+            countryName: "United Kingdom",
+            countrySlug: "united-kingdom",
+          },
+        })
+      );
+
+    const result = await service.getCommunityPage("united-kingdom", 12, false);
+
+    expect(mockFirestoreAdapter.getCollection).not.toHaveBeenCalled();
+    expect(result?.childCommunities).toEqual([]);
+    expect(result?.displayName).toBe("United Kingdom");
+  });
 });

@@ -50,7 +50,7 @@
       [clickable]="true"
       [isCompact]="group.value === 'compact'"
       [loadingPriority]="$index < 2"
-      (click)="spotClick($index)"
+      (click)="onSpotClick(spot, $index)"
       class="w-100"
     >
     </app-spot-preview-card>
@@ -97,7 +97,7 @@
       [imgSize]="400"
       [loadingPriority]="$index < 2"
       class="w-100"
-      (click)="spotClick($index)"
+      (click)="onSpotClick(spot, $index)"
     >
     </app-spot-preview-card>
     }

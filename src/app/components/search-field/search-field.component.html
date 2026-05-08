@@ -25,7 +25,7 @@
     @for(community of results.communities; track community.communityKey) {
     <mat-option
       class="spotAutocompleteOption"
-      [value]="{ type: 'community', id: community.slug }"
+      [value]="{ type: 'community', id: community.slug, community }"
     >
       <div class="d-flex flex-row align-items-center p-1 gap-2">
         @if(community.imageUrl) {
@@ -111,7 +111,7 @@
     } @for(hit of results.spots?.hits; track $index) {
     <mat-option
       class="spotAutocompleteOption"
-      [value]="{ type: 'spot', id: hit.document.id }"
+      [value]="{ type: 'spot', id: hit.document.id, spot: hit.preview }"
     >
       <div
         class="d-flex flex-row align-items-center justify-content-start gap-2 pe-3"

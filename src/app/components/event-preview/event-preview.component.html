@@ -5,7 +5,10 @@
   [icon]="event().sponsor ? 'stars' : 'event'"
   [iconTooltip]="event().sponsor ? 'Sponsored event' : 'Event'"
   [dismissable]="dismissable()"
+  [backLabel]="backLabel()"
+  [backTypeLabel]="backTypeLabel()"
   [openProgress]="openProgress()"
+  (back)="onBack()"
   (dismiss)="onDismiss()"
 >
   <div mapInfoMeta>

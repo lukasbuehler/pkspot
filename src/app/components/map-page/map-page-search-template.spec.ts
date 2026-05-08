@@ -23,23 +23,26 @@ describe("MapPageComponent search template", () => {
 
   it("should hide the Add Spot button while a spot is selected", () => {
     const template = readFileSync(templatePath, "utf8");
-    const addSpotButton = template.match(
-      /@if\([\s\S]*?#createSpotSpeedDial[\s\S]*?<\/button>/
-    )?.[0];
+    const buttonIndex = template.indexOf('id="createSpotSpeedDial"');
+    const addSpotConditionContext = template.slice(
+      Math.max(0, buttonIndex - 800),
+      buttonIndex
+    );
 
-    expect(addSpotButton).toContain("!selectedSpot()");
+    expect(buttonIndex).toBeGreaterThan(-1);
+    expect(addSpotConditionContext).toContain("!selectedSpot()");
   });
 
   it("should keep the Add Spot button renderable when signed in and zoomed in", () => {
     const template = readFileSync(templatePath, "utf8");
-    const addSpotButton = template.match(
-      /@if\([\s\S]*?isSignedIn\(\)[\s\S]*?spotMap\.mapZoom\(\) >= 14[\s\S]*?<button[\s\S]*?id="createSpotSpeedDial"[\s\S]*?<\/button>/
+    const addSpotBlock = template.match(
+      /@if\s*\([\s\S]*?isSignedIn\(\)[\s\S]*?spotMap\.mapZoom\(\) >= 14[\s\S]*?\)\s*\{[\s\S]*?<button[\s\S]*?id="createSpotSpeedDial"[\s\S]*?<\/button>/
     )?.[0];
 
-    expect(addSpotButton).toBeDefined();
-    expect(addSpotButton).toContain("mat-fab");
-    expect(addSpotButton).toContain("(click)=");
-    expect(addSpotButton).toContain("spotMap.createSpot()");
-    expect(addSpotButton).toContain("Add Spot");
+    expect(addSpotBlock).toBeDefined();
+    expect(addSpotBlock).toContain("mat-fab");
+    expect(addSpotBlock).toContain("(click)=");
+    expect(addSpotBlock).toContain("spotMap.createSpot()");
+    expect(addSpotBlock).toContain("Add Spot");
   });
 });
