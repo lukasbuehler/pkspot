@@ -1,0 +1,70 @@
+:host {
+  display: block;
+}
+
+mat-card {
+  height: auto;
+  overflow: visible;
+  box-shadow: none;
+
+  mat-card-header {
+    justify-content: space-between;
+
+    ::ng-deep div.mat-mdc-card-header-text {
+      width: 100%;
+    }
+  }
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.map-info-panel-icon {
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.map-info-panel-title {
+  min-width: 0;
+}
+
+.map-info-panel-type-label {
+  border-color: currentColor !important;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.map-info-panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.collapsible-header-info {
+  opacity: var(--open-progress, 1);
+  max-height: calc(var(--open-progress, 1) * 100px);
+  overflow: hidden;
+  transition:
+    opacity 0.2s ease-out,
+    max-height 0.2s ease-out;
+  pointer-events: auto;
+
+  &[data-collapsed="true"] {
+    opacity: 0;
+    max-height: 0;
+    pointer-events: none;
+  }
+}
+
+button,
+a,
+[mat-button],
+[mat-stroked-button],
+[mat-raised-button],
+[mat-flat-button],
+[mat-icon-button],
+[mat-fab],
+[mat-mini-fab] {
+  touch-action: pan-y;
+}

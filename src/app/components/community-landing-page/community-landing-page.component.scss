@@ -8,7 +8,12 @@
 .community-page-panel {
   max-width: none;
   margin: 0;
-  padding: 0 12px 24px;
+  padding: 0 0 24px;
+}
+
+.community-page-panel .content-section,
+.community-page-panel .panel-disclaimer {
+  padding: 0 16px;
 }
 
 .not-found-state {
@@ -121,6 +126,15 @@
 
 .panel-header {
   color: var(--mat-sys-on-surface);
+}
+
+.community-panel-media {
+  aspect-ratio: 4 / 3;
+  background: var(--mat-sys-surface-container-high);
+  margin-left: -16px;
+  margin-right: -16px;
+  overflow: hidden;
+  position: relative;
 }
 
 .eyebrow {

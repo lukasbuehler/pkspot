@@ -416,7 +416,10 @@ export class EditProfileComponent implements OnInit {
     }
   }
 
-  onSpotSelected(selection: { type: "place" | "spot"; id: string }) {
+  onSpotSelected(selection: {
+    type: "place" | "spot" | "community";
+    id: string;
+  }) {
     if (selection.type === "spot") {
       // Check limit
       if (this.homeSpots.length >= 3) {

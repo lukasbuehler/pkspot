@@ -14,18 +14,72 @@
         </a>
       </section>
     } @else if (panelMode()) {
-      <header class="panel-header pb-2">
-        <app-entity-preview-card
+      <header class="panel-header">
+        <app-map-info-panel
           [title]="heading()"
-          [subtitle]="scopeLabel()"
-          [meta]="totalSpotCount() + ' spots'"
+          [titleTooltip]="heading()"
+          typeLabel="Community"
           [icon]="'groups'"
-          [imageSrc]="data.imageUrl"
-          [imageAlt]="heading()"
-          [fallbackLabel]="heading()"
+          [iconTooltip]="scopeLabel()"
           [dismissable]="true"
+          [openProgress]="openProgress()"
           (dismiss)="onClose()"
-        ></app-entity-preview-card>
+        >
+          <div mapInfoMeta>
+            <div class="d-flex flex-row gap-1 align-items-center pb-1">
+              <span class="mat-label-large text-nowrap text-truncate">
+                {{ totalSpotCount() }} spots
+              </span>
+              @if (dryCount() > 0) {
+                <span>·</span>
+                <span class="mat-label-large text-nowrap text-truncate">
+                  {{ dryCount() }} dry
+                </span>
+              }
+            </div>
+            <span class="text-truncate d-flex align-items-center gap-1">
+              @if (data.scope === "country") {
+                <span>{{ scopeLabel() }}</span>
+              } @else {
+                <span>{{ scopeLabel() }} in</span>
+                @if (countryBreadcrumb(); as country) {
+                  <a
+                    class="text-decoration-none"
+                    style="color: var(--mat-sys-primary)"
+                    [routerLink]="country.path"
+                    >{{ country.name }}</a
+                  >
+                } @else if (data.country.name) {
+                  <span>{{ data.country.name }}</span>
+                }
+              }
+            </span>
+          </div>
+
+          <div class="community-panel-body px-3 pb-3">
+            <div class="community-panel-media">
+              @if (data.imageUrl) {
+                <img
+                  [ngSrc]="data.imageUrl"
+                  fill
+                  class="object-fit-cover"
+                  [alt]="heading()"
+                />
+              } @else {
+                <app-media-placeholder
+                  src="assets/spot_placeholder.png"
+                  [label]="heading()"
+                ></app-media-placeholder>
+              }
+            </div>
+
+            @if (introText()) {
+              <span class="text-truncate d-flex align-items-center gap-1">
+                {{ introText() }}
+              </span>
+            }
+          </div>
+        </app-map-info-panel>
       </header>
     } @else {
       <section class="hero-section">
@@ -179,12 +233,6 @@
             }
           </div>
         </section>
-      }
-
-      @if (panelMode() && introText()) {
-        <p class="mat-body-small intro-copy panel-disclaimer mb-4 px-1">
-          {{ introText() }}
-        </p>
       }
 
       @if (hasManualSections()) {

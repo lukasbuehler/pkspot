@@ -206,17 +206,22 @@
          from the community panel's event card or the map-island. -->
     <app-event-preview
       @fadeInOut
-      class="d-block px-3 pt-2"
+      class="d-block"
       [event]="event"
-      [isCompact]="responsiveService.isMobile() && !bottomSheetOpen()"
+      [openProgress]="
+        responsiveService.isMobile() ? bottomSheetProgress() : 1
+      "
       (dismiss)="closeEventPreview()"
     ></app-event-preview>
   } @else if (selectedCommunityLanding(); as communityData) {
     <app-community-landing-page
-      class="d-block community-map-panel"
+      class="d-block"
       @fadeInOut
       [communityDataInput]="communityData"
       [panelMode]="true"
+      [openProgress]="
+        responsiveService.isMobile() ? bottomSheetProgress() : 1
+      "
       (closePanel)="closeCommunityPanel()"
       (selectEvent)="openEventPreview($event)"
     ></app-community-landing-page>
@@ -253,7 +258,7 @@
                 {{ community.displayName }}
               </a>
               <span class="seo-community-meta">
-                · {{ community.totalSpotCount }}
+                · {{ community.totalSpots }}
                 <span i18n="@@map.seo.spots_suffix">spots</span>
               </span>
             </li>
@@ -462,6 +467,7 @@
 
 <ng-template #mapIsland>
   <app-map-island
+    @fadeInOut
     [content]="visibleIslandContent()"
     (clearFilter)="clearActiveFilter()"
     (openEvent)="onIslandOpenEvent($event)"
@@ -510,6 +516,7 @@
         style="border-radius: 16px"
         (spotSelected)="openSpotOrGooglePlace($event)"
         (placePreviewChange)="onSearchPlacePreviewChange($event)"
+        (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
       ></app-search-field>
     </div>
     @if (!sidebarContentIsScrolling() || !sidenavOpen()) {

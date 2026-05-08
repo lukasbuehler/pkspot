@@ -23,6 +23,7 @@ export class SearchService {
   constructor(private _mapsService: MapsApiService) {}
 
   readonly TYPESENSE_COLLECTION_SPOTS = "spots_v2";
+  readonly TYPESENSE_COLLECTION_COMMUNITIES = "communities_v1";
   readonly SPOT_SORT_BY_RATING = "rating:desc";
 
   private readonly client: SearchClient = new SearchClient({
@@ -40,6 +41,15 @@ export class SearchService {
     query_by: "name_search,description_search,address.formatted",
     sort_by: this.SPOT_SORT_BY_RATING,
     per_page: 5,
+    page: 1,
+  };
+
+  communitySearchParameters = {
+    query_by:
+      "displayName,allSlugs,geography.localityName,geography.regionName,geography.countryName,title,description",
+    query_by_weights: "6,6,4,3,3,2,1",
+    filter_by: "published:!=false",
+    per_page: 3,
     page: 1,
   };
 
@@ -197,6 +207,130 @@ export class SearchService {
     } catch (err) {
       console.error("Error mapping hit to preview:", err);
       return {} as SpotPreviewData;
+    }
+  }
+
+  public getCommunityPreviewFromHit(hit: any): CommunitySearchPreview {
+    const doc = hit?.document || hit;
+    const geography = doc?.geography || {};
+    const totalSpots =
+      typeof doc?.["counts.totalSpots"] === "number"
+        ? doc["counts.totalSpots"]
+        : doc?.counts?.totalSpots ?? 0;
+
+    let boundsCenter: [number, number] | undefined;
+    const rawCenter = doc?.bounds_center;
+    if (Array.isArray(rawCenter) && rawCenter.length >= 2) {
+      const lat = Number(rawCenter[0]);
+      const lng = Number(rawCenter[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        boundsCenter = [lat, lng];
+      }
+    }
+    const rawRadius = doc?.bounds_radius_m;
+    const boundsRadiusM =
+      typeof rawRadius === "number" && Number.isFinite(rawRadius)
+        ? rawRadius
+        : undefined;
+
+    return {
+      id: doc?.id ?? doc?.communityKey ?? "",
+      communityKey: doc?.communityKey ?? doc?.id ?? "",
+      slug: doc?.preferredSlug ?? "",
+      displayName: doc?.displayName ?? "",
+      scope: doc?.scope,
+      countryCode:
+        doc?.["geography.countryCode"] ?? geography?.countryCode ?? undefined,
+      countryName:
+        doc?.["geography.countryName"] ?? geography?.countryName ?? undefined,
+      regionName:
+        doc?.["geography.regionName"] ?? geography?.regionName ?? undefined,
+      localityName:
+        doc?.["geography.localityName"] ?? geography?.localityName ?? undefined,
+      totalSpots,
+      imageUrl: doc?.["image.url"] ?? doc?.image?.url ?? undefined,
+      canonicalPath: doc?.canonicalPath ?? undefined,
+      boundsCenter,
+      boundsRadiusM,
+    };
+  }
+
+  /**
+   * List published communities from typesense, sorted by spot count desc.
+   * Used by the map page to populate the "popular communities" SEO list and
+   * the viewport-driven community detection in the map island.
+   */
+  public async listCommunities(
+    maxResults: number = 250
+  ): Promise<CommunitySearchPreview[]> {
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_COMMUNITIES)
+        .documents()
+        .search(
+          {
+            q: "*",
+            query_by: "displayName",
+            filter_by: "published:!=false",
+            sort_by: "counts.totalSpots:desc",
+            per_page: Math.min(250, Math.max(1, maxResults)),
+            page: 1,
+          },
+          {}
+        );
+
+      const hits = (result as any)?.hits || [];
+      return hits.map((hit: any) => this.getCommunityPreviewFromHit(hit));
+    } catch (error) {
+      console.error("typesense list communities error:", error);
+      return [];
+    }
+  }
+
+  public async searchCommunities(
+    query: string
+  ): Promise<CommunitySearchPreview[]> {
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_COMMUNITIES)
+        .documents()
+        .search({ q: query, ...this.communitySearchParameters }, {});
+
+      const hits = (result as any)?.hits || [];
+      return hits.map((hit: any) => this.getCommunityPreviewFromHit(hit));
+    } catch (error) {
+      console.error("typesense communities error:", error);
+      return [];
+    }
+  }
+
+  public async searchSpots(query: string) {
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_SPOTS)
+        .documents()
+        .search({ q: query, ...this.spotSearchParameters }, {});
+
+      const hits = this.sortHitsByRatingThenMedia(
+        (result as any).hits || []
+      ).map((hit: any) => {
+        hit.preview = this.getSpotPreviewFromHit(hit);
+        return hit;
+      });
+
+      return { hits, found: (result as any).found ?? hits.length };
+    } catch (error) {
+      console.error("typesense spots error:", error);
+      return { hits: [], found: 0 };
+    }
+  }
+
+  public async searchPlaces(query: string) {
+    try {
+      return await this._mapsService.autocompletePlaceSearch(query, ["geocode"]);
+    } catch (error) {
+      console.error("google maps places autocomplete API error:", error);
+      return [];
     }
   }
 
@@ -612,40 +746,41 @@ export class SearchService {
   }
 
   public async searchSpotsAndPlaces(query: string) {
-    let searchParams = { q: query, ...this.spotSearchParameters };
-
-    const typesenseSpotSearchResults = this.client
+    const spotsRequest = this.client
       .collections(this.TYPESENSE_COLLECTION_SPOTS)
       .documents()
-      .search(searchParams, {});
+      .search({ q: query, ...this.spotSearchParameters }, {});
 
-    const googlePlacesSearchResults = this._mapsService.autocompletePlaceSearch(
-      query,
-      ["geocode"]
-    );
+    const communitiesRequest = this.client
+      .collections(this.TYPESENSE_COLLECTION_COMMUNITIES)
+      .documents()
+      .search({ q: query, ...this.communitySearchParameters }, {});
 
-    const bothResults = await Promise.allSettled([
-      typesenseSpotSearchResults,
-      googlePlacesSearchResults,
+    const placesRequest = this._mapsService.autocompletePlaceSearch(query, [
+      "geocode",
     ]);
 
-    // console.log("bothResults:", bothResults);
+    const allResults = await Promise.allSettled([
+      spotsRequest,
+      communitiesRequest,
+      placesRequest,
+    ]);
 
-    if (bothResults[0].status === "rejected") {
-      console.error("typesense error:", bothResults[0].reason);
+    if (allResults[0].status === "rejected") {
+      console.error("typesense spots error:", allResults[0].reason);
     }
-
-    if (bothResults[1].status === "rejected") {
+    if (allResults[1].status === "rejected") {
+      console.error("typesense communities error:", allResults[1].reason);
+    }
+    if (allResults[2].status === "rejected") {
       console.error(
         "google maps places autocomplete API error:",
-        bothResults[1].reason
+        allResults[2].reason
       );
     }
 
     const spotsResult =
-      bothResults[0].status === "fulfilled" ? bothResults[0].value : null;
-
-    // If we have typesense hits, attach a simple SpotPreview-like `preview` object
+      allResults[0].status === "fulfilled" ? allResults[0].value : null;
     if (spotsResult && Array.isArray((spotsResult as any).hits)) {
       const orderedHits = this.sortHitsByRatingThenMedia(
         (spotsResult as any).hits
@@ -656,10 +791,20 @@ export class SearchService {
       });
     }
 
+    const communitiesResult =
+      allResults[1].status === "fulfilled" ? allResults[1].value : null;
+    let communities: CommunitySearchPreview[] = [];
+    if (communitiesResult && Array.isArray((communitiesResult as any).hits)) {
+      communities = (communitiesResult as any).hits.map((hit: any) =>
+        this.getCommunityPreviewFromHit(hit)
+      );
+    }
+
     return {
+      communities,
       spots: spotsResult,
       places:
-        bothResults[1].status === "fulfilled" ? bothResults[1].value : null,
+        allResults[2].status === "fulfilled" ? allResults[2].value : null,
     };
   }
 
@@ -682,6 +827,7 @@ export class SearchService {
     });
 
     return {
+      communities: [] as CommunitySearchPreview[],
       spots: {
         hits: spotsWithPreview,
         found: (typesenseSpotSearchResults as any).found,
@@ -689,4 +835,21 @@ export class SearchService {
       places: null,
     };
   }
+}
+
+export interface CommunitySearchPreview {
+  id: string;
+  communityKey: string;
+  slug: string;
+  displayName: string;
+  scope?: "country" | "region" | "locality";
+  countryCode?: string;
+  countryName?: string;
+  regionName?: string;
+  localityName?: string;
+  totalSpots: number;
+  imageUrl?: string;
+  canonicalPath?: string;
+  boundsCenter?: [number, number];
+  boundsRadiusM?: number;
 }

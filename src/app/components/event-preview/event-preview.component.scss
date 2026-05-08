@@ -2,9 +2,17 @@
   display: block;
 }
 
+.event-preview-media {
+  aspect-ratio: 4 / 3;
+  background: var(--mat-sys-surface-container-high);
+  margin-left: -16px;
+  margin-right: -16px;
+  overflow: hidden;
+  position: relative;
+}
+
 .status {
   font-weight: 600;
-  letter-spacing: 0.02em;
 }
 
 // Status colors mirror event-page; see AGENTS.md "Theme colors".

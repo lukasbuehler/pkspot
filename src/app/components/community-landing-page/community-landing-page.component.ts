@@ -23,7 +23,7 @@ import { CommunityLandingPageData as CommunityPanelData } from "../../services/f
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
-import { EntityPreviewCardComponent } from "../entity-preview-card/entity-preview-card.component";
+import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 
 interface CommunityExternalLink {
   label: string;
@@ -47,7 +47,7 @@ interface CommunitySectionItem {
     RouterLink,
     SpotListComponent,
     MediaPlaceholderComponent,
-    EntityPreviewCardComponent,
+    MapInfoPanelComponent,
   ],
   templateUrl: "./community-landing-page.component.html",
   styleUrl: "./community-landing-page.component.scss",
@@ -60,6 +60,7 @@ export class CommunityLandingPageComponent {
 
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
+  openProgress = input<number>(1);
 
   /** Emitted when the user closes the panel (panel mode only). */
   closePanel = output<void>();
@@ -135,6 +136,21 @@ export class CommunityLandingPageComponent {
     }
 
     return data.breadcrumbs[data.breadcrumbs.length - 2] ?? null;
+  });
+
+  countryBreadcrumb = computed(() => {
+    const data = this.communityData();
+    if (!data) {
+      return null;
+    }
+
+    return (
+      data.breadcrumbs.find(
+        (breadcrumb) => breadcrumb.name === data.country.name,
+      ) ??
+      data.breadcrumbs[1] ??
+      null
+    );
   });
 
   totalSpotCount = computed(() => this.communityData()?.totalSpotCount ?? 0);

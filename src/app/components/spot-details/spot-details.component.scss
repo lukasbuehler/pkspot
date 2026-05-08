@@ -61,6 +61,16 @@ form {
   justify-content: space-around;
 }
 
+.spot-title-text {
+  min-width: 0;
+}
+
+.spot-kind-label {
+  border-color: currentColor !important;
+  color: inherit;
+  flex-shrink: 0;
+}
+
 .spot-button-row button:not(:last-of-type) {
   margin-right: 5px;
 }

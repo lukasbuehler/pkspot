@@ -1,0 +1,71 @@
+<mat-card
+  matRipple
+  [matRippleDisabled]="!clickable()"
+  class="pt-0 bg-transparent d-block"
+  [class.border]="border()"
+  [class.clickable]="clickable()"
+>
+  <mat-card-header class="pb-2 px-3 d-flex flex-column-reverse">
+    <mat-card-title class="d-flex align-items-center w-100 gap-1">
+      <span
+        class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
+      >
+        @if (icon()) {
+          <mat-icon
+            class="map-info-panel-icon"
+            [matTooltip]="iconTooltip() || null"
+          >
+            {{ icon() }}
+          </mat-icon>
+        }
+        <span
+          [matTooltip]="titleTooltip() || title()"
+          class="text-truncate d-block map-info-panel-title"
+        >
+          {{ title() }}
+        </span>
+        @if (typeLabel()) {
+          <span
+            class="mat-label-small px-1 border rounded map-info-panel-type-label"
+          >
+            {{ typeLabel() }}
+          </span>
+        }
+      </span>
+
+      @if (dismissable()) {
+        <button
+          mat-icon-button
+          type="button"
+          (click)="onDismiss(); $event.stopPropagation()"
+          [matTooltip]="dismissTooltip()"
+          aria-label="Close preview"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-card-title>
+
+    <mat-card-subtitle class="d-flex flex-row justify-content-between">
+      <div
+        class="d-flex flex-column flex-grow-1 justify-content-center text-truncate"
+      >
+        <div
+          class="collapsible-header-info"
+          [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
+        >
+          <ng-content select="[mapInfoMeta]"></ng-content>
+        </div>
+      </div>
+
+      <div
+        class="map-info-panel-actions collapsible-header-info flex-shrink-0"
+        [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
+      >
+        <ng-content select="[mapInfoActions]"></ng-content>
+      </div>
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <ng-content></ng-content>
+</mat-card>

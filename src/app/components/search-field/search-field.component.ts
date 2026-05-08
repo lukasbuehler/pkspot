@@ -16,12 +16,15 @@ import {
 } from "@angular/material/autocomplete";
 import { MatFormField, MatSuffix } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
-import { BehaviorSubject, from, of, Subscription } from "rxjs";
+import { BehaviorSubject, from, merge, of, Subscription } from "rxjs";
 import { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { AsyncPipe } from "@angular/common";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatOptionModule } from "@angular/material/core";
-import { SearchService } from "../../services/search.service";
+import {
+  CommunitySearchPreview,
+  SearchService,
+} from "../../services/search.service";
 import { MatInputModule } from "@angular/material/input";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
@@ -42,11 +45,13 @@ import {
   debounceTime,
   distinctUntilChanged,
   map,
+  scan,
+  startWith,
   switchMap,
 } from "rxjs/operators";
 
 interface SearchSelection {
-  type: "place" | "spot";
+  type: "place" | "spot" | "community";
   id: string;
 }
 
@@ -84,9 +89,11 @@ interface SearchSpotResults {
 }
 
 interface SearchFieldResults {
+  communities: CommunitySearchPreview[];
   displayedPlace: google.maps.places.AutocompletePrediction | null;
   displayedPlacePlacement: "top" | "bottom";
   previewPlaceId: string | null;
+  previewCommunity: CommunitySearchPreview | null;
   spots: SearchSpotResults | null;
 }
 
@@ -120,11 +127,13 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
   spotSelected = output<SearchSelection>();
   placePreviewChange = output<string | null>();
+  communityPreviewChange = output<CommunitySearchPreview | null>();
 
   private _searchService = inject(SearchService);
   private _spotSearchSubscription?: Subscription;
   private readonly _minSearchQueryLength = 2;
   private _lastPreviewPlaceId: string | null = null;
+  private _lastPreviewCommunityKey: string | null = null;
   private readonly _locationLikePlaceTypes = new Set([
     "geocode",
     "country",
@@ -163,67 +172,169 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   onlySpots = input(false);
 
   ngOnInit() {
-    // Debounce and cancel stale lookups to reduce API usage.
+    // Debounce and cancel stale lookups to reduce API usage. Each search
+    // (communities, spots, places) is fired independently and merged into
+    // a running state — results show up as soon as they arrive instead of
+    // waiting for the slowest (Google Places) to finish.
     this._spotSearchSubscription = this.spotSearchControl.valueChanges
       .pipe(
         map((value) => (typeof value === "string" ? value : "")),
         map((value) => value.trim()),
-        debounceTime(350),
+        debounceTime(250),
         distinctUntilChanged(),
         switchMap((query) => {
           if (query.length < this._minSearchQueryLength) {
             return of(null);
           }
 
-          const searchRequest = this.onlySpots()
-            ? this._searchService.searchSpotsOnly(query)
-            : this._searchService.searchSpotsAndPlaces(query);
+          const onlySpots = this.onlySpots();
 
-          return from(searchRequest).pipe(
-            map((results) => {
-              const rawSpotResults = results.spots as SearchSpotResults | null;
-              const displayedPlace = this.onlySpots()
-                ? null
-                : (results.places?.[0] ?? null);
-              const spotResults =
-                rawSpotResults && Array.isArray(rawSpotResults.hits)
-                  ? {
-                      ...rawSpotResults,
-                      hits: rawSpotResults.hits.slice(0, 5),
-                    }
-                  : rawSpotResults;
-              const hasSpotHits = (spotResults?.hits?.length ?? 0) > 0;
+          const communities$ = onlySpots
+            ? of<{ kind: "communities"; data: CommunitySearchPreview[] }>({
+                kind: "communities",
+                data: [],
+              })
+            : from(this._searchService.searchCommunities(query)).pipe(
+                map((data) => ({ kind: "communities" as const, data })),
+                catchError(() =>
+                  of({ kind: "communities" as const, data: [] })
+                )
+              );
 
-              return {
-                displayedPlace,
-                displayedPlacePlacement:
-                  displayedPlace &&
-                  hasSpotHits &&
-                  !this.isGoodLocationMatch(displayedPlace, query)
-                    ? "bottom"
-                    : "top",
-                previewPlaceId:
-                  displayedPlace && this.isLocationLikePlace(displayedPlace)
-                    ? displayedPlace.place_id
-                    : null,
-                spots: spotResults,
-              } satisfies SearchFieldResults;
-            }),
-            catchError((error) => {
-              console.error("Search failed:", error);
-              return of(null);
-            })
+          const spots$ = from(this._searchService.searchSpots(query)).pipe(
+            map((data) => ({ kind: "spots" as const, data })),
+            catchError(() =>
+              of({
+                kind: "spots" as const,
+                data: { hits: [], found: 0 },
+              })
+            )
+          );
+
+          const places$ = onlySpots
+            ? of<{
+                kind: "places";
+                data: google.maps.places.AutocompletePrediction[];
+              }>({ kind: "places", data: [] })
+            : from(this._searchService.searchPlaces(query)).pipe(
+                map((data) => ({ kind: "places" as const, data })),
+                catchError(() => of({ kind: "places" as const, data: [] }))
+              );
+
+          type Update =
+            | { kind: "communities"; data: CommunitySearchPreview[] }
+            | { kind: "spots"; data: { hits: any[]; found: number } }
+            | {
+                kind: "places";
+                data: google.maps.places.AutocompletePrediction[];
+              };
+
+          interface PartialState {
+            query: string;
+            communitiesLoaded: boolean;
+            communities: CommunitySearchPreview[];
+            spotsLoaded: boolean;
+            spots: SearchSpotResults | null;
+            placesLoaded: boolean;
+            places: google.maps.places.AutocompletePrediction[];
+          }
+
+          const initial: PartialState = {
+            query,
+            communitiesLoaded: onlySpots,
+            communities: [],
+            spotsLoaded: false,
+            spots: null,
+            placesLoaded: onlySpots,
+            places: [],
+          };
+
+          return merge(communities$, spots$, places$).pipe(
+            scan<Update, PartialState>((state, update) => {
+              switch (update.kind) {
+                case "communities":
+                  return {
+                    ...state,
+                    communitiesLoaded: true,
+                    communities: update.data,
+                  };
+                case "spots":
+                  return {
+                    ...state,
+                    spotsLoaded: true,
+                    spots: update.data,
+                  };
+                case "places":
+                  return {
+                    ...state,
+                    placesLoaded: true,
+                    places: update.data,
+                  };
+              }
+            }, initial),
+            startWith(initial),
+            map((state) => this.buildResults(state))
           );
         })
       )
       .subscribe((results) => {
         this.spotAndPlaceSearchResults$.next(results);
         this.emitPlacePreviewChange(results?.previewPlaceId ?? null);
+        this.emitCommunityPreviewChange(results?.previewCommunity ?? null);
       });
+  }
+
+  private buildResults(state: {
+    query: string;
+    communitiesLoaded: boolean;
+    communities: CommunitySearchPreview[];
+    spotsLoaded: boolean;
+    spots: SearchSpotResults | null;
+    placesLoaded: boolean;
+    places: google.maps.places.AutocompletePrediction[];
+  }): SearchFieldResults {
+    const communities = state.communities.slice(0, 3);
+    const hasCommunityHits = communities.length > 0;
+
+    // Suppress Google Place row if a community matched. While communities
+    // are still loading, also suppress to avoid a flash of "place then
+    // community" when both end up matching.
+    const placeAllowed = state.communitiesLoaded && !hasCommunityHits;
+    const rawDisplayedPlace = placeAllowed ? (state.places[0] ?? null) : null;
+    const displayedPlace = rawDisplayedPlace;
+
+    const rawSpotHits = state.spots?.hits ?? [];
+    const spotResults: SearchSpotResults | null = state.spots
+      ? { ...state.spots, hits: rawSpotHits.slice(0, 5) }
+      : null;
+    const hasSpotHits = (spotResults?.hits?.length ?? 0) > 0;
+
+    const previewCommunity =
+      hasCommunityHits && communities[0].boundsCenter
+        ? communities[0]
+        : null;
+
+    return {
+      communities,
+      displayedPlace,
+      displayedPlacePlacement:
+        displayedPlace &&
+        hasSpotHits &&
+        !this.isGoodLocationMatch(displayedPlace, state.query)
+          ? "bottom"
+          : "top",
+      previewPlaceId:
+        displayedPlace && this.isLocationLikePlace(displayedPlace)
+          ? displayedPlace.place_id
+          : null,
+      previewCommunity,
+      spots: spotResults,
+    };
   }
 
   ngOnDestroy(): void {
     this.emitPlacePreviewChange(null);
+    this.emitCommunityPreviewChange(null);
     this.spotAndPlaceSearchResults$.complete();
     this._spotSearchSubscription?.unsubscribe();
   }
@@ -232,6 +343,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     console.log("optionSelected:", event);
 
     this.emitPlacePreviewChange(null);
+    this.emitCommunityPreviewChange(null);
     this.spotSearchControl.setValue("");
 
     this.spotSelected.emit(event.option.value as SearchSelection);
@@ -244,6 +356,18 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
     this._lastPreviewPlaceId = placeId;
     this.placePreviewChange.emit(placeId);
+  }
+
+  private emitCommunityPreviewChange(
+    community: CommunitySearchPreview | null
+  ): void {
+    const key = community?.communityKey ?? null;
+    if (this._lastPreviewCommunityKey === key) {
+      return;
+    }
+
+    this._lastPreviewCommunityKey = key;
+    this.communityPreviewChange.emit(community);
   }
 
   private isLocationLikePlace(
@@ -368,6 +492,34 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     }
 
     return rating;
+  }
+
+  /**
+   * Build a short locality/region/country description for a community result.
+   * Example: "London, England, United Kingdom" or "Switzerland".
+   */
+  getCommunitySubtitle(community: CommunitySearchPreview): string {
+    const parts: string[] = [];
+    if (community.scope === "locality") {
+      if (community.regionName) parts.push(community.regionName);
+      if (community.countryName) parts.push(community.countryName);
+    } else if (community.scope === "region") {
+      if (community.countryName) parts.push(community.countryName);
+    }
+    return parts.join(", ");
+  }
+
+  getCommunityIcon(community: CommunitySearchPreview): string {
+    switch (community.scope) {
+      case "country":
+        return "public";
+      case "region":
+        return "map";
+      case "locality":
+        return "location_city";
+      default:
+        return "groups";
+    }
   }
 
   /**

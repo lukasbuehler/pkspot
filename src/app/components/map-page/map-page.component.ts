@@ -46,11 +46,15 @@ import {
   firstValueFrom,
   lastValueFrom,
   Subscription,
+  SubscriptionLike,
   take,
 } from "rxjs";
 import { animate, style, transition, trigger } from "@angular/animations";
 import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { SearchService } from "../../services/search.service";
+import {
+  CommunitySearchPreview,
+  SearchService,
+} from "../../services/search.service";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
   AsyncPipe,
@@ -128,6 +132,7 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { EventPreviewComponent } from "../event-preview/event-preview.component";
 import {
   MapIslandComponent,
+  MapIslandCommunity,
   MapIslandContent,
 } from "../map-island/map-island.component";
 import { afterNextRender } from "@angular/core";
@@ -347,6 +352,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
+  private _locationSubscription?: SubscriptionLike;
   private _breakpointSubscription?: Subscription;
   private _consentSubscription?: Subscription;
   private _authStateSubscription?: Subscription;
@@ -372,17 +378,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   /** All events whose promo is currently active (loaded once on init). */
   private _promotableEvents = signal<PkEvent[]>([]);
   /**
-   * All published community pages with `bounds_center` + `bounds_radius_m`,
-   * loaded once. Used to surface the community variant of the map island
-   * by viewport-intersection (no route required).
+   * All published communities (lightweight previews from typesense), loaded
+   * once on init. Drives the "popular communities" SEO list and the
+   * viewport-intersection logic for the community variant of the map island.
+   * Full landing page data is lazy-loaded via `LandingPagesService.getCommunityPage`
+   * only when the user actually opens a community.
    */
-  private _promotableCommunities = signal<
-    Array<{
-      data: CommunityLandingPageData;
-      center: { lat: number; lng: number };
-      radiusM: number;
-    }>
-  >([]);
+  private _promotableCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport, expressed as a bounds box for intersection checks. */
   private _viewport = signal<{
     north: number;
@@ -394,6 +396,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _dismissedEventIds = signal<Set<string>>(new Set());
   /** Communities the user has dismissed in the current session. */
   private _dismissedCommunityKeys = signal<Set<string>>(new Set());
+  private _communityRouteLoadVersion = 0;
 
   /**
    * Geographic extent of the community currently surfaced in the map-island
@@ -433,8 +436,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   popularCommunities = computed(() =>
     this._promotableCommunities()
-      .map((c) => c.data)
-      .sort((a, b) => (b.totalSpotCount ?? 0) - (a.totalSpotCount ?? 0))
+      .slice()
+      .sort((a, b) => (b.totalSpots ?? 0) - (a.totalSpots ?? 0))
       .slice(0, 8)
   );
 
@@ -477,7 +480,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       // Falls back to the smallest intersecting community when no
       // center-in-viewport candidate exists (e.g., panning across a
       // border with no community center on screen).
-      const candidates = this._promotableCommunities().filter(
+      const withBounds = this._promotableCommunities()
+        .filter(
+          (c) =>
+            c.boundsCenter &&
+            typeof c.boundsRadiusM === "number" &&
+            c.boundsRadiusM > 0
+        )
+        .map((c) => ({
+          data: c,
+          center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },
+          radiusM: c.boundsRadiusM!,
+        }));
+
+      const candidates = withBounds.filter(
         (c) =>
           c.data.communityKey !== selectedCommunityKey &&
           !dismissedCommunities.has(c.data.communityKey) &&
@@ -577,7 +593,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  onIslandDismissCommunity(community: CommunityLandingPageData): void {
+  onIslandDismissCommunity(
+    community: MapIslandCommunity | CommunityLandingPageData
+  ): void {
     this._dismissedCommunityKeys.update((set) => {
       const next = new Set(set);
       next.add(community.communityKey);
@@ -602,14 +620,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * state directly and patch the URL via `Location.replaceState` so the page
    * is still shareable / reloadable.
    */
-  onIslandOpenCommunity(community: CommunityLandingPageData): void {
+  onIslandOpenCommunity(
+    community: MapIslandCommunity | CommunityLandingPageData
+  ): void {
     this.selectedEvent.set(null);
     this._spotLoadRequestVersion++;
     this.selectedSpot.set(null);
     this.selectedPoi.set(null);
     this.closeChallenge(false);
-    this.selectedCommunityLanding.set(community);
-    this._location.go(community.canonicalPath);
     this.resetPanelContentToTop();
     this._dismissedCommunityKeys.update((set) => {
       // Clearing a previous dismissal is the right thing here — the user
@@ -618,6 +636,37 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       next.delete(community.communityKey);
       return next;
     });
+
+    if (this._isFullCommunityLanding(community)) {
+      this.selectedCommunityLanding.set(community);
+      this._location.go(community.canonicalPath);
+      return;
+    }
+
+    // Lightweight typesense preview — patch URL optimistically, then lazy
+    // load the full landing page data from Firestore.
+    if (community.canonicalPath) {
+      this._location.go(community.canonicalPath);
+    }
+    this._landingPagesService
+      .getCommunityPage(community.slug)
+      .then((full) => {
+        if (full) {
+          this.selectedCommunityLanding.set(full);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load community landing page", err);
+      });
+  }
+
+  private _isFullCommunityLanding(
+    community: MapIslandCommunity | CommunityLandingPageData
+  ): community is CommunityLandingPageData {
+    return (
+      "topRatedSpots" in community &&
+      Array.isArray((community as CommunityLandingPageData).topRatedSpots)
+    );
   }
 
   /** Stores custom filter parameters when using the Filters dialog */
@@ -844,8 +893,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .catch((err) =>
             console.warn("MapPage: failed to load promotable events", err)
           );
-        this._landingPagesService
-          .getPromotableCommunityPages()
+        this._searchService
+          .listCommunities()
           .then((communities) =>
             this._promotableCommunities.set(communities)
           )
@@ -1306,8 +1355,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             // Navigating away from map, do not interfere
             return;
           }
-          this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
-          this._loadEventFromRouteIfPresent(navEvent.urlAfterRedirects);
+          this._syncMapPanelStateFromUrl(navEvent.urlAfterRedirects);
           const routeState = this._parseMapRouteState(navEvent.urlAfterRedirects);
 
           // Also extract filter query param from URL to keep it in sync
@@ -1329,6 +1377,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             routeState.showEditHistory
           );
         });
+
+      this._locationSubscription = this._location.subscribe((event) => {
+        const url = event.url || "";
+        if (!url.startsWith("/map")) {
+          return;
+        }
+
+        // Event and community previews patch history with Location.go() so
+        // the map stays mounted. Browser back/forward can therefore update
+        // the address bar without a fresh router resolver pass; keep the
+        // selected panel state in step with that URL here.
+        this._syncMapPanelStateFromUrl(url);
+      });
 
       // Setup scroll listeners for the sidebar (desktop) and bottom-sheet (mobile)
       try {
@@ -1451,14 +1512,71 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  openSpotOrGooglePlace(value: { type: "place" | "spot"; id: string }) {
+  openSpotOrGooglePlace(value: {
+    type: "place" | "spot" | "community";
+    id: string;
+  }) {
     this.clearSearchPlacePreview();
 
     if (value.type === "place") {
       return;
     }
 
+    if (value.type === "community") {
+      this._landingPagesService
+        .getCommunityPage(value.id)
+        .then((community) => {
+          if (community) {
+            this.onIslandOpenCommunity(community);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load community from search:", err);
+        });
+      return;
+    }
+
     this.loadSpotById(value.id as SpotId).then(() => {});
+  }
+
+  onSearchCommunityPreviewChange(
+    community: {
+      boundsCenter?: [number, number];
+      boundsRadiusM?: number;
+    } | null
+  ) {
+    if (!community || !community.boundsCenter) {
+      return;
+    }
+    if (
+      this.selectedCommunityLanding() ||
+      this.selectedSpot() ||
+      this.selectedEvent() ||
+      this.selectedChallenge()
+    ) {
+      // Don't override an actively-open panel/spot view while the user is
+      // just hovering search results.
+      return;
+    }
+
+    const [lat, lng] = community.boundsCenter;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return;
+    }
+
+    if (this.spotMap && typeof google !== "undefined") {
+      const radiusM =
+        typeof community.boundsRadiusM === "number" &&
+        community.boundsRadiusM > 0
+          ? community.boundsRadiusM
+          : 5000;
+      const radiusDegrees = radiusM / 111_320;
+      const bounds = new google.maps.LatLngBounds(
+        { lat: lat - radiusDegrees, lng: lng - radiusDegrees },
+        { lat: lat + radiusDegrees, lng: lng + radiusDegrees }
+      );
+      this.spotMap.focusBounds(bounds);
+    }
   }
 
   onSearchPlacePreviewChange(placeId: string | null) {
@@ -2398,6 +2516,73 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       );
   }
 
+  private _syncMapPanelStateFromUrl(url: string): void {
+    const cleanUrl = (url || "").split("?")[0].split("#")[0];
+    const communityMatch = cleanUrl.match(
+      /^\/map\/(?:community|communities)\/([^/]+)$/u
+    );
+
+    if (communityMatch) {
+      const slug = decodeURIComponent(communityMatch[1]);
+      const current = this.selectedCommunityLanding();
+      this.selectedEvent.set(null);
+
+      if (current && this._communityMatchesSlug(current, slug)) {
+        return;
+      }
+
+      const routedCommunity = this._getCommunityLandingFromRoute();
+      if (
+        routedCommunity &&
+        this._communityMatchesSlug(routedCommunity, slug)
+      ) {
+        this.selectedCommunityLanding.set(routedCommunity);
+        return;
+      }
+
+      const requestVersion = ++this._communityRouteLoadVersion;
+      void this._landingPagesService
+        .getCommunityPage(slug)
+        .then((community) => {
+          if (!community) {
+            return;
+          }
+
+          const currentPath = (this._location.path() || "")
+            .split("?")[0]
+            .split("#")[0];
+          if (
+            requestVersion !== this._communityRouteLoadVersion ||
+            !currentPath.match(/^\/map\/(?:community|communities)\//u) ||
+            !this._communityMatchesSlug(community, slug)
+          ) {
+            return;
+          }
+
+          this.selectedCommunityLanding.set(community);
+        })
+        .catch((err) =>
+          console.warn("MapPage: failed to load community from route", err)
+        );
+      return;
+    }
+
+    this.selectedCommunityLanding.set(null);
+    this._loadEventFromRouteIfPresent(url);
+  }
+
+  private _communityMatchesSlug(
+    community: CommunityLandingPageData,
+    slug: string
+  ): boolean {
+    return (
+      community.preferredSlug === slug ||
+      community.requestedSlug === slug ||
+      community.canonicalPath.endsWith(`/${encodeURIComponent(slug)}`) ||
+      community.canonicalPath.endsWith(`/${slug}`)
+    );
+  }
+
   private _getCommunityLandingFromRoute(): CommunityLandingPageData | null {
     let currentSnapshot = this.activatedRoute.snapshot;
 
@@ -2842,6 +3027,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.closeSpot();
     this._routerSubscription?.unsubscribe();
+    this._locationSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();
     this._breakpointSubscription?.unsubscribe();
     this._consentSubscription?.unsubscribe();

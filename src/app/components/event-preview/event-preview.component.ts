@@ -7,19 +7,21 @@ import {
   LOCALE_ID,
   output,
 } from "@angular/core";
+import { NgOptimizedImage } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { CountdownComponent } from "../countdown/countdown.component";
-import { EntityPreviewCardComponent } from "../entity-preview-card/entity-preview-card.component";
+import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
+import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 
 /**
- * Compact preview card for an event, designed to slot into the map page's
- * sidebar (desktop) or bottom-sheet (mobile). Mirrors `SpotPreviewCard`'s
- * shape so the collapsed bottom-sheet shows the key info (name + date +
- * status) without the user having to slide it up.
+ * Event preview panel for the map page sidebar (desktop) or bottom-sheet
+ * (mobile). It shares the spot details header behavior so the collapsed
+ * bottom-sheet keeps the title visible while secondary info fades with the
+ * sheet progress.
  *
  * For the full event experience (map, spot list, challenges, etc.) the
  * card has a "See full event" CTA that routes to /events/<slug>.
@@ -27,11 +29,13 @@ import { EntityPreviewCardComponent } from "../entity-preview-card/entity-previe
 @Component({
   selector: "app-event-preview",
   imports: [
+    NgOptimizedImage,
     MatButtonModule,
     MatIconModule,
     RouterLink,
     CountdownComponent,
-    EntityPreviewCardComponent,
+    MapInfoPanelComponent,
+    MediaPlaceholderComponent,
   ],
   templateUrl: "./event-preview.component.html",
   styleUrl: "./event-preview.component.scss",
@@ -43,8 +47,8 @@ export class EventPreviewComponent {
   /** The event to render. */
   event = input.required<PkEvent>();
 
-  /** When true, the panel is shown in compact mode (e.g. collapsed bottom sheet). */
-  isCompact = input<boolean>(false);
+  /** Drives the same secondary-info fade used by the spot bottom sheet. */
+  openProgress = input<number>(1);
 
   /** Allow the host to dismiss the preview (e.g. close button → clear selection). */
   dismissable = input<boolean>(true);
@@ -69,6 +73,11 @@ export class EventPreviewComponent {
       dateStyle: "medium",
     });
     return start === end ? start : `${start} – ${end}`;
+  });
+
+  readonly venueLine = computed(() => {
+    const e = this.event();
+    return [e.venueString, e.localityString].filter(Boolean).join(", ");
   });
 
   readonly fullEventLink = computed(() => {

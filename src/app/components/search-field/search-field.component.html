@@ -17,6 +17,63 @@
     class="mt-2"
   >
     @if(spotAndPlaceSearchResults$ | async; as results) {
+    @if(results.communities.length > 0) {
+    <div>
+      <p class="mat-label-medium ps-3 pt-1 mb-1" i18n>Communities</p>
+      <mat-divider></mat-divider>
+    </div>
+    @for(community of results.communities; track community.communityKey) {
+    <mat-option
+      class="spotAutocompleteOption"
+      [value]="{ type: 'community', id: community.slug }"
+    >
+      <div class="d-flex flex-row align-items-center p-1 gap-2">
+        @if(community.imageUrl) {
+        <img
+          [src]="community.imageUrl"
+          class="rounded"
+          alt=""
+          width="50px"
+          height="50px"
+          style="width: 50px; height: 50px; object-fit: cover"
+        />
+        } @else {
+        <div
+          class="rounded border d-flex justify-content-center align-items-center"
+          style="width: 50px; height: 50px"
+        >
+          <mat-icon>{{ getCommunityIcon(community) }}</mat-icon>
+        </div>
+        }
+        <div
+          class="d-flex flex-column gap-0 min-w-0"
+          style="flex: 1; min-width: 0"
+        >
+          <span class="mat-title-medium text-truncate">{{
+            community.displayName
+          }}</span>
+          @if(getCommunitySubtitle(community); as subtitle) {
+          <span class="mat-label-medium text-truncate">{{ subtitle }}</span>
+          }
+        </div>
+        @if(community.totalSpots) {
+        <span
+          class="mat-label-medium ms-2"
+          style="flex-shrink: 0"
+          i18n="@@searchField.communitySpotsCount"
+          >{{ community.totalSpots }} spots</span
+        >
+        }
+      </div>
+    </mat-option>
+    }
+    @if(
+      (results.spots?.hits?.length ?? 0) > 0 ||
+      (results.displayedPlace && results.displayedPlacePlacement === "top")
+    ) {
+    <div class="pt-2"></div>
+    }
+    }
     @if(
       results.displayedPlace && results.displayedPlacePlacement === "top"
     ) {

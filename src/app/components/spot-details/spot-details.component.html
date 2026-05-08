@@ -33,8 +33,11 @@
             <span
               [@fadeSlideOnChange]="nameAnimKey()"
               [matTooltip]="spot()!.name()"
-              class="text-truncate d-block"
+              class="text-truncate d-block spot-title-text"
               >{{ spot()!.name() }}</span
+            >
+            <span i18n class="mat-label-small px-1 border rounded spot-kind-label"
+              >Spot</span
             >
           </span>
 

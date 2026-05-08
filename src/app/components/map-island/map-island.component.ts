@@ -9,8 +9,22 @@ import { NgOptimizedImage } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { CommunityLandingPageData } from "../../services/firebase/firestore/landing-pages.service";
 import { LocationStrategy } from "@angular/common";
+
+/**
+ * Shape needed by the island chip and its open/dismiss handlers. The
+ * lightweight `CommunitySearchPreview` from typesense is assignable to
+ * this; the full `CommunityLandingPageData` is *not* (it uses
+ * `preferredSlug`, not `slug`) — the host accepts both via a union.
+ */
+export interface MapIslandCommunity {
+  communityKey: string;
+  displayName: string;
+  slug: string;
+  canonicalPath?: string;
+  boundsCenter?: [number, number];
+  boundsRadiusM?: number;
+}
 
 /**
  * Variant payloads for the map island. Add new kinds here as the island grows.
@@ -18,7 +32,7 @@ import { LocationStrategy } from "@angular/common";
 export type MapIslandContent =
   | { kind: "filter"; message: string }
   | { kind: "event"; event: PkEvent }
-  | { kind: "community"; community: CommunityLandingPageData };
+  | { kind: "community"; community: MapIslandCommunity };
 
 /**
  * The map island is a floating top-center overlay on the map, surfacing
@@ -49,9 +63,9 @@ export class MapIslandComponent {
   dismissEvent = output<PkEvent>();
 
   /** Community variant: user opened the community landing. */
-  openCommunity = output<CommunityLandingPageData>();
+  openCommunity = output<MapIslandCommunity>();
   /** Community variant: user dismissed the chip. */
-  dismissCommunity = output<CommunityLandingPageData>();
+  dismissCommunity = output<MapIslandCommunity>();
 
   onClearFilter() {
     this.clearFilter.emit();

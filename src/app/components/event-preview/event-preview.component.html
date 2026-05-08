@@ -1,42 +1,70 @@
-<app-entity-preview-card
+<app-map-info-panel
   [title]="event().name"
-  [subtitle]="dateRange()"
-  [meta]="event().venueString + ', ' + event().localityString"
-  [icon]="'event'"
-  [badgeIcon]="event().sponsor ? 'stars' : ''"
-  [imageSrc]="event().bannerSrc"
-  [imageAlt]="event().name"
-  [imageFit]="event().bannerFit"
-  [imageAccentColor]="event().bannerAccentColor"
-  [fallbackLabel]="event().name"
-  [isCompact]="isCompact()"
+  [titleTooltip]="event().name"
+  typeLabel="Event"
+  [icon]="event().sponsor ? 'stars' : 'event'"
+  [iconTooltip]="event().sponsor ? 'Sponsored event' : 'Event'"
   [dismissable]="dismissable()"
+  [openProgress]="openProgress()"
   (dismiss)="onDismiss()"
-></app-entity-preview-card>
+>
+  <div mapInfoMeta>
+    <div class="d-flex flex-row gap-1 align-items-center pb-1">
+      <span class="mat-label-large text-nowrap text-truncate">
+        {{ dateRange() }}
+      </span>
+      @if (status() === "past") {
+        <span
+          class="mat-label-medium status past"
+          i18n="@@event_preview.status.past"
+        >
+          Past event
+        </span>
+      } @else if (status() === "live" && countdownTarget(); as target) {
+        <span class="mat-label-medium status live d-inline-flex gap-1">
+          <span i18n="@@event_preview.status.live">Ongoing — ends in</span>
+          <app-countdown [timestamp]="target"></app-countdown>
+        </span>
+      } @else if (status() === "upcoming" && countdownTarget(); as target) {
+        <span class="mat-label-medium status upcoming d-inline-flex gap-1">
+          <span i18n="@@event_preview.status.upcoming">Starts in</span>
+          <app-countdown [timestamp]="target"></app-countdown>
+        </span>
+      }
+    </div>
 
-<div class="event-preview-body px-3 pb-3">
-  @if (status() === "past") {
-    <span
-      class="mat-label-medium status past"
-      i18n="@@event_preview.status.past"
-    >Past event</span>
-  } @else if (status() === "live" && countdownTarget(); as target) {
-    <span class="mat-label-medium status live d-inline-flex gap-1">
-      <span i18n="@@event_preview.status.live">Ongoing — ends in</span>
-      <app-countdown [timestamp]="target"></app-countdown>
-    </span>
-  } @else if (status() === "upcoming" && countdownTarget(); as target) {
-    <span class="mat-label-medium status upcoming d-inline-flex gap-1">
-      <span i18n="@@event_preview.status.upcoming">Starts in</span>
-      <app-countdown [timestamp]="target"></app-countdown>
-    </span>
-  }
+    @if (venueLine()) {
+      <span class="text-truncate d-flex align-items-center gap-1">
+        {{ venueLine() }}
+      </span>
+    }
+  </div>
 
-  @if (!isCompact() && event().description) {
-    <p class="mat-body-small description mt-2">{{ event().description }}</p>
-  }
+  <div class="event-preview-body px-3 pb-3">
+    <div
+      class="event-preview-media"
+      [style.background-color]="event().bannerFit === 'contain' ? event().bannerAccentColor : null"
+    >
+      @if (event().bannerSrc) {
+        <img
+          [ngSrc]="event().bannerSrc!"
+          fill
+          [class.object-fit-cover]="event().bannerFit === 'cover'"
+          [class.object-fit-contain]="event().bannerFit === 'contain'"
+          [alt]="event().name"
+        />
+      } @else {
+        <app-media-placeholder
+          src="assets/spot_placeholder.png"
+          [label]="event().name"
+        ></app-media-placeholder>
+      }
+    </div>
 
-  @if (!isCompact()) {
+    @if (event().description) {
+      <p class="mat-body-small description mt-2">{{ event().description }}</p>
+    }
+
     <div class="cta-row d-flex flex-wrap gap-2 mt-2">
       @if (event().externalSource; as source) {
         <a
@@ -65,5 +93,5 @@
         </a>
       }
     </div>
-  }
-</div>
+  </div>
+</app-map-info-panel>
