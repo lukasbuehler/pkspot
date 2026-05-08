@@ -40,6 +40,7 @@ export class ResponsiveService {
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
   private request = inject(REQUEST, { optional: true }) as Request | null;
+  private _initializationCheckScheduled = false;
 
   /**
    * Tracks whether breakpoints have been determined.
@@ -104,8 +105,9 @@ export class ResponsiveService {
   private detectInitialMobile(): boolean {
     if (this.isBrowser) {
       // In browser, detect immediately using window.innerWidth
-      if (typeof window !== "undefined") {
-        return window.innerWidth < 600;
+      const width = this.getViewportWidth();
+      if (width !== null) {
+        return width < 600;
       }
       return false;
     }
@@ -118,8 +120,9 @@ export class ResponsiveService {
   private detectInitialTablet(): boolean {
     if (this.isBrowser) {
       // In browser, detect immediately using window.innerWidth
-      if (typeof window !== "undefined") {
-        return window.innerWidth >= 600 && window.innerWidth < 960;
+      const width = this.getViewportWidth();
+      if (width !== null) {
+        return width >= 600 && width < 960;
       }
       return false;
     }
@@ -132,8 +135,9 @@ export class ResponsiveService {
   private detectInitialDesktop(): boolean {
     if (this.isBrowser) {
       // In browser, detect immediately using window.innerWidth
-      if (typeof window !== "undefined") {
-        return window.innerWidth >= 960;
+      const width = this.getViewportWidth();
+      if (width !== null) {
+        return width >= 960;
       }
       return true; // Fallback to desktop if window is not available
     }
@@ -181,19 +185,101 @@ export class ResponsiveService {
         "(min-width: 960px)", // desktop
       ])
       .subscribe((result) => {
-        const isMobile = result.breakpoints["(max-width: 599.98px)"];
+        const viewportMode = this.detectViewportMode();
+        const isMobile =
+          viewportMode === "mobile" ||
+          (!viewportMode && result.breakpoints["(max-width: 599.98px)"]);
         const isTablet =
-          result.breakpoints["(min-width: 600px) and (max-width: 959.98px)"];
-        const isDesktop = result.breakpoints["(min-width: 960px)"];
+          viewportMode === "tablet" ||
+          (!viewportMode &&
+            result.breakpoints["(min-width: 600px) and (max-width: 959.98px)"]);
+        const isDesktop =
+          viewportMode === "desktop" ||
+          (!viewportMode && result.breakpoints["(min-width: 960px)"]);
 
         this.isMobile.set(isMobile);
         this.isTablet.set(isTablet);
         this.isDesktop.set(isDesktop);
 
-        // Mark as initialized after first emission
         if (!this.isInitialized()) {
-          this.isInitialized.set(true);
+          this.scheduleInitializedAfterViewportSettles();
         }
       });
+  }
+
+  private getViewportWidth(): number | null {
+    if (!this.isBrowser || typeof window === "undefined") return null;
+
+    const visualViewportWidth =
+      typeof window.visualViewport?.width === "number"
+        ? window.visualViewport.width
+        : null;
+    const documentWidth =
+      typeof document !== "undefined"
+        ? document.documentElement.clientWidth
+        : null;
+
+    return Math.round(
+      Math.min(
+        ...[visualViewportWidth, documentWidth, window.innerWidth].filter(
+          (width): width is number => typeof width === "number" && width > 0
+        )
+      )
+    );
+  }
+
+  private detectViewportMode(): ViewMode | null {
+    const width = this.getViewportWidth();
+    if (width === null) return null;
+    if (width < 600) return "mobile";
+    if (width < 960) return "tablet";
+    return "desktop";
+  }
+
+  private applyViewportMode(mode: ViewMode) {
+    this.isMobile.set(mode === "mobile");
+    this.isTablet.set(mode === "tablet");
+    this.isDesktop.set(mode === "desktop");
+  }
+
+  private scheduleInitializedAfterViewportSettles() {
+    if (this._initializationCheckScheduled) return;
+    this._initializationCheckScheduled = true;
+
+    let lastMode: ViewMode | null = null;
+    let stableFrameCount = 0;
+    let frameCount = 0;
+    const requiredStableFrames = 6;
+    const maxFrames = 45;
+
+    const check = () => {
+      const mode = this.detectViewportMode();
+      frameCount += 1;
+
+      if (mode) {
+        this.applyViewportMode(mode);
+        stableFrameCount = mode === lastMode ? stableFrameCount + 1 : 1;
+        lastMode = mode;
+      }
+
+      if (
+        mode &&
+        (stableFrameCount >= requiredStableFrames || frameCount >= maxFrames)
+      ) {
+        this.isInitialized.set(true);
+        this._initializationCheckScheduled = false;
+        return;
+      }
+
+      if (frameCount >= maxFrames) {
+        this.isInitialized.set(true);
+        this._initializationCheckScheduled = false;
+        return;
+      }
+
+      requestAnimationFrame(check);
+    };
+
+    requestAnimationFrame(check);
   }
 }

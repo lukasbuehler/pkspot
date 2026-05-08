@@ -4,6 +4,7 @@ import {
   Injector,
   PLATFORM_ID,
   runInInjectionContext,
+  signal,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import {
@@ -67,6 +68,13 @@ export class AuthenticationService extends ConsentAwareService {
   public authState$: BehaviorSubject<AuthServiceUser | null> =
     new BehaviorSubject<AuthServiceUser | null>(null);
 
+  /**
+   * True once the first Firebase/native auth-state response has arrived.
+   * This is separate from authState$ because its initial null value only means
+   * "unknown", not "signed out".
+   */
+  public readonly initialAuthStateResolved = signal(false);
+
   private _injector = inject(Injector);
   private _platformId = inject(PLATFORM_ID);
 
@@ -115,6 +123,7 @@ export class AuthenticationService extends ConsentAwareService {
     // Skip auth initialization on server (SSR)
     if (!this._isBrowser) {
       this._auth = null as any;
+      this.initialAuthStateResolved.set(true);
       return;
     }
 
@@ -129,6 +138,10 @@ export class AuthenticationService extends ConsentAwareService {
 
     // Check for existing session without triggering Firebase API calls
     this._checkExistingSessionSafely();
+
+    if (!this.hasConsent()) {
+      this.initialAuthStateResolved.set(true);
+    }
 
     // Setup Firebase auth state listener only after consent
     this.executeWhenConsent(() => {
@@ -237,6 +250,7 @@ export class AuthenticationService extends ConsentAwareService {
   private _initializeAuthStateListener() {
     if (!this._authStateListenerInitialized) {
       this._authStateListenerInitialized = true;
+      this.initialAuthStateResolved.set(false);
 
       if (this._isNative) {
         // Use Capacitor Firebase Authentication listener for native platforms
@@ -249,6 +263,9 @@ export class AuthenticationService extends ConsentAwareService {
         // Also check current user immediately
         FirebaseAuthentication.getCurrentUser().then((result) => {
           this._handleAuthStateChange(result.user);
+        }).catch((error) => {
+          console.error("Failed to read native auth state:", error);
+          this.initialAuthStateResolved.set(true);
         });
 
         // On Android, ALSO listen to web auth state changes
@@ -362,6 +379,8 @@ export class AuthenticationService extends ConsentAwareService {
 
       this.authState$.next(null);
     }
+
+    this.initialAuthStateResolved.set(true);
   }
 
   private firebaseAuthChangeListener = (firebaseUser: FirebaseUser | null) => {
@@ -370,6 +389,7 @@ export class AuthenticationService extends ConsentAwareService {
 
   private firebaseAuthChangeError = (error: any) => {
     console.error(error);
+    this.initialAuthStateResolved.set(true);
   };
 
   private _fetchUserData(uid: string, sendUpdate = true) {

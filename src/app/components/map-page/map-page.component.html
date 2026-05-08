@@ -650,7 +650,12 @@
   Parkour Spot Map — find spots, communities, and events near you
 </h1>
 
-@if (responsiveService.isNotMobile()) {
+@if (!responsiveService.isInitialized()) {
+  <div class="d-flex flex-column gap-3 justify-content-center align-items-center h-100">
+    <mat-icon style="height: 50px; width: 50px; font-size: 50px">map</mat-icon>
+    <p class="mat-title-medium" i18n>Preparing map layout...</p>
+  </div>
+} @else if (responsiveService.isNotMobile()) {
   <div
     class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
     style="z-index: 100"

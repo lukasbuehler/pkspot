@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ApplicationRef,
   Component,
   computed,
   HostListener,
@@ -143,6 +144,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   readonly dialog = inject(MatDialog);
   private _snackbar = inject(MatSnackBar);
   private _structuredDataService = inject(StructuredDataService);
+  private _appRef = inject(ApplicationRef);
   readonly responsive = inject(ResponsiveService);
 
   // Inject AuthService immediately to ensure auth state restoration works
@@ -236,32 +238,32 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   async ngAfterViewInit() {
-    // Hide native splash screen
-    if (this.isNativePlatform) {
-      import("@capacitor/splash-screen").then(({ SplashScreen }) => {
-        // Add a small delay to ensure the view is fully painted
-        setTimeout(async () => {
-          await SplashScreen.hide();
-        }, 100);
-      });
-    }
-
-    // Hide web splash screen
-    if (typeof document !== "undefined") {
-      // Wait for Angular to settle
-      setTimeout(() => {
-        const splash = document.getElementById("app-splash-screen");
-        if (splash) {
-          splash.classList.add("splash-fade-out");
-          setTimeout(() => {
-            splash.remove();
-          }, 300); // Wait for transition
-        }
-      }, 100); // Initial delay to show splash for a bit or wait for paint
-    }
+    await this.waitForInitialRenderState();
+    await this.waitForNextPaint();
+    await this.waitForNextPaint();
+    await this.hideSplashScreens();
   }
 
   async ngOnInit() {
+    // Wire initial layout-affecting state before any awaited startup work.
+    if (typeof window !== "undefined") {
+      this.setEmbeddedStateFromUrl(window.location.pathname);
+    } else {
+      this.isEmbedded.set(false);
+    }
+
+    this.router.events
+      .pipe(filter((event) => event instanceof RoutesRecognized))
+      .subscribe((event: RoutesRecognized) => {
+        this.setEmbeddedStateFromUrl(event.url);
+
+        this.maybeOpenClickWrap();
+      });
+
+    // Setup auth state listener immediately for session restoration
+    // (This is now safe - only reCAPTCHA-triggering operations like sign-up require consent)
+    this.setupAuthStateListener();
+
     // Initialize analytics
     await this._analyticsService.init();
 
@@ -404,20 +406,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       "software-application",
       this._structuredDataService.generateSoftwareApplicationData()
     );
-
-    // Setup route events and consent dialog logic immediately (before consent)
-    this.router.events
-      .pipe(filter((event) => event instanceof RoutesRecognized))
-      .subscribe((event: RoutesRecognized) => {
-        const isEmbedded = event.url.split("/")[1] === "embedded";
-        this.isEmbedded.set(isEmbedded);
-
-        this.maybeOpenClickWrap();
-      });
-
-    // Setup auth state listener immediately for session restoration
-    // (This is now safe - only reCAPTCHA-triggering operations like sign-up require consent)
-    this.setupAuthStateListener();
 
     // Track when consent is granted so we can correlate accepters vs non-accepters
     this._consentService.consentGranted$.subscribe((granted) => {
@@ -711,7 +699,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         if (!initialPageviewSent) {
           // wait until auth state is restored to get correct `authenticated` flag
-          firstValueFrom(this.authService.authState$.pipe())
+          this.waitForInitialAuthState()
             .then(() => {
               send();
               initialPageviewSent = true;
@@ -725,6 +713,93 @@ export class AppComponent implements OnInit, AfterViewInit {
           send();
         }
       });
+  }
+
+  private setEmbeddedStateFromUrl(url: string) {
+    this.isEmbedded.set(url.split("/")[1] === "embedded");
+  }
+
+  private async waitForInitialRenderState() {
+    if (typeof window === "undefined") return;
+
+    await Promise.all([
+      this.withTimeout(this.waitForAppStable(), 3000),
+      this.withTimeout(
+        this.waitUntil(() => this.authService.initialAuthStateResolved()),
+        3000
+      ),
+      this.withTimeout(
+        this.waitUntil(() => this.responsive.isInitialized()),
+        3000
+      ),
+      this.withTimeout(this.waitUntil(() => this.isEmbedded() !== null), 3000),
+    ]);
+  }
+
+  private waitForInitialAuthState(): Promise<void> {
+    if (typeof window === "undefined") {
+      return Promise.resolve();
+    }
+
+    return this.waitUntil(() => this.authService.initialAuthStateResolved());
+  }
+
+  private async waitForAppStable() {
+    await firstValueFrom(
+      this._appRef.isStable.pipe(filter((stable) => stable === true))
+    );
+  }
+
+  private waitUntil(predicate: () => boolean): Promise<void> {
+    if (predicate()) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      const check = () => {
+        if (predicate()) {
+          resolve();
+          return;
+        }
+        requestAnimationFrame(check);
+      };
+      requestAnimationFrame(check);
+    });
+  }
+
+  private withTimeout(promise: Promise<void>, timeoutMs: number): Promise<void> {
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(resolve, timeoutMs);
+      promise
+        .catch((error) => {
+          console.error("Initial render readiness check failed:", error);
+        })
+        .finally(() => {
+          clearTimeout(timeoutId);
+          resolve();
+        });
+    });
+  }
+
+  private waitForNextPaint(): Promise<void> {
+    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  private async hideSplashScreens() {
+    if (this.isNativePlatform) {
+      const { SplashScreen } = await import("@capacitor/splash-screen");
+      await SplashScreen.hide();
+    }
+
+    if (typeof document === "undefined") return;
+
+    const splash = document.getElementById("app-splash-screen");
+    if (!splash) return;
+
+    splash.classList.add("splash-fade-out");
+    setTimeout(() => {
+      splash.remove();
+    }, 300);
   }
 
   private setupAuthStateListener() {
