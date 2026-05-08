@@ -41,6 +41,19 @@ function getSpotPoint(
     : null;
 }
 
+/**
+ * Median of a numeric array. Returns 0 for an empty array (callers
+ * already guard against that). Mutates a copy via sort, not the input.
+ */
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[middle - 1] + sorted[middle]) / 2
+    : sorted[middle];
+}
+
 function getDistanceMeters(
   left: { lat: number; lng: number },
   right: { lat: number; lng: number }
@@ -90,16 +103,14 @@ export function computeCommunityBounds(
     return null;
   }
 
-  const sum = points.reduce(
-    (acc, point) => ({
-      lat: acc.lat + point.lat,
-      lng: acc.lng + point.lng,
-    }),
-    { lat: 0, lng: 0 }
-  );
+  // Marginal median (median lat, median lng). More robust to outlier
+  // spots than an arithmetic mean — a single far-flung spot doesn't drag
+  // the center of the community away from where most of its spots are.
+  // Not the true geometric median (which is harder to compute), but it's
+  // sufficient for the "where does this community live" use case.
   const center = {
-    lat: sum.lat / points.length,
-    lng: sum.lng / points.length,
+    lat: median(points.map((p) => p.lat)),
+    lng: median(points.map((p) => p.lng)),
   };
 
   const distances = points
