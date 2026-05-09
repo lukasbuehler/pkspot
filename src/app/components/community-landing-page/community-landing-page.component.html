@@ -19,7 +19,6 @@
           [title]="heading()"
           [titleTooltip]="heading()"
           typeLabel="Community"
-          [icon]="'groups'"
           [iconTooltip]="scopeLabel()"
           [dismissable]="true"
           [backLabel]="backLabel()"
@@ -76,7 +75,7 @@
                 <img
                   [ngSrc]="data.imageUrl"
                   fill
-                  class="object-fit-cover"
+                  class="object-fit-cover position-absolute"
                   [alt]="heading()"
                 />
               } @else {
@@ -88,7 +87,7 @@
             </div>
 
             @if (introText()) {
-              <span class="text-truncate d-flex align-items-center gap-1">
+              <span class="py-3 d-flex align-items-center gap-1">
                 {{ introText() }}
               </span>
             }
@@ -102,7 +101,7 @@
             <img
               [ngSrc]="data.imageUrl"
               fill
-              class="object-fit-cover"
+              class="position-absolute object-fit-cover"
               [alt]="heading()"
             />
           </div>
@@ -252,7 +251,10 @@
                   </span>
                 </a>
               } @else {
-                <a class="community-link-card" [routerLink]="child.canonicalPath">
+                <a
+                  class="community-link-card"
+                  [routerLink]="child.canonicalPath"
+                >
                   <span class="community-link-name">
                     {{ child.displayName }}
                   </span>

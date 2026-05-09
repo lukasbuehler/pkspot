@@ -22,10 +22,13 @@ export interface MapIslandCommunity {
   communityKey: string;
   displayName: string;
   slug: string;
+  scope?: "country" | "region" | "locality";
+  countryCode?: string;
   canonicalPath?: string;
   totalSpots?: number;
   boundsCenter?: [number, number];
   boundsRadiusM?: number;
+  googleMapsPlaceId?: string;
 }
 
 /**

@@ -94,7 +94,7 @@ async function _generateAndUploadSitemap(): Promise<{
   let communityCount = 0;
   let eventCount = 0;
   let slugCount = 0;
-  const staticPaths = new Set(STATIC_PAGES.map((page) => page.path));
+  const staticPaths = new Set<string>(STATIC_PAGES.map((page) => page.path));
 
   try {
     await writer.append(buildSitemapHeader());

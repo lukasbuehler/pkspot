@@ -140,6 +140,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @Input() communityArea: {
     center: { lat: number; lng: number };
     radiusM: number;
+    googleBoundary?: {
+      featureType: "COUNTRY";
+      placeId?: string;
+      query?: string;
+      region?: string;
+    };
   } | null = null;
 
   @Output() hasGeolocationChange = new EventEmitter<boolean>();

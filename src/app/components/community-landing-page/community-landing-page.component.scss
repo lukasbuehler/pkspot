@@ -135,6 +135,8 @@
   margin-right: -16px;
   overflow: hidden;
   position: relative;
+  max-height: 30vh;
+  width: calc(100% + 32px);
 }
 
 .eyebrow {

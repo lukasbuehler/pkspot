@@ -432,7 +432,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * Null when no community variant is active.
    */
   activeCommunityArea = computed<
-    { center: { lat: number; lng: number }; radiusM: number } | null
+    {
+      center: { lat: number; lng: number };
+      radiusM: number;
+      googleBoundary?: {
+        featureType: "COUNTRY";
+        placeId?: string;
+        query?: string;
+        region?: string;
+      };
+    } | null
   >(() => {
     const data =
       this.selectedCommunityLanding() ?? this.pendingCommunityLanding();
@@ -450,6 +459,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return {
       center: { lat, lng },
       radiusM: data.boundsRadiusM,
+      googleBoundary:
+        data.scope === "country"
+          ? {
+              featureType: "COUNTRY",
+              placeId: data.googleMapsPlaceId,
+              query: data.displayName,
+              region:
+                "country" in data
+                  ? data.country.code?.toUpperCase()
+                  : data.countryCode?.toUpperCase(),
+            }
+          : undefined,
     };
   });
 

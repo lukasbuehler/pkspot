@@ -62,6 +62,7 @@ export interface CommunityLandingPageData {
   sourceMaxUpdatedAt?: CommunityPageSchema["sourceMaxUpdatedAt"];
   boundsCenter?: CommunityPageSchema["bounds_center"];
   boundsRadiusM?: CommunityPageSchema["bounds_radius_m"];
+  googleMapsPlaceId?: CommunityPageSchema["google_maps_place_id"];
   notFound?: boolean;
 }
 
@@ -178,6 +179,7 @@ export class LandingPagesService {
       sourceMaxUpdatedAt: pageDoc.sourceMaxUpdatedAt,
       boundsCenter: pageDoc.bounds_center,
       boundsRadiusM: pageDoc.bounds_radius_m,
+      googleMapsPlaceId: pageDoc.google_maps_place_id,
     };
   }
 

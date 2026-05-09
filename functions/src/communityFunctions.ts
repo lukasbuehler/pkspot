@@ -459,6 +459,7 @@ const buildCommunityPageDoc = async (
     sourceMaxUpdatedAt: sourceMaxUpdatedAt ?? undefined,
     bounds_center: communityBounds?.bounds_center,
     bounds_radius_m: communityBounds?.bounds_radius_m,
+    google_maps_place_id: existingPage?.google_maps_place_id,
   }) as CommunityPageSchema;
 };
 

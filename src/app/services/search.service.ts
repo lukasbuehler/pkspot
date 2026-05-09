@@ -252,6 +252,7 @@ export class SearchService {
       canonicalPath: doc?.canonicalPath ?? undefined,
       boundsCenter,
       boundsRadiusM,
+      googleMapsPlaceId: doc?.google_maps_place_id ?? undefined,
     };
   }
 
@@ -852,4 +853,5 @@ export interface CommunitySearchPreview {
   canonicalPath?: string;
   boundsCenter?: [number, number];
   boundsRadiusM?: number;
+  googleMapsPlaceId?: string;
 }

@@ -390,7 +390,16 @@ export class GoogleMap2dComponent
   @Input() communityArea: {
     center: { lat: number; lng: number };
     radiusM: number;
+    googleBoundary?: {
+      featureType: "COUNTRY";
+      placeId?: string;
+      query?: string;
+      region?: string;
+    };
   } | null = null;
+  private _communityBoundaryLayer: google.maps.FeatureLayer | null = null;
+  private _communityBoundaryRequestVersion = 0;
+  private _communityBoundaryPlaceIdCache = new Map<string, string | null>();
 
   /** Visual style for the active-community area circle. */
   communityAreaCircleOptions: google.maps.CircleOptions = {
@@ -786,6 +795,8 @@ export class GoogleMap2dComponent
   isApiLoadedSubscription: Subscription | null = null;
   consentSubscription: Subscription | null = null;
   private _headingChangedSubscription: Subscription | null = null;
+  private _mapCapabilitiesChangedListener: google.maps.MapsEventListener | null =
+    null;
 
   ngAfterViewInit() {
     if (!this.mapsApiService.isApiLoaded()) {
@@ -837,6 +848,8 @@ export class GoogleMap2dComponent
 
     this.positionGoogleMapsLogo();
     this._subscribeToHeadingChanges();
+    this._subscribeToMapCapabilitiesChanges();
+    void this._updateCommunityBoundaryStyle();
 
     if (this.isDebug()) {
       this._startFpsLoop();
@@ -962,6 +975,10 @@ export class GoogleMap2dComponent
       this._applyBoundRestriction();
     }
 
+    if (changes["communityArea"]) {
+      void this._updateCommunityBoundaryStyle();
+    }
+
     if (changes["isDebug"]) {
       if (this.isDebug()) {
         this._startFpsLoop();
@@ -977,7 +994,182 @@ export class GoogleMap2dComponent
     if (this.consentSubscription) this.consentSubscription.unsubscribe();
     if (this._headingChangedSubscription)
       this._headingChangedSubscription.unsubscribe();
+    this._mapCapabilitiesChangedListener?.remove();
+    this._mapCapabilitiesChangedListener = null;
+    this._communityBoundaryRequestVersion++;
+    this._clearCommunityBoundaryStyle();
     this._stopFpsLoop();
+  }
+
+  private async _updateCommunityBoundaryStyle(): Promise<void> {
+    const requestVersion = ++this._communityBoundaryRequestVersion;
+    this._clearCommunityBoundaryStyle();
+
+    const boundary = this.communityArea?.googleBoundary;
+    const map = this.googleMap?.googleMap;
+    if (!boundary || !map || typeof google === "undefined") {
+      return;
+    }
+
+    const capabilities = map.getMapCapabilities();
+    if (!capabilities.isDataDrivenStylingAvailable) {
+      console.warn(
+        "Google Maps data-driven styling is not available for this map yet.",
+        capabilities
+      );
+      return;
+    }
+
+    const featureType = await this._getCommunityBoundaryFeatureType(
+      boundary.featureType
+    );
+    if (requestVersion !== this._communityBoundaryRequestVersion) {
+      return;
+    }
+    if (!featureType) {
+      console.warn("Google Maps boundary feature types are not available.");
+      return;
+    }
+
+    const layer = map.getFeatureLayer(featureType);
+    if (!layer.isAvailable) {
+      console.warn(
+        "Google Maps COUNTRY boundary layer is not available for this map ID. Enable data-driven styling for COUNTRY boundaries in the Google Cloud map style."
+      );
+      return;
+    }
+
+    const placeId =
+      boundary.placeId || (await this._resolveCommunityBoundaryPlaceId(boundary));
+    if (requestVersion !== this._communityBoundaryRequestVersion || !placeId) {
+      return;
+    }
+
+    const style = this._getCommunityBoundaryStyle();
+    layer.style = ({ feature }) => {
+      const placeFeature = feature as google.maps.PlaceFeature;
+      return placeFeature.placeId === placeId ? style : undefined;
+    };
+
+    this._communityBoundaryLayer = layer;
+  }
+
+  private _clearCommunityBoundaryStyle(): void {
+    if (this._communityBoundaryLayer) {
+      this._communityBoundaryLayer.style = null;
+      this._communityBoundaryLayer = null;
+    }
+  }
+
+  private async _getCommunityBoundaryFeatureType(
+    featureType: "COUNTRY"
+  ): Promise<google.maps.FeatureType | null> {
+    const mapsApi = this._getGoogleMapsApi() as
+      | ((typeof google)["maps"] & {
+          importLibrary?: (libraryName: string) => Promise<{
+            FeatureType?: typeof google.maps.FeatureType;
+          }>;
+        })
+      | null;
+    if (!mapsApi) {
+      return null;
+    }
+
+    if (mapsApi.FeatureType?.[featureType]) {
+      return mapsApi.FeatureType[featureType];
+    }
+
+    if (typeof mapsApi.importLibrary !== "function") {
+      return null;
+    }
+
+    try {
+      const mapsLibrary = (await mapsApi.importLibrary("maps")) as {
+        FeatureType?: typeof google.maps.FeatureType;
+      };
+      return mapsLibrary.FeatureType?.[featureType] ?? null;
+    } catch (error) {
+      console.warn("Failed to load Google Maps feature types:", error);
+      return null;
+    }
+  }
+
+  private async _resolveCommunityBoundaryPlaceId(boundary: {
+    query?: string;
+    region?: string;
+  }): Promise<string | null> {
+    const query = boundary.query?.trim();
+    if (!query || typeof google === "undefined") {
+      return null;
+    }
+
+    const cacheKey = `${boundary.region ?? ""}:${query}`.toLowerCase();
+    if (this._communityBoundaryPlaceIdCache.has(cacheKey)) {
+      return this._communityBoundaryPlaceIdCache.get(cacheKey) ?? null;
+    }
+
+    try {
+      const { Place } = (await google.maps.importLibrary(
+        "places"
+      )) as google.maps.PlacesLibrary;
+      const { places } = await Place.searchByText({
+        textQuery: query,
+        fields: ["id"],
+        includedType: "country",
+        maxResultCount: 1,
+        region: boundary.region,
+        useStrictTypeFiltering: true,
+      });
+      const placeId = places[0]?.id ?? null;
+      if (!placeId) {
+        console.warn("No Google boundary Place ID found for community:", query);
+      }
+      this._communityBoundaryPlaceIdCache.set(cacheKey, placeId);
+      return placeId;
+    } catch (error) {
+      console.warn("Failed to resolve community boundary Place ID:", error);
+      this._communityBoundaryPlaceIdCache.set(cacheKey, null);
+      return null;
+    }
+  }
+
+  private _getCommunityBoundaryStyle(): google.maps.FeatureStyleOptions {
+    const color = this._getCssColorAsHex("--mat-sys-primary", "#0036ba");
+    return {
+      fillColor: color,
+      strokeColor: color,
+      fillOpacity: 0.06,
+      strokeOpacity: 0.72,
+      strokeWeight: 2,
+    };
+  }
+
+  private _getCssColorAsHex(cssVarName: string, fallback: string): string {
+    if (typeof window === "undefined") {
+      return fallback;
+    }
+
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(cssVarName)
+      .trim();
+
+    if (/^#[0-9a-f]{6}$/iu.test(value)) {
+      return value;
+    }
+
+    const rgbMatch = value.match(
+      /^rgba?\(\s*(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})/iu
+    );
+    if (!rgbMatch) {
+      return fallback;
+    }
+
+    const [red, green, blue] = rgbMatch
+      .slice(1, 4)
+      .map((part) => Math.max(0, Math.min(255, Number(part))));
+    return `#${[red, green, blue]
+      .map((channel) => channel.toString(16).padStart(2, "0"))
+      .join("")}`;
   }
 
   private _subscribeToHeadingChanges(): void {
@@ -988,6 +1180,17 @@ export class GoogleMap2dComponent
         this.headingIsNotNorth.set(this.googleMap!.getHeading() !== 0);
       }
     );
+  }
+
+  private _subscribeToMapCapabilitiesChanges(): void {
+    if (this._mapCapabilitiesChangedListener || !this.googleMap?.googleMap) {
+      return;
+    }
+
+    this._mapCapabilitiesChangedListener =
+      this.googleMap.googleMap.addListener("mapcapabilities_changed", () => {
+        void this._updateCommunityBoundaryStyle();
+      });
   }
 
   private _geoPointToLatLng(

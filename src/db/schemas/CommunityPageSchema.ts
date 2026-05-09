@@ -88,4 +88,11 @@ export interface CommunityPageSchema {
   bounds_center?: [number, number];
   /** Radius in meters from `bounds_center` covering the community area. */
   bounds_radius_m?: number;
+
+  /**
+   * Google Maps region Place ID used to style the administrative boundary
+   * through data-driven styling. Country communities can omit this and let the
+   * client resolve the country Place ID from `displayName`.
+   */
+  google_maps_place_id?: string;
 }

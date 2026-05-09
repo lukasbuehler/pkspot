@@ -416,7 +416,7 @@ export function buildSitemapXml(params: {
   const staticPageXml = includeStaticPages ? buildStaticPageEntries(now) : "";
   const staticPageCount = includeStaticPages ? STATIC_PAGES.length : 0;
   const staticPaths = includeStaticPages
-    ? new Set(STATIC_PAGES.map((page) => page.path))
+    ? new Set<string>(STATIC_PAGES.map((page) => page.path))
     : new Set<string>();
   const { xml: spotXml, spotCount, slugCount } = buildSpotEntries(spots, now);
   const { xml: userXml, userCount } = buildUserEntries(users, now);

@@ -321,7 +321,7 @@
        `community_pages.bounds_center` / `bounds_radius_m` (computed by the
        cloud function from member spot locations). Non-interactive — it's
        a label, not a hit target. -->
-  @if (communityArea) {
+  @if (communityArea && !communityArea.googleBoundary) {
     <map-circle
       [center]="communityArea.center"
       [radius]="communityArea.radiusM"
