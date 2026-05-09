@@ -37,6 +37,9 @@
         >
           {{ title() }}
         </span>
+        @if (titleSuffix()) {
+          <span aria-hidden="true">{{ titleSuffix() }}</span>
+        }
         @if (typeLabel()) {
           <span
             class="mat-label-small px-1 border rounded map-info-panel-type-label"

@@ -28,6 +28,7 @@ export {
 export {
   rebuildCommunityPagesOnSpotWrite,
   rebuildAllCommunityPages,
+  rebuildCommunityEventPreviewsOnEventWrite,
 } from "./communityFunctions";
 
 export { computeRatingOnWrite } from "./spotRatingFunctions";

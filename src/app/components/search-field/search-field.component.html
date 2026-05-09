@@ -49,9 +49,14 @@
           class="d-flex flex-column gap-0 min-w-0"
           style="flex: 1; min-width: 0"
         >
-          <span class="mat-title-medium text-truncate">{{
-            community.displayName
-          }}</span>
+          <span
+            class="mat-title-medium d-flex flex-row align-items-center gap-1 min-w-0"
+          >
+            <span class="text-truncate">{{ community.displayName }}</span>
+            @if(getCommunityFlag(community); as flag) {
+            <span aria-hidden="true">{{ flag }}</span>
+            }
+          </span>
           @if(getCommunitySubtitle(community); as subtitle) {
           <span class="mat-label-medium text-truncate">{{ subtitle }}</span>
           }

@@ -100,4 +100,17 @@ describe("CommunityHelpers", () => {
       },
     ]);
   });
+
+  it("should add search aliases for country communities", () => {
+    expect(
+      buildCommunitySlugCandidates({
+        displayName: "United States",
+        geography: {
+          countryCode: "US",
+          countryName: "United States",
+          countrySlug: "united-states",
+        },
+      })
+    ).toContain("usa");
+  });
 });

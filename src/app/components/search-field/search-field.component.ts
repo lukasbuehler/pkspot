@@ -49,6 +49,7 @@ import {
   startWith,
   switchMap,
 } from "rxjs/operators";
+import { countries } from "../../../scripts/Countries";
 
 interface SearchSelection {
   type: "place" | "spot" | "community";
@@ -524,6 +525,13 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       default:
         return "groups";
     }
+  }
+
+  getCommunityFlag(community: CommunitySearchPreview): string {
+    const countryCode = String(community.countryCode ?? "")
+      .trim()
+      .toUpperCase();
+    return countryCode ? (countries[countryCode]?.emoji ?? "") : "";
   }
 
   /**

@@ -21,6 +21,9 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
+import { countries } from "../../../scripts/Countries";
+
+type CommunityExploreMode = "all" | "dry";
 
 interface CommunityExternalLink {
   label: string;
@@ -72,6 +75,8 @@ export class CommunityLandingPageComponent {
 
   /** Emitted when the user clicks a spot card in panel mode. */
   selectSpot = output<SpotPreviewData>();
+  /** Emitted when panel mode should close and show the map around this community. */
+  exploreCommunitySpots = output<CommunityExploreMode>();
 
   onClose() {
     this.closePanel.emit();
@@ -161,6 +166,9 @@ export class CommunityLandingPageComponent {
   totalSpotCount = computed(() => this.communityData()?.totalSpotCount ?? 0);
   topRatedCount = computed(() => this.communityData()?.topRatedCount ?? 0);
   dryCount = computed(() => this.communityData()?.dryCount ?? 0);
+  countryFlag = computed(() =>
+    this._getCountryFlag(this.communityData()?.country.code),
+  );
   childCommunities = computed(
     () => this.communityData()?.childCommunities ?? [],
   );
@@ -218,6 +226,27 @@ export class CommunityLandingPageComponent {
     }
 
     this.selectSpot.emit(spot);
+  }
+
+  exploreMapQueryParams(mode: CommunityExploreMode): Record<string, string> {
+    const data = this.communityData();
+    const params: Record<string, string> = {};
+    if (data?.preferredSlug) {
+      params["community"] = data.preferredSlug;
+    }
+    if (mode === "dry") {
+      params["filter"] = "dry";
+    }
+    return params;
+  }
+
+  onExploreCommunitySpots(event: MouseEvent, mode: CommunityExploreMode): void {
+    if (!this.panelMode()) {
+      return;
+    }
+
+    event.preventDefault();
+    this.exploreCommunitySpots.emit(mode);
   }
 
   lastUpdatedDate = computed(() => {
@@ -290,5 +319,10 @@ export class CommunityLandingPageComponent {
     } catch {
       return null;
     }
+  }
+
+  private _getCountryFlag(countryCode: string | null | undefined): string {
+    const normalizedCode = String(countryCode ?? "").trim().toUpperCase();
+    return normalizedCode ? (countries[normalizedCode]?.emoji ?? "") : "";
   }
 }

@@ -23,6 +23,11 @@ const COUNTRY_SLUG_ALIASES: Record<string, string> = {
   GB: "uk",
 };
 
+const COUNTRY_SEARCH_ALIASES: Record<string, string[]> = {
+  GB: ["uk", "united-kingdom", "great-britain", "britain"],
+  US: ["us", "usa", "united-states", "united-states-america"],
+};
+
 export interface CommunityCandidate {
   communityKey: string;
   scope: CommunityScope;
@@ -232,12 +237,21 @@ export function buildCommunitySlugCandidates(
     ? [countrySuffix, regionSuffix, [regionSuffix, countrySuffix].filter(Boolean).join("-")]
     : [regionSuffix, countrySuffix, [regionSuffix, countrySuffix].filter(Boolean).join("-")];
 
+  const countrySearchAliases =
+    candidate.geography.countryCode &&
+    !candidate.geography.localitySlug &&
+    !candidate.geography.regionSlug &&
+    !candidate.geography.regionCode
+      ? COUNTRY_SEARCH_ALIASES[candidate.geography.countryCode.toUpperCase()] ?? []
+      : [];
+
   return [
     baseSlug,
+    ...countrySearchAliases,
     ...orderedSuffixes
       .filter(Boolean)
       .map((suffix) => `${baseSlug}-${suffix}`),
-  ].filter(Boolean);
+  ].filter(Boolean).filter((slug, index, slugs) => slugs.indexOf(slug) === index);
 }
 
 export function buildCommunityBreadcrumbs(

@@ -44,7 +44,8 @@
     "deploy:prod:rules": "npx firebase use prod && npx firebase deploy --only firestore:rules",
     "deploy:functions": "cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
     "deploy:test:functions": "npx firebase use test && cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
-    "deploy:prod:functions": "npx firebase use prod && cd ./functions && npm run build && npx firebase deploy --only functions && cd .."
+    "deploy:prod:functions": "npx firebase use prod && cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
+    "rebuild:communities": "node scripts/request_community_rebuild.js"
   },
   "private": true,
   "dependencies": {

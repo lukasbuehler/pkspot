@@ -18,6 +18,7 @@
         <app-map-info-panel
           [title]="heading()"
           [titleTooltip]="heading()"
+          [titleSuffix]="countryFlag()"
           typeLabel="Community"
           [iconTooltip]="scopeLabel()"
           [dismissable]="true"
@@ -115,7 +116,12 @@
               <p class="eyebrow m-0">{{ scopeLabel() }}</p>
             }
 
-            <h1 class="mat-display-small mt-2 mb-2">{{ heading() }}</h1>
+            <h1 class="mat-display-small mt-2 mb-2">
+              {{ heading() }}
+              @if (countryFlag()) {
+                <span aria-hidden="true">{{ countryFlag() }}</span>
+              }
+            </h1>
             <p class="mat-body-large intro-copy mb-4">{{ introText() }}</p>
 
             <div class="stats-grid">
@@ -425,8 +431,8 @@
       @if (data.topRatedSpots.length > 0) {
         <section class="content-section">
           <div class="section-heading">
-            <p class="section-eyebrow m-0">Featured Spots</p>
-            <h2 class="mat-title-large m-0">Top Rated Spots</h2>
+            <!-- <p class="section-eyebrow m-0">Featured Spots</p> -->
+            <h2 class="mat-title-large m-0">Highlighted Spots</h2>
           </div>
 
           <app-spot-list
@@ -437,13 +443,25 @@
             [text]="'Top Rated Spots'"
             (spotClick)="onSelectSpot($event)"
           ></app-spot-list>
+          <a
+            mat-stroked-button
+            class="mt-2"
+            routerLink="/map"
+            [queryParams]="exploreMapQueryParams('all')"
+            (click)="onExploreCommunitySpots($event, 'all')"
+          >
+            <mat-icon>travel_explore</mat-icon>
+            <span i18n="@@community.explore_more_spots"
+              >Explore more spots</span
+            >
+          </a>
         </section>
       }
 
       @if (data.drySpots.length > 0) {
         <section class="content-section">
           <div class="section-heading">
-            <p class="section-eyebrow m-0">Featured Spots</p>
+            <!-- <p class="section-eyebrow m-0">Featured Spots</p> -->
             <h2 class="mat-title-large m-0">Dry Spots</h2>
           </div>
 
@@ -452,9 +470,19 @@
             [spots]="[]"
             [enableAnimation]="false"
             [withHrefLink]="!panelMode()"
-            [text]="'Dry Spots'"
+            [text]="'Top Rated Dry Spots'"
             (spotClick)="onSelectSpot($event)"
           ></app-spot-list>
+          <a
+            mat-stroked-button
+            class="mt-2"
+            routerLink="/map"
+            [queryParams]="exploreMapQueryParams('dry')"
+            (click)="onExploreCommunitySpots($event, 'dry')"
+          >
+            <mat-icon>travel_explore</mat-icon>
+            <span i18n="@@community.explore_dry_spots">Explore dry spots</span>
+          </a>
         </section>
       }
 

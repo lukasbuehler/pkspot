@@ -237,6 +237,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private ngZone = inject(NgZone);
   private _structuredDataService = inject(StructuredDataService);
   private _backHandlingService = inject(BackHandlingService);
+  private _pendingCommunityFocusSlug: string | null = null;
 
   searchResultSpots: WritableSignal<Spot[]> = signal([]);
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
@@ -737,6 +738,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._syncMapPanelStateFromUrl(nextPath);
   }
 
+  exploreCommunitySpots(mode: "all" | "dry"): void {
+    const community = this.selectedCommunityLanding();
+    if (!community) {
+      return;
+    }
+
+    this._focusCommunityOnMap(community);
+    this.selectedCommunityLanding.set(null);
+    this.pendingCommunityLanding.set(null);
+    this.panelBackTarget.set(null);
+
+    if (mode === "dry") {
+      this.filterChipChanged("dry");
+    } else if (this.selectedFilter() === "dry") {
+      this.filterChipChanged("");
+    } else {
+      this.updateMapURL();
+    }
+
+    this._openInfoPanel();
+  }
+
   openSpotPath(
     spotIdOrSlug: string,
     preview?: Partial<PendingSpotPanel> | null
@@ -1114,9 +1137,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           );
         this._searchService
           .listCommunities()
-          .then((communities) =>
-            this._promotableCommunities.set(communities)
-          )
+          .then((communities) => {
+            this._promotableCommunities.set(communities);
+            this._focusCommunityFromQueryParam();
+          })
           .catch((err) =>
             console.warn(
               "MapPage: failed to load promotable communities",
@@ -1524,6 +1548,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (filterParam) {
       this.selectedFilter.set(filterParam);
     }
+    this._pendingCommunityFocusSlug =
+      this.activatedRoute.snapshot.queryParamMap.get("community");
 
     // Register back button handler
     this._backHandlingService.addListener(10, this.handleBackPress);
@@ -1559,6 +1585,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.spotMap) {
           console.debug("spotMap is now available, setting mapReady");
           this.mapReady.set(true);
+          this._focusCommunityFromQueryParam();
         } else {
           // Keep polling every 50ms until spotMap is available
           setTimeout(checkSpotMapAvailable, 50);
@@ -1589,6 +1616,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           if (this.selectedFilter() !== filterParam) {
             this.filterChipChanged(filterParam);
           }
+          this._pendingCommunityFocusSlug = params.get("community");
+          this._focusCommunityFromQueryParam();
 
         });
 
@@ -1603,6 +1632,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         // the address bar without a fresh router resolver pass; keep the
         // selected panel state in step with that URL here.
         this._syncFullMapStateFromUrl(url);
+        const queryIndex = url.indexOf("?");
+        const params = new URLSearchParams(
+          queryIndex >= 0 ? url.substring(queryIndex + 1) : ""
+        );
+        this._pendingCommunityFocusSlug = params.get("community");
+        this._focusCommunityFromQueryParam();
       });
 
       // Setup scroll listeners for the sidebar (desktop) and bottom-sheet (mobile)
@@ -3118,6 +3153,40 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         { lat: lat + radiusDegrees, lng: lng + radiusDegrees }
       )
     );
+  }
+
+  private _focusCommunityFromQueryParam(): void {
+    const slug = this._pendingCommunityFocusSlug;
+    if (!slug || !this.spotMap || this._promotableCommunities().length === 0) {
+      return;
+    }
+
+    const preview = this._findCommunityPreviewBySlug(slug);
+    if (!preview) {
+      return;
+    }
+
+    this._focusCommunityPreviewOnMap(preview);
+    this._pendingCommunityFocusSlug = null;
+    this._clearCommunityFocusQueryParam();
+  }
+
+  private _clearCommunityFocusQueryParam(): void {
+    const currentUrl = this._location.path();
+    const queryIndex = currentUrl.indexOf("?");
+    if (queryIndex < 0) {
+      return;
+    }
+
+    const path = currentUrl.substring(0, queryIndex);
+    const params = new URLSearchParams(currentUrl.substring(queryIndex + 1));
+    if (!params.has("community")) {
+      return;
+    }
+
+    params.delete("community");
+    const queryString = params.toString();
+    this._location.replaceState(queryString ? `${path}?${queryString}` : path);
   }
 
   private _extractCommunityCoordinates(

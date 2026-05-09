@@ -29,6 +29,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 export class MapInfoPanelComponent {
   title = input.required<string>();
   titleTooltip = input<string>("");
+  titleSuffix = input<string>("");
   typeLabel = input<string>("");
   icon = input<string>("");
   iconTooltip = input<string>("");
