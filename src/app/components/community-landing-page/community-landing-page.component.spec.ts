@@ -4,7 +4,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 import { ActivatedRoute } from "@angular/router";
 import { CommunityLandingPageComponent } from "./community-landing-page.component";
-import { EventsService } from "../../services/firebase/firestore/events.service";
 import { CommunityLandingPageData } from "../../services/firebase/firestore/landing-pages.service";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { StorageService } from "../../services/firebase/storage.service";
@@ -35,6 +34,7 @@ const communityData: CommunityLandingPageData = {
   organisations: [],
   athletes: [],
   events: [],
+  eventPreviews: [],
   childCommunities: [
     {
       communityKey: "locality:ch:zh:zuerich",
@@ -61,12 +61,6 @@ describe("CommunityLandingPageComponent", () => {
           useValue: {
             data: of({}),
             snapshot: { data: {} },
-          },
-        },
-        {
-          provide: EventsService,
-          useValue: {
-            getEventsForCommunity: vi.fn().mockResolvedValue([]),
           },
         },
         {

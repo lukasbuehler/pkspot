@@ -1,15 +1,11 @@
-import { DatePipe, isPlatformBrowser, NgOptimizedImage } from "@angular/common";
+import { DatePipe, NgOptimizedImage } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
-  PLATFORM_ID,
-  afterNextRender,
   computed,
-  effect,
   inject,
   input,
   output,
-  signal,
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatCardModule } from "@angular/material/card";
@@ -21,7 +17,6 @@ import { map } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { CommunityLandingPageData as CommunityPanelData } from "../../services/firebase/firestore/landing-pages.service";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { EventsService } from "../../services/firebase/firestore/events.service";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -57,8 +52,6 @@ interface CommunitySectionItem {
 })
 export class CommunityLandingPageComponent {
   private _route = inject(ActivatedRoute);
-  private _platformId = inject(PLATFORM_ID);
-  private _eventsService = inject(EventsService);
 
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
@@ -90,12 +83,8 @@ export class CommunityLandingPageComponent {
 
   /** Maximum events shown above the spots before falling back to a "more" link. */
   private readonly EVENT_LIMIT = 3;
-  /**
-   * Events whose `community_keys` match this page (loaded async).
-   * Named `communityEvents` to avoid collision with `events` (manual link
-   * items from `CommunityPageSchema.events`).
-   */
-  communityEvents = signal<PkEvent[]>([]);
+  /** Event previews embedded on the community document. */
+  communityEvents = computed(() => this.communityData()?.eventPreviews ?? []);
   visibleEvents = computed(() =>
     this.communityEvents().slice(0, this.EVENT_LIMIT),
   );
@@ -203,33 +192,6 @@ export class CommunityLandingPageComponent {
       (data?.topRatedSpots.length ?? 0) > 0 || (data?.drySpots.length ?? 0) > 0
     );
   });
-
-  constructor() {
-    if (isPlatformBrowser(this._platformId)) {
-      // Reload events whenever the landing data (and therefore the community
-      // key) changes — e.g., navigating between communities in the panel.
-      effect(() => {
-        const data = this.communityData();
-        if (!data || data.notFound || !data.communityKey) {
-          this.communityEvents.set([]);
-          return;
-        }
-        const key = data.communityKey;
-        this._eventsService
-          .getEventsForCommunity(key, { withinMonths: 6 })
-          .then((events) => {
-            // Guard against late returns after the user navigated away.
-            if (this.communityData()?.communityKey === key) {
-              this.communityEvents.set(events);
-            }
-          })
-          .catch((err) => {
-            console.warn("CommunityLanding: failed to load events", err);
-            this.communityEvents.set([]);
-          });
-      });
-    }
-  }
 
   formatEventDateRange(event: PkEvent): string {
     const start = event.start.toLocaleDateString(undefined, {

@@ -5,7 +5,12 @@ import {
   onDocumentWritten,
 } from "firebase-functions/v2/firestore";
 import { CommunityPageSchema } from "../../src/db/schemas/CommunityPageSchema";
+import {
+  CommunityChildSummarySchema,
+  CommunityEventPreviewSchema,
+} from "../../src/db/schemas/CommunityPageSchema";
 import { CommunitySlugSchema } from "../../src/db/schemas/CommunitySlugSchema";
+import { EventSchema } from "../../src/db/schemas/EventSchema";
 import { SpotPreviewData } from "../../src/db/schemas/SpotPreviewData";
 import {
   COMMUNITY_DEFAULT_IMAGE_PATH,
@@ -31,10 +36,14 @@ import {
 const COMMUNITY_PAGES_COLLECTION = "community_pages";
 const COMMUNITY_SLUGS_COLLECTION = "community_slugs";
 const MAINTENANCE_COLLECTION = "maintenance";
+const EVENTS_COLLECTION = "events";
 const SPOTS_COLLECTION = "spots";
 const MANUAL_REBUILD_DOC = `${MAINTENANCE_COLLECTION}/run-rebuild-community-pages`;
 const DEFAULT_LOCALE = "en";
-const MAX_SPOTS_PER_SECTION = 12;
+const MAX_SPOTS_PER_SECTION = 8;
+const MAX_CHILD_COMMUNITIES = 48;
+const MAX_COMMUNITY_EVENT_PREVIEWS = 2;
+const COMMUNITY_EVENT_LOOKAHEAD_MONTHS = 6;
 
 type CommunitySlugDoc = CommunitySlugSchema & { id: string };
 
@@ -154,6 +163,107 @@ const buildSpotPreview = (
     bounds: spot.bounds,
     bounds_raw: spot.bounds_raw,
   }) as SpotPreviewData;
+
+const buildCommunityChildSummary = (
+  pageId: string,
+  page: CommunityPageSchema
+): CommunityChildSummarySchema =>
+  removeUndefinedValues({
+    communityKey: page.communityKey || pageId,
+    scope: page.scope,
+    displayName: page.displayName,
+    preferredSlug: page.preferredSlug,
+    canonicalPath:
+      page.canonicalPath || buildCommunityLandingPath(page.preferredSlug),
+    totalSpotCount: page.counts?.totalSpots ?? 0,
+    dryCount: page.counts?.dry ?? 0,
+  }) as CommunityChildSummarySchema;
+
+const getEmbeddedChildCommunities = async (
+  db: admin.firestore.Firestore,
+  parentCommunityKey: string
+): Promise<CommunityChildSummarySchema[]> => {
+  const snapshot = await db
+    .collection(COMMUNITY_PAGES_COLLECTION)
+    .where("relationships.parentKeys", "array-contains", parentCommunityKey)
+    .get();
+
+  return snapshot.docs
+    .map((doc) => ({
+      id: doc.id,
+      data: doc.data() as CommunityPageSchema,
+    }))
+    .filter(({ data }) => data.published !== false)
+    .map(({ id, data }) => buildCommunityChildSummary(id, data))
+    .sort((left, right) => {
+      if (right.totalSpotCount !== left.totalSpotCount) {
+        return right.totalSpotCount - left.totalSpotCount;
+      }
+      return left.displayName.localeCompare(right.displayName);
+    })
+    .slice(0, MAX_CHILD_COMMUNITIES);
+};
+
+const buildCommunityEventPreview = (
+  eventId: string,
+  event: EventSchema
+): CommunityEventPreviewSchema | null => {
+  if (!isTimestampValue(event.start) || !isTimestampValue(event.end)) {
+    return null;
+  }
+
+  return removeUndefinedValues({
+    id: eventId,
+    slug: event.slug,
+    name: event.name,
+    banner_src: event.banner_src,
+    banner_fit: event.banner_fit,
+    banner_accent_color: event.banner_accent_color,
+    venue_string: event.venue_string,
+    locality_string: event.locality_string,
+    start: event.start,
+    end: event.end,
+    url: event.url,
+    bounds: event.bounds,
+    sponsor: event.sponsor,
+    external_source: event.external_source,
+  }) as CommunityEventPreviewSchema;
+};
+
+const getCommunityEventPreviews = async (
+  db: admin.firestore.Firestore,
+  communityKey: string,
+  now: admin.firestore.Timestamp = Timestamp.now()
+): Promise<CommunityEventPreviewSchema[]> => {
+  const cutoff = new Date(now.toMillis());
+  cutoff.setMonth(cutoff.getMonth() + COMMUNITY_EVENT_LOOKAHEAD_MONTHS);
+  const cutoffMillis = cutoff.getTime();
+
+  const snapshot = await db
+    .collection(EVENTS_COLLECTION)
+    .where("community_keys", "array-contains", communityKey)
+    .get();
+
+  return snapshot.docs
+    .map((doc) => ({
+      id: doc.id,
+      data: doc.data() as EventSchema,
+    }))
+    .filter(({ data }) => data.published !== false)
+    .filter(({ data }) => {
+      const endMillis = toMillis(data.end);
+      const startMillis = toMillis(data.start);
+      return (
+        endMillis >= now.toMillis() &&
+        startMillis > 0 &&
+        startMillis <= cutoffMillis
+      );
+    })
+    .sort((left, right) => toMillis(left.data.start) - toMillis(right.data.start))
+    .slice(0, MAX_COMMUNITY_EVENT_PREVIEWS)
+    .map(({ id, data }) => buildCommunityEventPreview(id, data))
+    .filter((preview): preview is CommunityEventPreviewSchema => preview !== null);
+};
 
 const isSpotPartOfCommunity = (
   spot: SpotSchema,
@@ -399,6 +509,11 @@ const buildCommunityPageDoc = async (
         type: "default" as const,
         url: COMMUNITY_DEFAULT_IMAGE_PATH,
       };
+  const childCommunities =
+    candidate.scope === "country"
+      ? await getEmbeddedChildCommunities(db, candidate.communityKey)
+      : [];
+  const eventPreviews = await getCommunityEventPreviews(db, candidate.communityKey);
 
   return removeUndefinedValues({
     communityKey: candidate.communityKey,
@@ -453,6 +568,8 @@ const buildCommunityPageDoc = async (
     organisations: existingPage?.organisations ?? [],
     athletes: existingPage?.athletes ?? [],
     events: existingPage?.events ?? [],
+    childCommunities,
+    eventPreviews,
     image,
     published: true,
     generatedAt: Timestamp.now(),
@@ -496,6 +613,42 @@ const writeOrDeleteCommunityPage = async (
   }
 
   await pageRef.set(pageDoc, { merge: true });
+};
+
+const getCountryCommunityKey = (
+  candidate: CommunityCandidate
+): string | null => {
+  const countryCode = candidate.geography.countryCode?.toLowerCase();
+  return countryCode ? `country:${countryCode}` : null;
+};
+
+const refreshCountryChildCommunities = async (
+  db: admin.firestore.Firestore,
+  countryCommunityKeys: Iterable<string>
+): Promise<void> => {
+  for (const countryCommunityKey of countryCommunityKeys) {
+    const childCommunities = await getEmbeddedChildCommunities(
+      db,
+      countryCommunityKey
+    );
+    await db
+      .collection(COMMUNITY_PAGES_COLLECTION)
+      .doc(countryCommunityKey)
+      .set({ childCommunities }, { merge: true });
+  }
+};
+
+const refreshCommunityEventPreviews = async (
+  db: admin.firestore.Firestore,
+  communityKeys: Iterable<string>
+): Promise<void> => {
+  for (const communityKey of communityKeys) {
+    const eventPreviews = await getCommunityEventPreviews(db, communityKey);
+    await db
+      .collection(COMMUNITY_PAGES_COLLECTION)
+      .doc(communityKey)
+      .set({ eventPreviews }, { merge: true });
+  }
 };
 
 const collectGeneratedCommunities = (
@@ -556,6 +709,39 @@ export const rebuildCommunityPagesOnSpotWrite = onDocumentWritten(
       await writeOrDeleteCommunityPage(db, candidate);
     }
 
+    const impactedCountryKeys = new Set<string>();
+    for (const candidate of impactedCandidates.values()) {
+      const countryCommunityKey = getCountryCommunityKey(candidate);
+      if (countryCommunityKey) {
+        impactedCountryKeys.add(countryCommunityKey);
+      }
+    }
+    await refreshCountryChildCommunities(db, impactedCountryKeys);
+
+    return null;
+  }
+);
+
+export const rebuildCommunityEventPreviewsOnEventWrite = onDocumentWritten(
+  { document: "events/{eventId}" },
+  async (event) => {
+    const db = admin.firestore();
+    const impactedCommunityKeys = new Set<string>();
+    const beforeData = event.data?.before?.exists
+      ? ((event.data.before.data() as EventSchema) ?? null)
+      : null;
+    const afterData = event.data?.after?.exists
+      ? ((event.data.after.data() as EventSchema) ?? null)
+      : null;
+
+    for (const key of beforeData?.community_keys ?? []) {
+      impactedCommunityKeys.add(key);
+    }
+    for (const key of afterData?.community_keys ?? []) {
+      impactedCommunityKeys.add(key);
+    }
+
+    await refreshCommunityEventPreviews(db, impactedCommunityKeys);
     return null;
   }
 );
@@ -573,6 +759,7 @@ export const rebuildAllCommunityPages = onDocumentCreated(
       }));
     const communities = collectGeneratedCommunities(spots);
     const writtenKeys = new Set<string>();
+    const writtenCountryKeys = new Set<string>();
 
     for (const { candidate, spots: candidateSpots } of communities.values()) {
       const pageDoc = await buildCommunityPageDoc(db, candidate, candidateSpots);
@@ -585,6 +772,9 @@ export const rebuildAllCommunityPages = onDocumentCreated(
 
       await pageRef.set(pageDoc, { merge: true });
       writtenKeys.add(candidate.communityKey);
+      if (candidate.scope === "country") {
+        writtenCountryKeys.add(candidate.communityKey);
+      }
     }
 
     const existingPages = await db.collection(COMMUNITY_PAGES_COLLECTION).get();
@@ -596,6 +786,8 @@ export const rebuildAllCommunityPages = onDocumentCreated(
         await page.ref.delete().catch(() => undefined);
       }
     }
+
+    await refreshCountryChildCommunities(db, writtenCountryKeys);
 
     await event.data?.ref.set(
       {

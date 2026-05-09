@@ -141,7 +141,7 @@ import { afterNextRender } from "@angular/core";
 interface PendingSpotPanel {
   id: string;
   slug?: string;
-  name: string;
+  name?: string;
   imageSrc?: string;
   locality?: string;
   rating?: number;
@@ -683,7 +683,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedCommunityLanding.set(community);
       this.pendingCommunityLanding.set(null);
       this._location.go(community.canonicalPath);
-      this._hydrateCountryCommunityChildren(community);
       return;
     }
 
@@ -700,7 +699,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this._location.go(community.canonicalPath);
     }
     this._landingPagesService
-      .getCommunityPage(community.slug, 12, false)
+      .getCommunityPage(community.slug, 8, false)
       .then((full) => {
         if (
           requestVersion !== this._communityRouteLoadVersion ||
@@ -711,7 +710,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
         if (full && full.communityKey === community.communityKey) {
           this.selectedCommunityLanding.set(full);
-          this._hydrateCountryCommunityChildren(full, requestVersion);
         }
       })
       .catch((err) => {
@@ -852,7 +850,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _getCurrentPanelBackLabel(path: string): string {
     const community =
       this.selectedCommunityLanding() ?? this.pendingCommunityLanding();
-    if (/^\/map\/(?:communities|community)\//u.test(path) && community) {
+    if (
+      /^\/map\/(?:communities|community)\//u.test(path) &&
+      community?.displayName
+    ) {
       return community.displayName;
     }
 
@@ -863,7 +864,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const pendingEvent = this.pendingEventPreview();
     if (/^\/map\/events\//u.test(path) && pendingEvent) {
-      return pendingEvent.idOrSlug;
+      return $localize`:@@map.panel_back_event_fallback:Event`;
     }
 
     const spot = this.selectedSpot();
@@ -873,7 +874,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const pendingSpot = this.pendingSpotPreview();
     if (/^\/map\/spots\//u.test(path) && pendingSpot) {
-      return pendingSpot.name;
+      return pendingSpot.name ?? $localize`:@@map.panel_back_spot_fallback:Spot`;
     }
 
     return decodeURIComponent(path.split("/").filter(Boolean).pop() ?? "Map");
@@ -1713,7 +1714,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           pendingPreview ?? {
             id: spotIdOrSlug,
             slug: spotIdOrSlug,
-            name: spotIdOrSlug,
           },
           false
         );
@@ -1772,17 +1772,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         id: value.id,
         communityKey: value.id,
         slug: value.id,
-        displayName: value.id,
+        displayName: "",
         canonicalPath: `/map/communities/${encodeURIComponent(value.id)}`,
         totalSpots: 0,
       });
       this._openInfoPanel();
       this._landingPagesService
-        .getCommunityPage(value.id, 12, false)
+        .getCommunityPage(value.id, 8, false)
         .then((community) => {
           if (community) {
             this.selectedCommunityLanding.set(community);
-            this._hydrateCountryCommunityChildren(community);
           }
         })
         .catch((err) => {
@@ -1908,7 +1907,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         {
           id: String(preview.id ?? spotId),
           slug: preview.slug,
-          name: preview.name || $localize`:@@map.spot_loading_fallback:Spot`,
+          name: preview.name,
           imageSrc: preview.imageSrc,
           locality: preview.locality,
           rating: preview.rating,
@@ -2937,7 +2936,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       ) {
         this.selectedCommunityLanding.set(routedCommunity);
         this.pendingCommunityLanding.set(null);
-        this._hydrateCountryCommunityChildren(routedCommunity);
         return;
       }
 
@@ -2948,7 +2946,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           id: slug,
           communityKey: slug,
           slug,
-          displayName: slug,
+          displayName: "",
           canonicalPath: `/map/communities/${encodeURIComponent(slug)}`,
           totalSpots: 0,
         }
@@ -2957,7 +2955,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this._openInfoPanel();
 
       void this._landingPagesService
-        .getCommunityPage(slug, 12, false)
+        .getCommunityPage(slug, 8, false)
         .then((community) => {
           if (!community) {
             return;
@@ -2975,7 +2973,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           }
 
           this.selectedCommunityLanding.set(community);
-          this._hydrateCountryCommunityChildren(community, requestVersion);
           this.pendingCommunityLanding.set(null);
         })
         .catch((err) =>
@@ -3005,40 +3002,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           community.canonicalPath?.endsWith(`/${slug}`)
       ) ?? null
     );
-  }
-
-  private _hydrateCountryCommunityChildren(
-    community: CommunityLandingPageData,
-    requestVersion = this._communityRouteLoadVersion
-  ): void {
-    if (
-      community.scope !== "country" ||
-      community.childCommunities.length > 0
-    ) {
-      return;
-    }
-
-    void this._landingPagesService
-      .getChildCommunities(community.communityKey)
-      .then((childCommunities) => {
-        if (requestVersion !== this._communityRouteLoadVersion) {
-          return;
-        }
-
-        this.selectedCommunityLanding.update((current) => {
-          if (!current || current.communityKey !== community.communityKey) {
-            return current;
-          }
-
-          return {
-            ...current,
-            childCommunities,
-          };
-        });
-      })
-      .catch((err) => {
-        console.warn("MapPage: failed to load child communities", err);
-      });
   }
 
   private _communityMatchesSlug(

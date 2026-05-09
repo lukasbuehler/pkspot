@@ -47,6 +47,8 @@ const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
   organisations: [],
   athletes: [],
   events: [],
+  childCommunities: [],
+  eventPreviews: [],
   published: true,
   ...overrides,
 });
@@ -125,7 +127,7 @@ describe("LandingPagesService", () => {
     await expect(service.getCommunityPage("london")).resolves.toBeNull();
   });
 
-  it("should include child communities for country pages", async () => {
+  it("should read child communities embedded on country pages", async () => {
     mockFirestoreAdapter.getDocument
       .mockResolvedValueOnce({
         id: "united-kingdom",
@@ -149,47 +151,32 @@ describe("LandingPagesService", () => {
             countryName: "United Kingdom",
             countrySlug: "united-kingdom",
           },
+          childCommunities: [
+            {
+              communityKey: "locality:gb:london",
+              scope: "locality",
+              displayName: "London",
+              preferredSlug: "london",
+              canonicalPath: "/map/communities/london",
+              totalSpotCount: 18,
+              dryCount: 3,
+            },
+            {
+              communityKey: "locality:gb:manchester",
+              scope: "locality",
+              displayName: "Manchester",
+              preferredSlug: "manchester",
+              canonicalPath: "/map/communities/manchester",
+              totalSpotCount: 12,
+              dryCount: 1,
+            },
+          ],
         })
       );
-    mockFirestoreAdapter.getCollection.mockResolvedValue([
-      buildCommunityDoc({
-        id: "locality:gb:manchester",
-        communityKey: "locality:gb:manchester",
-        displayName: "Manchester",
-        preferredSlug: "manchester",
-        canonicalPath: "/map/communities/manchester",
-        counts: {
-          totalSpots: 12,
-          topRated: 5,
-          dry: 1,
-        },
-      }),
-      buildCommunityDoc({
-        id: "locality:gb:london",
-        communityKey: "locality:gb:london",
-        displayName: "London",
-        preferredSlug: "london",
-        canonicalPath: "/map/communities/london",
-        counts: {
-          totalSpots: 18,
-          topRated: 7,
-          dry: 3,
-        },
-      }),
-    ]);
 
     const result = await service.getCommunityPage("united-kingdom");
 
-    expect(mockFirestoreAdapter.getCollection).toHaveBeenCalledWith(
-      "community_pages",
-      [
-        {
-          fieldPath: "relationships.parentKeys",
-          opStr: "array-contains",
-          value: "country:gb",
-        },
-      ]
-    );
+    expect(mockFirestoreAdapter.getCollection).not.toHaveBeenCalled();
     expect(result?.childCommunities).toEqual([
       expect.objectContaining({
         displayName: "London",
@@ -202,7 +189,7 @@ describe("LandingPagesService", () => {
     ]);
   });
 
-  it("should allow country pages to skip child communities for faster panel paint", async () => {
+  it("should not fetch child communities even when older callers pass false", async () => {
     mockFirestoreAdapter.getDocument
       .mockResolvedValueOnce({
         id: "united-kingdom",

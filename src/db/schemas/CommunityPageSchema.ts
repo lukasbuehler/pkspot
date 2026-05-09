@@ -1,4 +1,9 @@
 import { Timestamp } from "firebase/firestore";
+import {
+  EventBoundsSchema,
+  EventExternalSourceSchema,
+  EventSponsorSchema,
+} from "./EventSchema";
 import { SpotPreviewData } from "./SpotPreviewData";
 
 export type CommunityScope = "country" | "region" | "locality";
@@ -40,6 +45,33 @@ export interface CommunityListItemSchema {
   url?: string | null;
 }
 
+export interface CommunityChildSummarySchema {
+  communityKey: string;
+  scope: CommunityScope;
+  displayName: string;
+  preferredSlug: string;
+  canonicalPath: string;
+  totalSpotCount: number;
+  dryCount: number;
+}
+
+export interface CommunityEventPreviewSchema {
+  id: string;
+  slug?: string;
+  name: string;
+  banner_src?: string;
+  banner_fit?: "cover" | "contain";
+  banner_accent_color?: string;
+  venue_string: string;
+  locality_string: string;
+  start: Timestamp | { seconds: number; nanoseconds: number };
+  end: Timestamp | { seconds: number; nanoseconds: number };
+  url?: string;
+  bounds?: EventBoundsSchema;
+  sponsor?: EventSponsorSchema;
+  external_source?: EventExternalSourceSchema;
+}
+
 export interface CommunityImageSchema {
   type: "custom" | "default";
   url: string;
@@ -69,6 +101,8 @@ export interface CommunityPageSchema {
   organisations: CommunityListItemSchema[];
   athletes: CommunityListItemSchema[];
   events: CommunityListItemSchema[];
+  childCommunities?: CommunityChildSummarySchema[];
+  eventPreviews?: CommunityEventPreviewSchema[];
   image: CommunityImageSchema;
   published: boolean;
   generatedAt?: Timestamp | { seconds: number; nanoseconds: number };

@@ -88,10 +88,6 @@
   }
 }
 
-.venue-line {
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .hero-section,
 .content-section {
   margin-bottom: 24px;
@@ -157,10 +153,6 @@
 
 .intro-copy {
   max-width: 760px;
-}
-
-.panel-disclaimer {
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .stats-grid {
@@ -267,7 +259,12 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.venue-line,
+.panel-disclaimer,
+.page-updated-text {
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .page-updated-text {
   margin-top: 24px;
-  color: var(--mat-sys-on-surface-variant);
 }

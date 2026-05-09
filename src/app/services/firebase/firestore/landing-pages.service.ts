@@ -1,5 +1,14 @@
 import { Injectable, inject } from "@angular/core";
-import { CommunityPageSchema } from "../../../../db/schemas/CommunityPageSchema";
+import { Event as PkEvent } from "../../../../db/models/Event";
+import {
+  CommunityChildSummarySchema,
+  CommunityEventPreviewSchema,
+  CommunityPageSchema,
+} from "../../../../db/schemas/CommunityPageSchema";
+import {
+  EventId,
+  EventSchema,
+} from "../../../../db/schemas/EventSchema";
 import { CommunitySlugSchema } from "../../../../db/schemas/CommunitySlugSchema";
 import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
 import {
@@ -23,15 +32,7 @@ export interface CommunityLandingBreadcrumb {
   path: string;
 }
 
-export interface CommunityChildSummary {
-  communityKey: string;
-  scope: CommunityLandingScope;
-  displayName: string;
-  preferredSlug: string;
-  canonicalPath: string;
-  totalSpotCount: number;
-  dryCount: number;
-}
+export type CommunityChildSummary = CommunityChildSummarySchema;
 
 export interface CommunityLandingPageData {
   communityKey: string;
@@ -58,6 +59,7 @@ export interface CommunityLandingPageData {
   athletes: CommunityPageSchema["athletes"];
   events: CommunityPageSchema["events"];
   childCommunities: CommunityChildSummary[];
+  eventPreviews: PkEvent[];
   generatedAt?: CommunityPageSchema["generatedAt"];
   sourceMaxUpdatedAt?: CommunityPageSchema["sourceMaxUpdatedAt"];
   boundsCenter?: CommunityPageSchema["bounds_center"];
@@ -77,8 +79,8 @@ export class LandingPagesService {
 
   async getCommunityPage(
     slug: string,
-    limitCount: number = 12,
-    includeChildCommunities: boolean = true
+    limitCount: number = 8,
+    _includeChildCommunities: boolean = true
   ): Promise<CommunityLandingPageData | null> {
     const normalizedSlug = normalizeCommunitySlug(slug);
     if (!normalizedSlug) {
@@ -105,19 +107,13 @@ export class LandingPagesService {
       return null;
     }
 
-    const childCommunities =
-      includeChildCommunities && pageDoc.scope === "country"
-        ? await this.getChildCommunities(pageDoc.communityKey)
-        : [];
-
-    return this._mapPageDoc(pageDoc, normalizedSlug, limitCount, childCommunities);
+    return this._mapPageDoc(pageDoc, normalizedSlug, limitCount);
   }
 
   private _mapPageDoc(
     pageDoc: CommunityPageDocument,
     requestedSlug: string,
-    limitCount: number,
-    childCommunities: CommunityChildSummary[]
+    limitCount: number
   ): CommunityLandingPageData {
     const topRatedSpots = (pageDoc.topRatedSpots ?? []).slice(0, limitCount);
     const drySpots = (pageDoc.drySpots ?? []).slice(0, limitCount);
@@ -174,7 +170,10 @@ export class LandingPagesService {
       organisations: pageDoc.organisations ?? [],
       athletes: pageDoc.athletes ?? [],
       events: pageDoc.events ?? [],
-      childCommunities,
+      childCommunities: pageDoc.childCommunities ?? [],
+      eventPreviews: (pageDoc.eventPreviews ?? []).map((eventPreview) =>
+        this._mapEventPreview(eventPreview),
+      ),
       generatedAt: pageDoc.generatedAt,
       sourceMaxUpdatedAt: pageDoc.sourceMaxUpdatedAt,
       boundsCenter: pageDoc.bounds_center,
@@ -221,6 +220,31 @@ export class LandingPagesService {
         return left.displayName.localeCompare(right.displayName);
       })
       .slice(0, limitCount);
+  }
+
+  private _mapEventPreview(preview: CommunityEventPreviewSchema): PkEvent {
+    return new PkEvent(preview.id as EventId, {
+      name: preview.name,
+      slug: preview.slug,
+      banner_src: preview.banner_src,
+      banner_fit: preview.banner_fit,
+      banner_accent_color: preview.banner_accent_color,
+      venue_string: preview.venue_string,
+      locality_string: preview.locality_string,
+      start: preview.start,
+      end: preview.end,
+      url: preview.url,
+      spot_ids: [],
+      bounds: preview.bounds ?? {
+        north: 0,
+        south: 0,
+        east: 0,
+        west: 0,
+      },
+      sponsor: preview.sponsor,
+      external_source: preview.external_source,
+      published: true,
+    } as EventSchema);
   }
 
   private _getSlugFromPath(path: string | undefined): string | undefined {

@@ -70,6 +70,8 @@ const buildCommunityLandingPageData = (): CommunityLandingPageData => ({
   organisations: [],
   athletes: [],
   events: [],
+  childCommunities: [],
+  eventPreviews: [],
 });
 
 const buildSpot = (

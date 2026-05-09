@@ -69,50 +69,70 @@
       (dismiss)="closeSpot()"
     ></app-poi-detail>
   } @else if (pendingSpotPreview(); as spot) {
-    <app-map-info-panel
-      @fadeInOut
-      class="d-block"
-      [title]="spot.name"
-      [titleTooltip]="spot.name"
-      typeLabel="Spot"
-      icon="location_on"
-      iconTooltip="Spot"
-      [dismissable]="true"
-      [openProgress]="
-        responsiveService.isMobile() ? bottomSheetProgress() : 1
-      "
-      (dismiss)="closeSpot()"
-    >
-      <div mapInfoMeta>
-        @if (spot.locality) {
-          <span class="mat-label-large text-truncate">{{ spot.locality }}</span>
-        }
-      </div>
+    @if (spot.name) {
+      <app-map-info-panel
+        @fadeInOut
+        class="d-block"
+        [title]="spot.name"
+        [titleTooltip]="spot.name"
+        typeLabel="Spot"
+        icon="location_on"
+        iconTooltip="Spot"
+        [dismissable]="true"
+        [openProgress]="
+          responsiveService.isMobile() ? bottomSheetProgress() : 1
+        "
+        (dismiss)="closeSpot()"
+      >
+        <div mapInfoMeta>
+          @if (spot.locality) {
+            <span class="mat-label-large text-truncate">{{
+              spot.locality
+            }}</span>
+          }
+        </div>
 
-      <div class="p-3 d-flex flex-column" style="gap: 18px">
-        @if (spot.imageSrc) {
-          <div class="pending-spot-media-carousel">
-            <div class="pending-spot-media-item">
-              <img [src]="spot.imageSrc" [alt]="spot.name" />
+        <div class="p-3 d-flex flex-column" style="gap: 18px">
+          @if (spot.imageSrc) {
+            <div class="pending-spot-media-carousel">
+              <div class="pending-spot-media-item">
+                <img [src]="spot.imageSrc" [alt]="spot.name" />
+              </div>
             </div>
+          }
+          <div class="d-flex align-items-center gap-2">
+            <mat-progress-spinner
+              mode="indeterminate"
+              diameter="24"
+            ></mat-progress-spinner>
+            <span class="mat-body-medium" i18n="@@map.spot_loading_label"
+              >Loading spot details</span
+            >
           </div>
-        }
-        <div class="d-flex align-items-center gap-2">
-          <mat-progress-spinner
-            mode="indeterminate"
-            diameter="24"
-          ></mat-progress-spinner>
-          <span class="mat-body-medium" i18n="@@map.spot_loading_label"
-            >Loading spot details</span
-          >
+          <div class="d-grid gap-2" aria-hidden="true">
+            <span class="community-panel-skeleton" style="width: 92%"></span>
+            <span class="community-panel-skeleton" style="width: 76%"></span>
+            <span class="community-panel-skeleton" style="width: 84%"></span>
+          </div>
         </div>
-        <div class="d-grid gap-2" aria-hidden="true">
-          <span class="community-panel-skeleton" style="width: 92%"></span>
-          <span class="community-panel-skeleton" style="width: 76%"></span>
-          <span class="community-panel-skeleton" style="width: 84%"></span>
-        </div>
+      </app-map-info-panel>
+    } @else {
+      <div
+        class="d-grid position-relative"
+        style="
+          min-height: 220px;
+          place-items: center;
+          color: var(--mat-sys-on-surface);
+        "
+        @fadeInOut
+      >
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="32"
+          aria-label="Loading spot"
+        ></mat-progress-spinner>
       </div>
-    </app-map-info-panel>
+    }
   } @else if (selectedSpot()) {
     @if (selectedChallenge()) {
       <a
@@ -262,45 +282,34 @@
       (dismiss)="closeEventPreview()"
     ></app-event-preview>
   } @else if (pendingEventPreview(); as event) {
-    <app-map-info-panel
-      @fadeInOut
-      class="d-block"
-      [title]="event.idOrSlug"
-      [titleTooltip]="event.idOrSlug"
-      typeLabel="Event"
-      icon="event"
-      iconTooltip="Event"
-      [dismissable]="true"
-      [backLabel]="panelBackTarget()?.label ?? null"
-      [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
-      [openProgress]="
-        responsiveService.isMobile() ? bottomSheetProgress() : 1
+    <div
+      class="d-grid position-relative"
+      style="
+        min-height: 220px;
+        place-items: center;
+        color: var(--mat-sys-on-surface);
       "
-      (back)="goBackToPreviousPanel()"
-      (dismiss)="closeEventPreview()"
+      @fadeInOut
     >
-      <div class="p-3 d-flex flex-column" style="gap: 18px">
-        <div class="d-flex align-items-center gap-2">
-          <mat-progress-spinner
-            mode="indeterminate"
-            diameter="24"
-          ></mat-progress-spinner>
-          <span class="mat-body-medium" i18n="@@map.event_loading_label"
-            >Loading event details</span
-          >
-        </div>
-        <div class="d-grid gap-2" aria-hidden="true">
-          <span class="community-panel-skeleton" style="width: 92%"></span>
-          <span class="community-panel-skeleton" style="width: 76%"></span>
-          <span class="community-panel-skeleton" style="width: 84%"></span>
-        </div>
-        <div
-          class="community-panel-skeleton"
-          style="min-height: 180px"
-          aria-hidden="true"
-        ></div>
-      </div>
-    </app-map-info-panel>
+      @if (panelBackTarget(); as backTarget) {
+        <button
+          mat-icon-button
+          type="button"
+          class="position-absolute"
+          style="top: 12px; left: 12px; color: #fff"
+          [matTooltip]="'Go back to ' + backTarget.label"
+          [attr.aria-label]="'Go back to ' + backTarget.label"
+          (click)="goBackToPreviousPanel()"
+        >
+          <mat-icon>arrow_back_ios</mat-icon>
+        </button>
+      }
+      <mat-progress-spinner
+        mode="indeterminate"
+        diameter="32"
+        aria-label="Loading event"
+      ></mat-progress-spinner>
+    </div>
   } @else if (selectedCommunityLanding(); as communityData) {
     <app-community-landing-page
       class="d-block"
@@ -338,24 +347,42 @@
         </button>
       }
       <div class="d-flex align-items-start justify-content-between gap-3">
-        <div class="d-flex flex-column gap-1 min-w-0">
-          <span class="mat-label-medium" i18n="@@map.community_loading_label"
-            >Opening community</span
-          >
-          <h2 class="mat-title-large m-0">{{ community.displayName }}</h2>
-          @if (community.totalSpots) {
-            <p
-              class="mat-body-medium m-0"
-              i18n="@@map.community_loading_spots"
+        @if (community.displayName) {
+          <div class="d-flex flex-column gap-1 min-w-0">
+            <span class="mat-label-medium" i18n="@@map.community_loading_label"
+              >Opening community</span
             >
-              {{ community.totalSpots }} spots
-            </p>
-          }
-        </div>
-        <mat-progress-spinner
-          mode="indeterminate"
-          diameter="28"
-        ></mat-progress-spinner>
+            <h2 class="mat-title-large m-0">{{ community.displayName }}</h2>
+            @if (community.totalSpots) {
+              <p
+                class="mat-body-medium m-0"
+                i18n="@@map.community_loading_spots"
+              >
+                {{ community.totalSpots }} spots
+              </p>
+            }
+          </div>
+          <mat-progress-spinner
+            mode="indeterminate"
+            diameter="28"
+          ></mat-progress-spinner>
+        } @else {
+          <div
+            class="d-grid"
+            style="
+              min-height: 120px;
+              width: 100%;
+              place-items: center;
+              color: var(--mat-sys-on-surface);
+            "
+          >
+            <mat-progress-spinner
+              mode="indeterminate"
+              diameter="32"
+              aria-label="Loading community"
+            ></mat-progress-spinner>
+          </div>
+        }
       </div>
       <div class="d-grid gap-2" aria-hidden="true">
         <span class="community-panel-skeleton" style="width: 92%"></span>
