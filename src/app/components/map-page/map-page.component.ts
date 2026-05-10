@@ -55,6 +55,7 @@ import {
   CommunitySearchPreview,
   SearchService,
 } from "../../services/search.service";
+import { countries } from "../../../scripts/Countries";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
   AsyncPipe,
@@ -150,6 +151,16 @@ interface PendingSpotPanel {
 interface PendingEventPanel {
   idOrSlug: string;
 }
+
+type CommunityCountryFocusData = {
+  boundsCenter?: [number, number];
+  displayName: string;
+  countryCode?: string;
+  googleMapsPlaceId?: string;
+  country?: {
+    code?: string;
+  };
+};
 
 interface PanelBackTarget {
   path: string;
@@ -256,6 +267,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   pendingEventPreview = signal<PendingEventPanel | null>(null);
   selectedPoi = signal<PoiData | null>(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
+  searchPreviewCommunity = signal<CommunitySearchPreview | null>(null);
   selectedSpotIdForEdits = computed(() => {
     const spot = this.selectedSpot();
     return spot instanceof Spot ? spot.id : null;
@@ -425,6 +437,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _communityRouteLoadVersion = 0;
   private _spotPreviewCache = new Map<string, PendingSpotPanel>();
   private _eventPreviewCache = new Map<string, PkEvent>();
+  private _countryViewportCache = new Map<string, google.maps.LatLngBounds | null>();
 
   /**
    * Geographic extent of the community currently surfaced in the map-island
@@ -760,6 +773,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._openInfoPanel();
   }
 
+  getCommunityFlag(countryCode: string | null | undefined): string {
+    const normalizedCode = String(countryCode ?? "").trim().toUpperCase();
+    return normalizedCode ? (countries[normalizedCode]?.emoji ?? "") : "";
+  }
+
   openSpotPath(
     spotIdOrSlug: string,
     preview?: Partial<PendingSpotPanel> | null
@@ -1012,9 +1030,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pendingEventPreview.set(null);
     this.panelBackTarget.set(null);
     this.resetPanelContentToTop();
-    // Strip the /events/<id> segment from the URL.
+    // Strip the /event(s)/<id> segment from the URL.
     const cleanUrl = (this.router.url || "").split("?")[0];
-    if (/^\/map\/events\//u.test(cleanUrl)) {
+    if (/^\/map\/events?\//u.test(cleanUrl)) {
       const queryString =
         (typeof window !== "undefined" && window.location.search) || "";
       this._location.replaceState(`/map${queryString}`);
@@ -1276,6 +1294,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       onCleanup(() => {
         isCancelled = true;
       });
+    });
+
+    effect(() => {
+      const isMapReady = this.mapReady();
+      const community = this.searchPreviewCommunity();
+      if (!isMapReady || !this.spotMap || !community) {
+        return;
+      }
+
+      this._focusCommunityPreviewOnMap(community);
     });
 
     // Effect to update meta tags when spot/challenge changes (for client-side navigation)
@@ -1837,44 +1865,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  onSearchCommunityPreviewChange(
-    community: {
-      boundsCenter?: [number, number];
-      boundsRadiusM?: number;
-    } | null
-  ) {
-    if (!community || !community.boundsCenter) {
-      return;
-    }
-    if (
-      this.selectedCommunityLanding() ||
-      this.selectedSpot() ||
-      this.selectedEvent() ||
-      this.selectedChallenge()
-    ) {
-      // Don't override an actively-open panel/spot view while the user is
-      // just hovering search results.
-      return;
-    }
-
-    const [lat, lng] = community.boundsCenter;
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      return;
-    }
-
-    if (this.spotMap && typeof google !== "undefined") {
-      const radiusM =
-        typeof community.boundsRadiusM === "number" &&
-        community.boundsRadiusM > 0
-          ? community.boundsRadiusM
-          : 5000;
-      const radiusDegrees = radiusM / 111_320;
-      const bounds = new google.maps.LatLngBounds(
-        { lat: lat - radiusDegrees, lng: lng - radiusDegrees },
-        { lat: lat + radiusDegrees, lng: lng + radiusDegrees }
-      );
-      this.spotMap.focusBounds(bounds);
-    }
+  onSearchCommunityPreviewChange(community: CommunitySearchPreview | null) {
+    this.searchPreviewCommunity.set(community);
   }
 
   onSearchPlacePreviewChange(placeId: string | null) {
@@ -2700,6 +2692,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  onSpotOpenRequested(spot: Spot | LocalSpot | SpotPreviewData | SpotId): void {
+    if (typeof spot === "string") {
+      this.openSpotPath(spot);
+      return;
+    }
+
+    this.selectSpot(spot);
+  }
+
   private _getSelectedSpotKey(
     spot: Spot | LocalSpot | SpotPreviewData | null
   ): string | null {
@@ -2853,7 +2854,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * If the URL is `/map/events/<id-or-slug>`, fetch the event and open
+   * If the URL is `/map/event/<id-or-slug>` or `/map/events/<id-or-slug>`,
+   * fetch the event and open
    * the preview panel. Mirrors the route-driven community pattern but
    * with an async fetch since events aren't pre-resolved. Clearing
    * happens automatically when navigating away from this URL shape.
@@ -2864,7 +2866,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private _loadEventFromRouteIfPresent(url: string): void {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
-    const match = cleanUrl.match(/^\/map\/events\/([^/]+)$/u);
+    const match = cleanUrl.match(/^\/map\/events?\/([^/]+)$/u);
     if (!match) {
       if (this.selectedEvent() || this.pendingEventPreview()) {
         this.selectedEvent.set(null);
@@ -3074,6 +3076,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return false;
     }
 
+    if (communityLanding.scope === "country") {
+      this._focusCountryCommunityOnMap(communityLanding);
+      return true;
+    }
+
     const coordinates = this._extractCommunityCoordinates(communityLanding);
     if (
       communityLanding.boundsCenter &&
@@ -3130,14 +3137,31 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return true;
   }
 
-  private _focusCommunityPreviewOnMap(community: MapIslandCommunity): void {
+  private _focusCommunityPreviewOnMap(
+    community: Pick<
+      CommunitySearchPreview,
+      | "boundsCenter"
+      | "boundsRadiusM"
+      | "scope"
+      | "displayName"
+      | "countryCode"
+      | "googleMapsPlaceId"
+    >
+  ): void {
     if (
       !isPlatformBrowser(this.platformId) ||
       !this.spotMap ||
-      !community.boundsCenter ||
-      typeof community.boundsRadiusM !== "number" ||
       typeof google === "undefined"
     ) {
+      return;
+    }
+
+    if (community.scope === "country") {
+      this._focusCountryCommunityOnMap(community);
+      return;
+    }
+
+    if (!community.boundsCenter || typeof community.boundsRadiusM !== "number") {
       return;
     }
 
@@ -3153,6 +3177,78 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         { lat: lat + radiusDegrees, lng: lng + radiusDegrees }
       )
     );
+  }
+
+  private _focusCountryCommunityOnMap(
+    community: CommunityCountryFocusData
+  ): void {
+    if (!isPlatformBrowser(this.platformId) || !this.spotMap) {
+      return;
+    }
+
+    const [lat, lng] = community.boundsCenter ?? [];
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      this.spotMap.focusPoint({ lat: Number(lat), lng: Number(lng) }, 5);
+    }
+
+    void this._getCountryViewportBounds(community).then((bounds) => {
+      if (bounds && this.spotMap) {
+        this.spotMap.focusBounds(bounds);
+      }
+    });
+  }
+
+  private async _getCountryViewportBounds(
+    community: CommunityCountryFocusData
+  ): Promise<google.maps.LatLngBounds | null> {
+    if (!this.mapsService.isApiLoaded() || typeof google === "undefined") {
+      return null;
+    }
+
+    const countryCode =
+      community.countryCode ?? community.country?.code ?? undefined;
+    const cacheKey = (
+      community.googleMapsPlaceId ||
+      countryCode ||
+      community.displayName
+    ).toLowerCase();
+    if (this._countryViewportCache.has(cacheKey)) {
+      return this._countryViewportCache.get(cacheKey) ?? null;
+    }
+
+    try {
+      if (community.googleMapsPlaceId) {
+        const place = await this.mapsService.getGooglePlaceById(
+          community.googleMapsPlaceId
+        );
+        const viewport =
+          (place as { viewport?: google.maps.LatLngBounds | null }).viewport ??
+          null;
+        this._countryViewportCache.set(cacheKey, viewport);
+        return viewport;
+      }
+
+      const { Place } = (await google.maps.importLibrary(
+        "places"
+      )) as google.maps.PlacesLibrary;
+      const { places } = await Place.searchByText({
+        textQuery: community.displayName,
+        fields: ["id", "viewport"],
+        includedType: "country",
+        maxResultCount: 1,
+        region: countryCode,
+        useStrictTypeFiltering: true,
+      });
+      const viewport =
+        (places[0] as { viewport?: google.maps.LatLngBounds | null } | undefined)
+          ?.viewport ?? null;
+      this._countryViewportCache.set(cacheKey, viewport);
+      return viewport;
+    } catch (error) {
+      console.warn("MapPage: failed to resolve country viewport", error);
+      this._countryViewportCache.set(cacheKey, null);
+      return null;
+    }
   }
 
   private _focusCommunityFromQueryParam(): void {

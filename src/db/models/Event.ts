@@ -198,17 +198,32 @@ export class Event {
   }
 
   private static toDate(
-    value: Timestamp | Date | { seconds: number; nanoseconds: number } | string,
+    value:
+      | Timestamp
+      | Date
+      | { seconds: number | string; nanoseconds?: number | string }
+      | { _seconds: number | string; _nanoseconds?: number | string }
+      | string
+      | number,
   ): Date {
     if (value instanceof Date) return value;
     if (typeof value === "string") return new Date(value);
+    if (typeof value === "number") return new Date(value);
     if (typeof (value as Timestamp).toDate === "function") {
       return (value as Timestamp).toDate();
     }
-    const tsLike = value as { seconds: number; nanoseconds: number };
-    if (typeof tsLike.seconds === "number") {
+    const tsLike = value as {
+      seconds?: number | string;
+      nanoseconds?: number | string;
+      _seconds?: number | string;
+      _nanoseconds?: number | string;
+    };
+    const seconds = Number(tsLike.seconds ?? tsLike._seconds);
+    const nanoseconds = Number(tsLike.nanoseconds ?? tsLike._nanoseconds ?? 0);
+    if (Number.isFinite(seconds)) {
       return new Date(
-        tsLike.seconds * 1000 + Math.floor((tsLike.nanoseconds ?? 0) / 1e6),
+        seconds * 1000 +
+          Math.floor((Number.isFinite(nanoseconds) ? nanoseconds : 0) / 1e6),
       );
     }
     return new Date(NaN);

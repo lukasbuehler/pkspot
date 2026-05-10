@@ -13,9 +13,11 @@
 >
   <div mapInfoMeta>
     <div class="d-flex flex-row gap-1 align-items-center pb-1">
-      <span class="mat-label-large text-nowrap text-truncate">
-        {{ dateRange() }}
-      </span>
+      @if (dateRange()) {
+        <span class="mat-label-large text-nowrap text-truncate">
+          {{ dateRange() }}
+        </span>
+      }
       @if (status() === "past") {
         <span
           class="mat-label-medium status past"

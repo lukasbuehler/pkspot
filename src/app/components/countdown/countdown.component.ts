@@ -50,6 +50,15 @@ export class CountdownComponent implements AfterViewInit {
   private updateRemainingTime() {
     const now = new Date().getTime();
     const target = this.timestamp().getTime();
+    if (!Number.isFinite(target)) {
+      this.days.set(0);
+      this.hours.set(0);
+      this.minutes.set(0);
+      this.seconds.set(0);
+      clearInterval(this.intervalId);
+      return;
+    }
+
     const difference = target - now;
 
     if (difference <= 0) {

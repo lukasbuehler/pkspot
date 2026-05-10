@@ -151,6 +151,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   @Output() hasGeolocationChange = new EventEmitter<boolean>();
   @Output() visibleSpotsChange = new EventEmitter<Spot[]>();
   @Output() hightlightedSpotsChange = new EventEmitter<SpotPreviewData[]>();
+  @Output() spotOpenRequested = new EventEmitter<
+    LocalSpot | Spot | SpotPreviewData | SpotId
+  >();
   @Output() markerClickEvent = new EventEmitter<
     number | { marker: any; index?: number }
   >();
@@ -633,6 +636,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   openSpotByWhateverMeansNecessary(
     spot: LocalSpot | Spot | SpotPreviewData | SpotId
   ) {
+    if (this.spotOpenRequested.observed) {
+      this.spotOpenRequested.emit(spot);
+      return;
+    }
+
     if (this.selectedSpot() === spot) {
       this.closeSpot();
       if (this.selectedSpot() === spot) {

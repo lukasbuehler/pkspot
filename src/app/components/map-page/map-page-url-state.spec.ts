@@ -32,6 +32,20 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(method).not.toContain("this.loadSpotById(value.id as SpotId, true");
   });
 
+  it("lets the map page open spot marker clicks before the map focuses them", () => {
+    const component = readFileSync(componentPath, "utf8");
+    const template = readFileSync(templatePath, "utf8");
+    const spotMapComponent = readFileSync(
+      join(process.cwd(), "src/app/components/spot-map/spot-map.component.ts"),
+      "utf8"
+    );
+
+    expect(template).toContain('(spotOpenRequested)="onSpotOpenRequested($event)"');
+    expect(spotMapComponent).toContain("spotOpenRequested = new EventEmitter");
+    expect(spotMapComponent).toContain("this.spotOpenRequested.emit(spot)");
+    expect(component).toContain("this._openPendingSpotPanel(");
+  });
+
   it("delegates event preview URL updates back into URL-state loading", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(
@@ -47,6 +61,7 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(source).toContain(
       "this.openEventPreview(event, { updateUrl: false })"
     );
+    expect(source).toContain("cleanUrl.match(/^\\/map\\/events?\\/([^/]+)$/u)");
   });
 
   it("syncs browser back and forward for all map panel URL shapes", () => {
@@ -74,5 +89,17 @@ describe("MapPageComponent URL-driven panel state", () => {
     );
     expect(template).toContain("[backLabel]=\"panelBackTarget()?.label ?? null\"");
     expect(template).toContain("(back)=\"goBackToPreviousPanel()\"");
+  });
+
+  it("uses country viewport lookup instead of spot-density radius for country focus", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const focusMethod = source.match(
+      /private _focusCommunityOnMap[\s\S]*?\n  private _focusCommunityPreviewOnMap/
+    )?.[0];
+
+    expect(focusMethod).toContain('communityLanding.scope === "country"');
+    expect(source).toContain("private async _getCountryViewportBounds");
+    expect(source).toContain('includedType: "country"');
+    expect(source).toContain('fields: ["id", "viewport"]');
   });
 });

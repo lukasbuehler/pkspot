@@ -26,6 +26,7 @@ export interface MapIslandCommunity {
   countryCode?: string;
   canonicalPath?: string;
   totalSpots?: number;
+  imageUrl?: string;
   boundsCenter?: [number, number];
   boundsRadiusM?: number;
   googleMapsPlaceId?: string;

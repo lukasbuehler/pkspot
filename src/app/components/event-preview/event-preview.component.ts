@@ -60,10 +60,20 @@ export class EventPreviewComponent {
   /** Emitted when the user taps the preview's contextual back button. */
   back = output<void>();
 
-  readonly status = computed(() => this.event().status());
+  readonly hasValidDates = computed(() => {
+    const e = this.event();
+    return (
+      Number.isFinite(e.start.getTime()) && Number.isFinite(e.end.getTime())
+    );
+  });
+  readonly status = computed<"upcoming" | "live" | "past" | null>(() =>
+    this.hasValidDates() ? this.event().status() : null
+  );
+
   readonly countdownTarget = computed<Date | null>(() => {
     const e = this.event();
-    const status = e.status();
+    if (!this.hasValidDates()) return null;
+    const status = this.status();
     if (status === "upcoming") return e.start;
     if (status === "live") return e.end;
     return null;
@@ -71,6 +81,7 @@ export class EventPreviewComponent {
 
   readonly dateRange = computed(() => {
     const e = this.event();
+    if (!this.hasValidDates()) return "";
     const start = e.start.toLocaleDateString(this._locale, {
       dateStyle: "medium",
     });

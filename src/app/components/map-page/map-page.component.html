@@ -313,7 +313,6 @@
   } @else if (selectedCommunityLanding(); as communityData) {
     <app-community-landing-page
       class="d-block"
-      @fadeInOut
       [communityDataInput]="communityData"
       [panelMode]="true"
       [openProgress]="
@@ -329,76 +328,95 @@
       (exploreCommunitySpots)="exploreCommunitySpots($event)"
     ></app-community-landing-page>
   } @else if (pendingCommunityLanding(); as community) {
-    <div
-      class="p-3 d-flex flex-column"
-      style="gap: 18px; color: var(--mat-sys-on-surface)"
-      @fadeInOut
+    <app-map-info-panel
+      class="d-block"
+      [title]="community.displayName"
+      [titleTooltip]="community.displayName"
+      [titleSuffix]="getCommunityFlag(community.countryCode)"
+      [typeLabel]="community.displayName ? 'Community' : ''"
+      [iconTooltip]="
+        community.scope === 'country'
+          ? 'Country Community'
+          : community.scope === 'region'
+            ? 'Region Community'
+            : 'Locality Community'
+      "
+      [dismissable]="true"
+      [backLabel]="panelBackTarget()?.label ?? null"
+      [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
+      [openProgress]="
+        responsiveService.isMobile() ? bottomSheetProgress() : 1
+      "
+      (back)="goBackToPreviousPanel()"
+      (dismiss)="closeCommunityPanel()"
     >
-      @if (panelBackTarget(); as backTarget) {
-        <button
-          mat-icon-button
-          type="button"
-          class="align-self-start"
-          style="color: #fff"
-          [matTooltip]="'Go back to ' + backTarget.label"
-          [attr.aria-label]="'Go back to ' + backTarget.label"
-          (click)="goBackToPreviousPanel()"
-        >
-          <mat-icon>arrow_back_ios</mat-icon>
-        </button>
-      }
-      <div class="d-flex align-items-start justify-content-between gap-3">
-        @if (community.displayName) {
-          <div class="d-flex flex-column gap-1 min-w-0">
-            <span class="mat-label-medium" i18n="@@map.community_loading_label"
-              >Opening community</span
-            >
-            <h2 class="mat-title-large m-0">{{ community.displayName }}</h2>
-            @if (community.totalSpots) {
-              <p
-                class="mat-body-medium m-0"
-                i18n="@@map.community_loading_spots"
-              >
-                {{ community.totalSpots }} spots
-              </p>
-            }
+      @if (community.displayName) {
+        <div mapInfoMeta>
+          <div class="d-flex flex-row gap-1 align-items-center pb-1">
+            <span class="mat-label-large text-nowrap text-truncate">
+              {{ community.totalSpots || 0 }} spots
+            </span>
           </div>
-          <mat-progress-spinner
-            mode="indeterminate"
-            diameter="28"
-          ></mat-progress-spinner>
-        } @else {
-          <div
-            class="d-grid"
-            style="
-              min-height: 120px;
-              width: 100%;
-              place-items: center;
-              color: var(--mat-sys-on-surface);
-            "
-          >
+          <span class="text-truncate d-flex align-items-center gap-1">
+            @if (community.scope === "country") {
+              <span>Country Community</span>
+            } @else if (community.scope === "region") {
+              <span>Region Community</span>
+            } @else {
+              <span>Locality Community</span>
+            }
+          </span>
+        </div>
+      }
+
+      <div class="px-3 pb-3" style="color: var(--mat-sys-on-surface)">
+        <div
+          style="
+            aspect-ratio: 4 / 3;
+            background: var(--mat-sys-surface-container-high);
+            margin-left: -16px;
+            margin-right: -16px;
+            overflow: hidden;
+            position: relative;
+            max-height: 30vh;
+            width: calc(100% + 32px);
+          "
+          aria-hidden="true"
+        >
+          @if (community.imageUrl) {
+            <img
+              [src]="community.imageUrl"
+              [alt]="community.displayName"
+              class="object-fit-cover position-absolute w-100 h-100"
+            />
+          } @else {
+            <span
+              class="community-panel-skeleton d-block w-100 h-100"
+            ></span>
+          }
+        </div>
+
+        <div class="py-3 d-flex flex-column" style="gap: 18px">
+          <div class="d-flex align-items-center gap-2">
             <mat-progress-spinner
               mode="indeterminate"
-              diameter="32"
+              diameter="24"
               aria-label="Loading community"
             ></mat-progress-spinner>
+            @if (community.displayName) {
+              <span class="mat-body-medium" i18n="@@map.community_loading_label"
+                >Opening community</span
+              >
+            }
           </div>
-        }
+          <div class="d-grid gap-2" aria-hidden="true">
+            <span class="community-panel-skeleton" style="width: 92%"></span>
+            <span class="community-panel-skeleton" style="width: 76%"></span>
+            <span class="community-panel-skeleton" style="width: 84%"></span>
+          </div>
+        </div>
       </div>
-      <div class="d-grid gap-2" aria-hidden="true">
-        <span class="community-panel-skeleton" style="width: 92%"></span>
-        <span class="community-panel-skeleton" style="width: 76%"></span>
-        <span class="community-panel-skeleton" style="width: 84%"></span>
-      </div>
-      <div
-        class="d-grid gap-2"
-        style="grid-template-columns: 1fr 1fr"
-        aria-hidden="true"
-      >
-        <span class="community-panel-skeleton" style="min-height: 118px"></span>
-        <span class="community-panel-skeleton" style="min-height: 118px"></span>
-      </div>
-    </div>
+    </app-map-info-panel>
   } @else {
     <app-spot-list
       class="px-3 d-block"
@@ -472,6 +490,7 @@
         [selectedSpot]="selectedSpot()"
         [selectedChallenge]="selectedChallenge()"
         [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"
+        (spotOpenRequested)="onSpotOpenRequested($event)"
         (selectedSpotChange)="selectSpot($event)"
         [(isEditing)]="isEditing"
         [(mapStyle)]="mapStyle"

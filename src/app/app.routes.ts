@@ -67,6 +67,12 @@ export const routes: Routes = [
     data: { routeName: "Event on Map" },
   },
   {
+    path: "map/event/:eventId",
+    redirectTo: "map/events/:eventId",
+    pathMatch: "full",
+    data: { routeName: "Event on Map (legacy redirect)" },
+  },
+  {
     path: "map/spots",
     redirectTo: "map",
     pathMatch: "full",

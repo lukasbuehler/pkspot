@@ -31,4 +31,19 @@ describe("app routes", () => {
     expect(legacyRedirectIndex).toBeGreaterThanOrEqual(0);
     expect(legacyRedirectIndex).toBeLessThan(mapIndex);
   });
+
+  it("should redirect the singular map event route before the generic map route", () => {
+    const eventIndex = routes.findIndex(
+      (route) => route.path === "map/events/:eventId"
+    );
+    const legacyEventIndex = routes.findIndex(
+      (route) => route.path === "map/event/:eventId"
+    );
+    const mapIndex = routes.findIndex((route) => route.path === "map");
+
+    expect(eventIndex).toBeGreaterThanOrEqual(0);
+    expect(legacyEventIndex).toBeGreaterThanOrEqual(0);
+    expect(legacyEventIndex).toBeLessThan(mapIndex);
+    expect(routes[legacyEventIndex].redirectTo).toBe("map/events/:eventId");
+  });
 });
