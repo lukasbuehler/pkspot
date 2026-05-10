@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  ErrorHandler,
   importProvidersFrom,
   LOCALE_ID,
   DOCUMENT,
@@ -53,6 +54,7 @@ import { routes } from "./app.routes";
 import { provideRouter, withViewTransitions } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
 import { Capacitor } from "@capacitor/core";
+import { ApplicationErrorHandler } from "./services/application-error-handler.service";
 
 // Module-level singleton to ensure Firestore is only initialized once
 let firestoreInstance: Firestore | null = null;
@@ -162,6 +164,7 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withI18nSupport(), withIncrementalHydration()),
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideAnimations(),
+    { provide: ErrorHandler, useClass: ApplicationErrorHandler },
     // provideExperimentalZonelessChangeDetection(),
     {
       provide: WINDOW,

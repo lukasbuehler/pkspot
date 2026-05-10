@@ -2,6 +2,7 @@ import { Injectable, PLATFORM_ID, inject } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { Router, NavigationEnd } from "@angular/router";
 import posthog from "posthog-js";
+import type { CaptureResult, Properties } from "posthog-js";
 import { ConsentService } from "./consent.service";
 import { environment } from "../../environments/environment";
 import { Capacitor } from "@capacitor/core";
@@ -14,6 +15,18 @@ import { version } from "../../../package.json";
  * PostHog is initialized in main.ts before Angular bootstrap.
  * This service provides a typed wrapper for PostHog calls.
  */
+
+export type ErrorSeverity = "fatal" | "error" | "warning" | "info";
+
+export interface ErrorReportOptions {
+  context: string;
+  feature?: string;
+  action?: string;
+  severity?: ErrorSeverity;
+  handled?: boolean;
+  userFacing?: boolean;
+  properties?: Record<string, unknown>;
+}
 
 @Injectable({
   providedIn: "root",
@@ -162,7 +175,9 @@ export class AnalyticsService {
       navigator.doNotTrack === "yes";
 
     // 1. Attempt to load persisted distinct_id
-    let bootstrapConfig: any = {};
+    let bootstrapConfig: {
+      bootstrap?: { distinctID: string; isIdentifiedID: boolean };
+    } = {};
     const persistedId = localStorage.getItem(this.distinctIdStorageKey);
     if (persistedId) {
       console.log(
@@ -187,10 +202,23 @@ export class AnalyticsService {
       capture_pageview: false,
       capture_pageleave: false,
       disable_session_recording: true,
+      error_tracking: {
+        captureExtensionExceptions: false,
+      },
+      capture_exceptions: {
+        capture_unhandled_errors: true,
+        capture_unhandled_rejections: true,
+        capture_console_errors: false,
+      },
       persistence: "localStorage",
       debug: false,
       ...bootstrapConfig,
       loaded: (ph) => {
+        ph.startExceptionAutocapture({
+          capture_unhandled_errors: true,
+          capture_unhandled_rejections: true,
+          capture_console_errors: false,
+        });
         // 2. Persist the distinct_id for future sessions
         const currentId = ph.get_distinct_id();
         if (currentId) {
@@ -200,19 +228,7 @@ export class AnalyticsService {
           ph.register(initialAttributionProps);
         }
       },
-      before_send: (event) => {
-        // filter out likely boits
-        if (this.isLikelyBot()) {
-          if (event && event.event) {
-            console.log(
-              "AnalyticsService: filtering out likely bot event",
-              event.event
-            );
-          }
-          return null;
-        }
-        return event;
-      },
+      before_send: (event) => this.processEventBeforeSend(event),
     });
 
     if (Object.keys(initialAttributionProps).length > 0) {
@@ -289,6 +305,38 @@ export class AnalyticsService {
       });
     } else {
       posthog.capture(eventName, normalizedProperties);
+    }
+  }
+
+  reportError(error: unknown, options: ErrorReportOptions): void {
+    if (!this.isAvailable() || this.isLikelyBot()) {
+      return;
+    }
+
+    const properties = this.normalizeErrorReportProperties(error, options);
+
+    try {
+      if (this.isNative()) {
+        CapacitorPostHog.capture({
+          event: "$exception",
+          properties,
+        });
+
+        if (options.userFacing) {
+          CapacitorPostHog.capture({
+            event: "User Encountered Error",
+            properties,
+          });
+        }
+      } else {
+        posthog.captureException(error, properties);
+
+        if (options.userFacing) {
+          posthog.capture("User Encountered Error", properties);
+        }
+      }
+    } catch (reportingError) {
+      console.warn("AnalyticsService: failed to report error", reportingError);
     }
   }
 
@@ -607,7 +655,131 @@ export class AnalyticsService {
     }
   }
 
-  private processEventBeforeSend(event: any): any {
+  private normalizeErrorReportProperties(
+    error: unknown,
+    options: ErrorReportOptions
+  ): Properties {
+    const summary = this.getErrorSummary(error);
+    const normalized: Properties = {
+      ...this.getAppVersionProperties(),
+      ...this.getPlatformProperties(),
+      error_context: options.context,
+      error_feature: options.feature ?? "unknown",
+      error_action: options.action ?? options.context,
+      error_severity: options.severity ?? "error",
+      error_handled: options.handled ?? true,
+      error_user_facing: options.userFacing ?? false,
+      $exception_type: summary.name,
+      $exception_message: summary.message,
+    };
+
+    if (summary.code) {
+      normalized["error_code"] = summary.code;
+    }
+
+    for (const [key, value] of Object.entries(options.properties ?? {})) {
+      const safeValue = this.toPostHogProperty(value);
+      if (safeValue !== undefined) {
+        normalized[key] = safeValue;
+      }
+    }
+
+    return normalized;
+  }
+
+  private getErrorSummary(error: unknown): {
+    name: string;
+    message: string;
+    code?: string;
+  } {
+    if (error instanceof Error) {
+      return {
+        name: error.name || "Error",
+        message: error.message || "Unknown error",
+        code: this.getErrorCode(error),
+      };
+    }
+
+    if (typeof error === "object" && error !== null) {
+      return {
+        name: this.getObjectString(error, "name") ?? "Error",
+        message:
+          this.getObjectString(error, "message") ??
+          this.getObjectString(error, "reason") ??
+          "Unknown object error",
+        code: this.getErrorCode(error),
+      };
+    }
+
+    return {
+      name: typeof error,
+      message: String(error ?? "Unknown error"),
+    };
+  }
+
+  private getErrorCode(error: object): string | undefined {
+    const record = error as Record<string, unknown>;
+    const code = record["code"];
+    if (typeof code === "string" || typeof code === "number") {
+      return String(code);
+    }
+    return undefined;
+  }
+
+  private getObjectString(object: object, key: string): string | undefined {
+    const value = (object as Record<string, unknown>)[key];
+    return typeof value === "string" && value.trim().length > 0
+      ? value
+      : undefined;
+  }
+
+  private toPostHogProperty(
+    value: unknown
+  ):
+    | string
+    | number
+    | boolean
+    | null
+    | string[]
+    | number[]
+    | boolean[]
+    | undefined {
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean" ||
+      value === null
+    ) {
+      return value;
+    }
+
+    if (
+      Array.isArray(value) &&
+      value.every((item) => typeof item === "string")
+    ) {
+      return value;
+    }
+
+    if (
+      Array.isArray(value) &&
+      value.every((item) => typeof item === "number")
+    ) {
+      return value;
+    }
+
+    if (
+      Array.isArray(value) &&
+      value.every((item) => typeof item === "boolean")
+    ) {
+      return value;
+    }
+
+    return undefined;
+  }
+
+  private processEventBeforeSend(
+    event: CaptureResult | null
+  ): CaptureResult | null {
     if (!event) return event;
 
     // Drop events from obvious bots/crawlers

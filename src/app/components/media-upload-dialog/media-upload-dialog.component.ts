@@ -17,6 +17,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { createUserReference } from "../../../scripts/Helpers";
+import { AnalyticsService } from "../../services/analytics.service";
 
 export interface MediaUploadDialogData {
   spotId: SpotId;
@@ -43,6 +44,7 @@ export class MediaUploadDialogComponent {
   private _spotEditsService = inject(SpotEditsService);
   private _auth = inject(AuthenticationService);
   private _snackBar = inject(MatSnackBar);
+  private _analytics = inject(AnalyticsService);
 
   storageFolder: StorageBucket;
   allowedMimeTypes: string[];
@@ -146,6 +148,17 @@ export class MediaUploadDialogComponent {
       );
     } catch (e) {
       console.error("Failed to append media to spot:", e);
+      this._analytics.reportError(e, {
+        context: "spot_media_append_failed",
+        feature: "spots",
+        action: "add_spot_media",
+        userFacing: true,
+        properties: {
+          spot_id: this.data.spotId,
+          attempted_media_count: newMediaItems.length,
+          resulting_media_count: newMediaList.length,
+        },
+      });
       this._snackBar.open("Failed to add media. Please try again.", "Dismiss", {
         duration: 3000,
       });

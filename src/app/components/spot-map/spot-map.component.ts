@@ -74,6 +74,7 @@ import {
   StoredMapViewport,
 } from "./spot-map-initial-viewport";
 import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-spot-map",
@@ -262,7 +263,8 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     private authService: AuthenticationService,
     private mapsAPIService: MapsApiService,
     private snackBar: MatSnackBar,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private analyticsService: AnalyticsService
   ) {
     // Track the previous spot to detect actual changes
     let previousSpotKey: string | null = null;
@@ -972,6 +974,20 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       .catch((error) => {
         this.isEditing.set(false);
         console.error("Error saving spot:", error);
+        this.analyticsService.reportError(error, {
+          context: "spot_save_failed",
+          feature: "spots",
+          action: spot instanceof LocalSpot ? "add_spot" : "update_spot",
+          userFacing: true,
+          properties: {
+            spot_id: "id" in spot ? spot.id : null,
+            is_new_spot: spot instanceof LocalSpot,
+            has_bounds: spot.hasBounds(),
+            media_count: spot.userMedia().length,
+            spot_type: spot.type(),
+            spot_access: spot.access(),
+          },
+        });
         this.snackBar.open($localize`Error saving spot`, $localize`Dismiss`);
       });
   }

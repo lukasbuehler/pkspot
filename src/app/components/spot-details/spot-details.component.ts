@@ -751,6 +751,16 @@ export class SpotDetailsComponent
       });
     } catch (e) {
       console.error("Failed to link Google Place", e);
+      this._analyticsService.reportError(e, {
+        context: "spot_google_place_link_failed",
+        feature: "spots",
+        action: "link_google_place",
+        userFacing: true,
+        properties: {
+          spot_id: spot.id,
+          google_place_id: pred.place_id,
+        },
+      });
       this._snackbar.open($localize`Failed to link Google Place`, undefined, {
         duration: 2500,
       });
@@ -787,6 +797,15 @@ export class SpotDetailsComponent
       });
     } catch (e) {
       console.error("Failed to unlink Google Place", e);
+      this._analyticsService.reportError(e, {
+        context: "spot_google_place_unlink_failed",
+        feature: "spots",
+        action: "unlink_google_place",
+        userFacing: true,
+        properties: {
+          spot_id: spot.id,
+        },
+      });
       this._snackbar.open($localize`Failed to unlink Google Place`, undefined, {
         duration: 2500,
       });
@@ -1194,6 +1213,15 @@ export class SpotDetailsComponent
       void this._router.navigate(["/map"]);
     } catch (error) {
       console.error("Failed to delete spot", error);
+      this._analyticsService.reportError(error, {
+        context: "spot_delete_failed",
+        feature: "spots",
+        action: "delete_spot",
+        userFacing: true,
+        properties: {
+          spot_id: spot.id,
+        },
+      });
       this._snackbar.open($localize`Failed to delete spot`, undefined, {
         duration: 3000,
       });
@@ -1230,6 +1258,16 @@ export class SpotDetailsComponent
     } catch (error) {
       this.bookmarked.set(!shouldBookmark);
       console.error("Failed to update saved spot", error);
+      this._analyticsService.reportError(error, {
+        context: "saved_spot_update_failed",
+        feature: "spots",
+        action: shouldBookmark ? "save_spot" : "unsave_spot",
+        userFacing: true,
+        properties: {
+          spot_id: spot.id,
+          attempted_state: shouldBookmark,
+        },
+      });
       this._snackbar.open($localize`Failed to update saved spot`, undefined, {
         duration: 2500,
       });
@@ -1262,6 +1300,16 @@ export class SpotDetailsComponent
     } catch (error) {
       this.visited.set(!shouldBeVisited);
       console.error("Failed to update visited spot", error);
+      this._analyticsService.reportError(error, {
+        context: "visited_spot_update_failed",
+        feature: "spots",
+        action: shouldBeVisited ? "mark_spot_visited" : "unmark_spot_visited",
+        userFacing: true,
+        properties: {
+          spot_id: spot.id,
+          attempted_state: shouldBeVisited,
+        },
+      });
       this._snackbar.open($localize`Failed to update visited spot`, undefined, {
         duration: 2500,
       });
