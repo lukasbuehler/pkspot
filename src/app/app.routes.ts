@@ -37,8 +37,8 @@ export const routes: Routes = [
     : []),
 
   // Community on map. Plural "communities" matches /events for URL
-  // consistency. The singular legacy path still 301-redirects below so
-  // existing Google-indexed URLs / social shares don't break.
+  // consistency. Legacy singular URLs are handled as server-side 301s in
+  // server-redirects.ts so crawlers never render a duplicate page.
   {
     path: "map/communities/:slug",
     loadComponent: () =>
@@ -47,12 +47,6 @@ export const routes: Routes = [
       ),
     resolve: { communityLanding: communityLandingResolver },
     data: { routeName: "Community Landing" },
-  },
-  {
-    path: "map/community/:slug",
-    redirectTo: "map/communities/:slug",
-    pathMatch: "full",
-    data: { routeName: "Community Landing (legacy redirect)" },
   },
 
   // Event-on-map preview. Stays on the map and opens the event preview

@@ -44,9 +44,8 @@ export function normalizeCommunitySlug(
 export function buildCommunityLandingPath(
   slug: string | null | undefined
 ): string {
-  // Plural "communities" matches /events for URL consistency. The singular
-  // /map/community/:slug path 301-redirects in app.routes.ts so legacy
-  // links (sitemap, social shares, Google index) keep working.
+  // Plural "communities" matches /events for URL consistency. Legacy
+  // singular paths are redirected by the SSR server before Angular renders.
   return `/map/communities/${normalizeCommunitySlug(slug)}`;
 }
 

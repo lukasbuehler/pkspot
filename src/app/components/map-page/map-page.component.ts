@@ -862,7 +862,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (
       !currentPath ||
       currentPath === cleanNextPath ||
-      !/^\/map\/(?:spots|events|communities|community)\//u.test(currentPath)
+      !/^\/map\/(?:spots|events|communities)\//u.test(currentPath)
     ) {
       return null;
     }
@@ -876,7 +876,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _getCurrentPanelBackTypeLabel(path: string): string {
-    if (/^\/map\/(?:communities|community)\//u.test(path)) {
+    if (/^\/map\/communities\//u.test(path)) {
       return $localize`:@@map.panel_back_type_community:Community`;
     }
     if (/^\/map\/events\//u.test(path)) {
@@ -891,10 +891,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _getCurrentPanelBackLabel(path: string): string {
     const community =
       this.selectedCommunityLanding() ?? this.pendingCommunityLanding();
-    if (
-      /^\/map\/(?:communities|community)\//u.test(path) &&
-      community?.displayName
-    ) {
+    if (/^\/map\/communities\//u.test(path) && community?.displayName) {
       return community.displayName;
     }
 
@@ -1052,8 +1049,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pendingCommunityLanding.set(null);
     this.panelBackTarget.set(null);
     this.resetPanelContentToTop();
-    // Strip the /community/<slug> segment from the URL while preserving
-    // any query params the map page is using.
+    // Return from the community panel to the plain map while preserving any
+    // query params the map page is using.
     const queryString = window?.location?.search ?? "";
     this._location.replaceState(`/map${queryString}`);
   }
@@ -2787,10 +2784,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   } {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
 
-    // Match new plural path AND the legacy singular path (until the
-    // redirect rewrites the URL). Also short-circuit for event-on-map.
+    // Short-circuit for canonical community-on-map and event-on-map routes.
     if (
-      /^\/map\/(community|communities)\/[^/]+$/u.test(cleanUrl) ||
+      /^\/map\/communities\/[^/]+$/u.test(cleanUrl) ||
       /^\/map\/events\/[^/]+$/u.test(cleanUrl)
     ) {
       return {
@@ -2946,7 +2942,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _syncMapPanelStateFromUrl(url: string): void {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
     const communityMatch = cleanUrl.match(
-      /^\/map\/(?:community|communities)\/([^/]+)$/u
+      /^\/map\/communities\/([^/]+)$/u
     );
 
     if (communityMatch) {
@@ -3003,7 +2999,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             .split("#")[0];
           if (
             requestVersion !== this._communityRouteLoadVersion ||
-            !currentPath.match(/^\/map\/(?:community|communities)\//u) ||
+            !currentPath.match(/^\/map\/communities\//u) ||
             !this._communityMatchesSlug(community, slug)
           ) {
             return;

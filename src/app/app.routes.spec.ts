@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { routes } from "./app.routes";
 
 describe("app routes", () => {
+  const legacyCommunityPrefix = ["map", "community"].join("/");
+  const legacyCommunityRoute = `${legacyCommunityPrefix}/:slug`;
+
   it("should register the flat community landing route before the generic map route", () => {
     const communityIndex = routes.findIndex(
       (route) => route.path === "map/communities/:slug"
@@ -45,5 +48,23 @@ describe("app routes", () => {
     expect(legacyEventIndex).toBeGreaterThanOrEqual(0);
     expect(legacyEventIndex).toBeLessThan(mapIndex);
     expect(routes[legacyEventIndex].redirectTo).toBe("map/events/:eventId");
+  });
+
+  it("should not register the legacy singular community route in the client app", () => {
+    expect(
+      routes.find((route) => route.path === legacyCommunityRoute)
+    ).toBeUndefined();
+    expect(
+      routes.find((route) => route.path === "map/communities/:slug")
+    ).toBeDefined();
+  });
+
+  it("should not expose singular community redirects from the Angular route table", () => {
+    for (const route of routes) {
+      expect(route.path ?? "").not.toContain(legacyCommunityPrefix);
+      expect(String(route.redirectTo ?? "")).not.toContain(
+        legacyCommunityPrefix
+      );
+    }
   });
 });
