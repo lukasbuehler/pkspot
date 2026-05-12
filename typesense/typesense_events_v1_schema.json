@@ -5,12 +5,12 @@
     { "name": "name", "type": "string" },
     { "name": "description", "type": "string", "optional": true },
     { "name": "slug", "type": "string", "optional": true },
-    { "name": "venue_string", "type": "string", "optional": true },
+    { "name": "venue_string", "type": "string", "optional": false },
     {
       "name": "locality_string",
       "type": "string",
       "facet": true,
-      "optional": true
+      "optional": false
     },
     { "name": "url", "type": "string", "optional": true, "index": false },
 
@@ -28,9 +28,21 @@
       "optional": true,
       "index": false
     },
+    {
+      "name": "sponsor.logo_background_color",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "sponsor.url",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
 
     { "name": "start_seconds", "type": "int64", "optional": false },
-    { "name": "end_seconds", "type": "int64", "optional": true },
+    { "name": "end_seconds", "type": "int64", "optional": false },
     { "name": "promo_starts_at_seconds", "type": "int64", "optional": true },
 
     { "name": "spot_ids", "type": "string[]", "optional": true },
@@ -53,14 +65,20 @@
       "optional": true
     },
     {
+      "name": "external_source.id",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
       "name": "external_source.url",
       "type": "string",
       "optional": true,
       "index": false
     },
 
-    { "name": "bounds_center", "type": "geopoint", "optional": true },
-    { "name": "bounds_radius_m", "type": "float", "optional": true },
+    { "name": "bounds_center", "type": "geopoint", "optional": false },
+    { "name": "bounds_radius_m", "type": "float", "optional": false },
     { "name": "promo_region_center", "type": "geopoint", "optional": true },
     { "name": "promo_region_radius_m", "type": "float", "optional": true },
 

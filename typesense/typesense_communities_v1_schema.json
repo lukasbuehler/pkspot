@@ -4,11 +4,11 @@
     { "name": "communityKey", "type": "string", "facet": true },
     { "name": "scope", "type": "string", "facet": true },
     { "name": "displayName", "type": "string" },
-    { "name": "title", "type": "string", "optional": true },
-    { "name": "description", "type": "string", "optional": true },
-    { "name": "preferredSlug", "type": "string", "optional": true },
-    { "name": "allSlugs", "type": "string[]", "optional": true },
-    { "name": "canonicalPath", "type": "string", "optional": true },
+    { "name": "title", "type": "string", "optional": false },
+    { "name": "description", "type": "string", "optional": false },
+    { "name": "preferredSlug", "type": "string", "optional": false },
+    { "name": "allSlugs", "type": "string[]", "optional": false },
+    { "name": "canonicalPath", "type": "string", "optional": false },
 
     {
       "name": "geography.countryCode",
@@ -44,17 +44,17 @@
     {
       "name": "relationships.parentKeys",
       "type": "string[]",
-      "optional": true
+      "optional": false
     },
     { "name": "counts.totalSpots", "type": "int32", "optional": false },
-    { "name": "counts.topRated", "type": "int32", "optional": true },
-    { "name": "counts.dry", "type": "int32", "optional": true },
+    { "name": "counts.topRated", "type": "int32", "optional": false },
+    { "name": "counts.dry", "type": "int32", "optional": false },
 
     { "name": "bounds_center", "type": "geopoint", "optional": true },
     { "name": "bounds_radius_m", "type": "float", "optional": true },
 
-    { "name": "image.url", "type": "string", "optional": true, "index": false },
-    { "name": "published", "type": "bool", "facet": true, "optional": true },
+    { "name": "image.url", "type": "string", "optional": false, "index": false },
+    { "name": "published", "type": "bool", "facet": true, "optional": false },
     { "name": "_force_sync", "type": "int64", "optional": true, "index": false }
   ],
   "default_sorting_field": "counts.totalSpots",

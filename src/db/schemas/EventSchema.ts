@@ -136,8 +136,12 @@ export interface EventSchema {
    */
   promo_starts_at?: Timestamp;
 
-  /** Real Firestore spot ids that are part of this event. */
-  spot_ids: string[];
+  /**
+   * Real Firestore spot ids that are part of this event. Optional — an
+   * external/EventFrog-only listing or a not-yet-mapped jam can exist with
+   * zero local spots. Treat absent as "no spots" rather than an error.
+   */
+  spot_ids?: string[];
 
   /**
    * Inline temporary spots embedded in the event document (custom rigs,

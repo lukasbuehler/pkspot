@@ -1,7 +1,7 @@
 {
   "name": "spots_v2",
   "fields": [
-    { "name": "name", "type": "object", "optional": true, "index": false },
+    { "name": "name", "type": "object", "optional": false, "index": false },
     {
       "name": "description",
       "type": "object",
