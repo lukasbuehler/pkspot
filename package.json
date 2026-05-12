@@ -21,7 +21,7 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "test": "npm run test:all",
     "test:all": "npm run test:unit && npm run test:build && npm run test:emulator && npm run test:e2e && npm run test:visual",
-    "test:prepush": "npm run test:unit && npm run test:emulator",
+    "test:prepush": "npm run test:unit && npm run build:dev && npm run test:emulator",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:unit:coverage": "vitest run --coverage",

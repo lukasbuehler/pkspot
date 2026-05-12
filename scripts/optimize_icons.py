@@ -1,4 +1,6 @@
+import hashlib
 import os
+import re
 import subprocess
 import sys
 from fontTools.ttLib import TTFont
@@ -11,6 +13,39 @@ INPUT_FONT = os.path.join(
 )
 OUTPUT_FONT = os.path.join(FONTS_DIR, "material-symbols-optimized.woff2")
 ICONS_LIST = os.path.join(FONTS_DIR, "icons_list.txt")
+INDEX_HTML = os.path.join(BASE_DIR, "src", "index.html")
+
+
+def _stamp_index_html_cache_buster(font_path: str, index_path: str) -> None:
+    """Update the ?v=<hash> query on the symbol-font URL in index.html so
+    browsers refetch the font whenever its bytes change. The font is
+    referenced from an inline <style> tag that Angular's asset hashing
+    doesn't rewrite, so we maintain the cache-buster ourselves.
+    """
+    if not os.path.exists(index_path):
+        print(f"Warning: index.html not found at {index_path}; skipping cache-buster")
+        return
+
+    with open(font_path, "rb") as fh:
+        font_hash = hashlib.sha256(fh.read()).hexdigest()[:10]
+
+    with open(index_path, "r", encoding="utf-8") as fh:
+        html = fh.read()
+
+    pattern = re.compile(r'material-symbols-optimized\.woff2(\?v=[A-Za-z0-9]+)?')
+    new_url = f"material-symbols-optimized.woff2?v={font_hash}"
+    new_html, n = pattern.subn(new_url, html)
+    if n == 0:
+        print("Warning: no material-symbols-optimized.woff2 reference found in index.html")
+        return
+
+    if new_html == html:
+        print(f"Symbol font cache-buster unchanged (v={font_hash}).")
+        return
+
+    with open(index_path, "w", encoding="utf-8") as fh:
+        fh.write(new_html)
+    print(f"Stamped symbol font cache-buster v={font_hash} in {os.path.relpath(index_path, BASE_DIR)}")
 
 
 def main():
@@ -204,6 +239,10 @@ def main():
         # Final size
         size = os.path.getsize(OUTPUT_FONT)
         print(f"Final optimized font size: {size / 1024:.2f} KB")
+
+        # Stamp a content-hash cache-buster into index.html so the browser
+        # refetches the font when its bytes change.
+        _stamp_index_html_cache_buster(OUTPUT_FONT, INDEX_HTML)
 
     except Exception as e:
         print(f"Error post-processing ligatures: {e}")
