@@ -189,14 +189,14 @@ interface PanelBackTarget {
         style({ opacity: 0, scale: 1, translate: "100%" }),
         animate(
           "0.3s ease-in-out",
-          style({ opacity: 1, scale: 1, translate: "0px" })
+          style({ opacity: 1, scale: 1, translate: "0px" }),
         ),
       ]),
       transition(":leave", [
         style({ opacity: 1, scale: 1, translate: "0px" }),
         animate(
           "0.3s ease-in-out",
-          style({ opacity: 0, scale: 1, translate: "100%" })
+          style({ opacity: 0, scale: 1, translate: "100%" }),
         ),
       ]),
     ]),
@@ -379,7 +379,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       // and bounds not available (sets filter mode, waits for filterBoundsChange event)
       console.debug(
         "filterEffect: calling filterChipChanged with:",
-        selectedFilter
+        selectedFilter,
       );
       setTimeout(() => this.filterChipChanged(selectedFilter), 0);
     }
@@ -433,7 +433,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _communityRouteLoadVersion = 0;
   private _spotPreviewCache = new Map<string, PendingSpotPanel>();
   private _eventPreviewCache = new Map<string, PkEvent>();
-  private _countryViewportCache = new Map<string, google.maps.LatLngBounds | null>();
+  private _countryViewportCache = new Map<
+    string,
+    google.maps.LatLngBounds | null
+  >();
 
   /**
    * Geographic extent of the community currently surfaced in the map-island
@@ -441,18 +444,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * circle on the map so the user can see what area the chip refers to.
    * Null when no community variant is active.
    */
-  activeCommunityArea = computed<
-    {
-      center: { lat: number; lng: number };
-      radiusM: number;
-      googleBoundary?: {
-        featureType: "COUNTRY";
-        placeId?: string;
-        query?: string;
-        region?: string;
-      };
-    } | null
-  >(() => {
+  activeCommunityArea = computed<{
+    center: { lat: number; lng: number };
+    radiusM: number;
+    googleBoundary?: {
+      featureType: "COUNTRY";
+      placeId?: string;
+      query?: string;
+      region?: string;
+    };
+  } | null>(() => {
     const data =
       this.selectedCommunityLanding() ?? this.pendingCommunityLanding();
     if (!data) return null;
@@ -497,7 +498,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._promotableCommunities()
       .slice()
       .sort((a, b) => (b.totalSpots ?? 0) - (a.totalSpots ?? 0))
-      .slice(0, 8)
+      .slice(0, 8),
   );
 
   /**
@@ -513,10 +514,65 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       };
     }
 
-    // Event + community variants intentionally suppressed: the events
-    // feature isn't public yet, and community chips would spam the map
-    // before we're ready. The selection logic for both variants lives in
-    // git history (pre this commit) — restore it here to re-enable.
+    // const viewport = this._viewport();
+    // if (viewport) {
+    //   const dismissed = this._dismissedEventIds();
+    //   const selectedEventId = this.selectedEvent()?.id;
+    //   const event = this._promotableEvents().find(
+    //     (e) =>
+    //       e.id !== selectedEventId &&
+    //       !dismissed.has(e.id) &&
+    //       e.intersectsViewport(viewport.bbox)
+    //   );
+    //   if (event) return { kind: "event", event };
+    // }
+
+    // const dismissedCommunities = this._dismissedCommunityKeys();
+    // const selectedCommunityKey = this.selectedCommunityLanding()?.communityKey;
+
+    // if (viewport && !selectedCommunityKey) {
+    //   // Heuristic: prefer communities whose CENTER is inside the visible
+    //   // viewport, then take the largest radius (most context) of those.
+    //   // - Zoomed into Zurich: only Zurich's center is in viewport, so
+    //   //   Zurich wins (Switzerland's center isn't visible).
+    //   // - Zoomed out to Europe: centers of both Switzerland and Zurich
+    //   //   are in viewport, so Switzerland (largest radius) wins.
+    //   // Falls back to the smallest intersecting community when no
+    //   // center-in-viewport candidate exists (e.g., panning across a
+    //   // border with no community center on screen).
+    //   const withBounds = this._promotableCommunities()
+    //     .filter(
+    //       (c) =>
+    //         c.boundsCenter &&
+    //         typeof c.boundsRadiusM === "number" &&
+    //         c.boundsRadiusM > 0
+    //     )
+    //     .map((c) => ({
+    //       data: c,
+    //       center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },
+    //       radiusM: c.boundsRadiusM!,
+    //     }));
+
+    //   const candidates = withBounds.filter(
+    //     (c) =>
+    //       c.data.communityKey !== selectedCommunityKey &&
+    //       !dismissedCommunities.has(c.data.communityKey) &&
+    //       this._viewportIntersectsCircle(viewport.bbox, c.center, c.radiusM)
+    //   );
+
+    //   const centerIn = candidates.filter((c) =>
+    //     this._pointInViewport(c.center, viewport.bbox)
+    //   );
+
+    //   const viewportCommunity =
+    //     centerIn.length > 0
+    //       ? centerIn.sort((a, b) => b.radiusM - a.radiusM)[0]
+    //       : candidates.sort((a, b) => a.radiusM - b.radiusM)[0];
+    //   if (viewportCommunity) {
+    //     return { kind: "community", community: viewportCommunity.data };
+    //   }
+    // }
+
     return null;
   });
 
@@ -542,7 +598,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private _pointInViewport(
     point: { lat: number; lng: number },
-    viewport: { north: number; south: number; east: number; west: number }
+    viewport: { north: number; south: number; east: number; west: number },
   ): boolean {
     if (point.lat < viewport.south || point.lat > viewport.north) return false;
     // Antimeridian handling (defensive — viewports rarely cross it in
@@ -568,15 +624,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _viewportIntersectsCircle(
     viewport: { north: number; south: number; east: number; west: number },
     center: { lat: number; lng: number },
-    radiusM: number
+    radiusM: number,
   ): boolean {
     const closestLat = Math.max(
       viewport.south,
-      Math.min(center.lat, viewport.north)
+      Math.min(center.lat, viewport.north),
     );
     const closestLng = Math.max(
       viewport.west,
-      Math.min(center.lng, viewport.east)
+      Math.min(center.lng, viewport.east),
     );
     const R = 6371e3;
     const φ1 = (center.lat * Math.PI) / 180;
@@ -617,7 +673,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onIslandDismissCommunity(
-    community: MapIslandCommunity | CommunityLandingPageData
+    community: MapIslandCommunity | CommunityLandingPageData,
   ): void {
     this._dismissedCommunityKeys.update((set) => {
       const next = new Set(set);
@@ -639,7 +695,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * is still shareable / reloadable.
    */
   onIslandOpenCommunity(
-    community: MapIslandCommunity | CommunityLandingPageData
+    community: MapIslandCommunity | CommunityLandingPageData,
   ): void {
     this._prepareCommunityPanelOpen();
     this._dismissedCommunityKeys.update((set) => {
@@ -652,7 +708,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this._isFullCommunityLanding(community)) {
       this.panelBackTarget.set(
-        this._getCurrentPanelBackTarget(community.canonicalPath)
+        this._getCurrentPanelBackTarget(community.canonicalPath),
       );
       this.selectedCommunityLanding.set(community);
       this.pendingCommunityLanding.set(null);
@@ -668,7 +724,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._focusCommunityPreviewOnMap(community);
     if (community.canonicalPath) {
       this.panelBackTarget.set(
-        this._getCurrentPanelBackTarget(community.canonicalPath)
+        this._getCurrentPanelBackTarget(community.canonicalPath),
       );
       this._location.go(community.canonicalPath);
     }
@@ -699,7 +755,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   openCommunityPath(path: string): void {
     const cleanPath = path.split("?")[0].split("#")[0];
     const slug = decodeURIComponent(
-      cleanPath.split("/").filter(Boolean).pop() ?? ""
+      cleanPath.split("/").filter(Boolean).pop() ?? "",
     );
     if (!slug) {
       return;
@@ -734,13 +790,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getCommunityFlag(countryCode: string | null | undefined): string {
-    const normalizedCode = String(countryCode ?? "").trim().toUpperCase();
+    const normalizedCode = String(countryCode ?? "")
+      .trim()
+      .toUpperCase();
     return normalizedCode ? (countries[normalizedCode]?.emoji ?? "") : "";
   }
 
   openSpotPath(
     spotIdOrSlug: string,
-    preview?: Partial<PendingSpotPanel> | null
+    preview?: Partial<PendingSpotPanel> | null,
   ): void {
     if (!spotIdOrSlug) {
       return;
@@ -766,14 +824,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       routeState.spotIdOrSlug,
       routeState.showChallenges,
       routeState.challengeId,
-      routeState.showEditHistory
+      routeState.showEditHistory,
     );
   }
 
   openEventPath(
     eventIdOrSlug: string,
     event?: PkEvent | null,
-    replaceUrl: boolean = false
+    replaceUrl: boolean = false,
   ): void {
     if (!eventIdOrSlug) {
       return;
@@ -872,14 +930,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const pendingSpot = this.pendingSpotPreview();
     if (/^\/map\/spots\//u.test(path) && pendingSpot) {
-      return pendingSpot.name ?? $localize`:@@map.panel_back_spot_fallback:Spot`;
+      return (
+        pendingSpot.name ?? $localize`:@@map.panel_back_spot_fallback:Spot`
+      );
     }
 
     return decodeURIComponent(path.split("/").filter(Boolean).pop() ?? "Map");
   }
 
   private _isFullCommunityLanding(
-    community: MapIslandCommunity | CommunityLandingPageData
+    community: MapIslandCommunity | CommunityLandingPageData,
   ): community is CommunityLandingPageData {
     return (
       "topRatedSpots" in community &&
@@ -945,7 +1005,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   openEventPreview(
     event: PkEvent,
-    options: { updateUrl?: boolean; replaceUrl?: boolean } = {}
+    options: { updateUrl?: boolean; replaceUrl?: boolean } = {},
   ): void {
     const updateUrl = options.updateUrl ?? true;
     const replaceUrl = options.replaceUrl ?? false;
@@ -972,7 +1032,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       try {
         const latLngBounds = new google.maps.LatLngBounds(
           { lat: bounds.south, lng: bounds.west },
-          { lat: bounds.north, lng: bounds.east }
+          { lat: bounds.north, lng: bounds.east },
         );
         this.spotMap.focusBounds?.(latLngBounds);
       } catch (err) {
@@ -1088,12 +1148,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private _consentService: ConsentService,
     private breakpointObserver: BreakpointObserver,
     private _spotEditsService: SpotEditsService,
-    public appSettings: AppSettingsService
+    public appSettings: AppSettingsService,
   ) {
     this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
       (value) => {
         this.alainMode = value;
-      }
+      },
     );
 
     this.isServer = isPlatformServer(platformId);
@@ -1108,7 +1168,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .getPromotableEvents()
           .then((events) => this._promotableEvents.set(events))
           .catch((err) =>
-            console.warn("MapPage: failed to load promotable events", err)
+            console.warn("MapPage: failed to load promotable events", err),
           );
         this._searchService
           .listCommunities()
@@ -1117,10 +1177,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             this._focusCommunityFromQueryParam();
           })
           .catch((err) =>
-            console.warn(
-              "MapPage: failed to load promotable communities",
-              err
-            )
+            console.warn("MapPage: failed to load promotable communities", err),
           );
       });
     }
@@ -1243,7 +1300,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           if (!isCancelled) {
             console.error(
               "[ERROR search place preview] Error fetching place:",
-              error
+              error,
             );
           }
         });
@@ -1272,7 +1329,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         const spotPathSegment = challenge.spot.slug ?? challenge.spot.id;
         this.metaTagService.setChallengeMetaTags(
           challenge,
-          buildSpotChallengeCanonicalPath(spotPathSegment, challenge.id)
+          buildSpotChallengeCanonicalPath(spotPathSegment, challenge.id),
         );
       } else if (spot) {
         const canonicalPath =
@@ -1298,7 +1355,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             next: (editsWithIds) => {
               // Convert to SpotEdit instances with proper IDs
               let spotEdits = editsWithIds.map(
-                (item) => new SpotEdit(item.id, item.schema)
+                (item) => new SpotEdit(item.id, item.schema),
               );
               // Sort by timestamp descending (newest first)
               spotEdits.sort((a, b) => {
@@ -1306,14 +1363,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
                   a.timestamp instanceof Timestamp
                     ? a.timestamp.toMillis()
                     : typeof a.timestamp_raw_ms === "number"
-                    ? a.timestamp_raw_ms
-                    : 0;
+                      ? a.timestamp_raw_ms
+                      : 0;
                 const timeB =
                   b.timestamp instanceof Timestamp
                     ? b.timestamp.toMillis()
                     : typeof b.timestamp_raw_ms === "number"
-                    ? b.timestamp_raw_ms
-                    : 0;
+                      ? b.timestamp_raw_ms
+                      : 0;
                 return timeB - timeA;
               });
               this.spotEdits.set(spotEdits);
@@ -1349,7 +1406,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         .subscribe({
           next: (editsWithIds) => {
             const pendingCount = editsWithIds.filter(
-              (item) => item.schema.approved !== true
+              (item) => item.schema.approved !== true,
             ).length;
             this.pendingSpotEditsCount.set(pendingCount);
           },
@@ -1467,7 +1524,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         ) {
           this.filterChipChanged("");
         }
-      }
+      },
     );
 
     // Listen for consent changes to retry Maps API loading when consent is granted
@@ -1476,7 +1533,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         if (hasConsent && !this.mapsService.isApiLoaded()) {
           this.tryLoadMapsApi();
         }
-      }
+      },
     );
 
     // Check if we have resolved data from the resolver
@@ -1522,7 +1579,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         routeState.challengeId,
         routeState.showEditHistory,
         contentData?.spot || null,
-        contentData?.challenge || null
+        contentData?.challenge || null,
       );
     });
 
@@ -1603,7 +1660,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           }
           this._pendingCommunityFocusSlug = params.get("community");
           this._focusCommunityFromQueryParam();
-
         });
 
       this._locationSubscription = this._location.subscribe((event) => {
@@ -1619,7 +1675,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this._syncFullMapStateFromUrl(url);
         const queryIndex = url.indexOf("?");
         const params = new URLSearchParams(
-          queryIndex >= 0 ? url.substring(queryIndex + 1) : ""
+          queryIndex >= 0 ? url.substring(queryIndex + 1) : "",
         );
         this._pendingCommunityFocusSlug = params.get("community");
         this._focusCommunityFromQueryParam();
@@ -1699,7 +1755,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     challengeId: string | null,
     showEditHistory: boolean,
     resolvedSpot: Spot | null = null,
-    resolvedChallenge: SpotChallenge | null = null
+    resolvedChallenge: SpotChallenge | null = null,
   ) {
     if (challengeId && spotIdOrSlug) {
       // open the spot on a challenge
@@ -1709,14 +1765,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         const selectedSpot = this.selectedSpot();
         if (selectedSpot && selectedSpot instanceof Spot) {
           this.loadChallengeById(selectedSpot, challengeId, false).then(
-            () => {}
+            () => {},
           );
         } else if (!selectedSpot) {
           // load the spot by id then the challenge
         } else {
           // the spot is a local spot
           console.error(
-            "Cannot open a challenge of a local spot, it should not have one!"
+            "Cannot open a challenge of a local spot, it should not have one!",
           );
         }
       }
@@ -1735,7 +1791,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             id: spotIdOrSlug,
             slug: spotIdOrSlug,
           },
-          false
+          false,
         );
         this._getSpotIdFromSlugOrId(spotIdOrSlug).then((spotId) => {
           if (!spotId) {
@@ -1779,7 +1835,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           (community) =>
             community.slug === value.id ||
             community.communityKey === value.id ||
-            community.id === value.id
+            community.id === value.id,
         );
 
       if (communityPreview) {
@@ -1882,7 +1938,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   async loadSpotById(
     spotId: SpotId,
     updateUrl: boolean = true,
-    preview?: Partial<PendingSpotPanel> | null
+    preview?: Partial<PendingSpotPanel> | null,
   ): Promise<Spot> {
     console.debug("loading spot by id", spotId);
     const requestVersion = ++this._spotLoadRequestVersion;
@@ -1896,7 +1952,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           locality: preview.locality,
           rating: preview.rating,
         },
-        updateUrl
+        updateUrl,
       );
     }
 
@@ -1909,7 +1965,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       try {
         const spot: Spot = await this._spotsService.getSpotById(
           spotId,
-          this.locale
+          this.locale,
         );
         if (requestVersion !== this._spotLoadRequestVersion) {
           return spot;
@@ -1923,7 +1979,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           `Attempt ${
             attempt + 1
           }/${maxAttempts} to load spot failed, retrying...`,
-          error
+          error,
         );
 
         // Wait before next attempt
@@ -1940,7 +1996,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _openPendingSpotPanel(
     preview: PendingSpotPanel,
-    updateUrl: boolean
+    updateUrl: boolean,
   ): void {
     this.selectedEvent.set(null);
     this.pendingEventPreview.set(null);
@@ -1962,7 +2018,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   async loadChallengeById(
     spot: Spot,
     challengeId: string,
-    updateUrl: boolean = true
+    updateUrl: boolean = true,
   ): Promise<SpotChallenge> {
     console.debug("loading challenge by id", challengeId);
 
@@ -1985,7 +2041,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _pendingFilter: string | null = null;
 
   private _cloneCustomFilterParams(
-    params: CustomFilterParams | null | undefined
+    params: CustomFilterParams | null | undefined,
   ): CustomFilterParams | null {
     if (!params) {
       return null;
@@ -1999,8 +2055,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
 
-  private _getPresetFilterParams(filterParam: string): CustomFilterParams | null {
-    const filterConfig = getFilterConfig(getFilterModeFromUrlParam(filterParam));
+  private _getPresetFilterParams(
+    filterParam: string,
+  ): CustomFilterParams | null {
+    const filterConfig = getFilterConfig(
+      getFilterModeFromUrlParam(filterParam),
+    );
     if (!filterConfig) {
       return null;
     }
@@ -2017,7 +2077,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     params: CustomFilterParams | null;
     seededFromQuickFilter: boolean;
   } {
-    const customParams = this._cloneCustomFilterParams(this.customFilterParams());
+    const customParams = this._cloneCustomFilterParams(
+      this.customFilterParams(),
+    );
     if (customParams) {
       return {
         params: customParams,
@@ -2033,7 +2095,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _toSortedUniqueList<T extends string>(
-    values: readonly T[] | null | undefined
+    values: readonly T[] | null | undefined,
   ): T[] {
     return [...new Set(values ?? [])].sort();
   }
@@ -2053,7 +2115,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _areFilterParamsEqual(
     left: CustomFilterParams | null | undefined,
-    right: CustomFilterParams | null | undefined
+    right: CustomFilterParams | null | undefined,
   ): boolean {
     if (!left && !right) {
       return true;
@@ -2076,7 +2138,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _getMatchingPresetFilter(
-    params: CustomFilterParams | null | undefined
+    params: CustomFilterParams | null | undefined,
   ): string | null {
     if (!params) {
       return null;
@@ -2134,7 +2196,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         .catch((err) => {
           console.error(
             "Error re-searching custom filter on bounds change:",
-            err
+            err,
           );
         });
       return;
@@ -2398,8 +2460,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       selectedSpot instanceof Spot
         ? selectedSpot
         : selectedChallenge instanceof SpotChallenge
-        ? selectedChallenge.spot
-        : null;
+          ? selectedChallenge.spot
+          : null;
 
     // Build the path based on current state
     let path: string;
@@ -2410,7 +2472,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     ) {
       path = buildSpotChallengeCanonicalPath(
         spot.slug ?? spot.id,
-        selectedChallenge.id
+        selectedChallenge.id,
       );
     } else if (spot && showEditHistory) {
       path = buildSpotEditHistoryCanonicalPath(spot.slug ?? spot.id);
@@ -2422,7 +2484,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       path = buildSpotCanonicalPath(pendingSpot.slug ?? pendingSpot.id);
     } else if (selectedEvent) {
       path = `/map/events/${encodeURIComponent(
-        selectedEvent.slug ?? selectedEvent.id
+        selectedEvent.slug ?? selectedEvent.id,
       )}`;
     } else if (pendingEvent) {
       path = `/map/events/${encodeURIComponent(pendingEvent.idOrSlug)}`;
@@ -2443,7 +2505,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     const queryIndex = currentUrl.indexOf("?");
     const existingParams = new URLSearchParams(
-      queryIndex >= 0 ? currentUrl.substring(queryIndex + 1) : ""
+      queryIndex >= 0 ? currentUrl.substring(queryIndex + 1) : "",
     );
 
     // Update the filter param based on activeFilter signal
@@ -2490,7 +2552,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         try {
           this._sidebarScrollEl.removeEventListener(
             "scroll",
-            this._sidebarScrollListener as EventListener
+            this._sidebarScrollListener as EventListener,
           );
         } catch (e) {
           /* ignore */
@@ -2503,7 +2565,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         try {
           this._bottomSheetContentEl.removeEventListener(
             "scroll",
-            this._bottomSheetContentListener as EventListener
+            this._bottomSheetContentListener as EventListener,
           );
         } catch (e) {
           /* ignore */
@@ -2514,19 +2576,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       // Try to attach sidebar (desktop) listener
       const drawerInner = document.querySelector(
-        ".mat-drawer-inner-container"
+        ".mat-drawer-inner-container",
       ) as HTMLElement | null;
       if (drawerInner) {
         this._sidebarScrollEl = drawerInner;
         this._sidebarScrollListener = () => {
           this.sidebarContentIsScrolling.set(
-            !!(this._sidebarScrollEl && this._sidebarScrollEl.scrollTop > 0)
+            !!(this._sidebarScrollEl && this._sidebarScrollEl.scrollTop > 0),
           );
         };
         this._sidebarScrollEl.addEventListener(
           "scroll",
           this._sidebarScrollListener,
-          { passive: true }
+          { passive: true },
         );
         this.sidebarContentIsScrolling.set(this._sidebarScrollEl.scrollTop > 0);
       } else {
@@ -2535,7 +2597,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       // Try to attach bottom-sheet (mobile) listener
       const bottomContent = document.querySelector(
-        "app-bottom-sheet #contentEl"
+        "app-bottom-sheet #contentEl",
       ) as HTMLElement | null;
       if (bottomContent) {
         this._bottomSheetContentEl = bottomContent;
@@ -2544,16 +2606,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             !!(
               this._bottomSheetContentEl &&
               this._bottomSheetContentEl.scrollTop > 0
-            )
+            ),
           );
         };
         this._bottomSheetContentEl.addEventListener(
           "scroll",
           this._bottomSheetContentListener,
-          { passive: true }
+          { passive: true },
         );
         this.sidebarContentIsScrolling.set(
-          this._bottomSheetContentEl.scrollTop > 0
+          this._bottomSheetContentEl.scrollTop > 0,
         );
       }
     } catch (e) {
@@ -2574,7 +2636,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   selectSpot(
     spot: Spot | LocalSpot | SpotPreviewData | null,
-    updateUrl: boolean = true
+    updateUrl: boolean = true,
   ) {
     // console.debug("selecting spot", spot);
     if (!spot) {
@@ -2659,7 +2721,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _getSelectedSpotKey(
-    spot: Spot | LocalSpot | SpotPreviewData | null
+    spot: Spot | LocalSpot | SpotPreviewData | null,
   ): string | null {
     if (!spot) return null;
 
@@ -2675,7 +2737,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return null;
   }
 
-  private _debugMapEvent(event: string, payload: Record<string, unknown>): void {
+  private _debugMapEvent(
+    event: string,
+    payload: Record<string, unknown>,
+  ): void {
     if (!this.appSettings.debugMode()) return;
 
     console.debug("[MapDebug][MapPage]", event, {
@@ -2697,7 +2762,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const el =
       this._sidebarScrollEl ||
       (document.querySelector(
-        ".mat-drawer-inner-container"
+        ".mat-drawer-inner-container",
       ) as HTMLElement | null);
 
     if (el) {
@@ -2715,7 +2780,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const el =
       this._bottomSheetContentEl ||
       (document.querySelector(
-        "app-bottom-sheet #contentEl"
+        "app-bottom-sheet #contentEl",
       ) as HTMLElement | null);
 
     if (el) {
@@ -2863,7 +2928,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.openEventPreview(event, { updateUrl: false });
       })
       .catch((err) =>
-        console.warn("MapPage: failed to load event from route", err)
+        console.warn("MapPage: failed to load event from route", err),
       )
       .finally(() => {
         if (this.pendingEventPreview()?.idOrSlug === eventIdOrSlug) {
@@ -2895,15 +2960,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       routeState.spotIdOrSlug,
       routeState.showChallenges,
       routeState.challengeId,
-      routeState.showEditHistory
+      routeState.showEditHistory,
     );
   }
 
   private _syncMapPanelStateFromUrl(url: string): void {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
-    const communityMatch = cleanUrl.match(
-      /^\/map\/communities\/([^/]+)$/u
-    );
+    const communityMatch = cleanUrl.match(/^\/map\/communities\/([^/]+)$/u);
 
     if (communityMatch) {
       const slug = decodeURIComponent(communityMatch[1]);
@@ -2942,7 +3005,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           displayName: "",
           canonicalPath: `/map/communities/${encodeURIComponent(slug)}`,
           totalSpots: 0,
-        }
+        },
       );
       this.selectedCommunityLanding.set(null);
       this._openInfoPanel();
@@ -2969,7 +3032,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           this.pendingCommunityLanding.set(null);
         })
         .catch((err) =>
-          console.warn("MapPage: failed to load community from route", err)
+          console.warn("MapPage: failed to load community from route", err),
         )
         .finally(() => {
           if (requestVersion === this._communityRouteLoadVersion) {
@@ -2985,21 +3048,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _findCommunityPreviewBySlug(
-    slug: string
+    slug: string,
   ): CommunitySearchPreview | null {
     return (
       this._promotableCommunities().find(
         (community) =>
           community.slug === slug ||
           community.canonicalPath?.endsWith(`/${encodeURIComponent(slug)}`) ||
-          community.canonicalPath?.endsWith(`/${slug}`)
+          community.canonicalPath?.endsWith(`/${slug}`),
       ) ?? null
     );
   }
 
   private _communityMatchesSlug(
     community: CommunityLandingPageData,
-    slug: string
+    slug: string,
   ): boolean {
     return (
       community.preferredSlug === slug ||
@@ -3027,7 +3090,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  private _focusCommunityOnMap(communityLanding: CommunityLandingPageData): boolean {
+  private _focusCommunityOnMap(
+    communityLanding: CommunityLandingPageData,
+  ): boolean {
     if (!isPlatformBrowser(this.platformId) || !this.spotMap) {
       return false;
     }
@@ -3048,8 +3113,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.spotMap.focusBounds(
           new google.maps.LatLngBounds(
             { lat: lat - radiusDegrees, lng: lng - radiusDegrees },
-            { lat: lat + radiusDegrees, lng: lng + radiusDegrees }
-          )
+            { lat: lat + radiusDegrees, lng: lng + radiusDegrees },
+          ),
         );
         return true;
       }
@@ -3078,8 +3143,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.spotMap.focusBounds(
         new google.maps.LatLngBounds(
           { lat: minLat, lng: minLng },
-          { lat: maxLat, lng: maxLng }
-        )
+          { lat: maxLat, lng: maxLng },
+        ),
       );
       return true;
     }
@@ -3089,7 +3154,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       lng: (minLng + maxLng) / 2,
     };
 
-    this.spotMap.focusPoint(center, this._getCommunityFocusZoom(communityLanding));
+    this.spotMap.focusPoint(
+      center,
+      this._getCommunityFocusZoom(communityLanding),
+    );
     return true;
   }
 
@@ -3102,7 +3170,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       | "displayName"
       | "countryCode"
       | "googleMapsPlaceId"
-    >
+    >,
   ): void {
     if (
       !isPlatformBrowser(this.platformId) ||
@@ -3117,7 +3185,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (!community.boundsCenter || typeof community.boundsRadiusM !== "number") {
+    if (
+      !community.boundsCenter ||
+      typeof community.boundsRadiusM !== "number"
+    ) {
       return;
     }
 
@@ -3130,13 +3201,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap.focusBounds(
       new google.maps.LatLngBounds(
         { lat: lat - radiusDegrees, lng: lng - radiusDegrees },
-        { lat: lat + radiusDegrees, lng: lng + radiusDegrees }
-      )
+        { lat: lat + radiusDegrees, lng: lng + radiusDegrees },
+      ),
     );
   }
 
   private _focusCountryCommunityOnMap(
-    community: CommunityCountryFocusData
+    community: CommunityCountryFocusData,
   ): void {
     if (!isPlatformBrowser(this.platformId) || !this.spotMap) {
       return;
@@ -3155,7 +3226,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async _getCountryViewportBounds(
-    community: CommunityCountryFocusData
+    community: CommunityCountryFocusData,
   ): Promise<google.maps.LatLngBounds | null> {
     if (!this.mapsService.isApiLoaded() || typeof google === "undefined") {
       return null;
@@ -3175,7 +3246,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       if (community.googleMapsPlaceId) {
         const place = await this.mapsService.getGooglePlaceById(
-          community.googleMapsPlaceId
+          community.googleMapsPlaceId,
         );
         const viewport =
           (place as { viewport?: google.maps.LatLngBounds | null }).viewport ??
@@ -3185,7 +3256,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       const { Place } = (await google.maps.importLibrary(
-        "places"
+        "places",
       )) as google.maps.PlacesLibrary;
       const { places } = await Place.searchByText({
         textQuery: community.displayName,
@@ -3196,8 +3267,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         useStrictTypeFiltering: true,
       });
       const viewport =
-        (places[0] as { viewport?: google.maps.LatLngBounds | null } | undefined)
-          ?.viewport ?? null;
+        (
+          places[0] as
+            | { viewport?: google.maps.LatLngBounds | null }
+            | undefined
+        )?.viewport ?? null;
       this._countryViewportCache.set(cacheKey, viewport);
       return viewport;
     } catch (error) {
@@ -3242,7 +3316,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _extractCommunityCoordinates(
-    communityLanding: CommunityLandingPageData
+    communityLanding: CommunityLandingPageData,
   ): google.maps.LatLngLiteral[] {
     const previews = [
       ...communityLanding.topRatedSpots,
@@ -3297,7 +3371,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _getCommunityFocusZoom(
-    communityLanding: CommunityLandingPageData
+    communityLanding: CommunityLandingPageData,
   ): number {
     switch (communityLanding.scope) {
       case "country":
@@ -3311,11 +3385,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _isFiniteLatLng(
-    coordinate: google.maps.LatLngLiteral | null | undefined
+    coordinate: google.maps.LatLngLiteral | null | undefined,
   ): coordinate is google.maps.LatLngLiteral {
-    return !!coordinate &&
+    return (
+      !!coordinate &&
       Number.isFinite(coordinate.lat) &&
-      Number.isFinite(coordinate.lng);
+      Number.isFinite(coordinate.lng)
+    );
   }
 
   private _openInfoPanel() {
@@ -3385,11 +3461,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (spots.length > 0) {
       const itemList = this._structuredDataService.generateSpotItemList(
         spots,
-        $localize`:@@map.highlighted_spots.structured_data_name:Featured Parkour Spots`
+        $localize`:@@map.highlighted_spots.structured_data_name:Featured Parkour Spots`,
       );
       this._structuredDataService.addStructuredData(
         "highlighted-spots",
-        itemList
+        itemList,
       );
     } else {
       this._structuredDataService.removeStructuredData("highlighted-spots");
@@ -3418,10 +3494,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe(
         (privateData) => {
           const savedIds = Array.from(
-            new Set((privateData?.bookmarks || []).filter((id) => !!id))
+            new Set((privateData?.bookmarks || []).filter((id) => !!id)),
           );
           const visitedIds = Array.from(
-            new Set((privateData?.visited_spots || []).filter((id) => !!id))
+            new Set((privateData?.visited_spots || []).filter((id) => !!id)),
           );
           this.savedSpotIds.set(savedIds);
           this.visitedSpotIds.set(visitedIds);
@@ -3449,15 +3525,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         (error) => {
           console.error("Failed to load private spot lists", error);
-        }
+        },
       );
   }
 
   private async _ensureSavedSpotPreviewsLoaded(
-    orderedSavedIds: string[]
+    orderedSavedIds: string[],
   ): Promise<void> {
     const missingIds = orderedSavedIds.filter(
-      (id) => !this._savedSpotPreviewCache.has(id)
+      (id) => !this._savedSpotPreviewCache.has(id),
     );
 
     if (missingIds.length === 0) {
@@ -3486,10 +3562,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async _ensureVisitedSpotPreviewsLoaded(
-    orderedVisitedIds: string[]
+    orderedVisitedIds: string[],
   ): Promise<void> {
     const missingIds = orderedVisitedIds.filter(
-      (id) => !this._visitedSpotPreviewCache.has(id)
+      (id) => !this._visitedSpotPreviewCache.has(id),
     );
 
     if (missingIds.length === 0) {
@@ -3518,7 +3594,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async _applySavedFilter(
-    bounds: google.maps.LatLngBounds
+    bounds: google.maps.LatLngBounds,
   ): Promise<void> {
     const savedIds = this.savedSpotIds();
 
@@ -3546,7 +3622,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async _applyVisitedFilter(
-    bounds: google.maps.LatLngBounds
+    bounds: google.maps.LatLngBounds,
   ): Promise<void> {
     const visitedIds = this.visitedSpotIds();
 
@@ -3574,7 +3650,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _getPreviewLocation(
-    preview: SpotPreviewData
+    preview: SpotPreviewData,
   ): google.maps.LatLngLiteral | null {
     const location: any = preview.location;
     if (!location) return null;
@@ -3618,13 +3694,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this._sidebarScrollEl && this._sidebarScrollListener) {
         this._sidebarScrollEl.removeEventListener(
           "scroll",
-          this._sidebarScrollListener as EventListener
+          this._sidebarScrollListener as EventListener,
         );
       }
       if (this._bottomSheetContentEl && this._bottomSheetContentListener) {
         this._bottomSheetContentEl.removeEventListener(
           "scroll",
-          this._bottomSheetContentListener as EventListener
+          this._bottomSheetContentListener as EventListener,
         );
       }
       if (this._chipsResizeObserver) {

@@ -55,6 +55,15 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "created_by",
     "time_created",
     "time_updated",
+    // Typesense helper fields — populated by `updateEventFieldsOnWrite`
+    // and copied verbatim by the Firestore→Typesense extension.
+    "start_seconds",
+    "end_seconds",
+    "promo_starts_at_seconds",
+    "bounds_center",
+    "bounds_radius_m",
+    "promo_region_center",
+    "promo_region_radius_m",
   ] as const;
 
   const requiredFirestoreFields = [
@@ -66,13 +75,31 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "bounds",
   ] as const;
 
+  // The `*_seconds` and `bounds_*` / `promo_region_*` helper fields are
+  // typed as optional on the EventSchema (we want clients to be able to
+  // read an event without these), but the `updateEventFieldsOnWrite`
+  // cloud function always populates them when the source field is
+  // present. `bounds_center`/`bounds_radius_m` are required in Typesense
+  // because `bounds` is required in Firestore.
+  const indexerProvidedDefaults = [
+    "start_seconds",
+    "end_seconds",
+    "bounds_center",
+    "bounds_radius_m",
+  ] as const;
+
+  // `start`, `end`, and `bounds` are surfaced to Typesense via their
+  // cloud-function-maintained helper fields (`*_seconds`,
+  // `bounds_center`, `bounds_radius_m`) — listed below so the harness
+  // confirms each helper is indexed.
   const expectedIndexedFirestoreFields = [
     "name",
     "venue_string",
     "locality_string",
-    "start",
-    "end",
-    "bounds",
+    "start_seconds",
+    "end_seconds",
+    "bounds_center",
+    "bounds_radius_m",
     "community_keys",
     "series_ids",
     "published",
@@ -97,20 +124,14 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     },
     "sponsor.url": { kind: "direct", source: "sponsor.url" },
 
-    start_seconds: {
-      kind: "derived",
-      from: "start",
-      transform: "Timestamp.seconds",
-    },
-    end_seconds: {
-      kind: "derived",
-      from: "end",
-      transform: "Timestamp.seconds",
-    },
+    // Helper fields are materialized onto the Firestore event doc by
+    // `updateEventFieldsOnWrite` (the Firebase Extension then copies them
+    // verbatim to Typesense), so the mapping is `direct`.
+    start_seconds: { kind: "direct", source: "start_seconds" },
+    end_seconds: { kind: "direct", source: "end_seconds" },
     promo_starts_at_seconds: {
-      kind: "derived",
-      from: "promo_starts_at",
-      transform: "Timestamp.seconds",
+      kind: "direct",
+      source: "promo_starts_at_seconds",
     },
 
     spot_ids: { kind: "direct", source: "spot_ids" },
@@ -124,25 +145,12 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "external_source.id": { kind: "direct", source: "external_source.id" },
     "external_source.url": { kind: "direct", source: "external_source.url" },
 
-    bounds_center: {
-      kind: "derived",
-      from: "bounds",
-      transform: "geographic center of bounding box",
-    },
-    bounds_radius_m: {
-      kind: "derived",
-      from: "bounds",
-      transform: "max distance from center to any corner (meters)",
-    },
-    promo_region_center: {
-      kind: "derived",
-      from: "promo_region",
-      transform: "center of promo region (bounds or explicit center)",
-    },
+    bounds_center: { kind: "direct", source: "bounds_center" },
+    bounds_radius_m: { kind: "direct", source: "bounds_radius_m" },
+    promo_region_center: { kind: "direct", source: "promo_region_center" },
     promo_region_radius_m: {
-      kind: "derived",
-      from: "promo_region",
-      transform: "radius of promo region (meters)",
+      kind: "direct",
+      source: "promo_region_radius_m",
     },
 
     published: { kind: "direct", source: "published" },
@@ -157,6 +165,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     expectedCollectionName: "events_v1",
     firestoreFields,
     requiredFirestoreFields,
+    indexerProvidedDefaults,
     expectedIndexedFirestoreFields,
     mapping,
   });

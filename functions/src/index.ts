@@ -31,6 +31,12 @@ export {
   rebuildCommunityEventPreviewsOnEventWrite,
 } from "./communityFunctions";
 
+// event functions
+export {
+  updateEventFieldsOnWrite,
+  updateAllEventsWithTypesenseFields,
+} from "./eventFunctions";
+
 export { computeRatingOnWrite } from "./spotRatingFunctions";
 
 // spot edit functions

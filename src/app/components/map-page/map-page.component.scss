@@ -61,95 +61,27 @@ app-spot-map {
   ) !important;
 }
 
-.tab-icon {
-  margin-right: 8px;
-}
-
-::ng-deep .mat-tab-label {
-  min-width: 0 !important;
-}
-
-.editCardContainer {
-  position: absolute;
-  padding: 10px;
-  top: 85px;
-  right: 0px;
-  left: 0px;
-  bottom: 0px;
-
-  pointer-events: none;
-
-  @media (min-width: 960px) {
-    top: 0px;
-    right: 100px;
-    left: 100px;
-  }
-}
-
-#editCard {
-  pointer-events: all;
-
-  position: relative;
-  margin: 0 auto;
-  width: 50vw;
-  max-width: 100%;
-}
-
 ::ng-deep .mat-drawer-inner-container {
   overflow-x: hidden !important;
 }
 
-#saveBoundsEditFab,
 #createSpotSpeedDial {
   position: absolute;
   z-index: 1;
 
   @media (max-width: 599.99px) {
-    // small screen - offset by bottom sheet height + margin
     bottom: calc(var(--bottom-sheet-closed-height, 140px) + 30px);
     right: 20px;
   }
   @media (min-width: 600px) {
-    // desktop (large screen)
-    bottom: calc(30px);
+    bottom: 30px;
     right: 20px;
-  }
-}
-
-#exitBoundsEditFab {
-  position: absolute;
-  z-index: 2;
-  right: 38px;
-  bottom: 95px; // TODO fix
-}
-
-#searchSpotList {
-  mat-card {
-    cursor: pointer;
-  }
-
-  -ms-overflow-style: none; // IE 10+
-  scrollbar-width: none; // Firefox
-}
-
-mat-card {
-  ::ng-deep .mat-card-header-text {
-    width: 100%;
-    margin: 0;
   }
 }
 
 ::ng-deep .mat-mdc-form-field-icon-suffix {
   display: flex;
   flex-direction: row;
-}
-
-::ng-deep mat-card.mat-mdc-card.mdc-card {
-  box-shadow: none;
-
-  > mat-card-header {
-    padding-top: 0px;
-  }
 }
 
 .mini-fabs {

@@ -220,4 +220,18 @@ export interface EventSchema {
   created_by?: { uid: string; username?: string };
   time_created?: Timestamp;
   time_updated?: Timestamp;
+
+  // Typesense helper fields — populated by the `updateEventFieldsOnWrite`
+  // cloud function and copied verbatim by the Firestore→Typesense
+  // Firebase Extension. Do not set these directly; treat as derived state
+  // owned by the cloud function.
+  start_seconds?: number;
+  end_seconds?: number;
+  promo_starts_at_seconds?: number;
+  /** Stored as a Firestore `GeoPoint` at runtime; typed as `[lat, lng]` so
+   * the client doesn't need the admin SDK to read it. */
+  bounds_center?: [number, number];
+  bounds_radius_m?: number;
+  promo_region_center?: [number, number];
+  promo_region_radius_m?: number;
 }
