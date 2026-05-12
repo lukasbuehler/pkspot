@@ -1,15 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  inject,
+  computed,
   input,
   output,
 } from "@angular/core";
-import { NgOptimizedImage } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { LocationStrategy } from "@angular/common";
 
 /**
  * Shape needed by the island chip and its open/dismiss handlers. The
@@ -51,7 +49,7 @@ export type MapIslandContent =
  */
 @Component({
   selector: "app-map-island",
-  imports: [MatButtonModule, MatIconModule, NgOptimizedImage],
+  imports: [MatButtonModule, MatIconModule],
   templateUrl: "./map-island.component.html",
   styleUrl: "./map-island.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,6 +57,11 @@ export type MapIslandContent =
 export class MapIslandComponent {
   /** Active content. When null, the island renders nothing. */
   content = input<MapIslandContent | null>(null);
+
+  readonly eventStatus = computed<"upcoming" | "live" | "past" | null>(() => {
+    const c = this.content();
+    return c?.kind === "event" ? c.event.status() : null;
+  });
 
   /** Filter variant: user clicked clear. */
   clearFilter = output<void>();

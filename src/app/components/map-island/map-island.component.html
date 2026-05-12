@@ -19,14 +19,18 @@
 
     @case ("event") {
       <div
-        class="map-island glass d-flex flex-row align-items-center gap-3 p-2 ps-3"
+        class="map-island event-island glass d-flex flex-row align-items-center gap-2 p-1 ps-2"
+        [class.event-island-live]="eventStatus() === 'live'"
       >
         @if (island.event.effectiveBadgeLogoSrc(); as logoSrc) {
-          <div class="island-logo flex-shrink-0">
-            <img [ngSrc]="logoSrc" alt="" fill />
+          <div
+            class="island-logo flex-shrink-0"
+            [style.background-color]="island.event.effectiveBadgeLogoBackgroundColor() ?? null"
+          >
+            <img [src]="logoSrc" alt="" />
           </div>
         } @else {
-          <mat-icon class="flex-shrink-0" color="accent">event</mat-icon>
+          <mat-icon class="event-icon flex-shrink-0">event</mat-icon>
         }
 
         <button
@@ -34,6 +38,21 @@
           class="island-text bg-transparent border-0 p-0 text-start flex-grow-1 overflow-hidden"
           (click)="onOpenEvent()"
         >
+          @if (eventStatus() === "live") {
+            <div
+              class="event-disclosure mat-label-small text-truncate"
+              i18n="@@map_island.event_promoted_live"
+            >
+              Promoted live event
+            </div>
+          } @else {
+            <div
+              class="event-disclosure mat-label-small text-truncate"
+              i18n="@@map_island.event_promoted_upcoming"
+            >
+              Promoted upcoming event
+            </div>
+          }
           <div class="mat-title-small text-truncate">
             {{ island.event.name }}
           </div>
@@ -42,11 +61,11 @@
           </div>
         </button>
 
-        <div class="d-flex flex-row gap-1">
+        <div class="island-actions d-flex flex-row gap-1">
           <button
             type="button"
             mat-flat-button
-            color="accent"
+            color="primary"
             class="flex-shrink-0"
             (click)="onOpenEvent()"
           >
@@ -86,7 +105,7 @@
           </div>
         </button>
 
-        <div class="d-flex flex-row gap-1">
+        <div class="island-actions d-flex flex-row gap-1">
           <button
             type="button"
             mat-flat-button

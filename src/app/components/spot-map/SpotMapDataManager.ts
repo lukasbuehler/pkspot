@@ -464,7 +464,7 @@ export class SpotMapDataManager {
   setVisibleViewport(viewport: VisibleViewport) {
     this._currentViewport = viewport; // Store exact viewport for precise filtering
 
-    const zoom = viewport.zoom;
+    const zoom = Math.max(0, Math.floor(viewport.zoom));
 
     const ne = { lat: viewport.bbox.north, lng: viewport.bbox.east };
     const sw = { lat: viewport.bbox.south, lng: viewport.bbox.west };
@@ -477,6 +477,16 @@ export class SpotMapDataManager {
       tiles: [],
       ne: neTile,
       sw: swTile,
+      center: {
+        lat: (viewport.bbox.north + viewport.bbox.south) / 2,
+        lng: (viewport.bbox.east + viewport.bbox.west) / 2,
+      },
+      viewportBounds: {
+        north: viewport.bbox.north,
+        south: viewport.bbox.south,
+        east: viewport.bbox.east,
+        west: viewport.bbox.west,
+      },
     };
 
     // Clamp Y coordinates to valid tile bounds (0 to 2^zoom - 1)

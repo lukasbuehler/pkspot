@@ -25,6 +25,7 @@
   [bottomSheetOffset]="bottomSheetOffset()"
   [isDebug]="isDebug()"
   (boundsChange)="mapBoundsChanged($event, map.zoom)"
+  (visibleViewportChange)="visibleViewportChanged($event)"
   (visibleTilesChange)="visibleTilesChanged($event)"
   (zoomChange)="zoomChanged($event)"
   (mapClick)="isClickable() ? mapClick($event) : null"

@@ -50,21 +50,31 @@ describe("app routes", () => {
     expect(routes[legacyEventIndex].redirectTo).toBe("map/events/:eventId");
   });
 
-  it("should not register the legacy singular community route in the client app", () => {
-    expect(
-      routes.find((route) => route.path === legacyCommunityRoute)
-    ).toBeUndefined();
-    expect(
-      routes.find((route) => route.path === "map/communities/:slug")
-    ).toBeDefined();
+  it("should redirect the legacy singular community route to the plural form via a function (string form is unsafe with locale base href)", () => {
+    const canonical = routes.find(
+      (route) => route.path === "map/communities/:slug"
+    );
+    const legacy = routes.find((route) => route.path === legacyCommunityRoute);
+
+    expect(canonical).toBeDefined();
+    expect(legacy).toBeDefined();
+    expect(legacy?.pathMatch).toBe("full");
+    expect(typeof legacy?.redirectTo).toBe("function");
+
+    const redirect = legacy!.redirectTo as (route: {
+      params: Record<string, string>;
+    }) => string;
+    expect(redirect({ params: { slug: "zuerich" } })).toBe(
+      "/map/communities/zuerich"
+    );
   });
 
-  it("should not expose singular community redirects from the Angular route table", () => {
-    for (const route of routes) {
-      expect(route.path ?? "").not.toContain(legacyCommunityPrefix);
-      expect(String(route.redirectTo ?? "")).not.toContain(
-        legacyCommunityPrefix
-      );
-    }
+  it("should order the legacy singular community redirect before the generic map route", () => {
+    const legacyIndex = routes.findIndex(
+      (route) => route.path === legacyCommunityRoute
+    );
+    const mapIndex = routes.findIndex((route) => route.path === "map");
+    expect(legacyIndex).toBeGreaterThanOrEqual(0);
+    expect(legacyIndex).toBeLessThan(mapIndex);
   });
 });

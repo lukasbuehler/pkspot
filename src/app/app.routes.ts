@@ -37,8 +37,12 @@ export const routes: Routes = [
     : []),
 
   // Community on map. Plural "communities" matches /events for URL
-  // consistency. Legacy singular URLs are handled as server-side 301s in
-  // server-redirects.ts so crawlers never render a duplicate page.
+  // consistency. Crawlers get a real HTTP 301 via server-redirects.ts
+  // (SSR Express middleware); the function-form redirect below covers
+  // dev mode (`ng serve` bypasses the Express server) and any in-app
+  // navigation that doesn't pass through SSR. String-form redirectTo is
+  // unsafe here — it interacts badly with the locale base href and
+  // produces a doubled path like /de/map/community/map/communities/:slug.
   {
     path: "map/communities/:slug",
     loadComponent: () =>
@@ -47,6 +51,12 @@ export const routes: Routes = [
       ),
     resolve: { communityLanding: communityLandingResolver },
     data: { routeName: "Community Landing" },
+  },
+  {
+    path: "map/community/:slug",
+    redirectTo: (route) => `/map/communities/${route.params["slug"]}`,
+    pathMatch: "full",
+    data: { routeName: "Community Landing (legacy redirect)" },
   },
 
   // Event-on-map preview. Stays on the map and opens the event preview

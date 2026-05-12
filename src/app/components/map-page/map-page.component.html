@@ -501,6 +501,7 @@
         (hightlightedSpotsChange)="highlightedSpots = $event"
         (filterBoundsChange)="onFilterBoundsChange($event)"
         (viewportBoundsChange)="onViewportBoundsChange($event)"
+        (visibleViewportChange)="onVisibleViewportChange($event)"
         [bottomSheetOffset]="true"
         [isDebug]="appSettings.debugMode()"
         [communityArea]="activeCommunityArea()"
@@ -724,7 +725,10 @@
     }
   </div>
 
-  <mat-drawer-container class="h-100 bg-transparent">
+  <mat-drawer-container
+    class="h-100 bg-transparent"
+    [class.sidenav-open]="sidenavOpen()"
+  >
     <mat-drawer
       [opened]="sidenavOpen()"
       position="start"
@@ -779,27 +783,24 @@
     <div
       class="search-bar-overlay position-absolute top-0 start-0 end-0 p-2 d-flex flex-column gap-1"
     >
-      <div class="d-flex flex-row gap-3">
+      <div class="d-flex flex-row gap-2 align-items-center">
         @if (alainMode && responsiveService.isMobile()) {
           <div class="spacer" style="width: 56px"></div>
         }
         <app-search-field
-          class="w-100 mat-elevation-z3 overflow-hidden"
-          style="border-radius: 16px"
+          class="flex-grow-1 mat-elevation-z3 overflow-hidden"
+          style="border-radius: 16px; min-width: 0"
           (spotSelected)="openSpotOrGooglePlace($event)"
           (placePreviewChange)="onSearchPlacePreviewChange($event)"
           (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
         ></app-search-field>
+        @if (visibleIslandContent()) {
+          <div class="map-island-inline-host">
+            <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+          </div>
+        }
       </div>
       <ng-container *ngTemplateOutlet="chips"></ng-container>
-      @if (visibleIslandContent()) {
-        <div
-          class="d-flex justify-content-center"
-          style="padding-left: 16px; padding-right: 16px; padding-top: 12px"
-        >
-          <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-        </div>
-      }
     </div>
 
     <app-bottom-sheet

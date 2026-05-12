@@ -58,6 +58,8 @@ export interface EventSponsorSchema {
   name: string;
   /** Small logo shown on event spot pins and inside the map-island chip. */
   logo_src?: string;
+  /** Optional hex background color behind sponsor logos. Transparent when absent. */
+  logo_background_color?: string;
   /** Where the sponsor links to (defaults to event url if absent). */
   url?: string;
 }

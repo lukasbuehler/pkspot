@@ -124,6 +124,11 @@ export class Event {
     return this.sponsor?.logo_src ?? this.logoSrc;
   }
 
+  /** Optional sponsor-provided background for badge/logo treatments. */
+  effectiveBadgeLogoBackgroundColor(): string | undefined {
+    return this.sponsor?.logo_background_color;
+  }
+
   /**
    * Whether the given map viewport intersects the event's promo region.
    * Supports both bounds-box and center+radius region shapes.
@@ -149,12 +154,91 @@ export class Event {
     return false;
   }
 
+  /**
+   * True when the map's center point is inside the promo region. This is
+   * stricter than `intersectsViewport` and prevents broad map views from
+   * surfacing a promo just because the region is somewhere on-screen.
+   */
+  containsPromoPoint(point: { lat: number; lng: number }): boolean {
+    if (!this.promoRegion) return false;
+
+    if (this.promoRegion.bounds) {
+      return Event.pointInBounds(point, this.promoRegion.bounds);
+    }
+
+    if (
+      this.promoRegion.center &&
+      typeof this.promoRegion.radius_m === "number"
+    ) {
+      return (
+        Event.haversineMeters(this.promoRegion.center, point) <=
+        this.promoRegion.radius_m
+      );
+    }
+
+    return false;
+  }
+
+  /**
+   * Center point used when ranking overlapping promoted events for the map
+   * island. Bounds-based promo regions rank from the center of the box.
+   */
+  promoCenter(): { lat: number; lng: number } | undefined {
+    if (!this.promoRegion) return undefined;
+    if (this.promoRegion.center) return this.promoRegion.center;
+    if (!this.promoRegion.bounds) return undefined;
+
+    return Event.boundsCenter(this.promoRegion.bounds);
+  }
+
+  /**
+   * Approximate promo-region radius in meters. Circle regions use their
+   * configured radius; bounds regions use center-to-corner distance.
+   */
+  promoRadiusMeters(): number {
+    if (!this.promoRegion) return Number.POSITIVE_INFINITY;
+
+    if (typeof this.promoRegion.radius_m === "number") {
+      return this.promoRegion.radius_m;
+    }
+
+    if (!this.promoRegion.bounds) return Number.POSITIVE_INFINITY;
+
+    const center = Event.boundsCenter(this.promoRegion.bounds);
+    return Event.haversineMeters(center, {
+      lat: this.promoRegion.bounds.north,
+      lng: this.promoRegion.bounds.east,
+    });
+  }
+
+  /**
+   * Distance from a map viewport center to the event's promo center. Used
+   * to prefer local promoted events over broader regional campaigns.
+   */
+  distanceFromPromoCenterMeters(point: { lat: number; lng: number }): number {
+    const center = this.promoCenter();
+    if (!center) return Number.POSITIVE_INFINITY;
+    return Event.haversineMeters(center, point);
+  }
+
   static boundsIntersect(a: EventBoundsSchema, b: EventBoundsSchema): boolean {
     if (a.south > b.north) return false;
     if (a.north < b.south) return false;
     if (a.west > b.east) return false;
     if (a.east < b.west) return false;
     return true;
+  }
+
+  static pointInBounds(
+    point: { lat: number; lng: number },
+    bounds: EventBoundsSchema,
+  ): boolean {
+    return (
+      point.lat >= bounds.south &&
+      point.lat <= bounds.north &&
+      point.lng >= bounds.west &&
+      point.lng <= bounds.east
+    );
   }
 
   /**
@@ -195,6 +279,16 @@ export class Event {
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
       Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  }
+
+  private static boundsCenter(bounds: EventBoundsSchema): {
+    lat: number;
+    lng: number;
+  } {
+    return {
+      lat: (bounds.north + bounds.south) / 2,
+      lng: (bounds.east + bounds.west) / 2,
+    };
   }
 
   private static toDate(

@@ -119,6 +119,7 @@ import {
   buildSpotChallengeCanonicalPath,
   buildSpotEditHistoryCanonicalPath,
 } from "../../../scripts/SpotRouteHelpers";
+import { VisibleViewport } from "../maps/map-base";
 
 import { PoiData } from "../../../db/models/PoiData";
 import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
@@ -423,13 +424,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * only when the user actually opens a community.
    */
   private _promotableCommunities = signal<CommunitySearchPreview[]>([]);
-  /** Latest visible viewport, expressed as a bounds box for intersection checks. */
-  private _viewport = signal<{
-    north: number;
-    south: number;
-    east: number;
-    west: number;
-  } | null>(null);
+  /** Latest visible viewport. Drives the map-island event/community context. */
+  private _viewport = signal<VisibleViewport | null>(null);
   /** Events the user has dismissed in the current session. */
   private _dismissedEventIds = signal<Set<string>>(new Set());
   /** Communities the user has dismissed in the current session. */
@@ -517,65 +513,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       };
     }
 
-    const viewport = this._viewport();
-    if (viewport) {
-      const dismissed = this._dismissedEventIds();
-      const selectedEventId = this.selectedEvent()?.id;
-      const event = this._promotableEvents().find(
-        (e) =>
-          e.id !== selectedEventId &&
-          !dismissed.has(e.id) &&
-          e.intersectsViewport(viewport)
-      );
-      if (event) return { kind: "event", event };
-    }
-
-    const dismissedCommunities = this._dismissedCommunityKeys();
-    const selectedCommunityKey = this.selectedCommunityLanding()?.communityKey;
-
-    if (viewport && !selectedCommunityKey) {
-      // Heuristic: prefer communities whose CENTER is inside the visible
-      // viewport, then take the largest radius (most context) of those.
-      // - Zoomed into Zurich: only Zurich's center is in viewport, so
-      //   Zurich wins (Switzerland's center isn't visible).
-      // - Zoomed out to Europe: centers of both Switzerland and Zurich
-      //   are in viewport, so Switzerland (largest radius) wins.
-      // Falls back to the smallest intersecting community when no
-      // center-in-viewport candidate exists (e.g., panning across a
-      // border with no community center on screen).
-      const withBounds = this._promotableCommunities()
-        .filter(
-          (c) =>
-            c.boundsCenter &&
-            typeof c.boundsRadiusM === "number" &&
-            c.boundsRadiusM > 0
-        )
-        .map((c) => ({
-          data: c,
-          center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },
-          radiusM: c.boundsRadiusM!,
-        }));
-
-      const candidates = withBounds.filter(
-        (c) =>
-          c.data.communityKey !== selectedCommunityKey &&
-          !dismissedCommunities.has(c.data.communityKey) &&
-          this._viewportIntersectsCircle(viewport, c.center, c.radiusM)
-      );
-
-      const centerIn = candidates.filter((c) =>
-        this._pointInViewport(c.center, viewport)
-      );
-
-      const viewportCommunity =
-        centerIn.length > 0
-          ? centerIn.sort((a, b) => b.radiusM - a.radiusM)[0]
-          : candidates.sort((a, b) => a.radiusM - b.radiusM)[0];
-      if (viewportCommunity) {
-        return { kind: "community", community: viewportCommunity.data };
-      }
-    }
-
+    // Event + community variants intentionally suppressed: the events
+    // feature isn't public yet, and community chips would spam the map
+    // before we're ready. The selection logic for both variants lives in
+    // git history (pre this commit) — restore it here to re-enable.
     return null;
   });
 
@@ -612,6 +553,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return point.lng >= viewport.west || point.lng <= viewport.east;
   }
 
+  private _viewportCenter(viewport: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  }): { lat: number; lng: number } {
+    return {
+      lat: (viewport.north + viewport.south) / 2,
+      lng: (viewport.east + viewport.west) / 2,
+    };
+  }
+
   private _viewportIntersectsCircle(
     viewport: { north: number; south: number; east: number; west: number },
     center: { lat: number; lng: number },
@@ -641,11 +594,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
     this._viewport.set({
-      north: ne.lat(),
-      south: sw.lat(),
-      east: ne.lng(),
-      west: sw.lng(),
+      zoom: this._viewport()?.zoom ?? 0,
+      bbox: {
+        north: ne.lat(),
+        south: sw.lat(),
+        east: ne.lng(),
+        west: sw.lng(),
+      },
     });
+  }
+
+  onVisibleViewportChange(viewport: VisibleViewport): void {
+    this._viewport.set(viewport);
   }
 
   onIslandDismissEvent(event: PkEvent): void {

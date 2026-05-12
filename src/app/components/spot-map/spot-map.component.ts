@@ -176,6 +176,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
    * matching community, etc.).
    */
   @Output() viewportBoundsChange = new EventEmitter<google.maps.LatLngBounds>();
+  @Output() visibleViewportChange = new EventEmitter<VisibleViewport>();
 
   uneditedSpot?: Spot | LocalSpot;
 
@@ -542,6 +543,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   visibleViewportChanged(viewport: VisibleViewport): void {
     if (!viewport) return;
     this._spotMapDataManager.setVisibleViewport(viewport);
+    this.visibleViewportChange.emit(viewport);
   }
 
   /**
