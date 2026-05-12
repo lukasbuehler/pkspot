@@ -782,6 +782,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private waitForNextPaint(): Promise<void> {
+    // No paint on the server — resolve immediately so SSR doesn't crash on
+    // the missing `requestAnimationFrame` global.
+    if (typeof requestAnimationFrame === "undefined") {
+      return Promise.resolve();
+    }
     return new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }
 
