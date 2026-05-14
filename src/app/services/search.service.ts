@@ -15,6 +15,7 @@ import {
   SpotFilterMode,
   SPOT_FILTER_CONFIGS,
 } from "../components/spot-map/spot-filter-config";
+import { Event as PkEvent } from "../../db/models/Event";
 
 @Injectable({
   providedIn: "root",
@@ -24,6 +25,7 @@ export class SearchService {
 
   readonly TYPESENSE_COLLECTION_SPOTS = "spots_v2";
   readonly TYPESENSE_COLLECTION_COMMUNITIES = "communities_v1";
+  readonly TYPESENSE_COLLECTION_EVENTS = "events_v1";
   readonly SPOT_SORT_BY_RATING = "rating:desc";
 
   private readonly client: SearchClient = new SearchClient({
@@ -49,6 +51,15 @@ export class SearchService {
       "displayName,allSlugs,geography.localityName,geography.regionName,geography.countryName,title,description",
     query_by_weights: "6,6,4,3,3,2,1",
     filter_by: "published:!=false",
+    per_page: 3,
+    page: 1,
+  };
+
+  eventSearchParameters = {
+    query_by: "name,slug,locality_string,venue_string,description",
+    query_by_weights: "6,5,4,3,1",
+    filter_by: "published:!=false",
+    sort_by: "start_seconds:desc",
     per_page: 3,
     page: 1,
   };
@@ -809,6 +820,263 @@ export class SearchService {
     };
   }
 
+  /**
+   * Map a Typesense `events_v1` hit to a lightweight preview suitable for
+   * search rendering. Keeps just the fields the UI needs — full event data
+   * is fetched from Firestore when the user actually opens the event.
+   */
+  public getEventPreviewFromHit(hit: any): EventSearchPreview {
+    const doc = hit?.document ?? hit;
+    const sponsor = doc?.sponsor ?? {};
+    const externalSource = doc?.external_source ?? {};
+
+    const center = SearchService._readGeopoint(doc?.bounds_center);
+    const promoCenter = SearchService._readGeopoint(doc?.promo_region_center);
+    const boundsRadius = SearchService._readFloat(doc?.bounds_radius_m);
+    const promoRadius = SearchService._readFloat(doc?.promo_region_radius_m);
+
+    return {
+      id: String(doc?.id ?? ""),
+      slug:
+        typeof doc?.slug === "string" && doc.slug.length > 0
+          ? doc.slug
+          : undefined,
+      name: typeof doc?.name === "string" ? doc.name : "",
+      description:
+        typeof doc?.description === "string" ? doc.description : undefined,
+      venueString:
+        typeof doc?.venue_string === "string" ? doc.venue_string : undefined,
+      localityString:
+        typeof doc?.locality_string === "string" ? doc.locality_string : "",
+      bannerSrc:
+        typeof doc?.banner_src === "string" ? doc.banner_src : undefined,
+      logoSrc: typeof doc?.logo_src === "string" ? doc.logo_src : undefined,
+      sponsorName:
+        typeof sponsor?.name === "string" ? sponsor.name : undefined,
+      sponsorLogoSrc:
+        typeof sponsor?.logo_src === "string" ? sponsor.logo_src : undefined,
+      sponsorLogoBackgroundColor:
+        typeof sponsor?.logo_background_color === "string"
+          ? sponsor.logo_background_color
+          : undefined,
+      startSeconds: SearchService._readInt(doc?.start_seconds),
+      endSeconds: SearchService._readInt(doc?.end_seconds),
+      promoStartsAtSeconds: SearchService._readInt(doc?.promo_starts_at_seconds),
+      boundsCenter: center,
+      boundsRadiusM: boundsRadius,
+      promoRegionCenter: promoCenter,
+      promoRegionRadiusM: promoRadius,
+      externalProvider:
+        typeof externalSource?.provider === "string"
+          ? externalSource.provider
+          : undefined,
+      url: typeof doc?.url === "string" ? doc.url : undefined,
+      spotIds: Array.isArray(doc?.spot_ids) ? doc.spot_ids : [],
+      communityKeys: Array.isArray(doc?.community_keys)
+        ? doc.community_keys
+        : [],
+      seriesIds: Array.isArray(doc?.series_ids) ? doc.series_ids : [],
+    };
+  }
+
+  /**
+   * Construct a (partial) `Event` model from a Typesense hit. Suitable for
+   * the map-island, which only reads name, status, promo-region geometry,
+   * and badge logo. The synthesized `bounds` is an approximation derived
+   * from `bounds_center` + `bounds_radius_m`; the real bounds load via the
+   * event detail flow when the user opens the event.
+   */
+  public getEventFromHit(hit: any): PkEvent | null {
+    const preview = this.getEventPreviewFromHit(hit);
+    if (!preview.id || preview.startSeconds === undefined) {
+      return null;
+    }
+
+    const startSeconds = preview.startSeconds;
+    const endSeconds = preview.endSeconds ?? preview.startSeconds;
+    const center = preview.boundsCenter;
+    const boundsRadiusM = preview.boundsRadiusM ?? 0;
+
+    // Approximate bbox from center + radius. ~111km per degree of latitude;
+    // longitude shrinks with cos(lat). Only used for "focus map on event"
+    // fallbacks — the resolver loads the real bounds when the page mounts.
+    const synthesizedBounds = center
+      ? SearchService._bboxFromCenterRadius(center, boundsRadiusM)
+      : { north: 0, south: 0, east: 0, west: 0 };
+
+    const promoRegion =
+      preview.promoRegionCenter && preview.promoRegionRadiusM
+        ? {
+            center: {
+              lat: preview.promoRegionCenter[0],
+              lng: preview.promoRegionCenter[1],
+            },
+            radius_m: preview.promoRegionRadiusM,
+          }
+        : undefined;
+
+    const schema: any = {
+      name: preview.name,
+      description: preview.description,
+      slug: preview.slug,
+      banner_src: preview.bannerSrc,
+      logo_src: preview.logoSrc,
+      venue_string: preview.venueString ?? "",
+      locality_string: preview.localityString,
+      start: { seconds: startSeconds, nanoseconds: 0 },
+      end: { seconds: endSeconds, nanoseconds: 0 },
+      promo_starts_at:
+        preview.promoStartsAtSeconds !== undefined
+          ? { seconds: preview.promoStartsAtSeconds, nanoseconds: 0 }
+          : undefined,
+      url: preview.url,
+      spot_ids: preview.spotIds,
+      community_keys: preview.communityKeys,
+      series_ids: preview.seriesIds,
+      bounds: synthesizedBounds,
+      promo_region: promoRegion,
+      sponsor:
+        preview.sponsorName ||
+        preview.sponsorLogoSrc ||
+        preview.sponsorLogoBackgroundColor
+          ? {
+              name: preview.sponsorName ?? "",
+              logo_src: preview.sponsorLogoSrc,
+              logo_background_color: preview.sponsorLogoBackgroundColor,
+            }
+          : undefined,
+      external_source: preview.externalProvider
+        ? { provider: preview.externalProvider, url: preview.url ?? "" }
+        : undefined,
+      published: true,
+    };
+
+    try {
+      return new PkEvent(preview.id as any, schema);
+    } catch (err) {
+      console.warn("[SearchService] failed to build Event from hit:", err);
+      return null;
+    }
+  }
+
+  /**
+   * Text search across `events_v1`. Sorted newest-start first so a single
+   * "Swiss Jam" query surfaces the upcoming year ahead of past editions.
+   */
+  public async searchEvents(query: string): Promise<EventSearchPreview[]> {
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_EVENTS)
+        .documents()
+        .search({ q: query, ...this.eventSearchParameters }, {});
+
+      const hits = (result as any)?.hits ?? [];
+      return hits
+        .map((hit: any) => this.getEventPreviewFromHit(hit))
+        .filter((p: EventSearchPreview) => p.id);
+    } catch (error) {
+      console.error("typesense events error:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Find events whose physical center (`bounds_center`) falls inside the
+   * given viewport polygon. Used by the map-island to surface events in
+   * the visible area. Returns reconstructed `Event` instances.
+   */
+  public async searchEventsInBounds(
+    bounds: google.maps.LatLngBounds,
+    num: number = 30
+  ): Promise<PkEvent[]> {
+    let neLat = bounds.getNorthEast().lat();
+    let neLng = bounds.getNorthEast().lng();
+    let swLat = bounds.getSouthWest().lat();
+    let swLng = bounds.getSouthWest().lng();
+    if (swLng > neLng) swLng -= 360;
+
+    const polygon: string = [
+      neLat,
+      neLng,
+      swLat,
+      neLng,
+      swLat,
+      swLng,
+      neLat,
+      swLng,
+    ]
+      .map((n) => (Math.round(n * 1000) / 1000).toString())
+      .join(", ");
+
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_EVENTS)
+        .documents()
+        .search(
+          {
+            q: "*",
+            filter_by: `bounds_center:(${polygon}) && published:!=false`,
+            sort_by: "start_seconds:desc",
+            per_page: Math.max(1, Math.min(250, num)),
+            page: 1,
+          },
+          {}
+        );
+
+      const hits = ((result as any)?.hits ?? []) as any[];
+      return hits
+        .map((hit) => this.getEventFromHit(hit))
+        .filter((e): e is PkEvent => !!e);
+    } catch (error) {
+      console.error("typesense events-in-bounds error:", error);
+      return [];
+    }
+  }
+
+  // --- Typesense field readers (defensive: hits may come back with either
+  // nested `geography.x` objects or dotted top-level keys depending on the
+  // Firebase Extension version, hence the dual-path lookups elsewhere) ---
+
+  private static _readGeopoint(value: unknown): [number, number] | undefined {
+    if (Array.isArray(value) && value.length >= 2) {
+      const lat = Number(value[0]);
+      const lng = Number(value[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return [lat, lng];
+    }
+    if (value && typeof value === "object") {
+      const lat = Number((value as any).lat ?? (value as any).latitude);
+      const lng = Number((value as any).lng ?? (value as any).longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return [lat, lng];
+    }
+    return undefined;
+  }
+
+  private static _readFloat(value: unknown): number | undefined {
+    const n = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(n) ? n : undefined;
+  }
+
+  private static _readInt(value: unknown): number | undefined {
+    const n = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(n) ? Math.trunc(n) : undefined;
+  }
+
+  private static _bboxFromCenterRadius(
+    center: [number, number],
+    radiusM: number
+  ): { north: number; south: number; east: number; west: number } {
+    const radius = Math.max(0, radiusM);
+    const dLat = radius / 111000;
+    const cosLat = Math.cos((center[0] * Math.PI) / 180) || 1e-6;
+    const dLng = radius / (111000 * cosLat);
+    return {
+      north: center[0] + dLat,
+      south: center[0] - dLat,
+      east: center[1] + dLng,
+      west: center[1] - dLng,
+    };
+  }
+
   public async searchSpotsOnly(query: string) {
     let searchParams = { q: query, ...this.spotSearchParameters };
 
@@ -854,4 +1122,31 @@ export interface CommunitySearchPreview {
   boundsCenter?: [number, number];
   boundsRadiusM?: number;
   googleMapsPlaceId?: string;
+}
+
+export interface EventSearchPreview {
+  id: string;
+  slug?: string;
+  name: string;
+  description?: string;
+  venueString?: string;
+  localityString: string;
+  bannerSrc?: string;
+  logoSrc?: string;
+  sponsorName?: string;
+  sponsorLogoSrc?: string;
+  sponsorLogoBackgroundColor?: string;
+  /** Unix seconds; undefined only if the indexer hasn't run yet. */
+  startSeconds?: number;
+  endSeconds?: number;
+  promoStartsAtSeconds?: number;
+  boundsCenter?: [number, number];
+  boundsRadiusM?: number;
+  promoRegionCenter?: [number, number];
+  promoRegionRadiusM?: number;
+  externalProvider?: string;
+  url?: string;
+  spotIds: string[];
+  communityKeys: string[];
+  seriesIds: string[];
 }

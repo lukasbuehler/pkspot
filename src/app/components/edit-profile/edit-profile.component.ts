@@ -417,7 +417,7 @@ export class EditProfileComponent implements OnInit {
   }
 
   onSpotSelected(selection: {
-    type: "place" | "spot" | "community";
+    type: "place" | "spot" | "community" | "event";
     id: string;
   }) {
     if (selection.type === "spot") {

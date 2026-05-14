@@ -514,64 +514,64 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       };
     }
 
-    // const viewport = this._viewport();
-    // if (viewport) {
-    //   const dismissed = this._dismissedEventIds();
-    //   const selectedEventId = this.selectedEvent()?.id;
-    //   const event = this._promotableEvents().find(
-    //     (e) =>
-    //       e.id !== selectedEventId &&
-    //       !dismissed.has(e.id) &&
-    //       e.intersectsViewport(viewport.bbox)
-    //   );
-    //   if (event) return { kind: "event", event };
-    // }
+    const viewport = this._viewport();
+    if (viewport) {
+      const dismissed = this._dismissedEventIds();
+      const selectedEventId = this.selectedEvent()?.id;
+      const event = this._promotableEvents().find(
+        (e) =>
+          e.id !== selectedEventId &&
+          !dismissed.has(e.id) &&
+          e.intersectsViewport(viewport.bbox),
+      );
+      if (event) return { kind: "event", event };
+    }
 
-    // const dismissedCommunities = this._dismissedCommunityKeys();
-    // const selectedCommunityKey = this.selectedCommunityLanding()?.communityKey;
+    const dismissedCommunities = this._dismissedCommunityKeys();
+    const selectedCommunityKey = this.selectedCommunityLanding()?.communityKey;
 
-    // if (viewport && !selectedCommunityKey) {
-    //   // Heuristic: prefer communities whose CENTER is inside the visible
-    //   // viewport, then take the largest radius (most context) of those.
-    //   // - Zoomed into Zurich: only Zurich's center is in viewport, so
-    //   //   Zurich wins (Switzerland's center isn't visible).
-    //   // - Zoomed out to Europe: centers of both Switzerland and Zurich
-    //   //   are in viewport, so Switzerland (largest radius) wins.
-    //   // Falls back to the smallest intersecting community when no
-    //   // center-in-viewport candidate exists (e.g., panning across a
-    //   // border with no community center on screen).
-    //   const withBounds = this._promotableCommunities()
-    //     .filter(
-    //       (c) =>
-    //         c.boundsCenter &&
-    //         typeof c.boundsRadiusM === "number" &&
-    //         c.boundsRadiusM > 0
-    //     )
-    //     .map((c) => ({
-    //       data: c,
-    //       center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },
-    //       radiusM: c.boundsRadiusM!,
-    //     }));
+    if (viewport && !selectedCommunityKey) {
+      // Heuristic: prefer communities whose CENTER is inside the visible
+      // viewport, then take the largest radius (most context) of those.
+      // - Zoomed into Zurich: only Zurich's center is in viewport, so
+      //   Zurich wins (Switzerland's center isn't visible).
+      // - Zoomed out to Europe: centers of both Switzerland and Zurich
+      //   are in viewport, so Switzerland (largest radius) wins.
+      // Falls back to the smallest intersecting community when no
+      // center-in-viewport candidate exists (e.g., panning across a
+      // border with no community center on screen).
+      const withBounds = this._promotableCommunities()
+        .filter(
+          (c) =>
+            c.boundsCenter &&
+            typeof c.boundsRadiusM === "number" &&
+            c.boundsRadiusM > 0,
+        )
+        .map((c) => ({
+          data: c,
+          center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },
+          radiusM: c.boundsRadiusM!,
+        }));
 
-    //   const candidates = withBounds.filter(
-    //     (c) =>
-    //       c.data.communityKey !== selectedCommunityKey &&
-    //       !dismissedCommunities.has(c.data.communityKey) &&
-    //       this._viewportIntersectsCircle(viewport.bbox, c.center, c.radiusM)
-    //   );
+      const candidates = withBounds.filter(
+        (c) =>
+          c.data.communityKey !== selectedCommunityKey &&
+          !dismissedCommunities.has(c.data.communityKey) &&
+          this._viewportIntersectsCircle(viewport.bbox, c.center, c.radiusM),
+      );
 
-    //   const centerIn = candidates.filter((c) =>
-    //     this._pointInViewport(c.center, viewport.bbox)
-    //   );
+      const centerIn = candidates.filter((c) =>
+        this._pointInViewport(c.center, viewport.bbox),
+      );
 
-    //   const viewportCommunity =
-    //     centerIn.length > 0
-    //       ? centerIn.sort((a, b) => b.radiusM - a.radiusM)[0]
-    //       : candidates.sort((a, b) => a.radiusM - b.radiusM)[0];
-    //   if (viewportCommunity) {
-    //     return { kind: "community", community: viewportCommunity.data };
-    //   }
-    // }
+      const viewportCommunity =
+        centerIn.length > 0
+          ? centerIn.sort((a, b) => b.radiusM - a.radiusM)[0]
+          : candidates.sort((a, b) => a.radiusM - b.radiusM)[0];
+      if (viewportCommunity) {
+        return { kind: "community", community: viewportCommunity.data };
+      }
+    }
 
     return null;
   });
@@ -1159,17 +1159,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isServer = isPlatformServer(platformId);
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
 
-    // Load events + promotable communities for the map island. One-shot
-    // fetch — both collections are small and admin-curated, no need for
-    // live propagation within a session.
+    // Communities are admin-curated and small — one-shot load is fine.
+    // Events are loaded per-viewport from Typesense (see the effect below)
+    // so we don't pull every event on first paint.
     if (isPlatformBrowser(this.platformId)) {
       afterNextRender(() => {
-        this._eventsService
-          .getPromotableEvents()
-          .then((events) => this._promotableEvents.set(events))
-          .catch((err) =>
-            console.warn("MapPage: failed to load promotable events", err),
-          );
         this._searchService
           .listCommunities()
           .then((communities) => {
@@ -1181,6 +1175,33 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           );
       });
     }
+
+    // Viewport-driven event fetch: re-queries Typesense whenever the map
+    // viewport settles. Debounced 400ms so rapid pans don't fan out into
+    // a request per frame. The effect's onCleanup cancels any pending
+    // timeout from a prior viewport value, so only the latest viewport's
+    // request fires.
+    effect((onCleanup) => {
+      const viewport = this._viewport();
+      if (!viewport) return;
+      if (typeof google === "undefined" || !google?.maps) return;
+
+      const bbox = viewport.bbox;
+      const handle = setTimeout(() => {
+        const bounds = new google.maps.LatLngBounds(
+          { lat: bbox.south, lng: bbox.west },
+          { lat: bbox.north, lng: bbox.east },
+        );
+        this._searchService
+          .searchEventsInBounds(bounds, 30)
+          .then((events) => this._promotableEvents.set(events))
+          .catch((err) =>
+            console.warn("MapPage: failed to load events in bounds", err),
+          );
+      }, 400);
+
+      onCleanup(() => clearTimeout(handle));
+    });
 
     effect(() => {
       // Read all relevant routing state signals so URL stays in sync
@@ -1811,9 +1832,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openSpotOrGooglePlace(value: {
-    type: "place" | "spot" | "community";
+    type: "place" | "spot" | "community" | "event";
     id: string;
     community?: CommunitySearchPreview;
+    event?: { id: string; slug?: string };
     spot?: {
       name?: string;
       slug?: string;
@@ -1825,6 +1847,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.clearSearchPlacePreview();
 
     if (value.type === "place") {
+      return;
+    }
+
+    if (value.type === "event") {
+      // Search dispatched an event hit. The preview panel's route guard
+      // loads the full document — we just navigate by slug/id.
+      const slugOrId = value.event?.slug ?? value.event?.id ?? value.id;
+      this.openEventPath(slugOrId, null);
       return;
     }
 

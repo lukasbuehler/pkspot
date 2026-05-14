@@ -23,6 +23,7 @@ import { MatDividerModule } from "@angular/material/divider";
 import { MatOptionModule } from "@angular/material/core";
 import {
   CommunitySearchPreview,
+  EventSearchPreview,
   SearchService,
 } from "../../services/search.service";
 import { MatInputModule } from "@angular/material/input";
@@ -52,10 +53,11 @@ import {
 import { countries } from "../../../scripts/Countries";
 
 interface SearchSelection {
-  type: "place" | "spot" | "community";
+  type: "place" | "spot" | "community" | "event";
   id: string;
   community?: CommunitySearchPreview;
   spot?: SearchSpotPreview;
+  event?: EventSearchPreview;
 }
 
 interface SearchSpotHitDocument {
@@ -95,6 +97,7 @@ interface SearchSpotResults {
 
 interface SearchFieldResults {
   communities: CommunitySearchPreview[];
+  events: EventSearchPreview[];
   displayedPlace: google.maps.places.AutocompletePrediction | null;
   displayedPlacePlacement: "top" | "bottom";
   previewPlaceId: string | null;
@@ -206,6 +209,16 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
                 )
               );
 
+          const events$ = onlySpots
+            ? of<{ kind: "events"; data: EventSearchPreview[] }>({
+                kind: "events",
+                data: [],
+              })
+            : from(this._searchService.searchEvents(query)).pipe(
+                map((data) => ({ kind: "events" as const, data })),
+                catchError(() => of({ kind: "events" as const, data: [] }))
+              );
+
           const spots$ = from(this._searchService.searchSpots(query)).pipe(
             map((data) => ({ kind: "spots" as const, data })),
             catchError(() =>
@@ -228,6 +241,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
           type Update =
             | { kind: "communities"; data: CommunitySearchPreview[] }
+            | { kind: "events"; data: EventSearchPreview[] }
             | { kind: "spots"; data: { hits: any[]; found: number } }
             | {
                 kind: "places";
@@ -238,6 +252,8 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
             query: string;
             communitiesLoaded: boolean;
             communities: CommunitySearchPreview[];
+            eventsLoaded: boolean;
+            events: EventSearchPreview[];
             spotsLoaded: boolean;
             spots: SearchSpotResults | null;
             placesLoaded: boolean;
@@ -248,13 +264,15 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
             query,
             communitiesLoaded: onlySpots,
             communities: [],
+            eventsLoaded: onlySpots,
+            events: [],
             spotsLoaded: false,
             spots: null,
             placesLoaded: onlySpots,
             places: [],
           };
 
-          return merge(communities$, spots$, places$).pipe(
+          return merge(communities$, events$, spots$, places$).pipe(
             scan<Update, PartialState>((state, update) => {
               switch (update.kind) {
                 case "communities":
@@ -262,6 +280,12 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
                     ...state,
                     communitiesLoaded: true,
                     communities: update.data,
+                  };
+                case "events":
+                  return {
+                    ...state,
+                    eventsLoaded: true,
+                    events: update.data,
                   };
                 case "spots":
                   return {
@@ -293,6 +317,8 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     query: string;
     communitiesLoaded: boolean;
     communities: CommunitySearchPreview[];
+    eventsLoaded: boolean;
+    events: EventSearchPreview[];
     spotsLoaded: boolean;
     spots: SearchSpotResults | null;
     placesLoaded: boolean;
@@ -300,6 +326,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   }): SearchFieldResults {
     const communities = state.communities.slice(0, 3);
     const hasCommunityHits = communities.length > 0;
+    const events = state.events.slice(0, 3);
 
     // Suppress Google Place row if a community matched. While communities
     // are still loading, also suppress to avoid a flash of "place then
@@ -321,6 +348,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
     return {
       communities,
+      events,
       displayedPlace,
       displayedPlacePlacement:
         displayedPlace &&
@@ -532,6 +560,35 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       .trim()
       .toUpperCase();
     return countryCode ? (countries[countryCode]?.emoji ?? "") : "";
+  }
+
+  /** First non-empty among sponsor logo, event logo, and banner. */
+  getEventImage(event: EventSearchPreview): string | undefined {
+    return event.sponsorLogoSrc || event.logoSrc || event.bannerSrc;
+  }
+
+  /**
+   * Compact subtitle for an event row: "{locality} · {date}".
+   * Uses the start date; falls back to just the locality if dates
+   * haven't been indexed yet.
+   */
+  getEventSubtitle(event: EventSearchPreview): string {
+    const parts: string[] = [];
+    if (event.localityString) parts.push(event.localityString);
+    if (event.startSeconds) {
+      const d = new Date(event.startSeconds * 1000);
+      // Year-aware: include year for future or far-past events to avoid
+      // ambiguous "Jul 12" entries.
+      const now = new Date();
+      const sameYear = d.getFullYear() === now.getFullYear();
+      const formatter = new Intl.DateTimeFormat(this.locale, {
+        month: "short",
+        day: "numeric",
+        ...(sameYear ? {} : { year: "numeric" }),
+      });
+      parts.push(formatter.format(d));
+    }
+    return parts.join(" · ");
   }
 
   /**

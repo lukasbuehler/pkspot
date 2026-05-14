@@ -5,19 +5,14 @@ import {
   CommunityEventPreviewSchema,
   CommunityPageSchema,
 } from "../../../../db/schemas/CommunityPageSchema";
-import {
-  EventId,
-  EventSchema,
-} from "../../../../db/schemas/EventSchema";
+import { EventId, EventSchema } from "../../../../db/schemas/EventSchema";
 import { CommunitySlugSchema } from "../../../../db/schemas/CommunitySlugSchema";
 import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
 import {
   buildCommunityLandingPath,
   normalizeCommunitySlug,
 } from "../../../../scripts/CommunityHelpers";
-import {
-  FirestoreAdapterService,
-} from "../firestore-adapter.service";
+import { FirestoreAdapterService } from "../firestore-adapter.service";
 
 export type CommunityLandingScope = CommunityPageSchema["scope"];
 
@@ -44,6 +39,7 @@ export interface CommunityLandingPageData {
   title: string;
   description: string;
   imageUrl: string;
+  hasCustomImage: boolean;
   country: CommunityLandingLocation;
   region?: CommunityLandingLocation;
   locality?: CommunityLandingLocation;
@@ -80,24 +76,26 @@ export class LandingPagesService {
   async getCommunityPage(
     slug: string,
     limitCount: number = 8,
-    _includeChildCommunities: boolean = true
+    _includeChildCommunities: boolean = true,
   ): Promise<CommunityLandingPageData | null> {
     const normalizedSlug = normalizeCommunitySlug(slug);
     if (!normalizedSlug) {
       return null;
     }
 
-    const slugDoc = await this._firestoreAdapter.getDocument<CommunitySlugDocument>(
-      `community_slugs/${normalizedSlug}`
-    );
+    const slugDoc =
+      await this._firestoreAdapter.getDocument<CommunitySlugDocument>(
+        `community_slugs/${normalizedSlug}`,
+      );
 
     if (!slugDoc?.communityKey) {
       return null;
     }
 
-    const pageDoc = await this._firestoreAdapter.getDocument<CommunityPageDocument>(
-      `community_pages/${slugDoc.communityKey}`
-    );
+    const pageDoc =
+      await this._firestoreAdapter.getDocument<CommunityPageDocument>(
+        `community_pages/${slugDoc.communityKey}`,
+      );
 
     if (!pageDoc) {
       return null;
@@ -113,7 +111,7 @@ export class LandingPagesService {
   private _mapPageDoc(
     pageDoc: CommunityPageDocument,
     requestedSlug: string,
-    limitCount: number
+    limitCount: number,
   ): CommunityLandingPageData {
     const topRatedSpots = (pageDoc.topRatedSpots ?? []).slice(0, limitCount);
     const drySpots = (pageDoc.drySpots ?? []).slice(0, limitCount);
@@ -124,7 +122,7 @@ export class LandingPagesService {
           pageDoc.geography.countrySlug;
 
     const canonicalPath = this._normalizeCommunityPath(
-      pageDoc.canonicalPath || buildCommunityLandingPath(pageDoc.preferredSlug)
+      pageDoc.canonicalPath || buildCommunityLandingPath(pageDoc.preferredSlug),
     );
 
     return {
@@ -137,6 +135,9 @@ export class LandingPagesService {
       title: pageDoc.title,
       description: pageDoc.description,
       imageUrl: pageDoc.image?.url || "/assets/banner_1200x630.png",
+      hasCustomImage: pageDoc.image?.type
+        ? pageDoc.image.type !== "default"
+        : false,
       country: {
         code: pageDoc.geography.countryCode,
         name: pageDoc.geography.countryName || pageDoc.displayName,
@@ -188,18 +189,19 @@ export class LandingPagesService {
 
   async getChildCommunities(
     parentCommunityKey: string,
-    limitCount: number = 24
+    limitCount: number = 24,
   ): Promise<CommunityChildSummary[]> {
-    const childDocs = await this._firestoreAdapter.getCollection<CommunityPageDocument>(
-      "community_pages",
-      [
-        {
-          fieldPath: "relationships.parentKeys",
-          opStr: "array-contains",
-          value: parentCommunityKey,
-        },
-      ]
-    );
+    const childDocs =
+      await this._firestoreAdapter.getCollection<CommunityPageDocument>(
+        "community_pages",
+        [
+          {
+            fieldPath: "relationships.parentKeys",
+            opStr: "array-contains",
+            value: parentCommunityKey,
+          },
+        ],
+      );
 
     return childDocs
       .filter((doc) => doc.published !== false)
@@ -223,28 +225,31 @@ export class LandingPagesService {
   }
 
   private _mapEventPreview(preview: CommunityEventPreviewSchema): PkEvent {
-    return new PkEvent(preview.id as EventId, {
-      name: preview.name,
-      slug: preview.slug,
-      banner_src: preview.banner_src,
-      banner_fit: preview.banner_fit,
-      banner_accent_color: preview.banner_accent_color,
-      venue_string: preview.venue_string,
-      locality_string: preview.locality_string,
-      start: preview.start,
-      end: preview.end,
-      url: preview.url,
-      spot_ids: [],
-      bounds: preview.bounds ?? {
-        north: 0,
-        south: 0,
-        east: 0,
-        west: 0,
-      },
-      sponsor: preview.sponsor,
-      external_source: preview.external_source,
-      published: true,
-    } as EventSchema);
+    return new PkEvent(
+      preview.id as EventId,
+      {
+        name: preview.name,
+        slug: preview.slug,
+        banner_src: preview.banner_src,
+        banner_fit: preview.banner_fit,
+        banner_accent_color: preview.banner_accent_color,
+        venue_string: preview.venue_string,
+        locality_string: preview.locality_string,
+        start: preview.start,
+        end: preview.end,
+        url: preview.url,
+        spot_ids: [],
+        bounds: preview.bounds ?? {
+          north: 0,
+          south: 0,
+          east: 0,
+          west: 0,
+        },
+        sponsor: preview.sponsor,
+        external_source: preview.external_source,
+        published: true,
+      } as EventSchema,
+    );
   }
 
   private _getSlugFromPath(path: string | undefined): string | undefined {
@@ -254,5 +259,4 @@ export class LandingPagesService {
 
     return path.split("/").filter(Boolean).at(-1);
   }
-
 }

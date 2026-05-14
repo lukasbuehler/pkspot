@@ -45,7 +45,7 @@ export const communityLandingResolver: ResolveFn<
       `${pageTitle} Not Found`,
       "This PK Spot community landing page could not be found.",
       undefined,
-      canonicalPath
+      canonicalPath,
     );
     metaTagService.setRobotsContent("noindex,nofollow");
 
@@ -59,6 +59,7 @@ export const communityLandingResolver: ResolveFn<
       title: `${pageTitle} Not Found - PK Spot`,
       description: "This PK Spot community landing page could not be found.",
       imageUrl: "/assets/banner_1200x630.png",
+      hasCustomImage: false,
       country: {
         name: humanizeSlugSegment(requestedSlug),
       },
@@ -88,18 +89,18 @@ export const communityLandingResolver: ResolveFn<
     pageData.title,
     pageData.description,
     pageData.imageUrl,
-    pageData.canonicalPath
+    pageData.canonicalPath,
   );
 
   structuredDataService.addStructuredData(
     "community-page",
-    structuredDataService.generateCommunityLandingPageData(pageData)
+    structuredDataService.generateCommunityLandingPageData(pageData),
   );
   structuredDataService.addStructuredData(
     "community-breadcrumbs",
     structuredDataService.generateBreadcrumbList(
-      structuredDataService.buildCommunityBreadcrumbs(pageData)
-    )
+      structuredDataService.buildCommunityBreadcrumbs(pageData),
+    ),
   );
 
   if (pageData.topRatedSpots.length > 0) {
@@ -107,8 +108,8 @@ export const communityLandingResolver: ResolveFn<
       "community-top-rated",
       structuredDataService.generateSpotItemList(
         pageData.topRatedSpots,
-        "Top Rated Parkour Spots"
-      )
+        "Top Rated Parkour Spots",
+      ),
     );
   }
 
@@ -117,8 +118,8 @@ export const communityLandingResolver: ResolveFn<
       "community-dry-spots",
       structuredDataService.generateSpotItemList(
         pageData.drySpots,
-        "Dry Parkour Spots"
-      )
+        "Dry Parkour Spots",
+      ),
     );
   }
 

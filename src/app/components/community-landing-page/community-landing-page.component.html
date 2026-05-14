@@ -71,21 +71,16 @@
           </div>
 
           <div class="community-panel-body px-3 pb-3">
-            <div class="community-panel-media">
-              @if (data.imageUrl) {
+            @if (data.hasCustomImage && data.imageUrl) {
+              <div class="community-panel-media">
                 <img
                   [ngSrc]="data.imageUrl"
                   fill
                   class="object-fit-cover position-absolute"
                   [alt]="heading()"
                 />
-              } @else {
-                <app-media-placeholder
-                  src="assets/spot_placeholder.png"
-                  [label]="heading()"
-                ></app-media-placeholder>
-              }
-            </div>
+              </div>
+            }
 
             @if (introText()) {
               <span class="py-3 d-flex align-items-center gap-1">
@@ -98,14 +93,16 @@
     } @else {
       <section class="hero-section">
         <mat-card class="hero-card">
-          <div class="hero-image">
-            <img
-              [ngSrc]="data.imageUrl"
-              fill
-              class="position-absolute object-fit-cover"
-              [alt]="heading()"
-            />
-          </div>
+          @if (data.hasCustomImage && data.imageUrl) {
+            <div class="hero-image">
+              <img
+                [ngSrc]="data.imageUrl"
+                fill
+                class="position-absolute object-fit-cover"
+                [alt]="heading()"
+              />
+            </div>
+          }
           <mat-card-content>
             @if (parentBreadcrumb(); as parent) {
               <p class="eyebrow m-0">
