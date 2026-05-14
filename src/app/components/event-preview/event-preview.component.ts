@@ -91,6 +91,21 @@ export class EventPreviewComponent {
     return start === end ? start : `${start} – ${end}`;
   });
 
+  readonly statusPrefix = computed<string>(() => {
+    const status = this.status();
+    if (status === "live") {
+      return this.event().isSponsored
+        ? $localize`:@@event_preview.status.sponsored_live:Sponsored Live Event`
+        : $localize`:@@event_preview.status.live_event:Live Event`;
+    }
+    if (status === "upcoming") {
+      return this.event().isSponsored
+        ? $localize`:@@event_preview.status.sponsored_upcoming:Sponsored Upcoming Event`
+        : $localize`:@@event_preview.status.upcoming_event:Upcoming Event`;
+    }
+    return "";
+  });
+
   readonly venueLine = computed(() => {
     const e = this.event();
     return [e.venueString, e.localityString].filter(Boolean).join(", ");

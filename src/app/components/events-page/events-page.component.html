@@ -70,7 +70,11 @@
                   <p
                     class="mat-label-small status-line"
                     [attr.data-status]="status(event)"
+                    [class.sponsored]="event.isSponsored"
                   >
+                    @if (event.isSponsored) {
+                      <mat-icon inline>paid</mat-icon>
+                    }
                     {{ statusLabel(event) }}
                   </p>
                   <p class="mat-body-small mb-0">
@@ -138,6 +142,9 @@
                 </mat-card-header>
                 <mat-card-content>
                   <p class="mat-label-small status-line" data-status="past">
+                    @if (event.isSponsored) {
+                      <mat-icon inline>paid</mat-icon>
+                    }
                     {{ statusLabel(event) }}
                   </p>
                   <p class="mat-body-small mb-0">

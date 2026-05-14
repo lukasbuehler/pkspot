@@ -25,13 +25,27 @@
           Past event
         </span>
       } @else if (status() === "live" && countdownTarget(); as target) {
-        <span class="mat-label-medium status live d-inline-flex gap-1">
-          <span i18n="@@event_preview.status.live">Ongoing — ends in</span>
+        <span
+          class="mat-label-medium status live d-inline-flex gap-1"
+          [class.sponsored]="event().isSponsored"
+        >
+          @if (event().isSponsored) {
+            <mat-icon inline>paid</mat-icon>
+          }
+          <span>{{ statusPrefix() }}</span>
+          <span i18n="@@event_preview.status.ends_in">ends in</span>
           <app-countdown [timestamp]="target"></app-countdown>
         </span>
       } @else if (status() === "upcoming" && countdownTarget(); as target) {
-        <span class="mat-label-medium status upcoming d-inline-flex gap-1">
-          <span i18n="@@event_preview.status.upcoming">Starts in</span>
+        <span
+          class="mat-label-medium status upcoming d-inline-flex gap-1"
+          [class.sponsored]="event().isSponsored"
+        >
+          @if (event().isSponsored) {
+            <mat-icon inline>paid</mat-icon>
+          }
+          <span>{{ statusPrefix() }}</span>
+          <span i18n="@@event_preview.status.starts_in">starts in</span>
           <app-countdown [timestamp]="target"></app-countdown>
         </span>
       }

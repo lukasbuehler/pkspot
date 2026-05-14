@@ -9,6 +9,7 @@ import {
   afterNextRender,
 } from "@angular/core";
 import { MatCardModule } from "@angular/material/card";
+import { MatIconModule } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { LocaleCode } from "../../../db/models/Interfaces";
@@ -21,7 +22,13 @@ type EventStatus = "upcoming" | "live" | "past";
 
 @Component({
   selector: "app-events-page",
-  imports: [NgOptimizedImage, MatCardModule, RouterLink, MediaPlaceholderComponent],
+  imports: [
+    NgOptimizedImage,
+    MatCardModule,
+    MatIconModule,
+    RouterLink,
+    MediaPlaceholderComponent,
+  ],
   templateUrl: "./events-page.component.html",
   styleUrl: "./events-page.component.scss",
 })
@@ -105,7 +112,13 @@ export class EventsPageComponent {
     const target = status === "live" ? event.end : event.start;
     const relative = this._relativeFromNow(target);
     if (status === "live") {
+      if (event.isSponsored) {
+        return $localize`:@@events.status.sponsored_live_with_end:Sponsored Live Event ends ${relative}`;
+      }
       return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
+    }
+    if (event.isSponsored) {
+      return $localize`:@@events.status.sponsored_upcoming_starts:Sponsored Upcoming Event starts ${relative}`;
     }
     return $localize`:@@events.status.upcoming_starts:Starts ${relative}`;
   }

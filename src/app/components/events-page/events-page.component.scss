@@ -36,6 +36,9 @@
 
 .status-line {
   margin: 0 0 0.5rem 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -49,6 +52,10 @@
 }
 
 .status-line[data-status="upcoming"] {
+  color: var(--mat-sys-primary, #b8c4ff) !important;
+}
+
+.status-line.sponsored {
   color: var(--mat-sys-primary, #b8c4ff) !important;
 }
 

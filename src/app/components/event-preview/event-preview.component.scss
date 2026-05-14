@@ -29,6 +29,10 @@
   color: var(--mat-sys-secondary, #8dd978);
 }
 
+.status.sponsored {
+  color: var(--mat-sys-primary, #b8c4ff);
+}
+
 .description {
   margin: 0;
   color: var(--mat-sys-on-surface-variant);

@@ -197,6 +197,17 @@
                     <p class="mat-body-small mb-1">
                       {{ formatEventDateRange(event) }}
                     </p>
+                    @if (event.isSponsored) {
+                      <p
+                        class="mat-label-small mb-1 d-inline-flex align-items-center gap-1 fw-semibold"
+                        style="color: var(--mat-sys-primary, #b8c4ff)"
+                      >
+                        <mat-icon inline>paid</mat-icon>
+                        <span i18n="@@community.event_sponsored">
+                          Sponsored Event
+                        </span>
+                      </p>
+                    }
                     <p class="mat-body-small mb-0 venue-line">
                       {{ event.venueString }}, {{ event.localityString }}
                     </p>
@@ -237,6 +248,17 @@
                     <p class="mat-body-small mb-1">
                       {{ formatEventDateRange(event) }}
                     </p>
+                    @if (event.isSponsored) {
+                      <p
+                        class="mat-label-small mb-1 d-inline-flex align-items-center gap-1 fw-semibold"
+                        style="color: var(--mat-sys-primary, #b8c4ff)"
+                      >
+                        <mat-icon inline>paid</mat-icon>
+                        <span i18n="@@community.event_sponsored">
+                          Sponsored Event
+                        </span>
+                      </p>
+                    }
                     <p class="mat-body-small mb-0 venue-line">
                       {{ event.venueString }}, {{ event.localityString }}
                     </p>
