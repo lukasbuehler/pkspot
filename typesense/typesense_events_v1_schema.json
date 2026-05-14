@@ -40,6 +40,12 @@
       "optional": true,
       "index": false
     },
+    {
+      "name": "is_sponsored",
+      "type": "bool",
+      "facet": true,
+      "optional": true
+    },
 
     { "name": "start_seconds", "type": "int64", "optional": false },
     { "name": "end_seconds", "type": "int64", "optional": false },

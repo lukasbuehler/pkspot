@@ -167,12 +167,22 @@
                   class="event-card"
                   (click)="onSelectEvent(event)"
                 >
-                  <div class="event-image">
+                  <div
+                    class="event-image"
+                    [style.background-color]="
+                      event.bannerFit === 'contain'
+                        ? (event.bannerAccentColor ?? null)
+                        : null
+                    "
+                  >
                     @if (event.bannerSrc) {
                       <img
                         [ngSrc]="event.bannerSrc"
                         fill
-                        class="object-fit-cover"
+                        [class.object-fit-cover]="event.bannerFit === 'cover'"
+                        [class.object-fit-contain]="
+                          event.bannerFit === 'contain'
+                        "
                         [alt]="event.name"
                       />
                     } @else {
@@ -197,12 +207,22 @@
                   class="event-card"
                   [routerLink]="['/events', event.slug ?? event.id]"
                 >
-                  <div class="event-image">
+                  <div
+                    class="event-image"
+                    [style.background-color]="
+                      event.bannerFit === 'contain'
+                        ? (event.bannerAccentColor ?? null)
+                        : null
+                    "
+                  >
                     @if (event.bannerSrc) {
                       <img
                         [ngSrc]="event.bannerSrc"
                         fill
-                        class="object-fit-cover"
+                        [class.object-fit-cover]="event.bannerFit === 'cover'"
+                        [class.object-fit-contain]="
+                          event.bannerFit === 'contain'
+                        "
                         [alt]="event.name"
                       />
                     } @else {

@@ -522,7 +522,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         (e) =>
           e.id !== selectedEventId &&
           !dismissed.has(e.id) &&
-          e.intersectsViewport(viewport.bbox),
+          this._isEventRelevantForViewport(e, viewport),
       );
       if (event) return { kind: "event", event };
     }
@@ -588,10 +588,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   /**
-   * Approximate intersection of a viewport rectangle and a geographic circle.
-   * Mirrors the helper on `Event` so we don't reach across model boundaries.
-   */
-  /**
    * True when a `{lat, lng}` point falls within the viewport rectangle.
    * Used by the map-island ranking to prefer communities whose center is
    * actually visible to the user.
@@ -621,6 +617,36 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
 
+  private _viewportRadiusMeters(viewport: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  }): number {
+    const center = this._viewportCenter(viewport);
+    return this._distanceMeters(center, {
+      lat: viewport.north,
+      lng: viewport.east,
+    });
+  }
+
+  private _isEventRelevantForViewport(
+    event: PkEvent,
+    viewport: VisibleViewport,
+  ): boolean {
+    if (!event.isPromotable()) return false;
+
+    const center = this._viewportCenter(viewport.bbox);
+    if (!event.containsPromoPoint(center)) return false;
+
+    const promoRadiusM = event.promoRadiusMeters();
+    if (!Number.isFinite(promoRadiusM)) return false;
+
+    const viewportRadiusM = this._viewportRadiusMeters(viewport.bbox);
+    const maxRelevantViewportRadiusM = Math.max(25_000, promoRadiusM * 2.5);
+    return viewportRadiusM <= maxRelevantViewportRadiusM;
+  }
+
   private _viewportIntersectsCircle(
     viewport: { north: number; south: number; east: number; west: number },
     center: { lat: number; lng: number },
@@ -634,16 +660,26 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       viewport.west,
       Math.min(center.lng, viewport.east),
     );
+    const distanceM = this._distanceMeters(center, {
+      lat: closestLat,
+      lng: closestLng,
+    });
+    return distanceM <= radiusM;
+  }
+
+  private _distanceMeters(
+    left: { lat: number; lng: number },
+    right: { lat: number; lng: number },
+  ): number {
     const R = 6371e3;
-    const φ1 = (center.lat * Math.PI) / 180;
-    const φ2 = (closestLat * Math.PI) / 180;
-    const Δφ = ((closestLat - center.lat) * Math.PI) / 180;
-    const Δλ = ((closestLng - center.lng) * Math.PI) / 180;
+    const φ1 = (left.lat * Math.PI) / 180;
+    const φ2 = (right.lat * Math.PI) / 180;
+    const Δφ = ((right.lat - left.lat) * Math.PI) / 180;
+    const Δλ = ((right.lng - left.lng) * Math.PI) / 180;
     const h =
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
       Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const distanceM = 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-    return distanceM <= radiusM;
+    return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
   }
 
   onViewportBoundsChange(bounds: google.maps.LatLngBounds): void {

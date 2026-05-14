@@ -44,6 +44,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "sponsor.logo_src",
     "sponsor.logo_background_color",
     "sponsor.url",
+    "is_sponsored",
     "community_keys",
     "series_ids",
     "external_source",
@@ -102,6 +103,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "bounds_radius_m",
     "community_keys",
     "series_ids",
+    "is_sponsored",
     "published",
   ] as const;
 
@@ -123,6 +125,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
       source: "sponsor.logo_background_color",
     },
     "sponsor.url": { kind: "direct", source: "sponsor.url" },
+    is_sponsored: { kind: "direct", source: "is_sponsored" },
 
     // Helper fields are materialized onto the Firestore event doc by
     // `updateEventFieldsOnWrite` (the Firebase Extension then copies them

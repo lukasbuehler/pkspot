@@ -859,6 +859,7 @@ export class SearchService {
         typeof sponsor?.logo_background_color === "string"
           ? sponsor.logo_background_color
           : undefined,
+      isSponsored: doc?.is_sponsored === true,
       startSeconds: SearchService._readInt(doc?.start_seconds),
       endSeconds: SearchService._readInt(doc?.end_seconds),
       promoStartsAtSeconds: SearchService._readInt(doc?.promo_starts_at_seconds),
@@ -945,6 +946,7 @@ export class SearchService {
               logo_background_color: preview.sponsorLogoBackgroundColor,
             }
           : undefined,
+      is_sponsored: preview.isSponsored,
       external_source: preview.externalProvider
         ? { provider: preview.externalProvider, url: preview.url ?? "" }
         : undefined,
@@ -981,33 +983,16 @@ export class SearchService {
   }
 
   /**
-   * Find events whose physical center (`bounds_center`) falls inside the
-   * given viewport polygon. Used by the map-island to surface events in
-   * the visible area. Returns reconstructed `Event` instances.
+   * Load lightweight event candidates for the map island. Final relevance is
+   * decided on the client against the current viewport center and the event's
+   * promo region, so zooming into a promo region keeps the chip visible even
+   * when the event's physical center is outside the small viewport.
    */
   public async searchEventsInBounds(
-    bounds: google.maps.LatLngBounds,
+    _bounds: google.maps.LatLngBounds,
     num: number = 30
   ): Promise<PkEvent[]> {
-    let neLat = bounds.getNorthEast().lat();
-    let neLng = bounds.getNorthEast().lng();
-    let swLat = bounds.getSouthWest().lat();
-    let swLng = bounds.getSouthWest().lng();
-    if (swLng > neLng) swLng -= 360;
-
-    const polygon: string = [
-      neLat,
-      neLng,
-      swLat,
-      neLng,
-      swLat,
-      swLng,
-      neLat,
-      swLng,
-    ]
-      .map((n) => (Math.round(n * 1000) / 1000).toString())
-      .join(", ");
-
+    const nowSeconds = Math.floor(Date.now() / 1000);
     try {
       const result = await this.client
         .collections(this.TYPESENSE_COLLECTION_EVENTS)
@@ -1015,8 +1000,8 @@ export class SearchService {
         .search(
           {
             q: "*",
-            filter_by: `bounds_center:(${polygon}) && published:!=false`,
-            sort_by: "start_seconds:desc",
+            filter_by: `published:!=false && end_seconds:>=${nowSeconds}`,
+            sort_by: "start_seconds:asc",
             per_page: Math.max(1, Math.min(250, num)),
             page: 1,
           },
@@ -1136,6 +1121,7 @@ export interface EventSearchPreview {
   sponsorName?: string;
   sponsorLogoSrc?: string;
   sponsorLogoBackgroundColor?: string;
+  isSponsored: boolean;
   /** Unix seconds; undefined only if the indexer hasn't run yet. */
   startSeconds?: number;
   endSeconds?: number;

@@ -75,7 +75,6 @@ type AmenityState = "any" | "yes" | "no";
  */
 @Component({
   selector: "app-custom-filter-dialog",
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -119,6 +118,7 @@ export class CustomFilterDialogComponent {
   readonly amenitiesSectionLabel = $localize`:@@filter_section_amenities:Amenities`;
   readonly clearLabel = $localize`:@@filter_clear:Clear`;
   readonly applyLabel = $localize`:@@filter_apply:Apply`;
+  readonly cancelLabel = $localize`:@@filter_cancel:Cancel`;
   readonly anyLabel = $localize`:@@filter_any:Any`;
   readonly yesLabel = $localize`:@@filter_yes:Yes`;
   readonly noLabel = $localize`:@@filter_no:No`;
@@ -127,10 +127,11 @@ export class CustomFilterDialogComponent {
   readonly editingQuickFilterDescription =
     $localize`:@@filter_editing_quick_filter_description:The options below already match the selected quick filter, so you can fine-tune it instead of starting from scratch.`;
   readonly seededFromQuickFilter: boolean;
+  private readonly _initialParams: CustomFilterParams;
 
   constructor(
     private dialogRef: MatDialogRef<CustomFilterDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: CustomFilterDialogData | null
+    @Inject(MAT_DIALOG_DATA) public data: CustomFilterDialogData | null,
   ) {
     this.seededFromQuickFilter = !!data?.seededFromQuickFilter;
 
@@ -151,6 +152,8 @@ export class CustomFilterDialogComponent {
         this.amenityStates[amenity] = "no";
       }
     }
+
+    this._initialParams = this._snapshotParams();
   }
 
   toggleType(type: SpotTypes): void {
@@ -200,6 +203,17 @@ export class CustomFilterDialogComponent {
     return false;
   }
 
+  get hasChanges(): boolean {
+    return !CustomFilterDialogComponent._areParamsEqual(
+      this._initialParams,
+      this._snapshotParams(),
+    );
+  }
+
+  get canApply(): boolean {
+    return this.hasChanges;
+  }
+
   apply(): void {
     const amenities_true: (keyof AmenitiesMap)[] = [];
     const amenities_false: (keyof AmenitiesMap)[] = [];
@@ -224,5 +238,51 @@ export class CustomFilterDialogComponent {
 
   cancel(): void {
     this.dialogRef.close(null);
+  }
+
+  private _snapshotParams(): CustomFilterParams {
+    const amenities_true: (keyof AmenitiesMap)[] = [];
+    const amenities_false: (keyof AmenitiesMap)[] = [];
+
+    for (const amenity of this.allAmenities) {
+      if (this.amenityStates[amenity] === "yes") {
+        amenities_true.push(amenity);
+      } else if (this.amenityStates[amenity] === "no") {
+        amenities_false.push(amenity);
+      }
+    }
+
+    return {
+      types: [...this.selectedTypes],
+      accesses: [...this.selectedAccesses],
+      amenities_true,
+      amenities_false,
+    };
+  }
+
+  private static _areParamsEqual(
+    left: CustomFilterParams,
+    right: CustomFilterParams,
+  ): boolean {
+    return (
+      CustomFilterDialogComponent._sorted(left.types).join("\u0000") ===
+        CustomFilterDialogComponent._sorted(right.types).join("\u0000") &&
+      CustomFilterDialogComponent._sorted(left.accesses).join("\u0000") ===
+        CustomFilterDialogComponent._sorted(right.accesses).join("\u0000") &&
+      CustomFilterDialogComponent._sorted(left.amenities_true).join("\u0000") ===
+        CustomFilterDialogComponent._sorted(right.amenities_true).join(
+          "\u0000",
+        ) &&
+      CustomFilterDialogComponent._sorted(left.amenities_false).join(
+        "\u0000",
+      ) ===
+        CustomFilterDialogComponent._sorted(right.amenities_false).join(
+          "\u0000",
+        )
+    );
+  }
+
+  private static _sorted<T extends string>(values: T[]): T[] {
+    return [...new Set(values)].sort();
   }
 }

@@ -96,6 +96,15 @@ export class EventPreviewComponent {
     return [e.venueString, e.localityString].filter(Boolean).join(", ");
   });
 
+  readonly eventIcon = computed(() =>
+    this.event().isSponsored ? "paid" : "event",
+  );
+  readonly eventIconTooltip = computed(() =>
+    this.event().isSponsored
+      ? $localize`:@@event_preview.sponsored_tooltip:Sponsored event`
+      : $localize`:@@event_preview.event_tooltip:Event`,
+  );
+
   readonly fullEventLink = computed(() => {
     const e = this.event();
     return ["/events", e.slug ?? e.id];

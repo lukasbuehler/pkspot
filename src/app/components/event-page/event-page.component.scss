@@ -60,6 +60,10 @@
   color: var(--mat-sys-secondary, #8dd978) !important;
 }
 
+.status-line.sponsored {
+  color: var(--mat-sys-primary, #b8c4ff) !important;
+}
+
 // Hint text-overflow safety on a tight header row.
 .min-w-0 {
   min-width: 0;

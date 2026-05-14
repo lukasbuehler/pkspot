@@ -47,6 +47,7 @@ export class Event {
   readonly promoRegion?: EventPromoRegionSchema;
 
   readonly sponsor?: EventSponsorSchema;
+  readonly isSponsored: boolean;
   readonly communityKeys: string[];
   readonly seriesIds: string[];
   readonly externalSource?: EventExternalSourceSchema;
@@ -81,6 +82,7 @@ export class Event {
     this.areaPolygon = data.area_polygon;
     this.promoRegion = data.promo_region;
     this.sponsor = data.sponsor;
+    this.isSponsored = data.is_sponsored ?? false;
     this.communityKeys = data.community_keys ?? [];
     this.seriesIds = data.series_ids ?? [];
     this.externalSource = data.external_source;

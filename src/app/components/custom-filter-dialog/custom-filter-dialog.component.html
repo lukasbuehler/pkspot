@@ -73,11 +73,20 @@
   </section>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
+<mat-dialog-actions class="dialog-actions">
+  <button mat-button (click)="cancel()">
+    {{ cancelLabel }}
+  </button>
+  <span class="actions-spacer"></span>
   <button mat-button (click)="clearAll()" [disabled]="!hasAnySelection">
     {{ clearLabel }}
   </button>
-  <button mat-flat-button color="primary" (click)="apply()">
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="apply()"
+    [disabled]="!canApply"
+  >
     {{ applyLabel }}
   </button>
 </mat-dialog-actions>

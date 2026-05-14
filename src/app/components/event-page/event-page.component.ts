@@ -181,6 +181,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   readonly venueString = computed(() => this.event()?.venueString ?? "");
   readonly localityString = computed(() => this.event()?.localityString ?? "");
   readonly bannerImageSrc = computed(() => this.event()?.bannerSrc ?? "");
+  readonly isSponsored = computed(() => this.event()?.isSponsored ?? false);
   readonly url = computed(() => this.event()?.url);
   readonly bounds = computed(() => this.event()?.bounds);
   readonly focusZoom = computed(() => this.event()?.focusZoom ?? 18);
@@ -201,6 +202,21 @@ export class EventPageComponent implements OnInit, OnDestroy {
   readonly eventStatus = computed<"upcoming" | "live" | "past" | null>(
     () => this.event()?.status() ?? null,
   );
+
+  readonly statusPrefix = computed<string>(() => {
+    const status = this.eventStatus();
+    if (status === "live") {
+      return this.isSponsored()
+        ? $localize`:@@event_page.status.sponsored_live:Sponsored Live Event`
+        : $localize`:@@event_page.status.live:Live Event`;
+    }
+    if (status === "upcoming") {
+      return this.isSponsored()
+        ? $localize`:@@event_page.status.sponsored_upcoming:Sponsored Upcoming Event`
+        : $localize`:@@event_page.status.upcoming:Upcoming Event`;
+    }
+    return "";
+  });
 
   /** What the countdown is counting down to: event.start (upcoming) or event.end (live). */
   readonly countdownTarget = computed<Date | null>(() => {

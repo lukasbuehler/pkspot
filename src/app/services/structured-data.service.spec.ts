@@ -24,7 +24,7 @@ const buildCommunityLandingPageData = (): CommunityLandingPageData => ({
   preferredSlug: "pfaeffikon",
   requestedSlug: "pfaeffikon",
   canonicalPath: "/map/communities/pfaeffikon",
-  title: "Pfaffikon, Switzerland Parkour Community | PK Spot",
+  title: "Parkour in Pfaffikon, Switzerland | PK Spot Community",
   description: "Discover spots and community info in Pfaffikon.",
   imageUrl: "/assets/banner_1200x630.png",
   country: {

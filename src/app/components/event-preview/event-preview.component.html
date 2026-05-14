@@ -2,8 +2,7 @@
   [title]="event().name"
   [titleTooltip]="event().name"
   typeLabel="Event"
-  [icon]="event().sponsor ? 'stars' : 'event'"
-  [iconTooltip]="event().sponsor ? 'Sponsored event' : 'Event'"
+  [iconTooltip]="eventIconTooltip()"
   [dismissable]="dismissable()"
   [backLabel]="backLabel()"
   [backTypeLabel]="backTypeLabel()"
@@ -48,7 +47,9 @@
   <div class="event-preview-body px-3 pb-3">
     <div
       class="event-preview-media"
-      [style.background-color]="event().bannerFit === 'contain' ? event().bannerAccentColor : null"
+      [style.background-color]="
+        event().bannerFit === 'contain' ? event().bannerAccentColor : null
+      "
     >
       @if (event().bannerSrc) {
         <img

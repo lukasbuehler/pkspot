@@ -69,6 +69,7 @@ export interface CommunityEventPreviewSchema {
   url?: string;
   bounds?: EventBoundsSchema;
   sponsor?: EventSponsorSchema;
+  is_sponsored?: boolean;
   external_source?: EventExternalSourceSchema;
 }
 

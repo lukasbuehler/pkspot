@@ -67,16 +67,30 @@
           This event is over. Information shown below may be outdated.
         </p>
       } @else if (eventStatus() === "live" && countdownTarget(); as target) {
-        <p class="mat-label-large status-line live">
-          <span i18n="@@event_page.status.live_label">Ongoing — ends in</span>
+        <p
+          class="mat-label-large status-line live"
+          [class.sponsored]="isSponsored()"
+        >
+          @if (isSponsored()) {
+            <mat-icon inline>paid</mat-icon>
+          }
+          <span>{{ statusPrefix() }}</span>
+          <span i18n="@@event_page.status.ends_in">ends in</span>
           <app-countdown [timestamp]="target"></app-countdown>
         </p>
       } @else if (
         eventStatus() === "upcoming" && countdownTarget();
         as target
       ) {
-        <p class="mat-label-large status-line upcoming">
-          <span i18n="@@event_page.status.upcoming_label">Starts in</span>
+        <p
+          class="mat-label-large status-line upcoming"
+          [class.sponsored]="isSponsored()"
+        >
+          @if (isSponsored()) {
+            <mat-icon inline>paid</mat-icon>
+          }
+          <span>{{ statusPrefix() }}</span>
+          <span i18n="@@event_page.status.starts_in">starts in</span>
           <app-countdown [timestamp]="target"></app-countdown>
         </p>
       }

@@ -63,6 +63,20 @@ export class MapIslandComponent {
     return c?.kind === "event" ? c.event.status() : null;
   });
 
+  readonly eventDisclosure = computed<string>(() => {
+    const c = this.content();
+    if (c?.kind !== "event") return "";
+    const status = this.eventStatus();
+    if (status === "live") {
+      return c.event.isSponsored
+        ? $localize`:@@map_island.event_sponsored_live:Sponsored Live Event`
+        : $localize`:@@map_island.event_live:Live Event`;
+    }
+    return c.event.isSponsored
+      ? $localize`:@@map_island.event_sponsored_upcoming:Sponsored Upcoming Event`
+      : $localize`:@@map_island.event_upcoming:Upcoming Event`;
+  });
+
   /** Filter variant: user clicked clear. */
   clearFilter = output<void>();
 

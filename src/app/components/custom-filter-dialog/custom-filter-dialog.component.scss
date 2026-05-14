@@ -140,6 +140,14 @@ mat-dialog-actions {
   gap: 8px;
 }
 
+.dialog-actions {
+  justify-content: flex-end;
+}
+
+.actions-spacer {
+  flex: 1 1 auto;
+}
+
 mat-divider {
   margin: 0;
 }

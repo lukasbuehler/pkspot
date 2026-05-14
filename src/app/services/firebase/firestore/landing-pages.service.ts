@@ -246,6 +246,7 @@ export class LandingPagesService {
           west: 0,
         },
         sponsor: preview.sponsor,
+        is_sponsored: preview.is_sponsored,
         external_source: preview.external_source,
         published: true,
       } as EventSchema,

@@ -30,6 +30,8 @@ These instructions apply to all work in this repository.
 - Use `providedIn: 'root'` for singleton services.
 - Use `inject()` instead of constructor injection where practical.
 
+If you hit the Angular Error "Abort trap: 6", it doesn't work in the sandbox and needs to be run in a normal terminal.
+
 ## Theme colors
 
 - Use Material 3 system tokens (`var(--mat-sys-primary)`, `var(--mat-sys-secondary)`, etc.) — never hardcoded hex unless used as a fallback.

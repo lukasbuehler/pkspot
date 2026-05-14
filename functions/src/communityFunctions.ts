@@ -226,6 +226,7 @@ const buildCommunityEventPreview = (
     url: event.url,
     bounds: event.bounds,
     sponsor: event.sponsor,
+    is_sponsored: event.is_sponsored,
     external_source: event.external_source,
   }) as CommunityEventPreviewSchema;
 };

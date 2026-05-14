@@ -16,7 +16,7 @@ const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
   preferredSlug: "london",
   allSlugs: ["london", "london-uk"],
   canonicalPath: "/map/communities/london",
-  title: "London, United Kingdom Parkour Community | PK Spot",
+  title: "Parkour in London, United Kingdom | PK Spot Community",
   description:
     "Discover 7 parkour spots and 3 dry training options in London, United Kingdom on PK Spot.",
   geography: {

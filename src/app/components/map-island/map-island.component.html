@@ -21,11 +21,14 @@
       <div
         class="map-island event-island glass d-flex flex-row align-items-center gap-2 p-1 ps-2"
         [class.event-island-live]="eventStatus() === 'live'"
+        [class.event-island-sponsored]="island.event.isSponsored"
       >
         @if (island.event.effectiveBadgeLogoSrc(); as logoSrc) {
           <div
             class="island-logo flex-shrink-0"
-            [style.background-color]="island.event.effectiveBadgeLogoBackgroundColor() ?? null"
+            [style.background-color]="
+              island.event.effectiveBadgeLogoBackgroundColor() ?? null
+            "
           >
             <img [src]="logoSrc" alt="" />
           </div>
@@ -38,21 +41,9 @@
           class="island-text bg-transparent border-0 p-0 text-start flex-grow-1 overflow-hidden"
           (click)="onOpenEvent()"
         >
-          @if (eventStatus() === "live") {
-            <div
-              class="event-disclosure mat-label-small text-truncate"
-              i18n="@@map_island.event_promoted_live"
-            >
-              Promoted live event
-            </div>
-          } @else {
-            <div
-              class="event-disclosure mat-label-small text-truncate"
-              i18n="@@map_island.event_promoted_upcoming"
-            >
-              Promoted upcoming event
-            </div>
-          }
+          <div class="event-disclosure mat-label-small text-truncate">
+            {{ eventDisclosure() }}
+          </div>
           <div class="mat-title-small text-truncate">
             {{ island.event.name }}
           </div>

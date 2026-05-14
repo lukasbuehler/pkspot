@@ -188,10 +188,10 @@ export function buildCommunityPageTitle(
   geography: CommunityGeographySchema
 ): string {
   if (scope === "locality" && geography.countryName) {
-    return `${displayName}, ${geography.countryName} Parkour Community | PK Spot`;
+    return `Parkour in ${displayName}, ${geography.countryName} | PK Spot Community`;
   }
 
-  return `${displayName} Parkour Community | PK Spot`;
+  return `Parkour in ${displayName} | PK Spot Community`;
 }
 
 export function buildCommunityPageDescription(

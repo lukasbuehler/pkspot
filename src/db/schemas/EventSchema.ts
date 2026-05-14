@@ -183,8 +183,10 @@ export interface EventSchema {
    */
   promo_region?: EventPromoRegionSchema;
 
-  /** Sponsor metadata; presence drives sponsor-logo badges on event spots. */
+  /** Sponsor metadata for branding/logo treatments. Does not imply paid advertising. */
   sponsor?: EventSponsorSchema;
+  /** True only when PK Spot is paid to promote this event and must disclose advertising. */
+  is_sponsored?: boolean;
 
   /**
    * Community page keys (e.g. "country:ch", "locality:ch:zh:zurich") that
