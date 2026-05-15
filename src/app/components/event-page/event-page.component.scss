@@ -23,6 +23,14 @@
   border-radius: 0px !important;
 }
 
+// Admin event editor takes over the page body while open. Scrolls
+// independently so the form's long content doesn't stretch the page.
+.event-edit-host {
+  background: var(--mat-sys-surface);
+  border-radius: 16px;
+  padding-bottom: 1rem;
+}
+
 .dates-line {
   color: var(--mat-sys-on-surface);
 }

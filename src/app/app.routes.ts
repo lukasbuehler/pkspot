@@ -246,6 +246,16 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
     data: { routeName: "Events" },
   },
+  // Admin create page. Listed BEFORE events/:slug so the literal "new"
+  // segment isn't interpreted as a slug.
+  {
+    path: "events/new",
+    loadComponent: () =>
+      import("./components/event-create-page/event-create-page.component").then(
+        (m) => m.EventCreatePageComponent
+      ),
+    data: { routeName: "Create Event" },
+  },
   {
     path: "event/swissjam25",
     redirectTo: "events/swissjam25",

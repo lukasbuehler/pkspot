@@ -65,9 +65,13 @@ import {
 } from "../../../db/schemas/SpotChallengeLabels";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventsService } from "../../services/firebase/firestore/events.service";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CountdownComponent } from "../countdown/countdown.component";
+import { EventEditFormComponent } from "../event-edit-form/event-edit-form.component";
 import {
   EventCustomMarkerSchema,
+  EventId,
+  EventSchema,
   InlineEventSpotSchema,
 } from "../../../db/schemas/EventSchema";
 import { SWISSJAM25_STATIC } from "./swissjam25.static";
@@ -105,6 +109,7 @@ export class ReversePipe implements PipeTransform {
     ReversePipe,
     ChipSelectComponent,
     CountdownComponent,
+    EventEditFormComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -139,11 +144,19 @@ export class EventPageComponent implements OnInit, OnDestroy {
   private _spotService = inject(SpotsService);
   private _challengeService = inject(SpotChallengesService);
   private _eventsService = inject(EventsService);
+  private _authService = inject(AuthenticationService);
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
   private _locationStrategy = inject(LocationStrategy);
   private _snackbar = inject(MatSnackBar);
   mapsApiService = inject(MapsApiService);
+
+  /** True when the current user has admin rights — gates the edit button. */
+  isAdmin = computed(() => this._authService.user.data?.isAdmin === true);
+  /** Toggles the inline edit form for the active event. Admin-only. */
+  isEditingEvent = signal<boolean>(false);
+  /** True while a save / delete is in flight (form disables itself). */
+  isSavingEvent = signal<boolean>(false);
 
   private _routeSubscription?: Subscription;
 
@@ -727,6 +740,75 @@ export class EventPageComponent implements OnInit, OnDestroy {
       a.getMonth() === b.getMonth() &&
       a.getDate() === b.getDate()
     );
+  }
+
+  // ---------------------------------------------------------------------
+  // Admin edit / delete handlers — wired to <app-event-edit-form>.
+  // The form is only rendered when isAdmin() && isEditingEvent() in the
+  // template, so the handlers below trust those preconditions.
+  // ---------------------------------------------------------------------
+
+  startEditingEvent(): void {
+    if (!this.isAdmin()) return;
+    this.isEditingEvent.set(true);
+  }
+
+  cancelEditingEvent(): void {
+    this.isEditingEvent.set(false);
+  }
+
+  async onSaveEvent(patch: Partial<EventSchema>): Promise<void> {
+    const current = this.event();
+    if (!current || !this.isAdmin()) return;
+    this.isSavingEvent.set(true);
+    try {
+      await this._eventsService.updateEvent(current.id, patch);
+      // Reload from Firestore so all downstream computeds (status,
+      // countdown, structured data) see the new values.
+      const reloaded = await this._eventsService.getEventById(current.id);
+      if (reloaded) {
+        this.event.set(reloaded);
+      }
+      this.isEditingEvent.set(false);
+      this._snackbar.open(
+        $localize`:@@event_edit.snackbar.saved:Event saved.`,
+        $localize`:@@common.dismiss:Dismiss`,
+        { duration: 3000 }
+      );
+    } catch (err) {
+      console.error("Failed to save event", err);
+      this._snackbar.open(
+        $localize`:@@event_edit.snackbar.save_failed:Couldn't save the event. Check the console for details.`,
+        $localize`:@@common.dismiss:Dismiss`,
+        { duration: 5000 }
+      );
+    } finally {
+      this.isSavingEvent.set(false);
+    }
+  }
+
+  async onDeleteEvent(): Promise<void> {
+    const current = this.event();
+    if (!current || !this.isAdmin()) return;
+    this.isSavingEvent.set(true);
+    try {
+      await this._eventsService.deleteEvent(current.id);
+      this._snackbar.open(
+        $localize`:@@event_edit.snackbar.deleted:Event deleted.`,
+        $localize`:@@common.dismiss:Dismiss`,
+        { duration: 3000 }
+      );
+      // Leave the page — the event no longer exists.
+      this._router.navigate(["/events"]);
+    } catch (err) {
+      console.error("Failed to delete event", err);
+      this._snackbar.open(
+        $localize`:@@event_edit.snackbar.delete_failed:Couldn't delete the event.`,
+        $localize`:@@common.dismiss:Dismiss`,
+        { duration: 5000 }
+      );
+      this.isSavingEvent.set(false);
+    }
   }
 }
 

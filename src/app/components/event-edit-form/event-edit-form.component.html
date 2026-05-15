@@ -1,0 +1,286 @@
+<form
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+  class="event-edit-form d-flex flex-column gap-3"
+>
+  <header class="d-flex flex-row align-items-center gap-2">
+    <h2 class="mat-title-large m-0 flex-grow-1">
+      @if (isEditMode()) {
+        <ng-container i18n="@@event_edit.title.edit">Edit event</ng-container>
+      } @else {
+        <ng-container i18n="@@event_edit.title.create">Create event</ng-container>
+      }
+    </h2>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="onCancel()"
+      [disabled]="saving()"
+      aria-label="Cancel"
+      i18n-aria-label="@@event_edit.cancel_aria"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-divider></mat-divider>
+
+  <!-- Identity -->
+  <section class="d-flex flex-column gap-2">
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.name">Name</mat-label>
+      <input matInput formControlName="name" />
+      <mat-error i18n="@@event_edit.name.required">Name is required.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.slug">Slug</mat-label>
+      <input matInput formControlName="slug" placeholder="lower-case-with-dashes" />
+      <mat-hint i18n="@@event_edit.slug.hint">
+        Used in /events/&lt;slug&gt; URLs. Lowercase, digits, dashes only.
+      </mat-hint>
+      <mat-error i18n="@@event_edit.slug.invalid">
+        Only a–z, 0–9 and dashes allowed.
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.description">Description</mat-label>
+      <textarea
+        matInput
+        formControlName="description"
+        rows="3"
+      ></textarea>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="published" i18n="@@event_edit.published">
+      Published (visible to everyone)
+    </mat-checkbox>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- When + where -->
+  <section class="d-flex flex-column gap-2">
+    <h3 class="mat-title-small m-0" i18n="@@event_edit.section.when_where">
+      When &amp; where
+    </h3>
+    <div class="d-flex flex-row gap-2 flex-wrap">
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.start">Start</mat-label>
+        <input matInput type="datetime-local" formControlName="start" />
+        <mat-error i18n="@@event_edit.start.required">Start is required.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.end">End</mat-label>
+        <input matInput type="datetime-local" formControlName="end" />
+        <mat-error i18n="@@event_edit.end.required">End is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.venue">Venue</mat-label>
+      <input matInput formControlName="venue_string" />
+      <mat-error i18n="@@event_edit.venue.required">Venue is required.</mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.locality">Locality</mat-label>
+      <input matInput formControlName="locality_string" />
+      <mat-error i18n="@@event_edit.locality.required">
+        Locality is required.
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.url">External event URL</mat-label>
+      <input matInput formControlName="url" placeholder="https://…" />
+    </mat-form-field>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Map bounds -->
+  <section class="d-flex flex-column gap-2">
+    <h3 class="mat-title-small m-0" i18n="@@event_edit.section.map">
+      Map view
+    </h3>
+    <p
+      class="mat-body-small text-muted m-0"
+      i18n="@@event_edit.bounds.hint"
+    >
+      Bounding box for the event-page map. North/South are latitudes,
+      East/West are longitudes.
+    </p>
+    <div class="d-flex flex-row gap-2 flex-wrap">
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.bounds.north">North (lat)</mat-label>
+        <input matInput type="number" step="0.000001" formControlName="bounds_north" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.bounds.south">South (lat)</mat-label>
+        <input matInput type="number" step="0.000001" formControlName="bounds_south" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.bounds.east">East (lng)</mat-label>
+        <input matInput type="number" step="0.000001" formControlName="bounds_east" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.bounds.west">West (lng)</mat-label>
+        <input matInput type="number" step="0.000001" formControlName="bounds_west" />
+      </mat-form-field>
+    </div>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.focus_zoom">Focus zoom</mat-label>
+      <input matInput type="number" min="2" max="22" formControlName="focus_zoom" />
+    </mat-form-field>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Branding -->
+  <section class="d-flex flex-column gap-2">
+    <h3 class="mat-title-small m-0" i18n="@@event_edit.section.branding">
+      Branding
+    </h3>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.banner_src">Banner image URL</mat-label>
+      <input matInput formControlName="banner_src" placeholder="assets/… or https://…" />
+    </mat-form-field>
+    <div class="d-flex flex-row gap-2 flex-wrap">
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.banner_fit">Banner fit</mat-label>
+        <mat-select formControlName="banner_fit">
+          <mat-option value="cover" i18n="@@event_edit.banner_fit.cover">
+            Cover (crop to fill)
+          </mat-option>
+          <mat-option value="contain" i18n="@@event_edit.banner_fit.contain">
+            Contain (letterbox)
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.banner_accent">Accent color</mat-label>
+        <input matInput formControlName="banner_accent_color" placeholder="#1a1a1a" />
+      </mat-form-field>
+    </div>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Sponsor -->
+  <section class="d-flex flex-column gap-2">
+    <h3 class="mat-title-small m-0" i18n="@@event_edit.section.sponsor">
+      Sponsor (optional)
+    </h3>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.sponsor.name">Sponsor name</mat-label>
+      <input matInput formControlName="sponsor_name" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.sponsor.url">Sponsor URL</mat-label>
+      <input matInput formControlName="sponsor_url" placeholder="https://…" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.sponsor.logo">Sponsor logo URL</mat-label>
+      <input matInput formControlName="sponsor_logo_src" />
+    </mat-form-field>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Associations -->
+  <section class="d-flex flex-column gap-2">
+    <h3 class="mat-title-small m-0" i18n="@@event_edit.section.associations">
+      Spots, communities, series
+    </h3>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.spot_ids">Spot IDs (comma-separated)</mat-label>
+      <input matInput formControlName="spot_ids_csv" placeholder="abc123, def456" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.community_keys">
+        Community keys (comma-separated)
+      </mat-label>
+      <input
+        matInput
+        formControlName="community_keys_csv"
+        placeholder="country:ch, locality:ch:zh:zurich"
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.series_ids">
+        Series IDs (comma-separated)
+      </mat-label>
+      <input
+        matInput
+        formControlName="series_ids_csv"
+        placeholder="swiss-parkour-tour"
+      />
+    </mat-form-field>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Footer actions -->
+  <footer class="d-flex flex-row gap-2 flex-wrap">
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="saving()"
+    >
+      <mat-icon>save</mat-icon>
+      @if (isEditMode()) {
+        <span i18n="@@event_edit.save_existing">Save changes</span>
+      } @else {
+        <span i18n="@@event_edit.save_new">Create event</span>
+      }
+    </button>
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="onCancel()"
+      [disabled]="saving()"
+    >
+      <span i18n="@@event_edit.cancel">Cancel</span>
+    </button>
+
+    @if (isEditMode() && showDeleteButton()) {
+      <span class="flex-grow-1"></span>
+      @if (!showDeleteConfirm()) {
+        <button
+          mat-stroked-button
+          color="warn"
+          type="button"
+          (click)="onDeleteClick()"
+          [disabled]="saving()"
+        >
+          <mat-icon>delete</mat-icon>
+          <span i18n="@@event_edit.delete">Delete</span>
+        </button>
+      } @else {
+        <span class="mat-body-small text-warn align-self-center">
+          <ng-container i18n="@@event_edit.delete_confirm">
+            Are you sure?
+          </ng-container>
+        </span>
+        <button
+          mat-flat-button
+          color="warn"
+          type="button"
+          (click)="onDeleteConfirm()"
+          [disabled]="saving()"
+        >
+          <mat-icon>delete_forever</mat-icon>
+          <span i18n="@@event_edit.delete_confirm_yes">Yes, delete</span>
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="onDeleteCancel()"
+          [disabled]="saving()"
+        >
+          <span i18n="@@event_edit.delete_confirm_no">Keep event</span>
+        </button>
+      }
+    }
+  </footer>
+</form>

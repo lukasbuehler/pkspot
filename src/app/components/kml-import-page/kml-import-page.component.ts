@@ -98,7 +98,10 @@ import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amen
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 import { AnyMedia, ExternalImage } from "../../../db/models/Media";
-import { isKmlImportUserAllowed } from "./kml-import-allowed-users";
+// KML import is gated by the `isAdmin` flag on the user document
+// (see UserSchema.is_admin). Previously a hardcoded uid whitelist; now
+// any admin can import. The check below mirrors spot-details and other
+// admin-only flows.
 
 interface VerificationSpotItem {
   spot: KMLSpot;
@@ -450,22 +453,25 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return this.kmlParserService.getImportStats();
   }
 
+  /** True when the current user is signed in AND has admin rights. */
+  private _isAdminUser(): boolean {
+    return this._authService.user.data?.isAdmin === true;
+  }
+
   canUploadImport(): boolean {
-    const uid = this._authService.user.uid;
     return !!(
       this._authService.isSignedIn &&
-      uid &&
-      isKmlImportUserAllowed(uid)
+      this._authService.user.uid &&
+      this._isAdminUser()
     );
   }
 
   uploadAccessMessage(): string | null {
-    const uid = this._authService.user.uid;
-    if (!this._authService.isSignedIn || !uid) {
+    if (!this._authService.isSignedIn || !this._authService.user.uid) {
       return "Please sign in to import KML/KMZ files.";
     }
-    if (!isKmlImportUserAllowed(uid)) {
-      return "Your account is currently not allowed to import spots.";
+    if (!this._isAdminUser()) {
+      return "KML import is restricted to PK Spot admins.";
     }
     return null;
   }
@@ -2024,8 +2030,8 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         this._spotImportFailed();
         return;
       }
-      if (!isKmlImportUserAllowed(uid)) {
-        console.error("User is not allowed to import spots", { uid });
+      if (!this._isAdminUser()) {
+        console.error("User is not an admin; KML import denied", { uid });
         this._spotImportFailed();
         return;
       }
@@ -2119,8 +2125,8 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
   private async _uploadImportFileToStorage(): Promise<string | undefined> {
     const uid = this._authService.user.uid;
-    if (!this._authService.isSignedIn || !uid || !isKmlImportUserAllowed(uid)) {
-      throw new Error("Current user is not allowed to upload import files.");
+    if (!this._authService.isSignedIn || !uid || !this._isAdminUser()) {
+      throw new Error("KML import is restricted to PK Spot admins.");
     }
 
     if (!this.kmlUploadFile) {

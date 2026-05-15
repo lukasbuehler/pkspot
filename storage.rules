@@ -9,6 +9,18 @@ service firebase.storage {
       );
     }
 
+    // Event banners / logos / sponsor logos. Admin-only writes to match
+    // the Firestore /events rules — only admins create or edit events
+    // today, so only admins should upload event media.
+    match /event_media/{filename} {
+      allow read: if true;
+      allow write: if request.auth.uid != null
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.is_admin == true
+        && request.resource.size < 50 * 1024 * 1024
+        && request.resource.metadata.uid == request.auth.uid;
+    }
+
     match /{allPaths=**} {
       allow read: if true;
       allow create, update: if request.auth.uid != null &&

@@ -1,0 +1,32 @@
+:host {
+  display: block;
+}
+
+.event-edit-form {
+  padding: 1rem;
+  color: var(--mat-sys-on-surface);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.text-muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.text-warn {
+  color: var(--mat-sys-error, #ffb4ab);
+  font-weight: 600;
+}
+
+// Number-input arrow spinners on Firefox are jarring next to text inputs;
+// hide them so the bounds + zoom rows feel like the rest of the form.
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}

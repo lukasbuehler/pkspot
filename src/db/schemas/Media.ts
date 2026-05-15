@@ -25,6 +25,8 @@ export enum StorageBucket {
   SpotPictures = "spot_pictures",
   Challenges = "challenges",
   Imports = "imports",
+  /** Event banners, logos, sponsor logos. Admin-only writes per storage.rules. */
+  EventMedia = "event_media",
 }
 
 /**

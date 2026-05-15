@@ -111,12 +111,18 @@ service cloud.firestore {
     match /event_slugs/{slug} {
       allow read: if true;
 
-      allow create: if request.auth.uid != null
-        && slug.matches('^[a-z0-9-]+$')
-        && !exists(/databases/$(database)/documents/event_slugs/$(slug))
-        && exists(/databases/$(database)/documents/events/$(request.resource.data.event_id));
-
-      allow update, delete: if false;
+      // Admins can freely manage slug aliases (create new, repoint,
+      // delete). Regular authed users can claim a new unused slug that
+      // already points to a real event — kept for future user-created
+      // events but not used today.
+      allow create: if isAdmin()
+        || (
+          request.auth.uid != null
+          && slug.matches('^[a-z0-9-]+$')
+          && !exists(/databases/$(database)/documents/event_slugs/$(slug))
+          && exists(/databases/$(database)/documents/events/$(request.resource.data.event_id))
+        );
+      allow update, delete: if isAdmin();
     }
 
     // Materialized community landing pages and slug aliases are public read-only
@@ -195,14 +201,17 @@ service cloud.firestore {
 
     match /events/{eventId} {
       allow read: if true;
-      allow write: if false;
+      // Admin-only writes for now. Future plan: open to authed users for
+      // free-tier event creation, with field-level validation gating
+      // sponsor / promo_region / banner_src (premium-only fields).
+      allow write: if isAdmin();
     }
 
     // Series (Swiss Parkour Tour, SPL, Parkour Earth, ...) are admin-curated
-    // and publicly readable. Writes happen via the admin SDK / scripts.
+    // and publicly readable.
     match /series/{seriesId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     // Leaderboards are read-only; only cloud functions can write

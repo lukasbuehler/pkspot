@@ -42,6 +42,18 @@
             <button mat-icon-button class="d-flex" (click)="shareEvent()">
               <mat-icon>share</mat-icon>
             </button>
+            @if (isAdmin()) {
+              <button
+                mat-icon-button
+                class="d-flex"
+                (click)="startEditingEvent()"
+                matTooltip="Edit event"
+                i18n-matTooltip="@@event_page.edit_tooltip"
+                aria-label="Edit event"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+            }
             <button mat-icon-button class="d-flex" [matMenuTriggerFor]="menu">
               <mat-icon>more_vert</mat-icon>
             </button>
@@ -128,6 +140,19 @@
     </mat-menu>
   }
 
+  @if (isEditingEvent() && isAdmin()) {
+    <!-- Admin event editor. Replaces the regular event body while open.
+         Save / delete handled by the host; cancel just toggles the flag. -->
+    <section class="event-edit-host flex-grow-1 overflow-y-auto">
+      <app-event-edit-form
+        [event]="event()"
+        [saving]="isSavingEvent()"
+        (save)="onSaveEvent($event)"
+        (cancel)="cancelEditingEvent()"
+        (delete)="onDeleteEvent()"
+      ></app-event-edit-form>
+    </section>
+  } @else {
   <mat-drawer-container class="flex-grow-1 bg-transparent">
     <mat-drawer
       #drawer
@@ -340,4 +365,5 @@
       </button>
     </div>
   </mat-drawer-container>
+  }
 </div>

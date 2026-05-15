@@ -1,7 +1,15 @@
 <div class="container p-5">
-  <div class="row pt-5 pb-3">
-    <div class="col-md-12">
-      <h2 class="mat-heading-large" i18n=":@@events.title">Events</h2>
+  <div class="row pt-5 pb-3 align-items-center">
+    <div class="col-12 d-flex flex-row align-items-center gap-3 flex-wrap">
+      <h2 class="mat-heading-large m-0 flex-grow-1" i18n=":@@events.title">
+        Events
+      </h2>
+      @if (isAdmin()) {
+        <a mat-flat-button color="primary" routerLink="/events/new">
+          <mat-icon>add</mat-icon>
+          <span i18n="@@events.create">Create event</span>
+        </a>
+      }
     </div>
   </div>
 

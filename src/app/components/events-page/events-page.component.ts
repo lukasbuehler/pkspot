@@ -7,21 +7,31 @@ import {
   signal,
   afterNextRender,
 } from "@angular/core";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { RouterLink } from "@angular/router";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId } from "../../../db/schemas/EventSchema";
 import { EventsService } from "../../services/firebase/firestore/events.service";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
 import { EventCardComponent } from "../event-card/event-card.component";
 
 @Component({
   selector: "app-events-page",
-  imports: [EventCardComponent],
+  imports: [EventCardComponent, MatButtonModule, MatIconModule, RouterLink],
   templateUrl: "./events-page.component.html",
   styleUrl: "./events-page.component.scss",
 })
 export class EventsPageComponent {
   private _platformId = inject(PLATFORM_ID);
   private _eventsService = inject(EventsService);
+  private _authService = inject(AuthenticationService);
+
+  /** Shows the "+ Create event" button only to admins. */
+  readonly isAdmin = computed(
+    () => this._authService.user.data?.isAdmin === true
+  );
 
   events = signal<PkEvent[]>([]);
   loading = signal<boolean>(true);

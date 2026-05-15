@@ -55,6 +55,7 @@ import {
   CommunitySearchPreview,
   SearchService,
 } from "../../services/search.service";
+import { rankMapIslandEventsForPoint } from "./map-island-event-ranking";
 import { countries } from "../../../scripts/Countries";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
@@ -516,11 +517,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const eventPanelOpen = this.selectedEvent() || this.pendingEventPreview();
     if (viewport && !eventPanelOpen) {
       const dismissed = this._dismissedEventIds();
-      const event = this._promotableEvents().find(
-        (e) =>
-          !dismissed.has(e.id) &&
-          this._isEventRelevantForViewport(e, viewport),
-      );
+      const center = this._viewportCenter(viewport.bbox);
+      const event = rankMapIslandEventsForPoint(
+        this._promotableEvents().filter((e) => !dismissed.has(e.id)),
+        center,
+      )[0]?.event;
       if (event) return { kind: "event", event };
     }
 
@@ -625,17 +626,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       lat: viewport.north,
       lng: viewport.east,
     });
-  }
-
-  private _isEventRelevantForViewport(
-    event: PkEvent,
-    viewport: VisibleViewport,
-  ): boolean {
-    if (!event.promoRegion || event.isPast()) return false;
-    if (event.promoStartsAt && new Date() < event.promoStartsAt) return false;
-
-    const center = this._viewportCenter(viewport.bbox);
-    return event.containsPromoPoint(center);
   }
 
   private _viewportIntersectsCircle(

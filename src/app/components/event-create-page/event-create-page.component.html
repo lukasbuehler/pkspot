@@ -1,0 +1,27 @@
+<div class="event-create-page container py-4">
+  @if (!isAdmin()) {
+    <section class="restricted text-center py-5">
+      <mat-icon class="restricted-icon">lock</mat-icon>
+      <h1 class="mat-headline-small mt-3" i18n="@@event_create.restricted.title">
+        Admin only
+      </h1>
+      <p class="mat-body-large mt-2" i18n="@@event_create.restricted.body">
+        Event creation is currently limited to PK Spot admins. If you'd like
+        to add an event to the map, get in touch with us.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/events" class="mt-3">
+        <ng-container i18n="@@event_create.restricted.back">
+          Back to events
+        </ng-container>
+      </a>
+    </section>
+  } @else {
+    <app-event-edit-form
+      [event]="null"
+      [saving]="saving()"
+      [showDeleteButton]="false"
+      (save)="onSave($event)"
+      (cancel)="onCancel()"
+    ></app-event-edit-form>
+  }
+</div>

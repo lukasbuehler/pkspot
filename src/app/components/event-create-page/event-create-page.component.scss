@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.event-create-page {
+  color: var(--mat-sys-on-surface);
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.restricted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.restricted-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: var(--mat-sys-on-surface-variant);
+}
