@@ -216,110 +216,11 @@
 
           <div class="events-grid">
             @for (event of visibleEvents(); track event.id) {
-              @if (panelMode()) {
-                <button
-                  type="button"
-                  class="event-card"
-                  (click)="onSelectEvent(event)"
-                >
-                  <div
-                    class="event-image"
-                    [style.background-color]="
-                      event.bannerFit === 'contain'
-                        ? (event.bannerAccentColor ?? null)
-                        : null
-                    "
-                  >
-                    @if (event.bannerSrc) {
-                      <img
-                        [ngSrc]="event.bannerSrc"
-                        fill
-                        [class.object-fit-cover]="event.bannerFit === 'cover'"
-                        [class.object-fit-contain]="
-                          event.bannerFit === 'contain'
-                        "
-                        [alt]="event.name"
-                      />
-                    } @else {
-                      <app-media-placeholder
-                        src="assets/spot_placeholder.png"
-                        [label]="event.name"
-                      ></app-media-placeholder>
-                    }
-                  </div>
-                  <div class="event-body">
-                    <h3 class="mat-title-medium m-0">{{ event.name }}</h3>
-                    <p class="mat-body-small mb-1">
-                      {{ formatEventDateRange(event) }}
-                    </p>
-                    @if (event.isSponsored) {
-                      <p
-                        class="mat-label-small mb-1 d-inline-flex align-items-center gap-1 fw-semibold"
-                        style="color: var(--mat-sys-primary, #b8c4ff)"
-                      >
-                        <mat-icon inline>paid</mat-icon>
-                        <span i18n="@@community.event_sponsored">
-                          Sponsored Event
-                        </span>
-                      </p>
-                    }
-                    <p class="mat-body-small mb-0 venue-line">
-                      {{ event.venueString }}, {{ event.localityString }}
-                    </p>
-                  </div>
-                </button>
-              } @else {
-                <a
-                  class="event-card"
-                  [routerLink]="['/events', event.slug ?? event.id]"
-                >
-                  <div
-                    class="event-image"
-                    [style.background-color]="
-                      event.bannerFit === 'contain'
-                        ? (event.bannerAccentColor ?? null)
-                        : null
-                    "
-                  >
-                    @if (event.bannerSrc) {
-                      <img
-                        [ngSrc]="event.bannerSrc"
-                        fill
-                        [class.object-fit-cover]="event.bannerFit === 'cover'"
-                        [class.object-fit-contain]="
-                          event.bannerFit === 'contain'
-                        "
-                        [alt]="event.name"
-                      />
-                    } @else {
-                      <app-media-placeholder
-                        src="assets/spot_placeholder.png"
-                        [label]="event.name"
-                      ></app-media-placeholder>
-                    }
-                  </div>
-                  <div class="event-body">
-                    <h3 class="mat-title-medium m-0">{{ event.name }}</h3>
-                    <p class="mat-body-small mb-1">
-                      {{ formatEventDateRange(event) }}
-                    </p>
-                    @if (event.isSponsored) {
-                      <p
-                        class="mat-label-small mb-1 d-inline-flex align-items-center gap-1 fw-semibold"
-                        style="color: var(--mat-sys-primary, #b8c4ff)"
-                      >
-                        <mat-icon inline>paid</mat-icon>
-                        <span i18n="@@community.event_sponsored">
-                          Sponsored Event
-                        </span>
-                      </p>
-                    }
-                    <p class="mat-body-small mb-0 venue-line">
-                      {{ event.venueString }}, {{ event.localityString }}
-                    </p>
-                  </div>
-                </a>
-              }
+              <app-event-card
+                [event]="event"
+                [selectMode]="panelMode()"
+                (select)="onSelectEvent($event)"
+              ></app-event-card>
             }
           </div>
         </section>

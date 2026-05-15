@@ -36,58 +36,6 @@
   margin-top: 14px;
 }
 
-.event-card {
-  display: flex;
-  flex-direction: column;
-  border: 0;
-  border-radius: 18px;
-  overflow: hidden;
-  background: var(--mat-sys-surface-container-high);
-  color: var(--mat-sys-on-surface);
-  text-decoration: none;
-  text-align: left;
-  min-width: 0;
-  padding: 0;
-  cursor: pointer;
-  transition:
-    transform 160ms ease,
-    background-color 160ms ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    background: var(--mat-sys-surface-container-highest);
-  }
-}
-
-.event-image {
-  position: relative;
-  width: 100%;
-  height: 110px;
-  background: var(--mat-sys-surface-container);
-}
-
-.event-body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px 12px;
-  min-width: 0;
-
-  h3 {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  p {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-}
-
 .hero-section,
 .content-section {
   margin-bottom: 24px;

@@ -22,67 +22,7 @@
       <div class="row mb-5">
         @for (event of upcomingEvents(); track event.id) {
           <div class="col-md-6 col-lg-4 mb-3">
-            <a
-              [routerLink]="['/events', event.slug ?? event.id]"
-              class="text-decoration-none"
-              style="color: inherit"
-            >
-              <mat-card
-                class="overflow-hidden h-100 event-card"
-                [attr.data-status]="status(event)"
-              >
-                <div
-                  mat-card-image
-                  class="image-wrap"
-                  style="position: relative; height: 200px"
-                >
-                  @if (event.bannerSrc) {
-                    <div
-                      class="banner-frame"
-                      [style.background-color]="
-                        event.bannerFit === 'contain'
-                          ? (event.bannerAccentColor ?? null)
-                          : null
-                      "
-                    >
-                      <img
-                        [ngSrc]="event.bannerSrc"
-                        fill
-                        [class.object-fit-cover]="event.bannerFit === 'cover'"
-                        [class.object-fit-contain]="event.bannerFit === 'contain'"
-                        [alt]="event.name"
-                      />
-                    </div>
-                  } @else {
-                    <app-media-placeholder
-                      src="assets/spot_placeholder.png"
-                      [label]="event.name"
-                    ></app-media-placeholder>
-                  }
-                </div>
-                <mat-card-header>
-                  <mat-card-title>{{ event.name }}</mat-card-title>
-                  <mat-card-subtitle>
-                    {{ formatDateRange(event) }}
-                  </mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                  <p
-                    class="mat-label-small status-line"
-                    [attr.data-status]="status(event)"
-                    [class.sponsored]="event.isSponsored"
-                  >
-                    @if (event.isSponsored) {
-                      <mat-icon inline>paid</mat-icon>
-                    }
-                    {{ statusLabel(event) }}
-                  </p>
-                  <p class="mat-body-small mb-0">
-                    {{ event.venueString }}, {{ event.localityString }}
-                  </p>
-                </mat-card-content>
-              </mat-card>
-            </a>
+            <app-event-card [event]="event"></app-event-card>
           </div>
         }
       </div>
@@ -99,60 +39,7 @@
       <div class="row mb-5">
         @for (event of pastEvents(); track event.id) {
           <div class="col-md-6 col-lg-4 mb-3">
-            <a
-              [routerLink]="['/events', event.slug ?? event.id]"
-              class="text-decoration-none"
-              style="color: inherit"
-            >
-              <mat-card class="overflow-hidden h-100 event-card past-card">
-                <div
-                  mat-card-image
-                  class="image-wrap"
-                  style="position: relative; height: 200px"
-                >
-                  @if (event.bannerSrc) {
-                    <div
-                      class="banner-frame"
-                      [style.background-color]="
-                        event.bannerFit === 'contain'
-                          ? (event.bannerAccentColor ?? null)
-                          : null
-                      "
-                    >
-                      <img
-                        [ngSrc]="event.bannerSrc"
-                        fill
-                        [class.object-fit-cover]="event.bannerFit === 'cover'"
-                        [class.object-fit-contain]="event.bannerFit === 'contain'"
-                        [alt]="event.name"
-                      />
-                    </div>
-                  } @else {
-                    <app-media-placeholder
-                      src="assets/spot_placeholder.png"
-                      [label]="event.name"
-                    ></app-media-placeholder>
-                  }
-                </div>
-                <mat-card-header>
-                  <mat-card-title>{{ event.name }}</mat-card-title>
-                  <mat-card-subtitle>
-                    {{ formatDateRange(event) }}
-                  </mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                  <p class="mat-label-small status-line" data-status="past">
-                    @if (event.isSponsored) {
-                      <mat-icon inline>paid</mat-icon>
-                    }
-                    {{ statusLabel(event) }}
-                  </p>
-                  <p class="mat-body-small mb-0">
-                    {{ event.venueString }}, {{ event.localityString }}
-                  </p>
-                </mat-card-content>
-              </mat-card>
-            </a>
+            <app-event-card [event]="event"></app-event-card>
           </div>
         }
       </div>

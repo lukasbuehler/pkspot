@@ -1,0 +1,61 @@
+@if (selectMode()) {
+  <button type="button" class="event-card-action" (click)="onSelect()">
+    <ng-container [ngTemplateOutlet]="card"></ng-container>
+  </button>
+} @else {
+  <a [routerLink]="route()" class="event-card-action">
+    <ng-container [ngTemplateOutlet]="card"></ng-container>
+  </a>
+}
+
+<ng-template #card>
+  <mat-card
+    class="overflow-hidden h-100 event-card"
+    [class.past-card]="status() === 'past'"
+    [attr.data-status]="status()"
+  >
+    <div mat-card-image class="image-wrap">
+      @if (event().bannerSrc) {
+        <div
+          class="banner-frame"
+          [style.background-color]="
+            event().bannerFit === 'contain'
+              ? (event().bannerAccentColor ?? null)
+              : null
+          "
+        >
+          <img
+            [ngSrc]="event().bannerSrc!"
+            fill
+            [class.object-fit-cover]="event().bannerFit === 'cover'"
+            [class.object-fit-contain]="event().bannerFit === 'contain'"
+            [alt]="event().name"
+          />
+        </div>
+      } @else {
+        <app-media-placeholder
+          src="assets/spot_placeholder.png"
+          [label]="event().name"
+        ></app-media-placeholder>
+      }
+    </div>
+    <mat-card-header>
+      <mat-card-title>{{ event().name }}</mat-card-title>
+      <mat-card-subtitle>{{ dateRange() }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (event().isSponsored) {
+        <p class="mat-label-small sponsored-line">
+          <mat-icon inline>paid</mat-icon>
+          <span i18n="@@event_card.sponsored">Sponsored Event</span>
+        </p>
+      }
+      <p class="mat-label-small status-line" [attr.data-status]="status()">
+        {{ statusLabel() }}
+      </p>
+      <p class="mat-body-small mb-0">
+        {{ event().venueString }}, {{ event().localityString }}
+      </p>
+    </mat-card-content>
+  </mat-card>
+</ng-template>

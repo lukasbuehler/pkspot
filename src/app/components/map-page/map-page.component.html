@@ -68,20 +68,38 @@
       [poi]="selectedPoi()!"
       (dismiss)="closeSpot()"
     ></app-poi-detail>
-  } @else if (pendingSpotPreview(); as spot) {
+  } @else if (
+    pendingSpotPreview() ||
+    (selectedSpot() &&
+      !selectedChallenge() &&
+      !showAllChallenges() &&
+      !showSpotEditHistory())
+  ) {
     <app-spot-details
       @fadeInOut
       class="d-block"
-      [loading]="true"
-      [loadingTitle]="spot.name ?? ''"
-      [loadingSubtitle]="spot.locality ?? ''"
-      [loadingImageSrc]="spot.imageSrc"
+      [loading]="!!pendingSpotPreview()"
+      [loadingTitle]="pendingSpotPreview()?.name ?? ''"
+      [loadingSubtitle]="pendingSpotPreview()?.locality ?? ''"
+      [loadingImageSrc]="pendingSpotPreview()?.imageSrc"
+      [spot]="selectedSpot()"
+      [(challenge)]="selectedChallenge"
       [border]="false"
       [dismissable]="true"
+      [infoOnly]="false"
+      [editable]="true"
+      [isEditing]="isEditing()"
+      [pendingVoteCount]="pendingSpotEditsCount()"
       [openProgress]="
         responsiveService.isMobile() ? bottomSheetProgress() : 1
       "
+      (isEditingChange)="
+        $event ? spotMap!.startEdit() : spotMap!.discardEdit()
+      "
       (dismiss)="closeSpot()"
+      (addBoundsClick)="spotMap!.addBounds()"
+      (focusClick)="spotMap!.focusSpot(selectedSpot()!)"
+      (saveClick)="spotMap!.saveSpot($event)"
     ></app-spot-details>
   } @else if (selectedSpot()) {
     @if (selectedChallenge()) {
@@ -191,30 +209,6 @@
           }
         }
       </div>
-    } @else {
-      <app-spot-details
-        @fadeInOut
-        #spotDetail
-        class="d-block"
-        [spot]="selectedSpot()"
-        [(challenge)]="selectedChallenge"
-        [border]="false"
-        [dismissable]="true"
-        [infoOnly]="false"
-        [editable]="true"
-        [isEditing]="isEditing()"
-        [pendingVoteCount]="pendingSpotEditsCount()"
-        [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
-        "
-        (isEditingChange)="
-          $event ? spotMap!.startEdit() : spotMap!.discardEdit()
-        "
-        (dismiss)="closeSpot()"
-        (addBoundsClick)="spotMap!.addBounds()"
-        (focusClick)="spotMap!.focusSpot(selectedSpot()!)"
-        (saveClick)="spotMap!.saveSpot($event)"
-      ></app-spot-details>
     }
   } @else if (selectedEvent(); as event) {
     <!-- Event preview lives on the map (no route navigation). Triggered

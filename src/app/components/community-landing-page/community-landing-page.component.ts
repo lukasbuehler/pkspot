@@ -18,8 +18,8 @@ import { map } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { CommunityLandingPageData as CommunityPanelData } from "../../services/firebase/firestore/landing-pages.service";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
+import { EventCardComponent } from "../event-card/event-card.component";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { countries } from "../../../scripts/Countries";
@@ -48,7 +48,7 @@ interface CommunitySectionItem {
     MatTooltipModule,
     RouterLink,
     SpotListComponent,
-    MediaPlaceholderComponent,
+    EventCardComponent,
     MapInfoPanelComponent,
   ],
   templateUrl: "./community-landing-page.component.html",
@@ -215,16 +215,6 @@ export class CommunityLandingPageComponent {
       (data?.topRatedSpots.length ?? 0) > 0 || (data?.drySpots.length ?? 0) > 0
     );
   });
-
-  formatEventDateRange(event: PkEvent): string {
-    const start = event.start.toLocaleDateString(undefined, {
-      dateStyle: "medium",
-    });
-    const end = event.end.toLocaleDateString(undefined, {
-      dateStyle: "medium",
-    });
-    return start === end ? start : `${start} – ${end}`;
-  }
 
   onSelectEvent(event: PkEvent): void {
     this.selectEvent.emit(event);
