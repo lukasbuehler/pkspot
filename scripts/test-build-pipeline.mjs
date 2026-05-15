@@ -256,7 +256,7 @@ async function main() {
     );
 
     const socialPreviewResponse = await fetch(
-      `${baseUrl}/en/map/josefhalle`,
+      `${baseUrl}/en/map/spots/josefhalle`,
       {
         redirect: "manual",
         headers: {
@@ -277,7 +277,7 @@ async function main() {
     );
     assert.match(
       socialPreviewHtml,
-      /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/josefhalle"/,
+      /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/spots\/josefhalle"/,
       "Spot SSR HTML should include the canonical spot OpenGraph URL"
     );
     assert.doesNotMatch(

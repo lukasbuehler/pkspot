@@ -663,7 +663,6 @@
 
 <ng-template #mapIsland>
   <app-map-island
-    @fadeInOut
     [content]="visibleIslandContent()"
     (clearFilter)="clearActiveFilter()"
     (openEvent)="onIslandOpenEvent($event)"
@@ -742,7 +741,7 @@
     <div class="position-relative overflow-hidden h-100 w-100">
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
       @if (visibleIslandContent()) {
-        <div class="map-island-host">
+        <div @fadeInOut class="map-island-host">
           <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
         </div>
       }
@@ -794,13 +793,13 @@
           (placePreviewChange)="onSearchPlacePreviewChange($event)"
           (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
         ></app-search-field>
-        @if (visibleIslandContent()) {
-          <div class="map-island-inline-host">
-            <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-          </div>
-        }
       </div>
       <ng-container *ngTemplateOutlet="chips"></ng-container>
+      @if (visibleIslandContent()) {
+        <div @fadeInOut class="map-island-mobile-host">
+          <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+        </div>
+      }
     </div>
 
     <app-bottom-sheet

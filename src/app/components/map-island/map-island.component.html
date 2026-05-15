@@ -1,9 +1,18 @@
 @if (content(); as island) {
-  @switch (island.kind) {
-    @case ("filter") {
-      <div
-        class="map-island glass d-flex flex-row align-items-center ps-4 gap-3 p-3"
-      >
+  <div
+    [@islandState]="contentAnimationKey()"
+    class="map-island glass d-flex flex-row align-items-center"
+    [class.filter-island]="island.kind === 'filter'"
+    [class.event-island]="island.kind === 'event'"
+    [class.community-island]="island.kind === 'community'"
+    [class.event-island-live]="eventStatus() === 'live'"
+    [class.event-island-sponsored]="
+      island.kind === 'event' && island.event.isSponsored
+    "
+    (click)="island.kind === 'event' ? onOpenEvent() : null"
+  >
+    @switch (island.kind) {
+      @case ("filter") {
         <span class="mat-title-small">{{ island.message }}</span>
         <button
           type="button"
@@ -14,15 +23,9 @@
           <mat-icon>filter_alt_off</mat-icon>
           <span i18n="@@filter_clear">Clear</span>
         </button>
-      </div>
-    }
+      }
 
-    @case ("event") {
-      <div
-        class="map-island event-island glass d-flex flex-row align-items-center gap-2 p-1 ps-2"
-        [class.event-island-live]="eventStatus() === 'live'"
-        [class.event-island-sponsored]="island.event.isSponsored"
-      >
+      @case ("event") {
         @if (island.event.effectiveBadgeLogoSrc(); as logoSrc) {
           <div
             class="island-logo flex-shrink-0"
@@ -39,7 +42,7 @@
         <button
           type="button"
           class="island-text bg-transparent border-0 p-0 text-start flex-grow-1 overflow-hidden"
-          (click)="onOpenEvent()"
+          (click)="onOpenEvent(); $event.stopPropagation()"
         >
           <div class="event-disclosure mat-label-small text-truncate">
             {{ eventDisclosure() }}
@@ -58,7 +61,7 @@
             mat-flat-button
             color="primary"
             class="flex-shrink-0"
-            (click)="onOpenEvent()"
+            (click)="onOpenEvent(); $event.stopPropagation()"
           >
             <span i18n="@@map_island.event_open">Open</span>
           </button>
@@ -67,20 +70,16 @@
             type="button"
             mat-icon-button
             class="flex-shrink-0 d-flex"
-            (click)="onDismissEvent()"
+            (click)="onDismissEvent(); $event.stopPropagation()"
             aria-label="Dismiss event chip"
             i18n-aria-label
           >
             <mat-icon>close</mat-icon>
           </button>
         </div>
-      </div>
-    }
+      }
 
-    @case ("community") {
-      <div
-        class="map-island glass d-flex flex-row align-items-center gap-3 p-2 ps-3"
-      >
+      @case ("community") {
         <mat-icon class="flex-shrink-0" color="primary">groups</mat-icon>
 
         <button
@@ -118,7 +117,7 @@
             <mat-icon>close</mat-icon>
           </button>
         </div>
-      </div>
+      }
     }
-  }
+  </div>
 }

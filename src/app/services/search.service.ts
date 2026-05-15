@@ -983,16 +983,27 @@ export class SearchService {
   }
 
   /**
-   * Load lightweight event candidates for the map island. Final relevance is
-   * decided on the client against the current viewport center and the event's
-   * promo region, so zooming into a promo region keeps the chip visible even
-   * when the event's physical center is outside the small viewport.
+   * Load lightweight event candidates for the map island using Typesense's
+   * geo-radius filter around the current viewport. Final relevance is still
+   * checked on the client against the event's promo region.
    */
   public async searchEventsInBounds(
-    _bounds: google.maps.LatLngBounds,
+    bounds: google.maps.LatLngBounds,
     num: number = 30
   ): Promise<PkEvent[]> {
     const nowSeconds = Math.floor(Date.now() / 1000);
+    const center = bounds.getCenter();
+    const ne = bounds.getNorthEast();
+    const viewportRadiusM =
+      google.maps.geometry?.spherical.computeDistanceBetween(center, ne) ??
+      SearchService._distanceMeters(
+        { lat: center.lat(), lng: center.lng() },
+        { lat: ne.lat(), lng: ne.lng() }
+      );
+    const radiusKm = Math.max(25, viewportRadiusM / 1000).toFixed(3);
+    const lat = center.lat().toFixed(6);
+    const lng = center.lng().toFixed(6);
+
     try {
       const result = await this.client
         .collections(this.TYPESENSE_COLLECTION_EVENTS)
@@ -1000,7 +1011,11 @@ export class SearchService {
         .search(
           {
             q: "*",
-            filter_by: `published:!=false && end_seconds:>=${nowSeconds}`,
+            filter_by: [
+              "published:!=false",
+              `end_seconds:>=${nowSeconds}`,
+              `promo_region_center:(${lat}, ${lng}, ${radiusKm} km)`,
+            ].join(" && "),
             sort_by: "start_seconds:asc",
             per_page: Math.max(1, Math.min(250, num)),
             page: 1,
@@ -1016,6 +1031,28 @@ export class SearchService {
       console.error("typesense events-in-bounds error:", error);
       return [];
     }
+  }
+
+  private static _distanceMeters(
+    left: { lat: number; lng: number },
+    right: { lat: number; lng: number }
+  ): number {
+    const earthRadiusM = 6371e3;
+    const lat1 = (left.lat * Math.PI) / 180;
+    const lat2 = (right.lat * Math.PI) / 180;
+    const deltaLat = ((right.lat - left.lat) * Math.PI) / 180;
+    const deltaLng = ((right.lng - left.lng) * Math.PI) / 180;
+    const haversine =
+      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+      Math.cos(lat1) *
+        Math.cos(lat2) *
+        Math.sin(deltaLng / 2) *
+        Math.sin(deltaLng / 2);
+    return (
+      2 *
+      earthRadiusM *
+      Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+    );
   }
 
   // --- Typesense field readers (defensive: hits may come back with either

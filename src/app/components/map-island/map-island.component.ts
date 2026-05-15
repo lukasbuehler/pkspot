@@ -5,6 +5,7 @@ import {
   input,
   output,
 } from "@angular/core";
+import { animate, style, transition, trigger } from "@angular/animations";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { Event as PkEvent } from "../../../db/models/Event";
@@ -52,11 +53,34 @@ export type MapIslandContent =
   imports: [MatButtonModule, MatIconModule],
   templateUrl: "./map-island.component.html",
   styleUrl: "./map-island.component.scss",
+  animations: [
+    trigger("islandState", [
+      transition(":enter", [
+        style({ opacity: 0 }),
+        animate("180ms ease-out", style({ opacity: 1 })),
+      ]),
+      transition(":leave", [
+        animate("160ms ease-in", style({ opacity: 0 })),
+      ]),
+      transition("* => *", [
+        style({ opacity: 0 }),
+        animate("220ms ease-out", style({ opacity: 1 })),
+      ]),
+    ]),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapIslandComponent {
   /** Active content. When null, the island renders nothing. */
   content = input<MapIslandContent | null>(null);
+
+  readonly contentAnimationKey = computed(() => {
+    const c = this.content();
+    if (!c) return "none";
+    if (c.kind === "event") return `event:${c.event.id}`;
+    if (c.kind === "community") return `community:${c.community.communityKey}`;
+    return `filter:${c.message}`;
+  });
 
   readonly eventStatus = computed<"upcoming" | "live" | "past" | null>(() => {
     const c = this.content();

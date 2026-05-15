@@ -515,12 +515,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const viewport = this._viewport();
-    if (viewport) {
+    const eventPanelOpen = this.selectedEvent() || this.pendingEventPreview();
+    if (viewport && !eventPanelOpen) {
       const dismissed = this._dismissedEventIds();
-      const selectedEventId = this.selectedEvent()?.id;
       const event = this._promotableEvents().find(
         (e) =>
-          e.id !== selectedEventId &&
           !dismissed.has(e.id) &&
           this._isEventRelevantForViewport(e, viewport),
       );
@@ -634,17 +633,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     event: PkEvent,
     viewport: VisibleViewport,
   ): boolean {
-    if (!event.isPromotable()) return false;
+    if (!event.promoRegion || event.isPast()) return false;
+    if (event.promoStartsAt && new Date() < event.promoStartsAt) return false;
 
     const center = this._viewportCenter(viewport.bbox);
-    if (!event.containsPromoPoint(center)) return false;
-
-    const promoRadiusM = event.promoRadiusMeters();
-    if (!Number.isFinite(promoRadiusM)) return false;
-
-    const viewportRadiusM = this._viewportRadiusMeters(viewport.bbox);
-    const maxRelevantViewportRadiusM = Math.max(25_000, promoRadiusM * 2.5);
-    return viewportRadiusM <= maxRelevantViewportRadiusM;
+    return event.containsPromoPoint(center);
   }
 
   private _viewportIntersectsCircle(

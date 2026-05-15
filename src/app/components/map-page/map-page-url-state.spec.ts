@@ -22,6 +22,30 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(method).not.toContain("this.openEventPreview(event)");
   });
 
+  it("makes the event island body open the event while keeping dismiss isolated", () => {
+    const template = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map-island/map-island.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(template).toContain('(click)="onOpenEvent()"');
+    expect(template).toContain(
+      '(click)="onDismissEvent(); $event.stopPropagation()"',
+    );
+  });
+
+  it("does not surface another event island while an event panel is open", () => {
+    const source = readFileSync(componentPath, "utf8");
+
+    expect(source).toContain(
+      "const eventPanelOpen = this.selectedEvent() || this.pendingEventPreview();",
+    );
+    expect(source).toContain("if (viewport && !eventPanelOpen)");
+  });
+
   it("opens spot search selections through the spot URL helper", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(

@@ -16,10 +16,22 @@
   min-height: 56px;
   min-width: 0;
   overflow: hidden;
+  transition:
+    min-height 220ms ease,
+    padding 220ms ease,
+    gap 220ms ease;
+}
+
+.filter-island {
+  gap: 16px;
+  padding: 16px 16px 16px 24px;
 }
 
 .event-island {
+  gap: 8px;
+  padding: 4px 4px 4px 8px;
   min-height: 58px;
+  cursor: pointer;
 
   .event-icon {
     color: var(--mat-sys-primary);
@@ -35,6 +47,12 @@
       --mdc-filled-button-label-text-color: var(--mat-sys-on-secondary);
     }
   }
+}
+
+.community-island {
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  padding-left: 12px;
 }
 
 .island-logo {
@@ -75,13 +93,14 @@
 
 .island-actions {
   flex: 0 0 auto;
+  cursor: default;
   min-width: 0;
 }
 
 @media (max-width: 520px) {
   .map-island {
-    gap: 8px !important;
-    padding-left: 12px !important;
+    gap: 8px;
+    padding-left: 12px;
   }
 
   .island-logo {

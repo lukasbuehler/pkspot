@@ -8,6 +8,8 @@ import {
 } from "./build-info.mjs";
 
 const defaultLanguage = "en";
+const sitemapUrl =
+  "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml";
 
 const serverExpressApps = {};
 
@@ -127,6 +129,18 @@ function run() {
     });
   });
 
+  server.get(["/sitemap.xml", "/assets/sitemap.xml"], (_req, res) => {
+    res.redirect(301, sitemapUrl);
+  });
+
+  server.get("/:lang/assets/sitemap.xml", (req, res, next) => {
+    if (!supportedLanguageCodes.includes(req.params.lang)) {
+      return next();
+    }
+
+    return res.redirect(301, sitemapUrl);
+  });
+
   server.get("/assets/*", (req, res) => {
     const assetPath = path.join(__dirname, "../browser/en", req.path);
     console.log(`Serving asset: ${req.path} from ${assetPath}`);
@@ -226,14 +240,6 @@ function run() {
         res.redirect(301, pathWithoutIndex || "/");
       }
     }
-  });
-
-  // Sitemap redirect
-  server.get("/sitemap.xml", (req, res) => {
-    res.redirect(
-      301,
-      "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml",
-    );
   });
 
   // Android Early Access redirect (covers /android-early-access and /:lang/android-early-access)

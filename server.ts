@@ -31,8 +31,11 @@ export function app(): express.Express {
   const browserDistFolder = resolve(serverDistFolder, `../../browser/${lang}`);
   const indexHtml = join(serverDistFolder, "index.server.html");
 
+  const allowedHosts = getAllowedHosts();
+  process.env["NG_ALLOWED_HOSTS"] = allowedHosts.join(",");
+
   const commonEngine = new CommonEngine({
-    allowedHosts: getAllowedHosts(),
+    allowedHosts,
   });
 
   server.set("view engine", "html");
