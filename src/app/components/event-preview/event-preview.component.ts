@@ -10,6 +10,7 @@ import {
 import { NgOptimizedImage } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { RouterLink } from "@angular/router";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { Event as PkEvent } from "../../../db/models/Event";
@@ -32,6 +33,7 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
     NgOptimizedImage,
     MatButtonModule,
     MatIconModule,
+    MatProgressSpinnerModule,
     RouterLink,
     CountdownComponent,
     MapInfoPanelComponent,
@@ -45,7 +47,9 @@ export class EventPreviewComponent {
   private _locale = inject<LocaleCode>(LOCALE_ID);
 
   /** The event to render. */
-  event = input.required<PkEvent>();
+  event = input<PkEvent | null>(null);
+  loading = input(false);
+  loadingTitle = input<string>("");
 
   /** Drives the same secondary-info fade used by the spot bottom sheet. */
   openProgress = input<number>(1);
@@ -62,16 +66,18 @@ export class EventPreviewComponent {
 
   readonly hasValidDates = computed(() => {
     const e = this.event();
+    if (!e) return false;
     return (
       Number.isFinite(e.start.getTime()) && Number.isFinite(e.end.getTime())
     );
   });
   readonly status = computed<"upcoming" | "live" | "past" | null>(() =>
-    this.hasValidDates() ? this.event().status() : null
+    this.hasValidDates() ? (this.event()?.status() ?? null) : null
   );
 
   readonly countdownTarget = computed<Date | null>(() => {
     const e = this.event();
+    if (!e) return null;
     if (!this.hasValidDates()) return null;
     const status = this.status();
     if (status === "upcoming") return e.start;
@@ -81,6 +87,7 @@ export class EventPreviewComponent {
 
   readonly dateRange = computed(() => {
     const e = this.event();
+    if (!e) return "";
     if (!this.hasValidDates()) return "";
     const start = e.start.toLocaleDateString(this._locale, {
       dateStyle: "medium",
@@ -93,13 +100,15 @@ export class EventPreviewComponent {
 
   readonly statusPrefix = computed<string>(() => {
     const status = this.status();
+    const event = this.event();
+    if (!event) return "";
     if (status === "live") {
-      return this.event().isSponsored
+      return event.isSponsored
         ? $localize`:@@event_preview.status.sponsored_live:Sponsored Live Event`
         : $localize`:@@event_preview.status.live_event:Live Event`;
     }
     if (status === "upcoming") {
-      return this.event().isSponsored
+      return event.isSponsored
         ? $localize`:@@event_preview.status.sponsored_upcoming:Sponsored Upcoming Event`
         : $localize`:@@event_preview.status.upcoming_event:Upcoming Event`;
     }
@@ -108,20 +117,22 @@ export class EventPreviewComponent {
 
   readonly venueLine = computed(() => {
     const e = this.event();
+    if (!e) return "";
     return [e.venueString, e.localityString].filter(Boolean).join(", ");
   });
 
   readonly eventIcon = computed(() =>
-    this.event().isSponsored ? "paid" : "event",
+    this.event()?.isSponsored ? "paid" : "event",
   );
   readonly eventIconTooltip = computed(() =>
-    this.event().isSponsored
+    this.event()?.isSponsored
       ? $localize`:@@event_preview.sponsored_tooltip:Sponsored event`
       : $localize`:@@event_preview.event_tooltip:Event`,
   );
 
   readonly fullEventLink = computed(() => {
     const e = this.event();
+    if (!e) return ["/events"];
     return ["/events", e.slug ?? e.id];
   });
 
@@ -130,7 +141,8 @@ export class EventPreviewComponent {
    * the host so the template stays declarative.
    */
   readonly externalSourceLabel = computed<string | null>(() => {
-    const source = this.event().externalSource;
+    const event = this.event();
+    const source = event?.externalSource;
     if (!source) return null;
     switch (source.provider) {
       case "eventfrog":

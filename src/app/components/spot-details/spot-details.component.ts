@@ -26,6 +26,7 @@ import {
   MatProgressBar,
   MatProgressBarModule,
 } from "@angular/material/progress-bar";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -268,6 +269,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     SpotRatingComponent,
     MatDividerModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
     KeyValuePipe,
     ReversePipe,
     AsRatingKeyPipe,
@@ -425,6 +427,10 @@ export class SpotDetailsComponent
   @Input() border: boolean = false;
   @Input() clickable: boolean = false;
   @Input() editable: boolean = false;
+  loading = input(false);
+  loadingTitle = input<string>("");
+  loadingSubtitle = input<string>("");
+  loadingImageSrc = input<string | null | undefined>(null);
 
   /**
    * Controls the visibility of collapsible header info when used in bottom sheet.

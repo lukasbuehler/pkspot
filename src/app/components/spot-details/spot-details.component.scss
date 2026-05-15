@@ -71,6 +71,36 @@ form {
   flex-shrink: 0;
 }
 
+.spot-loading-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: var(--mat-sys-on-surface);
+}
+
+.spot-loading-media {
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 150px;
+  max-height: 410px;
+  height: 26vh;
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 32px;
+  padding-right: 32px;
+
+  img {
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 20px;
+    object-fit: cover;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--mat-sys-surface-container-high);
+  }
+}
+
 .spot-button-row button:not(:last-of-type) {
   margin-right: 5px;
 }

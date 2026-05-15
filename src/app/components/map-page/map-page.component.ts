@@ -137,7 +137,6 @@ import {
   MapIslandCommunity,
   MapIslandContent,
 } from "../map-island/map-island.component";
-import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { afterNextRender } from "@angular/core";
 
 interface PendingSpotPanel {
@@ -232,7 +231,6 @@ interface PanelBackTarget {
     CommunityLandingPageComponent,
     MapIslandComponent,
     EventPreviewComponent,
-    MapInfoPanelComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

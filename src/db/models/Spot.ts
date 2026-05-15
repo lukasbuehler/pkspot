@@ -789,8 +789,5 @@ export function convertLocalSpotToSpot(
   localSpot: LocalSpot,
   _id: SpotId
 ): Spot {
-  let spotPlusId = localSpot as LocalSpot & { id: SpotId };
-  spotPlusId.id = _id;
-
-  return spotPlusId as Spot;
+  return new Spot(_id, localSpot.data(), localSpot.locale);
 }

@@ -31,7 +31,12 @@ describe("MapPageComponent URL-driven panel state", () => {
       "utf8",
     );
 
-    expect(template).toContain('(click)="onOpenEvent()"');
+    expect(template).toContain(
+      '(click)="island.kind === \'event\' ? onOpenEvent() : null"',
+    );
+    expect(template).toContain(
+      '(click)="onOpenEvent(); $event.stopPropagation()"',
+    );
     expect(template).toContain(
       '(click)="onDismissEvent(); $event.stopPropagation()"',
     );

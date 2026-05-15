@@ -1,4 +1,59 @@
-@if (communityData(); as data) {
+@if (loading()) {
+  <div class="community-page community-page-panel">
+    <header class="panel-header">
+      <app-map-info-panel
+        [title]="heading()"
+        [titleTooltip]="heading()"
+        [titleSuffix]="countryFlag()"
+        [typeLabel]="heading() ? 'Community' : ''"
+        [iconTooltip]="scopeLabel()"
+        [dismissable]="true"
+        [backLabel]="backLabel()"
+        [backTypeLabel]="backTypeLabel()"
+        [openProgress]="openProgress()"
+        (back)="onBack()"
+        (dismiss)="onClose()"
+      >
+        @if (heading()) {
+          <div mapInfoMeta>
+            @if (loadingTotalSpots() !== null) {
+              <div class="d-flex flex-row gap-1 align-items-center pb-1">
+                <span class="mat-label-large text-nowrap text-truncate">
+                  {{ loadingTotalSpots() }} spots
+                </span>
+              </div>
+            }
+            <span class="text-truncate d-flex align-items-center gap-1">
+              {{ scopeLabel() }}
+            </span>
+          </div>
+        }
+
+        <div class="community-panel-body px-3 pb-3">
+          <div class="panel-loading-state py-3">
+            <div class="d-flex align-items-center gap-2">
+              <mat-progress-spinner
+                mode="indeterminate"
+                diameter="24"
+                aria-label="Loading community"
+              ></mat-progress-spinner>
+              @if (heading()) {
+                <span class="mat-body-medium" i18n="@@map.community_loading_label">
+                  Opening community
+                </span>
+              }
+            </div>
+            <div class="panel-skeleton-lines" aria-hidden="true">
+              <span class="panel-skeleton-line" style="width: 92%"></span>
+              <span class="panel-skeleton-line" style="width: 76%"></span>
+              <span class="panel-skeleton-line" style="width: 84%"></span>
+            </div>
+          </div>
+        </div>
+      </app-map-info-panel>
+    </header>
+  </div>
+} @else if (communityData(); as data) {
   <div class="community-page" [class.community-page-panel]="panelMode()">
     @if (data.notFound) {
       <!-- Clean "not found" state — no fake stats. -->

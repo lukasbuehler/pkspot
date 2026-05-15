@@ -1,117 +1,153 @@
-<app-map-info-panel
-  [title]="event().name"
-  [titleTooltip]="event().name"
-  typeLabel="Event"
-  [iconTooltip]="eventIconTooltip()"
-  [dismissable]="dismissable()"
-  [backLabel]="backLabel()"
-  [backTypeLabel]="backTypeLabel()"
-  [openProgress]="openProgress()"
-  (back)="onBack()"
-  (dismiss)="onDismiss()"
->
-  <div mapInfoMeta>
-    <div class="d-flex flex-row gap-1 align-items-center pb-1">
-      @if (dateRange()) {
-        <span class="mat-label-large text-nowrap text-truncate">
-          {{ dateRange() }}
-        </span>
-      }
-      @if (status() === "past") {
-        <span
-          class="mat-label-medium status past"
-          i18n="@@event_preview.status.past"
-        >
-          Past event
-        </span>
-      } @else if (status() === "live" && countdownTarget(); as target) {
-        <span
-          class="mat-label-medium status live d-inline-flex gap-1"
-          [class.sponsored]="event().isSponsored"
-        >
-          @if (event().isSponsored) {
-            <mat-icon inline>paid</mat-icon>
-          }
-          <span>{{ statusPrefix() }}</span>
-          <span i18n="@@event_preview.status.ends_in">ends in</span>
-          <app-countdown [timestamp]="target"></app-countdown>
-        </span>
-      } @else if (status() === "upcoming" && countdownTarget(); as target) {
-        <span
-          class="mat-label-medium status upcoming d-inline-flex gap-1"
-          [class.sponsored]="event().isSponsored"
-        >
-          @if (event().isSponsored) {
-            <mat-icon inline>paid</mat-icon>
-          }
-          <span>{{ statusPrefix() }}</span>
-          <span i18n="@@event_preview.status.starts_in">starts in</span>
-          <app-countdown [timestamp]="target"></app-countdown>
+@if (loading()) {
+  <app-map-info-panel
+    [title]="loadingTitle()"
+    [titleTooltip]="loadingTitle()"
+    typeLabel="Event"
+    icon="event"
+    iconTooltip="Event"
+    [dismissable]="dismissable()"
+    [backLabel]="backLabel()"
+    [backTypeLabel]="backTypeLabel()"
+    [openProgress]="openProgress()"
+    (back)="onBack()"
+    (dismiss)="onDismiss()"
+  >
+    <div class="event-preview-body px-3 pb-3">
+      <div class="panel-loading-state py-3">
+        <div class="d-flex align-items-center gap-2">
+          <mat-progress-spinner
+            mode="indeterminate"
+            diameter="24"
+            aria-label="Loading event"
+          ></mat-progress-spinner>
+          <span class="mat-body-medium" i18n="@@map.event_loading_label">
+            Loading event
+          </span>
+        </div>
+        <div class="panel-skeleton-lines" aria-hidden="true">
+          <span class="panel-skeleton-line" style="width: 92%"></span>
+          <span class="panel-skeleton-line" style="width: 76%"></span>
+          <span class="panel-skeleton-line" style="width: 84%"></span>
+        </div>
+      </div>
+    </div>
+  </app-map-info-panel>
+} @else if (event(); as event) {
+  <app-map-info-panel
+    [title]="event.name"
+    [titleTooltip]="event.name"
+    typeLabel="Event"
+    [iconTooltip]="eventIconTooltip()"
+    [dismissable]="dismissable()"
+    [backLabel]="backLabel()"
+    [backTypeLabel]="backTypeLabel()"
+    [openProgress]="openProgress()"
+    (back)="onBack()"
+    (dismiss)="onDismiss()"
+  >
+    <div mapInfoMeta>
+      <div class="d-flex flex-row gap-1 align-items-center pb-1">
+        @if (dateRange()) {
+          <span class="mat-label-large text-nowrap text-truncate">
+            {{ dateRange() }}
+          </span>
+        }
+        @if (status() === "past") {
+          <span
+            class="mat-label-medium status past"
+            i18n="@@event_preview.status.past"
+          >
+            Past event
+          </span>
+        } @else if (status() === "live" && countdownTarget(); as target) {
+          <span
+            class="mat-label-medium status live d-inline-flex gap-1"
+            [class.sponsored]="event.isSponsored"
+          >
+            @if (event.isSponsored) {
+              <mat-icon inline>paid</mat-icon>
+            }
+            <span>{{ statusPrefix() }}</span>
+            <span i18n="@@event_preview.status.ends_in">ends in</span>
+            <app-countdown [timestamp]="target"></app-countdown>
+          </span>
+        } @else if (status() === "upcoming" && countdownTarget(); as target) {
+          <span
+            class="mat-label-medium status upcoming d-inline-flex gap-1"
+            [class.sponsored]="event.isSponsored"
+          >
+            @if (event.isSponsored) {
+              <mat-icon inline>paid</mat-icon>
+            }
+            <span>{{ statusPrefix() }}</span>
+            <span i18n="@@event_preview.status.starts_in">starts in</span>
+            <app-countdown [timestamp]="target"></app-countdown>
+          </span>
+        }
+      </div>
+
+      @if (venueLine()) {
+        <span class="text-truncate d-flex align-items-center gap-1">
+          {{ venueLine() }}
         </span>
       }
     </div>
 
-    @if (venueLine()) {
-      <span class="text-truncate d-flex align-items-center gap-1">
-        {{ venueLine() }}
-      </span>
-    }
-  </div>
+    <div class="event-preview-body px-3 pb-3">
+      <div
+        class="event-preview-media"
+        [style.background-color]="
+          event.bannerFit === 'contain' ? event.bannerAccentColor : null
+        "
+      >
+        @if (event.bannerSrc) {
+          <img
+            [ngSrc]="event.bannerSrc"
+            fill
+            [class.object-fit-cover]="event.bannerFit === 'cover'"
+            [class.object-fit-contain]="event.bannerFit === 'contain'"
+            [alt]="event.name"
+          />
+        } @else {
+          <app-media-placeholder
+            src="assets/spot_placeholder.png"
+            [label]="event.name"
+          ></app-media-placeholder>
+        }
+      </div>
 
-  <div class="event-preview-body px-3 pb-3">
-    <div
-      class="event-preview-media"
-      [style.background-color]="
-        event().bannerFit === 'contain' ? event().bannerAccentColor : null
-      "
-    >
-      @if (event().bannerSrc) {
-        <img
-          [ngSrc]="event().bannerSrc!"
-          fill
-          [class.object-fit-cover]="event().bannerFit === 'cover'"
-          [class.object-fit-contain]="event().bannerFit === 'contain'"
-          [alt]="event().name"
-        />
-      } @else {
-        <app-media-placeholder
-          src="assets/spot_placeholder.png"
-          [label]="event().name"
-        ></app-media-placeholder>
+      @if (event.description) {
+        <p class="mat-body-small description mt-2">{{ event.description }}</p>
       }
-    </div>
 
-    @if (event().description) {
-      <p class="mat-body-small description mt-2">{{ event().description }}</p>
-    }
-
-    <div class="cta-row d-flex flex-wrap gap-2 mt-2">
-      @if (event().externalSource; as source) {
-        <a
-          mat-flat-button
-          color="primary"
-          [href]="source.url"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="external-cta"
-        >
-          <mat-icon>open_in_new</mat-icon>
-          <span>{{ externalSourceLabel() }}</span>
-        </a>
-        <a mat-stroked-button [routerLink]="fullEventLink()">
-          <span i18n="@@event_preview.details">Details</span>
-        </a>
-      } @else {
-        <a
-          mat-flat-button
-          color="primary"
-          [routerLink]="fullEventLink()"
-          class="full-event-cta"
-        >
-          <mat-icon>open_in_new</mat-icon>
-          <span i18n="@@event_preview.see_full">See full event</span>
-        </a>
-      }
+      <div class="cta-row d-flex flex-wrap gap-2 mt-2">
+        @if (event.externalSource; as source) {
+          <a
+            mat-flat-button
+            color="primary"
+            [href]="source.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="external-cta"
+          >
+            <mat-icon>open_in_new</mat-icon>
+            <span>{{ externalSourceLabel() }}</span>
+          </a>
+          <a mat-stroked-button [routerLink]="fullEventLink()">
+            <span i18n="@@event_preview.details">Details</span>
+          </a>
+        } @else {
+          <a
+            mat-flat-button
+            color="primary"
+            [routerLink]="fullEventLink()"
+            class="full-event-cta"
+          >
+            <mat-icon>open_in_new</mat-icon>
+            <span i18n="@@event_preview.see_full">See full event</span>
+          </a>
+        }
+      </div>
     </div>
-  </div>
-</app-map-info-panel>
+  </app-map-info-panel>
+}

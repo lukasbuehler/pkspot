@@ -69,70 +69,20 @@
       (dismiss)="closeSpot()"
     ></app-poi-detail>
   } @else if (pendingSpotPreview(); as spot) {
-    @if (spot.name) {
-      <app-map-info-panel
-        @fadeInOut
-        class="d-block"
-        [title]="spot.name"
-        [titleTooltip]="spot.name"
-        typeLabel="Spot"
-        icon="location_on"
-        iconTooltip="Spot"
-        [dismissable]="true"
-        [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
-        "
-        (dismiss)="closeSpot()"
-      >
-        <div mapInfoMeta>
-          @if (spot.locality) {
-            <span class="mat-label-large text-truncate">{{
-              spot.locality
-            }}</span>
-          }
-        </div>
-
-        <div class="p-3 d-flex flex-column" style="gap: 18px">
-          @if (spot.imageSrc) {
-            <div class="pending-spot-media-carousel">
-              <div class="pending-spot-media-item">
-                <img [src]="spot.imageSrc" [alt]="spot.name" />
-              </div>
-            </div>
-          }
-          <div class="d-flex align-items-center gap-2">
-            <mat-progress-spinner
-              mode="indeterminate"
-              diameter="24"
-            ></mat-progress-spinner>
-            <span class="mat-body-medium" i18n="@@map.spot_loading_label"
-              >Loading spot details</span
-            >
-          </div>
-          <div class="d-grid gap-2" aria-hidden="true">
-            <span class="community-panel-skeleton" style="width: 92%"></span>
-            <span class="community-panel-skeleton" style="width: 76%"></span>
-            <span class="community-panel-skeleton" style="width: 84%"></span>
-          </div>
-        </div>
-      </app-map-info-panel>
-    } @else {
-      <div
-        class="d-grid position-relative"
-        style="
-          min-height: 220px;
-          place-items: center;
-          color: var(--mat-sys-on-surface);
-        "
-        @fadeInOut
-      >
-        <mat-progress-spinner
-          mode="indeterminate"
-          diameter="32"
-          aria-label="Loading spot"
-        ></mat-progress-spinner>
-      </div>
-    }
+    <app-spot-details
+      @fadeInOut
+      class="d-block"
+      [loading]="true"
+      [loadingTitle]="spot.name ?? ''"
+      [loadingSubtitle]="spot.locality ?? ''"
+      [loadingImageSrc]="spot.imageSrc"
+      [border]="false"
+      [dismissable]="true"
+      [openProgress]="
+        responsiveService.isMobile() ? bottomSheetProgress() : 1
+      "
+      (dismiss)="closeSpot()"
+    ></app-spot-details>
   } @else if (selectedSpot()) {
     @if (selectedChallenge()) {
       <a
@@ -282,34 +232,19 @@
       (dismiss)="closeEventPreview()"
     ></app-event-preview>
   } @else if (pendingEventPreview(); as event) {
-    <div
-      class="d-grid position-relative"
-      style="
-        min-height: 220px;
-        place-items: center;
-        color: var(--mat-sys-on-surface);
-      "
+    <app-event-preview
       @fadeInOut
-    >
-      @if (panelBackTarget(); as backTarget) {
-        <button
-          mat-icon-button
-          type="button"
-          class="position-absolute"
-          style="top: 12px; left: 12px; color: #fff"
-          [matTooltip]="'Go back to ' + backTarget.label"
-          [attr.aria-label]="'Go back to ' + backTarget.label"
-          (click)="goBackToPreviousPanel()"
-        >
-          <mat-icon>arrow_back_ios</mat-icon>
-        </button>
-      }
-      <mat-progress-spinner
-        mode="indeterminate"
-        diameter="32"
-        aria-label="Loading event"
-      ></mat-progress-spinner>
-    </div>
+      class="d-block"
+      [loading]="true"
+      [loadingTitle]="event.idOrSlug"
+      [openProgress]="
+        responsiveService.isMobile() ? bottomSheetProgress() : 1
+      "
+      [backLabel]="panelBackTarget()?.label ?? null"
+      [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
+      (back)="goBackToPreviousPanel()"
+      (dismiss)="closeEventPreview()"
+    ></app-event-preview>
   } @else if (selectedCommunityLanding(); as communityData) {
     <app-community-landing-page
       class="d-block"
@@ -328,95 +263,22 @@
       (exploreCommunitySpots)="exploreCommunitySpots($event)"
     ></app-community-landing-page>
   } @else if (pendingCommunityLanding(); as community) {
-    <app-map-info-panel
+    <app-community-landing-page
       class="d-block"
-      [title]="community.displayName"
-      [titleTooltip]="community.displayName"
-      [titleSuffix]="getCommunityFlag(community.countryCode)"
-      [typeLabel]="community.displayName ? 'Community' : ''"
-      [iconTooltip]="
-        community.scope === 'country'
-          ? 'Country Community'
-          : community.scope === 'region'
-            ? 'Region Community'
-            : 'Locality Community'
-      "
-      [dismissable]="true"
+      [loading]="true"
+      [loadingTitle]="community.displayName"
+      [loadingTotalSpots]="community.totalSpots ?? 0"
+      [loadingScope]="community.scope"
+      [loadingCountryCode]="community.countryCode"
+      [panelMode]="true"
       [backLabel]="panelBackTarget()?.label ?? null"
       [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
       [openProgress]="
         responsiveService.isMobile() ? bottomSheetProgress() : 1
       "
       (back)="goBackToPreviousPanel()"
-      (dismiss)="closeCommunityPanel()"
-    >
-      @if (community.displayName) {
-        <div mapInfoMeta>
-          <div class="d-flex flex-row gap-1 align-items-center pb-1">
-            <span class="mat-label-large text-nowrap text-truncate">
-              {{ community.totalSpots || 0 }} spots
-            </span>
-          </div>
-          <span class="text-truncate d-flex align-items-center gap-1">
-            @if (community.scope === "country") {
-              <span>Country Community</span>
-            } @else if (community.scope === "region") {
-              <span>Region Community</span>
-            } @else {
-              <span>Locality Community</span>
-            }
-          </span>
-        </div>
-      }
-
-      <div class="px-3 pb-3" style="color: var(--mat-sys-on-surface)">
-        <div
-          style="
-            aspect-ratio: 4 / 3;
-            background: var(--mat-sys-surface-container-high);
-            margin-left: -16px;
-            margin-right: -16px;
-            overflow: hidden;
-            position: relative;
-            max-height: 30vh;
-            width: calc(100% + 32px);
-          "
-          aria-hidden="true"
-        >
-          @if (community.imageUrl) {
-            <img
-              [src]="community.imageUrl"
-              [alt]="community.displayName"
-              class="object-fit-cover position-absolute w-100 h-100"
-            />
-          } @else {
-            <span
-              class="community-panel-skeleton d-block w-100 h-100"
-            ></span>
-          }
-        </div>
-
-        <div class="py-3 d-flex flex-column" style="gap: 18px">
-          <div class="d-flex align-items-center gap-2">
-            <mat-progress-spinner
-              mode="indeterminate"
-              diameter="24"
-              aria-label="Loading community"
-            ></mat-progress-spinner>
-            @if (community.displayName) {
-              <span class="mat-body-medium" i18n="@@map.community_loading_label"
-                >Opening community</span
-              >
-            }
-          </div>
-          <div class="d-grid gap-2" aria-hidden="true">
-            <span class="community-panel-skeleton" style="width: 92%"></span>
-            <span class="community-panel-skeleton" style="width: 76%"></span>
-            <span class="community-panel-skeleton" style="width: 84%"></span>
-          </div>
-        </div>
-      </div>
-    </app-map-info-panel>
+      (closePanel)="closeCommunityPanel()"
+    ></app-community-landing-page>
   } @else {
     <app-spot-list
       class="px-3 d-block"

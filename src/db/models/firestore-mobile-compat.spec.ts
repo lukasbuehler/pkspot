@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SpotEdit } from "./SpotEdit";
 import { SpotChallenge } from "./SpotChallenge";
-import { Spot } from "./Spot";
+import { convertLocalSpotToSpot, LocalSpot, Spot } from "./Spot";
 import { SpotId } from "../schemas/SpotSchema";
 
 describe("Firestore mobile compatibility models", () => {
@@ -64,5 +64,22 @@ describe("Firestore mobile compatibility models", () => {
       "2023-11-14T22:15:00.000Z"
     );
     expect(challenge.location()).toEqual({ lat: 47.3769, lng: 8.5417 });
+  });
+
+  it("should convert a just-created LocalSpot into a real Spot instance", () => {
+    const localSpot = new LocalSpot(
+      {
+        name: { en: "New Spot" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+        address: null,
+      },
+      "en"
+    );
+
+    const spot = convertLocalSpotToSpot(localSpot, "spot-new" as SpotId);
+
+    expect(spot).toBeInstanceOf(Spot);
+    expect(spot.id).toBe("spot-new");
+    expect(spot.name()).toBe("New Spot");
   });
 });

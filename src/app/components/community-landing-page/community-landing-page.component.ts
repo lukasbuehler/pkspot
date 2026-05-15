@@ -11,6 +11,7 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { MatCardModule } from "@angular/material/card";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { map } from "rxjs/operators";
@@ -43,6 +44,7 @@ interface CommunitySectionItem {
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    MatProgressSpinnerModule,
     MatTooltipModule,
     RouterLink,
     SpotListComponent,
@@ -61,6 +63,11 @@ export class CommunityLandingPageComponent {
   openProgress = input<number>(1);
   backLabel = input<string | null>(null);
   backTypeLabel = input<string | null>(null);
+  loading = input(false);
+  loadingTitle = input<string>("");
+  loadingTotalSpots = input<number | null>(null);
+  loadingScope = input<CommunityPanelData["scope"] | undefined>(undefined);
+  loadingCountryCode = input<string | null | undefined>(undefined);
 
   /** Emitted when the user closes the panel (panel mode only). */
   closePanel = output<void>();
@@ -113,6 +120,10 @@ export class CommunityLandingPageComponent {
   );
 
   heading = computed(() => {
+    if (this.loading()) {
+      return this.loadingTitle();
+    }
+
     const data = this.communityData();
     return data?.displayName ?? "";
   });
@@ -131,7 +142,7 @@ export class CommunityLandingPageComponent {
   });
 
   scopeLabel = computed(() => {
-    const scope = this.communityData()?.scope;
+    const scope = this.loading() ? this.loadingScope() : this.communityData()?.scope;
     if (!scope) {
       return "Community";
     }
@@ -167,7 +178,11 @@ export class CommunityLandingPageComponent {
   topRatedCount = computed(() => this.communityData()?.topRatedCount ?? 0);
   dryCount = computed(() => this.communityData()?.dryCount ?? 0);
   countryFlag = computed(() =>
-    this._getCountryFlag(this.communityData()?.country.code),
+    this._getCountryFlag(
+      this.loading()
+        ? this.loadingCountryCode()
+        : this.communityData()?.country.code,
+    ),
   );
   childCommunities = computed(
     () => this.communityData()?.childCommunities ?? [],
