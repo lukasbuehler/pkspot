@@ -1,0 +1,61 @@
+<div class="spot-picker">
+  <!-- SearchFieldComponent doesn't currently accept a placeholder input;
+       the label is rendered above it instead. -->
+  @if (label()) {
+    <p class="mat-label-large picker-label">{{ label() }}</p>
+  }
+  <app-search-field
+    appearance="outline"
+    [onlySpots]="true"
+    (spotSelected)="onSpotSelected($event)"
+  ></app-search-field>
+
+  @if (max() > 0) {
+    <p class="mat-label-small picker-hint">
+      <ng-container i18n="@@spot_picker.limit_hint">
+        Up to {{ max() }} spots
+      </ng-container>
+      ({{ value().length }}/{{ max() }})
+    </p>
+  }
+
+  @if (chips().length > 0) {
+    <ul class="chip-list">
+      @for (chip of chips(); track chip.id) {
+        <li class="chip">
+          @if (chip.spot?.previewImageSrc(); as src) {
+            <div class="chip-thumb">
+              <img [ngSrc]="src" fill alt="" />
+            </div>
+          } @else {
+            <div class="chip-thumb chip-thumb-placeholder">
+              <mat-icon>image</mat-icon>
+            </div>
+          }
+          <span class="chip-name text-truncate">
+            @if (chip.spot; as spot) {
+              {{ spot.name() }}
+            } @else {
+              <mat-progress-spinner
+                diameter="14"
+                mode="indeterminate"
+              ></mat-progress-spinner>
+              <span class="chip-id-fallback">{{ chip.id }}</span>
+            }
+          </span>
+          <button
+            type="button"
+            mat-icon-button
+            class="chip-remove"
+            [disabled]="disabled()"
+            (click)="remove(chip.id)"
+            matTooltip="Remove"
+            aria-label="Remove spot"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

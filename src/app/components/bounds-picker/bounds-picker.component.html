@@ -1,0 +1,56 @@
+@if (mapsApiService.isApiLoaded()) {
+  <div class="bounds-picker">
+    @if (!internalBounds()) {
+      <p class="mat-label-medium picker-hint">
+        <ng-container i18n="@@bounds_picker.hint_empty">
+          Click on the map to drop a rectangle around the event area. You can
+          then drag and resize it.
+        </ng-container>
+      </p>
+    } @else {
+      <div class="bounds-picker-toolbar">
+        <p class="mat-label-medium picker-hint">
+          <ng-container i18n="@@bounds_picker.hint_existing">
+            Drag the rectangle or resize its corners to fit the event area.
+          </ng-container>
+        </p>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="clear()"
+          class="ms-auto"
+        >
+          <mat-icon>refresh</mat-icon>
+          <span i18n="@@bounds_picker.reset">Reset</span>
+        </button>
+      </div>
+    }
+
+    <google-map
+      class="picker-map"
+      [options]="mapOptions"
+      [center]="initialCenter()"
+      [zoom]="initialZoom()"
+      (mapClick)="onMapClick($event)"
+    >
+      @if (internalBounds(); as b) {
+        <map-rectangle
+          [bounds]="{
+            north: b.north,
+            south: b.south,
+            east: b.east,
+            west: b.west,
+          }"
+          [options]="rectangleOptions"
+          (boundsChanged)="onRectangleBoundsChanged()"
+        ></map-rectangle>
+      }
+    </google-map>
+  </div>
+} @else {
+  <div class="bounds-picker-loading">
+    <p class="mat-body-medium" i18n="@@bounds_picker.loading">
+      Loading map…
+    </p>
+  </div>
+}

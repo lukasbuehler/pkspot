@@ -7,6 +7,7 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from "@angular/core";
 import {
   FormBuilder,
@@ -17,27 +18,50 @@ import {
 } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCheckboxModule } from "@angular/material/checkbox";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import { MatNativeDateModule } from "@angular/material/core";
+import { MatDividerModule } from "@angular/material/divider";
+import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
-import { MatDividerModule } from "@angular/material/divider";
+import { MatTimepickerModule } from "@angular/material/timepicker";
 import { Timestamp } from "firebase/firestore";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { EventSchema } from "../../../db/schemas/EventSchema";
+import {
+  EventBoundsSchema,
+  EventSchema,
+} from "../../../db/schemas/EventSchema";
+import { StorageBucket } from "../../../db/schemas/Media";
+import { SearchService } from "../../services/search.service";
+import { BoundsPickerComponent } from "../bounds-picker/bounds-picker.component";
+import { MediaUpload } from "../media-upload/media-upload.component";
+import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
 
 /**
- * Admin event editor. Self-contained reactive form covering the
- * essential event fields. Reused by:
- *  - event-page (edit existing event inline; toggled via isEditing)
- *  - event-create-page (create new event)
+ * Admin event editor. Single reactive form for both create AND edit:
+ * the Required section is always visible up top; the Optional details
+ * live in an expansion panel below so creating a new event only asks
+ * for the essentials.
  *
- * Specialized fields (`inline_spots`, `area_polygon`, `promo_region`,
- * `custom_markers`, `challenge_spot_map`) are intentionally left out of
- * this form — admins edit those in the Firestore console until we
- * build dedicated visual editors. The form preserves any existing
- * values for those fields on save (it merges into the input event's
- * data rather than overwriting).
+ * Pickers used:
+ *   - Date + time: mat-datepicker + mat-timepicker (split internally,
+ *     composed back into a Timestamp on save).
+ *   - Image fields: <app-media-upload> writing to Firebase Storage
+ *     under `event_media/`. On upload completion we capture the
+ *     returned URL and patch the corresponding form control.
+ *   - Bounds: <app-bounds-picker> (small map with a draggable +
+ *     editable rectangle).
+ *   - Spot list: <app-spot-picker> (chip list backed by SearchField).
+ *   - Community keys: chip list auto-suggested from event center
+ *     vs. published community circles. User can add / remove freely.
+ *
+ * Specialized fields (inline_spots, area_polygon, promo_region,
+ * custom_markers, challenge_spot_map, structured_data) are still
+ * Firestore-console territory — they're preserved on save via the
+ * patch surface (we only emit the fields this form owns).
  */
 @Component({
   selector: "app-event-edit-form",
@@ -46,11 +70,19 @@ import { EventSchema } from "../../../db/schemas/EventSchema";
     ReactiveFormsModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatChipsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatDividerModule,
+    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     MatSelectModule,
-    MatDividerModule,
+    MatTimepickerModule,
+    BoundsPickerComponent,
+    MediaUpload,
+    SpotPickerComponent,
   ],
   templateUrl: "./event-edit-form.component.html",
   styleUrl: "./event-edit-form.component.scss",
@@ -60,7 +92,7 @@ export class EventEditFormComponent {
   /** Existing event to edit. When null, the form is in create mode. */
   event = input<PkEvent | null>(null);
 
-  /** Hide the Delete button (e.g., on the create page). Defaults to true when editing. */
+  /** Hide the Delete button (e.g., on the create page). */
   showDeleteButton = input<boolean>(true);
 
   /** Disable controls while a parent-driven save is in flight. */
@@ -72,35 +104,93 @@ export class EventEditFormComponent {
   delete = output<void>();
 
   private _fb = inject(FormBuilder);
+  private _searchService = inject(SearchService);
 
+  /** Storage folder for banner / logo / sponsor-logo uploads. */
+  readonly eventMediaBucket = StorageBucket.EventMedia;
+
+  // ---------------------------------------------------------------------
+  // Form structure
+  //
+  // Required section (always visible): name, venue, locality, dates,
+  // bounds (via the map picker).
+  //
+  // Everything else lives under the Optional details expansion below.
+  // Dates are split into _date / _time controls and recomposed in
+  // onSubmit so we can use the friendlier pickers.
+  // ---------------------------------------------------------------------
   form: FormGroup = this._fb.group({
     name: ["", Validators.required],
-    description: [""],
-    slug: ["", [Validators.pattern(/^[a-z0-9-]*$/)]],
     venue_string: ["", Validators.required],
     locality_string: ["", Validators.required],
-    start: ["", Validators.required],
-    end: ["", Validators.required],
+    start_date: [null as Date | null, Validators.required],
+    start_time: [null as Date | null, Validators.required],
+    end_date: [null as Date | null, Validators.required],
+    end_time: [null as Date | null, Validators.required],
+
+    // Optional
+    description: [""],
+    slug: ["", [Validators.pattern(/^[a-z0-9-]*$/)]],
     url: [""],
     published: [true],
     banner_src: [""],
     banner_fit: ["cover"],
     banner_accent_color: [""],
+    logo_src: [""],
     focus_zoom: [null as number | null],
-    spot_ids_csv: [""],
-    community_keys_csv: [""],
     series_ids_csv: [""],
-    bounds_north: [null as number | null, Validators.required],
-    bounds_south: [null as number | null, Validators.required],
-    bounds_east: [null as number | null, Validators.required],
-    bounds_west: [null as number | null, Validators.required],
     sponsor_name: [""],
     sponsor_url: [""],
     sponsor_logo_src: [""],
   });
 
+  /**
+   * Bounds picker state — kept outside the FormGroup because the
+   * picker emits an object, not a flat scalar. Required on save.
+   */
+  bounds = signal<EventBoundsSchema | null>(null);
+  /**
+   * Spot IDs the event highlights. Kept outside the FormGroup for
+   * the same reason — chip list rather than a scalar form control.
+   */
+  spotIds = signal<string[]>([]);
+  /**
+   * Community keys to attach. Pre-filled from the event's existing
+   * keys, augmented with auto-suggestions derived from the center of
+   * the bounds rectangle.
+   */
+  communityKeys = signal<string[]>([]);
+  /** Community keys auto-suggested from the current bounds center. */
+  autoSuggestedCommunityKeys = signal<string[]>([]);
+
   /** Whether the parent passed in an existing event (vs. create mode). */
   readonly isEditMode = computed(() => this.event() !== null);
+
+  /** Center of the bounds rectangle — used for community auto-suggest. */
+  readonly boundsCenter = computed(() => {
+    const b = this.bounds();
+    if (!b) return null;
+    return {
+      lat: (b.north + b.south) / 2,
+      lng: (b.east + b.west) / 2,
+    };
+  });
+
+  /** True if the form has at least one optional field populated (for expansion default-open). */
+  readonly hasAnyOptionalValues = computed(() => {
+    const e = this.event();
+    if (!e) return false;
+    return !!(
+      e.description ||
+      e.slug ||
+      e.url ||
+      e.bannerSrc ||
+      e.logoSrc ||
+      e.sponsor ||
+      e.focusZoom ||
+      (e.seriesIds && e.seriesIds.length > 0)
+    );
+  });
 
   showDeleteConfirm = signal<boolean>(false);
 
@@ -113,6 +203,9 @@ export class EventEditFormComponent {
           published: true,
           banner_fit: "cover",
         });
+        this.bounds.set(null);
+        this.spotIds.set([]);
+        this.communityKeys.set([]);
         return;
       }
       this.form.reset({
@@ -121,35 +214,83 @@ export class EventEditFormComponent {
         slug: e.slug ?? "",
         venue_string: e.venueString,
         locality_string: e.localityString,
-        start: toDatetimeLocal(e.start),
-        end: toDatetimeLocal(e.end),
+        start_date: e.start,
+        start_time: e.start,
+        end_date: e.end,
+        end_time: e.end,
         url: e.url ?? "",
         published: e.published,
         banner_src: e.bannerSrc ?? "",
         banner_fit: e.bannerFit,
         banner_accent_color: e.bannerAccentColor ?? "",
+        logo_src: e.logoSrc ?? "",
         focus_zoom: e.focusZoom ?? null,
-        spot_ids_csv: e.spotIds.join(", "),
-        community_keys_csv: e.communityKeys.join(", "),
         series_ids_csv: e.seriesIds.join(", "),
-        bounds_north: e.bounds.north,
-        bounds_south: e.bounds.south,
-        bounds_east: e.bounds.east,
-        bounds_west: e.bounds.west,
         sponsor_name: e.sponsor?.name ?? "",
         sponsor_url: e.sponsor?.url ?? "",
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
       });
+      this.bounds.set(e.bounds);
+      this.spotIds.set([...e.spotIds]);
+      this.communityKeys.set([...e.communityKeys]);
+    });
+
+    // Recompute auto-suggested communities whenever the bounds center
+    // moves. Cheap — `listCommunities()` is in-memory after first call
+    // (Typesense response cached by SearchService).
+    effect(() => {
+      const center = this.boundsCenter();
+      if (!center) {
+        this.autoSuggestedCommunityKeys.set([]);
+        return;
+      }
+      this._refreshSuggestedCommunities(center);
     });
   }
 
-  /** Whether to show the sponsor sub-form (any sponsor field has content). */
-  get hasSponsor(): boolean {
-    return !!(
-      this.form.value.sponsor_name ||
-      this.form.value.sponsor_url ||
-      this.form.value.sponsor_logo_src
+  /**
+   * Suggested community keys that aren't already in the user's
+   * `communityKeys` selection — these are the chips we offer with a
+   * "+ Add" affordance.
+   */
+  readonly newSuggestedCommunities = computed(() => {
+    const current = new Set(this.communityKeys());
+    return this.autoSuggestedCommunityKeys().filter((k) => !current.has(k));
+  });
+
+  onBoundsChange(bounds: EventBoundsSchema): void {
+    this.bounds.set(bounds);
+  }
+
+  onSpotIdsChange(ids: string[]): void {
+    this.spotIds.set(ids);
+  }
+
+  removeCommunityKey(key: string): void {
+    this.communityKeys.update((keys) => keys.filter((k) => k !== key));
+  }
+
+  addCommunityKey(key: string): void {
+    this.communityKeys.update((keys) =>
+      keys.includes(key) ? keys : [...keys, key]
     );
+  }
+
+  /**
+   * Handle a new image upload from any of the three MediaUpload slots.
+   * The MediaUpload component emits the resulting storage URL via
+   * `newMedia.src`; we patch the corresponding form control with it.
+   */
+  onBannerUploaded(event: { src: string }): void {
+    this.form.patchValue({ banner_src: event.src });
+  }
+
+  onLogoUploaded(event: { src: string }): void {
+    this.form.patchValue({ logo_src: event.src });
+  }
+
+  onSponsorLogoUploaded(event: { src: string }): void {
+    this.form.patchValue({ sponsor_logo_src: event.src });
   }
 
   onSubmit() {
@@ -159,29 +300,39 @@ export class EventEditFormComponent {
     }
 
     const v = this.form.value;
+    const start = combineDateAndTime(v.start_date, v.start_time);
+    const end = combineDateAndTime(v.end_date, v.end_time);
+    if (!start || !end) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const bounds = this.bounds();
+    if (!bounds) {
+      // Bounds is required — flag it implicitly so the user sees a hint.
+      // Form-level error UX is handled in the template.
+      return;
+    }
+
     const patch: Partial<EventSchema> = {
       name: v.name!.trim(),
       description: trimOrUndefined(v.description),
       slug: trimOrUndefined(v.slug?.toLowerCase()),
       venue_string: v.venue_string!.trim(),
       locality_string: v.locality_string!.trim(),
-      start: Timestamp.fromDate(new Date(v.start)),
-      end: Timestamp.fromDate(new Date(v.end)),
+      start: Timestamp.fromDate(start),
+      end: Timestamp.fromDate(end),
       url: trimOrUndefined(v.url),
       published: v.published === true,
       banner_src: trimOrUndefined(v.banner_src),
       banner_fit: v.banner_fit ?? "cover",
       banner_accent_color: trimOrUndefined(v.banner_accent_color),
+      logo_src: trimOrUndefined(v.logo_src),
       focus_zoom: numberOrUndefined(v.focus_zoom),
-      spot_ids: csvToArray(v.spot_ids_csv),
-      community_keys: csvToArray(v.community_keys_csv),
+      spot_ids: [...this.spotIds()],
+      community_keys: [...this.communityKeys()],
       series_ids: csvToArray(v.series_ids_csv),
-      bounds: {
-        north: numberOrThrow(v.bounds_north, "bounds_north"),
-        south: numberOrThrow(v.bounds_south, "bounds_south"),
-        east: numberOrThrow(v.bounds_east, "bounds_east"),
-        west: numberOrThrow(v.bounds_west, "bounds_west"),
-      },
+      bounds,
       sponsor:
         v.sponsor_name?.trim() ||
         v.sponsor_url?.trim() ||
@@ -213,6 +364,57 @@ export class EventEditFormComponent {
     this.showDeleteConfirm.set(false);
     this.delete.emit();
   }
+
+  private async _refreshSuggestedCommunities(center: {
+    lat: number;
+    lng: number;
+  }): Promise<void> {
+    try {
+      const communities = await this._searchService.listCommunities();
+      const matches = communities
+        .filter((c) => {
+          if (!c.boundsCenter || typeof c.boundsRadiusM !== "number") {
+            return false;
+          }
+          return this._isPointInsideCircle(
+            center,
+            { lat: c.boundsCenter[0], lng: c.boundsCenter[1] },
+            c.boundsRadiusM
+          );
+        })
+        .map((c) => c.communityKey);
+      this.autoSuggestedCommunityKeys.set(matches);
+
+      // On first arrival (no community keys yet on a fresh event), pre-fill.
+      // We don't auto-add later to respect manual edits the admin makes.
+      const isCreateMode = untracked(() => !this.event());
+      const current = untracked(() => this.communityKeys());
+      if (isCreateMode && current.length === 0 && matches.length > 0) {
+        this.communityKeys.set([...matches]);
+      }
+    } catch (err) {
+      console.warn("EventEditForm: community auto-suggest failed", err);
+      this.autoSuggestedCommunityKeys.set([]);
+    }
+  }
+
+  /** Approximate point-in-circle test in meters via haversine. */
+  private _isPointInsideCircle(
+    point: { lat: number; lng: number },
+    center: { lat: number; lng: number },
+    radiusM: number
+  ): boolean {
+    const R = 6371e3;
+    const φ1 = (center.lat * Math.PI) / 180;
+    const φ2 = (point.lat * Math.PI) / 180;
+    const Δφ = ((point.lat - center.lat) * Math.PI) / 180;
+    const Δλ = ((point.lng - center.lng) * Math.PI) / 180;
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const distance = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return distance <= radiusM;
+  }
 }
 
 function trimOrUndefined(value: string | null | undefined): string | undefined {
@@ -224,14 +426,6 @@ function numberOrUndefined(value: number | null | undefined): number | undefined
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
-function numberOrThrow(value: number | null | undefined, field: string): number {
-  const n = numberOrUndefined(value);
-  if (n === undefined) {
-    throw new Error(`EventEditForm: ${field} must be a finite number.`);
-  }
-  return n;
-}
-
 function csvToArray(value: string | null | undefined): string[] {
   return (value ?? "")
     .split(",")
@@ -240,18 +434,22 @@ function csvToArray(value: string | null | undefined): string[] {
 }
 
 /**
- * Format a Date as `YYYY-MM-DDTHH:mm` for <input type="datetime-local">.
- * Uses local time on purpose — the input is local-time-only, so we
- * round-trip through `new Date(...)` on save which gives a proper UTC
- * Timestamp.
+ * Compose a date-only `Date` and a time-only `Date` (from mat-datepicker
+ * + mat-timepicker respectively) into a single `Date`. The date side
+ * provides year/month/day; the time side provides hours/minutes.
  */
-function toDatetimeLocal(date: Date): string {
-  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const yyyy = date.getFullYear();
-  const mm = pad(date.getMonth() + 1);
-  const dd = pad(date.getDate());
-  const hh = pad(date.getHours());
-  const mi = pad(date.getMinutes());
-  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+function combineDateAndTime(
+  date: Date | string | null | undefined,
+  time: Date | string | null | undefined
+): Date | null {
+  const d = date instanceof Date ? date : date ? new Date(date) : null;
+  const t = time instanceof Date ? time : time ? new Date(time) : null;
+  if (!d || Number.isNaN(d.getTime())) return null;
+  const out = new Date(d.getTime());
+  if (t && !Number.isNaN(t.getTime())) {
+    out.setHours(t.getHours(), t.getMinutes(), 0, 0);
+  } else {
+    out.setHours(0, 0, 0, 0);
+  }
+  return out;
 }
