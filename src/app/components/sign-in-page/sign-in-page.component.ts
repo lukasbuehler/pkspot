@@ -26,6 +26,7 @@ import { OAuthSignInButtonsComponent } from "../oauth-sign-in-buttons/oauth-sign
 import { UiLanguageService } from "../../services/ui-language.service";
 import { languageCodes } from "../../../scripts/Languages";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
 
 @Component({
   selector: "app-sign-in-page",
@@ -44,6 +45,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
     MatIconModule,
     MatTooltipModule,
     OAuthSignInButtonsComponent,
+    AutoScrollOnFocusDirective,
   ],
 })
 export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -88,7 +90,7 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
     private _authService: AuthenticationService,
     private _formBuilder: UntypedFormBuilder,
     private _router: Router,
-    private _route: ActivatedRoute
+    private _route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
@@ -99,7 +101,7 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
       $localize`:@@signin.meta.title:Sign in`,
       $localize`:@@signin.meta.description:Sign in to PK Spot or create a free account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.`,
       undefined,
-      "/sign-in"
+      "/sign-in",
     );
 
     this.signInForm = this._formBuilder.group({
@@ -158,7 +160,7 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
     // Guard against double submissions
     if (this.isSubmitting) {
       console.warn(
-        "Sign-in already in progress, ignoring duplicate submission"
+        "Sign-in already in progress, ignoring duplicate submission",
       );
       return;
     }
@@ -197,7 +199,7 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
             break;
         }
         this.isSubmitting = false;
-      }
+      },
     );
   }
 

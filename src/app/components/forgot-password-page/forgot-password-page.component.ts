@@ -16,6 +16,7 @@ import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
 import { RecaptchaService } from "../../services/recaptcha.service";
 import { ConsentService } from "../../services/consent.service";
+import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
 
 @Component({
   selector: "app-forgot-password-page",
@@ -30,6 +31,7 @@ import { ConsentService } from "../../services/consent.service";
     MatError,
     MatButton,
     MatIcon,
+    AutoScrollOnFocusDirective,
   ],
 })
 export class ForgotPasswordPageComponent implements OnInit {
@@ -47,7 +49,7 @@ export class ForgotPasswordPageComponent implements OnInit {
     private _formBuilder: UntypedFormBuilder,
     private _router: Router,
     private _recaptchaService: RecaptchaService,
-    private _consentService: ConsentService
+    private _consentService: ConsentService,
   ) {
     this.forgotPasswordForm = this._formBuilder.group({
       email: ["", [Validators.required, Validators.email]],
@@ -61,13 +63,13 @@ export class ForgotPasswordPageComponent implements OnInit {
       $localize`:@@forgot_password.meta.title:Reset password`,
       $localize`:@@forgot_password.meta.description:Reset your PK Spot password to get back into your parkour spots account.`,
       undefined,
-      "/forgot-password"
+      "/forgot-password",
     );
 
     // Don't setup reCAPTCHA immediately - wait for explicit user interaction
     // This prevents API calls during page load even if consent was previously granted
     console.log(
-      "Forgot password component initialized, waiting for user consent interaction"
+      "Forgot password component initialized, waiting for user consent interaction",
     );
 
     // Listen for consent changes
@@ -114,7 +116,7 @@ export class ForgotPasswordPageComponent implements OnInit {
         () => {
           // Response expired. Ask user to solve reCAPTCHA again.
           console.error("Response expired");
-        }
+        },
       )
       .then((recaptcha) => {
         this.recaptcha = recaptcha;

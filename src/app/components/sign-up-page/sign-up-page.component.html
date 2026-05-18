@@ -1,4 +1,4 @@
-<div class="container" style="padding-top: 80px">
+<div class="container keyboard-padding" style="padding-top: 80px">
   <!-- <div class="row justify-content-center">
     <div class="col-md-8">
       <div class="alert alert-danger" color="">
@@ -65,14 +65,26 @@
       >
         <mat-form-field appearance="outline">
           <mat-label i18n>E-Mail address</mat-label>
-          <input matInput type="email" formControlName="email" required />
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            required
+            appAutoScrollOnFocus
+          />
           <mat-hint i18n
             >The e-mail address needs to be verified later.</mat-hint
           >
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label i18n>Password</mat-label>
-          <input matInput type="password" formControlName="password" required />
+          <input
+            matInput
+            type="password"
+            formControlName="password"
+            required
+            appAutoScrollOnFocus
+          />
           <mat-hint i18n>Choose a strong password.</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
@@ -82,6 +94,7 @@
             type="password"
             formControlName="repeatPassword"
             required
+            appAutoScrollOnFocus
           />
           <mat-hint i18n
             >The repeated password needs to match the password
@@ -102,6 +115,7 @@
               type="text"
               formControlName="displayName"
               required
+              appAutoScrollOnFocus
             />
           </mat-form-field>
         </div>
@@ -124,10 +138,10 @@
 
         <div id="reCaptchaDiv" class="d-flex justify-content-center"></div>
 
-        @if(signUpError) {
-        <div class="mt-3 alert alert-danger">
-          {{ signUpError }}
-        </div>
+        @if (signUpError) {
+          <div class="mt-3 alert alert-danger">
+            {{ signUpError }}
+          </div>
         }
 
         <div class="mt-5 mb-5 d-flex flex-row justify-content-center">

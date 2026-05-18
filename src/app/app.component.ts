@@ -68,6 +68,7 @@ import { BackHandlingService } from "./services/back-handling.service";
 import { CheckInService } from "./services/check-in.service";
 import { SpotId } from "../db/schemas/SpotSchema";
 import { MetaTagService } from "./services/meta-tag.service";
+import { KeyboardService } from "./services/keyboard.service";
 
 interface ButtonBase {
   name: string;
@@ -167,6 +168,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private _backHandlingService = inject(BackHandlingService);
+  private _keyboardService = inject(KeyboardService);
   public checkInService = inject(CheckInService);
   readonly checkInEnabled = environment.features.checkIns;
   readonly activityEnabled = environment.features.activity;
@@ -251,6 +253,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     } else {
       this.isEmbedded.set(false);
     }
+
+    this._keyboardService.init();
 
     this.router.events
       .pipe(filter((event) => event instanceof RoutesRecognized))

@@ -21,6 +21,7 @@ import { MatDividerModule } from "@angular/material/divider";
 import { RecaptchaService } from "../../services/recaptcha.service";
 import { ConsentService } from "../../services/consent.service";
 import { Subscription, filter } from "rxjs";
+import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
 
 @Component({
   selector: "app-sign-up-page",
@@ -39,6 +40,7 @@ import { Subscription, filter } from "rxjs";
     MatIconModule,
     NgOptimizedImage,
     MatDividerModule,
+    AutoScrollOnFocusDirective,
   ],
 })
 export class SignUpPageComponent implements OnInit, OnDestroy {
@@ -55,7 +57,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     private _router: Router,
     private _route: ActivatedRoute,
     private _recaptchaService: RecaptchaService,
-    private _consentService: ConsentService
+    private _consentService: ConsentService,
   ) {}
 
   private _recaptchaSolved = false;
@@ -67,7 +69,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
       $localize`:@@signup.meta.title:Create account`,
       $localize`:@@signup.meta.description:Create a free PK Spot account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.`,
       undefined,
-      "/sign-up"
+      "/sign-up",
     );
 
     this.createAccountForm = this._formBuilder.group(
@@ -93,13 +95,13 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
             }
           },
         ],
-      }
+      },
     );
 
     // Don't setup reCAPTCHA immediately - wait for explicit user interaction
     // This prevents API calls during page load even if consent was previously granted
     console.log(
-      "Sign-up component initialized, waiting for user consent interaction"
+      "Sign-up component initialized, waiting for user consent interaction",
     );
 
     // Listen for consent changes
@@ -151,7 +153,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
         () => {
           // Response expired. Ask user to solve reCAPTCHA again.
           console.error("Response expired");
-        }
+        },
       )
       .then((recaptcha) => {
         this._recaptchaSetupCompleted = true;
@@ -178,7 +180,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     // Guard against double submissions
     if (this.isSubmitting) {
       console.warn(
-        "Account creation already in progress, ignoring duplicate submission"
+        "Account creation already in progress, ignoring duplicate submission",
       );
       return;
     }

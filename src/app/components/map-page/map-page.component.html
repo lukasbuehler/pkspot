@@ -90,12 +90,8 @@
       [editable]="true"
       [isEditing]="isEditing()"
       [pendingVoteCount]="pendingSpotEditsCount()"
-      [openProgress]="
-        responsiveService.isMobile() ? bottomSheetProgress() : 1
-      "
-      (isEditingChange)="
-        $event ? spotMap!.startEdit() : spotMap!.discardEdit()
-      "
+      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
+      (isEditingChange)="$event ? spotMap!.startEdit() : spotMap!.discardEdit()"
       (dismiss)="closeSpot()"
       (addBoundsClick)="spotMap!.addBounds()"
       (focusClick)="spotMap!.focusSpot(selectedSpot()!)"
@@ -217,9 +213,7 @@
       @fadeInOut
       class="d-block"
       [event]="event"
-      [openProgress]="
-        responsiveService.isMobile() ? bottomSheetProgress() : 1
-      "
+      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
       [backLabel]="panelBackTarget()?.label ?? null"
       [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
       (back)="goBackToPreviousPanel()"
@@ -231,9 +225,7 @@
       class="d-block"
       [loading]="true"
       [loadingTitle]="event.idOrSlug"
-      [openProgress]="
-        responsiveService.isMobile() ? bottomSheetProgress() : 1
-      "
+      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
       [backLabel]="panelBackTarget()?.label ?? null"
       [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
       (back)="goBackToPreviousPanel()"
@@ -244,9 +236,7 @@
       class="d-block"
       [communityDataInput]="communityData"
       [panelMode]="true"
-      [openProgress]="
-        responsiveService.isMobile() ? bottomSheetProgress() : 1
-      "
+      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
       [backLabel]="panelBackTarget()?.label ?? null"
       [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
       (back)="goBackToPreviousPanel()"
@@ -267,9 +257,7 @@
       [panelMode]="true"
       [backLabel]="panelBackTarget()?.label ?? null"
       [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
-      [openProgress]="
-        responsiveService.isMobile() ? bottomSheetProgress() : 1
-      "
+      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
       (back)="goBackToPreviousPanel()"
       (closePanel)="closeCommunityPanel()"
     ></app-community-landing-page>
@@ -279,12 +267,12 @@
       @fadeInOut
       [spots]="visibleSpots"
       [highlightedSpots]="highlightedSpots"
-        [mapZoom]="spotMap ? spotMap.mapZoom() : null"
-        [limit]="spotListLimit()"
-        [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
-        [withHrefLink]="false"
-        (spotClick)="selectSpot($event)"
-      ></app-spot-list>
+      [mapZoom]="spotMap ? spotMap.mapZoom() : null"
+      [limit]="spotListLimit()"
+      [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
+      [withHrefLink]="false"
+      (spotClick)="selectSpot($event)"
+    ></app-spot-list>
 
     <!--
     SEO body content: rendered at the bottom of the default sidebar so
@@ -554,7 +542,9 @@
 </h1>
 
 @if (!responsiveService.isInitialized()) {
-  <div class="d-flex flex-column gap-3 justify-content-center align-items-center h-100">
+  <div
+    class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
+  >
     <mat-icon style="height: 50px; width: 50px; font-size: 50px">map</mat-icon>
     <p class="mat-title-medium" i18n>Preparing map layout...</p>
   </div>
@@ -565,7 +555,7 @@
   >
     <div class="d-flex flex-row gap-3">
       @if (alainMode) {
-        <div class="spacer" style="width: 56px"></div>
+        <div class="spacer flex-shrink-0" style="width: 56px"></div>
       }
       <app-search-field
         class="position-relative w-100 mat-elevation-z3 overflow-hidden"
@@ -640,7 +630,7 @@
     >
       <div class="d-flex flex-row gap-2 align-items-center">
         @if (alainMode && responsiveService.isMobile()) {
-          <div class="spacer" style="width: 56px"></div>
+          <div class="spacer flex-shrink-0" style="width: 56px"></div>
         }
         <app-search-field
           class="flex-grow-1 mat-elevation-z3 overflow-hidden"

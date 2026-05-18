@@ -29,7 +29,8 @@ const config: CapacitorConfig = {
       providers: ["google.com", "apple.com"],
     },
     Keyboard: {
-      resize: "native",
+      resize: "none",
+      resizeOnFullScreen: true,
     },
   },
 };
