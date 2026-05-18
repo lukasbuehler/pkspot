@@ -44,6 +44,8 @@ export {
   applySpotEditOnCreate,
   evaluateSpotEditVotesOnVoteWrite,
   evaluatePendingSpotEditVotesOnSchedule,
+  reviewVerifiedSpotEdit,
+  setSpotVerification,
 } from "./spotEditFunctions";
 export {
   processImportChunkOnCreate,

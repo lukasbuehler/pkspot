@@ -52,6 +52,12 @@ export class SpotEditDetailsComponent {
     if (edit.approved === true) {
       return $localize`Approved`;
     }
+    if (edit.review_status === "pending") {
+      return $localize`Awaiting organization review`;
+    }
+    if (edit.review_status === "rejected") {
+      return $localize`Rejected by organization`;
+    }
     const status = edit.processing_status;
     if (status === "BLOCKED_ICONIC_SPOT") {
       return $localize`Pending community vote (iconic spot)`;

@@ -6,6 +6,7 @@ import { MediaSchema } from "../schemas/Media";
 import { ChallengePreviewSchema } from "./SpotChallengeSchema";
 import { SpotReportReason } from "./SpotReportSchema";
 import { SpotLandingSchema } from "./SpotLandingSchema";
+import { OrganizationReferenceSchema } from "./OrganizationSchema";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
@@ -54,6 +55,14 @@ export interface SpotSchema {
   num_challenges?: number; // integer
 
   is_iconic?: boolean;
+  verification?: {
+    status: "verified";
+    organization_id: string;
+    organization: OrganizationReferenceSchema;
+    verified_by_user_id: string;
+    verified_at: Timestamp;
+    lock_edits: true;
+  };
   rating?: number; // from 0-5, where 0 means no rating. Default is 0, 1-5 set by cloud function.
   num_reviews?: number; // integer
   rating_histogram?: {

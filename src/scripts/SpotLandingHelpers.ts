@@ -117,7 +117,7 @@ export function isDrySpotCandidate(
 }
 
 export function deriveSpotCommunityData(
-  spotLike: Pick<SpotSchema, "address" | "type" | "amenities">,
+  spotLike: Pick<SpotSchema, "address" | "type" | "amenities" | "verification">,
 ): SpotLandingSchema | null {
   const country = getCountryMetadata(
     spotLike.address?.country?.code,
@@ -146,7 +146,7 @@ export function deriveSpotCommunityData(
     localityName,
     localitySlug,
     isDry: isDrySpotCandidate(spotLike),
-    organizationVerified: false,
+    organizationVerified: spotLike.verification?.status === "verified",
   };
 }
 

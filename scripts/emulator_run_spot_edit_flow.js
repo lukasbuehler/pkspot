@@ -710,6 +710,47 @@ async function testForcedVotingRejectsWithoutSubmitterSupport() {
   assert.deepEqual(spot.name, { en: "Voting No Submitter Base" });
 }
 
+async function testVerifiedSpotRoutesToOrganizationReview() {
+  const spotId = "integration-verified-review";
+  const editId = "verified-pending";
+  await db.collection("spots").doc(spotId).set({
+    name: { en: "Verified Base" },
+    location: new admin.firestore.GeoPoint(47.0, 8.0),
+    location_raw: { lat: 47.0, lng: 8.0 },
+    media: [],
+    address: null,
+    source: "pkspot",
+    verification: {
+      status: "verified",
+      organization_id: "pk-spot",
+      organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+      verified_by_user_id: "admin",
+      verified_at: timestampAt(8700),
+      lock_edits: true,
+    },
+  });
+
+  await db.collection("spots").doc(spotId).collection("edits").doc(editId).set(
+    editPayload({
+      type: "UPDATE",
+      offsetMs: 8800,
+      data: { name: { en: "Should Wait For Review" } },
+    })
+  );
+
+  const edit = await waitFor(async () => {
+    const latest = await getEdit(spotId, editId);
+    return latest.processing_status === "PENDING_ORG_REVIEW" ? latest : null;
+  }, "verified edit pending organization review");
+  const spot = await getSpot(spotId);
+
+  assert.equal(edit.approved, false);
+  assert.equal(edit.visibility, "private");
+  assert.equal(edit.review_status, "pending");
+  assert.equal(edit.review_organization_id, "pk-spot");
+  assert.deepEqual(spot.name, { en: "Verified Base" });
+}
+
 async function testUserContributionCounters() {
   const userSnap = await db.collection("users").doc(USER.uid).get();
   const data = userSnap.data();
@@ -756,6 +797,7 @@ async function main() {
   await testActivityQueriesUseRawTimestampDeterministically();
   await testForcedVotingFlowAppliesOnlyAfterEligibleVotes();
   await testForcedVotingRejectsWithoutSubmitterSupport();
+  await testVerifiedSpotRoutesToOrganizationReview();
   await testUserContributionCounters();
   await testLeaderboardsReflectApprovedEdits();
 

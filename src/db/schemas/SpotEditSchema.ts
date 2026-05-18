@@ -37,6 +37,12 @@ export interface SpotEditSchema {
   timestamp_raw_ms?: number;
   likes?: number;
   approved?: boolean;
+  visibility?: "public" | "private";
+  review_status?: "pending" | "approved" | "rejected";
+  review_organization_id?: string;
+  reviewed_by?: UserReferenceSchema;
+  reviewed_at?: Timestamp;
+  review_note?: string;
   processing_status?: string;
   blocked_reason?: string;
   processed_at?: Timestamp;

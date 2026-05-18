@@ -100,6 +100,14 @@
                 >stars</mat-icon
               >
             }
+            @if (spot()?.verification?.status === "verified") {
+              <mat-icon
+                style="width: 24px; flex-shrink: 0"
+                matTooltip="Verified by {{ spot()?.verification?.organization?.name }}"
+                i18n-matTooltip="@@spot.verified.tooltip"
+                >verified_user</mat-icon
+              >
+            }
             <span
               [@fadeSlideOnChange]="nameAnimKey()"
               [matTooltip]="spot()!.name()"

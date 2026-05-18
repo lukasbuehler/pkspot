@@ -7,6 +7,23 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.is_admin == true;
     }
 
+    function isOrganizationReviewer(organizationId) {
+      return request.auth.uid != null
+        && exists(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid)).data.role in ['owner', 'admin', 'reviewer'];
+    }
+
+    function canReadSpotEdit() {
+      return !('visibility' in resource.data)
+        || resource.data.visibility != 'private'
+        || (request.auth.uid != null && request.auth.uid == resource.data.user.uid)
+        || isAdmin()
+        || (
+          'review_organization_id' in resource.data
+          && isOrganizationReviewer(resource.data.review_organization_id)
+        );
+    }
+
     match /spots/{spotId}
     {
       // all the spots are visible to everyone, authenticated or not
@@ -72,9 +89,13 @@ service cloud.firestore {
 
       match /edits/{editId}
       {
-        allow read: if true; // edits are publicly readable
+        allow read: if canReadSpotEdit();
         allow create: if request.auth.uid != null 
-          && request.auth.uid == request.resource.data.user.uid;
+          && request.auth.uid == request.resource.data.user.uid
+          && (
+            get(/databases/$(database)/documents/spots/$(spotId)).data.verification.status != 'verified'
+            || request.resource.data.visibility == 'private'
+          );
         allow update: if false;
         allow delete: if isAdmin();
 
@@ -199,6 +220,17 @@ service cloud.firestore {
       }
     }
 
+    match /organizations/{organizationId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /members/{userId} {
+        allow read: if request.auth.uid != null
+          && (request.auth.uid == userId || isAdmin() || isOrganizationReviewer(organizationId));
+        allow create, update, delete: if isAdmin();
+      }
+    }
+
     match /events/{eventId} {
       allow read: if true;
       // Admin-only writes for now. Future plan: open to authed users for
@@ -246,7 +278,7 @@ service cloud.firestore {
     }
     // Collection Group Queries
     match /{path=**}/edits/{editId} {
-      allow read: if true;
+      allow read: if canReadSpotEdit();
     }
   }
 }

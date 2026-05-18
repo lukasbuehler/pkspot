@@ -1,0 +1,47 @@
+<section class="review-inbox">
+  <h1 class="mat-headline-medium" i18n>Organization review inbox</h1>
+
+  @if (loading()) {
+    <p i18n>Loading review requests...</p>
+  } @else if (items().length === 0) {
+    <p i18n>No pending review requests.</p>
+  } @else {
+    <div class="review-inbox__list">
+      @for (item of items(); track item.spotId + '/' + item.edit.id) {
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              {{ item.spot?.name() || "Spot" }}
+            </mat-card-title>
+            <mat-card-subtitle>
+              {{ item.organization.name }} · {{ item.edit.user.display_name || item.edit.user.uid }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <app-spot-edit-summary [edit]="item.edit"></app-spot-edit-summary>
+          </mat-card-content>
+          <mat-card-actions>
+            <button
+              matButton="filled"
+              color="primary"
+              [disabled]="actionInFlight() === item.spotId + '/' + item.edit.id"
+              (click)="decide(item, 'approve')"
+            >
+              <mat-icon>done</mat-icon>
+              <span i18n>Approve</span>
+            </button>
+            <button
+              matButton="outlined"
+              color="warn"
+              [disabled]="actionInFlight() === item.spotId + '/' + item.edit.id"
+              (click)="decide(item, 'reject')"
+            >
+              <mat-icon>close</mat-icon>
+              <span i18n>Reject</span>
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</section>

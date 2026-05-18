@@ -47,7 +47,39 @@
       "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
+          "fieldPath": "visibility",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp_raw_ms",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "edits",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
           "fieldPath": "user.uid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp_raw_ms",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "edits",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "review_organization_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "review_status",
           "order": "ASCENDING"
         },
         {

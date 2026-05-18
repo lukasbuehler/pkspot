@@ -1042,8 +1042,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         // Successfully updated - completely stop editing to destroy polygon
         this.isEditing.set(false);
 
+        const saveMessage =
+          spot instanceof Spot && spot.verification?.status === "verified"
+            ? $localize`Edit submitted for organization review`
+            : $localize`Spot saved successfully`;
         this.snackBar.open(
-          $localize`Spot saved successfully`,
+          saveMessage,
           $localize`Dismiss`,
           { duration: 5000 }
         );

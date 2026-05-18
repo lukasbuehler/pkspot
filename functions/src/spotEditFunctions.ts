@@ -6,6 +6,7 @@ import {
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 
 interface SpotEditSchema {
@@ -13,6 +14,15 @@ interface SpotEditSchema {
   timestamp: any;
   likes: number;
   approved: boolean;
+  visibility?: "public" | "private";
+  review_status?: "pending" | "approved" | "rejected";
+  review_organization_id?: string;
+  reviewed_by?: {
+    uid: string;
+    [key: string]: any;
+  };
+  reviewed_at?: FirebaseFirestore.Timestamp;
+  review_note?: string;
   user: {
     uid: string;
     [key: string]: any;
@@ -114,13 +124,31 @@ export const applySpotEditOnCreate = onDocumentCreated(
       const spotSnapshot = await spotRef.get();
       const spotData = spotSnapshot.exists ? (spotSnapshot.data() as any) : null;
 
-      // Soft lock: do not auto-apply edits to iconic or verification-locked spots.
-      // Keep the edit document as a pending/moderation artifact for future voting flows.
+      // Verified spots use organization review, not community voting.
       if (editData.type === "UPDATE" && spotData) {
-        const isIconicSpot = spotData.is_iconic === true;
         const isVerificationLockedSpot =
           spotData.verification?.lock_edits === true ||
           spotData.verification?.status === "verified";
+        if (isVerificationLockedSpot) {
+          const reviewOrganizationId = spotData.verification?.organization_id;
+          if (!reviewOrganizationId) {
+            throw new Error("Verified spot is missing verification.organization_id");
+          }
+
+          await editSnapshot.ref.update({
+            approved: false,
+            visibility: "private",
+            review_status: "pending",
+            review_organization_id: reviewOrganizationId,
+            processing_status: "PENDING_ORG_REVIEW",
+            blocked_reason: "Spot is verified and requires organization review.",
+            processed_at: FieldValue.serverTimestamp(),
+          });
+          return;
+        }
+
+        // Soft lock: keep iconic voting behavior separate from verified review.
+        const isIconicSpot = spotData.is_iconic === true;
         // Per-spot override to test voting UI before global rollout.
         // Set `edit_policy.force_voting = true` on a spot document to force vote flow.
         const forceVotingForSpot = spotData.edit_policy?.force_voting === true;
@@ -530,6 +558,9 @@ async function markEditApprovedAndUpdateContributions(
 ): Promise<void> {
   await editRef.update({
     approved: true,
+    visibility: "public",
+    review_status:
+      editData.review_status === "pending" ? "approved" : editData.review_status,
     processing_status: processingStatus,
     blocked_reason: FieldValue.delete(),
     processed_at: FieldValue.serverTimestamp(),
@@ -562,6 +593,166 @@ async function markEditApprovedAndUpdateContributions(
   // Update leaderboards
   await updateLeaderboards(editData.user.uid, editData.type, db);
 }
+
+async function isOrganizationReviewer(
+  uid: string,
+  organizationId: string
+): Promise<boolean> {
+  const memberSnap = await admin
+    .firestore()
+    .doc(`organizations/${organizationId}/members/${uid}`)
+    .get();
+  const role = memberSnap.data()?.["role"];
+  return role === "owner" || role === "admin" || role === "reviewer";
+}
+
+async function isAdminUser(uid: string): Promise<boolean> {
+  const userSnap = await admin.firestore().doc(`users/${uid}`).get();
+  return userSnap.data()?.["is_admin"] === true;
+}
+
+export const reviewVerifiedSpotEdit = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "Sign in to review spot edits.");
+  }
+
+  const { spotId, editId, decision, reviewNote } = request.data ?? {};
+  if (
+    typeof spotId !== "string" ||
+    typeof editId !== "string" ||
+    (decision !== "approve" && decision !== "reject")
+  ) {
+    throw new HttpsError("invalid-argument", "Invalid review request.");
+  }
+
+  const db = admin.firestore();
+  const editRef = db.doc(`spots/${spotId}/edits/${editId}`);
+  const spotRef = db.doc(`spots/${spotId}`);
+
+  const reviewerSnap = await db.doc(`users/${uid}`).get();
+  const reviewer = {
+    uid,
+    display_name: reviewerSnap.data()?.["display_name"],
+    profile_picture: reviewerSnap.data()?.["profile_picture"],
+  };
+
+  await db.runTransaction(async (tx) => {
+    const [editSnap, spotSnap] = await Promise.all([
+      tx.get(editRef),
+      tx.get(spotRef),
+    ]);
+    if (!editSnap.exists || !spotSnap.exists) {
+      throw new HttpsError("not-found", "Spot edit was not found.");
+    }
+
+    const editData = editSnap.data() as SpotEditSchema;
+    const organizationId = editData.review_organization_id;
+    if (
+      editData.review_status !== "pending" ||
+      !organizationId ||
+      editData.type !== "UPDATE" ||
+      editData.processing_status === "APPLYING_ORG_REVIEW"
+    ) {
+      throw new HttpsError("failed-precondition", "Edit is not pending review.");
+    }
+
+    const reviewerIsAdmin = reviewerSnap.data()?.["is_admin"] === true;
+    const reviewerIsOrgMember = await isOrganizationReviewer(uid, organizationId);
+    if (!reviewerIsAdmin && !reviewerIsOrgMember) {
+      throw new HttpsError("permission-denied", "Not allowed to review this edit.");
+    }
+
+    if (decision === "reject") {
+      tx.update(editRef, {
+        approved: false,
+        visibility: "private",
+        review_status: "rejected",
+        reviewed_by: reviewer,
+        reviewed_at: FieldValue.serverTimestamp(),
+        review_note:
+          typeof reviewNote === "string" && reviewNote.trim().length > 0
+            ? reviewNote.trim()
+            : FieldValue.delete(),
+        processing_status: "REJECTED_ORG_REVIEW",
+        decision_at: FieldValue.serverTimestamp(),
+      });
+      return;
+    }
+
+    tx.update(editRef, {
+      processing_status: "APPLYING_ORG_REVIEW",
+      reviewed_by: reviewer,
+      reviewed_at: FieldValue.serverTimestamp(),
+    });
+  });
+
+  const refreshedEdit = await editRef.get();
+  const editData = refreshedEdit.data() as SpotEditSchema;
+  if (decision === "approve") {
+    await applyUpdateEditToSpot(spotRef, editData, spotId);
+    await editRef.update({
+      reviewed_by: reviewer,
+      reviewed_at: FieldValue.serverTimestamp(),
+      review_note:
+        typeof reviewNote === "string" && reviewNote.trim().length > 0
+          ? reviewNote.trim()
+          : FieldValue.delete(),
+    });
+    await markEditApprovedAndUpdateContributions(
+      editRef,
+      editData,
+      db,
+      "APPROVED_ORG_REVIEW"
+    );
+  }
+
+  return { ok: true };
+});
+
+export const setSpotVerification = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid || !(await isAdminUser(uid))) {
+    throw new HttpsError("permission-denied", "Admin access required.");
+  }
+
+  const { spotId, organizationId } = request.data ?? {};
+  if (typeof spotId !== "string") {
+    throw new HttpsError("invalid-argument", "spotId is required.");
+  }
+
+  const db = admin.firestore();
+  const spotRef = db.doc(`spots/${spotId}`);
+  if (organizationId === null) {
+    await spotRef.update({ verification: FieldValue.delete() });
+    return { ok: true };
+  }
+  if (typeof organizationId !== "string") {
+    throw new HttpsError("invalid-argument", "organizationId must be a string or null.");
+  }
+
+  const organizationSnap = await db.doc(`organizations/${organizationId}`).get();
+  if (!organizationSnap.exists) {
+    throw new HttpsError("not-found", "Organization was not found.");
+  }
+  const organization = organizationSnap.data() as Record<string, unknown>;
+  await spotRef.update({
+    verification: {
+      status: "verified",
+      organization_id: organizationId,
+      organization: {
+        id: organizationId,
+        name: organization["name"],
+        slug: organization["slug"],
+        ...(organization["logo_url"] ? { logo_url: organization["logo_url"] } : {}),
+      },
+      verified_by_user_id: uid,
+      verified_at: FieldValue.serverTimestamp(),
+      lock_edits: true,
+    },
+  });
+  return { ok: true };
+});
 
 async function tryAcquireEditApplyLock(
   editRef: FirebaseFirestore.DocumentReference

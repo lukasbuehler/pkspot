@@ -182,6 +182,22 @@ export const routes: Routes = [
       ),
     data: { routeName: "KML Import" },
   },
+  {
+    path: "organization-reviews",
+    loadComponent: () =>
+      import(
+        "./components/organization-review-inbox/organization-review-inbox.component"
+      ).then((m) => m.OrganizationReviewInboxComponent),
+    data: { routeName: "Organization Reviews" },
+  },
+  {
+    path: "organization-admin",
+    loadComponent: () =>
+      import("./components/organization-admin-page/organization-admin-page.component").then(
+        (m) => m.OrganizationAdminPageComponent
+      ),
+    data: { routeName: "Organization Admin" },
+  },
 
   // Embedded stuff
   {

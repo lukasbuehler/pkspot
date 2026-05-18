@@ -2,6 +2,7 @@ import { inject, Injectable } from "@angular/core";
 import { Timestamp } from "@angular/fire/firestore";
 import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
+import { Functions, httpsCallable } from "@angular/fire/functions";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import {
@@ -28,6 +29,7 @@ import {
 })
 export class SpotEditsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private _functions = inject(Functions, { optional: true });
 
   constructor() {
     super();
@@ -140,9 +142,12 @@ export class SpotEditsService extends ConsentAwareService {
       { type: "limit", limit: limitCount },
     ];
 
+    const publicFilters: QueryFilter[] = [
+      { fieldPath: "visibility", opStr: "==", value: "public" },
+    ];
     const result = await this._firestoreAdapter.getCollectionGroupWithMetadata<
       SpotEditSchema & { id: string }
-    >("edits", [], constraints, startAfterDoc);
+    >("edits", publicFilters, constraints, startAfterDoc);
 
     const edits = result.data.map((item) => {
       const spotId = this._extractSpotIdFromPath(item.path);
@@ -205,6 +210,7 @@ export class SpotEditsService extends ConsentAwareService {
     ];
 
     const filters: QueryFilter[] = [
+      { fieldPath: "visibility", opStr: "==", value: "public" },
       { fieldPath: "timestamp_raw_ms", opStr: ">", value: timestampRawMs },
     ];
 
@@ -255,7 +261,7 @@ export class SpotEditsService extends ConsentAwareService {
     return this._firestoreAdapter
       .collectionGroupSnapshotsWithMetadata<SpotEditSchema & { id: string }>(
         "edits",
-        [],
+        [{ fieldPath: "visibility", opStr: "==", value: "public" }],
         constraints
       )
       .pipe(
@@ -281,8 +287,18 @@ export class SpotEditsService extends ConsentAwareService {
       );
   }
 
-  addSpotEdit(spotId: string, edit: SpotEditSchema): Promise<string> {
-    const cleanEdit = removeUndefinedProperties(edit) as SpotEditSchema;
+  async addSpotEdit(spotId: string, edit: SpotEditSchema): Promise<string> {
+    const spot = await this._firestoreAdapter.getDocument<SpotSchema>(
+      `spots/${spotId}`
+    );
+    const visibility =
+      edit.type === "UPDATE" && spot?.verification?.status === "verified"
+        ? "private"
+        : "public";
+    const cleanEdit = removeUndefinedProperties({
+      visibility,
+      ...edit,
+    }) as SpotEditSchema;
 
     // Check if the edit data is empty - if so, don't create an edit
     if (!cleanEdit.data || Object.keys(cleanEdit.data).length === 0) {
@@ -333,6 +349,50 @@ export class SpotEditsService extends ConsentAwareService {
       `spots/${spotId}/edits/${editId}`,
       { approved: false }
     );
+  }
+
+  async getPendingOrganizationReviewEdits(
+    organizationId: string
+  ): Promise<Array<{ edit: SpotEditSchema & { id: string }; spotId: string }>> {
+    const filters: QueryFilter[] = [
+      {
+        fieldPath: "review_organization_id",
+        opStr: "==",
+        value: organizationId,
+      },
+      { fieldPath: "review_status", opStr: "==", value: "pending" },
+    ];
+    const constraints: QueryConstraintOptions[] = [
+      { type: "orderBy", fieldPath: "timestamp_raw_ms", direction: "desc" },
+    ];
+    const result = await this._firestoreAdapter.getCollectionGroupWithMetadata<
+      SpotEditSchema & { id: string }
+    >("edits", filters, constraints);
+    return result.data.map((edit) => ({
+      edit,
+      spotId: this._extractSpotIdFromPath(edit.path),
+    }));
+  }
+
+  async reviewVerifiedSpotEdit(
+    spotId: string,
+    editId: string,
+    decision: "approve" | "reject",
+    reviewNote?: string
+  ): Promise<void> {
+    if (!this._functions) {
+      throw new Error("Functions are unavailable in this environment.");
+    }
+    const callable = httpsCallable<
+      {
+        spotId: string;
+        editId: string;
+        decision: "approve" | "reject";
+        reviewNote?: string;
+      },
+      { ok: true }
+    >(this._functions, "reviewVerifiedSpotEdit");
+    await callable({ spotId, editId, decision, reviewNote });
   }
 
   setSpotEditVote(
