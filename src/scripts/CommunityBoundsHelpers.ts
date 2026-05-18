@@ -15,6 +15,15 @@ export interface CommunityBounds {
   bounds_radius_m: number;
 }
 
+export interface CommunityBoundsOptions {
+  /**
+   * Percentile distance to use for the radius. Localities can safely use the
+   * full extent; broader scopes should usually stay conservative so a single
+   * outlier does not blow up an entire country-sized circle.
+   */
+  radiusPercentile?: number;
+}
+
 function getSpotPoint(
   spot: CommunityBoundsSpot
 ): { lat: number; lng: number } | null {
@@ -83,8 +92,8 @@ function getDistanceMeters(
  *
  * Algorithm:
  *  - Centroid = arithmetic mean of all spot coordinates.
- *  - Radius = **80th percentile** distance from centroid to a spot, with
- *    a 5 % cushion. Using a percentile (not the max) keeps a single
+ *  - Radius = configurable percentile distance from centroid to a spot,
+ *    with a 5 % cushion. Using a percentile below 1 (not the max) keeps a single
  *    outlier spot from blowing up the circle — e.g. an overseas territory
  *    spot that would otherwise stretch France's circle across half of
  *    Europe. 80 % covers the vast majority of the community without
@@ -93,7 +102,8 @@ function getDistanceMeters(
  *    have a visible footprint.
  */
 export function computeCommunityBounds(
-  spots: CommunityBoundsSpot[]
+  spots: CommunityBoundsSpot[],
+  options: CommunityBoundsOptions = {},
 ): CommunityBounds | null {
   const points = spots
     .map((spot) => getSpotPoint(spot))
@@ -117,9 +127,9 @@ export function computeCommunityBounds(
     .map((point) => getDistanceMeters(center, point))
     .sort((left, right) => left - right);
 
-  // 80th-percentile distance (linear interpolation between the two nearest
-  // ranks). For n=1 this collapses to that one distance (which is 0).
-  const percentile = 0.8;
+  // Percentile distance (linear interpolation between the two nearest ranks).
+  // For n=1 this collapses to that one distance (which is 0).
+  const percentile = Math.max(0, Math.min(1, options.radiusPercentile ?? 0.8));
   const rank = (distances.length - 1) * percentile;
   const lowIndex = Math.floor(rank);
   const highIndex = Math.ceil(rank);

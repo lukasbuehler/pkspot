@@ -1,13 +1,34 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, inject, PLATFORM_ID } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { RecaptchaVerifier, Auth } from "@angular/fire/auth";
 import { ConsentAwareService } from "./consent-aware.service";
+
+/**
+ * Sentinel error class used when reCAPTCHA setup is skipped because the
+ * code is running in a non-browser environment (SSR / Node). Callers
+ * should match against this so the SSR log isn't polluted with a
+ * "Failed to setup reCAPTCHA" entry on every pre-render.
+ */
+export class RecaptchaUnavailableInSsrError extends Error {
+  constructor() {
+    super("RecaptchaService: skipped — not running in a browser.");
+    this.name = "RecaptchaUnavailableInSsrError";
+  }
+}
 
 @Injectable({
   providedIn: "root",
 })
 export class RecaptchaService extends ConsentAwareService {
+  private readonly _platformId = inject(PLATFORM_ID);
+
   constructor() {
     super();
+  }
+
+  /** True when the host is an actual browser (DOM + window present). */
+  private _isBrowser(): boolean {
+    return isPlatformBrowser(this._platformId);
   }
 
   /**
@@ -23,6 +44,16 @@ export class RecaptchaService extends ConsentAwareService {
       "expired-callback"?: () => void;
     }
   ): Promise<RecaptchaVerifier> {
+    // SSR guard. `RecaptchaVerifier`'s constructor reaches into `window`
+    // / `document` and Firebase Auth throws
+    // `auth/operation-not-supported-in-this-environment` when run from
+    // Node — which crashes the SSR worker because the error escapes the
+    // promise chain via Firebase's internal microtask. Bail out here so
+    // we never even try.
+    if (!this._isBrowser()) {
+      return Promise.reject(new RecaptchaUnavailableInSsrError());
+    }
+
     console.log(
       "RecaptchaService: createRecaptchaVerifier called, checking consent...",
       {

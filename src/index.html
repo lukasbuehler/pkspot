@@ -63,6 +63,18 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <meta name="HandheldFriendly" content="true" />
+    <!--
+      iOS Safari auto-detects dates, phone numbers, addresses, and emails
+      in text content and silently wraps them in <a> tags styled like
+      links (the system link color, blue). That hijacks dates in the
+      map-island chip ("Aug 5–9, 2026") and other places where the text
+      should match the surrounding UI. Disable all four format
+      detections globally — we use real <a> tags everywhere we want a link.
+    -->
+    <meta
+      name="format-detection"
+      content="telephone=no, date=no, address=no, email=no"
+    />
 
     <link
       rel="apple-touch-icon"

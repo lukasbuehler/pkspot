@@ -1,5 +1,7 @@
-import { Component, OnInit, OnDestroy, inject } from "@angular/core";
+import { Component, OnInit, OnDestroy, inject, PLATFORM_ID } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { RecaptchaUnavailableInSsrError } from "../../services/recaptcha.service";
 import {
   AbstractControl,
   UntypedFormBuilder,
@@ -63,6 +65,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
   private _recaptchaSolved = false;
   private _recaptchaSetupCompleted = false;
   private readonly _metaTagService = inject(MetaTagService);
+  private readonly _platformId = inject(PLATFORM_ID);
 
   ngOnInit(): void {
     this._metaTagService.setStaticPageMetaTags(
@@ -104,13 +107,18 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
       "Sign-up component initialized, waiting for user consent interaction",
     );
 
-    // Listen for consent changes
-    this._consentService.consentGranted$.subscribe((hasConsent) => {
-      if (hasConsent && !this._recaptchaSetupCompleted) {
-        console.log("Consent granted, setting up reCAPTCHA");
-        this.setupSignUpReCaptcha();
-      }
-    });
+    // Listen for consent changes — but only when we're actually in a
+    // browser. ConsentService grants consent during pre-render, which
+    // used to trigger reCAPTCHA setup on the server and crash SSR with
+    // `auth/operation-not-supported-in-this-environment`.
+    if (isPlatformBrowser(this._platformId)) {
+      this._consentService.consentGranted$.subscribe((hasConsent) => {
+        if (hasConsent && !this._recaptchaSetupCompleted) {
+          console.log("Consent granted, setting up reCAPTCHA");
+          this.setupSignUpReCaptcha();
+        }
+      });
+    }
 
     // Get the return URL from query params, default to profile page
     this._route.queryParams.subscribe((params) => {
@@ -164,6 +172,10 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
         console.log("reCAPTCHA setup completed");
       })
       .catch((error) => {
+        if (error instanceof RecaptchaUnavailableInSsrError) {
+          // Expected on SSR; nothing to do.
+          return;
+        }
         console.error("Failed to setup reCAPTCHA:", error);
         // Gracefully handle case where user hasn't granted consent
       });

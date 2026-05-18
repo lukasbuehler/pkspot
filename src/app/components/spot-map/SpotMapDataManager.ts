@@ -98,7 +98,12 @@ export class SpotMapDataManager {
   private _clusterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly CLUSTER_DEBOUNCE_MS = 200;
   private readonly HIGHLIGHT_THROTTLE_MS = 500;
-  private readonly HIGHLIGHT_MAX_COUNT = 8;
+  /**
+   * Load a broader candidate pool and let Advanced Marker collision handling
+   * decide what is visible. Higher-rated markers already get higher z-indexes,
+   * so overlapping lower-rated candidates naturally drop out on the map.
+   */
+  private readonly HIGHLIGHT_MAX_COUNT = 24;
   private _lastHighlightFetchTime: number = 0;
 
   private _lastRenderedClusterKeys: Set<string> | null = null;

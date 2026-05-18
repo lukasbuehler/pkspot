@@ -55,6 +55,8 @@ import {
   CommunitySearchPreview,
   SearchService,
 } from "../../services/search.service";
+import { CommunityMapMarker } from "../community-dot-marker/community-dot-marker.component";
+import { EventMapMarker } from "../event-dot-marker/event-dot-marker.component";
 import { rankMapIslandEventsForPoint } from "./map-island-event-ranking";
 import { countries } from "../../../scripts/Countries";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
@@ -501,9 +503,92 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   );
 
   /**
+   * Locality communities with bounds info, projected into the map shape.
+   * Country and region circles are intentionally excluded for now: they
+   * become too large to communicate anything useful on the map, while
+   * locality circles read as named places rather than background paint.
+   *
+   * Hide the currently-selected community's marker (the area circle +
+   * panel already convey it) to avoid the chip overlapping the panel UI.
+   */
+  availableCommunityMarkers = computed<CommunityMapMarker[]>(() => {
+    const selectedKey =
+      this.selectedCommunityLanding()?.communityKey ??
+      this.pendingCommunityLanding()?.communityKey ??
+      null;
+
+    return this._promotableCommunities()
+      .filter(
+        (c) =>
+          c.communityKey !== selectedKey &&
+          c.scope === "locality" &&
+          c.boundsCenter &&
+          typeof c.boundsRadiusM === "number" &&
+          c.boundsRadiusM > 0,
+      )
+      .map((c) => ({
+        communityKey: c.communityKey,
+        displayName: c.displayName,
+        scope: c.scope,
+        center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },
+        radiusM: c.boundsRadiusM!,
+      }));
+  });
+
+  /**
+   * Event chip markers shown on the map. Pulled from the same
+   * `_promotableEvents` set that feeds the map-island promo logic — any
+   * event with a known center qualifies. Hides the currently-previewed
+   * event's marker so the chip doesn't fight the panel for attention.
+   *
+   * Past events are not surfaced as pins (out-of-date pins clutter the
+   * map without value). Sponsored events render with the highlighted
+   * border style.
+   */
+  availableEventMarkers = computed<EventMapMarker[]>(() => {
+    const now = new Date();
+    // The full Event is in `selectedEvent`; the pending preview only
+    // carries an id-or-slug, so we match both forms when filtering.
+    const selectedEventId = this.selectedEvent()?.id ?? null;
+    const pendingEventRef = this.pendingEventPreview()?.idOrSlug ?? null;
+
+    return this._promotableEvents()
+      .filter((e) => {
+        if (selectedEventId && e.id === selectedEventId) return false;
+        if (
+          pendingEventRef &&
+          (e.id === pendingEventRef || e.slug === pendingEventRef)
+        ) {
+          return false;
+        }
+        if (e.isPast(now)) return false;
+        return Boolean(e.bounds);
+      })
+      .map((e) => {
+        const b = e.bounds!;
+        return {
+          eventId: e.id,
+          routeId: e.slug ?? e.id,
+          name: e.name,
+          center: {
+            lat: (b.north + b.south) / 2,
+            lng: (b.east + b.west) / 2,
+          },
+          status: e.status(now),
+          isSponsored: Boolean(e.sponsor),
+        };
+      });
+  });
+
+  /**
    * Active map-island content. Picks the most relevant variant for the
-   * visible viewport. Filter helper takes precedence (it points at user
-   * action), then event promo, then community context.
+   * visible viewport. Reserved for high-signal content:
+   *   1. Filter helper ("no spots match this filter") — user-action context.
+   *   2. Promoted / sponsored events — paid surface + first-class events.
+   *
+   * Communities are intentionally NOT surfaced here — they're already
+   * visible as clickable circles on the map (less attention-grabbing
+   * than the island chip, more appropriate to their weight).
    */
   islandContent = computed<MapIslandContent | null>(() => {
     if (this.noSpotsForFilter()) {
@@ -523,52 +608,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         center,
       )[0]?.event;
       if (event) return { kind: "event", event };
-    }
-
-    const dismissedCommunities = this._dismissedCommunityKeys();
-    const selectedCommunityKey = this.selectedCommunityLanding()?.communityKey;
-
-    if (viewport && !selectedCommunityKey) {
-      // Heuristic: prefer communities whose CENTER is inside the visible
-      // viewport, then take the largest radius (most context) of those.
-      // - Zoomed into Zurich: only Zurich's center is in viewport, so
-      //   Zurich wins (Switzerland's center isn't visible).
-      // - Zoomed out to Europe: centers of both Switzerland and Zurich
-      //   are in viewport, so Switzerland (largest radius) wins.
-      // Falls back to the smallest intersecting community when no
-      // center-in-viewport candidate exists (e.g., panning across a
-      // border with no community center on screen).
-      const withBounds = this._promotableCommunities()
-        .filter(
-          (c) =>
-            c.boundsCenter &&
-            typeof c.boundsRadiusM === "number" &&
-            c.boundsRadiusM > 0,
-        )
-        .map((c) => ({
-          data: c,
-          center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },
-          radiusM: c.boundsRadiusM!,
-        }));
-
-      const candidates = withBounds.filter(
-        (c) =>
-          c.data.communityKey !== selectedCommunityKey &&
-          !dismissedCommunities.has(c.data.communityKey) &&
-          this._viewportIntersectsCircle(viewport.bbox, c.center, c.radiusM),
-      );
-
-      const centerIn = candidates.filter((c) =>
-        this._pointInViewport(c.center, viewport.bbox),
-      );
-
-      const viewportCommunity =
-        centerIn.length > 0
-          ? centerIn.sort((a, b) => b.radiusM - a.radiusM)[0]
-          : candidates.sort((a, b) => a.radiusM - b.radiusM)[0];
-      if (viewportCommunity) {
-        return { kind: "community", community: viewportCommunity.data };
-      }
     }
 
     return null;
@@ -767,6 +806,43 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           this.pendingCommunityLanding.set(null);
         }
       });
+  }
+
+  /**
+   * Click handler for the on-map community chip markers. Resolves the
+   * key to a community preview (already loaded for the map-island
+   * detection), then routes through the same `onIslandOpenCommunity`
+   * entry point so a click feels identical to a route open.
+   */
+  onCommunityMarkerClick(communityKey: string): void {
+    const preview = this._promotableCommunities().find(
+      (c) => c.communityKey === communityKey,
+    );
+    if (!preview) {
+      console.warn(
+        "onCommunityMarkerClick: community key not in promotable set",
+        communityKey,
+      );
+      return;
+    }
+    this.onIslandOpenCommunity(preview);
+  }
+
+  /**
+   * Click handler for the on-map event chip markers. Resolves the route
+   * id to the loaded event from the promotable set, then routes through
+   * `onIslandOpenEvent` so the open feel is identical to the island
+   * promo path.
+   */
+  onEventMarkerClick(routeId: string): void {
+    const event = this._promotableEvents().find(
+      (e) => e.slug === routeId || e.id === routeId,
+    );
+    if (!event) {
+      console.warn("onEventMarkerClick: event not in promotable set", routeId);
+      return;
+    }
+    this.onIslandOpenEvent(event);
   }
 
   openCommunityPath(path: string): void {

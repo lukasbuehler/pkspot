@@ -50,6 +50,19 @@ describe("computeCommunityBounds", () => {
     expect(bounds!.bounds_radius_m).toBeLessThan(5_000);
   });
 
+  it("can use the full extent for locality-style radii", () => {
+    const cluster = Array.from({ length: 10 }, (_, i) => ({
+      location_raw: { lat: 47.36 + i * 0.002, lng: 8.53 + i * 0.002 },
+    }));
+    const bounds = computeCommunityBounds(
+      [...cluster, { location_raw: { lat: 47.45, lng: 8.63 } }],
+      { radiusPercentile: 1 },
+    );
+
+    expect(bounds).not.toBeNull();
+    expect(bounds!.bounds_radius_m).toBeGreaterThan(10_000);
+  });
+
   it("returns null when no spot has a usable location", () => {
     expect(computeCommunityBounds([{}, { location: null }])).toBeNull();
   });

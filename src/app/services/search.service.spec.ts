@@ -256,6 +256,36 @@ describe("SearchService", () => {
     });
   });
 
+  describe("getCommunityPreviewFromHit", () => {
+    it("should parse Typesense community bounds from array values", () => {
+      const preview = service.getCommunityPreviewFromHit({
+        document: {
+          communityKey: "locality:ch:zh:zurich",
+          displayName: "Zurich",
+          bounds_center: [47.3769, 8.5417],
+          bounds_radius_m: 4200,
+        },
+      });
+
+      expect(preview.boundsCenter).toEqual([47.3769, 8.5417]);
+      expect(preview.boundsRadiusM).toBe(4200);
+    });
+
+    it("should parse Typesense community bounds from object and string values", () => {
+      const preview = service.getCommunityPreviewFromHit({
+        document: {
+          communityKey: "locality:ch:zh:zurich",
+          displayName: "Zurich",
+          bounds_center: { latitude: 47.3769, longitude: 8.5417 },
+          bounds_radius_m: "4200",
+        },
+      });
+
+      expect(preview.boundsCenter).toEqual([47.3769, 8.5417]);
+      expect(preview.boundsRadiusM).toBe(4200);
+    });
+  });
+
   describe("searchSpotsInBoundsWithFilter", () => {
     it("should return empty results for unknown filter mode", async () => {
       const mockBounds = {

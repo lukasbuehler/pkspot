@@ -218,6 +218,9 @@ export class SpotPreviewMarkerComponent {
   forcePreviewVisible = input<boolean>(false);
   color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
   zIndexBase = input<number>(4200);
+  collisionBehavior = input<google.maps.CollisionBehavior>(
+    google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
+  );
   markerClick = output<Spot | LocalSpot | SpotPreviewData>();
 
   previewVisible = signal(false);
@@ -327,8 +330,7 @@ export class SpotPreviewMarkerComponent {
   markerOptions = computed<google.maps.marker.AdvancedMarkerElementOptions>(
     () => ({
       gmpClickable: true,
-      collisionBehavior:
-        google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
+      collisionBehavior: this.collisionBehavior(),
       zIndex: this.computedZIndex(),
     })
   );

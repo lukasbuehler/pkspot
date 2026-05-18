@@ -17,6 +17,7 @@ import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-
       [hoverPreviewEnabled]="hoverPreviewEnabled()"
       [color]="color()"
       [zIndexBase]="computedZIndex()"
+      [collisionBehavior]="highlightCollisionBehavior()"
       (markerClick)="emitMarkerClick($event)"
     ></app-spot-preview-marker>
   `,
@@ -28,6 +29,9 @@ export class HighlightMarkerComponent {
   hoverPreviewEnabled = input<boolean>(true);
   color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
   markerClick = output<SpotPreviewData>();
+  readonly highlightCollisionBehavior = computed(
+    () => google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
+  );
 
   computedZIndex = computed(() => {
     const baseZ = this.zIndex();

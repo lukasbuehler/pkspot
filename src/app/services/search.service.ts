@@ -229,20 +229,12 @@ export class SearchService {
         ? doc["counts.totalSpots"]
         : doc?.counts?.totalSpots ?? 0;
 
-    let boundsCenter: [number, number] | undefined;
-    const rawCenter = doc?.bounds_center;
-    if (Array.isArray(rawCenter) && rawCenter.length >= 2) {
-      const lat = Number(rawCenter[0]);
-      const lng = Number(rawCenter[1]);
-      if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        boundsCenter = [lat, lng];
-      }
-    }
-    const rawRadius = doc?.bounds_radius_m;
-    const boundsRadiusM =
-      typeof rawRadius === "number" && Number.isFinite(rawRadius)
-        ? rawRadius
-        : undefined;
+    // Typesense geopoints can arrive as arrays or objects depending on the
+    // client/extension path, and numeric fields are occasionally serialized
+    // as strings. Use the same defensive readers as event previews so map
+    // communities do not silently lose their marker geometry.
+    const boundsCenter = SearchService._readGeopoint(doc?.bounds_center);
+    const boundsRadiusM = SearchService._readFloat(doc?.bounds_radius_m);
 
     return {
       id: doc?.id ?? doc?.communityKey ?? "",

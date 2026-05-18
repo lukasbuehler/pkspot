@@ -503,7 +503,12 @@ const buildCommunityPageDoc = async (
 
   const sourceSpots = spots.map((spot) => spot.data);
   const sourceMaxUpdatedAt = getSourceMaxUpdatedAt(sourceSpots);
-  const communityBounds = computeCommunityBounds(sourceSpots);
+  const communityBounds = computeCommunityBounds(sourceSpots, {
+    // Locality circles are the user-facing map footprint, so include every
+    // member spot. Countries keep the conservative radius to avoid one
+    // territory/outlier stretching the circle across a continent.
+    radiusPercentile: candidate.scope === "locality" ? 1 : 0.8,
+  });
   const image = existingPage?.image?.url
     ? existingPage.image
     : {

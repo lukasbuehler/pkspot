@@ -5,6 +5,25 @@
   pointer-events: none;
 }
 
+// Defensive override: iOS Safari may still auto-link dates/addresses
+// inside the island even with `<meta name="format-detection" …>` set
+// (varies by iOS version). Force non-link styling on detected ranges so
+// the chip text stays the right color and isn't underlined.
+.map-island,
+.map-island * {
+  text-decoration: none;
+}
+
+.map-island a[x-apple-data-detectors],
+.map-island a[href^="tel:"],
+.map-island a[href^="mailto:"],
+.map-island a[href*="maps.apple"] {
+  color: inherit !important;
+  text-decoration: none !important;
+  pointer-events: none !important;
+  cursor: inherit !important;
+}
+
 .map-island {
   --map-island-max-width: 480px;
 

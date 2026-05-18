@@ -65,7 +65,10 @@
     [hoverPreviewEnabled]="showSpotPreview()"
     (markerClick)="onHighlightedSpotClick($event)"
   ></app-highlight-marker>
-  } @if(zoom < 16) { @for (dot of dots; track trackDot($index, dot)) {
+  } @if(zoom < 16 && !hideSpotClusters) { @for (dot of dots; track trackDot($index, dot)) {
+  <!-- Spot cluster dots at low zoom. On the main map these are pre-filtered
+       by SpotMapComponent so they remain only where no locality community
+       circle covers the area. Other map hosts can still render all dots. -->
   <app-cluster-dot-marker
     [dot]="dot"
     (markerClick)="clickDot($event)"
@@ -316,17 +319,47 @@
   <map-polygon [options]="polygon" [paths]="polygon.paths"></map-polygon>
   }
 
-  <!-- Community area: low-opacity tinted circle showing the geographic
+  <!-- Active community area: intentionally softer than passive circles so
+       selection reads as "opened context" rather than a louder duplicate. -->
        extent of the active community. Center+radius from
        `community_pages.bounds_center` / `bounds_radius_m` (computed by the
-       cloud function from member spot locations). Non-interactive — it's
-       a label, not a hit target. -->
+       cloud function from member spot locations). -->
   @if (communityArea && !communityArea.googleBoundary) {
     <map-circle
       [center]="communityArea.center"
       [radius]="communityArea.radiusM"
       [options]="communityAreaCircleOptions"
     ></map-circle>
+  }
+
+  <!-- Locality communities: real-radius circles for place identity. The
+       circle itself is clickable; the center dot only remains while the
+       circle is too small on screen to serve as a clear target. -->
+  @for (community of availableCommunityMarkers(); track community.communityKey) {
+    @if (shouldShowCommunityCenterDot(community)) {
+      <app-community-dot-marker
+        [community]="community"
+        (markerClick)="communityMarkerClick.emit($event)"
+      ></app-community-dot-marker>
+    } @else {
+      <map-circle
+        [center]="community.center"
+        [radius]="community.radiusM"
+        [options]="communityCircleOptions(community)"
+        (circleClick)="communityMarkerClick.emit(community.communityKey)"
+      ></map-circle>
+    }
+  }
+
+  <!-- Event chip markers: clickable pins at each visible event's center.
+       Visible alongside (and on top of) community chips so a sponsored
+       event in the visible area is always findable, not only when the
+       map-island promo happens to surface it. -->
+  @for (event of availableEventMarkers(); track event.eventId) {
+    <app-event-dot-marker
+      [event]="event"
+      (markerClick)="eventMarkerClick.emit($event)"
+    ></app-event-dot-marker>
   }
 </google-map>
 } @else {

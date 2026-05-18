@@ -1,5 +1,7 @@
-import { Component, OnInit, inject } from "@angular/core";
+import { Component, OnInit, inject, PLATFORM_ID } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { RecaptchaUnavailableInSsrError } from "../../services/recaptcha.service";
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -57,6 +59,7 @@ export class ForgotPasswordPageComponent implements OnInit {
   }
 
   private readonly _metaTagService = inject(MetaTagService);
+  private readonly _platformId = inject(PLATFORM_ID);
 
   ngOnInit(): void {
     this._metaTagService.setStaticPageMetaTags(
@@ -72,13 +75,18 @@ export class ForgotPasswordPageComponent implements OnInit {
       "Forgot password component initialized, waiting for user consent interaction",
     );
 
-    // Listen for consent changes
-    this._consentService.consentGranted$.subscribe((hasConsent) => {
-      if (hasConsent && !this._recaptchaSetupCompleted) {
-        console.log("Consent granted, setting up reCAPTCHA");
-        this.setupForgetPasswordReCaptcha();
-      }
-    });
+    // Listen for consent changes — only in a real browser. The
+    // consent-granted signal also fires during SSR pre-rendering;
+    // setting up reCAPTCHA there crashes the worker because Firebase
+    // Auth's RecaptchaVerifier can't be constructed without `window`.
+    if (isPlatformBrowser(this._platformId)) {
+      this._consentService.consentGranted$.subscribe((hasConsent) => {
+        if (hasConsent && !this._recaptchaSetupCompleted) {
+          console.log("Consent granted, setting up reCAPTCHA");
+          this.setupForgetPasswordReCaptcha();
+        }
+      });
+    }
   }
 
   get emailFieldHasError(): boolean {
@@ -130,6 +138,10 @@ export class ForgotPasswordPageComponent implements OnInit {
         console.log("reCAPTCHA setup completed");
       })
       .catch((error) => {
+        if (error instanceof RecaptchaUnavailableInSsrError) {
+          // Expected on SSR; nothing to do.
+          return;
+        }
         console.error("Failed to setup reCAPTCHA:", error);
         // Gracefully handle case where user hasn't granted consent
       });

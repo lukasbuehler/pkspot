@@ -61,6 +61,14 @@ import { ThemeService } from "../../services/theme.service";
 import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.component";
 import { CustomMarkerComponent } from "../custom-marker/custom-marker.component";
 import { ClusterDotMarkerComponent } from "../cluster-dot-marker/cluster-dot-marker.component";
+import {
+  CommunityDotMarkerComponent,
+  CommunityMapMarker,
+} from "../community-dot-marker/community-dot-marker.component";
+import {
+  EventDotMarkerComponent,
+  EventMapMarker,
+} from "../event-dot-marker/event-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
 import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-marker.component";
 
@@ -117,6 +125,8 @@ export interface TilesObject {
     HighlightMarkerComponent,
     CustomMarkerComponent,
     ClusterDotMarkerComponent,
+    CommunityDotMarkerComponent,
+    EventDotMarkerComponent,
     SpotPreviewMarkerComponent,
     MatSnackBarModule,
   ],
@@ -302,6 +312,18 @@ export class GoogleMap2dComponent
     return this._dotsSignal();
   }
 
+  /**
+   * When true, the low-zoom spot-cluster dot overlay is suppressed.
+   * Used by the main map so the community dots can take that visual
+   * slot. Other hosts (event page, embed) leave this false and keep
+   * the cluster density indicator.
+   *
+   * Forward-looking: a fallback path could flip this off for regions
+   * that don't yet have a community page so users still get visual
+   * density cues there.
+   */
+  @Input() hideSpotClusters: boolean = false;
+
   @Input()
   set highlightedSpots(value: SpotPreviewData[] | null | undefined) {
     this._highlightedSpotsSignal.set(value ? [...value] : []);
@@ -401,17 +423,141 @@ export class GoogleMap2dComponent
   private _communityBoundaryRequestVersion = 0;
   private _communityBoundaryPlaceIdCache = new Map<string, string | null>();
 
+  /**
+   * Clickable community markers shown across the map. One chip per
+   * published community with bounds info. Independent from the
+   * `communityArea` overlay above — that's the *active* community's
+   * visual region, this is the click-target set.
+   */
+  @Input() availableCommunities: CommunityMapMarker[] = [];
+
+  /**
+   * Emits the community key when the user clicks one of the
+   * `availableCommunities` chips. Host opens the corresponding panel.
+   */
+  @Output() communityMarkerClick = new EventEmitter<string>();
+
+  /**
+   * Computed accessor so the template can use `track community.communityKey`
+   * without forcing change-detection on every parent update.
+   */
+  availableCommunityMarkers(): CommunityMapMarker[] {
+    return this.availableCommunities;
+  }
+
+  /**
+   * Event chip markers shown on the map. One per visible event with a
+   * known center. Click → emit the event's route id (slug or doc id)
+   * so the host opens the event preview / page.
+   */
+  @Input() availableEvents: EventMapMarker[] = [];
+
+  /** Emits the event's route id when the user clicks one of the chips. */
+  @Output() eventMarkerClick = new EventEmitter<string>();
+
+  availableEventMarkers(): EventMapMarker[] {
+    return this.availableEvents;
+  }
+
   /** Visual style for the active-community area circle. */
   communityAreaCircleOptions: google.maps.CircleOptions = {
     fillColor: "#b8c4ff",
     strokeColor: "#b8c4ff",
-    fillOpacity: 0.06,
-    strokeOpacity: 0.5,
-    strokeWeight: 1.5,
+    fillOpacity: 0.04,
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
     clickable: false,
     draggable: false,
     zIndex: 1,
   };
+
+  /**
+   * Passive locality circles begin with the stronger dot treatment while
+   * they are tiny, then ease toward the softer active-circle treatment as
+   * they become large on screen. This avoids an abrupt visual hand-off when
+   * a user opens a community and also keeps close-up circles out of the way.
+   */
+  communityCircleOptions(
+    community: CommunityMapMarker,
+  ): google.maps.CircleOptions {
+    const diameterPx = this._communityCircleDiameterPx(community);
+    const fade = this._smoothstep(
+      this._communityDotDiameterPx(community),
+      320,
+      diameterPx,
+    );
+
+    return {
+      fillColor: "#b8c4ff",
+      fillOpacity: this._lerp(0.85, 0.04, fade),
+      strokeColor: this._mixHexColor("#0036ba", "#b8c4ff", fade),
+      strokeOpacity: this._lerp(1, 0.28, fade),
+      strokeWeight: this._lerp(1, 1, fade),
+      clickable: true,
+    };
+  }
+
+  /**
+   * The center dot is only useful while the geographic circle is smaller on
+   * screen than the dot itself. Once the circle is visually legible, let it
+   * become the sole object and click target.
+   */
+  shouldShowCommunityCenterDot(community: CommunityMapMarker): boolean {
+    const circleDiameterPx = this._communityCircleDiameterPx(community);
+    return circleDiameterPx <= this._communityDotDiameterPx(community);
+  }
+
+  private _communityCircleDiameterPx(community: CommunityMapMarker): number {
+    return (
+      (community.radiusM * 2) /
+      this._metersPerPixelAtLatitude(community.center.lat, this.zoom)
+    );
+  }
+
+  private _communityDotDiameterPx(community: CommunityMapMarker): number {
+    switch (community.scope) {
+      case "country":
+        return 20;
+      case "region":
+        return 14;
+      case "locality":
+        return 10;
+      default:
+        return 12;
+    }
+  }
+
+  private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {
+    const latitudeRadians = (latitude * Math.PI) / 180;
+    return (
+      (156_543.033_92 * Math.cos(latitudeRadians)) / Math.pow(2, zoom)
+    );
+  }
+
+  private _lerp(start: number, end: number, progress: number): number {
+    return start + (end - start) * progress;
+  }
+
+  private _smoothstep(start: number, end: number, value: number): number {
+    const normalized = Math.max(0, Math.min(1, (value - start) / (end - start)));
+    return normalized * normalized * (3 - 2 * normalized);
+  }
+
+  private _mixHexColor(start: string, end: string, progress: number): string {
+    const parse = (hex: string) => ({
+      r: Number.parseInt(hex.slice(1, 3), 16),
+      g: Number.parseInt(hex.slice(3, 5), 16),
+      b: Number.parseInt(hex.slice(5, 7), 16),
+    });
+    const from = parse(start);
+    const to = parse(end);
+    const channel = (left: number, right: number) =>
+      Math.round(this._lerp(left, right, progress))
+        .toString(16)
+        .padStart(2, "0");
+
+    return `#${channel(from.r, to.r)}${channel(from.g, to.g)}${channel(from.b, to.b)}`;
+  }
 
   mapStyle = input<"roadmap" | "satellite" | "hybrid" | "terrain">("roadmap");
   polygons = input<PolygonSchema[]>([]);
