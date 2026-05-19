@@ -99,7 +99,7 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
     // both see something relevant.
     this._metaTagService.setStaticPageMetaTags(
       $localize`:@@signin.meta.title:Sign in`,
-      $localize`:@@signin.meta.description:Sign in to PK Spot or create a free account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.`,
+      $localize`:@@signin.meta.description:Sign in to PK Spot or create a free account to find spots, check in, and connect with your local parkour community.`,
       undefined,
       "/sign-in",
     );

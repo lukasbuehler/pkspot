@@ -70,7 +70,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._metaTagService.setStaticPageMetaTags(
       $localize`:@@signup.meta.title:Create account`,
-      $localize`:@@signup.meta.description:Create a free PK Spot account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.`,
+      $localize`:@@signup.meta.description:Create a free PK Spot account to find spots, check in, and connect with your local parkour community.`,
       undefined,
       "/sign-up",
     );

@@ -1,63 +1,46 @@
 # PK Spot ([pkspot.app](https://pkspot.app))
 
-**The spot for Parkour and Freerunning.**
+**The spot for everything parkour.**
 
-Discover spots, challenges, <strike>events, and fellow athletes, plan training sessions with your friends and share achievements and memories with them and the world.</strike>
+Find spots, check in, discover what is happening nearby, and connect with your local parkour community.
 
-(Strike-through features are in development.)
-
-## Roadmap
-
-### Future Updates
-
-For the detailed progress please refer to the following GitHub project: [PK Spot Updates](https://github.com/users/lukasbuehler/projects/1/views/8)
-
-| Non-binding time estimate | Features                                                                                                   |
-| :------------------------ | :--------------------------------------------------------------------------------------------------------- |
-| Q3 2025                   | Usability Update: Make the whole thing easier to use. And fix user sign-up, spot creation and editing bugs |
-| Q4 2025                   | **Training Update**: Plan and share training sessions and jams                                             |
-| ...                       | ...                                                                                                        |
-
-### Past Updates
-
-| Date              | Features                                                                                                                                                                             | Last Commit                                                                                                                                                             |
-| :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q2 2025           | Added Embedding Option + Swiss Jam 25 Features (Challenges, event pages)                                                                                                             |
-| Q1 2025           | Spot Map Update leftovers: Link Google places, drinking water and WC's on map, Angular 19, French                                                                                    |
-| 27. December 2024 | **Spot map update**: Improvements to spot clustering, Highlighted spots, Spot ratings, spot features and amenities, performance improvements, more languages (Italian, Swiss-German) | [209dcbe](https://github.com/lukasbuehler/pkspot/commit/209dcbe7649289aee0813403b991e96f7c54b61b#diff-0cdfa2a1ed45e76b091a17632ec22c4c45b9642c15b03c26cd7e38756546201e) |
-| 8. September 2024 | Added locality (region, city, country) to spots                                                                                                                                      | [8170d25](https://github.com/lukasbuehler/pkspot/commit/8170d25a558ff160b39de69095f928d0a44fd5a9)                                                                       |
-| 28. August 2024   | Multilanguage (English, German), SSR, link previews, Angular 18                                                                                                                      | [504d587](https://github.com/lukasbuehler/pkspot/commit/504d58743607b84a3932c98ee9e6ef5073d77c41)                                                                       |
-| Spring 2024       | Mobile (web) UI/UX enhancements                                                                                                                                                      |                                                                                                                                                                         |
-| Spring 2024       | Spot and places full-text search                                                                                                                                                     |                                                                                                                                                                         |
+PK Spot is growing toward one app for parkour spots, training, events, jams, and community.
 
 ## Collaborating
 
-To collaborate on the code of this project, you will need to create a pull-request on GitHub. To get started you should for this repository, and
-after making your changes, create a pull-request with your changes.
+Contributions are welcome. To collaborate on the codebase:
+
+1. Fork this repository.
+2. Create a focused branch for your change.
+3. Follow the local setup below.
+4. Run the relevant tests before submitting.
+5. Open a pull request on GitHub.
+
+Keep changes small and focused where possible. For code changes, prefer existing Angular and Firebase patterns in the project over introducing new abstractions.
 
 ### Bug reports
 
 For bug reports, please open an issue in this GitHub repository.
-Or reach out on Instragram, Discord, or else via E-mail ([contact@lukasbuehler.ch](mailto:contact@lukasbuehler.ch))
+You can also reach out on Instagram, Discord, or by email at [contact@lukasbuehler.ch](mailto:contact@lukasbuehler.ch).
 
 ### Feature requests
 
-For feature requests please use the Discord or contact me directly.
+For feature requests, please use Discord or contact me directly.
 
 ### Translation
 
-The translation files are in [`src/locales`](./src/locale/) and
+The translation files are in [`src/locale`](./src/locale/) and
 English (`en`) is the source language.
 
-To tweak a translation simply go to the corresponding file, find what you want to change, and change the value inside the `target` XML tag only. Example:
+To tweak a translation, go to the corresponding file, find the string you want to change, and update the value inside the `target` XML tag only. Example:
 
 ```xml
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="de-CH">
     <file id="ngi18n" original="ng.template">
         <unit id="1940752772695642659">
             <segment state="initial">
-                <source> The spot for Parkour and Freerunning. </source>
-                <target> De Spot für Parkour und Freerunning. </target>
+                <source> The spot for everything parkour. </source>
+                <target> De Spot für alles Parkour. </target>
             </segment>
         </unit>
         ...
@@ -67,12 +50,12 @@ To tweak a translation simply go to the corresponding file, find what you want t
 
 #### Update the language files
 
-After adding new text in the HTML markup and adding the i18n attribute, the language files will need to be updated to include this new text source.
+After adding new text in the HTML markup and adding the `i18n` attribute, update the language files so they include the new source text.
 
 Run the following command:
 
 ```
-ng extract-i18n
+npx ng extract-i18n
 ```
 
 After that the language files will be updated (and possibly reformatted, which is ok). You can now edit the language files as usual with the new text.
@@ -135,36 +118,57 @@ After that the language files will be updated (and possibly reformatted, which i
 
 3. Copy an existing language file like `messages.de.xlf` in `src/locale` and paste it with the same name as in [`angular.json`](./angular.json), e.g. `messages.xx-XX.xlf` or `messages.xx.xlf`.
 
-4. Edit this new language file in [`src/locales`](./src/locale/).
+4. Edit this new language file in [`src/locale`](./src/locale/).
 
 5. Submit a pull-request with your changes on [GitHub](https://github.com/lukasbuehler/pkspot/compare)
 
 ### Local Development
 
-The Spot-Map heavily utilizes Google Maps, if you want to test using it locally, you need your own Google API Key.
+PK Spot uses Google Maps. To test the map locally, you need your own Google API key.
 
 1. Generate your own Google API key
 2. Enter it in `keys.development.ts`
 3. Build for the development environment when developing locally
 
-#### Build
+Install dependencies:
 
 ```
-npm run build
+npm install
 ```
 
-#### Start Frontend (and watch for changes)
+Run the development server:
 
 ```
 npm run dev
 ```
 
-#### Start SSR server
+Build the app:
 
 ```
-npm run build # build first
+npm run build
+```
+
+Start the SSR server after building:
+
+```
 npm run serve:ssr
 ```
+
+Run the main local verification pass:
+
+```
+npm run test:all
+```
+
+Useful narrower checks:
+
+```
+npm run test:unit
+npm run test:build
+npm run test:e2e
+```
+
+If Angular exits with `Abort trap: 6`, run the command in a normal terminal outside the sandbox.
 
 <!-- ### Working with Typesense for full-text search
 

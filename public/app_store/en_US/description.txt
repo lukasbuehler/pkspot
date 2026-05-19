@@ -1,24 +1,17 @@
-THE SEARCH ENGINE FOR THE STREETS.
+THE SPOT FOR EVERYTHING PARKOUR.
 
-Static maps are for tourists. PK Spot is the dynamic engine for athletes to find perfect conditions, track their sessions, and connect with the global community. Whether you are looking for a precision wall in London or a gym in Zurich, the map speaks your language.
+PK Spot helps you find places to train, check in at spots, discover what is happening nearby, and connect with your local parkour community.
 
-DON'T JUST LOOK. FIND. Training doesn't stop for the weather. Our Smart Filters let you dial in the exact conditions you need:
+FIND SPOTS
+Explore parkour spots around you with photos, ratings, tags, and filters for indoor, covered, lit, dry, water, and purpose-built training places.
 
-- Rain Safe: Instantly find covered or indoor spots.
-- Night Mode: Filter for spots with lighting for winter sessions.
-- Top Rated: Skip the noise and find the legendary spots locals love.
+CHECK IN
+Let the community know where training is active and keep a lightweight history of the spots you visit.
 
-LIVE & VERIFIED No more "Ghost Spots." We prioritize active training grounds.
+DISCOVER WHAT IS HAPPENING
+Find events, jams, and community pages as they are added, so it is easier to see where people train and gather.
 
-- Log Sessions: Check in at spots to mark your territory and track your training history.
-- Verified Data: We partner with organizations like the Swiss Parkour Association to ensure spot accuracy.
-- Community Moderated: Built by traceurs, maintained by traceurs.
+BUILT WITH THE COMMUNITY
+PK Spot is open source and community driven. Spot data contributed by the community is shared under CC BY-NC-SA 4.0 so active parkour communities can build on it.
 
-BUILT ON OPEN GROUND We believe the map belongs to the athletes, not a corporation.
-- Open Data: All community spot data is licensed under CC BY-NC-SA 4.0. It is yours forever.
-- No Paywalls: Free to use. No hidden fees.
-- Privacy First: We don't sell your location data. Ever.
-
-FUELED BY PASSION PK Spot is a project born in Zurich. It is built for the culture, supported by the community, and designed for the future of the sport.
-
-Join the movement. Download PK Spot and put the world's best training locations in your pocket.
+PK Spot started in Zurich and is growing toward one app for parkour spots, training, events, jams, and community.

@@ -36,6 +36,12 @@
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">policy</pc> Politique de confidentialité </target>
       </segment>
     </unit>
+    <unit id="6910865064463105075">
+      <segment state="initial">
+        <source>Communities</source>
+        <target>Communities</target>
+      </segment>
+    </unit>
     <unit id="about_page_label">
       <notes>
         <note category="description">A very short label for the navbar about page button</note>
@@ -356,12 +362,6 @@
         <target>Votre adresse e-mail a été récupérée avec succès. Vous voudrez peut-être changer votre mot de passe si vous n&apos;êtes pas à l&apos;origine de ce changement.</target>
       </segment>
     </unit>
-    <unit id="5520281340448478864">
-      <segment state="initial">
-        <source> Landing in a new city? Don&apos;t waste time scrolling. Use the Top Rated view to find the legendary spots the locals love. From the streets to the rooftops, the map speaks your language. </source>
-        <target> Vous débarquez dans une nouvelle ville ? Ne perdez pas de temps à scroller. Utilisez la vue Top Rated pour trouver les spots légendaires que les locaux adorent. Des rues aux toits, la carte parle votre langue. </target>
-      </segment>
-    </unit>
     <unit id="5526007558904938886">
       <segment state="initial">
         <source>About PK Spot</source>
@@ -507,9 +507,9 @@
         <target>Aucun compte trouvé pour cette adresse e-mail.</target>
       </segment>
     </unit>
-    <unit id="5888181835078469865">
+    <unit id="2551128161531504907">
       <segment state="initial">
-        <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">Spot</pc> for Parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
+        <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> for everything parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
         <target> Le <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">Spot</pc> pour le Parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></target>
       </segment>
     </unit>
@@ -553,6 +553,18 @@
       <segment state="initial">
         <source>Saved</source>
         <target>Enregistré</target>
+      </segment>
+    </unit>
+    <unit id="searchField.communitySpotsCount">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ community.totalSpots }}"/> spots</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ community.totalSpots }}"/> spots</target>
+      </segment>
+    </unit>
+    <unit id="searchField.events">
+      <segment state="initial">
+        <source> Events </source>
+        <target> Events </target>
       </segment>
     </unit>
     <unit id="settings.account.description">
@@ -599,6 +611,18 @@
         <target>Ajouter un nouveau spot</target>
       </segment>
     </unit>
+    <unit id="map.community_loading_label">
+      <segment state="initial">
+        <source> Opening community </source>
+        <target> Opening community </target>
+      </segment>
+    </unit>
+    <unit id="map.event_loading_label">
+      <segment state="initial">
+        <source> Loading event </source>
+        <target> Loading event </target>
+      </segment>
+    </unit>
     <unit id="map.geolocation_denied.snackbar">
       <notes>
         <note category="description">Message shown when user clicks geolocation button but permissions are denied</note>
@@ -621,8 +645,8 @@
     </unit>
     <unit id="map.h1">
       <segment state="initial">
-        <source> Parkour Spot Map — find spots, communities, and events near you </source>
-        <target>Carte des spots de parkour - trouvez des spots, des communautés et des événements près de vous</target>
+        <source> PK Spot — find spots, communities, and events near you </source>
+        <target> PK Spot — trouvez des spots, communautés et événements près de vous </target>
       </segment>
     </unit>
     <unit id="map.highlighted_spots.structured_data_name">
@@ -641,6 +665,36 @@
         <target>Importer des spots à partir d’un fichier</target>
       </segment>
     </unit>
+    <unit id="map.panel_back_event_fallback">
+      <segment state="initial">
+        <source>Event</source>
+        <target>Event</target>
+      </segment>
+    </unit>
+    <unit id="map.panel_back_spot_fallback">
+      <segment state="initial">
+        <source>Spot</source>
+        <target>Spot</target>
+      </segment>
+    </unit>
+    <unit id="map.panel_back_type_community">
+      <segment state="initial">
+        <source>Community</source>
+        <target>Community</target>
+      </segment>
+    </unit>
+    <unit id="map.panel_back_type_event">
+      <segment state="initial">
+        <source>Event</source>
+        <target>Event</target>
+      </segment>
+    </unit>
+    <unit id="map.panel_back_type_spot">
+      <segment state="initial">
+        <source>Spot</source>
+        <target>Spot</target>
+      </segment>
+    </unit>
     <unit id="map.seo.about_heading">
       <segment state="initial">
         <source> About PK Spot </source>
@@ -649,13 +703,13 @@
     </unit>
     <unit id="map.seo.about_p1">
       <segment state="initial">
-        <source> PK Spot is a community map for parkour and freerunning. Use it to discover parkour spots near you, save your favorites, plan training sessions with friends, and add new spots so other athletes can find them. </source>
-        <target>PK Spot est une carte communautaire pour le parkour et le freerunning. Utilisez-la pour découvrir des spots près de vous, enregistrer vos favoris, planifier des sessions avec des amis et ajouter de nouveaux spots pour aider d’autres athlètes à les trouver.</target>
+        <source> PK Spot is the spot for everything Parkour. Use it to discover spots near you, check in, find events and jams, and connect with your local community. </source>
+        <target> PK Spot est le spot pour tout le parkour. Utilisez-le pour découvrir des spots près de vous, vous checker, trouver événements et jams, et rejoindre votre communauté locale. </target>
       </segment>
     </unit>
     <unit id="map.seo.about_p2">
       <segment state="initial">
-        <source> Every spot is added by people who actually train there. You&apos;ll find photos, ratings, and tags telling you whether a spot is good for parkour, freerunning, dry training, indoor sessions, or beginners. </source>
+        <source> Every spot can be edited by people who actually train there. You&apos;ll find photos, ratings, and tags telling you whether a spot is good for Parkour, Freerunning, dry training, indoor sessions, and more! </source>
         <target>Chaque spot est ajouté par des personnes qui s’y entraînent vraiment. Vous trouverez des photos, des notes et des tags indiquant si un spot convient au parkour, au freerunning, à l’entraînement au sec, aux sessions en intérieur ou aux débutants.</target>
       </segment>
     </unit>
@@ -671,16 +725,52 @@
         <target>spots</target>
       </segment>
     </unit>
+    <unit id="map.spot_loading_fallback">
+      <segment state="initial">
+        <source>Spot</source>
+        <target>Spot</target>
+      </segment>
+    </unit>
+    <unit id="map.spot_loading_label">
+      <segment state="initial">
+        <source> Loading spot details </source>
+        <target> Loading spot details </target>
+      </segment>
+    </unit>
     <unit id="map_island.community_open">
       <segment state="initial">
         <source>View</source>
         <target>Voir</target>
       </segment>
     </unit>
+    <unit id="map_island.event_live">
+      <segment state="initial">
+        <source>Live Event</source>
+        <target>Live Event</target>
+      </segment>
+    </unit>
     <unit id="map_island.event_open">
       <segment state="initial">
         <source>Open</source>
         <target>Ouvrir</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_sponsored_live">
+      <segment state="initial">
+        <source>Sponsored Live Event</source>
+        <target>Sponsored Live Event</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_sponsored_upcoming">
+      <segment state="initial">
+        <source>Sponsored Upcoming Event</source>
+        <target>Sponsored Upcoming Event</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_upcoming">
+      <segment state="initial">
+        <source>Upcoming Event</source>
+        <target>Upcoming Event</target>
       </segment>
     </unit>
     <unit id="map_label">
@@ -721,6 +811,16 @@
       <segment state="initial">
         <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
         <target> En téléchargeant, vous acceptez nos <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. Vous confirmez que vous possédez ce contenu ou avez le droit de le partager. Vous accordez à PK Spot la licence dont il a besoin pour exploiter le service et acceptez de mettre votre contribution à la disposition de la communauté sous une licence Creative Commons. </target>
+      </segment>
+    </unit>
+    <unit id="3509144640260263648">
+      <notes>
+        <note category="description">Label of the button to delete the spot</note>
+        <note category="meaning">Delete button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Delete</source>
+        <target>Delete</target>
       </segment>
     </unit>
     <unit id="3517550046701184661">
@@ -787,8 +887,8 @@
     </unit>
     <unit id="signin.meta.description">
       <segment state="initial">
-        <source>Sign in to PK Spot or create a free account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.</source>
-        <target>Connectez-vous à PK Spot ou créez un compte gratuit pour découvrir des spots de parkour, planifier des entraînements et partager vos trouvailles avec la communauté freerunning.</target>
+        <source>Sign in to PK Spot or create a free account to find spots, check in, and connect with your local parkour community.</source>
+        <target>Connectez-vous à PK Spot ou créez un compte gratuit pour trouver des spots, vous checker et rejoindre votre communauté parkour locale.</target>
       </segment>
     </unit>
     <unit id="signin.meta.title">
@@ -829,8 +929,8 @@
     </unit>
     <unit id="signup.meta.description">
       <segment state="initial">
-        <source>Create a free PK Spot account to discover parkour spots, plan training sessions, and share what you find with the freerunning community.</source>
-        <target>Créez un compte PK Spot gratuit pour découvrir des spots de parkour, planifier des entraînements et partager vos trouvailles avec la communauté freerunning.</target>
+        <source>Create a free PK Spot account to find spots, check in, and connect with your local parkour community.</source>
+        <target>Créez un compte PK Spot gratuit pour trouver des spots, vous checker et rejoindre votre communauté parkour locale.</target>
       </segment>
     </unit>
     <unit id="signup.meta.title">
@@ -1445,9 +1545,9 @@
         <target>Ce lien a expiré. Veuillez en demander un nouveau.</target>
       </segment>
     </unit>
-    <unit id="8686897794326651735">
+    <unit id="8752273211002255812">
       <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">search</pc> Find the best Spots </source>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">search</pc> Find spots </source>
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">search</pc> Trouvez les meilleurs Spots </target>
       </segment>
     </unit>
@@ -1531,8 +1631,8 @@
     </unit>
     <unit id="pk.spotmap.title">
       <segment state="initial">
-        <source>Parkour Spot Map | PK Spot</source>
-        <target>Carte PK Spot</target>
+        <source>Parkour Spots, Events &amp; Communities | PK Spot</source>
+        <target>Spots, événements &amp; communautés parkour | PK Spot</target>
       </segment>
     </unit>
     <unit id="amenities.covered">
@@ -2658,6 +2758,12 @@
         <target>Quelle note donneriez-vous à ce spot, de une à cinq étoiles ?</target>
       </segment>
     </unit>
+    <unit id="643596220631410084">
+      <segment state="initial">
+        <source>Preparing map layout...</source>
+        <target>Preparing map layout...</target>
+      </segment>
+    </unit>
     <unit id="643839708130168383">
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {Follower} other {Followers}}</source>
@@ -2846,8 +2952,8 @@
     </unit>
     <unit id="welcomeDialogText">
       <segment state="initial">
-        <source> We&apos;re excited to have you join our Parkour and Freerunning community. Here you can explore spots, share posts, and connect with other practitioners. 🤸 </source>
-        <target> Nous sommes ravis de vous accueillir dans notre communauté Parkour et Freerunning. Ici, vous pouvez explorer des spots, partager des publications et vous connecter avec d&apos;autres pratiquants. 🤸 </target>
+        <source> PK Spot is the spot for everything parkour. Find places to train, check in, discover what is happening nearby, and connect with your local community. 🤸 </source>
+        <target> PK Spot est le spot pour tout le parkour. Trouvez des lieux d&apos;entraînement, checkez-vous, découvrez ce qui se passe près de vous et rejoignez votre communauté locale. 🤸 </target>
       </segment>
     </unit>
     <unit id="7629436164719717851">
@@ -2977,16 +3083,400 @@
         <target>Ceci est la date à laquelle tu as commencé à pratiquer le Parkour et le Freerunning. Elle sera arrondie à des années complètes après un an ou plus, alors ne t&apos;inquiète pas.</target>
       </segment>
     </unit>
+    <unit id="event_card.sponsored">
+      <segment state="initial">
+        <source>Sponsored Event</source>
+        <target>Sponsored Event</target>
+      </segment>
+    </unit>
+    <unit id="event_create.meta.description">
+      <segment state="initial">
+        <source>Admin tool for adding a new parkour event to PK Spot.</source>
+        <target>Admin tool for adding a new parkour event to PK Spot.</target>
+      </segment>
+    </unit>
+    <unit id="event_create.meta.title">
+      <segment state="initial">
+        <source>Create event</source>
+        <target>Create event</target>
+      </segment>
+    </unit>
+    <unit id="event_create.restricted.back">
+      <segment state="initial">
+        <source> Back to events </source>
+        <target> Back to events </target>
+      </segment>
+    </unit>
+    <unit id="event_create.restricted.body">
+      <segment state="initial">
+        <source> Event creation is currently limited to PK Spot admins. If you&apos;d like to add an event to the map, get in touch with us. </source>
+        <target> Event creation is currently limited to PK Spot admins. If you&apos;d like to add an event to the map, get in touch with us. </target>
+      </segment>
+    </unit>
+    <unit id="event_create.restricted.title">
+      <segment state="initial">
+        <source> Admin only </source>
+        <target> Admin only </target>
+      </segment>
+    </unit>
+    <unit id="event_create.snackbar.created">
+      <segment state="initial">
+        <source>Event created.</source>
+        <target>Event created.</target>
+      </segment>
+    </unit>
+    <unit id="event_create.snackbar.failed">
+      <segment state="initial">
+        <source>Couldn&apos;t create the event. Check the console for details.</source>
+        <target>Couldn&apos;t create the event. Check the console for details.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.area_label">
+      <segment state="initial">
+        <source> Event area </source>
+        <target> Event area </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.banner_accent">
+      <segment state="initial">
+        <source> Contain bg color </source>
+        <target> Contain bg color </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.banner_fit">
+      <segment state="initial">
+        <source>Banner fit</source>
+        <target>Banner fit</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.banner_fit.contain">
+      <segment state="initial">
+        <source> Contain (fit fully, gap-fill) </source>
+        <target> Contain (fit fully, gap-fill) </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.banner_fit.cover">
+      <segment state="initial">
+        <source> Cover (fill, may crop) </source>
+        <target> Cover (fill, may crop) </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.banner_label">
+      <segment state="initial">
+        <source> Banner image </source>
+        <target> Banner image </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.bounds_required">
+      <segment state="initial">
+        <source> Drop a rectangle on the map to define the event area. </source>
+        <target> Drop a rectangle on the map to define the event area. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.cancel">
+      <segment state="initial">
+        <source>Cancel</source>
+        <target>Cancel</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.communities_heading">
+      <segment state="initial">
+        <source> Communities </source>
+        <target> Communities </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.communities_hint">
+      <segment state="initial">
+        <source> Communities that should surface this event. Auto-suggested from the event&apos;s area — adjust as needed. </source>
+        <target> Communities that should surface this event. Auto-suggested from the event&apos;s area — adjust as needed. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_suggestions">
+      <segment state="initial">
+        <source> Suggested: </source>
+        <target> Suggested: </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.current_image_label">
+      <segment state="initial">
+        <source> Current: </source>
+        <target> Current: </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.dates_end_label">
+      <segment state="initial">
+        <source> End </source>
+        <target> End </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.dates_label">
+      <segment state="initial">
+        <source> Start </source>
+        <target> Start </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.delete">
+      <segment state="initial">
+        <source>Delete</source>
+        <target>Delete</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.delete_confirm">
+      <segment state="initial">
+        <source> Delete this event? This can&apos;t be undone. </source>
+        <target> Delete this event? This can&apos;t be undone. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.delete_keep">
+      <segment state="initial">
+        <source>Keep</source>
+        <target>Keep</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.delete_yes">
+      <segment state="initial">
+        <source>Yes, delete</source>
+        <target>Yes, delete</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.description">
+      <segment state="initial">
+        <source>Description</source>
+        <target>Description</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.end_date">
+      <segment state="initial">
+        <source>End date</source>
+        <target>End date</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.end_time">
+      <segment state="initial">
+        <source>End time</source>
+        <target>End time</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.focus_zoom">
+      <segment state="initial">
+        <source>Map focus zoom</source>
+        <target>Map focus zoom</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.focus_zoom_hint">
+      <segment state="initial">
+        <source> Optional. 14–18 is typical for a venue-level view. </source>
+        <target> Optional. 14–18 is typical for a venue-level view. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.heading_create">
+      <segment state="initial">
+        <source> Create event </source>
+        <target> Create event </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.heading_edit">
+      <segment state="initial">
+        <source>Edit event</source>
+        <target>Edit event</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.imagery">
+      <segment state="initial">
+        <source>Imagery</source>
+        <target>Imagery</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.locality">
+      <segment state="initial">
+        <source>Locality</source>
+        <target>Locality</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.logo_label">
+      <segment state="initial">
+        <source> Event logo (optional) </source>
+        <target> Event logo (optional) </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.name">
+      <segment state="initial">
+        <source>Event name</source>
+        <target>Event name</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.name_required">
+      <segment state="initial">
+        <source> Name is required. </source>
+        <target> Name is required. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.optional_section">
+      <segment state="initial">
+        <source> Optional details </source>
+        <target> Optional details </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.optional_section_hint">
+      <segment state="initial">
+        <source> Description, banner, spots, sponsor, … </source>
+        <target> Description, banner, spots, sponsor, … </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.published">
+      <segment state="initial">
+        <source> Published — visible to the public </source>
+        <target> Published — visible to the public </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.required_section">
+      <segment state="initial">
+        <source> Essentials </source>
+        <target> Essentials </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.save">
+      <segment state="initial">
+        <source>Save</source>
+        <target>Save</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.series">
+      <segment state="initial">
+        <source> Series (comma-separated) </source>
+        <target> Series (comma-separated) </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.slug">
+      <segment state="initial">
+        <source>URL slug</source>
+        <target>URL slug</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.slug_hint">
+      <segment state="initial">
+        <source> Lowercase letters, digits, and hyphens. </source>
+        <target> Lowercase letters, digits, and hyphens. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.slug_invalid">
+      <segment state="initial">
+        <source> Use only a-z, 0-9 and hyphens. </source>
+        <target> Use only a-z, 0-9 and hyphens. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.snackbar.delete_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t delete the event.</source>
+        <target>Couldn&apos;t delete the event.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.snackbar.deleted">
+      <segment state="initial">
+        <source>Event deleted.</source>
+        <target>Event deleted.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.snackbar.save_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t save the event. Check the console for details.</source>
+        <target>Couldn&apos;t save the event. Check the console for details.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.snackbar.saved">
+      <segment state="initial">
+        <source>Event saved.</source>
+        <target>Event saved.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.sponsor_heading">
+      <segment state="initial">
+        <source> Sponsor </source>
+        <target> Sponsor </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.sponsor_hint">
+      <segment state="initial">
+        <source> If set, the event is treated as a paid promo — sponsor logo shows on event spot pins and inside the map-island chip. </source>
+        <target> If set, the event is treated as a paid promo — sponsor logo shows on event spot pins and inside the map-island chip. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.sponsor_logo">
+      <segment state="initial">
+        <source> Sponsor logo </source>
+        <target> Sponsor logo </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.sponsor_name">
+      <segment state="initial">
+        <source> Sponsor name </source>
+        <target> Sponsor name </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.sponsor_url">
+      <segment state="initial">
+        <source>Sponsor URL</source>
+        <target>Sponsor URL</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.spot_picker_label">
+      <segment state="initial">
+        <source>Add a spot to this event</source>
+        <target>Add a spot to this event</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.spots_heading">
+      <segment state="initial">
+        <source> Spots </source>
+        <target> Spots </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.start_date">
+      <segment state="initial">
+        <source>Start date</source>
+        <target>Start date</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.start_time">
+      <segment state="initial">
+        <source>Start time</source>
+        <target>Start time</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.url">
+      <segment state="initial">
+        <source>External URL</source>
+        <target>External URL</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.venue">
+      <segment state="initial">
+        <source>Venue name</source>
+        <target>Venue name</target>
+      </segment>
+    </unit>
     <unit id="event_page.back_to_events">
       <segment state="initial">
         <source>Back to all events</source>
         <target>Retour à tous les événements</target>
       </segment>
     </unit>
-    <unit id="event_page.status.live_label">
+    <unit id="event_page.edit_tooltip">
       <segment state="initial">
-        <source>Ongoing — ends in</source>
-        <target>En cours - se termine dans</target>
+        <source>Edit event</source>
+        <target>Edit event</target>
+      </segment>
+    </unit>
+    <unit id="event_page.status.ends_in">
+      <segment state="initial">
+        <source>ends in</source>
+        <target>ends in</target>
+      </segment>
+    </unit>
+    <unit id="event_page.status.live">
+      <segment state="initial">
+        <source>Live Event</source>
+        <target>Live Event</target>
       </segment>
     </unit>
     <unit id="event_page.status.past">
@@ -2995,16 +3485,28 @@
         <target>Cet événement est terminé. Les informations ci-dessous peuvent être obsolètes.</target>
       </segment>
     </unit>
-    <unit id="event_page.status.upcoming_label">
+    <unit id="event_page.status.sponsored_live">
       <segment state="initial">
-        <source>Starts in</source>
+        <source>Sponsored Live Event</source>
+        <target>Sponsored Live Event</target>
+      </segment>
+    </unit>
+    <unit id="event_page.status.sponsored_upcoming">
+      <segment state="initial">
+        <source>Sponsored Upcoming Event</source>
+        <target>Sponsored Upcoming Event</target>
+      </segment>
+    </unit>
+    <unit id="event_page.status.starts_in">
+      <segment state="initial">
+        <source>starts in</source>
         <target>Commence dans</target>
       </segment>
     </unit>
-    <unit id="event_preview.close">
+    <unit id="event_page.status.upcoming">
       <segment state="initial">
-        <source>Close</source>
-        <target>Fermer</target>
+        <source>Upcoming Event</source>
+        <target>Upcoming Event</target>
       </segment>
     </unit>
     <unit id="event_preview.details">
@@ -3013,28 +3515,64 @@
         <target>Détails</target>
       </segment>
     </unit>
+    <unit id="event_preview.event_tooltip">
+      <segment state="initial">
+        <source>Event</source>
+        <target>Event</target>
+      </segment>
+    </unit>
     <unit id="event_preview.see_full">
       <segment state="initial">
         <source>See full event</source>
         <target>Voir l’événement complet</target>
       </segment>
     </unit>
-    <unit id="event_preview.status.live">
+    <unit id="event_preview.sponsored_tooltip">
       <segment state="initial">
-        <source>Ongoing — ends in</source>
-        <target>En cours - se termine dans</target>
+        <source>Sponsored event</source>
+        <target>Sponsored event</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.ends_in">
+      <segment state="initial">
+        <source>ends in</source>
+        <target>ends in</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.live_event">
+      <segment state="initial">
+        <source>Live Event</source>
+        <target>Live Event</target>
       </segment>
     </unit>
     <unit id="event_preview.status.past">
       <segment state="initial">
-        <source>Past event</source>
-        <target>Événement passé</target>
+        <source> Past event </source>
+        <target> Événement passé </target>
       </segment>
     </unit>
-    <unit id="event_preview.status.upcoming">
+    <unit id="event_preview.status.sponsored_live">
       <segment state="initial">
-        <source>Starts in</source>
+        <source>Sponsored Live Event</source>
+        <target>Sponsored Live Event</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.sponsored_upcoming">
+      <segment state="initial">
+        <source>Sponsored Upcoming Event</source>
+        <target>Sponsored Upcoming Event</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.starts_in">
+      <segment state="initial">
+        <source>starts in</source>
         <target>Commence dans</target>
+      </segment>
+    </unit>
+    <unit id="event_preview.status.upcoming_event">
+      <segment state="initial">
+        <source>Upcoming Event</source>
+        <target>Upcoming Event</target>
       </segment>
     </unit>
     <unit id="event_preview.view_eventfrog">
@@ -3065,6 +3603,12 @@
       <segment state="initial">
         <source>View on Swiss Parkour Tour</source>
         <target>Voir sur Swiss Parkour Tour</target>
+      </segment>
+    </unit>
+    <unit id="events.create">
+      <segment state="initial">
+        <source>Create event</source>
+        <target>Create event</target>
       </segment>
     </unit>
     <unit id="events.in_n_days">
@@ -3120,8 +3664,8 @@
         <note category="description">:</note>
       </notes>
       <segment state="initial">
-        <source>Events</source>
-        <target>Événements</target>
+        <source> Events </source>
+        <target> Événements </target>
       </segment>
     </unit>
     <unit id="events_label">
@@ -3150,6 +3694,12 @@
       <segment state="initial">
         <source>Dismiss event chip</source>
         <target>Masquer la puce événement</target>
+      </segment>
+    </unit>
+    <unit id="4236673499531962366">
+      <segment state="initial">
+        <source> Landing in a new city? Find places to train, see what locals rate highly, and use community pages to understand the scene around you. </source>
+        <target> Landing in a new city? Find places to train, see what locals rate highly, and use community pages to understand the scene around you. </target>
       </segment>
     </unit>
     <unit id="spot.close.tooltip">
@@ -3192,6 +3742,12 @@
       <segment state="initial">
         <source>Apply</source>
         <target>Appliquer</target>
+      </segment>
+    </unit>
+    <unit id="filter_cancel">
+      <segment state="initial">
+        <source>Cancel</source>
+        <target>Cancel</target>
       </segment>
     </unit>
     <unit id="filter_clear">
@@ -3507,10 +4063,10 @@
         <target>Connexion</target>
       </segment>
     </unit>
-    <unit id="community.close">
+    <unit id="common.dismiss">
       <segment state="initial">
-        <source>Close</source>
-        <target>Fermer</target>
+        <source>Dismiss</source>
+        <target>Dismiss</target>
       </segment>
     </unit>
     <unit id="community.discover_more_events">
@@ -3519,28 +4075,22 @@
         <target>Découvrir plus d’événements →</target>
       </segment>
     </unit>
-    <unit id="community.dry_count">
-      <segment state="initial">
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ dryCount() }}"/> dry</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="{{ dryCount() }}"/> secs</target>
-      </segment>
-    </unit>
     <unit id="community.events_heading">
       <segment state="initial">
         <source> Events </source>
         <target> Events </target>
       </segment>
     </unit>
-    <unit id="community.spots_count">
+    <unit id="community.explore_dry_spots">
       <segment state="initial">
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ totalSpotCount() }}"/> spots</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="{{ totalSpotCount() }}"/> spots</target>
+        <source>Explore dry spots</source>
+        <target>Explore dry spots</target>
       </segment>
     </unit>
-    <unit id="community.top_rated_count">
+    <unit id="community.explore_more_spots">
       <segment state="initial">
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ topRatedCount() }}"/> top-rated</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="{{ topRatedCount() }}"/> les mieux notés</target>
+        <source>Explore more spots</source>
+        <target>Explore more spots</target>
       </segment>
     </unit>
     <unit id="crop.cancel">
@@ -3773,10 +4323,10 @@
         <target> Enregistrez d&apos;abord le spot pour ajouter des images. </target>
       </segment>
     </unit>
-    <unit id="4872378010635024789">
+    <unit id="6260998870790925974">
       <segment state="initial">
-        <source> Training happens outside, not behind a desk. Take the full power of PK Spot with you - verified spots, smart filters, and session logging, right in your pocket. </source>
-        <target> L&apos;entraînement se passe dehors, pas derrière un bureau. Emporte toute la puissance de PK Spot avec toi - spots vérifiés, smart filters et suivi de sessions, directement dans ta poche. </target>
+        <source> Training happens outside, not behind a desk. Take the full power of PK Spot with you: spots, check-ins, community pages, and the events and jams taking shape around you. </source>
+        <target> L&apos;entraînement se passe dehors, pas derrière un bureau. Emportez PK Spot avec vous : spots, check-ins, pages de communauté, événements et jams qui prennent forme autour de vous. </target>
       </segment>
     </unit>
     <unit id="4881902536872851671">
@@ -3791,9 +4341,9 @@
         <target>Water Challenge</target>
       </segment>
     </unit>
-    <unit id="2445432338788485465">
+    <unit id="4117359828699661747">
       <segment state="initial">
-        <source> Don&apos;t Just Look. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">Find</pc>. </source>
+        <source> Find where to <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">train</pc>. </source>
         <target> Ne te contente pas de regarder. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">Trouve</pc>. </target>
       </segment>
     </unit>
@@ -4030,14 +4580,14 @@
     </unit>
     <unit id="pk.home.description">
       <segment state="initial">
-        <source>PK Spot is a parkour and freerunning community map. Find spots, plan training sessions, and share what you discover.</source>
-        <target>PK Spot est une carte communautaire de parkour et de freerunning. Trouvez des spots, planifiez des sessions et partagez vos découvertes.</target>
+        <source>PK Spot is the spot for everything parkour. Find spots, check in, discover what is happening nearby, and connect with your local community.</source>
+        <target>PK Spot est le spot pour tout le parkour. Trouvez des spots, checkez-vous, découvrez ce qui se passe près de vous et rejoignez votre communauté locale.</target>
       </segment>
     </unit>
     <unit id="pk.home.title">
       <segment state="initial">
-        <source>Parkour Spot Finder | PK Spot</source>
-        <target>Trouver des spots de parkour | PK Spot</target>
+        <source>The Spot for Everything Parkour | PK Spot</source>
+        <target>Le spot pour tout le parkour | PK Spot</target>
       </segment>
     </unit>
     <unit id="pk.spotmap.addSpot">
@@ -4048,8 +4598,8 @@
     </unit>
     <unit id="pk.spotmap.description">
       <segment state="initial">
-        <source>Discover parkour spots near you, plan training sessions with friends, and share your spots with the freerunning community.</source>
-        <target>Découvrez des spots de parkour près de vous, planifiez des sessions avec des amis et partagez vos spots avec la communauté freerunning.</target>
+        <source>Find parkour spots near you, check in, discover events and jams, and connect with your local community.</source>
+        <target>Trouvez des spots de parkour près de vous, checkez-vous, découvrez événements et jams, et rejoignez votre communauté locale.</target>
       </segment>
     </unit>
     <unit id="801213320890707566">
@@ -4128,6 +4678,26 @@
       <segment state="initial">
         <source>Challenges</source>
         <target>Défis</target>
+      </segment>
+    </unit>
+    <unit id="spot.delete.aria_label">
+      <notes>
+        <note category="description">Aria label for delete spot button</note>
+        <note category="meaning">Delete spot aria label</note>
+      </notes>
+      <segment state="initial">
+        <source>Delete button with a trash icon</source>
+        <target>Delete button with a trash icon</target>
+      </segment>
+    </unit>
+    <unit id="spot.delete.tooltip">
+      <notes>
+        <note category="description">Tooltip for delete spot button</note>
+        <note category="meaning">Delete spot tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>Delete this spot</source>
+        <target>Delete this spot</target>
       </segment>
     </unit>
     <unit id="spot.details.header">
@@ -4622,10 +5192,10 @@
         <target>Individuel</target>
       </segment>
     </unit>
-    <unit id="2252911490527310739">
+    <unit id="4690676620396071094">
       <segment state="initial">
-        <source> The digital home for a physical movement. Whether you&apos;re a beginner looking for your first wall or a pro searching for a challenge, this is where the Parkour community maps the world. </source>
-        <target> La maison numérique d&apos;un mouvement physique. Que vous soyez un débutant cherchant votre premier mur ou un pro cherchant un défi, c&apos;est ici que la communauté du Parkour cartographie le monde. </target>
+        <source> Find spots, check in, discover what is happening nearby, and connect with your local parkour community. </source>
+        <target> Trouvez des spots, checkez-vous, découvrez ce qui se passe près de vous et rejoignez votre communauté parkour locale. </target>
       </segment>
     </unit>
     <unit id="2267637299863581067">
@@ -4825,6 +5395,12 @@
       <segment state="initial">
         <source> We don&apos;t have a PK Spot community page for this route yet. </source>
         <target>Nous n’avons pas encore de page de communauté PK Spot pour cet itinéraire.</target>
+      </segment>
+    </unit>
+    <unit id="spot_picker.limit_hint">
+      <segment state="initial">
+        <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> spots </source>
+        <target> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> spots </target>
       </segment>
     </unit>
     <unit id="spot_type_label">
@@ -5086,6 +5662,30 @@
         <target>Ajouter ce Spot aux favoris</target>
       </segment>
     </unit>
+    <unit id="bounds_picker.hint_empty">
+      <segment state="initial">
+        <source> Click on the map to drop a rectangle around the event area. You can then drag and resize it. </source>
+        <target> Click on the map to drop a rectangle around the event area. You can then drag and resize it. </target>
+      </segment>
+    </unit>
+    <unit id="bounds_picker.hint_existing">
+      <segment state="initial">
+        <source> Drag the rectangle or resize its corners to fit the event area. </source>
+        <target> Drag the rectangle or resize its corners to fit the event area. </target>
+      </segment>
+    </unit>
+    <unit id="bounds_picker.loading">
+      <segment state="initial">
+        <source> Loading map… </source>
+        <target> Loading map… </target>
+      </segment>
+    </unit>
+    <unit id="bounds_picker.reset">
+      <segment state="initial">
+        <source>Reset</source>
+        <target>Reset</target>
+      </segment>
+    </unit>
     <unit id="challenge-list.all-label">
       <segment state="initial">
         <source>All Types</source>
@@ -5200,6 +5800,12 @@
         <target>autre</target>
       </segment>
     </unit>
+    <unit id="3888116092221417755">
+      <segment state="initial">
+        <source> A map is only useful when it reflects real training. Community check-ins and organization updates help show where parkour is active right now. </source>
+        <target> A map is only useful when it reflects real training. Community check-ins and organization updates help show where parkour is active right now. </target>
+      </segment>
+    </unit>
     <unit id="3894305924320774026">
       <segment state="initial">
         <source>@pkspot.app</source>
@@ -5299,16 +5905,16 @@
         <target>Dissocier</target>
       </segment>
     </unit>
-    <unit id="7433077905899310281">
-      <segment state="initial">
-        <source> A map is only useful if it&apos;s accurate. We prioritize Active Training. Through community check-ins and verified organization updates, we are building a living heatmap of where the sport is actually happening right now. </source>
-        <target> Une carte n&apos;est utile que si elle est précise. Nous priorisons l&apos;Entraînement Actif. Grâce aux check-ins de la communauté et aux mises à jour vérifiées des organisations, nous construisons une heatmap vivante montrant où le sport se pratique vraiment en ce moment. </target>
-      </segment>
-    </unit>
     <unit id="744750008248382275">
       <segment state="initial">
         <source> Sign Up </source>
         <target> S&apos;inscrire </target>
+      </segment>
+    </unit>
+    <unit id="746689080802550943">
+      <segment state="initial">
+        <source> Spot </source>
+        <target> Spot </target>
       </segment>
     </unit>
   </file>
