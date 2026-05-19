@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  inject,
+  signal,
+} from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -12,6 +18,7 @@ import {
   OrganizationRole,
   OrganizationSchema,
 } from "../../../db/schemas/OrganizationSchema";
+import { Subscription } from "rxjs";
 
 type OrganizationDocument = OrganizationSchema & { id: string };
 
@@ -29,7 +36,7 @@ type OrganizationDocument = OrganizationSchema & { id: string };
   styleUrl: "./organization-admin-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OrganizationAdminPageComponent {
+export class OrganizationAdminPageComponent implements OnDestroy {
   private _organizationsService = inject(OrganizationsService);
   readonly authService = inject(AuthenticationService);
 
@@ -41,9 +48,19 @@ export class OrganizationAdminPageComponent {
   readonly memberUserId = signal("");
   readonly memberRole = signal<OrganizationRole>("reviewer");
   readonly spotId = signal("");
+  readonly isAdmin = signal(false);
+  readonly authResolved = this.authService.initialAuthStateResolved;
+  private readonly _authSubscription: Subscription;
 
   constructor() {
+    this._authSubscription = this.authService.authState$.subscribe(() => {
+      this.isAdmin.set(this.authService.user.data?.isAdmin === true);
+    });
     void this.reload();
+  }
+
+  ngOnDestroy(): void {
+    this._authSubscription.unsubscribe();
   }
 
   async reload(): Promise<void> {

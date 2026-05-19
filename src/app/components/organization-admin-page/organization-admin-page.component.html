@@ -1,6 +1,8 @@
 <section class="organization-admin">
   <h1 class="mat-headline-medium" i18n>Organization admin</h1>
-  @if (authService.user.data?.isAdmin !== true) {
+  @if (!authResolved()) {
+    <p i18n>Checking admin access...</p>
+  } @else if (!isAdmin()) {
     <p i18n>Admin access required.</p>
   } @else {
     <mat-card>
