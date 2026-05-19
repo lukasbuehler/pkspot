@@ -69,6 +69,7 @@ import { CheckInService } from "./services/check-in.service";
 import { SpotId } from "../db/schemas/SpotSchema";
 import { MetaTagService } from "./services/meta-tag.service";
 import { KeyboardService } from "./services/keyboard.service";
+import type { ContentType } from "./resolvers/content.resolver";
 
 interface ButtonBase {
   name: string;
@@ -646,10 +647,11 @@ export class AppComponent implements OnInit, AfterViewInit {
               });
             }
 
-            // Update Canonical URL and Hreflang tags
-            this._metaTagService.syncCanonicalAndHreflangForPath(
-              nav.urlAfterRedirects
-            );
+            if (this.shouldSyncCanonicalFromNavigation()) {
+              this._metaTagService.syncCanonicalAndHreflangForPath(
+                nav.urlAfterRedirects
+              );
+            }
 
             // Start new engagement tracking for this page (browser-only)
             if (isBrowser && document.visibilityState === "visible") {
@@ -721,6 +723,30 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private setEmbeddedStateFromUrl(url: string) {
     this.isEmbedded.set(url.split("/")[1] === "embedded");
+  }
+
+  private shouldSyncCanonicalFromNavigation(): boolean {
+    const contentType = this.getActiveRouteContentType();
+    return !(
+      contentType === "spot" ||
+      contentType === "challenge" ||
+      contentType === "spotEditHistory"
+    );
+  }
+
+  private getActiveRouteContentType(): ContentType | null {
+    let activeRoute = this.route;
+    while (activeRoute.firstChild) {
+      activeRoute = activeRoute.firstChild;
+    }
+
+    const content = activeRoute.snapshot.data["content"];
+    if (typeof content !== "object" || content === null) {
+      return null;
+    }
+
+    const contentType = (content as { contentType?: unknown }).contentType;
+    return typeof contentType === "string" ? (contentType as ContentType) : null;
   }
 
   private async waitForInitialRenderState() {

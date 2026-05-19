@@ -76,6 +76,9 @@ const createRouteSnapshot = (
 const getMetaContent = (doc: Document, selector: string): string | null =>
   doc.head.querySelector(selector)?.getAttribute("content") ?? null;
 
+const getLinkHref = (doc: Document, selector: string): string | null =>
+  doc.head.querySelector(selector)?.getAttribute("href") ?? null;
+
 const buildImaxSpot = (): Spot =>
   new Spot(
     "spot-imax" as SpotId,
@@ -204,6 +207,39 @@ describe("contentResolver", () => {
     expect(canonicalLink?.getAttribute("href")).toBe(
       "https://pkspot.app/en/map/spots/imax"
     );
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="en"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="de-CH"]')
+    ).toBe("https://pkspot.app/de-CH/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="x-default"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+  });
+
+  it("should use the resolved spot slug for canonical links when the requested route used an id", async () => {
+    const imaxSpot = buildImaxSpot();
+    const route = createRouteSnapshot("spot-imax");
+
+    slugsService.getSpotIdFromSpotSlug.mockRejectedValue("No slug found");
+    spotsService.getSpotById.mockResolvedValue(imaxSpot);
+
+    await TestBed.runInInjectionContext(() => contentResolver(route as any));
+
+    expect(spotsService.getSpotById).toHaveBeenCalledWith("spot-imax", "en");
+    expect(
+      getMetaContent(testDocument, 'meta[property="og:url"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="canonical"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="de"]')
+    ).toBe("https://pkspot.app/de/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="x-default"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
   });
 
   it("should render spot social tags when the map parent resolver sees a child spot route", async () => {
