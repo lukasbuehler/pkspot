@@ -138,4 +138,41 @@ describe("CommunityHelpers", () => {
       })
     );
   });
+
+  it("should prefer address locality over stale landing locality data", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          sublocality: "Greenwich Peninsula",
+          locality: "London",
+          region: {
+            code: "ENG",
+            name: "England",
+          },
+          country: {
+            code: "gb",
+            name: "United Kingdom",
+          },
+        },
+        landing: {
+          countryCode: "GB",
+          countryNameEn: "United Kingdom",
+          countrySlug: "united-kingdom",
+          regionCode: "ENG",
+          regionName: "England",
+          regionSlug: "eng",
+          localityName: "Greenwich Peninsula",
+          localitySlug: "greenwich-peninsula",
+          isDry: false,
+          organizationVerified: false,
+        },
+      })
+    ).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:gb:eng:london",
+        scope: "locality",
+        displayName: "London",
+      })
+    );
+  });
 });

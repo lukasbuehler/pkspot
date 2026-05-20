@@ -142,7 +142,7 @@
     [icons]="['flag']"
   >
   </app-marker>
-  }@else if(showSpotPreview()) {
+  }@else if(showSpotPreview() && !isEditing()) {
   <map-advanced-marker
     #selectedSpotMarker
     id="selectedSpotMarker"

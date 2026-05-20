@@ -116,8 +116,8 @@ export function getSpotCommunityCandidates(
   spotLike: Pick<SpotSchema, "address" | "landing">
 ): CommunityCandidate[] {
   const country = getCountryMetadata(
-    spotLike.landing?.countryCode || spotLike.address?.country?.code,
-    spotLike.landing?.countryNameEn || spotLike.address?.country?.name
+    spotLike.address?.country?.code || spotLike.landing?.countryCode,
+    spotLike.address?.country?.name || spotLike.landing?.countryNameEn
   );
 
   if (!country) {
@@ -125,20 +125,22 @@ export function getSpotCommunityCandidates(
   }
 
   let regionCode =
-    spotLike.landing?.regionCode || spotLike.address?.region?.code || undefined;
+    spotLike.address?.region?.code || spotLike.landing?.regionCode || undefined;
   let regionName =
-    spotLike.landing?.regionName || spotLike.address?.region?.name || undefined;
+    spotLike.address?.region?.name || spotLike.landing?.regionName || undefined;
   let regionSlug =
-    spotLike.landing?.regionSlug ||
     slugifyUrlSegment(
       spotLike.address?.region?.code || spotLike.address?.region?.name || ""
     ) ||
+    spotLike.landing?.regionSlug ||
     undefined;
 
   let localityName =
-    spotLike.landing?.localityName || getCanonicalLocalityName(spotLike.address);
+    getCanonicalLocalityName(spotLike.address) || spotLike.landing?.localityName;
   let localitySlug =
-    spotLike.landing?.localitySlug || normalizeCommunitySlug(localityName);
+    normalizeCommunitySlug(localityName) ||
+    spotLike.landing?.localitySlug ||
+    undefined;
   let localityLocalName = getDisplayLocalityName(spotLike.address);
 
   // Prague normalization

@@ -193,6 +193,7 @@ export class KeyboardService {
         typeof window !== "undefined"
           ? window.visualViewport?.height ?? null
           : null,
+      keyboardPaddingElements: this.describeKeyboardPaddingElements(),
     });
 
     // Nudge Angular CDK's ViewportRuler so anchored overlays (mat-select
@@ -269,15 +270,69 @@ export class KeyboardService {
       return;
     }
 
+    const scrollResult = this.applyScrollDelta(scrollParent, delta);
+
+    this.debug("scrollFocusedControlIntoView applied scroll", {
+      delta,
+      scrollResult,
+      scrollParent: this.describeScrollParent(scrollParent),
+    });
+  }
+
+  private applyScrollDelta(
+    scrollParent: HTMLElement | Window,
+    delta: number
+  ): Record<string, unknown> {
+    if (this.isWindow(scrollParent)) {
+      if (this._isNative) {
+        const before = scrollParent.scrollY;
+        scrollParent.scrollTo({
+          top: before + delta,
+          behavior: "auto",
+        });
+      } else {
+        scrollParent.scrollBy({
+          top: delta,
+          behavior: "smooth",
+        });
+      }
+      return {
+        type: "window",
+        scrollY: scrollParent.scrollY,
+      };
+    }
+
+    if (this._isNative) {
+      const before = scrollParent.scrollTop;
+      const maxScrollTop = Math.max(
+        0,
+        scrollParent.scrollHeight - scrollParent.clientHeight
+      );
+      const requestedScrollTop = before + delta;
+      const nextScrollTop = Math.max(
+        0,
+        Math.min(maxScrollTop, requestedScrollTop)
+      );
+      scrollParent.scrollTop = nextScrollTop;
+      return {
+        type: "element",
+        before,
+        requestedScrollTop,
+        nextScrollTop,
+        maxScrollTop,
+        appliedDelta: nextScrollTop - before,
+        clamped: nextScrollTop !== requestedScrollTop,
+      };
+    }
+
     scrollParent.scrollBy({
       top: delta,
       behavior: "smooth",
     });
-
-    this.debug("scrollFocusedControlIntoView scrollBy", {
-      delta,
-      scrollParent: this.describeScrollParent(scrollParent),
-    });
+    return {
+      type: "element",
+      scrollTop: scrollParent.scrollTop,
+    };
   }
 
   private findScrollParent(element: HTMLElement): HTMLElement | Window {
@@ -356,6 +411,23 @@ export class KeyboardService {
       scrollHeight: scrollParent.scrollHeight,
       overflowY: getComputedStyle(scrollParent).overflowY,
     };
+  }
+
+  private describeKeyboardPaddingElements(): Record<string, unknown>[] {
+    if (typeof document === "undefined") return [];
+
+    return Array.from(document.querySelectorAll<HTMLElement>(".keyboard-padding"))
+      .slice(0, 5)
+      .map((element) => {
+        const style = getComputedStyle(element);
+        return {
+          element: this.describeElement(element),
+          paddingBottom: style.paddingBottom,
+          scrollHeight: element.scrollHeight,
+          clientHeight: element.clientHeight,
+          rect: this.describeRect(element.getBoundingClientRect()),
+        };
+      });
   }
 
   private isWindow(value: HTMLElement | Window): value is Window {

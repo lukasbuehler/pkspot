@@ -27,6 +27,7 @@ import {
   SearchService,
 } from "../../services/search.service";
 import { MatInputModule } from "@angular/material/input";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import {
@@ -96,12 +97,19 @@ interface SearchSpotResults {
 }
 
 interface SearchFieldResults {
+  query: string;
+  isShortQuery: boolean;
+  typesenseLoading: boolean;
+  communitiesLoaded: boolean;
   communities: CommunitySearchPreview[];
+  eventsLoaded: boolean;
   events: EventSearchPreview[];
+  placesLoaded: boolean;
   displayedPlace: google.maps.places.AutocompletePrediction | null;
   displayedPlacePlacement: "top" | "bottom";
   previewPlaceId: string | null;
   previewCommunity: CommunitySearchPreview | null;
+  spotsLoaded: boolean;
   spots: SearchSpotResults | null;
 }
 
@@ -121,6 +129,7 @@ interface NamedSearchResultLike {
     MatDividerModule,
     MatOptionModule,
     MatSuffix,
+    MatProgressSpinnerModule,
     AsyncPipe,
     SpotRatingComponent,
   ],
@@ -192,7 +201,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
         distinctUntilChanged(),
         switchMap((query) => {
           if (query.length < this._minSearchQueryLength) {
-            return of(null);
+            return of(this.buildShortQueryResults(query));
           }
 
           const onlySpots = this.onlySpots();
@@ -242,7 +251,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
           type Update =
             | { kind: "communities"; data: CommunitySearchPreview[] }
             | { kind: "events"; data: EventSearchPreview[] }
-            | { kind: "spots"; data: { hits: any[]; found: number } }
+            | { kind: "spots"; data: SearchSpotResults }
             | {
                 kind: "places";
                 data: google.maps.places.AutocompletePrediction[];
@@ -313,6 +322,29 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       });
   }
 
+  private buildShortQueryResults(query: string): SearchFieldResults | null {
+    if (query.length === 0) {
+      return null;
+    }
+
+    return {
+      query,
+      isShortQuery: true,
+      typesenseLoading: false,
+      communitiesLoaded: true,
+      communities: [],
+      eventsLoaded: true,
+      events: [],
+      placesLoaded: true,
+      displayedPlace: null,
+      displayedPlacePlacement: "top",
+      previewPlaceId: null,
+      previewCommunity: null,
+      spotsLoaded: true,
+      spots: null,
+    };
+  }
+
   private buildResults(state: {
     query: string;
     communitiesLoaded: boolean;
@@ -329,9 +361,9 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     const events = state.events.slice(0, 3);
 
     // Suppress Google Place row if a community matched. While communities
-    // are still loading, also suppress to avoid a flash of "place then
-    // community" when both end up matching.
-    const placeAllowed = state.communitiesLoaded && !hasCommunityHits;
+    // are still loading, show places immediately so slow Typesense responses
+    // do not make the results pane feel empty.
+    const placeAllowed = !hasCommunityHits;
     const rawDisplayedPlace = placeAllowed ? (state.places[0] ?? null) : null;
     const displayedPlace = rawDisplayedPlace;
 
@@ -347,8 +379,15 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
         : null;
 
     return {
+      query: state.query,
+      isShortQuery: false,
+      typesenseLoading:
+        !state.communitiesLoaded || !state.eventsLoaded || !state.spotsLoaded,
+      communitiesLoaded: state.communitiesLoaded,
       communities,
+      eventsLoaded: state.eventsLoaded,
       events,
+      placesLoaded: state.placesLoaded,
       displayedPlace,
       displayedPlacePlacement:
         displayedPlace &&
@@ -361,6 +400,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
           ? displayedPlace.place_id
           : null,
       previewCommunity,
+      spotsLoaded: state.spotsLoaded,
       spots: spotResults,
     };
   }
@@ -380,6 +420,24 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     this.spotSearchControl.setValue("");
 
     this.spotSelected.emit(event.option.value as SearchSelection);
+  }
+
+  hasVisibleResults(results: SearchFieldResults): boolean {
+    return (
+      results.communities.length > 0 ||
+      results.events.length > 0 ||
+      (results.spots?.hits?.length ?? 0) > 0 ||
+      !!results.displayedPlace
+    );
+  }
+
+  isFullyLoaded(results: SearchFieldResults): boolean {
+    return (
+      results.communitiesLoaded &&
+      results.eventsLoaded &&
+      results.spotsLoaded &&
+      results.placesLoaded
+    );
   }
 
   private emitPlacePreviewChange(placeId: string | null): void {

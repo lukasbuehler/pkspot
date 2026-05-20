@@ -117,12 +117,25 @@ body:has(#alainMenuButton) {
   max-height: calc(100vh - var(--keyboard-offset, 0px) - 32px) !important;
 }
 
+.keyboard-open app-nav-rail-content .main-content {
+  box-sizing: border-box;
+  padding-bottom: var(--keyboard-offset, 0px);
+  scroll-padding-bottom: calc(var(--keyboard-offset, 0px) + 24px);
+}
+
 .mat-mdc-dialog-content {
   scroll-padding-bottom: calc(var(--keyboard-offset, 0px) + 24px);
 }
 
-.keyboard-open .mat-mdc-dialog-content {
+.keyboard-open .mat-mdc-dialog-content,
+.keyboard-open [mat-dialog-content] {
+  box-sizing: border-box;
   padding-bottom: calc(var(--keyboard-offset, 0px) + 24px) !important;
+  scroll-padding-bottom: calc(var(--keyboard-offset, 0px) + 24px);
+}
+
+.keyboard-open .mat-mdc-dialog-surface {
+  max-height: calc(100vh - var(--keyboard-offset, 0px) - 32px) !important;
 }
 
 // Utility: extends an element's scrollable area by the keyboard height so

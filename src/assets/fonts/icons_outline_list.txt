@@ -1,0 +1,6 @@
+# Rounded outlined glyphs loaded as a tiny secondary font for empty states.
+# Keep this list intentionally small; the filled font remains the default.
+bookmark
+bookmark_border
+star
+star_border
