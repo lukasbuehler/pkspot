@@ -128,15 +128,38 @@ export function deriveSpotCommunityData(
     return null;
   }
 
-  const localityName = getSpotLocalityName(spotLike.address);
-  const localitySlug = localityName
+  let localityName = getSpotLocalityName(spotLike.address);
+  let localitySlug = localityName
     ? slugifyUrlSegment(localityName)
     : undefined;
-  const regionName = spotLike.address?.region?.name?.trim() || undefined;
-  const regionCode =
+  let regionName = spotLike.address?.region?.name?.trim() || undefined;
+  let regionCode =
     spotLike.address?.region?.code?.trim().toUpperCase() || undefined;
-  const regionSlug =
+  let regionSlug =
     slugifyUrlSegment(regionCode || regionName || "") || undefined;
+
+  // Prague normalization
+  const checkPragueValue = (val: string | null | undefined) => {
+    if (!val) return false;
+    const slug = slugifyUrlSegment(val);
+    return slug === "hlavni-mesto-praha" || slug === "prague" || slug === "praha";
+  };
+
+  const isPragueLocality =
+    country.countryCode === "CZ" &&
+    (checkPragueValue(localityName) ||
+      checkPragueValue(localitySlug) ||
+      checkPragueValue(regionName) ||
+      checkPragueValue(regionCode) ||
+      checkPragueValue(regionSlug));
+
+  if (isPragueLocality) {
+    localityName = "Hlavní město Praha";
+    localitySlug = "hlavni-mesto-praha";
+    regionName = "Hlavní město Praha";
+    regionCode = "HLAVNÍ MĚSTO PRAHA";
+    regionSlug = "hlavni-mesto-praha";
+  }
 
   return {
     ...country,

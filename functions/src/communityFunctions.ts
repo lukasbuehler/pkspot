@@ -23,7 +23,10 @@ import {
   buildCommunitySlugCandidates,
   getSpotCommunityCandidates,
 } from "../../src/scripts/CommunityHelpers";
-import { computeCommunityBounds } from "../../src/scripts/CommunityBoundsHelpers";
+import {
+  computeCommunityBounds,
+  getDistanceMeters,
+} from "../../src/scripts/CommunityBoundsHelpers";
 import { isDrySpotCandidate } from "../../src/scripts/SpotLandingHelpers";
 import {
   getSpotCountryDisplayName,
@@ -752,6 +755,101 @@ export const rebuildCommunityEventPreviewsOnEventWrite = onDocumentWritten(
   }
 );
 
+interface OverlapWarning {
+  keyA: string;
+  keyB: string;
+  nameA: string;
+  nameB: string;
+  distanceKm: number;
+  reason: string;
+  spotsOverlapCount: number;
+  totalSpotsA: number;
+  totalSpotsB: number;
+}
+
+const detectOverlappingCommunities = (
+  communities: Map<
+    string,
+    { candidate: CommunityCandidate; spots: Array<{ id: string; data: SpotSchema }> }
+  >
+): OverlapWarning[] => {
+  const localities = [...communities.values()].filter(
+    (c) => c.candidate.scope === "locality"
+  );
+  const warnings: OverlapWarning[] = [];
+
+  for (let i = 0; i < localities.length; i++) {
+    const cA = localities[i];
+    const boundsA = computeCommunityBounds(cA.spots.map((s) => s.data));
+    if (!boundsA) continue;
+
+    const centerA = { lat: boundsA.bounds_center[0], lng: boundsA.bounds_center[1] };
+    const nameA = cA.candidate.displayName || "";
+    const slugA = cA.candidate.geography.localitySlug || "";
+    const spotIdsA = new Set(cA.spots.map((s) => s.id));
+
+    for (let j = i + 1; j < localities.length; j++) {
+      const cB = localities[j];
+
+      // Must be same country
+      if (cA.candidate.geography.countryCode !== cB.candidate.geography.countryCode) {
+        continue;
+      }
+
+      const boundsB = computeCommunityBounds(cB.spots.map((s) => s.data));
+      if (!boundsB) continue;
+
+      const centerB = { lat: boundsB.bounds_center[0], lng: boundsB.bounds_center[1] };
+      const distanceMeters = getDistanceMeters(centerA, centerB);
+
+      // We only flag communities that are physically close to each other (e.g., within 20 km)
+      if (distanceMeters > 20000) {
+        continue;
+      }
+
+      const nameB = cB.candidate.displayName || "";
+      const slugB = cB.candidate.geography.localitySlug || "";
+
+      // Check for overlap indicators:
+      // 1. Identical or substring display names
+      const normA = nameA.toLowerCase().trim();
+      const normB = nameB.toLowerCase().trim();
+      const isIdenticalName = normA === normB;
+      const isSubstringName =
+        !!slugA && !!slugB && (slugA.includes(slugB) || slugB.includes(slugA));
+
+      // 2. Shared spots
+      const sharedSpots = cB.spots.filter((s) => spotIdsA.has(s.id));
+      const hasSharedSpots = sharedSpots.length > 0;
+
+      if (isIdenticalName || isSubstringName || hasSharedSpots) {
+        let reason = "";
+        if (isIdenticalName) {
+          reason = "Identical display name";
+        } else if (isSubstringName) {
+          reason = `Similar display names ("${nameA}" vs "${nameB}")`;
+        } else {
+          reason = "Shared spots";
+        }
+
+        warnings.push({
+          keyA: cA.candidate.communityKey,
+          keyB: cB.candidate.communityKey,
+          nameA,
+          nameB,
+          distanceKm: Math.round((distanceMeters / 1000) * 10) / 10,
+          reason,
+          spotsOverlapCount: sharedSpots.length,
+          totalSpotsA: cA.spots.length,
+          totalSpotsB: cB.spots.length,
+        });
+      }
+    }
+  }
+
+  return warnings;
+};
+
 export const rebuildAllCommunityPages = onDocumentCreated(
   { document: MANUAL_REBUILD_DOC },
   async (event) => {
@@ -795,11 +893,34 @@ export const rebuildAllCommunityPages = onDocumentCreated(
 
     await refreshCountryChildCommunities(db, writtenCountryKeys);
 
+    // Audit overlapping communities
+    const warnings = detectOverlappingCommunities(communities);
+    if (warnings.length > 0) {
+      console.warn(
+        `[rebuildAllCommunityPages] Detected ${warnings.length} overlapping/duplicate communities:`,
+        JSON.stringify(warnings, null, 2)
+      );
+      await db
+        .collection(MAINTENANCE_COLLECTION)
+        .doc("community-warnings")
+        .set({
+          warnings,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+    } else {
+      await db
+        .collection(MAINTENANCE_COLLECTION)
+        .doc("community-warnings")
+        .delete()
+        .catch(() => undefined);
+    }
+
     await event.data?.ref.set(
       {
         status: "DONE",
         generated_count: writtenKeys.size,
         completed_at: FieldValue.serverTimestamp(),
+        warnings: warnings.length > 0 ? warnings : null,
       },
       { merge: true }
     );

@@ -91,9 +91,24 @@
 }
 
 .island-text {
+  color: var(--mat-sys-on-surface);
   cursor: pointer;
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.island-primary-text,
+.island-primary-text * {
+  color: var(--mat-sys-on-surface) !important;
+  text-decoration: none !important;
+  -webkit-text-fill-color: var(--mat-sys-on-surface);
+}
+
+.island-secondary-text,
+.island-secondary-text * {
+  color: var(--mat-sys-on-surface-variant) !important;
+  text-decoration: none !important;
+  -webkit-text-fill-color: var(--mat-sys-on-surface-variant);
 }
 
 .event-disclosure {

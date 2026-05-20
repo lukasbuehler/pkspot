@@ -47,10 +47,10 @@
           <div class="event-disclosure mat-label-small text-truncate">
             {{ eventDisclosure() }}
           </div>
-          <div class="mat-title-small text-truncate">
+          <div class="island-primary-text mat-title-small text-truncate">
             {{ island.event.name }}
           </div>
-          <div class="mat-label-small text-truncate opacity-75">
+          <div class="island-secondary-text mat-label-small text-truncate">
             {{ island.event.localityString }}
           </div>
         </button>
@@ -87,10 +87,10 @@
           class="island-text bg-transparent border-0 p-0 text-start flex-grow-1 overflow-hidden"
           (click)="onOpenCommunity()"
         >
-          <div class="mat-title-small text-truncate">
+          <div class="island-primary-text mat-title-small text-truncate">
             {{ island.community.displayName }}
           </div>
-          <div class="mat-label-small text-truncate opacity-75" i18n>
+          <div class="island-secondary-text mat-label-small text-truncate" i18n>
             Community
           </div>
         </button>

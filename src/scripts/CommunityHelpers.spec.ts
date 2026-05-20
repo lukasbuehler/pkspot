@@ -113,4 +113,29 @@ describe("CommunityHelpers", () => {
       })
     ).toContain("usa");
   });
+
+  it("should canonicalize Prague/Praha/Hlavní město Praha address fields in getSpotCommunityCandidates", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          locality: "Prague",
+          region: {
+            code: "Prague",
+            name: "Prague",
+          },
+          country: {
+            code: "cz",
+            name: "Czechia",
+          },
+        },
+        landing: null,
+      } as any)
+    ).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:cz:hlavni-mesto-praha:hlavni-mesto-praha",
+        scope: "locality",
+        displayName: "Hlavní město Praha",
+      })
+    );
+  });
 });

@@ -9,7 +9,7 @@ from fontTools.ttLib import TTFont
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONTS_DIR = os.path.join(BASE_DIR, "src", "assets", "fonts")
 INPUT_FONT = os.path.join(
-    BASE_DIR, "scripts", "MaterialSymbolsRounded[FILL,GRAD,opsz,wght].woff2"
+    BASE_DIR, "scripts", "MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf"
 )
 OUTPUT_FONT = os.path.join(FONTS_DIR, "material-symbols-optimized.woff2")
 ICONS_LIST = os.path.join(FONTS_DIR, "icons_list.txt")
@@ -159,6 +159,7 @@ def main():
         "help_outline": "help",  # relies on fill=0
         "star_border": "star",  # relies on fill=0
         "create": "edit",
+        "phone_iphone": "mobile",
     }
 
     # 5. Post-processing: Rebuild 'liga' feature for names

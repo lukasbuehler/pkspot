@@ -230,8 +230,10 @@ export class KeyboardService {
     const viewportHeight =
       window.visualViewport?.height ?? window.innerHeight ?? 0;
     const viewportTop = window.visualViewport?.offsetTop ?? 0;
+    const viewportDidNotShrink =
+      Math.abs(viewportHeight - window.innerHeight) < 1;
     const visibleBottom =
-      this._isAndroidNative && window.visualViewport?.height === window.innerHeight
+      this._isNative && viewportDidNotShrink
         ? window.innerHeight - keyboardHeight
         : viewportTop + viewportHeight;
     const safeBottom = Math.max(0, visibleBottom - 24);
@@ -252,6 +254,7 @@ export class KeyboardService {
       keyboardHeight,
       viewportHeight,
       viewportTop,
+      viewportDidNotShrink,
       visibleBottom,
       safeTop,
       safeBottom,

@@ -73,4 +73,30 @@ describe("SpotLandingHelpers", () => {
   it("should slugify route segments consistently", () => {
     expect(slugifyUrlSegment("Rio de Janeiro")).toBe("rio-de-janeiro");
   });
+
+  it("should canonicalize Prague/Praha/Hlavní město Praha address fields", () => {
+    expect(
+      deriveSpotCommunityData({
+        address: {
+          locality: "Prague",
+          region: {
+            code: "Prague",
+            name: "Prague",
+          },
+          country: {
+            code: "cz",
+            name: "Czechia",
+          },
+        },
+        type: "urban landscape",
+        amenities: {},
+      }),
+    ).toMatchObject({
+      countryCode: "CZ",
+      localityName: "Hlavní město Praha",
+      localitySlug: "hlavni-mesto-praha",
+      regionName: "Hlavní město Praha",
+      regionSlug: "hlavni-mesto-praha",
+    });
+  });
 });

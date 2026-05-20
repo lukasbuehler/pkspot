@@ -883,7 +883,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           if (this._consentService.hasConsent()) {
             this.userPhoto.set(
               this.authService?.user?.data?.profilePicture?.getSrc(200) ??
-                undefined,
+              undefined,
             );
           } else {
             this.userPhoto.set(undefined);
@@ -1138,7 +1138,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     const userPhoto = this.userPhoto();
     const currentNavUrl = this.currentNavUrl();
     const isCompact = this.responsive.viewMode() !== "desktop";
-    const isOnMobileWeb = true; // TODO
+    const isOnMobileWeb = this.isMobileAppStoreBrowser();
 
     const buttons: NavbarButtonConfig = [
       {
@@ -1173,6 +1173,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     if (isOnMobileWeb) {
       buttons.push({
+        spacerBefore: true,
         name: $localize`:Get App navbar button label|A very short label for the navbar get app button@@get_app_label:Get App`,
         function: () => this.openPKSpotinAppStore(),
         icon: "mobile",
@@ -1180,28 +1181,36 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     buttons.push({
-      spacerBefore: isOnMobileWeb,
+      spacerBefore: !isOnMobileWeb,
       name: signedIn
         ? shortUserDisplayName || $localize`Profile`
         : $localize`:@@login.nav_label:Account`,
       ...(signedIn
         ? {
-            link: "/profile",
-            icon: "person",
-            image: userPhoto || "",
-            active:
-              currentNavUrl.startsWith("/profile") ||
-              currentNavUrl.startsWith("/u/"),
-          }
+          link: "/profile",
+          icon: "person",
+          image: userPhoto || "",
+          active:
+            currentNavUrl.startsWith("/profile") ||
+            currentNavUrl.startsWith("/u/"),
+        }
         : {
-            function: () => this.navigateToAccount(),
-            icon: "manage_accounts",
-            active:
-              currentNavUrl.startsWith("/account") ||
-              currentNavUrl.startsWith("/sign-in"),
-          }),
+          function: () => this.navigateToAccount(),
+          icon: "manage_accounts",
+          active:
+            currentNavUrl.startsWith("/account") ||
+            currentNavUrl.startsWith("/sign-in"),
+        }),
     });
 
     return buttons;
   });
+
+  private isMobileAppStoreBrowser(): boolean {
+    if (this.isNativePlatform || typeof navigator === "undefined") {
+      return false;
+    }
+
+    return /android|iphone|ipod|ipad/i.test(navigator.userAgent);
+  }
 }

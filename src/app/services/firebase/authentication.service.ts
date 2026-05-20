@@ -1220,6 +1220,11 @@ export class AuthenticationService extends ConsentAwareService {
       throw new Error("No user ID found");
     }
 
+    this.trackEventWithConsent("Delete Account", {
+      provider: this.user.providerId ?? "unknown",
+      platform: this._isNative ? Capacitor.getPlatform() : "web",
+    });
+
     // Delete Firebase Auth account first (while still authenticated)
     if (this._isNative) {
       await this._deleteAccountNative();

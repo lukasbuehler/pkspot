@@ -63,7 +63,7 @@ function median(values: number[]): number {
     : sorted[middle];
 }
 
-function getDistanceMeters(
+export function getDistanceMeters(
   left: { lat: number; lng: number },
   right: { lat: number; lng: number }
 ): number {

@@ -124,17 +124,51 @@ export function getSpotCommunityCandidates(
     return [];
   }
 
+  let regionCode =
+    spotLike.landing?.regionCode || spotLike.address?.region?.code || undefined;
+  let regionName =
+    spotLike.landing?.regionName || spotLike.address?.region?.name || undefined;
+  let regionSlug =
+    spotLike.landing?.regionSlug ||
+    slugifyUrlSegment(
+      spotLike.address?.region?.code || spotLike.address?.region?.name || ""
+    ) ||
+    undefined;
+
+  let localityName =
+    spotLike.landing?.localityName || getCanonicalLocalityName(spotLike.address);
+  let localitySlug =
+    spotLike.landing?.localitySlug || normalizeCommunitySlug(localityName);
+  let localityLocalName = getDisplayLocalityName(spotLike.address);
+
+  // Prague normalization
+  const checkPragueValue = (val: string | null | undefined) => {
+    if (!val) return false;
+    const slug = slugifyUrlSegment(val);
+    return slug === "hlavni-mesto-praha" || slug === "prague" || slug === "praha";
+  };
+
+  const isPragueLocality =
+    country.countryCode === "CZ" &&
+    (checkPragueValue(localityName) ||
+      checkPragueValue(localitySlug) ||
+      checkPragueValue(regionName) ||
+      checkPragueValue(regionCode) ||
+      checkPragueValue(regionSlug));
+
+  if (isPragueLocality) {
+    regionCode = "HLAVNÍ MĚSTO PRAHA";
+    regionName = "Hlavní město Praha";
+    regionSlug = "hlavni-mesto-praha";
+    localityName = "Hlavní město Praha";
+    localitySlug = "hlavni-mesto-praha";
+    localityLocalName = "Hlavní město Praha";
+  }
+
   const region = {
-    regionCode:
-      spotLike.landing?.regionCode || spotLike.address?.region?.code || undefined,
-    regionName:
-      spotLike.landing?.regionName || spotLike.address?.region?.name || undefined,
-    regionSlug:
-      spotLike.landing?.regionSlug ||
-      slugifyUrlSegment(
-        spotLike.address?.region?.code || spotLike.address?.region?.name || ""
-      ) ||
-      undefined,
+    regionCode,
+    regionName,
+    regionSlug,
   };
 
   const countryCandidate: CommunityCandidate = {
@@ -148,12 +182,6 @@ export function getSpotCommunityCandidates(
       countrySlug: country.countrySlug,
     },
   };
-
-  const localityName =
-    spotLike.landing?.localityName || getCanonicalLocalityName(spotLike.address);
-  const localitySlug =
-    spotLike.landing?.localitySlug || normalizeCommunitySlug(localityName);
-  const localityLocalName = getDisplayLocalityName(spotLike.address);
 
   if (!localityName || !localitySlug) {
     return [countryCandidate];
