@@ -135,6 +135,7 @@ import { CommunityLandingPageComponent } from "../community-landing-page/communi
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventPreviewComponent } from "../event-preview/event-preview.component";
+import { AnalyticsService } from "../../services/analytics.service";
 import {
   MapIslandComponent,
   MapIslandCommunity,
@@ -153,6 +154,11 @@ interface PendingSpotPanel {
 
 interface PendingEventPanel {
   idOrSlug: string;
+}
+
+interface EventPromoDismissalRecord {
+  showAgainAt: string;
+  dismissCount: number;
 }
 
 type CommunityCountryFocusData = {
@@ -248,6 +254,10 @@ interface PanelBackTarget {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly _eventPromoDismissalsStorageKey =
+    "pkspot.eventPromoDismissals.v1";
+  private readonly _eventPromoDismissalDurationMs = 24 * 60 * 60 * 1000;
+
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
   @ViewChild(BottomSheetComponent) bottomSheet?: BottomSheetComponent;
@@ -260,6 +270,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private ngZone = inject(NgZone);
   private _structuredDataService = inject(StructuredDataService);
   private _backHandlingService = inject(BackHandlingService);
+  private _analytics = inject(AnalyticsService);
   private _pendingCommunityFocusSlug: string | null = null;
 
   searchResultSpots: WritableSignal<Spot[]> = signal([]);
@@ -442,8 +453,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _promotableCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
-  /** Events the user has dismissed in the current session. */
-  private _dismissedEventIds = signal<Set<string>>(new Set());
+  /** Per-event promo dismissals persisted in localStorage. */
+  private _eventPromoDismissals = signal<
+    Record<string, EventPromoDismissalRecord>
+  >({});
   /** Communities the user has dismissed in the current session. */
   private _dismissedCommunityKeys = signal<Set<string>>(new Set());
   private _communityRouteLoadVersion = 0;
@@ -616,10 +629,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const viewport = this._viewport();
     const eventPanelOpen = this.selectedEvent() || this.pendingEventPreview();
     if (viewport && !eventPanelOpen) {
-      const dismissed = this._dismissedEventIds();
+      const dismissals = this._eventPromoDismissals();
       const center = this._viewportCenter(viewport.bbox);
       const event = rankMapIslandEventsForPoint(
-        this._promotableEvents().filter((e) => !dismissed.has(e.id)),
+        this._promotableEvents().filter(
+          (e) => !this._isEventPromoDismissed(e, dismissals),
+        ),
         center,
       )[0]?.event;
       if (event) return { kind: "event", event };
@@ -736,16 +751,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onIslandDismissEvent(event: PkEvent): void {
-    this._dismissedEventIds.update((set) => {
-      const next = new Set(set);
-      next.add(event.id);
-      return next;
+    const dismissal = this._dismissEventPromo(event);
+    this._trackMapIslandInteraction("dismiss", {
+      kind: "event",
+      event,
+      dismissal,
     });
   }
 
   onIslandDismissCommunity(
     community: MapIslandCommunity | CommunityLandingPageData,
   ): void {
+    this._trackMapIslandInteraction("dismiss", {
+      kind: "community",
+      community,
+    });
     this._dismissedCommunityKeys.update((set) => {
       const next = new Set(set);
       next.add(community.communityKey);
@@ -754,6 +774,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onIslandOpenEvent(event: PkEvent): void {
+    this._trackMapIslandInteraction("open", {
+      kind: "event",
+      event,
+    });
     this.openEventPath(event.slug ?? event.id, event);
   }
 
@@ -766,6 +790,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * is still shareable / reloadable.
    */
   onIslandOpenCommunity(
+    community: MapIslandCommunity | CommunityLandingPageData,
+  ): void {
+    this._trackMapIslandInteraction("open", {
+      kind: "community",
+      community,
+    });
+    this._openCommunityPanel(community);
+  }
+
+  private _openCommunityPanel(
     community: MapIslandCommunity | CommunityLandingPageData,
   ): void {
     this._prepareCommunityPanelOpen();
@@ -823,11 +857,145 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
+  private _trackMapIslandInteraction(
+    action: "open" | "dismiss",
+    content:
+      | {
+          kind: "event";
+          event: PkEvent;
+          dismissal?: EventPromoDismissalRecord;
+        }
+      | {
+          kind: "community";
+          community: MapIslandCommunity | CommunityLandingPageData;
+        }
+      | { kind: "filter"; message: string },
+  ): void {
+    const properties: Record<string, unknown> = {
+      action,
+      island_kind: content.kind,
+      selected_filter: this.selectedFilter() || null,
+      custom_filter_active: this.customFilterParams() !== null,
+    };
+
+    if (content.kind === "event") {
+      properties["event_id"] = content.event.id;
+      properties["event_slug"] = content.event.slug;
+      properties["event_name"] = content.event.name;
+      properties["event_status"] = content.event.status();
+      properties["is_sponsored"] = content.event.isSponsored;
+      properties["sponsor_name"] = content.event.sponsor?.name;
+      properties["external_provider"] = content.event.externalSource?.provider;
+      if (content.dismissal) {
+        properties["show_again_at"] = content.dismissal.showAgainAt;
+        properties["dismiss_count"] = content.dismissal.dismissCount;
+      }
+    } else if (content.kind === "community") {
+      const community = content.community;
+      const isFullCommunity = this._isFullCommunityLanding(community);
+      properties["community_key"] = content.community.communityKey;
+      properties["community_slug"] = isFullCommunity
+        ? community.preferredSlug
+        : community.slug;
+      properties["community_name"] = content.community.displayName;
+      properties["community_scope"] = content.community.scope;
+      properties["country_code"] = isFullCommunity
+        ? community.country.code
+        : community.countryCode;
+    } else {
+      properties["message"] = content.message;
+    }
+
+    this._analytics.trackEvent("map_island_interaction", properties);
+  }
+
+  private _isEventPromoDismissed(
+    event: PkEvent,
+    dismissals: Record<string, EventPromoDismissalRecord>,
+  ): boolean {
+    const showAgainAt = Date.parse(dismissals[event.id]?.showAgainAt ?? "");
+    return Number.isFinite(showAgainAt) && showAgainAt > Date.now();
+  }
+
+  private _dismissEventPromo(event: PkEvent): EventPromoDismissalRecord {
+    const previous = this._eventPromoDismissals()[event.id];
+    const dismissal: EventPromoDismissalRecord = {
+      showAgainAt: new Date(
+        Date.now() + this._eventPromoDismissalDurationMs,
+      ).toISOString(),
+      dismissCount: (previous?.dismissCount ?? 0) + 1,
+    };
+
+    this._eventPromoDismissals.update((dismissals) => ({
+      ...dismissals,
+      [event.id]: dismissal,
+    }));
+    this._saveEventPromoDismissals();
+    return dismissal;
+  }
+
+  private _loadEventPromoDismissals(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    try {
+      const raw = localStorage.getItem(this._eventPromoDismissalsStorageKey);
+      if (!raw) return;
+
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        return;
+      }
+
+      const dismissals: Record<string, EventPromoDismissalRecord> = {};
+      for (const [eventId, value] of Object.entries(parsed)) {
+        if (
+          !eventId ||
+          !value ||
+          typeof value !== "object" ||
+          Array.isArray(value)
+        ) {
+          continue;
+        }
+
+        const record = value as Partial<EventPromoDismissalRecord>;
+        const showAgainAt =
+          typeof record.showAgainAt === "string" ? record.showAgainAt : "";
+        const dismissCount =
+          typeof record.dismissCount === "number" &&
+          Number.isFinite(record.dismissCount)
+            ? Math.max(0, Math.floor(record.dismissCount))
+            : 0;
+
+        if (!Number.isFinite(Date.parse(showAgainAt))) {
+          continue;
+        }
+
+        dismissals[eventId] = { showAgainAt, dismissCount };
+      }
+
+      this._eventPromoDismissals.set(dismissals);
+    } catch (err) {
+      console.warn("MapPage: failed to load event promo dismissals", err);
+    }
+  }
+
+  private _saveEventPromoDismissals(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    try {
+      localStorage.setItem(
+        this._eventPromoDismissalsStorageKey,
+        JSON.stringify(this._eventPromoDismissals()),
+      );
+    } catch (err) {
+      console.warn("MapPage: failed to save event promo dismissals", err);
+    }
+  }
+
   /**
    * Click handler for the on-map community chip markers. Resolves the
-   * key to a community preview (already loaded for the map-island
-   * detection), then routes through the same `onIslandOpenCommunity`
-   * entry point so a click feels identical to a route open.
+   * key to a community preview, then opens the same panel as the island
+   * without counting the marker click as a map-island interaction.
    */
   onCommunityMarkerClick(communityKey: string): void {
     const preview = this._promotableCommunities().find(
@@ -840,14 +1008,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       );
       return;
     }
-    this.onIslandOpenCommunity(preview);
+    this._openCommunityPanel(preview);
   }
 
   /**
    * Click handler for the on-map event chip markers. Resolves the route
-   * id to the loaded event from the promotable set, then routes through
-   * `onIslandOpenEvent` so the open feel is identical to the island
-   * promo path.
+   * id to the loaded event, then opens the same preview as the island
+   * without counting the marker click as a map-island interaction.
    */
   onEventMarkerClick(routeId: string): void {
     const event = this._promotableEvents().find(
@@ -857,7 +1024,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       console.warn("onEventMarkerClick: event not in promotable set", routeId);
       return;
     }
-    this.onIslandOpenEvent(event);
+    this.openEventPath(event.slug ?? event.id, event);
   }
 
   openCommunityPath(path: string): void {
@@ -1268,6 +1435,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
 
     if (isPlatformBrowser(this.platformId)) {
+      this._loadEventPromoDismissals();
       const compactSidenavQuery = "(min-width: 600px) and (max-width: 767.98px)";
       this.compactSidenavRange.set(
         this.breakpointObserver.isMatched(compactSidenavQuery),
@@ -2309,7 +2477,29 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   clearActiveFilter(): void {
+    this._trackMapIslandInteraction("dismiss", {
+      kind: "filter",
+      message: $localize`:Filter helper text@@filter_helper_text:There are no spots matching the filter in this area.`,
+    });
     this.filterChipChanged("");
+  }
+
+  private _setFilteredSpotPreviews(previews: SpotPreviewData[]): void {
+    this.spotMap?.setFilteredSpots(previews);
+    this._updateNoSpotsForFilter(previews);
+  }
+
+  private _updateNoSpotsForFilter(previews: SpotPreviewData[]): void {
+    const activeFilter = this._activeFilter || this.selectedFilter();
+    if (!activeFilter) {
+      this.noSpotsForFilter.set(false);
+      return;
+    }
+
+    const baseVisibleSpots = this.spotMap?.visibleSpots?.() ?? this.visibleSpots;
+    this.noSpotsForFilter.set(
+      previews.length === 0 && baseVisibleSpots.length > 0,
+    );
   }
 
   /**
@@ -2339,7 +2529,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             .filter((h: any) => !!h)
             .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-          this.spotMap?.setFilteredSpots(previews);
+          this._setFilteredSpotPreviews(previews);
         })
         .catch((err) => {
           console.error(
@@ -2361,7 +2551,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .filter((h: any) => !!h)
           .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-        this.spotMap?.setFilteredSpots(previews);
+        this._setFilteredSpotPreviews(previews);
       })
       .catch((err) => {
         console.error("Error re-searching for filter on bounds change:", err);
@@ -2378,6 +2568,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!selectedChip || selectedChip.length === 0) {
       this._activeFilter = "";
       this._pendingFilter = null;
+      this.noSpotsForFilter.set(false);
       this.highlightedSpots = [];
       this.visibleSpots = [];
       // Clear custom filter when clearing all filters
@@ -2496,9 +2687,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .filter((h: any) => !!h)
           .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-        if (this.spotMap) {
-          this.spotMap.setFilteredSpots(previews);
-        }
+        this._setFilteredSpotPreviews(previews);
       })
       .catch((err) => {
         console.error(`Error searching for ${selectedChip} spots:`, err);
@@ -2576,9 +2765,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             .filter((h: any) => !!h)
             .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-          if (this.spotMap) {
-            this.spotMap.setFilteredSpots(previews);
-          }
+          this._setFilteredSpotPreviews(previews);
         })
         .catch((err) => {
           console.error("Error searching with custom filter:", err);
@@ -3747,7 +3934,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const savedIds = this.savedSpotIds();
 
     if (!this.spotMap || savedIds.length === 0) {
-      this.spotMap?.setFilteredSpots([]);
+      this._setFilteredSpotPreviews([]);
       return;
     }
 
@@ -3766,7 +3953,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    this.spotMap.setFilteredSpots(previewsInBounds);
+    this._setFilteredSpotPreviews(previewsInBounds);
   }
 
   private async _applyVisitedFilter(
@@ -3775,7 +3962,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const visitedIds = this.visitedSpotIds();
 
     if (!this.spotMap || visitedIds.length === 0) {
-      this.spotMap?.setFilteredSpots([]);
+      this._setFilteredSpotPreviews([]);
       return;
     }
 
@@ -3794,7 +3981,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    this.spotMap.setFilteredSpots(previewsInBounds);
+    this._setFilteredSpotPreviews(previewsInBounds);
   }
 
   private _getPreviewLocation(

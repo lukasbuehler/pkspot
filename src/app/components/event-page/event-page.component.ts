@@ -76,6 +76,7 @@ import {
 } from "../../../db/schemas/EventSchema";
 import { SWISSJAM25_STATIC } from "./swissjam25.static";
 import { environment } from "../../../environments/environment";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Pipe({
   name: "reverse",
@@ -149,6 +150,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   private _router = inject(Router);
   private _locationStrategy = inject(LocationStrategy);
   private _snackbar = inject(MatSnackBar);
+  private _analytics = inject(AnalyticsService);
   mapsApiService = inject(MapsApiService);
 
   /** True when the current user has admin rights — gates the edit button. */
@@ -195,7 +197,12 @@ export class EventPageComponent implements OnInit, OnDestroy {
   readonly localityString = computed(() => this.event()?.localityString ?? "");
   readonly bannerImageSrc = computed(() => this.event()?.bannerSrc ?? "");
   readonly isSponsored = computed(() => this.event()?.isSponsored ?? false);
-  readonly url = computed(() => this.event()?.url);
+  readonly url = computed(() =>
+    this._analytics.addUtmToUrl(
+      this.event()?.url ?? this.event()?.externalSource?.url,
+      "event_page",
+    ),
+  );
   readonly bounds = computed(() => this.event()?.bounds);
   readonly focusZoom = computed(() => this.event()?.focusZoom ?? 18);
   readonly readableStartDate = computed(() => {
@@ -607,6 +614,22 @@ export class EventPageComponent implements OnInit, OnDestroy {
     }
 
     return `${environment.baseUrl}/${path.replace(/^\/+/, "")}`;
+  }
+
+  trackWebsiteClick() {
+    const event = this.event();
+    this._analytics.trackEvent("click_event_website", {
+      surface: "event_page",
+      event_id: event?.id,
+      event_slug: event?.slug,
+      event_name: event?.name,
+      event_status: this.eventStatus(),
+      is_sponsored: event?.isSponsored ?? false,
+      sponsor_name: event?.sponsor?.name,
+      external_provider: event?.externalSource?.provider,
+      url: this.url(),
+    });
+    return true;
   }
 
   async shareEvent() {

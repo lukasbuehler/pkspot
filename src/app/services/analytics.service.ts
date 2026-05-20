@@ -41,6 +41,7 @@ export class AnalyticsService {
   private readonly initialReferrerStorageKey = "ph_initial_referrer_v1";
   private readonly initialReferringDomainStorageKey =
     "ph_initial_referring_domain_v1";
+  readonly utmSource = "pkspot";
 
   constructor() {
     // no-op
@@ -65,8 +66,7 @@ export class AnalyticsService {
 
     const { apiKey, host } = environment.keys.posthog;
     console.log(
-      `[AnalyticsDebug] Initializing with Host: ${host}, Key: ${
-        apiKey ? apiKey.substring(0, 4) + "***" : "MISSING"
+      `[AnalyticsDebug] Initializing with Host: ${host}, Key: ${apiKey ? apiKey.substring(0, 4) + "***" : "MISSING"
       }`
     );
 
@@ -97,9 +97,8 @@ export class AnalyticsService {
     if (this.isNative()) {
       // Prepend base URL for consistent reporting in PostHog
       const baseUrl = environment.baseUrl || "https://pkspot.app";
-      const fullUrl = `${baseUrl}${
-        screenName.startsWith("/") ? "" : "/"
-      }${screenName}`;
+      const fullUrl = `${baseUrl}${screenName.startsWith("/") ? "" : "/"
+        }${screenName}`;
       const normalizedProperties = {
         ...(properties ?? {}),
         ...this.getPlatformProperties(),
@@ -813,13 +812,11 @@ export class AnalyticsService {
    * Add UTM parameters to a URL
    * @param url The URL to append parameters to
    * @param campaign Optional campaign name (default: 'referral')
-   * @param source Optional source (default: 'pkspot')
    * @param medium Optional medium (default: 'referral')
    */
   public addUtmToUrl(
     url: string | null | undefined,
     campaign: string = "referral",
-    source: string = "pkspot",
     medium: string = "referral"
   ): string | null {
     if (!url) return null;
@@ -836,11 +833,7 @@ export class AnalyticsService {
         return url;
       }
 
-      // If parameters already exist, we shouldn't overwrite them if they designate source?
-      // But usually we want to enforce our source.
-      if (!urlObj.searchParams.has("utm_source")) {
-        urlObj.searchParams.set("utm_source", source);
-      }
+      urlObj.searchParams.set("utm_source", this.utmSource);
       if (!urlObj.searchParams.has("utm_medium")) {
         urlObj.searchParams.set("utm_medium", medium);
       }

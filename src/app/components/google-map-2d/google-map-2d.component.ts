@@ -220,7 +220,12 @@ export class GoogleMap2dComponent
   }
 
   _zoom = signal<number>(4);
+  private readonly _communityVisualZoom = signal<number>(4);
+  private readonly COMMUNITY_VISUAL_ZOOM_STEP = 0.1;
+
   @Input() set zoom(newZoom: number) {
+    this._setCommunityVisualZoom(newZoom);
+
     if (this._isInternalZoomChange) {
       this._zoom.set(newZoom);
       return;
@@ -260,6 +265,8 @@ export class GoogleMap2dComponent
     const mapZoom = this.googleMap.getZoom();
     if (typeof mapZoom !== "number") return;
 
+    this._setCommunityVisualZoom(mapZoom);
+
     const newZoom = Math.floor(mapZoom);
     if (newZoom === this._zoom()) return;
 
@@ -271,6 +278,23 @@ export class GoogleMap2dComponent
     setTimeout(() => {
       this._isInternalZoomChange = false;
     }, 0);
+  }
+
+  private _setCommunityVisualZoom(mapZoom: number): void {
+    const steppedZoomUnits = Math.round(
+      mapZoom / this.COMMUNITY_VISUAL_ZOOM_STEP,
+    );
+    const currentZoomUnits = Math.round(
+      this._communityVisualZoom() / this.COMMUNITY_VISUAL_ZOOM_STEP,
+    );
+
+    if (steppedZoomUnits === currentZoomUnits) {
+      return;
+    }
+
+    this._communityVisualZoom.set(
+      steppedZoomUnits * this.COMMUNITY_VISUAL_ZOOM_STEP,
+    );
   }
 
   onMapClick(event: google.maps.MapMouseEvent | google.maps.IconMouseEvent) {
@@ -517,7 +541,10 @@ export class GoogleMap2dComponent
   private _communityCircleDiameterPx(community: CommunityMapMarker): number {
     return (
       (community.radiusM * 2) /
-      this._metersPerPixelAtLatitude(community.center.lat, this.zoom)
+      this._metersPerPixelAtLatitude(
+        community.center.lat,
+        this._communityVisualZoom(),
+      )
     );
   }
 

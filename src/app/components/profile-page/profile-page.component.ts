@@ -701,7 +701,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     const taggedUrl = this._analytics.addUtmToUrl(
       config.url,
       config.campaign,
-      "pkspot",
       "profile"
     );
     if (!taggedUrl) {

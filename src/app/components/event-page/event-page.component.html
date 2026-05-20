@@ -35,7 +35,14 @@
         @if (!isEmbedded) {
           <div class="d-flex flex-row gap-2 flex-shrink-0">
             @if (url()) {
-              <a [href]="url()" target="_blank" mat-icon-button class="d-flex">
+              <a
+                [href]="url()"
+                target="_blank"
+                rel="noopener noreferrer"
+                mat-icon-button
+                class="d-flex"
+                (click)="trackWebsiteClick()"
+              >
                 <mat-icon>open_in_new</mat-icon>
               </a>
             }

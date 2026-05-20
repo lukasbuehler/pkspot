@@ -28,17 +28,13 @@
   --map-island-max-width: 480px;
 
   background: rgba(28, 27, 31, 0.88) !important;
-  background: color-mix(
-    in srgb,
-    var(--mat-sys-surface-container) 80%,
-    transparent
-  ) !important;
+  background: color-mix(in srgb,
+      var(--mat-sys-surface-container) 80%,
+      transparent) !important;
   background-color: rgba(28, 27, 31, 0.88) !important;
-  background-color: color-mix(
-    in srgb,
-    var(--mat-sys-surface-container) 80%,
-    transparent
-  ) !important;
+  background-color: color-mix(in srgb,
+      var(--mat-sys-surface-container) 80%,
+      transparent) !important;
   backdrop-filter: blur(10px) !important;
   -webkit-backdrop-filter: blur(10px) !important;
   transform: translateZ(0);
@@ -101,7 +97,7 @@
 
 .map-island {
   gap: 8px;
-  padding-left: 8px;
+  padding-left: 6px;
 
   .island-logo {
     position: relative;
