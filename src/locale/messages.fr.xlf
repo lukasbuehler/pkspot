@@ -746,7 +746,7 @@
     <unit id="map_island.event_live">
       <segment state="initial">
         <source>Live Event</source>
-        <target>Live Event</target>
+        <target>Événement en direct</target>
       </segment>
     </unit>
     <unit id="map_island.event_open">
@@ -758,19 +758,19 @@
     <unit id="map_island.event_sponsored_live">
       <segment state="initial">
         <source>Sponsored Live Event</source>
-        <target>Sponsored Live Event</target>
+        <target>Événement sponsorisé en direct</target>
       </segment>
     </unit>
     <unit id="map_island.event_sponsored_upcoming">
       <segment state="initial">
         <source>Sponsored Upcoming Event</source>
-        <target>Sponsored Upcoming Event</target>
+        <target>Événement sponsorisé à venir</target>
       </segment>
     </unit>
     <unit id="map_island.event_upcoming">
       <segment state="initial">
         <source>Upcoming Event</source>
-        <target>Upcoming Event</target>
+        <target>Événement à venir</target>
       </segment>
     </unit>
     <unit id="map_label">
@@ -3476,7 +3476,7 @@
     <unit id="event_page.status.live">
       <segment state="initial">
         <source>Live Event</source>
-        <target>Live Event</target>
+        <target>Événement en direct</target>
       </segment>
     </unit>
     <unit id="event_page.status.past">
@@ -3488,13 +3488,13 @@
     <unit id="event_page.status.sponsored_live">
       <segment state="initial">
         <source>Sponsored Live Event</source>
-        <target>Sponsored Live Event</target>
+        <target>Événement sponsorisé en direct</target>
       </segment>
     </unit>
     <unit id="event_page.status.sponsored_upcoming">
       <segment state="initial">
         <source>Sponsored Upcoming Event</source>
-        <target>Sponsored Upcoming Event</target>
+        <target>Événement sponsorisé à venir</target>
       </segment>
     </unit>
     <unit id="event_page.status.starts_in">
@@ -3506,7 +3506,7 @@
     <unit id="event_page.status.upcoming">
       <segment state="initial">
         <source>Upcoming Event</source>
-        <target>Upcoming Event</target>
+        <target>Événement à venir</target>
       </segment>
     </unit>
     <unit id="event_preview.details">
@@ -3542,7 +3542,7 @@
     <unit id="event_preview.status.live_event">
       <segment state="initial">
         <source>Live Event</source>
-        <target>Live Event</target>
+        <target>Événement en direct</target>
       </segment>
     </unit>
     <unit id="event_preview.status.past">
@@ -3554,13 +3554,13 @@
     <unit id="event_preview.status.sponsored_live">
       <segment state="initial">
         <source>Sponsored Live Event</source>
-        <target>Sponsored Live Event</target>
+        <target>Événement sponsorisé en direct</target>
       </segment>
     </unit>
     <unit id="event_preview.status.sponsored_upcoming">
       <segment state="initial">
         <source>Sponsored Upcoming Event</source>
-        <target>Sponsored Upcoming Event</target>
+        <target>Événement sponsorisé à venir</target>
       </segment>
     </unit>
     <unit id="event_preview.status.starts_in">
@@ -3572,7 +3572,7 @@
     <unit id="event_preview.status.upcoming_event">
       <segment state="initial">
         <source>Upcoming Event</source>
-        <target>Upcoming Event</target>
+        <target>Événement à venir</target>
       </segment>
     </unit>
     <unit id="event_preview.view_eventfrog">

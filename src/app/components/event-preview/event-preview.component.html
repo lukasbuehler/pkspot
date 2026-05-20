@@ -117,24 +117,32 @@
       </div>
 
       @if (event.description) {
-        <p class="mat-body-small description mt-2">{{ event.description }}</p>
+        <p class="mat-body-medium description mt-2">{{ event.description }}</p>
       }
 
-      <div class="cta-row d-flex flex-wrap gap-2 mt-2">
-        @if (event.externalSource; as source) {
+      <div class="cta-stack d-flex flex-column align-items-start gap-2 mt-2">
+        @if (websiteUrl(); as url) {
           <a
             mat-flat-button
             color="primary"
-            [href]="source.url"
+            [href]="url"
             target="_blank"
             rel="noopener noreferrer"
-            class="external-cta"
+            class="website-cta"
           >
             <mat-icon>open_in_new</mat-icon>
-            <span>{{ externalSourceLabel() }}</span>
+            <span>{{ websiteLabel() }}</span>
           </a>
-          <a mat-stroked-button [routerLink]="fullEventLink()">
-            <span i18n="@@event_preview.details">Details</span>
+        }
+        @if (websiteUrl()) {
+          <a
+            mat-stroked-button
+            color="primary"
+            [routerLink]="fullEventLink()"
+            class="full-event-cta"
+          >
+            <mat-icon>open_in_new</mat-icon>
+            <span i18n="@@event_preview.see_full">See full event</span>
           </a>
         } @else {
           <a
