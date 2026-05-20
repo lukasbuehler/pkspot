@@ -186,6 +186,16 @@ interface PanelBackTarget {
         animate("0.3s ease-in", style({ opacity: 0, scale: 1 })),
       ]),
     ]),
+    trigger("fastFadeOut", [
+      transition(":enter", [
+        style({ opacity: 0 }),
+        animate("120ms ease-out", style({ opacity: 1 })),
+      ]),
+      transition(":leave", [
+        style({ opacity: 1 }),
+        animate("90ms ease-in", style({ opacity: 0 })),
+      ]),
+    ]),
     trigger("slideInOut", [
       transition(":enter", [
         style({ opacity: 0, scale: 1, translate: "100%" }),
@@ -320,6 +330,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Start closed to prevent flash - will open when desktop is confirmed
   sidenavOpen = signal<boolean>(false);
   sidebarContentIsScrolling = signal<boolean>(false);
+  compactSidenavRange = signal<boolean>(false);
+  compactTabletSidenavOpen = computed(
+    () => this.sidenavOpen() && this.compactSidenavRange(),
+  );
 
   // Height of the top spacer in the sidebar/bottom-sheet to match chip listbox
   // Default to expected fallback (32 chip + 100 padding)
@@ -394,6 +408,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _routerSubscription?: Subscription;
   private _locationSubscription?: SubscriptionLike;
   private _breakpointSubscription?: Subscription;
+  private _compactSidenavBreakpointSubscription?: Subscription;
   private _consentSubscription?: Subscription;
   private _authStateSubscription?: Subscription;
   private _privateDataSubscription?: Subscription;
@@ -1251,6 +1266,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.isServer = isPlatformServer(platformId);
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
+
+    if (isPlatformBrowser(this.platformId)) {
+      const compactSidenavQuery = "(min-width: 600px) and (max-width: 767.98px)";
+      this.compactSidenavRange.set(
+        this.breakpointObserver.isMatched(compactSidenavQuery),
+      );
+      this._compactSidenavBreakpointSubscription = this.breakpointObserver
+        .observe(compactSidenavQuery)
+        .subscribe((state) => this.compactSidenavRange.set(state.matches));
+    }
 
     // Communities are admin-curated and small — one-shot load is fine.
     // Events are loaded per-viewport from Typesense (see the effect below)
@@ -3809,6 +3834,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._locationSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();
     this._breakpointSubscription?.unsubscribe();
+    this._compactSidenavBreakpointSubscription?.unsubscribe();
     this._consentSubscription?.unsubscribe();
     this._authStateSubscription?.unsubscribe();
     this._privateDataSubscription?.unsubscribe();

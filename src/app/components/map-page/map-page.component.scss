@@ -19,18 +19,11 @@ app-spot-map {
     position: fixed;
     // Extend into safe areas - use var() first (Android injects correct values), env() fallback (iOS)
     top: calc(-1 * var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
-    left: calc(
-      -1 * var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
-    );
-    right: calc(
-      -1 * var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
-    );
+    left: calc(-1 * var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+    right: calc(-1 * var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
     // Stop above the bottom nav bar (uses CSS variable that's 80px on web, 95px on native)
     bottom: var(--nav-bar-height, 80px);
-    width: calc(
-      100% + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)) +
-        var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
-    );
+    width: calc(100% + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)) + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
     // Height is from top safe area to above bottom nav bar
     height: auto;
   }
@@ -55,10 +48,8 @@ app-spot-map {
 // there IS a safe area (native app with notch) to avoid double spacing
 .search-bar-overlay {
   // Default 8px padding, reduced by the safe area inset amount (clamped to 0 minimum)
-  padding-top: max(
-    0px,
-    calc(8px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
-  ) !important;
+  padding-top: max(0px,
+      calc(8px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))) !important;
 }
 
 ::ng-deep .mat-drawer-inner-container {
@@ -68,14 +59,14 @@ app-spot-map {
 #createSpotSpeedDial {
   position: absolute;
   z-index: 1;
+  left: 20px;
 
   @media (max-width: 599.99px) {
     bottom: calc(var(--bottom-sheet-closed-height, 140px) + 30px);
-    right: 20px;
   }
+
   @media (min-width: 600px) {
     bottom: 30px;
-    right: 20px;
   }
 }
 
@@ -91,11 +82,13 @@ app-spot-map {
   z-index: 1;
   right: 20px;
   gap: 15px;
+
   @media (max-width: 599.99px) {
-    top: 124px;
+    bottom: 124px;
   }
+
   @media (min-width: 600px) {
-    top: 20px;
+    bottom: 30px;
   }
 }
 
@@ -117,7 +110,7 @@ mat-drawer,
   position: absolute;
   top: 20px;
   left: 16px;
-  right: 60px;
+  right: 20px;
   display: flex;
   justify-content: center;
   min-width: 0;
@@ -135,11 +128,12 @@ mat-drawer-container:not(.sidenav-open) .map-island-host {
     left: 16px;
     right: 16px;
   }
+
   @media (min-width: 768px) {
     left: calc(50% + 8px);
     right: 16px;
-    justify-content: flex-start;
   }
+
   @media (min-width: 1200px) {
     left: calc(33.33% + 8px);
   }
@@ -153,7 +147,7 @@ mat-drawer-container.sidenav-open .map-island-host {
   @media (min-width: 768px) and (max-width: 959.98px) {
     top: 20px;
     left: 16px;
-    right: 60px;
+    right: 20px;
     justify-content: center;
   }
 }
@@ -163,7 +157,6 @@ mat-drawer-container.sidenav-open .map-island-host {
   justify-content: center;
   width: 100%;
   min-width: 0;
-  padding: 2px 8px 0;
   pointer-events: none;
 }
 

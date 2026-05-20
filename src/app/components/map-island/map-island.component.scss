@@ -27,6 +27,24 @@
 .map-island {
   --map-island-max-width: 480px;
 
+  background: rgba(28, 27, 31, 0.88) !important;
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container) 80%,
+    transparent
+  ) !important;
+  background-color: rgba(28, 27, 31, 0.88) !important;
+  background-color: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container) 80%,
+    transparent
+  ) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   box-sizing: border-box;
   pointer-events: auto;
   border-radius: 34px;
@@ -39,6 +57,13 @@
     min-height 220ms ease,
     padding 220ms ease,
     gap 220ms ease;
+}
+
+:host-context(html.platform-ios) .map-island {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--mat-sys-surface-container) !important;
+  background-color: var(--mat-sys-surface-container) !important;
 }
 
 .filter-island {
@@ -74,19 +99,29 @@
   padding-left: 12px;
 }
 
-.island-logo {
-  position: relative;
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  overflow: hidden;
+.map-island {
+  gap: 8px;
+  padding-left: 8px;
 
-  img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .island-logo {
+    position: relative;
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  >.island-actions>.mat-mdc-unelevated-button {
+    min-width: 0;
+    padding-inline: 12px;
   }
 }
 
@@ -114,7 +149,7 @@
 .event-disclosure {
   color: var(--mat-sys-primary);
   font-weight: 600;
-  line-height: 1.1;
+  // line-height: 1.1;
 }
 
 .event-island-live .event-disclosure {
@@ -129,26 +164,4 @@
   flex: 0 0 auto;
   cursor: default;
   min-width: 0;
-}
-
-@media (max-width: 520px) {
-  .map-island {
-    gap: 8px;
-    padding-left: 12px;
-  }
-
-  .island-logo {
-    flex-basis: 40px;
-    width: 40px;
-    height: 40px;
-  }
-
-  .island-actions {
-    gap: 0 !important;
-  }
-
-  .event-island .island-actions .mat-mdc-unelevated-button {
-    min-width: 0;
-    padding-inline: 12px;
-  }
 }
