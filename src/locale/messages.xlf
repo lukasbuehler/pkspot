@@ -5013,5 +5013,10 @@
         <source>Access is unclear for this spot. Check locally before training.</source>
       </segment>
     </unit>
+    <unit id="53037504631341482">
+      <segment>
+        <source>Find spots and more</source>
+      </segment>
+    </unit>
   </file>
 </xliff>

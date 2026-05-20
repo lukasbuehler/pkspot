@@ -5917,5 +5917,84 @@
         <target> Spot </target>
       </segment>
     </unit>
+    <unit id="3067846330176969856">
+      <segment state="initial">
+        <source>Keep typing to search</source>
+        <target>Continuez à taper pour rechercher</target>
+      </segment>
+    </unit>
+    <unit id="8431151318560186465">
+      <segment state="initial">
+        <source> Enter at least 2 characters. </source>
+        <target> Saisissez au moins 2 caractères. </target>
+      </segment>
+    </unit>
+    <unit id="2081295007072116210">
+      <segment state="initial">
+        <source>Searching PK Spot...</source>
+        <target>Recherche dans PK Spot...</target>
+      </segment>
+    </unit>
+    <unit id="7273263025623740836">
+      <segment state="initial">
+        <source>Searching communities...</source>
+        <target>Recherche de communautés...</target>
+      </segment>
+    </unit>
+    <unit id="1510660281085390135">
+      <segment state="initial">
+        <source>Searching events...</source>
+        <target>Recherche d’événements...</target>
+      </segment>
+    </unit>
+    <unit id="2735597846335347226">
+      <segment state="initial">
+        <source>Searching places...</source>
+        <target>Recherche de lieux...</target>
+      </segment>
+    </unit>
+    <unit id="4703825958292042360">
+      <segment state="initial">
+        <source>Searching spots...</source>
+        <target>Recherche de spots...</target>
+      </segment>
+    </unit>
+    <unit id="1645193489541371451">
+      <segment state="initial">
+        <source>No results found</source>
+        <target>Aucun résultat trouvé</target>
+      </segment>
+    </unit>
+    <unit id="2274234887706573129">
+      <notes>
+        <note category="meaning">Website button label</note>
+      </notes>
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Website </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">language</pc> Site web </target>
+      </segment>
+    </unit>
+    <unit id="get_app_label">
+      <notes>
+        <note category="description">A very short label for the navbar get app button</note>
+        <note category="meaning">Get App navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Get App</source>
+        <target>Obtenir l’app</target>
+      </segment>
+    </unit>
+    <unit id="2295139986887574650">
+      <segment state="initial">
+        <source>Find spots, events, communities and places</source>
+        <target>Trouvez des spots, événements, communautés et lieux</target>
+      </segment>
+    </unit>
+    <unit id="53037504631341482">
+      <segment state="initial">
+        <source>Find spots and more</source>
+        <target>Trouvez des spots et plus encore</target>
+      </segment>
+    </unit>
   </file>
 </xliff>
