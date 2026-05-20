@@ -103,7 +103,9 @@
             style="margin-right: 12px"
           />
           } @else {
-          <mat-icon>{{ button.icon }}</mat-icon>
+          <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
+            button.icon
+          }}</mat-icon>
           }
           <span>{{ button.name }}</span>
         </button>
@@ -120,7 +122,9 @@
           style="margin-right: 12px"
         />
         } @else {
-        <mat-icon>{{ button.icon }}</mat-icon>
+        <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
+          button.icon
+        }}</mat-icon>
         }
         <span>{{ button.name }}</span>
       </button>

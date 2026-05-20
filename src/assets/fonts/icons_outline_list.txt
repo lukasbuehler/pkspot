@@ -4,3 +4,5 @@ bookmark
 bookmark_border
 star
 star_border
+mobile
+mobile_border

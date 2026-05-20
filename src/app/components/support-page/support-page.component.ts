@@ -96,7 +96,7 @@ export class SupportPageComponent implements OnInit {
     },
     {
       title: "App & Technical",
-      icon: "phone_iphone",
+      icon: "mobile",
       items: [
         {
           question: "The app is crashing, what should I do?",

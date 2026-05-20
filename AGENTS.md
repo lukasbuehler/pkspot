@@ -47,6 +47,12 @@ If you hit the Angular Error "Abort trap: 6", it doesn't work in the sandbox and
   - Ensure the icon name exists in `/Users/lukas/development/personal/pkspot/src/assets/fonts/icons_list.txt`.
   - If missing, add it to `icons_list.txt` (one icon name per line).
   - Run `npm run icons:optimize` from repo root after updating the list.
+- The default Material Symbols font is the filled rounded subset from `icons_list.txt`.
+- Empty/outlined icons use a second tiny rounded-outline subset:
+  - Add only the needed base/alias names to `src/assets/fonts/icons_outline_list.txt` (for example `star`, `star_border`, `mobile`, `mobile_border`).
+  - Add an alias in `scripts/optimize_icons.py` when the icon name is not a real Google glyph name (for example `mobile_border` maps to `mobile`).
+  - In the template/CSS, select the outline font with `material-symbols-rounded-outline` or `font-family: "Material Symbols Rounded Outlined"`. Adding a name to `icons_outline_list.txt` only makes the glyph available; it does not automatically switch a `<mat-icon>` away from the default filled font.
+  - Run `npm run icons:optimize` after changing either icon list.
 
 ## Testing
 

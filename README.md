@@ -170,6 +170,20 @@ npm run test:e2e
 
 If Angular exits with `Abort trap: 6`, run the command in a normal terminal outside the sandbox.
 
+### Icon fonts
+
+Material Symbols are self-hosted and subsetted for performance.
+
+- Filled rounded icons come from [`src/assets/fonts/icons_list.txt`](./src/assets/fonts/icons_list.txt) and render through the default `Material Symbols Rounded` font.
+- Outlined rounded icons come from [`src/assets/fonts/icons_outline_list.txt`](./src/assets/fonts/icons_outline_list.txt) and render through the tiny `Material Symbols Rounded Outlined` font.
+- If an outlined state uses a legacy alias such as `star_border`, `bookmark_border`, or `mobile_border`, make sure the alias is mapped to the real glyph name in [`scripts/optimize_icons.py`](./scripts/optimize_icons.py).
+- Listing an icon in `icons_outline_list.txt` only includes it in the generated outline font. The element must also use `material-symbols-rounded-outline` or `font-family: "Material Symbols Rounded Outlined"`; otherwise `<mat-icon>` uses the default filled font.
+- After changing either icon list or alias map, run:
+
+```
+npm run icons:optimize
+```
+
 <!-- ### Working with Typesense for full-text search
 
 I use the Firebase Typesense extension.

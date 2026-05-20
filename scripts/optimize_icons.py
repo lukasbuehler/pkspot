@@ -250,6 +250,7 @@ def main():
         "help_outline": "help",
         "star_border": "star",
         "create": "edit",
+        "mobile_border": "mobile",
         "phone_iphone": "mobile",
     }
 

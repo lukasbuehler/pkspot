@@ -3,8 +3,11 @@
   <div class="image">
     <img [ngSrc]="image()!" width="24" height="24" class="rounded-circle" />
   </div>
-  } @else {<mat-icon>{{ icon }}</mat-icon
-  >}
+  } @else {
+  <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon">{{
+    icon
+  }}</mat-icon>
+  }
   <span class="text-truncate w-100">
     {{ label }}
   </span>

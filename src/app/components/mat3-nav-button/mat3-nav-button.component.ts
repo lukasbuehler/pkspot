@@ -15,4 +15,8 @@ export class Mat3NavButtonComponent {
   active = input(false);
 
   @HostBinding("attr.tabindex") tabindex = -1;
+
+  get isOutlineIcon(): boolean {
+    return this.icon.endsWith("_border");
+  }
 }

@@ -1176,7 +1176,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         spacerBefore: true,
         name: $localize`:Get App navbar button label|A very short label for the navbar get app button@@get_app_label:Get App`,
         function: () => this.openPKSpotinAppStore(),
-        icon: "mobile",
+        icon: "mobile_border",
       });
     }
 
@@ -1212,5 +1212,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     return /android|iphone|ipod|ipad/i.test(navigator.userAgent);
+  }
+
+  isOutlineIcon(icon: string): boolean {
+    return icon.endsWith("_border");
   }
 }
