@@ -176,6 +176,41 @@ describe("FirestoreAdapterService", () => {
 
       expect(docId).toBe("new-generated-id");
     });
+
+    it("should pass create-edit payload types through to the web SDK", async () => {
+      const { addDoc } = await import("@angular/fire/firestore");
+      const payload = {
+        type: "CREATE",
+        timestamp_raw_ms: 1,
+        user: { uid: "user-1", display_name: "Test User" },
+        data: {
+          name: { en: { text: "Something Park", provider: "user" } },
+          location: { latitude: 47.3769, longitude: 8.5417 },
+          location_raw: { lat: 47.3769, lng: 8.5417 },
+          media: [],
+          type: "park",
+          access: "public",
+          amenities: { covered: false, lit: true },
+        },
+      };
+
+      await service.addDocument("spots/spot-1/edits", payload);
+
+      expect(addDoc).toHaveBeenCalledWith(expect.anything(), payload);
+    });
+  });
+
+  describe("createDocumentId (web)", () => {
+    it("should generate an id without writing", async () => {
+      const { addDoc, doc, collection } = await import("@angular/fire/firestore");
+
+      const docId = service.createDocumentId("spots");
+
+      expect(docId).toBe("test-doc-id");
+      expect(collection).toHaveBeenCalled();
+      expect(doc).toHaveBeenCalled();
+      expect(addDoc).not.toHaveBeenCalled();
+    });
   });
 
   describe("getCollection (web)", () => {
@@ -452,6 +487,44 @@ describe("FirestoreAdapterService (native)", () => {
 
       expect(FirebaseFirestore.addDocument).toHaveBeenCalled();
       expect(docId).toBe("new-id");
+    });
+
+    it("should pass create-edit payload types through to the native SDK", async () => {
+      const payload = {
+        type: "CREATE",
+        timestamp_raw_ms: 1,
+        user: { uid: "user-1", display_name: "Test User" },
+        data: {
+          name: { en: { text: "Something Park", provider: "user" } },
+          location: { latitude: 47.3769, longitude: 8.5417 },
+          location_raw: { lat: 47.3769, lng: 8.5417 },
+          media: [],
+          type: "park",
+          access: "public",
+          amenities: { covered: false, lit: true },
+        },
+      };
+
+      await service.addDocument("spots/spot-1/edits", payload);
+
+      expect(FirebaseFirestore.addDocument).toHaveBeenCalledWith({
+        reference: "spots/spot-1/edits",
+        data: payload,
+      });
+    });
+  });
+
+  describe("createDocumentId (native)", () => {
+    it("should generate a web-sdk id without using the native write bridge", async () => {
+      const { doc, collection } = await import("@angular/fire/firestore");
+
+      const docId = service.createDocumentId("spots");
+
+      expect(docId).toBe("test-doc-id");
+      expect(collection).toHaveBeenCalled();
+      expect(doc).toHaveBeenCalled();
+      expect(FirebaseFirestore.addDocument).not.toHaveBeenCalled();
+      expect(FirebaseFirestore.setDocument).not.toHaveBeenCalled();
     });
   });
 

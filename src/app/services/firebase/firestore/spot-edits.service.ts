@@ -282,7 +282,7 @@ export class SpotEditsService extends ConsentAwareService {
   }
 
   addSpotEdit(spotId: string, edit: SpotEditSchema): Promise<string> {
-    const cleanEdit = removeUndefinedProperties(edit) as SpotEditSchema;
+    const cleanEdit = cleanDataForFirestore(edit) as SpotEditSchema;
 
     // Check if the edit data is empty - if so, don't create an edit
     if (!cleanEdit.data || Object.keys(cleanEdit.data).length === 0) {
@@ -506,8 +506,11 @@ export class SpotEditsService extends ConsentAwareService {
 
     console.debug("Creating new spot with edit:", JSON.stringify(spotData));
 
-    // Create an empty spot document (let Firestore generate the ID)
-    const spotId = await this._firestoreAdapter.addDocument("spots", {});
+    // Create an empty spot placeholder with a locally generated id.
+    // This avoids platform-specific differences in native addDocument()
+    // serialization for empty objects while keeping all spot data in edits.
+    const spotId = this._firestoreAdapter.createDocumentId("spots");
+    await this._firestoreAdapter.setDocument(`spots/${spotId}`, {});
 
     console.log("Created spot document with ID:", spotId);
 

@@ -25,7 +25,10 @@
           >
             {{ loadingTitle() || "Spot" }}
           </span>
-          <span i18n class="mat-label-small px-1 border rounded spot-kind-label">
+          <span
+            i18n
+            class="mat-label-small px-1 border rounded spot-kind-label"
+          >
             Spot
           </span>
         </span>
@@ -85,7 +88,7 @@
     </div>
   } @else if (spot()) {
     @if (!isEditing()) {
-      <mat-card-header class="pb-2 px-3 d-flex flex-column-reverse">
+      <mat-card-header class="pb-2 pt-0 px-3 d-flex flex-column-reverse">
         <mat-card-title class="d-flex align-items-center w-100 gap-1">
           <span
             class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
@@ -106,7 +109,9 @@
               class="text-truncate d-block spot-title-text"
               >{{ spot()!.name() }}</span
             >
-            <span i18n class="mat-label-small px-1 border rounded spot-kind-label"
+            <span
+              i18n
+              class="mat-label-small px-1 border rounded spot-kind-label"
               >Spot</span
             >
           </span>

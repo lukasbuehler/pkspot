@@ -128,15 +128,15 @@ type NavbarButtonConfig = NavbarButton[];
           }),
           animate(
             "0.5s cubic-bezier(0.25, 0.8, 0.25, 1)",
-            style({ opacity: 1, transform: "translateY(0)" })
+            style({ opacity: 1, transform: "translateY(0)" }),
           ),
         ],
-        { params: { startPos: "100%" } }
+        { params: { startPos: "100%" } },
       ),
       transition(":leave", [
         animate(
           "0.3s ease-in",
-          style({ opacity: 0, transform: "translateY({{startPos}})" })
+          style({ opacity: 0, transform: "translateY({{startPos}})" }),
         ),
       ]),
     ]),
@@ -180,7 +180,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private matIconRegistry: MatIconRegistry,
     private _analyticsService: AnalyticsService,
     private _consentService: ConsentService,
-    private _metaTagService: MetaTagService
+    private _metaTagService: MetaTagService,
   ) {
     this.matIconRegistry.setDefaultFontSetClass("material-symbols-rounded");
 
@@ -339,7 +339,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (this.isNativePlatform && typeof window !== "undefined") {
       document.documentElement.classList.add("native-platform");
       document.documentElement.classList.add(
-        `platform-${Capacitor.getPlatform()}`
+        `platform-${Capacitor.getPlatform()}`,
       );
 
       // Detect if running on macOS (iOS app via "Designed for iPad" / Mac Catalyst)
@@ -353,7 +353,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
 
       console.log(
-        `[Platform] Native: ${Capacitor.getPlatform()}, isMacOSOrIPad: ${isMacOSOrIPad}`
+        `[Platform] Native: ${Capacitor.getPlatform()}, isMacOSOrIPad: ${isMacOSOrIPad}`,
       );
 
       // Set status bar style to use light (white) icons on Android
@@ -405,11 +405,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     this._structuredDataService.addStructuredData("website", json);
     this._structuredDataService.addStructuredData(
       "organization",
-      this._structuredDataService.generateOrganizationData()
+      this._structuredDataService.generateOrganizationData(),
     );
     this._structuredDataService.addStructuredData(
       "software-application",
-      this._structuredDataService.generateSoftwareApplicationData()
+      this._structuredDataService.generateSoftwareApplicationData(),
     );
 
     // Track when consent is granted so we can correlate accepters vs non-accepters
@@ -458,7 +458,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         // List of paths where we don't enforce the dialog (approximate check based on routes)
         const isAcceptanceFree = ACCEPTANCE_FREE_PREFIXES.some((prefix) =>
-          path.startsWith(prefix)
+          path.startsWith(prefix),
         );
 
         const isABot = isBot();
@@ -516,7 +516,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                   this._engagement.pingIntervalMs;
                 this._analyticsService.trackEvent("Engaged Ping", {
                   increment_seconds: Math.round(
-                    this._engagement.pingIntervalMs / 1000
+                    this._engagement.pingIntervalMs / 1000,
                   ),
                   path: window.location ? window.location.pathname : "",
                   authenticated: this.isSignedIn(),
@@ -548,7 +548,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           ) {
             document.removeEventListener(
               "visibilitychange",
-              this._engagement.visibilityHandler
+              this._engagement.visibilityHandler,
             );
             this._engagement.visibilityHandler = null;
           }
@@ -558,7 +558,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           ) {
             window.removeEventListener(
               "beforeunload",
-              this._engagement.beforeUnloadHandler
+              this._engagement.beforeUnloadHandler,
             );
             this._engagement.beforeUnloadHandler = null;
           }
@@ -649,7 +649,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
             if (this.shouldSyncCanonicalFromNavigation()) {
               this._metaTagService.syncCanonicalAndHreflangForPath(
-                nav.urlAfterRedirects
+                nav.urlAfterRedirects,
               );
             }
 
@@ -675,7 +675,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               };
               document.addEventListener(
                 "visibilitychange",
-                this._engagement.visibilityHandler
+                this._engagement.visibilityHandler,
               );
 
               // beforeunload handler to try and send final duration
@@ -685,7 +685,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               window.addEventListener(
                 "beforeunload",
                 this._engagement.beforeUnloadHandler,
-                { capture: false }
+                { capture: false },
               );
             }
 
@@ -746,7 +746,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     const contentType = (content as { contentType?: unknown }).contentType;
-    return typeof contentType === "string" ? (contentType as ContentType) : null;
+    return typeof contentType === "string"
+      ? (contentType as ContentType)
+      : null;
   }
 
   private async waitForInitialRenderState() {
@@ -756,13 +758,16 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.withTimeout(this.waitForAppStable(), 3000),
       this.withTimeout(
         this.waitUntil(() => this.authService.initialAuthStateResolved()),
-        3000
+        3000,
       ),
       this.withTimeout(
         this.waitUntil(() => this.responsive.isInitialized()),
-        3000
+        3000,
       ),
-      this.withTimeout(this.waitUntil(() => this.isEmbedded() !== null), 3000),
+      this.withTimeout(
+        this.waitUntil(() => this.isEmbedded() !== null),
+        3000,
+      ),
     ]);
   }
 
@@ -776,7 +781,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private async waitForAppStable() {
     await firstValueFrom(
-      this._appRef.isStable.pipe(filter((stable) => stable === true))
+      this._appRef.isStable.pipe(filter((stable) => stable === true)),
     );
   }
 
@@ -797,7 +802,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private withTimeout(promise: Promise<void>, timeoutMs: number): Promise<void> {
+  private withTimeout(
+    promise: Promise<void>,
+    timeoutMs: number,
+  ): Promise<void> {
     return new Promise((resolve) => {
       const timeoutId = setTimeout(resolve, timeoutMs);
       promise
@@ -868,14 +876,14 @@ export class AppComponent implements OnInit, AfterViewInit {
         if (user && user.uid) {
           this.shortUserDisplayName.set(
             // Get display name from Firestore user data if consent is granted
-            user?.data?.displayName?.split(" ")[0] ?? undefined
+            user?.data?.displayName?.split(" ")[0] ?? undefined,
           );
 
           // Only access Firestore user data if consent is granted
           if (this._consentService.hasConsent()) {
             this.userPhoto.set(
               this.authService?.user?.data?.profilePicture?.getSrc(200) ??
-                undefined
+                undefined,
             );
           } else {
             this.userPhoto.set(undefined);
@@ -897,14 +905,14 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
       (error) => {
         console.error(error);
-      }
+      },
     );
 
     // Listen for consent changes to update profile picture
     this._consentService.consentGranted$.subscribe((hasConsent) => {
       if (hasConsent && this.authService?.user?.data?.profilePicture) {
         this.userPhoto.set(
-          this.authService.user.data.profilePicture.getSrc(200)
+          this.authService.user.data.profilePicture.getSrc(200),
         );
       } else if (!hasConsent) {
         this.userPhoto.set(undefined);
@@ -933,7 +941,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (typeof window !== "undefined") {
       isABot =
         navigator.userAgent.match(
-          /bot|googlebot|crawler|spider|robot|crawling/i
+          /bot|googlebot|crawler|spider|robot|crawling/i,
         ) !== null;
       let acceptedVersion = localStorage.getItem("acceptedVersion");
 
@@ -951,8 +959,8 @@ export class AppComponent implements OnInit, AfterViewInit {
       ) {
         firstValueFrom(
           this.router.events.pipe(
-            filter((event) => event instanceof NavigationEnd)
-          )
+            filter((event) => event instanceof NavigationEnd),
+          ),
         )
           .then(() => {
             // Check route data after navigation completes
@@ -1014,7 +1022,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           .catch((err) => {
             console.error(
               "Error from navigation when opening welcome dialog:",
-              err
+              err,
             );
           });
       }
@@ -1050,7 +1058,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             duration: 5000,
             horizontalPosition: "center",
             verticalPosition: "bottom",
-          }
+          },
         );
       });
   }
@@ -1099,12 +1107,38 @@ export class AppComponent implements OnInit, AfterViewInit {
     return this.userPhoto() || "";
   });
 
+  openPKSpotinAppStore() {
+    if (this.isNativePlatform) {
+      console.debug(
+        "This is already native - no need to open the App Store. (this button should not appear here and be clickable)",
+      );
+      return;
+    }
+
+    const userAgent = navigator.userAgent;
+    const isAppleOS = /iPad|iPhone|iPod|Safari/.test(userAgent);
+    const isAndroidOS = /Android/.test(userAgent);
+
+    if (isAppleOS) {
+      window.open(
+        "https://apps.apple.com/in/app/pk-spot-parkour-freerunning/id6757597683",
+        "_blank",
+      );
+    } else if (isAndroidOS) {
+      window.open(
+        "https://play.google.com/store/apps/details?id=com.pkspot.app",
+        "_blank",
+      );
+    }
+  }
+
   navbarConfig = computed<NavbarButtonConfig | undefined>(() => {
     const signedIn = this.isSignedIn();
     const shortUserDisplayName = this.shortUserDisplayName();
     const userPhoto = this.userPhoto();
     const currentNavUrl = this.currentNavUrl();
     const isCompact = this.responsive.viewMode() !== "desktop";
+    const isOnMobileWeb = true; // TODO
 
     const buttons: NavbarButtonConfig = [
       {
@@ -1137,8 +1171,16 @@ export class AppComponent implements OnInit, AfterViewInit {
       });
     }
 
+    if (isOnMobileWeb) {
+      buttons.push({
+        name: $localize`:Get App navbar button label|A very short label for the navbar get app button@@get_app_label:Get App`,
+        function: () => this.openPKSpotinAppStore(),
+        icon: "mobile",
+      });
+    }
+
     buttons.push({
-      spacerBefore: true,
+      spacerBefore: isOnMobileWeb,
       name: signedIn
         ? shortUserDisplayName || $localize`Profile`
         : $localize`:@@login.nav_label:Account`,

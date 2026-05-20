@@ -1,6 +1,7 @@
 /// <reference types="@capacitor-firebase/authentication" />
 
 import type { CapacitorConfig } from "@capacitor/cli";
+import { KeyboardResize } from "@capacitor/keyboard";
 
 const config: CapacitorConfig = {
   appId: "com.pkspot.app",
@@ -29,8 +30,8 @@ const config: CapacitorConfig = {
       providers: ["google.com", "apple.com"],
     },
     Keyboard: {
-      resize: "none",
-      resizeOnFullScreen: true,
+      resize: KeyboardResize.None,
+      resizeOnFullScreen: false,
     },
   },
 };

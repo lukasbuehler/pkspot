@@ -10,6 +10,7 @@ const {
   connectFirestoreEmulator,
   deleteDoc,
   doc,
+  addDoc,
   getDoc,
   getDocs,
   getFirestore,
@@ -207,6 +208,9 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
   await assertAllowed("authenticated empty spot placeholder create", () =>
     setDoc(doc(owner.db, "spots/owner-placeholder"), {})
   );
+  await assertAllowed("authenticated generated spot placeholder create", () =>
+    addDoc(collection(owner.db, "spots"), {})
+  );
   await assertDenied("authenticated direct spot create with data", () =>
     setDoc(doc(owner.db, "spots/direct-data"), {
       name: { en: "Bypass" },
@@ -265,6 +269,35 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
   await assertDenied("non-admin spot edit delete", () =>
     deleteDoc(doc(owner.db, "spots/public-spot/edits/owner-edit"))
   );
+
+  await assertAllowed("owner production spot create flow", async () => {
+    await setDoc(doc(owner.db, "spots/owner-production-create"), {});
+    await addDoc(collection(owner.db, "spots/owner-production-create/edits"), {
+      type: "CREATE",
+      timestamp_raw_ms: Date.now(),
+      user: { uid: "owner", display_name: "Owner" },
+      data: {
+        name: { en: "Production Create Shape" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+        media: [],
+        type: "outdoor",
+        access: "public",
+        amenities: { covered: false, lit: true },
+      },
+    });
+  });
+  await assertDenied("production spot create edit impersonation", async () => {
+    await setDoc(doc(other.db, "spots/other-production-create"), {});
+    await addDoc(collection(other.db, "spots/other-production-create/edits"), {
+      type: "CREATE",
+      timestamp_raw_ms: Date.now(),
+      user: { uid: "owner", display_name: "Owner" },
+      data: {
+        name: { en: "Forged Create Shape" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+      },
+    });
+  });
 
   await assertAllowed("owner vote create", () =>
     setDoc(doc(owner.db, "spots/public-spot/edits/public-edit/votes/owner"), {

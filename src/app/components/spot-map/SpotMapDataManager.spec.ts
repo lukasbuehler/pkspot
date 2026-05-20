@@ -2,6 +2,7 @@ import { Injector, NgZone } from "@angular/core";
 import { describe, expect, it, vi } from "vitest";
 import { GeoPoint } from "firebase/firestore";
 import { Spot } from "../../../db/models/Spot";
+import { User } from "../../../db/models/User";
 import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
 import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -15,7 +16,7 @@ import { getClusterTileKey } from "../../../db/schemas/SpotClusterTile";
 import { SpotMapDataManager, SpotFilterMode } from "./SpotMapDataManager";
 import { TilesObject } from "../google-map-2d/google-map-2d.component";
 
-function makeInjector(): Injector {
+function makeInjector(overrides: Map<unknown, unknown> = new Map()): Injector {
   const fakeNgZone = {
     run: (fn: () => unknown) => fn(),
     runOutsideAngular: (fn: () => unknown) => fn(),
@@ -36,6 +37,8 @@ function makeInjector(): Injector {
     ],
     [NgZone, fakeNgZone],
   ]);
+
+  overrides.forEach((value, token) => providers.set(token, value));
 
   return {
     get: (token: unknown) => {
@@ -89,6 +92,45 @@ function renderCachedSpots(manager: SpotMapDataManager): void {
 }
 
 describe("SpotMapDataManager filters", () => {
+  it("uses the live auth uid for spot edit user references", async () => {
+    const staleProfileUser = new User("stale-profile-uid", {
+      display_name: "Stale Profile",
+    });
+    const spotEditsService = {
+      createSpotUpdateEdit: vi.fn().mockResolvedValue("edit-id"),
+    };
+    const authService = {
+      isSignedIn: true,
+      user: {
+        uid: "live-auth-uid",
+        email: "live@example.test",
+        data: staleProfileUser,
+      },
+    };
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [SpotEditsService, spotEditsService],
+          [AuthenticationService, authService],
+        ])
+      )
+    );
+    const spot = makeSpot("spot-1", SpotTypes.Park);
+
+    await manager.saveSpot(spot);
+
+    expect(spotEditsService.createSpotUpdateEdit).toHaveBeenCalledWith(
+      "spot-1",
+      expect.any(Object),
+      expect.objectContaining({
+        uid: "live-auth-uid",
+        display_name: "Stale Profile",
+      }),
+      undefined
+    );
+  });
+
   it("keeps coverage spots visible when a preset filter is active", () => {
     const parkourSpot = makeSpot("parkour", SpotTypes.PkPark);
     const regularSpot = makeSpot("regular", SpotTypes.Playground);

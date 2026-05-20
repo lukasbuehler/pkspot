@@ -635,6 +635,17 @@ export class FirestoreAdapterService {
   // ============================================================================
 
   /**
+   * Generate a Firestore document id without writing the document.
+   * The web SDK can do this locally, and the id is valid for both web and
+   * native Firestore writes.
+   */
+  createDocumentId(collectionPath: string): string {
+    return runInInjectionContext(this.injector, () => {
+      return doc(collection(this.firestore, collectionPath)).id;
+    });
+  }
+
+  /**
    * Get a single document by path.
    * @param path Full document path (e.g., 'spots/abc123')
    * @returns Promise resolving to document data or null if not found

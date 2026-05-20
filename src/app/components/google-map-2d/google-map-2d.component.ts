@@ -21,6 +21,7 @@ import {
   signal,
   effect,
   AfterViewInit,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
@@ -145,6 +146,7 @@ export interface TilesObject {
   host: {
     "[class.with-bottom-offset]": "bottomSheetOffset",
   },
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GoogleMap2dComponent
   extends MapBase
@@ -255,8 +257,13 @@ export class GoogleMap2dComponent
 
   getAndEmitChangedZoom() {
     if (!this.googleMap) return;
-    const newZoom = this.googleMap.getZoom()!;
-    this._debugMapEvent("zoomChanged", { zoom: newZoom });
+    const mapZoom = this.googleMap.getZoom();
+    if (typeof mapZoom !== "number") return;
+
+    const newZoom = Math.floor(mapZoom);
+    if (newZoom === this._zoom()) return;
+
+    this._debugMapEvent("zoomChanged", { zoom: newZoom, mapZoom });
     this._isInternalZoomChange = true;
     this._zoom.set(newZoom);
     this.zoomChange.emit(newZoom);
@@ -1492,7 +1499,7 @@ export class GoogleMap2dComponent
 
   private _lastBoundsChangeTime = 0;
   private _boundsThrottleTimer: any = null;
-  private readonly BOUNDS_THROTTLE_MS = 100; // ~10fps
+  private readonly BOUNDS_THROTTLE_MS = 1000;
 
   // FPS Counter
   fps = signal<number>(0);
@@ -1575,6 +1582,11 @@ export class GoogleMap2dComponent
         this._boundsThrottleTimer = null;
       }, this.BOUNDS_THROTTLE_MS);
     }
+  }
+
+  cameraIdle() {
+    this._executeBoundsChange();
+    this.centerChanged();
   }
 
   private _executeBoundsChange() {

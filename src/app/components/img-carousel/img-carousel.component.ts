@@ -51,6 +51,10 @@ export class ImgCarouselComponent {
 
   /** Tracks images that failed to load and are being retried */
   imageLoadErrors = signal<Set<number>>(new Set());
+  /** Tracks storage images whose resized variant failed and should use the original object. */
+  originalFallbackIndices = signal<Set<number>>(new Set());
+  /** Tracks storage images whose original object failed and should use the extension failed copy. */
+  failedCopyFallbackIndices = signal<Set<number>>(new Set());
   /** Tracks the retry count for each image index */
   private retryCountMap = new Map<number, number>();
   private readonly MAX_RETRIES = 10;
@@ -75,9 +79,47 @@ export class ImgCarouselComponent {
    */
   onImageError(event: Event, index: number, mediaObj: AnyMedia): void {
     if (mediaObj instanceof StorageImage) {
+      if (this.failedCopyFallbackIndices().has(index)) {
+        console.warn(`All storage fallbacks failed for image at index ${index}`);
+        this.hiddenIndices.update((set) => {
+          const newSet = new Set(set);
+          newSet.add(index);
+          return newSet;
+        });
+        return;
+      }
+
+      if (this.originalFallbackIndices().has(index)) {
+        this.failedCopyFallbackIndices.update((set) => {
+          const newSet = new Set(set);
+          newSet.add(index);
+          return newSet;
+        });
+        this.imageLoadErrors.update((set) => {
+          const newSet = new Set(set);
+          newSet.delete(index);
+          return newSet;
+        });
+        mediaObj.isProcessing.set(false);
+        return;
+      }
+
       const currentRetries = this.retryCountMap.get(index) ?? 0;
       if (currentRetries >= this.MAX_RETRIES) {
-        console.warn(`Max retries reached for image at index ${index}`);
+        console.warn(
+          `Max retries reached for resized image at index ${index}; falling back to original`
+        );
+        this.originalFallbackIndices.update((set) => {
+          const newSet = new Set(set);
+          newSet.add(index);
+          return newSet;
+        });
+        this.imageLoadErrors.update((set) => {
+          const newSet = new Set(set);
+          newSet.delete(index);
+          return newSet;
+        });
+        mediaObj.isProcessing.set(false);
         return;
       }
 
@@ -140,9 +182,26 @@ export class ImgCarouselComponent {
    */
   isImageProcessing(index: number, mediaObj: AnyMedia): boolean {
     if (mediaObj instanceof StorageImage) {
-      return mediaObj.isProcessing();
+      return (
+        mediaObj.isProcessing() &&
+        !this.originalFallbackIndices().has(index) &&
+        !this.failedCopyFallbackIndices().has(index)
+      );
     }
     return false;
+  }
+
+  getImageSrc(index: number, mediaObj: AnyMedia): string {
+    if (mediaObj instanceof StorageImage) {
+      if (this.failedCopyFallbackIndices().has(index)) {
+        return mediaObj.getFailedOriginalSrc();
+      }
+      if (this.originalFallbackIndices().has(index)) {
+        return mediaObj.getOriginalSrc();
+      }
+    }
+
+    return mediaObj.getPreviewImageSrc();
   }
 
   getReferrerPolicyForMedia(mediaObj: AnyMedia): "no-referrer" | null {
