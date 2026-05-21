@@ -222,6 +222,7 @@ export class GoogleMap2dComponent
   _zoom = signal<number>(4);
   private readonly _communityVisualZoom = signal<number>(4);
   private readonly COMMUNITY_VISUAL_ZOOM_STEP = 0.1;
+  private readonly COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX = 320;
 
   @Input() set zoom(newZoom: number) {
     this._setCommunityVisualZoom(newZoom);
@@ -524,8 +525,23 @@ export class GoogleMap2dComponent
       strokeColor: this._mixHexColor("#0036ba", "#b8c4ff", fade),
       strokeOpacity: this._lerp(1, 0.28, fade),
       strokeWeight: this._lerp(1, 1, fade),
-      clickable: true,
+      clickable: this.isCommunityCircleClickable(community),
     };
+  }
+
+  onCommunityCircleClick(community: CommunityMapMarker): void {
+    if (!this.isCommunityCircleClickable(community)) {
+      return;
+    }
+
+    this.communityMarkerClick.emit(community.communityKey);
+  }
+
+  isCommunityCircleClickable(community: CommunityMapMarker): boolean {
+    return (
+      this._communityCircleDiameterPx(community) <=
+      this.COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX
+    );
   }
 
   /**

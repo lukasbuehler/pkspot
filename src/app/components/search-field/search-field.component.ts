@@ -52,6 +52,7 @@ import {
   switchMap,
 } from "rxjs/operators";
 import { countries } from "../../../scripts/Countries";
+import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 
 interface SearchSelection {
   type: "place" | "spot" | "community" | "event";
@@ -132,6 +133,7 @@ interface NamedSearchResultLike {
     MatProgressSpinnerModule,
     AsyncPipe,
     SpotRatingComponent,
+    AutocompleteOverlayRepositionDirective,
   ],
   templateUrl: "./search-field.component.html",
   styleUrl: "./search-field.component.scss",
@@ -678,7 +680,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       postal_code: "mail",
       // Landmarks and attractions
       point_of_interest: "star",
-      establishment: "business",
+      establishment: "storefront",
       // Default
       default: "location_on",
     };

@@ -8,6 +8,7 @@ import {
 } from "../../../../db/schemas/EventSchema";
 import { AuthenticationService } from "../authentication.service";
 import { ConsentAwareService } from "../../consent-aware.service";
+import { AssetUrlService } from "../../asset-url.service";
 import {
   FirestoreAdapterService,
   QueryFilter,
@@ -44,6 +45,7 @@ function stripUndefined<T extends Record<string, unknown>>(value: T): T {
 export class EventsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _authService = inject(AuthenticationService);
+  private _assetUrls = inject(AssetUrlService);
 
   constructor() {
     super();
@@ -178,7 +180,7 @@ export class EventsService extends ConsentAwareService {
     );
     if (!doc) return null;
     if (doc.published === false) return null;
-    return new Event(eventId, doc as EventSchema);
+    return new Event(eventId, this._assetUrls.resolveEventAssetUrls(doc));
   }
 
   /**
@@ -197,7 +199,10 @@ export class EventsService extends ConsentAwareService {
 
     const events = docs
       .filter((d) => options.includeUnpublished || d.published !== false)
-      .map((d) => new Event(d.id as EventId, d as EventSchema));
+      .map(
+        (d) =>
+          new Event(d.id as EventId, this._assetUrls.resolveEventAssetUrls(d)),
+      );
 
     if (options.sortByNext) {
       const now = Date.now();

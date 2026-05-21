@@ -12,6 +12,7 @@ import {
   buildCommunityLandingPath,
   normalizeCommunitySlug,
 } from "../../../../scripts/CommunityHelpers";
+import { AssetUrlService } from "../../asset-url.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 
 export type CommunityLandingScope = CommunityPageSchema["scope"];
@@ -72,6 +73,7 @@ type CommunitySlugDocument = CommunitySlugSchema & { id: string };
 })
 export class LandingPagesService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private _assetUrls = inject(AssetUrlService);
 
   async getCommunityPage(
     slug: string,
@@ -227,7 +229,7 @@ export class LandingPagesService {
   private _mapEventPreview(preview: CommunityEventPreviewSchema): PkEvent {
     return new PkEvent(
       preview.id as EventId,
-      {
+      this._assetUrls.resolveEventAssetUrls({
         name: preview.name,
         slug: preview.slug,
         banner_src: preview.banner_src,
@@ -249,7 +251,7 @@ export class LandingPagesService {
         is_sponsored: preview.is_sponsored,
         external_source: preview.external_source,
         published: true,
-      } as EventSchema,
+      } as EventSchema),
     );
   }
 

@@ -58,8 +58,8 @@
 :host-context(html.platform-ios) .map-island {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  background: var(--mat-sys-surface-container) !important;
-  background-color: var(--mat-sys-surface-container) !important;
+  background: var(--mat-sys-surface-container-low) !important;
+  background-color: var(--mat-sys-surface-container-low) !important;
 }
 
 .filter-island {

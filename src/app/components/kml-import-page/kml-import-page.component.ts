@@ -98,6 +98,7 @@ import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amen
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 import { AnyMedia, ExternalImage } from "../../../db/models/Media";
+import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 // KML import is gated by the `isAdmin` flag on the user document
 // (see UserSchema.is_admin). Previously a hardcoded uid whitelist; now
 // any admin can import. The check below mirrors spot-details and other
@@ -168,6 +169,7 @@ type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
     SpotPreviewCardComponent,
     ImgCarouselComponent,
     MatSidenavModule,
+    AutocompleteOverlayRepositionDirective,
   ],
 })
 export class KmlImportPageComponent implements OnInit, AfterViewInit {

@@ -49,6 +49,7 @@ import {
 } from "@angular/material/form-field";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
 import { StorageBucket } from "../../../db/schemas/Media";
+import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 
 export interface PostDialogData {
   isCreating: string;
@@ -79,6 +80,7 @@ export interface PostDialogData {
     MatDialogActions,
     MatButton,
     MatDialogClose,
+    AutocompleteOverlayRepositionDirective,
   ],
 })
 export class EditPostDialogComponent implements AfterViewInit {

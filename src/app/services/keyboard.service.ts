@@ -28,6 +28,7 @@ export class KeyboardService {
     Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
   private readonly _isNative = Capacitor.isNativePlatform();
   private _focusedTextControl: HTMLElement | null = null;
+  private _activeKeyboardScrollTarget: HTMLElement | null = null;
 
   init(): void {
     if (this._initialized) return;
@@ -84,6 +85,7 @@ export class KeyboardService {
         }
 
         this._focusedTextControl = target;
+        this.markKeyboardScrollTarget(target);
         this.debug("focusin text control", {
           target: this.describeElement(target),
           targetRect: this.describeRect(target.getBoundingClientRect()),
@@ -103,6 +105,9 @@ export class KeyboardService {
             target: this.describeElement(this._focusedTextControl),
           });
           this._focusedTextControl = null;
+          if (this.keyboardHeight() <= 0) {
+            this.clearKeyboardScrollTarget();
+          }
         }
       },
       true
@@ -170,7 +175,22 @@ export class KeyboardService {
         "--keyboard-offset",
         `${clamped}px`
       );
+      document.documentElement.style.setProperty(
+        "--keyboard-scroll-space",
+        `${this.keyboardScrollSpace(clamped)}px`
+      );
+      document.body?.style.setProperty("--keyboard-offset", `${clamped}px`);
+      document.body?.style.setProperty(
+        "--keyboard-scroll-space",
+        `${this.keyboardScrollSpace(clamped)}px`
+      );
       document.documentElement.classList.toggle("keyboard-open", clamped > 0);
+      document.body?.classList.toggle("keyboard-open", clamped > 0);
+      if (clamped <= 0) {
+        this.clearKeyboardScrollTarget();
+      } else if (this._focusedTextControl) {
+        this.markKeyboardScrollTarget(this._focusedTextControl);
+      }
     }
 
     this.keyboardHeight.set(clamped);
@@ -184,6 +204,19 @@ export class KeyboardService {
               "--keyboard-offset"
             )
           : null,
+      bodyCssKeyboardOffset:
+        typeof document !== "undefined" && document.body
+          ? getComputedStyle(document.body).getPropertyValue(
+              "--keyboard-offset"
+            )
+          : null,
+      cssKeyboardScrollSpace:
+        typeof document !== "undefined"
+          ? getComputedStyle(document.documentElement).getPropertyValue(
+              "--keyboard-scroll-space"
+            )
+          : null,
+      visibleBottomChromeHeight: this.visibleBottomChromeHeight(),
       keyboardOpenClass:
         typeof document !== "undefined"
           ? document.documentElement.classList.contains("keyboard-open")
@@ -193,7 +226,9 @@ export class KeyboardService {
         typeof window !== "undefined"
           ? window.visualViewport?.height ?? null
           : null,
+      overlayGeometry: this.describeOverlayGeometry(),
       keyboardPaddingElements: this.describeKeyboardPaddingElements(),
+      keyboardScrollTarget: this.describeElement(this._activeKeyboardScrollTarget),
     });
 
     // Nudge Angular CDK's ViewportRuler so anchored overlays (mat-select
@@ -215,6 +250,38 @@ export class KeyboardService {
     return tag === "input" || tag === "textarea" || tag === "select";
   }
 
+  private keyboardScrollSpace(keyboardHeight: number): number {
+    if (keyboardHeight <= 0) return 0;
+    return Math.max(0, keyboardHeight - this.visibleBottomChromeHeight());
+  }
+
+  private visibleBottomChromeHeight(): number {
+    if (typeof document === "undefined" || typeof window === "undefined") {
+      return 0;
+    }
+
+    const bottomChrome = document.querySelectorAll<HTMLElement>(
+      "app-nav-rail-content .nav-rail-content > mat-toolbar, app-nav-rail-content .nav-rail-content > .terms-footer"
+    );
+    let height = 0;
+
+    bottomChrome.forEach((element) => {
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      const isVisible =
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        rect.height > 0 &&
+        rect.bottom > window.innerHeight - 4;
+
+      if (isVisible) {
+        height += rect.height;
+      }
+    });
+
+    return Math.round(height);
+  }
+
   private scrollFocusedControlIntoView() {
     const element = this._focusedTextControl;
     const keyboardHeight = this.keyboardHeight();
@@ -228,6 +295,7 @@ export class KeyboardService {
     }
 
     const scrollParent = this.findScrollParent(element);
+    this.markKeyboardScrollTarget(element);
     const viewportHeight =
       window.visualViewport?.height ?? window.innerHeight ?? 0;
     const viewportTop = window.visualViewport?.offsetTop ?? 0;
@@ -237,8 +305,8 @@ export class KeyboardService {
       this._isNative && viewportDidNotShrink
         ? window.innerHeight - keyboardHeight
         : viewportTop + viewportHeight;
-    const safeBottom = Math.max(0, visibleBottom - 24);
-    const safeTop = Math.max(0, viewportTop + 24);
+    const safeBottom = Math.max(0, visibleBottom - 16);
+    const safeTop = Math.max(0, viewportTop + 16);
     const rect = element.getBoundingClientRect();
 
     let delta = 0;
@@ -352,6 +420,48 @@ export class KeyboardService {
     return window;
   }
 
+  private markKeyboardScrollTarget(element: HTMLElement) {
+    if (this.shouldSkipKeyboardScrollSpace(element)) {
+      this.clearKeyboardScrollTarget();
+      return;
+    }
+
+    const manualTarget = element.closest<HTMLElement>(".keyboard-padding");
+    const scrollParent = this.findScrollParent(element);
+    const target =
+      manualTarget && !this.shouldSkipKeyboardScrollSpace(manualTarget)
+        ? manualTarget
+        : this.isWindow(scrollParent)
+          ? null
+          : scrollParent;
+
+    if (!target) {
+      this.clearKeyboardScrollTarget();
+      return;
+    }
+
+    if (this._activeKeyboardScrollTarget === target) return;
+
+    this.clearKeyboardScrollTarget();
+    target.classList.add("keyboard-scroll-space");
+    this._activeKeyboardScrollTarget = target;
+    this.debug("markKeyboardScrollTarget", {
+      target: this.describeElement(target),
+      focusedElement: this.describeElement(element),
+      manualTarget: this.describeElement(manualTarget),
+      scrollParent: this.describeScrollParent(scrollParent),
+    });
+  }
+
+  private shouldSkipKeyboardScrollSpace(element: HTMLElement): boolean {
+    return !!element.closest(".no-keyboard-scroll-space");
+  }
+
+  private clearKeyboardScrollTarget() {
+    this._activeKeyboardScrollTarget?.classList.remove("keyboard-scroll-space");
+    this._activeKeyboardScrollTarget = null;
+  }
+
   private keyboardDebugPayload(height: number): Record<string, unknown> {
     return {
       keyboardHeight: height,
@@ -428,6 +538,59 @@ export class KeyboardService {
           rect: this.describeRect(element.getBoundingClientRect()),
         };
       });
+  }
+
+  private describeOverlayGeometry(): Record<string, unknown> {
+    if (typeof document === "undefined") return {};
+
+    const container = document.querySelector<HTMLElement>(
+      ".cdk-overlay-container"
+    );
+    const wrapper = document.querySelector<HTMLElement>(
+      ".cdk-global-overlay-wrapper"
+    );
+    const pane = document.querySelector<HTMLElement>(
+      ".cdk-overlay-pane:has(.mat-mdc-dialog-container)"
+    );
+    const dialog = document.querySelector<HTMLElement>(
+      ".mat-mdc-dialog-container"
+    );
+    const autocomplete = document.querySelector<HTMLElement>(
+      ".mat-mdc-autocomplete-panel"
+    );
+
+    return {
+      container: this.describeStyledElement(container),
+      wrapper: this.describeStyledElement(wrapper),
+      dialogPane: this.describeStyledElement(pane),
+      dialog: this.describeStyledElement(dialog),
+      autocompletePanel: this.describeStyledElement(autocomplete),
+    };
+  }
+
+  private describeStyledElement(
+    element: HTMLElement | null
+  ): Record<string, unknown> | null {
+    if (!element) return null;
+
+    const style = getComputedStyle(element);
+    return {
+      element: this.describeElement(element),
+      rect: this.describeRect(element.getBoundingClientRect()),
+      offsetHeight: element.offsetHeight,
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+      position: style.position,
+      top: style.top,
+      bottom: style.bottom,
+      height: style.height,
+      maxHeight: style.maxHeight,
+      alignItems: style.alignItems,
+      transform: style.transform,
+      paddingTop: style.paddingTop,
+      paddingBottom: style.paddingBottom,
+      overflowY: style.overflowY,
+    };
   }
 
   private isWindow(value: HTMLElement | Window): value is Window {

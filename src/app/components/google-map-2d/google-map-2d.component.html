@@ -204,7 +204,7 @@
       (markerClick)="communityMarkerClick.emit($event)"></app-community-dot-marker>
     } @else {
     <map-circle [center]="community.center" [radius]="community.radiusM" [options]="communityCircleOptions(community)"
-      (circleClick)="communityMarkerClick.emit(community.communityKey)"></map-circle>
+      (circleClick)="onCommunityCircleClick(community)"></map-circle>
     }
     }
 

@@ -55,6 +55,7 @@ import {
   UserSocialCustomLinkSchema,
   UserSocialsSchema,
 } from "../../../db/schemas/UserSchema";
+import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 
 type NormalizedSocials = {
   instagram_handle?: string;
@@ -89,6 +90,7 @@ type NormalizedSocials = {
     MatProgressSpinner,
     SpotPreviewCardComponent,
     MatExpansionModule,
+    AutocompleteOverlayRepositionDirective,
   ],
 })
 export class EditProfileComponent implements OnInit {

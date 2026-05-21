@@ -48,6 +48,7 @@ import {
   MatMenuModule,
 } from "@angular/material/menu";
 import { MatToolbar } from "@angular/material/toolbar";
+import { CdkScrollable } from "@angular/cdk/scrolling";
 import { NavRailContentComponent } from "./components/nav-rail-content/nav-rail-content.component";
 import { Mat3NavButtonComponent } from "./components/mat3-nav-button/mat3-nav-button.component";
 import { NavRailComponent } from "./components/nav-rail/nav-rail.component";
@@ -115,6 +116,7 @@ type NavbarButtonConfig = NavbarButton[];
     MatMenuModule,
     RouterModule,
     MatButtonModule,
+    CdkScrollable,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [

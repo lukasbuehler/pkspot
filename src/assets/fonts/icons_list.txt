@@ -168,3 +168,4 @@ events
 event
 travel_explore
 mobile
+storefront

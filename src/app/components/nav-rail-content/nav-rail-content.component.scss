@@ -18,7 +18,3 @@ div.nav-rail-content {
   // runtime (0 when no keyboard is visible).
   scroll-padding-bottom: calc(var(--keyboard-offset, 0px) + 24px);
 }
-
-:host-context(.keyboard-open) ::ng-deep div.nav-rail-content > div.main-content {
-  padding-bottom: var(--keyboard-offset, 0px);
-}
