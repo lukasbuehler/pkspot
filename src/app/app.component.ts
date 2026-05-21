@@ -639,14 +639,18 @@ export class AppComponent implements OnInit, AfterViewInit {
             // Emit manual pageview using PostHog's standard $pageview event
 
             if (!this.isNativePlatform) {
+              const attribution =
+                this._analyticsService.getCurrentAttributionProperties();
               this._analyticsService.trackEvent("$pageview", {
                 path: nav.urlAfterRedirects,
                 current_url: url,
+                ...attribution,
                 authenticated: authenticated,
                 consent_granted: consentGranted,
                 accepted_version: acceptedVersion,
                 source: "manual",
               });
+              this._analyticsService.trackStickerScanFromCurrentUrl();
             }
 
             if (this.shouldSyncCanonicalFromNavigation()) {

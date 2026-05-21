@@ -67,37 +67,7 @@ export function getQrStickerRedirectTarget(originalUrl, slug = "nice") {
   return `${targetUrl.pathname}${targetUrl.search}`;
 }
 
-export function getQrStickerTrackingProperties(req, slug = "nice") {
-  const campaign = getQrStickerCampaign(slug);
-  if (!campaign) {
-    return null;
-  }
-
-  const sourceUrl = new URL(
-    req?.originalUrl || `/qr/${slug}`,
-    "https://pkspot.app",
-  );
-  const query = {};
-  sourceUrl.searchParams.forEach((value, key) => {
-    query[key] = value;
-  });
-
-  const clientRegion = getTrustedClientRegionFromHeaders(req?.headers);
-
-  return {
-    campaign: campaign.campaign,
-    client_region: clientRegion ?? undefined,
-    medium: campaign.medium,
-    original_query: query,
-    original_url: sourceUrl.pathname + sourceUrl.search,
-    qr_slug: slug,
-    referrer: req?.headers?.referer ?? req?.headers?.referrer ?? undefined,
-    source: campaign.source,
-    user_agent: req?.headers?.["user-agent"] ?? undefined,
-  };
-}
-
-export async function handleQrStickerRequest(req, res, next, capture) {
+export function handleQrStickerRequest(req, res, next) {
   const slug = req?.params?.slug;
   const target = getQrStickerRedirectTarget(req?.originalUrl, slug);
   if (!target) {
@@ -105,6 +75,5 @@ export async function handleQrStickerRequest(req, res, next, capture) {
   }
 
   res.setHeader("Cache-Control", "no-store");
-  await capture(req, slug);
   return res.redirect(302, target);
 }

@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   applyTrustedClientRegionHeader,
   getQrStickerRedirectTarget,
-  getQrStickerTrackingProperties,
   getTrustedClientRegionFromHeaders,
   handleQrStickerRequest,
   normalizeClientRegionHeader,
@@ -51,38 +50,11 @@ describe("proxy-server client region helpers", () => {
     );
   });
 
-  it("should return QR tracking properties for the sticker scan", () => {
-    const properties = getQrStickerTrackingProperties(
-      {
-        originalUrl: "/qr/nice?batch=test",
-        headers: {
-          "user-agent": "Vitest",
-          "x-pkspot-client-region": "ch",
-        },
-      },
-      "nice"
-    );
-
-    expect(properties).toMatchObject({
-      campaign: "nice-spot-v1",
-      client_region: "CH",
-      medium: "qr",
-      original_query: { batch: "test" },
-      original_url: "/qr/nice?batch=test",
-      qr_slug: "nice",
-      source: "sticker",
-      user_agent: "Vitest",
-    });
-  });
-
   it("should not build QR redirect targets for unknown sticker slugs", () => {
     expect(getQrStickerRedirectTarget("/qr/unknown", "unknown")).toBeNull();
-    expect(
-      getQrStickerTrackingProperties({ originalUrl: "/qr/unknown" }, "unknown")
-    ).toBeNull();
   });
 
-  it("should handle known QR sticker requests as tracked 302 redirects", async () => {
+  it("should handle known QR sticker requests as 302 redirects", () => {
     const headers: Record<string, string> = {};
     const res = {
       redirect: vi.fn(),
@@ -91,20 +63,14 @@ describe("proxy-server client region helpers", () => {
       }),
     };
     const next = vi.fn();
-    const capture = vi.fn().mockResolvedValue(undefined);
 
-    await handleQrStickerRequest(
+    handleQrStickerRequest(
       { originalUrl: "/qr/nice?batch=42", params: { slug: "nice" } },
       res,
-      next,
-      capture
+      next
     );
 
     expect(headers["Cache-Control"]).toBe("no-store");
-    expect(capture).toHaveBeenCalledWith(
-      { originalUrl: "/qr/nice?batch=42", params: { slug: "nice" } },
-      "nice"
-    );
     expect(res.redirect).toHaveBeenCalledWith(
       302,
       "/map?batch=42&utm_source=sticker&utm_medium=qr&utm_campaign=nice-spot-v1"
@@ -112,18 +78,17 @@ describe("proxy-server client region helpers", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("should pass unknown QR sticker requests to the next route", async () => {
+  it("should pass unknown QR sticker requests to the next route", () => {
     const res = {
       redirect: vi.fn(),
       setHeader: vi.fn(),
     };
     const next = vi.fn();
 
-    await handleQrStickerRequest(
+    handleQrStickerRequest(
       { originalUrl: "/qr/unknown", params: { slug: "unknown" } },
       res,
-      next,
-      vi.fn()
+      next
     );
 
     expect(res.setHeader).not.toHaveBeenCalled();

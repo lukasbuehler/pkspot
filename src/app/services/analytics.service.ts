@@ -41,6 +41,7 @@ export class AnalyticsService {
   private readonly initialReferrerStorageKey = "ph_initial_referrer_v1";
   private readonly initialReferringDomainStorageKey =
     "ph_initial_referring_domain_v1";
+  private readonly stickerScanSessionPrefix = "ph_sticker_scan_sent_v1:";
   readonly utmSource = "pkspot";
 
   constructor() {
@@ -283,6 +284,7 @@ export class AnalyticsService {
       "Consent Granted",
       "Consent Denied",
       "Alain Mode Changed",
+      "sticker_scanned",
     ]);
 
     const hasConsent = this._consentService.hasConsent();
@@ -636,6 +638,86 @@ export class AnalyticsService {
     } catch (e) {
       return {};
     }
+  }
+
+  getCurrentAttributionProperties(): Record<string, string> {
+    if (!isPlatformBrowser(this._platformId)) {
+      return {};
+    }
+
+    try {
+      const props: Record<string, string> = {};
+      const currentUrl = new URL(window.location.href);
+      const referrer = document.referrer?.trim() ?? "";
+
+      const utmKeys = [
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_content",
+        "utm_term",
+      ];
+
+      for (const key of utmKeys) {
+        const value = currentUrl.searchParams.get(key);
+        if (value) {
+          props[key] = value;
+          props[`$${key}`] = value;
+        }
+      }
+
+      props["$current_url"] = currentUrl.toString();
+      props["$pathname"] = currentUrl.pathname;
+
+      if (referrer.length > 0) {
+        props["$referrer"] = referrer;
+        props["referrer"] = referrer;
+
+        try {
+          const referrerDomain = new URL(referrer).hostname;
+          props["$referring_domain"] = referrerDomain;
+          props["referring_domain"] = referrerDomain;
+        } catch (e) {
+          // Keep the raw referrer without a parsed domain.
+        }
+      } else {
+        props["$referrer"] = "$direct";
+        props["$referring_domain"] = "$direct";
+        props["referrer"] = "$direct";
+        props["referring_domain"] = "$direct";
+      }
+
+      return props;
+    } catch (e) {
+      return {};
+    }
+  }
+
+  trackStickerScanFromCurrentUrl(): void {
+    const attribution = this.getCurrentAttributionProperties();
+
+    if (
+      attribution["utm_source"] !== "sticker" ||
+      attribution["utm_medium"] !== "qr" ||
+      attribution["utm_campaign"] !== "nice-spot-v1"
+    ) {
+      return;
+    }
+
+    const key = `${this.stickerScanSessionPrefix}${attribution["utm_campaign"]}`;
+    try {
+      if (sessionStorage.getItem(key)) {
+        return;
+      }
+      sessionStorage.setItem(key, "1");
+    } catch (e) {
+      // If storage is unavailable, still capture with the pageview.
+    }
+
+    this.trackEvent("sticker_scanned", {
+      ...attribution,
+      source: "client",
+    });
   }
 
   private async registerNativeSuperProperty(
