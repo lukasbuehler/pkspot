@@ -813,7 +813,11 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       : `https://${trimmed}`;
 
     try {
-      return new URL(withProtocol).toString();
+      const url = new URL(withProtocol);
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        return null;
+      }
+      return url.toString();
     } catch (error) {
       console.warn("Invalid custom social URL", value, error);
       return null;

@@ -200,9 +200,11 @@ export class EventPageComponent implements OnInit, OnDestroy {
   readonly isSponsored = computed(() => this.event()?.isSponsored ?? false);
   readonly url = computed(() =>
     this._analytics.addUtmToUrl(
-      this.event()?.url ?? this.event()?.externalSource?.url,
-      "event_page",
-    ),
+      this._safeExternalUrl(
+        this.event()?.url ?? this.event()?.externalSource?.url
+      ),
+      "event_page"
+    )
   );
   readonly bounds = computed(() => this.event()?.bounds);
   readonly focusZoom = computed(() => this.event()?.focusZoom ?? 18);
@@ -847,6 +849,19 @@ export class EventPageComponent implements OnInit, OnDestroy {
       );
       this.isSavingEvent.set(false);
     }
+  }
+
+  private _safeExternalUrl(value: string | undefined): string | null {
+    if (!value) return null;
+    try {
+      const url = new URL(value);
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        return url.toString();
+      }
+    } catch {
+      return null;
+    }
+    return null;
   }
 }
 

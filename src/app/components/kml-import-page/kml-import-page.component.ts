@@ -769,10 +769,21 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   private _sanitizeUrl(value: string | null | undefined): string | undefined {
     const v = (value ?? "").trim();
     if (!v) return undefined;
-    if (v.startsWith("http://") || v.startsWith("https://")) {
-      return v;
+
+    const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(v)
+      ? v
+      : `https://${v}`;
+
+    try {
+      const url = new URL(withProtocol);
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        return url.toString();
+      }
+    } catch {
+      return undefined;
     }
-    return `https://${v}`;
+
+    return undefined;
   }
 
   private _normalizeInstagramHandle(
@@ -2572,7 +2583,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
           anchor.remove();
         }
       });
-      cleaned = html.body.innerHTML;
+      cleaned = html.body.textContent ?? "";
     } catch {
       cleaned = value;
     }

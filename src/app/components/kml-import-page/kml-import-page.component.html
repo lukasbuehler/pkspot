@@ -560,10 +560,9 @@
                       ></app-spot-preview-card>
                       } @if(selectedSpot()?.spot?.description) {
                       <h4 class="mat-title-small mt-3">Description</h4>
-                      <div
-                        class="mat-body-small"
-                        [innerHTML]="selectedSpot()?.spot?.description"
-                      ></div>
+                      <div class="mat-body-small import-description">
+                        {{ selectedSpot()?.spot?.description }}
+                      </div>
                       }
 
                       <h4 class="mat-title-small mt-3 mb-1">Import Data</h4>

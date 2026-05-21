@@ -168,8 +168,16 @@ async function main() {
   await assertDenied("profile picture path for another user", () =>
     uploadAs(uploader, `profile_pictures/${USERS.other}`, "image/png")
   );
+  await assertDenied("profile picture with forged metadata uid", () =>
+    uploadAs(uploader, `profile_pictures/${USERS.uploader}`, "image/png", {
+      metadataUid: USERS.other,
+    })
+  );
   await assertDenied("profile picture text upload", () =>
     uploadAs(uploader, `profile_pictures/${USERS.uploader}.txt`, "text/plain")
+  );
+  await assertDenied("profile picture svg upload", () =>
+    uploadAs(uploader, `profile_pictures/${USERS.uploader}`, "image/svg+xml")
   );
 
   console.log("Checking spot media upload rules...");
@@ -183,6 +191,12 @@ async function main() {
   await assertDenied("spot text upload", () =>
     uploadAs(uploader, `spot_pictures/${suffix}.txt`, "text/plain")
   );
+  await assertDenied("spot svg upload", () =>
+    uploadAs(uploader, `spot_pictures/${suffix}.svg`, "image/svg+xml")
+  );
+  await assertDenied("spot image upload without expected extension", () =>
+    uploadAs(uploader, `spot_pictures/${suffix}`, "image/jpeg")
+  );
   await assertDenied("spot image upload with forged metadata uid", () =>
     uploadAs(uploader, `spot_pictures/forged-${suffix}.jpg`, "image/jpeg", {
       metadataUid: USERS.other,
@@ -195,6 +209,9 @@ async function main() {
   console.log("Checking post and challenge media paths...");
   await uploadAs(uploader, `post_media/${suffix}.mp4`, "video/mp4");
   await uploadAs(uploader, `challenges/${suffix}.mov`, "video/quicktime");
+  await assertDenied("post media extension/content type mismatch", () =>
+    uploadAs(uploader, `post_media/mismatch-${suffix}.mp4`, "image/jpeg")
+  );
   await assertDenied("challenge non-media upload", () =>
     uploadAs(uploader, `challenges/${suffix}.txt`, "text/plain")
   );
@@ -207,17 +224,26 @@ async function main() {
   await assertDenied("admin event text upload", () =>
     uploadAs(adminClient, `event_media/${suffix}.txt`, "text/plain")
   );
+  await assertDenied("admin event svg upload", () =>
+    uploadAs(adminClient, `event_media/${suffix}.svg`, "image/svg+xml")
+  );
 
   await assertDenied("regular user import source upload", () =>
-    uploadAs(uploader, `imports/${suffix}.kml`, "application/xml")
+    uploadAs(uploader, `imports/import_${suffix}.kml`, "application/xml")
   );
-  await uploadAs(adminClient, `imports/${suffix}.kml`, "application/xml");
+  await assertDenied("admin import upload with unexpected path", () =>
+    uploadAs(adminClient, `imports/${suffix}.kml`, "application/xml")
+  );
+  await assertDenied("admin import upload with unexpected MIME type", () =>
+    uploadAs(adminClient, `imports/import_${suffix}.kml`, "text/plain")
+  );
+  await uploadAs(adminClient, `imports/import_${suffix}.kml`, "application/xml");
   assert.match(
-    await getDownloadURL(ref(adminClient.storage, `imports/${suffix}.kml`)),
+    await getDownloadURL(ref(adminClient.storage, `imports/import_${suffix}.kml`)),
     /^http/
   );
   await assertDenied("anonymous import source read", () =>
-    getDownloadURL(ref(anonymous.storage, `imports/${suffix}.kml`))
+    getDownloadURL(ref(anonymous.storage, `imports/import_${suffix}.kml`))
   );
 
   // Keep the second signed-in client live so forged-metadata checks exercise

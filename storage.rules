@@ -22,63 +22,92 @@ service firebase.storage {
         && request.resource.size < maxBytes;
     }
 
-    function isImage() {
+    function isAllowedImage() {
       return request.resource != null
-        && request.resource.contentType.matches('image/.*');
+        && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
     }
 
-    function isVideo() {
+    function isAllowedVideo() {
       return request.resource != null
-        && request.resource.contentType.matches('video/.*');
+        && request.resource.contentType.matches('video/(mp4|quicktime|webm)');
     }
 
-    function isImageOrVideo() {
-      return isImage() || isVideo();
+    function isAllowedImageOrVideo() {
+      return isAllowedImage() || isAllowedVideo();
     }
 
-    function filenameStartsWithUserId(filename) {
+    function isAllowedImageUpload(filename) {
+      return request.resource != null
+        && (
+          (request.resource.contentType == 'image/jpeg' && filename.matches('^[A-Za-z0-9_-]+\\.(jpg|jpeg)$')) ||
+          (request.resource.contentType == 'image/png' && filename.matches('^[A-Za-z0-9_-]+\\.png$')) ||
+          (request.resource.contentType == 'image/webp' && filename.matches('^[A-Za-z0-9_-]+\\.webp$')) ||
+          (request.resource.contentType == 'image/gif' && filename.matches('^[A-Za-z0-9_-]+\\.gif$'))
+        );
+    }
+
+    function isAllowedVideoUpload(filename) {
+      return request.resource != null
+        && (
+          (request.resource.contentType == 'video/mp4' && filename.matches('^[A-Za-z0-9_-]+\\.mp4$')) ||
+          (request.resource.contentType == 'video/quicktime' && filename.matches('^[A-Za-z0-9_-]+\\.mov$')) ||
+          (request.resource.contentType == 'video/webm' && filename.matches('^[A-Za-z0-9_-]+\\.webm$'))
+        );
+    }
+
+    function isProfilePictureFilename(filename) {
       return isSignedIn()
-        && filename.size() >= request.auth.uid.size()
-        && filename[0 : request.auth.uid.size()] == request.auth.uid;
+        && filename == request.auth.uid;
+    }
+
+    function isImportFilename(filename) {
+      return filename.matches('^import_[A-Za-z0-9_-]+\\.(kml|kmz)$');
+    }
+
+    function isAllowedImportContentType() {
+      return request.resource != null
+        && request.resource.contentType.matches('(application/vnd\\.google-earth\\.(kml\\+xml|kmz)|application/xml|text/xml|application/octet-stream)');
     }
 
     match /profile_pictures/{filename} {
       allow read: if true;
-      allow create, update: if filenameStartsWithUserId(filename)
+      allow create, update: if isProfilePictureFilename(filename)
         && hasOwnerMetadata()
-        && isImage()
+        && isAllowedImage()
         && isUnderSize(10 * 1024 * 1024);
-      allow delete: if filenameStartsWithUserId(filename);
+      allow delete: if isProfilePictureFilename(filename);
     }
 
     match /spot_pictures/{filename} {
       allow read: if true;
-      allow create, update: if isSignedIn()
+      allow create: if isSignedIn()
         && hasOwnerMetadata()
-        && isImage()
+        && isAllowedImageUpload(filename)
         && isUnderSize(50 * 1024 * 1024);
     }
 
     match /post_media/{filename} {
       allow read: if true;
-      allow create, update: if isSignedIn()
+      allow create: if isSignedIn()
         && hasOwnerMetadata()
-        && isImageOrVideo()
+        && (isAllowedImageUpload(filename) || isAllowedVideoUpload(filename))
         && isUnderSize(500 * 1024 * 1024);
     }
 
     match /challenges/{filename} {
       allow read: if true;
-      allow create, update: if isSignedIn()
+      allow create: if isSignedIn()
         && hasOwnerMetadata()
-        && isImageOrVideo()
+        && (isAllowedImageUpload(filename) || isAllowedVideoUpload(filename))
         && isUnderSize(500 * 1024 * 1024);
     }
 
     match /imports/{filename} {
       allow read: if isAdmin();
-      allow create, update: if isAdmin()
+      allow create: if isAdmin()
         && hasOwnerMetadata()
+        && isImportFilename(filename)
+        && isAllowedImportContentType()
         && isUnderSize(50 * 1024 * 1024);
     }
 
@@ -87,9 +116,9 @@ service firebase.storage {
     // today, so only admins should upload event media.
     match /event_media/{filename} {
       allow read: if true;
-      allow create, update: if isAdmin()
-        && request.resource.size < 50 * 1024 * 1024
-        && request.resource.contentType.matches('image/.*')
+      allow create: if isAdmin()
+        && isAllowedImageUpload(filename)
+        && isUnderSize(50 * 1024 * 1024)
         && hasOwnerMetadata();
     }
 
