@@ -926,12 +926,13 @@ export class AuthenticationService extends ConsentAwareService {
             props: { accountType: "Email and Password" },
           });
 
-          if (!this._currentFirebaseUser) {
+          const createdUser = firebaseAuthResponse.user;
+          if (!createdUser) {
             return Promise.reject("No current firebase user found");
           }
 
           // Set the user chose Display name
-          updateProfile(this._currentFirebaseUser, {
+          await updateProfile(createdUser, {
             displayName: displayName,
           });
 
@@ -952,7 +953,7 @@ export class AuthenticationService extends ConsentAwareService {
           );
 
           // Send verification email
-          sendEmailVerification(firebaseAuthResponse.user);
+          await sendEmailVerification(createdUser);
         });
       });
     } finally {

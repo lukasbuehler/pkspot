@@ -70,6 +70,63 @@ function detectLanguage(req, res, next) {
   return res.redirect(301, targetUrl);
 }
 
+function isKnownAngularRoute(pathname) {
+  const cleanPath = (pathname || "/").split("?")[0].split("#")[0] || "/";
+  const segments = cleanPath.split("/").filter(Boolean);
+  const [first, second, third, fourth] = segments;
+
+  if (segments.length === 0) return true;
+
+  const staticRoutes = new Set([
+    "about",
+    "support",
+    "terms-of-service",
+    "tos",
+    "privacy-policy",
+    "pp",
+    "impressum",
+    "activity",
+    "kml-import",
+    "embed",
+    "events",
+    "profile",
+    "account",
+    "sign-in",
+    "sign-up",
+    "forgot-password",
+    "settings",
+    "leaderboard",
+  ]);
+
+  if (staticRoutes.has(first)) return true;
+  if (first === "s" && second) return true;
+  if (first === "e" && second) return true;
+  if (first === "u" && second) return true;
+  if (first === "__" && second === "auth" && third === "action") return true;
+  if (first === "event" && second === "swissjam25") return true;
+
+  if (first === "embedded") {
+    return (
+      second === "map" ||
+      (second === "event" && Boolean(third)) ||
+      (second === "events" && Boolean(third))
+    );
+  }
+
+  if (first === "map") {
+    if (!second) return true;
+    if (second === "spots") {
+      if (!third) return true;
+      return !fourth || fourth === "edits" || fourth === "c";
+    }
+    if (second === "communities" || second === "community") return Boolean(third);
+    if (second === "events" || second === "event") return Boolean(third);
+    return true;
+  }
+
+  return false;
+}
+
 function run() {
   const port = process.env.PORT || 8080;
   const server = express();
@@ -255,6 +312,12 @@ function run() {
 
   // Mount language specific angular SSR server apps
   for (const lang of supportedLanguageCodes) {
+    server.use(`/${lang}`, (req, res, next) => {
+      if (!isKnownAngularRoute(req.path)) {
+        res.status(404);
+      }
+      next();
+    });
     server.use(`/${lang}`, serverExpressApps[lang]());
   }
 

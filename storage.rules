@@ -2,11 +2,84 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('is_admin', false) == true;
+    }
+
+    function hasOwnerMetadata() {
+      return request.resource != null
+        && request.resource.metadata.uid == request.auth.uid;
+    }
+
+    function isUnderSize(maxBytes) {
+      return request.resource != null
+        && request.resource.size < maxBytes;
+    }
+
+    function isImage() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    function isVideo() {
+      return request.resource != null
+        && request.resource.contentType.matches('video/.*');
+    }
+
+    function isImageOrVideo() {
+      return isImage() || isVideo();
+    }
+
+    function filenameStartsWithUserId(filename) {
+      return isSignedIn()
+        && filename.size() >= request.auth.uid.size()
+        && filename[0 : request.auth.uid.size()] == request.auth.uid;
+    }
+
     match /profile_pictures/{filename} {
-      allow write: if request.auth.uid != null && (
-        (filename.size() >= request.auth.uid.size() && filename[0 : request.auth.uid.size()] == request.auth.uid) ||
-        (request.resource != null && request.resource.metadata.uid == request.auth.uid)
-      );
+      allow read: if true;
+      allow create, update: if filenameStartsWithUserId(filename)
+        && hasOwnerMetadata()
+        && isImage()
+        && isUnderSize(10 * 1024 * 1024);
+      allow delete: if filenameStartsWithUserId(filename);
+    }
+
+    match /spot_pictures/{filename} {
+      allow read: if true;
+      allow create, update: if isSignedIn()
+        && hasOwnerMetadata()
+        && isImage()
+        && isUnderSize(50 * 1024 * 1024);
+    }
+
+    match /post_media/{filename} {
+      allow read: if true;
+      allow create, update: if isSignedIn()
+        && hasOwnerMetadata()
+        && isImageOrVideo()
+        && isUnderSize(500 * 1024 * 1024);
+    }
+
+    match /challenges/{filename} {
+      allow read: if true;
+      allow create, update: if isSignedIn()
+        && hasOwnerMetadata()
+        && isImageOrVideo()
+        && isUnderSize(500 * 1024 * 1024);
+    }
+
+    match /imports/{filename} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && hasOwnerMetadata()
+        && isUnderSize(50 * 1024 * 1024);
     }
 
     // Event banners / logos / sponsor logos. Admin-only writes to match
@@ -14,19 +87,15 @@ service firebase.storage {
     // today, so only admins should upload event media.
     match /event_media/{filename} {
       allow read: if true;
-      allow write: if request.auth.uid != null
-        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.is_admin == true
+      allow create, update: if isAdmin()
         && request.resource.size < 50 * 1024 * 1024
-        && request.resource.metadata.uid == request.auth.uid;
+        && request.resource.contentType.matches('image/.*')
+        && hasOwnerMetadata();
     }
 
     match /{allPaths=**} {
-      allow read: if true;
-      allow create, update: if request.auth.uid != null &&
-      request.resource.size < 500 * 1024 * 1024 &&
-      request.resource.metadata.uid == request.auth.uid;
-      // Only allow uploads of any image file that's less than 100MB 
+      allow read: if false;
+      allow write: if false;
     }
   }
 }

@@ -38,6 +38,9 @@ export class MapPage {
    * @param locale Optional locale override (e.g., 'en', 'de')
    */
   async goto(locale: string = "de") {
+    await this.page.addInitScript(() => {
+      localStorage.setItem("acceptedVersion", "4");
+    });
     // Navigate to map - SSR will handle locale redirect if needed
     await this.page.goto(`/${locale}/map`, { waitUntil: "domcontentloaded" });
     await this.waitForMapReady();
@@ -90,7 +93,10 @@ export class MapPage {
       // "Agree and Continue" or similar
       const confirmButton = this.page
         .locator("button")
-        .filter({ hasText: /Agree|Continue|Accept|Akzeptieren/i })
+        .filter({
+          hasText:
+            /Agree|Continue|Accept|Akzeptieren|Einverstanden|Weiter|Fortfahren|Zustimmen/i,
+        })
         .first();
 
       if (await confirmButton.isVisible({ timeout: 2000 })) {

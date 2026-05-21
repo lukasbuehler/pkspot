@@ -411,4 +411,105 @@ describe("SearchService", () => {
       ]);
     });
   });
+
+  describe("getEventPreviewFromHit", () => {
+    it("maps Typesense event hits to lightweight previews with resolved media and geo fields", () => {
+      const preview = service.getEventPreviewFromHit({
+        document: {
+          id: "event-123",
+          slug: "swissjam26",
+          name: "Swiss Jam 2026",
+          description: "The annual Zurich jam.",
+          venue_string: "Sportzentrum Josef",
+          locality_string: "Zurich, Switzerland",
+          banner_src: "assets/swissjam/banner.jpg",
+          logo_src: "assets/swissjam/logo.png",
+          sponsor: {
+            name: "Sponsor",
+            logo_src: "assets/sponsors/sponsor.png",
+            logo_background_color: "#ffffff",
+          },
+          is_sponsored: true,
+          start_seconds: "1781431200",
+          end_seconds: 1781517600,
+          promo_starts_at_seconds: "1781000000",
+          bounds_center: [47.3769, 8.5417],
+          bounds_radius_m: "2500",
+          promo_region_center: { lat: "47.38", lng: "8.54" },
+          promo_region_radius_m: "1200",
+          external_source: {
+            provider: "instagram",
+          },
+          url: "https://example.test/swissjam",
+          spot_ids: ["spot-a"],
+          community_keys: ["ch/zurich"],
+          series_ids: ["swissjam"],
+        },
+      });
+
+      expect(preview).toMatchObject({
+        id: "event-123",
+        slug: "swissjam26",
+        name: "Swiss Jam 2026",
+        description: "The annual Zurich jam.",
+        venueString: "Sportzentrum Josef",
+        localityString: "Zurich, Switzerland",
+        bannerSrc: "assets/swissjam/banner.jpg",
+        logoSrc: "assets/swissjam/logo.png",
+        sponsorName: "Sponsor",
+        sponsorLogoSrc: "assets/sponsors/sponsor.png",
+        sponsorLogoBackgroundColor: "#ffffff",
+        isSponsored: true,
+        startSeconds: 1781431200,
+        endSeconds: 1781517600,
+        promoStartsAtSeconds: 1781000000,
+        boundsCenter: [47.3769, 8.5417],
+        boundsRadiusM: 2500,
+        promoRegionCenter: [47.38, 8.54],
+        promoRegionRadiusM: 1200,
+        externalProvider: "instagram",
+        url: "https://example.test/swissjam",
+        spotIds: ["spot-a"],
+        communityKeys: ["ch/zurich"],
+        seriesIds: ["swissjam"],
+      });
+    });
+
+    it("builds an Event model from search hits for map-island ranking", () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-05-21T12:00:00.000Z"));
+
+      const event = service.getEventFromHit({
+        document: {
+          id: "event-123",
+          slug: "swissjam26",
+          name: "Swiss Jam 2026",
+          venue_string: "Sportzentrum Josef",
+          locality_string: "Zurich, Switzerland",
+          start_seconds: Math.floor(
+            new Date("2026-06-14T10:00:00.000Z").getTime() / 1000,
+          ),
+          end_seconds: Math.floor(
+            new Date("2026-06-15T10:00:00.000Z").getTime() / 1000,
+          ),
+          promo_region_center: [47.3769, 8.5417],
+          promo_region_radius_m: 1500,
+          bounds_center: [47.3769, 8.5417],
+          bounds_radius_m: 3000,
+        },
+      });
+
+      expect(event?.id).toBe("event-123");
+      expect(event?.slug).toBe("swissjam26");
+      expect(event?.status()).toBe("upcoming");
+      expect(event?.promoRegion).toEqual({
+        center: { lat: 47.3769, lng: 8.5417 },
+        radius_m: 1500,
+      });
+      expect(event?.bounds.north).toBeGreaterThan(event!.bounds.south);
+      expect(event?.bounds.east).toBeGreaterThan(event!.bounds.west);
+
+      vi.useRealTimers();
+    });
+  });
 });

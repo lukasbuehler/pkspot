@@ -155,6 +155,57 @@ async function waitForServer(url, serverProcess, logBuffer, timeoutMs = 60_000) 
   );
 }
 
+function assertCrawlerSurface(html, routeLabel, expected = {}) {
+  assert.match(html, /<!doctype html>/i, `${routeLabel} should return HTML`);
+  assert.match(
+    html,
+    /<meta property="og:title"[^>]+content="[^"]+"/,
+    `${routeLabel} should include an OpenGraph title`
+  );
+  assert.match(
+    html,
+    /<meta property="og:image"[^>]+content="https:\/\/[^"]+"/,
+    `${routeLabel} should include an absolute OpenGraph image`
+  );
+  assert.match(
+    html,
+    /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/[^"]+"/,
+    `${routeLabel} should include an absolute OpenGraph URL`
+  );
+  assert.match(
+    html,
+    /<link rel="canonical" href="https:\/\/pkspot\.app\/en\/[^"]+"/,
+    `${routeLabel} should include a canonical link`
+  );
+  assert.match(
+    html,
+    /<script type="application\/ld\+json"[^>]*>/,
+    `${routeLabel} should include structured data`
+  );
+
+  if (expected.title) {
+    assert.match(
+      html,
+      expected.title,
+      `${routeLabel} should include the expected title signal`
+    );
+  }
+  if (expected.ogUrl) {
+    assert.match(
+      html,
+      expected.ogUrl,
+      `${routeLabel} should include the expected OpenGraph URL`
+    );
+  }
+  if (expected.body) {
+    assert.match(
+      html,
+      expected.body,
+      `${routeLabel} should include the expected body content`
+    );
+  }
+}
+
 async function main() {
   const supportedLanguageCodes = getSupportedLanguageCodes();
 
@@ -270,6 +321,12 @@ async function main() {
       "Spot SSR route should render for social crawlers"
     );
     const socialPreviewHtml = await socialPreviewResponse.text();
+    assertCrawlerSurface(socialPreviewHtml, "Spot SSR route", {
+      title: /Sportzentrum Josef - Zürich \| PK Spot/,
+      ogUrl:
+        /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/spots\/josefhalle"/,
+      body: /Sportzentrum Josef/i,
+    });
     assert.match(
       socialPreviewHtml,
       /<meta property="og:title"[^>]+content="Sportzentrum Josef - Zürich \| PK Spot"/,
@@ -285,6 +342,28 @@ async function main() {
       /<meta property="og:title"[^>]+content="PK Spot - The spot for Parkour and Freerunning"/,
       "Spot SSR HTML should not fall back to the default OpenGraph title"
     );
+
+    const communityPreviewResponse = await fetch(
+      `${baseUrl}/en/map/communities/switzerland`,
+      {
+        redirect: "manual",
+        headers: {
+          "user-agent": "WhatsApp/2.24.1 A",
+        },
+      }
+    );
+    assert.equal(
+      communityPreviewResponse.status,
+      200,
+      "Community SSR route should render for social crawlers"
+    );
+    const communityPreviewHtml = await communityPreviewResponse.text();
+    assertCrawlerSurface(communityPreviewHtml, "Community SSR route", {
+      title: /Switzerland/i,
+      ogUrl:
+        /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/communities\/switzerland"/,
+      body: /Switzerland/i,
+    });
 
     const eventsPageResponse = await fetch(`${baseUrl}/en/events`, {
       redirect: "manual",
@@ -324,9 +403,15 @@ async function main() {
       "Event SSR route should render for social crawlers"
     );
     const eventPreviewHtml = await eventPreviewResponse.text();
+    assertCrawlerSurface(eventPreviewHtml, "Event SSR route", {
+      title: /Swiss Jam 2025 \| PK Spot/,
+      ogUrl:
+        /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/events\/swissjam25"/,
+      body: /Swiss Jam 2025/,
+    });
     assert.match(
       eventPreviewHtml,
-      /<meta property="og:title"[^>]+content="Swiss Jam 2025 - PK Spot"/,
+      /<meta property="og:title"[^>]+content="Swiss Jam 2025 \| PK Spot"/,
       "Event SSR HTML should include the event-specific OpenGraph title"
     );
     assert.match(
@@ -338,6 +423,46 @@ async function main() {
       eventPreviewHtml,
       /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/events"/,
       "Event SSR HTML should not fall back to the generic events OpenGraph URL"
+    );
+
+    const profilePreviewResponse = await fetch(`${baseUrl}/en/u/lukas`, {
+      redirect: "manual",
+      headers: {
+        "user-agent": "WhatsApp/2.24.1 A",
+      },
+    });
+    assert.equal(
+      profilePreviewResponse.status,
+      200,
+      "Profile SSR route should render for social crawlers"
+    );
+    const profilePreviewHtml = await profilePreviewResponse.text();
+    assertCrawlerSurface(profilePreviewHtml, "Profile SSR route", {
+      title: /\| PK Spot/,
+      ogUrl:
+        /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/u\/lukas"/,
+      body: /profile|spots|activity|Lukas/i,
+    });
+
+    const notFoundResponse = await fetch(
+      `${baseUrl}/en/this-route-should-not-exist`,
+      {
+        redirect: "manual",
+        headers: {
+          "user-agent": "WhatsApp/2.24.1 A",
+        },
+      }
+    );
+    assert.equal(
+      notFoundResponse.status,
+      404,
+      "Unknown SSR routes should return a real 404 status"
+    );
+    const notFoundHtml = await notFoundResponse.text();
+    assert.match(
+      notFoundHtml,
+      /not found|404/i,
+      "Unknown SSR route should render a not-found surface"
     );
 
     const robotsResponse = await fetch(`${baseUrl}/robots.txt`);

@@ -1,10 +1,12 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   OnInit,
   OnDestroy,
   inject,
   ViewChild,
   AfterViewInit,
+  signal,
 } from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
@@ -21,6 +23,7 @@ import { MatButton } from "@angular/material/button";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { OAuthSignInButtonsComponent } from "../oauth-sign-in-buttons/oauth-sign-in-buttons.component";
 import { UiLanguageService } from "../../services/ui-language.service";
@@ -32,6 +35,7 @@ import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focu
   selector: "app-sign-in-page",
   templateUrl: "./sign-in-page.component.html",
   styleUrls: ["./sign-in-page.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -43,6 +47,7 @@ import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focu
     RouterLink,
     MatDivider,
     MatIconModule,
+    MatProgressSpinner,
     MatTooltipModule,
     OAuthSignInButtonsComponent,
     AutoScrollOnFocusDirective,
@@ -80,8 +85,8 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
   ];
 
   signInForm?: UntypedFormGroup;
-  signInError: string = "";
-  isSubmitting: boolean = false;
+  readonly signInError = signal("");
+  readonly isSubmitting = signal(false);
   private _returnUrl: string = "/profile";
   private _autoStartProvider: "google" | "apple" | null = null;
   private _authSubscription?: Subscription;
@@ -120,7 +125,7 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(filter((user) => user !== null && !!user.uid))
       .subscribe(() => {
         // User is now authenticated, redirect to return URL
-        if (this.isSubmitting) {
+        if (this.isSubmitting()) {
           this._router.navigateByUrl(this._returnUrl);
         }
       });
@@ -158,10 +163,15 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   trySignIn(signInFormValue: { email: string; password: string }) {
     // Guard against double submissions
-    if (this.isSubmitting) {
+    if (this.isSubmitting()) {
       console.warn(
         "Sign-in already in progress, ignoring duplicate submission",
       );
+      return;
+    }
+
+    if (this.signInForm?.invalid) {
+      this.signInForm.markAllAsTouched();
       return;
     }
 
@@ -170,46 +180,61 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
     email = String(email).toLowerCase().trim();
 
-    this.isSubmitting = true;
-    this.signInError = "";
+    this.isSubmitting.set(true);
+    this.signInError.set("");
 
     this._authService.signInEmailPassword(email, password).then(
-      (res) => {
+      () => {
         // login and return the user to where they were
         this._router.navigateByUrl(this._returnUrl);
       },
       (err) => {
         // display the error on the login form
         console.error(err);
-        switch (err.code) {
-          case "auth/invalid-email":
-            this.signInError = $localize`The E-mail address is invalid!`;
-            break;
-          case "auth/invalid-password":
-            this.signInError = $localize`The password is invalid!`;
-            break;
-          case "auth/user-not-found":
-          case "auth/wrong-password":
-          case "auth/invalid-credential":
-            this.signInError = $localize`Invalid email or password.`;
-            break;
-          default:
-            console.error("Unhandled Sign-In Error Code:", err.code);
-            this.signInError = $localize`An unknown error has occured on sign in. Please try again.`;
-            break;
-        }
-        this.isSubmitting = false;
+        const code = this._getAuthErrorCode(err);
+        this.signInError.set(this._getSignInErrorMessage(code));
+        this.isSubmitting.set(false);
       },
     );
   }
 
   onOAuthError(event: { provider: "google" | "apple"; message: string }) {
-    this.signInError = event.message;
-    this.isSubmitting = false;
+    this.signInError.set(event.message);
+    this.isSubmitting.set(false);
   }
 
   onOAuthSuccess() {
-    this.isSubmitting = true;
+    this.isSubmitting.set(true);
     // Redirect is handled by the authState$ subscription
+  }
+
+  startAuthAttempt() {
+    this.signInError.set("");
+    this.isSubmitting.set(true);
+  }
+
+  private _getAuthErrorCode(err: unknown): string | undefined {
+    if (typeof err !== "object" || err === null || !("code" in err)) {
+      return undefined;
+    }
+
+    const code = (err as { code: unknown }).code;
+    return typeof code === "string" ? code : undefined;
+  }
+
+  private _getSignInErrorMessage(code: string | undefined): string {
+    switch (code) {
+      case "auth/invalid-email":
+        return $localize`The E-mail address is invalid!`;
+      case "auth/invalid-password":
+        return $localize`The password is invalid!`;
+      case "auth/user-not-found":
+      case "auth/wrong-password":
+      case "auth/invalid-credential":
+        return $localize`Invalid email or password.`;
+      default:
+        console.error("Unhandled Sign-In Error Code:", code);
+        return $localize`An unknown error has occured on sign in. Please try again.`;
+    }
   }
 }

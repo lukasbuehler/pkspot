@@ -23,6 +23,13 @@ const flushPromises = () =>
     setTimeout(resolve, 0);
   });
 
+const flushSignalEffects = () => {
+  const maybeFlushEffects = TestBed as unknown as {
+    flushEffects?: () => void;
+  };
+  maybeFlushEffects.flushEffects?.();
+};
+
 const buildEvent = (id: string, name: string): PkEvent =>
   new PkEvent(id as EventId, {
     name,
@@ -51,6 +58,13 @@ describe("EventPageComponent", () => {
         Promise.resolve(slug === "wpf-camp" ? wpfCamp : swissjam26),
       ),
     };
+    const metaTagService = {
+      setEventMetaTags: vi.fn(),
+    };
+    const structuredDataService = {
+      addStructuredData: vi.fn(),
+      removeStructuredData: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
       providers: [
@@ -72,16 +86,11 @@ describe("EventPageComponent", () => {
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         {
           provide: MetaTagService,
-          useValue: {
-            setEventMetaTags: vi.fn(),
-          },
+          useValue: metaTagService,
         },
         {
           provide: StructuredDataService,
-          useValue: {
-            addStructuredData: vi.fn(),
-            removeStructuredData: vi.fn(),
-          },
+          useValue: structuredDataService,
         },
         {
           provide: MapsApiService,
@@ -108,13 +117,45 @@ describe("EventPageComponent", () => {
 
     component.ngOnInit();
     await flushPromises();
+    flushSignalEffects();
 
     expect(component.event()).toBe(swissjam26);
+    expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        name: "Swiss Jam 2026",
+        description: expect.stringContaining("Event in Zurich, Switzerland"),
+      }),
+      "/events/swissjam26",
+    );
+    expect(structuredDataService.addStructuredData).toHaveBeenLastCalledWith(
+      "event",
+      expect.objectContaining({
+        "@type": "Event",
+        name: "Swiss Jam 2026",
+        url: "https://pkspot.app/en/events/swissjam26",
+      }),
+    );
 
     paramMap.next(convertToParamMap({ slug: "wpf-camp" }));
     await flushPromises();
+    flushSignalEffects();
 
     expect(eventsService.getEventBySlugOrId).toHaveBeenCalledWith("wpf-camp");
     expect(component.event()).toBe(wpfCamp);
+    expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        name: "WPF Camp",
+        description: expect.stringContaining("Event in Zurich, Switzerland"),
+      }),
+      "/events/wpf-camp",
+    );
+    expect(structuredDataService.addStructuredData).toHaveBeenLastCalledWith(
+      "event",
+      expect.objectContaining({
+        "@type": "Event",
+        name: "WPF Camp",
+        url: "https://pkspot.app/en/events/wpf-camp",
+      }),
+    );
   });
 });
