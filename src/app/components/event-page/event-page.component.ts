@@ -2,7 +2,6 @@ import {
   Component,
   inject,
   LOCALE_ID,
-  afterNextRender,
   OnInit,
   ViewChild,
   signal,
@@ -30,7 +29,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MatMenuModule } from "@angular/material/menu";
@@ -160,7 +159,9 @@ export class EventPageComponent implements OnInit, OnDestroy {
   /** True while a save / delete is in flight (form disables itself). */
   isSavingEvent = signal<boolean>(false);
 
-  private _routeSubscription?: Subscription;
+  private _queryParamsSubscription?: Subscription;
+  private _paramMapSubscription?: Subscription;
+  private _eventLoadRequestVersion = 0;
 
   /** The loaded event. Drives every visible field on the page. */
   event = signal<PkEvent | null>(null);
@@ -300,10 +301,21 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
-    this._routeSubscription = this._route.queryParams.subscribe((params) => {
-      if (params["showHeader"]) {
-        this.showHeader.set(params["showHeader"] === "true");
-      }
+    this._queryParamsSubscription = this._route.queryParams.subscribe(
+      (params) => {
+        if (params["showHeader"]) {
+          this.showHeader.set(params["showHeader"] === "true");
+        }
+      },
+    );
+
+    // Keep event SEO on the SSR path so social crawlers see event-specific
+    // OpenGraph/Twitter tags before any browser JavaScript runs.
+    effect(() => {
+      const event = this.event();
+      if (!event) return;
+
+      this._syncEventSeoData(event);
     });
 
     this.updateCompactView = this.updateCompactView.bind(this);
@@ -387,14 +399,6 @@ export class EventPageComponent implements OnInit, OnDestroy {
         }
       });
 
-      // Push meta tags + structured data once the event has loaded.
-      effect(() => {
-        const event = this.event();
-        if (!event) return;
-
-        this._syncEventSeoData(event);
-      });
-
       // Build challenge markers + listings from the event's challenge_spot_map.
       effect(() => {
         const event = this.event();
@@ -469,16 +473,12 @@ export class EventPageComponent implements OnInit, OnDestroy {
       });
     }
 
-    afterNextRender(() => {
-      this._loadEventFromRoute();
-    });
   }
 
-  private async _loadEventFromRoute() {
+  private async _loadEventFromRoute(paramMap: ParamMap) {
     const slug =
-      this._route.snapshot.paramMap.get("slug") ??
-      this._route.snapshot.paramMap.get("eventID") ??
-      "swissjam25";
+      paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
+    const requestVersion = ++this._eventLoadRequestVersion;
 
     let loaded: PkEvent | null = null;
     try {
@@ -489,6 +489,10 @@ export class EventPageComponent implements OnInit, OnDestroy {
 
     if (!loaded && slug === "swissjam25") {
       loaded = new PkEvent("swissjam25" as any, SWISSJAM25_STATIC);
+    }
+
+    if (requestVersion !== this._eventLoadRequestVersion) {
+      return;
     }
 
     if (!loaded) {
@@ -511,7 +515,14 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    if (!this.mapsApiService.isApiLoaded()) {
+    this._paramMapSubscription = this._route.paramMap.subscribe((paramMap) => {
+      void this._loadEventFromRoute(paramMap);
+    });
+
+    if (
+      isPlatformBrowser(this.platformId) &&
+      !this.mapsApiService.isApiLoaded()
+    ) {
       this.mapsApiService.loadGoogleMapsApi();
     }
   }
@@ -527,8 +538,12 @@ export class EventPageComponent implements OnInit, OnDestroy {
       window.removeEventListener("resize", this.updateCompactView);
     }
 
-    if (this._routeSubscription) {
-      this._routeSubscription.unsubscribe();
+    if (this._queryParamsSubscription) {
+      this._queryParamsSubscription.unsubscribe();
+    }
+
+    if (this._paramMapSubscription) {
+      this._paramMapSubscription.unsubscribe();
     }
   }
 

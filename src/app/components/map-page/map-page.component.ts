@@ -906,7 +906,29 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       properties["message"] = content.message;
     }
 
-    this._analytics.trackEvent("map_island_interaction", properties);
+    this._analytics.trackEvent(
+      this._getMapIslandAnalyticsEventName(action, content.kind),
+      properties,
+    );
+  }
+
+  private _getMapIslandAnalyticsEventName(
+    action: "open" | "dismiss",
+    kind: "event" | "community" | "filter",
+  ): string {
+    if (kind === "event") {
+      return action === "open"
+        ? "open_event_from_island"
+        : "dismiss_event_island";
+    }
+
+    if (kind === "community") {
+      return action === "open"
+        ? "open_community_from_island"
+        : "dismiss_community_island";
+    }
+
+    return "dismiss_filter_island";
   }
 
   private _isEventPromoDismissed(

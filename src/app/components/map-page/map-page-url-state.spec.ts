@@ -42,6 +42,22 @@ describe("MapPageComponent URL-driven panel state", () => {
     );
   });
 
+  it("tracks map island actions as separate PostHog event names", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const analyticsMethod = source.match(
+      /private _getMapIslandAnalyticsEventName[\s\S]*?\n  \}/
+    )?.[0];
+
+    expect(analyticsMethod).toContain("open_event_from_island");
+    expect(analyticsMethod).toContain("dismiss_event_island");
+    expect(analyticsMethod).toContain("open_community_from_island");
+    expect(analyticsMethod).toContain("dismiss_community_island");
+    expect(analyticsMethod).toContain("dismiss_filter_island");
+    expect(source).not.toContain(
+      'this._analytics.trackEvent("map_island_interaction"',
+    );
+  });
+
   it("does not surface another event island while an event panel is open", () => {
     const source = readFileSync(componentPath, "utf8");
 

@@ -18,6 +18,12 @@ export interface MetaTagData {
   canonical?: string;
 }
 
+interface EventMetaTagData {
+  name?: string;
+  image?: string;
+  description?: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -281,11 +287,12 @@ export class MetaTagService {
   /**
    * Sets meta tags for an event with canonical URL
    */
-  public setEventMetaTags(event: any, canonicalPath?: string): void {
-    // TODO: Replace 'any' with proper Event type when you have it
-    const title = event.name || "Event";
-    const image =
-      event.image || this.defaultImageUrl;
+  public setEventMetaTags(
+    event: EventMetaTagData,
+    canonicalPath?: string
+  ): void {
+    const title = `${event.name || "Event"} | PK Spot`;
+    const image = event.image || this.defaultImageUrl;
     const description =
       event.description || "Join us for this exciting parkour event!";
 
@@ -300,7 +307,7 @@ export class MetaTagService {
    */
   public setUserMetaTags(user: any, canonicalPath?: string): void {
     // TODO: Replace 'any' with proper User type when you have it
-    const title = `${user.displayName || user.name || "User"} - PK Spot`;
+    const title = `${user.displayName || user.name || "User"} | PK Spot`;
     const image =
       user.profilePicture?.getPreviewImageSrc() ||
       this.defaultImageUrl;
@@ -322,7 +329,7 @@ export class MetaTagService {
    */
   public setPostMetaTags(post: any, canonicalPath?: string): void {
     // TODO: Replace 'any' with proper Post type when you have it
-    const title = post.title || "Post - PK Spot";
+    const title = post.title || "Post | PK Spot";
     const image = post.image || this.defaultImageUrl;
     const description =
       post.description || post.content || "Check out this post on PK Spot.";
@@ -342,7 +349,7 @@ export class MetaTagService {
     pageImage?: string,
     canonicalPath?: string
   ): void {
-    const title = `${pageTitle} - PK Spot`;
+    const title = `${pageTitle} | PK Spot`;
     const image = pageImage || this.defaultImageUrl;
     const description = pageDescription;
 

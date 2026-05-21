@@ -286,6 +286,60 @@ async function main() {
       "Spot SSR HTML should not fall back to the default OpenGraph title"
     );
 
+    const eventsPageResponse = await fetch(`${baseUrl}/en/events`, {
+      redirect: "manual",
+      headers: {
+        "user-agent": "WhatsApp/2.24.1 A",
+      },
+    });
+    assert.equal(
+      eventsPageResponse.status,
+      200,
+      "Events SSR route should render for social crawlers"
+    );
+    const eventsPageHtml = await eventsPageResponse.text();
+    assert.match(
+      eventsPageHtml,
+      /Swiss Jam 2025/,
+      "Events SSR HTML should include rendered event cards"
+    );
+    assert.doesNotMatch(
+      eventsPageHtml,
+      /Loading events/,
+      "Events SSR HTML should not remain in the loading state"
+    );
+
+    const eventPreviewResponse = await fetch(
+      `${baseUrl}/en/events/swissjam25`,
+      {
+        redirect: "manual",
+        headers: {
+          "user-agent": "WhatsApp/2.24.1 A",
+        },
+      }
+    );
+    assert.equal(
+      eventPreviewResponse.status,
+      200,
+      "Event SSR route should render for social crawlers"
+    );
+    const eventPreviewHtml = await eventPreviewResponse.text();
+    assert.match(
+      eventPreviewHtml,
+      /<meta property="og:title"[^>]+content="Swiss Jam 2025 - PK Spot"/,
+      "Event SSR HTML should include the event-specific OpenGraph title"
+    );
+    assert.match(
+      eventPreviewHtml,
+      /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/events\/swissjam25"/,
+      "Event SSR HTML should include the canonical event OpenGraph URL"
+    );
+    assert.doesNotMatch(
+      eventPreviewHtml,
+      /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/events"/,
+      "Event SSR HTML should not fall back to the generic events OpenGraph URL"
+    );
+
     const robotsResponse = await fetch(`${baseUrl}/robots.txt`);
     assert.equal(robotsResponse.status, 200, "robots.txt should be served");
     const robotsText = await robotsResponse.text();
