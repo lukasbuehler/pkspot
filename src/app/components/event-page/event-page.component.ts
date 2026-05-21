@@ -153,7 +153,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
   mapsApiService = inject(MapsApiService);
 
   /** True when the current user has admin rights — gates the edit button. */
-  isAdmin = computed(() => this._authService.user.data?.isAdmin === true);
+  isAdmin = computed(() => this._authService.isAdmin());
   /** Toggles the inline edit form for the active event. Admin-only. */
   isEditingEvent = signal<boolean>(false);
   /** True while a save / delete is in flight (form disables itself). */

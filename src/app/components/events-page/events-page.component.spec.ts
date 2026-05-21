@@ -1,4 +1,4 @@
-import { LOCALE_ID, PLATFORM_ID } from "@angular/core";
+import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
@@ -38,7 +38,10 @@ describe("EventsPageComponent", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: EventsService, useValue: eventsService },
-        { provide: AuthenticationService, useValue: { user: { data: null } } },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
         { provide: LOCALE_ID, useValue: "en" },
         { provide: PLATFORM_ID, useValue: "server" },
       ],

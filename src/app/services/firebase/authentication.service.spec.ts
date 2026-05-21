@@ -120,6 +120,7 @@ describe("AuthenticationService", () => {
 
   it("starts signed out until Firebase reports an auth state", () => {
     expect(service.isSignedIn).toBe(false);
+    expect(service.isAdmin()).toBe(false);
     expect(service.user).toEqual({});
     expect(service.authState$.getValue()).toBeNull();
     expect(authMock.onAuthStateChanged).toHaveBeenCalled();
@@ -147,8 +148,8 @@ describe("AuthenticationService", () => {
     expect(signOut).toHaveBeenCalledWith(service.auth);
   });
 
-  it("updates local auth state, analytics identity, and profile data from auth listener", () => {
-    const profile = { displayName: "Hydrated User" };
+  it("updates local auth state, analytics identity, profile data, and admin signal from auth listener", () => {
+    const profile = { displayName: "Hydrated User", isAdmin: true };
     usersServiceSpy.getUserById.mockReturnValueOnce(of(profile));
     const authStateListener = authMock.onAuthStateChanged.mock
       .calls[0][0] as FirebaseAuthStateCallback;
@@ -161,6 +162,7 @@ describe("AuthenticationService", () => {
     expect(service.user.emailVerified).toBe(true);
     expect(service.user.providerId).toBe("password");
     expect(service.user.data).toBe(profile);
+    expect(service.isAdmin()).toBe(true);
     expect(service.authState$.getValue()).toBe(service.user);
     expect(usersServiceSpy.getUserById).toHaveBeenCalledWith("auth-user-1");
     expect(analyticsServiceSpy.identifyUser).toHaveBeenCalledWith(
@@ -173,14 +175,19 @@ describe("AuthenticationService", () => {
   });
 
   it("resets local auth state and analytics identity when Firebase signs out", () => {
+    const profile = { displayName: "Admin User", isAdmin: true };
+    usersServiceSpy.getUserById.mockReturnValueOnce(of(profile));
     const authStateListener = authMock.onAuthStateChanged.mock
       .calls[0][0] as FirebaseAuthStateCallback;
 
     authStateListener(firebaseUser);
+    expect(service.isAdmin()).toBe(true);
     authStateListener(null);
 
     expect(service.isSignedIn).toBe(false);
     expect(service.user.uid).toBe("");
+    expect(service.user.data).toBeUndefined();
+    expect(service.isAdmin()).toBe(false);
     expect(service.authState$.getValue()).toBeNull();
     expect(analyticsServiceSpy.resetUser).toHaveBeenCalled();
   });

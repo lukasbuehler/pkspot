@@ -1,5 +1,5 @@
 import { LocationStrategy } from "@angular/common";
-import { LOCALE_ID, PLATFORM_ID } from "@angular/core";
+import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
@@ -71,7 +71,10 @@ describe("EventPageComponent", () => {
         { provide: EventsService, useValue: eventsService },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
-        { provide: AuthenticationService, useValue: { user: { data: null } } },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
         {
           provide: ActivatedRoute,
           useValue: {

@@ -26,9 +26,7 @@ export class EventsPageComponent implements OnInit {
   private _authService = inject(AuthenticationService);
 
   /** Shows the "+ Create event" button only to admins. */
-  readonly isAdmin = computed(
-    () => this._authService.user.data?.isAdmin === true
-  );
+  readonly isAdmin = computed(() => this._authService.isAdmin());
 
   events = signal<PkEvent[]>([]);
   loading = signal<boolean>(true);
