@@ -1,4 +1,12 @@
 export const CLIENT_REGION_HEADER = "x-pkspot-client-region";
+export const QR_STICKER_CAMPAIGNS = {
+  nice: {
+    campaign: "nice-spot-v1",
+    medium: "qr",
+    source: "sticker",
+    targetPath: "/map",
+  },
+};
 
 export function normalizeClientRegionHeader(value) {
   if (Array.isArray(value)) {
@@ -27,4 +35,76 @@ export function applyTrustedClientRegionHeader(headers) {
 
   delete headers[CLIENT_REGION_HEADER];
   return null;
+}
+
+export function getQrStickerCampaign(slug) {
+  if (typeof slug !== "string") {
+    return null;
+  }
+
+  return QR_STICKER_CAMPAIGNS[slug] ?? null;
+}
+
+export function getQrStickerRedirectTarget(originalUrl, slug = "nice") {
+  const campaign = getQrStickerCampaign(slug);
+  if (!campaign) {
+    return null;
+  }
+
+  const sourceUrl = new URL(originalUrl || `/qr/${slug}`, "https://pkspot.app");
+  const targetUrl = new URL(campaign.targetPath, "https://pkspot.app");
+
+  sourceUrl.searchParams.forEach((value, key) => {
+    if (!key.toLowerCase().startsWith("utm_")) {
+      targetUrl.searchParams.append(key, value);
+    }
+  });
+
+  targetUrl.searchParams.set("utm_source", campaign.source);
+  targetUrl.searchParams.set("utm_medium", campaign.medium);
+  targetUrl.searchParams.set("utm_campaign", campaign.campaign);
+
+  return `${targetUrl.pathname}${targetUrl.search}`;
+}
+
+export function getQrStickerTrackingProperties(req, slug = "nice") {
+  const campaign = getQrStickerCampaign(slug);
+  if (!campaign) {
+    return null;
+  }
+
+  const sourceUrl = new URL(
+    req?.originalUrl || `/qr/${slug}`,
+    "https://pkspot.app",
+  );
+  const query = {};
+  sourceUrl.searchParams.forEach((value, key) => {
+    query[key] = value;
+  });
+
+  const clientRegion = getTrustedClientRegionFromHeaders(req?.headers);
+
+  return {
+    campaign: campaign.campaign,
+    client_region: clientRegion ?? undefined,
+    medium: campaign.medium,
+    original_query: query,
+    original_url: sourceUrl.pathname + sourceUrl.search,
+    qr_slug: slug,
+    referrer: req?.headers?.referer ?? req?.headers?.referrer ?? undefined,
+    source: campaign.source,
+    user_agent: req?.headers?.["user-agent"] ?? undefined,
+  };
+}
+
+export async function handleQrStickerRequest(req, res, next, capture) {
+  const slug = req?.params?.slug;
+  const target = getQrStickerRedirectTarget(req?.originalUrl, slug);
+  if (!target) {
+    return next();
+  }
+
+  res.setHeader("Cache-Control", "no-store");
+  await capture(req, slug);
+  return res.redirect(302, target);
 }

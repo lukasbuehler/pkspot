@@ -32,6 +32,10 @@ These instructions apply to all work in this repository.
 
 If you hit the Angular Error "Abort trap: 6", it doesn't work in the sandbox and needs to be run in a normal terminal.
 
+## Deep links
+
+- When adding a new first-level app route that should open in the Android app, update `android/app/src/main/AndroidManifest.xml` with the matching App Link path rule. Android App Links are intentionally path-scoped so reserved browser-first URLs such as `/qr/*` are not claimed by the app.
+
 ## Theme colors
 
 - Use Material 3 system tokens (`var(--mat-sys-primary)`, `var(--mat-sys-secondary)`, etc.) — never hardcoded hex unless used as a fallback.

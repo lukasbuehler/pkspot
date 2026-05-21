@@ -1,7 +1,11 @@
 import path from "node:path";
 import express from "express";
 import compression from "compression";
-import { applyTrustedClientRegionHeader } from "./proxy-server-helpers.mjs";
+import {
+  applyTrustedClientRegionHeader,
+  getQrStickerTrackingProperties,
+  handleQrStickerRequest,
+} from "./proxy-server-helpers.mjs";
 import {
   LAST_MODIFIED,
   SUPPORTED_LANGUAGE_CODES as supportedLanguageCodes,
@@ -10,6 +14,9 @@ import {
 const defaultLanguage = "en";
 const sitemapUrl =
   "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml";
+const posthogApiKey =
+  process.env.POSTHOG_API_KEY || process.env.POSTHOG_PROJECT_API_KEY || "";
+const posthogHost = process.env.POSTHOG_HOST || "https://eu.i.posthog.com";
 
 const serverExpressApps = {};
 
@@ -127,6 +134,40 @@ function isKnownAngularRoute(pathname) {
   return false;
 }
 
+async function captureStickerScanned(req, slug) {
+  if (!posthogApiKey) {
+    return;
+  }
+
+  const properties = getQrStickerTrackingProperties(req, slug);
+  if (!properties) {
+    return;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1000);
+
+  try {
+    await fetch(new URL("/capture/", posthogHost), {
+      body: JSON.stringify({
+        api_key: posthogApiKey,
+        distinct_id: `qr-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        event: "sticker_scanned",
+        properties,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    console.warn("Failed to capture sticker scan:", error.message);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function run() {
   const port = process.env.PORT || 8080;
   const server = express();
@@ -137,6 +178,10 @@ function run() {
   server.use((req, _res, next) => {
     applyTrustedClientRegionHeader(req.headers);
     next();
+  });
+
+  server.get("/qr/:slug", async (req, res, next) => {
+    return handleQrStickerRequest(req, res, next, captureStickerScanned);
   });
 
   // Global caching middleware that sets Cache-Control and Last-Modified,

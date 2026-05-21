@@ -4,8 +4,20 @@
     "details": [
       {
         "appID": "WJ3MX3Y7U8.com.pkspot.app",
-        "paths": [
-          "*"
+        "components": [
+          {
+            "/": "/qr/*",
+            "exclude": true,
+            "comment": "QR sticker links open in the browser first so the server can track and redirect."
+          },
+          {
+            "/": "/",
+            "comment": "The bare host should still open the app."
+          },
+          {
+            "/": "/*",
+            "comment": "All other app paths are eligible for Universal Links."
+          }
         ]
       }
     ]
