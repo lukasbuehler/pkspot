@@ -257,6 +257,14 @@
   <!-- FAB buttons -->
   @if (spotMap && !compactTabletSidenavOpen()) {
   <div @fastFadeOut class="mini-fabs">
+    @if (spotMap.headingIsNotNorth()) {
+    <button mat-mini-fab #geolocationFab id="geolocationFab" color="primary"
+      (click)="spotMap ? spotMap.resetMapOrientation() : null" i18n-matTootlip
+      matTooltip="Reset map orientation to north" matTooltipPosition="left" matTooltipShowDelay="500">
+      <mat-icon> north </mat-icon>
+    </button>
+    }
+
     <button mat-mini-fab #mapStyleFab id="mapStyleFab" (click)="spotMap ? spotMap.toggleMapStyle() : null"
       color="primary" i18n-matTootlip [matTooltip]="
           mapStyle === 'roadmap' ? 'Show satellite map' : 'Show roadmap'
@@ -278,13 +286,6 @@
       }
     </button>
 
-    @if (spotMap.headingIsNotNorth()) {
-    <button mat-mini-fab #geolocationFab id="geolocationFab" color="primary"
-      (click)="spotMap ? spotMap.resetMapOrientation() : null" i18n-matTootlip
-      matTooltip="Reset map orientation to north" matTooltipPosition="left" matTooltipShowDelay="500">
-      <mat-icon> north </mat-icon>
-    </button>
-    }
 
     <!-- Show amenity markers mini FAB-->
     <!-- <button
