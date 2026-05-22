@@ -99,7 +99,7 @@
     "supercluster": "^7.1.5",
     "swiper": "^12.1.2",
     "typesense": "^2.1.0",
-    "uuid": "^10.0.0",
+    "uuid": "^14.0.0",
     "zone.js": "^0.16.1"
   },
   "devDependencies": {
@@ -170,6 +170,7 @@
     },
     "@parcel/watcher": {
       "picomatch": "^4.0.4"
-    }
+    },
+    "uuid": "$uuid"
   }
 }
