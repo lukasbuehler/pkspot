@@ -14,6 +14,20 @@ const defaultLanguage = "en";
 const sitemapUrl =
   "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml";
 const serverExpressApps = {};
+const localizedBrowserFileExtensions = new Set([
+  ".css",
+  ".ico",
+  ".js",
+  ".json",
+  ".map",
+  ".png",
+  ".svg",
+  ".txt",
+  ".webmanifest",
+  ".webp",
+  ".woff",
+  ".woff2",
+]);
 
 for (const lang of supportedLanguageCodes) {
   serverExpressApps[lang] = (await import(`./${lang}/server.mjs`)).app;
@@ -129,6 +143,14 @@ function isKnownAngularRoute(pathname) {
   return false;
 }
 
+function isLocalizedBrowserFileRequest(assetName) {
+  return (
+    typeof assetName === "string" &&
+    !assetName.includes("/") &&
+    localizedBrowserFileExtensions.has(path.extname(assetName))
+  );
+}
+
 function run() {
   const port = process.env.PORT || 8080;
   const server = express();
@@ -152,17 +174,6 @@ function run() {
     res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
     res.setHeader("Last-Modified", LAST_MODIFIED);
 
-    // Only apply this logic to GET requests.
-    if (req.method === "GET") {
-      const ifModifiedSince = req.headers["if-modified-since"];
-      if (
-        ifModifiedSince &&
-        new Date(ifModifiedSince) >= new Date(LAST_MODIFIED)
-      ) {
-        // Client has the latest version.
-        return res.status(304).end();
-      }
-    }
     next();
   });
 
@@ -202,6 +213,32 @@ function run() {
     }
 
     return res.redirect(301, sitemapUrl);
+  });
+
+  // Serve browser entry files emitted next to each localized index, such as
+  // /en/main.js, /en/polyfills.js, /en/styles.css, and /en/chunk-*.js.
+  server.get("/:lang/:asset", (req, res, next) => {
+    const { lang, asset } = req.params;
+    if (
+      !supportedLanguageCodes.includes(lang) ||
+      !isLocalizedBrowserFileRequest(asset)
+    ) {
+      return next();
+    }
+
+    const assetPath = path.join(__dirname, `../browser/${lang}`, asset);
+    console.log(`Serving localized browser file: ${req.path} from ${assetPath}`);
+
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    return res.sendFile(assetPath, (err) => {
+      if (err) {
+        console.error(
+          `Failed to serve localized browser file ${req.path}:`,
+          err.message,
+        );
+        res.status(404).send(`Asset not found: ${req.path}`);
+      }
+    });
   });
 
   server.get("/assets/*", (req, res) => {
