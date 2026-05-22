@@ -32,6 +32,13 @@ These instructions apply to all work in this repository.
 
 If you hit the Angular Error "Abort trap: 6", it doesn't work in the sandbox and needs to be run in a normal terminal.
 
+## Dependency updates
+
+- Avoid broad dependency updates unless the user explicitly asks for them. Prefer targeted updates with a small, reviewable `package.json` and `package-lock.json` diff.
+- For routine non-urgent npm updates, wait 24-72 hours before adopting newly published package versions. This gives the ecosystem time to catch compromised or mistakenly published releases. Treat urgent security fixes case-by-case instead of waiting automatically.
+- Do not run `npm audit fix --force` unless the semver-major changes and replacement versions have been reviewed.
+- Prefer install commands that avoid lifecycle scripts in CI or inspection contexts, such as `npm ci --ignore-scripts`, then run only the explicit build/test commands needed for verification.
+
 ## Deep links
 
 - When adding a new first-level app route that should open in the Android app, update `android/app/src/main/AndroidManifest.xml` with the matching App Link path rule. Android App Links are intentionally path-scoped so reserved browser-first URLs such as `/qr/*` are not claimed by the app.

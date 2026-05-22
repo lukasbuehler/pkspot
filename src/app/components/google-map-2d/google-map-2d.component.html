@@ -173,6 +173,14 @@
     <app-custom-marker [marker]="marker" [index]="$index" [zoom]="zoom" [forceFullMarker]="true"
       (markerClick)="markerClick($event)"></app-custom-marker>
     }
+    @for(marker of pointMarkers; track marker.id) {
+    @if((marker.minZoom === undefined || zoom >= marker.minZoom) && (marker.maxZoom === undefined || zoom <=
+    marker.maxZoom)) {
+    <app-custom-marker [marker]="marker" [index]="$index" [zoom]="zoom"
+      [forceFullMarker]="marker.forceFullMarker ?? false" [dotModeThreshold]="marker.dotModeThreshold ?? 17"
+      [emitDotClick]="true" (markerClick)="pointMarkerClick.emit(marker)"></app-custom-marker>
+    }
+    }
     <!-- Additional Markers (amenities, custom markers, etc.) -->
     @if(zoom >= 16) { @for(marker of markers(); track trackMarker($index, marker))
     {
@@ -185,39 +193,15 @@
     <map-polygon [options]="polygon" [paths]="polygon.paths"></map-polygon>
     }
 
-    <!-- Active community area: intentionally softer than passive circles so
-       selection reads as "opened context" rather than a louder duplicate. -->
-    extent of the active community. Center+radius from
-    `community_pages.bounds_center` / `bounds_radius_m` (computed by the
-    cloud function from member spot locations). -->
-    @if (communityArea && !communityArea.googleBoundary) {
-    <map-circle [center]="communityArea.center" [radius]="communityArea.radiusM"
-      [options]="communityAreaCircleOptions"></map-circle>
+    @for(circle of circleOverlays; track circle.id) {
+    <map-circle [center]="circle.center" [radius]="circle.radiusM" [options]="circleOverlayOptions(circle)"
+      (circleClick)="isCircleOverlayClickable(circle) ? circleOverlayClick.emit(circle) : null"></map-circle>
     }
 
-    <!-- Locality communities: real-radius circles for place identity. The
-       circle itself is clickable; the center dot only remains while the
-       circle is too small on screen to serve as a clear target. -->
-    @for (community of availableCommunityMarkers(); track community.communityKey) {
-    @if (shouldShowCommunityCenterDot(community)) {
-    <app-community-dot-marker [community]="community"
-      (markerClick)="communityMarkerClick.emit($event)"></app-community-dot-marker>
-    } @else {
-    <map-circle [center]="community.center" [radius]="community.radiusM" [options]="communityCircleOptions(community)"
-      (circleClick)="onCommunityCircleClick(community)"></map-circle>
+    @for(boundsOverlay of boundsOverlays; track boundsOverlay.id) {
+    <map-rectangle [bounds]="boundsOverlay.bounds" [options]="boundsOverlay.options ?? {}"
+      (rectangleClick)="boundsOverlayClick.emit(boundsOverlay)"></map-rectangle>
     }
-    }
-
-    <!-- Event chip markers: clickable pins at each visible event's center.
-       Visible alongside (and on top of) community chips so a sponsored
-       event in the visible area is always findable, not only when the
-       map-island promo happens to surface it. -->
-    <!-- @for (event of availableEventMarkers(); track event.eventId) {
-    <app-event-dot-marker
-      [event]="event"
-      (markerClick)="eventMarkerClick.emit($event)"
-    ></app-event-dot-marker>
-  } -->
 </google-map>
 } @else {
 <div class="w-100 h-100 d-flex justify-content-center align-items-center bg-black"></div>

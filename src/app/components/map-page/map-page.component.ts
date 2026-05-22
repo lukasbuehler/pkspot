@@ -56,7 +56,6 @@ import {
   SearchService,
 } from "../../services/search.service";
 import { CommunityMapMarker } from "../community-dot-marker/community-dot-marker.component";
-import { EventMapMarker } from "../event-dot-marker/event-dot-marker.component";
 import { rankMapIslandEventsForPoint } from "./map-island-event-ranking";
 import { countries } from "../../../scripts/Countries";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
@@ -123,6 +122,7 @@ import {
   buildSpotEditHistoryCanonicalPath,
 } from "../../../scripts/SpotRouteHelpers";
 import { VisibleViewport } from "../maps/map-base";
+import { MapBoundsOverlay, MapPointMarker } from "../maps/map-overlays";
 
 import { PoiData } from "../../../db/models/PoiData";
 import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
@@ -573,7 +573,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * map without value). Sponsored events render with the highlighted
    * border style.
    */
-  availableEventMarkers = computed<EventMapMarker[]>(() => {
+  availableEventMarkers = computed<MapPointMarker[]>(() => {
     const now = new Date();
     // The full Event is in `selectedEvent`; the pending preview only
     // carries an id-or-slug, so we match both forms when filtering.
@@ -594,19 +594,81 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       })
       .map((e) => {
         const b = e.bounds!;
+        const routeId = e.slug ?? e.id;
+        const status = e.status(now);
         return {
-          eventId: e.id,
-          routeId: e.slug ?? e.id,
+          id: `event:${routeId}`,
           name: e.name,
-          center: {
+          location: {
             lat: (b.north + b.south) / 2,
             lng: (b.east + b.west) / 2,
           },
-          status: e.status(now),
-          isSponsored: Boolean(e.sponsor),
+          icons: [status === "live" ? "stars" : "event"],
+          imageSrc: e.effectiveBadgeLogoSrc(),
+          color: status === "live" ? "secondary" : "primary",
+          type: "event",
+          forceFullMarker: true,
+          priority: 80_000,
         };
       });
   });
+
+  selectedEventBoundsOverlays = computed<MapBoundsOverlay[]>(() => {
+    const event = this.selectedEvent();
+    if (!event?.bounds) return [];
+
+    return [
+      {
+        id: `event-bounds:${event.id}`,
+        bounds: event.bounds,
+        options: {
+          strokeColor: this._getCssColorAsHex(
+            "--mat-sys-primary-container",
+            "#b8c4ff",
+          ),
+          strokeOpacity: 0.95,
+          strokeWeight: 2,
+          fillColor: this._getCssColorAsHex(
+            "--mat-sys-primary-container",
+            "#b8c4ff",
+          ),
+          fillOpacity: 0.08,
+          clickable: false,
+          zIndex: 2,
+        },
+      },
+    ];
+  });
+
+  private _getCssColorAsHex(cssVarName: string, fallback: string): string {
+    if (typeof window === "undefined") {
+      return fallback;
+    }
+
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(cssVarName)
+      .trim();
+
+    if (/^#[0-9a-f]{6}$/iu.test(value)) {
+      return value;
+    }
+
+    const rgbMatch = value.match(
+      /^rgba?\(\s*(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})/iu,
+    );
+    if (!rgbMatch) {
+      return fallback;
+    }
+
+    return `#${rgbMatch
+      .slice(1, 4)
+      .map((part) =>
+        Math.max(0, Math.min(255, Number(part)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")}`;
+  }
 
   /**
    * Active map-island content. Picks the most relevant variant for the

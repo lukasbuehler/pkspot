@@ -232,7 +232,8 @@
     (viewportBoundsChange)="onViewportBoundsChange($event)" (visibleViewportChange)="onVisibleViewportChange($event)"
     [bottomSheetOffset]="true" [isDebug]="appSettings.debugMode()" [communityArea]="activeCommunityArea()"
     [availableCommunities]="availableCommunityMarkers()" (communityMarkerClick)="onCommunityMarkerClick($event)"
-    [availableEvents]="availableEventMarkers()" (eventMarkerClick)="onEventMarkerClick($event)"
+    [eventPointMarkers]="availableEventMarkers()" [boundsOverlays]="selectedEventBoundsOverlays()"
+    (eventMarkerClick)="onEventMarkerClick($event)"
     (poiClick)="onPoiClick($event)" (markerClickEvent)="onAmenityClick($event)"
     (mapClickEvent)="onMapClick($event)"></app-spot-map>
   } @placeholder {
