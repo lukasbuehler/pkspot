@@ -3777,7 +3777,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _extractCommunityCoordinates(
     communityLanding: CommunityLandingPageData,
   ): google.maps.LatLngLiteral[] {
+    const pickSpots =
+      communityLanding.communityPicks?.flatMap((section) => section.spots) ?? [];
     const previews = [
+      ...pickSpots,
       ...(communityLanding.spots ?? []),
       ...communityLanding.topRatedSpots,
       ...communityLanding.drySpots,

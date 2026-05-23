@@ -71,6 +71,7 @@ export const communityLandingResolver: ResolveFn<
       topRatedCount: 0,
       dryCount: 0,
       spots: [],
+      communityPicks: [],
       topRatedSpots: [],
       drySpots: [],
       links: {},
@@ -104,7 +105,10 @@ export const communityLandingResolver: ResolveFn<
     ),
   );
 
-  const communitySpots = pageData.spots ?? pageData.topRatedSpots;
+  const communitySpots =
+    pageData.communityPicks?.flatMap((section) => section.spots) ??
+    pageData.spots ??
+    pageData.topRatedSpots;
   if (communitySpots.length > 0) {
     structuredDataService.addStructuredData(
       "community-spots",

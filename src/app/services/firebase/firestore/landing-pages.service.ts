@@ -3,6 +3,7 @@ import { Event as PkEvent } from "../../../../db/models/Event";
 import {
   CommunityChildSummarySchema,
   CommunityEventPreviewSchema,
+  CommunityPickSectionSchema,
   CommunityPageSchema,
 } from "../../../../db/schemas/CommunityPageSchema";
 import { EventId, EventSchema } from "../../../../db/schemas/EventSchema";
@@ -29,6 +30,7 @@ export interface CommunityLandingBreadcrumb {
 }
 
 export type CommunityChildSummary = CommunityChildSummarySchema;
+export type CommunityPickSection = CommunityPickSectionSchema;
 
 export interface CommunityLandingPageData {
   communityKey: string;
@@ -49,6 +51,7 @@ export interface CommunityLandingPageData {
   topRatedCount: number;
   dryCount: number;
   spots: SpotPreviewData[];
+  communityPicks: CommunityPickSection[];
   topRatedSpots: SpotPreviewData[];
   drySpots: SpotPreviewData[];
   links: CommunityPageSchema["links"];
@@ -122,6 +125,12 @@ export class LandingPagesService {
       0,
       limitCount,
     );
+    const communityPicks = (pageDoc.communityPicks ?? [])
+      .map((section) => ({
+        ...section,
+        spots: (section.spots ?? []).slice(0, limitCount),
+      }))
+      .filter((section) => section.spots.length > 0);
     const countrySlug =
       pageDoc.scope === "country"
         ? pageDoc.preferredSlug
@@ -172,6 +181,7 @@ export class LandingPagesService {
       topRatedCount: pageDoc.counts?.topRated ?? topRatedSpots.length,
       dryCount: pageDoc.counts?.dry ?? drySpots.length,
       spots,
+      communityPicks,
       topRatedSpots,
       drySpots,
       links: pageDoc.links ?? {},

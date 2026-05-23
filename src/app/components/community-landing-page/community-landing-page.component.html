@@ -346,10 +346,28 @@
   </section>
   }
 
+  @if (communityPickSections().length > 0) {
+  @for (section of communityPickSections(); track section.category) {
+  <section class="content-section">
+    <div class="section-heading">
+      <h2 class="mat-title-large m-0">{{ section.title }}</h2>
+    </div>
+
+    <app-spot-list [highlightedSpots]="section.spots" [spots]="[]" [enableAnimation]="false"
+      [withHrefLink]="!panelMode()" [text]="section.title" (spotClick)="onSelectSpot($event)"></app-spot-list>
+  </section>
+  }
+  <section class="content-section community-explore-section">
+    <a mat-stroked-button class="mt-2" routerLink="/map" [queryParams]="exploreMapQueryParams('all')"
+      (click)="onExploreCommunitySpots($event, 'all')">
+      <mat-icon>travel_explore</mat-icon>
+      <span i18n="@@community.explore_more_spots">Explore more spots</span>
+    </a>
+  </section>
+  } @else {
   @if (featuredSpots().length > 0) {
   <section class="content-section">
     <div class="section-heading">
-      <!-- <p class="section-eyebrow m-0">Featured Spots</p> -->
       <h2 class="mat-title-large m-0">Spots</h2>
     </div>
 
@@ -362,22 +380,21 @@
     </a>
   </section>
   }
-
   @if (data.drySpots.length > 0) {
   <section class="content-section">
     <div class="section-heading">
-      <!-- <p class="section-eyebrow m-0">Featured Spots</p> -->
       <h2 class="mat-title-large m-0">Dry Spots</h2>
     </div>
 
     <app-spot-list [highlightedSpots]="data.drySpots" [spots]="[]" [enableAnimation]="false"
-      [withHrefLink]="!panelMode()" [text]="'Top Rated Dry Spots'" (spotClick)="onSelectSpot($event)"></app-spot-list>
+      [withHrefLink]="!panelMode()" [text]="'Dry Spots'" (spotClick)="onSelectSpot($event)"></app-spot-list>
     <a mat-stroked-button class="mt-2" routerLink="/map" [queryParams]="exploreMapQueryParams('dry')"
       (click)="onExploreCommunitySpots($event, 'dry')">
       <mat-icon>travel_explore</mat-icon>
       <span i18n="@@community.explore_dry_spots">Explore dry spots</span>
     </a>
   </section>
+  }
   }
 
   @if (!hasFeaturedSpots()) {

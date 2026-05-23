@@ -78,6 +78,20 @@ export interface CommunityImageSchema {
   url: string;
 }
 
+export type CommunityPickCategory =
+  | "standout"
+  | "parkour"
+  | "dry"
+  | "night"
+  | "summer"
+  | "fallback";
+
+export interface CommunityPickSectionSchema {
+  category: CommunityPickCategory;
+  title: string;
+  spots: SpotPreviewData[];
+}
+
 export interface CommunityPageSchema {
   communityKey: string;
   scope: CommunityScope;
@@ -96,6 +110,7 @@ export interface CommunityPageSchema {
     dry: number;
   };
   spots: SpotPreviewData[];
+  communityPicks?: CommunityPickSectionSchema[];
   topRatedSpots: SpotPreviewData[];
   drySpots: SpotPreviewData[];
   links: CommunityLinksSchema;

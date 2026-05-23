@@ -28,6 +28,7 @@ const communityData: CommunityLandingPageData = {
   topRatedCount: 42,
   dryCount: 10,
   spots: [],
+  communityPicks: [],
   topRatedSpots: [],
   drySpots: [],
   links: {},
@@ -166,6 +167,41 @@ describe("CommunityLandingPageComponent", () => {
     expect(fixture.nativeElement.textContent).not.toContain(
       "featured spot sections yet",
     );
+    expect(
+      fixture.nativeElement.querySelector("app-spot-preview-card"),
+    ).not.toBeNull();
+  });
+
+  it("renders generated community pick sections before legacy spot lists", () => {
+    const spot: SpotPreviewData = {
+      id: "spot-1",
+      slug: "spot-one",
+      name: "Spot One",
+      locality: "Zuerich",
+      imageSrc: "/assets/spot_placeholder.png",
+      isIconic: true,
+      rating: 9,
+    };
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      spots: [],
+      topRatedSpots: [],
+      communityPicks: [
+        {
+          category: "standout",
+          title: "Standout Spots",
+          spots: [spot],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain("Standout Spots");
+    const headings = [
+      ...fixture.nativeElement.querySelectorAll("h2"),
+    ].map((heading: HTMLElement) => heading.textContent?.trim() ?? "");
+    expect(headings).toContain("Standout Spots");
+    expect(headings).not.toContain("Dry Spots");
     expect(
       fixture.nativeElement.querySelector("app-spot-preview-card"),
     ).not.toBeNull();

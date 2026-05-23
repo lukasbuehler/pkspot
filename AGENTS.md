@@ -43,6 +43,11 @@ If you hit the Angular Error "Abort trap: 6", it doesn't work in the sandbox and
 
 - When adding a new first-level app route that should open in the Android app, update `android/app/src/main/AndroidManifest.xml` with the matching App Link path rule. Android App Links are intentionally path-scoped so reserved browser-first URLs such as `/qr/*` are not claimed by the app.
 
+## Backwards compatibility
+
+- Treat Firestore, Typesense, and Cloud Function payload changes as app-versioned contracts. Mobile apps and older web builds may keep reading existing fields after a deploy, so prefer additive fields and keep legacy fields populated until all supported clients have migrated.
+- When replacing a UI data shape, map new data back into the previous fields or provide client fallbacks so older app versions degrade gracefully instead of showing empty states.
+
 ## Theme colors
 
 - Use Material 3 system tokens (`var(--mat-sys-primary)`, `var(--mat-sys-secondary)`, etc.) — never hardcoded hex unless used as a fallback.

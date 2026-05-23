@@ -40,6 +40,13 @@ const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
     { id: "spot-1", name: "Southbank" },
     { id: "spot-3", name: "Unrated Estate" },
   ],
+  communityPicks: [
+    {
+      category: "standout",
+      title: "Standout Spots",
+      spots: [{ id: "spot-1", name: "Southbank" }],
+    },
+  ],
   topRatedSpots: [{ id: "spot-1", name: "Southbank" }],
   drySpots: [{ id: "spot-2", name: "Brixton" }],
   image: {
@@ -99,6 +106,13 @@ describe("LandingPagesService", () => {
     expect(result?.spots.map((spot) => spot.name)).toEqual([
       "Southbank",
       "Unrated Estate",
+    ]);
+    expect(result?.communityPicks).toEqual([
+      {
+        category: "standout",
+        title: "Standout Spots",
+        spots: [{ id: "spot-1", name: "Southbank" }],
+      },
     ]);
     expect(result?.topRatedSpots.length).toBe(1);
     expect(result?.drySpots.length).toBe(1);

@@ -72,6 +72,7 @@ describe("communityLandingResolver", () => {
       topRatedCount: 4,
       dryCount: 2,
       spots: [{ id: "spot-1", name: "Southbank" }] as any,
+      communityPicks: [],
       topRatedSpots: [{ id: "spot-1", name: "Southbank" }] as any,
       drySpots: [{ id: "spot-2", name: "Brixton" }] as any,
       links: {},

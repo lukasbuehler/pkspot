@@ -8,6 +8,8 @@ import { CommunityPageSchema } from "../../src/db/schemas/CommunityPageSchema";
 import {
   CommunityChildSummarySchema,
   CommunityEventPreviewSchema,
+  CommunityPickCategory,
+  CommunityPickSectionSchema,
 } from "../../src/db/schemas/CommunityPageSchema";
 import { CommunitySlugSchema } from "../../src/db/schemas/CommunitySlugSchema";
 import { EventSchema } from "../../src/db/schemas/EventSchema";
@@ -43,10 +45,18 @@ const EVENTS_COLLECTION = "events";
 const SPOTS_COLLECTION = "spots";
 const MANUAL_REBUILD_DOC = `${MAINTENANCE_COLLECTION}/run-rebuild-community-pages`;
 const DEFAULT_LOCALE = "en";
-const MAX_SPOTS_PER_SECTION = 8;
+const MAX_SPOTS_PER_LEGACY_SECTION = 10;
+const MAX_STANDOUT_COMMUNITY_PICKS = 4;
+const MAX_CATEGORY_COMMUNITY_PICKS = 2;
+const MAX_FALLBACK_COMMUNITY_PICKS = 4;
 const MAX_CHILD_COMMUNITIES = 8;
 const MAX_COMMUNITY_EVENT_PREVIEWS = 2;
 const COMMUNITY_EVENT_LOOKAHEAD_MONTHS = 6;
+const PURPOSE_BUILT_SPOT_TYPES = new Set([
+  "parkour gym",
+  "parkour park",
+  "gymnastics gym",
+]);
 
 type CommunitySlugDoc = CommunitySlugSchema & { id: string };
 
@@ -143,6 +153,184 @@ const compareSpotsForCommunity = (left: SpotSchema, right: SpotSchema): number =
   );
 };
 
+const getSpotAnchor = (spot: SpotSchema): { lat: number; lng: number } | null => {
+  if (
+    spot.location_raw &&
+    Number.isFinite(spot.location_raw.lat) &&
+    Number.isFinite(spot.location_raw.lng)
+  ) {
+    return { lat: spot.location_raw.lat, lng: spot.location_raw.lng };
+  }
+
+  const location = spot.location as
+    | {
+        latitude?: number;
+        longitude?: number;
+        _latitude?: number;
+        _longitude?: number;
+      }
+    | undefined;
+  const lat = location?.latitude ?? location?._latitude;
+  const lng = location?.longitude ?? location?._longitude;
+  return typeof lat === "number" &&
+    typeof lng === "number" &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng)
+    ? { lat, lng }
+    : null;
+};
+
+const getDistanceToCenter = (
+  spot: SpotSchema,
+  center: { lat: number; lng: number } | null
+): number => {
+  const anchor = getSpotAnchor(spot);
+  return anchor && center ? getDistanceMeters(center, anchor) : Number.POSITIVE_INFINITY;
+};
+
+const getRatingValue = (spot: SpotSchema): number => spot.rating ?? 0;
+
+const getReviewCount = (spot: SpotSchema): number => spot.num_reviews ?? 0;
+
+const compareSpotsForCommunityPicks = (
+  left: SpotSchema,
+  right: SpotSchema,
+  center: { lat: number; lng: number } | null
+): number => {
+  if ((right.is_iconic ?? false) !== (left.is_iconic ?? false)) {
+    return right.is_iconic ? 1 : -1;
+  }
+
+  const leftRating = getRatingValue(left);
+  const rightRating = getRatingValue(right);
+  if (leftRating > 0 || rightRating > 0) {
+    if (rightRating !== leftRating) {
+      return rightRating - leftRating;
+    }
+  }
+
+  const leftReviews = getReviewCount(left);
+  const rightReviews = getReviewCount(right);
+  if (rightReviews !== leftReviews) {
+    return rightReviews - leftReviews;
+  }
+
+  if (leftRating <= 0 && rightRating <= 0 && center) {
+    const distanceDifference =
+      getDistanceToCenter(left, center) - getDistanceToCenter(right, center);
+    if (distanceDifference !== 0) {
+      return distanceDifference;
+    }
+  }
+
+  return getSpotName(left, DEFAULT_LOCALE).localeCompare(
+    getSpotName(right, DEFAULT_LOCALE)
+  );
+};
+
+const hasSpotImage = (spot: SpotSchema): boolean =>
+  getSpotPreviewImage(spot).trim().length > 0;
+
+const hasPurposeBuiltParkourType = (spot: SpotSchema): boolean =>
+  PURPOSE_BUILT_SPOT_TYPES.has(
+    String(spot.type ?? "")
+      .trim()
+      .toLowerCase()
+  );
+
+const hasNightTrainingSignal = (spot: SpotSchema): boolean =>
+  spot.amenities?.lighting === true;
+
+const hasSummerWaterSignal = (spot: SpotSchema): boolean =>
+  spot.amenities?.water_feature === true ||
+  String(spot.type ?? "")
+    .trim()
+    .toLowerCase() === "water";
+
+const buildCommunityPickSections = (
+  spots: Array<{ id: string; data: SpotSchema }>,
+  center: { lat: number; lng: number } | null
+): CommunityPickSectionSchema[] => {
+  const pickedSpotIds = new Set<string>();
+  const sortCandidates = (candidates: Array<{ id: string; data: SpotSchema }>) =>
+    [...candidates].sort((left, right) =>
+      compareSpotsForCommunityPicks(left.data, right.data, center)
+    );
+  const takeSection = (
+    category: CommunityPickCategory,
+    title: string,
+    candidates: Array<{ id: string; data: SpotSchema }>,
+    maxSpots: number
+  ): CommunityPickSectionSchema | null => {
+    const selected = sortCandidates(candidates)
+      .filter((spot) => !pickedSpotIds.has(spot.id))
+      .slice(0, maxSpots);
+
+    for (const spot of selected) {
+      pickedSpotIds.add(spot.id);
+    }
+
+    return selected.length > 0
+      ? {
+          category,
+          title,
+          spots: selected.map((spot) => buildSpotPreview(spot.id, spot.data)),
+        }
+      : null;
+  };
+
+  const imageSpots = spots.filter((spot) => hasSpotImage(spot.data));
+  const sections = [
+    takeSection(
+      "standout",
+      "Standout Spots",
+      imageSpots.filter((spot) => getRatingValue(spot.data) > 0),
+      MAX_STANDOUT_COMMUNITY_PICKS
+    ),
+    takeSection(
+      "parkour",
+      "Built for Parkour",
+      imageSpots.filter((spot) => hasPurposeBuiltParkourType(spot.data)),
+      MAX_CATEGORY_COMMUNITY_PICKS
+    ),
+    takeSection(
+      "dry",
+      "Rainy Day Spots",
+      imageSpots.filter(
+        (spot) =>
+          spot.data.landing?.isDry === true || isDrySpotCandidate(spot.data)
+      ),
+      MAX_CATEGORY_COMMUNITY_PICKS
+    ),
+    takeSection(
+      "night",
+      "After Dark Spots",
+      imageSpots.filter((spot) => hasNightTrainingSignal(spot.data)),
+      MAX_CATEGORY_COMMUNITY_PICKS
+    ),
+    takeSection(
+      "summer",
+      "Summer Spots",
+      imageSpots.filter((spot) => hasSummerWaterSignal(spot.data)),
+      MAX_CATEGORY_COMMUNITY_PICKS
+    ),
+  ].filter(
+    (section): section is CommunityPickSectionSchema => section !== null
+  );
+
+  if (sections.length > 0) {
+    return sections;
+  }
+
+  const fallback = takeSection(
+    "fallback",
+    "Community Spots",
+    spots,
+    MAX_FALLBACK_COMMUNITY_PICKS
+  );
+  return fallback ? [fallback] : [];
+};
+
 const buildSpotPreview = (
   spotId: string,
   spot: SpotSchema
@@ -162,6 +350,8 @@ const buildSpotPreview = (
     isIconic: spot.is_iconic ?? false,
     hideStreetview: spot.hide_streetview,
     rating: spot.rating,
+    numReviews: spot.num_reviews,
+    num_reviews: spot.num_reviews,
     amenities: spot.amenities,
     bounds: spot.bounds,
     bounds_raw: spot.bounds_raw,
@@ -512,6 +702,13 @@ const buildCommunityPageDoc = async (
     // territory/outlier stretching the circle across a continent.
     radiusPercentile: candidate.scope === "locality" ? 1 : 0.8,
   });
+  const communityCenter = communityBounds
+    ? {
+        lat: communityBounds.bounds_center[0],
+        lng: communityBounds.bounds_center[1],
+      }
+    : null;
+  const communityPicks = buildCommunityPickSections(spots, communityCenter);
   const image = existingPage?.image?.url
     ? existingPage.image
     : {
@@ -567,13 +764,14 @@ const buildCommunityPageDoc = async (
       dry: drySpots.length,
     },
     spots: sortedSpots
-      .slice(0, MAX_SPOTS_PER_SECTION)
+      .slice(0, MAX_SPOTS_PER_LEGACY_SECTION)
       .map((spot) => buildSpotPreview(spot.id, spot.data)),
+    communityPicks,
     topRatedSpots: ratedSpots
-      .slice(0, MAX_SPOTS_PER_SECTION)
+      .slice(0, MAX_SPOTS_PER_LEGACY_SECTION)
       .map((spot) => buildSpotPreview(spot.id, spot.data)),
     drySpots: drySpots
-      .slice(0, MAX_SPOTS_PER_SECTION)
+      .slice(0, MAX_SPOTS_PER_LEGACY_SECTION)
       .map((spot) => buildSpotPreview(spot.id, spot.data)),
     links: existingPage?.links ?? {},
     resources: existingPage?.resources ?? [],

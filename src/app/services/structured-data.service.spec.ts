@@ -56,6 +56,7 @@ const buildCommunityLandingPageData = (): CommunityLandingPageData => ({
       slug: "lake-ledges",
     } as any,
   ],
+  communityPicks: [],
   topRatedSpots: [
     {
       id: "spot-1",
