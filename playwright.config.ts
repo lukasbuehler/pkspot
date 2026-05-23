@@ -8,6 +8,14 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
 
+  /*
+   * Keep visual baselines portable between local macOS updates and the
+   * Ubuntu GitHub Actions runner. The project name remains in the file name so
+   * desktop and mobile snapshots stay separate.
+   */
+  snapshotPathTemplate:
+    "{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}",
+
   /* Run tests in files in parallel */
   fullyParallel: true,
 
