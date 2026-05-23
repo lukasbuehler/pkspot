@@ -27,6 +27,7 @@ const communityData: CommunityLandingPageData = {
   totalSpotCount: 242,
   topRatedCount: 42,
   dryCount: 10,
+  spots: [],
   topRatedSpots: [],
   drySpots: [],
   links: {},
@@ -130,7 +131,7 @@ describe("CommunityLandingPageComponent", () => {
     };
     fixture.componentRef.setInput("communityDataInput", {
       ...communityData,
-      topRatedSpots: [spot],
+      spots: [spot],
     });
     fixture.componentRef.setInput("panelMode", true);
     fixture.componentInstance.selectSpot.subscribe(selectSpot);
@@ -142,5 +143,31 @@ describe("CommunityLandingPageComponent", () => {
     card.click();
 
     expect(selectSpot).toHaveBeenCalledWith(spot);
+  });
+
+  it("shows unrated community spots instead of an empty-state message", () => {
+    const spot: SpotPreviewData = {
+      id: "spot-1",
+      slug: "spot-one",
+      name: "Spot One",
+      locality: "Zuerich",
+      imageSrc: "/assets/spot_placeholder.png",
+      isIconic: false,
+    };
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      topRatedCount: 0,
+      topRatedSpots: [],
+      spots: [spot],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain("Spots");
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "featured spot sections yet",
+    );
+    expect(
+      fixture.nativeElement.querySelector("app-spot-preview-card"),
+    ).not.toBeNull();
   });
 });

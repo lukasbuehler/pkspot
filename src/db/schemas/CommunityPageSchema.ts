@@ -95,6 +95,7 @@ export interface CommunityPageSchema {
     topRated: number;
     dry: number;
   };
+  spots: SpotPreviewData[];
   topRatedSpots: SpotPreviewData[];
   drySpots: SpotPreviewData[];
   links: CommunityLinksSchema;

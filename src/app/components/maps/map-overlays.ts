@@ -21,6 +21,12 @@ export interface MapBoundsOverlay {
   options?: google.maps.RectangleOptions;
 }
 
+export interface MapPolygonOverlay {
+  id: string;
+  paths: google.maps.LatLngLiteral[];
+  options?: google.maps.PolygonOptions;
+}
+
 export interface MapFeatureBoundaryOverlay {
   id: string;
   featureType: "COUNTRY";

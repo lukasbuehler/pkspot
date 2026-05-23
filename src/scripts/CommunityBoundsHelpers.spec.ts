@@ -63,6 +63,43 @@ describe("computeCommunityBounds", () => {
     expect(bounds!.bounds_radius_m).toBeGreaterThan(10_000);
   });
 
+  it("includes spot bounds vertices in the radius", () => {
+    const bounds = computeCommunityBounds(
+      [
+        {
+          location_raw: { lat: 47.37, lng: 8.54 },
+          bounds_raw: [
+            { lat: 47.37, lng: 8.54 },
+            { lat: 47.37, lng: 8.58 },
+            { lat: 47.38, lng: 8.58 },
+          ],
+        },
+      ],
+      { radiusPercentile: 1 },
+    );
+
+    expect(bounds).not.toBeNull();
+    expect(bounds?.bounds_center[0]).toBeCloseTo(47.37, 6);
+    expect(bounds?.bounds_center[1]).toBeCloseTo(8.54, 6);
+    expect(bounds!.bounds_radius_m).toBeGreaterThan(3_000);
+  });
+
+  it("falls back to GeoPoint-like bounds when an anchor is missing", () => {
+    const bounds = computeCommunityBounds([
+      {
+        bounds: [
+          { latitude: 47.37, longitude: 8.54 },
+          { _latitude: 47.4, _longitude: 8.58 },
+        ],
+      },
+    ]);
+
+    expect(bounds).not.toBeNull();
+    expect(bounds?.bounds_center[0]).toBeCloseTo(47.385, 6);
+    expect(bounds?.bounds_center[1]).toBeCloseTo(8.56, 6);
+    expect(bounds!.bounds_radius_m).toBeGreaterThan(1_000);
+  });
+
   it("returns null when no spot has a usable location", () => {
     expect(computeCommunityBounds([{}, { location: null }])).toBeNull();
   });

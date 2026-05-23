@@ -122,7 +122,11 @@ import {
   buildSpotEditHistoryCanonicalPath,
 } from "../../../scripts/SpotRouteHelpers";
 import { VisibleViewport } from "../maps/map-base";
-import { MapBoundsOverlay, MapPointMarker } from "../maps/map-overlays";
+import {
+  MapBoundsOverlay,
+  MapPointMarker,
+  MapPolygonOverlay,
+} from "../maps/map-overlays";
 
 import { PoiData } from "../../../db/models/PoiData";
 import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
@@ -605,6 +609,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           icons: [status === "live" ? "stars" : "event"],
           imageSrc: e.effectiveBadgeLogoSrc(),
+          imageBackgroundColor: e.effectiveBadgeLogoBackgroundColor(),
           color: status === "live" ? "secondary" : "primary",
           type: "event",
           forceFullMarker: true,
@@ -615,7 +620,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   selectedEventBoundsOverlays = computed<MapBoundsOverlay[]>(() => {
     const event = this.selectedEvent();
-    if (!event?.bounds) return [];
+    if (!event?.bounds || event.areaPolygon) return [];
 
     return [
       {
@@ -639,6 +644,41 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       },
     ];
   });
+
+  selectedEventPolygonOverlays = computed<MapPolygonOverlay[]>(() => {
+    const event = this.selectedEvent();
+    if (!event?.areaPolygon) return [];
+    const previewRing = this._getEventAreaPreviewRing(event.areaPolygon);
+    if (previewRing.length < 3) return [];
+
+    return [
+      {
+        id: `event-area:${event.id}`,
+        paths: previewRing,
+        options: {
+          strokeColor: this._getCssColorAsHex("--mat-sys-primary", "#0036ba"),
+          strokeOpacity: 0.95,
+          strokeWeight: 3,
+          fillColor: this._getCssColorAsHex("--mat-sys-primary", "#0036ba"),
+          fillOpacity: 0.08,
+          clickable: false,
+          zIndex: 2,
+        },
+      },
+    ];
+  });
+
+  private _getEventAreaPreviewRing(
+    rings: Array<{ points: google.maps.LatLngLiteral[] }>,
+  ): google.maps.LatLngLiteral[] {
+    return (
+      rings.find((ring) =>
+        ring.points.every((point) => Math.abs(point.lat) < 85),
+      )?.points ??
+      rings[0]?.points ??
+      []
+    );
+  }
 
   private _getCssColorAsHex(cssVarName: string, fallback: string): string {
     if (typeof window === "undefined") {
@@ -3738,6 +3778,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     communityLanding: CommunityLandingPageData,
   ): google.maps.LatLngLiteral[] {
     const previews = [
+      ...(communityLanding.spots ?? []),
       ...communityLanding.topRatedSpots,
       ...communityLanding.drySpots,
     ];

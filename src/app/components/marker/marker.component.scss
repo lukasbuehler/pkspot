@@ -70,3 +70,19 @@
 .clickable {
   cursor: pointer;
 }
+
+.marker-image-shell {
+  align-items: center;
+  border-radius: 4px;
+  display: inline-flex;
+  height: 20px;
+  justify-content: center;
+  overflow: hidden;
+  width: 20px;
+}
+
+.marker-image {
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}

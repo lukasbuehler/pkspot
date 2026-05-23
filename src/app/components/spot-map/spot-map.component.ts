@@ -46,6 +46,7 @@ import {
   MapBoundsOverlay,
   MapCircleOverlay,
   MapFeatureBoundaryOverlay,
+  MapPolygonOverlay,
   MapPointMarker,
 } from "../maps/map-overlays";
 import {
@@ -177,6 +178,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   @Input() eventPointMarkers: MapPointMarker[] = [];
   @Input() boundsOverlays: MapBoundsOverlay[] = [];
+  @Input() polygonOverlays: MapPolygonOverlay[] = [];
   @Output() eventMarkerClick = new EventEmitter<string>();
 
   @Output() hasGeolocationChange = new EventEmitter<boolean>();
@@ -422,13 +424,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         center: this.communityArea.center,
         radiusM: this.communityArea.radiusM,
         options: {
-          fillColor: this._getCssColorAsHex(
-            "--mat-sys-primary-container",
-            "#b8c4ff",
-          ),
+          fillColor: this._getCssColorAsHex("--mat-sys-primary", "#0036ba"),
           strokeColor: this._getCssColorAsHex(
-            "--mat-sys-primary-container",
-            "#b8c4ff",
+            "--mat-sys-on-primary-container",
+            "#001a67",
           ),
           fillOpacity: 0.04,
           strokeOpacity: 0.8,

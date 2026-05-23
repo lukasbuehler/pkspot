@@ -36,6 +36,10 @@ const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
     topRated: 4,
     dry: 3,
   },
+  spots: [
+    { id: "spot-1", name: "Southbank" },
+    { id: "spot-3", name: "Unrated Estate" },
+  ],
   topRatedSpots: [{ id: "spot-1", name: "Southbank" }],
   drySpots: [{ id: "spot-2", name: "Brixton" }],
   image: {
@@ -92,6 +96,10 @@ describe("LandingPagesService", () => {
       },
       canonicalPath: "/map/communities/london",
     });
+    expect(result?.spots.map((spot) => spot.name)).toEqual([
+      "Southbank",
+      "Unrated Estate",
+    ]);
     expect(result?.topRatedSpots.length).toBe(1);
     expect(result?.drySpots.length).toBe(1);
 
@@ -103,6 +111,20 @@ describe("LandingPagesService", () => {
       2,
       "community_pages/locality:gb:london"
     );
+  });
+
+  it("falls back to top rated spots for older community documents", async () => {
+    mockFirestoreAdapter.getDocument
+      .mockResolvedValueOnce({
+        id: "london",
+        communityKey: "locality:gb:london",
+        isPreferred: true,
+      })
+      .mockResolvedValueOnce(buildCommunityDoc({ spots: undefined }));
+
+    const result = await service.getCommunityPage("london");
+
+    expect(result?.spots).toEqual([{ id: "spot-1", name: "Southbank" }]);
   });
 
   it("should return null when a community page does not exist", async () => {

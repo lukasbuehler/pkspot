@@ -212,8 +212,14 @@ export class CommunityLandingPageComponent {
   hasFeaturedSpots = computed(() => {
     const data = this.communityData();
     return (
-      (data?.topRatedSpots.length ?? 0) > 0 || (data?.drySpots.length ?? 0) > 0
+      (data?.spots?.length ?? 0) > 0 ||
+      (data?.topRatedSpots.length ?? 0) > 0 ||
+      (data?.drySpots.length ?? 0) > 0
     );
+  });
+  featuredSpots = computed(() => {
+    const data = this.communityData();
+    return data?.spots?.length ? data.spots : (data?.topRatedSpots ?? []);
   });
 
   onSelectEvent(event: PkEvent): void {

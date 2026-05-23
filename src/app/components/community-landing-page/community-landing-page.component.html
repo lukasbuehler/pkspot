@@ -346,15 +346,15 @@
   </section>
   }
 
-  @if (data.topRatedSpots.length > 0) {
+  @if (featuredSpots().length > 0) {
   <section class="content-section">
     <div class="section-heading">
       <!-- <p class="section-eyebrow m-0">Featured Spots</p> -->
-      <h2 class="mat-title-large m-0">Highlighted Spots</h2>
+      <h2 class="mat-title-large m-0">Spots</h2>
     </div>
 
-    <app-spot-list [highlightedSpots]="data.topRatedSpots" [spots]="[]" [enableAnimation]="false"
-      [withHrefLink]="!panelMode()" [text]="'Top Rated Spots'" (spotClick)="onSelectSpot($event)"></app-spot-list>
+    <app-spot-list [highlightedSpots]="featuredSpots()" [spots]="[]" [enableAnimation]="false"
+      [withHrefLink]="!panelMode()" [text]="'Community Spots'" (spotClick)="onSelectSpot($event)"></app-spot-list>
     <a mat-stroked-button class="mt-2" routerLink="/map" [queryParams]="exploreMapQueryParams('all')"
       (click)="onExploreCommunitySpots($event, 'all')">
       <mat-icon>travel_explore</mat-icon>

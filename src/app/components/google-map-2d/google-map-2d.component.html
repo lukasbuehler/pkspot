@@ -198,6 +198,11 @@
       (circleClick)="isCircleOverlayClickable(circle) ? circleOverlayClick.emit(circle) : null"></map-circle>
     }
 
+    @for(polygonOverlay of polygonOverlays; track polygonOverlay.id) {
+    <map-polygon [paths]="polygonOverlay.paths" [options]="polygonOverlay.options ?? {}"
+      (polygonClick)="polygonOverlayClick.emit(polygonOverlay)"></map-polygon>
+    }
+
     @for(boundsOverlay of boundsOverlays; track boundsOverlay.id) {
     <map-rectangle [bounds]="boundsOverlay.bounds" [options]="boundsOverlay.options ?? {}"
       (rectangleClick)="boundsOverlayClick.emit(boundsOverlay)"></map-rectangle>

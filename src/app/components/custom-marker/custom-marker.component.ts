@@ -80,6 +80,7 @@ import { NgClass } from "@angular/common";
         style="pointer-events: none"
         [icons]="marker().icons"
         [imageSrc]="marker().imageSrc"
+        [imageBackgroundColor]="marker().imageBackgroundColor"
         [number]="marker().number"
         [color]="marker().color ?? 'primary'"
         [size]="0.8"

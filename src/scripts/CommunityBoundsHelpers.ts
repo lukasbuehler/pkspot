@@ -8,6 +8,13 @@ type CommunityBoundsSpot = {
         _longitude?: number;
       }
     | null;
+  bounds_raw?: { lat: number; lng: number }[];
+  bounds?: Array<{
+    latitude?: number;
+    longitude?: number;
+    _latitude?: number;
+    _longitude?: number;
+  }>;
 };
 
 export interface CommunityBounds {
@@ -24,13 +31,41 @@ export interface CommunityBoundsOptions {
   radiusPercentile?: number;
 }
 
-function getSpotPoint(
-  spot: CommunityBoundsSpot
-): { lat: number; lng: number } | null {
+type CommunityPoint = { lat: number; lng: number };
+
+function isFiniteLatLng(point: CommunityPoint): boolean {
+  return Number.isFinite(point.lat) && Number.isFinite(point.lng);
+}
+
+function getGeoPointValue(
+  value:
+    | {
+        latitude?: number;
+        longitude?: number;
+        _latitude?: number;
+        _longitude?: number;
+      }
+    | null
+    | undefined,
+): CommunityPoint | null {
+  if (!value) {
+    return null;
+  }
+
+  const lat = value.latitude ?? value._latitude;
+  const lng = value.longitude ?? value._longitude;
+  const point =
+    typeof lat === "number" && typeof lng === "number" ? { lat, lng } : null;
+
+  return point && isFiniteLatLng(point) ? point : null;
+}
+
+function getSpotPoint(spot: CommunityBoundsSpot): CommunityPoint | null {
   if (
     spot.location_raw &&
     typeof spot.location_raw.lat === "number" &&
-    typeof spot.location_raw.lng === "number"
+    typeof spot.location_raw.lng === "number" &&
+    isFiniteLatLng(spot.location_raw)
   ) {
     return {
       lat: spot.location_raw.lat,
@@ -38,16 +73,34 @@ function getSpotPoint(
     };
   }
 
-  const loc = spot.location;
-  if (!loc) {
-    return null;
+  return getGeoPointValue(spot.location);
+}
+
+function getSpotFootprintPoints(spot: CommunityBoundsSpot): CommunityPoint[] {
+  const points: CommunityPoint[] = [];
+  const anchor = getSpotPoint(spot);
+  if (anchor) {
+    points.push(anchor);
   }
 
-  const lat = loc.latitude ?? loc._latitude;
-  const lng = loc.longitude ?? loc._longitude;
-  return typeof lat === "number" && typeof lng === "number"
-    ? { lat, lng }
-    : null;
+  for (const point of spot.bounds_raw ?? []) {
+    if (
+      typeof point.lat === "number" &&
+      typeof point.lng === "number" &&
+      isFiniteLatLng(point)
+    ) {
+      points.push({ lat: point.lat, lng: point.lng });
+    }
+  }
+
+  for (const point of spot.bounds ?? []) {
+    const geoPoint = getGeoPointValue(point);
+    if (geoPoint) {
+      points.push(geoPoint);
+    }
+  }
+
+  return points;
 }
 
 /**
@@ -91,9 +144,11 @@ export function getDistanceMeters(
  * for a community.
  *
  * Algorithm:
- *  - Centroid = arithmetic mean of all spot coordinates.
- *  - Radius = configurable percentile distance from centroid to a spot,
- *    with a 5 % cushion. Using a percentile below 1 (not the max) keeps a single
+ *  - Center = marginal median of spot anchor coordinates.
+ *  - Radius = configurable percentile distance from center to a spot footprint
+ *    point, with a 5 % cushion. Footprints include bounds vertices, so a
+ *    rendered spot polygon does not sit outside its community circle. Using a
+ *    percentile below 1 (not the max) keeps a single
  *    outlier spot from blowing up the circle — e.g. an overseas territory
  *    spot that would otherwise stretch France's circle across half of
  *    Europe. 80 % covers the vast majority of the community without
@@ -105,11 +160,12 @@ export function computeCommunityBounds(
   spots: CommunityBoundsSpot[],
   options: CommunityBoundsOptions = {},
 ): CommunityBounds | null {
-  const points = spots
+  const spotPoints = spots
     .map((spot) => getSpotPoint(spot))
     .filter((point): point is { lat: number; lng: number } => point !== null);
+  const footprintPoints = spots.flatMap((spot) => getSpotFootprintPoints(spot));
 
-  if (points.length === 0) {
+  if (footprintPoints.length === 0) {
     return null;
   }
 
@@ -118,12 +174,14 @@ export function computeCommunityBounds(
   // the center of the community away from where most of its spots are.
   // Not the true geometric median (which is harder to compute), but it's
   // sufficient for the "where does this community live" use case.
+  const centerSourcePoints =
+    spotPoints.length > 0 ? spotPoints : footprintPoints;
   const center = {
-    lat: median(points.map((p) => p.lat)),
-    lng: median(points.map((p) => p.lng)),
+    lat: median(centerSourcePoints.map((p) => p.lat)),
+    lng: median(centerSourcePoints.map((p) => p.lng)),
   };
 
-  const distances = points
+  const distances = footprintPoints
     .map((point) => getDistanceMeters(center, point))
     .sort((left, right) => left - right);
 

@@ -68,6 +68,7 @@ import {
   MapBoundsOverlay,
   MapCircleOverlay,
   MapFeatureBoundaryOverlay,
+  MapPolygonOverlay,
   MapPointMarker,
 } from "../maps/map-overlays";
 
@@ -435,10 +436,12 @@ export class GoogleMap2dComponent
   @Input() pointMarkers: MapPointMarker[] = [];
   @Input() circleOverlays: MapCircleOverlay[] = [];
   @Input() boundsOverlays: MapBoundsOverlay[] = [];
+  @Input() polygonOverlays: MapPolygonOverlay[] = [];
   @Input() featureBoundaryOverlay: MapFeatureBoundaryOverlay | null = null;
   @Output() pointMarkerClick = new EventEmitter<MapPointMarker>();
   @Output() circleOverlayClick = new EventEmitter<MapCircleOverlay>();
   @Output() boundsOverlayClick = new EventEmitter<MapBoundsOverlay>();
+  @Output() polygonOverlayClick = new EventEmitter<MapPolygonOverlay>();
   private _featureBoundaryLayer: google.maps.FeatureLayer | null = null;
   private _featureBoundaryRequestVersion = 0;
   private _featureBoundaryPlaceIdCache = new Map<string, string | null>();
@@ -459,15 +462,15 @@ export class GoogleMap2dComponent
       diameterPx,
     );
     const primary = this._getCssColorAsHex("--mat-sys-primary", "#0036ba");
-    const primaryContainer = this._getCssColorAsHex(
-      "--mat-sys-primary-container",
-      "#b8c4ff",
+    const primaryBorder = this._getCssColorAsHex(
+      "--mat-sys-on-primary-container",
+      "#001a67",
     );
 
     return {
-      fillColor: primaryContainer,
-      fillOpacity: this._lerp(0.85, 0.04, fade),
-      strokeColor: this._mixHexColor(primary, primaryContainer, fade),
+      fillColor: primary,
+      fillOpacity: this._lerp(0.85, 0.08, fade),
+      strokeColor: this._mixHexColor(primaryBorder, primary, fade),
       strokeOpacity: this._lerp(1, 0.28, fade),
       strokeWeight: this._lerp(1, 1, fade),
       clickable: circle.options?.clickable ?? true,

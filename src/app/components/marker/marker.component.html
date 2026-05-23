@@ -25,12 +25,19 @@
       >beenhere</mat-icon
     >
     } @if(imageSrc()) {
+    <span
+      class="marker-image-shell"
+      [style.background-color]="
+        imageBackgroundColor() ??
+        'var(--mat-sys-surface-container-highest)'
+      "
+    >
     <img
       [src]="imageSrc()"
       alt=""
       class="marker-image"
-      style="height: 20px; width: 20px; object-fit: cover; border-radius: 4px"
     />
+    </span>
     } @if(icons() && !isCheckIn()) { @for(icon of icons()!; track $index) {
     <mat-icon style="height: 20px; font-size: 20px; width: 20px">
       {{ icon }}

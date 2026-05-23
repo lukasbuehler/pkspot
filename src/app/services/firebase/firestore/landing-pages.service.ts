@@ -48,6 +48,7 @@ export interface CommunityLandingPageData {
   totalSpotCount: number;
   topRatedCount: number;
   dryCount: number;
+  spots: SpotPreviewData[];
   topRatedSpots: SpotPreviewData[];
   drySpots: SpotPreviewData[];
   links: CommunityPageSchema["links"];
@@ -117,6 +118,10 @@ export class LandingPagesService {
   ): CommunityLandingPageData {
     const topRatedSpots = (pageDoc.topRatedSpots ?? []).slice(0, limitCount);
     const drySpots = (pageDoc.drySpots ?? []).slice(0, limitCount);
+    const spots = (pageDoc.spots ?? pageDoc.topRatedSpots ?? []).slice(
+      0,
+      limitCount,
+    );
     const countrySlug =
       pageDoc.scope === "country"
         ? pageDoc.preferredSlug
@@ -166,6 +171,7 @@ export class LandingPagesService {
       totalSpotCount: pageDoc.counts?.totalSpots ?? 0,
       topRatedCount: pageDoc.counts?.topRated ?? topRatedSpots.length,
       dryCount: pageDoc.counts?.dry ?? drySpots.length,
+      spots,
       topRatedSpots,
       drySpots,
       links: pageDoc.links ?? {},

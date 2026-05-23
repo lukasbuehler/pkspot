@@ -566,6 +566,9 @@ const buildCommunityPageDoc = async (
       topRated: ratedSpots.length,
       dry: drySpots.length,
     },
+    spots: sortedSpots
+      .slice(0, MAX_SPOTS_PER_SECTION)
+      .map((spot) => buildSpotPreview(spot.id, spot.data)),
     topRatedSpots: ratedSpots
       .slice(0, MAX_SPOTS_PER_SECTION)
       .map((spot) => buildSpotPreview(spot.id, spot.data)),
