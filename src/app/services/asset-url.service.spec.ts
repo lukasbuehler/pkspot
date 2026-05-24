@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { Timestamp } from "firebase/firestore";
+import { GeoPoint, Timestamp } from "firebase/firestore";
 import { beforeEach, describe, expect, it } from "vitest";
 import { EventSchema } from "../../db/schemas/EventSchema";
 import { AssetUrlService } from "./asset-url.service";
@@ -59,6 +59,8 @@ describe("AssetUrlService", () => {
       logo_src: "assets/logos/wpf_camp.jpg",
       venue_string: "Basel",
       locality_string: "Basel, Switzerland",
+      location: new GeoPoint(47.5, 7.6),
+      location_raw: { lat: 47.5, lng: 7.6 },
       start: Timestamp.fromMillis(0),
       end: Timestamp.fromMillis(1),
       spot_ids: [],

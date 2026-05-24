@@ -1,206 +1,139 @@
 @if (isEditingEvent() && isAdmin()) {
-  <section class="event-edit-host">
-    <app-event-edit-form
-      [event]="event()"
-      [saving]="isSavingEvent()"
-      (save)="onSaveEvent($event)"
-      (cancel)="cancelEditingEvent()"
-      (delete)="onDeleteEvent()"
-    ></app-event-edit-form>
-  </section>
+<section class="event-edit-host">
+  <app-event-edit-form [event]="event()" [saving]="isSavingEvent()" (save)="onSaveEvent($event)"
+    (cancel)="cancelEditingEvent()" (delete)="onDeleteEvent()"></app-event-edit-form>
+</section>
 } @else if (event(); as event) {
-  <main class="event-info-page" [class.embedded]="isEmbedded()">
-    @if (showHeader() && !isEmbedded()) {
-      <nav class="event-nav">
-        <a
-          mat-icon-button
-          routerLink="/events"
-          aria-label="Back to all events"
-          matTooltip="Back to all events"
-          i18n-matTooltip="@@event_page.back_to_events"
-        >
-          <mat-icon>arrow_back</mat-icon>
-        </a>
-        <div class="event-nav-actions">
-          @if (websiteUrl(); as url) {
-            <a
-              mat-icon-button
-              [href]="url"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Open event website"
-              matTooltip="Open event website"
-              i18n-matTooltip="@@event_info.open_website"
-              (click)="trackWebsiteClick()"
-            >
-              <mat-icon>open_in_new</mat-icon>
-            </a>
-          }
-          <button
-            mat-icon-button
-            type="button"
-            aria-label="Share event"
-            matTooltip="Share event"
-            i18n-matTooltip="@@event_info.share"
-            (click)="shareEvent()"
-          >
-            <mat-icon>share</mat-icon>
-          </button>
-          @if (isAdmin()) {
-            <button
-              mat-icon-button
-              type="button"
-              aria-label="Edit event"
-              matTooltip="Edit event"
-              i18n-matTooltip="@@event_page.edit_tooltip"
-              (click)="startEditingEvent()"
-            >
-              <mat-icon>edit</mat-icon>
-            </button>
-          }
-        </div>
-      </nav>
+<main class="event-info-page" [class.embedded]="isEmbedded()">
+  @if (showHeader() && !isEmbedded()) {
+  <nav class="event-nav">
+    <a mat-button routerLink="/events" aria-label="Back to all events" matTooltip="Back to all events"
+      i18n-matTooltip="@@event_page.back_to_events">
+      <mat-icon>arrow_back</mat-icon>
+      <span>All Events</span>
+    </a>
+    <div class="event-nav-actions">
+      @if (websiteUrl(); as url) {
+      <a mat-icon-button [href]="url" target="_blank" rel="noopener noreferrer" aria-label="Open event website"
+        matTooltip="Open event website" i18n-matTooltip="@@event_info.open_website" (click)="trackWebsiteClick()">
+        <mat-icon>open_in_new</mat-icon>
+      </a>
+      }
+      <button mat-icon-button type="button" aria-label="Share event" matTooltip="Share event"
+        i18n-matTooltip="@@event_info.share" (click)="shareEvent()">
+        <mat-icon>share</mat-icon>
+      </button>
+      @if (isAdmin()) {
+      <button mat-icon-button type="button" aria-label="Edit event" matTooltip="Edit event"
+        i18n-matTooltip="@@event_page.edit_tooltip" (click)="startEditingEvent()">
+        <mat-icon>edit</mat-icon>
+      </button>
+      }
+    </div>
+  </nav>
+  }
+
+  <article class="event-content">
+    <header class="event-heading">
+      <h1 class="mat-heading-medium">{{ event.name }}</h1>
+      @if (metaLine()) {
+      <p class="event-meta">{{ metaLine() }}</p>
+      }
+    </header>
+
+    <section class="event-hero" [style.background-color]="
+          event.bannerFit === 'contain' ? event.bannerAccentColor : null
+        ">
+      @if (event.bannerSrc) {
+      <img [ngSrc]="event.bannerSrc" fill priority [class.object-fit-cover]="event.bannerFit === 'cover'"
+        [class.object-fit-contain]="event.bannerFit === 'contain'" [alt]="event.name" />
+      } @else {
+      <app-media-placeholder src="assets/spot_placeholder.png" [label]="event.name"></app-media-placeholder>
+      }
+    </section>
+
+    @if (event.description) {
+    <section class="event-section">
+      <p class="event-description">{{ event.description }}</p>
+    </section>
     }
 
-    <article class="event-content">
-      <header class="event-heading">
-        <h1>{{ event.name }}</h1>
-        @if (metaLine()) {
-          <p class="event-meta">{{ metaLine() }}</p>
-        }
-      </header>
-
-      <section
-        class="event-hero"
-        [style.background-color]="
-          event.bannerFit === 'contain' ? event.bannerAccentColor : null
-        "
-      >
-        @if (event.bannerSrc) {
-          <img
-            [ngSrc]="event.bannerSrc"
-            fill
-            priority
-            [class.object-fit-cover]="event.bannerFit === 'cover'"
-            [class.object-fit-contain]="event.bannerFit === 'contain'"
-            [alt]="event.name"
-          />
-        } @else {
-          <app-media-placeholder
-            src="assets/spot_placeholder.png"
-            [label]="event.name"
-          ></app-media-placeholder>
-        }
-      </section>
-
-      @if (event.description) {
-        <section class="event-section">
-          <p class="event-description">{{ event.description }}</p>
-        </section>
-      }
-
-      <section class="event-section info-grid">
-        <div class="info-block">
-          <span class="info-label" i18n="@@event_info.organizer_label">
-            Organizer
-          </span>
-          @if (organizer(); as organizer) {
-            <div class="organizer-row">
-              @if (organizer.logo_url) {
-                <img
-                  [ngSrc]="organizer.logo_url"
-                  width="40"
-                  height="40"
-                  [alt]="organizer.name"
-                />
-              }
-              <div>
-                <p class="info-value">{{ organizer.name }}</p>
-              </div>
-            </div>
-          } @else {
-            <p class="info-value muted" i18n="@@event_info.no_organizer">
-              Organizer to be announced
-            </p>
+    <section class="event-section info-grid">
+      <div class="info-block">
+        <span class="info-label" i18n="@@event_info.organizer_label">
+          Organizer
+        </span>
+        @if (organizer(); as organizer) {
+        <div class="organizer-row">
+          @if (organizer.logo_url) {
+          <img [ngSrc]="organizer.logo_url" width="40" height="40" [alt]="organizer.name" />
           }
+          <div>
+            <p class="info-value">{{ organizer.name }}</p>
+          </div>
         </div>
-
-        <div class="info-block">
-          <span class="info-label" i18n="@@event_info.start_label">
-            Start
-          </span>
-          <p class="info-value">{{ startDateTime() }}</p>
-        </div>
-      </section>
-
-      <section class="event-section rsvp-placeholder">
-        <span class="info-label" i18n="@@event_info.rsvp_label">RSVP</span>
-        <p class="info-value muted" i18n="@@event_info.rsvp_placeholder">
-          RSVP will be available here soon.
+        } @else {
+        <p class="info-value muted" i18n="@@event_info.no_organizer">
+          Organizer to be announced
         </p>
-      </section>
-
-      <section class="event-section action-row">
-        @if (websiteUrl(); as url) {
-          <a
-            mat-flat-button
-            color="primary"
-            [href]="url"
-            target="_blank"
-            rel="noopener noreferrer"
-            (click)="trackWebsiteClick()"
-          >
-            <mat-icon>open_in_new</mat-icon>
-            <span i18n="@@event_info.website_button">Website</span>
-          </a>
         }
-        <button mat-stroked-button type="button" (click)="shareEvent()">
-          <mat-icon>share</mat-icon>
-          <span i18n="@@event_info.share_button">Share</span>
-        </button>
-      </section>
+      </div>
 
-      @if (hasMapPreview()) {
-        <section class="event-section map-preview">
-          <div class="map-preview-header">
-            <div>
-              <span class="info-label" i18n="@@event_info.map_label">
-                Event map
-              </span>
-              <p class="map-preview-title">
-                {{ event.venueString }}, {{ event.localityString }}
-              </p>
-            </div>
-            <a
-              mat-icon-button
-              [routerLink]="mapRoute()"
-              aria-label="Open event map"
-              matTooltip="Open event map"
-              i18n-matTooltip="@@event_info.open_map"
-            >
-              <mat-icon>open_in_full</mat-icon>
-            </a>
-          </div>
+      <div class="info-block">
+        <span class="info-label" i18n="@@event_info.start_label">
+          Start
+        </span>
+        <p class="info-value">{{ startDateTime() }}</p>
+      </div>
+    </section>
 
-          <div class="map-preview-frame">
-            <app-google-map-2d
-              id="eventInfoMap"
-              [showGeolocation]="false"
-              [boundRestriction]="event.bounds"
-              [polygons]="areaPolygon() ? [areaPolygon()!] : []"
-              [minZoom]="event.minZoom ?? 10"
-              [focusZoom]="event.focusZoom ?? 18"
-              mapStyle="satellite"
-              [markers]="[]"
-              [priorityMarkers]="mapMarkers()"
-              [spots]="spots()"
-              [highlightedSpots]="[]"
-              [hideRegularSpotPins]="true"
-              [showSpotPreview]="false"
-            ></app-google-map-2d>
-          </div>
-        </section>
+    <section class="event-section rsvp-placeholder">
+      <span class="info-label" i18n="@@event_info.rsvp_label">RSVP</span>
+      <p class="info-value muted" i18n="@@event_info.rsvp_placeholder">
+        RSVP will be available here soon.
+      </p>
+    </section>
+
+    <section class="event-section action-row">
+      @if (websiteUrl(); as url) {
+      <a mat-flat-button color="primary" [href]="url" target="_blank" rel="noopener noreferrer"
+        (click)="trackWebsiteClick()">
+        <mat-icon>open_in_new</mat-icon>
+        <span i18n="@@event_info.website_button">Website</span>
+      </a>
       }
-    </article>
-  </main>
+      <button mat-stroked-button type="button" (click)="shareEvent()">
+        <mat-icon>share</mat-icon>
+        <span i18n="@@event_info.share_button">Share</span>
+      </button>
+    </section>
+
+    @if (hasMapPreview()) {
+    <section class="event-section map-preview">
+      <div class="map-preview-header">
+        <div>
+          <span class="info-label" i18n="@@event_info.map_label">
+            Event map
+          </span>
+          <p class="map-preview-title">
+            {{ event.venueString }}, {{ event.localityString }}
+          </p>
+        </div>
+        <a mat-icon-button [routerLink]="mapRoute()" aria-label="Open event map" matTooltip="Open event map"
+          i18n-matTooltip="@@event_info.open_map">
+          <mat-icon>open_in_full</mat-icon>
+        </a>
+      </div>
+
+      <div class="map-preview-frame">
+        <app-google-map-2d id="eventInfoMap" [showGeolocation]="false" [boundRestriction]="mapPreviewBounds()!"
+          [polygons]="areaPolygon() ? [areaPolygon()!] : []" [minZoom]="event.minZoom ?? 10"
+          [focusZoom]="event.focusZoom ?? 18" mapStyle="satellite" [markers]="[]" [priorityMarkers]="mapMarkers()"
+          [spots]="spots()" [highlightedSpots]="[]" [hideRegularSpotPins]="true"
+          [showSpotPreview]="false"></app-google-map-2d>
+      </div>
+    </section>
+    }
+  </article>
+</main>
 }

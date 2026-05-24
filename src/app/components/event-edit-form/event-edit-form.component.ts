@@ -51,6 +51,13 @@ import { MediaUpload } from "../media-upload/media-upload.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
 
 type OrganizationDocument = OrganizationSchema & { id: string };
+export type EventEditPatch = Omit<
+  Partial<EventSchema>,
+  "bounds" | "area_polygon"
+> & {
+  bounds?: EventBoundsSchema | null;
+  area_polygon?: EventSchema["area_polygon"] | null;
+};
 
 /**
  * Admin event editor. Single reactive form for both create AND edit:
@@ -112,7 +119,7 @@ export class EventEditFormComponent {
   saving = input<boolean>(false);
 
   /** Emits the patch / new-doc data the parent should send to EventsService. */
-  save = output<Partial<EventSchema>>();
+  save = output<EventEditPatch>();
   cancel = output<void>();
   delete = output<void>();
 
@@ -137,8 +144,8 @@ export class EventEditFormComponent {
     name: ["", Validators.required],
     venue_string: ["", Validators.required],
     locality_string: ["", Validators.required],
-    location_lat: [null as number | null],
-    location_lng: [null as number | null],
+    location_lat: [null as number | null, Validators.required],
+    location_lng: [null as number | null, Validators.required],
     start_date: [null as Date | null, Validators.required],
     start_time: [null as Date | null, Validators.required],
     end_date: [null as Date | null, Validators.required],
@@ -162,10 +169,12 @@ export class EventEditFormComponent {
   });
 
   /**
-   * Bounds picker state — kept outside the FormGroup because the
-   * picker emits an object, not a flat scalar. Required on save.
+   * Event location and optional area state — kept outside the FormGroup
+   * because the map picker edits richer objects than flat form controls.
    */
+  location = signal<{ lat: number; lng: number } | null>(null);
   bounds = signal<EventBoundsSchema | null>(null);
+  areaTouched = signal<boolean>(false);
   /**
    * Spot IDs the event highlights. Kept outside the FormGroup for
    * the same reason — chip list rather than a scalar form control.
@@ -253,7 +262,9 @@ export class EventEditFormComponent {
           published: true,
           banner_fit: "cover",
         });
+        this.location.set(null);
         this.bounds.set(null);
+        this.areaTouched.set(false);
         this.spotIds.set([]);
         this.communityKeys.set([]);
         this.selectedOrganizer.set(null);
@@ -285,7 +296,9 @@ export class EventEditFormComponent {
         sponsor_url: e.sponsor?.url ?? "",
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
       });
-      this.bounds.set(e.bounds);
+      this.location.set(e.location);
+      this.bounds.set(e.bounds ?? null);
+      this.areaTouched.set(false);
       this.spotIds.set([...e.spotIds]);
       this.communityKeys.set([...e.communityKeys]);
       this.selectedOrganizer.set(e.organizer?.organization ?? null);
@@ -317,8 +330,24 @@ export class EventEditFormComponent {
     return this.autoSuggestedCommunityKeys().filter((k) => !current.has(k));
   });
 
-  onBoundsChange(bounds: EventBoundsSchema): void {
+  onBoundsChange(bounds: EventBoundsSchema | null): void {
     this.bounds.set(bounds);
+    this.areaTouched.set(true);
+  }
+
+  onLocationInputChange(): void {
+    const lat = numberOrUndefined(this.form.value.location_lat);
+    const lng = numberOrUndefined(this.form.value.location_lng);
+    if (lat === undefined || lng === undefined) return;
+    this.location.set({ lat, lng });
+  }
+
+  onLocationChange(location: { lat: number; lng: number }): void {
+    this.location.set(location);
+    this.form.patchValue({
+      location_lat: location.lat,
+      location_lng: location.lng,
+    });
   }
 
   onSpotIdsChange(ids: string[]): void {
@@ -383,15 +412,9 @@ export class EventEditFormComponent {
       return;
     }
 
-    const bounds = this.bounds();
-    if (!bounds) {
-      // Bounds is required — flag it implicitly so the user sees a hint.
-      // Form-level error UX is handled in the template.
-      return;
-    }
-
-    const patch: Partial<EventSchema> = {
+    const patch: EventEditPatch = {
       ...this._buildLocationPatch(v.location_lat, v.location_lng),
+      ...this._buildGeometryPatch(),
       name: v.name!.trim(),
       description: trimOrUndefined(v.description),
       slug: trimOrUndefined(v.slug?.toLowerCase()),
@@ -409,7 +432,6 @@ export class EventEditFormComponent {
       spot_ids: [...this.spotIds()],
       community_keys: [...this.communityKeys()],
       series_ids: csvToArray(v.series_ids_csv),
-      bounds,
       organizer: this._buildOrganizerPatch(),
       sponsor:
         v.sponsor_name?.trim() ||
@@ -508,6 +530,26 @@ export class EventEditFormComponent {
       : {};
   }
 
+  private _buildGeometryPatch(): Pick<
+    EventEditPatch,
+    "bounds" | "area_polygon"
+  > {
+    if (!this.areaTouched()) {
+      return {};
+    }
+    const bounds = this.bounds();
+    if (!bounds) {
+      return {
+        bounds: null,
+        area_polygon: null,
+      };
+    }
+    return {
+      bounds,
+      area_polygon: boundsToAreaPolygon(bounds),
+    };
+  }
+
   /** Approximate point-in-circle test in meters via haversine. */
   private _isPointInsideCircle(
     point: { lat: number; lng: number },
@@ -525,6 +567,29 @@ export class EventEditFormComponent {
     const distance = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return distance <= radiusM;
   }
+}
+
+function boundsToAreaPolygon(
+  bounds: EventBoundsSchema
+): EventSchema["area_polygon"] {
+  return [
+    {
+      points: [
+        { lat: -85, lng: -180 },
+        { lat: -85, lng: 180 },
+        { lat: 85, lng: 180 },
+        { lat: 85, lng: -180 },
+      ],
+    },
+    {
+      points: [
+        { lat: bounds.north, lng: bounds.west },
+        { lat: bounds.north, lng: bounds.east },
+        { lat: bounds.south, lng: bounds.east },
+        { lat: bounds.south, lng: bounds.west },
+      ],
+    },
+  ];
 }
 
 function trimOrUndefined(value: string | null | undefined): string | undefined {

@@ -35,6 +35,7 @@ service cloud.firestore {
         'start_seconds',
         'end_seconds',
         'promo_starts_at_seconds',
+        'location',
         'bounds_center',
         'bounds_radius_m',
         'promo_region_center',

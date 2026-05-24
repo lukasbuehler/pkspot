@@ -25,7 +25,7 @@
       mat-flat-button
       color="primary"
       type="submit"
-      [disabled]="saving() || form.invalid || !bounds()"
+      [disabled]="saving() || form.invalid"
     >
       <mat-icon>save</mat-icon>
       <span i18n="@@event_edit.save">Save</span>
@@ -77,10 +77,11 @@
           type="number"
           step="0.000001"
           formControlName="location_lat"
+          (input)="onLocationInputChange()"
           placeholder="47.3769"
         />
         <mat-hint i18n="@@event_edit.location_hint">
-          Optional. Used for the map event pin instead of the area center.
+          Required. Used for the map event pin.
         </mat-hint>
       </mat-form-field>
       <mat-form-field appearance="outline" class="flex-grow-1">
@@ -92,6 +93,7 @@
           type="number"
           step="0.000001"
           formControlName="location_lng"
+          (input)="onLocationInputChange()"
           placeholder="8.5417"
         />
       </mat-form-field>
@@ -161,11 +163,14 @@
       </p>
       <app-bounds-picker
         [bounds]="bounds()"
+        [location]="location()"
+        [centerHint]="location()"
         (boundsChange)="onBoundsChange($event)"
+        (locationChange)="onLocationChange($event)"
       ></app-bounds-picker>
       @if (!bounds()) {
         <p class="mat-label-small text-warn" i18n="@@event_edit.bounds_required">
-          Drop a rectangle on the map to define the event area.
+          Optional. Drop a rectangle on the map to define the event area.
         </p>
       }
     </div>
@@ -521,7 +526,7 @@
       mat-flat-button
       color="primary"
       type="submit"
-      [disabled]="saving() || form.invalid || !bounds()"
+      [disabled]="saving() || form.invalid"
     >
       <mat-icon>save</mat-icon>
       <span i18n="@@event_edit.save">Save</span>

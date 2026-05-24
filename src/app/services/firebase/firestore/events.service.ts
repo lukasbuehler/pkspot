@@ -1,5 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "firebase/firestore";
+import { deleteField } from "@angular/fire/firestore";
 import { Event } from "../../../../db/models/Event";
 import {
   EventId,
@@ -16,6 +17,13 @@ import {
 
 type EventDocument = EventSchema & { id: string };
 type EventSlugDocument = EventSlugSchema & { id: string };
+export type EventWritePatch = Omit<
+  Partial<EventSchema>,
+  "bounds" | "area_polygon"
+> & {
+  bounds?: EventSchema["bounds"] | null;
+  area_polygon?: EventSchema["area_polygon"] | null;
+};
 
 /**
  * Recursively strip `undefined` values from a plain object so the
@@ -75,7 +83,7 @@ export class EventsService extends ConsentAwareService {
    * present on the data. Returns the loaded `Event`.
    */
   async createEvent(
-    data: Partial<EventSchema>,
+    data: EventWritePatch,
     id?: string
   ): Promise<Event> {
     this._requireAdmin("createEvent");
@@ -124,12 +132,15 @@ export class EventsService extends ConsentAwareService {
    */
   async updateEvent(
     eventId: EventId,
-    patch: Partial<EventSchema>
+    patch: EventWritePatch
   ): Promise<void> {
     this._requireAdmin("updateEvent");
 
     const cleaned = stripUndefined({
       ...patch,
+      bounds: patch.bounds === null ? deleteField() : patch.bounds,
+      area_polygon:
+        patch.area_polygon === null ? deleteField() : patch.area_polygon,
       time_updated: Timestamp.now(),
     }) as Partial<EventSchema>;
 

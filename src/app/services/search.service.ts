@@ -898,21 +898,22 @@ export class SearchService {
    */
   public getEventFromHit(hit: any): PkEvent | null {
     const preview = this.getEventPreviewFromHit(hit);
-    if (!preview.id || preview.startSeconds === undefined) {
+    const center = preview.boundsCenter ?? preview.location;
+    if (!preview.id || preview.startSeconds === undefined || !center) {
       return null;
     }
 
     const startSeconds = preview.startSeconds;
     const endSeconds = preview.endSeconds ?? preview.startSeconds;
-    const center = preview.boundsCenter;
     const boundsRadiusM = preview.boundsRadiusM ?? 0;
 
     // Approximate bbox from center + radius. ~111km per degree of latitude;
     // longitude shrinks with cos(lat). Only used for "focus map on event"
     // fallbacks — the resolver loads the real bounds when the page mounts.
-    const synthesizedBounds = center
-      ? SearchService._bboxFromCenterRadius(center, boundsRadiusM)
-      : { north: 0, south: 0, east: 0, west: 0 };
+    const synthesizedBounds = SearchService._bboxFromCenterRadius(
+      center,
+      boundsRadiusM,
+    );
 
     const promoRegion =
       preview.promoRegionCenter && preview.promoRegionRadiusM
@@ -943,8 +944,11 @@ export class SearchService {
       spot_ids: preview.spotIds,
       community_keys: preview.communityKeys,
       series_ids: preview.seriesIds,
-      location_raw: preview.location
-        ? { lat: preview.location[0], lng: preview.location[1] }
+      location_raw: (preview.location ?? center)
+        ? {
+            lat: (preview.location ?? center)![0],
+            lng: (preview.location ?? center)![1],
+          }
         : undefined,
       bounds: synthesizedBounds,
       promo_region: promoRegion,

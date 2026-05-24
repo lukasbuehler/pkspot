@@ -530,6 +530,11 @@ async function testEventWriteGuards(owner, adminUser) {
       bounds_center: [47.3769, 8.5417],
     })
   );
+  await assertDenied("admin cannot write event GeoPoint mirror", () =>
+    updateDoc(doc(adminUser.db, "events/admin-event"), {
+      location: { latitude: 47.37, longitude: 8.55 },
+    })
+  );
   await assertDenied("admin cannot update event computed radius", () =>
     updateDoc(doc(adminUser.db, "events/admin-event"), {
       bounds_radius_m: 2500,

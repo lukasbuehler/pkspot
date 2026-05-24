@@ -32,7 +32,7 @@ export class Event {
 
   readonly venueString: string;
   readonly localityString: string;
-  readonly location?: { lat: number; lng: number };
+  readonly location: { lat: number; lng: number };
   readonly start: Date;
   readonly end: Date;
   readonly promoStartsAt?: Date;
@@ -43,7 +43,7 @@ export class Event {
   readonly customMarkers: EventCustomMarkerSchema[];
   readonly challengeSpotMap: Record<string, string>;
 
-  readonly bounds: EventBoundsSchema;
+  readonly bounds?: EventBoundsSchema;
   readonly focusZoom?: number;
   readonly minZoom?: number;
   readonly areaPolygon?: Array<{ points: Array<{ lat: number; lng: number }> }>;
@@ -70,7 +70,9 @@ export class Event {
     this.organizer = data.organizer;
     this.venueString = data.venue_string;
     this.localityString = data.locality_string;
-    this.location = Event.toLatLng(data.location_raw, data.location);
+    this.location =
+      Event.toLatLng(data.location_raw, data.location) ??
+      (data.bounds ? Event.boundsCenter(data.bounds) : { lat: 0, lng: 0 });
     this.start = Event.toDate(data.start);
     this.end = Event.toDate(data.end);
     this.promoStartsAt = data.promo_starts_at
@@ -81,10 +83,10 @@ export class Event {
     this.inlineSpots = data.inline_spots ?? [];
     this.customMarkers = data.custom_markers ?? [];
     this.challengeSpotMap = data.challenge_spot_map ?? {};
-    this.bounds = data.bounds;
+    this.bounds = data.bounds ?? undefined;
     this.focusZoom = data.focus_zoom;
     this.minZoom = data.min_zoom;
-    this.areaPolygon = data.area_polygon;
+    this.areaPolygon = data.area_polygon ?? undefined;
     this.promoRegion = data.promo_region;
     this.sponsor = data.sponsor;
     this.isSponsored = data.is_sponsored ?? false;

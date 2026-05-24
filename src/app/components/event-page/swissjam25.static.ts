@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import { GeoPoint, Timestamp } from "firebase/firestore";
 import { EventSchema } from "../../../db/schemas/EventSchema";
 
 /**
@@ -21,6 +21,8 @@ export const SWISSJAM25_STATIC: EventSchema = {
   },
   venue_string: "Universität Irchel",
   locality_string: "Zurich, Switzerland",
+  location: new GeoPoint(47.39732893509323, 8.548509576285669),
+  location_raw: { lat: 47.39732893509323, lng: 8.548509576285669 },
   start: Timestamp.fromDate(new Date("2025-05-24T09:00:00+01:00")),
   end: Timestamp.fromDate(new Date("2025-05-25T16:00:00+01:00")),
   url: "https://www.swissparkourtour.ch/swiss-jam-2025/",

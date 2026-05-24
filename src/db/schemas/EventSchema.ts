@@ -76,7 +76,7 @@ export interface EventOrganizerSchema {
  *
  *  1. Lightweight thin event docs that exist only to surface an external
  *     event in PK Spot's calendar / map / community pages. These have
- *     minimal PK Spot fields (name, dates, locality_string, bounds), no
+ *     minimal PK Spot fields (name, dates, locality_string, location), no
  *     spots, no banner upload — the user clicks through to the source.
  *
  *  2. Full PK Spot events that ALSO have an external ticket page (e.g.
@@ -133,10 +133,10 @@ export interface EventSchema {
 
   venue_string: string;
   locality_string: string;
-  /** Preferred event pin location. Falls back to bounds center when absent. */
-  location?: GeoPoint;
+  /** Preferred event pin location. Bounds are optional; this is the anchor. */
+  location: GeoPoint;
   /** Plain lat/lng mirror for admin UI and non-Firestore consumers. */
-  location_raw?: { lat: number; lng: number };
+  location_raw: { lat: number; lng: number };
   start: Timestamp;
   end: Timestamp;
   /** Optional external event URL (ticketing, organizer site). */
@@ -175,8 +175,8 @@ export interface EventSchema {
    */
   challenge_spot_map?: Record<string, string>;
 
-  /** Map view defaults for the event page. */
-  bounds: EventBoundsSchema;
+  /** Optional map area restriction for rich event maps. */
+  bounds?: EventBoundsSchema;
   focus_zoom?: number;
   min_zoom?: number;
 

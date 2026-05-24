@@ -4,6 +4,7 @@ import {
   EventExternalSourceSchema,
   EventSponsorSchema,
 } from "./EventSchema";
+import { GeoPoint } from "firebase/firestore";
 import { SpotPreviewData } from "./SpotPreviewData";
 
 export type CommunityScope = "country" | "region" | "locality";
@@ -67,6 +68,8 @@ export interface CommunityEventPreviewSchema {
   start: Timestamp | { seconds: number; nanoseconds: number };
   end: Timestamp | { seconds: number; nanoseconds: number };
   url?: string;
+  location?: GeoPoint;
+  location_raw?: { lat: number; lng: number };
   bounds?: EventBoundsSchema;
   sponsor?: EventSponsorSchema;
   is_sponsored?: boolean;

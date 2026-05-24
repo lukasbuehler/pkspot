@@ -3,15 +3,16 @@
     @if (!internalBounds()) {
       <p class="mat-label-medium picker-hint">
         <ng-container i18n="@@bounds_picker.hint_empty">
-          Click on the map to drop a rectangle around the event area. You can
-          then drag and resize it.
+          Drag the pin to the event location. Click the map to add an optional
+          event area.
         </ng-container>
       </p>
     } @else {
       <div class="bounds-picker-toolbar">
         <p class="mat-label-medium picker-hint">
-          <ng-container i18n="@@bounds_picker.hint_existing">
-            Drag the rectangle or resize its corners to fit the event area.
+        <ng-container i18n="@@bounds_picker.hint_existing">
+            Drag the pin for the event location. Drag or resize the rectangle
+            to fit the optional event area.
           </ng-container>
         </p>
         <button
@@ -45,6 +46,11 @@
           (boundsChanged)="onRectangleBoundsChanged()"
         ></map-rectangle>
       }
+      <map-marker
+        [position]="internalLocation()"
+        [options]="markerOptions"
+        (mapDragend)="onLocationDragEnd($event)"
+      ></map-marker>
     </google-map>
   </div>
 } @else {

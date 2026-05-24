@@ -82,34 +82,28 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "locality_string",
     "start",
     "end",
-    "bounds",
+    "location",
   ] as const;
 
-  // The `*_seconds` and `bounds_*` / `promo_region_*` helper fields are
+  // The `*_seconds` and `promo_region_*` helper fields are
   // typed as optional on the EventSchema (we want clients to be able to
   // read an event without these), but the `updateEventFieldsOnWrite`
-  // cloud function always populates them when the source field is
-  // present. `bounds_center`/`bounds_radius_m` are required in Typesense
-  // because `bounds` is required in Firestore.
+  // cloud function always populates the timestamp helpers.
   const indexerProvidedDefaults = [
     "start_seconds",
     "end_seconds",
-    "bounds_center",
-    "bounds_radius_m",
   ] as const;
 
-  // `start`, `end`, and `bounds` are surfaced to Typesense via their
-  // cloud-function-maintained helper fields (`*_seconds`,
-  // `bounds_center`, `bounds_radius_m`) — listed below so the harness
-  // confirms each helper is indexed.
+  // `start` and `end` are surfaced to Typesense via their
+  // cloud-function-maintained helper fields (`*_seconds`). Events are
+  // geosearched by explicit `location`; bounds helpers are optional.
   const expectedIndexedFirestoreFields = [
     "name",
     "venue_string",
     "locality_string",
     "start_seconds",
     "end_seconds",
-    "bounds_center",
-    "bounds_radius_m",
+    "location",
     "community_keys",
     "series_ids",
     "is_sponsored",

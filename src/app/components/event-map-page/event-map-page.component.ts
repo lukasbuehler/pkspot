@@ -65,7 +65,10 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CountdownComponent } from "../countdown/countdown.component";
-import { EventEditFormComponent } from "../event-edit-form/event-edit-form.component";
+import {
+  EventEditFormComponent,
+  EventEditPatch,
+} from "../event-edit-form/event-edit-form.component";
 import {
   EventCustomMarkerSchema,
   EventId,
@@ -212,7 +215,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       "event_page"
     )
   );
-  readonly bounds = computed(() => this.event()?.bounds);
+  readonly bounds = computed(() => {
+    const event = this.event();
+    return event ? this._eventPageData.eventMapBounds(event) : null;
+  });
   readonly focusZoom = computed(() => this.event()?.focusZoom ?? 18);
   readonly readableStartDate = computed(() => {
     const e = this.event();
@@ -703,7 +709,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     this.isEditingEvent.set(false);
   }
 
-  async onSaveEvent(patch: Partial<EventSchema>): Promise<void> {
+  async onSaveEvent(patch: EventEditPatch): Promise<void> {
     const current = this.event();
     if (!current || !this.isAdmin()) return;
     this.isSavingEvent.set(true);

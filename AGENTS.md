@@ -47,6 +47,7 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 
 - Treat Firestore, Typesense, and Cloud Function payload changes as app-versioned contracts. Mobile apps and older web builds may keep reading existing fields after a deploy, so prefer additive fields and keep legacy fields populated until all supported clients have migrated.
 - When replacing a UI data shape, map new data back into the previous fields or provide client fallbacks so older app versions degrade gracefully instead of showing empty states.
+- Coordinate fields are a mobile compatibility contract. Because some Capacitor Firestore versions have trouble serializing/deserializing `GeoPoint`, client-writeable location data should always include a raw plain-object field such as `location_raw: { lat, lng }` and bounds should include mobile-safe raw forms where available. Cloud Functions may backfill/mirror these into GeoPoint fields like `location` and derived helpers such as `bounds_center`, but clients should prefer raw fields for writes and keep read fallbacks for both shapes.
 
 ## Theme colors
 

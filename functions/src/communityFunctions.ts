@@ -417,6 +417,8 @@ const buildCommunityEventPreview = (
     start: event.start,
     end: event.end,
     url: event.url,
+    location: event.location,
+    location_raw: event.location_raw,
     bounds: event.bounds,
     sponsor: event.sponsor,
     is_sponsored: event.is_sponsored,

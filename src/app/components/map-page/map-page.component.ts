@@ -594,19 +594,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           return false;
         }
         if (e.isPast(now)) return false;
-        return Boolean(e.bounds);
+        return Boolean(e.location);
       })
       .map((e) => {
-        const b = e.bounds!;
         const routeId = e.slug ?? e.id;
         const status = e.status(now);
         return {
           id: `event:${routeId}`,
           name: e.name,
-          location: e.location ?? {
-            lat: (b.north + b.south) / 2,
-            lng: (b.east + b.west) / 2,
-          },
+          location: e.location,
           icons: [status === "live" ? "stars" : "event"],
           imageSrc: e.effectiveBadgeLogoSrc(),
           imageBackgroundColor: e.effectiveBadgeLogoBackgroundColor(),

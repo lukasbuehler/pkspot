@@ -36,16 +36,6 @@
   padding: 1rem 0;
 }
 
-.event-heading {
-  margin-bottom: 1.25rem;
-}
-
-.event-heading h1 {
-  margin: 0;
-  font: var(--mat-sys-display-small);
-  color: var(--mat-sys-on-surface);
-}
-
 .event-meta {
   margin: 0.5rem 0 0;
   font: var(--mat-sys-title-medium);
@@ -166,6 +156,7 @@
 }
 
 @media (max-width: 720px) {
+
   .event-nav,
   .event-content {
     width: min(100% - 1rem, 960px);

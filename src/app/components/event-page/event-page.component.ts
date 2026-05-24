@@ -33,7 +33,10 @@ import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
 import { environment } from "../../../environments/environment";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
-import { EventEditFormComponent } from "../event-edit-form/event-edit-form.component";
+import {
+  EventEditFormComponent,
+  EventEditPatch,
+} from "../event-edit-form/event-edit-form.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 
 @Component({
@@ -122,8 +125,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ...this._eventPageData.customMarkers(event),
     ];
   });
+  readonly mapPreviewBounds = computed(() => {
+    const event = this.event();
+    return event ? this._eventPageData.eventMapBounds(event) : null;
+  });
   readonly hasMapPreview = computed(
-    () => !!this.event()?.bounds && this.spots().length > 0,
+    () => !!this.mapPreviewBounds() && this.mapMarkers().length > 0,
   );
 
   constructor() {
@@ -264,7 +271,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this.isEditingEvent.set(false);
   }
 
-  async onSaveEvent(patch: Partial<EventSchema>): Promise<void> {
+  async onSaveEvent(patch: EventEditPatch): Promise<void> {
     const current = this.event();
     if (!current || !this.isAdmin()) return;
     this.isSavingEvent.set(true);

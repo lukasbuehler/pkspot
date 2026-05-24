@@ -13,8 +13,10 @@ import { Router, RouterLink } from "@angular/router";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { MetaTagService } from "../../services/meta-tag.service";
-import { EventSchema } from "../../../db/schemas/EventSchema";
-import { EventEditFormComponent } from "../event-edit-form/event-edit-form.component";
+import {
+  EventEditFormComponent,
+  EventEditPatch,
+} from "../event-edit-form/event-edit-form.component";
 
 /**
  * Standalone create page at `/events/new`. Hosts the shared
@@ -55,7 +57,7 @@ export class EventCreatePageComponent implements OnInit {
     this._metaTagService.setRobotsContent("noindex,nofollow");
   }
 
-  async onSave(patch: Partial<EventSchema>): Promise<void> {
+  async onSave(patch: EventEditPatch): Promise<void> {
     if (!this.isAdmin()) return;
     this.saving.set(true);
     try {

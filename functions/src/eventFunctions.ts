@@ -127,6 +127,13 @@ const _rawCoordinate = (
   return { lat, lng };
 };
 
+const _geoPointCoordinate = (
+  value: EventSchema["location"] | undefined
+): { lat: number; lng: number } | undefined => {
+  if (!isGeoPointValue(value)) return undefined;
+  return { lat: value.latitude, lng: value.longitude };
+};
+
 const _timestampSeconds = (value: unknown): number | undefined => {
   if (!value) return undefined;
   if (value instanceof Timestamp) return value.seconds;
@@ -153,12 +160,18 @@ const _addTypesenseFields = (
   out.end_seconds = _timestampSeconds(eventData.end);
   out.promo_starts_at_seconds = _timestampSeconds(eventData.promo_starts_at);
 
-  const location = _rawCoordinate(eventData.location_raw);
+  const location =
+    _rawCoordinate(eventData.location_raw) ??
+    _geoPointCoordinate(eventData.location) ??
+    (eventData.bounds
+      ? _bboxCenterAndRadius(eventData.bounds).center
+      : undefined);
   if (location) {
     out.location = new GeoPoint(
       location.lat,
       location.lng
     ) as unknown as EventSchema["location"];
+    out.location_raw = location;
   }
 
   if (eventData.bounds) {

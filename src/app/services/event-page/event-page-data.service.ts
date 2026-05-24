@@ -3,7 +3,11 @@ import { firstValueFrom } from "rxjs";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
-import { EventId, InlineEventSpotSchema } from "../../../db/schemas/EventSchema";
+import {
+  EventBoundsSchema,
+  EventId,
+  InlineEventSpotSchema,
+} from "../../../db/schemas/EventSchema";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
 import { GeoPoint } from "firebase/firestore";
@@ -48,6 +52,22 @@ export class EventPageDataService {
 
   eventCanonicalPath(event: PkEvent): string {
     return `/events/${event.slug ?? event.id}`;
+  }
+
+  eventMapBounds(event: PkEvent): EventBoundsSchema {
+    if (event.bounds) return event.bounds;
+
+    const latitudeRadius = 0.005;
+    const longitudeRadius =
+      latitudeRadius /
+      Math.max(Math.cos((event.location.lat * Math.PI) / 180), 0.1);
+
+    return {
+      north: event.location.lat + latitudeRadius,
+      south: event.location.lat - latitudeRadius,
+      east: event.location.lng + longitudeRadius,
+      west: event.location.lng - longitudeRadius,
+    };
   }
 
   async loadEventSpots(event: PkEvent): Promise<(Spot | LocalSpot)[]> {

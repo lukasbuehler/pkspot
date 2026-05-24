@@ -12,7 +12,7 @@
       "facet": true,
       "optional": false
     },
-    { "name": "location", "type": "geopoint", "optional": true },
+    { "name": "location", "type": "geopoint", "optional": false },
     { "name": "url", "type": "string", "optional": true, "index": false },
 
     {
@@ -84,8 +84,8 @@
       "index": false
     },
 
-    { "name": "bounds_center", "type": "geopoint", "optional": false },
-    { "name": "bounds_radius_m", "type": "float", "optional": false },
+    { "name": "bounds_center", "type": "geopoint", "optional": true },
+    { "name": "bounds_radius_m", "type": "float", "optional": true },
     { "name": "promo_region_center", "type": "geopoint", "optional": true },
     { "name": "promo_region_radius_m", "type": "float", "optional": true },
 
