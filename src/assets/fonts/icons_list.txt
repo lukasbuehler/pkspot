@@ -2,6 +2,7 @@
 
 menu
 open_in_new
+open_in_full
 search
 home
 verified_user
@@ -170,3 +171,4 @@ travel_explore
 mobile
 storefront
 playground_2
+garage

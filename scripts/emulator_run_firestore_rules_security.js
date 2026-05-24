@@ -141,6 +141,34 @@ async function seedSecurityFixture() {
   batch.set(adminDb.doc("community_pages/ch-zurich"), { title: "Zurich" });
   batch.set(adminDb.doc("community_slugs/zurich"), { key: "ch-zurich" });
   batch.set(adminDb.doc("leaderboards/spots_edited"), { entries: [] });
+  batch.set(adminDb.doc("organizations/pk-spot"), {
+    name: "PK Spot",
+    slug: "pk-spot",
+    active: true,
+  });
+  batch.set(adminDb.doc("organizations/pk-spot/members/owner"), {
+    role: "reviewer",
+    user: { uid: "owner", display_name: "Owner" },
+  });
+  batch.set(adminDb.doc("spots/verified-spot"), {
+    name: { en: "Verified Spot" },
+    source: "pkspot",
+    verification: {
+      status: "verified",
+      organization_id: "pk-spot",
+      organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+      verified_by_user_id: "admin",
+      lock_edits: true,
+    },
+  });
+  batch.set(adminDb.doc("spots/verified-spot/edits/private-pending"), {
+    type: "UPDATE",
+    user: { uid: "other" },
+    timestamp_raw_ms: 2,
+    visibility: "private",
+    review_status: "pending",
+    review_organization_id: "pk-spot",
+  });
   batch.set(adminDb.doc("users/owner"), {
     display_name: "Owner",
     is_admin: false,
@@ -199,6 +227,13 @@ async function testPublicReadSurface(anon) {
   await assertAllowed("anonymous leaderboard read", () =>
     getDoc(doc(anon.db, "leaderboards/spots_edited"))
   );
+  await assertAllowed("anonymous organization collection read", async () => {
+    const snapshot = await getDocs(collection(anon.db, "organizations"));
+    assert.ok(snapshot.docs.some((item) => item.id === "pk-spot"));
+  });
+  await assertAllowed("anonymous organization document read", () =>
+    getDoc(doc(anon.db, "organizations/pk-spot"))
+  );
 }
 
 async function testSpotWriteGuards(anon, owner, other, adminUser) {
@@ -252,6 +287,22 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
       type: "UPDATE",
       user: { uid: "owner" },
       data: { name: { en: "Allowed via function path" } },
+    })
+  );
+  await assertDenied("verified spot public edit create", () =>
+    setDoc(doc(owner.db, "spots/verified-spot/edits/public-forbidden"), {
+      type: "UPDATE",
+      user: { uid: "owner" },
+      visibility: "public",
+      data: { name: { en: "Should be private" } },
+    })
+  );
+  await assertAllowed("verified spot private edit create", () =>
+    setDoc(doc(owner.db, "spots/verified-spot/edits/private-allowed"), {
+      type: "UPDATE",
+      user: { uid: "owner" },
+      visibility: "private",
+      data: { name: { en: "Review me" } },
     })
   );
   await assertDenied("spot edit impersonation create", () =>
@@ -319,6 +370,59 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
       vote: "yes",
       user: { uid: "owner" },
     })
+  );
+}
+
+async function testOrganizationGuards(anon, owner, other, adminUser) {
+  await assertAllowed("reviewer reads own organization membership", () =>
+    getDoc(doc(owner.db, "organizations/pk-spot/members/owner"))
+  );
+  await assertDenied("unrelated user reads organization membership", () =>
+    getDoc(doc(other.db, "organizations/pk-spot/members/owner"))
+  );
+  await assertAllowed("admin reads organization membership", () =>
+    getDoc(doc(adminUser.db, "organizations/pk-spot/members/owner"))
+  );
+  await assertDenied("regular user creates organization", () =>
+    setDoc(doc(owner.db, "organizations/forged-org"), {
+      name: "Forged",
+      slug: "forged",
+      active: true,
+    })
+  );
+  await assertAllowed("admin creates organization", () =>
+    setDoc(doc(adminUser.db, "organizations/admin-created-org"), {
+      name: "Admin Created",
+      slug: "admin-created",
+      active: true,
+    })
+  );
+  await assertDenied("regular user creates organization member", () =>
+    setDoc(doc(owner.db, "organizations/pk-spot/members/other"), {
+      role: "owner",
+      user: { uid: "other" },
+    })
+  );
+  await assertAllowed("admin creates organization member", () =>
+    setDoc(doc(adminUser.db, "organizations/pk-spot/members/admin-added"), {
+      role: "reviewer",
+      user: { uid: "admin-added" },
+    })
+  );
+}
+
+async function testPrivateOrganizationReviewEdits(anon, owner, other, adminUser) {
+  await assertDenied("anonymous cannot read private org review edit", () =>
+    getDoc(doc(anon.db, "spots/verified-spot/edits/private-pending"))
+  );
+  await assertAllowed("submitter can read own private org review edit", () =>
+    getDoc(doc(other.db, "spots/verified-spot/edits/private-pending"))
+  );
+  await assertAllowed("organization reviewer can read private org review edit", () =>
+    getDoc(doc(owner.db, "spots/verified-spot/edits/private-pending"))
+  );
+  await assertAllowed("admin can read private org review edit", () =>
+    getDoc(doc(adminUser.db, "spots/verified-spot/edits/private-pending"))
   );
 }
 
@@ -538,6 +642,8 @@ async function main() {
   console.log("Running Firestore rules security tests...");
   await testPublicReadSurface(anon);
   await testSpotWriteGuards(anon, owner, other, adminUser);
+  await testOrganizationGuards(anon, owner, other, adminUser);
+  await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);
   await testUserPrivacyAndPrivilegeEscalation(anon, owner, other);
   await testReadOnlyBackendCollections(owner);
   await testPostAndImportGuards(anon, owner, other, adminUser);

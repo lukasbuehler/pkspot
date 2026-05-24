@@ -88,6 +88,11 @@ export class ReversePipe implements PipeTransform {
   }
 }
 
+type EventPageMapMarker = MarkerSchema & {
+  spotIndex?: number;
+  challengeIndex?: number;
+};
+
 @Component({
   selector: "app-event-page",
   imports: [
@@ -254,7 +259,21 @@ export class EventPageComponent implements OnInit, OnDestroy {
   readonly customMarkers = computed<MarkerSchema[]>(() =>
     (this.event()?.customMarkers ?? []).map(toMarkerSchema),
   );
-  readonly markers = signal<MarkerSchema[]>([]);
+  readonly markers = signal<EventPageMapMarker[]>([]);
+  readonly spotMapMarkers = computed<EventPageMapMarker[]>(() =>
+    this.spots().map((spot, spotIndex) => ({
+      name: spot.name(),
+      location: spot.location(),
+      icons: [spot instanceof Spot && spot.isIconic ? "stars" : "location_on"],
+      color: "primary",
+      type: "event-spot",
+      spotIndex,
+    })),
+  );
+  readonly mapPriorityMarkers = computed<EventPageMapMarker[]>(() => [
+    ...this.spotMapMarkers(),
+    ...this.markers(),
+  ]);
   readonly areaPolygon = signal<PolygonSchema | null>(null);
 
   /**
@@ -445,7 +464,7 @@ export class EventPageComponent implements OnInit, OnDestroy {
               ),
           );
 
-          const challengeMarkers: MarkerSchema[] = [];
+          const challengeMarkers: EventPageMapMarker[] = [];
           allChallenges.forEach((challenge, index) => {
             if (!challenge || !challenge.location()) return;
             const matchesFilter =
@@ -462,6 +481,8 @@ export class EventPageComponent implements OnInit, OnDestroy {
               location: challenge.location()!,
               color: matchesFilter ? "primary" : "gray",
               number: index + 1,
+              type: "challenge",
+              challengeIndex: index,
             });
           });
 
@@ -739,9 +760,13 @@ export class EventPageComponent implements OnInit, OnDestroy {
   }
 
   markerClick(markerIndex: number) {
-    const marker = this.markers()[markerIndex];
-    if (marker?.number) {
-      this.challangeMarkerClicked(markerIndex);
+    const marker = this.mapPriorityMarkers()[markerIndex];
+    if (marker?.type === "event-spot" && marker.spotIndex !== undefined) {
+      this.selectSpot(this.spots()[marker.spotIndex]);
+      return;
+    }
+    if (marker?.type === "challenge" && marker.challengeIndex !== undefined) {
+      this.challangeMarkerClicked(marker.challengeIndex);
     }
   }
 

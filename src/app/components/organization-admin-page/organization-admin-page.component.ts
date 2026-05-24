@@ -51,12 +51,17 @@ export class OrganizationAdminPageComponent implements OnDestroy {
   readonly isAdmin = signal(false);
   readonly authResolved = this.authService.initialAuthStateResolved;
   private readonly _authSubscription: Subscription;
+  private _hasLoadedOrganizations = false;
 
   constructor() {
     this._authSubscription = this.authService.authState$.subscribe(() => {
-      this.isAdmin.set(this.authService.user.data?.isAdmin === true);
+      const isAdmin = this.authService.user.data?.isAdmin === true;
+      this.isAdmin.set(isAdmin);
+      if (isAdmin && !this._hasLoadedOrganizations) {
+        this._hasLoadedOrganizations = true;
+        void this.reload();
+      }
     });
-    void this.reload();
   }
 
   ngOnDestroy(): void {

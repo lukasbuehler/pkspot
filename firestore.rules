@@ -24,6 +24,12 @@ service cloud.firestore {
         );
     }
 
+    function isVerifiedSpot(spotId) {
+      let spot = get(/databases/$(database)/documents/spots/$(spotId)).data;
+      return 'verification' in spot
+        && spot.verification.status == 'verified';
+    }
+
     match /spots/{spotId}
     {
       // all the spots are visible to everyone, authenticated or not
@@ -93,7 +99,7 @@ service cloud.firestore {
         allow create: if request.auth.uid != null 
           && request.auth.uid == request.resource.data.user.uid
           && (
-            get(/databases/$(database)/documents/spots/$(spotId)).data.verification.status != 'verified'
+            !isVerifiedSpot(spotId)
             || request.resource.data.visibility == 'private'
           );
         allow update: if false;
