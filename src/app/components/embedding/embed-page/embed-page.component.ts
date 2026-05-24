@@ -23,7 +23,7 @@ import { languageCodes } from "../../../../scripts/Languages";
 import { Event as PkEvent } from "../../../../db/models/Event";
 import { EventsService } from "../../../services/firebase/firestore/events.service";
 
-type EmbedType = "map" | "event";
+type EmbedType = "map" | "event" | "event-map";
 
 @Component({
   selector: "app-embed-page",
@@ -86,10 +86,11 @@ export class EmbedPageComponent {
   });
 
   defaultEmbedType: EmbedType = "event";
-  embedTypes: EmbedType[] = ["event"]; // "map",
+  embedTypes: EmbedType[] = ["event", "event-map"]; // "map",
   embedTypeName: Record<EmbedType, string> = {
     map: $localize`Map`,
-    event: $localize`Event`,
+    event: $localize`Event info`,
+    "event-map": $localize`Event map`,
   };
 
   tab = signal<EmbedType>(this.defaultEmbedType);
@@ -111,6 +112,15 @@ export class EmbedPageComponent {
         if (!eventId) return "";
         url += "events/";
         url += eventId;
+        url += this.showEventHeader()
+          ? "?showHeader=true"
+          : "?showHeader=false";
+        break;
+      case "event-map":
+        if (!eventId) return "";
+        url += "events/";
+        url += eventId;
+        url += "/map";
         url += this.showEventHeader()
           ? "?showHeader=true"
           : "?showHeader=false";

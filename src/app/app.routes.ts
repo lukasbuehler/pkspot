@@ -230,16 +230,24 @@ export const routes: Routes = [
     redirectTo: (route) => {
       const showHeader = route.queryParams["showHeader"];
       const query = showHeader !== undefined ? `?showHeader=${showHeader}` : "";
-      return `/embedded/events/${route.params["eventID"]}${query}`;
+      return `/embedded/events/${route.params["eventID"]}/map${query}`;
     },
     pathMatch: "full",
     data: { routeName: "Embedded Event" },
   },
   {
+    path: "embedded/events/:eventID/map",
+    loadComponent: () =>
+      import("./components/event-map-page/event-map-page.component").then(
+        (m) => m.EventMapPageComponent
+      ),
+    data: { routeName: "Embedded Event Map" },
+  },
+  {
     path: "embedded/events/:eventID",
     loadComponent: () =>
       import("./components/event-page/event-page.component").then(
-        (m) => m.EventPageComponent
+        (m) => m.EventInfoPageComponent
       ),
     data: { routeName: "Embedded Event" },
   },
@@ -282,10 +290,19 @@ export const routes: Routes = [
     path: "events/swissjam25",
     loadComponent: () =>
       import("./components/event-page/event-page.component").then(
-        (m) => m.EventPageComponent
+        (m) => m.EventInfoPageComponent
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Event" },
+  },
+  {
+    path: "events/:slug/map",
+    loadComponent: () =>
+      import("./components/event-map-page/event-map-page.component").then(
+        (m) => m.EventMapPageComponent
+      ),
+    resolve: { content: contentResolver },
+    data: { routeName: "Event Map" },
   },
   {
     path: "e/:slug",
@@ -297,7 +314,7 @@ export const routes: Routes = [
     path: "events/:slug",
     loadComponent: () =>
       import("./components/event-page/event-page.component").then(
-        (m) => m.EventPageComponent
+        (m) => m.EventInfoPageComponent
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Event" },

@@ -3,11 +3,12 @@ import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
-import { BehaviorSubject, of } from "rxjs";
+import { of } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import { AnalyticsService } from "../../services/analytics.service";
+import { EventPageDataService } from "../../services/event-page/event-page-data.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { SpotChallengesService } from "../../services/firebase/firestore/spot-challenges.service";
@@ -15,8 +16,7 @@ import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { ResponsiveService } from "../../services/responsive.service";
-import { StructuredDataService } from "../../services/structured-data.service";
-import { EventInfoPageComponent } from "./event-page.component";
+import { EventMapPageComponent } from "./event-map-page.component";
 
 const flushPromises = () =>
   new Promise((resolve) => {
@@ -30,9 +30,9 @@ const flushSignalEffects = () => {
   maybeFlushEffects.flushEffects?.();
 };
 
-const buildEvent = (id: string, name: string): PkEvent =>
+const buildEvent = (id: string): PkEvent =>
   new PkEvent(id as EventId, {
-    name,
+    name: "Swiss Jam 2026",
     slug: id,
     venue_string: "Test Venue",
     locality_string: "Zurich, Switzerland",
@@ -46,29 +46,22 @@ const buildEvent = (id: string, name: string): PkEvent =>
     },
   } as unknown as EventSchema);
 
-describe("EventInfoPageComponent", () => {
-  it("reloads the event when Angular reuses the component for a new route param", async () => {
-    const swissjam26 = buildEvent("swissjam26", "Swiss Jam 2026");
-    const wpfCamp = buildEvent("wpf-camp", "WPF Camp");
-    const paramMap = new BehaviorSubject(
-      convertToParamMap({ slug: "swissjam26" }),
-    );
-    const eventsService = {
-      getEventBySlugOrId: vi.fn((slug: string) =>
-        Promise.resolve(slug === "wpf-camp" ? wpfCamp : swissjam26),
-      ),
+describe("EventMapPageComponent", () => {
+  it("keeps the map view noindex and canonicalized to the event info page", async () => {
+    const event = buildEvent("swissjam26");
+    const eventPageData = {
+      loadEventBySlugOrId: vi.fn(() => Promise.resolve(event)),
+      eventCanonicalPath: vi.fn(() => "/events/swissjam26"),
     };
     const metaTagService = {
       setEventMetaTags: vi.fn(),
-    };
-    const structuredDataService = {
-      addStructuredData: vi.fn(),
-      removeStructuredData: vi.fn(),
+      setRobotsContent: vi.fn(),
     };
 
     TestBed.configureTestingModule({
       providers: [
-        { provide: EventsService, useValue: eventsService },
+        { provide: EventPageDataService, useValue: eventPageData },
+        { provide: EventsService, useValue: {} },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
         {
@@ -78,23 +71,15 @@ describe("EventInfoPageComponent", () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            paramMap,
+            paramMap: of(convertToParamMap({ slug: "swissjam26" })),
             queryParams: of({}),
-            data: of({ routeName: "Event" }),
-            snapshot: { paramMap: convertToParamMap({ slug: "swissjam26" }) },
+            data: of({ routeName: "Event Map" }),
           },
         },
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: LocationStrategy, useValue: {} },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
-        {
-          provide: MetaTagService,
-          useValue: metaTagService,
-        },
-        {
-          provide: StructuredDataService,
-          useValue: structuredDataService,
-        },
+        { provide: MetaTagService, useValue: metaTagService },
         {
           provide: MapsApiService,
           useValue: {
@@ -106,59 +91,31 @@ describe("EventInfoPageComponent", () => {
           provide: AnalyticsService,
           useValue: {
             addUtmToUrl: vi.fn((url?: string) => url),
+            trackEvent: vi.fn(),
           },
         },
-        { provide: ResponsiveService, useValue: {} },
+        { provide: ResponsiveService, useValue: { isDesktop: signal(true) } },
         { provide: LOCALE_ID, useValue: "en" },
         { provide: PLATFORM_ID, useValue: "server" },
       ],
     });
 
     const component = TestBed.runInInjectionContext(
-      () => new EventInfoPageComponent(),
+      () => new EventMapPageComponent(),
     );
 
     component.ngOnInit();
     await flushPromises();
     flushSignalEffects();
 
-    expect(component.event()).toBe(swissjam26);
     expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
       expect.objectContaining({
         name: "Swiss Jam 2026",
-        description: expect.stringContaining("Event in Zurich, Switzerland"),
       }),
       "/events/swissjam26",
     );
-    expect(structuredDataService.addStructuredData).toHaveBeenLastCalledWith(
-      "event",
-      expect.objectContaining({
-        "@type": "Event",
-        name: "Swiss Jam 2026",
-        url: "https://pkspot.app/en/events/swissjam26",
-      }),
-    );
-
-    paramMap.next(convertToParamMap({ slug: "wpf-camp" }));
-    await flushPromises();
-    flushSignalEffects();
-
-    expect(eventsService.getEventBySlugOrId).toHaveBeenCalledWith("wpf-camp");
-    expect(component.event()).toBe(wpfCamp);
-    expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        name: "WPF Camp",
-        description: expect.stringContaining("Event in Zurich, Switzerland"),
-      }),
-      "/events/wpf-camp",
-    );
-    expect(structuredDataService.addStructuredData).toHaveBeenLastCalledWith(
-      "event",
-      expect.objectContaining({
-        "@type": "Event",
-        name: "WPF Camp",
-        url: "https://pkspot.app/en/events/wpf-camp",
-      }),
+    expect(metaTagService.setRobotsContent).toHaveBeenLastCalledWith(
+      "noindex,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
     );
   });
 });

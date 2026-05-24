@@ -603,7 +603,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         return {
           id: `event:${routeId}`,
           name: e.name,
-          location: {
+          location: e.location ?? {
             lat: (b.north + b.south) / 2,
             lng: (b.east + b.west) / 2,
           },

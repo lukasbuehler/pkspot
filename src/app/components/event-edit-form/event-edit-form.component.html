@@ -67,6 +67,36 @@
       </mat-form-field>
     </div>
 
+    <div class="d-flex flex-row gap-2 flex-wrap">
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.location_lat">
+          Event pin latitude
+        </mat-label>
+        <input
+          matInput
+          type="number"
+          step="0.000001"
+          formControlName="location_lat"
+          placeholder="47.3769"
+        />
+        <mat-hint i18n="@@event_edit.location_hint">
+          Optional. Used for the map event pin instead of the area center.
+        </mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.location_lng">
+          Event pin longitude
+        </mat-label>
+        <input
+          matInput
+          type="number"
+          step="0.000001"
+          formControlName="location_lng"
+          placeholder="8.5417"
+        />
+      </mat-form-field>
+    </div>
+
     <div class="d-flex flex-column gap-2">
       <p class="mat-label-medium m-0 text-muted" i18n="@@event_edit.dates_label">
         Start
@@ -162,6 +192,30 @@
       <mat-form-field appearance="outline">
         <mat-label i18n="@@event_edit.description">Description</mat-label>
         <textarea matInput formControlName="description" rows="3"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@event_edit.organizer">Organizer</mat-label>
+        <input
+          matInput
+          formControlName="organizer_query"
+          [matAutocomplete]="organizerAutocomplete"
+          (input)="onOrganizerInput($event)"
+        />
+        <mat-autocomplete
+          #organizerAutocomplete="matAutocomplete"
+          [displayWith]="displayOrganization"
+          (optionSelected)="onOrganizerSelected($event)"
+        >
+          @for (organization of filteredOrganizations(); track organization.id) {
+            <mat-option [value]="organization">
+              {{ organization.name }}
+            </mat-option>
+          }
+        </mat-autocomplete>
+        <mat-hint i18n="@@event_edit.organizer_hint">
+          Admin-only. Select an existing organization.
+        </mat-hint>
       </mat-form-field>
 
       <div class="d-flex flex-row gap-2 flex-wrap">

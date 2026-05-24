@@ -30,6 +30,18 @@ service cloud.firestore {
         && spot.verification.status == 'verified';
     }
 
+    function eventComputedFields() {
+      return [
+        'start_seconds',
+        'end_seconds',
+        'promo_starts_at_seconds',
+        'bounds_center',
+        'bounds_radius_m',
+        'promo_region_center',
+        'promo_region_radius_m'
+      ];
+    }
+
     match /spots/{spotId}
     {
       // all the spots are visible to everyone, authenticated or not
@@ -242,7 +254,11 @@ service cloud.firestore {
       // Admin-only writes for now. Future plan: open to authed users for
       // free-tier event creation, with field-level validation gating
       // sponsor / promo_region / banner_src (premium-only fields).
-      allow write: if isAdmin();
+      allow create: if isAdmin()
+        && !request.resource.data.keys().hasAny(eventComputedFields());
+      allow update: if isAdmin()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(eventComputedFields());
+      allow delete: if isAdmin();
     }
 
     // Series (Swiss Parkour Tour, SPL, Parkour Earth, ...) are admin-curated

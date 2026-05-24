@@ -118,6 +118,15 @@ const _promoRegionCenterAndRadius = (
   return null;
 };
 
+const _rawCoordinate = (
+  value: EventSchema["location_raw"] | undefined
+): { lat: number; lng: number } | undefined => {
+  const lat = Number(value?.lat);
+  const lng = Number(value?.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return undefined;
+  return { lat, lng };
+};
+
 const _timestampSeconds = (value: unknown): number | undefined => {
   if (!value) return undefined;
   if (value instanceof Timestamp) return value.seconds;
@@ -143,6 +152,14 @@ const _addTypesenseFields = (
   out.start_seconds = _timestampSeconds(eventData.start);
   out.end_seconds = _timestampSeconds(eventData.end);
   out.promo_starts_at_seconds = _timestampSeconds(eventData.promo_starts_at);
+
+  const location = _rawCoordinate(eventData.location_raw);
+  if (location) {
+    out.location = new GeoPoint(
+      location.lat,
+      location.lng
+    ) as unknown as EventSchema["location"];
+  }
 
   if (eventData.bounds) {
     const { center, radiusM } = _bboxCenterAndRadius(eventData.bounds);

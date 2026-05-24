@@ -18,7 +18,7 @@
         }
       </mat-chip-listbox>
 
-      @if(tab() == "event") {
+      @if(tab() == "event" || tab() == "event-map") {
         <mat-form-field class="w-100 mb-3" appearance="outline">
           <mat-label i18n>Event</mat-label>
           <mat-select
@@ -63,6 +63,10 @@
           >Show geolocation</mat-slide-toggle
         >
         } @case ("event") {
+        <mat-slide-toggle [(ngModel)]="showEventHeader" i18n
+          >Show Event header</mat-slide-toggle
+        >
+        } @case ("event-map") {
         <mat-slide-toggle [(ngModel)]="showEventHeader" i18n
           >Show Event header</mat-slide-toggle
         >

@@ -1,0 +1,78 @@
+.drawer {
+  width: calc(100% - (36px + 5px * 2));
+  padding-left: 10px;
+
+  @media (min-width: 768px) {
+    width: 50%;
+  }
+
+  @media (min-width: 992px) {
+    width: 33.33%;
+  }
+}
+
+.drawer-container {
+  overflow: hidden;
+}
+
+::ng-deep .mat-drawer-content {
+  overflow: hidden !important;
+}
+
+.no-rounding {
+  border-radius: 0px !important;
+}
+
+// Admin event editor takes over the page body while open. Scrolls
+// independently so the form's long content doesn't stretch the page.
+.event-edit-host {
+  background: var(--mat-sys-surface);
+  border-radius: 16px;
+  padding-bottom: 1rem;
+}
+
+.dates-line {
+  color: var(--mat-sys-on-surface);
+}
+
+// Status row below the event dates.
+// Color rules follow AGENTS.md "Theme colors": green = live, blue = upcoming,
+// red = past. The `--mat-sys-*` tokens aren't reliably emitted by the
+// current PK Spot theme setup (mat.all-component-themes only) so we use
+// the dark-theme palette hexes directly as fallback — these match the
+// "primary 80" and "secondary 80" values from `m3-theme.scss`, which is
+// the same light-blue / light-green users see on primary buttons in dark
+// mode.
+//
+// !important keeps these rules from being beaten by the typography
+// classes' own `color` resolution.
+.status-line {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.status-line.past {
+  color: var(--mat-sys-error, #ffb4ab) !important;
+}
+
+.status-line.upcoming {
+  color: var(--mat-sys-primary, #b8c4ff) !important;
+}
+
+.status-line.live {
+  color: var(--mat-sys-secondary, #8dd978) !important;
+}
+
+.status-line.sponsored {
+  color: var(--mat-sys-primary, #b8c4ff) !important;
+}
+
+// Hint text-overflow safety on a tight header row.
+.min-w-0 {
+  min-width: 0;
+}

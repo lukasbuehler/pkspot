@@ -1,9 +1,10 @@
-import { Timestamp } from "firebase/firestore";
+import { GeoPoint, Timestamp } from "firebase/firestore";
 import {
   EventBoundsSchema,
   EventCustomMarkerSchema,
   EventExternalSourceSchema,
   EventId,
+  EventOrganizerSchema,
   EventPromoRegionSchema,
   EventSchema,
   EventSponsorSchema,
@@ -27,9 +28,11 @@ export class Event {
   readonly bannerFit: "cover" | "contain";
   readonly bannerAccentColor?: string;
   readonly logoSrc?: string;
+  readonly organizer?: EventOrganizerSchema;
 
   readonly venueString: string;
   readonly localityString: string;
+  readonly location?: { lat: number; lng: number };
   readonly start: Date;
   readonly end: Date;
   readonly promoStartsAt?: Date;
@@ -64,8 +67,10 @@ export class Event {
     this.bannerFit = data.banner_fit ?? "cover";
     this.bannerAccentColor = data.banner_accent_color;
     this.logoSrc = data.logo_src;
+    this.organizer = data.organizer;
     this.venueString = data.venue_string;
     this.localityString = data.locality_string;
+    this.location = Event.toLatLng(data.location_raw, data.location);
     this.start = Event.toDate(data.start);
     this.end = Event.toDate(data.end);
     this.promoStartsAt = data.promo_starts_at
@@ -291,6 +296,21 @@ export class Event {
       lat: (bounds.north + bounds.south) / 2,
       lng: (bounds.east + bounds.west) / 2,
     };
+  }
+
+  private static toLatLng(
+    raw:
+      | { lat?: number | string; lng?: number | string }
+      | undefined,
+    point:
+      | GeoPoint
+      | { latitude?: number | string; longitude?: number | string }
+      | undefined,
+  ): { lat: number; lng: number } | undefined {
+    const lat = Number(raw?.lat ?? point?.latitude);
+    const lng = Number(raw?.lng ?? point?.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return undefined;
+    return { lat, lng };
   }
 
   private static toDate(

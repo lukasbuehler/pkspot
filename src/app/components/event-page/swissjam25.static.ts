@@ -11,6 +11,14 @@ export const SWISSJAM25_STATIC: EventSchema = {
   name: "Swiss Jam 2025",
   slug: "swissjam25",
   banner_src: "assets/swissjam/swissjam0.jpg",
+  organizer: {
+    type: "organization",
+    organization: {
+      id: "swiss-parkour-tour",
+      name: "Swiss Parkour Tour",
+      slug: "swiss-parkour-tour",
+    },
+  },
   venue_string: "Universität Irchel",
   locality_string: "Zurich, Switzerland",
   start: Timestamp.fromDate(new Date("2025-05-24T09:00:00+01:00")),

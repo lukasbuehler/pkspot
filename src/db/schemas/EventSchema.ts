@@ -1,4 +1,5 @@
-import { Timestamp } from "firebase/firestore";
+import { GeoPoint, Timestamp } from "firebase/firestore";
+import { OrganizationReferenceSchema } from "./OrganizationSchema";
 
 export type EventId = string & { __brand: "EventId" };
 export type EventSlug = string & { __brand: "EventSlug" };
@@ -64,6 +65,11 @@ export interface EventSponsorSchema {
   url?: string;
 }
 
+export interface EventOrganizerSchema {
+  type: "organization";
+  organization: OrganizationReferenceSchema;
+}
+
 /**
  * Marks an event whose canonical home lives outside PK Spot (e.g. an
  * EventFrog ticket page hosted by a partner). Used for two patterns:
@@ -122,8 +128,15 @@ export interface EventSchema {
   /** Optional event-specific logo (distinct from sponsor logo). */
   logo_src?: string;
 
+  /** Organizer responsible for the event. User organizers can be added later. */
+  organizer?: EventOrganizerSchema;
+
   venue_string: string;
   locality_string: string;
+  /** Preferred event pin location. Falls back to bounds center when absent. */
+  location?: GeoPoint;
+  /** Plain lat/lng mirror for admin UI and non-Firestore consumers. */
+  location_raw?: { lat: number; lng: number };
   start: Timestamp;
   end: Timestamp;
   /** Optional external event URL (ticketing, organizer site). */

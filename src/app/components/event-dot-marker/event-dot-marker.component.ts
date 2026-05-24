@@ -3,8 +3,9 @@ import { MapAdvancedMarker } from "@angular/google-maps";
 import { MatIconModule } from "@angular/material/icon";
 
 /**
- * Small clickable chip-marker for an event on the map. Sits at the
- * event's bounds center. Sponsored events get a sponsor-tinted style;
+ * Small clickable chip-marker for an event on the map. Uses the event's
+ * explicit pin location when available, then falls back to bounds center.
+ * Sponsored events get a sponsor-tinted style;
  * plain events get the neutral chip.
  *
  * Independent of the map-island event promo — the island is a

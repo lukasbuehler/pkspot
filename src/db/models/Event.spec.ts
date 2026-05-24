@@ -40,6 +40,18 @@ describe("Event", () => {
     expect(event.end.toISOString()).toBe("2026-06-15T10:00:00.000Z");
   });
 
+  it("prefers location_raw as the event pin location", () => {
+    const event = new Event("event-1" as EventId, {
+      ...baseEvent,
+      start: "2026-06-14T10:00:00.000Z",
+      end: "2026-06-15T10:00:00.000Z",
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+      location: { latitude: 46.948, longitude: 7.4474 },
+    } as EventSchema);
+
+    expect(event.location).toEqual({ lat: 47.3769, lng: 8.5417 });
+  });
+
   it("exposes circle promo geometry for ranking overlapping promotions", () => {
     const event = new Event("event-1" as EventId, {
       ...baseEvent,

@@ -17,6 +17,17 @@ export class AssetUrlService {
       ...event,
       banner_src: this.resolveBundledAssetUrl(event.banner_src),
       logo_src: this.resolveBundledAssetUrl(event.logo_src),
+      organizer: event.organizer
+        ? {
+            ...event.organizer,
+            organization: {
+              ...event.organizer.organization,
+              logo_url: this.resolveBundledAssetUrl(
+                event.organizer.organization.logo_url,
+              ),
+            },
+          }
+        : undefined,
       inline_spots: event.inline_spots?.map((spot) =>
         this._resolveInlineSpotAssetUrls(spot),
       ),

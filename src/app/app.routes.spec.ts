@@ -50,6 +50,45 @@ describe("app routes", () => {
     expect(routes[legacyEventIndex].redirectTo).toBe("map/events/:eventId");
   });
 
+  it("should register event map routes before generic event info routes", () => {
+    const publicMapIndex = routes.findIndex(
+      (route) => route.path === "events/:slug/map"
+    );
+    const publicInfoIndex = routes.findIndex(
+      (route) => route.path === "events/:slug"
+    );
+    const embeddedMapIndex = routes.findIndex(
+      (route) => route.path === "embedded/events/:eventID/map"
+    );
+    const embeddedInfoIndex = routes.findIndex(
+      (route) => route.path === "embedded/events/:eventID"
+    );
+
+    expect(publicMapIndex).toBeGreaterThanOrEqual(0);
+    expect(publicInfoIndex).toBeGreaterThanOrEqual(0);
+    expect(publicMapIndex).toBeLessThan(publicInfoIndex);
+    expect(embeddedMapIndex).toBeGreaterThanOrEqual(0);
+    expect(embeddedInfoIndex).toBeGreaterThanOrEqual(0);
+    expect(embeddedMapIndex).toBeLessThan(embeddedInfoIndex);
+  });
+
+  it("should redirect legacy embedded event URLs to the embedded event map", () => {
+    const legacy = routes.find((route) => route.path === "embedded/event/:eventID");
+    expect(legacy).toBeDefined();
+    expect(typeof legacy?.redirectTo).toBe("function");
+
+    const redirect = legacy!.redirectTo as (route: {
+      params: Record<string, string>;
+      queryParams: Record<string, string>;
+    }) => string;
+    expect(
+      redirect({
+        params: { eventID: "swissjam25" },
+        queryParams: { showHeader: "false" },
+      })
+    ).toBe("/embedded/events/swissjam25/map?showHeader=false");
+  });
+
   it("should redirect the legacy singular community route to the plural form via a function (string form is unsafe with locale base href)", () => {
     const canonical = routes.find(
       (route) => route.path === "map/communities/:slug"

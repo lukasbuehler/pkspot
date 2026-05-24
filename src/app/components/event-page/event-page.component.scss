@@ -1,78 +1,181 @@
-.drawer {
-  width: calc(100% - (36px + 5px * 2));
-  padding-left: 10px;
-
-  @media (min-width: 768px) {
-    width: 50%;
-  }
-
-  @media (min-width: 992px) {
-    width: 33.33%;
-  }
-}
-
-.drawer-container {
-  overflow: hidden;
-}
-
-::ng-deep .mat-drawer-content {
-  overflow: hidden !important;
-}
-
-.no-rounding {
-  border-radius: 0px !important;
-}
-
-// Admin event editor takes over the page body while open. Scrolls
-// independently so the form's long content doesn't stretch the page.
-.event-edit-host {
+.event-info-page {
+  min-height: 100%;
   background: var(--mat-sys-surface);
-  border-radius: 16px;
-  padding-bottom: 1rem;
-}
-
-.dates-line {
   color: var(--mat-sys-on-surface);
 }
 
-// Status row below the event dates.
-// Color rules follow AGENTS.md "Theme colors": green = live, blue = upcoming,
-// red = past. The `--mat-sys-*` tokens aren't reliably emitted by the
-// current PK Spot theme setup (mat.all-component-themes only) so we use
-// the dark-theme palette hexes directly as fallback — these match the
-// "primary 80" and "secondary 80" values from `m3-theme.scss`, which is
-// the same light-blue / light-green users see on primary buttons in dark
-// mode.
-//
-// !important keeps these rules from being beaten by the typography
-// classes' own `color` resolution.
-.status-line {
-  margin: 0;
-  display: inline-flex;
+.event-info-page.embedded {
+  min-height: auto;
+}
+
+.event-nav,
+.event-content {
+  width: min(100% - 2rem, 960px);
+  margin: 0 auto;
+}
+
+.event-nav {
+  min-height: 64px;
+  display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.event-nav-actions {
+  display: flex;
+  align-items: center;
   gap: 0.25rem;
-  font-weight: 600;
+}
+
+.event-content {
+  padding: 1.5rem 0 4rem;
+}
+
+.embedded .event-content {
+  padding: 1rem 0;
+}
+
+.event-heading {
+  margin-bottom: 1.25rem;
+}
+
+.event-heading h1 {
+  margin: 0;
+  font: var(--mat-sys-display-small);
   color: var(--mat-sys-on-surface);
 }
 
-.status-line.past {
-  color: var(--mat-sys-error, #ffb4ab) !important;
+.event-meta {
+  margin: 0.5rem 0 0;
+  font: var(--mat-sys-title-medium);
+  color: var(--mat-sys-on-surface-variant);
 }
 
-.status-line.upcoming {
-  color: var(--mat-sys-primary, #b8c4ff) !important;
+.event-hero {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container-high);
 }
 
-.status-line.live {
-  color: var(--mat-sys-secondary, #8dd978) !important;
+.event-hero img {
+  object-position: center;
 }
 
-.status-line.sponsored {
-  color: var(--mat-sys-primary, #b8c4ff) !important;
+.event-section {
+  margin-top: 1.5rem;
 }
 
-// Hint text-overflow safety on a tight header row.
-.min-w-0 {
+.event-description {
+  margin: 0;
+  max-width: 72ch;
+  white-space: pre-line;
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-surface);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.info-block,
+.rsvp-placeholder {
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.info-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.info-value {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.organizer-row {
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.organizer-row img {
+  flex: 0 0 auto;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--mat-sys-surface);
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.map-preview {
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.map-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.map-preview-title {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+}
+
+.map-preview-frame {
+  height: min(54vh, 420px);
+  min-height: 260px;
+}
+
+.map-preview-frame app-google-map-2d {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.event-edit-host {
+  min-height: 100%;
+  background: var(--mat-sys-surface);
+  padding: 1rem;
+}
+
+@media (max-width: 720px) {
+  .event-nav,
+  .event-content {
+    width: min(100% - 1rem, 960px);
+  }
+
+  .event-heading h1 {
+    font: var(--mat-sys-headline-large);
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -12,6 +12,7 @@
       "facet": true,
       "optional": false
     },
+    { "name": "location", "type": "geopoint", "optional": true },
     { "name": "url", "type": "string", "optional": true, "index": false },
 
     {

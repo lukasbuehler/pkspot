@@ -828,6 +828,9 @@ export class SearchService {
     const sponsor = doc?.sponsor ?? {};
     const externalSource = doc?.external_source ?? {};
 
+    const location =
+      SearchService._readGeopoint(doc?.location_raw) ??
+      SearchService._readGeopoint(doc?.location);
     const center = SearchService._readGeopoint(doc?.bounds_center);
     const promoCenter = SearchService._readGeopoint(doc?.promo_region_center);
     const boundsRadius = SearchService._readFloat(doc?.bounds_radius_m);
@@ -868,6 +871,7 @@ export class SearchService {
       startSeconds: SearchService._readInt(doc?.start_seconds),
       endSeconds: SearchService._readInt(doc?.end_seconds),
       promoStartsAtSeconds: SearchService._readInt(doc?.promo_starts_at_seconds),
+      location,
       boundsCenter: center,
       boundsRadiusM: boundsRadius,
       promoRegionCenter: promoCenter,
@@ -939,6 +943,9 @@ export class SearchService {
       spot_ids: preview.spotIds,
       community_keys: preview.communityKeys,
       series_ids: preview.seriesIds,
+      location_raw: preview.location
+        ? { lat: preview.location[0], lng: preview.location[1] }
+        : undefined,
       bounds: synthesizedBounds,
       promo_region: promoRegion,
       sponsor:
@@ -1168,6 +1175,7 @@ export interface EventSearchPreview {
   startSeconds?: number;
   endSeconds?: number;
   promoStartsAtSeconds?: number;
+  location?: [number, number];
   boundsCenter?: [number, number];
   boundsRadiusM?: number;
   promoRegionCenter?: [number, number];

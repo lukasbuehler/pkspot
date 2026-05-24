@@ -17,6 +17,10 @@ import {
   Validators,
 } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
+import {
+  MatAutocompleteModule,
+  MatAutocompleteSelectedEvent,
+} from "@angular/material/autocomplete";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatDatepickerModule } from "@angular/material/datepicker";
@@ -32,13 +36,21 @@ import { Timestamp } from "firebase/firestore";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventBoundsSchema,
+  EventOrganizerSchema,
   EventSchema,
 } from "../../../db/schemas/EventSchema";
+import {
+  OrganizationReferenceSchema,
+  OrganizationSchema,
+} from "../../../db/schemas/OrganizationSchema";
 import { StorageBucket } from "../../../db/schemas/Media";
+import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 import { SearchService } from "../../services/search.service";
 import { BoundsPickerComponent } from "../bounds-picker/bounds-picker.component";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
+
+type OrganizationDocument = OrganizationSchema & { id: string };
 
 /**
  * Admin event editor. Single reactive form for both create AND edit:
@@ -68,6 +80,7 @@ import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
   imports: [
     FormsModule,
     ReactiveFormsModule,
+    MatAutocompleteModule,
     MatButtonModule,
     MatCheckboxModule,
     MatChipsModule,
@@ -105,6 +118,7 @@ export class EventEditFormComponent {
 
   private _fb = inject(FormBuilder);
   private _searchService = inject(SearchService);
+  private _organizationsService = inject(OrganizationsService);
 
   /** Storage folder for banner / logo / sponsor-logo uploads. */
   readonly eventMediaBucket = StorageBucket.EventMedia;
@@ -123,6 +137,8 @@ export class EventEditFormComponent {
     name: ["", Validators.required],
     venue_string: ["", Validators.required],
     locality_string: ["", Validators.required],
+    location_lat: [null as number | null],
+    location_lng: [null as number | null],
     start_date: [null as Date | null, Validators.required],
     start_time: [null as Date | null, Validators.required],
     end_date: [null as Date | null, Validators.required],
@@ -131,6 +147,7 @@ export class EventEditFormComponent {
     // Optional
     description: [""],
     slug: ["", [Validators.pattern(/^[a-z0-9-]*$/)]],
+    organizer_query: [""],
     url: [""],
     published: [true],
     banner_src: [""],
@@ -160,6 +177,10 @@ export class EventEditFormComponent {
    * the bounds rectangle.
    */
   communityKeys = signal<string[]>([]);
+  /** Organizations loaded for the admin-only organizer autocomplete. */
+  organizations = signal<OrganizationDocument[]>([]);
+  organizerQuery = signal<string>("");
+  selectedOrganizer = signal<OrganizationReferenceSchema | null>(null);
   /** Community keys auto-suggested from the current bounds center. */
   autoSuggestedCommunityKeys = signal<string[]>([]);
 
@@ -184,6 +205,8 @@ export class EventEditFormComponent {
       e.description ||
       e.slug ||
       e.url ||
+      e.organizer ||
+      e.location ||
       e.bannerSrc ||
       e.logoSrc ||
       e.sponsor ||
@@ -193,6 +216,33 @@ export class EventEditFormComponent {
   });
 
   showDeleteConfirm = signal<boolean>(false);
+
+  readonly filteredOrganizations = computed(() => {
+    const query = this.organizerQuery().trim().toLowerCase();
+    const organizations = this.organizations();
+    if (!query) return organizations.slice(0, 20);
+    return organizations
+      .filter((organization) => {
+        const haystack = [
+          organization.name,
+          organization.slug,
+          organization.id,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(query);
+      })
+      .slice(0, 20);
+  });
+
+  readonly displayOrganization = (
+    value: OrganizationDocument | string | null,
+  ): string => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value.name;
+  };
 
   constructor() {
     // Sync the form to the input event whenever it changes (or arrives).
@@ -206,14 +256,19 @@ export class EventEditFormComponent {
         this.bounds.set(null);
         this.spotIds.set([]);
         this.communityKeys.set([]);
+        this.selectedOrganizer.set(null);
+        this.organizerQuery.set("");
         return;
       }
       this.form.reset({
         name: e.name,
         description: e.description ?? "",
         slug: e.slug ?? "",
+        organizer_query: e.organizer?.organization.name ?? "",
         venue_string: e.venueString,
         locality_string: e.localityString,
+        location_lat: e.location?.lat ?? null,
+        location_lng: e.location?.lng ?? null,
         start_date: e.start,
         start_time: e.start,
         end_date: e.end,
@@ -233,7 +288,11 @@ export class EventEditFormComponent {
       this.bounds.set(e.bounds);
       this.spotIds.set([...e.spotIds]);
       this.communityKeys.set([...e.communityKeys]);
+      this.selectedOrganizer.set(e.organizer?.organization ?? null);
+      this.organizerQuery.set(e.organizer?.organization.name ?? "");
     });
+
+    this._loadOrganizations();
 
     // Recompute auto-suggested communities whenever the bounds center
     // moves. Cheap — `listCommunities()` is in-memory after first call
@@ -264,6 +323,23 @@ export class EventEditFormComponent {
 
   onSpotIdsChange(ids: string[]): void {
     this.spotIds.set(ids);
+  }
+
+  onOrganizerInput(event: Event): void {
+    const input = event.target instanceof HTMLInputElement ? event.target : null;
+    const value = input?.value ?? "";
+    this.organizerQuery.set(value);
+    if (value.trim() !== this.selectedOrganizer()?.name) {
+      this.selectedOrganizer.set(null);
+    }
+  }
+
+  onOrganizerSelected(event: MatAutocompleteSelectedEvent): void {
+    const organization = event.option.value as OrganizationDocument;
+    const reference = this._organizationsService.makeReference(organization);
+    this.selectedOrganizer.set(reference);
+    this.organizerQuery.set(reference.name);
+    this.form.patchValue({ organizer_query: reference.name });
   }
 
   removeCommunityKey(key: string): void {
@@ -315,6 +391,7 @@ export class EventEditFormComponent {
     }
 
     const patch: Partial<EventSchema> = {
+      ...this._buildLocationPatch(v.location_lat, v.location_lng),
       name: v.name!.trim(),
       description: trimOrUndefined(v.description),
       slug: trimOrUndefined(v.slug?.toLowerCase()),
@@ -333,6 +410,7 @@ export class EventEditFormComponent {
       community_keys: [...this.communityKeys()],
       series_ids: csvToArray(v.series_ids_csv),
       bounds,
+      organizer: this._buildOrganizerPatch(),
       sponsor:
         v.sponsor_name?.trim() ||
         v.sponsor_url?.trim() ||
@@ -396,6 +474,38 @@ export class EventEditFormComponent {
       console.warn("EventEditForm: community auto-suggest failed", err);
       this.autoSuggestedCommunityKeys.set([]);
     }
+  }
+
+  private async _loadOrganizations(): Promise<void> {
+    try {
+      this.organizations.set(
+        await this._organizationsService.getOrganizations(),
+      );
+    } catch (err) {
+      console.warn("EventEditForm: organization autocomplete failed", err);
+      this.organizations.set([]);
+    }
+  }
+
+  private _buildOrganizerPatch(): EventOrganizerSchema | undefined {
+    const organization = this.selectedOrganizer();
+    return organization
+      ? {
+          type: "organization",
+          organization,
+        }
+      : undefined;
+  }
+
+  private _buildLocationPatch(
+    latitude: number | null | undefined,
+    longitude: number | null | undefined,
+  ): Pick<Partial<EventSchema>, "location_raw"> {
+    const lat = numberOrUndefined(latitude);
+    const lng = numberOrUndefined(longitude);
+    return lat !== undefined && lng !== undefined
+      ? { location_raw: { lat, lng } }
+      : {};
   }
 
   /** Approximate point-in-circle test in meters via haversine. */

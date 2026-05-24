@@ -504,6 +504,44 @@ async function testReadOnlyBackendCollections(owner) {
   }
 }
 
+async function testEventWriteGuards(owner, adminUser) {
+  await assertDenied("regular user cannot create event", () =>
+    setDoc(doc(owner.db, "events/client-event"), {
+      name: "Client Event",
+    })
+  );
+  await assertAllowed("admin creates event with editable fields", () =>
+    setDoc(doc(adminUser.db, "events/admin-event"), {
+      name: "Admin Event",
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+      organizer: {
+        type: "organization",
+        organization: {
+          id: "pk-spot",
+          name: "PK Spot",
+          slug: "pk-spot",
+        },
+      },
+    })
+  );
+  await assertDenied("admin cannot create event with computed bounds center", () =>
+    setDoc(doc(adminUser.db, "events/admin-computed-create"), {
+      name: "Admin Computed Create",
+      bounds_center: [47.3769, 8.5417],
+    })
+  );
+  await assertDenied("admin cannot update event computed radius", () =>
+    updateDoc(doc(adminUser.db, "events/admin-event"), {
+      bounds_radius_m: 2500,
+    })
+  );
+  await assertAllowed("admin can update event editable fields", () =>
+    updateDoc(doc(adminUser.db, "events/admin-event"), {
+      location_raw: { lat: 47.37, lng: 8.55 },
+    })
+  );
+}
+
 async function testPostAndImportGuards(anon, owner, other, adminUser) {
   await assertAllowed("authenticated post create without like_count", () =>
     setDoc(doc(owner.db, "posts/owner-post"), {
@@ -646,6 +684,7 @@ async function main() {
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);
   await testUserPrivacyAndPrivilegeEscalation(anon, owner, other);
   await testReadOnlyBackendCollections(owner);
+  await testEventWriteGuards(owner, adminUser);
   await testPostAndImportGuards(anon, owner, other, adminUser);
   await testChallengeVisibility(anon, owner, other);
   await testQueriesDoNotBypassRules(owner, other);
