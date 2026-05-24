@@ -125,6 +125,32 @@ describe("SpotsService", () => {
         service.getSpotById("nonexistent" as SpotId, "en")
       ).rejects.toThrow("Error! This Spot does not exist.");
     });
+
+    it("should reject a placeholder spot document before it can render at 0,0", async () => {
+      mockFirestoreAdapter.getDocument.mockResolvedValueOnce({
+        id: "spot-placeholder",
+      });
+
+      await expect(
+        service.getSpotById("spot-placeholder" as SpotId, "en")
+      ).rejects.toThrow(
+        "Spot spot-placeholder does not have a usable location yet."
+      );
+    });
+
+    it("should hydrate spots that only have location_raw", async () => {
+      mockFirestoreAdapter.getDocument.mockResolvedValueOnce({
+        id: "spot-raw",
+        name: { en: "Raw Location Spot" },
+        location_raw: { lat: 43.125069239165526, lng: 141.43403324056948 },
+      });
+
+      const spot = await service.getSpotById("spot-raw" as SpotId, "en");
+
+      expect(spot).toBeInstanceOf(Spot);
+      expect(spot.location().lat).toBe(43.125069239165526);
+      expect(spot.location().lng).toBe(141.43403324056948);
+    });
   });
 
   describe("getSpotById$", () => {
@@ -157,6 +183,18 @@ describe("SpotsService", () => {
 
       await expect(firstValueFrom(spot$)).rejects.toThrow(
         "Error! This Spot does not exist."
+      );
+    });
+
+    it("should reject placeholder snapshots without location data", async () => {
+      mockFirestoreAdapter.documentSnapshots.mockReturnValueOnce(
+        of({ id: "spot-placeholder" })
+      );
+
+      const spot$ = service.getSpotById$("spot-placeholder" as SpotId, "en");
+
+      await expect(firstValueFrom(spot$)).rejects.toThrow(
+        "Spot spot-placeholder does not have a usable location yet."
       );
     });
   });

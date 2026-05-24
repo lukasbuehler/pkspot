@@ -472,6 +472,15 @@ export class StorageImage extends StorageMedia {
   }
 
   /**
+   * Returns the copy created by the Firebase resize extension when processing
+   * fails. This is only used as a last-resort display fallback.
+   */
+  getFailedOriginalSrc(): string {
+    const extension = this.extension ? "." + this.extension : "";
+    return `${this.uriBeforeBucket}${this.bucket}%2Ffailed%2F${this.filename}${extension}?${this.options}`;
+  }
+
+  /**
    * Checks if the resized image at the specified size is available.
    * Uses a HEAD request to avoid downloading the full image.
    * Updates the isProcessing signal accordingly.

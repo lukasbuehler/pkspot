@@ -2,23 +2,20 @@
 <html lang="en" data-bs-theme="dark" data-color-mode="dark">
   <head>
     <meta charset="utf-8" />
-    <title i18n="@@pk.index.title">Parkour Spot Map | PK Spot</title>
+    <title>The Spot for Everything Parkour | PK Spot</title>
     <base href="/" />
     <meta
       name="description"
-      i18n-content="@@pk.index.description"
-      content="Discover parkour spots near you, plan training sessions with friends, and share what you find with the freerunning community on PK Spot."
+      content="Find spots, check in, discover events and jams, and connect with your local parkour community on PK Spot."
     />
 
     <meta
       property="og:title"
-      i18n-content="@@pk.index.og_title"
-      content="Parkour Spot Map | PK Spot"
+      content="The Spot for Everything Parkour | PK Spot"
     />
     <meta
       property="og:description"
-      i18n-content="@@pk.index.og_description"
-      content="Discover parkour spots near you, plan training sessions with friends, and share what you find with the freerunning community."
+      content="Find spots, check in, discover events and jams, and connect with your local parkour community."
     />
     <meta
       property="og:image"
@@ -44,14 +41,12 @@
     <!-- Twitter Meta -->
     <meta
       name="twitter:title"
-      i18n-content="@@pk.index.twitter_title"
-      content="Parkour Spot Map | PK Spot"
+      content="The Spot for Everything Parkour | PK Spot"
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:description"
-      i18n-content="@@pk.index.twitter_description"
-      content="Discover parkour spots near you, plan training sessions with friends, and share what you find with the freerunning community on PK Spot."
+      content="Find spots, check in, discover events and jams, and connect with your local parkour community on PK Spot."
     />
     <meta
       name="twitter:image"
@@ -117,7 +112,16 @@
         font-style: normal;
         font-weight: 100 700;
         font-display: swap;
-        src: url("assets/fonts/material-symbols-optimized.woff2?v=dff762703a")
+        src: url("assets/fonts/material-symbols-optimized.woff2?v=81100dc1b6")
+          format("woff2");
+      }
+
+      @font-face {
+        font-family: "Material Symbols Rounded Outlined";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("assets/fonts/material-symbols-rounded-outline.woff2?v=97b8cd2d12")
           format("woff2");
       }
 
@@ -161,6 +165,22 @@
 
         /* Same settings as above */
         font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+
+      .material-symbols-rounded-outline {
+        font-family: "Material Symbols Rounded Outlined";
+        font-weight: 400;
+        font-style: normal;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        font-feature-settings: "liga";
+        -webkit-font-feature-settings: "liga";
+        -webkit-font-smoothing: antialiased;
       }
 
       /* Roboto - Variable Font */

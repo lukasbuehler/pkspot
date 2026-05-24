@@ -8,6 +8,8 @@ import { CommunityPageSchema } from "../../src/db/schemas/CommunityPageSchema";
 import {
   CommunityChildSummarySchema,
   CommunityEventPreviewSchema,
+  CommunityPickCategory,
+  CommunityPickSectionSchema,
 } from "../../src/db/schemas/CommunityPageSchema";
 import { CommunitySlugSchema } from "../../src/db/schemas/CommunitySlugSchema";
 import { EventSchema } from "../../src/db/schemas/EventSchema";
@@ -23,7 +25,10 @@ import {
   buildCommunitySlugCandidates,
   getSpotCommunityCandidates,
 } from "../../src/scripts/CommunityHelpers";
-import { computeCommunityBounds } from "../../src/scripts/CommunityBoundsHelpers";
+import {
+  computeCommunityBounds,
+  getDistanceMeters,
+} from "../../src/scripts/CommunityBoundsHelpers";
 import { isDrySpotCandidate } from "../../src/scripts/SpotLandingHelpers";
 import {
   getSpotCountryDisplayName,
@@ -40,10 +45,18 @@ const EVENTS_COLLECTION = "events";
 const SPOTS_COLLECTION = "spots";
 const MANUAL_REBUILD_DOC = `${MAINTENANCE_COLLECTION}/run-rebuild-community-pages`;
 const DEFAULT_LOCALE = "en";
-const MAX_SPOTS_PER_SECTION = 8;
+const MAX_SPOTS_PER_LEGACY_SECTION = 10;
+const MAX_STANDOUT_COMMUNITY_PICKS = 4;
+const MAX_CATEGORY_COMMUNITY_PICKS = 2;
+const MAX_FALLBACK_COMMUNITY_PICKS = 4;
 const MAX_CHILD_COMMUNITIES = 8;
 const MAX_COMMUNITY_EVENT_PREVIEWS = 2;
 const COMMUNITY_EVENT_LOOKAHEAD_MONTHS = 6;
+const PURPOSE_BUILT_SPOT_TYPES = new Set([
+  "parkour gym",
+  "parkour park",
+  "gymnastics gym",
+]);
 
 type CommunitySlugDoc = CommunitySlugSchema & { id: string };
 
@@ -140,6 +153,184 @@ const compareSpotsForCommunity = (left: SpotSchema, right: SpotSchema): number =
   );
 };
 
+const getSpotAnchor = (spot: SpotSchema): { lat: number; lng: number } | null => {
+  if (
+    spot.location_raw &&
+    Number.isFinite(spot.location_raw.lat) &&
+    Number.isFinite(spot.location_raw.lng)
+  ) {
+    return { lat: spot.location_raw.lat, lng: spot.location_raw.lng };
+  }
+
+  const location = spot.location as
+    | {
+        latitude?: number;
+        longitude?: number;
+        _latitude?: number;
+        _longitude?: number;
+      }
+    | undefined;
+  const lat = location?.latitude ?? location?._latitude;
+  const lng = location?.longitude ?? location?._longitude;
+  return typeof lat === "number" &&
+    typeof lng === "number" &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng)
+    ? { lat, lng }
+    : null;
+};
+
+const getDistanceToCenter = (
+  spot: SpotSchema,
+  center: { lat: number; lng: number } | null
+): number => {
+  const anchor = getSpotAnchor(spot);
+  return anchor && center ? getDistanceMeters(center, anchor) : Number.POSITIVE_INFINITY;
+};
+
+const getRatingValue = (spot: SpotSchema): number => spot.rating ?? 0;
+
+const getReviewCount = (spot: SpotSchema): number => spot.num_reviews ?? 0;
+
+const compareSpotsForCommunityPicks = (
+  left: SpotSchema,
+  right: SpotSchema,
+  center: { lat: number; lng: number } | null
+): number => {
+  if ((right.is_iconic ?? false) !== (left.is_iconic ?? false)) {
+    return right.is_iconic ? 1 : -1;
+  }
+
+  const leftRating = getRatingValue(left);
+  const rightRating = getRatingValue(right);
+  if (leftRating > 0 || rightRating > 0) {
+    if (rightRating !== leftRating) {
+      return rightRating - leftRating;
+    }
+  }
+
+  const leftReviews = getReviewCount(left);
+  const rightReviews = getReviewCount(right);
+  if (rightReviews !== leftReviews) {
+    return rightReviews - leftReviews;
+  }
+
+  if (leftRating <= 0 && rightRating <= 0 && center) {
+    const distanceDifference =
+      getDistanceToCenter(left, center) - getDistanceToCenter(right, center);
+    if (distanceDifference !== 0) {
+      return distanceDifference;
+    }
+  }
+
+  return getSpotName(left, DEFAULT_LOCALE).localeCompare(
+    getSpotName(right, DEFAULT_LOCALE)
+  );
+};
+
+const hasSpotImage = (spot: SpotSchema): boolean =>
+  getSpotPreviewImage(spot).trim().length > 0;
+
+const hasPurposeBuiltParkourType = (spot: SpotSchema): boolean =>
+  PURPOSE_BUILT_SPOT_TYPES.has(
+    String(spot.type ?? "")
+      .trim()
+      .toLowerCase()
+  );
+
+const hasNightTrainingSignal = (spot: SpotSchema): boolean =>
+  spot.amenities?.lighting === true;
+
+const hasSummerWaterSignal = (spot: SpotSchema): boolean =>
+  spot.amenities?.water_feature === true ||
+  String(spot.type ?? "")
+    .trim()
+    .toLowerCase() === "water";
+
+const buildCommunityPickSections = (
+  spots: Array<{ id: string; data: SpotSchema }>,
+  center: { lat: number; lng: number } | null
+): CommunityPickSectionSchema[] => {
+  const pickedSpotIds = new Set<string>();
+  const sortCandidates = (candidates: Array<{ id: string; data: SpotSchema }>) =>
+    [...candidates].sort((left, right) =>
+      compareSpotsForCommunityPicks(left.data, right.data, center)
+    );
+  const takeSection = (
+    category: CommunityPickCategory,
+    title: string,
+    candidates: Array<{ id: string; data: SpotSchema }>,
+    maxSpots: number
+  ): CommunityPickSectionSchema | null => {
+    const selected = sortCandidates(candidates)
+      .filter((spot) => !pickedSpotIds.has(spot.id))
+      .slice(0, maxSpots);
+
+    for (const spot of selected) {
+      pickedSpotIds.add(spot.id);
+    }
+
+    return selected.length > 0
+      ? {
+          category,
+          title,
+          spots: selected.map((spot) => buildSpotPreview(spot.id, spot.data)),
+        }
+      : null;
+  };
+
+  const imageSpots = spots.filter((spot) => hasSpotImage(spot.data));
+  const sections = [
+    takeSection(
+      "standout",
+      "Standout Spots",
+      imageSpots.filter((spot) => getRatingValue(spot.data) > 0),
+      MAX_STANDOUT_COMMUNITY_PICKS
+    ),
+    takeSection(
+      "parkour",
+      "Built for Parkour",
+      imageSpots.filter((spot) => hasPurposeBuiltParkourType(spot.data)),
+      MAX_CATEGORY_COMMUNITY_PICKS
+    ),
+    takeSection(
+      "dry",
+      "Rainy Day Spots",
+      imageSpots.filter(
+        (spot) =>
+          spot.data.landing?.isDry === true || isDrySpotCandidate(spot.data)
+      ),
+      MAX_CATEGORY_COMMUNITY_PICKS
+    ),
+    takeSection(
+      "night",
+      "After Dark Spots",
+      imageSpots.filter((spot) => hasNightTrainingSignal(spot.data)),
+      MAX_CATEGORY_COMMUNITY_PICKS
+    ),
+    takeSection(
+      "summer",
+      "Summer Spots",
+      imageSpots.filter((spot) => hasSummerWaterSignal(spot.data)),
+      MAX_CATEGORY_COMMUNITY_PICKS
+    ),
+  ].filter(
+    (section): section is CommunityPickSectionSchema => section !== null
+  );
+
+  if (sections.length > 0) {
+    return sections;
+  }
+
+  const fallback = takeSection(
+    "fallback",
+    "Community Spots",
+    spots,
+    MAX_FALLBACK_COMMUNITY_PICKS
+  );
+  return fallback ? [fallback] : [];
+};
+
 const buildSpotPreview = (
   spotId: string,
   spot: SpotSchema
@@ -159,6 +350,8 @@ const buildSpotPreview = (
     isIconic: spot.is_iconic ?? false,
     hideStreetview: spot.hide_streetview,
     rating: spot.rating,
+    numReviews: spot.num_reviews,
+    num_reviews: spot.num_reviews,
     amenities: spot.amenities,
     bounds: spot.bounds,
     bounds_raw: spot.bounds_raw,
@@ -509,6 +702,13 @@ const buildCommunityPageDoc = async (
     // territory/outlier stretching the circle across a continent.
     radiusPercentile: candidate.scope === "locality" ? 1 : 0.8,
   });
+  const communityCenter = communityBounds
+    ? {
+        lat: communityBounds.bounds_center[0],
+        lng: communityBounds.bounds_center[1],
+      }
+    : null;
+  const communityPicks = buildCommunityPickSections(spots, communityCenter);
   const image = existingPage?.image?.url
     ? existingPage.image
     : {
@@ -563,11 +763,15 @@ const buildCommunityPageDoc = async (
       topRated: ratedSpots.length,
       dry: drySpots.length,
     },
+    spots: sortedSpots
+      .slice(0, MAX_SPOTS_PER_LEGACY_SECTION)
+      .map((spot) => buildSpotPreview(spot.id, spot.data)),
+    communityPicks,
     topRatedSpots: ratedSpots
-      .slice(0, MAX_SPOTS_PER_SECTION)
+      .slice(0, MAX_SPOTS_PER_LEGACY_SECTION)
       .map((spot) => buildSpotPreview(spot.id, spot.data)),
     drySpots: drySpots
-      .slice(0, MAX_SPOTS_PER_SECTION)
+      .slice(0, MAX_SPOTS_PER_LEGACY_SECTION)
       .map((spot) => buildSpotPreview(spot.id, spot.data)),
     links: existingPage?.links ?? {},
     resources: existingPage?.resources ?? [],
@@ -752,6 +956,161 @@ export const rebuildCommunityEventPreviewsOnEventWrite = onDocumentWritten(
   }
 );
 
+interface OverlapWarning {
+  keyA: string;
+  keyB: string;
+  nameA: string;
+  nameB: string;
+  distanceKm: number;
+  reason: string;
+  category: "likely_duplicate" | "nearby_related" | "needs_review";
+  severity: "high" | "medium" | "low";
+  spotsOverlapCount: number;
+  totalSpotsA: number;
+  totalSpotsB: number;
+}
+
+const RELATED_PLACE_TERMS = new Set([
+  "central",
+  "east",
+  "north",
+  "old",
+  "port",
+  "south",
+  "west",
+]);
+
+const getSlugParts = (slug: string): string[] =>
+  slug.split("-").filter(Boolean);
+
+const isRelatedPlaceName = (slugA: string, slugB: string): boolean => {
+  const partsA = getSlugParts(slugA);
+  const partsB = getSlugParts(slugB);
+  if (!partsA.length || !partsB.length) {
+    return false;
+  }
+
+  const shorter = partsA.length <= partsB.length ? partsA : partsB;
+  const longer = partsA.length > partsB.length ? partsA : partsB;
+  const extraParts = longer.filter((part) => !shorter.includes(part));
+
+  return extraParts.some((part) => RELATED_PLACE_TERMS.has(part));
+};
+
+const classifyOverlapWarning = (
+  isIdenticalName: boolean,
+  isSubstringName: boolean,
+  hasSharedSpots: boolean,
+  spotsOverlapCount: number,
+  slugA: string,
+  slugB: string
+): Pick<OverlapWarning, "category" | "severity"> => {
+  if (hasSharedSpots || isIdenticalName) {
+    return {
+      category: "likely_duplicate",
+      severity: spotsOverlapCount > 0 ? "high" : "medium",
+    };
+  }
+
+  if (isSubstringName && isRelatedPlaceName(slugA, slugB)) {
+    return { category: "nearby_related", severity: "low" };
+  }
+
+  return { category: "needs_review", severity: "medium" };
+};
+
+const detectOverlappingCommunities = (
+  communities: Map<
+    string,
+    { candidate: CommunityCandidate; spots: Array<{ id: string; data: SpotSchema }> }
+  >
+): OverlapWarning[] => {
+  const localities = [...communities.values()].filter(
+    (c) => c.candidate.scope === "locality"
+  );
+  const warnings: OverlapWarning[] = [];
+
+  for (let i = 0; i < localities.length; i++) {
+    const cA = localities[i];
+    const boundsA = computeCommunityBounds(cA.spots.map((s) => s.data));
+    if (!boundsA) continue;
+
+    const centerA = { lat: boundsA.bounds_center[0], lng: boundsA.bounds_center[1] };
+    const nameA = cA.candidate.displayName || "";
+    const slugA = cA.candidate.geography.localitySlug || "";
+    const spotIdsA = new Set(cA.spots.map((s) => s.id));
+
+    for (let j = i + 1; j < localities.length; j++) {
+      const cB = localities[j];
+
+      // Must be same country
+      if (cA.candidate.geography.countryCode !== cB.candidate.geography.countryCode) {
+        continue;
+      }
+
+      const boundsB = computeCommunityBounds(cB.spots.map((s) => s.data));
+      if (!boundsB) continue;
+
+      const centerB = { lat: boundsB.bounds_center[0], lng: boundsB.bounds_center[1] };
+      const distanceMeters = getDistanceMeters(centerA, centerB);
+
+      // We only flag communities that are physically close to each other (e.g., within 20 km)
+      if (distanceMeters > 20000) {
+        continue;
+      }
+
+      const nameB = cB.candidate.displayName || "";
+      const slugB = cB.candidate.geography.localitySlug || "";
+
+      // Check for overlap indicators:
+      // 1. Identical or substring display names
+      const normA = nameA.toLowerCase().trim();
+      const normB = nameB.toLowerCase().trim();
+      const isIdenticalName = normA === normB;
+      const isSubstringName =
+        !!slugA && !!slugB && (slugA.includes(slugB) || slugB.includes(slugA));
+
+      // 2. Shared spots
+      const sharedSpots = cB.spots.filter((s) => spotIdsA.has(s.id));
+      const hasSharedSpots = sharedSpots.length > 0;
+
+      if (isIdenticalName || isSubstringName || hasSharedSpots) {
+        let reason = "";
+        if (isIdenticalName) {
+          reason = "Identical display name";
+        } else if (isSubstringName) {
+          reason = `Similar display names ("${nameA}" vs "${nameB}")`;
+        } else {
+          reason = "Shared spots";
+        }
+        const classification = classifyOverlapWarning(
+          isIdenticalName,
+          isSubstringName,
+          hasSharedSpots,
+          sharedSpots.length,
+          slugA,
+          slugB
+        );
+
+        warnings.push({
+          keyA: cA.candidate.communityKey,
+          keyB: cB.candidate.communityKey,
+          nameA,
+          nameB,
+          distanceKm: Math.round((distanceMeters / 1000) * 10) / 10,
+          reason,
+          ...classification,
+          spotsOverlapCount: sharedSpots.length,
+          totalSpotsA: cA.spots.length,
+          totalSpotsB: cB.spots.length,
+        });
+      }
+    }
+  }
+
+  return warnings;
+};
+
 export const rebuildAllCommunityPages = onDocumentCreated(
   { document: MANUAL_REBUILD_DOC },
   async (event) => {
@@ -795,11 +1154,34 @@ export const rebuildAllCommunityPages = onDocumentCreated(
 
     await refreshCountryChildCommunities(db, writtenCountryKeys);
 
+    // Audit overlapping communities
+    const warnings = detectOverlappingCommunities(communities);
+    if (warnings.length > 0) {
+      console.warn(
+        `[rebuildAllCommunityPages] Detected ${warnings.length} overlapping/duplicate communities:`,
+        JSON.stringify(warnings, null, 2)
+      );
+      await db
+        .collection(MAINTENANCE_COLLECTION)
+        .doc("community-warnings")
+        .set({
+          warnings,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+    } else {
+      await db
+        .collection(MAINTENANCE_COLLECTION)
+        .doc("community-warnings")
+        .delete()
+        .catch(() => undefined);
+    }
+
     await event.data?.ref.set(
       {
         status: "DONE",
         generated_count: writtenKeys.size,
         completed_at: FieldValue.serverTimestamp(),
+        warnings: warnings.length > 0 ? warnings : null,
       },
       { merge: true }
     );

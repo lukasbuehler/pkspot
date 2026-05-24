@@ -84,7 +84,7 @@ export class SpotsService extends ConsentAwareService {
       .getDocument<SpotSchema & { id: string }>(`spots/${spotId}`)
       .then((data) => {
         if (data) {
-          return new Spot(data.id as SpotId, data as SpotSchema, locale);
+          return this.hydrateSpot(data.id as SpotId, data, locale);
         } else {
           throw new Error("Error! This Spot does not exist.");
         }
@@ -114,7 +114,7 @@ export class SpotsService extends ConsentAwareService {
 
           const spotData = transformFirestoreData(data.fields) as SpotSchema;
 
-          return new Spot(spotId, spotData, locale);
+          return this.hydrateSpot(spotId, spotData, locale);
         })
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
@@ -131,7 +131,7 @@ export class SpotsService extends ConsentAwareService {
       .pipe(
         map((d) => {
           if (!d) throw new Error("Error! This Spot does not exist.");
-          return new Spot(d.id as SpotId, d as SpotSchema, locale);
+          return this.hydrateSpot(d.id as SpotId, d, locale);
         })
       );
   }
@@ -194,7 +194,20 @@ export class SpotsService extends ConsentAwareService {
       .getCollection<SpotSchema & { id: string }>("spots", filters)
       .then((docs) => {
         if (docs && docs.length > 0) {
-          return new Spot(docs[0].id as SpotId, docs[0] as SpotSchema, locale);
+          for (const spotDoc of docs) {
+            try {
+              return this.hydrateSpot(
+                spotDoc.id as SpotId,
+                spotDoc as SpotSchema,
+                locale
+              );
+            } catch (error) {
+              console.warn(
+                `[SpotsService] Ignoring incomplete spot slug match ${spotDoc.id}`,
+                error
+              );
+            }
+          }
         }
         return null;
       });
@@ -239,9 +252,7 @@ export class SpotsService extends ConsentAwareService {
           const spots: Spot[] = [];
           arr.forEach((docObj) => {
             try {
-              spots.push(
-                new Spot(docObj.id as SpotId, docObj as SpotSchema, locale)
-              );
+              spots.push(this.hydrateSpot(docObj.id as SpotId, docObj, locale));
             } catch (error) {
               console.error(
                 `[SpotsService] Failed to hydrate spot ${docObj.id}`,
@@ -365,7 +376,7 @@ export class SpotsService extends ConsentAwareService {
             result.document.fields
           ) as SpotSchema;
           try {
-            spots.push(new Spot(spotId, spotData, locale));
+            spots.push(this.hydrateSpot(spotId, spotData, locale));
           } catch (error) {
             console.error(
               `[SpotsService HTTP] Failed to hydrate spot ${spotId}`,
@@ -462,7 +473,11 @@ export class SpotsService extends ConsentAwareService {
       const spotData: SpotSchema = data as SpotSchema;
       if (spotData) {
         try {
-          let newSpot: Spot = new Spot(doc.id as SpotId, spotData, locale);
+          let newSpot: Spot = this.hydrateSpot(
+            doc.id as SpotId,
+            spotData,
+            locale
+          );
           newSpots.push(newSpot);
         } catch (error) {
           console.error(
@@ -475,6 +490,20 @@ export class SpotsService extends ConsentAwareService {
       }
     });
     return newSpots;
+  }
+
+  private hydrateSpot(
+    spotId: SpotId,
+    spotData: SpotSchema,
+    locale: LocaleCode
+  ): Spot {
+    if (!parseFirestoreGeoPoint(spotData.location, spotData.location_raw)) {
+      throw new Error(
+        `Spot ${spotId} does not have a usable location yet.`
+      );
+    }
+
+    return new Spot(spotId, spotData, locale);
   }
 
   _checkMediaDiffAndDeleteFromStorageIfNecessary(

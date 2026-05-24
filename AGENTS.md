@@ -30,7 +30,23 @@ These instructions apply to all work in this repository.
 - Use `providedIn: 'root'` for singleton services.
 - Use `inject()` instead of constructor injection where practical.
 
-If you hit the Angular Error "Abort trap: 6", it doesn't work in the sandbox and needs to be run in a normal terminal.
+If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside the sandbox in the terminal.
+
+## Dependency updates
+
+- Avoid broad dependency updates unless the user explicitly asks for them. Prefer targeted updates with a small, reviewable `package.json` and `package-lock.json` diff.
+- For routine non-urgent npm updates, wait 24-72 hours before adopting newly published package versions. This gives the ecosystem time to catch compromised or mistakenly published releases. Treat urgent security fixes case-by-case instead of waiting automatically.
+- Do not run `npm audit fix --force` unless the semver-major changes and replacement versions have been reviewed.
+- Prefer install commands that avoid lifecycle scripts in CI or inspection contexts, such as `npm ci --ignore-scripts`, then run only the explicit build/test commands needed for verification.
+
+## Deep links
+
+- When adding a new first-level app route that should open in the Android app, update `android/app/src/main/AndroidManifest.xml` with the matching App Link path rule. Android App Links are intentionally path-scoped so reserved browser-first URLs such as `/qr/*` are not claimed by the app.
+
+## Backwards compatibility
+
+- Treat Firestore, Typesense, and Cloud Function payload changes as app-versioned contracts. Mobile apps and older web builds may keep reading existing fields after a deploy, so prefer additive fields and keep legacy fields populated until all supported clients have migrated.
+- When replacing a UI data shape, map new data back into the previous fields or provide client fallbacks so older app versions degrade gracefully instead of showing empty states.
 
 ## Theme colors
 
@@ -47,9 +63,16 @@ If you hit the Angular Error "Abort trap: 6", it doesn't work in the sandbox and
   - Ensure the icon name exists in `/Users/lukas/development/personal/pkspot/src/assets/fonts/icons_list.txt`.
   - If missing, add it to `icons_list.txt` (one icon name per line).
   - Run `npm run icons:optimize` from repo root after updating the list.
+- The default Material Symbols font is the filled rounded subset from `icons_list.txt`.
+- Empty/outlined icons use a second tiny rounded-outline subset:
+  - Add only the needed base/alias names to `src/assets/fonts/icons_outline_list.txt` (for example `star`, `star_border`, `mobile`, `mobile_border`).
+  - Add an alias in `scripts/optimize_icons.py` when the icon name is not a real Google glyph name (for example `mobile_border` maps to `mobile`).
+  - In the template/CSS, select the outline font with `material-symbols-rounded-outline` or `font-family: "Material Symbols Rounded Outlined"`. Adding a name to `icons_outline_list.txt` only makes the glyph available; it does not automatically switch a `<mat-icon>` away from the default filled font.
+  - Run `npm run icons:optimize` after changing either icon list.
 
 ## Testing
 
+- Before considering work complete, both the relevant tests and the build/SSR smoke test must pass. Do not report a change as done if `npm run test:unit` passes but `npm run test:build` is failing; either fix the build or clearly call out the blocker.
 - Use `npm run test:unit` for the Vitest unit suite.
 - Use `npm run test:build` for the build and SSR smoke test. This verifies `npm run build`, copied proxy server files, generated `dist/pkspot/server/build-info.mjs`, localized build output, and that SSR serves real HTML without falling back to client-side rendering.
 - Use `npm run test:all` for the main local verification pass before shipping changes. It runs the unit suite and the build/SSR smoke test.

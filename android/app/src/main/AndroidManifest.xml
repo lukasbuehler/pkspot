@@ -20,12 +20,38 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- App Links for pkspot.app deep linking -->
+            <!-- App Links for pkspot.app deep linking. Keep this path-scoped so /qr/* opens in the browser first. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="pkspot.app" />
+                <data android:scheme="https" android:host="pkspot.app" android:path="/" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/map" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/s" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/e" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/events" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/event" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/activity" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/kml-import" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/embed" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/embedded" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/profile" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/u" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/account" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/sign-in" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/sign-up" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/forgot-password" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/settings" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/about" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/support" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/terms-of-service" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/tos" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/privacy-policy" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/pp" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/impressum" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/leaderboard" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/__/auth/action" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/oauth/callback" />
             </intent-filter>
         </activity>
 

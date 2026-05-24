@@ -1,6 +1,7 @@
+@if (!hideHeader()) {
 <div class="d-flex justify-content-between align-items-center mb-2">
   <h3 class="mat-title-medium m-0">{{ text() }}</h3>
-  <mat-button-toggle-group #group="matButtonToggleGroup" value="grid">
+  <mat-button-toggle-group [value]="viewMode()" (change)="setViewMode($event)">
     <mat-button-toggle value="grid" aria-label="Grid view">
       <mat-icon>grid_view</mat-icon>
     </mat-button-toggle>
@@ -9,6 +10,7 @@
     </mat-button-toggle>
   </mat-button-toggle-group>
 </div>
+}
 
 <!-- Spot highlights -->
 @if(renderedHighlightedSpots().length > 0) {
@@ -21,7 +23,7 @@
   Highlights
 </h4> -->
 <div
-  [class.compact]="group.value === 'compact'"
+  [class.compact]="viewMode() === 'compact'"
   class="spot-container pb-3"
   [appAutoAnimate]="enableAnimation()"
 >
@@ -34,8 +36,9 @@
         [mapZoom]="mapZoom()"
         [forcePlaceholderContainer]="true"
         [infoOnly]="true"
+        [showRating]="showRatings()"
         [clickable]="true"
-        [isCompact]="group.value === 'compact'"
+        [isCompact]="viewMode() === 'compact'"
         [loadingPriority]="$index < 2"
         class="w-100"
       >
@@ -47,8 +50,9 @@
       [mapZoom]="mapZoom()"
       [forcePlaceholderContainer]="true"
       [infoOnly]="true"
+      [showRating]="showRatings()"
       [clickable]="true"
-      [isCompact]="group.value === 'compact'"
+      [isCompact]="viewMode() === 'compact'"
       [loadingPriority]="$index < 2"
       (click)="onSpotClick(spot, $index)"
       class="w-100"
@@ -66,7 +70,7 @@
 <h4 class="mat-title-medium" i18n="@@regular_spots_text">Other Spots</h4>
 } @if(renderedRemainingSpots().length > 0) {
 <div
-  [class.compact]="group.value === 'compact'"
+  [class.compact]="viewMode() === 'compact'"
   class="spot-container pb-3"
   [appAutoAnimate]="enableAnimation()"
 >
@@ -79,8 +83,9 @@
         [mapZoom]="mapZoom()"
         [forcePlaceholderContainer]="true"
         [infoOnly]="true"
+        [showRating]="showRatings()"
         [clickable]="true"
-        [isCompact]="group.value === 'compact'"
+        [isCompact]="viewMode() === 'compact'"
         [imgSize]="400"
         [loadingPriority]="$index < 2"
         class="w-100"
@@ -92,8 +97,9 @@
       [mapZoom]="mapZoom()"
       [forcePlaceholderContainer]="true"
       [infoOnly]="true"
+      [showRating]="showRatings()"
       [clickable]="true"
-      [isCompact]="group.value === 'compact'"
+      [isCompact]="viewMode() === 'compact'"
       [imgSize]="400"
       [loadingPriority]="$index < 2"
       class="w-100"

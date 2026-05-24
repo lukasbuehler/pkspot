@@ -4,22 +4,22 @@
 @mixin color($theme) {
   .pin-primary {
     > div {
-      border-color: #dde1ff; // var(--mat-sys-on-primary-container);
-      background-color: #0037b9; // var(--mat-sys-primary-container);
-      color: #dde1ff;
+      border-color: var(--mat-sys-primary);
+      background-color: var(--mat-sys-primary-container);
+      color: var(--mat-sys-on-primary-container);
     }
     > svg {
-      fill: #dde1ff;
+      fill: var(--mat-sys-primary);
     }
   }
   .pin-secondary {
     > div {
-      border-color: #a7f690; // var(--mat-sys-on-secondary-container);
-      background-color: #055300; // var(--mat-sys-secondary-container);
-      color: #a7f690;
+      border-color: var(--mat-sys-secondary);
+      background-color: var(--mat-sys-secondary-container);
+      color: var(--mat-sys-on-secondary-container);
     }
     > svg {
-      fill: #a7f690;
+      fill: var(--mat-sys-secondary);
     }
   }
   .pin-tertiary {

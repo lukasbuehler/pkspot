@@ -1,7 +1,10 @@
 import path from "node:path";
 import express from "express";
 import compression from "compression";
-import { applyTrustedClientRegionHeader } from "./proxy-server-helpers.mjs";
+import {
+  applyTrustedClientRegionHeader,
+  handleQrStickerRequest,
+} from "./proxy-server-helpers.mjs";
 import {
   LAST_MODIFIED,
   SUPPORTED_LANGUAGE_CODES as supportedLanguageCodes,
@@ -10,8 +13,21 @@ import {
 const defaultLanguage = "en";
 const sitemapUrl =
   "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml";
-
 const serverExpressApps = {};
+const localizedBrowserFileExtensions = new Set([
+  ".css",
+  ".ico",
+  ".js",
+  ".json",
+  ".map",
+  ".png",
+  ".svg",
+  ".txt",
+  ".webmanifest",
+  ".webp",
+  ".woff",
+  ".woff2",
+]);
 
 for (const lang of supportedLanguageCodes) {
   serverExpressApps[lang] = (await import(`./${lang}/server.mjs`)).app;
@@ -70,6 +86,71 @@ function detectLanguage(req, res, next) {
   return res.redirect(301, targetUrl);
 }
 
+function isKnownAngularRoute(pathname) {
+  const cleanPath = (pathname || "/").split("?")[0].split("#")[0] || "/";
+  const segments = cleanPath.split("/").filter(Boolean);
+  const [first, second, third, fourth] = segments;
+
+  if (segments.length === 0) return true;
+
+  const staticRoutes = new Set([
+    "about",
+    "support",
+    "terms-of-service",
+    "tos",
+    "privacy-policy",
+    "pp",
+    "impressum",
+    "activity",
+    "kml-import",
+    "embed",
+    "events",
+    "profile",
+    "account",
+    "sign-in",
+    "sign-up",
+    "forgot-password",
+    "settings",
+    "leaderboard",
+  ]);
+
+  if (staticRoutes.has(first)) return true;
+  if (first === "s" && second) return true;
+  if (first === "e" && second) return true;
+  if (first === "u" && second) return true;
+  if (first === "__" && second === "auth" && third === "action") return true;
+  if (first === "event" && second === "swissjam25") return true;
+
+  if (first === "embedded") {
+    return (
+      second === "map" ||
+      (second === "event" && Boolean(third)) ||
+      (second === "events" && Boolean(third))
+    );
+  }
+
+  if (first === "map") {
+    if (!second) return true;
+    if (second === "spots") {
+      if (!third) return true;
+      return !fourth || fourth === "edits" || fourth === "c";
+    }
+    if (second === "communities" || second === "community") return Boolean(third);
+    if (second === "events" || second === "event") return Boolean(third);
+    return true;
+  }
+
+  return false;
+}
+
+function isLocalizedBrowserFileRequest(assetName) {
+  return (
+    typeof assetName === "string" &&
+    !assetName.includes("/") &&
+    localizedBrowserFileExtensions.has(path.extname(assetName))
+  );
+}
+
 function run() {
   const port = process.env.PORT || 8080;
   const server = express();
@@ -82,6 +163,10 @@ function run() {
     next();
   });
 
+  server.get("/qr/:slug", async (req, res, next) => {
+    return handleQrStickerRequest(req, res, next);
+  });
+
   // Global caching middleware that sets Cache-Control and Last-Modified,
   // and checks for a conditional GET request.
   server.use((req, res, next) => {
@@ -89,17 +174,6 @@ function run() {
     res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
     res.setHeader("Last-Modified", LAST_MODIFIED);
 
-    // Only apply this logic to GET requests.
-    if (req.method === "GET") {
-      const ifModifiedSince = req.headers["if-modified-since"];
-      if (
-        ifModifiedSince &&
-        new Date(ifModifiedSince) >= new Date(LAST_MODIFIED)
-      ) {
-        // Client has the latest version.
-        return res.status(304).end();
-      }
-    }
     next();
   });
 
@@ -139,6 +213,32 @@ function run() {
     }
 
     return res.redirect(301, sitemapUrl);
+  });
+
+  // Serve browser entry files emitted next to each localized index, such as
+  // /en/main.js, /en/polyfills.js, /en/styles.css, and /en/chunk-*.js.
+  server.get("/:lang/:asset", (req, res, next) => {
+    const { lang, asset } = req.params;
+    if (
+      !supportedLanguageCodes.includes(lang) ||
+      !isLocalizedBrowserFileRequest(asset)
+    ) {
+      return next();
+    }
+
+    const assetPath = path.join(__dirname, `../browser/${lang}`, asset);
+    console.log(`Serving localized browser file: ${req.path} from ${assetPath}`);
+
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    return res.sendFile(assetPath, (err) => {
+      if (err) {
+        console.error(
+          `Failed to serve localized browser file ${req.path}:`,
+          err.message,
+        );
+        res.status(404).send(`Asset not found: ${req.path}`);
+      }
+    });
   });
 
   server.get("/assets/*", (req, res) => {
@@ -255,6 +355,12 @@ function run() {
 
   // Mount language specific angular SSR server apps
   for (const lang of supportedLanguageCodes) {
+    server.use(`/${lang}`, (req, res, next) => {
+      if (!isKnownAngularRoute(req.path)) {
+        res.status(404);
+      }
+      next();
+    });
     server.use(`/${lang}`, serverExpressApps[lang]());
   }
 

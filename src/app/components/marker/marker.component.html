@@ -15,8 +15,8 @@
 >
   <div
     class="mat-label-large d-flex flex-row align-items-center gap-1"
-    [class.has-icons]="icons() || isCheckIn()"
-    [class.icons-only]="(icons() || isCheckIn()) && !formattedNumber()"
+    [class.has-icons]="icons() || imageSrc() || isCheckIn()"
+    [class.icons-only]="(icons() || imageSrc() || isCheckIn()) && !formattedNumber()"
   >
     @if(formattedNumber()) {
     <span class="d-inline-block">{{ formattedNumber() }}</span>
@@ -24,14 +24,21 @@
     <mat-icon style="height: 20px; font-size: 20px; width: 20px"
       >beenhere</mat-icon
     >
-    } @else if(imageSrc()) {
+    } @if(imageSrc()) {
+    <span
+      class="marker-image-shell"
+      [style.background-color]="
+        imageBackgroundColor() ??
+        'var(--mat-sys-surface-container-highest)'
+      "
+    >
     <img
       [src]="imageSrc()"
       alt=""
       class="marker-image"
-      style="height: 20px; width: 20px; object-fit: cover; border-radius: 4px"
     />
-    } @else if(icons()) { @for(icon of icons()!; track $index) {
+    </span>
+    } @if(icons() && !isCheckIn()) { @for(icon of icons()!; track $index) {
     <mat-icon style="height: 20px; font-size: 20px; width: 20px">
       {{ icon }}
     </mat-icon>

@@ -532,12 +532,12 @@ export class SpotMapDataManager {
     originalSpot?: Spot | LocalSpot
   ): Promise<SpotId> {
     // Ensure user is authenticated
-    if (!this._authService.isSignedIn || !this._authService.user?.uid) {
+    const authUid = this._authService.user?.uid;
+    if (!this._authService.isSignedIn || !authUid) {
       throw new Error("User not authenticated");
     }
 
-    // Create user reference with properly formatted profile picture URL
-    const userReference = createUserReference(this._authService.user.data!);
+    const userReference = this._createAuthenticatedUserReference(authUid);
 
     if (spot instanceof Spot) {
       // Existing spot - create an UPDATE edit with only changed fields
@@ -572,6 +572,30 @@ export class SpotMapDataManager {
       );
       return spotId;
     }
+  }
+
+  private _createAuthenticatedUserReference(uid: string): UserReferenceSchema {
+    const profileUser = this._authService.user.data;
+
+    if (!profileUser) {
+      return {
+        uid,
+        display_name: this._authService.user.email ?? "",
+      };
+    }
+
+    const userReference = createUserReference(profileUser);
+    if (userReference.uid !== uid) {
+      console.warn("Authenticated user uid differs from profile uid", {
+        authUid: uid,
+        profileUid: userReference.uid,
+      });
+    }
+
+    return {
+      ...userReference,
+      uid,
+    };
   }
 
   /**

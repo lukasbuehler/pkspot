@@ -68,6 +68,10 @@ export {
 
 // storage triggers
 export { processVideoUpload } from "./storageFunctions";
+export {
+  backfillStorageImageSizes,
+  processImageUpload,
+} from "./imageProcessingFunctions";
 
 // spot challenge functions
 export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";

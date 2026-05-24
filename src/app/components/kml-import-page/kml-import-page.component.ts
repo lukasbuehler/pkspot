@@ -98,6 +98,7 @@ import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amen
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 import { AnyMedia, ExternalImage } from "../../../db/models/Media";
+import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 // KML import is gated by the `isAdmin` flag on the user document
 // (see UserSchema.is_admin). Previously a hardcoded uid whitelist; now
 // any admin can import. The check below mirrors spot-details and other
@@ -168,6 +169,7 @@ type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
     SpotPreviewCardComponent,
     ImgCarouselComponent,
     MatSidenavModule,
+    AutocompleteOverlayRepositionDirective,
   ],
 })
 export class KmlImportPageComponent implements OnInit, AfterViewInit {
@@ -767,10 +769,21 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   private _sanitizeUrl(value: string | null | undefined): string | undefined {
     const v = (value ?? "").trim();
     if (!v) return undefined;
-    if (v.startsWith("http://") || v.startsWith("https://")) {
-      return v;
+
+    const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(v)
+      ? v
+      : `https://${v}`;
+
+    try {
+      const url = new URL(withProtocol);
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        return url.toString();
+      }
+    } catch {
+      return undefined;
     }
-    return `https://${v}`;
+
+    return undefined;
   }
 
   private _normalizeInstagramHandle(
@@ -2570,7 +2583,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
           anchor.remove();
         }
       });
-      cleaned = html.body.innerHTML;
+      cleaned = html.body.textContent ?? "";
     } catch {
       cleaned = value;
     }

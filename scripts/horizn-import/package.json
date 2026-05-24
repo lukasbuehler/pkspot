@@ -18,8 +18,11 @@
     "typescript": "5.3.3"
   },
   "overrides": {
-    "fast-xml-parser": "^5.5.7",
+    "fast-xml-parser": "^5.8.0",
     "node-forge": "^1.4.0",
-    "protobufjs": "^7.5.5"
+    "protobufjs": "^7.6.1",
+    "@protobufjs/utf8": "^1.1.1",
+    "uuid": "^14.0.0",
+    "@tootallnate/once": "^2.0.1"
   }
 }

@@ -7,6 +7,7 @@ export type SpotEditDataSchema = Partial<
     SpotSchema,
     | "name"
     | "location"
+    | "location_raw"
     | "description"
     | "media"
     | "external_references"
@@ -14,13 +15,7 @@ export type SpotEditDataSchema = Partial<
     | "access"
     | "amenities"
     | "bounds"
-    | "slug"
-    | "media"
-    | "external_references"
-    | "type"
-    | "access"
-    | "amenities"
-    | "bounds"
+    | "bounds_raw"
     | "slug"
     | "hide_streetview"
   > & {

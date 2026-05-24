@@ -167,3 +167,6 @@ receipt_long
 events
 event
 travel_explore
+mobile
+storefront
+playground_2

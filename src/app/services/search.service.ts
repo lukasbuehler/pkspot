@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { SearchClient } from "typesense";
 import { SearchParams } from "typesense/lib/Typesense/Documents";
 import { environment } from "../../environments/environment";
@@ -16,6 +16,7 @@ import {
   SPOT_FILTER_CONFIGS,
 } from "../components/spot-map/spot-filter-config";
 import { Event as PkEvent } from "../../db/models/Event";
+import { AssetUrlService } from "./asset-url.service";
 
 @Injectable({
   providedIn: "root",
@@ -23,10 +24,14 @@ import { Event as PkEvent } from "../../db/models/Event";
 export class SearchService {
   constructor(private _mapsService: MapsApiService) {}
 
+  private readonly _assetUrls = inject(AssetUrlService);
+
   readonly TYPESENSE_COLLECTION_SPOTS = "spots_v2";
   readonly TYPESENSE_COLLECTION_COMMUNITIES = "communities_v1";
   readonly TYPESENSE_COLLECTION_EVENTS = "events_v1";
   readonly SPOT_SORT_BY_RATING = "rating:desc";
+  readonly COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE =
+    "_text_match:desc,counts.totalSpots:desc";
 
   private readonly client: SearchClient = new SearchClient({
     nodes: [
@@ -51,6 +56,7 @@ export class SearchService {
       "displayName,allSlugs,geography.localityName,geography.regionName,geography.countryName,title,description",
     query_by_weights: "6,6,4,3,3,2,1",
     filter_by: "published:!=false",
+    sort_by: this.COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE,
     per_page: 3,
     page: 1,
   };
@@ -841,12 +847,19 @@ export class SearchService {
       localityString:
         typeof doc?.locality_string === "string" ? doc.locality_string : "",
       bannerSrc:
-        typeof doc?.banner_src === "string" ? doc.banner_src : undefined,
-      logoSrc: typeof doc?.logo_src === "string" ? doc.logo_src : undefined,
+        typeof doc?.banner_src === "string"
+          ? this._assetUrls.resolveBundledAssetUrl(doc.banner_src)
+          : undefined,
+      logoSrc:
+        typeof doc?.logo_src === "string"
+          ? this._assetUrls.resolveBundledAssetUrl(doc.logo_src)
+          : undefined,
       sponsorName:
         typeof sponsor?.name === "string" ? sponsor.name : undefined,
       sponsorLogoSrc:
-        typeof sponsor?.logo_src === "string" ? sponsor.logo_src : undefined,
+        typeof sponsor?.logo_src === "string"
+          ? this._assetUrls.resolveBundledAssetUrl(sponsor.logo_src)
+          : undefined,
       sponsorLogoBackgroundColor:
         typeof sponsor?.logo_background_color === "string"
           ? sponsor.logo_background_color

@@ -27,6 +27,8 @@ const communityData: CommunityLandingPageData = {
   totalSpotCount: 242,
   topRatedCount: 42,
   dryCount: 10,
+  spots: [],
+  communityPicks: [],
   topRatedSpots: [],
   drySpots: [],
   links: {},
@@ -130,7 +132,7 @@ describe("CommunityLandingPageComponent", () => {
     };
     fixture.componentRef.setInput("communityDataInput", {
       ...communityData,
-      topRatedSpots: [spot],
+      spots: [spot],
     });
     fixture.componentRef.setInput("panelMode", true);
     fixture.componentInstance.selectSpot.subscribe(selectSpot);
@@ -142,5 +144,66 @@ describe("CommunityLandingPageComponent", () => {
     card.click();
 
     expect(selectSpot).toHaveBeenCalledWith(spot);
+  });
+
+  it("shows unrated community spots instead of an empty-state message", () => {
+    const spot: SpotPreviewData = {
+      id: "spot-1",
+      slug: "spot-one",
+      name: "Spot One",
+      locality: "Zuerich",
+      imageSrc: "/assets/spot_placeholder.png",
+      isIconic: false,
+    };
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      topRatedCount: 0,
+      topRatedSpots: [],
+      spots: [spot],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain("Spots");
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "featured spot sections yet",
+    );
+    expect(
+      fixture.nativeElement.querySelector("app-spot-preview-card"),
+    ).not.toBeNull();
+  });
+
+  it("renders generated community pick sections before legacy spot lists", () => {
+    const spot: SpotPreviewData = {
+      id: "spot-1",
+      slug: "spot-one",
+      name: "Spot One",
+      locality: "Zuerich",
+      imageSrc: "/assets/spot_placeholder.png",
+      isIconic: true,
+      rating: 9,
+    };
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      spots: [],
+      topRatedSpots: [],
+      communityPicks: [
+        {
+          category: "standout",
+          title: "Standout Spots",
+          spots: [spot],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain("Standout Spots");
+    const headings = [
+      ...fixture.nativeElement.querySelectorAll("h2"),
+    ].map((heading: HTMLElement) => heading.textContent?.trim() ?? "");
+    expect(headings).toContain("Standout Spots");
+    expect(headings).not.toContain("Dry Spots");
+    expect(
+      fixture.nativeElement.querySelector("app-spot-preview-card"),
+    ).not.toBeNull();
   });
 });

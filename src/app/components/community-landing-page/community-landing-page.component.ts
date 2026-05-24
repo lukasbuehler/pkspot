@@ -212,9 +212,21 @@ export class CommunityLandingPageComponent {
   hasFeaturedSpots = computed(() => {
     const data = this.communityData();
     return (
-      (data?.topRatedSpots.length ?? 0) > 0 || (data?.drySpots.length ?? 0) > 0
+      this.communityPickSections().length > 0 ||
+      (data?.spots?.length ?? 0) > 0 ||
+      (data?.topRatedSpots.length ?? 0) > 0 ||
+      (data?.drySpots.length ?? 0) > 0
     );
   });
+  featuredSpots = computed(() => {
+    const data = this.communityData();
+    return data?.spots?.length ? data.spots : (data?.topRatedSpots ?? []);
+  });
+  communityPickSections = computed(() =>
+    (this.communityData()?.communityPicks ?? []).filter(
+      (section) => section.spots.length > 0,
+    ),
+  );
 
   onSelectEvent(event: PkEvent): void {
     this.selectEvent.emit(event);

@@ -55,6 +55,11 @@ interface SpotEditVoteSummary {
   eligible_for_auto_approval: boolean;
 }
 
+interface AppliedEditSummary {
+  mediaAddedCount?: number;
+  inferredPrevData?: Record<string, unknown>;
+}
+
 interface Coordinate {
   latitude: number;
   longitude: number;
@@ -182,6 +187,8 @@ export const applySpotEditOnCreate = onDocumentCreated(
         }
       }
 
+      let appliedSummary: AppliedEditSummary = {};
+
       // For CREATE edits, update the existing (initially empty) spot document with the data
       if (editData.type === "CREATE") {
         const { source: _ignoredSource, ...rawCreatePayload } =
@@ -205,7 +212,7 @@ export const applySpotEditOnCreate = onDocumentCreated(
       }
       // For UPDATE edits, merge the changes into the existing spot
       else if (editData.type === "UPDATE") {
-        await applyUpdateEditToSpot(spotRef, editData, spotId);
+        appliedSummary = await applyUpdateEditToSpot(spotRef, editData, spotId);
         console.log(`Updated spot ${spotId} from edit ${editId}`);
       }
 
@@ -213,7 +220,8 @@ export const applySpotEditOnCreate = onDocumentCreated(
         editSnapshot.ref,
         editData,
         db,
-        "APPROVED_IMMEDIATE"
+        "APPROVED_IMMEDIATE",
+        appliedSummary
       );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -447,7 +455,8 @@ async function applyUpdateEditToSpot(
   spotRef: FirebaseFirestore.DocumentReference,
   editData: SpotEditSchema,
   spotId: string
-): Promise<void> {
+): Promise<AppliedEditSummary> {
+  const summary: AppliedEditSummary = {};
   // Extract fields that need special merge logic
   const { media, external_references, amenities, ...regularData } =
     editData.data;
@@ -469,11 +478,29 @@ async function applyUpdateEditToSpot(
   // 1. OVERWRITE: Completely replace the media list (used by new clients supporting deletions)
   // 2. APPEND (default): Add new items only (used by legacy clients)
   if (media && Array.isArray(media)) {
+    const spotSnapshot = await spotRef.get();
+    const currentMedia =
+      spotSnapshot.exists && Array.isArray((spotSnapshot.data() as any)["media"])
+        ? (spotSnapshot.data() as any)["media"]
+        : [];
+    const currentMediaSrcs = new Set(currentMedia.map((item: any) => item.src));
+
     if (editData.modification_type === "OVERWRITE") {
+      summary.mediaAddedCount = media.filter(
+        (item: any) => !currentMediaSrcs.has(item.src)
+      ).length;
+
+      if (
+        !Object.prototype.hasOwnProperty.call(editData.prevData ?? {}, "media")
+      ) {
+        summary.inferredPrevData = {
+          ...(editData.prevData ?? {}),
+          media: currentMedia,
+        };
+      }
+
       // Check for deleted media and remove from storage
-      const spotSnapshot = await spotRef.get();
       if (spotSnapshot.exists) {
-        const currentMedia = (spotSnapshot.data() as any)["media"] || [];
         const newMediaSrcs = new Set(media.map((m: any) => m.src));
 
         const removedMedia = currentMedia.filter(
@@ -518,17 +545,17 @@ async function applyUpdateEditToSpot(
       updateData.media = media;
     } else {
       // Legacy/Default behavior: Append only
-      const spotSnapshot = await spotRef.get();
       if (spotSnapshot.exists) {
-        const currentMedia = (spotSnapshot.data() as any)["media"] || [];
         // Append new media items to existing ones, avoiding duplicates
         const newMedia = media.filter(
           (newItem: any) =>
-            !currentMedia.some((item: any) => item.src === newItem.src)
+            !currentMediaSrcs.has(newItem.src)
         );
+        summary.mediaAddedCount = newMedia.length;
         updateData.media = [...currentMedia, ...newMedia];
       } else {
         // Spot doesn't exist yet, just set the media
+        summary.mediaAddedCount = media.length;
         updateData.media = media;
       }
     }
@@ -548,15 +575,17 @@ async function applyUpdateEditToSpot(
   }
 
   await spotRef.update(updateData);
+  return summary;
 }
 
 async function markEditApprovedAndUpdateContributions(
   editRef: FirebaseFirestore.DocumentReference,
   editData: SpotEditSchema,
   db: FirebaseFirestore.Firestore,
-  processingStatus: string
+  processingStatus: string,
+  appliedSummary: AppliedEditSummary = {}
 ): Promise<void> {
-  await editRef.update({
+  const editUpdateData: Record<string, unknown> = {
     approved: true,
     visibility: "public",
     review_status:
@@ -565,7 +594,13 @@ async function markEditApprovedAndUpdateContributions(
     blocked_reason: FieldValue.delete(),
     processed_at: FieldValue.serverTimestamp(),
     decision_at: FieldValue.serverTimestamp(),
-  });
+  };
+
+  if (appliedSummary.inferredPrevData) {
+    editUpdateData["prevData"] = appliedSummary.inferredPrevData;
+  }
+
+  await editRef.update(editUpdateData);
 
   console.log(`Marked edit ${editRef.id} as approved`);
 
@@ -580,11 +615,15 @@ async function markEditApprovedAndUpdateContributions(
       FieldValue.increment(1);
   }
 
-  // Count media items added in this edit
-  const mediaItems = editData.data?.media;
-  if (Array.isArray(mediaItems) && mediaItems.length > 0) {
-    incrementData["media_added_count"] =
-      FieldValue.increment(mediaItems.length);
+  const mediaAddedCount =
+    editData.type === "UPDATE" && appliedSummary.mediaAddedCount !== undefined
+      ? appliedSummary.mediaAddedCount
+      : Array.isArray(editData.data?.media)
+      ? editData.data.media.length
+      : 0;
+
+  if (mediaAddedCount > 0) {
+    incrementData["media_added_count"] = FieldValue.increment(mediaAddedCount);
   }
 
   await userRef.set(incrementData, { merge: true });
@@ -878,12 +917,13 @@ async function evaluatePendingEditVotes(
       return;
     }
 
-    await applyUpdateEditToSpot(spotRef, editData, spotId);
+    const appliedSummary = await applyUpdateEditToSpot(spotRef, editData, spotId);
     await markEditApprovedAndUpdateContributions(
       editRef,
       editData,
       db,
-      "APPROVED_VOTING"
+      "APPROVED_VOTING",
+      appliedSummary
     );
 
     await editRef.update({

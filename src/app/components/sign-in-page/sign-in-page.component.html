@@ -41,8 +41,8 @@
 
       <app-oauth-sign-in-buttons
         layout="row"
-        [disabled]="isSubmitting"
-        (start)="isSubmitting = true"
+        [disabled]="isSubmitting()"
+        (start)="startAuthAttempt()"
         (success)="onOAuthSuccess()"
         (error)="onOAuthError($event)"
       ></app-oauth-sign-in-buttons>
@@ -57,6 +57,7 @@
         <form
           [formGroup]="signInForm"
           class="d-flex flex-column"
+          [attr.aria-busy]="isSubmitting()"
           (ngSubmit)="trySignIn(signInForm.value)"
         >
           <mat-form-field appearance="outline">
@@ -98,9 +99,9 @@
             }
           </mat-form-field>
 
-          @if (signInError) {
-            <div class="alert alert-danger mb-2">
-              {{ signInError }}
+          @if (signInError()) {
+            <div class="alert alert-danger mb-2" role="alert">
+              {{ signInError() }}
             </div>
           }
 
@@ -109,9 +110,13 @@
               mat-flat-button
               color="primary"
               type="submit"
-              [disabled]="isSubmitting"
+              [disabled]="isSubmitting()"
             >
-              <mat-icon>login</mat-icon>
+              @if (isSubmitting()) {
+                <mat-spinner diameter="20" strokeWidth="3"></mat-spinner>
+              } @else {
+                <mat-icon>login</mat-icon>
+              }
               <span i18n="sign in button|Button to sign in@@signin.button">
                 Sign in
               </span>

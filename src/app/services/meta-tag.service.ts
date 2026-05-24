@@ -18,6 +18,12 @@ export interface MetaTagData {
   canonical?: string;
 }
 
+interface EventMetaTagData {
+  name?: string;
+  image?: string;
+  description?: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -281,11 +287,12 @@ export class MetaTagService {
   /**
    * Sets meta tags for an event with canonical URL
    */
-  public setEventMetaTags(event: any, canonicalPath?: string): void {
-    // TODO: Replace 'any' with proper Event type when you have it
-    const title = event.name || "Event";
-    const image =
-      event.image || this.defaultImageUrl;
+  public setEventMetaTags(
+    event: EventMetaTagData,
+    canonicalPath?: string
+  ): void {
+    const title = `${event.name || "Event"} | PK Spot`;
+    const image = event.image || this.defaultImageUrl;
     const description =
       event.description || "Join us for this exciting parkour event!";
 
@@ -300,7 +307,7 @@ export class MetaTagService {
    */
   public setUserMetaTags(user: any, canonicalPath?: string): void {
     // TODO: Replace 'any' with proper User type when you have it
-    const title = `${user.displayName || user.name || "User"} - PK Spot`;
+    const title = `${user.displayName || user.name || "User"} | PK Spot`;
     const image =
       user.profilePicture?.getPreviewImageSrc() ||
       this.defaultImageUrl;
@@ -322,7 +329,7 @@ export class MetaTagService {
    */
   public setPostMetaTags(post: any, canonicalPath?: string): void {
     // TODO: Replace 'any' with proper Post type when you have it
-    const title = post.title || "Post - PK Spot";
+    const title = post.title || "Post | PK Spot";
     const image = post.image || this.defaultImageUrl;
     const description =
       post.description || post.content || "Check out this post on PK Spot.";
@@ -342,7 +349,7 @@ export class MetaTagService {
     pageImage?: string,
     canonicalPath?: string
   ): void {
-    const title = `${pageTitle} - PK Spot`;
+    const title = `${pageTitle} | PK Spot`;
     const image = pageImage || this.defaultImageUrl;
     const description = pageDescription;
 
@@ -404,14 +411,11 @@ export class MetaTagService {
   /**
    * Sets default map meta tags with canonical URL.
    *
-   * Title leads with "Parkour Spot Map" because that's what users actually
-   * search for — the original "PK Spot Map" was strong on brand but weak
-   * on the head term. See AGENTS.md (or follow the pattern from
-   * setLocalityLandingMetaTags).
+   * Keep the map discoverable while making PK Spot's wider direction clear.
    */
   public setDefaultMapMetaTags(canonicalPath?: string): void {
-    const title = $localize`:@@pk.spotmap.title:Parkour Spot Map | PK Spot`;
-    const description = $localize`:@@pk.spotmap.description:Discover parkour spots near you, plan training sessions with friends, and share your spots with the freerunning community.`;
+    const title = $localize`:@@pk.spotmap.title:Parkour Spots, Events & Communities | PK Spot`;
+    const description = $localize`:@@pk.spotmap.description:Find parkour spots near you, check in, discover events and jams, and connect with your local community.`;
     const image = this.defaultImageUrl;
 
     const canonical = canonicalPath
@@ -424,8 +428,8 @@ export class MetaTagService {
    * Sets default home page meta tags with canonical URL
    */
   public setHomeMetaTags(canonicalPath?: string): void {
-    const title = $localize`:@@pk.home.title:Parkour Spot Finder | PK Spot`;
-    const description = $localize`:@@pk.home.description:PK Spot is a parkour and freerunning community map. Find spots, plan training sessions, and share what you discover.`;
+    const title = $localize`:@@pk.home.title:The Spot for Everything Parkour | PK Spot`;
+    const description = $localize`:@@pk.home.description:PK Spot is the spot for everything parkour. Find spots, check in, discover what is happening nearby, and connect with your local community.`;
     const image = this.defaultImageUrl;
 
     const canonical = canonicalPath

@@ -177,7 +177,6 @@ export class MapsApiService extends ConsentAwareService {
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
       "open_in_maps",
-      "pkspot",
       "referral"
     );
 
@@ -195,7 +194,6 @@ export class MapsApiService extends ConsentAwareService {
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
       "open_in_maps",
-      "pkspot",
       "referral"
     );
 
@@ -224,7 +222,6 @@ export class MapsApiService extends ConsentAwareService {
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
       "directions",
-      "pkspot",
       "referral"
     );
 
@@ -243,7 +240,6 @@ export class MapsApiService extends ConsentAwareService {
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
       "directions",
-      "pkspot",
       "referral"
     );
 

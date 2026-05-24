@@ -63,7 +63,10 @@ export class PoiDetailComponent {
   websiteUrl = computed<string | null>(() => {
     const p = this.poi().googlePlace;
     if (!p || !p.websiteURI) return null;
-    return this._analytics.addUtmToUrl(p.websiteURI, "spot_preview_website");
+    return this._analytics.addUtmToUrl(
+      this._safeExternalUrl(p.websiteURI),
+      "spot_preview_website"
+    );
   });
 
   url = computed<string | null>(() => {
@@ -80,8 +83,24 @@ export class PoiDetailComponent {
     } else {
       mapUrl = `https://www.google.com/maps/search/?api=1&query=${p.displayName}&query_place_id=${p.id}`;
     }
-    return this._analytics.addUtmToUrl(mapUrl, "spot_preview_maps");
+    return this._analytics.addUtmToUrl(
+      this._safeExternalUrl(mapUrl),
+      "spot_preview_maps"
+    );
   });
+
+  private _safeExternalUrl(value: string | undefined): string | null {
+    if (!value) return null;
+    try {
+      const url = new URL(value);
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        return url.toString();
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
 
   getIcon(): string {
     if (this.poi().icon) return this.poi().icon!;

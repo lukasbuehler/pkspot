@@ -6,6 +6,7 @@ import {
 } from "../db/schemas/CommunityPageSchema";
 import { SpotSchema } from "../db/schemas/SpotSchema";
 import {
+  canonicalizeCommunityGeography,
   getCountryMetadata,
   slugifyUrlSegment,
 } from "./SpotLandingHelpers";
@@ -116,25 +117,43 @@ export function getSpotCommunityCandidates(
   spotLike: Pick<SpotSchema, "address" | "landing">
 ): CommunityCandidate[] {
   const country = getCountryMetadata(
-    spotLike.landing?.countryCode || spotLike.address?.country?.code,
-    spotLike.landing?.countryNameEn || spotLike.address?.country?.name
+    spotLike.address?.country?.code || spotLike.landing?.countryCode,
+    spotLike.address?.country?.name || spotLike.landing?.countryNameEn
   );
 
   if (!country) {
     return [];
   }
 
+  const initialRegionCode =
+    spotLike.address?.region?.code || spotLike.landing?.regionCode || undefined;
+  const initialRegionName =
+    spotLike.address?.region?.name || spotLike.landing?.regionName || undefined;
+
+  const initialLocalityName =
+    getCanonicalLocalityName(spotLike.address) || spotLike.landing?.localityName;
+
+  const canonicalGeography = canonicalizeCommunityGeography({
+    countryCode: country.countryCode,
+    regionCode: initialRegionCode,
+    regionName: initialRegionName,
+    localityName: initialLocalityName,
+  });
+
+  const regionCode = canonicalGeography.regionCode;
+  const regionName = canonicalGeography.regionName;
+  const regionSlug =
+    canonicalGeography.regionSlug || spotLike.landing?.regionSlug || undefined;
+  const localityName = canonicalGeography.localityName;
+  const localitySlug =
+    canonicalGeography.localitySlug || spotLike.landing?.localitySlug || undefined;
+  const localityLocalName =
+    canonicalGeography.displayLocalityName || getDisplayLocalityName(spotLike.address);
+
   const region = {
-    regionCode:
-      spotLike.landing?.regionCode || spotLike.address?.region?.code || undefined,
-    regionName:
-      spotLike.landing?.regionName || spotLike.address?.region?.name || undefined,
-    regionSlug:
-      spotLike.landing?.regionSlug ||
-      slugifyUrlSegment(
-        spotLike.address?.region?.code || spotLike.address?.region?.name || ""
-      ) ||
-      undefined,
+    regionCode,
+    regionName,
+    regionSlug,
   };
 
   const countryCandidate: CommunityCandidate = {
@@ -148,12 +167,6 @@ export function getSpotCommunityCandidates(
       countrySlug: country.countrySlug,
     },
   };
-
-  const localityName =
-    spotLike.landing?.localityName || getCanonicalLocalityName(spotLike.address);
-  const localitySlug =
-    spotLike.landing?.localitySlug || normalizeCommunitySlug(localityName);
-  const localityLocalName = getDisplayLocalityName(spotLike.address);
 
   if (!localityName || !localitySlug) {
     return [countryCandidate];

@@ -3,6 +3,7 @@ import { Observable } from "rxjs";
 import { AuthenticationService } from "./authentication.service";
 import { StorageMedia } from "../../../db/models/Media";
 import { StorageBucket } from "../../../db/schemas/Media";
+import { generateUUID } from "../../../scripts/Helpers";
 import { StorageAdapterService } from "./storage-adapter.service";
 
 @Injectable({
@@ -53,14 +54,17 @@ export class StorageService {
       return Promise.reject("User is not signed in");
     }
 
+    const normalizedFileEnding = fileEnding?.toLowerCase();
+
     // Build the full storage path
-    const storagePath = `${location}/${filename}${
-      fileEnding ? "." + fileEnding : ""
+    const storageFilename = filename ?? generateUUID();
+    const storagePath = `${location}/${storageFilename}${
+      normalizedFileEnding ? "." + normalizedFileEnding : ""
     }`;
 
     // Determine content type from blob or file extension
     let contentType = blob.type;
-    if (!contentType && fileEnding) {
+    if (!contentType && normalizedFileEnding) {
       const mimeTypes: Record<string, string> = {
         jpg: "image/jpeg",
         jpeg: "image/jpeg",
@@ -70,8 +74,10 @@ export class StorageService {
         mp4: "video/mp4",
         mov: "video/quicktime",
         webm: "video/webm",
+        kml: "application/vnd.google-earth.kml+xml",
+        kmz: "application/vnd.google-earth.kmz",
       };
-      contentType = mimeTypes[fileEnding.toLowerCase()] || "";
+      contentType = mimeTypes[normalizedFileEnding] || "";
     }
 
     return this.storageAdapter.uploadFile({

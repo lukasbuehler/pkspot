@@ -74,6 +74,8 @@ export class AuthenticationService extends ConsentAwareService {
    * "unknown", not "signed out".
    */
   public readonly initialAuthStateResolved = signal(false);
+  /** Reactive admin state for UI gates. Always false while signed out. */
+  public readonly isAdmin = signal(false);
 
   private _injector = inject(Injector);
   private _platformId = inject(PLATFORM_ID);
@@ -314,6 +316,8 @@ export class AuthenticationService extends ConsentAwareService {
       this.user.uid = user.uid;
       this.user.email = user.email ?? undefined;
       this.user.emailVerified = user.emailVerified;
+      this.user.data = undefined;
+      this.isAdmin.set(false);
       // detailed provider info is in providerData, but the top-level providerId explains how they signed in *this session*
       // or we check the first provider in providerData
       if (this._isNative) {
@@ -365,11 +369,10 @@ export class AuthenticationService extends ConsentAwareService {
       // We don't have a firebase user, we are not signed in
       this._currentFirebaseUser = null;
       this.isSignedIn = false;
-      this.user.uid = "";
+      this.user = { uid: "" };
+      this.isAdmin.set(false);
       this._userDataSubscription?.unsubscribe();
       this._userDataSubscription = null;
-
-      this.user.uid = "";
 
       if (this._analyticsHasIdentifiedUser) {
         this._analyticsService.resetUser();
@@ -405,11 +408,14 @@ export class AuthenticationService extends ConsentAwareService {
             }
 
             this.user.data = _user;
+            this.isAdmin.set(_user.isAdmin === true);
 
             if (sendUpdate) {
               this.authState$.next(this.user);
             }
           } else {
+            this.user.data = undefined;
+            this.isAdmin.set(false);
             console.error("User data not found for uid", uid);
           }
         },
@@ -926,12 +932,13 @@ export class AuthenticationService extends ConsentAwareService {
             props: { accountType: "Email and Password" },
           });
 
-          if (!this._currentFirebaseUser) {
+          const createdUser = firebaseAuthResponse.user;
+          if (!createdUser) {
             return Promise.reject("No current firebase user found");
           }
 
           // Set the user chose Display name
-          updateProfile(this._currentFirebaseUser, {
+          await updateProfile(createdUser, {
             displayName: displayName,
           });
 
@@ -952,7 +959,7 @@ export class AuthenticationService extends ConsentAwareService {
           );
 
           // Send verification email
-          sendEmailVerification(firebaseAuthResponse.user);
+          await sendEmailVerification(createdUser);
         });
       });
     } finally {
@@ -1220,6 +1227,11 @@ export class AuthenticationService extends ConsentAwareService {
       throw new Error("No user ID found");
     }
 
+    this.trackEventWithConsent("Delete Account", {
+      provider: this.user.providerId ?? "unknown",
+      platform: this._isNative ? Capacitor.getPlatform() : "web",
+    });
+
     // Delete Firebase Auth account first (while still authenticated)
     if (this._isNative) {
       await this._deleteAccountNative();
@@ -1238,6 +1250,7 @@ export class AuthenticationService extends ConsentAwareService {
     // Clear local state
     this.isSignedIn = false;
     this.user = {};
+    this.isAdmin.set(false);
     this.authState$.next(null);
   }
 

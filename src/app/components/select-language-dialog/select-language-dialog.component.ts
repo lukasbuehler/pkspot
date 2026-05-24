@@ -21,6 +21,7 @@ import { languageCodes } from "../../../scripts/Languages";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { map, Observable, startWith } from "rxjs";
 import { AsyncPipe } from "@angular/common";
+import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 
 export interface SelectLanguageDialogData {
   locale: LocaleCode | null;
@@ -44,6 +45,7 @@ export interface SelectLanguageDialogData {
     MatDialogModule,
     ReactiveFormsModule,
     AsyncPipe,
+    AutocompleteOverlayRepositionDirective,
   ],
   templateUrl: "./select-language-dialog.component.html",
   styleUrl: "./select-language-dialog.component.scss",

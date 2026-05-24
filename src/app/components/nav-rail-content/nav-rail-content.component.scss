@@ -8,6 +8,7 @@ div.nav-rail-content {
 
 ::ng-deep div.nav-rail-content > div.main-content {
   height: calc(100% - 90px);
+  box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -15,5 +16,5 @@ div.nav-rail-content {
   // keyboard so `scrollIntoView` places focused inputs above the keyboard
   // instead of behind it. KeyboardService updates --keyboard-offset at
   // runtime (0 when no keyboard is visible).
-  scroll-padding-bottom: var(--keyboard-offset, 0px);
+  scroll-padding-bottom: calc(var(--keyboard-offset, 0px) + 24px);
 }

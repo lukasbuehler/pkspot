@@ -13,7 +13,10 @@
   </mat-icon>
   } @if(showEmptyStars && numEmptyStars > 0) { @for(item of
   [].constructor(numEmptyStars); track $index) {
-  <mat-icon style="width: 1em; height: 1em; font-size: 1em">
+  <mat-icon
+    class="rating-star rating-star--empty"
+    style="width: 1em; height: 1em; font-size: 1em"
+  >
     star_border
   </mat-icon>
   } } @if(showNumReviews) {

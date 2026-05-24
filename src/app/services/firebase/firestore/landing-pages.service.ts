@@ -3,6 +3,7 @@ import { Event as PkEvent } from "../../../../db/models/Event";
 import {
   CommunityChildSummarySchema,
   CommunityEventPreviewSchema,
+  CommunityPickSectionSchema,
   CommunityPageSchema,
 } from "../../../../db/schemas/CommunityPageSchema";
 import { EventId, EventSchema } from "../../../../db/schemas/EventSchema";
@@ -12,6 +13,7 @@ import {
   buildCommunityLandingPath,
   normalizeCommunitySlug,
 } from "../../../../scripts/CommunityHelpers";
+import { AssetUrlService } from "../../asset-url.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 
 export type CommunityLandingScope = CommunityPageSchema["scope"];
@@ -28,6 +30,7 @@ export interface CommunityLandingBreadcrumb {
 }
 
 export type CommunityChildSummary = CommunityChildSummarySchema;
+export type CommunityPickSection = CommunityPickSectionSchema;
 
 export interface CommunityLandingPageData {
   communityKey: string;
@@ -47,6 +50,8 @@ export interface CommunityLandingPageData {
   totalSpotCount: number;
   topRatedCount: number;
   dryCount: number;
+  spots: SpotPreviewData[];
+  communityPicks: CommunityPickSection[];
   topRatedSpots: SpotPreviewData[];
   drySpots: SpotPreviewData[];
   links: CommunityPageSchema["links"];
@@ -72,6 +77,7 @@ type CommunitySlugDocument = CommunitySlugSchema & { id: string };
 })
 export class LandingPagesService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private _assetUrls = inject(AssetUrlService);
 
   async getCommunityPage(
     slug: string,
@@ -115,6 +121,16 @@ export class LandingPagesService {
   ): CommunityLandingPageData {
     const topRatedSpots = (pageDoc.topRatedSpots ?? []).slice(0, limitCount);
     const drySpots = (pageDoc.drySpots ?? []).slice(0, limitCount);
+    const spots = (pageDoc.spots ?? pageDoc.topRatedSpots ?? []).slice(
+      0,
+      limitCount,
+    );
+    const communityPicks = (pageDoc.communityPicks ?? [])
+      .map((section) => ({
+        ...section,
+        spots: (section.spots ?? []).slice(0, limitCount),
+      }))
+      .filter((section) => section.spots.length > 0);
     const countrySlug =
       pageDoc.scope === "country"
         ? pageDoc.preferredSlug
@@ -164,6 +180,8 @@ export class LandingPagesService {
       totalSpotCount: pageDoc.counts?.totalSpots ?? 0,
       topRatedCount: pageDoc.counts?.topRated ?? topRatedSpots.length,
       dryCount: pageDoc.counts?.dry ?? drySpots.length,
+      spots,
+      communityPicks,
       topRatedSpots,
       drySpots,
       links: pageDoc.links ?? {},
@@ -227,7 +245,7 @@ export class LandingPagesService {
   private _mapEventPreview(preview: CommunityEventPreviewSchema): PkEvent {
     return new PkEvent(
       preview.id as EventId,
-      {
+      this._assetUrls.resolveEventAssetUrls({
         name: preview.name,
         slug: preview.slug,
         banner_src: preview.banner_src,
@@ -249,7 +267,7 @@ export class LandingPagesService {
         is_sponsored: preview.is_sponsored,
         external_source: preview.external_source,
         published: true,
-      } as EventSchema,
+      } as EventSchema),
     );
   }
 

@@ -69,6 +69,12 @@ mat-icon.typeOrAccesIcon {
   padding: 0px !important;
 }
 
+::ng-deep mat-option.searchStatusOption {
+  min-height: 44px;
+  padding: 0 12px !important;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 ::ng-deep mat-option .mdc-list-item__primary-text {
   overflow: hidden;
   width: 100%;

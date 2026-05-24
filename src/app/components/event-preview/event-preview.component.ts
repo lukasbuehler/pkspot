@@ -17,6 +17,7 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { CountdownComponent } from "../countdown/countdown.component";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
+import { AnalyticsService } from "../../services/analytics.service";
 
 /**
  * Event preview panel for the map page sidebar (desktop) or bottom-sheet
@@ -45,6 +46,7 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
 })
 export class EventPreviewComponent {
   private _locale = inject<LocaleCode>(LOCALE_ID);
+  private _analytics = inject(AnalyticsService);
 
   /** The event to render. */
   event = input<PkEvent | null>(null);
@@ -136,14 +138,21 @@ export class EventPreviewComponent {
     return ["/events", e.slug ?? e.id];
   });
 
+  readonly websiteUrl = computed<string | null>(() => {
+    const event = this.event();
+    if (!event) return null;
+    const url = this._safeExternalUrl(event.url ?? event.externalSource?.url);
+    return this._analytics.addUtmToUrl(url, "map_event_preview");
+  });
+
   /**
-   * Provider-aware label for the external-source CTA. Localized once in
-   * the host so the template stays declarative.
+   * Provider-aware label for the website CTA. Localized once in the host so
+   * the template stays declarative.
    */
-  readonly externalSourceLabel = computed<string | null>(() => {
+  readonly websiteLabel = computed<string>(() => {
     const event = this.event();
     const source = event?.externalSource;
-    if (!source) return null;
+    if (!source) return $localize`:@@event_preview.website:Website`;
     switch (source.provider) {
       case "eventfrog":
         return $localize`:@@event_preview.view_eventfrog:View on EventFrog`;
@@ -157,6 +166,35 @@ export class EventPreviewComponent {
         return $localize`:@@event_preview.view_source:View source`;
     }
   });
+
+  private _safeExternalUrl(value: string | undefined): string | null {
+    if (!value) return null;
+    try {
+      const url = new URL(value);
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        return url.toString();
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  trackWebsiteClick() {
+    const event = this.event();
+    this._analytics.trackEvent("click_event_website", {
+      surface: "map_event_preview",
+      event_id: event?.id,
+      event_slug: event?.slug,
+      event_name: event?.name,
+      event_status: this.status(),
+      is_sponsored: event?.isSponsored ?? false,
+      sponsor_name: event?.sponsor?.name,
+      external_provider: event?.externalSource?.provider,
+      url: this.websiteUrl(),
+    });
+    return true;
+  }
 
   onDismiss() {
     this.dismiss.emit();

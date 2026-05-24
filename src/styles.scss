@@ -43,6 +43,7 @@ html {
   // (0 when no keyboard is visible). Components that anchor UI to the bottom
   // of the viewport read this var to lift themselves above the keyboard.
   --keyboard-offset: 0px;
+  --keyboard-scroll-space: 0px;
 }
 
 // When nav bar has native-platform class, increase the nav bar height variable globally
@@ -92,7 +93,7 @@ body:has(#alainMenuButton) {
   flex-shrink: 0;
 }
 
-.cdk-overlay-pane {
+.cdk-overlay-pane.mat-mdc-dialog-panel {
   width: auto !important;
   min-width: 0 !important;
   max-width: min(90vw, 100%) !important;
@@ -106,13 +107,85 @@ body:has(#alainMenuButton) {
   bottom: var(--keyboard-offset, 0px);
 }
 
-// Utility: extends an element's scrollable area by the keyboard height so
-// the bottom of a form (submit button, etc.) is reachable while typing.
-// Implemented with margin-bottom (not padding-bottom) so component-scoped
-// `padding:` shorthand rules don't reset it. Margin on a child of an
-// `overflow: auto` container still grows the scrollable area.
+.keyboard-open .cdk-overlay-container {
+  height: calc(100% - var(--keyboard-offset, 0px));
+}
+
+.debug-keyboard-open {
+  --keyboard-offset: 335px;
+  --keyboard-scroll-space: 235px;
+}
+
+.debug-keyboard-open .cdk-overlay-container {
+  bottom: var(--keyboard-offset, 0px);
+  height: calc(100% - var(--keyboard-offset, 0px));
+}
+
+.debug-keyboard-open .cdk-global-overlay-wrapper {
+  align-items: center !important;
+  overflow-y: auto;
+  position: absolute;
+  top: 0 !important;
+  bottom: auto !important;
+  left: 0;
+  right: 0;
+  height: calc(100vh - var(--keyboard-offset, 0px)) !important;
+  max-height: calc(100vh - var(--keyboard-offset, 0px)) !important;
+  margin: 0 !important;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.debug-keyboard-open .cdk-overlay-pane.mat-mdc-dialog-panel {
+  max-height: calc(100vh - var(--keyboard-offset, 0px) - 32px) !important;
+}
+
+.keyboard-open .cdk-global-overlay-wrapper {
+  align-items: center !important;
+  overflow-y: auto;
+  position: absolute;
+  top: 0 !important;
+  bottom: auto !important;
+  left: 0;
+  right: 0;
+  height: calc(100vh - var(--keyboard-offset, 0px)) !important;
+  max-height: calc(100vh - var(--keyboard-offset, 0px)) !important;
+  margin: 0 !important;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.keyboard-open .cdk-overlay-pane.mat-mdc-dialog-panel {
+  max-height: calc(100vh - var(--keyboard-offset, 0px) - 32px) !important;
+}
+
+.keyboard-open .keyboard-scroll-space {
+  box-sizing: border-box;
+  scroll-padding-bottom: calc(var(--keyboard-scroll-space, 0px) + 16px);
+}
+
+.keyboard-open .keyboard-scroll-space::after {
+  content: "";
+  display: block;
+  flex: 0 0 auto;
+  min-height: var(--keyboard-scroll-space, 0px);
+  pointer-events: none;
+}
+
+.keyboard-open .mat-mdc-dialog-surface {
+  max-height: calc(100vh - var(--keyboard-offset, 0px) - 32px) !important;
+}
+
+// Utility: marks form-like pages as the preferred keyboard spacing target.
+// KeyboardService adds `.keyboard-scroll-space` here while a descendant input
+// is focused, which creates an actual spacer via ::after.
 .keyboard-padding {
-  margin-bottom: var(--keyboard-offset, 0px);
+  scroll-padding-bottom: calc(var(--keyboard-offset, 0px) + 24px);
+  padding-bottom: var(--keyboard-padding-base, 0px) !important;
+}
+
+.keyboard-open .keyboard-padding.keyboard-scroll-space {
+  padding-bottom: var(--keyboard-padding-base, 0px) !important;
 }
 
 // Material Snackbar — respect safe areas (notch / home indicator) and

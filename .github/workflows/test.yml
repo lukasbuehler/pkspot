@@ -3,8 +3,6 @@ name: Tests
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 env:
   NODE_VERSION: "22"
@@ -25,7 +23,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run unit tests
         run: npm run test:unit
@@ -54,7 +52,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
@@ -93,7 +91,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
@@ -134,7 +132,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run lint
         run: npm run lint
@@ -155,7 +153,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build and smoke-test SSR
         run: npm run test:build
@@ -182,10 +180,10 @@ jobs:
           java-version: "21"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install Functions dependencies
-        run: npm ci --prefix functions
+        run: npm ci --ignore-scripts --prefix functions
 
       - name: Build Functions
         run: npm --prefix functions run build

@@ -323,6 +323,8 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
     "counts.totalSpots",
     "counts.topRated",
     "counts.dry",
+    "spots",
+    "communityPicks",
     "topRatedSpots",
     "drySpots",
     "links",

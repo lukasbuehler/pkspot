@@ -113,4 +113,143 @@ describe("CommunityHelpers", () => {
       })
     ).toContain("usa");
   });
+
+  it("should canonicalize Prague/Praha/Hlavní město Praha address fields in getSpotCommunityCandidates", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          locality: "Prague",
+          region: {
+            code: "Prague",
+            name: "Prague",
+          },
+          country: {
+            code: "cz",
+            name: "Czechia",
+          },
+        },
+        landing: null,
+      } as any)
+    ).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:cz:hlavni-mesto-praha:hlavni-mesto-praha",
+        scope: "locality",
+        displayName: "Prague",
+      })
+    );
+  });
+
+  it("should canonicalize Milan/Milano community candidates to one English key", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          locality: "Milano",
+          localityLocal: "Milano",
+          region: {
+            code: "Lombardia",
+            name: "Lombardia",
+            localName: "Lombardia",
+          },
+          country: {
+            code: "it",
+            name: "Italy",
+          },
+        },
+        landing: null,
+      } as any)
+    ).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:it:lombardy:milan",
+        scope: "locality",
+        displayName: "Milan",
+      })
+    );
+  });
+
+  it("should collapse Czech numbered postal districts for community candidates", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          locality: "Strakonice 1",
+          region: {
+            code: "South Bohemian Region",
+            name: "South Bohemian Region",
+          },
+          country: {
+            code: "cz",
+            name: "Czechia",
+          },
+        },
+        landing: null,
+      } as any)
+    ).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:cz:south-bohemian-region:strakonice",
+        scope: "locality",
+        displayName: "Strakonice",
+      })
+    );
+  });
+
+  it("should collapse Czech okres locality fallbacks for community candidates", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          locality: "Okres Mladá Boleslav",
+          region: {
+            code: "Central Bohemian Region",
+            name: "Central Bohemian Region",
+          },
+          country: {
+            code: "cz",
+            name: "Czechia",
+          },
+        },
+        landing: null,
+      } as any)
+    ).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:cz:central-bohemian-region:mlada-boleslav",
+        scope: "locality",
+        displayName: "Mladá Boleslav",
+      })
+    );
+  });
+
+  it("should prefer address locality over stale landing locality data", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          sublocality: "Greenwich Peninsula",
+          locality: "London",
+          region: {
+            code: "ENG",
+            name: "England",
+          },
+          country: {
+            code: "gb",
+            name: "United Kingdom",
+          },
+        },
+        landing: {
+          countryCode: "GB",
+          countryNameEn: "United Kingdom",
+          countrySlug: "united-kingdom",
+          regionCode: "ENG",
+          regionName: "England",
+          regionSlug: "eng",
+          localityName: "Greenwich Peninsula",
+          localitySlug: "greenwich-peninsula",
+          isDry: false,
+          organizationVerified: false,
+        },
+      })
+    ).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:gb:eng:london",
+        scope: "locality",
+        displayName: "London",
+      })
+    );
+  });
 });

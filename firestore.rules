@@ -261,18 +261,11 @@ service cloud.firestore {
     }
 
     match /imports/{importId} {
-      allow read: if true;
-      allow create: if request.auth.uid != null
-        && request.auth.uid == request.resource.data.user.uid;
-      allow update: if request.auth.uid != null
-        && request.auth.uid == resource.data.user.uid;
+      allow read, create, update: if isAdmin();
       allow delete: if false;
 
       match /chunks/{chunkId} {
-        allow read: if request.auth.uid != null
-          && request.auth.uid == get(/databases/$(database)/documents/imports/$(importId)).data.user.uid;
-        allow create: if request.auth.uid != null
-          && request.auth.uid == get(/databases/$(database)/documents/imports/$(importId)).data.user.uid;
+        allow read, create: if isAdmin();
         allow update, delete: if false;
       }
     }

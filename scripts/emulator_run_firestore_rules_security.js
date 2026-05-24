@@ -10,6 +10,7 @@ const {
   connectFirestoreEmulator,
   deleteDoc,
   doc,
+  addDoc,
   getDoc,
   getDocs,
   getFirestore,
@@ -207,6 +208,9 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
   await assertAllowed("authenticated empty spot placeholder create", () =>
     setDoc(doc(owner.db, "spots/owner-placeholder"), {})
   );
+  await assertAllowed("authenticated generated spot placeholder create", () =>
+    addDoc(collection(owner.db, "spots"), {})
+  );
   await assertDenied("authenticated direct spot create with data", () =>
     setDoc(doc(owner.db, "spots/direct-data"), {
       name: { en: "Bypass" },
@@ -265,6 +269,35 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
   await assertDenied("non-admin spot edit delete", () =>
     deleteDoc(doc(owner.db, "spots/public-spot/edits/owner-edit"))
   );
+
+  await assertAllowed("owner production spot create flow", async () => {
+    await setDoc(doc(owner.db, "spots/owner-production-create"), {});
+    await addDoc(collection(owner.db, "spots/owner-production-create/edits"), {
+      type: "CREATE",
+      timestamp_raw_ms: Date.now(),
+      user: { uid: "owner", display_name: "Owner" },
+      data: {
+        name: { en: "Production Create Shape" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+        media: [],
+        type: "outdoor",
+        access: "public",
+        amenities: { covered: false, lit: true },
+      },
+    });
+  });
+  await assertDenied("production spot create edit impersonation", async () => {
+    await setDoc(doc(other.db, "spots/other-production-create"), {});
+    await addDoc(collection(other.db, "spots/other-production-create/edits"), {
+      type: "CREATE",
+      timestamp_raw_ms: Date.now(),
+      user: { uid: "owner", display_name: "Owner" },
+      data: {
+        name: { en: "Forged Create Shape" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+      },
+    });
+  });
 
   await assertAllowed("owner vote create", () =>
     setDoc(doc(owner.db, "spots/public-spot/edits/public-edit/votes/owner"), {
@@ -367,7 +400,7 @@ async function testReadOnlyBackendCollections(owner) {
   }
 }
 
-async function testPostAndImportGuards(anon, owner, other) {
+async function testPostAndImportGuards(anon, owner, other, adminUser) {
   await assertAllowed("authenticated post create without like_count", () =>
     setDoc(doc(owner.db, "posts/owner-post"), {
       user: { uid: "owner" },
@@ -394,10 +427,32 @@ async function testPostAndImportGuards(anon, owner, other) {
     getDocs(collection(owner.db, "posts/post-1/likes"))
   );
 
-  await assertAllowed("owner import create", () =>
+  await assertDenied("anonymous import metadata read", () =>
+    getDoc(doc(anon.db, "imports/import-owner"))
+  );
+  await assertAllowed("admin import metadata read", () =>
+    getDoc(doc(adminUser.db, "imports/import-owner"))
+  );
+  await assertDenied("regular user import create", () =>
     setDoc(doc(owner.db, "imports/new-import"), {
       user: { uid: "owner" },
       status: "CREATED",
+    })
+  );
+  await assertAllowed("admin import create", () =>
+    setDoc(doc(adminUser.db, "imports/admin-import"), {
+      user: { uid: "admin" },
+      status: "CREATED",
+    })
+  );
+  await assertDenied("regular user import update", () =>
+    updateDoc(doc(owner.db, "imports/import-owner"), {
+      status: "COMPLETED",
+    })
+  );
+  await assertAllowed("admin import update", () =>
+    updateDoc(doc(adminUser.db, "imports/import-owner"), {
+      status: "PROCESSING",
     })
   );
   await assertDenied("import create impersonating owner", () =>
@@ -406,14 +461,22 @@ async function testPostAndImportGuards(anon, owner, other) {
       status: "CREATED",
     })
   );
-  await assertAllowed("owner reads own import chunks", () =>
+  await assertDenied("owner reads own import chunks", () =>
     getDocs(collection(owner.db, "imports/import-owner/chunks"))
   );
   await assertDenied("other user reads owner import chunks", () =>
     getDocs(collection(other.db, "imports/import-owner/chunks"))
   );
-  await assertAllowed("owner creates own import chunk", () =>
+  await assertAllowed("admin reads import chunks", () =>
+    getDocs(collection(adminUser.db, "imports/import-owner/chunks"))
+  );
+  await assertDenied("owner creates own import chunk", () =>
     setDoc(doc(owner.db, "imports/import-owner/chunks/new-chunk"), {
+      rows: [],
+    })
+  );
+  await assertAllowed("admin creates import chunk", () =>
+    setDoc(doc(adminUser.db, "imports/import-owner/chunks/admin-chunk"), {
       rows: [],
     })
   );
@@ -477,7 +540,7 @@ async function main() {
   await testSpotWriteGuards(anon, owner, other, adminUser);
   await testUserPrivacyAndPrivilegeEscalation(anon, owner, other);
   await testReadOnlyBackendCollections(owner);
-  await testPostAndImportGuards(anon, owner, other);
+  await testPostAndImportGuards(anon, owner, other, adminUser);
   await testChallengeVisibility(anon, owner, other);
   await testQueriesDoNotBypassRules(owner, other);
 

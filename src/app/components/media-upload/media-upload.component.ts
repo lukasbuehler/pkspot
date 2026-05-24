@@ -121,10 +121,6 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
     if (fileList) {
       const _mediaList: UploadMedia[] = [];
 
-      this._activeUploadCount = fileList.length;
-      this.isUploading.emit(true);
-      this._currentBatch = [];
-
       for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
 
@@ -177,12 +173,30 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         };
 
         _mediaList.push(newMedia);
+      }
 
+      this.mediaList.set(_mediaList);
+      this._activeUploadCount = _mediaList.length;
+      this._currentBatch = [];
+
+      if (_mediaList.length === 0) {
+        return;
+      }
+
+      if (this.uploadToStorage && this.storageFolder) {
+        this.isUploading.emit(true);
+      }
+
+      for (let i = 0; i < _mediaList.length; i++) {
+        const newMedia = _mediaList[i];
+        if (!newMedia) {
+          continue;
+        }
         if (this.uploadToStorage && this.storageFolder) {
           this.uploadMedia(newMedia, i);
         } else {
           // just emit the file
-          this.fileSelected.emit(file);
+          this.fileSelected.emit(newMedia.file);
           // mark as completed (or should we just not show progress?)
           this.mediaList.update((list) => {
             // add to list but completed
@@ -192,7 +206,6 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
           });
         }
       }
-      this.mediaList.set(_mediaList);
     }
   }
 

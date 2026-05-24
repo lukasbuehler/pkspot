@@ -1,4 +1,6 @@
 .account-page {
+  --keyboard-padding-base: 32px;
+
   max-width: 980px;
   margin: 0 auto;
   padding: 48px 16px 32px;
@@ -85,6 +87,11 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.5rem;
+
+  button mat-spinner {
+    display: inline-flex;
+    margin-right: 0.5rem;
+  }
 }
 
 // Why-join benefits

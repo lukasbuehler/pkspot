@@ -76,6 +76,28 @@ const createRouteSnapshot = (
 const getMetaContent = (doc: Document, selector: string): string | null =>
   doc.head.querySelector(selector)?.getAttribute("content") ?? null;
 
+const getLinkHref = (doc: Document, selector: string): string | null =>
+  doc.head.querySelector(selector)?.getAttribute("href") ?? null;
+
+const expectNoRawI18nMarkersInShareMeta = (doc: Document): void => {
+  const selectors = [
+    'meta[name="description"]',
+    'meta[property="og:title"]',
+    'meta[property="og:description"]',
+    'meta[property="og:image"]',
+    'meta[property="og:url"]',
+    'meta[name="twitter:title"]',
+    'meta[name="twitter:description"]',
+    'meta[name="twitter:image"]',
+  ];
+
+  for (const selector of selectors) {
+    const content = getMetaContent(doc, selector);
+    expect(content, selector).toBeTruthy();
+    expect(content, selector).not.toContain("@@");
+  }
+};
+
 const buildImaxSpot = (): Spot =>
   new Spot(
     "spot-imax" as SpotId,
@@ -85,7 +107,7 @@ const buildImaxSpot = (): Spot =>
       description: {
         en: "Big concrete playground beside the cinema.",
       },
-      location_raw: { lat: 47.3769, lng: 8.5417 },
+      location_raw: { lat: 51.5049, lng: -0.1138 },
       tile_coordinates: { z16: { x: 1, y: 1 } } as any,
       media: [
         {
@@ -98,10 +120,10 @@ const buildImaxSpot = (): Spot =>
       rating: 4.6,
       num_reviews: 18,
       address: {
-        locality: "Zurich",
+        locality: "London",
         country: {
-          code: "CH",
-          name: "Switzerland",
+          code: "GB",
+          name: "United Kingdom",
         },
       },
       type: "urban landscape",
@@ -164,13 +186,13 @@ describe("contentResolver", () => {
     expect(result.spot).toBe(imaxSpot);
     expect(slugsService.getSpotIdFromSpotSlug).toHaveBeenCalledWith("imax");
     expect(spotsService.getSpotById).toHaveBeenCalledWith("spot-imax", "en");
-    expect(titleMock.setTitle).toHaveBeenCalledWith("IMAX - Zurich | PK Spot");
+    expect(titleMock.setTitle).toHaveBeenCalledWith("IMAX - London | PK Spot");
 
     expect(getMetaContent(testDocument, 'meta[property="og:title"]')).toBe(
-      "IMAX - Zurich | PK Spot"
+      "IMAX - London | PK Spot"
     );
     expect(getMetaContent(testDocument, 'meta[name="twitter:title"]')).toBe(
-      "IMAX - Zurich | PK Spot"
+      "IMAX - London | PK Spot"
     );
 
     const image = getMetaContent(testDocument, 'meta[property="og:image"]');
@@ -184,7 +206,7 @@ describe("contentResolver", () => {
       testDocument,
       'meta[name="description"]'
     );
-    expect(description).toContain("Parkour spot in Zurich, CH.");
+    expect(description).toContain("Parkour spot in London, GB.");
     expect(description).toContain("Rated 4.6 out of 5.");
     expect(description).toContain("Big concrete playground beside the cinema.");
     expect(description).not.toContain(
@@ -195,8 +217,12 @@ describe("contentResolver", () => {
       getMetaContent(testDocument, 'meta[property="og:description"]')
     ).toBe(description);
     expect(
+      getMetaContent(testDocument, 'meta[name="twitter:description"]')
+    ).toBe(description);
+    expect(
       getMetaContent(testDocument, 'meta[property="og:url"]')
     ).toBe("https://pkspot.app/en/map/spots/imax");
+    expectNoRawI18nMarkersInShareMeta(testDocument);
 
     const canonicalLink = testDocument.head.querySelector(
       'link[rel="canonical"]'
@@ -204,6 +230,39 @@ describe("contentResolver", () => {
     expect(canonicalLink?.getAttribute("href")).toBe(
       "https://pkspot.app/en/map/spots/imax"
     );
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="en"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="de-CH"]')
+    ).toBe("https://pkspot.app/de-CH/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="x-default"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+  });
+
+  it("should use the resolved spot slug for canonical links when the requested route used an id", async () => {
+    const imaxSpot = buildImaxSpot();
+    const route = createRouteSnapshot("spot-imax");
+
+    slugsService.getSpotIdFromSpotSlug.mockRejectedValue("No slug found");
+    spotsService.getSpotById.mockResolvedValue(imaxSpot);
+
+    await TestBed.runInInjectionContext(() => contentResolver(route as any));
+
+    expect(spotsService.getSpotById).toHaveBeenCalledWith("spot-imax", "en");
+    expect(
+      getMetaContent(testDocument, 'meta[property="og:url"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="canonical"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="de"]')
+    ).toBe("https://pkspot.app/de/map/spots/imax");
+    expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="x-default"]')
+    ).toBe("https://pkspot.app/en/map/spots/imax");
   });
 
   it("should render spot social tags when the map parent resolver sees a child spot route", async () => {
@@ -220,7 +279,7 @@ describe("contentResolver", () => {
 
     expect(result.spot).toBe(imaxSpot);
     expect(getMetaContent(testDocument, 'meta[property="og:title"]')).toBe(
-      "IMAX - Zurich | PK Spot"
+      "IMAX - London | PK Spot"
     );
     expect(
       getMetaContent(testDocument, 'meta[property="og:url"]')

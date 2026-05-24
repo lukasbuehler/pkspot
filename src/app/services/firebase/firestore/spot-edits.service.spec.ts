@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { GeoPoint } from "firebase/firestore";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";
 import { AnalyticsService } from "../../analytics.service";
 import { ConsentService } from "../../consent.service";
@@ -7,6 +8,10 @@ import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { SpotEditsService } from "./spot-edits.service";
 
 const createMockFirestoreAdapter = () => ({
+  createDocumentId: vi.fn().mockReturnValue("generated-spot-id"),
+  addDocument: vi.fn(),
+  setDocument: vi.fn().mockResolvedValue(undefined),
+  getDocument: vi.fn().mockResolvedValue({}),
   getCollectionGroupWithMetadata: vi.fn(),
 });
 
@@ -94,5 +99,125 @@ describe("SpotEditsService", () => {
     const result = await service.getSpotEditsPageByUserId("user-without-edits");
 
     expect(result).toEqual({ edits: [], lastDoc: null });
+  });
+
+  it("creates new spots through a setDocument placeholder before the CREATE edit", async () => {
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("create-edit-id");
+
+    const spotId = await service.createSpotWithEdit(
+      {
+        name: { en: "New Spot" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+        rating: 5,
+      },
+      { uid: "user-1", display_name: "Test User" }
+    );
+
+    expect(spotId).toBe("generated-spot-id");
+    expect(mockFirestoreAdapter.createDocumentId).toHaveBeenCalledWith("spots");
+    expect(mockFirestoreAdapter.setDocument).toHaveBeenCalledWith(
+      "spots/generated-spot-id",
+      {}
+    );
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/generated-spot-id/edits",
+      expect.objectContaining({
+        type: "CREATE",
+        user: { uid: "user-1", display_name: "Test User" },
+        data: expect.objectContaining({
+          name: { en: "New Spot" },
+          location_raw: { lat: 47.3769, lng: 8.5417 },
+        }),
+      })
+    );
+    expect(mockFirestoreAdapter.addDocument).not.toHaveBeenCalledWith(
+      "spots",
+      expect.anything()
+    );
+  });
+
+  it("sends CREATE edits with clean location-only payloads", async () => {
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("create-edit-id");
+
+    await service.createSpotWithEdit(
+      {
+        name: { en: "Location Only Park" },
+        location: new GeoPoint(47.5596, 7.5886),
+        media: [],
+        type: "park",
+        access: "public",
+        amenities: {
+          covered: undefined,
+          lit: true,
+        },
+      },
+      { uid: "user-1", display_name: "Test User" }
+    );
+
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/generated-spot-id/edits",
+      expect.objectContaining({
+        type: "CREATE",
+        user: { uid: "user-1", display_name: "Test User" },
+        data: {
+          name: { en: "Location Only Park" },
+          location: { latitude: 47.5596, longitude: 7.5886 },
+          media: [],
+          type: "park",
+          access: "public",
+          amenities: {
+            lit: true,
+          },
+        },
+      })
+    );
+  });
+
+  it("recursively removes undefined values from edit documents", async () => {
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
+
+    await service.addSpotEdit("spot-1", {
+      type: "CREATE",
+      timestamp: {} as SpotEditSchema["timestamp"],
+      timestamp_raw_ms: 1,
+      user: {
+        uid: "user-1",
+        display_name: undefined,
+      },
+      data: {
+        name: {
+          en: "Undefined Cleanup Park",
+          de: undefined,
+        },
+        amenities: {
+          covered: undefined,
+          lit: false,
+        },
+        media: [],
+      },
+      prevData: undefined,
+    } as unknown as SpotEditSchema);
+
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/spot-1/edits",
+      {
+        visibility: "public",
+        type: "CREATE",
+        timestamp: {},
+        timestamp_raw_ms: 1,
+        user: {
+          uid: "user-1",
+        },
+        data: {
+          name: {
+            en: "Undefined Cleanup Park",
+          },
+          amenities: {
+            lit: false,
+          },
+          media: [],
+        },
+      }
+    );
   });
 });

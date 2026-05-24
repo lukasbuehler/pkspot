@@ -41,9 +41,7 @@ export class EventCreatePageComponent implements OnInit {
   private _snackbar = inject(MatSnackBar);
   private _metaTagService = inject(MetaTagService);
 
-  readonly isAdmin = computed(
-    () => this._authService.user.data?.isAdmin === true
-  );
+  readonly isAdmin = computed(() => this._authService.isAdmin());
 
   readonly saving = signal<boolean>(false);
 

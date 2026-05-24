@@ -41,8 +41,14 @@ import {
   TilesObject,
 } from "../google-map-2d/google-map-2d.component";
 import { CommunityMapMarker } from "../community-dot-marker/community-dot-marker.component";
-import { EventMapMarker } from "../event-dot-marker/event-dot-marker.component";
 import { VisibleViewport } from "../maps/map-base";
+import {
+  MapBoundsOverlay,
+  MapCircleOverlay,
+  MapFeatureBoundaryOverlay,
+  MapPolygonOverlay,
+  MapPointMarker,
+} from "../maps/map-overlays";
 import {
   MapTileKey,
   getClusterTileKey,
@@ -77,6 +83,17 @@ import {
 } from "./spot-map-initial-viewport";
 import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AnalyticsService } from "../../services/analytics.service";
+
+interface CommunityAreaOverlay {
+  center: { lat: number; lng: number };
+  radiusM: number;
+  googleBoundary?: {
+    featureType: "COUNTRY";
+    placeId?: string;
+    query?: string;
+    region?: string;
+  };
+}
 
 @Component({
   selector: "app-spot-map",
@@ -140,16 +157,16 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
    * opacity circle on the map. Pass-through to google-map-2d. Driven by
    * the community page's `bounds_center` + `bounds_radius_m`.
    */
-  @Input() communityArea: {
-    center: { lat: number; lng: number };
-    radiusM: number;
-    googleBoundary?: {
-      featureType: "COUNTRY";
-      placeId?: string;
-      query?: string;
-      region?: string;
-    };
-  } | null = null;
+  private readonly _communityArea = signal<CommunityAreaOverlay | null>(null);
+
+  @Input()
+  set communityArea(value: CommunityAreaOverlay | null | undefined) {
+    this._communityArea.set(value ?? null);
+  }
+
+  get communityArea(): CommunityAreaOverlay | null {
+    return this._communityArea();
+  }
 
   /**
    * Clickable community chip markers shown across the map (every
@@ -170,12 +187,36 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   /** Emits the community key when the user clicks one of the chips. */
   @Output() communityMarkerClick = new EventEmitter<string>();
 
-  /**
-   * Event chip markers shown on the map. Pass-through to google-map-2d.
-   */
-  @Input() availableEvents: EventMapMarker[] = [];
+  private readonly _eventPointMarkers = signal<MapPointMarker[]>([]);
+  private readonly _boundsOverlays = signal<MapBoundsOverlay[]>([]);
+  private readonly _polygonOverlays = signal<MapPolygonOverlay[]>([]);
 
-  /** Emits the event's route id (slug or doc id) when a chip is clicked. */
+  @Input()
+  set eventPointMarkers(value: MapPointMarker[] | null | undefined) {
+    this._eventPointMarkers.set(value ? [...value] : []);
+  }
+
+  get eventPointMarkers(): MapPointMarker[] {
+    return this._eventPointMarkers();
+  }
+
+  @Input()
+  set boundsOverlays(value: MapBoundsOverlay[] | null | undefined) {
+    this._boundsOverlays.set(value ? [...value] : []);
+  }
+
+  get boundsOverlays(): MapBoundsOverlay[] {
+    return this._boundsOverlays();
+  }
+
+  @Input()
+  set polygonOverlays(value: MapPolygonOverlay[] | null | undefined) {
+    this._polygonOverlays.set(value ? [...value] : []);
+  }
+
+  get polygonOverlays(): MapPolygonOverlay[] {
+    return this._polygonOverlays();
+  }
   @Output() eventMarkerClick = new EventEmitter<string>();
 
   @Output() hasGeolocationChange = new EventEmitter<boolean>();
@@ -351,7 +392,152 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  private _shouldShowCommunityCenterDot(community: CommunityMapMarker): boolean {
+    return (
+      this._communityCircleDiameterPx(community) <=
+      this._communityDotDiameterPx(community)
+    );
+  }
+
+  private _isCommunityCircleClickable(community: CommunityMapMarker): boolean {
+    return this._communityCircleDiameterPx(community) <= 320;
+  }
+
+  private _communityCircleDiameterPx(community: CommunityMapMarker): number {
+    return (
+      (community.radiusM * 2) /
+      this._metersPerPixelAtLatitude(community.center.lat, this.mapZoom())
+    );
+  }
+
+  private _communityDotDiameterPx(community: CommunityMapMarker): number {
+    switch (community.scope) {
+      case "country":
+        return 20;
+      case "region":
+        return 14;
+      case "locality":
+        return 10;
+      default:
+        return 12;
+    }
+  }
+
+  private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {
+    const latitudeRadians = (latitude * Math.PI) / 180;
+    return (
+      (156_543.033_92 * Math.cos(latitudeRadians)) / Math.pow(2, zoom)
+    );
+  }
+
   visibleMarkers = signal<MarkerSchema[]>([]);
+  readonly pointMarkers = computed<MapPointMarker[]>(() => [
+    ...this.communityPointMarkers(),
+    ...this._eventPointMarkers(),
+  ]);
+
+  readonly circleOverlays = computed<MapCircleOverlay[]>(() => [
+    ...this.activeAreaCircleOverlays(),
+    ...this.communityCircleOverlays(),
+  ]);
+
+  readonly featureBoundaryOverlay = computed<MapFeatureBoundaryOverlay | null>(
+    () => {
+      const boundary = this._communityArea()?.googleBoundary;
+      if (!boundary) return null;
+
+      return {
+        id: "active-area-boundary",
+        ...boundary,
+      };
+    },
+  );
+
+  readonly activeAreaCircleOverlays = computed<MapCircleOverlay[]>(() => {
+    const communityArea = this._communityArea();
+    if (!communityArea || communityArea.googleBoundary) return [];
+
+    return [
+      {
+        id: "active-area-circle",
+        center: communityArea.center,
+        radiusM: communityArea.radiusM,
+        options: {
+          fillColor: this._getCssColorAsHex("--mat-sys-primary", "#0036ba"),
+          strokeColor: this._getCssColorAsHex(
+            "--mat-sys-on-primary-container",
+            "#001a67",
+          ),
+          fillOpacity: 0.04,
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          clickable: false,
+          draggable: false,
+          zIndex: 1,
+        },
+      },
+    ];
+  });
+
+  private _getCssColorAsHex(cssVarName: string, fallback: string): string {
+    if (typeof window === "undefined") {
+      return fallback;
+    }
+
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(cssVarName)
+      .trim();
+
+    if (/^#[0-9a-f]{6}$/iu.test(value)) {
+      return value;
+    }
+
+    const rgbMatch = value.match(
+      /^rgba?\(\s*(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})/iu,
+    );
+    if (!rgbMatch) {
+      return fallback;
+    }
+
+    return `#${rgbMatch
+      .slice(1, 4)
+      .map((part) =>
+        Math.max(0, Math.min(255, Number(part)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")}`;
+  }
+
+  readonly communityPointMarkers = computed<MapPointMarker[]>(() =>
+    this.availableCommunities
+      .filter((community) => this._shouldShowCommunityCenterDot(community))
+      .map((community) => ({
+        id: `community:${community.communityKey}`,
+        name: community.displayName,
+        location: community.center,
+        color: "primary",
+        type: "community",
+        number: undefined,
+        forceFullMarker: false,
+        maxZoom: undefined,
+        dotModeThreshold: Number.POSITIVE_INFINITY,
+        priority: "required",
+      })),
+  );
+
+  readonly communityCircleOverlays = computed<MapCircleOverlay[]>(() =>
+    this.availableCommunities
+      .filter((community) => !this._shouldShowCommunityCenterDot(community))
+      .map((community) => ({
+        id: `community:${community.communityKey}`,
+        center: community.center,
+        radiusM: community.radiusM,
+        options: {
+          clickable: this._isCommunityCircleClickable(community),
+        },
+      })),
+  );
 
   headingIsNotNorth: Signal<boolean> = computed(() => {
     if (!this.map) return false;
@@ -622,6 +808,26 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   onMarkerClickFromMap(evt: number | { marker: any; index?: number }) {
     // Simply forward; the Output already supports both shapes
     this.markerClickEvent.emit(evt);
+  }
+
+  onPointMarkerClick(marker: MapPointMarker): void {
+    if (marker.type === "community") {
+      this.communityMarkerClick.emit(marker.id.replace(/^community:/u, ""));
+      return;
+    }
+
+    if (marker.type === "event") {
+      this.eventMarkerClick.emit(marker.id.replace(/^event:/u, ""));
+      return;
+    }
+
+    this.markerClickEvent.emit({ marker });
+  }
+
+  onCircleOverlayClick(circle: MapCircleOverlay): void {
+    if (circle.id.startsWith("community:")) {
+      this.communityMarkerClick.emit(circle.id.replace(/^community:/u, ""));
+    }
   }
 
   focusOnGeolocation() {

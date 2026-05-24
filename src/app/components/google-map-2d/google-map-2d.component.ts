@@ -21,6 +21,7 @@ import {
   signal,
   effect,
   AfterViewInit,
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
@@ -61,16 +62,15 @@ import { ThemeService } from "../../services/theme.service";
 import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.component";
 import { CustomMarkerComponent } from "../custom-marker/custom-marker.component";
 import { ClusterDotMarkerComponent } from "../cluster-dot-marker/cluster-dot-marker.component";
-import {
-  CommunityDotMarkerComponent,
-  CommunityMapMarker,
-} from "../community-dot-marker/community-dot-marker.component";
-import {
-  EventDotMarkerComponent,
-  EventMapMarker,
-} from "../event-dot-marker/event-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
 import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-marker.component";
+import {
+  MapBoundsOverlay,
+  MapCircleOverlay,
+  MapFeatureBoundaryOverlay,
+  MapPolygonOverlay,
+  MapPointMarker,
+} from "../maps/map-overlays";
 
 function enumerateTileRangeX(
   start: number,
@@ -125,8 +125,6 @@ export interface TilesObject {
     HighlightMarkerComponent,
     CustomMarkerComponent,
     ClusterDotMarkerComponent,
-    CommunityDotMarkerComponent,
-    EventDotMarkerComponent,
     SpotPreviewMarkerComponent,
     MatSnackBarModule,
   ],
@@ -145,6 +143,7 @@ export interface TilesObject {
   host: {
     "[class.with-bottom-offset]": "bottomSheetOffset",
   },
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GoogleMap2dComponent
   extends MapBase
@@ -218,7 +217,13 @@ export class GoogleMap2dComponent
   }
 
   _zoom = signal<number>(4);
+  private readonly _communityVisualZoom = signal<number>(4);
+  private readonly COMMUNITY_VISUAL_ZOOM_STEP = 0.1;
+  private readonly COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX = 320;
+
   @Input() set zoom(newZoom: number) {
+    this._setCommunityVisualZoom(newZoom);
+
     if (this._isInternalZoomChange) {
       this._zoom.set(newZoom);
       return;
@@ -255,8 +260,15 @@ export class GoogleMap2dComponent
 
   getAndEmitChangedZoom() {
     if (!this.googleMap) return;
-    const newZoom = this.googleMap.getZoom()!;
-    this._debugMapEvent("zoomChanged", { zoom: newZoom });
+    const mapZoom = this.googleMap.getZoom();
+    if (typeof mapZoom !== "number") return;
+
+    this._setCommunityVisualZoom(mapZoom);
+
+    const newZoom = Math.floor(mapZoom);
+    if (newZoom === this._zoom()) return;
+
+    this._debugMapEvent("zoomChanged", { zoom: newZoom, mapZoom });
     this._isInternalZoomChange = true;
     this._zoom.set(newZoom);
     this.zoomChange.emit(newZoom);
@@ -264,6 +276,23 @@ export class GoogleMap2dComponent
     setTimeout(() => {
       this._isInternalZoomChange = false;
     }, 0);
+  }
+
+  private _setCommunityVisualZoom(mapZoom: number): void {
+    const steppedZoomUnits = Math.round(
+      mapZoom / this.COMMUNITY_VISUAL_ZOOM_STEP,
+    );
+    const currentZoomUnits = Math.round(
+      this._communityVisualZoom() / this.COMMUNITY_VISUAL_ZOOM_STEP,
+    );
+
+    if (steppedZoomUnits === currentZoomUnits) {
+      return;
+    }
+
+    this._communityVisualZoom.set(
+      steppedZoomUnits * this.COMMUNITY_VISUAL_ZOOM_STEP,
+    );
   }
 
   onMapClick(event: google.maps.MapMouseEvent | google.maps.IconMouseEvent) {
@@ -404,72 +433,18 @@ export class GoogleMap2dComponent
    */
   @Input() bottomSheetOffset: boolean = false;
 
-  /**
-   * If set, draws a light, transparent circle on the map showing the
-   * geographic area of the active community. Driven by the community's
-   * `bounds_center` + `bounds_radius_m` (see CommunityPageSchema).
-   */
-  @Input() communityArea: {
-    center: { lat: number; lng: number };
-    radiusM: number;
-    googleBoundary?: {
-      featureType: "COUNTRY";
-      placeId?: string;
-      query?: string;
-      region?: string;
-    };
-  } | null = null;
-  private _communityBoundaryLayer: google.maps.FeatureLayer | null = null;
-  private _communityBoundaryRequestVersion = 0;
-  private _communityBoundaryPlaceIdCache = new Map<string, string | null>();
-
-  /**
-   * Clickable community markers shown across the map. One chip per
-   * published community with bounds info. Independent from the
-   * `communityArea` overlay above — that's the *active* community's
-   * visual region, this is the click-target set.
-   */
-  @Input() availableCommunities: CommunityMapMarker[] = [];
-
-  /**
-   * Emits the community key when the user clicks one of the
-   * `availableCommunities` chips. Host opens the corresponding panel.
-   */
-  @Output() communityMarkerClick = new EventEmitter<string>();
-
-  /**
-   * Computed accessor so the template can use `track community.communityKey`
-   * without forcing change-detection on every parent update.
-   */
-  availableCommunityMarkers(): CommunityMapMarker[] {
-    return this.availableCommunities;
-  }
-
-  /**
-   * Event chip markers shown on the map. One per visible event with a
-   * known center. Click → emit the event's route id (slug or doc id)
-   * so the host opens the event preview / page.
-   */
-  @Input() availableEvents: EventMapMarker[] = [];
-
-  /** Emits the event's route id when the user clicks one of the chips. */
-  @Output() eventMarkerClick = new EventEmitter<string>();
-
-  availableEventMarkers(): EventMapMarker[] {
-    return this.availableEvents;
-  }
-
-  /** Visual style for the active-community area circle. */
-  communityAreaCircleOptions: google.maps.CircleOptions = {
-    fillColor: "#b8c4ff",
-    strokeColor: "#b8c4ff",
-    fillOpacity: 0.04,
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
-    clickable: false,
-    draggable: false,
-    zIndex: 1,
-  };
+  @Input() pointMarkers: MapPointMarker[] = [];
+  @Input() circleOverlays: MapCircleOverlay[] = [];
+  @Input() boundsOverlays: MapBoundsOverlay[] = [];
+  @Input() polygonOverlays: MapPolygonOverlay[] = [];
+  @Input() featureBoundaryOverlay: MapFeatureBoundaryOverlay | null = null;
+  @Output() pointMarkerClick = new EventEmitter<MapPointMarker>();
+  @Output() circleOverlayClick = new EventEmitter<MapCircleOverlay>();
+  @Output() boundsOverlayClick = new EventEmitter<MapBoundsOverlay>();
+  @Output() polygonOverlayClick = new EventEmitter<MapPolygonOverlay>();
+  private _featureBoundaryLayer: google.maps.FeatureLayer | null = null;
+  private _featureBoundaryRequestVersion = 0;
+  private _featureBoundaryPlaceIdCache = new Map<string, string | null>();
 
   /**
    * Passive locality circles begin with the stronger dot treatment while
@@ -477,54 +452,48 @@ export class GoogleMap2dComponent
    * they become large on screen. This avoids an abrupt visual hand-off when
    * a user opens a community and also keeps close-up circles out of the way.
    */
-  communityCircleOptions(
-    community: CommunityMapMarker,
+  circleOverlayOptions(
+    circle: MapCircleOverlay,
   ): google.maps.CircleOptions {
-    const diameterPx = this._communityCircleDiameterPx(community);
+    const diameterPx = this._circleDiameterPx(circle);
     const fade = this._smoothstep(
-      this._communityDotDiameterPx(community),
+      10,
       320,
       diameterPx,
     );
+    const primary = this._getCssColorAsHex("--mat-sys-primary", "#0036ba");
+    const primaryBorder = this._getCssColorAsHex(
+      "--mat-sys-on-primary-container",
+      "#001a67",
+    );
 
     return {
-      fillColor: "#b8c4ff",
-      fillOpacity: this._lerp(0.85, 0.04, fade),
-      strokeColor: this._mixHexColor("#0036ba", "#b8c4ff", fade),
+      fillColor: primary,
+      fillOpacity: this._lerp(0.85, 0.08, fade),
+      strokeColor: this._mixHexColor(primaryBorder, primary, fade),
       strokeOpacity: this._lerp(1, 0.28, fade),
       strokeWeight: this._lerp(1, 1, fade),
-      clickable: true,
+      clickable: circle.options?.clickable ?? true,
+      ...circle.options,
     };
   }
 
-  /**
-   * The center dot is only useful while the geographic circle is smaller on
-   * screen than the dot itself. Once the circle is visually legible, let it
-   * become the sole object and click target.
-   */
-  shouldShowCommunityCenterDot(community: CommunityMapMarker): boolean {
-    const circleDiameterPx = this._communityCircleDiameterPx(community);
-    return circleDiameterPx <= this._communityDotDiameterPx(community);
-  }
-
-  private _communityCircleDiameterPx(community: CommunityMapMarker): number {
+  isCircleOverlayClickable(circle: MapCircleOverlay): boolean {
+    if (circle.options?.clickable === false) return false;
     return (
-      (community.radiusM * 2) /
-      this._metersPerPixelAtLatitude(community.center.lat, this.zoom)
+      this._circleDiameterPx(circle) <=
+      this.COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX
     );
   }
 
-  private _communityDotDiameterPx(community: CommunityMapMarker): number {
-    switch (community.scope) {
-      case "country":
-        return 20;
-      case "region":
-        return 14;
-      case "locality":
-        return 10;
-      default:
-        return 12;
-    }
+  private _circleDiameterPx(circle: MapCircleOverlay): number {
+    return (
+      (circle.radiusM * 2) /
+      this._metersPerPixelAtLatitude(
+        circle.center.lat,
+        this._communityVisualZoom(),
+      )
+    );
   }
 
   private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {
@@ -995,7 +964,7 @@ export class GoogleMap2dComponent
     this.positionGoogleMapsLogo();
     this._subscribeToHeadingChanges();
     this._subscribeToMapCapabilitiesChanges();
-    void this._updateCommunityBoundaryStyle();
+    void this._updateFeatureBoundaryStyle();
 
     if (this.isDebug()) {
       this._startFpsLoop();
@@ -1121,8 +1090,8 @@ export class GoogleMap2dComponent
       this._applyBoundRestriction();
     }
 
-    if (changes["communityArea"]) {
-      void this._updateCommunityBoundaryStyle();
+    if (changes["featureBoundaryOverlay"]) {
+      void this._updateFeatureBoundaryStyle();
     }
 
     if (changes["isDebug"]) {
@@ -1142,16 +1111,16 @@ export class GoogleMap2dComponent
       this._headingChangedSubscription.unsubscribe();
     this._mapCapabilitiesChangedListener?.remove();
     this._mapCapabilitiesChangedListener = null;
-    this._communityBoundaryRequestVersion++;
-    this._clearCommunityBoundaryStyle();
+    this._featureBoundaryRequestVersion++;
+    this._clearFeatureBoundaryStyle();
     this._stopFpsLoop();
   }
 
-  private async _updateCommunityBoundaryStyle(): Promise<void> {
-    const requestVersion = ++this._communityBoundaryRequestVersion;
-    this._clearCommunityBoundaryStyle();
+  private async _updateFeatureBoundaryStyle(): Promise<void> {
+    const requestVersion = ++this._featureBoundaryRequestVersion;
+    this._clearFeatureBoundaryStyle();
 
-    const boundary = this.communityArea?.googleBoundary;
+    const boundary = this.featureBoundaryOverlay;
     const map = this.googleMap?.googleMap;
     if (!boundary || !map || typeof google === "undefined") {
       return;
@@ -1166,10 +1135,10 @@ export class GoogleMap2dComponent
       return;
     }
 
-    const featureType = await this._getCommunityBoundaryFeatureType(
+    const featureType = await this._getFeatureBoundaryFeatureType(
       boundary.featureType
     );
-    if (requestVersion !== this._communityBoundaryRequestVersion) {
+    if (requestVersion !== this._featureBoundaryRequestVersion) {
       return;
     }
     if (!featureType) {
@@ -1186,28 +1155,28 @@ export class GoogleMap2dComponent
     }
 
     const placeId =
-      boundary.placeId || (await this._resolveCommunityBoundaryPlaceId(boundary));
-    if (requestVersion !== this._communityBoundaryRequestVersion || !placeId) {
+      boundary.placeId || (await this._resolveFeatureBoundaryPlaceId(boundary));
+    if (requestVersion !== this._featureBoundaryRequestVersion || !placeId) {
       return;
     }
 
-    const style = this._getCommunityBoundaryStyle();
+    const style = boundary.options ?? this._getFeatureBoundaryStyle();
     layer.style = ({ feature }) => {
       const placeFeature = feature as google.maps.PlaceFeature;
       return placeFeature.placeId === placeId ? style : undefined;
     };
 
-    this._communityBoundaryLayer = layer;
+    this._featureBoundaryLayer = layer;
   }
 
-  private _clearCommunityBoundaryStyle(): void {
-    if (this._communityBoundaryLayer) {
-      this._communityBoundaryLayer.style = null;
-      this._communityBoundaryLayer = null;
+  private _clearFeatureBoundaryStyle(): void {
+    if (this._featureBoundaryLayer) {
+      this._featureBoundaryLayer.style = null;
+      this._featureBoundaryLayer = null;
     }
   }
 
-  private async _getCommunityBoundaryFeatureType(
+  private async _getFeatureBoundaryFeatureType(
     featureType: "COUNTRY"
   ): Promise<google.maps.FeatureType | null> {
     const mapsApi = this._getGoogleMapsApi() as
@@ -1240,7 +1209,7 @@ export class GoogleMap2dComponent
     }
   }
 
-  private async _resolveCommunityBoundaryPlaceId(boundary: {
+  private async _resolveFeatureBoundaryPlaceId(boundary: {
     query?: string;
     region?: string;
   }): Promise<string | null> {
@@ -1250,8 +1219,8 @@ export class GoogleMap2dComponent
     }
 
     const cacheKey = `${boundary.region ?? ""}:${query}`.toLowerCase();
-    if (this._communityBoundaryPlaceIdCache.has(cacheKey)) {
-      return this._communityBoundaryPlaceIdCache.get(cacheKey) ?? null;
+    if (this._featureBoundaryPlaceIdCache.has(cacheKey)) {
+      return this._featureBoundaryPlaceIdCache.get(cacheKey) ?? null;
     }
 
     try {
@@ -1270,16 +1239,16 @@ export class GoogleMap2dComponent
       if (!placeId) {
         console.warn("No Google boundary Place ID found for community:", query);
       }
-      this._communityBoundaryPlaceIdCache.set(cacheKey, placeId);
+      this._featureBoundaryPlaceIdCache.set(cacheKey, placeId);
       return placeId;
     } catch (error) {
       console.warn("Failed to resolve community boundary Place ID:", error);
-      this._communityBoundaryPlaceIdCache.set(cacheKey, null);
+      this._featureBoundaryPlaceIdCache.set(cacheKey, null);
       return null;
     }
   }
 
-  private _getCommunityBoundaryStyle(): google.maps.FeatureStyleOptions {
+  private _getFeatureBoundaryStyle(): google.maps.FeatureStyleOptions {
     const color = this._getCssColorAsHex("--mat-sys-primary", "#0036ba");
     return {
       fillColor: color,
@@ -1335,7 +1304,7 @@ export class GoogleMap2dComponent
 
     this._mapCapabilitiesChangedListener =
       this.googleMap.googleMap.addListener("mapcapabilities_changed", () => {
-        void this._updateCommunityBoundaryStyle();
+        void this._updateFeatureBoundaryStyle();
       });
   }
 
@@ -1492,7 +1461,7 @@ export class GoogleMap2dComponent
 
   private _lastBoundsChangeTime = 0;
   private _boundsThrottleTimer: any = null;
-  private readonly BOUNDS_THROTTLE_MS = 100; // ~10fps
+  private readonly BOUNDS_THROTTLE_MS = 1000;
 
   // FPS Counter
   fps = signal<number>(0);
@@ -1575,6 +1544,11 @@ export class GoogleMap2dComponent
         this._boundsThrottleTimer = null;
       }, this.BOUNDS_THROTTLE_MS);
     }
+  }
+
+  cameraIdle() {
+    this._executeBoundsChange();
+    this.centerChanged();
   }
 
   private _executeBoundsChange() {

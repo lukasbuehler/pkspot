@@ -80,6 +80,7 @@ import { NgClass } from "@angular/common";
         style="pointer-events: none"
         [icons]="marker().icons"
         [imageSrc]="marker().imageSrc"
+        [imageBackgroundColor]="marker().imageBackgroundColor"
         [number]="marker().number"
         [color]="marker().color ?? 'primary'"
         [size]="0.8"
@@ -144,6 +145,9 @@ export class CustomMarkerComponent {
 
   /** Whether to force using the full marker regardless of zoom */
   forceFullMarker = input<boolean>(false);
+
+  /** Whether dot-mode clicks should emit markerClick instead of focus only. */
+  emitDotClick = input<boolean>(false);
 
   /** Emitted when the marker is clicked, with the marker's index */
   markerClick = output<number>();
@@ -225,6 +229,9 @@ export class CustomMarkerComponent {
     }
     if (this.canStopPropagation($event)) {
       $event.stopPropagation();
+    }
+    if (this.emitDotClick()) {
+      this.markerClick.emit(this.index());
     }
   }
 

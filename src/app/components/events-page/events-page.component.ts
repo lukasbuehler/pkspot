@@ -1,11 +1,9 @@
-import { isPlatformBrowser } from "@angular/common";
 import {
   Component,
   computed,
   inject,
-  PLATFORM_ID,
+  OnInit,
   signal,
-  afterNextRender,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -23,15 +21,12 @@ import { EventCardComponent } from "../event-card/event-card.component";
   templateUrl: "./events-page.component.html",
   styleUrl: "./events-page.component.scss",
 })
-export class EventsPageComponent {
-  private _platformId = inject(PLATFORM_ID);
+export class EventsPageComponent implements OnInit {
   private _eventsService = inject(EventsService);
   private _authService = inject(AuthenticationService);
 
   /** Shows the "+ Create event" button only to admins. */
-  readonly isAdmin = computed(
-    () => this._authService.user.data?.isAdmin === true
-  );
+  readonly isAdmin = computed(() => this._authService.isAdmin());
 
   events = signal<PkEvent[]>([]);
   loading = signal<boolean>(true);
@@ -47,12 +42,8 @@ export class EventsPageComponent {
       .sort((a, b) => b.start.getTime() - a.start.getTime())
   );
 
-  constructor() {
-    if (isPlatformBrowser(this._platformId)) {
-      afterNextRender(() => {
-        void this._loadEvents();
-      });
-    }
+  ngOnInit() {
+    void this._loadEvents();
   }
 
   private async _loadEvents() {

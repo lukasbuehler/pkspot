@@ -70,6 +70,8 @@ export const communityLandingResolver: ResolveFn<
       totalSpotCount: 0,
       topRatedCount: 0,
       dryCount: 0,
+      spots: [],
+      communityPicks: [],
       topRatedSpots: [],
       drySpots: [],
       links: {},
@@ -103,12 +105,16 @@ export const communityLandingResolver: ResolveFn<
     ),
   );
 
-  if (pageData.topRatedSpots.length > 0) {
+  const communitySpots =
+    pageData.communityPicks?.flatMap((section) => section.spots) ??
+    pageData.spots ??
+    pageData.topRatedSpots;
+  if (communitySpots.length > 0) {
     structuredDataService.addStructuredData(
-      "community-top-rated",
+      "community-spots",
       structuredDataService.generateSpotItemList(
-        pageData.topRatedSpots,
-        "Top Rated Parkour Spots",
+        communitySpots,
+        "Parkour Spots",
       ),
     );
   }

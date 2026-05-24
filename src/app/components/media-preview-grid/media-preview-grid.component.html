@@ -20,6 +20,7 @@
           [ngSrc]="mediaSrc"
           fill
           referrerpolicy="no-referrer"
+          (error)="useOriginalFallback($index, media()[$index])"
         />
         @if(media()[$index].isReported) {
         <div class="reported-overlay">

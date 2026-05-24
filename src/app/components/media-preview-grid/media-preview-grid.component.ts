@@ -17,6 +17,7 @@ import {
   InputSignal,
   OnInit,
   Output,
+  signal,
 } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 import { MatIconButton } from "@angular/material/button";
@@ -48,13 +49,17 @@ export class MediaPreviewGridComponent implements OnInit {
 
   storageService = inject(StorageService);
   dialog = inject(MatDialog);
+  fallbackImageIndices = signal<Set<number>>(new Set());
 
   mediaSources: Signal<string[]> = computed<string[]>(() => {
     const media = this.media();
 
     return media
-      .map((mediaObj) => {
+      .map((mediaObj, index) => {
         if (mediaObj instanceof StorageImage) {
+          if (this.fallbackImageIndices().has(index)) {
+            return mediaObj.getOriginalSrc();
+          }
           return mediaObj.getSrc(400);
         } else if (mediaObj instanceof StorageVideo) {
           return mediaObj.getPreviewImageSrc();
@@ -94,6 +99,18 @@ export class MediaPreviewGridComponent implements OnInit {
         // The Cloud Function updates the DB, and the live subscription receives the update
         // with isReported: true, which updates the UI.
       }
+    });
+  }
+
+  useOriginalFallback(index: number, mediaObj: AnyMedia): void {
+    if (!(mediaObj instanceof StorageImage)) {
+      return;
+    }
+
+    this.fallbackImageIndices.update((set) => {
+      const newSet = new Set(set);
+      newSet.add(index);
+      return newSet;
     });
   }
 }

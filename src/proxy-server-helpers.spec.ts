@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   applyTrustedClientRegionHeader,
+  getQrStickerRedirectTarget,
   getTrustedClientRegionFromHeaders,
+  handleQrStickerRequest,
   normalizeClientRegionHeader,
 } from "./proxy-server-helpers.mjs";
 
@@ -35,5 +37,62 @@ describe("proxy-server client region helpers", () => {
 
     expect(applyTrustedClientRegionHeader(headers)).toBe("AU");
     expect(headers["x-pkspot-client-region"]).toBe("AU");
+  });
+
+  it("should build the QR sticker redirect with explicit UTM parameters", () => {
+    expect(
+      getQrStickerRedirectTarget(
+        "/qr/nice?foo=bar&utm_source=old&utm_medium=old&utm_campaign=old",
+        "nice"
+      )
+    ).toBe(
+      "/map?foo=bar&utm_source=sticker&utm_medium=qr&utm_campaign=nice-spot-v1"
+    );
+  });
+
+  it("should not build QR redirect targets for unknown sticker slugs", () => {
+    expect(getQrStickerRedirectTarget("/qr/unknown", "unknown")).toBeNull();
+  });
+
+  it("should handle known QR sticker requests as 302 redirects", () => {
+    const headers: Record<string, string> = {};
+    const res = {
+      redirect: vi.fn(),
+      setHeader: vi.fn((key: string, value: string) => {
+        headers[key] = value;
+      }),
+    };
+    const next = vi.fn();
+
+    handleQrStickerRequest(
+      { originalUrl: "/qr/nice?batch=42", params: { slug: "nice" } },
+      res,
+      next
+    );
+
+    expect(headers["Cache-Control"]).toBe("no-store");
+    expect(res.redirect).toHaveBeenCalledWith(
+      302,
+      "/map?batch=42&utm_source=sticker&utm_medium=qr&utm_campaign=nice-spot-v1"
+    );
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("should pass unknown QR sticker requests to the next route", () => {
+    const res = {
+      redirect: vi.fn(),
+      setHeader: vi.fn(),
+    };
+    const next = vi.fn();
+
+    handleQrStickerRequest(
+      { originalUrl: "/qr/unknown", params: { slug: "unknown" } },
+      res,
+      next
+    );
+
+    expect(res.setHeader).not.toHaveBeenCalled();
+    expect(res.redirect).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalled();
   });
 });
