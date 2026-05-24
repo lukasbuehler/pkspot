@@ -20,7 +20,7 @@ import {
   SpotTypesIcons,
   SpotTypesNames,
 } from "../../../db/schemas/SpotTypeAndAccess";
-import { getMediaPreviewImageUrl, MediaSchema } from "../../../db/schemas/Media";
+import type { MediaSchema } from "../../../db/schemas/Media";
 import { SpotEdit } from "../../../db/models/SpotEdit";
 import { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 
@@ -138,8 +138,12 @@ export class SpotEditSummaryComponent {
         label: $localize`:@@spot-edit-summary.field.description:Description`,
       });
     }
-    if (data.location) chips.push({ icon: "place", label: $localize`:@@spot-edit-summary.field.location:Location` });
-    if (data.bounds) chips.push({ icon: "polyline", label: $localize`:@@spot-edit-summary.field.bounds:Bounds` });
+    if (data.location || data.location_raw) {
+      chips.push({ icon: "place", label: $localize`:@@spot-edit-summary.field.location:Location` });
+    }
+    if (data.bounds || data.bounds_raw) {
+      chips.push({ icon: "polyline", label: $localize`:@@spot-edit-summary.field.bounds:Bounds` });
+    }
     if (data.external_references) {
       chips.push({ icon: "link", label: $localize`:@@spot-edit-summary.field.external-refs:External refs` });
     }
@@ -183,27 +187,33 @@ export class SpotEditSummaryComponent {
       });
     }
 
-    if (this._hasOwn(data, "location")) {
+    if (this._hasAnyOwn(data, ["location", "location_raw"])) {
+      const location = this._hasOwn(data, "location")
+        ? data.location
+        : data.location_raw;
+      const previousLocation = this._hasOwn(prevData, "location")
+        ? prevData?.location
+        : prevData?.location_raw;
       addRow({
         key: "location",
         icon: "place",
         label: $localize`:@@spot-edit-summary.row.location:Location`,
-        value: this._formatLocation(data.location),
-        previousValue: this._hasOwn(prevData, "location")
-          ? this._formatLocation(prevData?.location)
+        value: this._formatLocation(location),
+        previousValue: this._hasAnyOwn(prevData, ["location", "location_raw"])
+          ? this._formatLocation(previousLocation)
           : undefined,
       });
     }
 
     if (this._hasOwn(data, "media")) {
+      const hasPreviousMedia = this._hasOwn(prevData, "media");
       addRow({
         key: "media",
         icon: "link",
         label: $localize`:@@spot-edit-summary.row.media:Media`,
-        value: this._formatMediaCount(data.media),
-        previousValue: this._hasOwn(prevData, "media")
-          ? this._formatMediaCount(prevData?.media)
-          : undefined,
+        value: hasPreviousMedia
+          ? this._formatMediaAddedCount(data.media, prevData?.media)
+          : this._formatMediaCount(data.media),
       });
     }
 
@@ -276,14 +286,18 @@ export class SpotEditSummaryComponent {
       });
     }
 
-    if (this._hasOwn(data, "bounds")) {
+    if (this._hasAnyOwn(data, ["bounds", "bounds_raw"])) {
+      const bounds = this._hasOwn(data, "bounds") ? data.bounds : data.bounds_raw;
+      const previousBounds = this._hasOwn(prevData, "bounds")
+        ? prevData?.bounds
+        : prevData?.bounds_raw;
       addRow({
         key: "bounds",
         icon: "polyline",
         label: $localize`:@@spot-edit-summary.row.bounds:Bounds`,
-        value: this._formatBounds(data.bounds),
-        previousValue: this._hasOwn(prevData, "bounds")
-          ? this._formatBounds(prevData?.bounds)
+        value: this._formatBounds(bounds),
+        previousValue: this._hasAnyOwn(prevData, ["bounds", "bounds_raw"])
+          ? this._formatBounds(previousBounds)
           : undefined,
       });
     }
@@ -369,7 +383,7 @@ export class SpotEditSummaryComponent {
       .map((item) => {
         try {
           return {
-            previewSrc: getMediaPreviewImageUrl(item),
+            previewSrc: this._getMediaPreviewImageUrl(item),
             type: item.type,
           } as DisplayMedia;
         } catch {
@@ -428,6 +442,13 @@ export class SpotEditSummaryComponent {
     key: keyof SpotEditSchema["data"]
   ): boolean {
     return !!obj && Object.prototype.hasOwnProperty.call(obj, key);
+  }
+
+  private _hasAnyOwn(
+    obj: SpotEditSchema["data"] | undefined,
+    keys: readonly (keyof SpotEditSchema["data"])[]
+  ): boolean {
+    return keys.some((key) => this._hasOwn(obj, key));
   }
 
   private _formatLocaleMap(value: unknown, truncateAt = 40): string {
@@ -581,6 +602,50 @@ export class SpotEditSummaryComponent {
     return value.length === 1
       ? $localize`:@@spot-edit-summary.row.media.single:1 item`
       : $localize`:@@spot-edit-summary.row.media.multiple:${value.length}:itemCount: items`;
+  }
+
+  private _formatMediaAddedCount(current: unknown, previous: unknown): string {
+    if (!Array.isArray(current) || !Array.isArray(previous)) {
+      return this._emptyValue();
+    }
+
+    const previousSrcs = new Set(previous.map((item) => item?.src));
+    const addedCount = current.filter((item) => !previousSrcs.has(item?.src))
+      .length;
+
+    if (addedCount === 0) {
+      return this._noMediaValue();
+    }
+
+    return addedCount === 1
+      ? $localize`:@@spot-edit-summary.row.media.single-added:1 item added`
+      : $localize`:@@spot-edit-summary.row.media.multiple-added:${addedCount}:itemCount: items added`;
+  }
+
+  private _getMediaPreviewImageUrl(mediaSchema: MediaSchema): string {
+    if (!mediaSchema.isInStorage) {
+      return mediaSchema.src;
+    }
+
+    const match =
+      /(https?:\/\/[\w.-]+\/v0\/b\/[\w-.]+\/o\/)?([\w_]+)(?:%2F|\/)([\w_-]+)\.?(\w+)?\?([\w-=&]+)/.exec(
+        mediaSchema.src
+      );
+    if (!match) {
+      return "";
+    }
+
+    const uriBeforeBucket = match[1] ?? "";
+    const bucket = match[2] ?? "";
+    const filename = match[3] ?? "";
+    const extension = match[4] ? `.${match[4]}` : "";
+    const options = match[5] ?? "";
+    const previewFilename =
+      mediaSchema.type === "video"
+        ? `thumb_${filename}_400x400${extension}`
+        : `${filename}_400x400${extension}`;
+
+    return `${uriBeforeBucket}${bucket}%2F${previewFilename}?${options}`;
   }
 
   private _truncate(text: string, maxLength: number): string {

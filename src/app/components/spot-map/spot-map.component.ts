@@ -84,6 +84,17 @@ import {
 import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AnalyticsService } from "../../services/analytics.service";
 
+interface CommunityAreaOverlay {
+  center: { lat: number; lng: number };
+  radiusM: number;
+  googleBoundary?: {
+    featureType: "COUNTRY";
+    placeId?: string;
+    query?: string;
+    region?: string;
+  };
+}
+
 @Component({
   selector: "app-spot-map",
   templateUrl: "./spot-map.component.html",
@@ -146,16 +157,16 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
    * opacity circle on the map. Pass-through to google-map-2d. Driven by
    * the community page's `bounds_center` + `bounds_radius_m`.
    */
-  @Input() communityArea: {
-    center: { lat: number; lng: number };
-    radiusM: number;
-    googleBoundary?: {
-      featureType: "COUNTRY";
-      placeId?: string;
-      query?: string;
-      region?: string;
-    };
-  } | null = null;
+  private readonly _communityArea = signal<CommunityAreaOverlay | null>(null);
+
+  @Input()
+  set communityArea(value: CommunityAreaOverlay | null | undefined) {
+    this._communityArea.set(value ?? null);
+  }
+
+  get communityArea(): CommunityAreaOverlay | null {
+    return this._communityArea();
+  }
 
   /**
    * Clickable community chip markers shown across the map (every
@@ -176,9 +187,36 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   /** Emits the community key when the user clicks one of the chips. */
   @Output() communityMarkerClick = new EventEmitter<string>();
 
-  @Input() eventPointMarkers: MapPointMarker[] = [];
-  @Input() boundsOverlays: MapBoundsOverlay[] = [];
-  @Input() polygonOverlays: MapPolygonOverlay[] = [];
+  private readonly _eventPointMarkers = signal<MapPointMarker[]>([]);
+  private readonly _boundsOverlays = signal<MapBoundsOverlay[]>([]);
+  private readonly _polygonOverlays = signal<MapPolygonOverlay[]>([]);
+
+  @Input()
+  set eventPointMarkers(value: MapPointMarker[] | null | undefined) {
+    this._eventPointMarkers.set(value ? [...value] : []);
+  }
+
+  get eventPointMarkers(): MapPointMarker[] {
+    return this._eventPointMarkers();
+  }
+
+  @Input()
+  set boundsOverlays(value: MapBoundsOverlay[] | null | undefined) {
+    this._boundsOverlays.set(value ? [...value] : []);
+  }
+
+  get boundsOverlays(): MapBoundsOverlay[] {
+    return this._boundsOverlays();
+  }
+
+  @Input()
+  set polygonOverlays(value: MapPolygonOverlay[] | null | undefined) {
+    this._polygonOverlays.set(value ? [...value] : []);
+  }
+
+  get polygonOverlays(): MapPolygonOverlay[] {
+    return this._polygonOverlays();
+  }
   @Output() eventMarkerClick = new EventEmitter<string>();
 
   @Output() hasGeolocationChange = new EventEmitter<boolean>();
@@ -395,7 +433,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   visibleMarkers = signal<MarkerSchema[]>([]);
   readonly pointMarkers = computed<MapPointMarker[]>(() => [
     ...this.communityPointMarkers(),
-    ...this.eventPointMarkers,
+    ...this._eventPointMarkers(),
   ]);
 
   readonly circleOverlays = computed<MapCircleOverlay[]>(() => [
@@ -405,7 +443,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   readonly featureBoundaryOverlay = computed<MapFeatureBoundaryOverlay | null>(
     () => {
-      const boundary = this.communityArea?.googleBoundary;
+      const boundary = this._communityArea()?.googleBoundary;
       if (!boundary) return null;
 
       return {
@@ -416,13 +454,14 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   );
 
   readonly activeAreaCircleOverlays = computed<MapCircleOverlay[]>(() => {
-    if (!this.communityArea || this.communityArea.googleBoundary) return [];
+    const communityArea = this._communityArea();
+    if (!communityArea || communityArea.googleBoundary) return [];
 
     return [
       {
         id: "active-area-circle",
-        center: this.communityArea.center,
-        radiusM: this.communityArea.radiusM,
+        center: communityArea.center,
+        radiusM: communityArea.radiusM,
         options: {
           fillColor: this._getCssColorAsHex("--mat-sys-primary", "#0036ba"),
           strokeColor: this._getCssColorAsHex(

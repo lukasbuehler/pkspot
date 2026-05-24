@@ -353,7 +353,7 @@
       <h2 class="mat-title-large m-0">{{ section.title }}</h2>
     </div>
 
-    <app-spot-list [highlightedSpots]="section.spots" [spots]="[]" [enableAnimation]="false"
+    <app-spot-list [highlightedSpots]="section.spots" [spots]="[]" [enableAnimation]="false" [hideHeader]="true"
       [withHrefLink]="!panelMode()" [text]="section.title" (spotClick)="onSelectSpot($event)"></app-spot-list>
   </section>
   }
@@ -371,7 +371,7 @@
       <h2 class="mat-title-large m-0">Spots</h2>
     </div>
 
-    <app-spot-list [highlightedSpots]="featuredSpots()" [spots]="[]" [enableAnimation]="false"
+    <app-spot-list [highlightedSpots]="featuredSpots()" [spots]="[]" [enableAnimation]="false" [hideHeader]="true"
       [withHrefLink]="!panelMode()" [text]="'Community Spots'" (spotClick)="onSelectSpot($event)"></app-spot-list>
     <a mat-stroked-button class="mt-2" routerLink="/map" [queryParams]="exploreMapQueryParams('all')"
       (click)="onExploreCommunitySpots($event, 'all')">
@@ -386,7 +386,7 @@
       <h2 class="mat-title-large m-0">Dry Spots</h2>
     </div>
 
-    <app-spot-list [highlightedSpots]="data.drySpots" [spots]="[]" [enableAnimation]="false"
+    <app-spot-list [highlightedSpots]="data.drySpots" [spots]="[]" [enableAnimation]="false" [hideHeader]="true"
       [withHrefLink]="!panelMode()" [text]="'Dry Spots'" (spotClick)="onSelectSpot($event)"></app-spot-list>
     <a mat-stroked-button class="mt-2" routerLink="/map" [queryParams]="exploreMapQueryParams('dry')"
       (click)="onExploreCommunitySpots($event, 'dry')">

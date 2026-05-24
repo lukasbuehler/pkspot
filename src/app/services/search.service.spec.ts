@@ -363,6 +363,12 @@ describe("SearchService", () => {
       expect(service.spotSearchParameters.sort_by).toBe("rating:desc");
     });
 
+    it("should use spot count as the community search relevance tiebreaker", () => {
+      expect(service.communitySearchParameters.sort_by).toBe(
+        "_text_match:desc,counts.totalSpots:desc"
+      );
+    });
+
     it("should prioritize media within same-rating hits while keeping higher ratings first", () => {
       const hits = [
         {

@@ -14,6 +14,7 @@ import { NgOptimizedImage, isPlatformBrowser } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { RouterLinkWithHref } from "@angular/router";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { APP_LINKS } from "../../shared/app-links";
 
 interface Partner {
   name: string;
@@ -39,6 +40,8 @@ interface Partner {
 })
 export class AboutPageComponent implements AfterViewInit, OnDestroy {
   @ViewChild("carouselTrack") carouselTrack!: ElementRef<HTMLElement>;
+
+  readonly appLinks = APP_LINKS;
 
   // Base partners data
   readonly basePartners: Partner[] = [

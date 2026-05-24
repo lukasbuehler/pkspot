@@ -28,6 +28,18 @@ export interface ErrorReportOptions {
   properties?: Record<string, unknown>;
 }
 
+export function stripUtmParametersFromUrl(url: string): string {
+  const parsedUrl = new URL(url, "https://pkspot.app");
+
+  for (const key of [...parsedUrl.searchParams.keys()]) {
+    if (key.toLowerCase().startsWith("utm_")) {
+      parsedUrl.searchParams.delete(key);
+    }
+  }
+
+  return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -718,6 +730,27 @@ export class AnalyticsService {
       ...attribution,
       source: "client",
     });
+  }
+
+  cleanCurrentUtmParametersFromUrl(): void {
+    if (!isPlatformBrowser(this._platformId)) {
+      return;
+    }
+
+    try {
+      const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      const cleanPath = stripUtmParametersFromUrl(window.location.href);
+
+      if (cleanPath !== currentPath) {
+        window.history.replaceState(
+          window.history.state,
+          document.title,
+          cleanPath
+        );
+      }
+    } catch (e) {
+      // URL cleanup is best-effort only; attribution has already been captured.
+    }
   }
 
   private async registerNativeSuperProperty(

@@ -963,10 +963,61 @@ interface OverlapWarning {
   nameB: string;
   distanceKm: number;
   reason: string;
+  category: "likely_duplicate" | "nearby_related" | "needs_review";
+  severity: "high" | "medium" | "low";
   spotsOverlapCount: number;
   totalSpotsA: number;
   totalSpotsB: number;
 }
+
+const RELATED_PLACE_TERMS = new Set([
+  "central",
+  "east",
+  "north",
+  "old",
+  "port",
+  "south",
+  "west",
+]);
+
+const getSlugParts = (slug: string): string[] =>
+  slug.split("-").filter(Boolean);
+
+const isRelatedPlaceName = (slugA: string, slugB: string): boolean => {
+  const partsA = getSlugParts(slugA);
+  const partsB = getSlugParts(slugB);
+  if (!partsA.length || !partsB.length) {
+    return false;
+  }
+
+  const shorter = partsA.length <= partsB.length ? partsA : partsB;
+  const longer = partsA.length > partsB.length ? partsA : partsB;
+  const extraParts = longer.filter((part) => !shorter.includes(part));
+
+  return extraParts.some((part) => RELATED_PLACE_TERMS.has(part));
+};
+
+const classifyOverlapWarning = (
+  isIdenticalName: boolean,
+  isSubstringName: boolean,
+  hasSharedSpots: boolean,
+  spotsOverlapCount: number,
+  slugA: string,
+  slugB: string
+): Pick<OverlapWarning, "category" | "severity"> => {
+  if (hasSharedSpots || isIdenticalName) {
+    return {
+      category: "likely_duplicate",
+      severity: spotsOverlapCount > 0 ? "high" : "medium",
+    };
+  }
+
+  if (isSubstringName && isRelatedPlaceName(slugA, slugB)) {
+    return { category: "nearby_related", severity: "low" };
+  }
+
+  return { category: "needs_review", severity: "medium" };
+};
 
 const detectOverlappingCommunities = (
   communities: Map<
@@ -1032,6 +1083,14 @@ const detectOverlappingCommunities = (
         } else {
           reason = "Shared spots";
         }
+        const classification = classifyOverlapWarning(
+          isIdenticalName,
+          isSubstringName,
+          hasSharedSpots,
+          sharedSpots.length,
+          slugA,
+          slugB
+        );
 
         warnings.push({
           keyA: cA.candidate.communityKey,
@@ -1040,6 +1099,7 @@ const detectOverlappingCommunities = (
           nameB,
           distanceKm: Math.round((distanceMeters / 1000) * 10) / 10,
           reason,
+          ...classification,
           spotsOverlapCount: sharedSpots.length,
           totalSpotsA: cA.spots.length,
           totalSpotsB: cB.spots.length,

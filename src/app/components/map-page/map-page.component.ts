@@ -584,7 +584,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const selectedEventId = this.selectedEvent()?.id ?? null;
     const pendingEventRef = this.pendingEventPreview()?.idOrSlug ?? null;
 
-    return this._promotableEvents()
+    const eventMarkers: MapPointMarker[] = this._promotableEvents()
       .filter((e) => {
         if (selectedEventId && e.id === selectedEventId) return false;
         if (
@@ -616,6 +616,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           priority: 80_000,
         };
       });
+
+    const selectedEvent = this.selectedEvent();
+    const selectedEventMarkers: MapPointMarker[] =
+      selectedEvent && !selectedEvent.isPast(now)
+        ? selectedEvent.customMarkers.map((marker, index) => ({
+            id: `event-custom:${selectedEvent.id}:${index}`,
+            name: marker.name,
+            location: marker.location,
+            icons: marker.icons,
+            color: marker.color,
+            type: "event-custom",
+            forceFullMarker: marker.priority === "required",
+            priority:
+              marker.priority === "required"
+                ? 90_000
+                : typeof marker.priority === "number"
+                  ? 70_000 + marker.priority
+                  : 70_000,
+          }))
+        : [];
+
+    return [...eventMarkers, ...selectedEventMarkers];
   });
 
   selectedEventBoundsOverlays = computed<MapBoundsOverlay[]>(() => {
@@ -880,7 +902,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       kind: "event",
       event,
     });
-    this.openEventPath(event.slug ?? event.id, event);
+    this.openEventPath(event.slug ?? event.id, null);
   }
 
   /**
@@ -888,7 +910,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * page is mounted on a separate top-level route from `/map/communities/<slug>`,
    * so a normal `router.navigateByUrl` would unmount and remount the map
    * (refreshing tiles, re-fetching spots, etc.). Instead we set the panel
-   * state directly and patch the URL via `Location.replaceState` so the page
+   * state directly and push the URL via `Location.go` so the page
    * is still shareable / reloadable.
    */
   onIslandOpenCommunity(
@@ -1148,7 +1170,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       console.warn("onEventMarkerClick: event not in promotable set", routeId);
       return;
     }
-    this.openEventPath(event.slug ?? event.id, event);
+    // Typesense event hits intentionally contain approximate bounds only.
+    // Route through the full Firestore event so selected overlays use the
+    // real area polygon/custom markers instead of the search-preview bbox.
+    this.openEventPath(event.slug ?? event.id, null);
   }
 
   openCommunityPath(path: string): void {
@@ -2283,29 +2308,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
-      this._prepareCommunityPanelOpen();
-      this.pendingCommunityLanding.set({
-        id: value.id,
-        communityKey: value.id,
-        slug: value.id,
-        displayName: "",
-        canonicalPath: `/map/communities/${encodeURIComponent(value.id)}`,
-        totalSpots: 0,
-      });
-      this._openInfoPanel();
-      this._landingPagesService
-        .getCommunityPage(value.id, 8, false)
-        .then((community) => {
-          if (community) {
-            this.selectedCommunityLanding.set(community);
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to load community from search:", err);
-        })
-        .finally(() => {
-          this.pendingCommunityLanding.set(null);
-        });
+      this.openCommunityPath(
+        `/map/communities/${encodeURIComponent(value.id)}`,
+      );
       return;
     }
 
@@ -4198,6 +4203,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return true;
     }
 
+    if (this._hasRoutedMapPanelOpen()) {
+      return false;
+    }
+
     // 2. If Bottom Sheet is open, close/minimize it
     if (this.bottomSheet && this.bottomSheet.isOpen()) {
       this.bottomSheet.minimize();
@@ -4210,6 +4219,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     return false;
   };
+
+  private _hasRoutedMapPanelOpen(): boolean {
+    const currentPath = (this._location.path() || this.router.url || "")
+      .split("?")[0]
+      .split("#")[0];
+    return /^\/map\/(?:spots|events|communities)\/[^/]+/u.test(currentPath);
+  }
 
   spotCheckIn(spotId: SpotId) {
     this.checkInService.checkIn(spotId);

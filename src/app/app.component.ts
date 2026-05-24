@@ -71,6 +71,7 @@ import { SpotId } from "../db/schemas/SpotSchema";
 import { MetaTagService } from "./services/meta-tag.service";
 import { KeyboardService } from "./services/keyboard.service";
 import type { ContentType } from "./resolvers/content.resolver";
+import { APP_LINKS } from "./shared/app-links";
 
 interface ButtonBase {
   name: string;
@@ -651,6 +652,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 source: "manual",
               });
               this._analyticsService.trackStickerScanFromCurrentUrl();
+              this._analyticsService.cleanCurrentUtmParametersFromUrl();
             }
 
             if (this.shouldSyncCanonicalFromNavigation()) {
@@ -1126,15 +1128,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     const isAndroidOS = /Android/.test(userAgent);
 
     if (isAppleOS) {
-      window.open(
-        "https://apps.apple.com/in/app/pk-spot-parkour-freerunning/id6757597683",
-        "_blank",
-      );
+      window.open(APP_LINKS.appleAppStoreUrl, "_blank");
     } else if (isAndroidOS) {
-      window.open(
-        "https://play.google.com/store/apps/details?id=com.pkspot.app",
-        "_blank",
-      );
+      window.open(APP_LINKS.googlePlayStoreUrl, "_blank");
     }
   }
 

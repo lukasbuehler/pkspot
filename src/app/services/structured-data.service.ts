@@ -20,6 +20,7 @@ import {
   getDisplaySublocalityName,
 } from "../../scripts/AddressHelpers";
 import { buildSpotCanonicalPath } from "../../scripts/SpotRouteHelpers";
+import { APP_LINKS } from "../shared/app-links";
 
 type SpotStructuredData = Record<string, unknown> & {
   "@type": "Place" | "SportsActivityLocation";
@@ -34,10 +35,8 @@ export class StructuredDataService {
   static readonly LOGO_URL = "https://pkspot.app/assets/icons/icon-512.webp";
   static readonly INSTAGRAM_LINKTREE_URL = "https://linktr.ee/pkspot";
   static readonly INSTAGRAM_PROFILE_URL = "https://instagram.com/pkspot.app";
-  static readonly APPLE_APP_STORE_URL =
-    "https://apps.apple.com/app/pk-spot-parkour-freerunning/id6757597683";
-  static readonly GOOGLE_PLAY_STORE_URL =
-    "https://play.google.com/store/apps/details?id=com.pkspot.app";
+  static readonly APPLE_APP_STORE_URL = APP_LINKS.appleAppStoreUrl;
+  static readonly GOOGLE_PLAY_STORE_URL = APP_LINKS.googlePlayStoreUrl;
 
   locale: string = inject(LOCALE_ID);
   platformId = inject(PLATFORM_ID);

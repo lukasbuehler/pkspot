@@ -30,6 +30,8 @@ export class SearchService {
   readonly TYPESENSE_COLLECTION_COMMUNITIES = "communities_v1";
   readonly TYPESENSE_COLLECTION_EVENTS = "events_v1";
   readonly SPOT_SORT_BY_RATING = "rating:desc";
+  readonly COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE =
+    "_text_match:desc,counts.totalSpots:desc";
 
   private readonly client: SearchClient = new SearchClient({
     nodes: [
@@ -54,6 +56,7 @@ export class SearchService {
       "displayName,allSlugs,geography.localityName,geography.regionName,geography.countryName,title,description",
     query_by_weights: "6,6,4,3,3,2,1",
     filter_by: "published:!=false",
+    sort_by: this.COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE,
     per_page: 3,
     page: 1,
   };

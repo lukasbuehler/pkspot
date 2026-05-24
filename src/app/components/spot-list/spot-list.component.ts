@@ -6,11 +6,15 @@ import {
   input,
   output,
   Output,
+  signal,
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
-import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import {
+  MatButtonToggleChange,
+  MatButtonToggleModule,
+} from "@angular/material/button-toggle";
 import { MatIconModule } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
 import {
@@ -21,6 +25,8 @@ import {
   animate,
 } from "@angular/animations";
 import { AutoAnimateDirective } from "../../directives/auto-animate.directive";
+
+type SpotListViewMode = "grid" | "compact";
 
 @Component({
   selector: "app-spot-list",
@@ -45,8 +51,12 @@ export class SpotListComponent {
   enableAnimation = input<boolean>(true);
 
   withHrefLink = input(true);
+  showRatings = input<boolean>(true);
 
   text = input<string>($localize`Spots in this area`);
+  hideHeader = input<boolean>(false);
+
+  viewMode = signal<SpotListViewMode>("grid");
 
   @Output("spotClickIndex") spotClickIndexEvent = new EventEmitter<number>();
   spotClick = output<SpotPreviewData | Spot | LocalSpot>();
@@ -98,6 +108,10 @@ export class SpotListComponent {
   onSpotClick(spot: SpotPreviewData | Spot | LocalSpot, spotIndex: number) {
     this.spotClick.emit(spot);
     this.spotClickIndexEvent.emit(spotIndex);
+  }
+
+  setViewMode(event: MatButtonToggleChange) {
+    this.viewMode.set(event.value === "compact" ? "compact" : "grid");
   }
 
   getSpotIdOrSlugForSpotObj(spot: Spot | LocalSpot): string {

@@ -6,6 +6,7 @@ import {
 } from "../db/schemas/CommunityPageSchema";
 import { SpotSchema } from "../db/schemas/SpotSchema";
 import {
+  canonicalizeCommunityGeography,
   getCountryMetadata,
   slugifyUrlSegment,
 } from "./SpotLandingHelpers";
@@ -124,48 +125,30 @@ export function getSpotCommunityCandidates(
     return [];
   }
 
-  let regionCode =
+  const initialRegionCode =
     spotLike.address?.region?.code || spotLike.landing?.regionCode || undefined;
-  let regionName =
+  const initialRegionName =
     spotLike.address?.region?.name || spotLike.landing?.regionName || undefined;
-  let regionSlug =
-    slugifyUrlSegment(
-      spotLike.address?.region?.code || spotLike.address?.region?.name || ""
-    ) ||
-    spotLike.landing?.regionSlug ||
-    undefined;
 
-  let localityName =
+  const initialLocalityName =
     getCanonicalLocalityName(spotLike.address) || spotLike.landing?.localityName;
-  let localitySlug =
-    normalizeCommunitySlug(localityName) ||
-    spotLike.landing?.localitySlug ||
-    undefined;
-  let localityLocalName = getDisplayLocalityName(spotLike.address);
 
-  // Prague normalization
-  const checkPragueValue = (val: string | null | undefined) => {
-    if (!val) return false;
-    const slug = slugifyUrlSegment(val);
-    return slug === "hlavni-mesto-praha" || slug === "prague" || slug === "praha";
-  };
+  const canonicalGeography = canonicalizeCommunityGeography({
+    countryCode: country.countryCode,
+    regionCode: initialRegionCode,
+    regionName: initialRegionName,
+    localityName: initialLocalityName,
+  });
 
-  const isPragueLocality =
-    country.countryCode === "CZ" &&
-    (checkPragueValue(localityName) ||
-      checkPragueValue(localitySlug) ||
-      checkPragueValue(regionName) ||
-      checkPragueValue(regionCode) ||
-      checkPragueValue(regionSlug));
-
-  if (isPragueLocality) {
-    regionCode = "HLAVNÍ MĚSTO PRAHA";
-    regionName = "Hlavní město Praha";
-    regionSlug = "hlavni-mesto-praha";
-    localityName = "Hlavní město Praha";
-    localitySlug = "hlavni-mesto-praha";
-    localityLocalName = "Hlavní město Praha";
-  }
+  const regionCode = canonicalGeography.regionCode;
+  const regionName = canonicalGeography.regionName;
+  const regionSlug =
+    canonicalGeography.regionSlug || spotLike.landing?.regionSlug || undefined;
+  const localityName = canonicalGeography.localityName;
+  const localitySlug =
+    canonicalGeography.localitySlug || spotLike.landing?.localitySlug || undefined;
+  const localityLocalName =
+    canonicalGeography.displayLocalityName || getDisplayLocalityName(spotLike.address);
 
   const region = {
     regionCode,

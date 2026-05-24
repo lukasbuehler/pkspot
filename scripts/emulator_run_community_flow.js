@@ -53,12 +53,11 @@ function buildSpotSeed({
   rating,
   numReviews,
   covered = false,
+  boundsRaw,
 }) {
   const now = Timestamp.now();
 
-  return {
-    id,
-    data: {
+  const data = {
       name: { en: name },
       location: new GeoPoint(lat, lng),
       location_raw: { lat, lng },
@@ -81,8 +80,83 @@ function buildSpotSeed({
       time_created: now,
       time_updated: now,
       media: [],
-    },
   };
+
+  if (boundsRaw) {
+    data.bounds_raw = boundsRaw;
+    data.bounds = boundsRaw.map((point) => new GeoPoint(point.lat, point.lng));
+  }
+
+  return {
+    id,
+    data,
+  };
+}
+
+function distanceMeters(left, right) {
+  const earthRadiusM = 6371000;
+  const toRadians = (degrees) => (degrees * Math.PI) / 180;
+  const deltaLat = toRadians(right.lat - left.lat);
+  const deltaLng = toRadians(right.lng - left.lng);
+  const leftLat = toRadians(left.lat);
+  const rightLat = toRadians(right.lat);
+  const haversine =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(leftLat) * Math.cos(rightLat) * Math.sin(deltaLng / 2) ** 2;
+
+  return (
+    2 *
+    earthRadiusM *
+    Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+  );
+}
+
+function spotFootprintPoints(spot) {
+  return [
+    spot.location_raw,
+    ...(spot.bounds_raw ?? []),
+  ].filter(
+    (point) =>
+      point &&
+      Number.isFinite(point.lat) &&
+      Number.isFinite(point.lng)
+  );
+}
+
+function assertCommunityRadiusContainsSpots(page, spots, label) {
+  const [lat, lng] = page.bounds_center ?? [];
+  const radiusM = page.bounds_radius_m;
+
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    !Number.isFinite(radiusM)
+  ) {
+    throw new Error(`${label} is missing finite community bounds.`);
+  }
+
+  const center = { lat, lng };
+  const outside = [];
+
+  for (const spot of spots) {
+    for (const point of spotFootprintPoints(spot)) {
+      const distanceM = distanceMeters(center, point);
+      if (distanceM > radiusM + 1) {
+        outside.push({
+          spotId: spot.id,
+          point,
+          distanceM: Math.round(distanceM),
+          radiusM,
+        });
+      }
+    }
+  }
+
+  if (outside.length > 0) {
+    throw new Error(
+      `${label} radius does not contain all member spot footprint points: ${JSON.stringify(outside)}`
+    );
+  }
 }
 
 function buildSeedSpots() {
@@ -103,6 +177,14 @@ function buildSeedSpots() {
         rating: 4.9 - index * 0.1,
         numReviews: 20 - index,
         covered: index % 2 === 0,
+        boundsRaw:
+          index === 4
+            ? [
+                { lat: 47.3809, lng: 8.5457 },
+                { lat: 47.3809, lng: 8.5857 },
+                { lat: 47.3909, lng: 8.5857 },
+              ]
+            : undefined,
       })
     );
 
@@ -286,6 +368,22 @@ async function main() {
       `Unexpected runtime document found in community_pages: ${unexpectedRuntimePageDoc.id}`
     );
   }
+
+  const zurichPage = communityPages.find(
+    (page) => page.id === "locality:ch:zh:zurich"
+  );
+  if (!zurichPage) {
+    throw new Error("Expected Zurich locality community page to exist.");
+  }
+
+  const zurichSpots = (await fetchCollection("spots")).filter((spot) =>
+    String(spot.id).startsWith("zh-zurich-")
+  );
+  assertCommunityRadiusContainsSpots(
+    zurichPage,
+    zurichSpots,
+    "Zurich locality community"
+  );
 
   const maintenanceDocs = await fetchCollection("maintenance");
   const rebuildDoc = maintenanceDocs.find(

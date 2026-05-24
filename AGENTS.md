@@ -30,7 +30,7 @@ These instructions apply to all work in this repository.
 - Use `providedIn: 'root'` for singleton services.
 - Use `inject()` instead of constructor injection where practical.
 
-If you hit the Angular Error "Abort trap: 6", it doesn't work in the sandbox and needs to be run in a normal terminal.
+If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside the sandbox in the terminal.
 
 ## Dependency updates
 

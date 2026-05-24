@@ -25,7 +25,7 @@
     <mat-card-subtitle class="d-flex flex-row gap-2">
       <div class="d-flex flex-column w-100">
         <div class="d-flex flex-row gap-1 align-items-center mat-title-small">
-          @if(spotData()?.rating) {
+          @if(showRating() && spotData()?.rating) {
           <app-spot-rating
             [rating1to5]="spotData()?.rating ?? null"
             [showEmptyStars]="false"
@@ -33,7 +33,9 @@
           ></app-spot-rating>
           }
           {{
-            spotData()?.rating && spotAmenitiesArray().length > 0 ? "⸱" : null
+            showRating() && spotData()?.rating && spotAmenitiesArray().length > 0
+              ? "⸱"
+              : null
           }}
           <div class="d-flex flex-row align-items-center gap-1">
             @for(amenity of spotAmenitiesArray(); track $index) {

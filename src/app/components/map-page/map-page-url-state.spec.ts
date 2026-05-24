@@ -18,7 +18,7 @@ describe("MapPageComponent URL-driven panel state", () => {
       /onIslandOpenEvent\([\s\S]*?\n  \}/
     )?.[0];
 
-    expect(method).toContain("this.openEventPath(event.slug ?? event.id, event)");
+    expect(method).toContain("this.openEventPath(event.slug ?? event.id, null)");
     expect(method).not.toContain("this.openEventPreview(event)");
   });
 
@@ -75,6 +75,20 @@ describe("MapPageComponent URL-driven panel state", () => {
 
     expect(method).toContain("this.openSpotPath");
     expect(method).not.toContain("this.loadSpotById(value.id as SpotId, true");
+  });
+
+  it("opens community search selections through the community URL helper", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const method = source.match(
+      /openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
+    )?.[0];
+
+    expect(method).toContain("this.onIslandOpenCommunity(communityPreview)");
+    expect(method).toContain("this.openCommunityPath(");
+    expect(method).toContain(
+      "`/map/communities/${encodeURIComponent(value.id)}`"
+    );
+    expect(method).not.toContain("this.selectedCommunityLanding.set(community)");
   });
 
   it("lets the map page open spot marker clicks before the map focuses them", () => {
@@ -134,6 +148,54 @@ describe("MapPageComponent URL-driven panel state", () => {
     );
     expect(template).toContain("[backLabel]=\"panelBackTarget()?.label ?? null\"");
     expect(template).toContain("(back)=\"goBackToPreviousPanel()\"");
+  });
+
+  it("pushes history entries for routed map panel opens", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const communityOpenMethod = source.match(
+      /private _openCommunityPanel\([\s\S]*?\n  \}/
+    )?.[0];
+    const openCommunityPathMethod = source.match(
+      /openCommunityPath\([\s\S]*?\n  exploreCommunitySpots/
+    )?.[0];
+    const openSpotPathMethod = source.match(
+      /openSpotPath\([\s\S]*?\n  openEventPath/
+    )?.[0];
+    const openEventPathMethod = source.match(
+      /openEventPath\([\s\S]*?\n  private _prepareCommunityPanelOpen/
+    )?.[0];
+
+    expect(communityOpenMethod).toContain(
+      "this._location.go(community.canonicalPath)"
+    );
+    expect(communityOpenMethod).not.toContain(
+      "replaceState(community.canonicalPath)"
+    );
+    expect(openCommunityPathMethod).toContain("this._location.go(nextPath)");
+    expect(openSpotPathMethod).toContain("this._location.go(nextPath)");
+    expect(openEventPathMethod).toContain("this._location.go(nextPath)");
+  });
+
+  it("lets browser history handle back on routed spot, event, and community panels", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const backHandler = source.match(
+      /handleBackPress = \(\) =>[\s\S]*?\n  \};/
+    )?.[0];
+    const routeHelper = source.match(
+      /private _hasRoutedMapPanelOpen\([\s\S]*?\n  \}/
+    )?.[0];
+
+    expect(backHandler).toContain("if (this._hasRoutedMapPanelOpen())");
+    expect(backHandler).toContain("return false");
+    expect(
+      backHandler?.indexOf("if (this._hasRoutedMapPanelOpen())")
+    ).toBeLessThan(
+      backHandler?.indexOf("this.bottomSheet && this.bottomSheet.isOpen()") ??
+        -1
+    );
+    expect(routeHelper).toContain(
+      "/^\\/map\\/(?:spots|events|communities)\\/[^/]+/u"
+    );
   });
 
   it("uses country viewport lookup instead of spot-density radius for country focus", () => {

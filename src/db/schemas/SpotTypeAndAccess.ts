@@ -49,7 +49,7 @@ export const SpotTypesIcons: Record<SpotTypes, string> = {
   [SpotTypes.TrampolinePark]: "falling",
   [SpotTypes.GymnasticsGym]: "sports_gymnastics",
   [SpotTypes.PkPark]: "castle",
-  [SpotTypes.Playground]: "child_care",
+  [SpotTypes.Playground]: "playground_2",
   [SpotTypes.School]: "school",
   [SpotTypes.Park]: "park",
   [SpotTypes.UrbanLandscape]: "location_city",

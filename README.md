@@ -168,7 +168,61 @@ npm run test:build
 npm run test:e2e
 ```
 
-If Angular exits with `Abort trap: 6`, run the command in a normal terminal outside the sandbox.
+
+### Maintenance jobs
+
+Most maintenance jobs are triggered by creating a Firestore document with the
+exact path listed below. Unless a payload is shown, `{}` is enough.
+
+For production, use the Firebase Console:
+
+1. Open Firestore.
+2. Create the collection/doc path from the table, for example
+   `maintenance/run-backfill-storage-image-sizes`.
+3. Add the payload fields if needed.
+4. Watch the same doc or Cloud Functions logs for completion.
+
+#### Storage images
+
+| Job | Firestore document | Payload | Completion |
+| --- | --- | --- | --- |
+| Backfill missing image sizes (`200`, `400`, `800`) for spot, profile, post, and event images. Reads originals from the public media path and from `resized_originals/`. | `maintenance/run-backfill-storage-image-sizes` | `{}` | Deletes the run doc and writes `maintenance/last-storage-image-size-backfill`. |
+| Backfill optional `1600` images too. | `maintenance/run-backfill-storage-image-sizes` | `{ "include1600": true }` | Deletes the run doc and writes `maintenance/last-storage-image-size-backfill`. |
+| Backfill only selected image sizes. | `maintenance/run-backfill-storage-image-sizes` | `{ "sizes": [1600] }` | Deletes the run doc and writes `maintenance/last-storage-image-size-backfill`. |
+
+Example image backfill payload:
+
+```json
+{
+  "include1600": true
+}
+```
+
+#### Spots and search fields
+
+| Job | Firestore document | Payload | Completion |
+| --- | --- | --- | --- |
+| Recompute spot Typesense helper fields. | `maintenance/run-backfill-typesense-fields` | `{}` | Deletes the run doc. |
+| Recompute spot landing/search helper fields. | `maintenance/run-backfill-landing` | `{}` | Updates the run doc with `status: "DONE"`. |
+| Refresh spot addresses from geocoding. | `maintenance/run-update-addresses` | `{}` | Deletes the run doc on success; otherwise leaves `status: "DONE_WITH_ERRORS"`. |
+| Audit reserved spot slugs. | `maintenance/run-audit-reserved-slugs` | `{}` | Updates the run doc with `status: "DONE"` or `status: "FAILED"`. |
+| Detect possible duplicate spots within the duplicate radius. | `maintenance/run-detect-duplicate-spots` | `{}` | Check Cloud Functions logs. |
+
+#### Events and communities
+
+| Job | Firestore document | Payload | Completion |
+| --- | --- | --- | --- |
+| Recompute event Typesense helper fields. | `maintenance/run-backfill-event-typesense-fields` | `{}` | Deletes the run doc. |
+| Rebuild generated community pages. | `maintenance/run-rebuild-community-pages` | `{}` | Updates the run doc with `status: "DONE"` and writes warnings to `maintenance/community-warnings` when needed. |
+
+#### One-off migrations
+
+| Job | Firestore document | Payload | Completion |
+| --- | --- | --- | --- |
+| Convert spot `location` maps back to Firestore GeoPoints. | `spots/run-fix-locations` | `{}` | Deletes the run doc. |
+| Normalize old spot locale maps. | `spots/run-fix-locale-maps` | `{}` | Deletes the run doc. |
+| Backfill user signup numbers from Auth creation time. | `users/run-backfill-signup-numbers` | `{}` | Deletes the run doc. |
+| Recalculate user edit statistics from edit documents. | `users/run-recalculate-edit-stats` | `{}` | Deletes the run doc. |
 
 ### Icon fonts
 

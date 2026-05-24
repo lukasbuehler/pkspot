@@ -98,6 +98,7 @@ export class SpotPreviewCardComponent
       : [];
   });
   showInfoButton = input<boolean>(true);
+  showRating = input<boolean>(true);
   @Input() infoOnly: boolean = false;
   @Input() clickable: boolean = false;
   @Input() isCompact: boolean = false;

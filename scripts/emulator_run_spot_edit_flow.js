@@ -425,6 +425,233 @@ async function testMediaAppendAndOverwrite() {
   );
 }
 
+async function testOverwriteMediaEditRecordsOnlyNewMediaInHistory() {
+  const spotId = "integration-media-history-diff";
+  const initialMedia = [
+    {
+      src: "https://example.test/history-existing-1.jpg",
+      type: "image",
+      uid: USER.uid,
+      isInStorage: false,
+    },
+    {
+      src: "https://example.test/history-existing-2.jpg",
+      type: "image",
+      uid: USER.uid,
+      isInStorage: false,
+    },
+  ];
+  const uploadedMedia = {
+    src: "https://example.test/history-new-upload.jpg",
+    type: "image",
+    uid: USER.uid,
+    isInStorage: false,
+  };
+  const beforeUserSnap = await db.collection("users").doc(USER.uid).get();
+  const previousMediaAddedCount = beforeUserSnap.data()?.media_added_count ?? 0;
+
+  await db.collection("spots").doc(spotId).set({
+    name: { en: "Media History Base" },
+    location: new admin.firestore.GeoPoint(47.0, 8.0),
+    location_raw: { lat: 47.0, lng: 8.0 },
+    media: initialMedia,
+    address: null,
+    source: "pkspot",
+  });
+
+  await createEdit(
+    spotId,
+    "single-upload-overwrite",
+    editPayload({
+      type: "UPDATE",
+      offsetMs: 6750,
+      data: {
+        media: [...initialMedia, uploadedMedia],
+      },
+      modificationType: "OVERWRITE",
+    })
+  );
+
+  const spot = await getSpot(spotId);
+  assert.deepEqual(
+    spot.media.map((item) => item.src),
+    [
+      "https://example.test/history-existing-1.jpg",
+      "https://example.test/history-existing-2.jpg",
+      "https://example.test/history-new-upload.jpg",
+    ]
+  );
+
+  const edit = await getEdit(spotId, "single-upload-overwrite");
+  assert.deepEqual(
+    edit.prevData?.media?.map((item) => item.src),
+    [
+      "https://example.test/history-existing-1.jpg",
+      "https://example.test/history-existing-2.jpg",
+    ],
+    "Overwrite media edits should retain previous media so edit history can show only newly added media."
+  );
+
+  const newMediaInHistory = edit.data.media.filter(
+    (item) =>
+      !edit.prevData.media.some((previousItem) => previousItem.src === item.src)
+  );
+  assert.deepEqual(
+    newMediaInHistory.map((item) => item.src),
+    ["https://example.test/history-new-upload.jpg"],
+    "A single uploaded image should be counted as one added media item in history."
+  );
+
+  const userSnap = await db.collection("users").doc(USER.uid).get();
+  assert.equal(
+    userSnap.data()?.media_added_count,
+    previousMediaAddedCount + 1,
+    "Contribution counters should increment by the one newly uploaded item, not the full resulting media array."
+  );
+}
+
+async function testFullSpotEditAppliesAllEditableFieldsAndKeepsHistoryData() {
+  const spotId = "integration-full-edit-contract";
+  const existingMedia = {
+    src: "https://example.test/full-existing.jpg",
+    type: "image",
+    uid: USER.uid,
+    isInStorage: false,
+  };
+  const uploadedMedia = {
+    src: "https://example.test/full-new.jpg",
+    type: "image",
+    uid: USER.uid,
+    isInStorage: false,
+  };
+  const prevData = {
+    name: { en: "Full Base" },
+    description: { en: "Old description" },
+    location_raw: { lat: 47.0, lng: 8.0 },
+    bounds_raw: [
+      { lat: 47.0, lng: 8.0 },
+      { lat: 47.001, lng: 8.001 },
+    ],
+    media: [existingMedia],
+    external_references: {
+      google_maps_place_id: "old-place",
+      website_url: "https://old.example",
+    },
+    type: "park",
+    access: "public",
+    amenities: {
+      indoor: false,
+      outdoor: true,
+      covered: false,
+      lighting: false,
+      wc: false,
+      entry_fee: false,
+    },
+    slug: "full-base",
+    hide_streetview: false,
+  };
+  const nextData = {
+    name: { en: "Full Updated", de: "Voll Aktualisiert" },
+    description: { en: "New description", de: "Neue Beschreibung" },
+    location_raw: { lat: 47.3769, lng: 8.5417 },
+    bounds_raw: [
+      { lat: 47.376, lng: 8.541 },
+      { lat: 47.377, lng: 8.542 },
+      { lat: 47.378, lng: 8.543 },
+    ],
+    media: [existingMedia, uploadedMedia],
+    external_references: {
+      google_maps_place_id: "new-place",
+      website_url: "https://new.example",
+    },
+    type: "parkour park",
+    access: "commercial",
+    amenities: {
+      indoor: true,
+      outdoor: true,
+      covered: true,
+      lighting: true,
+      wc: true,
+      changing_room: true,
+      lockers: false,
+      heated: true,
+      ac: false,
+      drinking_water: true,
+      parking_on_site: false,
+      power_outlets: true,
+      maybe_overgrown: false,
+      water_feature: true,
+      entry_fee: true,
+    },
+    slug: "full-updated",
+    hide_streetview: true,
+  };
+
+  await db.collection("spots").doc(spotId).set({
+    ...prevData,
+    location: new admin.firestore.GeoPoint(
+      prevData.location_raw.lat,
+      prevData.location_raw.lng
+    ),
+    bounds: prevData.bounds_raw.map(
+      (point) => new admin.firestore.GeoPoint(point.lat, point.lng)
+    ),
+    address: null,
+    source: "pkspot",
+  });
+
+  await createEdit(
+    spotId,
+    "full-field-update",
+    {
+      ...editPayload({
+        type: "UPDATE",
+        offsetMs: 5750,
+        data: nextData,
+        modificationType: "OVERWRITE",
+      }),
+      prevData,
+    }
+  );
+
+  const spot = await getSpot(spotId);
+  assert.deepEqual(spot.name, nextData.name);
+  assert.deepEqual(spot.description, nextData.description);
+  assertCoordinate(spot.location_raw, 47.3769, 8.5417, "spot.location_raw");
+  assert.deepEqual(spot.bounds_raw, nextData.bounds_raw);
+  assert.deepEqual(
+    spot.media.map((item) => item.src),
+    [existingMedia.src, uploadedMedia.src]
+  );
+  assert.deepEqual(spot.external_references, nextData.external_references);
+  assert.equal(spot.type, "parkour park");
+  assert.equal(spot.access, "commercial");
+  assert.deepEqual(spot.amenities, nextData.amenities);
+  assert.equal(spot.slug, "full-updated");
+  assert.equal(spot.hide_streetview, true);
+  assert.ok(spot.location, "Expected full edit to write normalized location");
+  assert.ok(Array.isArray(spot.bounds), "Expected full edit to write normalized bounds");
+  assert.ok(spot.tile_coordinates?.z16, "Expected full edit to update tile coordinates");
+
+  const edit = await getEdit(spotId, "full-field-update");
+  assert.deepEqual(edit.data, nextData);
+  assert.deepEqual(edit.prevData.name, prevData.name);
+  assert.deepEqual(edit.prevData.description, prevData.description);
+  assert.deepEqual(edit.prevData.location_raw, prevData.location_raw);
+  assert.deepEqual(edit.prevData.bounds_raw, prevData.bounds_raw);
+  assert.deepEqual(
+    edit.prevData.media.map((item) => item.src),
+    [existingMedia.src],
+    "Full edit history should keep the pre-edit media baseline."
+  );
+  assert.deepEqual(edit.prevData.external_references, prevData.external_references);
+  assert.deepEqual(edit.prevData.amenities, prevData.amenities);
+  assert.equal(edit.prevData.type, prevData.type);
+  assert.equal(edit.prevData.access, prevData.access);
+  assert.equal(edit.prevData.slug, prevData.slug);
+  assert.equal(edit.prevData.hide_streetview, prevData.hide_streetview);
+}
+
 async function testEmptyMediaAppendDoesNotDeleteExistingMedia() {
   const spotId = "integration-empty-media-append";
   await db.collection("spots").doc(spotId).set({
@@ -523,7 +750,10 @@ async function testActivityQueriesUseRawTimestampDeterministically() {
     .get();
   const globalIds = globalSnapshot.docs.map((doc) => doc.id);
 
-  assert.deepEqual(globalIds.slice(0, 2), ["other-user-edit", "empty-media-append"]);
+  assert.deepEqual(globalIds.slice(0, 2), [
+    "other-user-edit",
+    "single-upload-overwrite",
+  ]);
 
   const userSnapshot = await db
     .collectionGroup("edits")
@@ -533,7 +763,11 @@ async function testActivityQueriesUseRawTimestampDeterministically() {
     .get();
   const userIds = userSnapshot.docs.map((doc) => doc.id);
 
-  assert.deepEqual(userIds, ["empty-media-append", "overwrite-media", "append-media"]);
+  assert.deepEqual(userIds, [
+    "single-upload-overwrite",
+    "empty-media-append",
+    "overwrite-media",
+  ]);
 
   const firstPage = await db
     .collectionGroup("edits")
@@ -551,11 +785,11 @@ async function testActivityQueriesUseRawTimestampDeterministically() {
 
   assert.deepEqual(
     firstPage.docs.map((doc) => doc.id),
-    ["empty-media-append", "overwrite-media"]
+    ["single-upload-overwrite", "empty-media-append"]
   );
   assert.deepEqual(
     secondPage.docs.map((doc) => doc.id),
-    ["append-media", "merge-delete"]
+    ["overwrite-media", "full-field-update"]
   );
 }
 
@@ -715,8 +949,8 @@ async function testUserContributionCounters() {
   const data = userSnap.data();
 
   assert.equal(data?.spot_creates_count, 2);
-  assert.equal(data?.spot_edits_count, 10);
-  assert.equal(data?.media_added_count, 3);
+  assert.equal(data?.spot_edits_count, 12);
+  assert.equal(data?.media_added_count, 4);
 }
 
 async function testLeaderboardsReflectApprovedEdits() {
@@ -734,10 +968,10 @@ async function testLeaderboardsReflectApprovedEdits() {
     .data()
     ?.entries.find((entry) => entry.uid === USER.uid);
 
-  assert.equal(editedEntry?.count, 10);
+  assert.equal(editedEntry?.count, 12);
   assert.equal("profile_picture" in editedEntry, false);
   assert.equal(createdEntry?.count, 2);
-  assert.equal(mediaEntry?.count, 3);
+  assert.equal(mediaEntry?.count, 4);
 }
 
 async function main() {
@@ -751,6 +985,8 @@ async function main() {
   await testSourceAndSystemFieldsAreIgnoredOnUpdate();
   await testMergedAndDeletedFields();
   await testMediaAppendAndOverwrite();
+  await testOverwriteMediaEditRecordsOnlyNewMediaInHistory();
+  await testFullSpotEditAppliesAllEditableFieldsAndKeepsHistoryData();
   await testEmptyMediaAppendDoesNotDeleteExistingMedia();
   await testInvalidLocationEditDoesNotMutateSpot();
   await testActivityQueriesUseRawTimestampDeterministically();

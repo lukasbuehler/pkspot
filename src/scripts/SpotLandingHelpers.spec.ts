@@ -74,7 +74,7 @@ describe("SpotLandingHelpers", () => {
     expect(slugifyUrlSegment("Rio de Janeiro")).toBe("rio-de-janeiro");
   });
 
-  it("should canonicalize Prague/Praha/Hlavní město Praha address fields", () => {
+  it("should canonicalize Prague/Praha/Hlavní město Praha landing fields to English", () => {
     expect(
       deriveSpotCommunityData({
         address: {
@@ -93,10 +93,135 @@ describe("SpotLandingHelpers", () => {
       }),
     ).toMatchObject({
       countryCode: "CZ",
-      localityName: "Hlavní město Praha",
+      localityName: "Prague",
       localitySlug: "hlavni-mesto-praha",
-      regionName: "Hlavní město Praha",
+      regionName: "Prague",
       regionSlug: "hlavni-mesto-praha",
+    });
+  });
+
+  it("should canonicalize Milan/Milano and Lombardy/Lombardia landing fields", () => {
+    expect(
+      deriveSpotCommunityData({
+        address: {
+          locality: "Milano",
+          region: {
+            code: "Lombardia",
+            name: "Lombardia",
+          },
+          country: {
+            code: "it",
+            name: "Italy",
+          },
+        },
+        type: "urban landscape",
+        amenities: {},
+      }),
+    ).toMatchObject({
+      countryCode: "IT",
+      localityName: "Milan",
+      localitySlug: "milan",
+      regionName: "Lombardy",
+      regionSlug: "lombardy",
+    });
+  });
+
+  it("should strip Czech postal district suffixes from landing localities", () => {
+    expect(
+      deriveSpotCommunityData({
+        address: {
+          locality: "Kladno 1",
+          region: {
+            code: "Central Bohemian Region",
+            name: "Central Bohemian Region",
+          },
+          country: {
+            code: "cz",
+            name: "Czechia",
+          },
+        },
+        type: "urban landscape",
+        amenities: {},
+      }),
+    ).toMatchObject({
+      countryCode: "CZ",
+      localityName: "Kladno",
+      localitySlug: "kladno",
+    });
+  });
+
+  it("should strip Czech okres prefixes from landing localities", () => {
+    expect(
+      deriveSpotCommunityData({
+        address: {
+          locality: "Okres Mladá Boleslav",
+          region: {
+            code: "Central Bohemian Region",
+            name: "Central Bohemian Region",
+          },
+          country: {
+            code: "cz",
+            name: "Czechia",
+          },
+        },
+        type: "urban landscape",
+        amenities: {},
+      }),
+    ).toMatchObject({
+      countryCode: "CZ",
+      localityName: "Mladá Boleslav",
+      localitySlug: "mlada-boleslav",
+    });
+  });
+
+  it("should drop unusably short landing localities", () => {
+    expect(
+      deriveSpotCommunityData({
+        address: {
+          locality: "M",
+          region: {
+            code: "Victoria",
+            name: "Victoria",
+          },
+          country: {
+            code: "au",
+            name: "Australia",
+          },
+        },
+        type: "urban landscape",
+        amenities: {},
+      }),
+    ).toMatchObject({
+      countryCode: "AU",
+      localityName: undefined,
+      localitySlug: undefined,
+      regionName: "Victoria",
+    });
+  });
+
+  it("should canonicalize known truncated locality names", () => {
+    expect(
+      deriveSpotCommunityData({
+        address: {
+          locality: "Melbourn",
+          region: {
+            code: "VIC",
+            name: "Victoria",
+          },
+          country: {
+            code: "au",
+            name: "Australia",
+          },
+        },
+        type: "urban landscape",
+        amenities: {},
+      }),
+    ).toMatchObject({
+      countryCode: "AU",
+      localityName: "Melbourne",
+      localitySlug: "melbourne",
+      regionName: "Victoria",
+      regionSlug: "victoria",
     });
   });
 });

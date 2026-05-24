@@ -270,6 +270,7 @@
                     [spots]="spots()"
                     [mapZoom]="getSpotPreviewZoom()"
                     [withHrefLink]="false"
+                    [showRatings]="false"
                     (spotClickIndex)="spotClickedIndex($event)"
                     text="Event spots"
                     i18n-text
@@ -303,7 +304,7 @@
               [mapStyle]="mapStyle"
               [markers]="markers()"
               [spots]="spots()"
-              [highlightedSpots]="highlightedSpots()"
+              [highlightedSpots]="[]"
               [selectedSpot]="selectedSpot()"
               (spotClick)="selectSpot($event)"
               (mapClick)="deselectSpot()"
