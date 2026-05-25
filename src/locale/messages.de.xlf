@@ -5996,5 +5996,179 @@
         <target>Finde Spots und mehr</target>
       </segment>
     </unit>
+    <unit id="events.now_or_past">
+      <segment state="initial">
+        <source>now</source>
+        <target>jetzt</target>
+      </segment>
+    </unit>
+    <unit id="event_info.meta_with_organizer">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="relative"/> · by <ph id="1" equiv="PH_1" disp="organizer"/></source>
+        <target><ph id="0" equiv="PH" disp="relative"/> · von <ph id="1" equiv="PH_1" disp="organizer"/></target>
+      </segment>
+    </unit>
+    <unit id="event_info.past_event">
+      <segment state="initial">
+        <source>Past event</source>
+        <target>Vergangenes Event</target>
+      </segment>
+    </unit>
+    <unit id="event_info.now_or_live">
+      <segment state="initial">
+        <source>Now</source>
+        <target>Jetzt</target>
+      </segment>
+    </unit>
+    <unit id="event_map_page.back_to_event">
+      <segment state="initial">
+        <source>Back to event</source>
+        <target>Zurück zum Event</target>
+      </segment>
+    </unit>
+    <unit id="event_map_page.more_info_tooltip">
+      <segment state="initial">
+        <source>More event info</source>
+        <target>Mehr Event-Infos</target>
+      </segment>
+    </unit>
+    <unit id="event_map_page.more_info">
+      <segment state="initial">
+        <source>More info</source>
+        <target>Mehr Infos</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.save_failed">
+      <segment state="initial">
+        <source>Couldn't save your RSVP. Try again in a moment.</source>
+        <target>Deine RSVP konnte nicht gespeichert werden. Versuch es gleich noch einmal.</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.clear_failed">
+      <segment state="initial">
+        <source>Couldn't clear your RSVP. Try again in a moment.</source>
+        <target>Deine RSVP konnte nicht entfernt werden. Versuch es gleich noch einmal.</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.load_failed">
+      <segment state="initial">
+        <source>Couldn't load your RSVP.</source>
+        <target>Deine RSVP konnte nicht geladen werden.</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.count_going">
+      <segment state="initial">
+        <source>going</source>
+        <target>gehen hin</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.count_interested">
+      <segment state="initial">
+        <source>interested</source>
+        <target>interessiert</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.group_label">
+      <segment state="initial">
+        <source>RSVP</source>
+        <target>RSVP</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.going">
+      <segment state="initial">
+        <source>Going</source>
+        <target>Gehe hin</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.interested">
+      <segment state="initial">
+        <source>Interested</source>
+        <target>Interessiert</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.notgoing">
+      <segment state="initial">
+        <source>Not going</source>
+        <target>Gehe nicht</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.clear">
+      <segment state="initial">
+        <source>Clear</source>
+        <target>Zurücksetzen</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.sign_in">
+      <segment state="initial">
+        <source>Sign in to RSVP</source>
+        <target>Anmelden, um RSVP zu setzen</target>
+      </segment>
+    </unit>
+    <unit id="event_info.link_copied">
+      <segment state="initial">
+        <source>Event link copied to clipboard.</source>
+        <target>Event-Link in die Zwischenablage kopiert.</target>
+      </segment>
+    </unit>
+    <unit id="event_info.organizer_label">
+      <segment state="initial">
+        <source> Organizer </source>
+        <target> Veranstalter </target>
+      </segment>
+    </unit>
+    <unit id="event_info.start_label">
+      <segment state="initial">
+        <source> Start </source>
+        <target> Start </target>
+      </segment>
+    </unit>
+    <unit id="event_info.rsvp_label">
+      <segment state="initial">
+        <source>RSVP</source>
+        <target>RSVP</target>
+      </segment>
+    </unit>
+    <unit id="event_info.share_button">
+      <segment state="initial">
+        <source>Share</source>
+        <target>Teilen</target>
+      </segment>
+    </unit>
+    <unit id="event_info.open_website">
+      <segment state="initial">
+        <source>Open event website</source>
+        <target>Event-Website öffnen</target>
+      </segment>
+    </unit>
+    <unit id="event_info.share">
+      <segment state="initial">
+        <source>Share event</source>
+        <target>Event teilen</target>
+      </segment>
+    </unit>
+    <unit id="event_info.no_organizer">
+      <segment state="initial">
+        <source> Organizer to be announced </source>
+        <target> Veranstalter wird noch bekannt gegeben </target>
+      </segment>
+    </unit>
+    <unit id="event_info.website_button">
+      <segment state="initial">
+        <source>Website</source>
+        <target>Website</target>
+      </segment>
+    </unit>
+    <unit id="event_info.open_map">
+      <segment state="initial">
+        <source>Open event map</source>
+        <target>Event-Karte öffnen</target>
+      </segment>
+    </unit>
+    <unit id="event_info.map_label">
+      <segment state="initial">
+        <source> Event map </source>
+        <target> Event-Karte </target>
+      </segment>
+    </unit>
   </file>
 </xliff>

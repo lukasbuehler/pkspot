@@ -118,4 +118,110 @@ describe("EventMapPageComponent", () => {
       "noindex,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
     );
   });
+
+  it("orders map markers so custom pins and challenges win collisions before event spots", () => {
+    const eventPageData = {
+      eventCanonicalPath: vi.fn(() => "/events/swissjam26"),
+      customMarkers: vi.fn(() => [
+        {
+          name: "Custom",
+          location: { lat: 47.3, lng: 8.5 },
+          priority: 3000,
+          type: "event-custom",
+        },
+      ]),
+      eventLocationMarker: vi.fn(() => ({
+        name: "Event location",
+        location: { lat: 47.3, lng: 8.5 },
+        priority: "required",
+        type: "event-location",
+      })),
+      spotMapMarkers: vi.fn(() => [
+        {
+          name: "Spot",
+          location: { lat: 47.3, lng: 8.5 },
+          type: "event-spot",
+          spotIndex: 0,
+        },
+      ]),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventPageDataService, useValue: eventPageData },
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "swissjam26" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event Map" }),
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        {
+          provide: MetaTagService,
+          useValue: {
+            setEventMetaTags: vi.fn(),
+            setRobotsContent: vi.fn(),
+          },
+        },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: vi.fn((url?: string) => url),
+            trackEvent: vi.fn(),
+          },
+        },
+        { provide: ResponsiveService, useValue: { isDesktop: signal(true) } },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventMapPageComponent(),
+    );
+
+    component.event.set(buildEvent("swissjam26"));
+    component.markers.set([
+      {
+        name: "Custom",
+        location: { lat: 47.3, lng: 8.5 },
+        priority: 3000,
+        type: "event-custom",
+      },
+      {
+        name: "Challenge",
+        location: { lat: 47.3, lng: 8.5 },
+        priority: 2000,
+        type: "challenge",
+        challengeIndex: 0,
+      },
+    ]);
+    component.spots.set([{} as never]);
+    flushSignalEffects();
+
+    expect(component.staticMarkers().map((marker) => marker.type)).toEqual([
+      "event-custom",
+    ]);
+    expect(component.mapPriorityMarkers().map((marker) => marker.type)).toEqual(
+      ["event-custom", "challenge", "event-spot"],
+    );
+  });
 });

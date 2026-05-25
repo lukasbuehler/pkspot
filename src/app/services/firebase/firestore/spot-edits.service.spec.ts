@@ -173,6 +173,40 @@ describe("SpotEditsService", () => {
     );
   });
 
+  it("does not send spot verification metadata through normal update edits", async () => {
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
+
+    await service.createSpotUpdateEdit(
+      "spot-1" as never,
+      {
+        name: { en: "Verified Spot" },
+        verification: {
+          status: "verified",
+          organization_id: "pkspot",
+          organization: {
+            id: "pkspot",
+            name: "PK Spot",
+            slug: "pkspot",
+          },
+          verified_by_user_id: "admin-user",
+          verified_at: {} as never,
+          lock_edits: true,
+        },
+      },
+      { uid: "user-1", display_name: "Test User" }
+    );
+
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/spot-1/edits",
+      expect.objectContaining({
+        type: "UPDATE",
+        data: {
+          name: { en: "Verified Spot" },
+        },
+      })
+    );
+  });
+
   it("recursively removes undefined values from edit documents", async () => {
     mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
 

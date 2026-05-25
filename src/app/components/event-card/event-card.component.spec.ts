@@ -103,6 +103,59 @@ describe("EventCardComponent", () => {
     expect(status.nativeElement.textContent).toContain("Ongoing");
   });
 
+  it("formats far upcoming events in weeks instead of long day counts", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-24T10:00:00.000Z"));
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "event-123",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+      ),
+    );
+
+    fixture.detectChanges();
+
+    const status = fixture.debugElement.query(By.css(".status-line"));
+    expect(status.nativeElement.textContent).toContain("in 3 weeks");
+  });
+
+  it("uses the primary status color for live and upcoming cards", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-14T12:00:00.000Z"));
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "event-123",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+      ),
+    );
+    fixture.detectChanges();
+
+    let status = fixture.debugElement.query(By.css(".status-line"));
+    expect(getComputedStyle(status.nativeElement).color).toBe(
+      "var(--mat-sys-primary, #b8c4ff)",
+    );
+
+    vi.setSystemTime(new Date("2026-06-01T12:00:00.000Z"));
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "event-456",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+      ),
+    );
+    fixture.detectChanges();
+
+    status = fixture.debugElement.query(By.css(".status-line"));
+    expect(getComputedStyle(status.nativeElement).color).toBe(
+      "var(--mat-sys-primary, #b8c4ff)",
+    );
+  });
+
   it("emits selection instead of navigating in select mode", () => {
     const event = buildEvent(
       "event-123",
@@ -119,5 +172,38 @@ describe("EventCardComponent", () => {
 
     expect(selected).toEqual([event]);
     expect(fixture.debugElement.query(By.css("a.event-card-action"))).toBeNull();
+  });
+});
+
+describe("EventCardComponent localization", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    TestBed.resetTestingModule();
+  });
+
+  it("formats relative event timing with the active locale", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-24T10:00:00.000Z"));
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [EventCardComponent],
+      providers: [provideRouter([]), { provide: LOCALE_ID, useValue: "de" }],
+    });
+
+    const fixture = TestBed.createComponent(EventCardComponent);
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "event-123",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+      ),
+    );
+
+    fixture.detectChanges();
+
+    const status = fixture.debugElement.query(By.css(".status-line"));
+    expect(status.nativeElement.textContent).toContain("in 3 Wochen");
   });
 });

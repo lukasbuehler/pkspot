@@ -6,3 +6,5 @@ star
 star_border
 mobile
 mobile_border
+block
+block_border

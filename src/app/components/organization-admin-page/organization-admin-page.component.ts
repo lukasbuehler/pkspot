@@ -10,17 +10,14 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { MatSelectModule } from "@angular/material/select";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
-import { createUserReference } from "../../../scripts/Helpers";
 import {
-  OrganizationRole,
-  OrganizationSchema,
-} from "../../../db/schemas/OrganizationSchema";
+  OrganizationDocument,
+  OrganizationsService,
+} from "../../services/firebase/firestore/organizations.service";
+import { createUserReference } from "../../../scripts/Helpers";
+import { OrganizationRole } from "../../../db/schemas/OrganizationSchema";
 import { Subscription } from "rxjs";
-
-type OrganizationDocument = OrganizationSchema & { id: string };
 
 @Component({
   selector: "app-organization-admin-page",
@@ -30,7 +27,6 @@ type OrganizationDocument = OrganizationSchema & { id: string };
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
   ],
   templateUrl: "./organization-admin-page.component.html",
   styleUrl: "./organization-admin-page.component.scss",
@@ -47,7 +43,6 @@ export class OrganizationAdminPageComponent implements OnDestroy {
   readonly selectedOrganizationId = signal("");
   readonly memberUserId = signal("");
   readonly memberRole = signal<OrganizationRole>("reviewer");
-  readonly spotId = signal("");
   readonly isAdmin = signal(false);
   readonly authResolved = this.authService.initialAuthStateResolved;
   private readonly _authSubscription: Subscription;
@@ -73,12 +68,14 @@ export class OrganizationAdminPageComponent implements OnDestroy {
   }
 
   async createOrganization(): Promise<void> {
-    await this._organizationsService.createOrganization(this.newOrgId(), {
+    const organizationId = this.newOrgId();
+    await this._organizationsService.createOrganization(organizationId, {
       name: this.newOrgName(),
       slug: this.newOrgSlug(),
       active: true,
     });
     await this.reload();
+    this.selectedOrganizationId.set(organizationId);
   }
 
   async addCurrentUserAsMember(): Promise<void> {
@@ -91,18 +88,5 @@ export class OrganizationAdminPageComponent implements OnDestroy {
       this.memberRole(),
       createUserReference(user)
     );
-  }
-
-  async verifySpot(): Promise<void> {
-    if (!this.spotId() || !this.selectedOrganizationId()) return;
-    await this._organizationsService.setSpotVerification(
-      this.spotId(),
-      this.selectedOrganizationId()
-    );
-  }
-
-  async removeVerification(): Promise<void> {
-    if (!this.spotId()) return;
-    await this._organizationsService.setSpotVerification(this.spotId(), null);
   }
 }

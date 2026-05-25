@@ -1,58 +1,53 @@
 <div class="event-rsvp">
+  @if((displayCounts()?.going && displayCounts().going > 0) || (displayCounts()?.interested &&
+  displayCounts().interested
+  > 0)) {
   <div class="rsvp-counts" aria-live="polite">
+    @if(displayCounts()?.going && displayCounts().going > 0) {
     <span>
       <strong>{{ displayCounts().going }}</strong>
       <span i18n="@@event_rsvp.count_going">going</span>
-    </span>
+    </span> }
+    @if(displayCounts()?.interested && displayCounts().interested > 0) {
     <span>
       <strong>{{ displayCounts().interested }}</strong>
       <span i18n="@@event_rsvp.count_interested">interested</span>
     </span>
-  </div>
+    }
+  </div> }
 
   @if (isSignedIn()) {
-    <div class="rsvp-controls">
-      <mat-button-toggle-group
-        name="rsvp"
-        aria-label="RSVP"
-        i18n-aria-label="@@event_rsvp.group_label"
-        [value]="selectedRsvp()"
-        [disabled]="isLoading() || isSaving()"
-        (change)="onRsvpChange($event)"
-      >
-        <mat-button-toggle value="going">
-          <mat-icon>check_circle</mat-icon>
-          <span i18n="@@event_rsvp.going">Going</span>
-        </mat-button-toggle>
-        <mat-button-toggle value="interested">
-          <mat-icon>star</mat-icon>
-          <span i18n="@@event_rsvp.interested">Interested</span>
-        </mat-button-toggle>
-        <mat-button-toggle value="notgoing">
-          <mat-icon>block</mat-icon>
-          <span i18n="@@event_rsvp.notgoing">Not going</span>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+  <div class="rsvp-controls">
+    <mat-button-toggle-group name="rsvp" aria-label="RSVP" i18n-aria-label="@@event_rsvp.group_label"
+      [value]="selectedRsvp()" [disabled]="isLoading() || isSaving()" (change)="onRsvpChange($event)">
+      <mat-button-toggle value="going">
+        <mat-icon>check_circle</mat-icon>
+        <span i18n="@@event_rsvp.going">Going</span>
+      </mat-button-toggle>
+      <mat-button-toggle value="interested">
+        <mat-icon>star</mat-icon>
+        <span i18n="@@event_rsvp.interested">Interested</span>
+      </mat-button-toggle>
+      <mat-button-toggle value="notgoing">
+        <mat-icon>block_border</mat-icon>
+        <span i18n="@@event_rsvp.notgoing">Not going</span>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
 
-      @if (selectedRsvp()) {
-        <button
-          mat-button
-          type="button"
-          [disabled]="isSaving()"
-          (click)="clearRsvp()"
-        >
-          <span i18n="@@event_rsvp.clear">Clear</span>
-        </button>
-      }
-    </div>
+    @if (selectedRsvp()) {
+    <button mat-button type="button" [disabled]="isSaving()" (click)="clearRsvp()">
+      <span i18n="@@event_rsvp.clear">Clear</span>
+    </button>
+    }
+  </div>
   } @else {
-    <a mat-stroked-button routerLink="/sign-in">
-      <mat-icon>login</mat-icon>
-      <span i18n="@@event_rsvp.sign_in">Sign in to RSVP</span>
-    </a>
+  <a mat-stroked-button routerLink="/sign-in">
+    <mat-icon>login</mat-icon>
+    <span i18n="@@event_rsvp.sign_in">Sign in to RSVP</span>
+  </a>
   }
 
   @if (errorMessage()) {
-    <p class="rsvp-error">{{ errorMessage() }}</p>
+  <p class="rsvp-error">{{ errorMessage() }}</p>
   }
 </div>

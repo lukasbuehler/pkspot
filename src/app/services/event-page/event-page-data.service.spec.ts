@@ -80,6 +80,7 @@ describe("EventPageDataService", () => {
     expect(service.spotMapMarkers([spot as never])).toEqual([
       expect.objectContaining({
         name: "Main Spot",
+        priority: 1000,
         type: "event-spot",
         spotIndex: 0,
       }),
@@ -88,6 +89,8 @@ describe("EventPageDataService", () => {
       expect.objectContaining({
         name: "Info stand",
         icons: ["info"],
+        priority: 3000,
+        type: "event-custom",
       }),
     ]);
     expect(service.eventLocationMarker(event)).toEqual(
@@ -98,6 +101,47 @@ describe("EventPageDataService", () => {
         priority: "required",
         type: "event-location",
       }),
+    );
+  });
+
+  it("prioritizes event custom markers above challenge markers and spot markers", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("city-jam", {
+      custom_markers: [
+        {
+          name: "Meetup point",
+          location: { lat: 47.31, lng: 8.51 },
+          icons: ["flag"],
+        },
+      ],
+    });
+    const challenge = {
+      name: () => "Precision",
+      location: () => ({ lat: 47.31, lng: 8.51 }),
+    };
+    const spot = {
+      name: () => "Main Spot",
+      location: () => ({ lat: 47.31, lng: 8.51 }),
+    };
+
+    const customMarker = service.customMarkers(event)[0];
+    const challengeMarker = service.challengeMarkers([challenge as never])[0];
+    const spotMarker = service.spotMapMarkers([spot as never])[0];
+
+    expect(customMarker.priority).toBeGreaterThan(
+      challengeMarker.priority as number,
+    );
+    expect(challengeMarker.priority).toBeGreaterThan(
+      spotMarker.priority as number,
     );
   });
 });

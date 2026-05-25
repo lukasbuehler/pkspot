@@ -74,16 +74,27 @@ export class EventCardComponent {
 
   private _relativeFromNow(target: Date): string {
     const diffMs = target.getTime() - Date.now();
-    const absMs = Math.abs(diffMs);
-    const minutes = Math.round(absMs / 60_000);
-    const hours = Math.round(absMs / 3_600_000);
-    const days = Math.round(absMs / 86_400_000);
-
-    if (days >= 2) return $localize`:@@events.in_n_days:in ${days} days`;
-    if (hours >= 2) return $localize`:@@events.in_n_hours:in ${hours} hours`;
-    if (minutes >= 2) {
-      return $localize`:@@events.in_n_minutes:in ${minutes} minutes`;
+    if (diffMs <= 0) {
+      return $localize`:@@events.now_or_past:now`;
     }
-    return $localize`:@@events.soon:soon`;
+    const formatter = new Intl.RelativeTimeFormat(this._locale, {
+      numeric: "always",
+    });
+
+    const hours = Math.round(diffMs / 3_600_000);
+    if (hours < 48) {
+      return hours >= 2
+        ? formatter.format(hours, "hour")
+        : formatter.format(1, "hour");
+    }
+
+    const days = Math.max(1, Math.round(diffMs / 86_400_000));
+    if (days < 14) return formatter.format(days, "day");
+
+    const weeks = Math.round(days / 7);
+    if (weeks < 8) return formatter.format(weeks, "week");
+
+    const months = Math.round(days / 30);
+    return formatter.format(months, "month");
   }
 }

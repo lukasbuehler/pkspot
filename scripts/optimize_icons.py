@@ -252,6 +252,7 @@ def main():
         "create": "edit",
         "mobile_border": "mobile",
         "phone_iphone": "mobile",
+        "block_border": "block"
     }
 
     _build_subset(

@@ -26,6 +26,10 @@ export type EventPageMapMarker = MarkerSchema & {
 
 export type NumberedSpotChallenge = SpotChallenge & { number: number };
 
+const EVENT_SPOT_MARKER_PRIORITY = 1_000;
+const EVENT_CHALLENGE_MARKER_PRIORITY = 2_000;
+const EVENT_CUSTOM_MARKER_PRIORITY = 3_000;
+
 @Injectable({
   providedIn: "root",
 })
@@ -136,6 +140,7 @@ export class EventPageDataService {
       location: spot.location(),
       icons: [spot instanceof Spot && spot.isIconic ? "stars" : "location_on"],
       color: "primary",
+      priority: EVENT_SPOT_MARKER_PRIORITY,
       type: "event-spot",
       spotIndex,
     }));
@@ -159,7 +164,11 @@ export class EventPageDataService {
       color: marker.color,
       location: marker.location,
       icons: marker.icons,
-      priority: marker.priority,
+      priority:
+        marker.priority === "required"
+          ? "required"
+          : Math.max(marker.priority ?? 0, EVENT_CUSTOM_MARKER_PRIORITY),
+      type: "event-custom",
     }));
   }
 
@@ -183,6 +192,7 @@ export class EventPageDataService {
         location: challenge.location()!,
         color: matchesFilter ? "primary" : "gray",
         number: index + 1,
+        priority: EVENT_CHALLENGE_MARKER_PRIORITY,
         type: "challenge",
         challengeIndex: index,
       });

@@ -39,6 +39,10 @@ import {
 } from "../event-edit-form/event-edit-form.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
+import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
+import { AnyMedia, ExternalImage } from "../../../db/models/Media";
+
+type EventStatus = "upcoming" | "live" | "past";
 
 @Component({
   selector: "app-event-info-page",
@@ -53,6 +57,7 @@ import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
     EventEditFormComponent,
     MediaPlaceholderComponent,
     EventRsvpComponent,
+    ImgCarouselComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -86,23 +91,66 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
+  readonly isSponsored = computed(() => this.event()?.isSponsored ?? false);
+
+  readonly startDateText = computed(() => this.event()?.start.toLocaleDateString(this._locale, {
+    dateStyle: "medium",
+  }));
+  readonly endDateText = computed(() => this.event()?.end.toLocaleDateString(this._locale, {
+    dateStyle: "medium",
+  }));
+  readonly description = computed(() => {
+    const event = this.event();
+    if (!event) return "";
+    const startDateText = this.startDateText();
+    const endDateText = this.endDateText();
+    return (
+      event.description ??
+      $localize`Event in ` +
+      event.localityString +
+      ", (" +
+      (this._isSameDay(event.start, event.end)
+        ? startDateText
+        : `${startDateText} - ${endDateText}`) +
+      ")"
+    );
+  });
 
   readonly name = computed(() => this.event()?.name ?? "");
+  readonly heroMedia = computed<AnyMedia[]>(() => {
+    const event = this.event();
+    if (!event) return [];
+
+    const sources = [
+      event.bannerSrc,
+      ...event.inlineSpots.flatMap((spot) => spot.images ?? []),
+    ].filter((src): src is string => !!src);
+
+    return [...new Set(sources)].map((src) => new ExternalImage(src));
+  });
   readonly mapRoute = computed(() => {
     const event = this.event();
     return event ? ["/events", event.slug ?? event.id, "map"] : ["/events"];
   });
   readonly organizer = computed(() => this.event()?.organizer?.organization);
   readonly organizerName = computed(() => this.organizer()?.name ?? "");
-  readonly metaLine = computed(() => {
+  readonly status = computed<EventStatus | null>(
+    () => this.event()?.status() ?? null,
+  );
+  readonly statusLabel = computed(() => {
     const event = this.event();
-    if (!event) return "";
-    const relative = this._relativeUntil(event.start);
-    const organizer = this.organizerName();
-    if (organizer) {
-      return $localize`:@@event_info.meta_with_organizer:${relative} · by ${organizer}`;
+    const status = this.status();
+    if (!event || !status) return "";
+    if (status === "past") {
+      return $localize`:@@events.status.past:Past event`;
     }
-    return relative;
+
+    const target = status === "live" ? event.end : event.start;
+    const relative = this._relativeFromNow(target);
+    if (status === "live") {
+      return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
+    }
+    return $localize`:@@events.status.upcoming_starts:Starts ${relative}`;
   });
   readonly startDateTime = computed(() => {
     const event = this.event();
@@ -123,11 +171,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly mapMarkers = computed<MarkerSchema[]>(() => {
     const event = this.event();
     if (!event) return [];
-    const eventMarker = this._eventPageData.eventLocationMarker(event);
     return [
-      ...(eventMarker ? [eventMarker] : []),
-      ...this._eventPageData.spotMapMarkers(this.spots()),
       ...this._eventPageData.customMarkers(event),
+      ...this._eventPageData.spotMapMarkers(this.spots()),
     ];
   });
   readonly mapPreviewBounds = computed(() => {
@@ -345,7 +391,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   private _syncEventSeoData(event: PkEvent): void {
     const canonicalPath = this._eventPageData.eventCanonicalPath(event);
-    const description = this._eventDescription(event);
+    const description = this.description();
     const image = event.bannerSrc ?? "/assets/banner_1200x630.png";
 
     this._metaTags.setEventMetaTags(
@@ -399,42 +445,33 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     };
   }
 
-  private _eventDescription(event: PkEvent): string {
-    const startDateText = event.start.toLocaleDateString(this._locale, {
-      dateStyle: "medium",
-    });
-    const endDateText = event.end.toLocaleDateString(this._locale, {
-      dateStyle: "medium",
-    });
-
-    return (
-      event.description ??
-      $localize`Event in ` +
-      event.localityString +
-      ", (" +
-      (this._isSameDay(event.start, event.end)
-        ? startDateText
-        : `${startDateText} - ${endDateText}`) +
-      ")"
-    );
-  }
-
-  private _relativeUntil(target: Date): string {
+  private _relativeFromNow(target: Date): string {
     const diffMs = target.getTime() - Date.now();
     if (diffMs <= 0) {
-      return $localize`:@@event_info.now_or_past:Now`;
+      return $localize`:@@events.now_or_past:now`;
+    }
+
+    const formatter = new Intl.RelativeTimeFormat(this._locale, {
+      numeric: "always",
+    });
+
+    const hours = Math.round(diffMs / 3_600_000);
+    if (hours < 48) {
+      return hours >= 2
+        ? formatter.format(hours, "hour")
+        : formatter.format(1, "hour");
     }
 
     const days = Math.max(1, Math.round(diffMs / 86_400_000));
     if (days < 14) {
-      return $localize`:@@event_info.in_n_days:In ${days} days`;
+      return formatter.format(days, "day");
     }
     const weeks = Math.round(days / 7);
     if (weeks < 8) {
-      return $localize`:@@event_info.in_n_weeks:In ${weeks} weeks`;
+      return formatter.format(weeks, "week");
     }
     const months = Math.round(days / 30);
-    return $localize`:@@event_info.in_n_months:In ${months} months`;
+    return formatter.format(months, "month");
   }
 
   private _absoluteUrl(path: string): string {

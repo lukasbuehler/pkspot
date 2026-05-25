@@ -11,7 +11,7 @@ import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { Functions, httpsCallable } from "@angular/fire/functions";
 
-type OrganizationDocument = OrganizationSchema & { id: string };
+export type OrganizationDocument = OrganizationSchema & { id: string };
 
 @Injectable({ providedIn: "root" })
 export class OrganizationsService {

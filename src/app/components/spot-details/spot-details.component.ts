@@ -129,6 +129,10 @@ import { create } from "core-js/core/object";
 import { MatDividerModule } from "@angular/material/divider";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
+import {
+  OrganizationDocument,
+  OrganizationsService,
+} from "../../services/firebase/firestore/organizations.service";
 import { SpotReportsService } from "../../services/firebase/firestore/spot-reports.service";
 import { PostsService } from "../../services/firebase/firestore/posts.service";
 import { SpotReviewSchema } from "../../../db/schemas/SpotReviewSchema";
@@ -302,6 +306,7 @@ export class SpotDetailsComponent
   private _metaTagService = inject(MetaTagService);
   private _analyticsService = inject(AnalyticsService);
   private _usersService = inject(UsersService);
+  private _organizationsService = inject(OrganizationsService);
 
   /**
    * Sets the --open-progress CSS custom property on the host element.
@@ -617,6 +622,11 @@ export class SpotDetailsComponent
   linkingPlace = signal<boolean>(false);
   unlinkingPlace = signal<boolean>(false);
 
+  readonly organizations = signal<OrganizationDocument[]>([]);
+  readonly selectedVerificationOrganizationId = signal("");
+  readonly isLoadingOrganizations = signal(false);
+  private _organizationsLoaded = false;
+
   // Animation keys to force transitions on content changes
   nameAnimKey = signal<number>(0);
   typeAnimKey = signal<number>(0);
@@ -924,6 +934,9 @@ export class SpotDetailsComponent
         this.placePredictions = [];
         this.nearbyPlaceResults = [];
         this.placeSearch.setValue("", { emitEvent: false });
+        this.selectedVerificationOrganizationId.set(
+          spot instanceof Spot ? spot.verification?.organization_id ?? "" : ""
+        );
       }
 
       // Reset slug-related UI state on spot change to avoid stale state
@@ -1106,6 +1119,7 @@ export class SpotDetailsComponent
   editButtonClick() {
     if (this.editable && this.authenticationService.isSignedIn) {
       this.isEditing.set(true);
+      void this._ensureOrganizationsLoadedForAdmin();
     }
   }
 
@@ -1115,7 +1129,7 @@ export class SpotDetailsComponent
     }
   }
 
-  saveButtonClick() {
+  async saveButtonClick() {
     const spot = this.spot();
     if (!spot || !this.canSaveSpot()) {
       return;
@@ -1123,7 +1137,67 @@ export class SpotDetailsComponent
 
     this.isSaving = true;
 
+    if (spot instanceof Spot) {
+      const verificationSaved = await this._saveVerificationChangeIfNeeded(spot);
+      if (!verificationSaved) {
+        this.isSaving = false;
+        return;
+      }
+    }
+
     this.saveClick.emit(spot);
+  }
+
+  private async _ensureOrganizationsLoadedForAdmin(): Promise<void> {
+    if (!this.isAdmin() || this._organizationsLoaded) {
+      return;
+    }
+
+    this.isLoadingOrganizations.set(true);
+    try {
+      this.organizations.set(await this._organizationsService.getOrganizations());
+      this._organizationsLoaded = true;
+    } catch (error) {
+      console.warn("Failed to load organizations for spot verification", error);
+      this._snackbar.open($localize`Could not load organizations`, undefined, {
+        duration: 2500,
+      });
+    } finally {
+      this.isLoadingOrganizations.set(false);
+    }
+  }
+
+  private async _saveVerificationChangeIfNeeded(spot: Spot): Promise<boolean> {
+    if (!this.isAdmin()) {
+      return true;
+    }
+
+    const nextOrganizationId = this.selectedVerificationOrganizationId() || null;
+    const currentOrganizationId = spot.verification?.organization_id ?? null;
+    if (nextOrganizationId === currentOrganizationId) {
+      return true;
+    }
+
+    try {
+      await this._organizationsService.setSpotVerification(
+        spot.id,
+        nextOrganizationId
+      );
+      this._snackbar.open(
+        nextOrganizationId
+          ? $localize`Spot verification updated`
+          : $localize`Spot verification removed`,
+        undefined,
+        { duration: 2200 }
+      );
+      return true;
+    } catch (error) {
+      console.error("Failed to update spot verification", error);
+      this._snackbar.open($localize`Failed to update spot verification`, undefined, {
+        duration: 3000,
+      });
+      return false;
+    }
   }
 
   private _hasEnoughDataForNewSpot(spot: LocalSpot): boolean {

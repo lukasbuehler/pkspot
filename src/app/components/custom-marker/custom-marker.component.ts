@@ -170,6 +170,10 @@ export class CustomMarkerComponent {
    *   - primary (other): priority 100
    */
   private getMarkerPriority(): number {
+    if (this.marker().priority === "required") {
+      return 10_000;
+    }
+
     // Use explicit priority if set
     if (
       this.marker().priority !== undefined &&
@@ -199,7 +203,9 @@ export class CustomMarkerComponent {
     () => ({
       gmpClickable: true,
       collisionBehavior:
-        google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
+        this.marker().priority === "required"
+          ? google.maps.CollisionBehavior.REQUIRED
+          : google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
       zIndex: this.getMarkerPriority(),
     })
   );
@@ -212,7 +218,9 @@ export class CustomMarkerComponent {
     () => ({
       gmpClickable: true,
       collisionBehavior:
-        google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
+        this.marker().priority === "required"
+          ? google.maps.CollisionBehavior.REQUIRED
+          : google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
       zIndex: this.getMarkerPriority(),
     })
   );

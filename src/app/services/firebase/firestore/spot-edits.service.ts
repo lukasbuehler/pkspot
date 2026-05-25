@@ -445,6 +445,7 @@ export class SpotEditsService extends ConsentAwareService {
       // Computed fields (calculated server-side)
       "tile_coordinates",
       "is_iconic",
+      "verification",
       "address",
       "landing",
       "slug",

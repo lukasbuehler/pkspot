@@ -1221,6 +1221,30 @@
           </div>
         </div>
 
+        @if (isAdmin() && !isNewSpot) {
+          <div class="mb-4">
+            <h4 class="mat-title-small" i18n>Verification</h4>
+            <mat-form-field class="w-100" appearance="outline">
+              <mat-label i18n>Verifying organization</mat-label>
+              <select
+                matNativeControl
+                [ngModel]="selectedVerificationOrganizationId()"
+                (ngModelChange)="selectedVerificationOrganizationId.set($event)"
+                [disabled]="isLoadingOrganizations()"
+              >
+                <option value="" i18n>Not verified</option>
+                @for (organization of organizations(); track organization.id) {
+                  <option [value]="organization.id">{{ organization.name }}</option>
+                }
+              </select>
+              <mat-hint i18n>
+                Admin only. Verified spots route future edits to this
+                organization for review.
+              </mat-hint>
+            </mat-form-field>
+          </div>
+        }
+
         <!-- Features and Amenities -->
         <div class="w-100 mb-4">
           <h4

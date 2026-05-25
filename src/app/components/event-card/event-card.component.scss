@@ -63,10 +63,7 @@
   color: var(--mat-sys-error, #ffb4ab);
 }
 
-.status-line[data-status="live"] {
-  color: var(--mat-sys-secondary, #8dd978);
-}
-
+.status-line[data-status="live"],
 .status-line[data-status="upcoming"],
 .sponsored-line {
   color: var(--mat-sys-primary, #b8c4ff);

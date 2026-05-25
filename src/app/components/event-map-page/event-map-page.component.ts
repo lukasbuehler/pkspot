@@ -270,19 +270,15 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     this._eventPageData.eventLocationMarker(this.event()),
   );
   readonly staticMarkers = computed<EventPageMapMarker[]>(() => {
-    const eventMarker = this.eventLocationMarker();
-    return [
-      ...(eventMarker ? [eventMarker] : []),
-      ...this.customMarkers(),
-    ];
+    return this.customMarkers();
   });
   readonly markers = signal<EventPageMapMarker[]>([]);
   readonly spotMapMarkers = computed<EventPageMapMarker[]>(() =>
     this._eventPageData.spotMapMarkers(this.spots()),
   );
   readonly mapPriorityMarkers = computed<EventPageMapMarker[]>(() => [
-    ...this.spotMapMarkers(),
     ...this.markers(),
+    ...this.spotMapMarkers(),
   ]);
   readonly areaPolygon = signal<PolygonSchema | null>(null);
 
@@ -440,7 +436,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
           );
 
           if (challengeMarkers.length > 0) {
-            this.markers.set([...challengeMarkers, ...this.staticMarkers()]);
+            this.markers.set([
+              ...this.customMarkers(),
+              ...challengeMarkers,
+            ]);
             this.tab.set("challenges");
           } else {
             this.markers.set(this.staticMarkers());
