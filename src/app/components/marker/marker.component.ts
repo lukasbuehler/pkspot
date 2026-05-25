@@ -23,6 +23,7 @@ export interface MarkerSchema {
   imageBackgroundColor?: string;
   number?: number;
   priority?: "required" | number;
+  ignoreCollisions?: boolean;
   type?: string;
   description?: string;
 }

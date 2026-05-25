@@ -775,6 +775,10 @@ export const setSpotVerification = onCall(async (request) => {
     throw new HttpsError("not-found", "Organization was not found.");
   }
   const organization = organizationSnap.data() as Record<string, unknown>;
+  const logoUrl =
+    typeof organization["logo_url"] === "string"
+      ? organization["logo_url"]
+      : undefined;
   await spotRef.update({
     verification: {
       status: "verified",
@@ -783,7 +787,7 @@ export const setSpotVerification = onCall(async (request) => {
         id: organizationId,
         name: organization["name"],
         slug: organization["slug"],
-        ...(organization["logo_url"] ? { logo_url: organization["logo_url"] } : {}),
+        ...(logoUrl ? { logo_url: logoUrl } : {}),
       },
       verified_by_user_id: uid,
       verified_at: FieldValue.serverTimestamp(),

@@ -120,7 +120,7 @@ export const appConfig: ApplicationConfig = {
       // Prefer AngularFire's getStorage which is aware of Angular zones/injection context
       return ngfGetStorage(inject(FirebaseApp));
     }),
-    provideFunctions(() => ngfGetFunctions(inject(FirebaseApp))),
+    provideFunctions(() => ngfGetFunctions(inject(FirebaseApp), "europe-west1")),
     // TODO: Make Auth provider consent-aware
     // provideAuth(() => getAuth()),
     provideRouter(

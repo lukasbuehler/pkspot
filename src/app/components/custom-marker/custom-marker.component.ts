@@ -203,7 +203,7 @@ export class CustomMarkerComponent {
     () => ({
       gmpClickable: true,
       collisionBehavior:
-        this.marker().priority === "required"
+        this.marker().priority === "required" || this.marker().ignoreCollisions
           ? google.maps.CollisionBehavior.REQUIRED
           : google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
       zIndex: this.getMarkerPriority(),
@@ -218,7 +218,7 @@ export class CustomMarkerComponent {
     () => ({
       gmpClickable: true,
       collisionBehavior:
-        this.marker().priority === "required"
+        this.marker().priority === "required" || this.marker().ignoreCollisions
           ? google.maps.CollisionBehavior.REQUIRED
           : google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
       zIndex: this.getMarkerPriority(),

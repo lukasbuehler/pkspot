@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { LOCALE_ID } from "@angular/core";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import { EventsService } from "../firebase/firestore/events.service";
@@ -30,6 +30,11 @@ const buildEvent = (
   } as unknown as EventSchema);
 
 describe("EventPageDataService", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    TestBed.resetTestingModule();
+  });
+
   it("loads events by slug through EventsService", async () => {
     const event = buildEvent("city-jam");
     const eventsService = {
@@ -80,6 +85,7 @@ describe("EventPageDataService", () => {
     expect(service.spotMapMarkers([spot as never])).toEqual([
       expect.objectContaining({
         name: "Main Spot",
+        ignoreCollisions: true,
         priority: 1000,
         type: "event-spot",
         spotIndex: 0,
@@ -143,5 +149,72 @@ describe("EventPageDataService", () => {
     expect(challengeMarker.priority).toBeGreaterThan(
       spotMarker.priority as number,
     );
+  });
+
+  it("builds event area polygons as a client-side cutout from one saved ring", () => {
+    class MockLatLng {
+      constructor(
+        private readonly latValue: number,
+        private readonly lngValue: number,
+      ) {}
+
+      lat(): number {
+        return this.latValue;
+      }
+
+      lng(): number {
+        return this.lngValue;
+      }
+    }
+
+    class MockMVCArray<T> {
+      constructor(private readonly items: T[]) {}
+
+      getLength(): number {
+        return this.items.length;
+      }
+
+      getAt(index: number): T {
+        return this.items[index];
+      }
+    }
+
+    vi.stubGlobal("google", {
+      maps: {
+        LatLng: MockLatLng,
+        MVCArray: MockMVCArray,
+      },
+    });
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("city-jam", {
+      area_polygon: [
+        {
+          points: [
+            { lat: 47.31, lng: 8.51 },
+            { lat: 47.32, lng: 8.53 },
+            { lat: 47.3, lng: 8.54 },
+          ],
+        },
+      ],
+    });
+
+    const polygon = service.buildAreaPolygon(event, true);
+    const paths =
+      polygon?.paths as unknown as MockMVCArray<MockMVCArray<MockLatLng>>;
+
+    expect(paths.getLength()).toBe(2);
+    expect(paths.getAt(0).getLength()).toBe(4);
+    expect(paths.getAt(1).getLength()).toBe(3);
+    expect(paths.getAt(1).getAt(0).lat()).toBeCloseTo(47.3);
   });
 });

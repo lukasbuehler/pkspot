@@ -43,6 +43,13 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 
 - When adding a new first-level app route that should open in the Android app, update `android/app/src/main/AndroidManifest.xml` with the matching App Link path rule. Android App Links are intentionally path-scoped so reserved browser-first URLs such as `/qr/*` are not claimed by the app.
 
+## Firebase region preference
+
+- Prefer deploying new Firebase Cloud Functions in `europe-west1`.
+- The Angular app initializes callable functions against `europe-west1`, and `functions/src/index.ts` sets global v2 function options to that region.
+- If you add or modify a function that does not inherit those global options, set the region explicitly instead of relying on Firebase's `us-central1` default.
+- Existing `us-central1` functions should only stay there intentionally. When migrating an existing function to `europe-west1`, remember that Firebase treats regional functions as separate resources, so the old `us-central1` function may need to be deleted after the Europe deployment is verified.
+
 ## Backwards compatibility
 
 - Treat Firestore, Typesense, and Cloud Function payload changes as app-versioned contracts. Mobile apps and older web builds may keep reading existing fields after a deploy, so prefer additive fields and keep legacy fields populated until all supported clients have migrated.

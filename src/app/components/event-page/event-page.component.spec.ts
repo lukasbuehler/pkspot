@@ -231,7 +231,7 @@ describe("EventInfoPageComponent", () => {
     component.event.set(buildEvent("swissjam26", "Swiss Jam 2026"));
     flushSignalEffects();
 
-    expect(component.metaLine()).toBe("Starts in 3 Wochen");
+    expect(component.statusLabel()).toBe("Starts in 3 Wochen");
 
     vi.setSystemTime(new Date("2026-06-20T10:00:00.000Z"));
     component.event.set(
@@ -242,7 +242,7 @@ describe("EventInfoPageComponent", () => {
     );
     flushSignalEffects();
 
-    expect(component.metaLine()).toBe("Past event");
+    expect(component.statusLabel()).toBe("Past event");
   });
 
   it("builds the hero carousel from the banner followed by inline spot images", () => {

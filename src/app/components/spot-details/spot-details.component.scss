@@ -305,3 +305,18 @@ div.google-img-container {
 .bookmark-icon--filled {
   color: var(--mat-sys-primary);
 }
+
+.spot-verification-badge {
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 160px;
+  color: var(--mat-sys-primary);
+}
+
+.spot-verification-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--mat-sys-surface-container-high);
+}

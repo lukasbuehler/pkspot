@@ -141,6 +141,7 @@ export class EventPageDataService {
       icons: [spot instanceof Spot && spot.isIconic ? "stars" : "location_on"],
       color: "primary",
       priority: EVENT_SPOT_MARKER_PRIORITY,
+      ignoreCollisions: true,
       type: "event-spot",
       spotIndex,
     }));
@@ -208,16 +209,19 @@ export class EventPageDataService {
       return null;
     }
 
+    const eventAreaRing = this._eventAreaRing(event.areaPolygon);
+    if (eventAreaRing.length < 3) {
+      return null;
+    }
+
+    const outerRing = this._outerCutoutRing(this.eventMapBounds(event));
+    const holeRing = this._oppositeWinding(eventAreaRing, outerRing);
     const paths = new google.maps.MVCArray<
       google.maps.MVCArray<google.maps.LatLng>
-    >(
-      event.areaPolygon.map(
-        (ring) =>
-          new google.maps.MVCArray<google.maps.LatLng>(
-            ring.points.map((point) => new google.maps.LatLng(point.lat, point.lng)),
-          ),
-      ),
-    );
+    >([
+      this._toGoogleRing(outerRing),
+      this._toGoogleRing(holeRing),
+    ]);
 
     return {
       paths,
@@ -226,6 +230,72 @@ export class EventPageDataService {
       fillColor: "#000000",
       fillOpacity: 0.5,
     };
+  }
+
+  private _eventAreaRing(
+    rings: NonNullable<PkEvent["areaPolygon"]>,
+  ): Array<{ lat: number; lng: number }> {
+    return (
+      rings.find((ring) =>
+        ring.points.every((point) => Math.abs(point.lat) < 85),
+      )?.points ??
+      rings[0]?.points ??
+      []
+    );
+  }
+
+  private _outerCutoutRing(
+    bounds: EventBoundsSchema,
+  ): Array<{ lat: number; lng: number }> {
+    const latPadding = Math.max((bounds.north - bounds.south) * 0.12, 0.001);
+    const lngPadding = Math.max((bounds.east - bounds.west) * 0.12, 0.001);
+    const north = Math.min(85, bounds.north + latPadding);
+    const south = Math.max(-85, bounds.south - latPadding);
+    const east = Math.min(179.999, bounds.east + lngPadding);
+    const west = Math.max(-179.999, bounds.west - lngPadding);
+
+    return this._clockwise([
+      { lat: south, lng: west },
+      { lat: north, lng: west },
+      { lat: north, lng: east },
+      { lat: south, lng: east },
+    ]);
+  }
+
+  private _oppositeWinding(
+    ring: Array<{ lat: number; lng: number }>,
+    reference: Array<{ lat: number; lng: number }>,
+  ): Array<{ lat: number; lng: number }> {
+    return this._signedArea(reference) < 0
+      ? this._counterClockwise(ring)
+      : this._clockwise(ring);
+  }
+
+  private _clockwise(
+    ring: Array<{ lat: number; lng: number }>,
+  ): Array<{ lat: number; lng: number }> {
+    return this._signedArea(ring) <= 0 ? ring : [...ring].reverse();
+  }
+
+  private _counterClockwise(
+    ring: Array<{ lat: number; lng: number }>,
+  ): Array<{ lat: number; lng: number }> {
+    return this._signedArea(ring) >= 0 ? ring : [...ring].reverse();
+  }
+
+  private _signedArea(ring: Array<{ lat: number; lng: number }>): number {
+    return ring.reduce((area, point, index) => {
+      const next = ring[(index + 1) % ring.length];
+      return area + point.lng * next.lat - next.lng * point.lat;
+    }, 0);
+  }
+
+  private _toGoogleRing(
+    ring: Array<{ lat: number; lng: number }>,
+  ): google.maps.MVCArray<google.maps.LatLng> {
+    return new google.maps.MVCArray<google.maps.LatLng>(
+      ring.map((point) => new google.maps.LatLng(point.lat, point.lng)),
+    );
   }
 
   buildInlineSpot(_eventId: string, inline: InlineEventSpotSchema): LocalSpot {

@@ -30,6 +30,17 @@ import {
 export class SpotEditsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _functions = inject(Functions, { optional: true });
+  private _reviewVerifiedSpotEditCallable = this._functions
+    ? httpsCallable<
+        {
+          spotId: string;
+          editId: string;
+          decision: "approve" | "reject";
+          reviewNote?: string;
+        },
+        { ok: true }
+      >(this._functions, "reviewVerifiedSpotEdit")
+    : null;
 
   constructor() {
     super();
@@ -380,19 +391,15 @@ export class SpotEditsService extends ConsentAwareService {
     decision: "approve" | "reject",
     reviewNote?: string
   ): Promise<void> {
-    if (!this._functions) {
+    if (!this._reviewVerifiedSpotEditCallable) {
       throw new Error("Functions are unavailable in this environment.");
     }
-    const callable = httpsCallable<
-      {
-        spotId: string;
-        editId: string;
-        decision: "approve" | "reject";
-        reviewNote?: string;
-      },
-      { ok: true }
-    >(this._functions, "reviewVerifiedSpotEdit");
-    await callable({ spotId, editId, decision, reviewNote });
+    await this._reviewVerifiedSpotEditCallable({
+      spotId,
+      editId,
+      decision,
+      reviewNote,
+    });
   }
 
   setSpotEditVote(

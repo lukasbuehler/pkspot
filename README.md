@@ -168,7 +168,6 @@ npm run test:build
 npm run test:e2e
 ```
 
-
 ### Maintenance jobs
 
 Most maintenance jobs are triggered by creating a Firestore document with the

@@ -18,6 +18,12 @@ export class OrganizationsService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _authService = inject(AuthenticationService);
   private _functions = inject(Functions, { optional: true });
+  private _setSpotVerificationCallable = this._functions
+    ? httpsCallable<
+        { spotId: string; organizationId: string | null },
+        { ok: true }
+      >(this._functions, "setSpotVerification")
+    : null;
 
   private _requireAdmin(action: string): void {
     if (this._authService.user.data?.isAdmin !== true) {
@@ -127,13 +133,9 @@ export class OrganizationsService {
     organizationId: string | null
   ): Promise<void> {
     this._requireAdmin("setSpotVerification");
-    if (!this._functions) {
+    if (!this._setSpotVerificationCallable) {
       throw new Error("Functions are unavailable in this environment.");
     }
-    const callable = httpsCallable<
-      { spotId: string; organizationId: string | null },
-      { ok: true }
-    >(this._functions, "setSpotVerification");
-    await callable({ spotId, organizationId });
+    await this._setSpotVerificationCallable({ spotId, organizationId });
   }
 }

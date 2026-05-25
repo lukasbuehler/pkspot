@@ -40,6 +40,7 @@ export class OrganizationAdminPageComponent implements OnDestroy {
   readonly newOrgId = signal("");
   readonly newOrgName = signal("");
   readonly newOrgSlug = signal("");
+  readonly newOrgLogoUrl = signal("");
   readonly selectedOrganizationId = signal("");
   readonly memberUserId = signal("");
   readonly memberRole = signal<OrganizationRole>("reviewer");
@@ -69,9 +70,11 @@ export class OrganizationAdminPageComponent implements OnDestroy {
 
   async createOrganization(): Promise<void> {
     const organizationId = this.newOrgId();
+    const logoUrl = this.newOrgLogoUrl().trim();
     await this._organizationsService.createOrganization(organizationId, {
       name: this.newOrgName(),
       slug: this.newOrgSlug(),
+      ...(logoUrl ? { logo_url: logoUrl } : {}),
       active: true,
     });
     await this.reload();
