@@ -1,0 +1,20 @@
+:host {
+  display: contents;
+}
+
+.small-dot-marker {
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+.marker-primary-dark {
+  background-color: #b8c4ff;
+  border: 1px solid #0036ba;
+  box-shadow: 0 0 4px #0036ba;
+}
+
+.marker-primary-light {
+  background-color: #0036ba;
+  border: 1px solid #b8c4ff;
+  box-shadow: 0 0 4px #b8c4ff;
+}

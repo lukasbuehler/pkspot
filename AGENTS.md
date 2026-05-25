@@ -49,6 +49,7 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - The Angular app initializes callable functions against `europe-west1`, and `functions/src/index.ts` sets global v2 function options to that region.
 - If you add or modify a function that does not inherit those global options, set the region explicitly instead of relying on Firebase's `us-central1` default.
 - Existing `us-central1` functions should only stay there intentionally. When migrating an existing function to `europe-west1`, remember that Firebase treats regional functions as separate resources, so the old `us-central1` function may need to be deleted after the Europe deployment is verified.
+- Prefer gen 2 Cloud Functions APIs (`firebase-functions/v2/*`). The only current exception is basic Firebase Auth lifecycle triggers that the SDK does not offer in gen 2; keep any such exception isolated and covered by the functions generation policy test.
 
 ## Backwards compatibility
 

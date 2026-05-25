@@ -1,38 +1,27 @@
-import { NgClass } from "@angular/common";
 import {
+  ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
   inject,
   input,
   signal,
-  computed,
 } from "@angular/core";
 import { MatRippleModule } from "@angular/material/core";
 import { MatIconModule } from "@angular/material/icon";
+import type {
+  MapMarkerColor,
+  MapMarkerSchema,
+} from "../map/markers/map-marker.model";
 
-export interface MarkerSchema {
-  name?: string;
-  color?: "primary" | "secondary" | "tertiary" | "gray";
-  location: google.maps.LatLngLiteral;
-  icons?: string[];
-  /**
-   * Optional image source rendered as a small badge in place of `icons`.
-   * Used for event/sponsor logos on map pins.
-   */
-  imageSrc?: string;
-  imageBackgroundColor?: string;
-  number?: number;
-  priority?: "required" | number;
-  ignoreCollisions?: boolean;
-  type?: string;
-  description?: string;
-}
+export type MarkerSchema = MapMarkerSchema;
 
 @Component({
   selector: "app-marker",
-  imports: [MatIconModule, NgClass, MatRippleModule],
+  imports: [MatIconModule, MatRippleModule],
   templateUrl: "./marker.component.html",
   styleUrl: "./marker.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarkerComponent {
   public elementRef = inject(ElementRef);
@@ -73,11 +62,23 @@ export class MarkerComponent {
   clickable = input<boolean>(false);
   isIconic = input<boolean>(false);
   isCheckIn = input<boolean>(false);
-  color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
+  color = input<MapMarkerColor>("primary");
   size = input<number>(1);
   title = input<string | null | undefined>(null);
 
   isExpanded = signal<boolean>(false);
+  readonly isPrimary = computed(
+    () => this.color() === "primary" || (!this.isIconic() && !this.isCheckIn())
+  );
+  readonly isSecondary = computed(
+    () => (this.color() === "secondary" && !this.isIconic()) || this.isCheckIn()
+  );
+  readonly isTertiary = computed(
+    () => this.color() === "tertiary" && !this.isIconic() && !this.isCheckIn()
+  );
+  readonly isGray = computed(
+    () => this.color() === "gray" && !this.isIconic() && !this.isCheckIn()
+  );
 
   onClick($event?: MouseEvent) {
     const isInteractive = this.clickable();

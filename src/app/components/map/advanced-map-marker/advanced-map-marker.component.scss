@@ -1,0 +1,16 @@
+:host {
+  display: contents;
+}
+
+.advanced-map-marker-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.advanced-map-marker-shell--dot,
+.advanced-map-marker-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+}

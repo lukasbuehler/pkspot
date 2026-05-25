@@ -40,7 +40,7 @@ import {
   GoogleMap2dComponent,
   TilesObject,
 } from "../google-map-2d/google-map-2d.component";
-import { CommunityMapMarker } from "../community-dot-marker/community-dot-marker.component";
+import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
 import { VisibleViewport } from "../maps/map-base";
 import {
   MapBoundsOverlay,
@@ -62,7 +62,7 @@ import { isPlatformServer } from "@angular/common";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { LocaleCode } from "../../../db/models/Interfaces";
-import { MarkerSchema } from "../marker/marker.component";
+import { MarkerSchema } from "../map/markers/map-marker.model";
 import { OsmDataService } from "../../services/osm-data.service";
 import { SpotMapDataManager, SpotFilterMode } from "./SpotMapDataManager";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";

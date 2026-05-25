@@ -1,13 +1,11 @@
 <div
   class="pin-marker"
-  [ngClass]="{
-    'pin-primary': color() === 'primary' || (!isIconic() && !isCheckIn()),
-    'pin-secondary': (color() === 'secondary' && !isIconic()) || isCheckIn(),
-    'pin-tertiary': color() === 'tertiary' && !isIconic() && !isCheckIn(),
-    'pin-gray': color() === 'gray' && !isIconic() && !isCheckIn()
-  }"
+  [class.pin-primary]="isPrimary()"
+  [class.pin-secondary]="isSecondary()"
+  [class.pin-tertiary]="isTertiary()"
+  [class.pin-gray]="isGray()"
   [class.clickable]="clickable()"
-  [style]="{ scale: size() }"
+  [style.scale]="size()"
   (click)="onClick($event)"
   (blur)="onBlur()"
   matRipple

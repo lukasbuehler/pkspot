@@ -68,38 +68,27 @@
                   iconic spot tooltip|Tooltip for iconic spot
                   indicator@@spot.iconic.tooltip">stars</mat-icon>
         }
-        @if (spot()?.verification?.status === "verified") {
-        <a
-          matButton
-          class="spot-verification-badge"
-          [routerLink]="[
-            '/organizations',
-            spot()?.verification?.organization?.slug ||
-              spot()?.verification?.organization_id
-          ]"
-          matTooltip="Verified by {{ spot()?.verification?.organization?.name }}"
-          i18n-matTooltip="@@spot.verified.tooltip"
-          [attr.aria-label]="
-            'Verified by ' + spot()?.verification?.organization?.name
-          "
-        >
-          @if (spot()?.verification?.organization?.logo_url) {
-          <img
-            class="spot-verification-logo"
-            [src]="spot()?.verification?.organization?.logo_url"
-            [alt]="spot()?.verification?.organization?.name + ' logo'"
-          />
-          } @else {
-          <mat-icon style="width: 24px; flex-shrink: 0">verified_user</mat-icon>
-          }
-          <span class="text-truncate">{{
-            spot()?.verification?.organization?.name
-          }}</span>
-        </a>
-        }
         <span [@fadeSlideOnChange]="nameAnimKey()" [matTooltip]="spot()!.name()"
           class="text-truncate d-block spot-title-text">{{ spot()!.name() }}</span>
         <span i18n class="mat-label-small px-1 border rounded spot-kind-label">Spot</span>
+
+        @if (spot()?.verification?.status === "verified") {
+        <a matIconButton class="spot-verification-badge d-flex flex-row align-items-center" [routerLink]="[
+            '/organizations',
+            spot()?.verification?.organization?.slug ||
+              spot()?.verification?.organization_id
+          ]" matTooltip="Verified by {{ spot()?.verification?.organization?.name }}"
+          i18n-matTooltip="@@spot.verified.tooltip" [attr.aria-label]="
+            'Verified by ' + spot()?.verification?.organization?.name
+          " style="width: 60px;">
+          <mat-icon style="width: 24px; flex-shrink: 0">verified_user</mat-icon>
+          @if (spot()?.verification?.organization?.logo_url) {
+          <img class="spot-verification-logo" [src]="spot()?.verification?.organization?.logo_url"
+            [alt]="spot()?.verification?.organization?.name + ' logo'" />
+
+          }
+        </a>
+        }
       </span>
 
       <!-- dismiss button -->

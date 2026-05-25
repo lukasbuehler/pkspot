@@ -55,7 +55,7 @@ import {
   CommunitySearchPreview,
   SearchService,
 } from "../../services/search.service";
-import { CommunityMapMarker } from "../community-dot-marker/community-dot-marker.component";
+import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
 import { rankMapIslandEventsForPoint } from "./map-island-event-ranking";
 import { countries } from "../../../scripts/Countries";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
@@ -107,7 +107,7 @@ import { StructuredDataService } from "../../services/structured-data.service";
 import { MatCardModule } from "@angular/material/card";
 import { MatDialog } from "@angular/material/dialog";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
-import { MarkerSchema } from "../marker/marker.component";
+import { MarkerSchema } from "../map/markers/map-marker.model";
 import {
   CustomFilterDialogComponent,
   CustomFilterParams,

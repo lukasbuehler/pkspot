@@ -1,0 +1,22 @@
+<div
+  #eventMarker
+  class="event-map-marker"
+  [class.event-map-marker-live]="isLive()"
+  [style.background-color]="marker().imageBackgroundColor ?? 'var(--mat-sys-surface-container-highest)'"
+  [attr.aria-label]="ariaLabel()"
+  [attr.title]="marker().name ?? 'Event'"
+>
+  @if(marker().imageSrc) {
+  <img [src]="marker().imageSrc" alt="" class="event-map-marker-logo" />
+  } @else {
+  <mat-icon class="event-map-marker-icon">{{ fallbackIcon() }}</mat-icon>
+  }
+</div>
+
+<map-advanced-marker
+  [position]="marker().location"
+  [content]="eventMarker"
+  [options]="markerOptions()"
+  (mapClick)="markerClick.emit(marker())"
+  (markerInitialized)="centerMarkerAnchor($event)"
+></map-advanced-marker>

@@ -44,7 +44,7 @@ mat-tab-group {
 }
 
 form {
-  > mat-form-field {
+  >mat-form-field {
     margin-bottom: 5px;
   }
 }
@@ -161,7 +161,8 @@ app-img-carousel {
   justify-content: center;
   background-color: #ffdad6;
   margin-bottom: 10px;
-  > * {
+
+  >* {
     color: #410002;
   }
 }
@@ -172,7 +173,7 @@ div.hist-grid-container {
   gap: 10px;
   align-items: center;
 
-  > div.grid-item {
+  >div.grid-item {
     text-align: end;
   }
 }
@@ -182,7 +183,7 @@ div.google-img-container {
   aspect-ratio: 4/3;
   position: relative;
 
-  > img {
+  >img {
     object-fit: cover;
   }
 }
@@ -195,6 +196,7 @@ div.google-img-container {
 
 // Styling for negative amenities
 .negative-amenity {
+
   // Use a muted red color scheme for negative amenities
   &.mat-mdc-chip {
     border-color: rgba(244, 67, 54, 0.6);
@@ -276,6 +278,7 @@ div.google-img-container {
 
 .access-off-limits {
   color: #ffb4ab !important; // Material Design Error Color
+
   mat-icon {
     color: #ffb4ab !important;
   }
@@ -283,6 +286,7 @@ div.google-img-container {
 
 .access-private {
   color: #fff28f !important;
+
   mat-icon {
     color: #fff28f !important;
   }
@@ -310,13 +314,12 @@ div.google-img-container {
   flex-shrink: 0;
   min-width: 0;
   max-width: 160px;
-  color: var(--mat-sys-primary);
 }
 
 .spot-verification-logo {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   object-fit: cover;
-  background: var(--mat-sys-surface-container-high);
+  background: white; // TODO custom background
 }

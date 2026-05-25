@@ -95,10 +95,8 @@ export {
 //   onUserProfileUpdate,
 // } from "./socialCardFunctions";
 
-export {
-  cleanupOnUserDelete,
-  assignSignupNumberOnCreate,
-} from "./authFunctions";
+export { cleanupOnUserDelete } from "./authFunctions";
+export { assignSignupNumberOnCreate } from "./userSignupFunctions";
 
 export {
   onCheckInCreate,

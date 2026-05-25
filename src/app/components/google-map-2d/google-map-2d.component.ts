@@ -43,11 +43,10 @@ import {
   SpotClusterTileSchema,
 } from "../../../db/schemas/SpotClusterTile.js";
 import { GeoPoint } from "firebase/firestore";
-import { AsyncPipe, NgClass } from "@angular/common";
-import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
-import { MarkerComponent, MarkerSchema } from "../marker/marker.component";
+import { MarkerComponent } from "../marker/marker.component";
+import { MarkerSchema } from "../map/markers/map-marker.model";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { MapBase, VisibleViewport } from "../maps/map-base";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
@@ -60,8 +59,9 @@ import {
 import { AnyMedia } from "../../../db/models/Media";
 import { ThemeService } from "../../services/theme.service";
 import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.component";
-import { CustomMarkerComponent } from "../custom-marker/custom-marker.component";
-import { ClusterDotMarkerComponent } from "../cluster-dot-marker/cluster-dot-marker.component";
+import { AdvancedMapMarkerComponent } from "../map/advanced-map-marker/advanced-map-marker.component";
+import { ClusterDotMarkerComponent } from "../map/cluster-dot-marker/cluster-dot-marker.component";
+import { EventDotMarkerComponent } from "../map/event-dot-marker/event-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
 import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-marker.component";
 import {
@@ -118,13 +118,12 @@ export interface TilesObject {
     MapPolygon,
     MapRectangle,
     MapAdvancedMarker,
-    MatIconModule,
-    NgClass,
     MarkerComponent,
     SpotPreviewCardComponent,
     HighlightMarkerComponent,
-    CustomMarkerComponent,
+    AdvancedMapMarkerComponent,
     ClusterDotMarkerComponent,
+    EventDotMarkerComponent,
     SpotPreviewMarkerComponent,
     MatSnackBarModule,
   ],

@@ -82,7 +82,7 @@ import { MediaUpload } from "../media-upload/media-upload.component";
 import { MatIcon, MatIconModule } from "@angular/material/icon";
 import { MatSelect } from "@angular/material/select";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
-import { MarkerSchema } from "../marker/marker.component";
+import { MarkerSchema } from "../map/markers/map-marker.model";
 import { createUserReference, generateUUID } from "../../../scripts/Helpers";
 import { languageCodes } from "../../../scripts/Languages";
 import JSZip from "jszip";

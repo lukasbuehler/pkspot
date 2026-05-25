@@ -1,0 +1,45 @@
+:host {
+  display: contents;
+}
+
+.event-map-marker {
+  align-items: center;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 2px solid var(--mat-sys-primary);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  overflow: hidden;
+  padding: 4px;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+  width: 36px;
+}
+
+.event-map-marker:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.34);
+  transform: translateY(-2px) scale(1.04);
+}
+
+.event-map-marker-live {
+  border-color: var(--mat-sys-secondary);
+}
+
+.event-map-marker-logo {
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+.event-map-marker-icon {
+  color: inherit;
+  font-size: 22px;
+  height: 22px;
+  width: 22px;
+}

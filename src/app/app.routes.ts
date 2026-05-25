@@ -13,7 +13,22 @@ export const ACCEPTANCE_FREE_PREFIXES = [
   "/impressum",
 ];
 
+const visualTestRoutes: Routes = environment.production
+  ? []
+  : [
+      {
+        path: "__visual/markers",
+        loadComponent: () =>
+          import(
+            "./components/map/marker-visual-test-page/marker-visual-test-page.component"
+          ).then((m) => m.MarkerVisualTestPageComponent),
+        data: { routeName: "Marker Visual Test" },
+      },
+    ];
+
 export const routes: Routes = [
+  ...visualTestRoutes,
+
   // Home page (redirects to spot map)
   {
     path: "",

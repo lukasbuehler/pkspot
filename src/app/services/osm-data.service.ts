@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { map, timeout } from "rxjs/operators";
-import { MarkerSchema } from "../components/marker/marker.component";
+import { MarkerSchema } from "../components/map/markers/map-marker.model";
 
 export interface NodeTags {
   amenity?: string;

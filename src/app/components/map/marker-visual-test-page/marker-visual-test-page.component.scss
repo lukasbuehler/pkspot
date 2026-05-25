@@ -1,0 +1,50 @@
+:host {
+  display: block;
+  min-height: 100%;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.marker-visual-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 48px;
+}
+
+.marker-surface {
+  display: grid;
+  gap: 32px;
+  padding: 40px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background:
+    linear-gradient(
+      135deg,
+      var(--mat-sys-surface-container-low),
+      var(--mat-sys-surface-container)
+    );
+}
+
+.marker-row,
+.dot-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-row {
+  gap: 32px;
+}
+
+.dot-row {
+  gap: 18px;
+}
+
+.visual-dot {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  opacity: 0.85;
+}

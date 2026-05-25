@@ -1,4 +1,4 @@
-import { MarkerSchema } from "../marker/marker.component";
+import { MarkerSchema } from "../map/markers/map-marker.model";
 
 export interface MapPointMarker extends MarkerSchema {
   id: string;

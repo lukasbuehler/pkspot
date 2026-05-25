@@ -22,7 +22,7 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { EventSchema } from "../../../db/schemas/EventSchema";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
-import { MarkerSchema } from "../marker/marker.component";
+import { MarkerSchema } from "../map/markers/map-marker.model";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";

@@ -1,0 +1,48 @@
+@if(useDotMode()) {
+<div
+  #dotShell
+  class="advanced-map-marker-shell advanced-map-marker-shell--dot"
+  tabindex="0"
+  role="button"
+>
+  <div
+    [@fadeInOut]
+    class="advanced-map-marker-dot shadow-sm border"
+    [class.marker-primary-dark]="marker().color === 'primary'"
+    [class.marker-secondary-dark]="marker().color === 'secondary'"
+    [class.marker-tertiary-dark]="marker().color === 'tertiary'"
+  ></div>
+</div>
+<map-advanced-marker
+  [position]="marker().location"
+  [content]="dotShell"
+  [options]="markerOptions()"
+  (mapClick)="onDotMapClick(dotShell, $event)"
+/>
+} @else {
+<div
+  #fullMarkerShell
+  class="advanced-map-marker-shell advanced-map-marker-shell--full"
+  tabindex="0"
+  role="button"
+>
+  <app-marker
+    [@fadeInOut]
+    style="pointer-events: none"
+    [icons]="marker().icons"
+    [imageSrc]="marker().imageSrc"
+    [imageBackgroundColor]="marker().imageBackgroundColor"
+    [number]="marker().number"
+    [color]="marker().color ?? 'primary'"
+    [size]="0.8"
+    [title]="marker().name"
+    (click)="onMarkerContentClick(fullMarkerShell)"
+  />
+</div>
+<map-advanced-marker
+  [position]="marker().location"
+  [content]="fullMarkerShell"
+  [options]="markerOptions()"
+  (mapClick)="onMarkerContentClick(fullMarkerShell, $event)"
+/>
+}

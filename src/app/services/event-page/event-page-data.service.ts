@@ -12,7 +12,7 @@ import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
 import { GeoPoint } from "firebase/firestore";
 import { SpotChallenge } from "../../../db/models/SpotChallenge";
-import { MarkerSchema } from "../../components/marker/marker.component";
+import { MarkerSchema } from "../../components/map/markers/map-marker.model";
 import { EventsService } from "../firebase/firestore/events.service";
 import { SpotsService } from "../firebase/firestore/spots.service";
 import { SpotChallengesService } from "../firebase/firestore/spot-challenges.service";

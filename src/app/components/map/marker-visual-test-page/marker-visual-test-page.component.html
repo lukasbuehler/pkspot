@@ -1,0 +1,40 @@
+<main class="marker-visual-page">
+  <section class="marker-surface" aria-label="Marker visual regression">
+    <div class="marker-row">
+      <app-marker
+        [number]="4"
+        [icons]="['home', 'water_drop']"
+        color="primary"
+        title="Primary spot marker"
+      />
+      <app-marker
+        [number]="4.5"
+        [isRating]="true"
+        [icons]="['stars']"
+        color="secondary"
+        title="Secondary rating marker"
+      />
+      <app-marker
+        [icons]="['wc']"
+        color="tertiary"
+        title="Amenity marker"
+      />
+      <app-marker
+        [number]="12"
+        color="gray"
+        title="Neutral numbered marker"
+      />
+      <app-marker
+        [isCheckIn]="true"
+        [clickable]="true"
+        title="Active check-in marker"
+      />
+    </div>
+
+    <div class="dot-row">
+      <span class="visual-dot marker-primary-dark"></span>
+      <span class="visual-dot marker-secondary-dark"></span>
+      <span class="visual-dot marker-tertiary-dark"></span>
+    </div>
+  </section>
+</main>

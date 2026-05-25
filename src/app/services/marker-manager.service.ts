@@ -1,6 +1,6 @@
 import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
-import { MarkerSchema } from "../components/marker/marker.component";
+import { MarkerSchema } from "../components/map/markers/map-marker.model";
 import { Spot, LocalSpot } from "../../db/models/Spot";
 import { SpotClusterDotSchema } from "../../db/schemas/SpotClusterTile";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";

@@ -1,0 +1,20 @@
+<div
+  #dot
+  class="community-dot"
+  [class.scope-country]="community().scope === 'country'"
+  [class.scope-region]="community().scope === 'region'"
+  [class.scope-locality]="community().scope === 'locality'"
+  [style.width.px]="dotSize()"
+  [style.height.px]="dotSize()"
+  [attr.title]="community().displayName"
+  [attr.aria-label]="community().displayName"
+></div>
+
+<map-advanced-marker
+  [position]="community().center"
+  [content]="dot"
+  [options]="markerOptions()"
+  (mapClick)="markerClick.emit(community().communityKey)"
+  (markerInitialized)="centerMarkerAnchor($event)"
+  [zIndex]="zIndex()"
+></map-advanced-marker>

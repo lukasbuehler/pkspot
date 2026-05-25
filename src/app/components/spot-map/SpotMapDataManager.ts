@@ -10,7 +10,7 @@ import {
 } from "../../../db/schemas/SpotClusterTile";
 import { TilesObject } from "../google-map-2d/google-map-2d.component";
 import { VisibleViewport } from "../maps/map-base";
-import { MarkerSchema } from "../marker/marker.component";
+import { MarkerSchema } from "../map/markers/map-marker.model";
 import { Injector, signal, computed, NgZone } from "@angular/core";
 import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";

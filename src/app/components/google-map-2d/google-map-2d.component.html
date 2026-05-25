@@ -126,13 +126,9 @@
     @if(challenge.location) {
     <map-advanced-marker #selectedSpotChallengeMarker id="selectedSpotChallengeMarker" [position]="challenge.location"
       [content]="selectedSpotChallengeMarkerNode" [zIndex]="10"></map-advanced-marker>
-    <div #selectedSpotChallengeMarkerNode id="selectedSpotChallengeMarkerNode" class="small-dot-marker" [ngClass]="{
-      'marker-primary-dark': resolvedDarkMode(),
-      'marker-primary-light': !resolvedDarkMode()
-    }" [style]="{
-      height: 15 + 'px',
-      width: 15 + 'px'
-    }"></div>
+    <div #selectedSpotChallengeMarkerNode id="selectedSpotChallengeMarkerNode" class="small-dot-marker"
+      [class.marker-primary-dark]="resolvedDarkMode()"
+      [class.marker-primary-light]="!resolvedDarkMode()"></div>
     } } } }
 
     <!-- Check-In Marker (show when there's a proximity spot and it's not the selected spot) -->
@@ -170,22 +166,26 @@
 
     <!-- Priority Markers (always visible) -->
     @for(marker of priorityMarkers(); track $index) {
-    <app-custom-marker [marker]="marker" [index]="$index" [zoom]="zoom" [forceFullMarker]="true"
-      (markerClick)="markerClick($event)"></app-custom-marker>
+    <app-advanced-map-marker [marker]="marker" [index]="$index" [zoom]="zoom" [forceFullMarker]="true"
+      (markerClick)="markerClick($event)"></app-advanced-map-marker>
     }
     @for(marker of pointMarkers; track marker.id) {
     @if((marker.minZoom === undefined || zoom >= marker.minZoom) && (marker.maxZoom === undefined || zoom <=
     marker.maxZoom)) {
-    <app-custom-marker [marker]="marker" [index]="$index" [zoom]="zoom"
+    @if(marker.type === "event") {
+    <app-event-dot-marker [marker]="marker" (markerClick)="pointMarkerClick.emit($event)"></app-event-dot-marker>
+    } @else {
+    <app-advanced-map-marker [marker]="marker" [index]="$index" [zoom]="zoom"
       [forceFullMarker]="marker.forceFullMarker ?? false" [dotModeThreshold]="marker.dotModeThreshold ?? 17"
-      [emitDotClick]="true" (markerClick)="pointMarkerClick.emit(marker)"></app-custom-marker>
+      [emitDotClick]="true" (markerClick)="pointMarkerClick.emit(marker)"></app-advanced-map-marker>
+    }
     }
     }
     <!-- Additional Markers (amenities, custom markers, etc.) -->
     @if(zoom >= 16) { @for(marker of markers(); track trackMarker($index, marker))
     {
-    <app-custom-marker [marker]="marker" [index]="$index" [zoom]="zoom"
-      (markerClick)="markerClick($event)"></app-custom-marker>
+    <app-advanced-map-marker [marker]="marker" [index]="$index" [zoom]="zoom"
+      (markerClick)="markerClick($event)"></app-advanced-map-marker>
     } }
 
     <!-- Additional Polygons -->
