@@ -28,23 +28,25 @@ const isEventRuntimeDoc = (docId: string): boolean =>
   docId !== "typesense" && !docId.startsWith("run-");
 
 const isGeoPointValue = (value: unknown): value is GeoPoint => {
-  if (value instanceof GeoPoint) return true;
-
-  const adminGeoPointCtor = (
-    admin.firestore as unknown as { GeoPoint?: typeof GeoPoint }
-  ).GeoPoint;
-  if (
-    typeof adminGeoPointCtor === "function" &&
-    value instanceof adminGeoPointCtor
-  ) {
-    return true;
-  }
+  if (isActualGeoPointValue(value)) return true;
 
   return Boolean(
     value &&
       typeof value === "object" &&
       typeof (value as { latitude?: unknown }).latitude === "number" &&
       typeof (value as { longitude?: unknown }).longitude === "number"
+  );
+};
+
+const isActualGeoPointValue = (value: unknown): value is GeoPoint => {
+  if (value instanceof GeoPoint) return true;
+
+  const adminGeoPointCtor = (
+    admin.firestore as unknown as { GeoPoint?: typeof GeoPoint }
+  ).GeoPoint;
+  return Boolean(
+    typeof adminGeoPointCtor === "function" &&
+    value instanceof adminGeoPointCtor
   );
 };
 
@@ -139,13 +141,33 @@ const _geoPointCoordinate = (
 };
 
 const _timestampSeconds = (value: unknown): number | undefined => {
+  const timestamp = _timestampValue(value);
+  return timestamp?.seconds;
+};
+
+const _timestampValue = (value: unknown): Timestamp | undefined => {
   if (!value) return undefined;
-  if (value instanceof Timestamp) return value.seconds;
+  if (value instanceof Timestamp) return value;
+  if (value instanceof Date) return Timestamp.fromDate(value);
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? Timestamp.fromDate(date) : undefined;
+  }
   if (
     typeof value === "object" &&
-    typeof (value as { seconds?: unknown }).seconds === "number"
+    (typeof (value as { seconds?: unknown }).seconds === "number" ||
+      typeof (value as { _seconds?: unknown })._seconds === "number")
   ) {
-    return (value as { seconds: number }).seconds;
+    const timestampLike = value as {
+      seconds?: number;
+      nanoseconds?: number;
+      _seconds?: number;
+      _nanoseconds?: number;
+    };
+    return new Timestamp(
+      timestampLike.seconds ?? timestampLike._seconds ?? 0,
+      timestampLike.nanoseconds ?? timestampLike._nanoseconds ?? 0
+    );
   }
   return undefined;
 };
@@ -163,6 +185,16 @@ const _addTypesenseFields = (
   out.start_seconds = _timestampSeconds(eventData.start);
   out.end_seconds = _timestampSeconds(eventData.end);
   out.promo_starts_at_seconds = _timestampSeconds(eventData.promo_starts_at);
+
+  const start = _timestampValue(eventData.start);
+  if (start) out.start = start as unknown as EventSchema["start"];
+  const end = _timestampValue(eventData.end);
+  if (end) out.end = end as unknown as EventSchema["end"];
+  const promoStartsAt = _timestampValue(eventData.promo_starts_at);
+  if (promoStartsAt) {
+    out.promo_starts_at =
+      promoStartsAt as unknown as EventSchema["promo_starts_at"];
+  }
 
   const location =
     _rawCoordinate(eventData.location_raw) ??
@@ -206,12 +238,24 @@ const _getChangedFields = (
   currentData: EventSchema,
   proposedData: Partial<EventSchema>
 ): Partial<EventSchema> => {
+  const runtimeGeoPointFields = new Set([
+    "location",
+    "bounds_center",
+    "promo_region_center",
+  ]);
   const changed = Object.entries(
     _removeUndefinedValues(proposedData) as Record<string, unknown>
   ).filter(([key, proposedValue]) => {
     const currentValue = (currentData as unknown as Record<string, unknown>)[
       key
     ];
+    if (
+      runtimeGeoPointFields.has(key) &&
+      isActualGeoPointValue(proposedValue) &&
+      !isActualGeoPointValue(currentValue)
+    ) {
+      return true;
+    }
     return !_areValuesEqual(currentValue, proposedValue);
   });
   return Object.fromEntries(changed) as Partial<EventSchema>;

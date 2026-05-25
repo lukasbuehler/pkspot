@@ -8,12 +8,14 @@ import {
   SPOT_FILTER_CONFIGS,
 } from "../components/spot-map/spot-filter-config";
 
+const typesenseSearchMock = vi.hoisted(() => vi.fn());
+
 // Mock the Typesense SearchClient
 vi.mock("typesense", () => ({
   SearchClient: vi.fn().mockImplementation(() => ({
     collections: vi.fn().mockReturnValue({
       documents: vi.fn().mockReturnValue({
-        search: vi.fn().mockResolvedValue({ hits: [], found: 0 }),
+        search: typesenseSearchMock,
       }),
     }),
   })),
@@ -36,6 +38,9 @@ describe("SearchService", () => {
   let mapsApiServiceSpy: { autocompletePlaceSearch: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
+    typesenseSearchMock.mockReset();
+    typesenseSearchMock.mockResolvedValue({ hits: [], found: 0 });
+
     mapsApiServiceSpy = {
       autocompletePlaceSearch: vi.fn().mockResolvedValue([]),
     };
@@ -518,6 +523,68 @@ describe("SearchService", () => {
       expect(event?.bounds.east).toBeGreaterThan(event!.bounds.west);
 
       vi.useRealTimers();
+    });
+
+    it("uses the event location as the marker anchor instead of bounds center", () => {
+      const event = service.getEventFromHit({
+        document: {
+          id: "event-123",
+          name: "WPF Camp",
+          venue_string: "Camp venue",
+          locality_string: "Basel, Switzerland",
+          start_seconds: Math.floor(
+            new Date("2026-06-10T10:00:00.000Z").getTime() / 1000,
+          ),
+          end_seconds: Math.floor(
+            new Date("2026-06-14T10:00:00.000Z").getTime() / 1000,
+          ),
+          location_raw: { lat: 47.5596, lng: 7.5886 },
+          bounds_center: [47.35, 7.9],
+          bounds_radius_m: 30_000,
+          promo_region_center: [47.35, 7.9],
+          promo_region_radius_m: 150_000,
+        },
+      });
+
+      expect(event?.location).toEqual({ lat: 47.5596, lng: 7.5886 });
+    });
+
+    it("loads map events near either promo center or event location", async () => {
+      const googleBackup = (globalThis as any).google;
+      (globalThis as any).google = {
+        maps: {
+          geometry: {
+            spherical: {
+              computeDistanceBetween: vi.fn(() => 1000),
+            },
+          },
+        },
+      };
+
+      try {
+        const bounds = {
+          getCenter: () => ({ lat: () => 47.397329, lng: () => 8.54851 }),
+          getNorthEast: () => ({ lat: () => 47.4, lng: () => 8.55 }),
+        } as google.maps.LatLngBounds;
+
+        await service.searchEventsInBounds(bounds);
+
+        const filterByValues = typesenseSearchMock.mock.calls.map(
+          ([params]) => params.filter_by,
+        );
+        expect(filterByValues).toContainEqual(
+          expect.stringContaining(
+            "promo_region_center:(47.397329, 8.548510, 25.000 km)",
+          ),
+        );
+        expect(filterByValues).toContainEqual(
+          expect.stringContaining(
+            "location:(47.397329, 8.548510, 25.000 km)",
+          ),
+        );
+      } finally {
+        (globalThis as any).google = googleBackup;
+      }
     });
   });
 });

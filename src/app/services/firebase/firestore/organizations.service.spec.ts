@@ -49,6 +49,62 @@ describe("OrganizationsService", () => {
     return TestBed.inject(OrganizationsService);
   }
 
+  it("preserves logo background color in embedded organization references", () => {
+    const service = configure();
+
+    expect(
+      service.makeReference({
+        id: "pkspot",
+        name: "PK Spot",
+        slug: "pkspot",
+        logo_url: "https://example.com/logo.svg",
+        logo_background_color: "transparent",
+        active: true,
+      })
+    ).toEqual({
+      id: "pkspot",
+      name: "PK Spot",
+      slug: "pkspot",
+      logo_url: "https://example.com/logo.svg",
+      logo_background_color: "transparent",
+    });
+  });
+
+  it("loads verified spots from the organization-owned index first", async () => {
+    const adapter = createMockFirestoreAdapter();
+    adapter.getCollection
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+    TestBed.configureTestingModule({
+      providers: [
+        OrganizationsService,
+        { provide: FirestoreAdapterService, useValue: adapter },
+        { provide: AuthenticationService, useValue: createMockAuthService(true) },
+        { provide: Functions, useValue: {} },
+      ],
+    });
+    const service = TestBed.inject(OrganizationsService);
+
+    await service.getVerifiedSpots("pkspot");
+
+    expect(adapter.getCollection).toHaveBeenNthCalledWith(
+      1,
+      "organizations/pkspot/verified_spots"
+    );
+    expect(adapter.getCollection).toHaveBeenNthCalledWith(
+      2,
+      "spots",
+      [
+        {
+          fieldPath: "verification.organization_id",
+          opStr: "==",
+          value: "pkspot",
+        },
+      ],
+      [{ type: "limit", limit: 24 }]
+    );
+  });
+
   it("sets spot verification through the trusted callable", async () => {
     const service = configure();
 

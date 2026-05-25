@@ -81,7 +81,7 @@ server.use((err, req, res, next) => {
 
 const serverInstance = server.listen(PORT, () => {
   console.log(`Test SSR server running at http://localhost:${PORT}`);
-  console.log(`Serving 'de' locale only (dev build)`);
+  console.log(`Serving 'de' locale only`);
   console.log(`Browser assets: ${browserDistFolder}`);
 });
 

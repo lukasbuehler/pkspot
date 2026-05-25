@@ -1,20 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
-import { rankMapIslandEventsForPoint } from "./map-island-event-ranking";
+import {
+  getMapEventMarkerPriority,
+  rankMapIslandEventsForPoint,
+} from "./map-island-event-ranking";
 
 function event(
   id: string,
   promoCenter: { lat: number; lng: number },
   promoRadiusM: number,
+  start: string = "2026-06-14T10:00:00.000Z",
+  end: string = "2026-06-15T10:00:00.000Z",
 ): PkEvent {
   return new PkEvent(id as EventId, {
     name: id,
     venue_string: "",
     locality_string: "",
     spot_ids: [],
-    start: "2026-06-14T10:00:00.000Z",
-    end: "2026-06-15T10:00:00.000Z",
+    start,
+    end,
+    promo_starts_at: "2026-06-01T10:00:00.000Z",
     bounds: {
       north: promoCenter.lat,
       south: promoCenter.lat,
@@ -31,9 +37,21 @@ function event(
 describe("rankMapIslandEventsForPoint", () => {
   const now = new Date("2026-06-14T11:00:00.000Z");
 
-  it("prefers Swiss Jam over WPF Camp for a Switzerland-centered viewport", () => {
-    const swissJam = event("swissjam26", { lat: 46.8, lng: 8.2 }, 150_000);
-    const wpfCamp = event("wpf-camp", { lat: 47.5596, lng: 7.5886 }, 150_000);
+  it("prefers the earlier event before viewport centrality", () => {
+    const swissJam = event(
+      "swissjam26",
+      { lat: 46.8, lng: 8.2 },
+      150_000,
+      "2026-06-18T10:00:00.000Z",
+      "2026-06-21T10:00:00.000Z",
+    );
+    const wpfCamp = event(
+      "wpf-camp",
+      { lat: 47.5596, lng: 7.5886 },
+      150_000,
+      "2026-06-16T10:00:00.000Z",
+      "2026-06-17T10:00:00.000Z",
+    );
 
     const ranked = rankMapIslandEventsForPoint(
       [wpfCamp, swissJam],
@@ -41,9 +59,9 @@ describe("rankMapIslandEventsForPoint", () => {
       now,
     );
 
-    expect(ranked.map((row) => row.event.id)).toEqual(["swissjam26", "wpf-camp"]);
-    expect(ranked[0].normalizedCenterDistance).toBe(0);
-    expect(ranked[1].distanceToPromoCenterM).toBeGreaterThan(96_000);
+    expect(ranked.map((row) => row.event.id)).toEqual(["wpf-camp", "swissjam26"]);
+    expect(ranked[0].distanceToPromoCenterM).toBeGreaterThan(96_000);
+    expect(ranked[1].normalizedCenterDistance).toBe(0);
   });
 
   it("prefers the more specific region when candidates are equally central", () => {
@@ -57,5 +75,38 @@ describe("rankMapIslandEventsForPoint", () => {
     );
 
     expect(ranked.map((row) => row.event.id)).toEqual(["local-jam", "national-promo"]);
+  });
+
+  it("gives earlier upcoming event markers a higher collision priority", () => {
+    const earlier = event(
+      "wpf-camp",
+      { lat: 47.5596, lng: 7.5886 },
+      150_000,
+      "2026-06-16T10:00:00.000Z",
+      "2026-06-17T10:00:00.000Z",
+    );
+    const later = event(
+      "swissjam26",
+      { lat: 46.8, lng: 8.2 },
+      150_000,
+      "2026-06-18T10:00:00.000Z",
+      "2026-06-21T10:00:00.000Z",
+    );
+
+    expect(getMapEventMarkerPriority(earlier, now)).toBeGreaterThan(
+      getMapEventMarkerPriority(later, now),
+    );
+  });
+
+  it("keeps promoted event markers below regular spot pin collision priority", () => {
+    const liveEvent = event(
+      "live-jam",
+      { lat: 47.5596, lng: 7.5886 },
+      150_000,
+      "2026-05-26T10:00:00.000Z",
+      "2026-05-26T22:00:00.000Z",
+    );
+
+    expect(getMapEventMarkerPriority(liveEvent, now)).toBeLessThan(4_200);
   });
 });

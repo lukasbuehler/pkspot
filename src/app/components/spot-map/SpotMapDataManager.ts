@@ -109,6 +109,13 @@ export class SpotMapDataManager {
   private _lastRenderedClusterKeys: Set<string> | null = null;
   private _updateRequestId = 0;
 
+  /**
+   * Spot cluster dots are no longer rendered by the main map. Keep this path
+   * disabled so low-zoom navigation does not fetch, cache, or derive cluster
+   * data that the template drops on the floor.
+   */
+  private readonly _spotClustersEnabled = false;
+
   private _yieldToMain() {
     return new Promise((resolve) => setTimeout(resolve, 0));
   }
@@ -169,10 +176,13 @@ export class SpotMapDataManager {
     this._markers = new Map<MapTileKey, MarkerSchema[]>();
     this._tilesLoading = new Set<MapTileKey>();
 
-    try {
-      this._spotClusterService = injector.get(SpotClusterService);
-    } catch (e) {
-      this._spotClusterService = null as any;
+    this._spotClusterService = null;
+    if (this._spotClustersEnabled) {
+      try {
+        this._spotClusterService = injector.get(SpotClusterService);
+      } catch (e) {
+        this._spotClusterService = null;
+      }
     }
   }
 
@@ -321,30 +331,17 @@ export class SpotMapDataManager {
 
     const zoom = visibleTilesObj.zoom;
 
-    // If we have the SpotClusterService available and the zoom is < 16,
-    // we still want to fetch "Highlights" via Typesense to enrich the map
-    // because clusters don't show enough detail.
-    // However, for CLUSTERS themselves, we revert to the tile-based loading (handled below)
-    // to ensure smooth transitions and caching.
     if (zoom < this.spotZoom) {
-      // Fetch highlights using Typesense for better performance than client-side filtering.
-      // This is useful across all cluster zoom levels, not only 10-12.
+      // Keep low-zoom highlights lightweight now that spot cluster dots are disabled.
       const activeFilter = this.spotFilterMode
         ? this.spotFilterMode()
         : SpotFilterMode.None;
 
-      const useServiceDots =
-        this._spotClusterService &&
-        zoom >= this.serviceClusterMinZoom &&
-        zoom <= this.serviceClusterMaxZoom;
       if (activeFilter === SpotFilterMode.None) {
         const now = Date.now();
         // Throttle: Allow updates while moving (at least every X ms)
         if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
           this._loadHighlightsForTiles(visibleTilesObj);
-          if (useServiceDots) {
-            this._loadClusterDotsViaService(visibleTilesObj);
-          }
           this._lastHighlightFetchTime = now;
         }
 
@@ -356,13 +353,8 @@ export class SpotMapDataManager {
         this._clusterDebounceTimer = setTimeout(() => {
           this._clusterDebounceTimer = null;
           this._loadHighlightsForTiles(visibleTilesObj);
-          if (useServiceDots) {
-            this._loadClusterDotsViaService(visibleTilesObj);
-          }
           this._lastHighlightFetchTime = Date.now();
         }, this.CLUSTER_DEBOUNCE_MS);
-      } else if (useServiceDots) {
-        this._loadClusterDotsViaService(visibleTilesObj);
       }
     }
 
@@ -396,29 +388,13 @@ export class SpotMapDataManager {
       // load spots for missing tiles
       this._loadSpotsForTiles(spotTilesToLoad16);
     } else {
-      // 10-15: Typesense cluster service only (no Firestore cluster tiles)
-      if (
-        this._spotClusterService &&
-        zoom >= this.serviceClusterMinZoom &&
-        zoom <= this.serviceClusterMaxZoom
-      ) {
-        this._visibleSpots.set([]);
-      } else {
-        // Remaining cluster zooms: Firestore cluster tiles
-        const didRender = this._showCachedSpotClustersForTiles(visibleTilesObj);
-        if (didRender) {
-          const spotClusterTilesToLoad: Set<MapTileKey> =
-            this._getSpotClusterTilesToLoad(visibleTilesObj);
-
-          if (spotClusterTilesToLoad.size > 0) {
-            this._loadSpotClustersForTiles(spotClusterTilesToLoad);
-          }
-        }
-      }
+      this._clearClusterState();
+      this._visibleSpots.set([]);
     }
   }
 
   private _loadClusterDotsViaService(visibleTilesObj: TilesObject) {
+    if (!this._spotClustersEnabled) return;
     if (!this._spotClusterService) return;
 
     const viewportBounds = visibleTilesObj.viewportBounds;
@@ -829,6 +805,12 @@ export class SpotMapDataManager {
     this._visibleAmenityMarkers.set(markers);
   }
 
+  private _clearClusterState(): void {
+    this._lastRenderedClusterKeys = null;
+    this._spotClusterTiles.clear();
+    this._visibleDots.set([]);
+  }
+
   /**
    * Helper to map a Spot object to SpotPreviewData, using cache to maintain references.
    */
@@ -846,6 +828,11 @@ export class SpotMapDataManager {
     tiles: TilesObject,
     forceRender: boolean = false
   ): boolean {
+    if (!this._spotClustersEnabled) {
+      this._clearClusterState();
+      return false;
+    }
+
     // assume the zoom is smaller than 16
     if (tiles.zoom > this.spotZoom) {
       console.error(
@@ -1130,6 +1117,10 @@ export class SpotMapDataManager {
     visibleTilesObj: TilesObject,
     markAsLoading: boolean = true
   ): Set<MapTileKey> {
+    if (!this._spotClustersEnabled) {
+      return new Set<MapTileKey>();
+    }
+
     let zoom = visibleTilesObj.zoom;
 
     // Transform the visible tiles to the zoom level of the spot clusters.
@@ -1224,6 +1215,7 @@ export class SpotMapDataManager {
   }
 
   private _loadSpotClustersForTiles(tilesToLoad: Set<MapTileKey>) {
+    if (!this._spotClustersEnabled) return;
     if (tilesToLoad.size === 0) return;
 
     console.log(
@@ -1732,6 +1724,11 @@ export class SpotMapDataManager {
       requestedTiles.forEach((tileKey) => {
         this._tilesLoading.delete(tileKey);
       });
+    }
+
+    if (!this._spotClustersEnabled) {
+      this._clearClusterState();
+      return;
     }
 
     const loadedKeys = new Set<MapTileKey>();

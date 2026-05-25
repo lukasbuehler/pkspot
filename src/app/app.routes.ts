@@ -198,6 +198,15 @@ export const routes: Routes = [
     data: { routeName: "KML Import" },
   },
   {
+    path: "organizations/:slugOrId",
+    loadComponent: () =>
+      import("./components/organization-page/organization-page.component").then(
+        (m) => m.OrganizationPageComponent
+      ),
+    resolve: { content: contentResolver },
+    data: { routeName: "Organization" },
+  },
+  {
     path: "organization-reviews",
     loadComponent: () =>
       import(

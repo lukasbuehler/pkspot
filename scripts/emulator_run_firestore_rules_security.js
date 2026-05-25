@@ -163,6 +163,15 @@ async function seedSecurityFixture() {
       lock_edits: true,
     },
   });
+  batch.set(adminDb.doc("organizations/pk-spot/verified_spots/verified-spot"), {
+    spot_id: "verified-spot",
+    spot_name: { en: "Verified Spot" },
+    status: "verified",
+    organization_id: "pk-spot",
+    organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+    verified_by_user_id: "admin",
+    lock_edits: true,
+  });
   batch.set(adminDb.doc("spots/verified-spot/edits/private-pending"), {
     type: "UPDATE",
     user: { uid: "other" },
@@ -245,6 +254,9 @@ async function testPublicReadSurface(anon) {
   });
   await assertAllowed("anonymous organization document read", () =>
     getDoc(doc(anon.db, "organizations/pk-spot"))
+  );
+  await assertAllowed("anonymous organization verified spots read", () =>
+    getDoc(doc(anon.db, "organizations/pk-spot/verified_spots/verified-spot"))
   );
 }
 
@@ -419,6 +431,11 @@ async function testOrganizationGuards(anon, owner, other, adminUser) {
     setDoc(doc(adminUser.db, "organizations/pk-spot/members/admin-added"), {
       role: "reviewer",
       user: { uid: "admin-added" },
+    })
+  );
+  await assertDenied("admin cannot directly write organization verified spots index", () =>
+    setDoc(doc(adminUser.db, "organizations/pk-spot/verified_spots/manual"), {
+      spot_id: "manual",
     })
   );
 }

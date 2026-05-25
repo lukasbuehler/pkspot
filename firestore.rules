@@ -273,6 +273,11 @@ service cloud.firestore {
           && (request.auth.uid == userId || isAdmin() || isOrganizationReviewer(organizationId));
         allow create, update, delete: if isAdmin();
       }
+
+      match /verified_spots/{spotId} {
+        allow read: if true;
+        allow write: if false;
+      }
     }
 
     match /events/{eventId} {

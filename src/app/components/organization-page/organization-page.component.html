@@ -1,0 +1,158 @@
+<div class="organization-page">
+  @if (isLoading()) {
+    <div class="organization-state" aria-live="polite">
+      <mat-spinner
+        diameter="48"
+        strokeWidth="4"
+        aria-label="Loading organization"
+      ></mat-spinner>
+    </div>
+  } @else if (organization()) {
+    <div class="organization-grid">
+      <section class="organization-primary" aria-label="Organization overview">
+        <mat-card class="organization-overview__card mat-elevation-z1">
+          <mat-card-content>
+            <div class="organization-overview__content">
+              <div
+                class="organization-overview__logo"
+                [style.background]="logoBackground()"
+              >
+                @if (organization()?.logo_url) {
+                  <img
+                    [src]="organization()?.logo_url"
+                    [alt]="organization()?.name + ' logo'"
+                  />
+                } @else {
+                  <span>{{ organizationInitial() }}</span>
+                }
+              </div>
+
+              <div class="organization-overview__details">
+                <div class="organization-overview__heading">
+                  <h1 class="mat-headline-small organization-overview__name">
+                    {{ organization()?.name }}
+                  </h1>
+                  <mat-chip-set aria-label="Organization status">
+                    <mat-chip color="primary" i18n>Verified spots</mat-chip>
+                  </mat-chip-set>
+                </div>
+
+                @if (organization()?.description) {
+                  <p class="mat-body-large organization-overview__description">
+                    {{ organization()?.description }}
+                  </p>
+                }
+
+                <div class="organization-overview__meta">
+                  <div class="mat-body-large organization-overview__metric">
+                    <mat-icon>verified_user</mat-icon>
+                    <strong>{{ verifiedSpotCount() }}</strong>
+                    <span i18n>{verifiedSpotCount(), plural, =1 {verified spot} other {verified spots}}</span>
+                  </div>
+                  <div class="mat-body-large organization-overview__metric">
+                    <mat-icon>groups</mat-icon>
+                    <strong>{{ memberCount() }}</strong>
+                    <span i18n>{memberCount(), plural, =1 {member} other {members}}</span>
+                  </div>
+                </div>
+
+                @if (organization()?.website_url) {
+                  <div class="organization-overview__actions">
+                    <a
+                      matButton="outlined"
+                      color="primary"
+                      [href]="organization()?.website_url"
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                    >
+                      <mat-icon>open_in_new</mat-icon>
+                      <span i18n>Website</span>
+                    </a>
+                  </div>
+                }
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="organization-section mat-elevation-z1">
+          <mat-card-header class="organization-section__header">
+            <mat-card-title class="mat-title-small" i18n>
+              Verified spots
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="organization-section__content">
+            @if (verifiedSpots().length > 0) {
+              <div class="organization-spots-grid">
+                @for (spot of verifiedSpots(); track spot.id) {
+                  <a
+                    [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
+                    class="organization-spot-link"
+                  >
+                    <app-spot-preview-card
+                      [spotData]="spot"
+                      [imgSize]="200"
+                      [clickable]="true"
+                    ></app-spot-preview-card>
+                  </a>
+                }
+              </div>
+            } @else {
+              <p class="mat-body-medium organization-section__placeholder" i18n>
+                No verified spots yet.
+              </p>
+            }
+          </mat-card-content>
+        </mat-card>
+      </section>
+
+      <section class="organization-secondary" aria-label="Organization members">
+        <mat-card class="organization-section mat-elevation-z1">
+          <mat-card-header class="organization-section__header">
+            <mat-card-title class="mat-title-small" i18n>Members</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="organization-section__content">
+            @if (members().length > 0) {
+              <div class="organization-member-list">
+                @for (member of members(); track member.id) {
+                  <a
+                    class="organization-member"
+                    [routerLink]="['/u', member.user.uid]"
+                  >
+                    @if (member.user.profile_picture) {
+                      <img
+                        class="organization-member__avatar"
+                        [src]="member.user.profile_picture"
+                        [alt]="member.user.display_name + ' profile picture'"
+                      />
+                    } @else {
+                      <span class="organization-member__avatar organization-member__avatar--placeholder">
+                        {{ member.user.display_name?.charAt(0) || '?' }}
+                      </span>
+                    }
+                    <span class="organization-member__body">
+                      <span class="mat-body-large organization-member__name">
+                        {{ member.user.display_name || member.user.uid }}
+                      </span>
+                      <span class="mat-body-small organization-member__role">
+                        {{ member.role }}
+                      </span>
+                    </span>
+                  </a>
+                }
+              </div>
+            } @else {
+              <p class="mat-body-medium organization-section__placeholder" i18n>
+                No public members yet.
+              </p>
+            }
+          </mat-card-content>
+        </mat-card>
+      </section>
+    </div>
+  } @else {
+    <div class="organization-state" aria-live="polite">
+      <p class="mat-body-medium">{{ errorMessage() }}</p>
+    </div>
+  }
+</div>

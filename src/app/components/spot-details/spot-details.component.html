@@ -80,11 +80,14 @@
           ]" matTooltip="Verified by {{ spot()?.verification?.organization?.name }}"
           i18n-matTooltip="@@spot.verified.tooltip" [attr.aria-label]="
             'Verified by ' + spot()?.verification?.organization?.name
-          " style="width: 60px;">
+          " style="width: 60px; margin-left: -8px; margin-right: -8px;">
           <mat-icon style="width: 24px; flex-shrink: 0">verified_user</mat-icon>
           @if (spot()?.verification?.organization?.logo_url) {
           <img class="spot-verification-logo" [src]="spot()?.verification?.organization?.logo_url"
-            [alt]="spot()?.verification?.organization?.name + ' logo'" />
+            [style.background]="
+              spot()?.verification?.organization?.logo_background_color ||
+              'var(--mat-sys-surface)'
+            " [alt]="spot()?.verification?.organization?.name + ' logo'" />
 
           }
         </a>

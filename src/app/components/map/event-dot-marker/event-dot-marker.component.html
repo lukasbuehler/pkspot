@@ -16,6 +16,7 @@
 <map-advanced-marker
   [position]="marker().location"
   [content]="eventMarker"
+  [zIndex]="zIndex()"
   [options]="markerOptions()"
   (mapClick)="markerClick.emit(marker())"
   (markerInitialized)="centerMarkerAnchor($event)"

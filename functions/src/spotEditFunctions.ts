@@ -8,6 +8,10 @@ import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
+import {
+  makeSpotVerificationData,
+  makeVerifiedSpotIndexData,
+} from "./organizationVerificationHelpers";
 
 interface SpotEditSchema {
   type: "CREATE" | "UPDATE";
@@ -762,38 +766,67 @@ export const setSpotVerification = onCall(async (request) => {
 
   const db = admin.firestore();
   const spotRef = db.doc(`spots/${spotId}`);
-  if (organizationId === null) {
-    await spotRef.update({ verification: FieldValue.delete() });
-    return { ok: true };
-  }
-  if (typeof organizationId !== "string") {
-    throw new HttpsError("invalid-argument", "organizationId must be a string or null.");
-  }
 
-  const organizationSnap = await db.doc(`organizations/${organizationId}`).get();
-  if (!organizationSnap.exists) {
-    throw new HttpsError("not-found", "Organization was not found.");
-  }
-  const organization = organizationSnap.data() as Record<string, unknown>;
-  const logoUrl =
-    typeof organization["logo_url"] === "string"
-      ? organization["logo_url"]
-      : undefined;
-  await spotRef.update({
-    verification: {
-      status: "verified",
-      organization_id: organizationId,
-      organization: {
-        id: organizationId,
-        name: organization["name"],
-        slug: organization["slug"],
-        ...(logoUrl ? { logo_url: logoUrl } : {}),
-      },
-      verified_by_user_id: uid,
-      verified_at: FieldValue.serverTimestamp(),
-      lock_edits: true,
-    },
+  await db.runTransaction(async (transaction) => {
+    const spotSnap = await transaction.get(spotRef);
+    if (!spotSnap.exists) {
+      throw new HttpsError("not-found", "Spot was not found.");
+    }
+
+    const spotData = spotSnap.data() as Record<string, unknown>;
+    const previousVerification = spotData["verification"] as
+      | { organization_id?: unknown }
+      | undefined;
+    const previousOrganizationId =
+      typeof previousVerification?.organization_id === "string"
+        ? previousVerification.organization_id
+        : null;
+
+    if (organizationId === null) {
+      transaction.update(spotRef, { verification: FieldValue.delete() });
+      if (previousOrganizationId) {
+        transaction.delete(
+          db.doc(
+            `organizations/${previousOrganizationId}/verified_spots/${spotId}`
+          )
+        );
+      }
+      return;
+    }
+
+    if (typeof organizationId !== "string") {
+      throw new HttpsError(
+        "invalid-argument",
+        "organizationId must be a string or null."
+      );
+    }
+
+    const organizationRef = db.doc(`organizations/${organizationId}`);
+    const organizationSnap = await transaction.get(organizationRef);
+    if (!organizationSnap.exists) {
+      throw new HttpsError("not-found", "Organization was not found.");
+    }
+
+    if (previousOrganizationId && previousOrganizationId !== organizationId) {
+      transaction.delete(
+        db.doc(`organizations/${previousOrganizationId}/verified_spots/${spotId}`)
+      );
+    }
+
+    const organization = organizationSnap.data() as Record<string, unknown>;
+    const verification = makeSpotVerificationData(
+      organizationId,
+      organization,
+      uid
+    );
+    transaction.update(spotRef, { verification });
+    transaction.set(
+      db.doc(`organizations/${organizationId}/verified_spots/${spotId}`),
+      makeVerifiedSpotIndexData(spotId, spotData, verification),
+      { merge: true }
+    );
   });
+
   return { ok: true };
 });
 

@@ -36,6 +36,22 @@ describe("Cloud Functions generation policy", () => {
     expect(authSource).not.toContain(".onCreate(");
   });
 
+  it("exports the organization verification snapshot sync function", () => {
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+    const organizationSource = readFileSync(
+      resolve(functionsSourceRoot, "organizationFunctions.ts"),
+      "utf8"
+    );
+
+    expect(indexSource).toContain("syncVerifiedSpotOrganizationSnapshots");
+    expect(organizationSource).toContain("onDocumentUpdated");
+    expect(organizationSource).toContain("verified_spots");
+    expect(organizationSource).toContain("verification.organization_id");
+  });
+
   it("keeps signup number assignment on a gen 2 profile trigger", () => {
     const source = readFileSync(
       resolve(functionsSourceRoot, "userSignupFunctions.ts"),

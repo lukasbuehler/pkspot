@@ -56,7 +56,10 @@ import {
   SearchService,
 } from "../../services/search.service";
 import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
-import { rankMapIslandEventsForPoint } from "./map-island-event-ranking";
+import {
+  getMapEventMarkerPriority,
+  rankMapIslandEventsForPoint,
+} from "./map-island-event-ranking";
 import { countries } from "../../../scripts/Countries";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
@@ -609,7 +612,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           color: status === "live" ? "secondary" : "primary",
           type: "event",
           forceFullMarker: true,
-          priority: 80_000,
+          priority: getMapEventMarkerPriority(e, now),
         };
       });
 

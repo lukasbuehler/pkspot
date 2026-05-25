@@ -53,8 +53,6 @@ import {
   MapTileKey,
   getClusterTileKey,
   getDataFromClusterTileKey,
-  SpotClusterDotSchema,
-  SpotClusterTileSchema,
 } from "../../../db/schemas/SpotClusterTile";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -303,94 +301,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   hightlightedSpots: SpotPreviewData[] = [];
   visibleSpots = this._spotMapDataManager.visibleSpots;
-  visibleDots = this._spotMapDataManager.visibleDots;
-  /**
-   * Keep classic cluster dots only where no locality community circle covers
-   * them. This preserves density feedback in uncurated areas without making
-   * the curated community layer compete with anonymous cluster markers.
-   */
-  visibleFallbackDots = computed(() => {
-    const localityCommunities = this._availableCommunities().filter(
-      (community) =>
-        community.scope === "locality" &&
-        Number.isFinite(community.radiusM) &&
-        community.radiusM > 0,
-    );
-
-    if (localityCommunities.length === 0) {
-      return this.visibleDots();
-    }
-
-    return this.visibleDots().filter((dot) => {
-      const position = this._getDotPosition(dot);
-      if (!position) return true;
-
-      return !localityCommunities.some(
-        (community) =>
-          this._distanceMeters(position, community.center) <= community.radiusM,
-      );
-    });
-  });
   visibleHighlightedSpots = this._spotMapDataManager.visibleHighlightedSpots;
   visibleAmenityMarkers = this._spotMapDataManager.visibleAmenityMarkers;
   hideRegularSpotPins = computed(
     () => this.spotFilterMode() !== SpotFilterMode.None
   );
-
-  private _getDotPosition(
-    dot: SpotClusterDotSchema,
-  ): google.maps.LatLngLiteral | null {
-    const location = dot.location as unknown as {
-      latitude?: number;
-      longitude?: number;
-      lat?: () => number;
-      lng?: () => number;
-    };
-
-    if (
-      typeof location?.latitude === "number" &&
-      typeof location?.longitude === "number"
-    ) {
-      return { lat: location.latitude, lng: location.longitude };
-    }
-
-    if (
-      typeof location?.lat === "function" &&
-      typeof location?.lng === "function"
-    ) {
-      return { lat: location.lat(), lng: location.lng() };
-    }
-
-    if (
-      typeof dot.location_raw?.lat === "number" &&
-      typeof dot.location_raw?.lng === "number"
-    ) {
-      return { lat: dot.location_raw.lat, lng: dot.location_raw.lng };
-    }
-
-    return null;
-  }
-
-  private _distanceMeters(
-    left: google.maps.LatLngLiteral,
-    right: google.maps.LatLngLiteral,
-  ): number {
-    const earthRadiusM = 6_371_000;
-    const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
-    const deltaLat = toRadians(right.lat - left.lat);
-    const deltaLng = toRadians(right.lng - left.lng);
-    const lat1 = toRadians(left.lat);
-    const lat2 = toRadians(right.lat);
-    const haversine =
-      Math.sin(deltaLat / 2) ** 2 +
-      Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
-
-    return (
-      2 *
-      earthRadiusM *
-      Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
-    );
-  }
 
   private _shouldShowCommunityCenterDot(community: CommunityMapMarker): boolean {
     return (

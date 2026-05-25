@@ -898,22 +898,22 @@ export class SearchService {
    */
   public getEventFromHit(hit: any): PkEvent | null {
     const preview = this.getEventPreviewFromHit(hit);
-    const center = preview.boundsCenter ?? preview.location;
-    if (!preview.id || preview.startSeconds === undefined || !center) {
+    if (!preview.id || preview.startSeconds === undefined) {
       return null;
     }
 
     const startSeconds = preview.startSeconds;
     const endSeconds = preview.endSeconds ?? preview.startSeconds;
     const boundsRadiusM = preview.boundsRadiusM ?? 0;
+    const boundsCenter = preview.boundsCenter ?? preview.location;
+    const markerLocation = preview.location;
 
     // Approximate bbox from center + radius. ~111km per degree of latitude;
     // longitude shrinks with cos(lat). Only used for "focus map on event"
     // fallbacks — the resolver loads the real bounds when the page mounts.
-    const synthesizedBounds = SearchService._bboxFromCenterRadius(
-      center,
-      boundsRadiusM,
-    );
+    const synthesizedBounds = boundsCenter
+      ? SearchService._bboxFromCenterRadius(boundsCenter, boundsRadiusM)
+      : undefined;
 
     const promoRegion =
       preview.promoRegionCenter && preview.promoRegionRadiusM
@@ -944,10 +944,10 @@ export class SearchService {
       spot_ids: preview.spotIds,
       community_keys: preview.communityKeys,
       series_ids: preview.seriesIds,
-      location_raw: (preview.location ?? center)
+      location_raw: markerLocation
         ? {
-            lat: (preview.location ?? center)![0],
-            lng: (preview.location ?? center)![1],
+            lat: markerLocation[0],
+            lng: markerLocation[1],
           }
         : undefined,
       bounds: synthesizedBounds,
@@ -1021,28 +1021,41 @@ export class SearchService {
     const lng = center.lng().toFixed(6);
 
     try {
-      const result = await this.client
-        .collections(this.TYPESENSE_COLLECTION_EVENTS)
-        .documents()
-        .search(
-          {
-            q: "*",
-            filter_by: [
-              "published:!=false",
-              `end_seconds:>=${nowSeconds}`,
-              `promo_region_center:(${lat}, ${lng}, ${radiusKm} km)`,
-            ].join(" && "),
-            sort_by: "start_seconds:asc",
-            per_page: Math.max(1, Math.min(250, num)),
-            page: 1,
-          },
-          {}
-        );
+      const fieldNames = ["promo_region_center", "location"];
+      const results = await Promise.all(
+        fieldNames.map((fieldName) =>
+          this.client
+            .collections(this.TYPESENSE_COLLECTION_EVENTS)
+            .documents()
+            .search(
+              {
+                q: "*",
+                filter_by: [
+                  "published:!=false",
+                  `end_seconds:>=${nowSeconds}`,
+                  `${fieldName}:(${lat}, ${lng}, ${radiusKm} km)`,
+                ].join(" && "),
+                sort_by: "start_seconds:asc",
+                per_page: Math.max(1, Math.min(250, num)),
+                page: 1,
+              },
+              {}
+            )
+        )
+      );
 
-      const hits = ((result as any)?.hits ?? []) as any[];
-      return hits
-        .map((hit) => this.getEventFromHit(hit))
-        .filter((e): e is PkEvent => !!e);
+      const eventsById = new Map<string, PkEvent>();
+      for (const result of results) {
+        const hits = ((result as any)?.hits ?? []) as any[];
+        for (const hit of hits) {
+          const event = this.getEventFromHit(hit);
+          if (event) eventsById.set(event.id, event);
+        }
+      }
+
+      return Array.from(eventsById.values()).sort(
+        (left, right) => left.start.getTime() - right.start.getTime()
+      );
     } catch (error) {
       console.error("typesense events-in-bounds error:", error);
       return [];

@@ -126,21 +126,31 @@
     [class.isCompact]="isCompact"
   >
     @if(shouldLoadMedia() && primaryMediaSrc()) {
-    <img
-      [ngSrc]="primaryMediaSrc()!"
-      fill
-      [priority]="loadingPriority()"
-      [alt]="spotName || ''"
-      [attr.referrerpolicy]="getReferrerPolicyForSrc(primaryMediaSrc())"
-      (error)="onImageError($event)"
-      (load)="onImageLoad($event)"
-    />
+    @if(loadingPriority()) {
+      <img
+        [ngSrc]="primaryMediaSrc()!"
+        fill
+        priority
+        [alt]="spotName || ''"
+        [attr.referrerpolicy]="getReferrerPolicyForSrc(primaryMediaSrc())"
+        (error)="onImageError($event)"
+        (load)="onImageLoad($event)"
+      />
     } @else {
-    @if(forcePlaceholderContainer() || showNoMediaLabel()) {
-    <app-media-placeholder [src]="fallbackImgSrc"></app-media-placeholder>
-    } @else {
-    <img [ngSrc]="fallbackImgSrc" fill priority [alt]="spotName || ''" />
+      <img
+        [ngSrc]="primaryMediaSrc()!"
+        fill
+        [alt]="spotName || ''"
+        [attr.referrerpolicy]="getReferrerPolicyForSrc(primaryMediaSrc())"
+        (error)="onImageError($event)"
+        (load)="onImageLoad($event)"
+      />
     }
+    } @else {
+    <app-media-placeholder
+      [src]="fallbackImgSrc"
+      [showLabel]="forcePlaceholderContainer() || showNoMediaLabel()"
+    ></app-media-placeholder>
     }
   </div>
   }

@@ -41,6 +41,7 @@ export class OrganizationAdminPageComponent implements OnDestroy {
   readonly newOrgName = signal("");
   readonly newOrgSlug = signal("");
   readonly newOrgLogoUrl = signal("");
+  readonly newOrgLogoBackgroundColor = signal("");
   readonly selectedOrganizationId = signal("");
   readonly memberUserId = signal("");
   readonly memberRole = signal<OrganizationRole>("reviewer");
@@ -71,10 +72,14 @@ export class OrganizationAdminPageComponent implements OnDestroy {
   async createOrganization(): Promise<void> {
     const organizationId = this.newOrgId();
     const logoUrl = this.newOrgLogoUrl().trim();
+    const logoBackgroundColor = this.newOrgLogoBackgroundColor().trim();
     await this._organizationsService.createOrganization(organizationId, {
       name: this.newOrgName(),
       slug: this.newOrgSlug(),
       ...(logoUrl ? { logo_url: logoUrl } : {}),
+      ...(logoBackgroundColor
+        ? { logo_background_color: logoBackgroundColor }
+        : {}),
       active: true,
     });
     await this.reload();

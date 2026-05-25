@@ -50,6 +50,15 @@ describe("app routes", () => {
     expect(routes[legacyEventIndex].redirectTo).toBe("map/events/:eventId");
   });
 
+  it("should register organization pages", () => {
+    const organizationRoute = routes.find(
+      (route) => route.path === "organizations/:slugOrId"
+    );
+
+    expect(organizationRoute).toBeDefined();
+    expect(organizationRoute?.data?.["routeName"]).toBe("Organization");
+  });
+
   it("should register event map routes before generic event info routes", () => {
     const publicMapIndex = routes.findIndex(
       (route) => route.path === "events/:slug/map"

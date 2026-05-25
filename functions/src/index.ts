@@ -48,6 +48,7 @@ export {
   reviewVerifiedSpotEdit,
   setSpotVerification,
 } from "./spotEditFunctions";
+export { syncVerifiedSpotOrganizationSnapshots } from "./organizationFunctions";
 export {
   processImportChunkOnCreate,
   retryFailedImportChunksOnCreate,

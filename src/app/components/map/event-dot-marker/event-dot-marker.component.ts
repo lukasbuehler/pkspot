@@ -7,7 +7,10 @@ import {
 } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { MatIconModule } from "@angular/material/icon";
-import { buildMapMarkerOptions } from "../markers/map-marker.model";
+import {
+  buildMapMarkerOptions,
+  getMapMarkerPriority,
+} from "../markers/map-marker.model";
 import { MapPointMarker } from "../../maps/map-overlays";
 
 /**
@@ -31,6 +34,7 @@ export class EventDotMarkerComponent {
     computed<google.maps.marker.AdvancedMarkerElementOptions>(() =>
       buildMapMarkerOptions(this.marker())
     );
+  readonly zIndex = computed(() => getMapMarkerPriority(this.marker()));
 
   readonly isLive = computed(() => this.marker().color === "secondary");
   readonly fallbackIcon = computed(() => this.marker().icons?.[0] ?? "event");

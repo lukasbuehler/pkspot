@@ -321,5 +321,5 @@ div.google-img-container {
   height: 20px;
   border-radius: 50%;
   object-fit: cover;
-  background: white; // TODO custom background
+  background: var(--mat-sys-surface);
 }

@@ -183,4 +183,40 @@ describe("SpotMapDataManager filters", () => {
 
     expect(manager.visibleSpots()).toEqual([spot]);
   });
+
+  it("does not fetch or retain spot cluster tiles below spot zoom", async () => {
+    const spotsService = {
+      getSpotClusterTiles: vi.fn(),
+    };
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [SpotsService, spotsService],
+          [
+            ConsentService,
+            {
+              hasConsent: vi.fn(() => true),
+            },
+          ],
+        ])
+      )
+    );
+
+    manager.spotFilterMode.set(SpotFilterMode.ForParkour);
+
+    await (
+      manager as unknown as {
+        _executeSetVisibleTiles: (tiles: TilesObject) => Promise<void>;
+      }
+    )._executeSetVisibleTiles({
+      zoom: 10,
+      tiles: [{ x: 532, y: 363 }],
+      sw: { x: 532, y: 363 },
+      ne: { x: 532, y: 363 },
+    });
+
+    expect(spotsService.getSpotClusterTiles).not.toHaveBeenCalled();
+    expect(manager.visibleDots()).toEqual([]);
+  });
 });

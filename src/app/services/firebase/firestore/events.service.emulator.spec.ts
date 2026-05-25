@@ -78,6 +78,30 @@ async function waitForRsvpCounts(
   throw new Error(`Timed out waiting for RSVP counts on events/${eventId}`);
 }
 
+async function waitForEventTypesenseFields(eventId: string): Promise<void> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb().doc(`events/${eventId}`).get();
+    const data = snapshot.data();
+    if (
+      data?.["start_seconds"] === 1_780_311_600 &&
+      data?.["end_seconds"] === 1_780_318_800 &&
+      data?.["promo_starts_at_seconds"] === 1_779_793_200 &&
+      data?.["bounds_radius_m"] > 0 &&
+      data?.["promo_region_radius_m"] === 150_000 &&
+      data?.["location"] instanceof admin.firestore.GeoPoint &&
+      data?.["bounds_center"] instanceof admin.firestore.GeoPoint &&
+      data?.["promo_region_center"] instanceof admin.firestore.GeoPoint &&
+      data?.["start"] instanceof admin.firestore.Timestamp &&
+      data?.["end"] instanceof admin.firestore.Timestamp &&
+      data?.["promo_starts_at"] instanceof admin.firestore.Timestamp
+    ) {
+      return;
+    }
+    await sleep(250);
+  }
+  throw new Error(`Timed out waiting for event helper fields on events/${eventId}`);
+}
+
 function parseHostPort(value: string): [string, number] {
   const [host, portValue] = value.split(":");
   const port = Number(portValue);
@@ -264,5 +288,63 @@ runWithEmulator("EventsService emulator integration", () => {
       notgoing: 0,
       total: 1,
     });
+  });
+
+  it("normalizes event Typesense helper fields to Firestore runtime types", async () => {
+    const eventId = `typesense-contract-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}`;
+
+    await adminDb()
+      .doc(`events/${eventId}`)
+      .set({
+        name: "Typesense contract event",
+        venue_string: "Contract venue",
+        locality_string: "Zurich, Switzerland",
+        location: { latitude: 47.39732893509323, longitude: 8.548509576285669 },
+        location_raw: { lat: 47.39732893509323, lng: 8.548509576285669 },
+        start: { seconds: 1_780_311_600, nanoseconds: 0 },
+        end: { seconds: 1_780_318_800, nanoseconds: 0 },
+        promo_starts_at: { seconds: 1_779_793_200, nanoseconds: 0 },
+        bounds: {
+          north: 47.45,
+          south: 47.35,
+          east: 8.6,
+          west: 8.5,
+        },
+        promo_region: {
+          center: { lat: 46.8, lng: 8.2 },
+          radius_m: 150_000,
+        },
+      });
+
+    await waitForEventTypesenseFields(eventId);
+
+    const snapshot = await adminDb().doc(`events/${eventId}`).get();
+    const data = snapshot.data();
+
+    expect(data?.["location"]).toBeInstanceOf(admin.firestore.GeoPoint);
+    expect(data?.["bounds_center"]).toBeInstanceOf(admin.firestore.GeoPoint);
+    expect(data?.["promo_region_center"]).toBeInstanceOf(
+      admin.firestore.GeoPoint,
+    );
+    expect(data?.["start"]).toBeInstanceOf(admin.firestore.Timestamp);
+    expect(data?.["end"]).toBeInstanceOf(admin.firestore.Timestamp);
+    expect(data?.["promo_starts_at"]).toBeInstanceOf(
+      admin.firestore.Timestamp,
+    );
+    expect(data).toEqual(
+      expect.objectContaining({
+        start_seconds: 1_780_311_600,
+        end_seconds: 1_780_318_800,
+        promo_starts_at_seconds: 1_779_793_200,
+        bounds_radius_m: expect.any(Number),
+        promo_region_radius_m: 150_000,
+        location_raw: {
+          lat: 47.39732893509323,
+          lng: 8.548509576285669,
+        },
+      }),
+    );
   });
 });

@@ -12,16 +12,45 @@ export interface MapIslandEventRank {
   normalizedCenterDistance: number;
 }
 
+const EVENT_MARKER_PRIORITY_BASE = 1_000;
+const EVENT_MARKER_PRIORITY_MAX_BOOST = 999;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+export function getMapEventMarkerPriority(
+  event: PkEvent,
+  now: Date = new Date(),
+): number {
+  if (event.isLive(now)) {
+    return EVENT_MARKER_PRIORITY_BASE + EVENT_MARKER_PRIORITY_MAX_BOOST;
+  }
+
+  const daysUntilStart = Math.max(
+    0,
+    Math.floor((event.start.getTime() - now.getTime()) / ONE_DAY_MS),
+  );
+  return (
+    EVENT_MARKER_PRIORITY_BASE +
+    Math.max(0, EVENT_MARKER_PRIORITY_MAX_BOOST - daysUntilStart)
+  );
+}
+
+function getMapIslandStatusRank(event: PkEvent, now: Date): number {
+  if (event.isLive(now)) return 0;
+  if (event.isUpcoming(now)) return 1;
+  return 2;
+}
+
 /**
  * Explain and rank active event promos for one map point.
  *
  * The map island intentionally uses a small lexicographic rule instead of a
  * hidden weighted score:
  * 1. The promo must be active and contain the viewport center.
- * 2. Prefer the event whose viewport center sits deepest inside its promo
+ * 2. Prefer live events, then the event that starts sooner.
+ * 3. Prefer the event whose viewport center sits deepest inside its promo
  *    region (`distance / radius`, lower is better).
- * 3. If equally central, prefer the smaller promo region (more specific).
- * 4. If still tied, prefer the sooner event, then the stable event id.
+ * 4. If equally central, prefer the smaller promo region (more specific).
+ * 5. If still tied, prefer the stable event id.
  *
  * Returning the full rank rows keeps the decision inspectable in tests and
  * future debugging instead of collapsing the result straight to one event.
@@ -48,16 +77,21 @@ export function rankMapIslandEventsForPoint(
       };
     })
     .sort((left, right) => {
+      const statusDelta =
+        getMapIslandStatusRank(left.event, now) -
+        getMapIslandStatusRank(right.event, now);
+      if (statusDelta !== 0) return statusDelta;
+
+      const startDelta =
+        left.event.start.getTime() - right.event.start.getTime();
+      if (startDelta !== 0) return startDelta;
+
       const normalizedDelta =
         left.normalizedCenterDistance - right.normalizedCenterDistance;
       if (normalizedDelta !== 0) return normalizedDelta;
 
       const radiusDelta = left.promoRadiusM - right.promoRadiusM;
       if (radiusDelta !== 0) return radiusDelta;
-
-      const startDelta =
-        left.event.start.getTime() - right.event.start.getTime();
-      if (startDelta !== 0) return startDelta;
 
       return left.event.id.localeCompare(right.event.id);
     });
