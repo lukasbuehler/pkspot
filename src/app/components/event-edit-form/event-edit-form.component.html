@@ -163,14 +163,15 @@
       </p>
       <app-bounds-picker
         [bounds]="bounds()"
+        [areaPath]="areaPath()"
         [location]="location()"
         [centerHint]="location()"
-        (boundsChange)="onBoundsChange($event)"
+        (areaChange)="onAreaChange($event)"
         (locationChange)="onLocationChange($event)"
       ></app-bounds-picker>
-      @if (!bounds()) {
+      @if (!areaPath()) {
         <p class="mat-label-small text-warn" i18n="@@event_edit.bounds_required">
-          Optional. Drop a rectangle on the map to define the event area.
+          Optional. Drop an area on the map to define where the event happens.
         </p>
       }
     </div>

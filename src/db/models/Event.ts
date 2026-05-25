@@ -10,6 +10,7 @@ import {
   EventSponsorSchema,
   InlineEventSpotSchema,
 } from "../schemas/EventSchema";
+import { EventRSVPCountsSchema } from "../schemas/EventRSVPSchema";
 
 /**
  * An Event is a parkour-community event (jam, camp, competition) that
@@ -56,6 +57,7 @@ export class Event {
   readonly externalSource?: EventExternalSourceSchema;
 
   readonly structuredData?: Record<string, any>;
+  readonly rsvpCounts: EventRSVPCountsSchema;
   readonly published: boolean;
 
   constructor(id: EventId, data: EventSchema) {
@@ -94,6 +96,12 @@ export class Event {
     this.seriesIds = data.series_ids ?? [];
     this.externalSource = data.external_source;
     this.structuredData = data.structured_data;
+    this.rsvpCounts = data.rsvp_counts ?? {
+      going: 0,
+      interested: 0,
+      notgoing: 0,
+      total: 0,
+    };
     this.published = data.published ?? true;
   }
 

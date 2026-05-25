@@ -14,8 +14,10 @@ const {
   getDoc,
   getDocs,
   getFirestore,
+  GeoPoint,
   query,
   setDoc,
+  Timestamp,
   updateDoc,
   where,
 } = require("firebase/firestore");
@@ -174,6 +176,10 @@ async function seedSecurityFixture() {
     is_admin: false,
     spot_edits_count: 4,
   });
+  batch.set(adminDb.doc("users/other"), {
+    display_name: "Other",
+    is_admin: false,
+  });
   batch.set(adminDb.doc("users/admin"), {
     display_name: "Admin",
     is_admin: true,
@@ -188,6 +194,12 @@ async function seedSecurityFixture() {
     created_at_raw_ms: 1,
   });
   batch.set(adminDb.doc("users/owner/followers/other"), {
+    created_at_raw_ms: 1,
+  });
+  batch.set(adminDb.doc("users/other/following/owner"), {
+    created_at_raw_ms: 1,
+  });
+  batch.set(adminDb.doc("users/other/followers/owner"), {
     created_at_raw_ms: 1,
   });
   batch.set(adminDb.doc("posts/post-1"), {
@@ -513,6 +525,7 @@ async function testEventWriteGuards(owner, adminUser) {
   await assertAllowed("admin creates event with editable fields", () =>
     setDoc(doc(adminUser.db, "events/admin-event"), {
       name: "Admin Event",
+      location: new GeoPoint(47.3769, 8.5417),
       location_raw: { lat: 47.3769, lng: 8.5417 },
       organizer: {
         type: "organization",
@@ -530,9 +543,10 @@ async function testEventWriteGuards(owner, adminUser) {
       bounds_center: [47.3769, 8.5417],
     })
   );
-  await assertDenied("admin cannot write event GeoPoint mirror", () =>
+  await assertAllowed("admin can write event GeoPoint with raw fallback", () =>
     updateDoc(doc(adminUser.db, "events/admin-event"), {
-      location: { latitude: 47.37, longitude: 8.55 },
+      location: new GeoPoint(47.37, 8.55),
+      location_raw: { lat: 47.37, lng: 8.55 },
     })
   );
   await assertDenied("admin cannot update event computed radius", () =>
@@ -540,10 +554,70 @@ async function testEventWriteGuards(owner, adminUser) {
       bounds_radius_m: 2500,
     })
   );
+  await assertDenied("admin cannot update event RSVP aggregate", () =>
+    updateDoc(doc(adminUser.db, "events/admin-event"), {
+      rsvp_counts: { going: 99, interested: 99, notgoing: 0, total: 198 },
+    })
+  );
   await assertAllowed("admin can update event editable fields", () =>
     updateDoc(doc(adminUser.db, "events/admin-event"), {
       location_raw: { lat: 47.37, lng: 8.55 },
     })
+  );
+}
+
+async function testEventRsvpPrivacy(anon, owner, other, adminUser) {
+  await assertDenied("anonymous cannot RSVP to event", () =>
+    setDoc(doc(anon.db, "events/event-1/rsvps/anon"), {
+      user_id: "anon",
+      event_id: "event-1",
+      rsvp: "going",
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertAllowed("user writes own event RSVP", () =>
+    setDoc(doc(owner.db, "events/event-1/rsvps/owner"), {
+      user_id: "owner",
+      event_id: "event-1",
+      rsvp: "going",
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertDenied("user cannot write another user's event RSVP", () =>
+    setDoc(doc(owner.db, "events/event-1/rsvps/other"), {
+      user_id: "other",
+      event_id: "event-1",
+      rsvp: "interested",
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertDenied("user cannot forge event RSVP event id", () =>
+    setDoc(doc(owner.db, "events/event-1/rsvps/owner"), {
+      user_id: "owner",
+      event_id: "other-event",
+      rsvp: "going",
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertDenied("user cannot write invalid event RSVP value", () =>
+    setDoc(doc(owner.db, "events/event-1/rsvps/owner"), {
+      user_id: "owner",
+      event_id: "event-1",
+      rsvp: "maybe",
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertDenied("anonymous cannot read event RSVP", () =>
+    getDoc(doc(anon.db, "events/event-1/rsvps/owner"))
+  );
+  await assertAllowed("user reads own event RSVP", () =>
+    getDoc(doc(owner.db, "events/event-1/rsvps/owner"))
+  );
+  await assertAllowed("mutual friend reads event RSVP", () =>
+    getDoc(doc(other.db, "events/event-1/rsvps/owner"))
+  );
+  await assertAllowed("admin reads event RSVP", () =>
+    getDoc(doc(adminUser.db, "events/event-1/rsvps/owner"))
   );
 }
 
@@ -690,6 +764,7 @@ async function main() {
   await testUserPrivacyAndPrivilegeEscalation(anon, owner, other);
   await testReadOnlyBackendCollections(owner);
   await testEventWriteGuards(owner, adminUser);
+  await testEventRsvpPrivacy(anon, owner, other, adminUser);
   await testPostAndImportGuards(anon, owner, other, adminUser);
   await testChallengeVisibility(anon, owner, other);
   await testQueriesDoNotBypassRules(owner, other);

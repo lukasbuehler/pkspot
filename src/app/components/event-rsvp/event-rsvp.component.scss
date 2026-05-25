@@ -1,0 +1,42 @@
+.event-rsvp {
+  display: grid;
+  gap: 12px;
+}
+
+.rsvp-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.rsvp-counts span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.rsvp-counts strong {
+  color: var(--mat-sys-on-surface);
+  font-weight: 700;
+}
+
+.rsvp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+mat-button-toggle {
+  min-width: 0;
+}
+
+mat-button-toggle mat-icon {
+  margin-inline-end: 4px;
+}
+
+.rsvp-error {
+  margin: 0;
+  color: var(--mat-sys-error);
+}

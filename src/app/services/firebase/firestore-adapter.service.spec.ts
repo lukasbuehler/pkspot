@@ -145,6 +145,25 @@ describe("FirestoreAdapterService", () => {
 
       expect(setDoc).toHaveBeenCalled();
     });
+
+    it("should pass RSVP merge payloads through to the web SDK", async () => {
+      const { setDoc } = await import("@angular/fire/firestore");
+      const payload = {
+        user_id: "user-1",
+        event_id: "event-1",
+        rsvp: "going",
+        time_created: new Date("2026-05-24T20:00:00.000Z"),
+        time_updated: new Date("2026-05-24T20:00:00.000Z"),
+      };
+
+      await service.setDocument("events/event-1/rsvps/user-1", payload, {
+        merge: true,
+      });
+
+      expect(setDoc).toHaveBeenCalledWith(expect.anything(), payload, {
+        merge: true,
+      });
+    });
   });
 
   describe("updateDocument (web)", () => {
@@ -456,6 +475,25 @@ describe("FirestoreAdapterService (native)", () => {
         reference: "collection/doc-id",
         data: { name: "Native Doc" },
         merge: undefined,
+      });
+    });
+
+    it("should pass RSVP merge payloads through to the native SDK", async () => {
+      const payload = {
+        user_id: "user-1",
+        event_id: "event-1",
+        rsvp: "interested",
+        time_updated: new Date("2026-05-24T20:00:00.000Z"),
+      };
+
+      await service.setDocument("events/event-1/rsvps/user-1", payload, {
+        merge: true,
+      });
+
+      expect(FirebaseFirestore.setDocument).toHaveBeenCalledWith({
+        reference: "events/event-1/rsvps/user-1",
+        data: payload,
+        merge: true,
       });
     });
   });

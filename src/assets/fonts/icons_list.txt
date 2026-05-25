@@ -150,6 +150,7 @@ verified
 polyline
 save
 upload
+check
 check_circle
 badge
 streetview
@@ -172,3 +173,6 @@ mobile
 storefront
 playground_2
 garage
+calendar_month
+handshake
+

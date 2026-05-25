@@ -266,6 +266,16 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   readonly customMarkers = computed<MarkerSchema[]>(() =>
     this._eventPageData.customMarkers(this.event()),
   );
+  readonly eventLocationMarker = computed<EventPageMapMarker | null>(() =>
+    this._eventPageData.eventLocationMarker(this.event()),
+  );
+  readonly staticMarkers = computed<EventPageMapMarker[]>(() => {
+    const eventMarker = this.eventLocationMarker();
+    return [
+      ...(eventMarker ? [eventMarker] : []),
+      ...this.customMarkers(),
+    ];
+  });
   readonly markers = signal<EventPageMapMarker[]>([]);
   readonly spotMapMarkers = computed<EventPageMapMarker[]>(() =>
     this._eventPageData.spotMapMarkers(this.spots()),
@@ -414,7 +424,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         const selectedParticipantTypes = this.selectedParticipantTypes();
 
         if (!event || Object.keys(event.challengeSpotMap).length === 0) {
-          this.markers.set(this.customMarkers());
+          this.markers.set(this.staticMarkers());
           return;
         }
 
@@ -430,10 +440,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
           );
 
           if (challengeMarkers.length > 0) {
-            this.markers.set([...challengeMarkers, ...this.customMarkers()]);
+            this.markers.set([...challengeMarkers, ...this.staticMarkers()]);
             this.tab.set("challenges");
           } else {
-            this.markers.set(this.customMarkers());
+            this.markers.set(this.staticMarkers());
           }
         });
       });

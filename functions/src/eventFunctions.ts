@@ -10,6 +10,10 @@ import {
   EventPromoRegionSchema,
   EventSchema,
 } from "../../src/db/schemas/EventSchema";
+import {
+  EventRSVPCountsSchema,
+  EventRSVPSchema,
+} from "../../src/db/schemas/EventRSVPSchema";
 
 const MAINTENANCE_COLLECTION = "maintenance";
 const RUN_BACKFILL_EVENT_TYPESENSE_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-event-typesense-fields`;
@@ -233,6 +237,45 @@ export const updateEventFieldsOnWrite = onDocumentWritten(
     if (Object.keys(changed).length === 0) return null;
 
     return event.data.after.ref.update(changed);
+  }
+);
+
+/**
+ * Keep the public RSVP aggregate on the event while individual RSVP docs stay
+ * in `/events/{eventId}/rsvps/{userId}` with privacy-focused rules.
+ */
+export const countEventRsvpsOnWrite = onDocumentWritten(
+  { document: "events/{eventId}/rsvps/{userId}" },
+  async (event) => {
+    const eventId = String(event.params.eventId ?? "");
+    if (!isEventRuntimeDoc(eventId)) return null;
+
+    const snapshot = await admin
+      .firestore()
+      .collection("events")
+      .doc(eventId)
+      .collection("rsvps")
+      .get();
+
+    const counts: EventRSVPCountsSchema = {
+      going: 0,
+      interested: 0,
+      notgoing: 0,
+      total: 0,
+    };
+
+    for (const doc of snapshot.docs) {
+      const rsvp = (doc.data() as EventRSVPSchema).rsvp;
+      if (rsvp !== "going" && rsvp !== "interested" && rsvp !== "notgoing") {
+        continue;
+      }
+      counts[rsvp] += 1;
+      counts.total += 1;
+    }
+
+    return admin.firestore().collection("events").doc(eventId).update({
+      rsvp_counts: counts,
+    });
   }
 );
 

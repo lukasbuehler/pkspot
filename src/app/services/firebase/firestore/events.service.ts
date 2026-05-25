@@ -1,12 +1,16 @@
 import { Injectable, inject } from "@angular/core";
-import { Timestamp } from "firebase/firestore";
 import { deleteField } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { Event } from "../../../../db/models/Event";
 import {
   EventId,
   EventSchema,
   EventSlugSchema,
 } from "../../../../db/schemas/EventSchema";
+import {
+  EventRSVPOption,
+  EventRSVPSchema,
+} from "../../../../db/schemas/EventRSVPSchema";
 import { AuthenticationService } from "../authentication.service";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { AssetUrlService } from "../../asset-url.service";
@@ -17,6 +21,7 @@ import {
 
 type EventDocument = EventSchema & { id: string };
 type EventSlugDocument = EventSlugSchema & { id: string };
+type EventRSVPDocument = EventRSVPSchema & { id: string };
 export type EventWritePatch = Omit<
   Partial<EventSchema>,
   "bounds" | "area_polygon"
@@ -162,6 +167,48 @@ export class EventsService extends ConsentAwareService {
   async deleteEvent(eventId: EventId): Promise<void> {
     this._requireAdmin("deleteEvent");
     await this._firestoreAdapter.deleteDocument(`events/${eventId}`);
+  }
+
+  async getMyRsvp(eventId: EventId | string): Promise<EventRSVPSchema | null> {
+    const uid = this._authService.user.uid;
+    if (!uid) return null;
+    return this._firestoreAdapter.getDocument<EventRSVPDocument>(
+      `events/${eventId}/rsvps/${uid}`,
+    );
+  }
+
+  async setMyRsvp(
+    eventId: EventId | string,
+    rsvp: EventRSVPOption,
+  ): Promise<void> {
+    const uid = this._authService.user.uid;
+    if (!uid) {
+      throw new Error("EventsService.setMyRsvp: requires a signed-in user.");
+    }
+
+    const now = new Date();
+    const existing = await this.getMyRsvp(eventId);
+    const data: EventRSVPSchema = {
+      user_id: uid,
+      event_id: String(eventId),
+      rsvp,
+      time_updated: now,
+    };
+    if (!existing) {
+      data.time_created = now;
+    }
+
+    await this._firestoreAdapter.setDocument(
+      `events/${eventId}/rsvps/${uid}`,
+      data as unknown as Record<string, unknown>,
+      { merge: true },
+    );
+  }
+
+  async clearMyRsvp(eventId: EventId | string): Promise<void> {
+    const uid = this._authService.user.uid;
+    if (!uid) return;
+    await this._firestoreAdapter.deleteDocument(`events/${eventId}/rsvps/${uid}`);
   }
 
   private async _writeSlugAlias(slug: string, eventId: string): Promise<void> {

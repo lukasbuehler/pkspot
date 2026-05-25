@@ -33,6 +33,7 @@ export {
 
 // event functions
 export {
+  countEventRsvpsOnWrite,
   updateEventFieldsOnWrite,
   updateAllEventsWithTypesenseFields,
 } from "./eventFunctions";

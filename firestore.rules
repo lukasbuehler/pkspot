@@ -13,6 +13,13 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid)).data.role in ['owner', 'admin', 'reviewer'];
     }
 
+    function isMutualFriend(userId) {
+      return request.auth.uid != null
+        && request.auth.uid != userId
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid)/following/$(userId))
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid)/followers/$(userId));
+    }
+
     function canReadSpotEdit() {
       return !('visibility' in resource.data)
         || resource.data.visibility != 'private'
@@ -35,12 +42,30 @@ service cloud.firestore {
         'start_seconds',
         'end_seconds',
         'promo_starts_at_seconds',
-        'location',
         'bounds_center',
         'bounds_radius_m',
         'promo_region_center',
-        'promo_region_radius_m'
+        'promo_region_radius_m',
+        'rsvp_counts'
       ];
+    }
+
+    function validEventRsvp(eventId, userId) {
+      return request.resource.data.keys().hasOnly([
+          'user_id',
+          'event_id',
+          'rsvp',
+          'time_created',
+          'time_updated'
+        ])
+        && request.resource.data.user_id == userId
+        && request.resource.data.event_id == eventId
+        && request.resource.data.rsvp in ['going', 'interested', 'notgoing']
+        && request.resource.data.time_updated is timestamp
+        && (
+          !('time_created' in request.resource.data)
+          || request.resource.data.time_created is timestamp
+        );
     }
 
     match /spots/{spotId}
@@ -260,6 +285,20 @@ service cloud.firestore {
       allow update: if isAdmin()
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(eventComputedFields());
       allow delete: if isAdmin();
+
+      match /rsvps/{userId} {
+        allow read: if request.auth.uid != null
+          && (
+            request.auth.uid == userId
+            || isAdmin()
+            || isMutualFriend(userId)
+          );
+        allow create, update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && validEventRsvp(eventId, userId);
+        allow delete: if request.auth.uid != null
+          && (request.auth.uid == userId || isAdmin());
+      }
     }
 
     // Series (Swiss Parkour Tour, SPL, Parkour Earth, ...) are admin-curated

@@ -38,6 +38,7 @@ import {
   EventEditPatch,
 } from "../event-edit-form/event-edit-form.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
+import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 
 @Component({
   selector: "app-event-info-page",
@@ -51,6 +52,7 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
     GoogleMap2dComponent,
     EventEditFormComponent,
     MediaPlaceholderComponent,
+    EventRsvpComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -80,6 +82,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly areaPolygon = signal<PolygonSchema | null>(null);
   readonly showHeader = signal(true);
   readonly isEmbedded = signal(false);
+  readonly isBrowser = signal(isPlatformBrowser(this._platformId));
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
@@ -120,7 +123,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly mapMarkers = computed<MarkerSchema[]>(() => {
     const event = this.event();
     if (!event) return [];
+    const eventMarker = this._eventPageData.eventLocationMarker(event);
     return [
+      ...(eventMarker ? [eventMarker] : []),
       ...this._eventPageData.spotMapMarkers(this.spots()),
       ...this._eventPageData.customMarkers(event),
     ];
@@ -130,7 +135,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return event ? this._eventPageData.eventMapBounds(event) : null;
   });
   readonly hasMapPreview = computed(
-    () => !!this.mapPreviewBounds() && this.mapMarkers().length > 0,
+    () =>
+      this.isBrowser() &&
+      !!this.mapPreviewBounds() &&
+      this.mapMarkers().length > 0,
   );
 
   constructor() {
@@ -348,7 +356,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this._structuredData.addStructuredData(
       "event",
       event.structuredData ??
-        this._buildEventStructuredData(event, canonicalPath, description),
+      this._buildEventStructuredData(event, canonicalPath, description),
     );
   }
 
@@ -380,12 +388,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       sameAs: event.url,
       organizer: event.organizer
         ? {
-            "@type": "Organization",
-            name: event.organizer.organization.name,
-            url: event.organizer.organization.slug
-              ? `${environment.baseUrl}/${this._locale}/organizations/${event.organizer.organization.slug}`
-              : undefined,
-          }
+          "@type": "Organization",
+          name: event.organizer.organization.name,
+          url: event.organizer.organization.slug
+            ? `${environment.baseUrl}/${this._locale}/organizations/${event.organizer.organization.slug}`
+            : undefined,
+        }
         : undefined,
       offers: event.url ? { "@type": "Offer", url: event.url } : undefined,
     };
@@ -402,12 +410,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return (
       event.description ??
       $localize`Event in ` +
-        event.localityString +
-        ", (" +
-        (this._isSameDay(event.start, event.end)
-          ? startDateText
-          : `${startDateText} - ${endDateText}`) +
-        ")"
+      event.localityString +
+      ", (" +
+      (this._isSameDay(event.start, event.end)
+        ? startDateText
+        : `${startDateText} - ${endDateText}`) +
+      ")"
     );
   }
 

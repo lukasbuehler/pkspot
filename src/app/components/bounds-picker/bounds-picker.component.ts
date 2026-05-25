@@ -12,7 +12,7 @@ import {
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { PLATFORM_ID } from "@angular/core";
-import { GoogleMap, MapMarker, MapRectangle } from "@angular/google-maps";
+import { GoogleMap, MapMarker, MapPolygon } from "@angular/google-maps";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MapsApiService } from "../../services/maps-api.service";
@@ -20,9 +20,8 @@ import { EventBoundsSchema } from "../../../db/schemas/EventSchema";
 
 /**
  * Lightweight map picker for an event's geometry. Renders a required,
- * draggable event pin plus an optional editable area rectangle. The area
- * rectangle maps to Event.bounds and is also used by the form to derive
- * the event's area_polygon.
+ * draggable event pin plus an optional editable area polygon. The form
+ * derives Event.bounds from the polygon path.
  *
  * Emits the new bounds on every change. Doesn't reuse google-map-2d
  * intentionally — that component is tuned for clustered spots, not
@@ -31,7 +30,7 @@ import { EventBoundsSchema } from "../../../db/schemas/EventSchema";
  */
 @Component({
   selector: "app-bounds-picker",
-  imports: [GoogleMap, MapMarker, MapRectangle, MatButtonModule, MatIconModule],
+  imports: [GoogleMap, MapMarker, MapPolygon, MatButtonModule, MatIconModule],
   templateUrl: "./bounds-picker.component.html",
   styleUrl: "./bounds-picker.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +42,9 @@ export class BoundsPickerComponent implements OnInit {
   /** Current bounds. Null = no rectangle drawn yet. */
   bounds = input<EventBoundsSchema | null>(null);
 
+  /** Current editable area path. Null = no event area drawn yet. */
+  areaPath = input<Array<{ lat: number; lng: number }> | null>(null);
+
   /** Required event pin location. Null only before a new event has one. */
   location = input<{ lat: number; lng: number } | null>(null);
 
@@ -52,31 +54,20 @@ export class BoundsPickerComponent implements OnInit {
   /** Initial size in degrees for newly-created rectangles (click-to-place). */
   defaultSizeDegrees = input<number>(0.02);
 
-  /** Emits whenever the user moves / resizes / drops a new rectangle. */
-  boundsChange = output<EventBoundsSchema | null>();
+  /** Emits whenever the user moves / reshapes / creates the event area. */
+  areaChange = output<Array<{ lat: number; lng: number }> | null>();
 
   /** Emits whenever the required event pin is dragged. */
   locationChange = output<{ lat: number; lng: number }>();
 
   @ViewChild(GoogleMap) private _googleMap?: GoogleMap;
-  @ViewChild(MapRectangle) private _rectangleRef?: MapRectangle;
+  @ViewChild(MapPolygon) private _polygonRef?: MapPolygon;
+  private _pathListeners: google.maps.MapsEventListener[] = [];
 
-  /** Internal copy of the bounds — needed because google.maps mutates the
-   * underlying object on drag/resize; we re-sync from `bounds_changed`. */
-  internalBounds = signal<EventBoundsSchema | null>(null);
+  internalAreaPath = signal<Array<{ lat: number; lng: number }> | null>(null);
   internalLocation = signal<{ lat: number; lng: number }>({
     lat: 47.376888,
     lng: 8.541694,
-  });
-
-  /** Live center derived from internal bounds, for the optional helper pin. */
-  readonly center = computed(() => {
-    const b = this.internalBounds();
-    if (!b) return null;
-    return {
-      lat: (b.north + b.south) / 2,
-      lng: (b.east + b.west) / 2,
-    };
   });
 
   /** Map options — minimal UI, disable POI clicks. */
@@ -85,6 +76,7 @@ export class BoundsPickerComponent implements OnInit {
     zoomControl: true,
     streetViewControl: false,
     clickableIcons: false,
+    mapTypeId: "satellite",
     mapId: "BOUNDS_PICKER",
   };
 
@@ -93,13 +85,13 @@ export class BoundsPickerComponent implements OnInit {
     title: $localize`:@@bounds_picker.location_pin:Event pin`,
   };
 
-  /** Rectangle options: editable + draggable so the user can manipulate. */
-  readonly rectangleOptions: google.maps.RectangleOptions = {
-    fillColor: "#b8c4ff",
-    fillOpacity: 0.18,
-    strokeColor: "#b8c4ff",
-    strokeOpacity: 0.85,
-    strokeWeight: 2,
+  /** Area options: high-contrast on satellite imagery, editable + draggable. */
+  readonly areaPolygonOptions: google.maps.PolygonOptions = {
+    fillColor: "#4f7cff",
+    fillOpacity: 0.16,
+    strokeColor: "#ffffff",
+    strokeOpacity: 1,
+    strokeWeight: 3,
     editable: true,
     draggable: true,
     clickable: false,
@@ -124,13 +116,18 @@ export class BoundsPickerComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      const b = this.bounds();
-      if (b) {
-        this.internalBounds.set(b);
-        this.initialCenter.set({
-          lat: (b.north + b.south) / 2,
-          lng: (b.east + b.west) / 2,
-        });
+      const path = this.areaPath();
+      const boundsFallback = this.bounds();
+      const nextPath =
+        path && path.length >= 3
+          ? path
+          : boundsFallback
+          ? boundsToPath(boundsFallback)
+          : null;
+
+      if (nextPath) {
+        this.internalAreaPath.set(nextPath);
+        this.initialCenter.set(pathCenter(nextPath));
       } else if (this.centerHint()) {
         this.initialCenter.set(this.centerHint()!);
       }
@@ -140,7 +137,7 @@ export class BoundsPickerComponent implements OnInit {
       const location = this.location();
       if (location) {
         this.internalLocation.set(location);
-        if (!this.internalBounds()) {
+        if (!this.internalAreaPath()) {
           this.initialCenter.set(location);
         }
       }
@@ -148,24 +145,23 @@ export class BoundsPickerComponent implements OnInit {
   }
 
   /**
-   * Click on an empty map → drop a starter rectangle of size
-   * `defaultSizeDegrees` centered on the click. If a rectangle already
-   * exists this is a no-op (the rectangle absorbs clicks via its own
-   * drag handles).
+   * Click on an empty map → drop a starter area of size
+   * `defaultSizeDegrees` centered on the click. If an area already exists
+   * this is a no-op.
    */
   onMapClick(event: google.maps.MapMouseEvent): void {
-    if (this.internalBounds() || !event.latLng) return;
+    if (this.internalAreaPath() || !event.latLng) return;
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
     const half = this.defaultSizeDegrees() / 2;
-    const next: EventBoundsSchema = {
+    const next = boundsToPath({
       north: lat + half,
       south: lat - half,
       east: lng + half,
       west: lng - half,
-    };
-    this.internalBounds.set(next);
-    this.boundsChange.emit(next);
+    });
+    this.internalAreaPath.set(next);
+    this.areaChange.emit(next);
   }
 
   onLocationDragEnd(event: google.maps.MapMouseEvent): void {
@@ -178,43 +174,66 @@ export class BoundsPickerComponent implements OnInit {
     this.locationChange.emit(next);
   }
 
-  /**
-   * Fires when the rectangle is dragged or resized. Google passes the
-   * new google.maps.LatLngBounds via the directive; we re-read the
-   * current bounds from the rectangle instance.
-   */
-  onRectangleBoundsChanged(): void {
-    const rectangle = this._rectangleRef?.rectangle;
-    if (!rectangle) return;
-    const gBounds = rectangle.getBounds();
-    if (!gBounds) return;
-    const ne = gBounds.getNorthEast();
-    const sw = gBounds.getSouthWest();
-    const next: EventBoundsSchema = {
-      north: ne.lat(),
-      south: sw.lat(),
-      east: ne.lng(),
-      west: sw.lng(),
-    };
-    // Only emit if it actually changed — google emits bounds_changed
-    // during drag at high frequency.
-    const prev = this.internalBounds();
-    if (
-      prev &&
-      prev.north === next.north &&
-      prev.south === next.south &&
-      prev.east === next.east &&
-      prev.west === next.west
-    ) {
-      return;
-    }
-    this.internalBounds.set(next);
-    this.boundsChange.emit(next);
+  onPolygonInitialized(polygon: google.maps.Polygon): void {
+    this._pathListeners.forEach((listener) => listener.remove());
+    const path = polygon.getPath();
+    this._pathListeners = [
+      path.addListener("insert_at", () => this.onPolygonChanged()),
+      path.addListener("remove_at", () => this.onPolygonChanged()),
+      path.addListener("set_at", () => this.onPolygonChanged()),
+    ];
   }
 
-  /** Reset the rectangle so the user can click somewhere else to drop a fresh one. */
-  clear(): void {
-    this.internalBounds.set(null);
-    this.boundsChange.emit(null);
+  onPolygonChanged(): void {
+    const polygon = this._polygonRef?.polygon;
+    if (!polygon) return;
+    const path = polygon.getPath();
+    const next: Array<{ lat: number; lng: number }> = [];
+    for (let i = 0; i < path.getLength(); i++) {
+      const point = path.getAt(i);
+      next.push({ lat: point.lat(), lng: point.lng() });
+    }
+    if (next.length < 3) return;
+    this.internalAreaPath.set(next);
+    this.areaChange.emit(next);
   }
+
+  /** Reset the area so the user can click somewhere else to drop a fresh one. */
+  clear(): void {
+    this.internalAreaPath.set(null);
+    this.areaChange.emit(null);
+  }
+}
+
+function boundsToPath(bounds: EventBoundsSchema): Array<{ lat: number; lng: number }> {
+  return [
+    { lat: bounds.north, lng: bounds.west },
+    { lat: bounds.north, lng: bounds.east },
+    { lat: bounds.south, lng: bounds.east },
+    { lat: bounds.south, lng: bounds.west },
+  ];
+}
+
+function pathCenter(path: Array<{ lat: number; lng: number }>): {
+  lat: number;
+  lng: number;
+} {
+  const bounds = path.reduce(
+    (acc, point) => ({
+      north: Math.max(acc.north, point.lat),
+      south: Math.min(acc.south, point.lat),
+      east: Math.max(acc.east, point.lng),
+      west: Math.min(acc.west, point.lng),
+    }),
+    {
+      north: Number.NEGATIVE_INFINITY,
+      south: Number.POSITIVE_INFINITY,
+      east: Number.NEGATIVE_INFINITY,
+      west: Number.POSITIVE_INFINITY,
+    },
+  );
+  return {
+    lat: (bounds.north + bounds.south) / 2,
+    lng: (bounds.east + bounds.west) / 2,
+  };
 }

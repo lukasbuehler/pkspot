@@ -1,5 +1,6 @@
 import { GeoPoint, Timestamp } from "firebase/firestore";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
+import { EventRSVPCountsSchema } from "./EventRSVPSchema";
 
 export type EventId = string & { __brand: "EventId" };
 export type EventSlug = string & { __brand: "EventSlug" };
@@ -229,6 +230,13 @@ export interface EventSchema {
 
   /** Optional pre-built JSON-LD blob for SEO. */
   structured_data?: Record<string, any>;
+
+  /**
+   * Public aggregate maintained from private `/events/{eventId}/rsvps/*`
+   * docs by Cloud Functions. Individual RSVP docs stay private to the
+   * user, admins, and mutual friends.
+   */
+  rsvp_counts?: EventRSVPCountsSchema;
 
   /** Lifecycle. */
   published?: boolean;

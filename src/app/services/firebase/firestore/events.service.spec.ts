@@ -199,4 +199,93 @@ describe("EventsService", () => {
     ]);
     vi.useRealTimers();
   });
+
+  it("creates my RSVP with SDK timestamps and merge semantics", async () => {
+    firestoreAdapter.getDocument.mockResolvedValue(null);
+
+    await service.setMyRsvp("event-1", "going");
+
+    expect(firestoreAdapter.getDocument).toHaveBeenCalledWith(
+      "events/event-1/rsvps/admin-user",
+    );
+    expect(firestoreAdapter.setDocument).toHaveBeenCalledWith(
+      "events/event-1/rsvps/admin-user",
+      expect.objectContaining({
+        user_id: "admin-user",
+        event_id: "event-1",
+        rsvp: "going",
+        time_created: expect.any(Date),
+        time_updated: expect.any(Date),
+      }),
+      { merge: true },
+    );
+  });
+
+  it("updates my RSVP without re-writing adapter Timestamp-like time_created values", async () => {
+    const adapterTimestamp = {
+      _seconds: 1_775_000_000,
+      _nanoseconds: 123_000_000,
+    };
+    firestoreAdapter.getDocument.mockResolvedValue({
+      id: "admin-user",
+      user_id: "admin-user",
+      event_id: "event-1",
+      rsvp: "going",
+      time_created: adapterTimestamp,
+      time_updated: adapterTimestamp,
+    });
+
+    await service.setMyRsvp("event-1", "interested");
+
+    const [, payload, options] = firestoreAdapter.setDocument.mock.calls[0];
+    expect(payload).toEqual(
+      expect.objectContaining({
+        user_id: "admin-user",
+        event_id: "event-1",
+        rsvp: "interested",
+        time_updated: expect.any(Date),
+      }),
+    );
+    expect(payload).not.toHaveProperty("time_created");
+    expect(options).toEqual({ merge: true });
+  });
+
+  it("clears my RSVP through the adapter", async () => {
+    await service.clearMyRsvp("event-1");
+
+    expect(firestoreAdapter.deleteDocument).toHaveBeenCalledWith(
+      "events/event-1/rsvps/admin-user",
+    );
+  });
+
+  it("does not write an RSVP while signed out", async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        EventsService,
+        { provide: FirestoreAdapterService, useValue: firestoreAdapter },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { uid: "", data: null } },
+        },
+        {
+          provide: AssetUrlService,
+          useValue: {
+            resolveEventAssetUrls: vi.fn((event: EventSchema) => event),
+          },
+        },
+        { provide: ConsentService, useValue: consentService },
+        { provide: AnalyticsService, useValue: { trackEvent: vi.fn() } },
+      ],
+    });
+    const signedOutService = TestBed.inject(EventsService);
+
+    await expect(
+      signedOutService.setMyRsvp("event-1", "going"),
+    ).rejects.toThrow(/requires a signed-in user/);
+    await signedOutService.clearMyRsvp("event-1");
+
+    expect(firestoreAdapter.setDocument).not.toHaveBeenCalled();
+    expect(firestoreAdapter.deleteDocument).not.toHaveBeenCalled();
+  });
 });

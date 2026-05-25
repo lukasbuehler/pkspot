@@ -10,7 +10,7 @@
     <a mat-button routerLink="/events" aria-label="Back to all events" matTooltip="Back to all events"
       i18n-matTooltip="@@event_page.back_to_events">
       <mat-icon>arrow_back</mat-icon>
-      <span>All Events</span>
+      <span i18n>All Events</span>
     </a>
     <div class="event-nav-actions">
       @if (websiteUrl(); as url) {
@@ -89,9 +89,7 @@
 
     <section class="event-section rsvp-placeholder">
       <span class="info-label" i18n="@@event_info.rsvp_label">RSVP</span>
-      <p class="info-value muted" i18n="@@event_info.rsvp_placeholder">
-        RSVP will be available here soon.
-      </p>
+      <app-event-rsvp [eventId]="event.id" [counts]="event.rsvpCounts"></app-event-rsvp>
     </section>
 
     <section class="event-section action-row">

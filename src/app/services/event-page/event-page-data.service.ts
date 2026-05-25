@@ -141,6 +141,18 @@ export class EventPageDataService {
     }));
   }
 
+  eventLocationMarker(event: PkEvent | null): EventPageMapMarker | null {
+    if (!event) return null;
+    return {
+      name: event.name,
+      location: event.location,
+      icons: ["event", "place"],
+      color: "tertiary",
+      priority: "required",
+      type: "event-location",
+    };
+  }
+
   customMarkers(event: PkEvent | null): MarkerSchema[] {
     return (event?.customMarkers ?? []).map((marker) => ({
       name: marker.name,

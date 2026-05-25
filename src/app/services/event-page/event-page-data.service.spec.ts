@@ -17,6 +17,7 @@ const buildEvent = (
     slug: id,
     venue_string: "Test Venue",
     locality_string: "Zurich, Switzerland",
+    location_raw: { lat: 47.35, lng: 8.55 },
     start: "2026-06-14T10:00:00.000Z",
     end: "2026-06-15T10:00:00.000Z",
     bounds: {
@@ -89,5 +90,14 @@ describe("EventPageDataService", () => {
         icons: ["info"],
       }),
     ]);
+    expect(service.eventLocationMarker(event)).toEqual(
+      expect.objectContaining({
+        name: "City Jam",
+        location: { lat: 47.35, lng: 8.55 },
+        icons: ["event", "place"],
+        priority: "required",
+        type: "event-location",
+      }),
+    );
   });
 });

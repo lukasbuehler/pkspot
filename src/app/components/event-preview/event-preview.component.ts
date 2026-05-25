@@ -124,7 +124,7 @@ export class EventPreviewComponent {
   });
 
   readonly eventIcon = computed(() =>
-    this.event()?.isSponsored ? "paid" : "event",
+    this.event()?.isSponsored ? "handshake" : "event",
   );
   readonly eventIconTooltip = computed(() =>
     this.event()?.isSponsored

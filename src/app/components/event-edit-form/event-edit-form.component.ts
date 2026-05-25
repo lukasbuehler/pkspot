@@ -32,7 +32,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTimepickerModule } from "@angular/material/timepicker";
-import { Timestamp } from "firebase/firestore";
+import { GeoPoint, Timestamp } from "firebase/firestore";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventBoundsSchema,
@@ -173,6 +173,7 @@ export class EventEditFormComponent {
    * because the map picker edits richer objects than flat form controls.
    */
   location = signal<{ lat: number; lng: number } | null>(null);
+  areaPath = signal<Array<{ lat: number; lng: number }> | null>(null);
   bounds = signal<EventBoundsSchema | null>(null);
   areaTouched = signal<boolean>(false);
   /**
@@ -263,6 +264,7 @@ export class EventEditFormComponent {
           banner_fit: "cover",
         });
         this.location.set(null);
+        this.areaPath.set(null);
         this.bounds.set(null);
         this.areaTouched.set(false);
         this.spotIds.set([]);
@@ -297,6 +299,7 @@ export class EventEditFormComponent {
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
       });
       this.location.set(e.location);
+      this.areaPath.set(eventAreaPath(e.areaPolygon) ?? boundsToPath(e.bounds));
       this.bounds.set(e.bounds ?? null);
       this.areaTouched.set(false);
       this.spotIds.set([...e.spotIds]);
@@ -330,8 +333,9 @@ export class EventEditFormComponent {
     return this.autoSuggestedCommunityKeys().filter((k) => !current.has(k));
   });
 
-  onBoundsChange(bounds: EventBoundsSchema | null): void {
-    this.bounds.set(bounds);
+  onAreaChange(path: Array<{ lat: number; lng: number }> | null): void {
+    this.areaPath.set(path);
+    this.bounds.set(pathToBounds(path));
     this.areaTouched.set(true);
   }
 
@@ -522,11 +526,14 @@ export class EventEditFormComponent {
   private _buildLocationPatch(
     latitude: number | null | undefined,
     longitude: number | null | undefined,
-  ): Pick<Partial<EventSchema>, "location_raw"> {
+  ): Pick<Partial<EventSchema>, "location" | "location_raw"> {
     const lat = numberOrUndefined(latitude);
     const lng = numberOrUndefined(longitude);
     return lat !== undefined && lng !== undefined
-      ? { location_raw: { lat, lng } }
+      ? {
+          location: new GeoPoint(lat, lng),
+          location_raw: { lat, lng },
+        }
       : {};
   }
 
@@ -537,8 +544,9 @@ export class EventEditFormComponent {
     if (!this.areaTouched()) {
       return {};
     }
-    const bounds = this.bounds();
-    if (!bounds) {
+    const path = this.areaPath();
+    const bounds = pathToBounds(path);
+    if (!path || !bounds) {
       return {
         bounds: null,
         area_polygon: null,
@@ -546,7 +554,7 @@ export class EventEditFormComponent {
     }
     return {
       bounds,
-      area_polygon: boundsToAreaPolygon(bounds),
+      area_polygon: pathToAreaPolygon(path),
     };
   }
 
@@ -569,8 +577,8 @@ export class EventEditFormComponent {
   }
 }
 
-function boundsToAreaPolygon(
-  bounds: EventBoundsSchema
+function pathToAreaPolygon(
+  path: Array<{ lat: number; lng: number }>
 ): EventSchema["area_polygon"] {
   return [
     {
@@ -582,14 +590,50 @@ function boundsToAreaPolygon(
       ],
     },
     {
-      points: [
-        { lat: bounds.north, lng: bounds.west },
-        { lat: bounds.north, lng: bounds.east },
-        { lat: bounds.south, lng: bounds.east },
-        { lat: bounds.south, lng: bounds.west },
-      ],
+      points: path,
     },
   ];
+}
+
+function eventAreaPath(
+  areaPolygon: EventSchema["area_polygon"] | undefined
+): Array<{ lat: number; lng: number }> | null {
+  const ring = areaPolygon?.find((candidate) =>
+    candidate.points.every((point) => Math.abs(point.lat) < 85)
+  );
+  return ring && ring.points.length >= 3 ? [...ring.points] : null;
+}
+
+function boundsToPath(
+  bounds: EventBoundsSchema | undefined
+): Array<{ lat: number; lng: number }> | null {
+  if (!bounds) return null;
+  return [
+    { lat: bounds.north, lng: bounds.west },
+    { lat: bounds.north, lng: bounds.east },
+    { lat: bounds.south, lng: bounds.east },
+    { lat: bounds.south, lng: bounds.west },
+  ];
+}
+
+function pathToBounds(
+  path: Array<{ lat: number; lng: number }> | null
+): EventBoundsSchema | null {
+  if (!path || path.length < 3) return null;
+  return path.reduce(
+    (acc, point) => ({
+      north: Math.max(acc.north, point.lat),
+      south: Math.min(acc.south, point.lat),
+      east: Math.max(acc.east, point.lng),
+      west: Math.min(acc.west, point.lng),
+    }),
+    {
+      north: Number.NEGATIVE_INFINITY,
+      south: Number.POSITIVE_INFINITY,
+      east: Number.NEGATIVE_INFINITY,
+      west: Number.POSITIVE_INFINITY,
+    }
+  );
 }
 
 function trimOrUndefined(value: string | null | undefined): string | undefined {
