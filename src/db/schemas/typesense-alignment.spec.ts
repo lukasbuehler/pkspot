@@ -77,6 +77,11 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "promo_starts_at_seconds",
     "bounds_center",
     "bounds_radius_m",
+    "promo_radius_m",
+    "promo_bounds_north",
+    "promo_bounds_south",
+    "promo_bounds_east",
+    "promo_bounds_west",
     "promo_region_center",
     "promo_region_radius_m",
   ] as const;
@@ -159,6 +164,23 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
 
     bounds_center: { kind: "direct", source: "bounds_center" },
     bounds_radius_m: { kind: "direct", source: "bounds_radius_m" },
+    promo_radius_m: { kind: "direct", source: "promo_radius_m" },
+    promo_bounds_north: {
+      kind: "direct",
+      source: "promo_bounds_north",
+    },
+    promo_bounds_south: {
+      kind: "direct",
+      source: "promo_bounds_south",
+    },
+    promo_bounds_east: {
+      kind: "direct",
+      source: "promo_bounds_east",
+    },
+    promo_bounds_west: {
+      kind: "direct",
+      source: "promo_bounds_west",
+    },
     promo_region_center: { kind: "direct", source: "promo_region_center" },
     promo_region_radius_m: {
       kind: "direct",
@@ -351,6 +373,10 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
     "sourceMaxUpdatedAt",
     "bounds_center",
     "bounds_radius_m",
+    "visibility_bounds_north",
+    "visibility_bounds_south",
+    "visibility_bounds_east",
+    "visibility_bounds_west",
     "google_maps_place_id",
   ] as const;
 
@@ -421,6 +447,22 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
 
     bounds_center: { kind: "direct", source: "bounds_center" },
     bounds_radius_m: { kind: "direct", source: "bounds_radius_m" },
+    visibility_bounds_north: {
+      kind: "direct",
+      source: "visibility_bounds_north",
+    },
+    visibility_bounds_south: {
+      kind: "direct",
+      source: "visibility_bounds_south",
+    },
+    visibility_bounds_east: {
+      kind: "direct",
+      source: "visibility_bounds_east",
+    },
+    visibility_bounds_west: {
+      kind: "direct",
+      source: "visibility_bounds_west",
+    },
 
     "image.url": { kind: "direct", source: "image.url" },
     published: { kind: "direct", source: "published" },

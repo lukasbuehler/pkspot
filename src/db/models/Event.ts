@@ -89,7 +89,14 @@ export class Event {
     this.focusZoom = data.focus_zoom;
     this.minZoom = data.min_zoom;
     this.areaPolygon = data.area_polygon ?? undefined;
-    this.promoRegion = data.promo_region;
+    this.promoRegion =
+      data.promo_region ??
+      (typeof data.promo_radius_m === "number" && data.promo_radius_m > 0
+        ? {
+            center: this.location,
+            radius_m: data.promo_radius_m,
+          }
+        : undefined);
     this.sponsor = data.sponsor;
     this.isSponsored = data.is_sponsored ?? false;
     this.communityKeys = data.community_keys ?? [];

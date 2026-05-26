@@ -184,6 +184,21 @@ interface PanelBackTarget {
   typeLabel: string;
 }
 
+type MapObjectMode = "all" | "spots" | "events" | "communities";
+
+type MapViewportBbox = VisibleViewport["bbox"];
+
+interface MapObjectCounts {
+  spots: number;
+  events: number;
+  communities: number;
+}
+
+interface MapObjectTypeChip {
+  mode: MapObjectMode;
+  label: string;
+}
+
 @Component({
   selector: "app-map-page",
   templateUrl: "./map-page.component.html",
@@ -279,6 +294,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _backHandlingService = inject(BackHandlingService);
   private _analytics = inject(AnalyticsService);
   private _pendingCommunityFocusSlug: string | null = null;
+
+  /** Viewport counts for object type chips. */
+  mapObjectCounts = signal<MapObjectCounts>({
+    spots: 0,
+    events: 0,
+    communities: 0,
+  });
+  private _baseMapObjectCounts = signal<MapObjectCounts>({
+    spots: 0,
+    events: 0,
+    communities: 0,
+  });
 
   searchResultSpots: WritableSignal<Spot[]> = signal([]);
   selectedSpot: WritableSignal<Spot | LocalSpot | null> = signal(null);
@@ -448,8 +475,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // ----- Map island state -----
   private _eventsService = inject(EventsService);
   private _landingPagesService = inject(LandingPagesService);
-  /** All events whose promo is currently active (loaded once on init). */
+  /** Promoted events whose promo radius intersects the viewport. */
   private _promotableEvents = signal<PkEvent[]>([]);
+  /** Non-promo event markers whose actual location is in the viewport. */
+  private _visibleMapEvents = signal<PkEvent[]>([]);
   /**
    * All published communities (lightweight previews from typesense), loaded
    * once on init. Drives the "popular communities" SEO list and the
@@ -458,8 +487,46 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * only when the user actually opens a community.
    */
   private _promotableCommunities = signal<CommunitySearchPreview[]>([]);
+  private _visibleMapCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
+  mapObjectMode = signal<MapObjectMode>("all");
+  mapObjectTypeChips = computed<MapObjectTypeChip[]>(() => {
+    const counts = this.mapObjectCounts();
+    return [
+      { mode: "all", label: $localize`:@@map_objects_all_chip_label:All` },
+      {
+        mode: "spots",
+        label: `${counts.spots} ${this._pluralizeMapObjectCount(
+          counts.spots,
+          $localize`:@@map_objects_spot_singular:Spot`,
+          $localize`:@@map_objects_spot_plural:Spots`,
+        )}`,
+      },
+      {
+        mode: "events",
+        label: `${counts.events} ${this._pluralizeMapObjectCount(
+          counts.events,
+          $localize`:@@map_objects_event_singular:Event`,
+          $localize`:@@map_objects_event_plural:Events`,
+        )}`,
+      },
+      {
+        mode: "communities",
+        label: `${counts.communities} ${this._pluralizeMapObjectCount(
+          counts.communities,
+          $localize`:@@map_objects_community_singular:Community`,
+          $localize`:@@map_objects_community_plural:Communities`,
+        )}`,
+      },
+    ];
+  });
+  showSpotFilterChips = computed(() => {
+    const mode = this.mapObjectMode();
+    return mode === "all" || mode === "spots";
+  });
+  private _mapObjectModeBeforeSpotFilter: MapObjectMode | null = null;
+
   private _promotableCommunitiesRequested = false;
   /** Per-event promo dismissals persisted in localStorage. */
   private _eventPromoDismissals = signal<
@@ -468,6 +535,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Communities the user has dismissed in the current session. */
   private _dismissedCommunityKeys = signal<Set<string>>(new Set());
   private _communityRouteLoadVersion = 0;
+  private _mapObjectSearchVersion = 0;
   private _spotPreviewCache = new Map<string, PendingSpotPanel>();
   private _eventPreviewCache = new Map<string, PkEvent>();
   private _countryViewportCache = new Map<
@@ -538,6 +606,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .slice(0, 8),
   );
 
+  showMapSpots = computed(() => {
+    const mode = this.mapObjectMode();
+    return mode === "all" || mode === "spots";
+  });
+
   /**
    * Locality communities with bounds info, projected into the map shape.
    * Country and region circles are intentionally excluded for now: they
@@ -548,12 +621,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * panel already convey it) to avoid the chip overlapping the panel UI.
    */
   availableCommunityMarkers = computed<CommunityMapMarker[]>(() => {
+    const mode = this.mapObjectMode();
+    if (mode !== "all" && mode !== "communities") return [];
+
     const selectedKey =
       this.selectedCommunityLanding()?.communityKey ??
       this.pendingCommunityLanding()?.communityKey ??
       null;
 
-    return this._promotableCommunities()
+    return this._visibleMapCommunities()
       .filter(
         (c) =>
           c.communityKey !== selectedKey &&
@@ -572,10 +648,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   /**
-   * Event chip markers shown on the map. Pulled from the same
-   * `_promotableEvents` set that feeds the map-island promo logic — any
-   * event with a known center qualifies. Hides the currently-previewed
-   * event's marker so the chip doesn't fight the panel for attention.
+   * Event chip markers shown on the map. These are actual event locations
+   * inside the viewport; promoted events outside the viewport only feed the
+   * island and are intentionally not rendered as map markers or counted in
+   * the Events chip.
    *
    * Past events are not surfaced as pins (out-of-date pins clutter the
    * map without value). Sponsored events render with the highlighted
@@ -588,7 +664,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const selectedEventId = this.selectedEvent()?.id ?? null;
     const pendingEventRef = this.pendingEventPreview()?.idOrSlug ?? null;
 
-    const eventMarkers: MapPointMarker[] = this._promotableEvents()
+    const eventMarkers: MapPointMarker[] = this._visibleMapEvents()
       .filter((e) => {
         if (selectedEventId && e.id === selectedEventId) return false;
         if (
@@ -636,6 +712,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
                   : 70_000,
           }))
         : [];
+
+    const mode = this.mapObjectMode();
+    if (mode !== "all" && mode !== "events") {
+      return selectedEventMarkers;
+    }
 
     return [...eventMarkers, ...selectedEventMarkers];
   });
@@ -1144,9 +1225,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * without counting the marker click as a map-island interaction.
    */
   onCommunityMarkerClick(communityKey: string): void {
-    const preview = this._promotableCommunities().find(
-      (c) => c.communityKey === communityKey,
-    );
+    const preview =
+      this._visibleMapCommunities().find(
+        (c) => c.communityKey === communityKey,
+      ) ??
+      this._promotableCommunities().find(
+        (c) => c.communityKey === communityKey,
+      );
     if (!preview) {
       console.warn(
         "onCommunityMarkerClick: community key not in promotable set",
@@ -1163,11 +1248,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * without counting the marker click as a map-island interaction.
    */
   onEventMarkerClick(routeId: string): void {
-    const event = this._promotableEvents().find(
+    const event = this._visibleMapEvents().find(
       (e) => e.slug === routeId || e.id === routeId,
     );
     if (!event) {
-      console.warn("onEventMarkerClick: event not in promotable set", routeId);
+      console.warn("onEventMarkerClick: event not in visible map set", routeId);
       return;
     }
     // Typesense event hits intentionally contain approximate bounds only.
@@ -1585,7 +1670,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (isPlatformBrowser(this.platformId)) {
       this._loadEventPromoDismissals();
-      const compactSidenavQuery = "(min-width: 600px) and (max-width: 767.98px)";
+      const compactSidenavQuery =
+        "(min-width: 600px) and (max-width: 767.98px)";
       this.compactSidenavRange.set(
         this.breakpointObserver.isMatched(compactSidenavQuery),
       );
@@ -1594,40 +1680,70 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         .subscribe((state) => this.compactSidenavRange.set(state.matches));
     }
 
-    // Communities are admin-curated and small — one-shot load is fine.
-    // Events are loaded per-viewport from Typesense (see the effect below)
-    // so we don't pull every event on first paint.
+    // Communities are admin-curated and small enough for the SEO list to load
+    // once. Map object markers/counts are loaded per viewport below.
     if (isPlatformBrowser(this.platformId)) {
       afterNextRender(() => {
         this.loadPromotableCommunitiesAfterConsent();
       });
     }
 
-    // Viewport-driven event fetch: re-queries Typesense whenever the map
-    // viewport settles. Debounced 400ms so rapid pans don't fan out into
-    // a request per frame. The effect's onCleanup cancels any pending
-    // timeout from a prior viewport value, so only the latest viewport's
-    // request fires.
+    // Viewport-driven object fetch: one Typesense multi-search gives us the
+    // spot/event/community chip counts plus the event/community marker hits.
+    // Debounced 400ms so rapid pans don't fan out into a request per frame.
     effect((onCleanup) => {
       const viewport = this._viewport();
       if (!viewport) return;
       if (typeof google === "undefined" || !google?.maps) return;
 
       const bbox = viewport.bbox;
+      const requestVersion = ++this._mapObjectSearchVersion;
       const handle = setTimeout(() => {
         const bounds = new google.maps.LatLngBounds(
           { lat: bbox.south, lng: bbox.west },
           { lat: bbox.north, lng: bbox.east },
         );
         this._searchService
-          .searchEventsInBounds(bounds, 30)
-          .then((events) => this._promotableEvents.set(events))
+          .searchMapObjectsInBounds(bounds, {
+            eventLimit: 30,
+            communityLimit: 80,
+          })
+          .then((result) => {
+            if (requestVersion !== this._mapObjectSearchVersion) return;
+            const visibleCommunities =
+              result.communities.length > 0
+                ? result.communities
+                : this._visibleCommunitiesFromLoadedList(viewport);
+            const counts = {
+              ...result.counts,
+              communities: Math.max(
+                result.counts.communities,
+                visibleCommunities.length,
+              ),
+            };
+
+            this._baseMapObjectCounts.set(counts);
+            if (this._hasActiveSpotFilter()) {
+              this.mapObjectCounts.update((current) => ({
+                ...counts,
+                spots: current.spots,
+              }));
+            } else {
+              this.mapObjectCounts.set(counts);
+            }
+            this._visibleMapEvents.set(result.events);
+            this._promotableEvents.set(result.promoEvents);
+            this._visibleMapCommunities.set(visibleCommunities);
+          })
           .catch((err) =>
-            console.warn("MapPage: failed to load events in bounds", err),
+            console.warn("MapPage: failed to load map objects in bounds", err),
           );
       }, 400);
 
-      onCleanup(() => clearTimeout(handle));
+      onCleanup(() => {
+        clearTimeout(handle);
+        this._mapObjectSearchVersion++;
+      });
     });
 
     effect(() => {
@@ -1959,11 +2075,126 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .listCommunities()
       .then((communities) => {
         this._promotableCommunities.set(communities);
+        this._refreshVisibleCommunitiesFromLoadedList();
         this._focusCommunityFromQueryParam();
       })
       .catch((err) =>
         console.warn("MapPage: failed to load promotable communities", err),
       );
+  }
+
+  private _refreshVisibleCommunitiesFromLoadedList(): void {
+    const viewport = this._viewport();
+    if (!viewport || this._visibleMapCommunities().length > 0) {
+      return;
+    }
+
+    const visibleCommunities = this._visibleCommunitiesFromLoadedList(viewport);
+    if (visibleCommunities.length === 0) {
+      return;
+    }
+
+    this._visibleMapCommunities.set(visibleCommunities);
+    this._baseMapObjectCounts.update((counts) => ({
+      ...counts,
+      communities: Math.max(counts.communities, visibleCommunities.length),
+    }));
+    this.mapObjectCounts.update((counts) => ({
+      ...counts,
+      communities: Math.max(counts.communities, visibleCommunities.length),
+    }));
+  }
+
+  private _visibleCommunitiesFromLoadedList(
+    viewport: VisibleViewport,
+  ): CommunitySearchPreview[] {
+    const bbox = viewport.bbox;
+    const coversWorld = this._bboxCoversWorld(bbox);
+
+    return this._promotableCommunities()
+      .filter(
+        (community) =>
+          community.scope === "locality" &&
+          !!community.boundsCenter &&
+          typeof community.boundsRadiusM === "number" &&
+          community.boundsRadiusM > 0,
+      )
+      .filter(
+        (community) =>
+          coversWorld || this._communityIntersectsBbox(community, bbox),
+      );
+  }
+
+  private _communityIntersectsBbox(
+    community: CommunitySearchPreview,
+    bbox: MapViewportBbox,
+  ): boolean {
+    if (!community.boundsCenter || typeof community.boundsRadiusM !== "number") {
+      return false;
+    }
+
+    const [lat, lng] = community.boundsCenter;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return false;
+    }
+
+    const radiusM = community.boundsRadiusM;
+    const latRadius = radiusM / 111_320;
+    const lngRadius =
+      radiusM /
+      (111_320 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
+    const communityBounds = {
+      north: lat + latRadius,
+      south: lat - latRadius,
+      west: lng - lngRadius,
+      east: lng + lngRadius,
+    };
+
+    return this._bboxesIntersect(communityBounds, bbox);
+  }
+
+  private _bboxesIntersect(
+    a: MapViewportBbox,
+    b: MapViewportBbox,
+  ): boolean {
+    if (a.north < b.south || a.south > b.north) {
+      return false;
+    }
+
+    const aLngIntervals = this._longitudeIntervals(a);
+    const bLngIntervals = this._longitudeIntervals(b);
+    return aLngIntervals.some(([aWest, aEast]) =>
+      bLngIntervals.some(
+        ([bWest, bEast]) => aEast >= bWest && aWest <= bEast,
+      ),
+    );
+  }
+
+  private _longitudeIntervals(
+    bbox: Pick<MapViewportBbox, "east" | "west">,
+  ): Array<[number, number]> {
+    if (this._bboxCoversWorld(bbox)) {
+      return [[-180, 180]];
+    }
+
+    const west = this._normalizeLongitude(bbox.west);
+    const east = this._normalizeLongitude(bbox.east);
+    return west <= east
+      ? [[west, east]]
+      : [
+          [west, 180],
+          [-180, east],
+        ];
+  }
+
+  private _bboxCoversWorld(bbox: Pick<MapViewportBbox, "east" | "west">) {
+    const span = Math.abs(bbox.east - bbox.west);
+    return span >= 340;
+  }
+
+  private _normalizeLongitude(lng: number): number {
+    const normalized = ((((lng + 180) % 360) + 360) % 360) - 180;
+    return normalized === -180 && lng > 0 ? 180 : normalized;
   }
 
   ngOnInit() {
@@ -2311,7 +2542,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (value.type === "community") {
       const communityPreview =
         value.community ??
-        this._promotableCommunities().find(
+        [
+          ...this._visibleMapCommunities(),
+          ...this._promotableCommunities(),
+        ].find(
           (community) =>
             community.slug === value.id ||
             community.communityKey === value.id ||
@@ -2628,9 +2862,84 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.filterChipChanged("");
   }
 
-  private _setFilteredSpotPreviews(previews: SpotPreviewData[]): void {
+  mapObjectModeChanged(mode: MapObjectMode): void {
+    if (mode === this.mapObjectMode()) return;
+
+    this._mapObjectModeBeforeSpotFilter = null;
+    if (this.selectedFilter() || this.customFilterParams()) {
+      this._clearSpotFilterState({ restoreMode: false });
+    }
+
+    this.mapObjectMode.set(mode);
+  }
+
+  private _pluralizeMapObjectCount(
+    count: number,
+    singular: string,
+    plural: string,
+  ): string {
+    return count === 1 ? singular : plural;
+  }
+
+  private _hasActiveSpotFilter(): boolean {
+    return Boolean(this.selectedFilter() || this.customFilterParams());
+  }
+
+  private _activateSpotFilterObjectMode(): void {
+    if (this.mapObjectMode() === "spots") return;
+
+    if (!this._mapObjectModeBeforeSpotFilter) {
+      this._mapObjectModeBeforeSpotFilter = this.mapObjectMode();
+    }
+    this.mapObjectMode.set("spots");
+  }
+
+  private _restoreMapObjectModeAfterSpotFilter(): void {
+    const previousMode = this._mapObjectModeBeforeSpotFilter;
+    this._mapObjectModeBeforeSpotFilter = null;
+
+    if (previousMode && this.mapObjectMode() === "spots") {
+      this.mapObjectMode.set(previousMode);
+    }
+  }
+
+  private _setFilteredSpotCount(count: number): void {
+    this.mapObjectCounts.update((current) => ({
+      ...current,
+      spots: Math.max(0, Math.round(count)),
+    }));
+  }
+
+  private _restoreBaseMapObjectCounts(): void {
+    this.mapObjectCounts.set(this._baseMapObjectCounts());
+  }
+
+  private _clearSpotFilterState(options: { restoreMode: boolean }): void {
+    this._activeFilter = "";
+    this._pendingFilter = null;
+    this.noSpotsForFilter.set(false);
+    this.highlightedSpots = [];
+    this.visibleSpots = [];
+    this.customFilterParams.set(null);
+    this._restoreBaseMapObjectCounts();
+    if (this.spotMap) {
+      this.spotMap.spotFilterMode.set(SpotFilterMode.None);
+    }
+    if (this.selectedFilter()) {
+      this.selectedFilter.set("");
+    }
+    if (options.restoreMode) {
+      this._restoreMapObjectModeAfterSpotFilter();
+    }
+  }
+
+  private _setFilteredSpotPreviews(
+    previews: SpotPreviewData[],
+    totalCount: number = previews.length,
+  ): void {
     this.spotMap?.setFilteredSpots(previews);
     this._updateNoSpotsForFilter(previews);
+    this._setFilteredSpotCount(totalCount);
   }
 
   private _updateNoSpotsForFilter(previews: SpotPreviewData[]): void {
@@ -2640,7 +2949,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const baseVisibleSpots = this.spotMap?.visibleSpots?.() ?? this.visibleSpots;
+    const baseVisibleSpots =
+      this.spotMap?.visibleSpots?.() ?? this.visibleSpots;
     this.noSpotsForFilter.set(
       previews.length === 0 && baseVisibleSpots.length > 0,
     );
@@ -2673,7 +2983,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             .filter((h: any) => !!h)
             .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-          this._setFilteredSpotPreviews(previews);
+          this._setFilteredSpotPreviews(
+            previews,
+            result.found ?? previews.length,
+          );
         })
         .catch((err) => {
           console.error(
@@ -2695,7 +3008,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .filter((h: any) => !!h)
           .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-        this._setFilteredSpotPreviews(previews);
+        this._setFilteredSpotPreviews(previews, result.found ?? previews.length);
       })
       .catch((err) => {
         console.error("Error re-searching for filter on bounds change:", err);
@@ -2703,25 +3016,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   filterChipChanged(selectedChip: string) {
+    if (!selectedChip || selectedChip.length === 0) {
+      this._clearSpotFilterState({ restoreMode: true });
+      return;
+    }
+
+    this._activateSpotFilterObjectMode();
+
     // Update the selectedFilter signal for URL sync and chip binding
     // Only update signal if it's different to avoid infinite effect loops
     if (this.selectedFilter() !== (selectedChip || "")) {
       this.selectedFilter.set(selectedChip || "");
-    }
-
-    if (!selectedChip || selectedChip.length === 0) {
-      this._activeFilter = "";
-      this._pendingFilter = null;
-      this.noSpotsForFilter.set(false);
-      this.highlightedSpots = [];
-      this.visibleSpots = [];
-      // Clear custom filter when clearing all filters
-      this.customFilterParams.set(null);
-      if (this.spotMap) {
-        // Clear filter mode using the signal - this triggers sync effect in SpotMapComponent
-        this.spotMap.spotFilterMode.set(SpotFilterMode.None);
-      }
-      return;
     }
 
     // Track the active filter for re-searching on pan
@@ -2831,7 +3136,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .filter((h: any) => !!h)
           .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-        this._setFilteredSpotPreviews(previews);
+        this._setFilteredSpotPreviews(previews, result.found ?? previews.length);
       })
       .catch((err) => {
         console.error(`Error searching for ${selectedChip} spots:`, err);
@@ -2873,6 +3178,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
+      this._activateSpotFilterObjectMode();
+
       // Store the custom filter params
       this.customFilterParams.set(this._cloneCustomFilterParams(result));
 
@@ -2909,7 +3216,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             .filter((h: any) => !!h)
             .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-          this._setFilteredSpotPreviews(previews);
+          this._setFilteredSpotPreviews(
+            previews,
+            searchResult.found ?? previews.length,
+          );
         })
         .catch((err) => {
           console.error("Error searching with custom filter:", err);
@@ -3530,7 +3840,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     slug: string,
   ): CommunitySearchPreview | null {
     return (
-      this._promotableCommunities().find(
+      [...this._visibleMapCommunities(), ...this._promotableCommunities()].find(
         (community) =>
           community.slug === slug ||
           community.canonicalPath?.endsWith(`/${encodeURIComponent(slug)}`) ||
@@ -3798,7 +4108,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     communityLanding: CommunityLandingPageData,
   ): google.maps.LatLngLiteral[] {
     const pickSpots =
-      communityLanding.communityPicks?.flatMap((section) => section.spots) ?? [];
+      communityLanding.communityPicks?.flatMap((section) => section.spots) ??
+      [];
     const previews = [
       ...pickSpots,
       ...(communityLanding.spots ?? []),

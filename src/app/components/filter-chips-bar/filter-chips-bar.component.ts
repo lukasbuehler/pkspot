@@ -135,7 +135,7 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
 
       if (typeof ResizeObserver !== "undefined") {
         this._resizeObserver = new ResizeObserver(() =>
-          this._scheduleScrollStateUpdate()
+          this._scheduleScrollStateUpdate(),
         );
         this._resizeObserver.observe(scrollElement);
         for (const child of Array.from(scrollElement.children)) {
@@ -201,11 +201,13 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
 
     const maxScrollLeft = Math.max(
       scrollElement.scrollWidth - scrollElement.clientWidth,
-      0
+      0,
     );
     const tolerance = 4;
 
     this.canScrollLeft.set(scrollElement.scrollLeft > tolerance);
-    this.canScrollRight.set(scrollElement.scrollLeft < maxScrollLeft - tolerance);
+    this.canScrollRight.set(
+      scrollElement.scrollLeft < maxScrollLeft - tolerance,
+    );
   }
 }

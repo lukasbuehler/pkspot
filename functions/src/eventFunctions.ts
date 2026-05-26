@@ -17,6 +17,20 @@ import {
 
 const MAINTENANCE_COLLECTION = "maintenance";
 const RUN_BACKFILL_EVENT_TYPESENSE_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-event-typesense-fields`;
+const TYPESENSE_HELPER_FIELDS = [
+  "start_seconds",
+  "end_seconds",
+  "promo_starts_at_seconds",
+  "bounds_center",
+  "bounds_radius_m",
+  "promo_radius_m",
+  "promo_bounds_north",
+  "promo_bounds_south",
+  "promo_bounds_east",
+  "promo_bounds_west",
+  "promo_region_center",
+  "promo_region_radius_m",
+] as const;
 
 /**
  * Skip non-runtime docs that share the events collection space (the
@@ -111,6 +125,28 @@ const _bboxCenterAndRadius = (
   return { center, radiusM: Math.ceil(_haversineMeters(center, corner)) };
 };
 
+const _promoBoundsFromCenterRadius = (
+  center: { lat: number; lng: number },
+  radiusM: number
+): Pick<
+  EventSchema,
+  | "promo_bounds_north"
+  | "promo_bounds_south"
+  | "promo_bounds_east"
+  | "promo_bounds_west"
+> => {
+  const radius = Math.max(0, radiusM);
+  const dLat = radius / 111000;
+  const cosLat = Math.cos(_toRadians(center.lat)) || 1e-6;
+  const dLng = radius / (111000 * cosLat);
+  return {
+    promo_bounds_north: center.lat + dLat,
+    promo_bounds_south: center.lat - dLat,
+    promo_bounds_east: center.lng + dLng,
+    promo_bounds_west: center.lng - dLng,
+  };
+};
+
 const _promoRegionCenterAndRadius = (
   region: EventPromoRegionSchema | undefined
 ): { center: { lat: number; lng: number }; radiusM: number } | null => {
@@ -122,6 +158,22 @@ const _promoRegionCenterAndRadius = (
     return _bboxCenterAndRadius(region.bounds);
   }
   return null;
+};
+
+const _promoRadiusMeters = (
+  eventData: EventSchema,
+  legacyPromo: { radiusM: number } | null
+): number | undefined => {
+  if (
+    typeof eventData.promo_radius_m === "number" &&
+    Number.isFinite(eventData.promo_radius_m)
+  ) {
+    return Math.max(0, eventData.promo_radius_m);
+  }
+  if (legacyPromo && Number.isFinite(legacyPromo.radiusM)) {
+    return Math.max(0, legacyPromo.radiusM);
+  }
+  return undefined;
 };
 
 const _rawCoordinate = (
@@ -231,20 +283,32 @@ const _addTypesenseFields = (
     out.promo_region_radius_m = promo.radiusM;
   }
 
+  const promoRadiusM = _promoRadiusMeters(eventData, promo);
+  if (promoRadiusM !== undefined) {
+    out.promo_radius_m = promoRadiusM;
+  }
+  if (location && promoRadiusM !== undefined && promoRadiusM > 0) {
+    Object.assign(out, _promoBoundsFromCenterRadius(location, promoRadiusM));
+  }
+
   return _removeUndefinedValues(out);
 };
 
 const _getChangedFields = (
   currentData: EventSchema,
   proposedData: Partial<EventSchema>
-): Partial<EventSchema> => {
+): Record<string, unknown> => {
   const runtimeGeoPointFields = new Set([
     "location",
     "bounds_center",
     "promo_region_center",
   ]);
+  const proposed = _removeUndefinedValues(proposedData) as Record<
+    string,
+    unknown
+  >;
   const changed = Object.entries(
-    _removeUndefinedValues(proposedData) as Record<string, unknown>
+    proposed
   ).filter(([key, proposedValue]) => {
     const currentValue = (currentData as unknown as Record<string, unknown>)[
       key
@@ -258,7 +322,17 @@ const _getChangedFields = (
     }
     return !_areValuesEqual(currentValue, proposedValue);
   });
-  return Object.fromEntries(changed) as Partial<EventSchema>;
+  const out = Object.fromEntries(changed) as Record<string, unknown>;
+
+  const current = currentData as unknown as Record<string, unknown>;
+  for (const field of TYPESENSE_HELPER_FIELDS) {
+    if (field in proposed) continue;
+    if (current[field] !== undefined) {
+      out[field] = admin.firestore.FieldValue.delete();
+    }
+  }
+
+  return out;
 };
 
 /**

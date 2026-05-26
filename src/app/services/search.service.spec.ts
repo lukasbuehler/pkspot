@@ -9,10 +9,14 @@ import {
 } from "../components/spot-map/spot-filter-config";
 
 const typesenseSearchMock = vi.hoisted(() => vi.fn());
+const typesenseMultiSearchMock = vi.hoisted(() => vi.fn());
 
 // Mock the Typesense SearchClient
 vi.mock("typesense", () => ({
   SearchClient: vi.fn().mockImplementation(() => ({
+    multiSearch: {
+      perform: typesenseMultiSearchMock,
+    },
     collections: vi.fn().mockReturnValue({
       documents: vi.fn().mockReturnValue({
         search: typesenseSearchMock,
@@ -40,6 +44,15 @@ describe("SearchService", () => {
   beforeEach(() => {
     typesenseSearchMock.mockReset();
     typesenseSearchMock.mockResolvedValue({ hits: [], found: 0 });
+    typesenseMultiSearchMock.mockReset();
+    typesenseMultiSearchMock.mockResolvedValue({
+      results: [
+        { hits: [], found: 0 },
+        { hits: [], found: 0 },
+        { hits: [], found: 0 },
+        { hits: [], found: 0 },
+      ],
+    });
 
     mapsApiServiceSpy = {
       autocompletePlaceSearch: vi.fn().mockResolvedValue([]),
@@ -549,42 +562,43 @@ describe("SearchService", () => {
       expect(event?.location).toEqual({ lat: 47.5596, lng: 7.5886 });
     });
 
-    it("loads map events near either promo center or event location", async () => {
-      const googleBackup = (globalThis as any).google;
-      (globalThis as any).google = {
-        maps: {
-          geometry: {
-            spherical: {
-              computeDistanceBetween: vi.fn(() => 1000),
-            },
-          },
-        },
-      };
+    it("counts map events by event location and fetches promos by promo bounds", async () => {
+      const bounds = {
+        getNorthEast: () => ({ lat: () => 47.4, lng: () => 8.55 }),
+        getSouthWest: () => ({ lat: () => 47.39, lng: () => 8.54 }),
+      } as google.maps.LatLngBounds;
 
-      try {
-        const bounds = {
-          getCenter: () => ({ lat: () => 47.397329, lng: () => 8.54851 }),
-          getNorthEast: () => ({ lat: () => 47.4, lng: () => 8.55 }),
-        } as google.maps.LatLngBounds;
+      await service.searchEventsInBounds(bounds);
 
-        await service.searchEventsInBounds(bounds);
+      const searches = typesenseMultiSearchMock.mock.calls[0][0].searches;
+      expect(searches[1].collection).toBe("events_v1");
+      expect(searches[1].filter_by).toContain("published:!=false");
+      expect(searches[1].filter_by).toContain("end_seconds:>=");
+      expect(searches[1].filter_by).toContain("location:(47.4, 8.55");
 
-        const filterByValues = typesenseSearchMock.mock.calls.map(
-          ([params]) => params.filter_by,
-        );
-        expect(filterByValues).toContainEqual(
-          expect.stringContaining(
-            "promo_region_center:(47.397329, 8.548510, 25.000 km)",
-          ),
-        );
-        expect(filterByValues).toContainEqual(
-          expect.stringContaining(
-            "location:(47.397329, 8.548510, 25.000 km)",
-          ),
-        );
-      } finally {
-        (globalThis as any).google = googleBackup;
-      }
+      expect(searches[2].collection).toBe("events_v1");
+      expect(searches[2].filter_by).toContain("promo_radius_m:>0");
+      expect(searches[2].filter_by).toContain("promo_bounds_north:>=47.39");
+      expect(searches[2].filter_by).toContain("promo_bounds_south:<=47.4");
+    });
+
+    it("omits viewport geo filters when bounds cover the world", async () => {
+      const bounds = {
+        getNorthEast: () => ({ lat: () => 85, lng: () => 180 }),
+        getSouthWest: () => ({ lat: () => -85, lng: () => -180 }),
+      } as google.maps.LatLngBounds;
+
+      await service.searchMapObjectsInBounds(bounds);
+
+      const searches = typesenseMultiSearchMock.mock.calls[0][0].searches;
+      expect(searches[0].filter_by).toBeUndefined();
+      expect(searches[1].filter_by).toContain("published:!=false");
+      expect(searches[1].filter_by).toContain("end_seconds:>=");
+      expect(searches[1].filter_by).not.toContain("location:(");
+      expect(searches[2].filter_by).toContain("promo_radius_m:>0");
+      expect(searches[2].filter_by).not.toContain("promo_bounds_");
+      expect(searches[3].filter_by).toContain("scope:=locality");
+      expect(searches[3].filter_by).not.toContain("visibility_bounds_");
     });
   });
 });

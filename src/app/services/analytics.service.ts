@@ -48,6 +48,7 @@ export class AnalyticsService {
   private router = inject(Router);
   private _initialized = false;
   private _posthog: typeof import("posthog-js").default | null = null;
+  private readonly _nativeSuperProperties = new Map<string, unknown>();
   private readonly appVersion = version;
   private readonly distinctIdStorageKey = "ph_distinct_id_v1";
   private readonly initialReferrerStorageKey = "ph_initial_referrer_v1";
@@ -156,6 +157,11 @@ export class AnalyticsService {
     await CapacitorPostHog.setup({
       apiKey,
       host,
+      captureApplicationLifecycleEvents: false,
+      enableSessionReplay: false,
+      sessionReplayConfig: {
+        captureNetworkTelemetry: false,
+      },
     });
 
     // Register native platform globals immediately after setup so they are present on all $screen events.
@@ -761,13 +767,21 @@ export class AnalyticsService {
     props: Record<string, unknown>
   ): Promise<void> {
     try {
-      const promises = Object.entries(props).map(([key, value]) =>
-        CapacitorPostHog.register({
-          key: key,
-          value: value,
-        })
+      const changedProps = Object.entries(props).filter(([key, value]) => {
+        if (this._nativeSuperProperties.get(key) === value) {
+          return false;
+        }
+
+        return true;
+      });
+
+      const promises = changedProps.map(([key, value]) =>
+        CapacitorPostHog.register({ key, value })
       );
       await Promise.all(promises);
+      for (const [key, value] of changedProps) {
+        this._nativeSuperProperties.set(key, value);
+      }
     } catch (error) {
       console.warn("Failed to register native super properties", error);
     }

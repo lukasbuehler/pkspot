@@ -188,6 +188,28 @@ const getDistanceToCenter = (
   return anchor && center ? getDistanceMeters(center, anchor) : Number.POSITIVE_INFINITY;
 };
 
+const buildVisibilityBounds = (
+  center: { lat: number; lng: number },
+  radiusM: number
+): Pick<
+  CommunityPageSchema,
+  | "visibility_bounds_north"
+  | "visibility_bounds_south"
+  | "visibility_bounds_east"
+  | "visibility_bounds_west"
+> => {
+  const radius = Math.max(0, radiusM);
+  const dLat = radius / 111000;
+  const cosLat = Math.cos((center.lat * Math.PI) / 180) || 1e-6;
+  const dLng = radius / (111000 * cosLat);
+  return {
+    visibility_bounds_north: center.lat + dLat,
+    visibility_bounds_south: center.lat - dLat,
+    visibility_bounds_east: center.lng + dLng,
+    visibility_bounds_west: center.lng - dLng,
+  };
+};
+
 const getRatingValue = (spot: SpotSchema): number => spot.rating ?? 0;
 
 const getReviewCount = (spot: SpotSchema): number => spot.num_reviews ?? 0;
@@ -710,6 +732,10 @@ const buildCommunityPageDoc = async (
         lng: communityBounds.bounds_center[1],
       }
     : null;
+  const visibilityBounds =
+    communityBounds && communityCenter
+      ? buildVisibilityBounds(communityCenter, communityBounds.bounds_radius_m)
+      : null;
   const communityPicks = buildCommunityPickSections(spots, communityCenter);
   const image = existingPage?.image?.url
     ? existingPage.image
@@ -788,6 +814,10 @@ const buildCommunityPageDoc = async (
     sourceMaxUpdatedAt: sourceMaxUpdatedAt ?? undefined,
     bounds_center: communityBounds?.bounds_center,
     bounds_radius_m: communityBounds?.bounds_radius_m,
+    visibility_bounds_north: visibilityBounds?.visibility_bounds_north,
+    visibility_bounds_south: visibilityBounds?.visibility_bounds_south,
+    visibility_bounds_east: visibilityBounds?.visibility_bounds_east,
+    visibility_bounds_west: visibilityBounds?.visibility_bounds_west,
     google_maps_place_id: existingPage?.google_maps_place_id,
   }) as CommunityPageSchema;
 };

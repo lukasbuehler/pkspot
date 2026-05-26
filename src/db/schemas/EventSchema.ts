@@ -191,11 +191,16 @@ export interface EventSchema {
   area_polygon?: Array<{ points: Array<{ lat: number; lng: number }> }>;
 
   /**
-   * Region that surfaces the event in the map-island. If absent, the event
-   * does not appear in the island promo at all (only on /events and its
-   * own page).
+   * Legacy region that surfaces the event in the map-island. New promoted
+   * events should prefer `promo_radius_m`, centered on `location`, so paid
+   * reach stays separate from the real event marker/list location.
    */
   promo_region?: EventPromoRegionSchema;
+  /**
+   * Promo radius around the event location, in meters. Used only for paid
+   * map-island visibility; normal event markers/counts use `location`.
+   */
+  promo_radius_m?: number;
 
   /** Sponsor metadata for branding/logo treatments. Does not imply paid advertising. */
   sponsor?: EventSponsorSchema;
@@ -255,6 +260,10 @@ export interface EventSchema {
    * the client doesn't need the admin SDK to read it. */
   bounds_center?: [number, number];
   bounds_radius_m?: number;
+  promo_bounds_north?: number;
+  promo_bounds_south?: number;
+  promo_bounds_east?: number;
+  promo_bounds_west?: number;
   promo_region_center?: [number, number];
   promo_region_radius_m?: number;
 }

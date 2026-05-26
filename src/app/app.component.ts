@@ -23,11 +23,20 @@ import {
 import { Injector } from "@angular/core";
 import {
   Router,
-  RoutesRecognized,
   RouterLink,
   RouterOutlet,
   ActivatedRoute,
   NavigationEnd,
+  NavigationStart,
+  NavigationCancel,
+  NavigationError,
+  RoutesRecognized,
+  GuardsCheckStart,
+  GuardsCheckEnd,
+  ResolveStart,
+  ResolveEnd,
+  RouteConfigLoadStart,
+  RouteConfigLoadEnd,
   RouterModule,
 } from "@angular/router";
 import { filter } from "rxjs/operators";
@@ -95,6 +104,14 @@ type NavbarButton = (LinkButton | FunctionButton) & {
 };
 
 type NavbarButtonConfig = NavbarButton[];
+
+interface NavigationPerfEntry {
+  startedAt: number;
+  url: string;
+  lastPhaseAt: number;
+}
+
+type NavigationPerfDetails = Record<string, unknown>;
 
 @Component({
   selector: "app-root",
@@ -196,6 +213,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _lastTrackedAuthUid: string | null = null;
   private _lastConsentState: boolean | null = null;
   private readonly _engagedPingEnabled = false;
+  private readonly _navigationPerfEntries = new Map<
+    number,
+    NavigationPerfEntry
+  >();
+  private _activeNavigationPerfId: number | null = null;
 
   alainMode: boolean = false;
 
@@ -231,14 +253,15 @@ export class AppComponent implements OnInit, AfterViewInit {
       const isPortraitMobile =
         window.innerHeight < 700 && window.innerWidth < 768;
 
-      if (isLandscapeMobile || isPortraitMobile) {
-        this.alainMode = true;
-      } else {
-        this.alainMode = false;
+      const nextAlainMode = isLandscapeMobile || isPortraitMobile;
+      if (this.alainMode === nextAlainMode) {
+        return;
       }
-      GlobalVariables.alainMode.next(this.alainMode);
+
+      this.alainMode = nextAlainMode;
+      GlobalVariables.alainMode.next(nextAlainMode);
       this._analyticsService.trackEvent("Alain Mode Changed", {
-        alainMode: this.alainMode,
+        alainMode: nextAlainMode,
       });
     }
   }
@@ -259,13 +282,12 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     this._keyboardService.init();
+    this.installNavigationPerformanceLogging();
 
     this.router.events
-      .pipe(filter((event) => event instanceof RoutesRecognized))
-      .subscribe((event: RoutesRecognized) => {
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
         this.setEmbeddedStateFromUrl(event.url);
-
-        this.maybeOpenClickWrap();
       });
 
     // Setup auth state listener immediately for session restoration
@@ -567,6 +589,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       .subscribe((event: NavigationEnd) => {
         const nav = event as NavigationEnd;
         this.currentNavUrl.set(nav.urlAfterRedirects);
+        this.checkWelcomeDialogForCurrentRoute();
 
         const send = () => {
           try {
@@ -697,17 +720,33 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     this.hasAds = (window as { canRunAds?: boolean }).canRunAds ?? false;
+    this.checkWelcomeDialogForCurrentRoute();
+  }
+
+  private checkWelcomeDialogForCurrentRoute(): void {
+    if (typeof window === "undefined") {
+      return;
+    }
 
     try {
       const currentTermsVersion = this._consentService.CURRENT_TERMS_VERSION;
       const acceptedVersion = localStorage.getItem("acceptedVersion");
+      this.policyAccepted = acceptedVersion === currentTermsVersion;
+
+      if (this.policyAccepted) {
+        this._consentService.grantConsent();
+        return;
+      }
+
       const path = window.location.pathname;
       const isEmbedded =
-        path.startsWith("/embedded") || window.self !== window.top;
-      const isAcceptanceFree = this.isAcceptanceFreePath(path);
+        path.startsWith("/embedded") ||
+        this.isEmbedded() === true ||
+        window.self !== window.top;
+      const isAcceptanceFree =
+        this.getActiveRouteAcceptanceFree() || this.isAcceptanceFreePath(path);
 
       if (
-        acceptedVersion !== currentTermsVersion &&
         !isEmbedded &&
         !isAcceptanceFree &&
         !isBot() &&
@@ -727,8 +766,17 @@ export class AppComponent implements OnInit, AfterViewInit {
         });
       }
     } catch (e) {
-      console.error("Error in initial welcome dialog check", e);
+      console.error("Error in welcome dialog check", e);
     }
+  }
+
+  private getActiveRouteAcceptanceFree(): boolean {
+    let activeRoute = this.route;
+    while (activeRoute.firstChild) {
+      activeRoute = activeRoute.firstChild;
+    }
+
+    return activeRoute.snapshot.data["acceptanceFree"] === true;
   }
 
   private isAcceptanceFreePath(pathname: string): boolean {
@@ -962,102 +1010,238 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  maybeOpenClickWrap() {
-    const currentTermsVersion = this._consentService.CURRENT_TERMS_VERSION;
+  private installNavigationPerformanceLogging(): void {
+    if (!this.isNativePlatform || typeof window === "undefined") {
+      return;
+    }
 
-    let isABot: boolean = false;
-    if (typeof window !== "undefined") {
-      isABot =
-        navigator.userAgent.match(
-          /bot|googlebot|crawler|spider|robot|crawling/i,
-        ) !== null;
-      let acceptedVersion = localStorage.getItem("acceptedVersion");
+    this.router.events.subscribe((event) => {
+      const now = performance.now();
 
-      this.policyAccepted = acceptedVersion === currentTermsVersion;
-
-      // Check both path-based embedding (/embedded route) and iframe embedding (window.self !== window.top)
-      const isInIframe = window.self !== window.top;
+      if (event instanceof NavigationStart) {
+        this._activeNavigationPerfId = event.id;
+        this._navigationPerfEntries.set(event.id, {
+          startedAt: now,
+          lastPhaseAt: now,
+          url: event.url,
+        });
+        this.logNavigationPerformance(event.id, "NavigationStart", {
+          url: event.url,
+          trigger: event.navigationTrigger,
+          restoredState: event.restoredState,
+        });
+        return;
+      }
 
       if (
-        !this.policyAccepted &&
-        !isABot &&
-        this.isEmbedded() === false &&
-        !isInIframe &&
-        this.dialog.openDialogs.length === 0
+        event instanceof RouteConfigLoadStart ||
+        event instanceof RouteConfigLoadEnd
       ) {
-        firstValueFrom(
-          this.router.events.pipe(
-            filter((event) => event instanceof NavigationEnd),
-          ),
-        )
-          .then(() => {
-            // Check route data after navigation completes
-            const checkRouteData = () => {
-              const currentRoute = this.route;
-              let activeRoute = currentRoute;
-
-              // Navigate to the actual active route
-              while (activeRoute.firstChild) {
-                activeRoute = activeRoute.firstChild;
-              }
-
-              const data = activeRoute.snapshot.data;
-              const acceptanceFree =
-                data["acceptanceFree"] ||
-                this.isAcceptanceFreePath(window.location.pathname);
-
-              // Check again if user has accepted terms (might have changed)
-              const currentAcceptedVersion =
-                localStorage.getItem("acceptedVersion");
-
-              if (currentAcceptedVersion !== currentTermsVersion) {
-                if (!acceptanceFree) {
-                  // Only show dialog if not on an acceptance-free page
-                  if (this.dialog.openDialogs.length === 0) {
-                    const dialogRef = this.dialog.open(WelcomeDialogComponent, {
-                      data: { version: currentTermsVersion },
-                      hasBackdrop: true,
-                      disableClose: true,
-                      enterAnimationDuration: "0ms",
-                    });
-
-                    // Listen for dialog close and grant consent if user agreed
-                    dialogRef.afterClosed().subscribe((agreed: boolean) => {
-                      if (agreed) {
-                        this._consentService.grantConsent();
-                      }
-                    });
-                  }
-                } else {
-                  // if the dialog was already open on acceptance-free page, close it
-                  this.dialog.closeAll();
-                  // Do NOT grant consent just for visiting a consent-free page
-                  // Consent should only be granted when user explicitly agrees
-                }
-              } else {
-                // User has already accepted current terms version, grant consent
-                this._consentService.grantConsent();
-              }
-            };
-
-            // Check route data immediately and also subscribe to route changes
-            checkRouteData();
-
-            // Also listen to route data changes for future navigation
-            this.router.events
-              .pipe(filter((event) => event instanceof NavigationEnd))
-              .subscribe(() => {
-                setTimeout(() => checkRouteData(), 100); // Small delay to ensure route data is updated
-              });
-          })
-          .catch((err) => {
-            console.error(
-              "Error from navigation when opening welcome dialog:",
-              err,
-            );
-          });
+        this.logNavigationPerformance(
+          this._activeNavigationPerfId ?? -1,
+          this.getNavigationPerformancePhase(event),
+          {
+            routePath: event.route.path,
+          },
+        );
+        return;
       }
+
+      if (
+        event instanceof RoutesRecognized ||
+        event instanceof GuardsCheckStart ||
+        event instanceof GuardsCheckEnd ||
+        event instanceof ResolveStart ||
+        event instanceof ResolveEnd ||
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        this.logNavigationPerformance(
+          event.id,
+          this.getNavigationPerformancePhase(event),
+          {
+            url: "url" in event ? event.url : undefined,
+            urlAfterRedirects:
+              "urlAfterRedirects" in event
+                ? event.urlAfterRedirects
+                : undefined,
+            reason:
+              event instanceof NavigationCancel ? event.reason : undefined,
+            error:
+              event instanceof NavigationError
+                ? this.summarizeNavigationError(event.error)
+                : undefined,
+          },
+        );
+
+        if (
+          event instanceof NavigationEnd ||
+          event instanceof NavigationCancel ||
+          event instanceof NavigationError
+        ) {
+          this._navigationPerfEntries.delete(event.id);
+          if (this._activeNavigationPerfId === event.id) {
+            this._activeNavigationPerfId = null;
+          }
+        }
+      }
+    });
+
+    this.installNavigationClickLogging();
+    this.installLongTaskLogging();
+  }
+
+  private getNavigationPerformancePhase(
+    event:
+      | RoutesRecognized
+      | GuardsCheckStart
+      | GuardsCheckEnd
+      | ResolveStart
+      | ResolveEnd
+      | RouteConfigLoadStart
+      | RouteConfigLoadEnd
+      | NavigationEnd
+      | NavigationCancel
+      | NavigationError,
+  ): string {
+    if (event instanceof RoutesRecognized) return "RoutesRecognized";
+    if (event instanceof GuardsCheckStart) return "GuardsCheckStart";
+    if (event instanceof GuardsCheckEnd) return "GuardsCheckEnd";
+    if (event instanceof ResolveStart) return "ResolveStart";
+    if (event instanceof ResolveEnd) return "ResolveEnd";
+    if (event instanceof RouteConfigLoadStart) return "RouteConfigLoadStart";
+    if (event instanceof RouteConfigLoadEnd) return "RouteConfigLoadEnd";
+    if (event instanceof NavigationEnd) return "NavigationEnd";
+    if (event instanceof NavigationCancel) return "NavigationCancel";
+    return "NavigationError";
+  }
+
+  private logNavigationPerformance(
+    navigationId: number,
+    phase: string,
+    details: NavigationPerfDetails = {},
+  ): void {
+    const now = performance.now();
+    const entry = this._navigationPerfEntries.get(navigationId);
+    const sinceStartMs = entry ? Math.round(now - entry.startedAt) : 0;
+    const sincePreviousMs = entry ? Math.round(now - entry.lastPhaseAt) : 0;
+
+    if (entry) {
+      entry.lastPhaseAt = now;
     }
+
+    this.writeNavigationPerformanceLog("info", {
+      navigationId,
+      phase,
+      sinceStartMs,
+      sincePreviousMs,
+      ...details,
+    });
+  }
+
+  private writeNavigationPerformanceLog(
+    level: "info" | "warn",
+    details: NavigationPerfDetails,
+  ): void {
+    const message = `[NavPerf] ${this.stringifyNavigationPerformanceDetails(details)}`;
+    if (level === "warn") {
+      console.warn(message);
+      return;
+    }
+
+    console.info(message);
+  }
+
+  private stringifyNavigationPerformanceDetails(
+    details: NavigationPerfDetails,
+  ): string {
+    return Object.entries(details)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => `${key}=${this.stringifyNavigationPerformanceValue(value)}`)
+      .join(" ");
+  }
+
+  private stringifyNavigationPerformanceValue(value: unknown): string {
+    if (typeof value === "string") {
+      return JSON.stringify(value);
+    }
+    if (
+      typeof value === "number" ||
+      typeof value === "boolean" ||
+      value === null
+    ) {
+      return String(value);
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
+  private installNavigationClickLogging(): void {
+    document.addEventListener(
+      "click",
+      (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+          return;
+        }
+
+        const anchor = target.closest("a");
+        const button = target.closest("button");
+        const element = anchor ?? button;
+        if (!element) {
+          return;
+        }
+
+        this.writeNavigationPerformanceLog("info", {
+          phase: "Click",
+          tagName: element.tagName.toLowerCase(),
+          href: anchor?.getAttribute("href") ?? undefined,
+          text: element.textContent?.trim().slice(0, 80) ?? "",
+          path: window.location.pathname,
+        });
+      },
+      { capture: true },
+    );
+  }
+
+  private installLongTaskLogging(): void {
+    const performanceObserver = (
+      window as {
+        PerformanceObserver?: typeof PerformanceObserver;
+      }
+    ).PerformanceObserver;
+    if (!performanceObserver) {
+      return;
+    }
+
+    try {
+      const observer = new performanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          this.writeNavigationPerformanceLog("warn", {
+            phase: "LongTask",
+            startTimeMs: Math.round(entry.startTime),
+            durationMs: Math.round(entry.duration),
+            path: window.location.pathname,
+          });
+        }
+      });
+      observer.observe({ entryTypes: ["longtask"] });
+    } catch (error) {
+      console.debug("[NavPerf] LongTask observer unavailable", error);
+    }
+  }
+
+  private summarizeNavigationError(error: unknown): string {
+    if (error instanceof Error) {
+      return `${error.name}: ${error.message}`;
+    }
+
+    return String(error);
   }
 
   logUserOut() {

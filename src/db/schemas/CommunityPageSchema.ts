@@ -142,6 +142,11 @@ export interface CommunityPageSchema {
   bounds_center?: [number, number];
   /** Radius in meters from `bounds_center` covering the community area. */
   bounds_radius_m?: number;
+  /** Derived bbox used by Typesense to find communities overlapping a viewport. */
+  visibility_bounds_north?: number;
+  visibility_bounds_south?: number;
+  visibility_bounds_east?: number;
+  visibility_bounds_west?: number;
 
   /**
    * Google Maps region Place ID used to style the administrative boundary

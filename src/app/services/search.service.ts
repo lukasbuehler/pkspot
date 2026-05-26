@@ -832,9 +832,11 @@ export class SearchService {
       SearchService._readGeopoint(doc?.location_raw) ??
       SearchService._readGeopoint(doc?.location);
     const center = SearchService._readGeopoint(doc?.bounds_center);
-    const promoCenter = SearchService._readGeopoint(doc?.promo_region_center);
     const boundsRadius = SearchService._readFloat(doc?.bounds_radius_m);
-    const promoRadius = SearchService._readFloat(doc?.promo_region_radius_m);
+    const promoCenter = SearchService._readGeopoint(doc?.promo_region_center);
+    const promoRadius =
+      SearchService._readFloat(doc?.promo_radius_m) ??
+      SearchService._readFloat(doc?.promo_region_radius_m);
 
     return {
       id: String(doc?.id ?? ""),
@@ -915,12 +917,13 @@ export class SearchService {
       ? SearchService._bboxFromCenterRadius(boundsCenter, boundsRadiusM)
       : undefined;
 
+    const promoRegionCenter = markerLocation ?? preview.promoRegionCenter;
     const promoRegion =
-      preview.promoRegionCenter && preview.promoRegionRadiusM
+      promoRegionCenter && preview.promoRegionRadiusM
         ? {
             center: {
-              lat: preview.promoRegionCenter[0],
-              lng: preview.promoRegionCenter[1],
+              lat: promoRegionCenter[0],
+              lng: promoRegionCenter[1],
             },
             radius_m: preview.promoRegionRadiusM,
           }
@@ -1007,81 +1010,293 @@ export class SearchService {
     bounds: google.maps.LatLngBounds,
     num: number = 30
   ): Promise<PkEvent[]> {
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    const center = bounds.getCenter();
-    const ne = bounds.getNorthEast();
-    const viewportRadiusM =
-      google.maps.geometry?.spherical.computeDistanceBetween(center, ne) ??
-      SearchService._distanceMeters(
-        { lat: center.lat(), lng: center.lng() },
-        { lat: ne.lat(), lng: ne.lng() }
-      );
-    const radiusKm = Math.max(25, viewportRadiusM / 1000).toFixed(3);
-    const lat = center.lat().toFixed(6);
-    const lng = center.lng().toFixed(6);
-
     try {
-      const fieldNames = ["promo_region_center", "location"];
-      const results = await Promise.all(
-        fieldNames.map((fieldName) =>
-          this.client
-            .collections(this.TYPESENSE_COLLECTION_EVENTS)
-            .documents()
-            .search(
-              {
-                q: "*",
-                filter_by: [
-                  "published:!=false",
-                  `end_seconds:>=${nowSeconds}`,
-                  `${fieldName}:(${lat}, ${lng}, ${radiusKm} km)`,
-                ].join(" && "),
-                sort_by: "start_seconds:asc",
-                per_page: Math.max(1, Math.min(250, num)),
-                page: 1,
-              },
-              {}
-            )
-        )
-      );
-
-      const eventsById = new Map<string, PkEvent>();
-      for (const result of results) {
-        const hits = ((result as any)?.hits ?? []) as any[];
-        for (const hit of hits) {
-          const event = this.getEventFromHit(hit);
-          if (event) eventsById.set(event.id, event);
-        }
-      }
-
-      return Array.from(eventsById.values()).sort(
-        (left, right) => left.start.getTime() - right.start.getTime()
-      );
+      const result = await this.searchMapObjectsInBounds(bounds, {
+        eventLimit: num,
+        communityLimit: 1,
+      });
+      return result.events;
     } catch (error) {
       console.error("typesense events-in-bounds error:", error);
       return [];
     }
   }
 
-  private static _distanceMeters(
-    left: { lat: number; lng: number },
-    right: { lat: number; lng: number }
-  ): number {
-    const earthRadiusM = 6371e3;
-    const lat1 = (left.lat * Math.PI) / 180;
-    const lat2 = (right.lat * Math.PI) / 180;
-    const deltaLat = ((right.lat - left.lat) * Math.PI) / 180;
-    const deltaLng = ((right.lng - left.lng) * Math.PI) / 180;
-    const haversine =
-      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-      Math.cos(lat1) *
-        Math.cos(lat2) *
-        Math.sin(deltaLng / 2) *
-        Math.sin(deltaLng / 2);
-    return (
-      2 *
-      earthRadiusM *
-      Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+  public async searchMapObjectsInBounds(
+    bounds: google.maps.LatLngBounds,
+    options: {
+      eventLimit?: number;
+      communityLimit?: number;
+    } = {}
+  ): Promise<MapViewportSearchResult> {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const bbox = SearchService._boundsToLiteral(bounds);
+    const spotFilterBy = SearchService._spotViewportFilter(bbox);
+    const eventLocationFilterBy = SearchService._geoViewportFilter(
+      "location",
+      bbox
     );
+    const promoFilterBy = SearchService._boundsOverlapFilter(
+      "promo_bounds",
+      bbox
+    );
+    const communityFilterBy = SearchService._boundsOverlapFilter(
+      "visibility_bounds",
+      bbox
+    );
+    const eventLimit = Math.max(1, Math.min(250, options.eventLimit ?? 30));
+    const communityLimit = Math.max(
+      1,
+      Math.min(250, options.communityLimit ?? 80)
+    );
+    const eventIncludeFields = [
+      "id",
+      "name",
+      "slug",
+      "venue_string",
+      "locality_string",
+      "banner_src",
+      "logo_src",
+      "sponsor.name",
+      "sponsor.logo_src",
+      "sponsor.logo_background_color",
+      "is_sponsored",
+      "start_seconds",
+      "end_seconds",
+      "promo_starts_at_seconds",
+      "location",
+      "location_raw",
+      "bounds_center",
+      "bounds_radius_m",
+      "promo_radius_m",
+      "promo_region_center",
+      "promo_region_radius_m",
+      "url",
+      "spot_ids",
+      "community_keys",
+      "series_ids",
+      "external_source.provider",
+    ].join(",");
+
+    const response = await this.client.multiSearch.perform(
+      {
+        searches: [
+          {
+            collection: this.TYPESENSE_COLLECTION_SPOTS,
+            q: "*",
+            ...(spotFilterBy ? { filter_by: spotFilterBy } : {}),
+            sort_by: this.SPOT_SORT_BY_RATING,
+            per_page: 1,
+            page: 1,
+            include_fields: "id",
+            highlight_fields: "none",
+          },
+          {
+            collection: this.TYPESENSE_COLLECTION_EVENTS,
+            q: "*",
+            filter_by: SearchService._joinFilters([
+              "published:!=false",
+              `end_seconds:>=${nowSeconds}`,
+              eventLocationFilterBy,
+            ]),
+            sort_by: "start_seconds:asc",
+            per_page: eventLimit,
+            page: 1,
+            include_fields: eventIncludeFields,
+            highlight_fields: "none",
+          },
+          {
+            collection: this.TYPESENSE_COLLECTION_EVENTS,
+            q: "*",
+            filter_by: SearchService._joinFilters([
+              "published:!=false",
+              `end_seconds:>=${nowSeconds}`,
+              "promo_radius_m:>0",
+              promoFilterBy,
+            ]),
+            sort_by: "start_seconds:asc",
+            per_page: eventLimit,
+            page: 1,
+            include_fields: eventIncludeFields,
+            highlight_fields: "none",
+          },
+          {
+            collection: this.TYPESENSE_COLLECTION_COMMUNITIES,
+            q: "*",
+            filter_by: SearchService._joinFilters([
+              "published:!=false",
+              "scope:=locality",
+              communityFilterBy,
+            ]),
+            sort_by: "counts.totalSpots:desc",
+            per_page: communityLimit,
+            page: 1,
+            include_fields: [
+              "communityKey",
+              "scope",
+              "displayName",
+              "preferredSlug",
+              "canonicalPath",
+              "counts.totalSpots",
+              "bounds_center",
+              "bounds_radius_m",
+              "google_maps_place_id",
+            ].join(","),
+            highlight_fields: "none",
+          },
+        ],
+      } as any,
+      {},
+      {}
+    );
+
+    const results = ((response as any)?.results ?? []) as any[];
+    const spotsResult = results[0] ?? {};
+    const eventsResult = results[1] ?? {};
+    const promoEventsResult = results[2] ?? {};
+    const communitiesResult = results[3] ?? {};
+    const events = ((eventsResult.hits ?? []) as any[])
+      .map((hit) => this.getEventFromHit(hit))
+      .filter((event): event is PkEvent => !!event);
+    const promoEvents = ((promoEventsResult.hits ?? []) as any[])
+      .map((hit) => this.getEventFromHit(hit))
+      .filter((event): event is PkEvent => !!event);
+    const communities = ((communitiesResult.hits ?? []) as any[]).map((hit) =>
+      this.getCommunityPreviewFromHit(hit)
+    );
+
+    return {
+      counts: {
+        spots: SearchService._readFound(spotsResult),
+        events: SearchService._readFound(eventsResult),
+        communities: SearchService._readFound(communitiesResult),
+      },
+      events,
+      promoEvents,
+      communities,
+    };
+  }
+
+  private static _readFound(result: unknown): number {
+    const found = (result as { found?: unknown } | null)?.found;
+    return typeof found === "number" && Number.isFinite(found) ? found : 0;
+  }
+
+  private static _joinFilters(
+    filters: Array<string | undefined>
+  ): string | undefined {
+    const activeFilters = filters.filter(
+      (filter): filter is string => typeof filter === "string" && !!filter
+    );
+    return activeFilters.length > 0 ? activeFilters.join(" && ") : undefined;
+  }
+
+  private static _boundsToLiteral(bounds: google.maps.LatLngBounds): {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+    crossesAntimeridian: boolean;
+    coversWorld: boolean;
+  } {
+    const rawEast = bounds.getNorthEast().lng();
+    const rawWest = bounds.getSouthWest().lng();
+    const east = SearchService._normalizeLongitude(rawEast);
+    const west = SearchService._normalizeLongitude(rawWest);
+    const crossesAntimeridian = west > east;
+    const longitudeSpan = crossesAntimeridian
+      ? east + 360 - west
+      : east - west;
+    const rawLongitudeSpan = Math.abs(rawEast - rawWest);
+
+    return {
+      north: bounds.getNorthEast().lat(),
+      south: bounds.getSouthWest().lat(),
+      east,
+      west,
+      crossesAntimeridian,
+      coversWorld: rawLongitudeSpan >= 340 || longitudeSpan >= 340,
+    };
+  }
+
+  private static _normalizeLongitude(lng: number): number {
+    const normalized = ((((lng + 180) % 360) + 360) % 360) - 180;
+    return normalized === -180 && lng > 0 ? 180 : normalized;
+  }
+
+  private static _spotViewportFilter(bbox: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+    coversWorld: boolean;
+    crossesAntimeridian: boolean;
+  }): string | undefined {
+    return SearchService._geoViewportFilter("location", bbox);
+  }
+
+  private static _geoViewportFilter(
+    field: string,
+    bbox: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+      coversWorld: boolean;
+      crossesAntimeridian: boolean;
+    }
+  ): string | undefined {
+    if (bbox.coversWorld) {
+      return undefined;
+    }
+
+    const west = bbox.crossesAntimeridian ? bbox.west - 360 : bbox.west;
+    const latLongPairList = [
+      bbox.north,
+      bbox.east,
+      bbox.south,
+      bbox.east,
+      bbox.south,
+      west,
+      bbox.north,
+      west,
+    ].map((num) => (Math.round(num * 1000) / 1000).toString());
+
+    return `${field}:(${latLongPairList.join(", ")})`;
+  }
+
+  private static _boundsOverlapFilter(
+    fieldPrefix: string,
+    bbox: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+      coversWorld: boolean;
+      crossesAntimeridian: boolean;
+    }
+  ): string | undefined {
+    if (bbox.coversWorld) {
+      return undefined;
+    }
+
+    const latFilter = [
+      `${fieldPrefix}_north:>=${bbox.south}`,
+      `${fieldPrefix}_south:<=${bbox.north}`,
+    ].join(" && ");
+
+    if (bbox.crossesAntimeridian) {
+      return [
+        latFilter,
+        `(${fieldPrefix}_east:>=${bbox.west} || ${fieldPrefix}_west:<=${bbox.east})`,
+      ].join(" && ");
+    }
+
+    return [
+      latFilter,
+      `${fieldPrefix}_east:>=${bbox.west}`,
+      `${fieldPrefix}_west:<=${bbox.east}`,
+    ].join(" && ");
   }
 
   // --- Typesense field readers (defensive: hits may come back with either
@@ -1173,6 +1388,19 @@ export interface CommunitySearchPreview {
   boundsCenter?: [number, number];
   boundsRadiusM?: number;
   googleMapsPlaceId?: string;
+}
+
+export interface MapViewportObjectCounts {
+  spots: number;
+  events: number;
+  communities: number;
+}
+
+export interface MapViewportSearchResult {
+  counts: MapViewportObjectCounts;
+  events: PkEvent[];
+  promoEvents: PkEvent[];
+  communities: CommunitySearchPreview[];
 }
 
 export interface EventSearchPreview {

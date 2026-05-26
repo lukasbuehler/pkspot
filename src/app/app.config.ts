@@ -51,9 +51,8 @@ import { Overlay } from "@angular/cdk/overlay";
 import { provideNativeDateAdapter } from "@angular/material/core";
 
 import { routes } from "./app.routes";
-import { provideRouter, withViewTransitions } from "@angular/router";
+import { provideRouter } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
-import { Capacitor } from "@capacitor/core";
 import { ApplicationErrorHandler } from "./services/application-error-handler.service";
 
 // Module-level singleton to ensure Firestore is only initialized once
@@ -123,31 +122,7 @@ export const appConfig: ApplicationConfig = {
     provideFunctions(() => ngfGetFunctions(inject(FirebaseApp), "europe-west1")),
     // TODO: Make Auth provider consent-aware
     // provideAuth(() => getAuth()),
-    provideRouter(
-      routes,
-      withViewTransitions({
-        onViewTransitionCreated: (transitionInfo) => {
-          // Skip transitions on iOS (native or Safari) where View Transitions API
-          // causes glitches and backdrop-filter blur flickering
-          const platform = Capacitor.getPlatform();
-
-          // Always skip on native iOS
-          if (platform === "ios") {
-            transitionInfo.transition.skipTransition();
-            return;
-          }
-
-          // Also skip on Safari desktop (non-native)
-          if (platform === "web") {
-            const userAgent = navigator?.userAgent ?? "";
-            const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
-            if (isSafari) {
-              transitionInfo.transition.skipTransition();
-            }
-          }
-        },
-      })
-    ),
+    provideRouter(routes),
     BrowserModule,
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,

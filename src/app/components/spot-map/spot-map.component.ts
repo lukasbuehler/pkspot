@@ -138,6 +138,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   showSpotPreview = input<boolean>(false);
   bottomSheetOffset = input<boolean>(false);
   isDebug = input<boolean>(false);
+  showSpots = input(true);
 
   @Input() showGeolocation: boolean = true;
   @Input() showSatelliteToggle: boolean = false;
@@ -304,7 +305,13 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   visibleHighlightedSpots = this._spotMapDataManager.visibleHighlightedSpots;
   visibleAmenityMarkers = this._spotMapDataManager.visibleAmenityMarkers;
   hideRegularSpotPins = computed(
-    () => this.spotFilterMode() !== SpotFilterMode.None
+    () => !this.showSpots() || this.spotFilterMode() !== SpotFilterMode.None
+  );
+  readonly renderedVisibleSpots = computed(() =>
+    this.showSpots() ? this.visibleSpots() : []
+  );
+  readonly renderedHighlightedSpots = computed(() =>
+    this.showSpots() ? this.visibleHighlightedSpots() : []
   );
 
   private _shouldShowCommunityCenterDot(community: CommunityMapMarker): boolean {

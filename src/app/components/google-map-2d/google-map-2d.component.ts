@@ -376,6 +376,10 @@ export class GoogleMap2dComponent
    * @returns Array of SpotPreviewData to display as highlight markers
    */
   getVisibleHighlightedSpots(): SpotPreviewData[] {
+    if (this.hideRegularSpotPins()) {
+      return [];
+    }
+
     const spots = this._highlightedSpotsSignal();
     if (spots.length === 0) {
       return spots;
@@ -1374,7 +1378,7 @@ export class GoogleMap2dComponent
     clickableIcons: false,
     gestureHandling: "greedy",
     disableDefaultUI: true,
-    isFractionalZoomEnabled: false,
+    isFractionalZoomEnabled: true,
     tilt: 0,
     headingInteractionEnabled: false,
   };
