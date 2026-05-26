@@ -55,6 +55,24 @@ describe("SpotLandingHelpers", () => {
     });
   });
 
+  it("should mark stewarded and managed spots as organization verified", () => {
+    expect(
+      deriveSpotCommunityData({
+        address: { country: { code: "ch", name: "Switzerland" } },
+        type: "urban landscape",
+        stewardship: { organization_ids: ["pkspot"], organizations: {} },
+      }),
+    ).toEqual(expect.objectContaining({ organizationVerified: true }));
+
+    expect(
+      deriveSpotCommunityData({
+        address: { country: { code: "ch", name: "Switzerland" } },
+        type: "urban landscape",
+        management: { status: "managed" },
+      }),
+    ).toEqual(expect.objectContaining({ organizationVerified: true }));
+  });
+
   it("should mark covered and indoor spots as dry", () => {
     expect(
       isDrySpotCandidate({

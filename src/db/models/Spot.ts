@@ -73,6 +73,9 @@ export class LocalSpot {
     return this.userMedia().length > 0 && this.hasRating();
   });
   isIconic: boolean = false;
+  stewardship: SpotSchema["stewardship"];
+  management: SpotSchema["management"];
+  /** @deprecated Use stewardship or management. */
   verification: SpotSchema["verification"];
   rating: number = 0; // from 0-5, where 0 means no rating. Default is 0, 1-5 set by cloud function.
   numReviews: number; // integer
@@ -263,6 +266,8 @@ export class LocalSpot {
     });
 
     this.isIconic = data.is_iconic ?? false;
+    this.stewardship = data.stewardship;
+    this.management = data.management;
     this.verification = data.verification;
     this.rating = data.rating ?? 0;
     this.numReviews = data.num_reviews ?? 0;
@@ -440,6 +445,8 @@ export class LocalSpot {
     // Do not mutate _streetview here; it is derived separately
 
     this.isIconic = data.is_iconic ?? false;
+    this.stewardship = data.stewardship;
+    this.management = data.management;
     this.verification = data.verification;
     this.rating = data.rating ?? 0;
     this.numReviews = data.num_reviews ?? 0;
@@ -540,6 +547,8 @@ export class LocalSpot {
       description: this.descriptions(),
       media: mediaSchema,
       is_iconic: this.isIconic,
+      stewardship: this.stewardship,
+      management: this.management,
       verification: this.verification,
       rating: this.rating || undefined, // 0 will be removed (0 means no rating)
       num_reviews: this.numReviews,

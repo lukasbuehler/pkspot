@@ -84,11 +84,12 @@ export class AuthenticationService extends ConsentAwareService {
     return isPlatformBrowser(this._platformId);
   }
 
-  private _auth: Auth;
+  private _auth: Auth | null = null;
   public get auth() {
-    return this._auth;
+    return this._ensureAuth();
   }
   private _authStateListenerInitialized = false;
+  private _authInitializationPromise: Promise<void> | null = null;
   private _lastAnalyticsIdentifiedUid: string | null = null;
   private _analyticsHasIdentifiedUser = false;
 
@@ -124,19 +125,9 @@ export class AuthenticationService extends ConsentAwareService {
 
     // Skip auth initialization on server (SSR)
     if (!this._isBrowser) {
-      this._auth = null as any;
       this.initialAuthStateResolved.set(true);
       return;
     }
-
-    this._auth = getAuth(this._firebaseApp);
-
-    // Configure persistence with robust fallbacks (browser-only)
-    // This addresses cases where a browser blocks a specific storage backend
-    // and would otherwise fall back to in-memory (non-persistent) storage.
-    this._configurePersistence(this._auth).catch((err) => {
-      console.warn("Auth persistence configuration failed:", err);
-    });
 
     // Check for existing session without triggering Firebase API calls
     this._checkExistingSessionSafely();
@@ -146,9 +137,7 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     // Setup Firebase auth state listener only after consent
-    this.executeWhenConsent(() => {
-      this._initializeAuthStateListener();
-    }).catch(() => {
+    this.executeWhenConsent(() => this._initializeAuthAfterConsent()).catch(() => {
       console.log("Firebase Auth state listener waiting for consent");
     });
 
@@ -202,7 +191,7 @@ export class AuthenticationService extends ConsentAwareService {
     try {
       if (!isNative) {
         await runInInjectionContext(this.injector, async () => {
-          await this._auth.setPersistence(indexedDBLocalPersistence);
+          await auth.setPersistence(indexedDBLocalPersistence);
           console.log(
             "Firebase Auth persistence set: indexedDBLocalPersistence"
           );
@@ -218,7 +207,7 @@ export class AuthenticationService extends ConsentAwareService {
 
     try {
       await runInInjectionContext(this.injector, async () => {
-        await this._auth.setPersistence(browserLocalPersistence);
+        await auth.setPersistence(browserLocalPersistence);
         console.log("Firebase Auth persistence set: browserLocalPersistence");
       });
       return;
@@ -231,7 +220,7 @@ export class AuthenticationService extends ConsentAwareService {
 
     // Last resort to keep app functional (not persistent across reloads)
     await runInInjectionContext(this.injector, async () => {
-      await this._auth.setPersistence(inMemoryPersistence);
+      await auth.setPersistence(inMemoryPersistence);
       console.warn(
         "Firebase Auth persistence set: inMemoryPersistence (non-persistent)"
       );
@@ -244,9 +233,38 @@ export class AuthenticationService extends ConsentAwareService {
   public restorePendingSession() {
     if (this._hasPendingSession && !this._authStateListenerInitialized) {
       console.log("Restoring pending authentication session after consent");
-      this._initializeAuthStateListener();
+      void this._initializeAuthAfterConsent();
       this._hasPendingSession = false;
     }
+  }
+
+  private _initializeAuthAfterConsent(): Promise<void> {
+    if (this._authInitializationPromise) {
+      return this._authInitializationPromise;
+    }
+
+    const auth = this._ensureAuth();
+    this._initializeAuthStateListener();
+    this._authInitializationPromise = this._configurePersistence(auth).catch(
+      (err) => {
+        console.warn("Auth persistence configuration failed:", err);
+      },
+    );
+
+    return this._authInitializationPromise;
+  }
+
+  private _ensureAuth(): Auth {
+    if (this._auth) {
+      return this._auth;
+    }
+
+    if (!this._isBrowser) {
+      return null as unknown as Auth;
+    }
+
+    this._auth = getAuth(this._firebaseApp);
+    return this._auth;
   }
 
   private _initializeAuthStateListener() {
@@ -1204,7 +1222,7 @@ export class AuthenticationService extends ConsentAwareService {
    * Send a password reset email to the specified address.
    */
   public async sendPasswordReset(email: string): Promise<void> {
-    await sendPasswordResetEmail(this._auth, email);
+    await sendPasswordResetEmail(this._ensureAuth(), email);
   }
 
   // ============================================

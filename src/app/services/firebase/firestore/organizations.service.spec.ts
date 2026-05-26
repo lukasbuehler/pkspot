@@ -70,7 +70,7 @@ describe("OrganizationsService", () => {
     });
   });
 
-  it("loads verified spots from the organization-owned index first", async () => {
+  it("loads stewarded spots from the organization-owned verified index first", async () => {
     const adapter = createMockFirestoreAdapter();
     adapter.getCollection
       .mockResolvedValueOnce([])
@@ -85,7 +85,7 @@ describe("OrganizationsService", () => {
     });
     const service = TestBed.inject(OrganizationsService);
 
-    await service.getVerifiedSpots("pkspot");
+    await service.getStewardedSpots("pkspot");
 
     expect(adapter.getCollection).toHaveBeenNthCalledWith(
       1,
@@ -96,8 +96,8 @@ describe("OrganizationsService", () => {
       "spots",
       [
         {
-          fieldPath: "verification.organization_id",
-          opStr: "==",
+          fieldPath: "stewardship.organization_ids",
+          opStr: "array-contains",
           value: "pkspot",
         },
       ],
@@ -105,19 +105,70 @@ describe("OrganizationsService", () => {
     );
   });
 
-  it("sets spot verification through the trusted callable", async () => {
+  it("loads used spots from the organization-owned used index", async () => {
+    const adapter = createMockFirestoreAdapter();
+    adapter.getCollection.mockResolvedValueOnce([]);
+    TestBed.configureTestingModule({
+      providers: [
+        OrganizationsService,
+        { provide: FirestoreAdapterService, useValue: adapter },
+        { provide: AuthenticationService, useValue: createMockAuthService(true) },
+        { provide: Functions, useValue: {} },
+      ],
+    });
+    const service = TestBed.inject(OrganizationsService);
+
+    await service.getUsedSpots("pkspot");
+
+    expect(adapter.getCollection).toHaveBeenCalledWith(
+      "organizations/pkspot/used_spots"
+    );
+  });
+
+  it("sets spot stewardship through the trusted callable", async () => {
     const service = configure();
 
-    await service.setSpotVerification("spot-1", "pkspot");
+    await service.setSpotStewardship("spot-1", "pkspot");
 
-    expect(httpsCallable).toHaveBeenCalledWith({}, "setSpotVerification");
+    expect(httpsCallable).toHaveBeenCalledWith(
+      {},
+      "setSpotOrganizationRelationship"
+    );
     expect(mockCallable).toHaveBeenCalledWith({
       spotId: "spot-1",
       organizationId: "pkspot",
+      relationship: "steward",
+      enabled: true,
     });
   });
 
-  it("removes spot verification through the trusted callable", async () => {
+  it("sets one managing organization through the trusted callable", async () => {
+    const service = configure();
+
+    await service.setSpotManagement("spot-1", "venue-org");
+
+    expect(mockCallable).toHaveBeenCalledWith({
+      spotId: "spot-1",
+      organizationId: "venue-org",
+      relationship: "manager",
+      enabled: true,
+    });
+  });
+
+  it("sets organization used spots through the trusted callable", async () => {
+    const service = configure();
+
+    await service.setOrganizationUsedSpot("pkspot", "spot-1");
+
+    expect(mockCallable).toHaveBeenCalledWith({
+      spotId: "spot-1",
+      organizationId: "pkspot",
+      relationship: "used",
+      enabled: true,
+    });
+  });
+
+  it("removes spot stewardship through the compatibility method", async () => {
     const service = configure();
 
     await service.setSpotVerification("spot-1", null);
@@ -125,15 +176,17 @@ describe("OrganizationsService", () => {
     expect(mockCallable).toHaveBeenCalledWith({
       spotId: "spot-1",
       organizationId: null,
+      relationship: "steward",
+      enabled: false,
     });
   });
 
-  it("does not allow non-admin users to set verification", async () => {
+  it("does not allow non-admin users to set organization relationships", async () => {
     const service = configure(false);
 
-    await expect(service.setSpotVerification("spot-1", "pkspot")).rejects.toThrow(
-      "requires admin privileges"
-    );
+    await expect(
+      service.setSpotStewardship("spot-1", "pkspot")
+    ).rejects.toThrow("requires admin privileges");
     expect(mockCallable).not.toHaveBeenCalled();
   });
 });

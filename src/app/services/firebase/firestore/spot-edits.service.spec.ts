@@ -173,13 +173,29 @@ describe("SpotEditsService", () => {
     );
   });
 
-  it("does not send spot verification metadata through normal update edits", async () => {
+  it("does not send spot organization relationship metadata through normal update edits", async () => {
     mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
 
     await service.createSpotUpdateEdit(
       "spot-1" as never,
       {
         name: { en: "Verified Spot" },
+        stewardship: {
+          organization_ids: ["pkspot", "wpf"],
+          organizations: {},
+        },
+        management: {
+          status: "managed",
+          organization_id: "pkspot",
+          organization: {
+            id: "pkspot",
+            name: "PK Spot",
+            slug: "pkspot",
+          },
+          managed_by_user_id: "admin-user",
+          managed_at: {} as never,
+          lock_edits: true,
+        },
         verification: {
           status: "verified",
           organization_id: "pkspot",

@@ -6,6 +6,7 @@
  */
 
 import express from "express";
+import compression from "compression";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, join } from "node:path";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -34,6 +35,8 @@ if (existsSync(indexServerHtmlPath)) {
 const { app: deApp } = await import("./dist/pkspot/server/de/server.mjs");
 
 const server = express();
+
+server.use(compression());
 
 // Add request logging for debugging
 server.use((req, res, next) => {

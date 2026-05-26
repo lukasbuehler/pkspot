@@ -31,6 +31,10 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import {
+  SpotManagementSchema,
+  SpotStewardshipSchema,
+} from "../../../db/schemas/SpotSchema";
+import {
   SpotAccess,
   SpotAccessDescriptions,
   SpotAccessIcons,
@@ -623,8 +627,40 @@ export class SpotDetailsComponent
   unlinkingPlace = signal<boolean>(false);
 
   readonly organizations = signal<OrganizationDocument[]>([]);
-  readonly selectedVerificationOrganizationId = signal("");
+  readonly selectedStewardOrganizationId = signal("");
+  readonly selectedManagerOrganizationId = signal("");
   readonly isLoadingOrganizations = signal(false);
+  readonly stewardedOrganizations = computed((): SpotStewardshipSchema[] => {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return [];
+
+    const stewardship = spot.stewardship;
+    const organizations = stewardship?.organization_ids
+      .map((organizationId) => stewardship.organizations[organizationId])
+      .filter(
+        (organization): organization is SpotStewardshipSchema =>
+          organization !== undefined
+      ) ?? [];
+
+    if (organizations.length > 0) return organizations;
+
+    const legacyVerification = spot.verification;
+    if (legacyVerification?.status !== "verified") return [];
+
+    return [
+      {
+        status: "active",
+        organization_id: legacyVerification.organization_id,
+        organization: legacyVerification.organization,
+        stewarded_by_user_id: legacyVerification.verified_by_user_id,
+        stewarded_at: legacyVerification.verified_at,
+      },
+    ];
+  });
+  readonly managedOrganization = computed((): SpotManagementSchema | null => {
+    const spot = this.spot();
+    return spot instanceof Spot ? spot.management ?? null : null;
+  });
   private _organizationsLoaded = false;
 
   // Animation keys to force transitions on content changes
@@ -934,8 +970,9 @@ export class SpotDetailsComponent
         this.placePredictions = [];
         this.nearbyPlaceResults = [];
         this.placeSearch.setValue("", { emitEvent: false });
-        this.selectedVerificationOrganizationId.set(
-          spot instanceof Spot ? spot.verification?.organization_id ?? "" : ""
+        this.selectedStewardOrganizationId.set("");
+        this.selectedManagerOrganizationId.set(
+          spot instanceof Spot ? spot.management?.organization_id ?? "" : ""
         );
       }
 
@@ -1138,8 +1175,9 @@ export class SpotDetailsComponent
     this.isSaving = true;
 
     if (spot instanceof Spot) {
-      const verificationSaved = await this._saveVerificationChangeIfNeeded(spot);
-      if (!verificationSaved) {
+      const relationshipsSaved =
+        await this._saveOrganizationRelationshipChangesIfNeeded(spot);
+      if (!relationshipsSaved) {
         this.isSaving = false;
         return;
       }
@@ -1158,7 +1196,7 @@ export class SpotDetailsComponent
       this.organizations.set(await this._organizationsService.getOrganizations());
       this._organizationsLoaded = true;
     } catch (error) {
-      console.warn("Failed to load organizations for spot verification", error);
+      console.warn("Failed to load organizations for spot relationships", error);
       this._snackbar.open($localize`Could not load organizations`, undefined, {
         duration: 2500,
       });
@@ -1167,36 +1205,81 @@ export class SpotDetailsComponent
     }
   }
 
-  private async _saveVerificationChangeIfNeeded(spot: Spot): Promise<boolean> {
+  private async _saveOrganizationRelationshipChangesIfNeeded(
+    spot: Spot
+  ): Promise<boolean> {
     if (!this.isAdmin()) {
       return true;
     }
 
-    const nextOrganizationId = this.selectedVerificationOrganizationId() || null;
-    const currentOrganizationId = spot.verification?.organization_id ?? null;
-    if (nextOrganizationId === currentOrganizationId) {
+    try {
+      const nextManagerId = this.selectedManagerOrganizationId() || null;
+      const currentManagerId = spot.management?.organization_id ?? null;
+      if (nextManagerId !== currentManagerId) {
+        await this._organizationsService.setSpotManagement(
+          spot.id,
+          nextManagerId
+        );
+        this._snackbar.open(
+          nextManagerId
+            ? $localize`Managed organization updated`
+            : $localize`Managed organization removed`,
+          undefined,
+          { duration: 2200 }
+        );
+      }
+
+      const nextStewardId = this.selectedStewardOrganizationId();
+      const currentStewardIds = new Set(
+        spot.stewardship?.organization_ids ??
+          (spot.verification?.organization_id
+            ? [spot.verification.organization_id]
+            : [])
+      );
+      if (nextStewardId && !currentStewardIds.has(nextStewardId)) {
+        await this._organizationsService.setSpotStewardship(
+          spot.id,
+          nextStewardId,
+          true
+        );
+        this.selectedStewardOrganizationId.set("");
+        this._snackbar.open($localize`Verified organization added`, undefined, {
+          duration: 2200,
+        });
+      }
+
       return true;
+    } catch (error) {
+      console.error("Failed to update spot organization relationship", error);
+      this._snackbar.open(
+        $localize`Failed to update spot organization settings`,
+        undefined,
+        { duration: 3000 }
+      );
+      return false;
+    }
+  }
+
+  async removeStewardedOrganization(organizationId: string): Promise<void> {
+    const spot = this.spot();
+    if (!(spot instanceof Spot) || !this.isAdmin()) {
+      return;
     }
 
     try {
-      await this._organizationsService.setSpotVerification(
+      await this._organizationsService.setSpotStewardship(
         spot.id,
-        nextOrganizationId
+        organizationId,
+        false
       );
-      this._snackbar.open(
-        nextOrganizationId
-          ? $localize`Spot verification updated`
-          : $localize`Spot verification removed`,
-        undefined,
-        { duration: 2200 }
-      );
-      return true;
+      this._snackbar.open($localize`Verified organization removed`, undefined, {
+        duration: 2200,
+      });
     } catch (error) {
-      console.error("Failed to update spot verification", error);
-      this._snackbar.open($localize`Failed to update spot verification`, undefined, {
+      console.error("Failed to remove stewarded organization", error);
+      this._snackbar.open($localize`Failed to remove verified organization`, undefined, {
         duration: 3000,
       });
-      return false;
     }
   }
 

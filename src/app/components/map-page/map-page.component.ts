@@ -460,6 +460,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _promotableCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
+  private _promotableCommunitiesRequested = false;
   /** Per-event promo dismissals persisted in localStorage. */
   private _eventPromoDismissals = signal<
     Record<string, EventPromoDismissalRecord>
@@ -1598,15 +1599,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // so we don't pull every event on first paint.
     if (isPlatformBrowser(this.platformId)) {
       afterNextRender(() => {
-        this._searchService
-          .listCommunities()
-          .then((communities) => {
-            this._promotableCommunities.set(communities);
-            this._focusCommunityFromQueryParam();
-          })
-          .catch((err) =>
-            console.warn("MapPage: failed to load promotable communities", err),
-          );
+        this.loadPromotableCommunitiesAfterConsent();
       });
     }
 
@@ -1953,6 +1946,26 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Initialization ///////////////////////////////////////////////////////////
 
+  private loadPromotableCommunitiesAfterConsent(): void {
+    if (
+      this._promotableCommunitiesRequested ||
+      !this._consentService.hasConsent()
+    ) {
+      return;
+    }
+
+    this._promotableCommunitiesRequested = true;
+    this._searchService
+      .listCommunities()
+      .then((communities) => {
+        this._promotableCommunities.set(communities);
+        this._focusCommunityFromQueryParam();
+      })
+      .catch((err) =>
+        console.warn("MapPage: failed to load promotable communities", err),
+      );
+  }
+
   ngOnInit() {
     console.debug("map page init");
 
@@ -1987,6 +2000,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       (hasConsent) => {
         if (hasConsent && !this.mapsService.isApiLoaded()) {
           this.tryLoadMapsApi();
+        }
+        if (hasConsent) {
+          this.loadPromotableCommunitiesAfterConsent();
         }
       },
     );

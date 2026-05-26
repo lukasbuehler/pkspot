@@ -1374,9 +1374,9 @@ export class GoogleMap2dComponent
     clickableIcons: false,
     gestureHandling: "greedy",
     disableDefaultUI: true,
-    isFractionalZoomEnabled: true,
+    isFractionalZoomEnabled: false,
     tilt: 0,
-    headingInteractionEnabled: true,
+    headingInteractionEnabled: false,
   };
 
   optionsInitialized = signal<boolean>(false);

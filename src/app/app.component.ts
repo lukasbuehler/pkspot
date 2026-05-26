@@ -272,6 +272,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     // (This is now safe - only reCAPTCHA-triggering operations like sign-up require consent)
     this.setupAuthStateListener();
 
+    this.maybeOpenInitialWelcomeDialog();
+
     // Initialize analytics
     await this._analyticsService.init();
 
@@ -445,50 +447,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         console.error("AppComponent: error tracking consent change", err);
       }
     });
-
-    if (typeof window !== "undefined") {
-      this.hasAds = (window as any)["canRunAds"] ?? false;
-
-      // Optimistic Welcome Dialog (LCP improvement)
-      // Check immediately if we should show the dialog, without waiting for Router events
-      try {
-        const currentTermsVersion = this._consentService.CURRENT_TERMS_VERSION;
-        const acceptedVersion = localStorage.getItem("acceptedVersion");
-        const path = window.location.pathname;
-        // Check both path-based embedding (/embedded route) and iframe embedding
-        const isEmbedded =
-          path.startsWith("/embedded") || window.self !== window.top;
-
-        // List of paths where we don't enforce the dialog (approximate check based on routes)
-        const isAcceptanceFree = ACCEPTANCE_FREE_PREFIXES.some((prefix) =>
-          path.startsWith(prefix),
-        );
-
-        const isABot = isBot();
-
-        if (
-          acceptedVersion !== currentTermsVersion &&
-          !isEmbedded &&
-          !isAcceptanceFree &&
-          !isABot &&
-          this.dialog.openDialogs.length === 0
-        ) {
-          const dialogRef = this.dialog.open(WelcomeDialogComponent, {
-            data: { version: currentTermsVersion },
-            hasBackdrop: true,
-            disableClose: true,
-          });
-
-          dialogRef.afterClosed().subscribe((agreed: boolean) => {
-            if (agreed) {
-              this._consentService.grantConsent();
-            }
-          });
-        }
-      } catch (e) {
-        console.error("Error in optimistic welcome dialog check", e);
-      }
-    }
 
     // Manual pageview + engaged-time tracking (disable autocapture to avoid race conditions)
     let initialPageviewSent = false;
@@ -731,6 +689,68 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private setEmbeddedStateFromUrl(url: string) {
     this.isEmbedded.set(url.split("/")[1] === "embedded");
+  }
+
+  private maybeOpenInitialWelcomeDialog(): void {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    this.hasAds = (window as { canRunAds?: boolean }).canRunAds ?? false;
+
+    try {
+      const currentTermsVersion = this._consentService.CURRENT_TERMS_VERSION;
+      const acceptedVersion = localStorage.getItem("acceptedVersion");
+      const path = window.location.pathname;
+      const isEmbedded =
+        path.startsWith("/embedded") || window.self !== window.top;
+      const isAcceptanceFree = this.isAcceptanceFreePath(path);
+
+      if (
+        acceptedVersion !== currentTermsVersion &&
+        !isEmbedded &&
+        !isAcceptanceFree &&
+        !isBot() &&
+        this.dialog.openDialogs.length === 0
+      ) {
+        const dialogRef = this.dialog.open(WelcomeDialogComponent, {
+          data: { version: currentTermsVersion },
+          hasBackdrop: true,
+          disableClose: true,
+          enterAnimationDuration: "0ms",
+        });
+
+        dialogRef.afterClosed().subscribe((agreed: boolean) => {
+          if (agreed) {
+            this._consentService.grantConsent();
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Error in initial welcome dialog check", e);
+    }
+  }
+
+  private isAcceptanceFreePath(pathname: string): boolean {
+    const path = this.stripLocalePrefix(pathname);
+
+    return ACCEPTANCE_FREE_PREFIXES.some(
+      (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+    );
+  }
+
+  private stripLocalePrefix(pathname: string): string {
+    const segments = pathname.split("/");
+
+    if (
+      segments.length > 1 &&
+      this.availableLanguageCodes.includes(segments[1] as LocaleCode)
+    ) {
+      segments.splice(1, 1);
+      return segments.join("/") || "/";
+    }
+
+    return pathname || "/";
   }
 
   private shouldSyncCanonicalFromNavigation(): boolean {
@@ -982,7 +1002,9 @@ export class AppComponent implements OnInit, AfterViewInit {
               }
 
               const data = activeRoute.snapshot.data;
-              const acceptanceFree = data["acceptanceFree"] || false;
+              const acceptanceFree =
+                data["acceptanceFree"] ||
+                this.isAcceptanceFreePath(window.location.pathname);
 
               // Check again if user has accepted terms (might have changed)
               const currentAcceptedVersion =
@@ -996,6 +1018,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                       data: { version: currentTermsVersion },
                       hasBackdrop: true,
                       disableClose: true,
+                      enterAnimationDuration: "0ms",
                     });
 
                     // Listen for dialog close and grant consent if user agreed

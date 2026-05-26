@@ -176,7 +176,6 @@
     },
     "@parcel/watcher": {
       "picomatch": "^4.0.4"
-    },
-    "uuid": "$uuid"
+    }
   }
 }

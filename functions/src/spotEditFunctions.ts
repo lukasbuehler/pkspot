@@ -6,10 +6,14 @@ import {
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
-import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 import {
-  makeSpotVerificationData,
+  getStewardshipState,
+  makeManagedSpotIndexData,
+  makeSpotManagementData,
+  makeSpotStewardshipData,
+  makeUsedSpotIndexData,
   makeVerifiedSpotIndexData,
 } from "./organizationVerificationHelpers";
 
@@ -21,10 +25,13 @@ interface SpotEditSchema {
   visibility?: "public" | "private";
   review_status?: "pending" | "approved" | "rejected";
   review_organization_id?: string;
+  review_organization_ids?: string[];
+  review_kind?: "stewarded" | "managed";
   reviewed_by?: {
     uid: string;
     [key: string]: any;
   };
+  reviewed_by_organization_id?: string;
   reviewed_at?: FirebaseFirestore.Timestamp;
   review_note?: string;
   user: {
@@ -76,7 +83,7 @@ const PENDING_VOTE_EDITS_LIMIT = 300;
 const PENDING_VOTE_EDITS_FALLBACK_SCAN_LIMIT = 900;
 
 // Rollout control:
-// Keep legacy "instant apply" behavior for iconic/verified spots until clients
+// Keep legacy instant-apply behavior for iconic community spots until clients
 // with voting UI are broadly deployed. Flip to true when ready.
 const VOTING_ON_LOCKED_SPOTS_ENABLED = false;
 
@@ -133,48 +140,67 @@ export const applySpotEditOnCreate = onDocumentCreated(
       const spotSnapshot = await spotRef.get();
       const spotData = spotSnapshot.exists ? (spotSnapshot.data() as any) : null;
 
-      // Verified spots use organization review, not community voting.
+      // Managed spots are authoritative org-controlled spots. Stewarded spots
+      // are public spots verified by one or more orgs; edits enter org review
+      // first, with a future path for community fallback if no steward responds.
       if (editData.type === "UPDATE" && spotData) {
-        const isVerificationLockedSpot =
-          spotData.verification?.lock_edits === true ||
-          spotData.verification?.status === "verified";
-        if (isVerificationLockedSpot) {
-          const reviewOrganizationId = spotData.verification?.organization_id;
-          if (!reviewOrganizationId) {
-            throw new Error("Verified spot is missing verification.organization_id");
-          }
+        const managementOrganizationId = spotData.management?.organization_id;
+        const stewardOrganizationIds = Array.isArray(
+          spotData.stewardship?.organization_ids
+        )
+          ? spotData.stewardship.organization_ids.filter(
+              (id: unknown): id is string => typeof id === "string"
+            )
+          : [];
+        const legacyVerificationOrganizationId = spotData.verification?.organization_id;
+        const reviewOrganizationIds = managementOrganizationId
+          ? [managementOrganizationId]
+          : stewardOrganizationIds.length > 0
+          ? stewardOrganizationIds
+          : legacyVerificationOrganizationId
+          ? [legacyVerificationOrganizationId]
+          : [];
+        const reviewOrganizationId = reviewOrganizationIds[0];
 
+        if (reviewOrganizationId) {
+          const isManagedSpot = typeof managementOrganizationId === "string";
           await editSnapshot.ref.update({
             approved: false,
             visibility: "private",
             review_status: "pending",
             review_organization_id: reviewOrganizationId,
-            processing_status: "PENDING_ORG_REVIEW",
-            blocked_reason: "Spot is verified and requires organization review.",
+            review_organization_ids: reviewOrganizationIds,
+            review_kind: isManagedSpot ? "managed" : "stewarded",
+            processing_status: isManagedSpot
+              ? "PENDING_MANAGEMENT_REVIEW"
+              : "PENDING_STEWARD_REVIEW",
+            blocked_reason: isManagedSpot
+              ? "Spot is managed and requires manager review."
+              : "Spot is verified by an organization and requires steward review.",
             processed_at: FieldValue.serverTimestamp(),
           });
           return;
         }
 
-        // Soft lock: keep iconic voting behavior separate from verified review.
+        // Soft lock: keep iconic voting behavior separate from org review.
         const isIconicSpot = spotData.is_iconic === true;
         // Per-spot override to test voting UI before global rollout.
         // Set `edit_policy.force_voting = true` on a spot document to force vote flow.
         const forceVotingForSpot = spotData.edit_policy?.force_voting === true;
         const useVotingForLockedSpots =
-          VOTING_ON_LOCKED_SPOTS_ENABLED && (isIconicSpot || isVerificationLockedSpot);
+          VOTING_ON_LOCKED_SPOTS_ENABLED && isIconicSpot;
 
         if (useVotingForLockedSpots || forceVotingForSpot) {
           const processingStatus = forceVotingForSpot
             ? "VOTING_FORCED_TEST"
             : isIconicSpot
             ? "BLOCKED_ICONIC_SPOT"
-            : "BLOCKED_VERIFIED_SPOT";
+            : "BLOCKED_ICONIC_SPOT";
           const blockedReason = forceVotingForSpot
             ? "Spot edit forced into voting flow for testing."
             : isIconicSpot
             ? "Spot is iconic and locked for public edits."
-            : "Spot is verified and locked for public edits.";
+            : "Spot is iconic and locked for public edits.";
 
           await editSnapshot.ref.update({
             approved: false,
@@ -649,6 +675,18 @@ async function isOrganizationReviewer(
   return role === "owner" || role === "admin" || role === "reviewer";
 }
 
+async function firstReviewableOrganizationId(
+  uid: string,
+  organizationIds: string[]
+): Promise<string | null> {
+  for (const organizationId of organizationIds) {
+    if (await isOrganizationReviewer(uid, organizationId)) {
+      return organizationId;
+    }
+  }
+  return null;
+}
+
 async function isAdminUser(uid: string): Promise<boolean> {
   const userSnap = await admin.firestore().doc(`users/${uid}`).get();
   return userSnap.data()?.["is_admin"] === true;
@@ -690,10 +728,17 @@ export const reviewVerifiedSpotEdit = onCall(async (request) => {
     }
 
     const editData = editSnap.data() as SpotEditSchema;
-    const organizationId = editData.review_organization_id;
+    const reviewOrganizationIds = Array.isArray(editData.review_organization_ids)
+      ? editData.review_organization_ids.filter(
+          (organizationId): organizationId is string =>
+            typeof organizationId === "string"
+        )
+      : typeof editData.review_organization_id === "string"
+      ? [editData.review_organization_id]
+      : [];
     if (
       editData.review_status !== "pending" ||
-      !organizationId ||
+      reviewOrganizationIds.length === 0 ||
       editData.type !== "UPDATE" ||
       editData.processing_status === "APPLYING_ORG_REVIEW"
     ) {
@@ -701,8 +746,10 @@ export const reviewVerifiedSpotEdit = onCall(async (request) => {
     }
 
     const reviewerIsAdmin = reviewerSnap.data()?.["is_admin"] === true;
-    const reviewerIsOrgMember = await isOrganizationReviewer(uid, organizationId);
-    if (!reviewerIsAdmin && !reviewerIsOrgMember) {
+    const reviewerOrganizationId = reviewerIsAdmin
+      ? reviewOrganizationIds[0]
+      : await firstReviewableOrganizationId(uid, reviewOrganizationIds);
+    if (!reviewerOrganizationId) {
       throw new HttpsError("permission-denied", "Not allowed to review this edit.");
     }
 
@@ -712,6 +759,7 @@ export const reviewVerifiedSpotEdit = onCall(async (request) => {
         visibility: "private",
         review_status: "rejected",
         reviewed_by: reviewer,
+        reviewed_by_organization_id: reviewerOrganizationId,
         reviewed_at: FieldValue.serverTimestamp(),
         review_note:
           typeof reviewNote === "string" && reviewNote.trim().length > 0
@@ -726,6 +774,7 @@ export const reviewVerifiedSpotEdit = onCall(async (request) => {
     tx.update(editRef, {
       processing_status: "APPLYING_ORG_REVIEW",
       reviewed_by: reviewer,
+      reviewed_by_organization_id: reviewerOrganizationId,
       reviewed_at: FieldValue.serverTimestamp(),
     });
   });
@@ -736,6 +785,7 @@ export const reviewVerifiedSpotEdit = onCall(async (request) => {
     await applyUpdateEditToSpot(spotRef, editData, spotId);
     await editRef.update({
       reviewed_by: reviewer,
+      reviewed_by_organization_id: editData.reviewed_by_organization_id,
       reviewed_at: FieldValue.serverTimestamp(),
       review_note:
         typeof reviewNote === "string" && reviewNote.trim().length > 0
@@ -753,15 +803,38 @@ export const reviewVerifiedSpotEdit = onCall(async (request) => {
   return { ok: true };
 });
 
-export const setSpotVerification = onCall(async (request) => {
+interface SetSpotOrganizationRelationshipRequest {
+  spotId?: unknown;
+  organizationId?: unknown;
+  relationship?: unknown;
+  enabled?: unknown;
+}
+
+async function setSpotOrganizationRelationshipImpl(
+  request: CallableRequest<SetSpotOrganizationRelationshipRequest>
+) {
   const uid = request.auth?.uid;
   if (!uid || !(await isAdminUser(uid))) {
     throw new HttpsError("permission-denied", "Admin access required.");
   }
 
-  const { spotId, organizationId } = request.data ?? {};
+  const { spotId, organizationId, relationship, enabled } = request.data ?? {};
   if (typeof spotId !== "string") {
     throw new HttpsError("invalid-argument", "spotId is required.");
+  }
+
+  const relationshipKind =
+    relationship === "manager"
+      ? "manager"
+      : relationship === "used"
+      ? "used"
+      : "steward";
+  const shouldEnable = enabled !== false && organizationId !== null;
+  if (shouldEnable && typeof organizationId !== "string") {
+    throw new HttpsError(
+      "invalid-argument",
+      "organizationId must be a string when enabling a relationship."
+    );
   }
 
   const db = admin.firestore();
@@ -774,61 +847,169 @@ export const setSpotVerification = onCall(async (request) => {
     }
 
     const spotData = spotSnap.data() as Record<string, unknown>;
-    const previousVerification = spotData["verification"] as
-      | { organization_id?: unknown }
-      | undefined;
-    const previousOrganizationId =
-      typeof previousVerification?.organization_id === "string"
-        ? previousVerification.organization_id
-        : null;
 
-    if (organizationId === null) {
-      transaction.update(spotRef, { verification: FieldValue.delete() });
-      if (previousOrganizationId) {
+    if (relationshipKind === "used") {
+      if (!shouldEnable) {
+        if (typeof organizationId !== "string") {
+          throw new HttpsError(
+            "invalid-argument",
+            "organizationId must be a string when removing a used spot."
+          );
+        }
         transaction.delete(
-          db.doc(
-            `organizations/${previousOrganizationId}/verified_spots/${spotId}`
-          )
+          db.doc(`organizations/${organizationId}/used_spots/${spotId}`)
         );
+        return;
       }
+
+      const usedByOrganizationId = organizationId as string;
+      const organizationRef = db.doc(`organizations/${usedByOrganizationId}`);
+      const organizationSnap = await transaction.get(organizationRef);
+      if (!organizationSnap.exists) {
+        throw new HttpsError("not-found", "Organization was not found.");
+      }
+
+      transaction.set(
+        db.doc(`organizations/${usedByOrganizationId}/used_spots/${spotId}`),
+        makeUsedSpotIndexData(
+          spotId,
+          spotData,
+          usedByOrganizationId,
+          organizationSnap.data() as Record<string, unknown>,
+          uid
+        ),
+        { merge: true }
+      );
       return;
     }
 
-    if (typeof organizationId !== "string") {
-      throw new HttpsError(
-        "invalid-argument",
-        "organizationId must be a string or null."
+    if (relationshipKind === "manager") {
+      const previousManagement = spotData["management"] as
+        | { organization_id?: unknown }
+        | undefined;
+      const previousManagerId =
+        typeof previousManagement?.organization_id === "string"
+          ? previousManagement.organization_id
+          : null;
+
+      if (!shouldEnable) {
+        transaction.update(spotRef, { management: FieldValue.delete() });
+        if (previousManagerId) {
+          transaction.delete(
+            db.doc(`organizations/${previousManagerId}/managed_spots/${spotId}`)
+          );
+        }
+        return;
+      }
+
+      const managerOrganizationId = organizationId as string;
+      const organizationRef = db.doc(`organizations/${managerOrganizationId}`);
+      const organizationSnap = await transaction.get(organizationRef);
+      if (!organizationSnap.exists) {
+        throw new HttpsError("not-found", "Organization was not found.");
+      }
+
+      if (previousManagerId && previousManagerId !== managerOrganizationId) {
+        transaction.delete(
+          db.doc(`organizations/${previousManagerId}/managed_spots/${spotId}`)
+        );
+      }
+
+      const organization = organizationSnap.data() as Record<string, unknown>;
+      const management = makeSpotManagementData(
+        managerOrganizationId,
+        organization,
+        uid
       );
+      transaction.update(spotRef, { management, verification: FieldValue.delete() });
+      transaction.set(
+        db.doc(`organizations/${managerOrganizationId}/managed_spots/${spotId}`),
+        makeManagedSpotIndexData(spotId, spotData, management),
+        { merge: true }
+      );
+      return;
     }
 
-    const organizationRef = db.doc(`organizations/${organizationId}`);
+    const stewardship = getStewardshipState(spotData);
+
+    if (!shouldEnable) {
+      if (typeof organizationId === "string") {
+        delete stewardship.organizations[organizationId];
+        stewardship.organization_ids = stewardship.organization_ids.filter(
+          (id) => id !== organizationId
+        );
+        transaction.delete(
+          db.doc(`organizations/${organizationId}/verified_spots/${spotId}`)
+        );
+      } else {
+        for (const stewardOrganizationId of stewardship.organization_ids) {
+          transaction.delete(
+            db.doc(
+              `organizations/${stewardOrganizationId}/verified_spots/${spotId}`
+            )
+          );
+        }
+        stewardship.organization_ids = [];
+        stewardship.organizations = {};
+      }
+
+      transaction.update(spotRef, {
+        stewardship:
+          stewardship.organization_ids.length > 0
+            ? stewardship
+            : FieldValue.delete(),
+        verification: FieldValue.delete(),
+      });
+      return;
+    }
+
+    const stewardOrganizationId = organizationId as string;
+    const organizationRef = db.doc(`organizations/${stewardOrganizationId}`);
     const organizationSnap = await transaction.get(organizationRef);
     if (!organizationSnap.exists) {
       throw new HttpsError("not-found", "Organization was not found.");
     }
 
-    if (previousOrganizationId && previousOrganizationId !== organizationId) {
-      transaction.delete(
-        db.doc(`organizations/${previousOrganizationId}/verified_spots/${spotId}`)
-      );
-    }
-
     const organization = organizationSnap.data() as Record<string, unknown>;
-    const verification = makeSpotVerificationData(
-      organizationId,
+    const steward = makeSpotStewardshipData(
+      stewardOrganizationId,
       organization,
       uid
     );
-    transaction.update(spotRef, { verification });
+    stewardship.organizations[stewardOrganizationId] = steward;
+    stewardship.organization_ids = Array.from(
+      new Set([...stewardship.organization_ids, stewardOrganizationId])
+    );
+
+    transaction.update(spotRef, {
+      stewardship,
+      verification: FieldValue.delete(),
+    });
     transaction.set(
-      db.doc(`organizations/${organizationId}/verified_spots/${spotId}`),
-      makeVerifiedSpotIndexData(spotId, spotData, verification),
+      db.doc(`organizations/${stewardOrganizationId}/verified_spots/${spotId}`),
+      makeVerifiedSpotIndexData(spotId, spotData, steward),
       { merge: true }
     );
   });
 
   return { ok: true };
-});
+}
+
+export const setSpotOrganizationRelationship = onCall(
+  setSpotOrganizationRelationshipImpl
+);
+
+// Backwards-compatible callable name: old "verification" now means stewardship.
+export const setSpotVerification = onCall(async (request) =>
+  setSpotOrganizationRelationshipImpl({
+    ...request,
+    data: {
+      ...(request.data ?? {}),
+      relationship: "steward",
+      enabled: request.data?.organizationId !== null,
+    },
+  })
+);
 
 async function tryAcquireEditApplyLock(
   editRef: FirebaseFirestore.DocumentReference

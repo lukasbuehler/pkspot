@@ -152,25 +152,75 @@ async function seedSecurityFixture() {
     role: "reviewer",
     user: { uid: "owner", display_name: "Owner" },
   });
+  batch.set(adminDb.doc("organizations/wpf"), {
+    name: "World's Parkour Family",
+    slug: "wpf",
+    active: true,
+  });
   batch.set(adminDb.doc("spots/verified-spot"), {
     name: { en: "Verified Spot" },
     source: "pkspot",
-    verification: {
-      status: "verified",
-      organization_id: "pk-spot",
-      organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
-      verified_by_user_id: "admin",
-      lock_edits: true,
+    stewardship: {
+      organization_ids: ["pk-spot", "wpf"],
+      organizations: {
+        "pk-spot": {
+          status: "active",
+          organization_id: "pk-spot",
+          organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+          stewarded_by_user_id: "admin",
+        },
+        wpf: {
+          status: "active",
+          organization_id: "wpf",
+          organization: { id: "wpf", name: "World's Parkour Family", slug: "wpf" },
+          stewarded_by_user_id: "admin",
+        },
+      },
     },
   });
   batch.set(adminDb.doc("organizations/pk-spot/verified_spots/verified-spot"), {
     spot_id: "verified-spot",
     spot_name: { en: "Verified Spot" },
-    status: "verified",
+    status: "active",
     organization_id: "pk-spot",
     organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
-    verified_by_user_id: "admin",
+    stewarded_by_user_id: "admin",
+  });
+  batch.set(adminDb.doc("organizations/wpf/verified_spots/verified-spot"), {
+    spot_id: "verified-spot",
+    spot_name: { en: "Verified Spot" },
+    status: "active",
+    organization_id: "wpf",
+    organization: { id: "wpf", name: "World's Parkour Family", slug: "wpf" },
+    stewarded_by_user_id: "admin",
+  });
+  batch.set(adminDb.doc("spots/managed-spot"), {
+    name: { en: "Managed Gym" },
+    source: "pkspot",
+    management: {
+      status: "managed",
+      organization_id: "pk-spot",
+      organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+      managed_by_user_id: "admin",
+      lock_edits: true,
+    },
+  });
+  batch.set(adminDb.doc("organizations/pk-spot/managed_spots/managed-spot"), {
+    spot_id: "managed-spot",
+    spot_name: { en: "Managed Gym" },
+    status: "managed",
+    organization_id: "pk-spot",
+    organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+    managed_by_user_id: "admin",
     lock_edits: true,
+  });
+  batch.set(adminDb.doc("organizations/pk-spot/used_spots/public-spot"), {
+    spot_id: "public-spot",
+    spot_name: { en: "Public Spot" },
+    status: "active",
+    organization_id: "pk-spot",
+    organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+    added_by_user_id: "admin",
   });
   batch.set(adminDb.doc("spots/verified-spot/edits/private-pending"), {
     type: "UPDATE",
@@ -179,6 +229,7 @@ async function seedSecurityFixture() {
     visibility: "private",
     review_status: "pending",
     review_organization_id: "pk-spot",
+    review_organization_ids: ["pk-spot", "wpf"],
   });
   batch.set(adminDb.doc("users/owner"), {
     display_name: "Owner",
@@ -313,7 +364,7 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
       data: { name: { en: "Allowed via function path" } },
     })
   );
-  await assertDenied("verified spot public edit create", () =>
+  await assertDenied("stewarded spot public edit create", () =>
     setDoc(doc(owner.db, "spots/verified-spot/edits/public-forbidden"), {
       type: "UPDATE",
       user: { uid: "owner" },
@@ -321,8 +372,24 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
       data: { name: { en: "Should be private" } },
     })
   );
-  await assertAllowed("verified spot private edit create", () =>
+  await assertAllowed("stewarded spot private edit create", () =>
     setDoc(doc(owner.db, "spots/verified-spot/edits/private-allowed"), {
+      type: "UPDATE",
+      user: { uid: "owner" },
+      visibility: "private",
+      data: { name: { en: "Review me" } },
+    })
+  );
+  await assertDenied("managed spot public edit create", () =>
+    setDoc(doc(owner.db, "spots/managed-spot/edits/public-forbidden"), {
+      type: "UPDATE",
+      user: { uid: "owner" },
+      visibility: "public",
+      data: { name: { en: "Should be private" } },
+    })
+  );
+  await assertAllowed("managed spot private edit create", () =>
+    setDoc(doc(owner.db, "spots/managed-spot/edits/private-allowed"), {
       type: "UPDATE",
       user: { uid: "owner" },
       visibility: "private",
@@ -435,6 +502,22 @@ async function testOrganizationGuards(anon, owner, other, adminUser) {
   );
   await assertDenied("admin cannot directly write organization verified spots index", () =>
     setDoc(doc(adminUser.db, "organizations/pk-spot/verified_spots/manual"), {
+      spot_id: "manual",
+    })
+  );
+  await assertAllowed("anonymous organization managed spots read", () =>
+    getDoc(doc(anon.db, "organizations/pk-spot/managed_spots/managed-spot"))
+  );
+  await assertDenied("admin cannot directly write organization managed spots index", () =>
+    setDoc(doc(adminUser.db, "organizations/pk-spot/managed_spots/manual"), {
+      spot_id: "manual",
+    })
+  );
+  await assertAllowed("anonymous organization used spots read", () =>
+    getDoc(doc(anon.db, "organizations/pk-spot/used_spots/public-spot"))
+  );
+  await assertDenied("admin cannot directly write organization used spots index", () =>
+    setDoc(doc(adminUser.db, "organizations/pk-spot/used_spots/manual"), {
       spot_id: "manual",
     })
   );

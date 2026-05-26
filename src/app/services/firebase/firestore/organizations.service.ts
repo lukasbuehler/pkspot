@@ -5,6 +5,8 @@ import {
   OrganizationReferenceSchema,
   OrganizationRole,
   OrganizationSchema,
+  OrganizationManagedSpotSchema,
+  OrganizationUsedSpotSchema,
   OrganizationVerifiedSpotSchema,
 } from "../../../../db/schemas/OrganizationSchema";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
@@ -23,11 +25,16 @@ export class OrganizationsService {
   private _authService = inject(AuthenticationService);
   private _functions = inject(Functions, { optional: true });
   private _locale = inject<LocaleCode>(LOCALE_ID);
-  private _setSpotVerificationCallable = this._functions
+  private _setSpotOrganizationRelationshipCallable = this._functions
     ? httpsCallable<
-        { spotId: string; organizationId: string | null },
+        {
+          spotId: string;
+          organizationId: string | null;
+          relationship: "steward" | "manager" | "used";
+          enabled?: boolean;
+        },
         { ok: true }
-      >(this._functions, "setSpotVerification")
+      >(this._functions, "setSpotOrganizationRelationship")
     : null;
 
   private _requireAdmin(action: string): void {
@@ -74,7 +81,7 @@ export class OrganizationsService {
     >(`organizations/${organizationId}/members`);
   }
 
-  async getVerifiedSpots(
+  async getStewardedSpots(
     organizationId: string,
     locale: LocaleCode = this._locale
   ): Promise<Spot[]> {
@@ -107,10 +114,80 @@ export class OrganizationsService {
         .filter((spot): spot is Spot => spot !== null);
     }
 
-    return this.getVerifiedSpotsBySpotQuery(organizationId, locale);
+    return this.getStewardedSpotsBySpotQuery(organizationId, locale);
   }
 
-  private async getVerifiedSpotsBySpotQuery(
+  async getManagedSpots(
+    organizationId: string,
+    locale: LocaleCode = this._locale
+  ): Promise<Spot[]> {
+    const managedSpotRefs = await this._firestoreAdapter.getCollection<
+      OrganizationManagedSpotSchema & { id: string }
+    >(`organizations/${organizationId}/managed_spots`);
+
+    const spots = await Promise.all(
+      managedSpotRefs.slice(0, 24).map((managedSpot) =>
+        this._firestoreAdapter
+          .getDocument<SpotSchema>(`spots/${managedSpot.spot_id}`)
+          .then((spotData) => ({ managedSpot, spotData }))
+      )
+    );
+
+    return spots
+      .map(({ managedSpot, spotData }) => {
+        if (!spotData) return null;
+        try {
+          return new Spot(managedSpot.spot_id as SpotId, spotData, locale);
+        } catch (error) {
+          console.warn(
+            `[OrganizationsService] Ignoring incomplete managed spot ${managedSpot.spot_id}`,
+            error
+          );
+          return null;
+        }
+      })
+      .filter((spot): spot is Spot => spot !== null);
+  }
+
+  async getUsedSpots(
+    organizationId: string,
+    locale: LocaleCode = this._locale
+  ): Promise<Spot[]> {
+    const usedSpotRefs = await this._firestoreAdapter.getCollection<
+      OrganizationUsedSpotSchema & { id: string }
+    >(`organizations/${organizationId}/used_spots`);
+
+    const spots = await Promise.all(
+      usedSpotRefs.slice(0, 48).map((usedSpot) =>
+        this._firestoreAdapter
+          .getDocument<SpotSchema>(`spots/${usedSpot.spot_id}`)
+          .then((spotData) => ({ usedSpot, spotData }))
+      )
+    );
+
+    return spots
+      .map(({ usedSpot, spotData }) => {
+        if (!spotData) return null;
+        try {
+          return new Spot(usedSpot.spot_id as SpotId, spotData, locale);
+        } catch (error) {
+          console.warn(
+            `[OrganizationsService] Ignoring incomplete used spot ${usedSpot.spot_id}`,
+            error
+          );
+          return null;
+        }
+      })
+      .filter((spot): spot is Spot => spot !== null);
+  }
+
+  // Compatibility alias for older call sites. User-facing copy calls these
+  // spots verified by the organization, while the internal model is stewardship.
+  getVerifiedSpots(organizationId: string, locale: LocaleCode = this._locale) {
+    return this.getStewardedSpots(organizationId, locale);
+  }
+
+  private async getStewardedSpotsBySpotQuery(
     organizationId: string,
     locale: LocaleCode
   ): Promise<Spot[]> {
@@ -120,8 +197,8 @@ export class OrganizationsService {
       "spots",
       [
         {
-          fieldPath: "verification.organization_id",
-          opStr: "==",
+          fieldPath: "stewardship.organization_ids",
+          opStr: "array-contains",
           value: organizationId,
         },
       ],
@@ -229,14 +306,70 @@ export class OrganizationsService {
     };
   }
 
+  private async _setSpotOrganizationRelationship(
+    spotId: string,
+    organizationId: string | null,
+    relationship: "steward" | "manager" | "used",
+    enabled = organizationId !== null
+  ): Promise<void> {
+    this._requireAdmin("setSpotOrganizationRelationship");
+    if (!this._setSpotOrganizationRelationshipCallable) {
+      throw new Error("Functions are unavailable in this environment.");
+    }
+    await this._setSpotOrganizationRelationshipCallable({
+      spotId,
+      organizationId,
+      relationship,
+      enabled,
+    });
+  }
+
+  async setSpotStewardship(
+    spotId: string,
+    organizationId: string,
+    enabled = true
+  ): Promise<void> {
+    await this._setSpotOrganizationRelationship(
+      spotId,
+      organizationId,
+      "steward",
+      enabled
+    );
+  }
+
+  async setSpotManagement(
+    spotId: string,
+    organizationId: string | null
+  ): Promise<void> {
+    await this._setSpotOrganizationRelationship(
+      spotId,
+      organizationId,
+      "manager"
+    );
+  }
+
+  async setOrganizationUsedSpot(
+    organizationId: string,
+    spotId: string,
+    enabled = true
+  ): Promise<void> {
+    await this._setSpotOrganizationRelationship(
+      spotId,
+      organizationId,
+      "used",
+      enabled
+    );
+  }
+
+  // Compatibility alias: old verification is now public-spot stewardship.
   async setSpotVerification(
     spotId: string,
     organizationId: string | null
   ): Promise<void> {
-    this._requireAdmin("setSpotVerification");
-    if (!this._setSpotVerificationCallable) {
-      throw new Error("Functions are unavailable in this environment.");
+    if (organizationId === null) {
+      await this._setSpotOrganizationRelationship(spotId, null, "steward", false);
+      return;
     }
-    await this._setSpotVerificationCallable({ spotId, organizationId });
+    await this.setSpotStewardship(spotId, organizationId, true);
   }
 }

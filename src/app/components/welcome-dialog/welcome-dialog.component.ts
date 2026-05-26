@@ -5,13 +5,14 @@ import {
   MAT_DIALOG_DATA,
   MatDialogModule,
 } from "@angular/material/dialog";
+import { MatIcon } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
 import { AnalyticsService } from "../../services/analytics.service";
 import { ConsentService } from "../../services/consent.service";
 
 @Component({
   selector: "app-welcome-dialog",
-  imports: [MatDialogModule, MatButtonModule, RouterLink],
+  imports: [MatDialogModule, MatButtonModule, MatIcon, RouterLink],
   templateUrl: "./welcome-dialog.component.html",
   styleUrl: "./welcome-dialog.component.scss",
 })

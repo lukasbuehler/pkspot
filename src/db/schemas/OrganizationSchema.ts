@@ -34,11 +34,37 @@ export interface OrganizationVerifiedSpotSchema {
   spot_id: string;
   spot_slug?: string;
   spot_name?: Record<string, string> | string;
-  status: "verified";
+  status: "active";
   organization_id: string;
   organization: OrganizationReferenceSchema;
-  verified_by_user_id: string;
-  verified_at?: Timestamp;
+  stewarded_by_user_id: string;
+  stewarded_at?: Timestamp;
+  time_updated?: Timestamp;
+}
+
+export interface OrganizationManagedSpotSchema {
+  spot_id: string;
+  spot_slug?: string;
+  spot_name?: Record<string, string> | string;
+  status: "managed";
+  organization_id: string;
+  organization: OrganizationReferenceSchema;
+  managed_by_user_id: string;
+  managed_at?: Timestamp;
   lock_edits: true;
+  time_updated?: Timestamp;
+}
+
+
+export interface OrganizationUsedSpotSchema {
+  spot_id: string;
+  spot_slug?: string;
+  spot_name?: Record<string, string> | string;
+  status: "active";
+  organization_id: string;
+  organization: OrganizationReferenceSchema;
+  added_by_user_id: string;
+  added_at?: Timestamp;
+  note?: string;
   time_updated?: Timestamp;
 }

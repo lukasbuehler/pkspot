@@ -35,7 +35,10 @@ export interface SpotEditSchema {
   visibility?: "public" | "private";
   review_status?: "pending" | "approved" | "rejected";
   review_organization_id?: string;
+  review_organization_ids?: string[];
+  review_kind?: "stewarded" | "managed";
   reviewed_by?: UserReferenceSchema;
+  reviewed_by_organization_id?: string;
   reviewed_at?: Timestamp;
   review_note?: string;
   processing_status?: string;

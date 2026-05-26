@@ -33,7 +33,7 @@
                     {{ organization()?.name }}
                   </h1>
                   <mat-chip-set aria-label="Organization status">
-                    <mat-chip color="primary" i18n>Verified spots</mat-chip>
+                    <mat-chip color="primary" i18n>Organization</mat-chip>
                   </mat-chip-set>
                 </div>
 
@@ -46,8 +46,18 @@
                 <div class="organization-overview__meta">
                   <div class="mat-body-large organization-overview__metric">
                     <mat-icon>verified_user</mat-icon>
-                    <strong>{{ verifiedSpotCount() }}</strong>
-                    <span i18n>{verifiedSpotCount(), plural, =1 {verified spot} other {verified spots}}</span>
+                    <strong>{{ stewardedSpotCount() }}</strong>
+                    <span i18n>{stewardedSpotCount(), plural, =1 {verified spot} other {verified spots}}</span>
+                  </div>
+                  <div class="mat-body-large organization-overview__metric">
+                    <mat-icon>verified_user</mat-icon>
+                    <strong>{{ managedSpotCount() }}</strong>
+                    <span i18n>{managedSpotCount(), plural, =1 {managed spot} other {managed spots}}</span>
+                  </div>
+                  <div class="mat-body-large organization-overview__metric">
+                    <mat-icon>verified_user</mat-icon>
+                    <strong>{{ usedSpotCount() }}</strong>
+                    <span i18n>{usedSpotCount(), plural, =1 {used spot} other {used spots}}</span>
                   </div>
                   <div class="mat-body-large organization-overview__metric">
                     <mat-icon>groups</mat-icon>
@@ -78,13 +88,13 @@
         <mat-card class="organization-section mat-elevation-z1">
           <mat-card-header class="organization-section__header">
             <mat-card-title class="mat-title-small" i18n>
-              Verified spots
+              Spots verified by you
             </mat-card-title>
           </mat-card-header>
           <mat-card-content class="organization-section__content">
-            @if (verifiedSpots().length > 0) {
+            @if (stewardedSpots().length > 0) {
               <div class="organization-spots-grid">
-                @for (spot of verifiedSpots(); track spot.id) {
+                @for (spot of stewardedSpots(); track spot.id) {
                   <a
                     [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
                     class="organization-spot-link"
@@ -100,6 +110,66 @@
             } @else {
               <p class="mat-body-medium organization-section__placeholder" i18n>
                 No verified spots yet.
+              </p>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="organization-section mat-elevation-z1">
+          <mat-card-header class="organization-section__header">
+            <mat-card-title class="mat-title-small" i18n>
+              Your managed spots
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="organization-section__content">
+            @if (managedSpots().length > 0) {
+              <div class="organization-spots-grid">
+                @for (spot of managedSpots(); track spot.id) {
+                  <a
+                    [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
+                    class="organization-spot-link"
+                  >
+                    <app-spot-preview-card
+                      [spotData]="spot"
+                      [imgSize]="200"
+                      [clickable]="true"
+                    ></app-spot-preview-card>
+                  </a>
+                }
+              </div>
+            } @else {
+              <p class="mat-body-medium organization-section__placeholder" i18n>
+                No managed spots yet.
+              </p>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="organization-section mat-elevation-z1">
+          <mat-card-header class="organization-section__header">
+            <mat-card-title class="mat-title-small" i18n>
+              Spots we use
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="organization-section__content">
+            @if (usedSpots().length > 0) {
+              <div class="organization-spots-grid">
+                @for (spot of usedSpots(); track spot.id) {
+                  <a
+                    [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
+                    class="organization-spot-link"
+                  >
+                    <app-spot-preview-card
+                      [spotData]="spot"
+                      [imgSize]="200"
+                      [clickable]="true"
+                    ></app-spot-preview-card>
+                  </a>
+                }
+              </div>
+            } @else {
+              <p class="mat-body-medium organization-section__placeholder" i18n>
+                No used spots yet.
               </p>
             }
           </mat-card-content>

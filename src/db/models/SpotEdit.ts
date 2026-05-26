@@ -18,7 +18,10 @@ export class SpotEdit implements SpotEditSchema {
   readonly visibility?: SpotEditSchema["visibility"];
   readonly review_status?: SpotEditSchema["review_status"];
   readonly review_organization_id?: SpotEditSchema["review_organization_id"];
+  readonly review_organization_ids?: SpotEditSchema["review_organization_ids"];
+  readonly review_kind?: SpotEditSchema["review_kind"];
   readonly reviewed_by?: SpotEditSchema["reviewed_by"];
+  readonly reviewed_by_organization_id?: SpotEditSchema["reviewed_by_organization_id"];
   readonly reviewed_at?: SpotEditSchema["reviewed_at"];
   readonly review_note?: SpotEditSchema["review_note"];
   readonly processing_status?: SpotEditSchema["processing_status"];
@@ -40,7 +43,11 @@ export class SpotEdit implements SpotEditSchema {
     this.visibility = _spotEditSchema.visibility;
     this.review_status = _spotEditSchema.review_status;
     this.review_organization_id = _spotEditSchema.review_organization_id;
+    this.review_organization_ids = _spotEditSchema.review_organization_ids;
+    this.review_kind = _spotEditSchema.review_kind;
     this.reviewed_by = _spotEditSchema.reviewed_by;
+    this.reviewed_by_organization_id =
+      _spotEditSchema.reviewed_by_organization_id;
     this.reviewed_at = _spotEditSchema.reviewed_at;
     this.review_note = _spotEditSchema.review_note;
     this.processing_status = _spotEditSchema.processing_status;

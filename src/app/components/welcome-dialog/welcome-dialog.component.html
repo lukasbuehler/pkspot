@@ -1,38 +1,71 @@
 <h2 mat-dialog-title i18n="@@welcomeDialogTitle">Welcome to PK Spot! 👋</h2>
-<mat-dialog-content>
-  <p class="mat-body-medium" i18n="@@welcomeDialogText">
-    PK Spot is the spot for everything parkour. Find places to train, check in,
-    discover what is happening nearby, and connect with your local community. 🤸
-  </p>
+<mat-dialog-content class="welcome-dialog__content">
+  <section class="welcome-dialog__panel">
+    <p class="mat-label-large welcome-dialog__kicker">PK Spot</p>
 
-  <h4 class="mat-title-medium" i18n="@@welcomeDialogSafetyHeading">
-    Our Guiding Principles: Safety & Respect
-  </h4>
-  <p class="mat-body-medium" i18n="@@welcomeDialogSafetyBody">
-    Remember that Parkour has inherent risks and you are responsible for your
-    own safety. Our spots are user-submitted and their accuracy and legality are
-    not guaranteed. Always respect property rights and local laws.
-  </p>
+    <p class="mat-body-medium" i18n="@@welcomeDialogText">
+      PK Spot is the spot for everything parkour. Find places to train, check in,
+      discover what is happening nearby, and connect with your local community. 🤸
+    </p>
 
-  <h4 class="mat-title-medium" i18n="@@welcomeDialogCommunityHeading">
-    Community & Contribution
-  </h4>
-  <p class="mat-body-medium" i18n="@@welcomeDialogCommunityBody">
-    PK Spot is built by the community. By contributing content, you grant us the
-    license needed to operate the service, as detailed in our Terms of Service.
-    We then share the combined spot data back to the public under a protective,
-    non-commercial license (CC BY-NC-SA 4.0) to keep it an open resource for
-    everyone.
-  </p>
-  <h4 class="mat-title-medium" i18n="@@welcomeDialogTechHeading">
-    A Note on Privacy & Technology
-  </h4>
-  <p class="mat-body-medium" i18n="@@welcomeDialogTechBody">
-    Essential features (like Google Maps) may use cookies 🍪. To protect your
-    privacy, we use a privacy-focused, cookie-free analytics service.
-  </p>
+    <div class="welcome-dialog__principles">
+      <div class="welcome-dialog__principle">
+        <span class="welcome-dialog__icon" aria-hidden="true">
+          <mat-icon>shield</mat-icon>
+        </span>
+        <div>
+          <h3 class="mat-title-small" i18n="@@welcomeDialogSafetyHeading">
+            Our Guiding Principles: Safety & Respect
+          </h3>
+          <p class="mat-body-medium" i18n="@@welcomeDialogSafetyBody">
+            Remember that Parkour has inherent risks and you are responsible for
+            your own safety. Our spots are user-submitted and their accuracy and
+            legality are not guaranteed. Always respect property rights and local
+            laws.
+          </p>
+        </div>
+      </div>
 
-  <p class="mat-title-small" i18n="@@welcomeDialogButtonInfo">
+      <div class="welcome-dialog__principle">
+        <span class="welcome-dialog__icon" aria-hidden="true">
+          <mat-icon>groups</mat-icon>
+        </span>
+        <div>
+          <h3 class="mat-title-small" i18n="@@welcomeDialogCommunityHeading">
+            Community & Contribution
+          </h3>
+          <p class="mat-body-medium" i18n="@@welcomeDialogCommunityBody">
+            PK Spot is built by the community. By contributing content, you grant
+            us the license needed to operate the service, as detailed in our
+            Terms of Service. We then share the combined spot data back to the
+            public under a protective, non-commercial license (CC BY-NC-SA 4.0)
+            to keep it an open resource for everyone.
+          </p>
+        </div>
+      </div>
+
+      <div class="welcome-dialog__principle">
+        <span class="welcome-dialog__icon" aria-hidden="true">
+          <mat-icon>verified_user</mat-icon>
+        </span>
+        <div>
+          <h3 class="mat-title-small" i18n="@@welcomeDialogTechHeading">
+            A Note on Privacy & Technology
+          </h3>
+          <p class="mat-body-medium" i18n="@@welcomeDialogTechBody">
+            Essential features (like Google Maps) may use cookies 🍪. To protect
+            your privacy, we use a privacy-focused, cookie-free analytics
+            service.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p
+    class="mat-body-medium welcome-dialog__legal"
+    i18n="@@welcomeDialogButtonInfo"
+  >
     By clicking "Agree & Continue", you accept our
     <a routerLink="/terms-of-service">Terms of Service</a> and acknowledge our
     <a routerLink="/privacy-policy">Privacy Policy</a>.

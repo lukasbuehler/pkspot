@@ -72,25 +72,40 @@
           class="text-truncate d-block spot-title-text">{{ spot()!.name() }}</span>
         <span i18n class="mat-label-small px-1 border rounded spot-kind-label">Spot</span>
 
-        @if (spot()?.verification?.status === "verified") {
+        @if (managedOrganization(); as managed) {
         <a matIconButton class="spot-verification-badge d-flex flex-row align-items-center" [routerLink]="[
             '/organizations',
-            spot()?.verification?.organization?.slug ||
-              spot()?.verification?.organization_id
-          ]" matTooltip="Verified by {{ spot()?.verification?.organization?.name }}"
-          i18n-matTooltip="@@spot.verified.tooltip" [attr.aria-label]="
-            'Verified by ' + spot()?.verification?.organization?.name
+            managed.organization.slug || managed.organization_id
+          ]" matTooltip="Managed by {{ managed.organization.name }}"
+          i18n-matTooltip="@@spot.managed.tooltip" [attr.aria-label]="
+            'Managed by ' + managed.organization.name
           " style="width: 60px; margin-left: -8px; margin-right: -8px;">
           <mat-icon style="width: 24px; flex-shrink: 0">verified_user</mat-icon>
-          @if (spot()?.verification?.organization?.logo_url) {
-          <img class="spot-verification-logo" [src]="spot()?.verification?.organization?.logo_url"
-            [style.background]="
-              spot()?.verification?.organization?.logo_background_color ||
+          @if (managed.organization.logo_url) {
+          <img class="spot-verification-logo" [src]="managed.organization.logo_url" [style.background]="
+              managed.organization.logo_background_color ||
               'var(--mat-sys-surface)'
-            " [alt]="spot()?.verification?.organization?.name + ' logo'" />
-
+            " [alt]="managed.organization.name + ' logo'" />
           }
         </a>
+        } @else {
+          @for (steward of stewardedOrganizations(); track steward.organization_id) {
+          <a matIconButton class="spot-verification-badge d-flex flex-row align-items-center" [routerLink]="[
+              '/organizations',
+              steward.organization.slug || steward.organization_id
+            ]" matTooltip="Verified by {{ steward.organization.name }}"
+            i18n-matTooltip="@@spot.verified.tooltip" [attr.aria-label]="
+              'Verified by ' + steward.organization.name
+            " style="width: 60px; margin-left: -8px; margin-right: -8px;">
+            <mat-icon style="width: 24px; flex-shrink: 0">verified_user</mat-icon>
+            @if (steward.organization.logo_url) {
+            <img class="spot-verification-logo" [src]="steward.organization.logo_url" [style.background]="
+                steward.organization.logo_background_color ||
+                'var(--mat-sys-surface)'
+              " [alt]="steward.organization.name + ' logo'" />
+            }
+          </a>
+          }
         }
       </span>
 
@@ -884,20 +899,50 @@
     </div>
 
     @if (isAdmin() && !isNewSpot) {
-    <div class="mb-4">
-      <h4 class="mat-title-small" i18n>Verification</h4>
+    <div class="mb-4 spot-org-admin-panel">
+      <h4 class="mat-title-small" i18n>Organization settings</h4>
+
       <mat-form-field class="w-100" appearance="outline">
-        <mat-label i18n>Verifying organization</mat-label>
-        <select matNativeControl [ngModel]="selectedVerificationOrganizationId()"
-          (ngModelChange)="selectedVerificationOrganizationId.set($event)" [disabled]="isLoadingOrganizations()">
-          <option value="" i18n>Not verified</option>
+        <mat-label i18n>Managed by</mat-label>
+        <select matNativeControl [ngModel]="selectedManagerOrganizationId()"
+          (ngModelChange)="selectedManagerOrganizationId.set($event)" [disabled]="isLoadingOrganizations()">
+          <option value="" i18n>Not managed</option>
           @for (organization of organizations(); track organization.id) {
           <option [value]="organization.id">{{ organization.name }}</option>
           }
         </select>
         <mat-hint i18n>
-          Admin only. Verified spots route future edits to this
-          organization for review.
+          One organization controls the official info for a managed venue.
+        </mat-hint>
+      </mat-form-field>
+
+      <div class="spot-org-admin-panel__verified-list">
+        <div class="mat-label-large" i18n>Verified by</div>
+        @if (stewardedOrganizations().length > 0) {
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          @for (steward of stewardedOrganizations(); track steward.organization_id) {
+          <button matButton="outlined" type="button" (click)="removeStewardedOrganization(steward.organization_id)">
+            <mat-icon>close</mat-icon>
+            <span>{{ steward.organization.name }}</span>
+          </button>
+          }
+        </div>
+        } @else {
+        <p class="mat-body-small m-0 mb-2" i18n>No organization verifies this public spot yet.</p>
+        }
+      </div>
+
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label i18n>Add verifying organization</mat-label>
+        <select matNativeControl [ngModel]="selectedStewardOrganizationId()"
+          (ngModelChange)="selectedStewardOrganizationId.set($event)" [disabled]="isLoadingOrganizations()">
+          <option value="" i18n>Choose organization</option>
+          @for (organization of organizations(); track organization.id) {
+          <option [value]="organization.id">{{ organization.name }}</option>
+          }
+        </select>
+        <mat-hint i18n>
+          Multiple organizations can verify a public spot without owning it.
         </mat-hint>
       </mat-form-field>
     </div>

@@ -11,6 +11,29 @@ import { OrganizationReferenceSchema } from "./OrganizationSchema";
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
 
+export interface SpotStewardshipSchema {
+  status: "active";
+  organization_id: string;
+  organization: OrganizationReferenceSchema;
+  stewarded_by_user_id: string;
+  stewarded_at: Timestamp;
+}
+
+export interface SpotStewardshipStateSchema {
+  organization_ids: string[];
+  organizations: Record<string, SpotStewardshipSchema>;
+}
+
+export interface SpotManagementSchema {
+  status: "managed";
+  organization_id: string;
+  organization: OrganizationReferenceSchema;
+  managed_by_user_id: string;
+  managed_at: Timestamp;
+  lock_edits: true;
+}
+
+/** @deprecated Use stewardship for public verification or management for exclusive control. */
 export interface SpotVerificationSchema {
   status: "verified";
   organization_id: string;
@@ -64,6 +87,9 @@ export interface SpotSchema {
   num_challenges?: number; // integer
 
   is_iconic?: boolean;
+  stewardship?: SpotStewardshipStateSchema;
+  management?: SpotManagementSchema;
+  /** @deprecated Use stewardship or management. Kept for old clients during migration. */
   verification?: SpotVerificationSchema;
   rating?: number; // from 0-5, where 0 means no rating. Default is 0, 1-5 set by cloud function.
   num_reviews?: number; // integer

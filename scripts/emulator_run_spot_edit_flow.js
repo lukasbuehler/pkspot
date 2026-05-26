@@ -954,13 +954,24 @@ async function testVerifiedSpotRoutesToOrganizationReview() {
     media: [],
     address: null,
     source: "pkspot",
-    verification: {
-      status: "verified",
-      organization_id: "pk-spot",
-      organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
-      verified_by_user_id: "admin",
-      verified_at: timestampAt(8700),
-      lock_edits: true,
+    stewardship: {
+      organization_ids: ["pk-spot", "wpf"],
+      organizations: {
+        "pk-spot": {
+          status: "active",
+          organization_id: "pk-spot",
+          organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+          stewarded_by_user_id: "admin",
+          stewarded_at: timestampAt(8700),
+        },
+        wpf: {
+          status: "active",
+          organization_id: "wpf",
+          organization: { id: "wpf", name: "World's Parkour Family", slug: "wpf" },
+          stewarded_by_user_id: "admin",
+          stewarded_at: timestampAt(8700),
+        },
+      },
     },
   });
 
@@ -974,7 +985,7 @@ async function testVerifiedSpotRoutesToOrganizationReview() {
 
   const edit = await waitFor(async () => {
     const latest = await getEdit(spotId, editId);
-    return latest.processing_status === "PENDING_ORG_REVIEW" ? latest : null;
+    return latest.processing_status === "PENDING_STEWARD_REVIEW" ? latest : null;
   }, "verified edit pending organization review");
   const spot = await getSpot(spotId);
 
@@ -982,6 +993,8 @@ async function testVerifiedSpotRoutesToOrganizationReview() {
   assert.equal(edit.visibility, "private");
   assert.equal(edit.review_status, "pending");
   assert.equal(edit.review_organization_id, "pk-spot");
+  assert.deepEqual(edit.review_organization_ids, ["pk-spot", "wpf"]);
+  assert.equal(edit.review_kind, "stewarded");
   assert.deepEqual(spot.name, { en: "Verified Base" });
 }
 

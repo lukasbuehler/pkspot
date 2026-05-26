@@ -302,10 +302,12 @@ export class SpotEditsService extends ConsentAwareService {
     const spot = await this._firestoreAdapter.getDocument<SpotSchema>(
       `spots/${spotId}`
     );
-    const visibility =
-      edit.type === "UPDATE" && spot?.verification?.status === "verified"
-        ? "private"
-        : "public";
+    const requiresOrganizationReview =
+      edit.type === "UPDATE" &&
+      (spot?.management?.status === "managed" ||
+        (spot?.stewardship?.organization_ids?.length ?? 0) > 0 ||
+        spot?.verification?.status === "verified");
+    const visibility = requiresOrganizationReview ? "private" : "public";
     const cleanEdit = cleanDataForFirestore({
       visibility,
       ...edit,
@@ -367,8 +369,8 @@ export class SpotEditsService extends ConsentAwareService {
   ): Promise<Array<{ edit: SpotEditSchema & { id: string }; spotId: string }>> {
     const filters: QueryFilter[] = [
       {
-        fieldPath: "review_organization_id",
-        opStr: "==",
+        fieldPath: "review_organization_ids",
+        opStr: "array-contains",
         value: organizationId,
       },
       { fieldPath: "review_status", opStr: "==", value: "pending" },
@@ -452,6 +454,8 @@ export class SpotEditsService extends ConsentAwareService {
       // Computed fields (calculated server-side)
       "tile_coordinates",
       "is_iconic",
+      "stewardship",
+      "management",
       "verification",
       "address",
       "landing",

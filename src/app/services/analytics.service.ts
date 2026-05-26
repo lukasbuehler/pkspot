@@ -1,7 +1,6 @@
 import { Injectable, PLATFORM_ID, inject } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { Router, NavigationEnd } from "@angular/router";
-import posthog from "posthog-js";
 import type { CaptureResult, Properties } from "posthog-js";
 import { ConsentService } from "./consent.service";
 import { environment } from "../../environments/environment";
@@ -48,6 +47,7 @@ export class AnalyticsService {
   private _consentService = inject(ConsentService);
   private router = inject(Router);
   private _initialized = false;
+  private _posthog: typeof import("posthog-js").default | null = null;
   private readonly appVersion = version;
   private readonly distinctIdStorageKey = "ph_distinct_id_v1";
   private readonly initialReferrerStorageKey = "ph_initial_referrer_v1";
@@ -92,7 +92,7 @@ export class AnalyticsService {
       if (this.isNative()) {
         await this.initNative(apiKey, host);
       } else {
-        this.initWeb(apiKey, host);
+        await this.initWeb(apiKey, host);
       }
       this._initialized = true;
       await this.registerSuperProperties();
@@ -175,10 +175,13 @@ export class AnalyticsService {
   /**
    * Initialize Web PostHog (posthog-js)
    */
-  private initWeb(apiKey: string, host: string): void {
+  private async initWeb(apiKey: string, host: string): Promise<void> {
     if (!isPlatformBrowser(this._platformId)) {
       return;
     }
+
+    const { default: posthog } = await import("posthog-js");
+    this._posthog = posthog;
 
     // Check for Do Not Track
     const dnt =
@@ -211,26 +214,21 @@ export class AnalyticsService {
       defaults: "2025-11-30",
       respect_dnt: true, // PostHog handles this internally usually, but we can be explicit with opt_out below if needed
       opt_out_capturing_by_default: dnt, // Explicitly respect DNT for initial capture state
+      autocapture: false,
       capture_pageview: false,
       capture_pageleave: false,
+      capture_performance: false,
       disable_session_recording: true,
+      disable_surveys: true,
+      disable_product_tours: true,
       error_tracking: {
         captureExtensionExceptions: false,
       },
-      capture_exceptions: {
-        capture_unhandled_errors: true,
-        capture_unhandled_rejections: true,
-        capture_console_errors: false,
-      },
+      capture_exceptions: false,
       persistence: "localStorage",
       debug: false,
       ...bootstrapConfig,
       loaded: (ph) => {
-        ph.startExceptionAutocapture({
-          capture_unhandled_errors: true,
-          capture_unhandled_rejections: true,
-          capture_console_errors: false,
-        });
         // 2. Persist the distinct_id for future sessions
         const currentId = ph.get_distinct_id();
         if (currentId) {
@@ -271,7 +269,7 @@ export class AnalyticsService {
     if (!this._initialized) return false;
     if (this.isNative()) return true;
     return (
-      isPlatformBrowser(this._platformId) && typeof posthog !== "undefined"
+      isPlatformBrowser(this._platformId) && this._posthog !== null
     );
   }
 
@@ -317,7 +315,7 @@ export class AnalyticsService {
         properties: normalizedProperties,
       });
     } else {
-      posthog.capture(eventName, normalizedProperties);
+      this._posthog?.capture(eventName, normalizedProperties);
     }
   }
 
@@ -342,10 +340,10 @@ export class AnalyticsService {
           });
         }
       } else {
-        posthog.captureException(error, properties);
+        this._posthog?.captureException(error, properties);
 
         if (options.userFacing) {
-          posthog.capture("User Encountered Error", properties);
+          this._posthog?.capture("User Encountered Error", properties);
         }
       }
     } catch (reportingError) {
@@ -371,6 +369,8 @@ export class AnalyticsService {
       // Register authenticated super property
       this.registerNativeSuperProperty({ authenticated: true });
     } else {
+      const posthog = this._posthog;
+      if (!posthog) return;
       posthog.identify(userId, properties);
       // Mark subsequent events/pageviews as authenticated for PostHog
       try {
@@ -403,6 +403,8 @@ export class AnalyticsService {
         ...this.getAppVersionProperties(),
       });
     } else {
+      const posthog = this._posthog;
+      if (!posthog) return;
       posthog.reset();
 
       // Make sure future events are marked unauthenticated
@@ -451,6 +453,8 @@ export class AnalyticsService {
       // We will skip people.set for native unless strictly required, focusing on super props.
     } else {
       try {
+        const posthog = this._posthog;
+        if (!posthog) return;
         posthog.register(props);
         if (posthog.people && typeof posthog.people.set === "function") {
           const personProps: Record<string, unknown> = {
@@ -479,7 +483,7 @@ export class AnalyticsService {
       // fallback to capture $set if needed, but for now just logging as not fully supported without identify
       console.warn("setUserProperties not fully implemented for Native");
     } else {
-      posthog.people.set(properties);
+      this._posthog?.people.set(properties);
     }
   }
 
@@ -495,7 +499,7 @@ export class AnalyticsService {
     if (this.isNative()) {
       CapacitorPostHog.optOut();
     } else {
-      posthog.opt_out_capturing();
+      this._posthog?.opt_out_capturing();
     }
   }
 
@@ -509,7 +513,7 @@ export class AnalyticsService {
     if (this.isNative()) {
       CapacitorPostHog.optIn();
     } else {
-      posthog.opt_in_capturing();
+      this._posthog?.opt_in_capturing();
     }
   }
 
@@ -523,7 +527,7 @@ export class AnalyticsService {
     if (this.isNative()) {
       return false; // Native SDK manages this internally usually, assuming opted in if initialized
     }
-    return posthog.has_opted_out_capturing();
+    return this._posthog?.has_opted_out_capturing() ?? true;
   }
 
   // ========================================================================
@@ -570,7 +574,7 @@ export class AnalyticsService {
       if (this.isNative()) {
         await this.registerNativeSuperProperty(props);
       } else {
-        posthog.register({
+        this._posthog?.register({
           ...props,
           ...this.getInitialAttributionProperties(),
         });

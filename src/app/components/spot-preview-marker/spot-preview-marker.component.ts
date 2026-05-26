@@ -48,7 +48,7 @@ import {
       (keydown.space)="triggerMarkerFromKeyboard($event)"
     >
       <div class="spot-preview-marker__content">
-        @if(hoverPreviewActive()) {
+        @if(effectivePreviewVisible()) {
         <div class="spot-preview-marker__preview">
           <app-spot-preview-card
             class="spot-preview-marker__card"

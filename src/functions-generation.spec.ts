@@ -45,11 +45,19 @@ describe("Cloud Functions generation policy", () => {
       resolve(functionsSourceRoot, "organizationFunctions.ts"),
       "utf8"
     );
+    const spotEditSource = readFileSync(
+      resolve(functionsSourceRoot, "spotEditFunctions.ts"),
+      "utf8"
+    );
 
     expect(indexSource).toContain("syncVerifiedSpotOrganizationSnapshots");
+    expect(indexSource).toContain("setSpotOrganizationRelationship");
     expect(organizationSource).toContain("onDocumentUpdated");
     expect(organizationSource).toContain("verified_spots");
-    expect(organizationSource).toContain("verification.organization_id");
+    expect(organizationSource).toContain("managed_spots");
+    expect(organizationSource).toContain("stewardship.organization_ids");
+    expect(organizationSource).toContain("management.organization_id");
+    expect(spotEditSource).toContain("used_spots");
   });
 
   it("keeps signup number assignment on a gen 2 profile trigger", () => {

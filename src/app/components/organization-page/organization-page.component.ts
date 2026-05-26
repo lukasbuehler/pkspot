@@ -44,7 +44,9 @@ export class OrganizationPageComponent implements OnInit {
 
   readonly organization = signal<OrganizationDocument | null>(null);
   readonly members = signal<(OrganizationMemberSchema & { id: string })[]>([]);
-  readonly verifiedSpots = signal<Spot[]>([]);
+  readonly stewardedSpots = signal<Spot[]>([]);
+  readonly managedSpots = signal<Spot[]>([]);
+  readonly usedSpots = signal<Spot[]>([]);
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
 
@@ -58,7 +60,9 @@ export class OrganizationPageComponent implements OnInit {
     () => this.organization()?.name.trim().charAt(0).toUpperCase() || "?"
   );
   readonly memberCount = computed(() => this.members().length);
-  readonly verifiedSpotCount = computed(() => this.verifiedSpots().length);
+  readonly stewardedSpotCount = computed(() => this.stewardedSpots().length);
+  readonly managedSpotCount = computed(() => this.managedSpots().length);
+  readonly usedSpotCount = computed(() => this.usedSpots().length);
 
   ngOnInit(): void {
     this._route.paramMap.subscribe((params) => {
@@ -77,7 +81,9 @@ export class OrganizationPageComponent implements OnInit {
     this.errorMessage.set(null);
     this.organization.set(null);
     this.members.set([]);
-    this.verifiedSpots.set([]);
+    this.stewardedSpots.set([]);
+    this.managedSpots.set([]);
+    this.usedSpots.set([]);
 
     try {
       const organization =
@@ -88,12 +94,23 @@ export class OrganizationPageComponent implements OnInit {
       }
 
       this.organization.set(organization);
-      const [members, verifiedSpots] = await Promise.all([
-        this._organizationsService.getOrganizationMembers(organization.id),
-        this._organizationsService.getVerifiedSpots(organization.id, this._locale),
-      ]);
+      const [members, stewardedSpots, managedSpots, usedSpots] =
+        await Promise.all([
+          this._organizationsService.getOrganizationMembers(organization.id),
+          this._organizationsService.getStewardedSpots(
+            organization.id,
+            this._locale
+          ),
+          this._organizationsService.getManagedSpots(
+            organization.id,
+            this._locale
+          ),
+          this._organizationsService.getUsedSpots(organization.id, this._locale),
+        ]);
       this.members.set(members);
-      this.verifiedSpots.set(verifiedSpots);
+      this.stewardedSpots.set(stewardedSpots);
+      this.managedSpots.set(managedSpots);
+      this.usedSpots.set(usedSpots);
     } catch (error) {
       console.error("Failed to load organization page", error);
       this.errorMessage.set($localize`Could not load this organization.`);

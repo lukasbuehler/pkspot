@@ -62,6 +62,12 @@ export class SpotEditDetailsComponent {
     if (status === "BLOCKED_ICONIC_SPOT") {
       return $localize`Pending community vote (iconic spot)`;
     }
+    if (status === "PENDING_STEWARD_REVIEW") {
+      return $localize`Awaiting steward review`;
+    }
+    if (status === "PENDING_MANAGEMENT_REVIEW") {
+      return $localize`Awaiting manager review`;
+    }
     if (status === "BLOCKED_VERIFIED_SPOT") {
       return $localize`Pending community vote (verified spot)`;
     }
