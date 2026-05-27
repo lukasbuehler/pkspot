@@ -10,9 +10,7 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { OsmDataService } from "../../services/osm-data.service";
-import { ConsentService } from "../../services/consent.service";
 import { SearchService } from "../../services/search.service";
-import { SpotClusterService } from "../../services/spot-cluster.service";
 import { getClusterTileKey } from "../../../db/schemas/SpotClusterTile";
 import { SpotMapDataManager, SpotFilterMode } from "./SpotMapDataManager";
 import { TilesObject } from "../google-map-2d/google-map-2d.component";
@@ -27,7 +25,6 @@ function makeInjector(overrides: Map<unknown, unknown> = new Map()): Injector {
     [SpotsService, {}],
     [SpotEditsService, {}],
     [OsmDataService, { getAmenityMarkers: vi.fn(() => of([])) }],
-    [ConsentService, {}],
     [AuthenticationService, {}],
     [
       SearchService,
@@ -43,12 +40,7 @@ function makeInjector(overrides: Map<unknown, unknown> = new Map()): Injector {
   overrides.forEach((value, token) => providers.set(token, value));
 
   return {
-    get: (token: unknown) => {
-      if (token === SpotClusterService) {
-        throw new Error("SpotClusterService intentionally omitted");
-      }
-      return providers.get(token);
-    },
+    get: (token: unknown) => providers.get(token),
   } as Injector;
 }
 
@@ -88,9 +80,9 @@ const visibleTile: TilesObject = {
 function renderCachedSpots(manager: SpotMapDataManager): void {
   (
     manager as unknown as {
-      _showCachedSpotsAndMarkersForTiles: (tiles: TilesObject) => void;
+      _showCachedLoadedSpotsAndMarkersForTiles: (tiles: TilesObject) => void;
     }
-  )._showCachedSpotsAndMarkersForTiles(visibleTile);
+  )._showCachedLoadedSpotsAndMarkersForTiles(visibleTile);
 }
 
 describe("SpotMapDataManager filters", () => {
@@ -133,7 +125,7 @@ describe("SpotMapDataManager filters", () => {
     );
   });
 
-  it("keeps coverage spots visible when a preset filter is active", () => {
+  it("keeps cached full spots visible when a preset filter is active", () => {
     const parkourSpot = makeSpot("parkour", SpotTypes.PkPark);
     const regularSpot = makeSpot("regular", SpotTypes.Playground);
     const manager = makeManagerWithSpots([parkourSpot, regularSpot]);
@@ -142,9 +134,7 @@ describe("SpotMapDataManager filters", () => {
     renderCachedSpots(manager);
 
     expect(manager.visibleSpots()).toEqual([parkourSpot, regularSpot]);
-    expect(manager.visibleHighlightedSpots().map((spot) => spot.id)).toEqual([
-      "parkour",
-    ]);
+    expect(manager.visibleHighlightedSpots()).toEqual([]);
   });
 
   it("uses manual filter results for pins without replacing coverage spots", () => {
@@ -174,9 +164,9 @@ describe("SpotMapDataManager filters", () => {
 
     (
       manager as unknown as {
-        _showCachedSpotsAndMarkersForTiles: (tiles: TilesObject) => void;
+        _showCachedLoadedSpotsAndMarkersForTiles: (tiles: TilesObject) => void;
       }
-    )._showCachedSpotsAndMarkersForTiles({
+    )._showCachedLoadedSpotsAndMarkersForTiles({
       zoom: 16,
       tiles: [{ x: 34318, y: 22946 }],
       sw: { x: 34318, y: 22946 },
@@ -186,26 +176,21 @@ describe("SpotMapDataManager filters", () => {
     expect(manager.visibleSpots()).toEqual([spot]);
   });
 
-  it("does not fetch or retain spot cluster tiles below spot zoom", async () => {
-    const spotsService = {
-      getSpotClusterTiles: vi.fn(),
+  it("does not fetch Firestore spot tiles or cluster tiles during viewport updates", async () => {
+    const searchService = {
+      searchSpotsInBoundsWithFilter: vi.fn(),
+      searchSpotsInRawBounds: vi.fn().mockResolvedValue({ hits: [] }),
+      getSpotPreviewFromHit: vi.fn(),
     };
     const manager = new SpotMapDataManager(
       "en",
       makeInjector(
         new Map<unknown, unknown>([
-          [SpotsService, spotsService],
-          [
-            ConsentService,
-            {
-              hasConsent: vi.fn(() => true),
-            },
-          ],
+          [SpotsService, {}],
+          [SearchService, searchService],
         ])
       )
     );
-
-    manager.spotFilterMode.set(SpotFilterMode.ForParkour);
 
     await (
       manager as unknown as {
@@ -216,10 +201,16 @@ describe("SpotMapDataManager filters", () => {
       tiles: [{ x: 532, y: 363 }],
       sw: { x: 532, y: 363 },
       ne: { x: 532, y: 363 },
+      viewportBounds: {
+        north: 48,
+        south: 47,
+        east: 9,
+        west: 8,
+      },
     });
 
-    expect(spotsService.getSpotClusterTiles).not.toHaveBeenCalled();
-    expect(manager.visibleDots()).toEqual([]);
+    expect(searchService.searchSpotsInRawBounds).toHaveBeenCalled();
+    expect(searchService.searchSpotsInBoundsWithFilter).not.toHaveBeenCalled();
   });
 
   it("loads close-zoom base spot previews from Typesense without Firestore tile reads", async () => {
@@ -229,9 +220,6 @@ describe("SpotMapDataManager filters", () => {
       lat: 47.3897,
       lng: 8.5173,
     }).makePreviewData();
-    const spotsService = {
-      getSpotsForTileKeys: vi.fn(),
-    };
     const searchService = {
       searchSpotsInBoundsWithFilter: vi.fn(),
       searchSpotsInRawBounds: vi.fn().mockResolvedValue({
@@ -243,7 +231,7 @@ describe("SpotMapDataManager filters", () => {
       "en",
       makeInjector(
         new Map<unknown, unknown>([
-          [SpotsService, spotsService],
+          [SpotsService, {}],
           [SearchService, searchService],
         ])
       )
@@ -280,7 +268,6 @@ describe("SpotMapDataManager filters", () => {
       undefined,
       false
     );
-    expect(spotsService.getSpotsForTileKeys).not.toHaveBeenCalled();
     expect(manager.visibleHighlightedSpots()).toEqual([preview]);
 
     vi.clearAllTimers();

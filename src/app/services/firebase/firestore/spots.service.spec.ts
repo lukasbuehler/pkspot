@@ -3,7 +3,6 @@ import { TestBed } from "@angular/core/testing";
 import { Firestore } from "@angular/fire/firestore";
 import { of } from "rxjs";
 import { firstValueFrom } from "rxjs";
-import { GeoPoint } from "firebase/firestore";
 
 // Mock Firestore with partial mock - use inline mocks to avoid hoisting issues
 vi.mock("@angular/fire/firestore", async (importOriginal) => {
@@ -327,52 +326,6 @@ describe("SpotsService", () => {
 
     // Note: getSpotsForTiles with empty array causes EmptyError from forkJoin
     // This behavior is correct - the caller should check for empty tiles
-  });
-
-  describe("getSpotClusterTiles", () => {
-    it("should normalize mobile cluster tile locations without GeoPoint instances", async () => {
-      mockFirestoreAdapter.getDocument.mockResolvedValueOnce({
-        id: "z16_1_2",
-        zoom: 16,
-        x: 1,
-        y: 2,
-        dots: [
-          {
-            location: { latitude: 48.1234, longitude: 11.5678 },
-            weight: 4,
-          },
-          {
-            location: "GeoPoint { latitude=47.5, longitude=8.5 }",
-            location_raw: { lat: 47.5, lng: 8.5 },
-            weight: 2,
-          },
-        ],
-        spots: [
-          {
-            id: "spot-1",
-            name: "Preview Spot",
-            location: { latitude: 46.9, longitude: 7.4 },
-          },
-        ],
-      });
-
-      const tiles = await firstValueFrom(
-        service.getSpotClusterTiles(["z16_1_2" as any])
-      );
-
-      expect(mockFirestoreAdapter.getDocument).toHaveBeenCalledWith(
-        "spot_clusters/z16_1_2"
-      );
-      expect(tiles).toHaveLength(1);
-      expect(tiles[0]?.dots[0]?.location).toBeInstanceOf(GeoPoint);
-      expect(tiles[0]?.dots[0]?.location.latitude).toBe(48.1234);
-      expect(tiles[0]?.dots[0]?.location.longitude).toBe(11.5678);
-      expect(tiles[0]?.dots[1]?.location).toBeInstanceOf(GeoPoint);
-      expect(tiles[0]?.dots[1]?.location.latitude).toBe(47.5);
-      expect(tiles[0]?.spots?.[0]?.location).toBeInstanceOf(GeoPoint);
-      expect(tiles[0]?.spots?.[0]?.location?.latitude).toBe(46.9);
-      expect(tiles[0]?.spots?.[0]?.location?.longitude).toBe(7.4);
-    });
   });
 
   describe("_checkMediaDiffAndDeleteFromStorageIfNecessary", () => {

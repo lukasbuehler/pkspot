@@ -24,11 +24,6 @@ import { Observable, forkJoin, of, from, throwError } from "rxjs";
 import { map, take, timeout, catchError } from "rxjs/operators";
 import { Spot } from "../../../../db/models/Spot";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
-import {
-  MapTileKey,
-  getDataFromClusterTileKey,
-  SpotClusterTileSchema,
-} from "../../../../db/schemas/SpotClusterTile";
 import { SpotSchema } from "../../../../db/schemas/SpotSchema";
 import { LocaleCode } from "../../../../db/models/Interfaces";
 import {
@@ -36,7 +31,6 @@ import {
   cleanDataForFirestore,
   parseFirestoreGeoPoint,
 } from "../../../../scripts/Helpers";
-import { GeoPoint } from "firebase/firestore";
 import { StorageService } from "../storage.service";
 import {
   AnyMedia,
@@ -213,15 +207,6 @@ export class SpotsService extends ConsentAwareService {
       });
   }
 
-  getSpotsForTileKeys(
-    tileKeys: MapTileKey[],
-    locale: LocaleCode,
-    options?: { suppressTileErrors?: boolean }
-  ): Observable<Spot[]> {
-    const tiles = tileKeys.map((key) => getDataFromClusterTileKey(key));
-    return this.getSpotsForTiles(tiles, locale, options);
-  }
-
   getSpotsForTiles(
     tiles: { x: number; y: number }[],
     locale: LocaleCode,
@@ -394,73 +379,6 @@ export class SpotsService extends ConsentAwareService {
       );
       return [];
     }
-  }
-
-  getSpotClusterTiles(
-    tiles: MapTileKey[]
-  ): Observable<SpotClusterTileSchema[]> {
-    // Use adapter for platform-agnostic document access
-    const observables = tiles.map((tile) => {
-      console.debug("Getting spot cluster tile for tile: ", tile);
-
-      return from(
-        this._firestoreAdapter.getDocument<
-          SpotClusterTileSchema & { id: string }
-        >(`spot_clusters/${tile}`)
-      ).pipe(
-        map((d) => {
-          if (!d) {
-            return [] as SpotClusterTileSchema[];
-          }
-          // Convert to the expected array shape
-          const tileData = d as SpotClusterTileSchema;
-
-          // Normalize dots
-          if (tileData.dots) {
-            tileData.dots.forEach((dot) => {
-              const parsed = parseFirestoreGeoPoint(
-                dot.location,
-                dot.location_raw
-              );
-              if (parsed) {
-                dot.location = parsed;
-              }
-            });
-          }
-
-          // Normalize highlighted spots
-          if (tileData.spots) {
-            tileData.spots.forEach((spot) => {
-              const parsed = parseFirestoreGeoPoint(
-                spot.location,
-                spot.location_raw
-              );
-              if (parsed) {
-                spot.location = parsed;
-              }
-            });
-          }
-
-          return [tileData];
-        }),
-        catchError((err) => {
-          console.error(`[SpotsService] Cluster Tile ${tile} FAILED:`, err);
-          return of([]);
-        })
-      );
-    });
-
-    return forkJoin(observables).pipe(
-      map((arrays: SpotClusterTileSchema[][]) => {
-        let allTiles = new Array<SpotClusterTileSchema>();
-        arrays.forEach((tiles: SpotClusterTileSchema[]) => {
-          tiles.forEach((tile: SpotClusterTileSchema) => {
-            allTiles.push(tile);
-          });
-        });
-        return allTiles;
-      })
-    );
   }
 
   private _parseSpots(
