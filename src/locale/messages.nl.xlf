@@ -2944,6 +2944,30 @@
         <target>Drinkwater</target>
       </segment>
     </unit>
+    <unit id="welcomeDialogFeatureSpots">
+      <segment state="initial">
+        <source>Spots</source>
+        <target>Spots</target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogFeatureCommunities">
+      <segment state="initial">
+        <source>Communities</source>
+        <target>Communities</target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogFeatureEvents">
+      <segment state="initial">
+        <source>Events</source>
+        <target>Events</target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogBeforeHeading">
+      <segment state="initial">
+        <source> Before you continue </source>
+        <target> Before you continue </target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogAboutButton">
       <segment state="initial">
         <source>About us</source>
@@ -2952,14 +2976,14 @@
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
-        <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. </source>
-        <target> Door door te gaan, ga je akkoord met onze <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;"> servicevoorwaarden</pc> en ons <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;"> privacybeleid</pc>. </target>
+        <source> By choosing &quot;Agree and Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. You confirm you are at least 13 and old enough to consent under your local law, or that a parent or guardian agrees for you. </source>
+        <target> Door "Akkoord en verder" te kiezen, accepteer je onze <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> en erken je ons <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. Je bevestigt dat je minstens 13 bent en volgens je lokale wet toestemming mag geven, of dat een ouder of voogd voor jou akkoord gaat. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogCommunityBody">
       <segment state="initial">
-        <source> PK Spot is built by the community. By contributing content, you grant us the license needed to operate the service, as detailed in our Terms of Service. We then share the combined spot data back to the public under a protective, non-commercial license (CC BY-NC-SA 4.0) to keep it an open resource for everyone. </source>
-        <target> PK Spot wordt gebouwd door de gemeenschap. Door inhoud bij te dragen, verleen je ons de licentie die nodig is om de dienst te exploiteren, zoals gedetailleerd in onze Servicevoorwaarden. We delen de gecombineerde spotgegevens vervolgens weer met het publiek onder een beschermende, niet-commerciële licentie (CC BY-NC-SA 4.0) om het een open bron voor iedereen te houden. </target>
+        <source> Only share places and content when you have all needed rights and permissions. By contributing, you license them to PK Spot so we can run the service. </source>
+        <target> Deel alleen plekken en content waarvoor je alle nodige rechten en toestemmingen hebt. Door bij te dragen geef je PK Spot hiervoor de licentie die nodig is om de dienst te laten werken. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogCommunityHeading">
@@ -2970,20 +2994,20 @@
     </unit>
     <unit id="welcomeDialogSafetyBody">
       <segment state="initial">
-        <source> Remember that Parkour has inherent risks and you are responsible for your own safety. Our spots are user-submitted and their accuracy and legality are not guaranteed. Always respect property rights and local laws. </source>
-        <target> Onthoud dat Parkour inherente risico&apos;s met zich meebrengt en dat je zelf verantwoordelijk bent voor je eigen veiligheid. Onze spots zijn door gebruikers ingediend en de nauwkeurigheid en legaliteit ervan zijn niet gegarandeerd. Respecteer altijd eigendomsrechten en lokale wetten. </target>
+        <source> Parkour is risky. You are responsible for your safety. Spot data may be wrong, unsafe, or not legally accessible. </source>
+        <target> Parkour brengt risico’s met zich mee. Jij bent verantwoordelijk voor je veiligheid. Spotgegevens kunnen onjuist, onveilig of juridisch niet toegankelijk zijn. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyHeading">
       <segment state="initial">
-        <source> Our Guiding Principles: Safety &amp; Respect </source>
-        <target> Onze leidende principes: veiligheid en respect </target>
+        <source> Respect property, local laws, people, and the places you train. Leave no trace. </source>
+        <target> Respecteer eigendom, lokale wetten, andere mensen en de plekken waar je traint. Laat geen sporen achter. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
       <segment state="initial">
-        <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy, we use a privacy-focused, cookie-free analytics service. </source>
-        <target> Essentiële functies (zoals Google Maps) kunnen cookies gebruiken 🍪. Om je privacy te beschermen, gebruiken we een privacygerichte, cookie-vrije analysetool. </target>
+        <source> After you agree, PK Spot loads essential services like Google Maps, which may use cookies. Analytics stay cookie-free. </source>
+        <target> Na je akkoord laadt PK Spot essentiële diensten zoals Google Maps, die cookies kunnen gebruiken. Analytics blijven cookievrij. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechHeading">
@@ -2994,8 +3018,8 @@
     </unit>
     <unit id="welcomeDialogText">
       <segment state="initial">
-        <source> PK Spot is the spot for everything parkour. Find places to train, check in, discover what is happening nearby, and connect with your local community. 🤸 </source>
-        <target> PK Spot is de spot voor alles parkour. Vind trainingsplekken, check in, ontdek wat er in de buurt gebeurt en verbind met je lokale community. 🤸 </target>
+        <source> PK Spot helps you find parkour spots, discover communities and events, check in, and share useful local knowledge. </source>
+        <target> PK Spot helps you find parkour spots, discover communities and events, check in, and share useful local knowledge. </target>
       </segment>
     </unit>
     <unit id="7629436164719717851">
@@ -3736,6 +3760,18 @@
       <segment state="initial">
         <source>Dismiss event chip</source>
         <target>Evenementchip sluiten</target>
+      </segment>
+    </unit>
+    <unit id="aboutHeroSubtitle">
+      <segment state="initial">
+        <source> Find spots, join local communities, discover events and jams, and check in where parkour is happening around you. </source>
+        <target> Find spots, join local communities, discover events and jams, and check in where parkour is happening around you. </target>
+      </segment>
+    </unit>
+    <unit id="aboutLocalKnowledgeBody">
+      <segment state="initial">
+        <source> Landing in a new city? Find places to train, see what locals rate highly, follow upcoming events, and use community pages to understand the scene around you. </source>
+        <target> Landing in a new city? Find places to train, see what locals rate highly, follow upcoming events, and use community pages to understand the scene around you. </target>
       </segment>
     </unit>
     <unit id="4236673499531962366">
@@ -5530,8 +5566,8 @@
         <note category="meaning">terms of service sign up text</note>
       </notes>
       <segment state="initial">
-        <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you will contribute content under the license terms described within.</source>
-        <target>Door een account aan te maken, ga je akkoord met onze <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Algemene Voorwaarden</pc> en bevestig je dat je content zult bijdragen onder de beschreven licentievoorwaarden.</target>
+        <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you meet the age requirements or have parent/guardian consent, and that you will contribute content under the license terms described within.</source>
+        <target>Door een account aan te maken, ga je akkoord met onze <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Algemene Voorwaarden</pc> en bevestig je dat je aan de leeftijdseisen voldoet of toestemming hebt van een ouder of voogd, en dat je content zult bijdragen onder de beschreven licentievoorwaarden.</target>
       </segment>
     </unit>
     <unit id="7139999409916594388">

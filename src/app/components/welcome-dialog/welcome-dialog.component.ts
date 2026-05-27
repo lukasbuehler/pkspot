@@ -1,4 +1,9 @@
-import { Component, Inject, inject } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  inject,
+} from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import {
   MatDialogRef,
@@ -15,6 +20,7 @@ import { ConsentService } from "../../services/consent.service";
   imports: [MatDialogModule, MatButtonModule, MatIcon, RouterLink],
   templateUrl: "./welcome-dialog.component.html",
   styleUrl: "./welcome-dialog.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WelcomeDialogComponent {
   private _analyticsService = inject(AnalyticsService);
@@ -29,7 +35,7 @@ export class WelcomeDialogComponent {
     this.dialogRef.close(false); // Return false to indicate user declined
   }
 
-  agreeAndContinue() {
+  agreeAndContinue(): void {
     // store the accepted version of the terms of service in browser local storage
     localStorage.setItem("acceptedVersion", this.data.version);
 

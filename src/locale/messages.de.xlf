@@ -2896,6 +2896,30 @@
         <target>Wasser</target>
       </segment>
     </unit>
+    <unit id="welcomeDialogFeatureSpots">
+      <segment state="initial">
+        <source>Spots</source>
+        <target>Spots</target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogFeatureCommunities">
+      <segment state="initial">
+        <source>Communities</source>
+        <target>Communities</target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogFeatureEvents">
+      <segment state="initial">
+        <source>Events</source>
+        <target>Events</target>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogBeforeHeading">
+      <segment state="initial">
+        <source> Before you continue </source>
+        <target> Bevor du fortfährst </target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogAboutButton">
       <segment state="initial">
         <source>About us</source>
@@ -2904,14 +2928,14 @@
     </unit>
     <unit id="welcomeDialogButtonInfo">
       <segment state="initial">
-        <source> By clicking &quot;Agree &amp; Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. </source>
-        <target> Beim klicken auf &apos;Zustimmen und Weiter&apos;, stimmen sie unseren <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> und unserer <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc> zu. </target>
+        <source> By choosing &quot;Agree and Continue&quot;, you accept our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and acknowledge our <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. You confirm you are at least 13 and old enough to consent under your local law, or that a parent or guardian agrees for you. </source>
+        <target> Mit „Zustimmen und Weiter“ akzeptierst du unsere <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> und bestätigst unsere <pc id="1" equivStart="START_LINK_1" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. Du bestätigst, dass du mindestens 13 Jahre alt bist und nach deinem lokalen Recht zustimmen darfst, oder dass ein Elternteil oder Erziehungsberechtigter für dich zustimmt. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogCommunityBody">
       <segment state="initial">
-        <source> PK Spot is built by the community. By contributing content, you grant us the license needed to operate the service, as detailed in our Terms of Service. We then share the combined spot data back to the public under a protective, non-commercial license (CC BY-NC-SA 4.0) to keep it an open resource for everyone. </source>
-        <target> PK Spot wird von der Gemeinschaft aufgebaut. Durch das Beitragen von Inhalten gewährst du uns die Lizenz, die zum Betrieb des Dienstes erforderlich ist, wie in unseren Terms of Service dargelegt. Wir teilen die kombinierten Spot-Daten dann unter einer schützenden, nicht-kommerziellen Lizenz (CC BY-NC-SA 4.0) mit der Öffentlichkeit, um sie als offene Ressource für alle zu erhalten. </target>
+        <source> Only share places and content when you have all needed rights and permissions. By contributing, you license them to PK Spot so we can run the service. </source>
+        <target> Teile nur Orte und Inhalte, für die du alle nötigen Rechte und Einwilligungen hast. Mit deinem Beitrag erteilst du PK Spot die Lizenz, die für den Betrieb des Dienstes nötig ist. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogCommunityHeading">
@@ -2922,20 +2946,20 @@
     </unit>
     <unit id="welcomeDialogSafetyBody">
       <segment state="initial">
-        <source> Remember that Parkour has inherent risks and you are responsible for your own safety. Our spots are user-submitted and their accuracy and legality are not guaranteed. Always respect property rights and local laws. </source>
-        <target> Denke daran, dass Parkour riskant sein kann und du für deine eigene Sicherheit verantwortlich bist. Unsere Spots sind von Nutzern eingereicht und ihre Genauigkeit und Legalität sind nicht garantiert. Respektiere immer die Eigentumsrechte und lokalen Gesetze. </target>
+        <source> Parkour is risky. You are responsible for your safety. Spot data may be wrong, unsafe, or not legally accessible. </source>
+        <target> Parkour ist riskant. Du bist für deine Sicherheit verantwortlich. Spot-Daten können falsch, unsicher oder rechtlich nicht zugänglich sein. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogSafetyHeading">
       <segment state="initial">
-        <source> Our Guiding Principles: Safety &amp; Respect </source>
-        <target> Unsere Leitprinzipien: Sicherheit &amp; Respekt </target>
+        <source> Respect property, local laws, people, and the places you train. Leave no trace. </source>
+        <target> Respektiere Eigentum, lokale Gesetze, andere Menschen und die Orte, an denen du trainierst. Hinterlasse keine Spuren. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
       <segment state="initial">
-        <source> Essential features (like Google Maps) may use cookies 🍪. To protect your privacy, we use a privacy-focused, cookie-free analytics service. </source>
-        <target> Essentielle Funktionen (wie Google Maps) können Cookies 🍪 verwenden. Um deine Privatsphäre zu schützen, verwenden wir einen datenschutzfreundlichen, cookie-freien Analytics-Dienst. </target>
+        <source> After you agree, PK Spot loads essential services like Google Maps, which may use cookies. Analytics stay cookie-free. </source>
+        <target> Nach deiner Zustimmung lädt PK Spot essenzielle Dienste wie Google Maps, die Cookies verwenden können. Analytics bleiben cookie-frei. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechHeading">
@@ -2946,8 +2970,8 @@
     </unit>
     <unit id="welcomeDialogText">
       <segment state="initial">
-        <source> PK Spot is the spot for everything parkour. Find places to train, check in, discover what is happening nearby, and connect with your local community. 🤸 </source>
-        <target> PK Spot ist der Spot für alles Parkour. Finde Trainingsorte, checke ein, entdecke, was in deiner Nähe passiert, und verbinde dich mit deiner lokalen Community. 🤸 </target>
+        <source> PK Spot helps you find parkour spots, discover communities and events, check in, and share useful local knowledge. </source>
+        <target> PK Spot hilft dir, Parkour-Spots, Communities und Events zu entdecken, einzuchecken und nützliches lokales Wissen zu teilen. </target>
       </segment>
     </unit>
     <unit id="7629436164719717851">
@@ -3688,6 +3712,18 @@
       <segment state="initial">
         <source>Dismiss event chip</source>
         <target>Event-Chip ausblenden</target>
+      </segment>
+    </unit>
+    <unit id="aboutHeroSubtitle">
+      <segment state="initial">
+        <source> Find spots, join local communities, discover events and jams, and check in where parkour is happening around you. </source>
+        <target> Finde Spots, tritt lokalen Communities bei, entdecke Events und Jams und checke dort ein, wo Parkour um dich herum passiert. </target>
+      </segment>
+    </unit>
+    <unit id="aboutLocalKnowledgeBody">
+      <segment state="initial">
+        <source> Landing in a new city? Find places to train, see what locals rate highly, follow upcoming events, and use community pages to understand the scene around you. </source>
+        <target> Neu in einer Stadt? Finde Trainingsorte, sieh, was Locals empfehlen, folge kommenden Events und nutze Community-Seiten, um die Szene vor Ort zu verstehen. </target>
       </segment>
     </unit>
     <unit id="4236673499531962366">
@@ -5437,8 +5473,8 @@
         <note category="meaning">terms of service sign up text</note>
       </notes>
       <segment state="initial">
-        <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you will contribute content under the license terms described within.</source>
-        <target>Durch die Erstellung eines Kontos stimmst du unseren <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> zu und bestätigst, dass du Inhalte unter den darin beschriebenen Lizenzbedingungen beitragen wirst.</target>
+        <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you meet the age requirements or have parent/guardian consent, and that you will contribute content under the license terms described within.</source>
+        <target>Durch die Erstellung eines Kontos stimmst du unseren <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> zu und bestätigst, dass du die Altersanforderungen erfüllst oder die Zustimmung eines Elternteils oder Erziehungsberechtigten hast und Inhalte unter den darin beschriebenen Lizenzbedingungen beitragen wirst.</target>
       </segment>
     </unit>
     <unit id="7122216721162972096">

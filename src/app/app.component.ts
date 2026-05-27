@@ -746,12 +746,17 @@ export class AppComponent implements OnInit, AfterViewInit {
       const isAcceptanceFree =
         this.getActiveRouteAcceptanceFree() || this.isAcceptanceFreePath(path);
 
-      if (
-        !isEmbedded &&
-        !isAcceptanceFree &&
-        !isBot() &&
-        this.dialog.openDialogs.length === 0
-      ) {
+      if (isAcceptanceFree) {
+        this.dialog.openDialogs
+          .filter(
+            (dialogRef) =>
+              dialogRef.componentInstance instanceof WelcomeDialogComponent
+          )
+          .forEach((dialogRef) => dialogRef.close(false));
+        return;
+      }
+
+      if (!isEmbedded && !isBot() && this.dialog.openDialogs.length === 0) {
         const dialogRef = this.dialog.open(WelcomeDialogComponent, {
           data: { version: currentTermsVersion },
           hasBackdrop: true,

@@ -1,64 +1,66 @@
 <h2 mat-dialog-title i18n="@@welcomeDialogTitle">Welcome to PK Spot! 👋</h2>
 <mat-dialog-content class="welcome-dialog__content">
   <section class="welcome-dialog__panel">
-    <p class="mat-label-large welcome-dialog__kicker">PK Spot</p>
-
-    <p class="mat-body-medium" i18n="@@welcomeDialogText">
-      PK Spot is the spot for everything parkour. Find places to train, check in,
-      discover what is happening nearby, and connect with your local community. 🤸
+    <p class="mat-body-large welcome-dialog__intro" i18n="@@welcomeDialogText">
+      PK Spot helps you find parkour spots, discover communities and events,
+      check in, and share useful local knowledge.
     </p>
 
+    <div class="welcome-dialog__quick-links" aria-label="PK Spot features">
+      <span class="welcome-dialog__quick-link">
+        <mat-icon aria-hidden="true">location_on</mat-icon>
+        <span i18n="@@welcomeDialogFeatureSpots">Spots</span>
+      </span>
+      <span class="welcome-dialog__quick-link">
+        <mat-icon aria-hidden="true">groups</mat-icon>
+        <span i18n="@@welcomeDialogFeatureCommunities">Communities</span>
+      </span>
+      <span class="welcome-dialog__quick-link">
+        <mat-icon aria-hidden="true">event</mat-icon>
+        <span i18n="@@welcomeDialogFeatureEvents">Events</span>
+      </span>
+    </div>
+
+    <h3
+      class="mat-title-medium welcome-dialog__section-title"
+      i18n="@@welcomeDialogBeforeHeading"
+    >
+      Before you continue
+    </h3>
+
     <div class="welcome-dialog__principles">
-      <div class="welcome-dialog__principle">
-        <span class="welcome-dialog__icon" aria-hidden="true">
-          <mat-icon>shield</mat-icon>
-        </span>
-        <div>
-          <h3 class="mat-title-small" i18n="@@welcomeDialogSafetyHeading">
-            Our Guiding Principles: Safety & Respect
-          </h3>
-          <p class="mat-body-medium" i18n="@@welcomeDialogSafetyBody">
-            Remember that Parkour has inherent risks and you are responsible for
-            your own safety. Our spots are user-submitted and their accuracy and
-            legality are not guaranteed. Always respect property rights and local
-            laws.
-          </p>
-        </div>
-      </div>
+      <article class="welcome-dialog__principle">
+        <mat-icon aria-hidden="true">shield</mat-icon>
+        <p class="mat-body-medium" i18n="@@welcomeDialogSafetyBody">
+          Parkour is risky. You are responsible for your safety. Spot data may
+          be wrong, unsafe, or not legally accessible.
+        </p>
+      </article>
 
-      <div class="welcome-dialog__principle">
-        <span class="welcome-dialog__icon" aria-hidden="true">
-          <mat-icon>groups</mat-icon>
-        </span>
-        <div>
-          <h3 class="mat-title-small" i18n="@@welcomeDialogCommunityHeading">
-            Community & Contribution
-          </h3>
-          <p class="mat-body-medium" i18n="@@welcomeDialogCommunityBody">
-            PK Spot is built by the community. By contributing content, you grant
-            us the license needed to operate the service, as detailed in our
-            Terms of Service. We then share the combined spot data back to the
-            public under a protective, non-commercial license (CC BY-NC-SA 4.0)
-            to keep it an open resource for everyone.
-          </p>
-        </div>
-      </div>
+      <article class="welcome-dialog__principle">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        <p class="mat-body-medium" i18n="@@welcomeDialogSafetyHeading">
+          Respect property, local laws, people, and the places you train. Leave
+          no trace.
+        </p>
+      </article>
 
-      <div class="welcome-dialog__principle">
-        <span class="welcome-dialog__icon" aria-hidden="true">
-          <mat-icon>verified_user</mat-icon>
-        </span>
-        <div>
-          <h3 class="mat-title-small" i18n="@@welcomeDialogTechHeading">
-            A Note on Privacy & Technology
-          </h3>
-          <p class="mat-body-medium" i18n="@@welcomeDialogTechBody">
-            Essential features (like Google Maps) may use cookies 🍪. To protect
-            your privacy, we use a privacy-focused, cookie-free analytics
-            service.
-          </p>
-        </div>
-      </div>
+      <article class="welcome-dialog__principle">
+        <mat-icon aria-hidden="true">groups</mat-icon>
+        <p class="mat-body-medium" i18n="@@welcomeDialogCommunityBody">
+          Only share places and content when you have all needed rights and
+          permissions. By contributing, you license them to PK Spot so we can
+          run the service.
+        </p>
+      </article>
+
+      <article class="welcome-dialog__principle">
+        <mat-icon aria-hidden="true">verified_user</mat-icon>
+        <p class="mat-body-medium" i18n="@@welcomeDialogTechBody">
+          After you agree, PK Spot loads essential services like Google Maps,
+          which may use cookies. Analytics stay cookie-free.
+        </p>
+      </article>
     </div>
   </section>
 
@@ -66,9 +68,11 @@
     class="mat-body-medium welcome-dialog__legal"
     i18n="@@welcomeDialogButtonInfo"
   >
-    By clicking "Agree & Continue", you accept our
+    By choosing "Agree and Continue", you accept our
     <a routerLink="/terms-of-service">Terms of Service</a> and acknowledge our
-    <a routerLink="/privacy-policy">Privacy Policy</a>.
+    <a routerLink="/privacy-policy">Privacy Policy</a>. You confirm you are at
+    least 13 and old enough to consent under your local law, or that a parent or
+    guardian agrees for you.
   </p>
 </mat-dialog-content>
 <mat-dialog-actions
