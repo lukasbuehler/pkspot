@@ -59,8 +59,11 @@ export class ChipSelectorComponent {
       this.options()[0]?.value ??
       null;
 
-    this._renderedSelectedValue.set(null);
-    queueMicrotask(() => this._renderedSelectedValue.set(fallback));
+    this._renderedSelectedValue.set(fallback);
     this.selectedValueChange.emit(fallback);
+  }
+
+  isRequiredSelectedValue(value: string): boolean {
+    return this.requireSelection() && this.renderedSelectedValue() === value;
   }
 }

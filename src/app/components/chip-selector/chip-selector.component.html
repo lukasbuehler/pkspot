@@ -8,6 +8,7 @@
     <mat-chip-option
       [value]="option.value"
       [disabled]="option.disabled"
+      [selectable]="!isRequiredSelectedValue(option.value)"
       [selected]="renderedSelectedValue() === option.value"
     >
       @if (option.icon) {

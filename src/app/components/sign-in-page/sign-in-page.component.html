@@ -1,5 +1,12 @@
 <div class="account-page keyboard-padding">
   <div class="language-strip">
+    <a mat-stroked-button routerLink="/about">
+      <mat-icon>info</mat-icon>
+      <span i18n="account about top button@@account.about.top_button"
+        >About Us</span
+      >
+    </a>
+    <div class="flex-grow-1"></div>
     <span
       class="mat-label-medium language-label"
       i18n="account language inline label@@account.language.inline_label"
@@ -186,10 +193,42 @@
           </div>
         }
       </div>
+
+      <div class="about-card mt-3 pt-3 d-flex align-items-center gap-2">
+        <mat-icon color="primary" class="about-icon flex-shrink-0"
+          >info</mat-icon
+        >
+        <p class="mat-body-medium m-0">
+          <span i18n="about link kicker@@signin.about.kicker"
+            >Curious about our values, partners, or team?</span
+          >
+          <a
+            routerLink="/about"
+            class="font-primary text-decoration-none hover-underline fw-medium d-inline-flex align-items-center gap-1"
+          >
+            <span i18n="about link text@@signin.about.link"
+              >Read the About page</span
+            >
+            <mat-icon
+              style="
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+                line-height: 16px;
+              "
+              >chevron_right</mat-icon
+            >
+          </a>
+        </p>
+      </div>
     </section>
   </div>
 
   <footer class="account-footer">
+    <a routerLink="/about" class="footer-link">
+      <span i18n="account about button@@account.about.button">About</span>
+    </a>
+    <span class="dot" aria-hidden="true">·</span>
     <a routerLink="/privacy-policy" class="footer-link">
       <span i18n="account privacy policy button@@account.privacy_policy.button">
         Privacy Policy

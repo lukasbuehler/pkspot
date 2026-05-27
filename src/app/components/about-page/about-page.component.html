@@ -248,82 +248,30 @@
         Built and maintained by volunteers from the Parkour community.
       </p>
       <div class="team-grid">
-        <div class="team-member">
-          <div class="mat-title-medium">Lukas Bühler</div>
-          <div class="mat-body-medium team-role" i18n>
-            Creator, Lead Developer
+        @for (member of crew; track member.name) {
+          <div class="team-member">
+            <div class="mat-title-medium">{{ member.name }}</div>
+            <div class="mat-body-medium team-role" i18n>{{ member.role }}</div>
+            @if (member.background) {
+              <div class="mat-body-small team-background" i18n>{{ member.background }}</div>
+            }
+            @if (member.socials && member.socials.length) {
+              <div class="team-socials">
+                @for (social of member.socials; track social.url) {
+                  <a [href]="social.url" target="_blank" [attr.aria-label]="social.type">
+                    @if (social.type === 'instagram') {
+                      <img src="assets/logos/instagram.svg" alt="" />
+                    } @else if (social.type === 'github') {
+                      <img src="assets/logos/github.svg" alt="" />
+                    } @else if (social.type === 'website') {
+                      <mat-icon>language</mat-icon>
+                    }
+                  </a>
+                }
+              </div>
+            }
           </div>
-          <div class="mat-body-small team-background" i18n>
-            Computational Scientist, Past Parkour instructor
-          </div>
-          <div class="team-socials">
-            <a
-              href="https://instagram.com/lukas.buehler"
-              target="_blank"
-              aria-label="Instagram"
-            >
-              <img src="assets/logos/instagram.svg" alt="" />
-            </a>
-            <a
-              href="https://github.com/lukasbuehler"
-              target="_blank"
-              aria-label="GitHub"
-            >
-              <img src="assets/logos/github.svg" alt="" />
-            </a>
-            <a
-              href="https://lukasbuehler.ch"
-              target="_blank"
-              aria-label="Personal website"
-            >
-              <mat-icon>language</mat-icon>
-            </a>
-          </div>
-        </div>
-        <div class="team-member">
-          <div class="mat-title-medium">Shadi Vandeventer</div>
-          <div class="mat-body-medium team-role" i18n>Testing</div>
-          <div class="mat-body-small team-background" i18n>
-            Parkour instructor, Freerun Zürich member
-          </div>
-          <!-- <div class="team-socials">
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              aria-label="Instagram"
-            >
-              <img src="assets/logos/instagram.svg" alt="" />
-            </a>
-          </div> -->
-        </div>
-        <div class="team-member">
-          <div class="mat-title-medium">Alain Rohner</div>
-          <div class="mat-body-medium team-role" i18n>
-            Map data, Testing, UI/UX Advisor
-          </div>
-          <div class="mat-body-small team-background" i18n>
-            Swiss Parkour OG, Creator of original Swiss Parkour spot map
-          </div>
-        </div>
-        <div class="team-member">
-          <div class="mat-title-medium">Lukas Berner</div>
-          <div class="mat-body-medium team-role" i18n>Testing, Map data</div>
-          <div class="mat-body-small team-background" i18n>
-            Freerun Zürich member
-          </div>
-        </div>
-        <div class="team-member">
-          <div class="mat-title-medium">Moritz Dätwyler</div>
-          <div class="mat-body-medium team-role" i18n>Testing, Map data</div>
-          <div class="mat-body-small team-background" i18n>
-            Parkour Instructor
-          </div>
-        </div>
-        <div class="team-member">
-          <div class="mat-title-medium">Beni</div>
-          <div class="mat-body-medium team-role" i18n>Testing</div>
-          <div class="mat-body-small team-background" i18n></div>
-        </div>
+        }
       </div>
     </section>
 

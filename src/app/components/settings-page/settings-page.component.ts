@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { NgClass, NgSwitch, NgSwitchCase } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -28,6 +28,8 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { languageCodes } from "../../../scripts/Languages";
 import { UiLanguageService } from "../../services/ui-language.service";
+import { version } from "../../../../package.json";
+import crew from "../../../assets/data/crew.json";
 
 @Component({
   selector: "app-settings-page",
@@ -52,10 +54,13 @@ import { UiLanguageService } from "../../services/ui-language.service";
     FormsModule,
     MatProgressSpinner,
     MatSlideToggleModule,
+    RouterLink,
   ],
   host: { ngSkipHydration: "true" },
 })
 export class SettingsPageComponent implements OnInit {
+  readonly appVersion = version;
+  readonly crew = crew;
   @ViewChild("editProfileComponent") editProfileComponent:
     | EditProfileComponent
     | undefined;
@@ -88,6 +93,12 @@ export class SettingsPageComponent implements OnInit {
       id: "general",
       name: $localize`General`,
       icon: "settings",
+      hasChanges: false,
+    },
+    {
+      id: "about",
+      name: $localize`About & Credits`,
+      icon: "info",
       hasChanges: false,
     },
   ];

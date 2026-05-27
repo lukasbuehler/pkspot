@@ -15,6 +15,7 @@ import { NgOptimizedImage, isPlatformBrowser } from "@angular/common";
 import { RouterLinkWithHref } from "@angular/router";
 import { APP_LINKS } from "../../shared/app-links";
 import { PlatformService } from "../../services/platform.service";
+import crew from "../../../assets/data/crew.json";
 
 interface Partner {
   name: string;
@@ -40,6 +41,7 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
   @ViewChild("carouselTrack") carouselTrack!: ElementRef<HTMLElement>;
 
   readonly appLinks = APP_LINKS;
+  readonly crew = crew;
   private readonly platformService = inject(PlatformService);
 
   openPKSpotinAppStore(): void {

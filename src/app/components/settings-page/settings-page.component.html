@@ -381,6 +381,87 @@
           </div>
           -->
         </div>
+        <div *ngSwitchCase="'about'">
+          <h2
+            class="mat-h2"
+            i18n="about section header@@settings.about.header"
+          >
+            About &amp; Credits
+          </h2>
+          <p
+            class="mat-body"
+            i18n="about section description@@settings.about.description"
+          >
+            Learn more about PK Spot, our values, and the people behind the project.
+          </p>
+
+          <!-- PK Spot Branding / Card -->
+          <div class="my-4 p-4 rounded border d-flex flex-column gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <img
+                src="assets/icons/icon-128.webp"
+                alt="PK Spot"
+                style="height: 64px; width: 64px; border-radius: 16px;"
+              />
+              <div>
+                <h3 class="mat-h3 m-0">PK Spot</h3>
+                <p class="mat-body-medium m-0" style="color: var(--mat-sys-on-surface-variant)" i18n>Version {{ appVersion }} (Open Source)</p>
+              </div>
+            </div>
+            
+            <p class="mat-body-medium m-0" i18n>
+              PK Spot is a free, privacy-first, community-owned map for parkour.
+              The project is built entirely by volunteers to help athletes find spots,
+              connect, and share their local scene.
+            </p>
+
+            <div class="d-flex flex-wrap gap-2">
+              <a
+                mat-flat-button
+                color="primary"
+                routerLink="/about"
+                i18n
+              >
+                <mat-icon>info</mat-icon>
+                <span>Read Full About Page</span>
+              </a>
+              <a
+                mat-stroked-button
+                href="https://github.com/lukasbuehler/pkspot"
+                target="_blank"
+                i18n
+              >
+                <mat-icon>code</mat-icon>
+                <span>GitHub Repository</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Crew Credits Section -->
+          <div class="my-4">
+            <h3 class="mat-h3 mb-3" i18n>The Crew</h3>
+            <div class="row g-3">
+              @for (member of crew; track member.name) {
+                <div class="col-sm-6">
+                  <div class="p-3 rounded border h-100">
+                    <h4 class="mat-title-small m-0">{{ member.name }}</h4>
+                    <p class="mat-body-small m-0" style="color: var(--mat-sys-on-surface-variant)" i18n>{{ member.role }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          
+          <!-- Open Data / Licensing details -->
+          <div class="my-4 p-3 rounded border" style="background: var(--mat-sys-surface-container-low)">
+            <h3 class="mat-h3 m-0" i18n>Open Data License</h3>
+            <p class="mat-body-medium mt-2 mb-0" i18n>
+              All community spot data on PK Spot is licensed under
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" class="fw-medium">CC BY-NC-SA 4.0</a>.
+              This means the data belongs to the community and remains open and shareable.
+            </p>
+          </div>
+        </div>
         <div *ngSwitchCase="'notifications'">
           <h2 class="mat-h2" i18n>Notifications</h2>
         </div>

@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Lukas Bühler",
+    "role": "Creator, Lead Developer",
+    "background": "Computational Scientist, Past Parkour instructor",
+    "socials": [
+      { "type": "instagram", "url": "https://instagram.com/lukas.buehler" },
+      { "type": "github", "url": "https://github.com/lukasbuehler" },
+      { "type": "website", "url": "https://lukasbuehler.ch" }
+    ]
+  },
+  {
+    "name": "Shadi Vandeventer",
+    "role": "Testing",
+    "background": "Parkour instructor, Freerun Zürich member"
+  },
+  {
+    "name": "Alain Rohner",
+    "role": "Map data, Testing, UI/UX Advisor",
+    "background": "Swiss Parkour OG, Creator of original Swiss Parkour spot map"
+  },
+  {
+    "name": "Lukas Berner",
+    "role": "Testing, Map data",
+    "background": "Freerun Zürich member"
+  },
+  {
+    "name": "Moritz Dätwyler",
+    "role": "Testing, Map data",
+    "background": "Parkour Instructor"
+  },
+  {
+    "name": "Beni",
+    "role": "Testing",
+    "background": ""
+  }
+]

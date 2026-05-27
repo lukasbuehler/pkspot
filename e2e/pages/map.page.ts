@@ -39,7 +39,7 @@ export class MapPage {
    */
   async goto(locale: string = "de") {
     await this.page.addInitScript(() => {
-      localStorage.setItem("acceptedVersion", "4");
+      localStorage.setItem("acceptedVersion", "5");
     });
     // Navigate to map - SSR will handle locale redirect if needed
     await this.page.goto(`/${locale}/map`, { waitUntil: "domcontentloaded" });

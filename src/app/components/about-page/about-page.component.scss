@@ -15,10 +15,9 @@
 // ============================================
 
 .section-rule {
-  border: none;
+  border: 0;
   border-top: 1px solid var(--about-divider);
   margin: 0;
-  width: 100%;
 }
 
 // ============================================
@@ -242,10 +241,6 @@ section {
   padding: 1.5rem;
   transition: transform 0.2s ease;
 
-  img {
-    object-fit: contain;
-  }
-
   &.sph-background img {
     transform: scale(1.3);
   }
@@ -291,6 +286,7 @@ section {
       height: 28px;
       opacity: 0.45;
       transition: opacity 0.2s ease;
+      color: inherit;
 
       &:hover {
         opacity: 1;
