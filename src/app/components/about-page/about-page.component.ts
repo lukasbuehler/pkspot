@@ -7,14 +7,14 @@ import {
   NgZone,
   Inject,
   PLATFORM_ID,
+  inject,
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { MatAnchor, MatButtonModule } from "@angular/material/button";
 import { NgOptimizedImage, isPlatformBrowser } from "@angular/common";
-import { MatCardModule } from "@angular/material/card";
 import { RouterLinkWithHref } from "@angular/router";
-import { MatTooltipModule } from "@angular/material/tooltip";
 import { APP_LINKS } from "../../shared/app-links";
+import { PlatformService } from "../../services/platform.service";
 
 interface Partner {
   name: string;
@@ -32,16 +32,19 @@ interface Partner {
     MatAnchor,
     MatIconModule,
     NgOptimizedImage,
-    MatCardModule,
     MatButtonModule,
     RouterLinkWithHref,
-    MatTooltipModule,
   ],
 })
 export class AboutPageComponent implements AfterViewInit, OnDestroy {
   @ViewChild("carouselTrack") carouselTrack!: ElementRef<HTMLElement>;
 
   readonly appLinks = APP_LINKS;
+  private readonly platformService = inject(PlatformService);
+
+  openPKSpotinAppStore(): void {
+    this.platformService.openPKSpotinAppStore();
+  }
 
   // Base partners data
   readonly basePartners: Partner[] = [

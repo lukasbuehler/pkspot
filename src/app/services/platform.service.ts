@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Capacitor } from "@capacitor/core";
+import { APP_LINKS } from "../shared/app-links";
 
 /**
  * Service to detect the current platform and provide platform-specific behaviors.
@@ -54,5 +55,44 @@ export class PlatformService {
       return platform;
     }
     return this.isPwa() ? "pwa" : "web";
+  }
+
+  /**
+   * Returns true if the user agent indicates a mobile device that can access an app store,
+   * but the app is currently running in a mobile web browser rather than as a native app.
+   */
+  isMobileAppStoreBrowser(): boolean {
+    if (this.isNative() || typeof navigator === "undefined") {
+      return false;
+    }
+
+    return /android|iphone|ipod|ipad/i.test(navigator.userAgent);
+  }
+
+  /**
+   * Opens the PK Spot app page in the appropriate mobile app store (Apple App Store or Google Play)
+   * based on the user's operating system.
+   */
+  openPKSpotinAppStore(): void {
+    if (this.isNative()) {
+      console.debug(
+        "This is already native - no need to open the App Store. (this button should not appear here and be clickable)",
+      );
+      return;
+    }
+
+    if (typeof navigator === "undefined" || typeof window === "undefined") {
+      return;
+    }
+
+    const userAgent = navigator.userAgent;
+    const isAppleOS = /iPad|iPhone|iPod|Safari/.test(userAgent);
+    const isAndroidOS = /Android/.test(userAgent);
+
+    if (isAppleOS) {
+      window.open(APP_LINKS.appleAppStoreUrl, "_blank");
+    } else if (isAndroidOS) {
+      window.open(APP_LINKS.googlePlayStoreUrl, "_blank");
+    }
   }
 }

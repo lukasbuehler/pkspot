@@ -1,17 +1,165 @@
-.about-page-background {
-  width: 100%;
-  min-height: 100%;
-}
+// ============================================
+// Swiss-grid layout with street-culture marker accents
+// ============================================
 
 .about-page {
-  max-width: 1200px;
+  --about-divider: var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.12));
+
+  max-width: 900px;
   margin: 0 auto;
-  padding-bottom: 1.5rem;
-  padding-top: 5rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  text-align: center;
+  padding: 5rem 2rem 2rem;
 }
+
+// ============================================
+// Section Rules (Swiss dividers)
+// ============================================
+
+.section-rule {
+  border: none;
+  border-top: 1px solid var(--about-divider);
+  margin: 0;
+  width: 100%;
+}
+
+// ============================================
+// Sections
+// ============================================
+
+section {
+  display: flex;
+  flex-direction: column;
+}
+
+.content-section {
+  padding: 4rem 0;
+  align-items: flex-start;
+}
+
+// ============================================
+// Hero Section (centered)
+// ============================================
+
+.hero-section {
+  align-items: center;
+  text-align: center;
+  padding-bottom: 4rem;
+}
+
+.logo-container {
+  position: relative;
+  width: min(700px, 90%);
+  height: 128px;
+  margin-bottom: 2.5rem;
+}
+
+.tagline {
+  margin-bottom: 1.5rem;
+}
+
+.hero-subtitle,
+.section-body,
+.feature-item p {
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.hero-subtitle {
+  max-width: 560px;
+}
+
+// ============================================
+// Section Headings & Body
+// ============================================
+
+.section-heading {
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.section-body {
+  max-width: 640px;
+  margin-bottom: 2.5rem;
+}
+
+// ============================================
+// Marker Accent (hand-scrawled highlighter)
+// ============================================
+
+.marker-accent {
+  position: relative;
+  display: inline-block;
+  transform: rotate(-1deg);
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0.08em;
+    left: -0.2em;
+    right: -0.2em;
+    height: 0.35em;
+    z-index: -1;
+    transform: skewX(-18deg) rotate(-1.25deg);
+    border-radius: 2px 4px 2px 3px;
+    opacity: 0.2;
+    background: currentColor;
+  }
+}
+
+// ============================================
+// Feature Grid (3-col text, no boxes)
+// ============================================
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem 3rem;
+  }
+}
+
+.feature-item {
+  p {
+    margin: 0;
+  }
+}
+
+.feature-title {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+
+  &::after {
+    content: "";
+    display: block;
+    width: 1.5rem;
+    height: 2px;
+    margin-top: 0.5rem;
+  }
+}
+
+// ============================================
+// Values List (icon + text rows, no boxes)
+// ============================================
+
+.value-row {
+  mat-icon {
+    margin-top: 2px;
+    opacity: 0.6;
+  }
+
+  a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+// ============================================
+// Partners Carousel (kept as-is)
+// ============================================
 
 .parkour-earth-background {
   background-color: white;
@@ -24,99 +172,10 @@
   }
 }
 
-// ============================================
-// Hero Section
-// ============================================
-
-.hero-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 4rem;
-}
-
-.logo-container {
-  position: relative;
-  width: min(700px, 90%);
-  height: 128px;
-  margin-bottom: 2.5rem;
-}
-
-.tagline {
-  margin-bottom: 2.5rem;
-}
-
-.subtitle {
-  max-width: 800px;
-}
-
-// ============================================
-// Features Section
-// ============================================
-
-.utility-section {
-  margin-bottom: 4rem;
-}
-
-.section-title {
-  margin-bottom: 1.5rem;
-}
-
-.three-grid {
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.two-grid {
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.three-grid,
-.two-grid {
-  display: grid;
-  gap: 1.5rem;
-  text-align: left;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-
-.feature-card {
-  padding: 1.5rem;
-
-  h4 {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-  }
-}
-
-mat-icon {
-  flex-shrink: 0;
-}
-
-.text-block {
-  width: 600px;
-  max-width: 90%;
-  text-align: left;
-}
-
-// ============================================
-// Partners Section
-// ============================================
-
-.partners-section {
-  margin-bottom: 4rem;
-}
-
 .carousel-container {
   width: 100%;
   overflow: hidden;
   position: relative;
-  // Fade out edges
   mask-image: linear-gradient(
     to right,
     transparent,
@@ -130,24 +189,21 @@ mat-icon {
   display: flex;
   width: max-content;
   gap: 2rem;
-  padding: 1rem 0 3rem; // Extra bottom padding for text
-  will-change: transform; // Hint for GPU acceleration
+  padding: 1rem 0 3rem;
 }
 
 .partner-link {
   display: block;
   position: relative;
-  flex: 0 0 auto; // Don't shrink
+  flex: 0 0 auto;
   width: 15vw;
   min-width: 150px;
   aspect-ratio: 7 / 5;
   text-decoration: none;
-  overflow: visible;
 
   &:hover {
     .partner-logo {
       transform: translateY(-4px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .partner-name {
@@ -165,26 +221,13 @@ mat-icon {
   padding-top: 0.5rem;
   text-align: center;
   color: white;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9); // Ensure visibility on any background
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
   opacity: 0;
-  pointer-events: none;
   font-weight: 500;
-  z-index: 100; // Ensure it's on top
   transform: translateY(-8px);
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
-}
-
-mat-card {
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 0px 20px rgba(23, 233, 89, 0.15);
-  }
 }
 
 .partner-logo {
@@ -197,9 +240,7 @@ mat-card {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
 
   img {
     object-fit: contain;
@@ -210,46 +251,109 @@ mat-card {
   }
 }
 
-// ============================================
-// Contributors Section
-// ============================================
-
-.contributors-section {
-  margin-bottom: 2rem;
-}
-
-.credit-grid {
+.team-grid {
   display: grid;
-  gap: 0.75rem;
   grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
 
   @media (min-width: 768px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @media (min-width: 992px) {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.contributor-card {
+.team-member {
+  padding-left: 1rem;
+  border-left: 2px solid
+    var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.12));
+
+  .team-role {
+    opacity: 0.65;
+    margin-top: 0.25rem;
+  }
+
+  .team-background {
+    opacity: 0.4;
+    margin-top: 0.15rem;
+    font-style: italic;
+  }
+
+  .team-socials {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      opacity: 0.45;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 1;
+      }
+
+      img {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+}
+
+.socials {
   display: flex;
-  flex-direction: column;
-  padding: 1.25rem;
-  border-radius: 8px;
-  border: 1px solid var(--mat-divider-color, rgba(0, 0, 0, 0.12));
-}
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 
-.cta-card {
-  text-align: left;
+  a {
+    height: 48px;
+    width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  p {
-    margin-bottom: 1rem;
+    img {
+      height: 36px;
+      width: 36px;
+    }
   }
 }
 
 // ============================================
-// Shared Styles
+// Footer
+// ============================================
+
+footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 0;
+  opacity: 0.6;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ============================================
+// Shared
 // ============================================
 
 .pkspot-font {
@@ -258,41 +362,10 @@ mat-card {
   letter-spacing: 2px;
 }
 
-.link-button {
-  text-decoration: none;
-}
-
-.object-fit-contain {
-  object-fit: contain;
-}
-
-section {
-  margin-bottom: 5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: start;
-  align-items: center;
+mat-icon {
+  flex-shrink: 0;
 }
 
 .invert-colors {
   filter: invert(1);
-}
-
-footer a {
-  color: lightgray;
-}
-
-.socials {
-  a {
-    height: 64px;
-    width: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    img {
-      height: 48px;
-      width: 48px;
-    }
-  }
 }

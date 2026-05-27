@@ -69,6 +69,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebSite } from "schema-dts";
 import { StructuredDataService } from "./services/structured-data.service";
 import { StorageImage } from "../db/models/Media";
+import { PlatformService } from "./services/platform.service";
 // import { SelectLanguageDialogComponent } from "./components/select-language-dialog/select-language-dialog.component";
 import { firstValueFrom } from "rxjs";
 import { AnalyticsService } from "./services/analytics.service";
@@ -168,6 +169,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _structuredDataService = inject(StructuredDataService);
   private _appRef = inject(ApplicationRef);
   readonly responsive = inject(ResponsiveService);
+  private readonly _platformService = inject(PlatformService);
 
   // Inject AuthService immediately to ensure auth state restoration works
   private _authService = inject(AuthenticationService);
@@ -213,6 +215,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _lastTrackedAuthUid: string | null = null;
   private _lastConsentState: boolean | null = null;
   private readonly _engagedPingEnabled = false;
+  private _robotoFontLoadStarted = false;
   private readonly _navigationPerfEntries = new Map<
     number,
     NavigationPerfEntry
@@ -448,6 +451,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         this._lastConsentState = granted;
 
         if (granted) {
+          void this.loadDeferredRobotoFonts();
+
           // set person + super-properties for consent so future events are labeled
           const version = this._consentService.CURRENT_TERMS_VERSION;
           this._analyticsService.setConsentProperties(true, version);
@@ -909,6 +914,55 @@ export class AppComponent implements OnInit, AfterViewInit {
     return new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }
 
+  private async loadDeferredRobotoFonts(): Promise<void> {
+    if (this._robotoFontLoadStarted || typeof document === "undefined") {
+      return;
+    }
+
+    this._robotoFontLoadStarted = true;
+
+    await this.withTimeout(this.waitForAppStable(), 3000);
+    await this.waitForNextPaint();
+
+    if (document.getElementById("pkspot-deferred-roboto-fonts")) {
+      document.documentElement.classList.add("pkspot-roboto-loaded");
+      return;
+    }
+
+    const fontStyle = document.createElement("style");
+    fontStyle.id = "pkspot-deferred-roboto-fonts";
+    fontStyle.textContent = `
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("assets/fonts/Roboto/Roboto-Italic-VariableFont_wdth,wght.ttf") format("truetype");
+}
+
+html.pkspot-roboto-loaded body {
+  font-family: "Roboto", Arial, sans-serif;
+}
+`;
+    document.head.appendChild(fontStyle);
+
+    try {
+      await document.fonts?.load('400 1em "Roboto"');
+    } catch (error) {
+      console.warn("Roboto font load check failed", error);
+    } finally {
+      document.documentElement.classList.add("pkspot-roboto-loaded");
+    }
+  }
+
   private async hideSplashScreens() {
     if (this.isNativePlatform) {
       const { SplashScreen } = await import("@capacitor/splash-screen");
@@ -1328,22 +1382,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   });
 
   openPKSpotinAppStore() {
-    if (this.isNativePlatform) {
-      console.debug(
-        "This is already native - no need to open the App Store. (this button should not appear here and be clickable)",
-      );
-      return;
-    }
-
-    const userAgent = navigator.userAgent;
-    const isAppleOS = /iPad|iPhone|iPod|Safari/.test(userAgent);
-    const isAndroidOS = /Android/.test(userAgent);
-
-    if (isAppleOS) {
-      window.open(APP_LINKS.appleAppStoreUrl, "_blank");
-    } else if (isAndroidOS) {
-      window.open(APP_LINKS.googlePlayStoreUrl, "_blank");
-    }
+    this._platformService.openPKSpotinAppStore();
   }
 
   navbarConfig = computed<NavbarButtonConfig | undefined>(() => {
@@ -1421,11 +1460,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   });
 
   private isMobileAppStoreBrowser(): boolean {
-    if (this.isNativePlatform || typeof navigator === "undefined") {
-      return false;
-    }
-
-    return /android|iphone|ipod|ipad/i.test(navigator.userAgent);
+    return this._platformService.isMobileAppStoreBrowser();
   }
 
   isOutlineIcon(icon: string): boolean {

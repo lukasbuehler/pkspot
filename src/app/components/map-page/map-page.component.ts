@@ -165,6 +165,13 @@ type CommunityCountryFocusData = {
 
 type MapViewportBbox = VisibleViewport["bbox"];
 
+interface CommunitySpotFocus {
+  communityKey: string;
+  scope: CommunityLandingPageData["scope"] | MapIslandCommunity["scope"];
+  center: { lat: number; lng: number };
+  radiusM: number;
+}
+
 @Component({
   selector: "app-map-page",
   templateUrl: "./map-page.component.html",
@@ -487,6 +494,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _visibleMapCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
+  private _communitySpotSearchVersion = 0;
+  focusedCommunitySpotPreviews = signal<SpotPreviewData[] | null>(null);
+  communitySpotPreviewsForMap = computed<SpotPreviewData[] | null>(() =>
+    this.communitySpotFocus()
+      ? (this.focusedCommunitySpotPreviews() ?? [])
+      : null,
+  );
   mapObjectMode = signal<MapObjectMode>("all");
   mapObjectTypeChips = computed<ChipSelectorOption<MapObjectMode>[]>(() => {
     const counts = this.mapObjectCounts();
@@ -622,7 +636,49 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   showMapSpots = computed(() => {
     const mode = this.mapObjectMode();
-    return mode === "all" || mode === "spots";
+    return (
+      mode === "all" ||
+      mode === "spots" ||
+      this.communitySpotFocus() !== null
+    );
+  });
+
+  showVisibleSpotPins = computed(
+    () => this.mapObjectMode() === "spots" && this.communitySpotFocus() === null,
+  );
+
+  communitySpotFocus = computed<CommunitySpotFocus | null>(() => {
+    const mode = this.mapObjectMode();
+    if (mode === "events") return null;
+
+    const community =
+      this.selectedCommunityLanding() ?? this.pendingCommunityLanding();
+    if (!community) return null;
+
+    if (
+      !community.boundsCenter ||
+      typeof community.boundsRadiusM !== "number" ||
+      community.boundsCenter.length < 2
+    ) {
+      return null;
+    }
+
+    const [lat, lng] = community.boundsCenter;
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      !Number.isFinite(community.boundsRadiusM) ||
+      community.boundsRadiusM <= 0
+    ) {
+      return null;
+    }
+
+    return {
+      communityKey: community.communityKey,
+      scope: community.scope,
+      center: { lat, lng },
+      radiusM: community.boundsRadiusM,
+    };
   });
 
   /**
@@ -642,6 +698,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedCommunityLanding()?.communityKey ??
       this.pendingCommunityLanding()?.communityKey ??
       null;
+    if (selectedKey) return [];
 
     return this._visibleMapCommunities()
       .filter(
@@ -790,6 +847,89 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return point.lng >= viewport.west || point.lng <= viewport.east;
   }
 
+  private _communitySpotSearchBbox(
+    focus: CommunitySpotFocus,
+    viewport: MapViewportBbox,
+  ): MapViewportBbox | null {
+    const communityBbox = this._bboxFromCircle(focus.center, focus.radiusM);
+    if (focus.scope === "country") {
+      return this._bboxCoversWorld(viewport) ? communityBbox : viewport;
+    }
+
+    return this._intersectBboxes(communityBbox, viewport);
+  }
+
+  private _bboxFromCircle(
+    center: { lat: number; lng: number },
+    radiusM: number,
+  ): MapViewportBbox {
+    const latRadius = radiusM / 111_320;
+    const lngRadius =
+      radiusM /
+      (111_320 * Math.max(Math.cos((center.lat * Math.PI) / 180), 0.01));
+
+    return {
+      north: Math.min(90, center.lat + latRadius),
+      south: Math.max(-90, center.lat - latRadius),
+      east: this._normalizeLongitude(center.lng + lngRadius),
+      west: this._normalizeLongitude(center.lng - lngRadius),
+    };
+  }
+
+  private _intersectBboxes(
+    first: MapViewportBbox,
+    second: MapViewportBbox,
+  ): MapViewportBbox | null {
+    const north = Math.min(first.north, second.north);
+    const south = Math.max(first.south, second.south);
+    if (north < south) return null;
+
+    const firstIntervals = this._longitudeIntervals(first);
+    const secondIntervals = this._longitudeIntervals(second);
+    const intersections: Array<[number, number]> = [];
+
+    for (const [firstWest, firstEast] of firstIntervals) {
+      for (const [secondWest, secondEast] of secondIntervals) {
+        const west = Math.max(firstWest, secondWest);
+        const east = Math.min(firstEast, secondEast);
+        if (west <= east) {
+          intersections.push([west, east]);
+        }
+      }
+    }
+
+    if (intersections.length === 0) return null;
+
+    const [west, east] = intersections.reduce((largest, current) =>
+      current[1] - current[0] > largest[1] - largest[0] ? current : largest,
+    );
+
+    return { north, south, east, west };
+  }
+
+  private _spotPreviewMatchesCommunityFocus(
+    preview: SpotPreviewData,
+    focus: CommunitySpotFocus,
+  ): boolean {
+    const location = this._getPreviewLocation(preview);
+    if (!location) return false;
+
+    if (focus.scope === "country") {
+      return true;
+    }
+
+    return this._distanceMeters(location, focus.center) <= focus.radiusM;
+  }
+
+  private _dedupeSpotPreviews(previews: SpotPreviewData[]): SpotPreviewData[] {
+    const seen = new Set<string>();
+    return previews.filter((preview) => {
+      if (!preview.id || seen.has(preview.id)) return false;
+      seen.add(preview.id);
+      return true;
+    });
+  }
+
   private _viewportCenter(viewport: {
     north: number;
     south: number;
@@ -833,6 +973,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       lng: closestLng,
     });
     return distanceM <= radiusM;
+  }
+
+  private _mapObjectSearchLimits(viewport: VisibleViewport): {
+    events: number;
+    communities: number;
+  } {
+    if (viewport.zoom <= 5) {
+      return { events: 120, communities: 160 };
+    }
+
+    if (viewport.zoom <= 8) {
+      return { events: 80, communities: 120 };
+    }
+
+    return { events: 30, communities: 80 };
   }
 
   private _distanceMeters(
@@ -1616,17 +1771,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           { lat: bbox.south, lng: bbox.west },
           { lat: bbox.north, lng: bbox.east },
         );
+        const searchLimits = this._mapObjectSearchLimits(viewport);
         this._searchService
           .searchMapObjectsInBounds(bounds, {
-            eventLimit: 30,
-            communityLimit: 80,
+            eventLimit: searchLimits.events,
+            communityLimit: searchLimits.communities,
           })
           .then((result) => {
             if (requestVersion !== this._mapObjectSearchVersion) return;
-            const visibleCommunities =
-              result.communities.length > 0
-                ? result.communities
-                : this._visibleCommunitiesFromLoadedList(viewport);
+            const visibleCommunities = this._mergeVisibleCommunities(
+              result.communities,
+              viewport,
+            );
             const counts = {
               ...result.counts,
               communities: Math.max(
@@ -1656,6 +1812,65 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       onCleanup(() => {
         clearTimeout(handle);
         this._mapObjectSearchVersion++;
+      });
+    });
+
+    effect((onCleanup) => {
+      const focus = this.communitySpotFocus();
+      const viewport = this._viewport();
+
+      if (
+        !focus ||
+        !viewport ||
+        typeof google === "undefined" ||
+        !google?.maps
+      ) {
+        this.focusedCommunitySpotPreviews.set(null);
+        return;
+      }
+
+      const searchBbox = this._communitySpotSearchBbox(focus, viewport.bbox);
+      if (!searchBbox) {
+        this.focusedCommunitySpotPreviews.set([]);
+        return;
+      }
+
+      const requestVersion = ++this._communitySpotSearchVersion;
+      const handle = setTimeout(() => {
+        this._searchService
+          .searchSpotsInRawBounds(
+            searchBbox.north,
+            searchBbox.south,
+            searchBbox.east,
+            searchBbox.west,
+            focus.scope === "country" ? 120 : 160,
+          )
+          .then((result) => {
+            if (requestVersion !== this._communitySpotSearchVersion) return;
+
+            const previews = (result.hits || [])
+              .filter((hit: unknown) => !!hit)
+              .map((hit: unknown) =>
+                this._searchService.getSpotPreviewFromHit(hit),
+              )
+              .filter((preview) =>
+                this._spotPreviewMatchesCommunityFocus(preview, focus),
+              );
+
+            this.focusedCommunitySpotPreviews.set(
+              this._dedupeSpotPreviews(previews),
+            );
+          })
+          .catch((err) => {
+            if (requestVersion !== this._communitySpotSearchVersion) return;
+            console.warn("MapPage: failed to load community focus spots", err);
+            this.focusedCommunitySpotPreviews.set([]);
+          });
+      }, 300);
+
+      onCleanup(() => {
+        clearTimeout(handle);
+        this._communitySpotSearchVersion++;
       });
     });
 
@@ -1964,11 +2179,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _refreshVisibleCommunitiesFromLoadedList(): void {
     const viewport = this._viewport();
-    if (!viewport || this._visibleMapCommunities().length > 0) {
+    if (!viewport) {
       return;
     }
 
-    const visibleCommunities = this._visibleCommunitiesFromLoadedList(viewport);
+    const visibleCommunities = this._mergeVisibleCommunities(
+      this._visibleMapCommunities(),
+      viewport,
+    );
     if (visibleCommunities.length === 0) {
       return;
     }
@@ -1982,6 +2200,29 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       ...counts,
       communities: Math.max(counts.communities, visibleCommunities.length),
     }));
+  }
+
+  private _mergeVisibleCommunities(
+    searchCommunities: CommunitySearchPreview[],
+    viewport: VisibleViewport,
+  ): CommunitySearchPreview[] {
+    const visibleByKey = new Map<string, CommunitySearchPreview>();
+
+    for (const community of searchCommunities) {
+      const key = community.communityKey || community.id || community.slug;
+      if (key) {
+        visibleByKey.set(key, community);
+      }
+    }
+
+    for (const community of this._visibleCommunitiesFromLoadedList(viewport)) {
+      const key = community.communityKey || community.id || community.slug;
+      if (key && !visibleByKey.has(key)) {
+        visibleByKey.set(key, community);
+      }
+    }
+
+    return [...visibleByKey.values()];
   }
 
   private _visibleCommunitiesFromLoadedList(
@@ -4373,6 +4614,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _getPreviewLocation(
     preview: SpotPreviewData,
   ): google.maps.LatLngLiteral | null {
+    if (
+      preview.location_raw &&
+      Number.isFinite(preview.location_raw.lat) &&
+      Number.isFinite(preview.location_raw.lng)
+    ) {
+      return preview.location_raw;
+    }
+
     const location: any = preview.location;
     if (!location) return null;
 

@@ -65,6 +65,66 @@
         <source>Map</source>
       </segment>
     </unit>
+    <unit id="map_objects_all_chip_label">
+      <segment>
+        <source>All</source>
+      </segment>
+    </unit>
+    <unit id="map_objects_community_plural">
+      <segment>
+        <source>Communities</source>
+      </segment>
+    </unit>
+    <unit id="map_objects_community_singular">
+      <segment>
+        <source>Community</source>
+      </segment>
+    </unit>
+    <unit id="map_objects_event_plural">
+      <segment>
+        <source>Events</source>
+      </segment>
+    </unit>
+    <unit id="map_objects_event_singular">
+      <segment>
+        <source>Event</source>
+      </segment>
+    </unit>
+    <unit id="map_objects_spot_plural">
+      <segment>
+        <source>Spots</source>
+      </segment>
+    </unit>
+    <unit id="map_objects_spot_singular">
+      <segment>
+        <source>Spot</source>
+      </segment>
+    </unit>
+    <unit id="map_search_context_all">
+      <segment>
+        <source>All</source>
+      </segment>
+    </unit>
+    <unit id="map_search_context_communities">
+      <segment>
+        <source>Communities</source>
+      </segment>
+    </unit>
+    <unit id="map_search_context_custom_filter">
+      <segment>
+        <source>Custom Filter</source>
+      </segment>
+    </unit>
+    <unit id="map_search_context_events">
+      <segment>
+        <source>Events</source>
+      </segment>
+    </unit>
+    <unit id="map_search_context_spots">
+      <segment>
+        <source>Spots</source>
+      </segment>
+    </unit>
     <unit id="mark_this_spot_as_visited_aria_label">
       <notes>
         <note category="description">The aria label of the mark this spot as visited icon button</note>
@@ -102,49 +162,29 @@
         <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> for everything parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
       </segment>
     </unit>
+    <unit id="5885323567263446594">
+      <segment>
+        <source> Freerun Zürich member </source>
+      </segment>
+    </unit>
     <unit id="5897595860261783392">
       <segment>
         <source>Add a name or some spot details before saving this new spot.</source>
       </segment>
     </unit>
-    <unit id="4690676620396071094">
+    <unit id="4703825958292042360">
       <segment>
-        <source> Find spots, check in, discover what is happening nearby, and connect with your local parkour community. </source>
+        <source>Searching spots...</source>
       </segment>
     </unit>
-    <unit id="4117359828699661747">
+    <unit id="4709722575878250034">
       <segment>
-        <source> Find where to <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">train</pc>. </source>
+        <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">crew</pc>. </source>
       </segment>
     </unit>
-    <unit id="6786034061470870852">
+    <unit id="3255718056802293269">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon class=&quot;flex-shrink-0&quot;&gt;" dispEnd="&lt;/mat-icon&gt;">globe</pc> Local Knowledge, Global Reach </source>
-      </segment>
-    </unit>
-    <unit id="8752273211002255812">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">search</pc> Find spots </source>
-      </segment>
-    </unit>
-    <unit id="5368124734646212072">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">map_search</pc> Smart Map Filters </source>
-      </segment>
-    </unit>
-    <unit id="1101593405603414898">
-      <segment>
-        <source> Your training doesn&apos;t stop for the weather. Need a covered rail for a rainy night? A lit spot for a winter session? Or a Parkour gym for drills? Our Smart Filters let you dial in the exact training conditions you need. </source>
-      </segment>
-    </unit>
-    <unit id="4122763657542193970">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">home</pc> Find Indoor Spots </source>
-      </segment>
-    </unit>
-    <unit id="4412142780233553240">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">steps</pc> Find Parkour parks and gyms </source>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">search</pc> Explore the Map </source>
       </segment>
     </unit>
     <unit id="4416413576346763682">
@@ -152,14 +192,14 @@
         <source>Pending</source>
       </segment>
     </unit>
-    <unit id="697121102743047551">
+    <unit id="6638716872037410765">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">water</pc> Find Water Spots </source>
+        <source> Live &amp; Verified </source>
       </segment>
     </unit>
-    <unit id="1048224077750217239">
+    <unit id="1038551913502372916">
       <segment>
-        <source>Live &amp; Verified</source>
+        <source> Create organizations and manage who can review organization-routed spot edits. Verified-by and managed-by settings live on each spot&apos;s admin edit form. </source>
       </segment>
     </unit>
     <unit id="1053544786475957394">
@@ -167,14 +207,9 @@
         <source> Choose the language used in the app. </source>
       </segment>
     </unit>
-    <unit id="4104301377423880524">
+    <unit id="4867740992596809732">
       <segment>
-        <source>We move with You.</source>
-      </segment>
-    </unit>
-    <unit id="6260998870790925974">
-      <segment>
-        <source> Training happens outside, not behind a desk. Take the full power of PK Spot with you: spots, check-ins, community pages, and the events and jams taking shape around you. </source>
+        <source>Verified organization removed</source>
       </segment>
     </unit>
     <unit id="4881902536872851671">
@@ -182,44 +217,34 @@
         <source>Sign in to vote on this edit.</source>
       </segment>
     </unit>
-    <unit id="5788860025290749857">
+    <unit id="6698699817404417146">
       <segment>
-        <source>iOS App Store</source>
+        <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> App Store </source>
       </segment>
     </unit>
-    <unit id="7122216721162972096">
+    <unit id="6128805594305699476">
       <segment>
-        <source> Download PK Spot from the Apple App Store. Get the seamless experience on your iPhone or iPad. </source>
+        <source>All Events</source>
       </segment>
     </unit>
-    <unit id="4749191116785738627">
+    <unit id="6129508904861899934">
       <segment>
-        <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Download on App Store </source>
+        <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Google Play </source>
       </segment>
     </unit>
-    <unit id="5050053295355238935">
+    <unit id="6131531490320895458">
       <segment>
-        <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Download for Android </source>
+        <source>Select organization</source>
       </segment>
     </unit>
-    <unit id="9210899085665920557">
+    <unit id="613943582301222071">
       <segment>
-        <source>Install Web App</source>
+        <source>Organization members</source>
       </segment>
     </unit>
-    <unit id="5957901138028541022">
+    <unit id="6944287574672504844">
       <segment>
-        <source> Get the full-screen app experience directly from your browser. Open the menu and select &quot;Add to Home Screen&quot; or &quot;Install&quot; to access PK Spot instantly on any device. </source>
-      </segment>
-    </unit>
-    <unit id="4004311420452381622">
-      <segment>
-        <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">Open</pc> Ground. </source>
-      </segment>
-    </unit>
-    <unit id="8078753231616252504">
-      <segment>
-        <source> We believe the map belongs to the athletes, not a corporation. That&apos;s why <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary pkspot-font&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot</pc> is built differently. </source>
+        <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> ground. </source>
       </segment>
     </unit>
     <unit id="977584861053902811">
@@ -230,49 +255,24 @@
         <source>s.</source>
       </segment>
     </unit>
-    <unit id="978733016608641076">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">all_inclusive</pc> Your Data, Forever </source>
-      </segment>
-    </unit>
-    <unit id="5069221023481955463">
-      <segment>
-        <source> We don&apos;t lock your world behind a paywall. All community spot data is released publicly to the community and is licensed under Creative Commons <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc>. It is open, shareable, and yours forever. </source>
-      </segment>
-    </unit>
-    <unit id="6517384114852301760">
-      <segment>
-        <source>Transparent Code</source>
-      </segment>
-    </unit>
-    <unit id="7930891814958874419">
-      <segment>
-        <source> We are Open Source. No black-box algorithms, no hidden tracking. Just cutting-edge web tech built to serve the community. </source>
-      </segment>
-    </unit>
-    <unit id="2788928704037276887">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">code</pc> MIT License </source>
-      </segment>
-    </unit>
-    <unit id="440458300676573130">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">shield</pc> Your Privacy, Protected </source>
-      </segment>
-    </unit>
-    <unit id="2364479747143032381">
-      <segment>
-        <source> We care deeply about your privacy. We do <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not</pc> sell your data — ever. No tracking cookies, no shady ad networks. Just the essentials to keep the platform running. </source>
-      </segment>
-    </unit>
-    <unit id="69041188957873463">
-      <segment>
-        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">policy</pc> Privacy Policy </source>
-      </segment>
-    </unit>
     <unit id="6910865064463105075">
       <segment>
         <source>Communities</source>
+      </segment>
+    </unit>
+    <unit id="692721075363249547">
+      <segment>
+        <source> Training happens outside, not behind a desk. PK Spot works on any device — download the native app or install it from your browser. </source>
+      </segment>
+    </unit>
+    <unit id="3067846330176969856">
+      <segment>
+        <source>Keep typing to search</source>
+      </segment>
+    </unit>
+    <unit id="3076687427621376223">
+      <segment>
+        <source>Organization</source>
       </segment>
     </unit>
     <unit id="3080109816219994129">
@@ -280,29 +280,24 @@
         <source>Instagram</source>
       </segment>
     </unit>
-    <unit id="3088718992754147096">
+    <unit id="8337024335699759741">
       <segment>
-        <source> Fueled by Passion, Community and Partners </source>
+        <source> Be Part of the Movement. </source>
       </segment>
     </unit>
-    <unit id="2832676521820274073">
+    <unit id="4681995929347025511">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-primary&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot </pc> is a <pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot;&gt;" dispEnd="&lt;/span&gt;">free</pc> utility tool built by athletes. We don&apos;t charge you to use the map, and we never will. </source>
+        <source> Whether you are a solo athlete, a gym owner, or a national organization — we are happy to have you on board. </source>
       </segment>
     </unit>
-    <unit id="5623922014146618415">
+    <unit id="4691887509600985309">
       <segment>
-        <source> To keep the servers running, we partner with the Parkour ecosystem — National Associations, ethical brands, and Parkour Gyms. We support the organizations that support the sport. </source>
+        <source>Members</source>
       </segment>
     </unit>
-    <unit id="2575639027185325240">
+    <unit id="4698225108302989794">
       <segment>
-        <source> Be Part of the Movement </source>
-      </segment>
-    </unit>
-    <unit id="6642568354300862445">
-      <segment>
-        <source> Whether you are a solo athlete, a Parkour gym owner, or a national organization - we are happy to have you on board. </source>
+        <source> Multiple organizations can verify a public spot without owning it. </source>
       </segment>
     </unit>
     <unit id="5133096532155335173">
@@ -323,6 +318,11 @@
     <unit id="2704103786825350604">
       <segment>
         <source> Crafted in Zürich, Switzerland. Open Data. Open Code. ©2026 PK Spot. </source>
+      </segment>
+    </unit>
+    <unit id="2709911421206227808">
+      <segment>
+        <source>Open Data</source>
       </segment>
     </unit>
     <unit id="terms.long">
@@ -450,6 +450,11 @@
         <source>Invalid Link</source>
       </segment>
     </unit>
+    <unit id="2538050690966581497">
+      <segment>
+        <source> Add member </source>
+      </segment>
+    </unit>
     <unit id="3101932482196295919">
       <segment>
         <source>Vote to merge</source>
@@ -500,6 +505,11 @@
         <source>Verifying Email</source>
       </segment>
     </unit>
+    <unit id="541397324131531449">
+      <segment>
+        <source>Go to your location</source>
+      </segment>
+    </unit>
     <unit id="5903110565317428249">
       <segment>
         <source>Session</source>
@@ -535,6 +545,11 @@
         <source>Reset Password</source>
       </segment>
     </unit>
+    <unit id="6984983607470794786">
+      <segment>
+        <source>Open Source</source>
+      </segment>
+    </unit>
     <unit id="9131908454374854077">
       <segment>
         <source>Sign out of your account.</source>
@@ -545,6 +560,11 @@
         <source>Validating your reset link...</source>
       </segment>
     </unit>
+    <unit id="9107902639851774121">
+      <segment>
+        <source>Checking admin access...</source>
+      </segment>
+    </unit>
     <unit id="9113275416553101993">
       <segment>
         <source>Enter a new password for <ph id="0" equiv="PH" disp="this.passwordResetEmail"/></source>
@@ -553,6 +573,11 @@
     <unit id="8202652744541567309">
       <segment>
         <source>Password Reset Successful</source>
+      </segment>
+    </unit>
+    <unit id="8381431851391440518">
+      <segment>
+        <source>Managed organization updated</source>
       </segment>
     </unit>
     <unit id="83860586054430315">
@@ -570,6 +595,16 @@
         <source>Recovering Email</source>
       </segment>
     </unit>
+    <unit id="2996324673054626783">
+      <segment>
+        <source>Admin access required.</source>
+      </segment>
+    </unit>
+    <unit id="1820086832367799914">
+      <segment>
+        <source>Rejected by organization</source>
+      </segment>
+    </unit>
     <unit id="1826181746940790026">
       <segment>
         <source>Please wait while we recover your email address...</source>
@@ -583,6 +618,11 @@
     <unit id="5506176846620350292">
       <segment>
         <source>Your email address has been successfully recovered. You may want to change your password if you didn&apos;t make this change.</source>
+      </segment>
+    </unit>
+    <unit id="5510291204960492499">
+      <segment>
+        <source>Organization review inbox</source>
       </segment>
     </unit>
     <unit id="7833933616390918367">
@@ -635,9 +675,24 @@
         <source>Water challenge</source>
       </segment>
     </unit>
+    <unit id="7069412761657391483">
+      <segment>
+        <source>Managed organization removed</source>
+      </segment>
+    </unit>
     <unit id="7374538640222631357">
       <segment>
         <source>This challenge is still private to you!</source>
+      </segment>
+    </unit>
+    <unit id="7374671888521665415">
+      <segment>
+        <source>Create organization</source>
+      </segment>
+    </unit>
+    <unit id="7378878529334768232">
+      <segment>
+        <source>Reject</source>
       </segment>
     </unit>
     <unit id="7408374932533578639">
@@ -650,9 +705,24 @@
         <source>Uploaded by: </source>
       </segment>
     </unit>
+    <unit id="2496919597985327178">
+      <segment>
+        <source> — We never sell your data. No tracking cookies, no shady ad networks. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. </source>
+      </segment>
+    </unit>
     <unit id="7585826646011739428">
       <segment>
         <source>Edit</source>
+      </segment>
+    </unit>
+    <unit id="7599542245105770623">
+      <segment>
+        <source>Logo background</source>
+      </segment>
+    </unit>
+    <unit id="7005135725147250005">
+      <segment>
+        <source>No pending review requests.</source>
       </segment>
     </unit>
     <unit id="7008439939460403347">
@@ -668,6 +738,16 @@
     <unit id="2029717048910432760">
       <segment>
         <source>Spot</source>
+      </segment>
+    </unit>
+    <unit id="5982693261061871155">
+      <segment>
+        <source> — All community spot data is <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> licensed. Open, shareable, yours forever. </source>
+      </segment>
+    </unit>
+    <unit id="5983471714471102526">
+      <segment>
+        <source>Verified organization added</source>
       </segment>
     </unit>
     <unit id="599066928832045467">
@@ -748,9 +828,29 @@
         <source>Cancel</source>
       </segment>
     </unit>
+    <unit id="2198590276913934346">
+      <segment>
+        <source>Logo URL</source>
+      </segment>
+    </unit>
+    <unit id="3800223756032705121">
+      <segment>
+        <source>Not managed</source>
+      </segment>
+    </unit>
+    <unit id="3821661153451769620">
+      <segment>
+        <source>Approve</source>
+      </segment>
+    </unit>
     <unit id="3823219296477075982">
       <segment>
         <source>Discard</source>
+      </segment>
+    </unit>
+    <unit id="3826629890393475666">
+      <segment>
+        <source> Covered rails for rainy nights. Lit spots for winter sessions. Parkour gyms for drill days. Filter for exactly what you need. </source>
       </segment>
     </unit>
     <unit id="7801350351736394974">
@@ -821,17 +921,22 @@
     </unit>
     <unit id="bounds_picker.hint_empty">
       <segment>
-        <source> Click on the map to drop a rectangle around the event area. You can then drag and resize it. </source>
+        <source> Drag the pin to the event location. Click the map to add an optional event area. </source>
       </segment>
     </unit>
     <unit id="bounds_picker.hint_existing">
       <segment>
-        <source> Drag the rectangle or resize its corners to fit the event area. </source>
+        <source> Drag the pin for the event location. Drag the area or move its points to fit the optional event area. </source>
       </segment>
     </unit>
     <unit id="bounds_picker.loading">
       <segment>
         <source> Loading map… </source>
+      </segment>
+    </unit>
+    <unit id="bounds_picker.location_pin">
+      <segment>
+        <source>Event pin</source>
       </segment>
     </unit>
     <unit id="bounds_picker.reset">
@@ -872,11 +977,6 @@
     <unit id="3881818169480672345">
       <segment>
         <source>other</source>
-      </segment>
-    </unit>
-    <unit id="3888116092221417755">
-      <segment>
-        <source> A map is only useful when it reflects real training. Community check-ins and organization updates help show where parkour is active right now. </source>
       </segment>
     </unit>
     <unit id="7793821153334609761">
@@ -1251,6 +1351,11 @@
         <source>Now</source>
       </segment>
     </unit>
+    <unit id="8238479245314070918">
+      <segment>
+        <source> Computational Scientist, Past Parkour instructor </source>
+      </segment>
+    </unit>
     <unit id="5176605689144016167">
       <segment>
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
@@ -1264,6 +1369,11 @@
     <unit id="5753174679285423997">
       <segment>
         <source>Smart Scorecard</source>
+      </segment>
+    </unit>
+    <unit id="579260441550762823">
+      <segment>
+        <source>Testing, Map data</source>
       </segment>
     </unit>
     <unit id="8981724482694536509">
@@ -1302,6 +1412,11 @@
     <unit id="5688462374174490321">
       <segment>
         <source> Load more </source>
+      </segment>
+    </unit>
+    <unit id="5690746890584837020">
+      <segment>
+        <source>Event map</source>
       </segment>
     </unit>
     <unit id="4570725150232607497">
@@ -1399,7 +1514,7 @@
     </unit>
     <unit id="event_edit.bounds_required">
       <segment>
-        <source> Drop a rectangle on the map to define the event area. </source>
+        <source> Optional. Drop an area on the map to define where the event happens. </source>
       </segment>
     </unit>
     <unit id="event_edit.cancel">
@@ -1502,6 +1617,21 @@
         <source>Locality</source>
       </segment>
     </unit>
+    <unit id="event_edit.location_hint">
+      <segment>
+        <source> Required. Used for the map event pin. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.location_lat">
+      <segment>
+        <source> Event pin latitude </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.location_lng">
+      <segment>
+        <source> Event pin longitude </source>
+      </segment>
+    </unit>
     <unit id="event_edit.logo_label">
       <segment>
         <source> Event logo (optional) </source>
@@ -1525,6 +1655,16 @@
     <unit id="event_edit.optional_section_hint">
       <segment>
         <source> Description, banner, spots, sponsor, … </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer">
+      <segment>
+        <source>Organizer</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer_hint">
+      <segment>
+        <source> Admin-only. Select an existing organization. </source>
       </segment>
     </unit>
     <unit id="event_edit.published">
@@ -1637,6 +1777,71 @@
         <source>Venue name</source>
       </segment>
     </unit>
+    <unit id="event_info.link_copied">
+      <segment>
+        <source>Event link copied to clipboard.</source>
+      </segment>
+    </unit>
+    <unit id="event_info.map_label">
+      <segment>
+        <source> Event map </source>
+      </segment>
+    </unit>
+    <unit id="event_info.no_organizer">
+      <segment>
+        <source> Organizer to be announced </source>
+      </segment>
+    </unit>
+    <unit id="event_info.open_map">
+      <segment>
+        <source>Open event map</source>
+      </segment>
+    </unit>
+    <unit id="event_info.open_website">
+      <segment>
+        <source>Open event website</source>
+      </segment>
+    </unit>
+    <unit id="event_info.organizer_label">
+      <segment>
+        <source> Organizer </source>
+      </segment>
+    </unit>
+    <unit id="event_info.share">
+      <segment>
+        <source>Share event</source>
+      </segment>
+    </unit>
+    <unit id="event_info.share_button">
+      <segment>
+        <source>Share</source>
+      </segment>
+    </unit>
+    <unit id="event_info.start_label">
+      <segment>
+        <source> Start </source>
+      </segment>
+    </unit>
+    <unit id="event_info.website_button">
+      <segment>
+        <source>Website</source>
+      </segment>
+    </unit>
+    <unit id="event_map_page.back_to_event">
+      <segment>
+        <source>Back to event</source>
+      </segment>
+    </unit>
+    <unit id="event_map_page.more_info">
+      <segment>
+        <source>More info</source>
+      </segment>
+    </unit>
+    <unit id="event_map_page.more_info_tooltip">
+      <segment>
+        <source>More event info</source>
+      </segment>
+    </unit>
     <unit id="event_page.back_to_events">
       <segment>
         <source>Back to all events</source>
@@ -1680,11 +1885,6 @@
     <unit id="event_page.status.upcoming">
       <segment>
         <source>Upcoming Event</source>
-      </segment>
-    </unit>
-    <unit id="event_preview.details">
-      <segment>
-        <source>Details</source>
       </segment>
     </unit>
     <unit id="event_preview.event_tooltip">
@@ -1762,34 +1962,79 @@
         <source>View on Swiss Parkour Tour</source>
       </segment>
     </unit>
+    <unit id="event_preview.website">
+      <segment>
+        <source>Website</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.clear">
+      <segment>
+        <source>Clear</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.clear_failed">
+      <segment>
+        <source>Couldn&apos;t clear your RSVP. Try again in a moment.</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.count_going">
+      <segment>
+        <source>going</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.count_interested">
+      <segment>
+        <source>interested</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.going">
+      <segment>
+        <source>Going</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.group_label">
+      <segment>
+        <source>RSVP</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.interested">
+      <segment>
+        <source>Interested</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.load_failed">
+      <segment>
+        <source>Couldn&apos;t load your RSVP.</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.notgoing">
+      <segment>
+        <source>Not going</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.save_failed">
+      <segment>
+        <source>Couldn&apos;t save your RSVP. Try again in a moment.</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.sign_in">
+      <segment>
+        <source>Sign in to RSVP</source>
+      </segment>
+    </unit>
     <unit id="events.create">
       <segment>
         <source>Create event</source>
       </segment>
     </unit>
-    <unit id="events.in_n_days">
+    <unit id="events.now_or_past">
       <segment>
-        <source>in <ph id="0" equiv="PH" disp="days"/> days</source>
-      </segment>
-    </unit>
-    <unit id="events.in_n_hours">
-      <segment>
-        <source>in <ph id="0" equiv="PH" disp="hours"/> hours</source>
-      </segment>
-    </unit>
-    <unit id="events.in_n_minutes">
-      <segment>
-        <source>in <ph id="0" equiv="PH" disp="minutes"/> minutes</source>
+        <source>now</source>
       </segment>
     </unit>
     <unit id="events.past_heading">
       <segment>
         <source> Past events </source>
-      </segment>
-    </unit>
-    <unit id="events.soon">
-      <segment>
-        <source>soon</source>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">
@@ -1915,6 +2160,11 @@
         <source>Reset password</source>
       </segment>
     </unit>
+    <unit id="1645193489541371451">
+      <segment>
+        <source>No results found</source>
+      </segment>
+    </unit>
     <unit id="1675135336563892261">
       <segment>
         <source>Failed to update visited spot</source>
@@ -1955,6 +2205,11 @@
         <source> Loading event </source>
       </segment>
     </unit>
+    <unit id="map.events_list_placeholder">
+      <segment>
+        <source> Events in this area will show here. </source>
+      </segment>
+    </unit>
     <unit id="map.geolocation_denied.snackbar">
       <notes>
         <note category="description">Message shown when user clicks geolocation button but permissions are denied</note>
@@ -1978,7 +2233,7 @@
         <source>Temporarily closed</source>
       </segment>
     </unit>
-    <unit id="5807661245547880377">
+    <unit id="2274234887706573129">
       <notes>
         <note category="description">Label of the button to open the website of the spot</note>
         <note category="meaning">Website button label</note>
@@ -2009,6 +2264,11 @@
       </notes>
       <segment>
         <source>Delete</source>
+      </segment>
+    </unit>
+    <unit id="3511080151162272088">
+      <segment>
+        <source> Spots verified by you </source>
       </segment>
     </unit>
     <unit id="3517550046701184661">
@@ -2043,7 +2303,12 @@
     </unit>
     <unit id="4020018249666121252">
       <segment>
-        <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </source>
+        <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ spotName() }}"/> </source>
+      </segment>
+    </unit>
+    <unit id="4046179348234171126">
+      <segment>
+        <source> Spots we use </source>
       </segment>
     </unit>
     <unit id="1509543645001749494">
@@ -2051,14 +2316,29 @@
         <source>Visited Spots</source>
       </segment>
     </unit>
+    <unit id="1510660281085390135">
+      <segment>
+        <source>Searching events...</source>
+      </segment>
+    </unit>
     <unit id="1512782188681945283">
       <segment>
         <source>Initializing map...</source>
       </segment>
     </unit>
+    <unit id="1740926895804586805">
+      <segment>
+        <source> Creator, Lead Developer </source>
+      </segment>
+    </unit>
     <unit id="1744316082077040772">
       <segment>
         <source>Loading Google Maps® API...</source>
+      </segment>
+    </unit>
+    <unit id="2735597846335347226">
+      <segment>
+        <source>Searching places...</source>
       </segment>
     </unit>
     <unit id="2736531674722915416">
@@ -2074,13 +2354,9 @@
         <source>There are no spots matching the filter in this area.</source>
       </segment>
     </unit>
-    <unit id="map.add_spot.tooltip">
-      <notes>
-        <note category="description">Add a new spot</note>
-        <note category="meaning">Tooltip for add spot button</note>
-      </notes>
+    <unit id="map.communities_list_placeholder">
       <segment>
-        <source>Add a new spot</source>
+        <source> Communities in this area will show here. </source>
       </segment>
     </unit>
     <unit id="map.community_loading_label">
@@ -2098,32 +2374,9 @@
         <source>The Spot for Everything Parkour | PK Spot</source>
       </segment>
     </unit>
-    <unit id="pk.spotmap.addSpot">
-      <segment>
-        <source>Add spot</source>
-      </segment>
-    </unit>
     <unit id="pk.spotmap.description">
       <segment>
         <source>Find parkour spots near you, check in, discover events and jams, and connect with your local community.</source>
-      </segment>
-    </unit>
-    <unit id="map.add_challenge.tooltip">
-      <notes>
-        <note category="description">Add a challenge</note>
-        <note category="meaning">Tooltip for add challenge button</note>
-      </notes>
-      <segment>
-        <source>Add a challenge</source>
-      </segment>
-    </unit>
-    <unit id="map.import_spots.tooltip">
-      <notes>
-        <note category="description">Import spots from a file</note>
-        <note category="meaning">Tooltip for import spots button</note>
-      </notes>
-      <segment>
-        <source>Import spots from a file</source>
       </segment>
     </unit>
     <unit id="map.panel_back_event_fallback">
@@ -2270,6 +2523,11 @@
         <source>No Google account found on this device. Please add a Google account in your device settings and try again.</source>
       </segment>
     </unit>
+    <unit id="1935831748198187660">
+      <segment>
+        <source>Loading review requests...</source>
+      </segment>
+    </unit>
     <unit id="3959902123742995673">
       <segment>
         <source>Could not sign in with Google!</source>
@@ -2330,6 +2588,11 @@
         <source>Unfollow</source>
       </segment>
     </unit>
+    <unit id="9164543829936380764">
+      <segment>
+        <source> Parkour instructor, Freerun Zürich member </source>
+      </segment>
+    </unit>
     <unit id="6018246591673612412">
       <segment>
         <source>Follow</source>
@@ -2338,6 +2601,11 @@
     <unit id="8155714392761937762">
       <segment>
         <source>Home Spots</source>
+      </segment>
+    </unit>
+    <unit id="2676566549378671128">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {verified spot} other {verified spots}}</source>
       </segment>
     </unit>
     <unit id="2684344419716682750">
@@ -2350,14 +2618,34 @@
         <source>Contributions</source>
       </segment>
     </unit>
+    <unit id="7102657004519673825">
+      <segment>
+        <source> Your managed spots </source>
+      </segment>
+    </unit>
+    <unit id="7136600839935407372">
+      <segment>
+        <source>Managed by</source>
+      </segment>
+    </unit>
     <unit id="7139999409916594388">
       <segment>
         <source>Leaderboard</source>
       </segment>
     </unit>
+    <unit id="7144239028366454515">
+      <segment>
+        <source>Failed to update spot organization settings</source>
+      </segment>
+    </unit>
     <unit id="1521659529201664852">
       <segment>
         <source>Spots Created</source>
+      </segment>
+    </unit>
+    <unit id="5633758103176780803">
+      <segment>
+        <source> No public members yet. </source>
       </segment>
     </unit>
     <unit id="565319861201250432">
@@ -2375,14 +2663,14 @@
         <source>Media Added</source>
       </segment>
     </unit>
-    <unit id="6058033902089935749">
-      <segment>
-        <source>Find spots and places</source>
-      </segment>
-    </unit>
     <unit id="5387369293317164071">
       <segment>
         <source>Unnamed Spot</source>
+      </segment>
+    </unit>
+    <unit id="3363996805082732987">
+      <segment>
+        <source> Swiss Parkour OG, Creator of original Swiss Parkour spot map </source>
       </segment>
     </unit>
     <unit id="3368417786821334758">
@@ -2393,6 +2681,11 @@
     <unit id="3370839803061654054">
       <segment>
         <source>hours</source>
+      </segment>
+    </unit>
+    <unit id="2903281922331638025">
+      <segment>
+        <source>User ID (blank = current user)</source>
       </segment>
     </unit>
     <unit id="2917314929120683887">
@@ -2447,7 +2740,7 @@
     </unit>
     <unit id="searchField.events">
       <segment>
-        <source> Events </source>
+        <source>Events</source>
       </segment>
     </unit>
     <unit id="settings.account.description">
@@ -2573,6 +2866,11 @@
         <source> Are you sure? Enter your password to confirm deletion. </source>
       </segment>
     </unit>
+    <unit id="5481284030283031915">
+      <segment>
+        <source>Website</source>
+      </segment>
+    </unit>
     <unit id="5492320356892382782">
       <segment>
         <source>Permanently delete</source>
@@ -2613,6 +2911,11 @@
         <source>Manage your profile and account settings.</source>
       </segment>
     </unit>
+    <unit id="5192370615985951411">
+      <segment>
+        <source>Smart Map Filters</source>
+      </segment>
+    </unit>
     <unit id="8958570874759054860">
       <segment>
         <source>Settings - </source>
@@ -2633,9 +2936,19 @@
         <source>Please fill in all fields</source>
       </segment>
     </unit>
+    <unit id="8015743935724181617">
+      <segment>
+        <source> Built and maintained by volunteers from the Parkour community. </source>
+      </segment>
+    </unit>
     <unit id="8018379614687762047">
       <segment>
         <source>Email changed successfully. Please verify your new email.</source>
+      </segment>
+    </unit>
+    <unit id="8036493504964207254">
+      <segment>
+        <source>Awaiting organization review</source>
       </segment>
     </unit>
     <unit id="8334401359656001773">
@@ -2676,6 +2989,11 @@
     <unit id="9068926282349592226">
       <segment>
         <source>Password changed successfully</source>
+      </segment>
+    </unit>
+    <unit id="2036269498046585590">
+      <segment>
+        <source>Organization settings</source>
       </segment>
     </unit>
     <unit id="2037607997452853008">
@@ -2728,14 +3046,14 @@
         <source> Landing in a new city? Find places to train, see what locals rate highly, follow upcoming events, and use community pages to understand the scene around you. </source>
       </segment>
     </unit>
-    <unit id="4236673499531962366">
-      <segment>
-        <source> Landing in a new city? Find places to train, see what locals rate highly, and use community pages to understand the scene around you. </source>
-      </segment>
-    </unit>
     <unit id="3432396429990524008">
       <segment>
         <source>Account mismatch. Please sign in to the correct account.</source>
+      </segment>
+    </unit>
+    <unit id="3456162150342793287">
+      <segment>
+        <source> We believe the map belongs to the athletes, not a corporation. PK Spot is open source, privacy-first, and community owned. </source>
       </segment>
     </unit>
     <unit id="1486755545881068533">
@@ -2746,6 +3064,11 @@
     <unit id="6366005533956235174">
       <segment>
         <source>Please enter your password</source>
+      </segment>
+    </unit>
+    <unit id="636877598337294512">
+      <segment>
+        <source> No used spots yet. </source>
       </segment>
     </unit>
     <unit id="account.auth.kicker">
@@ -2885,6 +3208,11 @@
         <source>Create account</source>
       </segment>
     </unit>
+    <unit id="5722958552225460480">
+      <segment>
+        <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/instagram.svg&quot; alt=&quot;&quot; style=&quot;height: 18px&quot; class=&quot;me-1&quot; /&gt;"/> Follow @pkspot.app </source>
+      </segment>
+    </unit>
     <unit id="5726791725186220555">
       <segment>
         <source>The E-mail address is invalid!</source>
@@ -2965,9 +3293,19 @@
         <source>About you</source>
       </segment>
     </unit>
+    <unit id="4106902315329542244">
+      <segment>
+        <source>Organization admin</source>
+      </segment>
+    </unit>
     <unit id="4110209764320322600">
       <segment>
         <source> What should we call you? Don&apos;t worry, the display name can be changed later. </source>
+      </segment>
+    </unit>
+    <unit id="4110757717406350230">
+      <segment>
+        <source> Don&apos;t just look. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Find.</pc></source>
       </segment>
     </unit>
     <unit id="3013055597615607317">
@@ -3024,6 +3362,16 @@
         <source>Could not create account!</source>
       </segment>
     </unit>
+    <unit id="3614817395578126884">
+      <segment>
+        <source> One organization controls the official info for a managed venue. </source>
+      </segment>
+    </unit>
+    <unit id="2231151963929640898">
+      <segment>
+        <source>Edit submitted for organization review</source>
+      </segment>
+    </unit>
     <unit id="2267637299863581067">
       <segment>
         <source>Features and amenities</source>
@@ -3052,6 +3400,11 @@
     <unit id="3771736044227824217">
       <segment>
         <source>1 edit</source>
+      </segment>
+    </unit>
+    <unit id="3789771835244333891">
+      <segment>
+        <source> — No black-box algorithms, no hidden tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot;&gt;" dispEnd="&lt;/a &gt;">View on GitHub</pc>. </source>
       </segment>
     </unit>
     <unit id="2807800733729323332">
@@ -3147,9 +3500,19 @@
         <source> This spot is not eligible for highlights. To be eligible, it needs at least one user-submitted picture and at least one rating. </source>
       </segment>
     </unit>
+    <unit id="5574644924997298566">
+      <segment>
+        <source>Could not load organizations</source>
+      </segment>
+    </unit>
     <unit id="5574909544126829265">
       <segment>
         <source>What changed</source>
+      </segment>
+    </unit>
+    <unit id="5578067080894660725">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {used spot} other {used spots}}</source>
       </segment>
     </unit>
     <unit id="spot.delete.aria_label">
@@ -3211,6 +3574,11 @@
         <source>You were successfully signed out!</source>
       </segment>
     </unit>
+    <unit id="1593391712749316624">
+      <segment>
+        <source> Local Knowledge, Global Reach </source>
+      </segment>
+    </unit>
     <unit id="spot.details.type_access.header">
       <segment>
         <source> Spot Type and Access </source>
@@ -3247,6 +3615,11 @@
       </notes>
       <segment>
         <source> Location </source>
+      </segment>
+    </unit>
+    <unit id="spot.managed.tooltip">
+      <segment>
+        <source>Managed by <ph id="0" equiv="INTERPOLATION" disp="{{ managed.organization.name }}"/></source>
       </segment>
     </unit>
     <unit id="open_maps_tooltip">
@@ -3306,6 +3679,11 @@
       </notes>
       <segment>
         <source>{VAR_PLURAL, plural, =0 {no reviews} =1 {1 review} other {<ph id="0" equiv="INTERPOLATION"/> reviews}}</source>
+      </segment>
+    </unit>
+    <unit id="spot.verified.tooltip">
+      <segment>
+        <source>Verified by <ph id="0" equiv="INTERPOLATION" disp="{{ steward.organization.name }}"/></source>
       </segment>
     </unit>
     <unit id="spot.no_reviews.message">
@@ -3641,6 +4019,11 @@
         <source>Follow what others discover, contribute updates, and help keep the map alive.</source>
       </segment>
     </unit>
+    <unit id="8463135805202778440">
+      <segment>
+        <source> Map data, Testing, UI/UX Advisor </source>
+      </segment>
+    </unit>
     <unit id="8470446025763473581">
       <segment>
         <source>Added media</source>
@@ -3694,9 +4077,19 @@
         <source>Link to spot copied to clipboard</source>
       </segment>
     </unit>
+    <unit id="4608107035538313233">
+      <segment>
+        <source>Event info</source>
+      </segment>
+    </unit>
     <unit id="4644751492278611655">
       <segment>
         <source>Indoor / Outdoor</source>
+      </segment>
+    </unit>
+    <unit id="6223606167641949496">
+      <segment>
+        <source> Check-ins and organization updates show where parkour is actually happening. The map stays current because the community keeps it current. </source>
       </segment>
     </unit>
     <unit id="6251586038459969294">
@@ -3737,9 +4130,24 @@
         <source>Error saving spot</source>
       </segment>
     </unit>
+    <unit id="6958524390934268837">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {member} other {members}}</source>
+      </segment>
+    </unit>
+    <unit id="6020607686749008401">
+      <segment>
+        <source>Add verifying organization</source>
+      </segment>
+    </unit>
     <unit id="6024008212258429928">
       <segment>
         <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}"/>&apos;</source>
+      </segment>
+    </unit>
+    <unit id="8425534745547037864">
+      <segment>
+        <source>Awaiting steward review</source>
       </segment>
     </unit>
     <unit id="8425796083769561052">
@@ -3765,6 +4173,16 @@
     <unit id="4430765953319659794">
       <segment>
         <source>It&apos;s a private spot and should not be on this spot map.</source>
+      </segment>
+    </unit>
+    <unit id="4439801928039075192">
+      <segment>
+        <source>Reset map orientation to north</source>
+      </segment>
+    </unit>
+    <unit id="8685790330643186548">
+      <segment>
+        <source>No organization verifies this public spot yet.</source>
       </segment>
     </unit>
     <unit id="8693603235657020323">
@@ -3906,9 +4324,19 @@
         <source>Instagram DMs</source>
       </segment>
     </unit>
+    <unit id="3859151807572569698">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-primary&quot;&gt;" dispEnd="&lt;/span&gt;">PK Spot</pc> is a free tool built by athletes. To keep the servers running, we partner with the Parkour ecosystem — national associations, ethical brands, and Parkour gyms. </source>
+      </segment>
+    </unit>
     <unit id="3865346423204416259">
       <segment>
         <source>Spot deleted</source>
+      </segment>
+    </unit>
+    <unit id="5279365676870836127">
+      <segment>
+        <source> If this list is empty, organization reads are still blocked by rules or no organizations exist yet. </source>
       </segment>
     </unit>
     <unit id="5287661483037226366">
@@ -3916,9 +4344,19 @@
         <source> Feel free to slide into our DMs! We&apos;re happy to help with quick questions. </source>
       </segment>
     </unit>
+    <unit id="5291712539208295137">
+      <segment>
+        <source>Verified by</source>
+      </segment>
+    </unit>
     <unit id="3894305924320774026">
       <segment>
         <source>@pkspot.app</source>
+      </segment>
+    </unit>
+    <unit id="8323953180652912227">
+      <segment>
+        <source>Failed to remove verified organization</source>
       </segment>
     </unit>
     <unit id="8324331879973734366">
@@ -4001,19 +4439,9 @@
         <source> Parkour is risky. You are responsible for your safety. Spot data may be wrong, unsafe, or not legally accessible. </source>
       </segment>
     </unit>
-    <unit id="welcomeDialogCommunityHeading">
-      <segment>
-        <source> Community &amp; Contribution </source>
-      </segment>
-    </unit>
     <unit id="welcomeDialogCommunityBody">
       <segment>
         <source> Only share places and content when you have all needed rights and permissions. By contributing, you license them to PK Spot so we can run the service. </source>
-      </segment>
-    </unit>
-    <unit id="welcomeDialogTechHeading">
-      <segment>
-        <source> A Note on Privacy &amp; Technology </source>
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
@@ -4079,9 +4507,29 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Bad quality: This picture is blurry, too dark, or generally poor quality.</pc></source>
       </segment>
     </unit>
+    <unit id="93057103339884764">
+      <segment>
+        <source> Backed by the <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">community</pc>. </source>
+      </segment>
+    </unit>
+    <unit id="7918594686638498781">
+      <segment>
+        <source>Organization not found.</source>
+      </segment>
+    </unit>
+    <unit id="7941428823403788384">
+      <segment>
+        <source> Create </source>
+      </segment>
+    </unit>
     <unit id="7952543174289794111">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This image is already present on this spot.</pc></source>
+      </segment>
+    </unit>
+    <unit id="798956693238681279">
+      <segment>
+        <source>Could not load this organization.</source>
       </segment>
     </unit>
     <unit id="4819272857647882401">
@@ -4104,9 +4552,19 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">This picture violates the terms of service in other ways (nudity, violence, etc.)</pc></source>
       </segment>
     </unit>
+    <unit id="6756581455198295879">
+      <segment>
+        <source> Parkour Instructor </source>
+      </segment>
+    </unit>
     <unit id="6772316127315505952">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Other</pc></source>
+      </segment>
+    </unit>
+    <unit id="677850519653685182">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {managed spot} other {managed spots}}</source>
       </segment>
     </unit>
     <unit id="2607510393198183286">
@@ -4136,6 +4594,11 @@
       </notes>
       <segment>
         <source>your-email@example.com</source>
+      </segment>
+    </unit>
+    <unit id="8985868511640294928">
+      <segment>
+        <source>Testing</source>
       </segment>
     </unit>
     <unit id="8552587679160911578">
@@ -4170,6 +4633,11 @@
         <source>Submitting...</source>
       </segment>
     </unit>
+    <unit id="8431151318560186465">
+      <segment>
+        <source> Enter at least 2 characters. </source>
+      </segment>
+    </unit>
     <unit id="8436223332064456837">
       <segment>
         <source><ph id="0" equiv="PH" disp="challengeName"/> - <ph id="1" equiv="PH_1" disp="spotName"/></source>
@@ -4178,6 +4646,11 @@
     <unit id="7193934719093844817">
       <segment>
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
+      </segment>
+    </unit>
+    <unit id="6114788636278653503">
+      <segment>
+        <source> No managed spots yet. </source>
       </segment>
     </unit>
     <unit id="611564526184434442">
@@ -4245,9 +4718,19 @@
         <source>Cartographer</source>
       </segment>
     </unit>
+    <unit id="1356881297963203264">
+      <segment>
+        <source> No verified spots yet. </source>
+      </segment>
+    </unit>
     <unit id="4127571452382238225">
       <segment>
         <source>Explorer</source>
+      </segment>
+    </unit>
+    <unit id="4145496584631696119">
+      <segment>
+        <source>Role</source>
       </segment>
     </unit>
     <unit id="3268843240047650795">
@@ -4260,6 +4743,11 @@
         <source>Pathfinder</source>
       </segment>
     </unit>
+    <unit id="7273263025623740836">
+      <segment>
+        <source>Searching communities...</source>
+      </segment>
+    </unit>
     <unit id="7276436554511308696">
       <segment>
         <source>edits</source>
@@ -4270,14 +4758,14 @@
         <source>Architect</source>
       </segment>
     </unit>
-    <unit id="4743341466695708276">
-      <segment>
-        <source>Android</source>
-      </segment>
-    </unit>
     <unit id="4744376889247353452">
       <segment>
         <source>Curator</source>
+      </segment>
+    </unit>
+    <unit id="4755563775668401794">
+      <segment>
+        <source>Awaiting manager review</source>
       </segment>
     </unit>
     <unit id="4813152754732689397">
@@ -4505,6 +4993,15 @@
         <source>Not sure</source>
       </segment>
     </unit>
+    <unit id="get_app_label">
+      <notes>
+        <note category="description">A very short label for the navbar get app button</note>
+        <note category="meaning">Get App navbar button label</note>
+      </notes>
+      <segment>
+        <source>Get App</source>
+      </segment>
+    </unit>
     <unit id="question.covered">
       <segment>
         <source>Is the area covered?</source>
@@ -4575,14 +5072,19 @@
         <source>days</source>
       </segment>
     </unit>
-    <unit id="7037452207236778271">
-      <segment>
-        <source> Download PK Spot from the Google Play Store. Get the seamless experience on your Android device. </source>
-      </segment>
-    </unit>
     <unit id="3998090677451328461">
       <segment>
         <source>This is a sketchy or mental challenge that requires physical and emotional control</source>
+      </segment>
+    </unit>
+    <unit id="2068477271536019502">
+      <segment>
+        <source>Choose organization</source>
+      </segment>
+    </unit>
+    <unit id="2081295007072116210">
+      <segment>
+        <source>Searching PK Spot...</source>
       </segment>
     </unit>
     <unit id="2085915950119931041">
@@ -4615,6 +5117,11 @@
         <source>Solo</source>
       </segment>
     </unit>
+    <unit id="3946393485152934212">
+      <segment>
+        <source>Privacy First</source>
+      </segment>
+    </unit>
     <unit id="2273032269971765958">
       <segment>
         <source>Pair</source>
@@ -4623,6 +5130,11 @@
     <unit id="3724068243287682962">
       <segment>
         <source>Team</source>
+      </segment>
+    </unit>
+    <unit id="3726127669740793672">
+      <segment>
+        <source> Take it <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">with you</pc>. </source>
       </segment>
     </unit>
     <unit id="spot-type.parkour-gym">
@@ -4950,6 +5462,11 @@
         <source><ph id="0" equiv="itemCount" disp="value.length"/> items</source>
       </segment>
     </unit>
+    <unit id="spot-edit-summary.row.media.multiple-added">
+      <segment>
+        <source><ph id="0" equiv="itemCount" disp="addedCount"/> items added</source>
+      </segment>
+    </unit>
     <unit id="spot-edit-summary.row.media.none">
       <notes>
         <note category="description">No media placeholder label shown on spot preview cards</note>
@@ -4961,6 +5478,11 @@
     <unit id="spot-edit-summary.row.media.single">
       <segment>
         <source>1 item</source>
+      </segment>
+    </unit>
+    <unit id="spot-edit-summary.row.media.single-added">
+      <segment>
+        <source>1 item added</source>
       </segment>
     </unit>
     <unit id="spot-edit-summary.row.name">
@@ -5043,7 +5565,12 @@
         <source>Access is unclear for this spot. Check locally before training.</source>
       </segment>
     </unit>
-    <unit id="53037504631341482">
+    <unit id="search_field_clear_context">
+      <segment>
+        <source>Clear search filters</source>
+      </segment>
+    </unit>
+    <unit id="search_field_default_placeholder">
       <segment>
         <source>Find spots and more</source>
       </segment>

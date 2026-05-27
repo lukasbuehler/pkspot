@@ -46,6 +46,11 @@ export class MapObjectPanelComponent {
   communitySelect = output<CommunitySearchPreview>();
 
   onModeChange(value: string | null): void {
+    if (value === null) {
+      this.modeChange.emit("all");
+      return;
+    }
+
     if (
       value === "all" ||
       value === "spots" ||

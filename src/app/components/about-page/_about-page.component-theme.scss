@@ -19,6 +19,14 @@
     color: mat.get-theme-color($theme, secondary);
   }
 
+  .feature-title::after {
+    background: mat.get-theme-color($theme, primary);
+  }
+
+  .value-row a {
+    color: mat.get-theme-color($theme, primary);
+  }
+
   .about-page-background {
     background: radial-gradient(
         circle at top right,

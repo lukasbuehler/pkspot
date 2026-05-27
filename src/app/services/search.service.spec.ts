@@ -304,6 +304,43 @@ describe("SearchService", () => {
     });
   });
 
+  describe("listCommunities", () => {
+    it("paginates beyond Typesense's per-page limit for map fallback markers", async () => {
+      typesenseSearchMock
+        .mockResolvedValueOnce({
+          found: 300,
+          hits: Array.from({ length: 250 }, (_, index) => ({
+            document: {
+              communityKey: `locality:page-1:${index}`,
+              displayName: `Community ${index}`,
+            },
+          })),
+        })
+        .mockResolvedValueOnce({
+          found: 300,
+          hits: Array.from({ length: 50 }, (_, index) => ({
+            document: {
+              communityKey: `locality:page-2:${index}`,
+              displayName: `Community ${index + 250}`,
+            },
+          })),
+        });
+
+      const communities = await service.listCommunities(300);
+
+      expect(communities).toHaveLength(300);
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(2);
+      expect(typesenseSearchMock.mock.calls[0][0]).toMatchObject({
+        page: 1,
+        per_page: 250,
+      });
+      expect(typesenseSearchMock.mock.calls[1][0]).toMatchObject({
+        page: 2,
+        per_page: 250,
+      });
+    });
+  });
+
   describe("searchSpotsInBoundsWithFilter", () => {
     it("should return empty results for unknown filter mode", async () => {
       const mockBounds = {

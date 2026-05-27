@@ -142,7 +142,7 @@ export class SearchService {
         } else if (doc.location.latitude && doc.location.longitude) {
           location = new GeoPoint(
             doc.location.latitude,
-            doc.location.longitude
+            doc.location.longitude,
           );
         }
       }
@@ -196,6 +196,7 @@ export class SearchService {
         id: doc.id || hit.document?.id || "",
         slug: doc.slug || undefined,
         location: location,
+        location_raw: SearchService._readLatLngLiteral(doc.location_raw),
         type: doc.type,
         access: doc.access,
         locality: localityString,
@@ -213,11 +214,12 @@ export class SearchService {
         amenities: amenities || undefined,
         bounds:
           doc.bounds_raw?.map(
-            (p: any) => new GeoPoint(p.lat ?? p[0], p.lng ?? p[1])
+            (p: any) => new GeoPoint(p.lat ?? p[0], p.lng ?? p[1]),
           ) ||
           doc.bounds?.map(
-            (p: any) => new GeoPoint(p.lat ?? p[0], p.lng ?? p[1])
+            (p: any) => new GeoPoint(p.lat ?? p[0], p.lng ?? p[1]),
           ),
+        bounds_raw: doc.bounds_raw,
       } as SpotPreviewData;
 
       return preview;
@@ -233,7 +235,7 @@ export class SearchService {
     const totalSpots =
       typeof doc?.["counts.totalSpots"] === "number"
         ? doc["counts.totalSpots"]
-        : doc?.counts?.totalSpots ?? 0;
+        : (doc?.counts?.totalSpots ?? 0);
 
     // Typesense geopoints can arrive as arrays or objects depending on the
     // client/extension path, and numeric fields are occasionally serialized
@@ -271,10 +273,11 @@ export class SearchService {
    * the viewport-driven community detection in the map island.
    */
   public async listCommunities(
-    maxResults: number = 250
+    maxResults: number = 250,
   ): Promise<CommunitySearchPreview[]> {
     try {
-      const result = await this.client
+      const perPage = Math.min(250, Math.max(1, maxResults));
+      const firstPage = await this.client
         .collections(this.TYPESENSE_COLLECTION_COMMUNITIES)
         .documents()
         .search(
@@ -283,13 +286,45 @@ export class SearchService {
             query_by: "displayName",
             filter_by: "published:!=false",
             sort_by: "counts.totalSpots:desc",
-            per_page: Math.min(250, Math.max(1, maxResults)),
+            per_page: perPage,
             page: 1,
           },
-          {}
+          {},
         );
 
-      const hits = (result as any)?.hits || [];
+      const hits = [...((firstPage as any)?.hits || [])];
+      const found = SearchService._readFound(firstPage);
+      const targetCount = Math.min(maxResults, found);
+      const remainingPages = Math.ceil((targetCount - hits.length) / perPage);
+
+      if (remainingPages > 0) {
+        const pageRequests = Array.from(
+          { length: remainingPages },
+          (_, index) =>
+            this.client
+              .collections(this.TYPESENSE_COLLECTION_COMMUNITIES)
+              .documents()
+              .search(
+                {
+                  q: "*",
+                  query_by: "displayName",
+                  filter_by: "published:!=false",
+                  sort_by: "counts.totalSpots:desc",
+                  per_page: perPage,
+                  page: index + 2,
+                },
+                {},
+              ),
+        );
+
+        const settledPages = await Promise.allSettled(pageRequests);
+        for (const page of settledPages) {
+          if (page.status === "fulfilled") {
+            hits.push(...(((page.value as any)?.hits || []) as any[]));
+          }
+        }
+      }
+
       return hits.map((hit: any) => this.getCommunityPreviewFromHit(hit));
     } catch (error) {
       console.error("typesense list communities error:", error);
@@ -298,7 +333,7 @@ export class SearchService {
   }
 
   public async searchCommunities(
-    query: string
+    query: string,
   ): Promise<CommunitySearchPreview[]> {
     try {
       const result = await this.client
@@ -322,7 +357,7 @@ export class SearchService {
         .search({ q: query, ...this.spotSearchParameters }, {});
 
       const hits = this.sortHitsByRatingThenMedia(
-        (result as any).hits || []
+        (result as any).hits || [],
       ).map((hit: any) => {
         hit.preview = this.getSpotPreviewFromHit(hit);
         return hit;
@@ -337,7 +372,9 @@ export class SearchService {
 
   public async searchPlaces(query: string) {
     try {
-      return await this._mapsService.autocompletePlaceSearch(query, ["geocode"]);
+      return await this._mapsService.autocompletePlaceSearch(query, [
+        "geocode",
+      ]);
     } catch (error) {
       console.error("google maps places autocomplete API error:", error);
       return [];
@@ -360,10 +397,10 @@ export class SearchService {
    */
   public async searchSpotPreviewsByIds(
     spotIds: string[],
-    chunkSize: number = 180
+    chunkSize: number = 180,
   ): Promise<SpotPreviewData[]> {
     const uniqueIds = Array.from(
-      new Set((spotIds || []).filter((id) => typeof id === "string" && !!id))
+      new Set((spotIds || []).filter((id) => typeof id === "string" && !!id)),
     );
 
     if (uniqueIds.length === 0) {
@@ -389,9 +426,9 @@ export class SearchService {
               per_page: idsChunk.length,
               page: 1,
             },
-            {}
-          )
-      )
+            {},
+          ),
+      ),
     );
 
     const previewById = new Map<string, SpotPreviewData>();
@@ -421,7 +458,7 @@ export class SearchService {
   public searchSpotsInBoundsWithFilter(
     bounds: google.maps.LatLngBounds,
     filterMode: SpotFilterMode,
-    num_spots: number = 10
+    num_spots: number = 10,
   ): Promise<{ hits: any[]; found: number }> {
     const config = SPOT_FILTER_CONFIGS.get(filterMode);
     if (!config) {
@@ -433,7 +470,7 @@ export class SearchService {
       config.types,
       config.accesses,
       config.amenities_true,
-      config.amenities_false
+      config.amenities_false,
     );
   }
 
@@ -442,12 +479,12 @@ export class SearchService {
    */
   public async searchDrySpotsInBounds(
     bounds: google.maps.LatLngBounds,
-    num_spots: number = 10
+    num_spots: number = 10,
   ) {
     return this.searchSpotsInBoundsWithFilter(
       bounds,
       SpotFilterMode.Dry,
-      num_spots
+      num_spots,
     );
   }
 
@@ -456,12 +493,12 @@ export class SearchService {
    */
   public searchSpotsForParkourInBounds(
     bounds: google.maps.LatLngBounds,
-    num_spots: number = 10
+    num_spots: number = 10,
   ) {
     return this.searchSpotsInBoundsWithFilter(
       bounds,
       SpotFilterMode.ForParkour,
-      num_spots
+      num_spots,
     );
   }
 
@@ -470,12 +507,12 @@ export class SearchService {
    */
   public searchIndoorSpotsInBounds(
     bounds: google.maps.LatLngBounds,
-    num_spots: number = 10
+    num_spots: number = 10,
   ) {
     return this.searchSpotsInBoundsWithFilter(
       bounds,
       SpotFilterMode.Indoor,
-      num_spots
+      num_spots,
     );
   }
 
@@ -491,7 +528,7 @@ export class SearchService {
       amenities_true?: (keyof AmenitiesMap)[];
       amenities_false?: (keyof AmenitiesMap)[];
     },
-    num_spots: number = 10
+    num_spots: number = 10,
   ): Promise<{ hits: any[]; found: number }> {
     return this.searchSpotsInBounds(
       bounds,
@@ -499,7 +536,7 @@ export class SearchService {
       params.types,
       params.accesses,
       params.amenities_true,
-      params.amenities_false
+      params.amenities_false,
     );
   }
 
@@ -513,7 +550,7 @@ export class SearchService {
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
     amenities_false?: (keyof AmenitiesMap)[],
-    onlyWithImages: boolean = false
+    onlyWithImages: boolean = false,
   ): Promise<{ hits: any[]; found: number }> {
     const latLongPairList: string[] = [
       // northeast
@@ -541,7 +578,7 @@ export class SearchService {
       accesses,
       amenities_true,
       amenities_false,
-      onlyWithImages
+      onlyWithImages,
     );
   }
 
@@ -552,7 +589,7 @@ export class SearchService {
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
     amenities_false?: (keyof AmenitiesMap)[],
-    onlyWithImages: boolean = false
+    onlyWithImages: boolean = false,
   ) {
     const filters: string[] = [];
     if (types?.length) filters.push(`type:=[${types.join(", ")}]`);
@@ -565,7 +602,7 @@ export class SearchService {
       // Use strict server-side filtering on the new faceted fields.
       // Note: We intentionally exclude 'image_url' as it is not in the Typesense schema/index.
       filters.push(
-        "(thumbnail_small_url:!=null || thumbnail_medium_url:!=null)"
+        "(thumbnail_small_url:!=null || thumbnail_medium_url:!=null)",
       );
     }
 
@@ -589,7 +626,7 @@ export class SearchService {
           per_page: perPage,
           page: 1,
         },
-        {}
+        {},
       );
 
     let allHits: any[] = (firstPage && (firstPage as any).hits) || [];
@@ -624,8 +661,8 @@ export class SearchService {
               per_page: perPage,
               page: i,
             },
-            {}
-          )
+            {},
+          ),
       );
     }
 
@@ -651,7 +688,7 @@ export class SearchService {
     types?: SpotTypes[],
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
-    amenities_false?: (keyof AmenitiesMap)[]
+    amenities_false?: (keyof AmenitiesMap)[],
   ): Promise<{ hits: any[]; found: number }> {
     let neLat = bounds.getNorthEast().lat();
     let neLng = bounds.getNorthEast().lng();
@@ -687,7 +724,7 @@ export class SearchService {
       types,
       accesses,
       amenities_true,
-      amenities_false
+      amenities_false,
     );
   }
 
@@ -709,7 +746,7 @@ export class SearchService {
   public async searchSpotsNearLocation(
     location: google.maps.LatLngLiteral,
     radiusMeters: number = 100,
-    maxResults: number = 20
+    maxResults: number = 20,
   ): Promise<{ hits: any[]; found: number }> {
     const lat = location.lat.toFixed(6);
     const lng = location.lng.toFixed(6);
@@ -736,7 +773,7 @@ export class SearchService {
             per_page: maxResults,
             page: 1,
           },
-          {}
+          {},
         );
 
       const hits = ((result as any).hits || []).map((hit: any) => {
@@ -785,7 +822,7 @@ export class SearchService {
     if (allResults[2].status === "rejected") {
       console.error(
         "google maps places autocomplete API error:",
-        allResults[2].reason
+        allResults[2].reason,
       );
     }
 
@@ -793,7 +830,7 @@ export class SearchService {
       allResults[0].status === "fulfilled" ? allResults[0].value : null;
     if (spotsResult && Array.isArray((spotsResult as any).hits)) {
       const orderedHits = this.sortHitsByRatingThenMedia(
-        (spotsResult as any).hits
+        (spotsResult as any).hits,
       );
       (spotsResult as any).hits = orderedHits.map((hit: any) => {
         hit.preview = this.getSpotPreviewFromHit(hit);
@@ -806,15 +843,14 @@ export class SearchService {
     let communities: CommunitySearchPreview[] = [];
     if (communitiesResult && Array.isArray((communitiesResult as any).hits)) {
       communities = (communitiesResult as any).hits.map((hit: any) =>
-        this.getCommunityPreviewFromHit(hit)
+        this.getCommunityPreviewFromHit(hit),
       );
     }
 
     return {
       communities,
       spots: spotsResult,
-      places:
-        allResults[2].status === "fulfilled" ? allResults[2].value : null,
+      places: allResults[2].status === "fulfilled" ? allResults[2].value : null,
     };
   }
 
@@ -859,8 +895,7 @@ export class SearchService {
         typeof doc?.logo_src === "string"
           ? this._assetUrls.resolveBundledAssetUrl(doc.logo_src)
           : undefined,
-      sponsorName:
-        typeof sponsor?.name === "string" ? sponsor.name : undefined,
+      sponsorName: typeof sponsor?.name === "string" ? sponsor.name : undefined,
       sponsorLogoSrc:
         typeof sponsor?.logo_src === "string"
           ? this._assetUrls.resolveBundledAssetUrl(sponsor.logo_src)
@@ -872,7 +907,9 @@ export class SearchService {
       isSponsored: doc?.is_sponsored === true,
       startSeconds: SearchService._readInt(doc?.start_seconds),
       endSeconds: SearchService._readInt(doc?.end_seconds),
-      promoStartsAtSeconds: SearchService._readInt(doc?.promo_starts_at_seconds),
+      promoStartsAtSeconds: SearchService._readInt(
+        doc?.promo_starts_at_seconds,
+      ),
       location,
       boundsCenter: center,
       boundsRadiusM: boundsRadius,
@@ -1008,7 +1045,7 @@ export class SearchService {
    */
   public async searchEventsInBounds(
     bounds: google.maps.LatLngBounds,
-    num: number = 30
+    num: number = 30,
   ): Promise<PkEvent[]> {
     try {
       const result = await this.searchMapObjectsInBounds(bounds, {
@@ -1027,27 +1064,27 @@ export class SearchService {
     options: {
       eventLimit?: number;
       communityLimit?: number;
-    } = {}
+    } = {},
   ): Promise<MapViewportSearchResult> {
     const nowSeconds = Math.floor(Date.now() / 1000);
     const bbox = SearchService._boundsToLiteral(bounds);
     const spotFilterBy = SearchService._spotViewportFilter(bbox);
     const eventLocationFilterBy = SearchService._geoViewportFilter(
       "location",
-      bbox
+      bbox,
     );
     const promoFilterBy = SearchService._boundsOverlapFilter(
       "promo_bounds",
-      bbox
+      bbox,
     );
     const communityFilterBy = SearchService._boundsOverlapFilter(
       "visibility_bounds",
-      bbox
+      bbox,
     );
     const eventLimit = Math.max(1, Math.min(250, options.eventLimit ?? 30));
     const communityLimit = Math.max(
       1,
-      Math.min(250, options.communityLimit ?? 80)
+      Math.min(250, options.communityLimit ?? 80),
     );
     const eventIncludeFields = [
       "id",
@@ -1151,7 +1188,7 @@ export class SearchService {
         ],
       } as any,
       {},
-      {}
+      {},
     );
 
     const results = ((response as any)?.results ?? []) as any[];
@@ -1166,7 +1203,7 @@ export class SearchService {
       .map((hit) => this.getEventFromHit(hit))
       .filter((event): event is PkEvent => !!event);
     const communities = ((communitiesResult.hits ?? []) as any[]).map((hit) =>
-      this.getCommunityPreviewFromHit(hit)
+      this.getCommunityPreviewFromHit(hit),
     );
 
     return {
@@ -1187,10 +1224,10 @@ export class SearchService {
   }
 
   private static _joinFilters(
-    filters: Array<string | undefined>
+    filters: Array<string | undefined>,
   ): string | undefined {
     const activeFilters = filters.filter(
-      (filter): filter is string => typeof filter === "string" && !!filter
+      (filter): filter is string => typeof filter === "string" && !!filter,
     );
     return activeFilters.length > 0 ? activeFilters.join(" && ") : undefined;
   }
@@ -1208,9 +1245,7 @@ export class SearchService {
     const east = SearchService._normalizeLongitude(rawEast);
     const west = SearchService._normalizeLongitude(rawWest);
     const crossesAntimeridian = west > east;
-    const longitudeSpan = crossesAntimeridian
-      ? east + 360 - west
-      : east - west;
+    const longitudeSpan = crossesAntimeridian ? east + 360 - west : east - west;
     const rawLongitudeSpan = Math.abs(rawEast - rawWest);
 
     return {
@@ -1248,7 +1283,7 @@ export class SearchService {
       west: number;
       coversWorld: boolean;
       crossesAntimeridian: boolean;
-    }
+    },
   ): string | undefined {
     if (bbox.coversWorld) {
       return undefined;
@@ -1278,7 +1313,7 @@ export class SearchService {
       west: number;
       coversWorld: boolean;
       crossesAntimeridian: boolean;
-    }
+    },
   ): string | undefined {
     if (bbox.coversWorld) {
       return undefined;
@@ -1321,6 +1356,13 @@ export class SearchService {
     return undefined;
   }
 
+  private static _readLatLngLiteral(
+    value: unknown,
+  ): { lat: number; lng: number } | undefined {
+    const point = SearchService._readGeopoint(value);
+    return point ? { lat: point[0], lng: point[1] } : undefined;
+  }
+
   private static _readFloat(value: unknown): number | undefined {
     const n = typeof value === "number" ? value : Number(value);
     return Number.isFinite(n) ? n : undefined;
@@ -1333,7 +1375,7 @@ export class SearchService {
 
   private static _bboxFromCenterRadius(
     center: [number, number],
-    radiusM: number
+    radiusM: number,
   ): { north: number; south: number; east: number; west: number } {
     const radius = Math.max(0, radiusM);
     const dLat = radius / 111000;
@@ -1356,7 +1398,7 @@ export class SearchService {
       .search(searchParams, {});
 
     const hits = this.sortHitsByRatingThenMedia(
-      (typesenseSpotSearchResults as any).hits || []
+      (typesenseSpotSearchResults as any).hits || [],
     );
 
     // Attach preview

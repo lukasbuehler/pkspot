@@ -174,6 +174,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
    * community variant — communities live on the map itself now.
    */
   private readonly _availableCommunities = signal<CommunityMapMarker[]>([]);
+  private readonly _focusedSpotPreviews = signal<SpotPreviewData[] | null>(
+    null,
+  );
 
   @Input()
   set availableCommunities(value: CommunityMapMarker[] | null | undefined) {
@@ -182,6 +185,17 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   get availableCommunities(): CommunityMapMarker[] {
     return this._availableCommunities();
+  }
+
+  @Input()
+  set focusedSpotPreviews(value: SpotPreviewData[] | null | undefined) {
+    this._focusedSpotPreviews.set(
+      value === null || value === undefined ? null : [...value],
+    );
+  }
+
+  get focusedSpotPreviews(): SpotPreviewData[] | null {
+    return this._focusedSpotPreviews();
   }
 
   /** Emits the community key when the user clicks one of the chips. */
@@ -306,14 +320,26 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   visibleHighlightedSpots = this._spotMapDataManager.visibleHighlightedSpots;
   visibleAmenityMarkers = this._spotMapDataManager.visibleAmenityMarkers;
   hideRegularSpotPins = computed(
-    () => !this.showSpots() || this.spotFilterMode() !== SpotFilterMode.None
+    () =>
+      !this.showSpots() ||
+      this.spotFilterMode() !== SpotFilterMode.None ||
+      this._focusedSpotPreviews() !== null,
   );
   readonly renderedVisibleSpots = computed(() =>
-    this.showSpots() ? this.visibleSpots() : []
+    this.showSpots() && this._focusedSpotPreviews() === null
+      ? this.visibleSpots()
+      : [],
   );
-  readonly renderedHighlightedSpots = computed(() =>
-    this.showSpots() ? this.visibleHighlightedSpots() : []
-  );
+  readonly renderedHighlightedSpots = computed(() => {
+    if (!this.showSpots()) return [];
+
+    const focusedPreviews = this._focusedSpotPreviews();
+    if (focusedPreviews !== null) {
+      return focusedPreviews;
+    }
+
+    return this.visibleHighlightedSpots();
+  });
 
   private _shouldShowCommunityCenterDot(community: CommunityMapMarker): boolean {
     return (
