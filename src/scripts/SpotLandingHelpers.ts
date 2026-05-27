@@ -268,10 +268,15 @@ export function canonicalizeCommunityGeography(
   const countryCode = fields.countryCode.trim().toUpperCase();
   let regionCode = fields.regionCode?.trim().toUpperCase() || undefined;
   let regionName = fields.regionName?.trim() || undefined;
-  let localityName = fields.localityName?.trim() || undefined;
+  const originalLocalityName = fields.localityName?.trim() || undefined;
+  let localityName = originalLocalityName;
+  let displayLocalityName: string | undefined;
 
   if (countryCode === "CZ") {
     localityName = stripCzechAdministrativeLocalityNoise(localityName);
+    if (localityName && localityName !== originalLocalityName) {
+      displayLocalityName = localityName;
+    }
   }
 
   if (!isUsableCommunityLocalityName(localityName)) {
@@ -300,6 +305,7 @@ export function canonicalizeCommunityGeography(
   if (localityAlias) {
     localityName = localityAlias.canonicalLocalityName;
     localitySlug = localityAlias.canonicalLocalitySlug;
+    displayLocalityName = localityAlias.canonicalLocalityName;
     regionCode = localityAlias.canonicalRegionCode ?? regionCode;
     regionName = localityAlias.canonicalRegionName ?? regionName;
     regionSlug = localityAlias.canonicalRegionSlug ?? regionSlug;
@@ -312,7 +318,7 @@ export function canonicalizeCommunityGeography(
     regionSlug,
     localityName,
     localitySlug,
-    displayLocalityName: localityName,
+    displayLocalityName,
   };
 }
 

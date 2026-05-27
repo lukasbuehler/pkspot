@@ -129,7 +129,6 @@ import {
   MatCardContent,
   MatCardActions,
 } from "@angular/material/card";
-import { create } from "core-js/core/object";
 import { MatDividerModule } from "@angular/material/divider";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
@@ -168,7 +167,6 @@ import {
 } from "../../../db/models/Media";
 import { languageCodes } from "../../../scripts/Languages";
 import { SelectLanguageDialogComponent } from "../select-language-dialog/select-language-dialog.component";
-import { locale } from "core-js";
 import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { LocaleMapViewComponent } from "../locale-map-view/locale-map-view.component";
 import { StorageBucket } from "../../../db/schemas/Media";

@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import { onCall } from "firebase-functions/v2/https";
 import { getStorage } from "firebase-admin/storage";
+import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
 
 export const cleanupAllOrphanedMedia = onCall(
   {
@@ -16,7 +17,7 @@ export const cleanupAllOrphanedMedia = onCall(
 
     const db = admin.firestore();
     const storage = getStorage();
-    const bucket = storage.bucket(); // Default bucket
+    const bucket = storage.bucket(DEFAULT_STORAGE_BUCKET);
 
     console.log("Starting bulk media cleanup...");
 

@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import type { Timestamp } from "firebase/firestore";
 
 export const EVENT_RSVP_OPTIONS = ["going", "interested", "notgoing"] as const;
 export type EventRSVPOption = (typeof EVENT_RSVP_OPTIONS)[number];

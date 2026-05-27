@@ -78,6 +78,39 @@ describe("CommunityHelpers", () => {
     ]);
   });
 
+  it("should use localized locality display names for community slug candidates", () => {
+    const candidates = getSpotCommunityCandidates({
+      address: {
+        locality: "Pfaffikon",
+        localityLocal: "Pfäffikon",
+        region: {
+          code: "ZH",
+          name: "Zurich",
+          localName: "Zürich",
+        },
+        country: {
+          code: "CH",
+          name: "Switzerland",
+          localName: "Schweiz",
+        },
+      },
+      landing: null,
+    } as any);
+
+    expect(candidates).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:ch:zh:pfaffikon",
+        scope: "locality",
+        displayName: "Pfäffikon",
+      })
+    );
+    expect(
+      buildCommunitySlugCandidates(
+        candidates.find((candidate) => candidate.scope === "locality")!
+      )
+    ).toContain("pfaeffikon-zh");
+  });
+
   it("should use country names for country community display names", () => {
     expect(
       getSpotCommunityCandidates({

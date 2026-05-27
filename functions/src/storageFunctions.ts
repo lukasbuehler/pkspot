@@ -6,6 +6,7 @@ import * as fs from "fs";
 import * as ffmpeg from "fluent-ffmpeg";
 import * as ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import { v4 as uuidv4 } from "uuid"; // <-- add this import
+import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
@@ -137,6 +138,7 @@ async function _compressVideo(
 
 export const processVideoUpload = onObjectFinalized(
   {
+    bucket: DEFAULT_STORAGE_BUCKET,
     cpu: 2,
     region: "europe-west1",
     timeoutSeconds: 360, // 6 minutes

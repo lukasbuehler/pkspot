@@ -1,10 +1,9 @@
-import { Timestamp } from "firebase/firestore";
+import type { GeoPoint, Timestamp } from "firebase/firestore";
 import {
   EventBoundsSchema,
   EventExternalSourceSchema,
   EventSponsorSchema,
 } from "./EventSchema";
-import { GeoPoint } from "firebase/firestore";
 import { SpotPreviewData } from "./SpotPreviewData";
 
 export type CommunityScope = "country" | "region" | "locality";

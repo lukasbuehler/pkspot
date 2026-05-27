@@ -188,6 +188,14 @@ jobs:
       - name: Build Functions
         run: npm --prefix functions run build
 
+      - name: Verify Functions production dependencies
+        run: |
+          tmp_dir="$(mktemp -d)"
+          cp functions/package.json functions/package-lock.json "$tmp_dir/"
+          cp -R functions/lib "$tmp_dir/lib"
+          npm ci --ignore-scripts --omit=dev --prefix "$tmp_dir"
+          node -e "require('$tmp_dir/lib/functions/src/index.js'); console.log('functions module loaded')"
+
       - name: Run spot edit emulator tests
         run: npm run test:emulator:spot-edits
 

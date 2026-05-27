@@ -1,4 +1,4 @@
-import { DocumentReference, Timestamp } from "firebase/firestore";
+import type { DocumentReference, Timestamp } from "firebase/firestore";
 
 export interface UserSocialCustomLinkSchema {
   name: string;

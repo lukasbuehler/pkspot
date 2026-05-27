@@ -8,6 +8,7 @@ import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
+import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
 import {
   getStewardshipState,
   makeManagedSpotIndexData,
@@ -541,7 +542,7 @@ async function applyUpdateEditToSpot(
           console.log(
             `Found ${removedMedia.length} removed media items. Attempting deletion.`
           );
-          const bucket = getStorage().bucket();
+          const bucket = getStorage().bucket(DEFAULT_STORAGE_BUCKET);
 
           for (const item of removedMedia) {
             try {

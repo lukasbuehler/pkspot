@@ -4,6 +4,7 @@ import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onObjectFinalized } from "firebase-functions/v2/storage";
 import { basename, dirname, extname, posix } from "path";
 import * as sharp from "sharp";
+import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
 
 const DEFAULT_IMAGE_SIZES = [200, 400, 800] as const;
 const OPTIONAL_IMAGE_SIZES = [1600] as const;
@@ -224,6 +225,7 @@ export const processStorageImage = async (
 
 export const processImageUpload = onObjectFinalized(
   {
+    bucket: DEFAULT_STORAGE_BUCKET,
     cpu: 1,
     region: "europe-west1",
     timeoutSeconds: 180,
@@ -274,7 +276,7 @@ export const backfillStorageImageSizes = onDocumentCreated(
     memory: "1GiB",
   },
   async (event) => {
-    const bucket = getStorage().bucket();
+    const bucket = getStorage().bucket(DEFAULT_STORAGE_BUCKET);
     const sizes = getBackfillSizes(event.data?.data() as BackfillRequest);
     const summary: BackfillSummary = {
       scanned: 0,

@@ -1,4 +1,4 @@
-import { GeoPoint, Timestamp } from "firebase/firestore";
+import type { GeoPoint, Timestamp } from "firebase/firestore";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
 import { EventRSVPCountsSchema } from "./EventRSVPSchema";
 

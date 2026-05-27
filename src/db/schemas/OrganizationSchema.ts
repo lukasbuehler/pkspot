@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import type { Timestamp } from "firebase/firestore";
 import { UserReferenceSchema } from "./UserSchema";
 
 export type OrganizationRole = "owner" | "admin" | "reviewer";
