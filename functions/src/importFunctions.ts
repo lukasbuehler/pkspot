@@ -164,7 +164,6 @@ async function processImportChunk(
       error_message: admin.firestore.FieldValue.delete(),
     });
 
-    let importCompleted = false;
     await db.runTransaction(async (tx) => {
       const latestImportSnap = await tx.get(importRef);
       const latestImportData = latestImportSnap.data() as any;
@@ -175,7 +174,6 @@ async function processImportChunk(
         totalChunks > 0 && nextProcessed >= totalChunks
           ? "COMPLETED"
           : "PROCESSING";
-      importCompleted = nextStatus === "COMPLETED";
 
       tx.update(importRef, {
         chunk_count_processed: nextProcessed,
@@ -184,20 +182,6 @@ async function processImportChunk(
         updated_at: admin.firestore.FieldValue.serverTimestamp(),
       });
     });
-
-    // Rebuild cluster tiles as soon as an import completes so new spots appear in cluster mode.
-    if (importCompleted) {
-      const runRef = db.collection("spot_clusters").doc("run");
-      const runSnap = await runRef.get();
-      if (runSnap.exists) {
-        await runRef.delete();
-      }
-      await runRef.set({
-        triggered_by: "import",
-        import_id: importId,
-        created_at: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    }
   } catch (error: any) {
     await chunkRef.update({
       status: "FAILED",

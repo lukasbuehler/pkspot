@@ -1,28 +1,38 @@
-<div class="carousel">
-  @for (mediaObj of media; track $index) { @if (mediaObj.type === "image" &&
-  !hiddenIndices().has($index) && !mediaObj.isReported) {
-  <div
-    matRipple
-    class="spot-img-container position-relative"
-    style="cursor: pointer"
-    (click)="imageClick($index)"
-  >
-    @if (isImageProcessing($index, mediaObj)) {
-    <!-- Show processing placeholder while resized image isn't ready -->
-    <div class="processing-overlay">
-      <mat-spinner diameter="40"></mat-spinner>
-    </div>
-    } @if (!imageLoadErrors().has($index) && getImageSrc($index, mediaObj)) {
-    <img
-      [ngSrc]="getImageSrc($index, mediaObj)"
-      fill
-      priority
-      [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"
-      (error)="onImageError($event, $index, mediaObj)"
-      (load)="onImageLoad($index, mediaObj)"
-      [class.hidden]="isImageProcessing($index, mediaObj)"
-    />
+<div
+  class="carousel"
+  [style.padding-left]="horizontalPaddingPx() + 'px'"
+  [style.padding-right]="horizontalPaddingPx() + 'px'"
+>
+  @for (mediaObj of media; track $index) {
+    @if (
+      mediaObj.type === "image" &&
+      !hiddenIndices().has($index) &&
+      !mediaObj.isReported
+    ) {
+      <div
+        matRipple
+        class="spot-img-container position-relative"
+        style="cursor: pointer"
+        (click)="imageClick($index)"
+      >
+        @if (isImageProcessing($index, mediaObj)) {
+          <!-- Show processing placeholder while resized image isn't ready -->
+          <div class="processing-overlay">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+        }
+        @if (!imageLoadErrors().has($index) && getImageSrc($index, mediaObj)) {
+          <img
+            [ngSrc]="getImageSrc($index, mediaObj)"
+            fill
+            priority
+            [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"
+            (error)="onImageError($event, $index, mediaObj)"
+            (load)="onImageLoad($index, mediaObj)"
+            [class.hidden]="isImageProcessing($index, mediaObj)"
+          />
+        }
+      </div>
     }
-  </div>
-  } }
+  }
 </div>

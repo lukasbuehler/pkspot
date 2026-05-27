@@ -99,6 +99,16 @@ function enumerateTileRangeX(
   return range;
 }
 
+interface SpotPreviewAreaOverlay {
+  id: string;
+  spot: SpotPreviewData;
+  path?: google.maps.LatLngLiteral[];
+  center?: google.maps.LatLngLiteral;
+  radiusM?: number;
+}
+
+const SPOT_AREA_MIN_ZOOM = 14;
+
 export interface TilesObject {
   zoom: number;
   tiles: { x: number; y: number }[];
@@ -391,6 +401,23 @@ export class GoogleMap2dComponent
     }
 
     return spots;
+  }
+
+  getVisibleHighlightedSpotAreas(): SpotPreviewAreaOverlay[] {
+    if (this.zoom < SPOT_AREA_MIN_ZOOM) {
+      return [];
+    }
+
+    const loadedSpotIds = new Set(
+      this.spots
+        .filter((spot): spot is Spot => spot instanceof Spot)
+        .map((spot) => spot.id),
+    );
+
+    return this.getVisibleHighlightedSpots()
+      .filter((spot) => !loadedSpotIds.has(spot.id))
+      .map((spot) => this._getSpotPreviewAreaOverlay(spot))
+      .filter((area): area is SpotPreviewAreaOverlay => !!area);
   }
 
   getHighlightZIndex(spot: SpotPreviewData): number {
@@ -2138,6 +2165,90 @@ export class GoogleMap2dComponent
 
     const location = spot.location();
     return `local-${location.lat}_${location.lng}_${index}`;
+  }
+
+  trackSpotPreviewArea(index: number, area: SpotPreviewAreaOverlay): string {
+    return area.id || index.toString();
+  }
+
+  private _getSpotPreviewAreaOverlay(
+    spot: SpotPreviewData,
+  ): SpotPreviewAreaOverlay | null {
+    const path = this._getSpotPreviewPath(spot);
+    if (path && path.length >= 3) {
+      return {
+        id: `${spot.id}-bounds`,
+        spot,
+        path,
+      };
+    }
+
+    const radiusM = spot.bounds_radius_m;
+    const center = this._getSpotPreviewCenter(spot);
+    if (center && typeof radiusM === "number" && radiusM > 0) {
+      return {
+        id: `${spot.id}-bounds-radius`,
+        spot,
+        center,
+        radiusM,
+      };
+    }
+
+    return null;
+  }
+
+  private _getSpotPreviewPath(
+    spot: SpotPreviewData,
+  ): google.maps.LatLngLiteral[] | null {
+    const rawPath =
+      spot.bounds_raw ??
+      spot.bounds?.map((point) => this._getLatLngLiteralFromPoint(point));
+
+    const path = rawPath?.filter(
+      (point): point is google.maps.LatLngLiteral =>
+        !!point &&
+        typeof point.lat === "number" &&
+        typeof point.lng === "number",
+    );
+
+    return path && path.length >= 3 ? path : null;
+  }
+
+  private _getSpotPreviewCenter(
+    spot: SpotPreviewData,
+  ): google.maps.LatLngLiteral | null {
+    return (
+      this._getLatLngLiteralFromPoint(spot.bounds_center) ??
+      spot.location_raw ??
+      this._getLatLngLiteralFromPoint(spot.location)
+    );
+  }
+
+  private _getLatLngLiteralFromPoint(
+    point:
+      | google.maps.LatLngLiteral
+      | GeoPoint
+      | { latitude?: number; longitude?: number }
+      | null
+      | undefined,
+  ): google.maps.LatLngLiteral | null {
+    if (!point) {
+      return null;
+    }
+
+    if ("lat" in point && "lng" in point) {
+      return { lat: point.lat, lng: point.lng };
+    }
+
+    if ("latitude" in point && "longitude" in point) {
+      const lat = point.latitude;
+      const lng = point.longitude;
+      if (typeof lat === "number" && typeof lng === "number") {
+        return { lat, lng };
+      }
+    }
+
+    return null;
   }
 
   /**

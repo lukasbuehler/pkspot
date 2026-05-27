@@ -54,8 +54,18 @@
     <!-- Heatmap Layer - show from zoom 2 until spots appear at zoom 16 -->
     <!-- heatmap disabled: using cluster dots instead -->
 
-    <!-- only display the bounds when close enough (zoom >= 16) -->
-    @if (zoom >= 16) { @for(spot of spots; track trackSpot($index, spot)) {
+    <!-- only display the bounds when close enough (zoom >= 14) -->
+    @if (zoom >= 14) { @for(area of getVisibleHighlightedSpotAreas(); track trackSpotPreviewArea($index, area)) {
+    @if(area.path) {
+    <map-polygon [options]="spotPolygonOptions" [paths]="area.path" (polygonClick)="spotClick.emit(area.spot)">
+    </map-polygon>
+    } @else if(area.center && area.radiusM) {
+    <map-circle [center]="area.center" [radius]="area.radiusM" [options]="spotCircleOptions"
+      (circleClick)="spotClick.emit(area.spot)">
+    </map-circle>
+    } } }
+
+    @if (zoom >= 14) { @for(spot of spots; track trackSpot($index, spot)) {
     @if(!isSelectedSpotBeingEdited(spot)) { @if(!spot?.hasBounds()) {
     <map-circle [center]="spot.location()" [radius]="10" [options]="spotCircleOptions"
       (circleMouseover)="showCirclePreview(spot)" (circleMouseout)="hideCirclePreview(spot)"

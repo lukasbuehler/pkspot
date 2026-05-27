@@ -191,6 +191,14 @@ export class SearchService {
         hideStreetview = rawHideStreetview.toLowerCase() === "true";
       }
 
+      const boundsRaw =
+        SearchService._readLatLngList(doc.bounds_raw) ??
+        SearchService._readLatLngList(doc.bounds);
+      const bounds = boundsRaw?.map(
+        (point) => new GeoPoint(point.lat, point.lng),
+      );
+      const boundsCenter = SearchService._readGeopoint(doc.bounds_center);
+
       const preview: SpotPreviewData = {
         name: displayName,
         id: doc.id || hit.document?.id || "",
@@ -212,14 +220,12 @@ export class SearchService {
         rating: doc.rating ?? undefined,
         num_reviews: doc.num_reviews ?? undefined,
         amenities: amenities || undefined,
-        bounds:
-          doc.bounds_raw?.map(
-            (p: any) => new GeoPoint(p.lat ?? p[0], p.lng ?? p[1]),
-          ) ||
-          doc.bounds?.map(
-            (p: any) => new GeoPoint(p.lat ?? p[0], p.lng ?? p[1]),
-          ),
-        bounds_raw: doc.bounds_raw,
+        bounds,
+        bounds_raw: boundsRaw,
+        bounds_center: boundsCenter
+          ? new GeoPoint(boundsCenter[0], boundsCenter[1])
+          : undefined,
+        bounds_radius_m: SearchService._readFloat(doc.bounds_radius_m),
       } as SpotPreviewData;
 
       return preview;
@@ -1361,6 +1367,18 @@ export class SearchService {
   ): { lat: number; lng: number } | undefined {
     const point = SearchService._readGeopoint(value);
     return point ? { lat: point[0], lng: point[1] } : undefined;
+  }
+
+  private static _readLatLngList(
+    value: unknown,
+  ): { lat: number; lng: number }[] | undefined {
+    if (!Array.isArray(value)) return undefined;
+
+    const points = value
+      .map((point) => SearchService._readLatLngLiteral(point))
+      .filter((point): point is { lat: number; lng: number } => !!point);
+
+    return points.length > 0 ? points : undefined;
   }
 
   private static _readFloat(value: unknown): number | undefined {

@@ -272,6 +272,40 @@ describe("SearchService", () => {
 
       expect(preview.imageSrc).toBe("https://example.com/thumb.jpg");
     });
+
+    it("should preserve spot area fields from Typesense hits", () => {
+      const hit = {
+        document: {
+          id: "test-id",
+          name: "Test",
+          bounds_raw: [
+            [47.1, 8.1],
+            { lat: 47.2, lng: 8.2 },
+            { latitude: 47.3, longitude: 8.3 },
+          ],
+          bounds_center: [47.2, 8.2],
+          bounds_radius_m: "42",
+        },
+      };
+
+      const preview = service.getSpotPreviewFromHit(hit);
+
+      expect(preview.bounds_raw).toEqual([
+        { lat: 47.1, lng: 8.1 },
+        { lat: 47.2, lng: 8.2 },
+        { lat: 47.3, lng: 8.3 },
+      ]);
+      expect(preview.bounds?.map((point) => [point.latitude, point.longitude]))
+        .toEqual([
+          [47.1, 8.1],
+          [47.2, 8.2],
+          [47.3, 8.3],
+        ]);
+      expect(preview.bounds_center).toBeInstanceOf(GeoPoint);
+      expect(preview.bounds_center?.latitude).toBe(47.2);
+      expect(preview.bounds_center?.longitude).toBe(8.2);
+      expect(preview.bounds_radius_m).toBe(42);
+    });
   });
 
   describe("getCommunityPreviewFromHit", () => {

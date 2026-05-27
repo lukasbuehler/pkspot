@@ -55,12 +55,6 @@ export {
   retryFailedImportChunksOnCreate,
 } from "./importFunctions";
 
-// spot clustering functions
-export {
-  clusterAllSpotsOnRun,
-  clusterAllSpotsOnSchedule,
-} from "./spotClusteringFunctions";
-
 // fixes and migrations
 export {
   fixSpotLocations,

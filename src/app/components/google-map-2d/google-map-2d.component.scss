@@ -13,7 +13,9 @@
   border-style: solid;
   //   opacity: 0.8;
   border-width: 2px;
-  transition: background-color 1s ease, border-color 1s ease;
+  transition:
+    background-color 1s ease,
+    border-color 1s ease;
 }
 
 .geolocation-marker {
@@ -76,7 +78,7 @@
   font-family: monospace;
   display: flex;
   flex-direction: column;
-  bottom: 30px;
+  bottom: 100px;
 
   @media (max-width: 599px) {
     // Use the centralized variable from map-page for bottom sheet offset

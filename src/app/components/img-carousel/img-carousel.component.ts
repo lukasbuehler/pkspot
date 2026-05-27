@@ -11,6 +11,7 @@ import {
   inject,
   signal,
   computed,
+  input,
 } from "@angular/core";
 import { MatRippleModule } from "@angular/material/core";
 import { MatButtonModule, MatIconButton } from "@angular/material/button";
@@ -55,6 +56,9 @@ export class ImgCarouselComponent {
   originalFallbackIndices = signal<Set<number>>(new Set());
   /** Tracks storage images whose original object failed and should use the extension failed copy. */
   failedCopyFallbackIndices = signal<Set<number>>(new Set());
+
+  horizontalPaddingPx = input<number>(0);
+
   /** Tracks the retry count for each image index */
   private retryCountMap = new Map<number, number>();
   private readonly MAX_RETRIES = 10;
@@ -70,7 +74,7 @@ export class ImgCarouselComponent {
 
   constructor(
     public dialog: MatDialog,
-    public storageService: StorageService
+    public storageService: StorageService,
   ) {}
 
   /**
@@ -80,7 +84,9 @@ export class ImgCarouselComponent {
   onImageError(event: Event, index: number, mediaObj: AnyMedia): void {
     if (mediaObj instanceof StorageImage) {
       if (this.failedCopyFallbackIndices().has(index)) {
-        console.warn(`All storage fallbacks failed for image at index ${index}`);
+        console.warn(
+          `All storage fallbacks failed for image at index ${index}`,
+        );
         this.hiddenIndices.update((set) => {
           const newSet = new Set(set);
           newSet.add(index);
@@ -107,7 +113,7 @@ export class ImgCarouselComponent {
       const currentRetries = this.retryCountMap.get(index) ?? 0;
       if (currentRetries >= this.MAX_RETRIES) {
         console.warn(
-          `Max retries reached for resized image at index ${index}; falling back to original`
+          `Max retries reached for resized image at index ${index}; falling back to original`,
         );
         this.originalFallbackIndices.update((set) => {
           const newSet = new Set(set);
@@ -225,7 +231,7 @@ export class ImgCarouselComponent {
       if (result?.reportedMediaIndex !== undefined) {
         console.log(
           "Hiding reported media at index",
-          result.reportedMediaIndex
+          result.reportedMediaIndex,
         );
         this.hiddenIndices.update((set) => {
           const newSet = new Set(set);
@@ -242,20 +248,21 @@ export class ImgCarouselComponent {
   template: `
     <div id="swiper" class="swiper w-100">
       <div class="swiper-wrapper">
-        @for (mediaObj of data.media; track $index) { @if(mediaObj.type ===
-        'image') {
-        <div class="swiper-slide">
-          <div class="swiper-zoom-container">
-            <div class="swiper-img-container">
-              <img
-                ngSrc="{{ getSrc(mediaObj) }}"
-                fill
-                [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"
-              />
+        @for (mediaObj of data.media; track $index) {
+          @if (mediaObj.type === "image") {
+            <div class="swiper-slide">
+              <div class="swiper-zoom-container">
+                <div class="swiper-img-container">
+                  <img
+                    ngSrc="{{ getSrc(mediaObj) }}"
+                    fill
+                    [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        } }
+          }
+        }
       </div>
       <!-- pagination -->
       <div class="swiper-pagination"></div>
@@ -268,34 +275,34 @@ export class ImgCarouselComponent {
       <!-- <div class="swiper-scrollbar"></div> -->
 
       @if (canReportCurrentMedia()) {
-      <button
-        mat-icon-button
-        style="position: absolute; top: 10px; left: 10px; z-index: 1; background-color: #00000080;"
-        (click)="onReportClick()"
-      >
-        <mat-icon>report</mat-icon>
-      </button>
+        <button
+          mat-icon-button
+          style="position: absolute; top: 10px; left: 10px; z-index: 1; background-color: #00000080;"
+          (click)="onReportClick()"
+        >
+          <mat-icon>report</mat-icon>
+        </button>
       }
 
       @if (getActiveExternalSourceUrl(); as sourceUrl) {
-      <a
-        mat-stroked-button
-        style="position: absolute; left: 10px; bottom: 10px; z-index: 1; background-color: #000000b0;"
-        [href]="sourceUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <mat-icon>open_in_new</mat-icon>
-        <span>Open Source</span>
-      </a>
+        <a
+          mat-stroked-button
+          style="position: absolute; left: 10px; bottom: 10px; z-index: 1; background-color: #000000b0;"
+          [href]="sourceUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <mat-icon>open_in_new</mat-icon>
+          <span>Open Source</span>
+        </a>
       }
       @if (getActiveAttributionText(); as attributionText) {
-      <div
-        style="position: absolute; right: 10px; bottom: 10px; z-index: 1; background-color: #000000b0; border-radius: 12px; padding: 6px 10px; max-width: 70%;"
-        class="mat-body-small"
-      >
-        {{ attributionText }}
-      </div>
+        <div
+          style="position: absolute; right: 10px; bottom: 10px; z-index: 1; background-color: #000000b0; border-radius: 12px; padding: 6px 10px; max-width: 70%;"
+          class="mat-body-small"
+        >
+          {{ attributionText }}
+        </div>
       }
       <button
         mat-icon-button
@@ -362,7 +369,7 @@ export class SwiperDialogComponent implements AfterViewInit {
     public dialogRef: MatDialogRef<SwiperDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     @Inject(PLATFORM_ID) platformId: Object,
-    public storageService: StorageService
+    public storageService: StorageService,
   ) {
     dialogRef.disableClose = false;
 
@@ -508,5 +515,4 @@ export class SwiperDialogComponent implements AfterViewInit {
       }
     });
   }
-
 }

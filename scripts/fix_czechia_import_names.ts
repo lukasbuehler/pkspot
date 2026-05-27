@@ -13,7 +13,6 @@ interface ScriptOptions {
   language: string;
   pattern: string;
   force: boolean;
-  rebuildClusters: boolean;
 }
 
 function getOptionValue(args: string[], name: string): string | undefined {
@@ -38,7 +37,6 @@ function parseOptions(): ScriptOptions {
     language: getOptionValue(args, "language") ?? DEFAULT_LANGUAGE,
     pattern: getOptionValue(args, "pattern") ?? DEFAULT_PATTERN,
     force: args.includes("--force"),
-    rebuildClusters: args.includes("--rebuild-clusters"),
   };
 }
 
@@ -179,19 +177,6 @@ async function fixCzechiaImportNames() {
   console.log(
     `${options.force ? "Updated" : "Would update"} ${updateCount} of ${processedCount} matching spots.`
   );
-  if (options.force && (updateCount > 0 || options.rebuildClusters)) {
-    const runRef = db.collection("spot_clusters").doc("run");
-    const runSnap = await runRef.get();
-    if (runSnap.exists) {
-      await runRef.delete();
-    }
-    await runRef.set({
-      triggered_by: "czechia-import-name-fix",
-      import_source: options.source,
-      created_at: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    console.log("Triggered spot cluster rebuild.");
-  }
   if (examples.length > 0) {
     console.log("Examples:");
     examples.forEach((example) => console.log(`- ${example}`));
