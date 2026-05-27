@@ -32,7 +32,6 @@ import {
   NavigationStart,
   NavigationEnd,
   Router,
-  RouterLink,
 } from "@angular/router";
 import {
   SpeedDialFabButtonConfig,
@@ -71,10 +70,8 @@ import {
 } from "@angular/common";
 import { StorageService } from "../../services/firebase/storage.service";
 import { GlobalVariables } from "../../../scripts/global";
-import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
-import { SpotDetailsComponent } from "../spot-details/spot-details.component";
 import { GeolocationService } from "../../services/geolocation.service";
 import { CheckInService } from "../../services/check-in.service";
 import { MatIconModule } from "@angular/material/icon";
@@ -84,7 +81,6 @@ import { MatDividerModule } from "@angular/material/divider";
 import { LocaleCode, MediaType, SpotSlug } from "../../../db/models/Interfaces";
 import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { MetaTagService } from "../../services/meta-tag.service";
-import { MatChipsModule } from "@angular/material/chips";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { SearchFieldComponent } from "../search-field/search-field.component";
@@ -92,14 +88,11 @@ import {
   LocalSpotChallenge,
   SpotChallenge,
 } from "../../../db/models/SpotChallenge";
-import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
 import { SpotChallengesService } from "../../services/firebase/firestore/spot-challenges.service";
-import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-panel.component";
 import { ConsentService } from "../../services/consent.service";
 import { RouteContentData } from "../../resolvers/content.resolver";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
-import { SpotEditDetailsComponent } from "../spot-edit-details/spot-edit-details.component";
 import { Timestamp } from "firebase/firestore";
 import { SpotEdit } from "../../../db/models/SpotEdit";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
@@ -138,10 +131,8 @@ import {
   CommunityLandingPageData,
   LandingPagesService,
 } from "../../services/firebase/firestore/landing-pages.service";
-import { CommunityLandingPageComponent } from "../community-landing-page/community-landing-page.component";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { EventPreviewComponent } from "../event-preview/event-preview.component";
 import { AnalyticsService } from "../../services/analytics.service";
 import {
   MapIslandComponent,
@@ -149,6 +140,17 @@ import {
   MapIslandContent,
 } from "../map-island/map-island.component";
 import { afterNextRender } from "@angular/core";
+import { ChipSelectorOption } from "../chip-selector/chip-selector.component";
+import { MapObjectPanelComponent } from "../map/map-object-panel/map-object-panel.component";
+import {
+  MapObjectCounts,
+  MapObjectMode,
+} from "../map/map-object-mode.model";
+import { MapSpotEditsPanelComponent } from "../map/map-spot-edits-panel/map-spot-edits-panel.component";
+import { MapSpotChallengesPanelComponent } from "../map/map-spot-challenges-panel/map-spot-challenges-panel.component";
+import { MapSpotDetailsPanelComponent } from "../map/map-spot-details-panel/map-spot-details-panel.component";
+import { MapEventPreviewPanelComponent } from "../map/map-event-preview-panel/map-event-preview-panel.component";
+import { MapCommunityLandingPanelComponent } from "../map/map-community-landing-panel/map-community-landing-panel.component";
 
 interface PendingSpotPanel {
   id: string;
@@ -184,20 +186,7 @@ interface PanelBackTarget {
   typeLabel: string;
 }
 
-type MapObjectMode = "all" | "spots" | "events" | "communities";
-
 type MapViewportBbox = VisibleViewport["bbox"];
-
-interface MapObjectCounts {
-  spots: number;
-  events: number;
-  communities: number;
-}
-
-interface MapObjectTypeChip {
-  mode: MapObjectMode;
-  label: string;
-}
 
 @Component({
   selector: "app-map-page",
@@ -246,32 +235,29 @@ interface MapObjectTypeChip {
     MatButtonModule,
     MatIconModule,
     FormsModule,
-    MatChipsModule,
     ReactiveFormsModule,
-    SpotDetailsComponent,
-    SpotListComponent,
     MatDividerModule,
     MatTooltipModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
     PoiDetailComponent,
     SearchFieldComponent,
-    ChallengeDetailComponent,
     // SpeedDialFabComponent,
-    RouterLink,
-    ChallengeListComponent,
     // PrimaryInfoPanelComponent,
     AsyncPipe,
-    SpotEditDetailsComponent,
     MatSidenavModule,
     NgTemplateOutlet,
     BottomSheetComponent,
     MatCardModule,
     FilterChipsBarComponent,
     NgOptimizedImage,
-    CommunityLandingPageComponent,
     MapIslandComponent,
-    EventPreviewComponent,
+    MapObjectPanelComponent,
+    MapSpotEditsPanelComponent,
+    MapSpotChallengesPanelComponent,
+    MapSpotDetailsPanelComponent,
+    MapEventPreviewPanelComponent,
+    MapCommunityLandingPanelComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -491,12 +477,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
   mapObjectMode = signal<MapObjectMode>("all");
-  mapObjectTypeChips = computed<MapObjectTypeChip[]>(() => {
+  mapObjectTypeChips = computed<ChipSelectorOption<MapObjectMode>[]>(() => {
     const counts = this.mapObjectCounts();
     return [
-      { mode: "all", label: $localize`:@@map_objects_all_chip_label:All` },
+      { value: "all", label: $localize`:@@map_objects_all_chip_label:All` },
       {
-        mode: "spots",
+        value: "spots",
         label: `${counts.spots} ${this._pluralizeMapObjectCount(
           counts.spots,
           $localize`:@@map_objects_spot_singular:Spot`,
@@ -504,7 +490,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         )}`,
       },
       {
-        mode: "events",
+        value: "events",
         label: `${counts.events} ${this._pluralizeMapObjectCount(
           counts.events,
           $localize`:@@map_objects_event_singular:Event`,
@@ -512,7 +498,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         )}`,
       },
       {
-        mode: "communities",
+        value: "communities",
         label: `${counts.communities} ${this._pluralizeMapObjectCount(
           counts.communities,
           $localize`:@@map_objects_community_singular:Community`,
@@ -525,6 +511,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const mode = this.mapObjectMode();
     return mode === "all" || mode === "spots";
   });
+  activeMapQueryParams = computed<Record<string, string> | null>(() => {
+    const filter = this.selectedFilter();
+    return filter ? { filter } : null;
+  });
+  visibleMapEvents = computed(() => this._visibleMapEvents());
+  visibleMapCommunities = computed(() => this._visibleMapCommunities());
   private _mapObjectModeBeforeSpotFilter: MapObjectMode | null = null;
 
   private _promotableCommunitiesRequested = false;

@@ -149,7 +149,7 @@
       [options]="geolocationCircleOptions"></map-circle>
     }
 
-    @if(zoom >= 16 && showSpotPreview() && !hideRegularSpotPins()) {
+    @if(((zoom >= 16 && showSpotPreview()) || showVisibleSpotPins()) && !hideRegularSpotPins()) {
     @for(spot of spots; track trackSpotMarker($index, spot)) {
     @if(!isSelectedSpotBeingEdited(spot) && !isSameAsSelectedSpot(spot)) {
     <app-spot-preview-marker [spot]="spot" [mapZoom]="zoom" [hoverPreviewEnabled]="showSpotPreview()"

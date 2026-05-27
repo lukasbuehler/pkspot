@@ -376,10 +376,6 @@ export class GoogleMap2dComponent
    * @returns Array of SpotPreviewData to display as highlight markers
    */
   getVisibleHighlightedSpots(): SpotPreviewData[] {
-    if (this.hideRegularSpotPins()) {
-      return [];
-    }
-
     const spots = this._highlightedSpotsSignal();
     if (spots.length === 0) {
       return spots;
@@ -421,6 +417,7 @@ export class GoogleMap2dComponent
   @Input() showGeolocation: boolean = false;
   @Input() selectedMarker: google.maps.LatLngLiteral | null = null;
   hideRegularSpotPins = input(false);
+  showVisibleSpotPins = input(false);
   readonly hoveredCircleSpot = signal<Spot | LocalSpot | null>(null);
 
   @Input() boundRestriction: {

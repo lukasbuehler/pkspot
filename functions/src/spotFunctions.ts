@@ -66,6 +66,10 @@ const _removeUndefinedValues = <T>(value: T): T => {
       .filter((entry) => entry !== undefined) as T;
   }
 
+  if (isGeoPointValue(value)) {
+    return value;
+  }
+
   if (value && typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>)
       .filter(([, entryValue]) => entryValue !== undefined)
@@ -376,18 +380,18 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
 
     if (boundsResult.isValid) {
       // Bounds are valid and within size limit
-      // IMPORTANT: bounds_center must be a GeoPoint, not a plain array!
-      // The Firebase Extension only converts GeoPoint objects to Typesense geopoints.
+      // The Firestore→Typesense extension converts Firestore GeoPoints to
+      // Typesense geopoint arrays.
       const [centerLat, centerLng] = boundsResult.boundsCenter!;
       spotDataToUpdate.bounds_center = new GeoPoint(
         centerLat,
         centerLng,
-      ) as any;
+      ) as unknown as SpotSchema["bounds_center"];
       spotDataToUpdate.bounds_radius_m = boundsResult.boundsRadiusM!;
     } else {
       // Bounds too large - log warning and clear proximity fields
       console.warn(`Spot bounds: ${boundsResult.error}`);
-      spotDataToUpdate.bounds_center = undefined as any;
+      spotDataToUpdate.bounds_center = undefined as unknown as SpotSchema["bounds_center"];
       spotDataToUpdate.bounds_radius_m = undefined;
     }
   }

@@ -597,7 +597,7 @@ describe("SearchService", () => {
       expect(searches[1].filter_by).not.toContain("location:(");
       expect(searches[2].filter_by).toContain("promo_radius_m:>0");
       expect(searches[2].filter_by).not.toContain("promo_bounds_");
-      expect(searches[3].filter_by).toContain("scope:=locality");
+      expect(searches[3].filter_by).toContain("scope:=[locality,country]");
       expect(searches[3].filter_by).not.toContain("visibility_bounds_");
     });
   });

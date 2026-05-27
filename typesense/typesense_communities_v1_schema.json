@@ -52,6 +52,10 @@
 
     { "name": "bounds_center", "type": "geopoint", "optional": true },
     { "name": "bounds_radius_m", "type": "float", "optional": true },
+    { "name": "visibility_bounds_north", "type": "float", "optional": true },
+    { "name": "visibility_bounds_south", "type": "float", "optional": true },
+    { "name": "visibility_bounds_east", "type": "float", "optional": true },
+    { "name": "visibility_bounds_west", "type": "float", "optional": true },
 
     { "name": "image.url", "type": "string", "optional": false, "index": false },
     { "name": "published", "type": "bool", "facet": true, "optional": false },

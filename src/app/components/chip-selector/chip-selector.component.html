@@ -1,0 +1,15 @@
+<mat-chip-listbox [multiple]="false" [attr.aria-label]="ariaLabel()">
+  @for (option of options(); track option.value) {
+    <mat-chip-option
+      [value]="option.value"
+      [disabled]="option.disabled"
+      [selected]="selectedValue() === option.value"
+      (selectionChange)="onSelectionChange(option.value, $event.selected)"
+    >
+      @if (option.icon) {
+        <mat-icon matChipAvatar>{{ option.icon }}</mat-icon>
+      }
+      <span>{{ option.label }}</span>
+    </mat-chip-option>
+  }
+</mat-chip-listbox>

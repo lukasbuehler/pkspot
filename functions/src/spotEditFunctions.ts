@@ -618,13 +618,15 @@ async function markEditApprovedAndUpdateContributions(
   const editUpdateData: Record<string, unknown> = {
     approved: true,
     visibility: "public",
-    review_status:
-      editData.review_status === "pending" ? "approved" : editData.review_status,
     processing_status: processingStatus,
     blocked_reason: FieldValue.delete(),
     processed_at: FieldValue.serverTimestamp(),
     decision_at: FieldValue.serverTimestamp(),
   };
+  if (editData.review_status) {
+    editUpdateData["review_status"] =
+      editData.review_status === "pending" ? "approved" : editData.review_status;
+  }
 
   if (appliedSummary.inferredPrevData) {
     editUpdateData["prevData"] = appliedSummary.inferredPrevData;

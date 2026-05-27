@@ -86,6 +86,11 @@
 
     { "name": "bounds_center", "type": "geopoint", "optional": true },
     { "name": "bounds_radius_m", "type": "float", "optional": true },
+    { "name": "promo_radius_m", "type": "float", "optional": true },
+    { "name": "promo_bounds_north", "type": "float", "optional": true },
+    { "name": "promo_bounds_south", "type": "float", "optional": true },
+    { "name": "promo_bounds_east", "type": "float", "optional": true },
+    { "name": "promo_bounds_west", "type": "float", "optional": true },
     { "name": "promo_region_center", "type": "geopoint", "optional": true },
     { "name": "promo_region_radius_m", "type": "float", "optional": true },
 

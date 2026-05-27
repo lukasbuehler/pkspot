@@ -1,0 +1,18 @@
+@if (events().length > 0) {
+  <div class="map-event-list">
+    @for (event of events(); track event.id) {
+      <app-event-card
+        [event]="event"
+        [selectMode]="true"
+        (select)="onSelect($event)"
+      ></app-event-card>
+    }
+  </div>
+} @else {
+  <div class="map-list-empty">
+    <mat-icon aria-hidden="true">event</mat-icon>
+    <p class="mat-body-medium m-0" i18n="@@map.events_list_placeholder">
+      Events in this area will show here.
+    </p>
+  </div>
+}

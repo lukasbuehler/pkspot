@@ -1,0 +1,75 @@
+<app-chip-selector
+  class="d-block pb-2 px-3"
+  [options]="objectTypes()"
+  [selectedValue]="mode()"
+  [requireSelection]="true"
+  [ariaLabel]="objectTypeLabel"
+  (selectedValueChange)="onModeChange($event)"
+></app-chip-selector>
+
+@switch (mode()) {
+  @case ("events") {
+    <app-map-event-list
+      class="px-3 d-block"
+      [events]="visibleEvents()"
+      (selectEvent)="eventSelect.emit($event)"
+    ></app-map-event-list>
+  }
+  @case ("communities") {
+    <app-map-community-list
+      class="px-3 d-block"
+      [communities]="visibleCommunities()"
+      (selectCommunity)="communitySelect.emit($event)"
+    ></app-map-community-list>
+  }
+  @default {
+    <app-spot-list
+      class="px-3 d-block"
+      [spots]="visibleSpots()"
+      [hideHeader]="true"
+      [highlightedSpots]="highlightedSpots()"
+      [mapZoom]="mapZoom()"
+      [limit]="spotListLimit()"
+      [enableAnimation]="enableSpotListAnimation()"
+      [withHrefLink]="false"
+      (spotClick)="spotSelect.emit($event)"
+    ></app-spot-list>
+  }
+}
+
+@if (mode() === "all" || mode() === "spots") {
+  <section class="px-3 pt-4 pb-5 seo-blurb">
+    @if (popularCommunities().length > 0) {
+      <h2 class="mat-title-large mb-2" i18n="@@map.seo.popular_heading">
+        Popular parkour communities
+      </h2>
+      <ul class="seo-community-list">
+        @for (community of popularCommunities(); track community.canonicalPath) {
+          <li>
+            <a [routerLink]="community.canonicalPath">
+              {{ community.displayName }}
+            </a>
+            <span class="seo-community-meta">
+              · {{ community.totalSpots }}
+              <span i18n="@@map.seo.spots_suffix">spots</span>
+            </span>
+          </li>
+        }
+      </ul>
+    }
+
+    <h2 class="mat-title-large mb-2 mt-4" i18n="@@map.seo.about_heading">
+      About PK Spot
+    </h2>
+    <p class="mat-body-small" i18n="@@map.seo.about_p1">
+      PK Spot is the spot for everything Parkour. Use it to discover spots near
+      you, check in, find events and jams, and connect with your local
+      community.
+    </p>
+    <p class="mat-body-small" i18n="@@map.seo.about_p2">
+      Every spot can be edited by people who actually train there. You'll find
+      photos, ratings, and tags telling you whether a spot is good for Parkour,
+      Freerunning, dry training, indoor sessions, and more!
+    </p>
+  </section>
+}

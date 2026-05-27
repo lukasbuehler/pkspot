@@ -7,16 +7,14 @@
   <div class="row my-5">
     <div class="col-md-6">
       <h3 class="mat-title-large" i18n>Embed Type</h3>
-      <mat-chip-listbox class="pb-3">
-        @for(embedType of embedTypes; track $index) {
-        <mat-chip-option
-          value="{{ embedType }}"
-          [selected]="tab() == embedType"
-          (selectionChange)="tab.set($event.source.value ?? defaultEmbedType)"
-          >{{ embedTypeName[embedType] }}</mat-chip-option
-        >
-        }
-      </mat-chip-listbox>
+      <app-chip-selector
+        class="d-block pb-3"
+        [options]="embedTypeOptions"
+        [selectedValue]="tab()"
+        [requireSelection]="true"
+        [ariaLabel]="embedTypeSelectorLabel"
+        (selectedValueChange)="onEmbedTypeChange($event)"
+      ></app-chip-selector>
 
       @if(tab() == "event" || tab() == "event-map") {
         <mat-form-field class="w-100 mb-3" appearance="outline">

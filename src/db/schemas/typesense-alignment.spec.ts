@@ -120,6 +120,42 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "published",
   ] as const;
 
+  const firestoreFieldTypes = {
+    name: "string",
+    description: "string",
+    slug: "string",
+    venue_string: "string",
+    locality_string: "string",
+    location: "firestore-geopoint",
+    url: "string",
+    banner_src: "string",
+    logo_src: "string",
+    "sponsor.name": "string",
+    "sponsor.logo_src": "string",
+    "sponsor.logo_background_color": "string",
+    "sponsor.url": "string",
+    is_sponsored: "bool",
+    start_seconds: "int64",
+    end_seconds: "int64",
+    promo_starts_at_seconds: "int64",
+    spot_ids: "string[]",
+    community_keys: "string[]",
+    series_ids: "string[]",
+    "external_source.provider": "string",
+    "external_source.id": "string",
+    "external_source.url": "string",
+    bounds_center: "firestore-geopoint",
+    bounds_radius_m: "float",
+    promo_radius_m: "float",
+    promo_bounds_north: "float",
+    promo_bounds_south: "float",
+    promo_bounds_east: "float",
+    promo_bounds_west: "float",
+    promo_region_center: "firestore-geopoint",
+    promo_region_radius_m: "float",
+    published: "bool",
+  } as const;
+
   const mapping: CollectionMapping = {
     id: { kind: "doc-id" },
     name: { kind: "direct", source: "name" },
@@ -201,6 +237,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     requiredFirestoreFields,
     indexerProvidedDefaults,
     expectedIndexedFirestoreFields,
+    firestoreFieldTypes,
     mapping,
   });
 });
@@ -282,6 +319,28 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     "location",
   ] as const;
 
+  const firestoreFieldTypes = {
+    name: "object",
+    description: "object",
+    name_search: "string[]",
+    description_search: "string[]",
+    thumbnail_small_url: "string",
+    thumbnail_medium_url: "string",
+    "address.formatted": "string",
+    "address.locality": "string",
+    "address.country.code": "string",
+    amenities_true: "string[]",
+    amenities_false: "string[]",
+    type: "string",
+    access: "string",
+    hide_streetview: "bool",
+    rating: "float",
+    location: "firestore-geopoint",
+    bounds: "firestore-geopoint[]",
+    bounds_center: "firestore-geopoint",
+    bounds_radius_m: "float",
+  } as const;
+
   const mapping: CollectionMapping = {
     id: { kind: "doc-id" },
     name: { kind: "direct", source: "name" },
@@ -319,6 +378,7 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     requiredFirestoreFields,
     indexerProvidedDefaults,
     expectedIndexedFirestoreFields,
+    firestoreFieldTypes,
     mapping,
   });
 });
@@ -409,6 +469,37 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
     "counts.totalSpots",
   ] as const;
 
+  const firestoreFieldTypes = {
+    communityKey: "string",
+    scope: "string",
+    displayName: "string",
+    title: "string",
+    description: "string",
+    preferredSlug: "string",
+    allSlugs: "string[]",
+    canonicalPath: "string",
+    "geography.countryCode": "string",
+    "geography.countryName": "string",
+    "geography.countryLocalName": "string",
+    "geography.regionCode": "string",
+    "geography.regionName": "string",
+    "geography.regionLocalName": "string",
+    "geography.localityName": "string",
+    "geography.localityLocalName": "string",
+    "relationships.parentKeys": "string[]",
+    "counts.totalSpots": "int32",
+    "counts.topRated": "int32",
+    "counts.dry": "int32",
+    bounds_center: "typesense-geopoint-array",
+    bounds_radius_m: "float",
+    visibility_bounds_north: "float",
+    visibility_bounds_south: "float",
+    visibility_bounds_east: "float",
+    visibility_bounds_west: "float",
+    "image.url": "string",
+    published: "bool",
+  } as const;
+
   const mapping: CollectionMapping = {
     communityKey: { kind: "direct", source: "communityKey" },
     scope: { kind: "direct", source: "scope" },
@@ -478,6 +569,7 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
     firestoreFields,
     requiredFirestoreFields,
     expectedIndexedFirestoreFields,
+    firestoreFieldTypes,
     mapping,
   });
 });

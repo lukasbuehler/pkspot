@@ -1,0 +1,11 @@
+<app-event-preview
+  class="d-block"
+  [event]="event()"
+  [loading]="!!pendingEvent()"
+  [loadingTitle]="pendingEvent()?.idOrSlug ?? ''"
+  [openProgress]="openProgress()"
+  [backLabel]="backLabel()"
+  [backTypeLabel]="backTypeLabel()"
+  (back)="back.emit()"
+  (dismiss)="dismiss.emit()"
+></app-event-preview>

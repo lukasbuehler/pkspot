@@ -1,0 +1,17 @@
+:host {
+  display: block;
+}
+
+.map-event-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.map-list-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+  padding: 1.5rem 0.75rem;
+}

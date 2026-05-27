@@ -12,7 +12,6 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { CodeBlockComponent } from "../../code-block/code-block.component";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
-import { MatChipsModule } from "@angular/material/chips";
 import { APP_BASE_HREF, isPlatformBrowser } from "@angular/common";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
@@ -22,6 +21,10 @@ import { MatSelectModule } from "@angular/material/select";
 import { languageCodes } from "../../../../scripts/Languages";
 import { Event as PkEvent } from "../../../../db/models/Event";
 import { EventsService } from "../../../services/firebase/firestore/events.service";
+import {
+  ChipSelectorComponent,
+  ChipSelectorOption,
+} from "../../chip-selector/chip-selector.component";
 
 type EmbedType = "map" | "event" | "event-map";
 
@@ -33,7 +36,7 @@ type EmbedType = "map" | "event" | "event-map";
     MatButtonModule,
     ReactiveFormsModule,
     CodeBlockComponent,
-    MatChipsModule,
+    ChipSelectorComponent,
     MatTooltipModule,
     MatFormFieldModule,
     MatAutocompleteModule,
@@ -92,6 +95,13 @@ export class EmbedPageComponent {
     event: $localize`Event info`,
     "event-map": $localize`Event map`,
   };
+  embedTypeOptions: ChipSelectorOption<EmbedType>[] = this.embedTypes.map(
+    (embedType) => ({
+      value: embedType,
+      label: this.embedTypeName[embedType],
+    }),
+  );
+  embedTypeSelectorLabel = "Embed type";
 
   tab = signal<EmbedType>(this.defaultEmbedType);
 
@@ -146,6 +156,12 @@ export class EmbedPageComponent {
       afterNextRender(() => {
         void this._loadEvents();
       });
+    }
+  }
+
+  onEmbedTypeChange(value: string | null): void {
+    if (value === "map" || value === "event" || value === "event-map") {
+      this.tab.set(value);
     }
   }
 

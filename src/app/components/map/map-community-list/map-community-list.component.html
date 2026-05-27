@@ -1,0 +1,45 @@
+@if (communities().length > 0) {
+  <div class="map-community-list">
+    @for (community of communities(); track community.communityKey) {
+      <button
+        type="button"
+        class="community-row"
+        (click)="onSelect(community)"
+      >
+        <span class="community-avatar" aria-hidden="true">
+          @if (community.imageUrl) {
+            <img [src]="community.imageUrl" alt="" />
+          } @else if (community.countryCode) {
+            <span>{{ community.countryCode }}</span>
+          } @else {
+            <mat-icon>groups</mat-icon>
+          }
+        </span>
+        <span class="community-copy">
+          <span class="mat-title-small community-name">
+            {{ community.displayName }}
+          </span>
+          @if (subtitle(community)) {
+            <span class="mat-body-small community-subtitle">
+              {{ subtitle(community) }}
+            </span>
+          }
+          <span class="mat-label-small community-meta">
+            {{ community.totalSpots }}
+            <span i18n="@@map.seo.spots_suffix">spots</span>
+          </span>
+        </span>
+        <mat-icon class="community-action" aria-hidden="true"
+          >chevron_right</mat-icon
+        >
+      </button>
+    }
+  </div>
+} @else {
+  <div class="map-list-empty">
+    <mat-icon aria-hidden="true">groups</mat-icon>
+    <p class="mat-body-medium m-0" i18n="@@map.communities_list_placeholder">
+      Communities in this area will show here.
+    </p>
+  </div>
+}

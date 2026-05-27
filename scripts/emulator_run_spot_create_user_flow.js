@@ -363,9 +363,19 @@ async function createSpotThroughClientEdit(client, payloadCase) {
     const snapshot = await getDoc(spotRef);
     const data = snapshot.data();
     const locale = payloadCase.expected.locale ?? "en";
-    return data?.name?.[locale]?.text === payloadCase.expected.name
-      ? data
-      : null;
+    if (data?.name?.[locale]?.text !== payloadCase.expected.name) {
+      return null;
+    }
+    if (
+      payloadCase.expected.hasBounds &&
+      (!data.bounds_center ||
+        typeof data.bounds_center.latitude !== "number" ||
+        typeof data.bounds_center.longitude !== "number" ||
+        typeof data.bounds_radius_m !== "number")
+    ) {
+      return null;
+    }
+    return data;
   }, `${payloadCase.label} materialized spot`);
 
   const locale = payloadCase.expected.locale ?? "en";
@@ -385,6 +395,13 @@ async function createSpotThroughClientEdit(client, payloadCase) {
   if (payloadCase.expected.hasBounds) {
     assert.ok(Array.isArray(spot.bounds), "Expected GeoPoint bounds");
     assert.ok(Array.isArray(spot.bounds_raw), "Expected raw bounds");
+    assert.ok(
+      spot.bounds_center &&
+        typeof spot.bounds_center.latitude === "number" &&
+        typeof spot.bounds_center.longitude === "number",
+      "Expected Typesense bounds_center to be a Firestore GeoPoint"
+    );
+    assert.equal(typeof spot.bounds_radius_m, "number");
   } else {
     assert.equal("bounds" in spot, false);
   }

@@ -30,6 +30,12 @@ export interface AlignmentSpec {
   /** Firestore field paths that are non-optional in the TS interface. */
   requiredFirestoreFields?: readonly string[];
   /**
+   * Firestore handoff value types for fields where Typesense compatibility
+   * matters. This documents the shape written before the Firestore→Typesense
+   * extension receives the document.
+   */
+  firestoreFieldTypes?: Readonly<Record<string, FirestoreHandoffType>>;
+  /**
    * Firestore field paths we expect to be indexed in Typesense. Used to
    * catch silent drift where a new searchable Firestore field is added
    * but no one updates the Typesense schema.
@@ -53,6 +59,18 @@ interface TypesenseFieldDef {
   optional: boolean;
 }
 
+export type FirestoreHandoffType =
+  | "bool"
+  | "float"
+  | "firestore-geopoint"
+  | "firestore-geopoint[]"
+  | "int32"
+  | "int64"
+  | "object"
+  | "string"
+  | "string[]"
+  | "typesense-geopoint-array";
+
 function loadTypesenseSchema(relativePath: string): {
   name: string;
   fields: TypesenseFieldDef[];
@@ -66,6 +84,36 @@ function loadTypesenseSchema(relativePath: string): {
     optional: Boolean(f.optional),
   }));
   return { name: String(json.name), fields };
+}
+
+function isCompatibleTypesenseType(
+  typesenseType: string,
+  firestoreType: FirestoreHandoffType,
+): boolean {
+  if (typesenseType === firestoreType) return true;
+
+  if (typesenseType === "geopoint") {
+    // The Firestore→Typesense extension accepts Firestore GeoPoint values
+    // and sends Typesense the raw [lat, lng] array shape it expects.
+    return (
+      firestoreType === "firestore-geopoint" ||
+      firestoreType === "typesense-geopoint-array"
+    );
+  }
+
+  if (typesenseType === "geopoint[]") {
+    return firestoreType === "firestore-geopoint[]";
+  }
+
+  if (typesenseType === "float") {
+    return firestoreType === "int32" || firestoreType === "int64";
+  }
+
+  if (typesenseType === "int64") {
+    return firestoreType === "int32";
+  }
+
+  return false;
 }
 
 function sourcesOf(origin: FieldOrigin): string[] {
@@ -169,4 +217,22 @@ export function registerAlignmentTests(spec: AlignmentSpec): void {
     }
     expect(mismatches).toEqual([]);
   });
+
+  if (spec.firestoreFieldTypes) {
+    it("Typesense field types match the Firestore handoff types", () => {
+      const mismatches: string[] = [];
+      for (const [tsField, origin] of Object.entries(spec.mapping)) {
+        if (origin.kind !== "direct") continue;
+        const ts = tsByName.get(tsField);
+        const firestoreType = spec.firestoreFieldTypes[origin.source];
+        if (!ts || !firestoreType) continue;
+        if (!isCompatibleTypesenseType(ts.type, firestoreType)) {
+          mismatches.push(
+            `"${tsField}" is ${ts.type} in Typesense but "${origin.source}" is ${firestoreType} at Firestore handoff`,
+          );
+        }
+      }
+      expect(mismatches).toEqual([]);
+    });
+  }
 }

@@ -539,7 +539,8 @@
         <mat-icon>edit</mat-icon>
         <span i18n="Edit button label|Label of the button to edit the spot">Edit Spot</span>
       </button>
-      <a mat-stroked-button [routerLink]="['/map', 'spots', spotSlugOrId(), 'edits']" queryParamsHandling="merge"
+      <a mat-stroked-button [routerLink]="['/map', 'spots', spotSlugOrId(), 'edits']" [queryParams]="mapQueryParams()"
+        queryParamsHandling="merge"
         (click)="editHistoryButtonClick()" class="flex-grow-1 flex-basis-0" i18n-matTooltip="
                 edit history tooltip|Tooltip for edit history
                 button@@spot.edit_history.tooltip" matTooltip="View edit history of this spot" i18n-aria-label="

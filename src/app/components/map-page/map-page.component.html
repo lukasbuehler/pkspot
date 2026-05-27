@@ -78,168 +78,62 @@
       !showSpotEditHistory())
   ) {
     <!-- Spot Info -->
-    <app-spot-details
+    <app-map-spot-details-panel
       @fadeInOut
-      class="d-block"
-      [loading]="!!pendingSpotPreview()"
-      [loadingTitle]="pendingSpotPreview()?.name ?? ''"
-      [loadingSubtitle]="pendingSpotPreview()?.locality ?? ''"
-      [loadingImageSrc]="pendingSpotPreview()?.imageSrc"
+      [pendingSpot]="pendingSpotPreview()"
       [spot]="selectedSpot()"
       [(challenge)]="selectedChallenge"
-      [border]="false"
-      [dismissable]="true"
-      [infoOnly]="false"
-      [editable]="true"
       [isEditing]="isEditing()"
       [pendingVoteCount]="pendingSpotEditsCount()"
+      [mapQueryParams]="activeMapQueryParams()"
       [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
       (isEditingChange)="$event ? spotMap!.startEdit() : spotMap!.discardEdit()"
       (dismiss)="closeSpot()"
       (addBoundsClick)="spotMap!.addBounds()"
       (focusClick)="spotMap!.focusSpot(selectedSpot()!)"
       (saveClick)="spotMap!.saveSpot($event)"
-    ></app-spot-details>
+    ></app-map-spot-details-panel>
   } @else if (selectedSpot()) {
     <!-- Challenge Detail -->
-    @if (selectedChallenge()) {
-      <a
-        mat-button
-        [routerLink]="[
-          '/map',
-          selectedSpotIdOrSlug(),
-          showAllChallenges() ? 'c' : '',
-        ]"
-        queryParamsHandling="merge"
-        class="text-truncate"
-      >
-        <mat-icon>arrow_back_ios</mat-icon>
-        <span class="d-flex flex-row gap-2 align-items-center">
-          <span>
-            @if (showAllChallenges()) {
-              <span i18n>All Challenges of </span>{{ selectedSpot()!.name() }}
-            }
-          </span>
-          <span i18n class="mat-label-small px-1 border rounded me-1"
-            >Spot</span
-          >
-        </span>
-      </a>
-      <app-challenge-detail
+    @if (selectedChallenge() || showAllChallenges()) {
+      <app-map-spot-challenges-panel
         @slideInOut
-        class="d-block"
-        [(challenge)]="selectedChallenge"
+        [spotName]="selectedSpot()!.name()"
+        [spotSlugOrId]="selectedSpotIdOrSlug()"
+        [showAllChallenges]="showAllChallenges()"
+        [allSpotChallenges]="allSpotChallenges()"
+        [mapQueryParams]="activeMapQueryParams()"
+        [(selectedChallenge)]="selectedChallenge"
         [(isEditing)]="isEditing"
-      ></app-challenge-detail>
-    } @else if (showAllChallenges()) {
-      <div class="px-2">
-        <a
-          mat-button
-          [routerLink]="['/map', 'spots', selectedSpotIdOrSlug()]"
-          queryParamsHandling="merge"
-          class="text-truncate"
-        >
-          <mat-icon>arrow_back_ios</mat-icon>
-          <span class="d-flex flex-row align-items-center gap-2">
-            <span>{{ selectedSpot()!.name() }}</span>
-            <span i18n class="mat-label-small px-1 border rounded me-1"
-              >Spot</span
-            >
-          </span>
-        </a>
-      </div>
-
-      <div class="px-3 d-flex flex-column gap-2" @slideInOut>
-        <h4 class="mat-title-medium mt-2" i18n>
-          All Challenges of {{ selectedSpot()!.name() }}
-        </h4>
-        <app-challenge-list
-          class="w-100"
-          [challenges]="allSpotChallenges()"
-          [showFilterOptions]="true"
-        ></app-challenge-list>
-      </div>
+      ></app-map-spot-challenges-panel>
     } @else if (showSpotEditHistory()) {
-      <div class="px-2">
-        <a
-          mat-button
-          [routerLink]="['/map', 'spots', selectedSpotIdOrSlug()]"
-          queryParamsHandling="merge"
-          class="text-truncate"
-        >
-          <mat-icon>arrow_back_ios</mat-icon>
-          <span class="d-flex flex-row gap-2 align-items-center">
-            <span>
-              {{ selectedSpot()!.name() }}
-            </span>
-            <span i18n class="mat-label-small px-1 border rounded me-1"
-              >Spot</span
-            >
-          </span>
-        </a>
-      </div>
-
-      <div class="spot-edits-panel p-3" @slideInOut>
-        <div class="spot-edits-header pb-3">
-          <h4 class="mat-title-large m-0" i18n>Spot Edits</h4>
-          <p class="mat-body-small m-0" i18n>
-            Newest changes first. Each entry shows exactly what was edited.
-          </p>
-          <p class="mat-label-small m-0">
-            @if (spotEdits().length === 1) {
-              <span i18n>1 edit</span>
-            } @else {
-              {{ spotEdits().length }}
-              <span i18n>edits</span>
-            }
-          </p>
-        </div>
-
-        @if (spotEdits().length === 0) {
-          <div class="spot-edits-empty mat-body-medium" i18n>
-            No edits yet for this spot.
-          </div>
-        } @else {
-          @for (spotEdit of spotEdits(); track spotEdit.id) {
-            <app-spot-edit-details
-              class="d-block"
-              [spotEdit]="spotEdit"
-              [spotId]="selectedSpotIdForEdits()"
-            ></app-spot-edit-details>
-          }
-        }
-      </div>
+      <app-map-spot-edits-panel
+        @slideInOut
+        [spotName]="selectedSpot()!.name()"
+        [spotSlugOrId]="selectedSpotIdOrSlug()"
+        [spotId]="selectedSpotIdForEdits()"
+        [spotEdits]="spotEdits()"
+        [mapQueryParams]="activeMapQueryParams()"
+      ></app-map-spot-edits-panel>
     }
-  } @else if (selectedEvent(); as event) {
+  } @else if (selectedEvent() || pendingEventPreview()) {
     <!-- Event preview lives on the map (no route navigation). Triggered
          from the community panel's event card or the map-island. -->
-    <app-event-preview
+    <app-map-event-preview-panel
       @fadeInOut
-      class="d-block"
-      [event]="event"
+      [event]="selectedEvent()"
+      [pendingEvent]="pendingEventPreview()"
       [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
       [backLabel]="panelBackTarget()?.label ?? null"
       [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
       (back)="goBackToPreviousPanel()"
       (dismiss)="closeEventPreview()"
-    ></app-event-preview>
-  } @else if (pendingEventPreview(); as event) {
-    <app-event-preview
-      @fadeInOut
+    ></app-map-event-preview-panel>
+  } @else if (selectedCommunityLanding() || pendingCommunityLanding()) {
+    <app-map-community-landing-panel
       class="d-block"
-      [loading]="true"
-      [loadingTitle]="event.idOrSlug"
-      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
-      [backLabel]="panelBackTarget()?.label ?? null"
-      [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
-      (back)="goBackToPreviousPanel()"
-      (dismiss)="closeEventPreview()"
-    ></app-event-preview>
-  } @else if (selectedCommunityLanding(); as communityData) {
-    <app-community-landing-page
-      class="d-block"
-      [communityDataInput]="communityData"
-      [panelMode]="true"
+      [community]="selectedCommunityLanding()"
+      [pendingCommunity]="pendingCommunityLanding()"
       [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
       [backLabel]="panelBackTarget()?.label ?? null"
       [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
@@ -249,117 +143,27 @@
       (openCommunityPath)="openCommunityPath($event)"
       (selectSpot)="selectSpot($event)"
       (exploreCommunitySpots)="exploreCommunitySpots($event)"
-    ></app-community-landing-page>
-  } @else if (pendingCommunityLanding(); as community) {
-    <app-community-landing-page
-      class="d-block"
-      [loading]="true"
-      [loadingTitle]="community.displayName"
-      [loadingTotalSpots]="community.totalSpots ?? 0"
-      [loadingScope]="community.scope"
-      [loadingCountryCode]="community.countryCode"
-      [panelMode]="true"
-      [backLabel]="panelBackTarget()?.label ?? null"
-      [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
-      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
-      (back)="goBackToPreviousPanel()"
-      (closePanel)="closeCommunityPanel()"
-    ></app-community-landing-page>
+    ></app-map-community-landing-panel>
   } @else {
-    <!-- Default Type selector, Spot list & more -->
-    <mat-chip-listbox class="pb-2 px-3">
-      @for (mapObjectType of mapObjectTypeChips(); track mapObjectType.mode) {
-        <mat-chip-option
-          [value]="mapObjectType.mode"
-          [selected]="mapObjectMode() === mapObjectType.mode"
-          (selectionChange)="
-            $event.selected ? mapObjectModeChanged(mapObjectType.mode) : null
-          "
-          >{{ mapObjectType.label }}</mat-chip-option
-        >
-      }
-    </mat-chip-listbox>
-
-    @switch (mapObjectMode()) {
-      @case ("events") {
-        <div class="map-object-placeholder px-3 py-4" @fadeInOut>
-          <p class="mat-body-medium m-0" i18n="@@map.events_list_placeholder">
-            Events in this area will show here.
-          </p>
-        </div>
-      }
-      @case ("communities") {
-        <div class="map-object-placeholder px-3 py-4" @fadeInOut>
-          <p
-            class="mat-body-medium m-0"
-            i18n="@@map.communities_list_placeholder"
-          >
-            Communities in this area will show here.
-          </p>
-        </div>
-      }
-      @default {
-        <app-spot-list
-          class="px-3 d-block"
-          @fadeInOut
-          [spots]="visibleSpots"
-          [hideHeader]="true"
-          [highlightedSpots]="highlightedSpots"
-          [mapZoom]="spotMap ? spotMap.mapZoom() : null"
-          [limit]="spotListLimit()"
-          [enableAnimation]="!responsiveService.isMobile() || bottomSheetOpen()"
-          [withHrefLink]="false"
-          (spotClick)="selectSpot($event)"
-        ></app-spot-list>
-      }
-    }
-
-    @if (mapObjectMode() === "all" || mapObjectMode() === "spots") {
-      <!--
-        SEO body content: rendered at the bottom of the default sidebar so
-        crawlers see real text on /map, not just the map widget. Two short
-        paragraphs + a list of internal links to known parkour communities.
-        Visible to users (not screen-reader-only) — Google explicitly weights
-        "text humans can read" higher than hidden content.
-      -->
-      <section class="px-3 pt-4 pb-5 seo-blurb">
-        @if (popularCommunities().length > 0) {
-          <h2 class="mat-title-large mb-2" i18n="@@map.seo.popular_heading">
-            Popular parkour communities
-          </h2>
-          <ul class="seo-community-list">
-            @for (
-              community of popularCommunities();
-              track community.canonicalPath
-            ) {
-              <li>
-                <a [routerLink]="community.canonicalPath">
-                  {{ community.displayName }}
-                </a>
-                <span class="seo-community-meta">
-                  · {{ community.totalSpots }}
-                  <span i18n="@@map.seo.spots_suffix">spots</span>
-                </span>
-              </li>
-            }
-          </ul>
-        }
-
-        <h2 class="mat-title-large mb-2 mt-4" i18n="@@map.seo.about_heading">
-          About PK Spot
-        </h2>
-        <p class="mat-body-small" i18n="@@map.seo.about_p1">
-          PK Spot is the spot for everything Parkour. Use it to discover spots
-          near you, check in, find events and jams, and connect with your local
-          community.
-        </p>
-        <p class="mat-body-small" i18n="@@map.seo.about_p2">
-          Every spot can be edited by people who actually train there. You'll
-          find photos, ratings, and tags telling you whether a spot is good for
-          Parkour, Freerunning, dry training, indoor sessions, and more!
-        </p>
-      </section>
-    }
+    <app-map-object-panel
+      @fadeInOut
+      [mode]="mapObjectMode()"
+      [objectTypes]="mapObjectTypeChips()"
+      [visibleSpots]="visibleSpots"
+      [highlightedSpots]="highlightedSpots"
+      [visibleEvents]="visibleMapEvents()"
+      [visibleCommunities]="visibleMapCommunities()"
+      [popularCommunities]="popularCommunities()"
+      [spotListLimit]="spotListLimit()"
+      [mapZoom]="spotMap ? spotMap.mapZoom() : null"
+      [enableSpotListAnimation]="
+        !responsiveService.isMobile() || bottomSheetOpen()
+      "
+      (modeChange)="mapObjectModeChanged($event)"
+      (spotSelect)="selectSpot($event)"
+      (eventSelect)="openEventPreview($event)"
+      (communitySelect)="onIslandOpenCommunity($event)"
+    ></app-map-object-panel>
   }
 </ng-template>
 
@@ -390,6 +194,7 @@
         [bottomSheetOffset]="true"
         [isDebug]="appSettings.debugMode()"
         [showSpots]="showMapSpots()"
+        [showVisibleSpotPins]="mapObjectMode() === 'spots'"
         [communityArea]="activeCommunityArea()"
         [availableCommunities]="availableCommunityMarkers()"
         (communityMarkerClick)="onCommunityMarkerClick($event)"

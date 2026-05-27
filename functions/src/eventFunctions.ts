@@ -264,9 +264,8 @@ const _addTypesenseFields = (
 
   if (eventData.bounds) {
     const { center, radiusM } = _bboxCenterAndRadius(eventData.bounds);
-    // The Firebase Extension only converts `GeoPoint` values to Typesense
-    // geopoints, so we *must* write a GeoPoint at runtime even though the
-    // TS type is `[lat, lng]`. Matches the spot indexer's approach.
+    // The Firestore→Typesense extension converts Firestore GeoPoints to
+    // Typesense geopoint arrays.
     out.bounds_center = new GeoPoint(center.lat, center.lng) as unknown as [
       number,
       number,

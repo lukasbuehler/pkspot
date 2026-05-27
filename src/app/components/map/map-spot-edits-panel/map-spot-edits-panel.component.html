@@ -1,0 +1,46 @@
+<div class="px-2">
+  <a
+    mat-button
+    [routerLink]="['/map', 'spots', spotSlugOrId()]"
+    [queryParams]="mapQueryParams()"
+    queryParamsHandling="merge"
+    class="text-truncate"
+  >
+    <mat-icon>arrow_back_ios</mat-icon>
+    <span class="d-flex flex-row gap-2 align-items-center">
+      <span>{{ spotName() }}</span>
+      <span i18n class="mat-label-small px-1 border rounded me-1">Spot</span>
+    </span>
+  </a>
+</div>
+
+<div class="spot-edits-panel p-3">
+  <div class="spot-edits-header pb-3">
+    <h4 class="mat-title-large m-0" i18n>Spot Edits</h4>
+    <p class="mat-body-small m-0" i18n>
+      Newest changes first. Each entry shows exactly what was edited.
+    </p>
+    <p class="mat-label-small m-0">
+      @if (spotEdits().length === 1) {
+        <span i18n>1 edit</span>
+      } @else {
+        {{ spotEdits().length }}
+        <span i18n>edits</span>
+      }
+    </p>
+  </div>
+
+  @if (spotEdits().length === 0) {
+    <div class="spot-edits-empty mat-body-medium" i18n>
+      No edits yet for this spot.
+    </div>
+  } @else {
+    @for (spotEdit of spotEdits(); track spotEdit.id) {
+      <app-spot-edit-details
+        class="d-block"
+        [spotEdit]="spotEdit"
+        [spotId]="spotId()"
+      ></app-spot-edit-details>
+    }
+  }
+</div>

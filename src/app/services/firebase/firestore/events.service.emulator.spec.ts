@@ -325,9 +325,13 @@ runWithEmulator("EventsService emulator integration", () => {
 
     expect(data?.["location"]).toBeInstanceOf(admin.firestore.GeoPoint);
     expect(data?.["bounds_center"]).toBeInstanceOf(admin.firestore.GeoPoint);
+    expect(data?.["bounds_center"].latitude).toBeCloseTo(47.4, 6);
+    expect(data?.["bounds_center"].longitude).toBeCloseTo(8.55, 6);
     expect(data?.["promo_region_center"]).toBeInstanceOf(
       admin.firestore.GeoPoint,
     );
+    expect(data?.["promo_region_center"].latitude).toBeCloseTo(46.8, 6);
+    expect(data?.["promo_region_center"].longitude).toBeCloseTo(8.2, 6);
     expect(data?.["start"]).toBeInstanceOf(admin.firestore.Timestamp);
     expect(data?.["end"]).toBeInstanceOf(admin.firestore.Timestamp);
     expect(data?.["promo_starts_at"]).toBeInstanceOf(

@@ -139,6 +139,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   bottomSheetOffset = input<boolean>(false);
   isDebug = input<boolean>(false);
   showSpots = input(true);
+  showVisibleSpotPins = input(false);
 
   @Input() showGeolocation: boolean = true;
   @Input() showSatelliteToggle: boolean = false;

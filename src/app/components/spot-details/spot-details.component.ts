@@ -448,6 +448,7 @@ export class SpotDetailsComponent
    */
   openProgress = input<number>(1);
   pendingVoteCount = input<number>(0);
+  mapQueryParams = input<Record<string, string> | null>(null);
 
   @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() addBoundsClick: EventEmitter<void> = new EventEmitter<void>();
