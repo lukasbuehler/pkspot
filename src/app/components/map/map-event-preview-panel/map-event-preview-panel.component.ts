@@ -1,10 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { Event as PkEvent } from "../../../../db/models/Event";
 import { EventPreviewComponent } from "../../event-preview/event-preview.component";
-
-interface PendingEventPanel {
-  idOrSlug: string;
-}
+import { PendingEventPanel } from "../map-panel-view.model";
 
 @Component({
   selector: "app-map-event-preview-panel",

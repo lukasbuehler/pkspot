@@ -11,15 +11,7 @@ import {
 } from "../../../../db/models/SpotChallenge";
 import { LocalSpot, Spot } from "../../../../db/models/Spot";
 import { SpotDetailsComponent } from "../../spot-details/spot-details.component";
-
-interface PendingSpotPanel {
-  id: string;
-  slug?: string;
-  name?: string;
-  imageSrc?: string;
-  locality?: string;
-  rating?: number;
-}
+import { PendingSpotPanel } from "../map-panel-view.model";
 
 @Component({
   selector: "app-map-spot-details-panel",

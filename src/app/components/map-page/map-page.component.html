@@ -1,104 +1,42 @@
 <ng-template #sidebarContent>
-  <!-- Check-in -->
-  @if (checkInEnabled && checkInService.currentProximitySpot(); as spot) {
-    <div
-      @fadeInOut
-      style="height: 42px; margin-bottom: 18px"
-      class="gap-1 d-flex px-3 flex-row justify-content-between align-items-center overflow-hidden"
-    >
-      <!-- Clickable spot info area - clicking selects the spot -->
-      <button
-        type="button"
-        class="d-flex align-items-center gap-2 overflow-hidden bg-transparent border-0 p-0 text-start"
-        style="cursor: pointer"
-        (click)="selectSpot(spot)"
-      >
-        @if (spot.imageSrc) {
-          <div
-            style="
-              height: 42px;
-              width: 42px;
-              border-radius: 10px;
-              margin-right: 5px;
-            "
-            class="position-relative overflow-hidden flex-shrink-0"
-          >
-            <img [ngSrc]="spot.imageSrc" alt="" fill />
-          </div>
-        } @else {
-          <mat-icon class="flex-shrink-0" color="accent">beenhere</mat-icon>
-        }
-        <span
-          class="mat-title-medium text-truncate"
-          i18n="@@checkin.at_spot_short"
-          >At <strong>{{ spot.name }}</strong> spot?</span
-        >
-      </button>
-      <div class="d-flex gap-1 align-items-center flex-shrink-0">
-        <button
-          mat-flat-button
-          color="accent"
-          class="flex-grow-1"
-          (click)="spotCheckIn(spot.id); $event.stopPropagation()"
-        >
-          <!-- <mat-icon>beenhere</mat-icon> -->
-          <span i18n="@@checkin.check_in">Check In</span>
-        </button>
-        <!-- <button
-        mat-stroked-button
-        (click)="checkInService.dismissSpot(spot.id)"
-        i18n="@@checkin.dismiss"
-      >
-        Dismiss
-      </button> -->
-        <button
-          mat-icon-button
-          (click)="
-            checkInService.dismissSpot(spot.id); $event.stopPropagation()
-          "
-          class="d-flex"
-        >
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-    </div>
-    <mat-divider class="mb-2"></mat-divider>
-  }
-  @if (selectedPoi()) {
-    <!-- Point of Interest (PoI) -->
-    <app-poi-detail
-      [poi]="selectedPoi()!"
-      (dismiss)="closeSpot()"
-    ></app-poi-detail>
-  } @else if (
-    pendingSpotPreview() ||
-    (selectedSpot() &&
-      !selectedChallenge() &&
-      !showAllChallenges() &&
-      !showSpotEditHistory())
-  ) {
-    <!-- Spot Info -->
-    <app-map-spot-details-panel
-      @fadeInOut
-      [pendingSpot]="pendingSpotPreview()"
-      [spot]="selectedSpot()"
-      [(challenge)]="selectedChallenge"
-      [isEditing]="isEditing()"
-      [pendingVoteCount]="pendingSpotEditsCount()"
-      [mapQueryParams]="activeMapQueryParams()"
-      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
-      (isEditingChange)="$event ? spotMap!.startEdit() : spotMap!.discardEdit()"
-      (dismiss)="closeSpot()"
-      (addBoundsClick)="spotMap!.addBounds()"
-      (focusClick)="spotMap!.focusSpot(selectedSpot()!)"
-      (saveClick)="spotMap!.saveSpot($event)"
-    ></app-map-spot-details-panel>
-  } @else if (selectedSpot()) {
-    <!-- Challenge Detail -->
-    @if (selectedChallenge() || showAllChallenges()) {
+  <app-map-check-in-banner
+    @fadeInOut
+    [spot]="proximityCheckInSpot()"
+    (spotSelect)="selectSpot($event)"
+    (checkIn)="spotCheckIn($event)"
+    (dismiss)="dismissCheckInSpot($event)"
+  ></app-map-check-in-banner>
+  @let panel = mapPanelView();
+  @switch (panel.kind) {
+    @case ("poi") {
+      <app-poi-detail
+        [poi]="panel.poi"
+        (dismiss)="closeSpot()"
+      ></app-poi-detail>
+    }
+    @case ("spot-details") {
+      <app-map-spot-details-panel
+        @fadeInOut
+        [pendingSpot]="panel.pendingSpot"
+        [spot]="panel.spot"
+        [(challenge)]="selectedChallenge"
+        [isEditing]="isEditing()"
+        [pendingVoteCount]="pendingSpotEditsCount()"
+        [mapQueryParams]="activeMapQueryParams()"
+        [openProgress]="
+          responsiveService.isMobile() ? bottomSheetProgress() : 1
+        "
+        (isEditingChange)="onSpotPanelEditingChange($event)"
+        (dismiss)="closeSpot()"
+        (addBoundsClick)="onSpotPanelAddBounds()"
+        (focusClick)="onSpotPanelFocus()"
+        (saveClick)="onSpotPanelSave($event)"
+      ></app-map-spot-details-panel>
+    }
+    @case ("spot-challenges") {
       <app-map-spot-challenges-panel
         @slideInOut
-        [spotName]="selectedSpot()!.name()"
+        [spotName]="panel.spotName"
         [spotSlugOrId]="selectedSpotIdOrSlug()"
         [showAllChallenges]="showAllChallenges()"
         [allSpotChallenges]="allSpotChallenges()"
@@ -106,64 +44,70 @@
         [(selectedChallenge)]="selectedChallenge"
         [(isEditing)]="isEditing"
       ></app-map-spot-challenges-panel>
-    } @else if (showSpotEditHistory()) {
+    }
+    @case ("spot-edits") {
       <app-map-spot-edits-panel
         @slideInOut
-        [spotName]="selectedSpot()!.name()"
+        [spotName]="panel.spotName"
         [spotSlugOrId]="selectedSpotIdOrSlug()"
         [spotId]="selectedSpotIdForEdits()"
         [spotEdits]="spotEdits()"
         [mapQueryParams]="activeMapQueryParams()"
       ></app-map-spot-edits-panel>
     }
-  } @else if (selectedEvent() || pendingEventPreview()) {
-    <!-- Event preview lives on the map (no route navigation). Triggered
-         from the community panel's event card or the map-island. -->
-    <app-map-event-preview-panel
-      @fadeInOut
-      [event]="selectedEvent()"
-      [pendingEvent]="pendingEventPreview()"
-      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
-      [backLabel]="panelBackTarget()?.label ?? null"
-      [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
-      (back)="goBackToPreviousPanel()"
-      (dismiss)="closeEventPreview()"
-    ></app-map-event-preview-panel>
-  } @else if (selectedCommunityLanding() || pendingCommunityLanding()) {
-    <app-map-community-landing-panel
-      class="d-block"
-      [community]="selectedCommunityLanding()"
-      [pendingCommunity]="pendingCommunityLanding()"
-      [openProgress]="responsiveService.isMobile() ? bottomSheetProgress() : 1"
-      [backLabel]="panelBackTarget()?.label ?? null"
-      [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
-      (back)="goBackToPreviousPanel()"
-      (closePanel)="closeCommunityPanel()"
-      (selectEvent)="openEventPreview($event)"
-      (openCommunityPath)="openCommunityPath($event)"
-      (selectSpot)="selectSpot($event)"
-      (exploreCommunitySpots)="exploreCommunitySpots($event)"
-    ></app-map-community-landing-panel>
-  } @else {
-    <app-map-object-panel
-      @fadeInOut
-      [mode]="mapObjectMode()"
-      [objectTypes]="mapObjectTypeChips()"
-      [visibleSpots]="visibleSpots"
-      [highlightedSpots]="highlightedSpots"
-      [visibleEvents]="visibleMapEvents()"
-      [visibleCommunities]="visibleMapCommunities()"
-      [popularCommunities]="popularCommunities()"
-      [spotListLimit]="spotListLimit()"
-      [mapZoom]="spotMap ? spotMap.mapZoom() : null"
-      [enableSpotListAnimation]="
-        !responsiveService.isMobile() || bottomSheetOpen()
-      "
-      (modeChange)="mapObjectModeChanged($event)"
-      (spotSelect)="selectSpot($event)"
-      (eventSelect)="openEventPreview($event)"
-      (communitySelect)="onIslandOpenCommunity($event)"
-    ></app-map-object-panel>
+    @case ("event-preview") {
+      <app-map-event-preview-panel
+        @fadeInOut
+        [event]="panel.event"
+        [pendingEvent]="panel.pendingEvent"
+        [openProgress]="
+          responsiveService.isMobile() ? bottomSheetProgress() : 1
+        "
+        [backLabel]="panelBackTarget()?.label ?? null"
+        [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
+        (back)="goBackToPreviousPanel()"
+        (dismiss)="closeEventPreview()"
+      ></app-map-event-preview-panel>
+    }
+    @case ("community-landing") {
+      <app-map-community-landing-panel
+        class="d-block"
+        [community]="panel.community"
+        [pendingCommunity]="panel.pendingCommunity"
+        [openProgress]="
+          responsiveService.isMobile() ? bottomSheetProgress() : 1
+        "
+        [backLabel]="panelBackTarget()?.label ?? null"
+        [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
+        (back)="goBackToPreviousPanel()"
+        (closePanel)="closeCommunityPanel()"
+        (selectEvent)="openEventPreview($event)"
+        (openCommunityPath)="openCommunityPath($event)"
+        (selectSpot)="selectSpot($event)"
+        (exploreCommunitySpots)="exploreCommunitySpots($event)"
+      ></app-map-community-landing-panel>
+    }
+    @default {
+      <app-map-object-panel
+        @fadeInOut
+        [mode]="mapObjectMode()"
+        [objectTypes]="mapObjectTypeChips()"
+        [visibleSpots]="visibleSpots"
+        [highlightedSpots]="highlightedSpots"
+        [visibleEvents]="visibleMapEvents()"
+        [visibleCommunities]="visibleMapCommunities()"
+        [popularCommunities]="popularCommunities()"
+        [spotListLimit]="spotListLimit()"
+        [mapZoom]="spotMap ? spotMap.mapZoom() : null"
+        [enableSpotListAnimation]="
+          !responsiveService.isMobile() || bottomSheetOpen()
+        "
+        (modeChange)="mapObjectModeChanged($event)"
+        (spotSelect)="selectSpot($event)"
+        (eventSelect)="openEventPreview($event)"
+        (communitySelect)="onIslandOpenCommunity($event)"
+      ></app-map-object-panel>
+    }
   }
 </ng-template>
 
@@ -210,9 +154,7 @@
       <div
         class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
       >
-        <mat-icon style="height: 50px; width: 50px; font-size: 50px"
-          >map</mat-icon
-        >
+        <mat-icon class="map-status-icon">map</mat-icon>
         <p class="mat-title-medium" i18n>Initializing map...</p>
       </div>
     }
@@ -220,9 +162,7 @@
     <div
       class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
     >
-      <mat-icon style="height: 50px; width: 50px; font-size: 50px"
-        >location_on</mat-icon
-      >
+      <mat-icon class="map-status-icon">location_on</mat-icon>
       <p class="mat-title-medium" i18n>Loading Google Maps® API...</p>
       @if (mapsService.isLoading$ | async) {
         <mat-progress-bar
@@ -238,121 +178,30 @@
   }
 
   <!-- FAB buttons -->
-  @if (spotMap && !compactTabletSidenavOpen()) {
-    <div @fastFadeOut class="mini-fabs">
-      @if (spotMap.headingIsNotNorth()) {
-        <button
-          mat-mini-fab
-          #geolocationFab
-          id="geolocationFab"
-          color="primary"
-          (click)="spotMap ? spotMap.resetMapOrientation() : null"
-          i18n-matTootlip
-          matTooltip="Reset map orientation to north"
-          matTooltipPosition="left"
-          matTooltipShowDelay="500"
-        >
-          <mat-icon> north </mat-icon>
-        </button>
-      }
-
-      <button
-        mat-mini-fab
-        #mapStyleFab
-        id="mapStyleFab"
-        (click)="spotMap ? spotMap.toggleMapStyle() : null"
-        color="primary"
-        i18n-matTootlip
-        [matTooltip]="
-          mapStyle === 'roadmap' ? 'Show satellite map' : 'Show roadmap'
-        "
-        matTooltipPosition="left"
-        matTooltipShowDelay="500"
-      >
-        <mat-icon>
-          {{ mapStyle === "roadmap" ? "landscape" : "map" }}
-        </mat-icon>
-      </button>
-
-      <button
-        mat-mini-fab
-        #geolocationFab
-        id="geolocationFab"
-        color="primary"
-        (click)="spotMap ? spotMap.focusOnGeolocation() : null"
-        i18n-matTootlip
-        matTooltip="Go to your location"
-        matTooltipPosition="left"
-        matTooltipShowDelay="500"
-      >
-        @if (spotMap.geolocationLoading()) {
-          <mat-progress-spinner
-            mode="indeterminate"
-            diameter="20"
-            color="accent"
-          ></mat-progress-spinner>
-        } @else {
-          <mat-icon>
-            {{ geolocationIcon() }}
-          </mat-icon>
-        }
-      </button>
-
-      <!-- Show amenity markers mini FAB-->
-      <!-- <button
-      mat-mini-fab
-      #amenitiesFab
-      id="amenitiesFab"
-      color="accent"
-      (click)="showAmenities.set(!showAmenities())"
-      [disabled]="spotMap ? spotMap.mapZoom() < 16 : true"
-      i18n-matTootlip
-      [matTooltip]="
-        showAmenities() ? 'Hide amenity markers' : 'Show amenity markers'
+  @if (spotMap) {
+    <app-map-floating-controls
+      @fastFadeOut
+      [showControls]="!compactTabletSidenavOpen()"
+      [showResetNorth]="spotMap.headingIsNotNorth()"
+      [mapStyle]="mapStyle"
+      [geolocationLoading]="spotMap.geolocationLoading()"
+      [geolocationIcon]="geolocationIcon()"
+      [showCreateSpot]="
+        isSignedIn() &&
+        !compactTabletSidenavOpen() &&
+        !selectedSpot() &&
+        !isEditing() &&
+        spotMap.mapZoom() >= 14 &&
+        !(
+          responsiveService.isMobile() &&
+          (bottomSheetOpen() || bottomSheetProgress() > 0)
+        )
       "
-      matTooltipPosition="left"
-      matTooltipShowDelay="500"
-    >
-      <mat-icon>
-        {{ showAmenities() ? "location_off" : "location_on" }}
-      </mat-icon>
-    </button> -->
-    </div>
-
-    @if (
-      isSignedIn() &&
-      !compactTabletSidenavOpen() &&
-      !selectedSpot() &&
-      !isEditing() &&
-      spotMap.mapZoom() >= 14 &&
-      !(
-        responsiveService.isMobile() &&
-        (bottomSheetOpen() || bottomSheetProgress() > 0)
-      )
-    ) {
-      <!-- Add / import spots speed dial-->
-      <!-- <app-speed-dial-fab
-    #createSpotSpeedDial
-    id="createSpotSpeedDial"
-    [buttonConfig]="speedDialButtonConfig"
-    [openOnHover]="true"
-    [rotationDegrees]="0"
-    (mainFabClick)="spotMap?.createSpot()"
-    (miniFabClick)="speedDialMiniFabClick($event)"
-  ></app-speed-dial-fab> -->
-      <button
-        @fastFadeOut
-        mat-fab
-        extended
-        #createSpotSpeedDial
-        id="createSpotSpeedDial"
-        color="primary"
-        (click)="spotMap ? spotMap.createSpot() : null"
-      >
-        <mat-icon> add_location </mat-icon>
-        <span i18n class="mdc-button__label">Add Spot</span>
-      </button>
-    }
+      (resetNorth)="spotMap.resetMapOrientation()"
+      (toggleMapStyle)="spotMap.toggleMapStyle()"
+      (focusGeolocation)="spotMap.focusOnGeolocation()"
+      (createSpot)="spotMap.createSpot()"
+    ></app-map-floating-controls>
   }
 </ng-template>
 
@@ -399,22 +248,22 @@
   <div
     class="d-flex flex-column gap-3 justify-content-center align-items-center h-100"
   >
-    <mat-icon style="height: 50px; width: 50px; font-size: 50px">map</mat-icon>
+    <mat-icon class="map-status-icon">map</mat-icon>
     <p class="mat-title-medium" i18n>Preparing map layout...</p>
   </div>
 } @else if (responsiveService.isNotMobile()) {
   <div
     class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
-    style="z-index: 100"
   >
     <div class="d-flex flex-row gap-3">
       @if (alainMode) {
-        <div class="spacer flex-shrink-0" style="width: 56px"></div>
+        <div class="alain-spacer flex-shrink-0"></div>
       }
       <app-search-field
-        class="position-relative w-100 mat-elevation-z3 overflow-hidden"
-        style="border-radius: 16px"
+        class="map-search-field position-relative w-100 mat-elevation-z3 overflow-hidden"
+        [contextLabel]="searchContextLabel()"
         (spotSelected)="openSpotOrGooglePlace($event)"
+        (contextClear)="onSearchContextClear()"
         (placePreviewChange)="onSearchPlacePreviewChange($event)"
         (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
       ></app-search-field>
@@ -447,21 +296,11 @@
       }
 
       <!-- sidenav toggle button -->
-      <div style="top: calc(50% - 36px / 2); left: 5px; position: absolute">
+      <div class="sidenav-toggle">
         <button
           mat-icon-button
           (click)="toggleSidenav()"
-          class="d-flex border justify-content-center align-items-center p-0"
-          style="
-            background-color: var(
-              --mat-bottom-sheet-container-background-color
-            );
-            border-color: var(
-              --mat-icon-button-icon-color,
-              var(--mat-sys-on-surface-variant)
-            ) !important;
-            border-width: 0.8px !important;
-          "
+          class="sidenav-toggle__button d-flex border justify-content-center align-items-center p-0"
         >
           @if (sidenavOpen()) {
             <mat-icon>chevron_left</mat-icon>
@@ -480,16 +319,17 @@
     ></ng-container>
 
     <div
-      class="search-bar-overlay position-absolute top-0 start-0 end-0 p-2 d-flex flex-column gap-1"
+      class="search-bar-overlay position-absolute top-0 start-0 end-0 d-flex flex-column gap-1"
     >
       <div class="d-flex flex-row gap-2 align-items-center">
         @if (alainMode && responsiveService.isMobile()) {
-          <div class="spacer flex-shrink-0" style="width: 56px"></div>
+          <div class="alain-spacer flex-shrink-0"></div>
         }
         <app-search-field
-          class="flex-grow-1 mat-elevation-z3 overflow-hidden"
-          style="border-radius: 16px; min-width: 0"
+          class="map-search-field flex-grow-1 mat-elevation-z3 overflow-hidden"
+          [contextLabel]="searchContextLabel()"
           (spotSelected)="openSpotOrGooglePlace($event)"
+          (contextClear)="onSearchContextClear()"
           (placePreviewChange)="onSearchPlacePreviewChange($event)"
           (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
         ></app-search-field>
@@ -503,16 +343,7 @@
     </div>
 
     <app-bottom-sheet
-      class="d-flex"
-      style="
-        top: calc(
-          72px -
-            min(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
-        );
-        bottom: 0;
-        position: absolute;
-        width: 100%;
-      "
+      class="map-bottom-sheet d-flex"
       @fadeInOut
       (isAtTopChange)="bottomSheetOpen.set($event)"
       (openProgressChange)="bottomSheetProgress.set($event)"

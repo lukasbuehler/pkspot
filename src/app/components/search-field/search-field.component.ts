@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   LOCALE_ID,
@@ -16,6 +17,7 @@ import {
 } from "@angular/material/autocomplete";
 import { MatFormField, MatSuffix } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
+import { MatButtonModule } from "@angular/material/button";
 import { BehaviorSubject, from, merge, of, Subscription } from "rxjs";
 import { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { AsyncPipe } from "@angular/common";
@@ -124,6 +126,7 @@ interface NamedSearchResultLike {
     MatFormField,
     MatInputModule,
     MatIconModule,
+    MatButtonModule,
     MatAutocompleteTrigger,
     MatAutocomplete,
     ReactiveFormsModule,
@@ -143,10 +146,12 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   readonly locale = inject(LOCALE_ID);
 
   appearance = input<"fill" | "outline">("fill");
+  contextLabel = input<string | null>(null);
 
   spotSelected = output<SearchSelection>();
   placePreviewChange = output<string | null>();
   communityPreviewChange = output<CommunitySearchPreview | null>();
+  contextClear = output<void>();
 
   private _searchService = inject(SearchService);
   private _spotSearchSubscription?: Subscription;
@@ -189,6 +194,11 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   );
 
   onlySpots = input(false);
+  readonly defaultPlaceholder = $localize`:@@search_field_default_placeholder:Find spots and more`;
+  readonly clearContextLabel = $localize`:@@search_field_clear_context:Clear search filters`;
+  readonly placeholderText = computed(
+    () => this.contextLabel() || this.defaultPlaceholder
+  );
 
   ngOnInit() {
     // Debounce and cancel stale lookups to reduce API usage. Each search

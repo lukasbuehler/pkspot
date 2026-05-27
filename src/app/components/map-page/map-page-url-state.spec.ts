@@ -77,6 +77,16 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(method).not.toContain("this.loadSpotById(value.id as SpotId, true");
   });
 
+  it("opens Google Place search selections on the map", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const method = source.match(
+      /openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
+    )?.[0];
+
+    expect(method).toContain('if (value.type === "place")');
+    expect(method).toContain("this.openGooglePlaceById(value.id)");
+  });
+
   it("opens community search selections through the community URL helper", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(

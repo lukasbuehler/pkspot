@@ -54,29 +54,16 @@ app-spot-map {
 // Uses default padding when no safe area (mobile browser), but removes it when
 // there IS a safe area (native app with notch) to avoid double spacing
 .search-bar-overlay {
-  // Default 8px padding, reduced by the safe area inset amount (clamped to 0 minimum)
+  padding: 0.5rem;
+  // Default 8px top padding, reduced by the safe area inset amount (clamped to 0 minimum)
   padding-top: max(
     0px,
     calc(8px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
-  ) !important;
+  );
 }
 
 ::ng-deep .mat-drawer-inner-container {
-  overflow-x: hidden !important;
-}
-
-#createSpotSpeedDial {
-  position: absolute;
-  z-index: 1;
-  left: 20px;
-
-  @media (max-width: 599.99px) {
-    bottom: calc(var(--bottom-sheet-closed-height, 140px) + 30px);
-  }
-
-  @media (min-width: 600px) {
-    bottom: 30px;
-  }
+  overflow-x: hidden;
 }
 
 ::ng-deep .mat-mdc-form-field-icon-suffix {
@@ -84,27 +71,11 @@ app-spot-map {
   flex-direction: row;
 }
 
-.mini-fabs {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  z-index: 1;
-  right: 20px;
-  gap: 15px;
-
-  @media (max-width: 599.99px) {
-    bottom: 124px;
-  }
-
-  @media (min-width: 600px) {
-    bottom: 30px;
-  }
-}
-
 mat-drawer,
 .search-field-container {
   border-radius: 0px;
   width: calc(100% - (80px + 5px * 2));
+  z-index: 100;
 
   @media (min-width: 768px) {
     width: 50%;
@@ -113,6 +84,45 @@ mat-drawer,
   @media (min-width: 1200px) {
     width: 33.33%;
   }
+}
+
+.alain-spacer {
+  width: 56px;
+}
+
+.map-search-field {
+  border-radius: 16px;
+  min-width: 0;
+}
+
+.map-status-icon {
+  font-size: 50px;
+  height: 50px;
+  width: 50px;
+}
+
+.sidenav-toggle {
+  left: 5px;
+  position: absolute;
+  top: calc(50% - 36px / 2);
+}
+
+.sidenav-toggle__button {
+  background-color: var(--mat-bottom-sheet-container-background-color);
+  border-color: var(
+    --mat-icon-button-icon-color,
+    var(--mat-sys-on-surface-variant)
+  );
+  border-width: 0.8px;
+}
+
+.map-bottom-sheet {
+  bottom: 0;
+  position: absolute;
+  top: calc(
+    72px - min(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+  );
+  width: 100%;
 }
 
 .map-island-host {
@@ -176,5 +186,5 @@ mat-drawer-container.sidenav-open .map-island-host {
 // }
 
 ::ng-deep .glass .mdc-evolution-chip__action--primary::before {
-  border: none !important;
+  border: none;
 }

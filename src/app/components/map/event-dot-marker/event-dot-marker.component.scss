@@ -8,7 +8,7 @@
   -webkit-backdrop-filter: blur(4px);
   border: 2px solid var(--mat-sys-primary);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--mat-sys-shadow) 28%, transparent);
   color: var(--mat-sys-on-surface);
   cursor: pointer;
   display: inline-flex;
@@ -23,7 +23,7 @@
 }
 
 .event-map-marker:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.34);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--mat-sys-shadow) 34%, transparent);
   transform: translateY(-2px) scale(1.04);
 }
 

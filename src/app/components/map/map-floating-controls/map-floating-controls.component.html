@@ -1,0 +1,69 @@
+@if (showControls()) {
+  <div class="map-mini-fabs">
+    @if (showResetNorth()) {
+      <button
+        mat-mini-fab
+        type="button"
+        color="primary"
+        i18n-matTooltip
+        matTooltip="Reset map orientation to north"
+        matTooltipPosition="left"
+        matTooltipShowDelay="500"
+        (click)="resetNorth.emit()"
+      >
+        <mat-icon>north</mat-icon>
+      </button>
+    }
+
+    <button
+      mat-mini-fab
+      type="button"
+      color="primary"
+      i18n-matTooltip
+      [matTooltip]="
+        mapStyle() === 'roadmap' ? 'Show satellite map' : 'Show roadmap'
+      "
+      matTooltipPosition="left"
+      matTooltipShowDelay="500"
+      (click)="toggleMapStyle.emit()"
+    >
+      <mat-icon>{{ mapStyle() === "roadmap" ? "landscape" : "map" }}</mat-icon>
+    </button>
+
+    <button
+      mat-mini-fab
+      type="button"
+      color="primary"
+      i18n-matTooltip
+      matTooltip="Go to your location"
+      matTooltipPosition="left"
+      matTooltipShowDelay="500"
+      (click)="focusGeolocation.emit()"
+    >
+      @if (geolocationLoading()) {
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="20"
+          color="accent"
+        ></mat-progress-spinner>
+      } @else {
+        <mat-icon>{{ geolocationIcon() }}</mat-icon>
+      }
+    </button>
+  </div>
+
+  @if (showCreateSpot()) {
+    <button
+      mat-fab
+      extended
+      type="button"
+      id="createSpotSpeedDial"
+      class="create-spot-fab"
+      color="primary"
+      (click)="createSpot.emit()"
+    >
+      <mat-icon>add_location</mat-icon>
+      <span i18n class="mdc-button__label">Add Spot</span>
+    </button>
+  }
+}

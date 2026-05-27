@@ -18,31 +18,43 @@ describe("MapPageComponent search template", () => {
     for (const searchField of searchFields ?? []) {
       expect(searchField).not.toContain(`[onlySpots]="true"`);
       expect(searchField).toContain("(placePreviewChange)");
+      expect(searchField).toContain('[contextLabel]="searchContextLabel()"');
+      expect(searchField).toContain('(contextClear)="onSearchContextClear()"');
     }
+  });
+
+  it("keeps the map check-in banner wired only to map-page check-in actions", () => {
+    const template = readFileSync(templatePath, "utf8");
+    const banner = template.match(
+      /<app-map-check-in-banner[\s\S]*?<\/app-map-check-in-banner>/
+    )?.[0];
+
+    expect(banner).toBeDefined();
+    expect(banner).toContain('[spot]="proximityCheckInSpot()"');
+    expect(banner).toContain('(checkIn)="spotCheckIn($event)"');
+    expect(banner).toContain('(dismiss)="dismissCheckInSpot($event)"');
   });
 
   it("should hide the Add Spot button while a spot is selected", () => {
     const template = readFileSync(templatePath, "utf8");
-    const buttonIndex = template.indexOf('id="createSpotSpeedDial"');
-    const addSpotConditionContext = template.slice(
-      Math.max(0, buttonIndex - 800),
-      buttonIndex
-    );
+    const controls = template.match(
+      /<app-map-floating-controls[\s\S]*?<\/app-map-floating-controls>/
+    )?.[0];
 
-    expect(buttonIndex).toBeGreaterThan(-1);
-    expect(addSpotConditionContext).toContain("!selectedSpot()");
+    expect(controls).toBeDefined();
+    expect(controls).toContain("[showCreateSpot]");
+    expect(controls).toContain("!selectedSpot()");
   });
 
   it("should keep the Add Spot button renderable when signed in and zoomed in", () => {
     const template = readFileSync(templatePath, "utf8");
-    const addSpotBlock = template.match(
-      /@if\s*\([\s\S]*?isSignedIn\(\)[\s\S]*?spotMap\.mapZoom\(\) >= 14[\s\S]*?\)\s*\{[\s\S]*?<button[\s\S]*?id="createSpotSpeedDial"[\s\S]*?<\/button>/
+    const controls = template.match(
+      /<app-map-floating-controls[\s\S]*?<\/app-map-floating-controls>/
     )?.[0];
 
-    expect(addSpotBlock).toBeDefined();
-    expect(addSpotBlock).toContain("mat-fab");
-    expect(addSpotBlock).toContain("(click)=");
-    expect(addSpotBlock).toContain("spotMap.createSpot()");
-    expect(addSpotBlock).toContain("Add Spot");
+    expect(controls).toBeDefined();
+    expect(controls).toContain("isSignedIn()");
+    expect(controls).toContain("spotMap.mapZoom() >= 14");
+    expect(controls).toContain('(createSpot)="spotMap.createSpot()"');
   });
 });

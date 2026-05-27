@@ -1,0 +1,30 @@
+:host {
+  display: contents;
+}
+
+.map-mini-fabs {
+  bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: absolute;
+  right: 20px;
+  z-index: 1;
+}
+
+.create-spot-fab {
+  bottom: 30px;
+  left: 20px;
+  position: absolute;
+  z-index: 1;
+}
+
+@media (max-width: 599.99px) {
+  .map-mini-fabs {
+    bottom: 124px;
+  }
+
+  .create-spot-fab {
+    bottom: calc(var(--bottom-sheet-closed-height, 140px) + 30px);
+  }
+}

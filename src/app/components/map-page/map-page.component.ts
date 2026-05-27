@@ -17,7 +17,7 @@ import {
   ChangeDetectionStrategy,
   untracked,
 } from "@angular/core";
-import { Location, NgOptimizedImage } from "@angular/common";
+import { Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotMapDataManager } from "../spot-map/SpotMapDataManager";
@@ -33,10 +33,7 @@ import {
   NavigationEnd,
   Router,
 } from "@angular/router";
-import {
-  SpeedDialFabButtonConfig,
-  SpeedDialFabComponent,
-} from "../speed-dial-fab/speed-dial-fab.component";
+import { MapFloatingControlsComponent } from "../map/map-floating-controls/map-floating-controls.component";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MapsApiService } from "../../services/maps-api.service";
@@ -49,23 +46,24 @@ import {
   take,
 } from "rxjs";
 import { animate, style, transition, trigger } from "@angular/animations";
-import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormControl } from "@angular/forms";
 import {
   CommunitySearchPreview,
   SearchService,
 } from "../../services/search.service";
 import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
+import { rankMapIslandEventsForPoint } from "./map-island-event-ranking";
 import {
-  getMapEventMarkerPriority,
-  rankMapIslandEventsForPoint,
-} from "./map-island-event-ranking";
+  buildSelectedEventBoundsOverlays,
+  buildSelectedEventPolygonOverlays,
+  buildVisibleEventMarkers,
+} from "../map/map-event-map-items.model";
 import { countries } from "../../../scripts/Countries";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
   AsyncPipe,
   isPlatformServer,
   isPlatformBrowser,
-  NgComponentOutlet,
   NgTemplateOutlet,
 } from "@angular/common";
 import { StorageService } from "../../services/firebase/storage.service";
@@ -77,11 +75,9 @@ import { CheckInService } from "../../services/check-in.service";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { Title } from "@angular/platform-browser";
-import { MatDividerModule } from "@angular/material/divider";
 import { LocaleCode, MediaType, SpotSlug } from "../../../db/models/Interfaces";
 import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { MetaTagService } from "../../services/meta-tag.service";
-import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { SearchFieldComponent } from "../search-field/search-field.component";
 import {
@@ -89,7 +85,6 @@ import {
   SpotChallenge,
 } from "../../../db/models/SpotChallenge";
 import { SpotChallengesService } from "../../services/firebase/firestore/spot-challenges.service";
-import { PrimaryInfoPanelComponent } from "../primary-info-panel/primary-info-panel.component";
 import { ConsentService } from "../../services/consent.service";
 import { RouteContentData } from "../../resolvers/content.resolver";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
@@ -100,7 +95,6 @@ import { MatSidenavModule } from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { StructuredDataService } from "../../services/structured-data.service";
-import { MatCardModule } from "@angular/material/card";
 import { MatDialog } from "@angular/material/dialog";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
@@ -109,7 +103,6 @@ import {
   CustomFilterParams,
 } from "../custom-filter-dialog/custom-filter-dialog.component";
 import { BackHandlingService } from "../../services/back-handling.service";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { AppSettingsService } from "../../services/app-settings.service";
 import { environment } from "../../../environments/environment";
 import {
@@ -118,11 +111,6 @@ import {
   buildSpotEditHistoryCanonicalPath,
 } from "../../../scripts/SpotRouteHelpers";
 import { VisibleViewport } from "../maps/map-base";
-import {
-  MapBoundsOverlay,
-  MapPointMarker,
-  MapPolygonOverlay,
-} from "../maps/map-overlays";
 
 import { PoiData } from "../../../db/models/PoiData";
 import { PoiDetailComponent } from "../poi-detail/poi-detail.component";
@@ -151,19 +139,14 @@ import { MapSpotChallengesPanelComponent } from "../map/map-spot-challenges-pane
 import { MapSpotDetailsPanelComponent } from "../map/map-spot-details-panel/map-spot-details-panel.component";
 import { MapEventPreviewPanelComponent } from "../map/map-event-preview-panel/map-event-preview-panel.component";
 import { MapCommunityLandingPanelComponent } from "../map/map-community-landing-panel/map-community-landing-panel.component";
-
-interface PendingSpotPanel {
-  id: string;
-  slug?: string;
-  name?: string;
-  imageSrc?: string;
-  locality?: string;
-  rating?: number;
-}
-
-interface PendingEventPanel {
-  idOrSlug: string;
-}
+import {
+  getMapPanelView,
+  MapPanelView,
+  PanelBackTarget,
+  PendingEventPanel,
+  PendingSpotPanel,
+} from "../map/map-panel-view.model";
+import { MapCheckInBannerComponent } from "../map/map-check-in-banner/map-check-in-banner.component";
 
 interface EventPromoDismissalRecord {
   showAgainAt: string;
@@ -179,12 +162,6 @@ type CommunityCountryFocusData = {
     code?: string;
   };
 };
-
-interface PanelBackTarget {
-  path: string;
-  label: string;
-  typeLabel: string;
-}
 
 type MapViewportBbox = VisibleViewport["bbox"];
 
@@ -234,23 +211,14 @@ type MapViewportBbox = VisibleViewport["bbox"];
     SpotMapComponent,
     MatButtonModule,
     MatIconModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatDividerModule,
-    MatTooltipModule,
     MatProgressBarModule,
-    MatProgressSpinnerModule,
     PoiDetailComponent,
     SearchFieldComponent,
-    // SpeedDialFabComponent,
-    // PrimaryInfoPanelComponent,
     AsyncPipe,
     MatSidenavModule,
     NgTemplateOutlet,
     BottomSheetComponent,
-    MatCardModule,
     FilterChipsBarComponent,
-    NgOptimizedImage,
     MapIslandComponent,
     MapObjectPanelComponent,
     MapSpotEditsPanelComponent,
@@ -258,6 +226,8 @@ type MapViewportBbox = VisibleViewport["bbox"];
     MapSpotDetailsPanelComponent,
     MapEventPreviewPanelComponent,
     MapCommunityLandingPanelComponent,
+    MapCheckInBannerComponent,
+    MapFloatingControlsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -320,6 +290,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   showSpotEditHistory: WritableSignal<boolean> = signal(false);
   searchPreviewPlaceId = signal<string | null>(null);
 
+  mapPanelView = computed<MapPanelView>(() =>
+    getMapPanelView({
+      poi: this.selectedPoi(),
+      spot: this.selectedSpot(),
+      pendingSpot: this.pendingSpotPreview(),
+      selectedChallenge: this.selectedChallenge(),
+      showAllChallenges: this.showAllChallenges(),
+      showSpotEditHistory: this.showSpotEditHistory(),
+      event: this.selectedEvent(),
+      pendingEvent: this.pendingEventPreview(),
+      community: this.selectedCommunityLanding(),
+      pendingCommunity: this.pendingCommunityLanding(),
+    }),
+  );
+
   isEditing: WritableSignal<boolean> = signal(false);
   mapStyle: "roadmap" | "satellite" | "hybrid" | "terrain" | null = null;
   selectedChallenge: WritableSignal<SpotChallenge | LocalSpotChallenge | null> =
@@ -328,6 +313,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   geolocationService = inject(GeolocationService);
   checkInService = inject(CheckInService);
   readonly checkInEnabled = environment.features.checkIns;
+  proximityCheckInSpot = computed(() =>
+    this.checkInEnabled ? this.checkInService.currentProximitySpot() : null,
+  );
 
   geolocationIcon = computed(() => {
     if (this.geolocationService.error()) return "location_disabled";
@@ -348,6 +336,29 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   set highlightedSpots(spots: SpotPreviewData[]) {
     this._highlightedSpots = spots;
     this._updateHighlightedSpotsStructuredData(spots);
+  }
+
+  onSpotPanelEditingChange(isEditing: boolean) {
+    if (isEditing) {
+      this.spotMap?.startEdit();
+    } else {
+      this.spotMap?.discardEdit();
+    }
+  }
+
+  onSpotPanelAddBounds() {
+    this.spotMap?.addBounds();
+  }
+
+  onSpotPanelFocus() {
+    const spot = this.selectedSpot();
+    if (spot) {
+      this.spotMap?.focusSpot(spot);
+    }
+  }
+
+  onSpotPanelSave(spot: Spot | LocalSpot) {
+    this.spotMap?.saveSpot(spot);
   }
 
   alainMode: boolean = false;
@@ -515,6 +526,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const filter = this.selectedFilter();
     return filter ? { filter } : null;
   });
+  searchContextLabel = computed<string | null>(() => {
+    const filter = this.selectedFilter();
+    if (filter || this.customFilterParams()) {
+      return `${this._mapObjectModeLabel("spots")} ${this._spotFilterLabel(
+        filter,
+      )}`;
+    }
+
+    const mode = this.mapObjectMode();
+    return mode === "all" ? null : this._mapObjectModeLabel(mode);
+  });
   visibleMapEvents = computed(() => this._visibleMapEvents());
   visibleMapCommunities = computed(() => this._visibleMapCommunities());
   private _mapObjectModeBeforeSpotFilter: MapObjectMode | null = null;
@@ -649,133 +671,32 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * map without value). Sponsored events render with the highlighted
    * border style.
    */
-  availableEventMarkers = computed<MapPointMarker[]>(() => {
+  availableEventMarkers = computed(() => {
     const now = new Date();
-    // The full Event is in `selectedEvent`; the pending preview only
-    // carries an id-or-slug, so we match both forms when filtering.
-    const selectedEventId = this.selectedEvent()?.id ?? null;
-    const pendingEventRef = this.pendingEventPreview()?.idOrSlug ?? null;
-
-    const eventMarkers: MapPointMarker[] = this._visibleMapEvents()
-      .filter((e) => {
-        if (selectedEventId && e.id === selectedEventId) return false;
-        if (
-          pendingEventRef &&
-          (e.id === pendingEventRef || e.slug === pendingEventRef)
-        ) {
-          return false;
-        }
-        if (e.isPast(now)) return false;
-        return Boolean(e.location);
-      })
-      .map((e) => {
-        const routeId = e.slug ?? e.id;
-        const status = e.status(now);
-        return {
-          id: `event:${routeId}`,
-          name: e.name,
-          location: e.location,
-          icons: [status === "live" ? "stars" : "event"],
-          imageSrc: e.effectiveBadgeLogoSrc(),
-          imageBackgroundColor: e.effectiveBadgeLogoBackgroundColor(),
-          color: status === "live" ? "secondary" : "primary",
-          type: "event",
-          forceFullMarker: true,
-          priority: getMapEventMarkerPriority(e, now),
-        };
-      });
-
-    const selectedEvent = this.selectedEvent();
-    const selectedEventMarkers: MapPointMarker[] =
-      selectedEvent && !selectedEvent.isPast(now)
-        ? selectedEvent.customMarkers.map((marker, index) => ({
-            id: `event-custom:${selectedEvent.id}:${index}`,
-            name: marker.name,
-            location: marker.location,
-            icons: marker.icons,
-            color: marker.color,
-            type: "event-custom",
-            forceFullMarker: marker.priority === "required",
-            priority:
-              marker.priority === "required"
-                ? 90_000
-                : typeof marker.priority === "number"
-                  ? 70_000 + marker.priority
-                  : 70_000,
-          }))
-        : [];
-
-    const mode = this.mapObjectMode();
-    if (mode !== "all" && mode !== "events") {
-      return selectedEventMarkers;
-    }
-
-    return [...eventMarkers, ...selectedEventMarkers];
+    return buildVisibleEventMarkers({
+      visibleEvents: this._visibleMapEvents(),
+      selectedEvent: this.selectedEvent(),
+      pendingEventRef: this.pendingEventPreview()?.idOrSlug ?? null,
+      mode: this.mapObjectMode(),
+      now,
+    });
   });
 
-  selectedEventBoundsOverlays = computed<MapBoundsOverlay[]>(() => {
-    const event = this.selectedEvent();
-    if (!event?.bounds || event.areaPolygon) return [];
+  selectedEventBoundsOverlays = computed(() =>
+    buildSelectedEventBoundsOverlays(
+      this.selectedEvent(),
+      this._getCssColorAsHex,
+    ),
+  );
 
-    return [
-      {
-        id: `event-bounds:${event.id}`,
-        bounds: event.bounds,
-        options: {
-          strokeColor: this._getCssColorAsHex(
-            "--mat-sys-primary-container",
-            "#b8c4ff",
-          ),
-          strokeOpacity: 0.95,
-          strokeWeight: 2,
-          fillColor: this._getCssColorAsHex(
-            "--mat-sys-primary-container",
-            "#b8c4ff",
-          ),
-          fillOpacity: 0.08,
-          clickable: false,
-          zIndex: 2,
-        },
-      },
-    ];
-  });
+  selectedEventPolygonOverlays = computed(() =>
+    buildSelectedEventPolygonOverlays(
+      this.selectedEvent(),
+      this._getCssColorAsHex,
+    ),
+  );
 
-  selectedEventPolygonOverlays = computed<MapPolygonOverlay[]>(() => {
-    const event = this.selectedEvent();
-    if (!event?.areaPolygon) return [];
-    const previewRing = this._getEventAreaPreviewRing(event.areaPolygon);
-    if (previewRing.length < 3) return [];
-
-    return [
-      {
-        id: `event-area:${event.id}`,
-        paths: previewRing,
-        options: {
-          strokeColor: this._getCssColorAsHex("--mat-sys-primary", "#0036ba"),
-          strokeOpacity: 0.95,
-          strokeWeight: 3,
-          fillColor: this._getCssColorAsHex("--mat-sys-primary", "#0036ba"),
-          fillOpacity: 0.08,
-          clickable: false,
-          zIndex: 2,
-        },
-      },
-    ];
-  });
-
-  private _getEventAreaPreviewRing(
-    rings: Array<{ points: google.maps.LatLngLiteral[] }>,
-  ): google.maps.LatLngLiteral[] {
-    return (
-      rings.find((ring) =>
-        ring.points.every((point) => Math.abs(point.lat) < 85),
-      )?.points ??
-      rings[0]?.points ??
-      []
-    );
-  }
-
-  private _getCssColorAsHex(cssVarName: string, fallback: string): string {
+  private _getCssColorAsHex = (cssVarName: string, fallback: string): string => {
     if (typeof window === "undefined") {
       return fallback;
     }
@@ -803,7 +724,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .padStart(2, "0"),
       )
       .join("")}`;
-  }
+  };
 
   /**
    * Active map-island content. Picks the most relevant variant for the
@@ -2009,29 +1930,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // Speed dial FAB //////////////////////////////////////////////////////////
-
-  speedDialButtonConfig: SpeedDialFabButtonConfig = {
-    mainButton: {
-      icon: "add_location",
-      tooltip: $localize`:Tooltip for add spot button|Add a new spot@@map.add_spot.tooltip:Add a new spot`,
-      color: "primary",
-      label: $localize`:@@pk.spotmap.addSpot:Add spot`,
-      isExtended: false,
-    },
-    miniButtonColor: "primary",
-    miniButtons: [
-      {
-        icon: "outlined_flag",
-        tooltip: $localize`:Tooltip for add challenge button|Add a challenge@@map.add_challenge.tooltip:Add a challenge`,
-      },
-      {
-        icon: "note_add",
-        tooltip: $localize`:Tooltip for import spots button|Import spots from a file@@map.import_spots.tooltip:Import spots from a file`,
-      },
-    ],
-  };
-
   setVisibleSpots(spots: Spot[]) {
     if (!spots || spots.length === 0) {
       this.visibleSpots = [];
@@ -2039,17 +1937,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.visibleSpots = spots;
-  }
-
-  speedDialMiniFabClick(index: number) {
-    switch (index) {
-      case 0:
-        this.router.navigateByUrl("/kml-import");
-        break;
-      default:
-        console.error("Uncaught fab click registered");
-        break;
-    }
   }
 
   // Initialization ///////////////////////////////////////////////////////////
@@ -2520,6 +2407,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.clearSearchPlacePreview();
 
     if (value.type === "place") {
+      this.openGooglePlaceById(value.id);
       return;
     }
 
@@ -2854,6 +2742,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.filterChipChanged("");
   }
 
+  onSearchContextClear(): void {
+    if (this.selectedFilter() || this.customFilterParams()) {
+      this.clearActiveFilter();
+      return;
+    }
+
+    if (this.mapObjectMode() !== "all") {
+      this.mapObjectModeChanged("all");
+    }
+  }
+
   mapObjectModeChanged(mode: MapObjectMode): void {
     if (mode === this.mapObjectMode()) return;
 
@@ -2871,6 +2770,42 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     plural: string,
   ): string {
     return count === 1 ? singular : plural;
+  }
+
+  private _mapObjectModeLabel(mode: MapObjectMode): string {
+    switch (mode) {
+      case "spots":
+        return $localize`:@@map_search_context_spots:Spots`;
+      case "events":
+        return $localize`:@@map_search_context_events:Events`;
+      case "communities":
+        return $localize`:@@map_search_context_communities:Communities`;
+      case "all":
+      default:
+        return $localize`:@@map_search_context_all:All`;
+    }
+  }
+
+  private _spotFilterLabel(filter: string): string {
+    switch (filter) {
+      case SpotFilterMode.ForParkour:
+        return $localize`:@@for_parkour_spots_chip_label:For Parkour`;
+      case SpotFilterMode.Dry:
+        return $localize`:@@dry_spots_chip_label:Dry`;
+      case SpotFilterMode.Indoor:
+        return $localize`:@@indoor_spots_chip_label:Indoor`;
+      case SpotFilterMode.Lighting:
+        return $localize`:@@lighting_spots_chip_label:Lighting`;
+      case SpotFilterMode.Water:
+        return $localize`:@@water_spots_chip_label:Water`;
+      case "saved":
+        return $localize`:@@saved_spots_chip_label:Saved`;
+      case "visited":
+        return $localize`:@@visited_spots_chip_label:Visited`;
+      case SpotFilterMode.Custom:
+      default:
+        return $localize`:@@map_search_context_custom_filter:Custom Filter`;
+    }
   }
 
   private _hasActiveSpotFilter(): boolean {
@@ -4547,5 +4482,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   spotCheckIn(spotId: SpotId) {
     this.checkInService.checkIn(spotId);
+  }
+
+  dismissCheckInSpot(spotId: SpotId) {
+    this.checkInService.dismissSpot(spotId);
   }
 }

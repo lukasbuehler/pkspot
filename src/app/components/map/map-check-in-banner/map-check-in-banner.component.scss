@@ -1,0 +1,41 @@
+.check-in-banner {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 0.25rem;
+  height: 42px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  overflow: hidden;
+  padding-inline: 1rem;
+}
+
+.check-in-banner__spot {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  gap: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  text-align: start;
+}
+
+.check-in-banner__image {
+  border-radius: 10px;
+  flex-shrink: 0;
+  height: 42px;
+  margin-right: 5px;
+  overflow: hidden;
+  position: relative;
+  width: 42px;
+}
+
+.check-in-banner__actions {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.25rem;
+}

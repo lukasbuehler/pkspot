@@ -1,0 +1,41 @@
+@if (spot(); as currentSpot) {
+  <div class="check-in-banner">
+    <button
+      type="button"
+      class="check-in-banner__spot"
+      (click)="spotSelect.emit(currentSpot)"
+    >
+      @if (currentSpot.imageSrc) {
+        <div class="check-in-banner__image">
+          <img [ngSrc]="currentSpot.imageSrc" alt="" fill />
+        </div>
+      } @else {
+        <mat-icon class="flex-shrink-0" color="accent">beenhere</mat-icon>
+      }
+      <span
+        class="mat-title-medium text-truncate"
+        i18n="@@checkin.at_spot_short"
+        >At <strong>{{ currentSpot.name }}</strong> spot?</span
+      >
+    </button>
+
+    <div class="check-in-banner__actions">
+      <button
+        mat-flat-button
+        color="accent"
+        class="flex-grow-1"
+        (click)="checkIn.emit(currentSpot.id); $event.stopPropagation()"
+      >
+        <span i18n="@@checkin.check_in">Check In</span>
+      </button>
+      <button
+        mat-icon-button
+        class="d-flex"
+        (click)="dismiss.emit(currentSpot.id); $event.stopPropagation()"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+  <mat-divider class="mb-2"></mat-divider>
+}

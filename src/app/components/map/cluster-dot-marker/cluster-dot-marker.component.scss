@@ -8,13 +8,13 @@
 }
 
 .marker-primary-dark {
-  background-color: #b8c4ff;
-  border: 1px solid #0036ba;
-  box-shadow: 0 0 4px #0036ba;
+  background-color: var(--mat-sys-primary-container);
+  border: 1px solid var(--mat-sys-primary);
+  box-shadow: 0 0 4px var(--mat-sys-primary);
 }
 
 .marker-primary-light {
-  background-color: #0036ba;
-  border: 1px solid #b8c4ff;
-  box-shadow: 0 0 4px #b8c4ff;
+  background-color: var(--mat-sys-primary);
+  border: 1px solid var(--mat-sys-primary-container);
+  box-shadow: 0 0 4px var(--mat-sys-primary-container);
 }

@@ -4,11 +4,11 @@
 @mixin color($theme) {
   .spot-search-field,
   .glass {
-    // background-color: mat.get-theme-color($theme, surface-container-low);
-    background-color: rgba(
-      mat.get-theme-color($theme, surface-container-high),
-      0.9
-    ) !important;
+    background-color: color-mix(
+      in srgb,
+      #{mat.get-theme-color($theme, surface-container-high)} 90%,
+      transparent
+    );
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     // WebKit GPU acceleration to prevent blur flickering during animations
@@ -27,7 +27,7 @@
       background-color: mat.get-theme-color(
         $theme,
         surface-container-high
-      ) !important;
+      );
     }
   }
 

@@ -4,9 +4,9 @@
 
 .community-dot {
   border-radius: 50%;
-  background-color: #b8c4ff;
-  border: 1px solid #0036ba;
-  box-shadow: 0 0 4px #0036ba;
+  background-color: var(--mat-sys-primary-container);
+  border: 1px solid var(--mat-sys-primary);
+  box-shadow: 0 0 4px var(--mat-sys-primary);
   opacity: 0.85;
   cursor: pointer;
   transition:
