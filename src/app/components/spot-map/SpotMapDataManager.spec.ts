@@ -1,5 +1,6 @@
 import { Injector, NgZone } from "@angular/core";
 import { describe, expect, it, vi } from "vitest";
+import { of } from "rxjs";
 import { GeoPoint } from "firebase/firestore";
 import { Spot } from "../../../db/models/Spot";
 import { User } from "../../../db/models/User";
@@ -25,13 +26,14 @@ function makeInjector(overrides: Map<unknown, unknown> = new Map()): Injector {
   const providers = new Map<unknown, unknown>([
     [SpotsService, {}],
     [SpotEditsService, {}],
-    [OsmDataService, {}],
+    [OsmDataService, { getAmenityMarkers: vi.fn(() => of([])) }],
     [ConsentService, {}],
     [AuthenticationService, {}],
     [
       SearchService,
       {
         searchSpotsInBoundsWithFilter: vi.fn(),
+        searchSpotsInRawBounds: vi.fn().mockResolvedValue({ hits: [] }),
         getSpotPreviewFromHit: vi.fn(),
       },
     ],
@@ -218,5 +220,70 @@ describe("SpotMapDataManager filters", () => {
 
     expect(spotsService.getSpotClusterTiles).not.toHaveBeenCalled();
     expect(manager.visibleDots()).toEqual([]);
+  });
+
+  it("loads close-zoom base spot previews from Typesense without Firestore tile reads", async () => {
+    vi.useFakeTimers();
+
+    const preview = makeSpot("typesense-preview", SpotTypes.PkPark, {
+      lat: 47.3897,
+      lng: 8.5173,
+    }).makePreviewData();
+    const spotsService = {
+      getSpotsForTileKeys: vi.fn(),
+    };
+    const searchService = {
+      searchSpotsInBoundsWithFilter: vi.fn(),
+      searchSpotsInRawBounds: vi.fn().mockResolvedValue({
+        hits: [{ document: { id: preview.id } }],
+      }),
+      getSpotPreviewFromHit: vi.fn(() => preview),
+    };
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [SpotsService, spotsService],
+          [SearchService, searchService],
+        ])
+      )
+    );
+
+    await (
+      manager as unknown as {
+        _executeSetVisibleTiles: (tiles: TilesObject) => Promise<void>;
+      }
+    )._executeSetVisibleTiles({
+      zoom: 16,
+      tiles: [{ x: 34318, y: 22946 }],
+      sw: { x: 34318, y: 22946 },
+      ne: { x: 34318, y: 22946 },
+      viewportBounds: {
+        north: 47.4,
+        south: 47.3,
+        east: 8.6,
+        west: 8.5,
+      },
+    });
+
+    await Promise.resolve();
+
+    expect(searchService.searchSpotsInRawBounds).toHaveBeenCalledWith(
+      47.4,
+      47.3,
+      8.6,
+      8.5,
+      250,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      false
+    );
+    expect(spotsService.getSpotsForTileKeys).not.toHaveBeenCalled();
+    expect(manager.visibleHighlightedSpots()).toEqual([preview]);
+
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 });

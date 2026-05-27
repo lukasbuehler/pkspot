@@ -43,6 +43,18 @@ interface LoadedSpotReference {
   indexInTotalArray: number;
 }
 
+interface SpotSearchHit {
+  id?: string;
+  document?: {
+    id?: string;
+  };
+}
+
+interface SpotPreviewSearchOptions {
+  limit: number;
+  onlyWithImages: boolean;
+}
+
 /**
  *
  *
@@ -99,12 +111,14 @@ export class SpotMapDataManager {
   private readonly CLUSTER_DEBOUNCE_MS = 200;
   private readonly HIGHLIGHT_THROTTLE_MS = 500;
   /**
-   * Load a broader candidate pool and let Advanced Marker collision handling
+   * Load a broad candidate pool and let Advanced Marker collision handling
    * decide what is visible. Higher-rated markers already get higher z-indexes,
    * so overlapping lower-rated candidates naturally drop out on the map.
    */
   private readonly HIGHLIGHT_MAX_COUNT = 24;
+  private readonly SPOT_PREVIEW_MAX_COUNT = 250;
   private _lastHighlightFetchTime: number = 0;
+  private _spotPreviewRequestId = 0;
 
   private _lastRenderedClusterKeys: Set<string> | null = null;
   private _updateRequestId = 0;
@@ -156,6 +170,22 @@ export class SpotMapDataManager {
       return 0;
     }
     return aHasImage ? -1 : 1;
+  }
+
+  private _getSpotPreviewSearchOptions(zoom: number): SpotPreviewSearchOptions {
+    if (zoom < 10) {
+      return { limit: this.HIGHLIGHT_MAX_COUNT, onlyWithImages: true };
+    }
+
+    if (zoom < 12) {
+      return { limit: 48, onlyWithImages: false };
+    }
+
+    if (zoom < 14) {
+      return { limit: 96, onlyWithImages: false };
+    }
+
+    return { limit: this.SPOT_PREVIEW_MAX_COUNT, onlyWithImages: false };
   }
 
   constructor(
@@ -331,31 +361,34 @@ export class SpotMapDataManager {
 
     const zoom = visibleTilesObj.zoom;
 
-    if (zoom < this.spotZoom) {
-      // Keep low-zoom highlights lightweight now that spot cluster dots are disabled.
-      const activeFilter = this.spotFilterMode
-        ? this.spotFilterMode()
-        : SpotFilterMode.None;
+    const activeFilter = this.spotFilterMode
+      ? this.spotFilterMode()
+      : SpotFilterMode.None;
 
-      if (activeFilter === SpotFilterMode.None) {
-        const now = Date.now();
-        // Throttle: Allow updates while moving (at least every X ms)
-        if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
-          this._loadHighlightsForTiles(visibleTilesObj);
-          this._lastHighlightFetchTime = now;
-        }
-
-        // Debounce: Ensure we catch the final resting state (and handle small movements)
-        if (this._clusterDebounceTimer) {
-          clearTimeout(this._clusterDebounceTimer);
-        }
-
-        this._clusterDebounceTimer = setTimeout(() => {
-          this._clusterDebounceTimer = null;
-          this._loadHighlightsForTiles(visibleTilesObj);
-          this._lastHighlightFetchTime = Date.now();
-        }, this.CLUSTER_DEBOUNCE_MS);
+    if (activeFilter === SpotFilterMode.None) {
+      const now = Date.now();
+      // Throttle: Allow updates while moving (at least every X ms)
+      if (now - this._lastHighlightFetchTime > this.HIGHLIGHT_THROTTLE_MS) {
+        this._loadHighlightsForTiles(
+          visibleTilesObj,
+          this._getSpotPreviewSearchOptions(zoom)
+        );
+        this._lastHighlightFetchTime = now;
       }
+
+      // Debounce: Ensure we catch the final resting state (and handle small movements)
+      if (this._clusterDebounceTimer) {
+        clearTimeout(this._clusterDebounceTimer);
+      }
+
+      this._clusterDebounceTimer = setTimeout(() => {
+        this._clusterDebounceTimer = null;
+        this._loadHighlightsForTiles(
+          visibleTilesObj,
+          this._getSpotPreviewSearchOptions(zoom)
+        );
+        this._lastHighlightFetchTime = Date.now();
+      }, this.CLUSTER_DEBOUNCE_MS);
     }
 
     if (requestId !== this._updateRequestId) {
@@ -373,24 +406,11 @@ export class SpotMapDataManager {
     // Yield removed
     // await this._yieldToMain();
 
-    if (zoom >= this.spotZoom) {
-      // Reset cluster render key cache while in spot mode so transitioning back to
-      // cluster mode (e.g. 16 -> 15) always re-renders dots immediately.
-      this._lastRenderedClusterKeys = null;
-
-      // show spots and markers
-      this._showCachedSpotsAndMarkersForTiles(visibleTilesObj);
-
-      // now determine the missing information and load spots for it
-      const spotTilesToLoad16: Set<MapTileKey> =
-        this._getSpotTilesToLoad(visibleTilesObj);
-
-      // load spots for missing tiles
-      this._loadSpotsForTiles(spotTilesToLoad16);
-    } else {
-      this._clearClusterState();
-      this._visibleSpots.set([]);
-    }
+    // Reset cluster render key cache while in spot-preview mode so transitioning
+    // back to a possible cluster mode always re-renders dots immediately.
+    this._lastRenderedClusterKeys = null;
+    this._clearClusterState();
+    this._showCachedLoadedSpotsAndMarkersForTiles(visibleTilesObj);
   }
 
   private _loadClusterDotsViaService(visibleTilesObj: TilesObject) {
@@ -730,6 +750,55 @@ export class SpotMapDataManager {
     return config?.matchesSpot(spot) ?? false;
   }
 
+  private _getCachedSpotsForTiles(tiles: TilesObject): Spot[] {
+    if (tiles.zoom < this.spotZoom) {
+      return [];
+    }
+
+    const tiles16 = this._transformTilesObjectToZoom(tiles, this.spotZoom);
+    const spots: Spot[] = [];
+
+    tiles16.tiles.forEach((tile) => {
+      const key = getClusterTileKey(tiles16.zoom, tile.x, tile.y);
+      const tileSpots = this._spots.get(key);
+      if (tileSpots) {
+        spots.push(...tileSpots);
+      }
+    });
+
+    return spots.sort((a, b) => this._sortByRatingThenImage(a, b));
+  }
+
+  private _getCachedAmenityMarkersForTiles(tiles: TilesObject): MarkerSchema[] {
+    if (tiles.zoom < this.amenityMarkerDisplayZoom) {
+      return [];
+    }
+
+    const tiles16 = this._transformTilesObjectToZoom(tiles, this.spotZoom);
+    const markers: MarkerSchema[] = [];
+
+    tiles16.tiles.forEach((tile) => {
+      const key = getClusterTileKey(tiles16.zoom, tile.x, tile.y);
+      const tileMarkers = this._markers.get(key);
+      if (tileMarkers) {
+        markers.push(...tileMarkers);
+      }
+    });
+
+    return markers;
+  }
+
+  /**
+   * Refresh loaded full-spot documents and amenity markers from local cache.
+   * Viewport spot pins/list data is now supplied by Typesense previews; this
+   * cache remains for selected spots, locally-created spots, and edit flows.
+   */
+  private _showCachedLoadedSpotsAndMarkersForTiles(tiles: TilesObject): void {
+    this._visibleDots.set([]);
+    this._visibleSpots.set(this._getCachedSpotsForTiles(tiles));
+    this._visibleAmenityMarkers.set(this._getCachedAmenityMarkersForTiles(tiles));
+  }
+
   /**
    * Set the spots and markers behavior subjects to the cached data we have
    * loaded.
@@ -744,20 +813,7 @@ export class SpotMapDataManager {
       return;
     }
 
-    // get the tiles object for the spot zoom
-    const tiles16 = this._transformTilesObjectToZoom(tiles, this.spotZoom);
-
-    // get the spots for these tiles
-    const spots: Spot[] = [];
-    tiles16.tiles.forEach((tile) => {
-      const key = getClusterTileKey(tiles16.zoom, tile.x, tile.y);
-      if (this._spots.has(key)) {
-        const tileSpots = this._spots.get(key)!;
-        spots.push(...tileSpots);
-      }
-    });
-
-    spots.sort((a, b) => this._sortByRatingThenImage(a, b));
+    const spots = this._getCachedSpotsForTiles(tiles);
 
     // Extract highlighted spots (rated or iconic) at zoom 16+.
     // Active filters use manually supplied search results for pins/list, while
@@ -784,17 +840,7 @@ export class SpotMapDataManager {
               .slice(0, this.HIGHLIGHT_MAX_COUNT);
     }
 
-    // Only show amenity markers at zoom >= 16 (amenityMarkerDisplayZoom) to maintain performance
-    const markers: MarkerSchema[] = [];
-    if (tiles.zoom >= this.amenityMarkerDisplayZoom) {
-      tiles16.tiles.forEach((tile) => {
-        const key = getClusterTileKey(tiles16.zoom, tile.x, tile.y);
-        if (this._markers.has(key)) {
-          const tileMarkers = this._markers.get(key)!;
-          markers.push(...tileMarkers);
-        }
-      });
-    }
+    const markers = this._getCachedAmenityMarkersForTiles(tiles);
 
     this._visibleDots.set([]);
 
@@ -1059,7 +1105,9 @@ export class SpotMapDataManager {
 
                 const _lastVisibleTiles = this._lastVisibleTiles();
                 if (_lastVisibleTiles) {
-                  this._showCachedSpotsAndMarkersForTiles(_lastVisibleTiles);
+                  this._showCachedLoadedSpotsAndMarkersForTiles(
+                    _lastVisibleTiles
+                  );
                 }
               });
             })
@@ -1248,10 +1296,10 @@ export class SpotMapDataManager {
   /**
    * Helper to map a Search Hit to SpotPreviewData, using cache to maintain references.
    */
-  private _getOrCreateSpotPreviewFromHit(hit: any): SpotPreviewData {
+  private _getOrCreateSpotPreviewFromHit(hit: SpotSearchHit): SpotPreviewData {
     const id = hit.document?.id || hit.id;
-    if (this._spotPreviewCache.has(id)) {
-      return this._spotPreviewCache.get(id)!;
+    if (id && this._spotPreviewCache.has(id as SpotId)) {
+      return this._spotPreviewCache.get(id as SpotId)!;
     }
 
     const preview = this._searchService.getSpotPreviewFromHit(hit);
@@ -1261,13 +1309,11 @@ export class SpotMapDataManager {
     return preview;
   }
 
-  private _loadHighlightsForTiles(visibleTilesObj: TilesObject) {
-    // Calculate bounds from tilesObj
-    const neBounds = MapHelpers.getBoundsForTile(
-      visibleTilesObj.zoom,
-      visibleTilesObj.ne.x,
-      visibleTilesObj.ne.y
-    );
+  private _loadHighlightsForTiles(
+    visibleTilesObj: TilesObject,
+    options: SpotPreviewSearchOptions
+  ) {
+    const requestId = ++this._spotPreviewRequestId;
     // We use a strip-based approach to strict query only the visible tiles.
     // This avoids all ambiguity with global bounding boxes and wrapping.
 
@@ -1275,14 +1321,10 @@ export class SpotMapDataManager {
     // We strictly query the visible viewport bounds, splitting at the IDL if necessary.
     // This avoids querying buffer tiles (off-screen) and prevents global inversions.
 
-    const queries: Promise<{ hits: any[] }>[] = [];
+    const queries: Promise<{ hits: SpotSearchHit[] }>[] = [];
 
     if (visibleTilesObj.viewportBounds) {
       const { north, south, east, west } = visibleTilesObj.viewportBounds;
-
-      // If zoom is less than 10, only show/highlight spots that have images.
-      // If zoom is 10 or greater, show all highlights regardless of image presence.
-      const onlyWithImages = visibleTilesObj.zoom < 10;
 
       if (west > east) {
         // Viewport crosses IDL (e.g. West=170, East=-170)
@@ -1298,12 +1340,12 @@ export class SpotMapDataManager {
               south,
               mid1,
               west,
-              this.HIGHLIGHT_MAX_COUNT,
+              options.limit,
               undefined,
               undefined,
               undefined,
               undefined,
-              onlyWithImages
+              options.onlyWithImages
             )
           );
           queries.push(
@@ -1312,12 +1354,12 @@ export class SpotMapDataManager {
               south,
               180,
               mid1,
-              this.HIGHLIGHT_MAX_COUNT,
+              options.limit,
               undefined,
               undefined,
               undefined,
               undefined,
-              onlyWithImages
+              options.onlyWithImages
             )
           );
         } else {
@@ -1327,12 +1369,12 @@ export class SpotMapDataManager {
               south,
               180,
               west,
-              this.HIGHLIGHT_MAX_COUNT,
+              options.limit,
               undefined,
               undefined,
               undefined,
               undefined,
-              onlyWithImages
+              options.onlyWithImages
             )
           );
         }
@@ -1347,12 +1389,12 @@ export class SpotMapDataManager {
               south,
               mid2,
               -180,
-              this.HIGHLIGHT_MAX_COUNT,
+              options.limit,
               undefined,
               undefined,
               undefined,
               undefined,
-              onlyWithImages
+              options.onlyWithImages
             )
           );
           queries.push(
@@ -1361,12 +1403,12 @@ export class SpotMapDataManager {
               south,
               east,
               mid2,
-              this.HIGHLIGHT_MAX_COUNT,
+              options.limit,
               undefined,
               undefined,
               undefined,
               undefined,
-              onlyWithImages
+              options.onlyWithImages
             )
           );
         } else {
@@ -1376,12 +1418,12 @@ export class SpotMapDataManager {
               south,
               east,
               -180,
-              this.HIGHLIGHT_MAX_COUNT,
+              options.limit,
               undefined,
               undefined,
               undefined,
               undefined,
-              onlyWithImages
+              options.onlyWithImages
             )
           );
         }
@@ -1398,12 +1440,12 @@ export class SpotMapDataManager {
               south,
               mid,
               west,
-              this.HIGHLIGHT_MAX_COUNT,
+              options.limit,
               undefined,
               undefined,
               undefined,
               undefined,
-              onlyWithImages
+              options.onlyWithImages
             )
           );
           queries.push(
@@ -1412,12 +1454,12 @@ export class SpotMapDataManager {
               south,
               east,
               mid,
-              this.HIGHLIGHT_MAX_COUNT,
+              options.limit,
               undefined,
               undefined,
               undefined,
               undefined,
-              onlyWithImages
+              options.onlyWithImages
             )
           );
         } else {
@@ -1427,12 +1469,12 @@ export class SpotMapDataManager {
               south,
               east,
               west,
-              this.HIGHLIGHT_MAX_COUNT,
+              options.limit,
               undefined,
               undefined,
               undefined,
               undefined,
-              onlyWithImages
+              options.onlyWithImages
             )
           );
         }
@@ -1444,7 +1486,11 @@ export class SpotMapDataManager {
 
     Promise.all(queries)
       .then((results) => {
-        const allHits: any[] = [];
+        if (requestId !== this._spotPreviewRequestId) {
+          return;
+        }
+
+        const allHits: SpotSearchHit[] = [];
         results.forEach((res) => {
           if (res && res.hits) {
             allHits.push(...res.hits);
@@ -1452,9 +1498,12 @@ export class SpotMapDataManager {
         });
 
         // Deduplicate hits (just in case)
-        const uniqueHits = new Map();
+        const uniqueHits = new Map<string, SpotSearchHit>();
         allHits.forEach((hit) => {
           const id = hit.document?.id || hit.id;
+          if (!id) {
+            return;
+          }
           if (!uniqueHits.has(id)) {
             uniqueHits.set(id, hit);
           }
@@ -1463,7 +1512,7 @@ export class SpotMapDataManager {
         const previews = Array.from(uniqueHits.values())
           .map((hit) => this._getOrCreateSpotPreviewFromHit(hit))
           .sort((a, b) => this._sortPreviewsByRatingThenImage(a, b))
-          .slice(0, this.HIGHLIGHT_MAX_COUNT);
+          .slice(0, options.limit);
 
         // Check for equality to prevent unnecessary signal updates
         const currentSpots = this._visibleHighlightedSpots();
@@ -1642,7 +1691,7 @@ export class SpotMapDataManager {
     if (!spots || spots.length === 0) {
       const _lastVisibleTiles = this._lastVisibleTiles();
       if (_lastVisibleTiles) {
-        this._showCachedSpotsAndMarkersForTiles(_lastVisibleTiles);
+        this._showCachedLoadedSpotsAndMarkersForTiles(_lastVisibleTiles);
       }
       return;
     }
@@ -1682,7 +1731,7 @@ export class SpotMapDataManager {
 
     const _lastVisibleTiles = this._lastVisibleTiles();
     if (_lastVisibleTiles) {
-      this._showCachedSpotsAndMarkersForTiles(_lastVisibleTiles);
+      this._showCachedLoadedSpotsAndMarkersForTiles(_lastVisibleTiles);
     }
   }
 
@@ -1849,7 +1898,7 @@ export class SpotMapDataManager {
     // update the map to show the new spot on the loaded spots array.
     const lastVisibleTiles = this._lastVisibleTiles();
     if (lastVisibleTiles && lastVisibleTiles?.zoom >= this.spotZoom) {
-      this._showCachedSpotsAndMarkersForTiles(lastVisibleTiles);
+      this._showCachedLoadedSpotsAndMarkersForTiles(lastVisibleTiles);
     }
   }
 
