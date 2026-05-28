@@ -10,7 +10,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import { isPlatformBrowser, NgOptimizedImage } from "@angular/common";
+import { isPlatformBrowser } from "@angular/common";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -41,13 +41,13 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 import { AnyMedia, ExternalImage } from "../../../db/models/Media";
+import { isBot } from "../../../scripts/Helpers";
 
 type EventStatus = "upcoming" | "live" | "past";
 
 @Component({
   selector: "app-event-info-page",
   imports: [
-    NgOptimizedImage,
     RouterLink,
     MatButtonModule,
     MatIconModule,
@@ -88,6 +88,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly showHeader = signal(true);
   readonly isEmbedded = signal(false);
   readonly isBrowser = signal(isPlatformBrowser(this._platformId));
+  readonly isCrawler = signal(this.isBrowser() && isBot());
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
@@ -183,6 +184,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly hasMapPreview = computed(
     () =>
       this.isBrowser() &&
+      !this.isCrawler() &&
       !!this.mapPreviewBounds() &&
       this.mapMarkers().length > 0,
   );
@@ -213,7 +215,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this._platformId)) {
       effect(() => {
         const event = this.event();
-        if (!event) {
+        if (!event || this.isCrawler()) {
           this.spots.set([]);
           return;
         }
@@ -242,7 +244,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     });
 
     if (
-      isPlatformBrowser(this._platformId) &&
+      this.isBrowser() &&
+      !this.isCrawler() &&
       !this.mapsApiService.isApiLoaded()
     ) {
       this.mapsApiService.loadGoogleMapsApi();

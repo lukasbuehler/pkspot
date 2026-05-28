@@ -25,7 +25,7 @@
               <img
                 [ngSrc]="getImageSrc($index, mediaObj)"
                 fill
-                priority
+                [priority]="$index === 0"
                 [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"
                 (error)="onImageError($event, $index, mediaObj)"
                 (load)="onImageLoad($event, $index, mediaObj)"

@@ -165,45 +165,70 @@
       </section>
 
       @if (hasMapPreview()) {
-        <section class="event-section map-preview">
-          <div class="map-preview-header">
-            <div>
-              <span class="info-label" i18n="@@event_info.map_label">
-                Event map
-              </span>
-              <p class="map-preview-title">
-                {{ event.venueString }}, {{ event.localityString }}
-              </p>
+        @defer (on viewport) {
+          <section class="event-section map-preview">
+            <div class="map-preview-header">
+              <div>
+                <span class="info-label" i18n="@@event_info.map_label">
+                  Event map
+                </span>
+                <p class="map-preview-title">
+                  {{ event.venueString }}, {{ event.localityString }}
+                </p>
+              </div>
+              <a
+                mat-icon-button
+                [routerLink]="mapRoute()"
+                aria-label="Open event map"
+                matTooltip="Open event map"
+                i18n-matTooltip="@@event_info.open_map"
+              >
+                <mat-icon>open_in_full</mat-icon>
+              </a>
             </div>
-            <a
-              mat-icon-button
-              [routerLink]="mapRoute()"
-              aria-label="Open event map"
-              matTooltip="Open event map"
-              i18n-matTooltip="@@event_info.open_map"
-            >
-              <mat-icon>open_in_full</mat-icon>
-            </a>
-          </div>
 
-          <div class="map-preview-frame">
-            <app-google-map-2d
-              id="eventInfoMap"
-              [showGeolocation]="false"
-              [boundRestriction]="mapPreviewBounds()!"
-              [polygons]="areaPolygon() ? [areaPolygon()!] : []"
-              [minZoom]="event.minZoom ?? 10"
-              [focusZoom]="event.focusZoom ?? 18"
-              mapStyle="satellite"
-              [markers]="[]"
-              [priorityMarkers]="mapMarkers()"
-              [spots]="spots()"
-              [highlightedSpots]="[]"
-              [hideRegularSpotPins]="true"
-              [showSpotPreview]="false"
-            ></app-google-map-2d>
-          </div>
-        </section>
+            <div class="map-preview-frame">
+              <app-google-map-2d
+                id="eventInfoMap"
+                [showGeolocation]="false"
+                [boundRestriction]="mapPreviewBounds()!"
+                [polygons]="areaPolygon() ? [areaPolygon()!] : []"
+                [minZoom]="event.minZoom ?? 10"
+                [focusZoom]="event.focusZoom ?? 18"
+                mapStyle="satellite"
+                [markers]="[]"
+                [priorityMarkers]="mapMarkers()"
+                [spots]="spots()"
+                [highlightedSpots]="[]"
+                [hideRegularSpotPins]="true"
+                [showSpotPreview]="false"
+              ></app-google-map-2d>
+            </div>
+          </section>
+        } @placeholder {
+          <section class="event-section map-preview">
+            <div class="map-preview-header">
+              <div>
+                <span class="info-label" i18n="@@event_info.map_label">
+                  Event map
+                </span>
+                <p class="map-preview-title">
+                  {{ event.venueString }}, {{ event.localityString }}
+                </p>
+              </div>
+              <a
+                mat-icon-button
+                [routerLink]="mapRoute()"
+                aria-label="Open event map"
+                matTooltip="Open event map"
+                i18n-matTooltip="@@event_info.open_map"
+              >
+                <mat-icon>open_in_full</mat-icon>
+              </a>
+            </div>
+            <div class="map-preview-frame" aria-hidden="true"></div>
+          </section>
+        }
       }
     </article>
   </main>
