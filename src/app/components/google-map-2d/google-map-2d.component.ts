@@ -38,10 +38,6 @@ import { Subscription } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { MapsApiService } from "../../services/maps-api.service";
 import { ConsentService } from "../../services/consent.service";
-import {
-  SpotClusterDotSchema,
-  SpotClusterTileSchema,
-} from "../../../db/schemas/SpotClusterTile.js";
 import { GeoPoint } from "firebase/firestore";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
@@ -60,7 +56,6 @@ import { AnyMedia } from "../../../db/models/Media";
 import { ThemeService } from "../../services/theme.service";
 import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.component";
 import { AdvancedMapMarkerComponent } from "../map/advanced-map-marker/advanced-map-marker.component";
-import { ClusterDotMarkerComponent } from "../map/cluster-dot-marker/cluster-dot-marker.component";
 import { EventDotMarkerComponent } from "../map/event-dot-marker/event-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
 import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-marker.component";
@@ -132,7 +127,6 @@ export interface TilesObject {
     SpotPreviewCardComponent,
     HighlightMarkerComponent,
     AdvancedMapMarkerComponent,
-    ClusterDotMarkerComponent,
     EventDotMarkerComponent,
     SpotPreviewMarkerComponent,
     MatSnackBarModule,
@@ -339,28 +333,7 @@ export class GoogleMap2dComponent
 
   @Input() spots: (LocalSpot | Spot)[] = [];
 
-  private readonly _dotsSignal = signal<SpotClusterDotSchema[]>([]);
   private readonly _highlightedSpotsSignal = signal<SpotPreviewData[]>([]);
-
-  @Input()
-  set dots(value: SpotClusterDotSchema[] | null | undefined) {
-    this._dotsSignal.set(value ? [...value] : []);
-  }
-  get dots(): SpotClusterDotSchema[] {
-    return this._dotsSignal();
-  }
-
-  /**
-   * When true, the low-zoom spot-cluster dot overlay is suppressed.
-   * Used by the main map so the community dots can take that visual
-   * slot. Other hosts (event page, embed) leave this false and keep
-   * the cluster density indicator.
-   *
-   * Forward-looking: a fallback path could flip this off for regions
-   * that don't yet have a community page so users still get visual
-   * density cues there.
-   */
-  @Input() hideSpotClusters: boolean = false;
 
   @Input()
   set highlightedSpots(value: SpotPreviewData[] | null | undefined) {
@@ -1859,49 +1832,6 @@ export class GoogleMap2dComponent
     return paths;
   }
 
-  clickDot(dot: SpotClusterDotSchema) {
-    if (dot.spot_id) {
-      this.spotClick.emit(dot.spot_id as SpotId);
-    } else if (
-      (dot.location &&
-        typeof dot.location.latitude === "number" &&
-        typeof dot.location.longitude === "number") ||
-      (dot.location_raw &&
-        typeof dot.location_raw.lat === "number" &&
-        typeof dot.location_raw.lng === "number")
-    ) {
-      let lat: number;
-      let lng: number;
-      if (
-        dot.location &&
-        typeof dot.location.latitude === "number" &&
-        typeof dot.location.longitude === "number"
-      ) {
-        lat = dot.location.latitude;
-        lng = dot.location.longitude;
-      } else {
-        lat = dot.location_raw!.lat;
-        lng = dot.location_raw!.lng;
-      }
-
-      const location: google.maps.LatLng = new google.maps.LatLng(lat, lng);
-      this.focusOnLocation(location, this.zoom + 4);
-    } else {
-      console.warn("[GoogleMap2D] clickDot: dot has no valid location", dot);
-    }
-  }
-
-  onDotMapClick(el: HTMLElement | null | undefined, $event?: unknown) {
-    try {
-      el?.focus();
-    } catch (e) {
-      // ignore
-    }
-    if ($event && typeof ($event as any).stopPropagation === "function") {
-      ($event as any).stopPropagation();
-    }
-  }
-
   onHighlightedSpotClick(spot: SpotPreviewData) {
     console.log("Highlighted spot clicked:", spot);
     this.spotClick.emit(spot);
@@ -2142,20 +2072,6 @@ export class GoogleMap2dComponent
   closeSelectedSpot() {
     // Emit null to parent component to close the selected spot
     this.spotClick.emit(null as any);
-  }
-
-  /**
-   * Track function for spot dots to prevent unnecessary DOM recreation
-   */
-  trackDot(index: number, dot: SpotClusterDotSchema): string {
-    if (dot.spot_id) return dot.spot_id;
-    if (dot.location) {
-      return `${dot.location.latitude},${dot.location.longitude}_${dot.weight}`;
-    }
-    if (dot.location_raw) {
-      return `${dot.location_raw.lat},${dot.location_raw.lng}_${dot.weight}`;
-    }
-    return index.toString();
   }
 
   trackSpot(index: number, spot: LocalSpot | Spot): string {

@@ -13,9 +13,8 @@ import { MapAdvancedMarker } from "@angular/google-maps";
  * so the host can open the panel.
  *
  * Visual: filled blue dot, sized by scope hierarchy (country > region >
- * locality). Matches the spot-cluster-dot-marker style so the map keeps
- * a unified "blue interactive dot" language. No text label; labels appear
- * on hover via the native title tooltip, and tapping opens the panel.
+ * locality). No text label; labels appear on hover via the native title
+ * tooltip, and tapping opens the panel.
  *
  * Distinct from the active-community area circle (`communityArea` on the map)
  * which is a visual area overlay; this is the persistent click target.

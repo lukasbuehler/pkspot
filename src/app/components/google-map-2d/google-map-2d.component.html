@@ -45,14 +45,7 @@
   @for (spot of getVisibleHighlightedSpots(); track spot.id) {
   <app-highlight-marker [spot]="spot" [zIndex]="getHighlightZIndex(spot)" [mapZoom]="zoom"
     [hoverPreviewEnabled]="showSpotPreview()" (markerClick)="onHighlightedSpotClick($event)"></app-highlight-marker>
-  } @if(zoom < 16 && !hideSpotClusters) { @for (dot of dots; track trackDot($index, dot)) { <!-- Spot cluster dots at
-    low zoom. On the main map these are pre-filtered by SpotMapComponent so they remain only where no locality community
-    circle covers the area. Other map hosts can still render all dots. -->
-    <app-cluster-dot-marker [dot]="dot" (markerClick)="clickDot($event)"></app-cluster-dot-marker>
-    } }
-
-    <!-- Heatmap Layer - show from zoom 2 until spots appear at zoom 16 -->
-    <!-- heatmap disabled: using cluster dots instead -->
+  }
 
     <!-- only display the bounds when close enough (zoom >= 14) -->
     @if (zoom >= 14) { @for(area of getVisibleHighlightedSpotAreas(); track trackSpotPreviewArea($index, area)) {
