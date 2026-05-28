@@ -29,7 +29,7 @@ button.menuButton {
 
 button.menuButton.selected {
   border-left: 2px solid;
-  border-color: #0039cb;
+  border-color: var(--mat-sys-primary);
   padding-left: 16px;
 }
 

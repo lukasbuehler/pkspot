@@ -157,11 +157,11 @@ app-img-carousel {
   padding: 16px;
   display: flex;
   justify-content: center;
-  background-color: #ffdad6;
+  background-color: var(--mat-sys-error-container);
   margin-bottom: 10px;
 
   > * {
-    color: #410002;
+    color: var(--mat-sys-on-error-container);
   }
 }
 
@@ -192,17 +192,15 @@ div.google-img-container {
   font-size: 1rem;
 }
 
-// Styling for negative amenities
 .negative-amenity {
-  // Use a muted red color scheme for negative amenities
   &.mat-mdc-chip {
-    border-color: rgba(244, 67, 54, 0.6);
-    background-color: rgba(244, 67, 54, 0.12);
-    color: rgba(244, 67, 54, 0.6);
+    border-color: color-mix(in srgb, var(--mat-sys-error) 60%, transparent);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+    color: color-mix(in srgb, var(--mat-sys-error) 60%, transparent);
   }
 
   mat-icon {
-    color: rgba(195, 47, 37, 0.8);
+    color: color-mix(in srgb, var(--mat-sys-error) 80%, transparent);
   }
 }
 
@@ -272,22 +270,6 @@ div.google-img-container {
     opacity: 0;
     max-height: 0;
     pointer-events: none;
-  }
-}
-
-.access-off-limits {
-  color: #ffb4ab !important; // Material Design Error Color
-
-  mat-icon {
-    color: #ffb4ab !important;
-  }
-}
-
-.access-private {
-  color: #fff28f !important;
-
-  mat-icon {
-    color: #fff28f !important;
   }
 }
 

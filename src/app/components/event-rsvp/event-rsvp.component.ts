@@ -23,10 +23,17 @@ import {
 } from "../../../db/schemas/EventRSVPSchema";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 
 @Component({
   selector: "app-event-rsvp",
-  imports: [RouterLink, MatButtonModule, MatButtonToggleModule, MatIconModule],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatIconModule,
+    FancyCounterComponent,
+  ],
   templateUrl: "./event-rsvp.component.html",
   styleUrl: "./event-rsvp.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,9 +54,14 @@ export class EventRsvpComponent implements OnDestroy {
   readonly countedRsvp = signal<EventRSVPOption | null>(null);
   readonly isLoading = signal(false);
   readonly isSaving = signal(false);
+  readonly isEditingRsvp = signal(false);
   readonly errorMessage = signal("");
 
   readonly isSignedIn = computed(() => !!this.userId());
+  readonly hasRsvp = computed(() => !!this.selectedRsvp());
+  readonly shouldShowRsvpControls = computed(
+    () => this.isSignedIn() && (!this.hasRsvp() || this.isEditingRsvp()),
+  );
   readonly displayCounts = computed(() => {
     const base = this.counts() ?? {
       going: 0,
@@ -85,6 +97,7 @@ export class EventRsvpComponent implements OnDestroy {
         this.selectedRsvp.set(null);
         this.loadedRsvp.set(null);
         this.countedRsvp.set(null);
+        this.isEditingRsvp.set(false);
         return;
       }
       void this._loadRsvp(eventId);
@@ -121,6 +134,7 @@ export class EventRsvpComponent implements OnDestroy {
     try {
       await this._eventsService.setMyRsvp(eventId, next);
       this.loadedRsvp.set(next);
+      this.isEditingRsvp.set(false);
     } catch (err) {
       console.error("Failed to save event RSVP", err);
       this.selectedRsvp.set(previousSelected);
@@ -148,6 +162,7 @@ export class EventRsvpComponent implements OnDestroy {
     try {
       await this._eventsService.clearMyRsvp(eventId);
       this.loadedRsvp.set(null);
+      this.isEditingRsvp.set(false);
     } catch (err) {
       console.error("Failed to clear event RSVP", err);
       this.selectedRsvp.set(previousSelected);
@@ -172,6 +187,7 @@ export class EventRsvpComponent implements OnDestroy {
       this.loadedRsvp.set(rsvp);
       this.selectedRsvp.set(rsvp);
       this.countedRsvp.set(this._rsvpAlreadyCounted(rsvp, this.counts()));
+      this.isEditingRsvp.set(false);
     } catch (err) {
       if (version !== this._loadVersion) return;
       console.error("Failed to load event RSVP", err);

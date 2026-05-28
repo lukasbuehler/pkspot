@@ -1,0 +1,24 @@
+:host {
+  display: block;
+  min-height: 100%;
+  color: var(--mat-sys-on-surface);
+}
+
+.map-overlay-visual-page {
+  min-height: 100vh;
+  padding: 24px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
+      transparent 42%
+    ),
+    var(--mat-sys-surface);
+}
+
+.map-overlay-surface {
+  display: grid;
+  gap: 18px;
+  width: min(720px, calc(100vw - 120px));
+  margin-left: 64px;
+}

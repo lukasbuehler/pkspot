@@ -24,6 +24,14 @@ const visualTestRoutes: Routes = environment.production
           ).then((m) => m.MarkerVisualTestPageComponent),
         data: { routeName: "Marker Visual Test" },
       },
+      {
+        path: "__visual/map-overlay",
+        loadComponent: () =>
+          import(
+            "./components/map/map-overlay-visual-test-page/map-overlay-visual-test-page.component"
+          ).then((m) => m.MapOverlayVisualTestPageComponent),
+        data: { routeName: "Map Overlay Visual Test" },
+      },
     ];
 
 export const routes: Routes = [

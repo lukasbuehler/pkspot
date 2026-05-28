@@ -101,8 +101,8 @@ a {
   z-index: 9999;
   // Only takes up the safe-area-inset (notch height) or a minimal fallback
   height: max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), 20px);
-  background: rgba(255, 0, 0, 0.6);
-  color: #fff;
+  background: color-mix(in srgb, var(--mat-sys-error) 60%, transparent);
+  color: var(--mat-sys-on-error);
   font-weight: bold;
   font-size: 10px;
   text-align: center;

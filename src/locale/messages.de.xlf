@@ -6902,14 +6902,46 @@
     </unit>
     <unit id="event_rsvp.count_going">
       <segment state="initial">
-        <source>going</source>
-        <target>gehen hin</target>
+        <source>{VAR_PLURAL, plural, =1 {going} other {going}}</source>
+        <target>{VAR_PLURAL, plural, =1 {geht} other {gehen}}</target>
       </segment>
     </unit>
     <unit id="event_rsvp.count_interested">
       <segment state="initial">
-        <source>interested</source>
-        <target>interessiert</target>
+        <source>{VAR_PLURAL, plural, =1 {interested} other {interested}}</source>
+        <target>{VAR_PLURAL, plural, =1 {interessiert} other {interessiert}}</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.current_going">
+      <segment state="initial">
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">going</pc></source>
+        <target>Ich <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">gehe</pc></target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.current_interested">
+      <segment state="initial">
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">interested</pc>
+        </source>
+        <target>Ich bin <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">interessiert</pc>
+        </target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.current_notgoing">
+      <segment state="initial">
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not going</pc></source>
+        <target>Ich <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">gehe nicht</pc></target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.edit">
+      <segment state="initial">
+        <source>Edit RSVP</source>
+        <target>RSVP bearbeiten</target>
       </segment>
     </unit>
     <unit id="event_rsvp.group_label">

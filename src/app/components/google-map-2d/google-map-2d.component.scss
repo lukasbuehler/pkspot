@@ -21,8 +21,8 @@
 .geolocation-marker {
   height: 20px;
   width: 20px;
-  border: solid white 3px;
-  background-color: blue;
+  border: solid var(--mat-sys-on-primary) 3px;
+  background-color: var(--mat-sys-primary);
   border-radius: 100%;
   transform: translateY(50%);
 
@@ -69,8 +69,8 @@
 }
 
 .debug-panel {
-  color: white;
-  background-color: red;
+  color: var(--mat-sys-on-error);
+  background-color: var(--mat-sys-error);
   position: absolute;
   left: 0px;
   padding: 5px;

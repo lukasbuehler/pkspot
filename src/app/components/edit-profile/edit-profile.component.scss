@@ -5,8 +5,8 @@
 }
 
 .alert.alert-danger {
-  color: #f44336;
-  border-color: #f44336;
+  color: var(--mat-sys-error);
+  border-color: var(--mat-sys-error);
   background-color: transparent;
 }
 
@@ -17,7 +17,7 @@
 }
 
 .social-links-section {
-  border-top: 1px solid rgba(127, 127, 127, 0.25);
+  border-top: 1px solid var(--mat-sys-outline-variant);
   padding-top: 12px;
 }
 

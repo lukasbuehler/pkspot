@@ -1,5 +1,7 @@
 .event-rsvp {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
 }
 
@@ -17,6 +19,18 @@
 }
 
 .rsvp-counts strong {
+  color: var(--mat-sys-on-surface);
+  font-weight: 700;
+}
+
+.rsvp-current {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.rsvp-current strong {
   color: var(--mat-sys-on-surface);
   font-weight: 700;
 }

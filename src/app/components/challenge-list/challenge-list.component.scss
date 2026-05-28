@@ -27,7 +27,7 @@
 .challenge-card:hover {
   transition: filter 0.2s ease-in-out, background-color 0.2 ease-in-out;
   filter: brightness(1.2);
-  background-color: #1f1f23;
+  background-color: var(--mat-sys-surface-container-high);
 
   img {
     transition: transform 0.2s ease-in-out;

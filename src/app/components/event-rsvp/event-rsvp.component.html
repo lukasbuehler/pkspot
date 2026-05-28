@@ -1,22 +1,39 @@
 <div class="event-rsvp">
-  @if((displayCounts()?.going && displayCounts().going > 0) || (displayCounts()?.interested &&
-  displayCounts().interested
-  > 0)) {
+  @let counts = displayCounts();
+  @if(counts.going > 0 || counts.interested > 0) {
   <div class="rsvp-counts" aria-live="polite">
-    @if(displayCounts()?.going && displayCounts().going > 0) {
+    @if(counts.going > 0) {
     <span>
-      <strong>{{ displayCounts().going }}</strong>
-      <span i18n="@@event_rsvp.count_going">going</span>
+      <strong><app-fancy-counter [number]="counts.going"></app-fancy-counter></strong>
+      <span i18n="@@event_rsvp.count_going">{counts.going, plural, =1 {going} other {going}}</span>
     </span> }
-    @if(displayCounts()?.interested && displayCounts().interested > 0) {
+    @if(counts.interested > 0) {
     <span>
-      <strong>{{ displayCounts().interested }}</strong>
-      <span i18n="@@event_rsvp.count_interested">interested</span>
+      <strong><app-fancy-counter [number]="counts.interested"></app-fancy-counter></strong>
+      <span i18n="@@event_rsvp.count_interested">{counts.interested, plural, =1 {interested} other
+        {interested}}</span>
     </span>
     }
   </div> }
 
   @if (isSignedIn()) {
+  @if (selectedRsvp() && !isEditingRsvp()) {
+  <div class="rsvp-current" aria-live="polite">
+    @if (selectedRsvp() === "going") {
+    <span i18n="@@event_rsvp.current_going">I'm <strong>going</strong></span>
+    } @else if (selectedRsvp() === "interested") {
+    <span i18n="@@event_rsvp.current_interested">I'm <strong>interested</strong></span>
+    } @else {
+    <span i18n="@@event_rsvp.current_notgoing">I'm <strong>not going</strong></span>
+    }
+    <button mat-icon-button type="button" [disabled]="isSaving()" (click)="isEditingRsvp.set(true)"
+      aria-label="Edit RSVP" i18n-aria-label="@@event_rsvp.edit">
+      <mat-icon>edit</mat-icon>
+    </button>
+  </div>
+  }
+
+  @if (shouldShowRsvpControls()) {
   <div class="rsvp-controls">
     <mat-button-toggle-group name="rsvp" aria-label="RSVP" i18n-aria-label="@@event_rsvp.group_label"
       [value]="selectedRsvp()" [disabled]="isLoading() || isSaving()" (change)="onRsvpChange($event)">
@@ -40,6 +57,7 @@
     </button>
     }
   </div>
+  }
   } @else {
   <a mat-stroked-button routerLink="/sign-in">
     <mat-icon>login</mat-icon>

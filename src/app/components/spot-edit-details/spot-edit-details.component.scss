@@ -1,6 +1,6 @@
 .spot-edit-card {
   border-color: var(--mat-sys-outline-variant);
-  background: rgb(255 255 255 / 2%);
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 2%, transparent);
 }
 
 .spot-edit-card__type {

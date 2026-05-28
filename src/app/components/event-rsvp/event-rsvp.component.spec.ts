@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatButtonToggleChange } from "@angular/material/button-toggle";
+import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { BehaviorSubject } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -28,6 +29,7 @@ describe("EventRsvpComponent", () => {
     await TestBed.configureTestingModule({
       imports: [EventRsvpComponent],
       providers: [
+        provideNoopAnimations(),
         { provide: EventsService, useValue: eventsService },
         {
           provide: AuthenticationService,
@@ -131,5 +133,115 @@ describe("EventRsvpComponent", () => {
       notgoing: 0,
       total: 1,
     });
+  });
+
+  it("uses fancy counters in the visible aggregate counts", async () => {
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.componentRef.setInput("counts", {
+      going: 2,
+      interested: 1,
+      notgoing: 0,
+      total: 3,
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(
+      fixture.nativeElement.querySelectorAll("app-fancy-counter"),
+    ).toHaveLength(2);
+  });
+
+  it("hides RSVP controls behind an edit summary when a response is loaded", async () => {
+    eventsService.getMyRsvp.mockResolvedValue({
+      user_id: "user-1",
+      event_id: "event-1",
+      rsvp: "going",
+      time_created: new Date(),
+      time_updated: new Date(),
+    });
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector("mat-button-toggle-group"),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('button[aria-label="Edit RSVP"]'),
+    ).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain("I'm");
+  });
+
+  it("reveals RSVP controls from the edit summary", async () => {
+    eventsService.getMyRsvp.mockResolvedValue({
+      user_id: "user-1",
+      event_id: "event-1",
+      rsvp: "going",
+      time_created: new Date(),
+      time_updated: new Date(),
+    });
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector(
+        'button[aria-label="Edit RSVP"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector("mat-button-toggle-group"),
+    ).toBeTruthy();
+  });
+
+  it("collapses back to the summary after saving an edited RSVP", async () => {
+    eventsService.getMyRsvp.mockResolvedValue({
+      user_id: "user-1",
+      event_id: "event-1",
+      rsvp: "going",
+      time_created: new Date(),
+      time_updated: new Date(),
+    });
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.isEditingRsvp.set(true);
+    await component.onRsvpChange({
+      value: "interested",
+    } as MatButtonToggleChange);
+    fixture.detectChanges();
+
+    expect(component.selectedRsvp()).toBe("interested");
+    expect(component.isEditingRsvp()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector("mat-button-toggle-group"),
+    ).toBeNull();
+  });
+
+  it("shows RSVP controls again after clearing a response", async () => {
+    eventsService.getMyRsvp.mockResolvedValue({
+      user_id: "user-1",
+      event_id: "event-1",
+      rsvp: "going",
+      time_created: new Date(),
+      time_updated: new Date(),
+    });
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await component.clearRsvp();
+    fixture.detectChanges();
+
+    expect(component.selectedRsvp()).toBeNull();
+    expect(component.isEditingRsvp()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector("mat-button-toggle-group"),
+    ).toBeTruthy();
   });
 });

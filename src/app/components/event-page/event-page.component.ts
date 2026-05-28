@@ -138,6 +138,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly status = computed<EventStatus | null>(
     () => this.event()?.status() ?? null,
   );
+  readonly showRsvp = computed(() => this.status() === "upcoming");
   readonly statusLabel = computed(() => {
     const event = this.event();
     const status = this.status();

@@ -44,6 +44,29 @@ html {
   // of the viewport read this var to lift themselves above the keyboard.
   --keyboard-offset: 0px;
   --keyboard-scroll-space: 0px;
+
+  --map-glass-surface-base: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container) 80%,
+    var(--mat-sys-on-surface) 20%
+  );
+  --map-glass-surface: color-mix(
+    in srgb,
+    var(--map-glass-surface-base) 85%,
+    transparent
+  );
+  --map-glass-blur: blur(10px);
+  --app-access-off-limits: var(--mat-sys-error);
+  --app-access-private: color-mix(
+    in srgb,
+    var(--mat-sys-error) 45%,
+    var(--mat-sys-secondary) 55%
+  );
+}
+
+html.platform-ios {
+  --map-glass-surface: var(--map-glass-surface-base);
+  --map-glass-blur: none;
 }
 
 // When nav bar has native-platform class, increase the nav bar height variable globally
@@ -267,6 +290,16 @@ app-root {
   border-radius: 8px;
   background: var(--mat-sys-surface-variant);
   opacity: 0.7;
+}
+
+.access-off-limits,
+.access-off-limits mat-icon {
+  color: var(--app-access-off-limits) !important;
+}
+
+.access-private,
+.access-private mat-icon {
+  color: var(--app-access-private) !important;
 }
 
 /* Alternative: Hide the badge entirely if preferred (only if you show the reCAPTCHA terms elsewhere) */

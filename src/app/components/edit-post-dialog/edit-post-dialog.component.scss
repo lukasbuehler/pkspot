@@ -4,7 +4,7 @@
 
 .outline-box {
   border-radius: 5px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--mat-sys-outline-variant);
 }
 
 mat-form-field,

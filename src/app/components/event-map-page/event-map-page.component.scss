@@ -35,15 +35,6 @@
   color: var(--mat-sys-on-surface);
 }
 
-// Status row below the event dates.
-// Color rules follow AGENTS.md "Theme colors": green = live, blue = upcoming,
-// red = past. The `--mat-sys-*` tokens aren't reliably emitted by the
-// current PK Spot theme setup (mat.all-component-themes only) so we use
-// the dark-theme palette hexes directly as fallback — these match the
-// "primary 80" and "secondary 80" values from `m3-theme.scss`, which is
-// the same light-blue / light-green users see on primary buttons in dark
-// mode.
-//
 // !important keeps these rules from being beaten by the typography
 // classes' own `color` resolution.
 .status-line {
@@ -57,19 +48,19 @@
 }
 
 .status-line.past {
-  color: var(--mat-sys-error, #ffb4ab) !important;
+  color: var(--mat-sys-error) !important;
 }
 
 .status-line.upcoming {
-  color: var(--mat-sys-primary, #b8c4ff) !important;
+  color: var(--mat-sys-primary) !important;
 }
 
 .status-line.live {
-  color: var(--mat-sys-primary, #b8c4ff) !important;
+  color: var(--mat-sys-secondary) !important;
 }
 
 .status-line.sponsored {
-  color: var(--mat-sys-primary, #b8c4ff) !important;
+  color: var(--mat-sys-primary) !important;
 }
 
 // Hint text-overflow safety on a tight header row.

@@ -43,7 +43,7 @@ export type ImgCarouselImageFit = "cover" | "contain";
 
 @Component({
   selector: "app-img-carousel",
-  imports: [NgOptimizedImage, MatProgressSpinnerModule],
+  imports: [NgOptimizedImage, MatProgressSpinnerModule, MatIconButton, MatIcon],
   templateUrl: "./img-carousel.component.html",
   styleUrl: "./img-carousel.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,7 +59,6 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   /** Tracks storage images whose original object failed and should use the extension failed copy. */
   failedCopyFallbackIndices = signal<Set<number>>(new Set());
 
-  horizontalPaddingPx = input<number>(0);
   imageFits = input<readonly ImgCarouselImageFit[]>([]);
   imageBackgroundColors = input<readonly (string | null | undefined)[]>([]);
 
@@ -74,6 +73,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   mediaRemove = output<AnyMedia>();
   imageAspectRatios = signal<Map<number, number>>(new Map());
   previewTrackWidth = signal(1);
+  canScrollLeft = signal(false);
+  canScrollRight = signal(false);
 
   mapsApiService = inject(MapsApiService);
   private resizeAnimationFrame: number | null = null;
@@ -85,6 +86,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   private readonly previewGapPx = 10;
   private readonly containedImageDefaultBackground =
     "var(--mat-sys-surface-container-highest)";
+  readonly scrollLeftLabel = "Scroll images left";
+  readonly scrollRightLabel = "Scroll images right";
 
   @ViewChild("previewViewport")
   private previewViewport: ElementRef<HTMLElement> | undefined;
@@ -274,6 +277,19 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     this.queuePreviewResize();
   }
 
+  scrollPreview(direction: "left" | "right"): void {
+    const scroller = this.previewScroller?.nativeElement;
+    if (!scroller) {
+      return;
+    }
+
+    const distance = Math.max(scroller.clientWidth * 0.72, 180);
+    scroller.scrollBy({
+      left: direction === "right" ? distance : -distance,
+      behavior: "smooth",
+    });
+  }
+
   onPreviewClick(event: MouseEvent): void {
     if (this.previewDragMoved) {
       this.previewDragMoved = false;
@@ -424,6 +440,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     let virtualLeft = layout.startInset;
 
     this.previewTrackWidth.set(layout.trackWidth);
+    this.updatePreviewScrollState(layout.trackWidth);
 
     for (const item of Array.from(
       viewport.querySelectorAll<HTMLElement>(".spot-img-container"),
@@ -460,6 +477,22 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
 
       virtualLeft += fullWidth + this.previewGapPx;
     }
+  }
+
+  private updatePreviewScrollState(trackWidth?: number): void {
+    const scroller = this.previewScroller?.nativeElement;
+    if (!scroller) {
+      this.canScrollLeft.set(false);
+      this.canScrollRight.set(false);
+      return;
+    }
+
+    const scrollWidth = trackWidth ?? scroller.scrollWidth;
+    const maxScrollLeft = Math.max(scrollWidth - scroller.clientWidth, 0);
+    const tolerance = 4;
+
+    this.canScrollLeft.set(scroller.scrollLeft > tolerance);
+    this.canScrollRight.set(scroller.scrollLeft < maxScrollLeft - tolerance);
   }
 
   private getPreviewLayout(

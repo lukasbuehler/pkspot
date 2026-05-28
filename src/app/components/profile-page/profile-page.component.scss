@@ -49,8 +49,8 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background-color: var(--mat-sys-color-secondary-container, #e8def8);
-  color: var(--mat-sys-color-on-secondary-container, #1d192b);
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
@@ -132,7 +132,7 @@
   min-width: 100px;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
   }
 }
 
@@ -147,7 +147,7 @@
 
 .profile-section__placeholder {
   margin: 0;
-  color: var(--mat-sys-color-on-surface-variant, rgba(255, 255, 255, 0.7));
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .profile-bio__text {

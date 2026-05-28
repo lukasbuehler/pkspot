@@ -1,38 +1,11 @@
-@use "sass:map";
 @use "@angular/material" as mat;
 
 @mixin color($theme) {
-  // .pin-primary {
-  //   border-color: #dde1ff; // var(--mat-sys-on-primary-container);
-  //   background-color: #0037b9; // var(--mat-sys-primary-container);
-  //   color: #dde1ff;
-  // }
-  // .pin-iconic {
-  //   border-color: white;
-  //   background-color: #eaab0a;
-  //   color: white;
-  // }
-
   .marker-primary-light {
     @extend .small-dot-marker !optional;
-    background-color: #0037b9;
+    background-color: var(--mat-sys-primary-container);
     border-color: mat.get-theme-color($theme, primary);
   }
-
-  // .marker-primary-dark {
-  //   @extend .small-dot-marker !optional;
-  //   background-color: mat.get-theme-color($theme, primary);
-  //   border-color: #0037b9;
-  // }
-
-  // .marker-secondary-dark {
-  //   @extend .small-dot-marker !optional;
-  //   background-color: mat.get-theme-color($theme, secondary);
-  // }
-  // .marker-tertiary-dark {
-  //   @extend .small-dot-marker !optional;
-  //   background-color: mat.get-theme-color($theme, tertiary);
-  // }
 }
 
 @mixin typography($theme) {

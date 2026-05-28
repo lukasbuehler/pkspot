@@ -1979,12 +1979,36 @@
     </unit>
     <unit id="event_rsvp.count_going">
       <segment>
-        <source>going</source>
+        <source>{VAR_PLURAL, plural, =1 {going} other {going}}</source>
       </segment>
     </unit>
     <unit id="event_rsvp.count_interested">
       <segment>
-        <source>interested</source>
+        <source>{VAR_PLURAL, plural, =1 {interested} other {interested}}</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.current_going">
+      <segment>
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">going</pc></source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.current_interested">
+      <segment>
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">interested</pc>
+        </source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.current_notgoing">
+      <segment>
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not going</pc></source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.edit">
+      <segment>
+        <source>Edit RSVP</source>
       </segment>
     </unit>
     <unit id="event_rsvp.going">

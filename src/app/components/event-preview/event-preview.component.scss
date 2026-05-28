@@ -15,22 +15,20 @@
   font-weight: 600;
 }
 
-// Status colors mirror event-page; see AGENTS.md "Theme colors".
-// Hex fallbacks come from the dark-theme palette in m3-theme.scss.
 .status.past {
-  color: var(--mat-sys-error, #ffb4ab);
+  color: var(--mat-sys-error);
 }
 
 .status.upcoming {
-  color: var(--mat-sys-primary, #b8c4ff);
+  color: var(--mat-sys-primary);
 }
 
 .status.live {
-  color: var(--mat-sys-secondary, #8dd978);
+  color: var(--mat-sys-secondary);
 }
 
 .status.sponsored {
-  color: var(--mat-sys-primary, #b8c4ff);
+  color: var(--mat-sys-primary);
 }
 
 .description {

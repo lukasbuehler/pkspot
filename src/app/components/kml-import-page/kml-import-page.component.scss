@@ -1,23 +1,45 @@
 .kml-import-page-container {
+  --kml-border: var(--mat-sys-outline-variant);
+  --kml-divider: color-mix(
+    in srgb,
+    var(--mat-sys-outline-variant) 70%,
+    transparent
+  );
+  --kml-surface-subtle: color-mix(
+    in srgb,
+    var(--mat-sys-on-surface) 3%,
+    transparent
+  );
+  --kml-surface-chip: color-mix(
+    in srgb,
+    var(--mat-sys-on-surface) 6%,
+    transparent
+  );
+  --kml-selected-border: color-mix(
+    in srgb,
+    var(--mat-sys-primary) 85%,
+    var(--mat-sys-on-primary) 15%
+  );
+
   display: flex;
   flex-direction: column;
   padding: 1rem;
 
-  @media (max-width: 599px) {
-    height: calc(100% - 56px);
-  }
-
   @media (min-width: 600px) {
     height: calc(100% - 64px);
+  }
+
+  @media (max-width: 599px) {
+    height: calc(100% - 56px);
   }
 }
 
 .kml-import-shell {
-  width: min(1280px, 100%);
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  width: min(1280px, 100%);
+  margin: 0 auto;
   min-height: 0;
 }
 
@@ -28,7 +50,7 @@
 ul.checkbox-list {
   list-style-type: none;
   margin-top: 4px;
-  padding-left: 0px;
+  padding-left: 0;
 }
 
 .helpIcon {
@@ -40,22 +62,22 @@ ul.checkbox-list {
   border-radius: 15px;
 }
 
-::ng-deep .verify-acc-col {
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 0;
-  overflow: hidden;
+::ng-deep {
+  .verify-acc-col {
+    border-radius: 20px;
+    border: 1px solid var(--kml-border);
+    padding: 0;
+    overflow: hidden;
 
-  .mat-expansion-panel-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  }
+    .mat-expansion-panel-header {
+      border-bottom: 1px solid var(--kml-border);
+    }
 
-  .mat-expansion-panel-body {
-    overflow-y: scroll;
-    max-height: 400px;
+    .mat-expansion-panel-body {
+      overflow-y: scroll;
+      max-height: 400px;
 
-    > div {
-      > button {
+      > div > button {
         display: flex;
         flex-direction: row;
         justify-content: left;
@@ -73,10 +95,10 @@ ul.checkbox-list {
       }
     }
   }
-}
 
-::ng-deep .mat-expansion-panel-spacing {
-  margin: 0 !important;
+  .mat-expansion-panel-spacing {
+    margin: 0 !important;
+  }
 }
 
 .map-container {
@@ -93,14 +115,14 @@ ul.checkbox-list {
 }
 
 .folder-stats-row + .folder-stats-row {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--kml-divider);
 }
 
 .regex-preview {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--kml-border);
   border-radius: 8px;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--kml-surface-subtle);
 }
 
 .regex-preview-row {
@@ -111,7 +133,7 @@ ul.checkbox-list {
   min-height: 32px;
 
   & + & {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid var(--kml-divider);
   }
 
   mat-icon {
@@ -170,7 +192,7 @@ ul.checkbox-list {
 .verify-drawer {
   width: min(42%, 420px);
   max-width: 100%;
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 1px solid var(--kml-border);
   padding-left: 0;
 }
 
@@ -206,16 +228,16 @@ ul.checkbox-list {
   .folder-header {
     padding: 0.3rem 0.15rem;
     margin-bottom: 0.35rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--kml-divider);
   }
 }
 
 .verify-item {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--kml-surface-subtle);
   transition: border-color 0.15s ease;
 
   &.active {
-    border-color: rgba(139, 174, 255, 0.85) !important;
+    border-color: var(--kml-selected-border) !important;
   }
 }
 
@@ -238,8 +260,8 @@ ul.checkbox-list {
 
 .amenity-chip {
   font-size: 11px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--mat-sys-outline);
   border-radius: 999px;
   padding: 0.1rem 0.45rem;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--kml-surface-chip);
 }

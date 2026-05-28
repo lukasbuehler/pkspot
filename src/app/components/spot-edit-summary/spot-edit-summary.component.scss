@@ -17,7 +17,7 @@
       border: 1px solid var(--mat-sys-outline-variant);
       border-radius: 12px;
       padding: 10px 12px;
-      background: rgb(255 255 255 / 3%);
+      background: color-mix(in srgb, var(--mat-sys-on-surface) 3%, transparent);
     }
 
     .change-row-half {
@@ -25,8 +25,8 @@
     }
 
     .change-row-negative {
-      border-color: rgb(198 40 40 / 35%);
-      background-color: rgb(244 67 54 / 10%);
+      border-color: color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
+      background-color: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
     }
 
     .change-row__label {
@@ -65,8 +65,8 @@
   }
 
   .chip-negative {
-    border: 1px solid rgb(198 40 40 / 35%);
-    background-color: rgb(244 67 54 / 10%);
+    border: 1px solid color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
   }
 
   .media-section {
@@ -97,8 +97,8 @@
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        background: rgb(0 0 0 / 70%);
-        color: #fff;
+        background: color-mix(in srgb, var(--mat-sys-shadow) 70%, transparent);
+        color: var(--mat-sys-on-surface);
         display: flex;
         align-items: center;
         justify-content: center;

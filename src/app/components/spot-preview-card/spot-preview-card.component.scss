@@ -1,12 +1,27 @@
 mat-card {
   mat-card-header {
-    padding-top: 0px;
+    padding-top: 0;
     flex-grow: 1;
     overflow: hidden;
 
     ::ng-deep div.mat-mdc-card-header-text {
       width: 100%;
     }
+  }
+}
+
+.img-container {
+  position: relative;
+  background-color: var(--mat-sys-surface-container-highest);
+
+  > img {
+    object-fit: cover;
+    transition:
+      filter 0.2s ease-in-out,
+      transform 0.2s ease-in-out;
+    filter: brightness(1);
+    transform: scale(1) translateZ(0);
+    backface-visibility: hidden;
   }
 }
 
@@ -20,17 +35,7 @@ mat-card.compact {
 
   > .img-container {
     border-radius: 0;
-    position: relative;
     aspect-ratio: 1/1;
-    background-color: #2b2b2b;
-
-    > img {
-      object-fit: cover;
-      transition: filter 0.2s ease-in-out, transform 0.2s ease-in-out;
-      filter: brightness(1);
-      transform: scale(1) translateZ(0);
-      backface-visibility: hidden;
-    }
   }
 
   ::ng-deep mat-icon {
@@ -45,27 +50,16 @@ mat-card:not(.compact) {
   > .img-container {
     width: 100%;
     aspect-ratio: 4/3;
-    position: relative;
     display: block;
     overflow: hidden;
-    background-color: #2b2b2b; // Placeholder color matching dark theme card/hover
-
-    > img {
-      object-fit: cover;
-      transition: filter 0.2s ease-in-out, transform 0.2s ease-in-out;
-      filter: brightness(1);
-      transform: scale(1) translateZ(0);
-      backface-visibility: hidden;
-    }
   }
 }
 mat-card.clickable:hover {
-  background-color: #232325;
+  background-color: var(--mat-sys-surface-container-high);
   transition: background-color 0.2s ease-in-out;
   > .img-container > img {
     filter: brightness(1.2);
     transform: scale(1.1);
-    transition: filter 0.2s ease-in-out, transform 0.2s ease-in-out;
   }
 }
 
@@ -103,18 +97,4 @@ mat-card.clickable:hover {
 
 .country-code {
   font-weight: 500;
-}
-
-.access-off-limits {
-  color: #ffb4ab !important; // Material Design Error Color
-  mat-icon {
-    color: #ffb4ab !important;
-  }
-}
-
-.access-private {
-  color: #fff28f !important;
-  mat-icon {
-    color: #fff28f !important;
-  }
 }

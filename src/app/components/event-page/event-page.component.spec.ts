@@ -232,6 +232,7 @@ describe("EventInfoPageComponent", () => {
     flushSignalEffects();
 
     expect(component.statusLabel()).toBe("Starts in 3 Wochen");
+    expect(component.showRsvp()).toBe(true);
 
     vi.setSystemTime(new Date("2026-06-20T10:00:00.000Z"));
     component.event.set(
@@ -243,6 +244,13 @@ describe("EventInfoPageComponent", () => {
     flushSignalEffects();
 
     expect(component.statusLabel()).toBe("Past event");
+    expect(component.showRsvp()).toBe(false);
+
+    vi.setSystemTime(new Date("2026-06-14T12:00:00.000Z"));
+    component.event.set(buildEvent("live-event", "Live Event"));
+    flushSignalEffects();
+
+    expect(component.showRsvp()).toBe(false);
   });
 
   it("builds the hero carousel from the banner followed by inline spot images", () => {

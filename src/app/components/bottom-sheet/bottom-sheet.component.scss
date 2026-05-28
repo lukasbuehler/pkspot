@@ -60,15 +60,12 @@ div.handle-region {
   > div.handle {
     height: 6px;
     width: 50px;
-    background-color: #4a4a4f;
+    background-color: var(--mat-sys-outline);
     border-radius: 3px;
   }
 
-  // box-shadow: #1b1b1f 0px 6px 10px 0px;
-  // margin-bottom: 6px;
-
   &:not(.content-at-top) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
     transition: border-bottom 0.3s ease;
   }
 

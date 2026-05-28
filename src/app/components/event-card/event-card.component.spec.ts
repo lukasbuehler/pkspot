@@ -121,7 +121,7 @@ describe("EventCardComponent", () => {
     expect(status.nativeElement.textContent).toContain("in 3 weeks");
   });
 
-  it("uses the primary status color for live and upcoming cards", () => {
+  it("uses semantic status colors for live and upcoming cards", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-14T12:00:00.000Z"));
     fixture.componentRef.setInput(
@@ -136,7 +136,7 @@ describe("EventCardComponent", () => {
 
     let status = fixture.debugElement.query(By.css(".status-line"));
     expect(getComputedStyle(status.nativeElement).color).toBe(
-      "var(--mat-sys-primary, #b8c4ff)",
+      "var(--mat-sys-secondary)",
     );
 
     vi.setSystemTime(new Date("2026-06-01T12:00:00.000Z"));
@@ -152,7 +152,7 @@ describe("EventCardComponent", () => {
 
     status = fixture.debugElement.query(By.css(".status-line"));
     expect(getComputedStyle(status.nativeElement).color).toBe(
-      "var(--mat-sys-primary, #b8c4ff)",
+      "var(--mat-sys-primary)",
     );
   });
 

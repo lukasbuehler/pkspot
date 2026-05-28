@@ -1,8 +1,6 @@
 <div
   #previewViewport
   class="carousel"
-  [style.padding-left]="horizontalPaddingPx() + 'px'"
-  [style.padding-right]="horizontalPaddingPx() + 'px'"
 >
   <div class="carousel-visual-layer">
     @for (mediaObj of media(); track $index) {
@@ -62,4 +60,28 @@
       [style.width.px]="previewTrackWidth()"
     ></div>
   </div>
+
+  @if (canScrollLeft()) {
+    <button
+      type="button"
+      mat-icon-button
+      class="carousel-scroll-button left"
+      [attr.aria-label]="scrollLeftLabel"
+      (click)="scrollPreview('left')"
+    >
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+  }
+
+  @if (canScrollRight()) {
+    <button
+      type="button"
+      mat-icon-button
+      class="carousel-scroll-button right"
+      [attr.aria-label]="scrollRightLabel"
+      (click)="scrollPreview('right')"
+    >
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  }
 </div>

@@ -37,7 +37,7 @@
 .banner-frame {
   position: absolute;
   inset: 0;
-  background-color: var(--mat-sys-surface-container, #1c1b1f);
+  background-color: var(--mat-sys-surface-container);
 }
 
 .past-card {
@@ -60,11 +60,14 @@
 }
 
 .status-line[data-status="past"] {
-  color: var(--mat-sys-error, #ffb4ab);
+  color: var(--mat-sys-error);
 }
 
-.status-line[data-status="live"],
 .status-line[data-status="upcoming"],
 .sponsored-line {
-  color: var(--mat-sys-primary, #b8c4ff);
+  color: var(--mat-sys-primary);
+}
+
+.status-line[data-status="live"] {
+  color: var(--mat-sys-secondary);
 }

@@ -6,8 +6,8 @@
 }
 
 .alert.alert-danger {
-  color: #f44336;
-  border-color: #f44336;
+  color: var(--mat-sys-error);
+  border-color: var(--mat-sys-error);
   background-color: transparent;
 }
 

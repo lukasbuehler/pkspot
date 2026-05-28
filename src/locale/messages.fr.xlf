@@ -6487,14 +6487,48 @@
     </unit>
     <unit id="event_rsvp.count_going">
       <segment state="initial">
-        <source>going</source>
-        <target>participent</target>
+        <source>{VAR_PLURAL, plural, =1 {going} other {going}}</source>
+        <target>{VAR_PLURAL, plural, =1 {participe} other {participent}}</target>
       </segment>
     </unit>
     <unit id="event_rsvp.count_interested">
       <segment state="initial">
-        <source>interested</source>
-        <target>intéressés</target>
+        <source>{VAR_PLURAL, plural, =1 {interested} other {interested}}</source>
+        <target>{VAR_PLURAL, plural, =1 {intéressé} other {intéressés}}</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.current_going">
+      <segment state="initial">
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">going</pc></source>
+        <target>Je <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">participe</pc>
+        </target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.current_interested">
+      <segment state="initial">
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">interested</pc>
+        </source>
+        <target>Je suis <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">intéressé</pc>
+        </target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.current_notgoing">
+      <segment state="initial">
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not going</pc></source>
+        <target>Je ne <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
+            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">participe pas</pc>
+        </target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.edit">
+      <segment state="initial">
+        <source>Edit RSVP</source>
+        <target>Modifier la RSVP</target>
       </segment>
     </unit>
     <unit id="event_rsvp.group_label">

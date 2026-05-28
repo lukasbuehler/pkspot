@@ -21,14 +21,17 @@
   z-index: 0;
   padding: 0;
   background: none;
-  color: rgb(255 255 255 / 80%);
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent);
   font-family: "Roboto", sans-serif;
   font-size: 1.2rem;
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.012em;
-  text-shadow: 0 3px 7px rgb(0 0 0 / 96%), 0 0 18px rgb(0 0 0 / 90%),
-    0 0 38px rgb(0 0 0 / 84%), 0 0 74px rgb(0 0 0 / 74%);
+  text-shadow:
+    0 3px 7px color-mix(in srgb, var(--mat-sys-shadow) 96%, transparent),
+    0 0 18px color-mix(in srgb, var(--mat-sys-shadow) 90%, transparent),
+    0 0 38px color-mix(in srgb, var(--mat-sys-shadow) 84%, transparent),
+    0 0 74px color-mix(in srgb, var(--mat-sys-shadow) 74%, transparent);
   pointer-events: none;
   width: 100%;
   text-align: center;
@@ -40,11 +43,11 @@
     z-index: -1;
     background: radial-gradient(
       ellipse at center,
-      rgb(0 0 0 / 90%) 0%,
-      rgb(0 0 0 / 74%) 34%,
-      rgb(0 0 0 / 48%) 56%,
-      rgb(0 0 0 / 24%) 75%,
-      rgb(0 0 0 / 0%) 100%
+      color-mix(in srgb, var(--mat-sys-shadow) 90%, transparent) 0%,
+      color-mix(in srgb, var(--mat-sys-shadow) 74%, transparent) 34%,
+      color-mix(in srgb, var(--mat-sys-shadow) 48%, transparent) 56%,
+      color-mix(in srgb, var(--mat-sys-shadow) 24%, transparent) 75%,
+      transparent 100%
     );
     filter: blur(16px);
   }
@@ -56,9 +59,9 @@
     z-index: -2;
     background: radial-gradient(
       ellipse at center,
-      rgb(0 0 0 / 54%) 0%,
-      rgb(0 0 0 / 35%) 45%,
-      rgb(0 0 0 / 0%) 100%
+      color-mix(in srgb, var(--mat-sys-shadow) 54%, transparent) 0%,
+      color-mix(in srgb, var(--mat-sys-shadow) 35%, transparent) 45%,
+      transparent 100%
     );
     filter: blur(24px);
   }

@@ -23,7 +23,7 @@
   &__item {
     gap: 10px;
     padding-bottom: 16px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
 
     &:last-child {
       padding-bottom: 0;
@@ -56,7 +56,7 @@
   &__state {
     padding: 20px 0;
     text-align: center;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--mat-sys-on-surface-variant);
   }
 
   &__actions {

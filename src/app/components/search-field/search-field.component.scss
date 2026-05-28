@@ -13,9 +13,9 @@
 
   ::ng-deep .mat-mdc-text-field-wrapper {
     border-radius: inherit;
-    background: rgba(60, 60, 60, 0.85) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    background: var(--map-glass-surface) !important;
+    backdrop-filter: var(--map-glass-blur) !important;
+    -webkit-backdrop-filter: var(--map-glass-blur) !important;
     // GPU acceleration to prevent blur flickering
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
@@ -29,12 +29,6 @@
     border-radius: inherit;
   }
 
-  // Disable backdrop-filter on iOS to prevent flickering during navigation
-  :host-context(html.platform-ios) & ::ng-deep .mat-mdc-text-field-wrapper {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(50, 50, 50, 0.95) !important;
-  }
   ::ng-deep .mat-mdc-form-field-icon-suffix {
     align-items: center;
   }

@@ -85,10 +85,12 @@
           }
         </div>
 
-        <app-event-rsvp
-          [eventId]="event.id"
-          [counts]="event.rsvpCounts"
-        ></app-event-rsvp>
+        @if (showRsvp()) {
+          <app-event-rsvp
+            [eventId]="event.id"
+            [counts]="event.rsvpCounts"
+          ></app-event-rsvp>
+        }
       </header>
 
       <section

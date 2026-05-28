@@ -4,8 +4,8 @@
   margin: 0 auto;
 
   .new-items-btn {
-    background: var(--primary-color, #007bff);
-    color: white;
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
     border: none;
     padding: 12px 20px;
     border-radius: 20px;
@@ -13,12 +13,12 @@
     margin-bottom: 20px;
     cursor: pointer;
     font-weight: 500;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px color-mix(in srgb, var(--mat-sys-shadow) 10%, transparent);
     transition: transform 0.2s, box-shadow 0.2s;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 6px 8px color-mix(in srgb, var(--mat-sys-shadow) 15%, transparent);
     }
 
     &:active {
@@ -34,15 +34,15 @@
 
   .load-more-btn {
     background: transparent;
-    border: 1px solid var(--border-color, #ddd);
+    border: 1px solid var(--mat-sys-outline-variant);
     padding: 10px 20px;
     border-radius: 20px;
     cursor: pointer;
-    color: var(--text-color, #333);
+    color: var(--mat-sys-on-surface);
     transition: background 0.2s;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.05);
+      background: color-mix(in srgb, var(--mat-sys-on-surface) 5%, transparent);
     }
   }
 
@@ -74,6 +74,6 @@
   .loading-state {
     text-align: center;
     padding: 40px;
-    color: #666;
+    color: var(--mat-sys-on-surface-variant);
   }
 }

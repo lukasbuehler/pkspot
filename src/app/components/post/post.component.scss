@@ -105,7 +105,7 @@ a.spot-container-link {
   font-size: 14px;
 
   a {
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--mat-sys-on-surface-variant);
     text-decoration: none;
   }
 }
