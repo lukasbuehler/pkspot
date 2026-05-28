@@ -20,7 +20,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { Subscription, firstValueFrom, take } from "rxjs";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventSchema } from "../../../db/schemas/EventSchema";
-import { LocaleCode } from "../../../db/models/Interfaces";
+import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
@@ -40,7 +40,12 @@ import {
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
-import { AnyMedia, ExternalImage } from "../../../db/models/Media";
+import {
+  AnyMedia,
+  ExternalImage,
+  ExternalVideo,
+} from "../../../db/models/Media";
+import { MediaSchema } from "../../../db/schemas/Media";
 import { isBot } from "../../../scripts/Helpers";
 
 type EventStatus = "upcoming" | "live" | "past";
@@ -122,12 +127,19 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const event = this.event();
     if (!event) return [];
 
-    const sources = [
-      event.bannerSrc,
-      ...event.inlineSpots.flatMap((spot) => spot.images ?? []),
-    ].filter((src): src is string => !!src);
-
-    return [...new Set(sources)].map((src) => new ExternalImage(src));
+    const media = [
+      ...(event.bannerSrc ? [new ExternalImage(event.bannerSrc)] : []),
+      ...event.media.map((item) => this._eventMediaFromSchema(item)),
+      ...event.inlineSpots
+        .flatMap((spot) => spot.images ?? [])
+        .map((src) => new ExternalImage(src)),
+    ];
+    const seen = new Set<string>();
+    return media.filter((item) => {
+      if (seen.has(item.baseSrc)) return false;
+      seen.add(item.baseSrc);
+      return true;
+    });
   });
   readonly mapRoute = computed(() => {
     const event = this.event();
@@ -396,7 +408,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _syncEventSeoData(event: PkEvent): void {
     const canonicalPath = this._eventPageData.eventCanonicalPath(event);
     const description = this.description();
-    const image = event.bannerSrc ?? "/assets/banner_1200x630.png";
+    const image = this._eventSocialImage(event);
 
     this._metaTags.setEventMetaTags(
       { name: event.name, image, description },
@@ -431,7 +443,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         },
       },
       image: [
-        this._absoluteUrl(event.bannerSrc ?? "/assets/banner_1200x630.png"),
+        ...this._eventStructuredImages(event).map((src) =>
+          this._absoluteUrl(src),
+        ),
       ],
       description,
       url: `${environment.baseUrl}/${this._locale}${canonicalPath}`,
@@ -483,6 +497,44 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       return path;
     }
     return `${environment.baseUrl}/${path.replace(/^\/+/, "")}`;
+  }
+
+  private _eventSocialImage(event: PkEvent): string {
+    return (
+      event.bannerSrc ??
+      event.media.find((item) => item.type === MediaType.Image)?.src ??
+      event.inlineSpots.flatMap((spot) => spot.images ?? [])[0] ??
+      "/assets/banner_1200x630.png"
+    );
+  }
+
+  private _eventStructuredImages(event: PkEvent): string[] {
+    const images = [
+      this._eventSocialImage(event),
+      ...event.media
+        .filter((item) => item.type === MediaType.Image)
+        .map((item) => item.src),
+      ...event.inlineSpots.flatMap((spot) => spot.images ?? []),
+    ];
+    return [...new Set(images)];
+  }
+
+  private _eventMediaFromSchema(media: MediaSchema): AnyMedia {
+    return media.type === MediaType.Video
+      ? new ExternalVideo(
+          media.src,
+          media.uid,
+          media.attribution,
+          media.origin,
+          media.isReported,
+        )
+      : new ExternalImage(
+          media.src,
+          media.uid,
+          media.attribution,
+          media.origin,
+          media.isReported,
+        );
   }
 
   private _isSameDay(a: Date, b: Date): boolean {

@@ -1,10 +1,12 @@
-.visible-select-panel {
+::ng-deep .visible-select-panel {
   width: auto !important;
   min-width: 0 !important;
   max-width: 90vw !important;
   overflow: visible !important;
 }
 .visually-hidden-select {
+  width: 1px !important;
+  height: 1px !important;
   opacity: 0 !important;
   position: absolute !important;
   pointer-events: none !important;

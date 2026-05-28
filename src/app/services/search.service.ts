@@ -1075,10 +1075,6 @@ export class SearchService {
     const nowSeconds = Math.floor(Date.now() / 1000);
     const bbox = SearchService._boundsToLiteral(bounds);
     const spotFilterBy = SearchService._spotViewportFilter(bbox);
-    const eventLocationFilterBy = SearchService._geoViewportFilter(
-      "location",
-      bbox,
-    );
     const promoFilterBy = SearchService._boundsOverlapFilter(
       "promo_bounds",
       bbox,
@@ -1088,6 +1084,10 @@ export class SearchService {
       bbox,
     );
     const eventLimit = Math.max(1, Math.min(250, options.eventLimit ?? 30));
+    // Event collections are small, and Typesense polygon filters have proven
+    // brittle for Firestore-synced event geopoints. Fetch upcoming candidates
+    // broadly, then apply the viewport geometry locally.
+    const eventFetchLimit = 250;
     const communityLimit = Math.max(
       1,
       Math.min(250, options.communityLimit ?? 80),
@@ -1140,10 +1140,9 @@ export class SearchService {
             filter_by: SearchService._joinFilters([
               "published:!=false",
               `end_seconds:>=${nowSeconds}`,
-              eventLocationFilterBy,
             ]),
             sort_by: "start_seconds:asc",
-            per_page: eventLimit,
+            per_page: eventFetchLimit,
             page: 1,
             include_fields: eventIncludeFields,
             highlight_fields: "none",
@@ -1202,9 +1201,15 @@ export class SearchService {
     const eventsResult = results[1] ?? {};
     const promoEventsResult = results[2] ?? {};
     const communitiesResult = results[3] ?? {};
-    const events = ((eventsResult.hits ?? []) as any[])
+    const eventCandidates = ((eventsResult.hits ?? []) as any[])
       .map((hit) => this.getEventFromHit(hit))
       .filter((event): event is PkEvent => !!event);
+    const events = (bbox.coversWorld
+      ? eventCandidates
+      : eventCandidates.filter((event) =>
+          SearchService._eventIntersectsViewport(event, bbox),
+        )
+    ).slice(0, eventLimit);
     const promoEvents = ((promoEventsResult.hits ?? []) as any[])
       .map((hit) => this.getEventFromHit(hit))
       .filter((event): event is PkEvent => !!event);
@@ -1215,7 +1220,9 @@ export class SearchService {
     return {
       counts: {
         spots: SearchService._readFound(spotsResult),
-        events: SearchService._readFound(eventsResult),
+        events: bbox.coversWorld
+          ? SearchService._readFound(eventsResult)
+          : events.length,
         communities: SearchService._readFound(communitiesResult),
       },
       events,
@@ -1308,6 +1315,84 @@ export class SearchService {
     ].map((num) => (Math.round(num * 1000) / 1000).toString());
 
     return `${field}:(${latLongPairList.join(", ")})`;
+  }
+
+  private static _eventIntersectsViewport(
+    event: PkEvent,
+    bbox: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+      coversWorld: boolean;
+      crossesAntimeridian: boolean;
+    },
+  ): boolean {
+    if (bbox.coversWorld) return true;
+    if (SearchService._pointInViewport(event.location, bbox)) return true;
+    if (!event.bounds) return false;
+
+    return SearchService._boundsIntersectViewport(event.bounds, bbox);
+  }
+
+  private static _pointInViewport(
+    point: { lat: number; lng: number },
+    bbox: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+      crossesAntimeridian: boolean;
+    },
+  ): boolean {
+    if (
+      !Number.isFinite(point.lat) ||
+      !Number.isFinite(point.lng) ||
+      point.lat < bbox.south ||
+      point.lat > bbox.north
+    ) {
+      return false;
+    }
+
+    if (bbox.crossesAntimeridian) {
+      return point.lng >= bbox.west || point.lng <= bbox.east;
+    }
+
+    return point.lng >= bbox.west && point.lng <= bbox.east;
+  }
+
+  private static _boundsIntersectViewport(
+    bounds: { north: number; south: number; east: number; west: number },
+    bbox: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+      crossesAntimeridian: boolean;
+    },
+  ): boolean {
+    if (bounds.south > bbox.north || bounds.north < bbox.south) return false;
+
+    const viewportIntervals = bbox.crossesAntimeridian
+      ? [
+          [bbox.west, 180],
+          [-180, bbox.east],
+        ]
+      : [[bbox.west, bbox.east]];
+    const boundsCrossAntimeridian = bounds.west > bounds.east;
+    const boundsIntervals = boundsCrossAntimeridian
+      ? [
+          [bounds.west, 180],
+          [-180, bounds.east],
+        ]
+      : [[bounds.west, bounds.east]];
+
+    return boundsIntervals.some(([boundsWest, boundsEast]) =>
+      viewportIntervals.some(
+        ([viewportWest, viewportEast]) =>
+          boundsWest <= viewportEast && boundsEast >= viewportWest,
+      ),
+    );
   }
 
   private static _boundsOverlapFilter(

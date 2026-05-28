@@ -247,8 +247,8 @@ export class EventPageDataService {
   private _outerCutoutRing(
     bounds: EventBoundsSchema,
   ): Array<{ lat: number; lng: number }> {
-    const latPadding = Math.max((bounds.north - bounds.south) * 0.12, 0.001);
-    const lngPadding = Math.max((bounds.east - bounds.west) * 0.12, 0.001);
+    const latPadding = Math.max((bounds.north - bounds.south) * 0.5, 0.001);
+    const lngPadding = Math.max((bounds.east - bounds.west) * 0.5, 0.001);
     const north = Math.min(85, bounds.north + latPadding);
     const south = Math.max(-85, bounds.south - latPadding);
     const east = Math.min(179.999, bounds.east + lngPadding);

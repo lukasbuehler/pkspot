@@ -36,6 +36,7 @@ import { GeoPoint, Timestamp } from "firebase/firestore";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventBoundsSchema,
+  EventCustomMarkerSchema,
   EventOrganizerSchema,
   EventSchema,
 } from "../../../db/schemas/EventSchema";
@@ -43,14 +44,25 @@ import {
   OrganizationReferenceSchema,
   OrganizationSchema,
 } from "../../../db/schemas/OrganizationSchema";
-import { StorageBucket } from "../../../db/schemas/Media";
+import { MediaSchema, StorageBucket } from "../../../db/schemas/Media";
+import { MediaType } from "../../../db/models/Interfaces";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 import { SearchService } from "../../services/search.service";
 import { BoundsPickerComponent } from "../bounds-picker/bounds-picker.component";
 import { MediaUpload } from "../media-upload/media-upload.component";
+import { MarkerComponent } from "../marker/marker.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
 
 type OrganizationDocument = OrganizationSchema & { id: string };
+type EditableEventMarker = {
+  id: string;
+  name: string;
+  lat: number | null;
+  lng: number | null;
+  icons: string;
+  color: "primary" | "secondary" | "tertiary" | "gray";
+  priority: "auto" | "required";
+};
 export type EventEditPatch = Omit<
   Partial<EventSchema>,
   "bounds" | "area_polygon"
@@ -102,6 +114,7 @@ export type EventEditPatch = Omit<
     MatTimepickerModule,
     BoundsPickerComponent,
     MediaUpload,
+    MarkerComponent,
     SpotPickerComponent,
   ],
   templateUrl: "./event-edit-form.component.html",
@@ -166,6 +179,7 @@ export class EventEditFormComponent {
     sponsor_name: [""],
     sponsor_url: [""],
     sponsor_logo_src: [""],
+    external_media_url: [""],
   });
 
   /**
@@ -193,6 +207,8 @@ export class EventEditFormComponent {
   selectedOrganizer = signal<OrganizationReferenceSchema | null>(null);
   /** Community keys auto-suggested from the current bounds center. */
   autoSuggestedCommunityKeys = signal<string[]>([]);
+  customMarkers = signal<EditableEventMarker[]>([]);
+  externalMedia = signal<MediaSchema[]>([]);
 
   /** Whether the parent passed in an existing event (vs. create mode). */
   readonly isEditMode = computed(() => this.event() !== null);
@@ -271,6 +287,8 @@ export class EventEditFormComponent {
         this.communityKeys.set([]);
         this.selectedOrganizer.set(null);
         this.organizerQuery.set("");
+        this.customMarkers.set([]);
+        this.externalMedia.set([]);
         return;
       }
       this.form.reset({
@@ -297,6 +315,7 @@ export class EventEditFormComponent {
         sponsor_name: e.sponsor?.name ?? "",
         sponsor_url: e.sponsor?.url ?? "",
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
+        external_media_url: "",
       });
       this.location.set(e.location);
       this.areaPath.set(eventAreaPath(e.areaPolygon) ?? boundsToPath(e.bounds));
@@ -306,6 +325,18 @@ export class EventEditFormComponent {
       this.communityKeys.set([...e.communityKeys]);
       this.selectedOrganizer.set(e.organizer?.organization ?? null);
       this.organizerQuery.set(e.organizer?.organization.name ?? "");
+      this.customMarkers.set(
+        e.customMarkers.map((marker, index) => ({
+          id: `marker-${index}`,
+          name: marker.name ?? "",
+          lat: marker.location.lat,
+          lng: marker.location.lng,
+          icons: (marker.icons ?? ["info"]).join(", "),
+          color: marker.color ?? "tertiary",
+          priority: marker.priority === "required" ? "required" : "auto",
+        })),
+      );
+      this.externalMedia.set([...e.media]);
     });
 
     this._loadOrganizations();
@@ -402,6 +433,101 @@ export class EventEditFormComponent {
     this.form.patchValue({ sponsor_logo_src: event.src });
   }
 
+  addCustomMarker(): void {
+    const location = this.location();
+    this.customMarkers.update((markers) => [
+      ...markers,
+      {
+        id: `marker-${Date.now()}-${markers.length}`,
+        name: "",
+        lat: location?.lat ?? null,
+        lng: location?.lng ?? null,
+        icons: "info",
+        color: "tertiary",
+        priority: "auto",
+      },
+    ]);
+  }
+
+  removeCustomMarker(id: string): void {
+    this.customMarkers.update((markers) =>
+      markers.filter((marker) => marker.id !== id),
+    );
+  }
+
+  markerIcons(marker: EditableEventMarker): string[] {
+    const icons = csvToArray(marker.icons);
+    return icons.length > 0 ? icons : ["info"];
+  }
+
+  updateCustomMarker(
+    id: string,
+    patch: Partial<Omit<EditableEventMarker, "id">>,
+  ): void {
+    this.customMarkers.update((markers) =>
+      markers.map((marker) =>
+        marker.id === id ? { ...marker, ...patch } : marker,
+      ),
+    );
+  }
+
+  updateCustomMarkerColor(id: string, color: string): void {
+    if (
+      color === "primary" ||
+      color === "secondary" ||
+      color === "tertiary" ||
+      color === "gray"
+    ) {
+      this.updateCustomMarker(id, { color });
+    }
+  }
+
+  updateCustomMarkerPriority(id: string, priority: string): void {
+    if (priority === "auto" || priority === "required") {
+      this.updateCustomMarker(id, { priority });
+    }
+  }
+
+  updateCustomMarkerCoordinate(
+    id: string,
+    field: "lat" | "lng",
+    value: number,
+  ): void {
+    this.updateCustomMarker(id, {
+      [field]: Number.isFinite(value) ? value : null,
+    });
+  }
+
+  addExternalMediaFromUrl(): void {
+    const url = safeExternalUrl(this.form.value.external_media_url);
+    if (!url) {
+      this.form.controls["external_media_url"].setErrors({ url: true });
+      return;
+    }
+
+    this.externalMedia.update((items) =>
+      items.some((item) => item.src === url)
+        ? items
+        : [
+            ...items,
+            {
+              src: url,
+              type: inferMediaType(url),
+              isInStorage: false,
+              origin: "other",
+            },
+          ],
+    );
+    this.form.patchValue({ external_media_url: "" });
+    this.form.controls["external_media_url"].setErrors(null);
+  }
+
+  removeExternalMedia(src: string): void {
+    this.externalMedia.update((items) =>
+      items.filter((item) => item.src !== src),
+    );
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -433,6 +559,8 @@ export class EventEditFormComponent {
       banner_accent_color: trimOrUndefined(v.banner_accent_color),
       logo_src: trimOrUndefined(v.logo_src),
       focus_zoom: numberOrUndefined(v.focus_zoom),
+      media: [...this.externalMedia()],
+      custom_markers: this._buildCustomMarkersPatch(),
       spot_ids: [...this.spotIds()],
       community_keys: [...this.communityKeys()],
       series_ids: csvToArray(v.series_ids_csv),
@@ -558,6 +686,28 @@ export class EventEditFormComponent {
     };
   }
 
+  private _buildCustomMarkersPatch(): EventCustomMarkerSchema[] {
+    return this.customMarkers().reduce<EventCustomMarkerSchema[]>(
+      (markers, marker) => {
+        const lat = numberOrUndefined(marker.lat);
+        const lng = numberOrUndefined(marker.lng);
+        if (lat === undefined || lng === undefined) return markers;
+
+        const icons = csvToArray(marker.icons);
+        markers.push({
+          name: trimOrUndefined(marker.name),
+          location: { lat, lng },
+          icons: icons.length > 0 ? icons : undefined,
+          color: marker.color,
+          priority:
+            marker.priority === "required" ? ("required" as const) : undefined,
+        });
+        return markers;
+      },
+      [],
+    );
+  }
+
   /** Approximate point-in-circle test in meters via haversine. */
   private _isPointInsideCircle(
     point: { lat: number; lng: number },
@@ -650,6 +800,25 @@ function csvToArray(value: string | null | undefined): string[] {
     .split(",")
     .map((part) => part.trim())
     .filter((part) => part.length > 0);
+}
+
+function safeExternalUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function inferMediaType(url: string): MediaType {
+  const pathname = new URL(url).pathname.toLowerCase();
+  return /\.(?:mp4|m4v|mov|webm|ogv)$/u.test(pathname)
+    ? MediaType.Video
+    : MediaType.Image;
 }
 
 /**

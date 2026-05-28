@@ -314,6 +314,62 @@
             <span>{{ form.value.logo_src }}</span>
           </p>
         }
+
+        <p class="mat-label-medium text-muted m-0 mt-2" i18n="@@event_edit.external_media_label">
+          External media links
+        </p>
+        <div class="d-flex flex-row gap-2 flex-wrap align-items-start">
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.external_media_url">
+              Image or video URL
+            </mat-label>
+            <input
+              matInput
+              formControlName="external_media_url"
+              placeholder="https://…"
+            />
+            @if (form.controls["external_media_url"].hasError("url")) {
+              <mat-error i18n="@@event_edit.external_media_invalid">
+                Use a public http or https link.
+              </mat-error>
+            }
+          </mat-form-field>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="addExternalMediaFromUrl()"
+            [disabled]="saving()"
+          >
+            <mat-icon>link</mat-icon>
+            <span i18n="@@event_edit.external_media_add">Add link</span>
+          </button>
+        </div>
+        @if (externalMedia().length > 0) {
+          <div class="external-media-grid">
+            @for (media of externalMedia(); track media.src) {
+              <div class="external-media-item">
+                @if (media.type === "image") {
+                  <img [src]="media.src" alt="" />
+                } @else {
+                  <div class="external-media-video">
+                    <mat-icon>video_camera_front</mat-icon>
+                  </div>
+                }
+                <span class="mat-label-small text-truncate">{{ media.src }}</span>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeExternalMedia(media.src)"
+                  [disabled]="saving()"
+                  aria-label="Remove external media"
+                  i18n-aria-label="@@event_edit.external_media_remove"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
       </div>
 
       <mat-divider />
@@ -330,6 +386,141 @@
           [disabled]="saving()"
           (valueChange)="onSpotIdsChange($event)"
         ></app-spot-picker>
+      </div>
+
+      <mat-divider />
+
+      <!-- ----------------- Custom map markers ----------------- -->
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+          <h4 class="mat-title-small m-0 flex-grow-1" i18n="@@event_edit.custom_markers_heading">
+            Custom map markers
+          </h4>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="addCustomMarker()"
+            [disabled]="saving()"
+          >
+            <mat-icon>add_location</mat-icon>
+            <span i18n="@@event_edit.custom_marker_add">Add marker</span>
+          </button>
+        </div>
+        @if (customMarkers().length > 0) {
+          <div class="custom-marker-list">
+            @for (marker of customMarkers(); track marker.id) {
+              <div class="custom-marker-editor">
+                <div class="custom-marker-preview">
+                  <app-marker
+                    [clickable]="false"
+                    [color]="marker.color"
+                    [icons]="markerIcons(marker)"
+                    [title]="marker.name"
+                  ></app-marker>
+                </div>
+                <div class="custom-marker-fields">
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_name">
+                      Label
+                    </mat-label>
+                    <input
+                      matInput
+                      [value]="marker.name"
+                      (input)="updateCustomMarker(marker.id, { name: $any($event.target).value })"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_icons">
+                      Icons
+                    </mat-label>
+                    <input
+                      matInput
+                      [value]="marker.icons"
+                      placeholder="info, wc"
+                      (input)="updateCustomMarker(marker.id, { icons: $any($event.target).value })"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_color">
+                      Color
+                    </mat-label>
+                    <mat-select
+                      [value]="marker.color"
+                      (selectionChange)="updateCustomMarkerColor(marker.id, $event.value)"
+                    >
+                      <mat-option value="primary" i18n="@@event_edit.marker_color.primary">
+                        Primary
+                      </mat-option>
+                      <mat-option value="secondary" i18n="@@event_edit.marker_color.secondary">
+                        Live
+                      </mat-option>
+                      <mat-option value="tertiary" i18n="@@event_edit.marker_color.tertiary">
+                        Utility
+                      </mat-option>
+                      <mat-option value="gray" i18n="@@event_edit.marker_color.gray">
+                        Muted
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_priority">
+                      Priority
+                    </mat-label>
+                    <mat-select
+                      [value]="marker.priority"
+                      (selectionChange)="updateCustomMarkerPriority(marker.id, $event.value)"
+                    >
+                      <mat-option value="auto" i18n="@@event_edit.marker_priority.auto">
+                        Normal
+                      </mat-option>
+                      <mat-option value="required" i18n="@@event_edit.marker_priority.required">
+                        Always visible
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_lat">
+                      Latitude
+                    </mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      step="0.000001"
+                      [value]="marker.lat ?? ''"
+                      (input)="updateCustomMarkerCoordinate(marker.id, 'lat', $any($event.target).valueAsNumber)"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_lng">
+                      Longitude
+                    </mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      step="0.000001"
+                      [value]="marker.lng ?? ''"
+                      (input)="updateCustomMarkerCoordinate(marker.id, 'lng', $any($event.target).valueAsNumber)"
+                    />
+                  </mat-form-field>
+                </div>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeCustomMarker(marker.id)"
+                  [disabled]="saving()"
+                  aria-label="Remove marker"
+                  i18n-aria-label="@@event_edit.custom_marker_remove"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="mat-label-small text-muted m-0" i18n="@@event_edit.custom_markers_empty">
+            Add parking, info stands, toilets, meetup points, or other temporary event markers.
+          </p>
+        }
       </div>
 
       <mat-divider />

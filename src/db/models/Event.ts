@@ -11,6 +11,7 @@ import {
   InlineEventSpotSchema,
 } from "../schemas/EventSchema";
 import { EventRSVPCountsSchema } from "../schemas/EventRSVPSchema";
+import { MediaSchema } from "../schemas/Media";
 
 /**
  * An Event is a parkour-community event (jam, camp, competition) that
@@ -29,6 +30,7 @@ export class Event {
   readonly bannerFit: "cover" | "contain";
   readonly bannerAccentColor?: string;
   readonly logoSrc?: string;
+  readonly media: MediaSchema[];
   readonly organizer?: EventOrganizerSchema;
 
   readonly venueString: string;
@@ -69,6 +71,7 @@ export class Event {
     this.bannerFit = data.banner_fit ?? "cover";
     this.bannerAccentColor = data.banner_accent_color;
     this.logoSrc = data.logo_src;
+    this.media = data.media ?? [];
     this.organizer = data.organizer;
     this.venueString = data.venue_string;
     this.localityString = data.locality_string;

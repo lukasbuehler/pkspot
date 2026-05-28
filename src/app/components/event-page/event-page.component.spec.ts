@@ -332,4 +332,98 @@ describe("EventInfoPageComponent", () => {
       "assets/swissjam/swissjam1.jpg",
     ]);
   });
+
+  it("keeps social tags and structured data images in sync with external media", () => {
+    const metaTagService = {
+      setEventMetaTags: vi.fn(),
+    };
+    const structuredDataService = {
+      addStructuredData: vi.fn(),
+      removeStructuredData: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "media-event" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "media-event" }) },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: metaTagService },
+        { provide: StructuredDataService, useValue: structuredDataService },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: vi.fn((url?: string) => url),
+          },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+
+    component.event.set(
+      buildEvent("media-event", "Media Event", {
+        banner_src: undefined,
+        media: [
+          {
+            src: "https://cdn.example.com/event-photo.jpg",
+            type: "image",
+            isInStorage: false,
+          },
+          {
+            src: "https://cdn.example.com/event-video.mp4",
+            type: "video",
+            isInStorage: false,
+          },
+        ],
+      }),
+    );
+    flushSignalEffects();
+
+    expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        image: "https://cdn.example.com/event-photo.jpg",
+      }),
+      "/events/media-event",
+    );
+    expect(structuredDataService.addStructuredData).toHaveBeenLastCalledWith(
+      "event",
+      expect.objectContaining({
+        image: ["https://cdn.example.com/event-photo.jpg"],
+      }),
+    );
+    expect(
+      component.heroMedia().map((media) => media.getPreviewImageSrc()),
+    ).toEqual([
+      "https://cdn.example.com/event-photo.jpg",
+      "https://cdn.example.com/event-video.mp4",
+    ]);
+  });
 });

@@ -24,6 +24,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "banner_fit",
     "banner_accent_color",
     "logo_src",
+    "media",
     "organizer",
     "organizer.type",
     "organizer.organization",

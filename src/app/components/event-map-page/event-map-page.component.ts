@@ -23,7 +23,7 @@ import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { ResponsiveService } from "../../services/responsive.service";
 import { firstValueFrom, Subscription, take } from "rxjs";
-import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
+import { LocaleCode } from "../../../db/models/Interfaces";
 import { MarkerComponent } from "../marker/marker.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { MetaTagService } from "../../services/meta-tag.service";
@@ -39,7 +39,6 @@ import { MatChipListboxChange, MatChipsModule } from "@angular/material/chips";
 import { MapsApiService } from "../../services/maps-api.service";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
-import { GeoPoint } from "firebase/firestore";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { SpotChallengesService } from "../../services/firebase/firestore/spot-challenges.service";
@@ -65,17 +64,11 @@ import {
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { CountdownComponent } from "../countdown/countdown.component";
 import {
   EventEditFormComponent,
   EventEditPatch,
 } from "../event-edit-form/event-edit-form.component";
-import {
-  EventCustomMarkerSchema,
-  EventId,
-  EventSchema,
-  InlineEventSpotSchema,
-} from "../../../db/schemas/EventSchema";
+import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
@@ -116,7 +109,6 @@ type EventPageMapMarker = MarkerSchema & {
     MarkerComponent,
     ReversePipe,
     ChipSelectComponent,
-    CountdownComponent,
     EventEditFormComponent,
   ],
   animations: [
@@ -239,29 +231,20 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     () => this.event()?.status() ?? null,
   );
 
-  readonly statusPrefix = computed<string>(() => {
+  readonly compactStatusLabel = computed(() => {
+    const event = this.event();
     const status = this.eventStatus();
-    if (status === "live") {
-      return this.isSponsored()
-        ? $localize`:@@event_page.status.sponsored_live:Sponsored Live Event`
-        : $localize`:@@event_page.status.live:Live Event`;
+    if (!event || !status) return "";
+    if (status === "past") {
+      return $localize`:@@events.status.past:Past event`;
     }
-    if (status === "upcoming") {
-      return this.isSponsored()
-        ? $localize`:@@event_page.status.sponsored_upcoming:Sponsored Upcoming Event`
-        : $localize`:@@event_page.status.upcoming:Upcoming Event`;
-    }
-    return "";
-  });
 
-  /** What the countdown is counting down to: event.start (upcoming) or event.end (live). */
-  readonly countdownTarget = computed<Date | null>(() => {
-    const e = this.event();
-    if (!e) return null;
-    const status = e.status();
-    if (status === "upcoming") return e.start;
-    if (status === "live") return e.end;
-    return null;
+    const target = status === "live" ? event.end : event.start;
+    const relative = this._relativeFromNow(target);
+    if (status === "live") {
+      return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
+    }
+    return $localize`:@@events.status.upcoming_starts:Starts ${relative}`;
   });
 
   readonly customMarkers = computed<MarkerSchema[]>(() =>
@@ -696,6 +679,35 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     return date.toLocaleDateString(this.locale, { dateStyle: "medium" });
   }
 
+  private _relativeFromNow(target: Date): string {
+    const diffMs = target.getTime() - Date.now();
+    if (diffMs <= 0) {
+      return $localize`:@@events.now_or_past:now`;
+    }
+
+    const formatter = new Intl.RelativeTimeFormat(this.locale, {
+      numeric: "always",
+    });
+
+    const hours = Math.round(diffMs / 3_600_000);
+    if (hours < 48) {
+      return hours >= 2
+        ? formatter.format(hours, "hour")
+        : formatter.format(1, "hour");
+    }
+
+    const days = Math.max(1, Math.round(diffMs / 86_400_000));
+    if (days < 14) {
+      return formatter.format(days, "day");
+    }
+    const weeks = Math.round(days / 7);
+    if (weeks < 8) {
+      return formatter.format(weeks, "week");
+    }
+    const months = Math.round(days / 30);
+    return formatter.format(months, "month");
+  }
+
   private _isSameDay(a: Date, b: Date): boolean {
     return (
       a.getFullYear() === b.getFullYear() &&
@@ -785,69 +797,4 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     }
     return null;
   }
-}
-
-function toMarkerSchema(m: EventCustomMarkerSchema): MarkerSchema {
-  return {
-    name: m.name,
-    color: m.color,
-    location: m.location,
-    icons: m.icons,
-    priority: m.priority,
-  };
-}
-
-/**
- * Build a LocalSpot from an inline event spot. LocalSpot (no `id`) avoids
- * triggering all the Firestore-spot UI affordances (edit, save bounds,
- * report, etc.) — inline event spots are minimal display-only entries.
- *
- * The `eventId` argument is unused but kept for symmetry / future use.
- */
-function buildInlineSpot(
-  _eventId: string,
-  inline: InlineEventSpotSchema,
-  locale: LocaleCode,
-): LocalSpot {
-  return new LocalSpot(
-    {
-      location: new GeoPoint(inline.location.lat, inline.location.lng),
-      name: { [locale]: { text: inline.name, provider: "user" } } as any,
-      address: null,
-      bounds: inline.bounds?.map((b) => new GeoPoint(b.lat, b.lng)),
-      media: (inline.images ?? []).map((src) => ({
-        src,
-        type: MediaType.Image,
-        isInStorage: false,
-      })) as any,
-      description: inline.description
-        ? ({ [locale]: { text: inline.description, provider: "user" } } as any)
-        : undefined,
-      is_iconic: inline.is_iconic ?? false,
-      amenities: {},
-    },
-    locale,
-  );
-}
-
-function toPolygonSchema(
-  rings: Array<{ points: Array<{ lat: number; lng: number }> }>,
-): PolygonSchema {
-  const paths = new google.maps.MVCArray<
-    google.maps.MVCArray<google.maps.LatLng>
-  >(
-    rings.map(
-      (ring) =>
-        new google.maps.MVCArray<google.maps.LatLng>(
-          ring.points.map((p) => new google.maps.LatLng(p.lat, p.lng)),
-        ),
-    ),
-  );
-  return {
-    paths,
-    strokeOpacity: 0,
-    strokeWeight: 0,
-    fillColor: "#000000",
-    fillOpacity: 0.5,
-  };
 }

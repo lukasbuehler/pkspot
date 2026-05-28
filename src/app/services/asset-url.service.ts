@@ -17,6 +17,10 @@ export class AssetUrlService {
       ...event,
       banner_src: this.resolveBundledAssetUrl(event.banner_src),
       logo_src: this.resolveBundledAssetUrl(event.logo_src),
+      media: event.media?.map((media) => ({
+        ...media,
+        src: this.resolveBundledAssetUrl(media.src) ?? media.src,
+      })),
       organizer: event.organizer
         ? {
             ...event.organizer,

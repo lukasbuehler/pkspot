@@ -216,5 +216,14 @@ describe("EventPageDataService", () => {
     expect(paths.getAt(0).getLength()).toBe(4);
     expect(paths.getAt(1).getLength()).toBe(3);
     expect(paths.getAt(1).getAt(0).lat()).toBeCloseTo(47.3);
+
+    const outer = Array.from({ length: paths.getAt(0).getLength() }, (_, index) => ({
+      lat: paths.getAt(0).getAt(index).lat(),
+      lng: paths.getAt(0).getAt(index).lng(),
+    }));
+    expect(Math.max(...outer.map((point) => point.lat))).toBeCloseTo(47.45);
+    expect(Math.min(...outer.map((point) => point.lat))).toBeCloseTo(47.25);
+    expect(Math.max(...outer.map((point) => point.lng))).toBeCloseTo(8.65);
+    expect(Math.min(...outer.map((point) => point.lng))).toBeCloseTo(8.45);
   });
 });

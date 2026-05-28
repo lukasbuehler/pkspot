@@ -1,4 +1,5 @@
 import type { GeoPoint, Timestamp } from "firebase/firestore";
+import type { MediaSchema } from "./Media";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
 import { EventRSVPCountsSchema } from "./EventRSVPSchema";
 
@@ -128,6 +129,13 @@ export interface EventSchema {
   banner_accent_color?: string;
   /** Optional event-specific logo (distinct from sponsor logo). */
   logo_src?: string;
+
+  /**
+   * Optional externally linked event media. These are public media URLs
+   * embedded on the event page gallery, separate from uploaded banner/logo
+   * assets and inline spot media.
+   */
+  media?: MediaSchema[];
 
   /** Organizer responsible for the event. User organizers can be added later. */
   organizer?: EventOrganizerSchema;

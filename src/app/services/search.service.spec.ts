@@ -633,19 +633,56 @@ describe("SearchService", () => {
       expect(event?.location).toEqual({ lat: 47.5596, lng: 7.5886 });
     });
 
-    it("counts map events by event location and fetches promos by promo bounds", async () => {
+    it("fetches map events broadly and filters visible markers locally", async () => {
       const bounds = {
         getNorthEast: () => ({ lat: () => 47.4, lng: () => 8.55 }),
         getSouthWest: () => ({ lat: () => 47.39, lng: () => 8.54 }),
       } as google.maps.LatLngBounds;
 
-      await service.searchEventsInBounds(bounds);
+      typesenseMultiSearchMock.mockResolvedValueOnce({
+        results: [
+          { hits: [], found: 0 },
+          {
+            found: 2,
+            hits: [
+              {
+                document: {
+                  id: "visible-event",
+                  name: "Visible Event",
+                  venue_string: "Visible venue",
+                  locality_string: "Zurich",
+                  start_seconds: 1_800_000_000,
+                  end_seconds: 1_800_086_400,
+                  location: [47.395, 8.545],
+                },
+              },
+              {
+                document: {
+                  id: "outside-event",
+                  name: "Outside Event",
+                  venue_string: "Outside venue",
+                  locality_string: "Bern",
+                  start_seconds: 1_800_000_000,
+                  end_seconds: 1_800_086_400,
+                  location: [46.948, 7.447],
+                },
+              },
+            ],
+          },
+          { hits: [], found: 0 },
+          { hits: [], found: 0 },
+        ],
+      });
+
+      const events = await service.searchEventsInBounds(bounds);
 
       const searches = typesenseMultiSearchMock.mock.calls[0][0].searches;
       expect(searches[1].collection).toBe("events_v1");
       expect(searches[1].filter_by).toContain("published:!=false");
       expect(searches[1].filter_by).toContain("end_seconds:>=");
-      expect(searches[1].filter_by).toContain("location:(47.4, 8.55");
+      expect(searches[1].filter_by).not.toContain("location:(");
+      expect(searches[1].per_page).toBe(250);
+      expect(events.map((event) => event.id)).toEqual(["visible-event"]);
 
       expect(searches[2].collection).toBe("events_v1");
       expect(searches[2].filter_by).toContain("promo_radius_m:>0");
