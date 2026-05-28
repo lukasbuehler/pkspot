@@ -1,73 +1,125 @@
 <div class="event-rsvp">
   @let counts = displayCounts();
-  @if(counts.going > 0 || counts.interested > 0) {
-  <div class="rsvp-counts" aria-live="polite">
-    @if(counts.going > 0) {
-    <span class="rsvp-count" data-rsvp="going">
-      <strong class="rsvp-count-number"><app-fancy-counter [number]="counts.going"></app-fancy-counter></strong>
-      <span class="rsvp-count-label" i18n="@@event_rsvp.count_going">{counts.going, plural, =1 {going} other
-        {going}}</span>
-    </span> }
-    @if(counts.interested > 0) {
-    <span class="rsvp-count" data-rsvp="interested">
-      <strong class="rsvp-count-number"><app-fancy-counter [number]="counts.interested"></app-fancy-counter></strong>
-      <span class="rsvp-count-label" i18n="@@event_rsvp.count_interested">{counts.interested, plural, =1 {interested} other
-        {interested}}</span>
-    </span>
-    }
-  </div> }
+  @if (counts.going > 0 || counts.interested > 0) {
+    <div class="rsvp-counts" aria-live="polite">
+      @if (counts.going > 0) {
+        <span class="rsvp-count" data-rsvp="going">
+          <strong class="rsvp-count-number"
+            ><app-fancy-counter [number]="counts.going"></app-fancy-counter
+          ></strong>
+          <span
+            class="rsvp-count-label"
+            i18n="@@event_rsvp.count_going"
+            >{counts.going, plural, =1 {going} other {going}}</span
+          >
+        </span>
+      }
+      @if (counts.interested > 0) {
+        <span class="rsvp-count" data-rsvp="interested">
+          <strong class="rsvp-count-number"
+            ><app-fancy-counter [number]="counts.interested"></app-fancy-counter
+          ></strong>
+          <span
+            class="rsvp-count-label"
+            i18n="@@event_rsvp.count_interested"
+            >{counts.interested, plural,
+              =1 {interested}
+              other {interested}
+            }</span
+          >
+        </span>
+      }
+    </div>
+  }
 
   @if (isSignedIn()) {
-  <button class="rsvp-menu-button" mat-stroked-button type="button" [disabled]="isLoading() || isSaving()"
-    [matMenuTriggerFor]="rsvpMenu" [attr.data-rsvp]="selectedRsvp()" aria-label="Response"
-    i18n-aria-label="@@event_rsvp.group_label">
-    @if (!selectedRsvp()) {
-    <span class="rsvp-button-label" i18n="@@event_rsvp.prompt">Are you going?</span>
-    } @else if (selectedRsvp() === "going") {
-    <span class="rsvp-button-label" i18n="@@event_rsvp.current_going">I'm <strong>going</strong></span>
-    } @else if (selectedRsvp() === "interested") {
-    <span class="rsvp-button-label" i18n="@@event_rsvp.current_interested">I'm <strong>interested</strong></span>
-    } @else {
-    <span class="rsvp-button-label" i18n="@@event_rsvp.current_notgoing">I'm <strong>not going</strong></span>
-    }
-    <mat-icon iconPositionEnd>expand_more</mat-icon>
-  </button>
+    <button
+      class="rsvp-menu-button"
+      mat-stroked-button
+      type="button"
+      [disabled]="isLoading() || isSaving()"
+      [matMenuTriggerFor]="rsvpMenu"
+      [attr.data-rsvp]="selectedRsvp()"
+      aria-label="Response"
+      i18n-aria-label="@@event_rsvp.group_label"
+    >
+      @if (!selectedRsvp()) {
+        <span class="rsvp-button-label" i18n="@@event_rsvp.prompt"
+          >Are you going?</span
+        >
+      } @else if (selectedRsvp() === "going") {
+        <span class="rsvp-button-label" i18n="@@event_rsvp.current_going"
+          >I'm <strong>going</strong></span
+        >
+      } @else if (selectedRsvp() === "interested") {
+        <span class="rsvp-button-label" i18n="@@event_rsvp.current_interested"
+          >I'm <strong>interested</strong></span
+        >
+      } @else {
+        <span class="rsvp-button-label" i18n="@@event_rsvp.current_notgoing"
+          >I'm <strong>not going</strong></span
+        >
+      }
+      <mat-icon iconPositionEnd>expand_more</mat-icon>
+    </button>
 
-  <mat-menu #rsvpMenu="matMenu">
-    <button mat-menu-item type="button" [disabled]="isSaving()" (click)="selectRsvp('going')">
-      <mat-icon>check_circle</mat-icon>
-      <span i18n="@@event_rsvp.going">Going</span>
-    </button>
-    <button mat-menu-item type="button" [disabled]="isSaving()" (click)="selectRsvp('interested')">
-      <mat-icon>star</mat-icon>
-      <span i18n="@@event_rsvp.interested">Interested</span>
-    </button>
-    <button mat-menu-item type="button" [disabled]="isSaving()" (click)="selectRsvp('notgoing')">
-      <mat-icon>block_border</mat-icon>
-      <span i18n="@@event_rsvp.notgoing">Not going</span>
-    </button>
+    <mat-menu #rsvpMenu="matMenu">
+      <button
+        mat-menu-item
+        type="button"
+        [disabled]="isSaving()"
+        (click)="selectRsvp('going')"
+      >
+        <mat-icon>check_circle</mat-icon>
+        <span i18n="@@event_rsvp.going">Going</span>
+      </button>
+      <button
+        mat-menu-item
+        type="button"
+        [disabled]="isSaving()"
+        (click)="selectRsvp('interested')"
+      >
+        <mat-icon>star</mat-icon>
+        <span i18n="@@event_rsvp.interested">Interested</span>
+      </button>
+      <button
+        mat-menu-item
+        type="button"
+        [disabled]="isSaving()"
+        (click)="selectRsvp('notgoing')"
+      >
+        <mat-icon>block_border</mat-icon>
+        <span i18n="@@event_rsvp.notgoing">Not going</span>
+      </button>
 
-    @if (selectedRsvp()) {
-    <button mat-menu-item type="button" [disabled]="isSaving()" (click)="clearRsvp()">
-      <mat-icon>close</mat-icon>
-      <span i18n="@@event_rsvp.clear">Clear</span>
-    </button>
-    }
-  </mat-menu>
+      @if (selectedRsvp()) {
+        <button
+          mat-menu-item
+          type="button"
+          [disabled]="isSaving()"
+          (click)="clearRsvp()"
+        >
+          <mat-icon>close</mat-icon>
+          <span i18n="@@event_rsvp.clear">Clear</span>
+        </button>
+      }
+    </mat-menu>
   } @else {
-  <a mat-stroked-button routerLink="/sign-in">
-    <mat-icon>login</mat-icon>
-    <span i18n="@@event_rsvp.sign_in">Sign in to respond</span>
-  </a>
+    <a mat-stroked-button routerLink="/sign-in">
+      <mat-icon>login</mat-icon>
+      <span i18n="@@event_rsvp.sign_in">Sign in to respond</span>
+    </a>
   }
 
   @if (errorMessage()) {
-  <p class="rsvp-error">{{ errorMessage() }}</p>
+    <span class="rsvp-error">{{ errorMessage() }}</span>
   }
 
   @if (showDisclaimer()) {
-  <p class="rsvp-disclaimer">
-    <span i18n="@@event_rsvp.disclaimer">These numbers show PK Spot user intent, not tickets bought.</span>
-  </p>
+    <span
+      class="rsvp-disclaimer mat-label-medium"
+      i18n="@@event_rsvp.disclaimer"
+      >These numbers show PK Spot user intent, not tickets bought.</span
+    >
   }
 </div>

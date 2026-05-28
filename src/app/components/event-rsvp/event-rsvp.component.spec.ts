@@ -49,7 +49,7 @@ describe("EventRsvpComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("keeps the optimistic count after a save while the aggregate is stale", async () => {
+  it("leaves the visible counts unchanged after a save while the aggregate is stale", async () => {
     fixture.componentRef.setInput("eventId", "event-1");
     fixture.componentRef.setInput("counts", {
       going: 0,
@@ -63,16 +63,15 @@ describe("EventRsvpComponent", () => {
     await component.selectRsvp("going");
 
     expect(component.loadedRsvp()).toBe("going");
-    expect(component.countedRsvp()).toBeNull();
     expect(component.displayCounts()).toEqual({
-      going: 1,
+      going: 0,
       interested: 0,
       notgoing: 0,
-      total: 1,
+      total: 0,
     });
   });
 
-  it("counts my loaded RSVP after refresh when the aggregate is stale", async () => {
+  it("does not add my loaded response to the visible aggregate", async () => {
     eventsService.getMyRsvp.mockResolvedValue({
       user_id: "user-1",
       event_id: "event-1",
@@ -91,16 +90,15 @@ describe("EventRsvpComponent", () => {
     await fixture.whenStable();
 
     expect(component.selectedRsvp()).toBe("going");
-    expect(component.countedRsvp()).toBeNull();
     expect(component.displayCounts()).toEqual({
-      going: 1,
+      going: 0,
       interested: 0,
       notgoing: 0,
-      total: 1,
+      total: 0,
     });
   });
 
-  it("settles optimistic counts once the event aggregate catches up", async () => {
+  it("shows updated counts only when the event aggregate changes", async () => {
     fixture.componentRef.setInput("eventId", "event-1");
     fixture.componentRef.setInput("counts", {
       going: 0,
@@ -121,7 +119,6 @@ describe("EventRsvpComponent", () => {
     });
     fixture.detectChanges();
 
-    expect(component.countedRsvp()).toBe("going");
     expect(component.displayCounts()).toEqual({
       going: 1,
       interested: 0,

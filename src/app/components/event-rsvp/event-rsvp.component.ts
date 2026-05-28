@@ -7,7 +7,6 @@ import {
   inject,
   input,
   signal,
-  untracked,
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -40,7 +39,6 @@ export class EventRsvpComponent implements OnDestroy {
   private _authService = inject(AuthenticationService);
   private _authSubscription?: Subscription;
   private _loadVersion = 0;
-  private _lastCountsValue: EventRSVPCountsSchema | null | undefined;
 
   readonly eventId = input<string | null>(null);
   readonly counts = input<EventRSVPCountsSchema | null>(null);
@@ -49,7 +47,6 @@ export class EventRsvpComponent implements OnDestroy {
   readonly userId = signal<string | null>(this._authService.user.uid ?? null);
   readonly selectedRsvp = signal<EventRSVPOption | null>(null);
   readonly loadedRsvp = signal<EventRSVPOption | null>(null);
-  readonly countedRsvp = signal<EventRSVPOption | null>(null);
   readonly isLoading = signal(false);
   readonly isSaving = signal(false);
   readonly errorMessage = signal("");
@@ -62,20 +59,7 @@ export class EventRsvpComponent implements OnDestroy {
       notgoing: 0,
       total: 0,
     };
-    const current = this.selectedRsvp();
-    const counted = this.countedRsvp();
-    if (current === counted) return base;
-
-    const next = { ...base };
-    if (counted) {
-      next[counted] = Math.max(0, next[counted] - 1);
-      next.total = Math.max(0, next.total - 1);
-    }
-    if (current) {
-      next[current] += 1;
-      next.total += 1;
-    }
-    return next;
+    return base;
   });
 
   constructor() {
@@ -89,19 +73,9 @@ export class EventRsvpComponent implements OnDestroy {
       if (!eventId || !userId) {
         this.selectedRsvp.set(null);
         this.loadedRsvp.set(null);
-        this.countedRsvp.set(null);
         return;
       }
       void this._loadRsvp(eventId);
-    });
-
-    effect(() => {
-      const counts = this.counts();
-      if (counts === this._lastCountsValue) return;
-      this._lastCountsValue = counts;
-      this.countedRsvp.set(
-        this._rsvpAlreadyCounted(untracked(() => this.loadedRsvp()), counts),
-      );
     });
   }
 
@@ -116,7 +90,6 @@ export class EventRsvpComponent implements OnDestroy {
 
     const previousSelected = this.selectedRsvp();
     const previousLoaded = this.loadedRsvp();
-    const previousCounted = this.countedRsvp();
     this.selectedRsvp.set(next);
     this.errorMessage.set("");
     this.isSaving.set(true);
@@ -128,7 +101,6 @@ export class EventRsvpComponent implements OnDestroy {
       console.error("Failed to save event RSVP", err);
       this.selectedRsvp.set(previousSelected);
       this.loadedRsvp.set(previousLoaded);
-      this.countedRsvp.set(previousCounted);
       this.errorMessage.set(
         $localize`:@@event_rsvp.save_failed:Couldn't save your response. Try again in a moment.`,
       );
@@ -143,7 +115,6 @@ export class EventRsvpComponent implements OnDestroy {
 
     const previousSelected = this.selectedRsvp();
     const previousLoaded = this.loadedRsvp();
-    const previousCounted = this.countedRsvp();
     this.selectedRsvp.set(null);
     this.errorMessage.set("");
     this.isSaving.set(true);
@@ -155,7 +126,6 @@ export class EventRsvpComponent implements OnDestroy {
       console.error("Failed to clear event RSVP", err);
       this.selectedRsvp.set(previousSelected);
       this.loadedRsvp.set(previousLoaded);
-      this.countedRsvp.set(previousCounted);
       this.errorMessage.set(
         $localize`:@@event_rsvp.clear_failed:Couldn't clear your response. Try again in a moment.`,
       );
@@ -174,7 +144,6 @@ export class EventRsvpComponent implements OnDestroy {
       const rsvp = this._normalizeRsvp(doc?.rsvp);
       this.loadedRsvp.set(rsvp);
       this.selectedRsvp.set(rsvp);
-      this.countedRsvp.set(this._rsvpAlreadyCounted(rsvp, this.counts()));
     } catch (err) {
       if (version !== this._loadVersion) return;
       console.error("Failed to load event RSVP", err);
@@ -192,13 +161,5 @@ export class EventRsvpComponent implements OnDestroy {
     return value === "going" || value === "interested" || value === "notgoing"
       ? value
       : null;
-  }
-
-  private _rsvpAlreadyCounted(
-    rsvp: EventRSVPOption | null,
-    counts: EventRSVPCountsSchema | null,
-  ): EventRSVPOption | null {
-    if (!rsvp || !counts) return null;
-    return counts[rsvp] > 0 ? rsvp : null;
   }
 }

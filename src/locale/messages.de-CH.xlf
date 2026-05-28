@@ -6911,7 +6911,7 @@
     <unit id="event_rsvp.disclaimer">
       <segment state="initial">
         <source>These numbers show PK Spot user intent, not tickets bought.</source>
-        <target>Die Zahle zeiged d&apos;Absicht vo PK Spot-Nutzer, kei kaufti Tickets.</target>
+        <target>Die Zahle zeiged d&apos;Absicht vo PK Spot-Nutzer, nöd kaufti Tickets.</target>
       </segment>
     </unit>
     <unit id="event_rsvp.current_going">

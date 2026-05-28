@@ -1,18 +1,20 @@
 import {
+  ChangeDetectionStrategy,
   Component,
+  computed,
   Inject,
   inject,
   LOCALE_ID,
   OnInit,
   Pipe,
   PipeTransform,
+  signal,
 } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialogTitle,
   MatDialogRef,
 } from "@angular/material/dialog";
-import { User } from "../../../db/models/User";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 
 import { Observable, take } from "rxjs";
@@ -38,13 +40,21 @@ import {
   MatRow,
 } from "@angular/material/table";
 import { FollowingService } from "../../services/firebase/firestore/following.service.js";
-import { FollowingDataSchema } from "../../../db/schemas/UserSchema";
+import {
+  FollowingDataSchema,
+  FollowingSchema,
+} from "../../../db/schemas/UserSchema";
+
+interface FollowListUser extends FollowingSchema {
+  _profileSrc?: string;
+  _imgError?: boolean;
+}
 
 export interface FollowListDialogData {
   userId: string;
   type: "followers" | "following";
   followUsers: FollowingDataSchema[];
-  allLoaded: boolean;
+  allLoaded?: boolean;
   displayName?: string;
   isMyProfile?: boolean;
 }
@@ -72,6 +82,7 @@ export class FollowDurationPipe implements PipeTransform {
   selector: "app-follow-list",
   templateUrl: "./follow-list.component.html",
   styleUrls: ["./follow-list.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatDialogTitle,
     MatTable,
@@ -93,6 +104,21 @@ export class FollowDurationPipe implements PipeTransform {
   ],
 })
 export class FollowListComponent implements OnInit {
+  readonly displayedColumns = ["user", "duration", "open"];
+  readonly followUsers = signal<FollowListUser[]>([]);
+  readonly isLoading = signal(false);
+  readonly hasLoadedAll = signal(false);
+  readonly hasLoadedFirstPage = signal(false);
+  readonly hasFollowUsers = computed(() => this.followUsers().length > 0);
+  readonly showEmptyState = computed(
+    () =>
+      this.hasLoadedFirstPage() && !this.isLoading() && !this.hasFollowUsers()
+  );
+
+  lastLoadedFollowing: Timestamp | null = null;
+  private _isFirstLoad = true;
+  private readonly _chunkSize = 20;
+
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: FollowListDialogData,
     private _followingService: FollowingService,
@@ -103,14 +129,15 @@ export class FollowListComponent implements OnInit {
     this._dialogRef.close();
   }
 
-  displayedColumns: string[] = ["user", "duration", "open"];
-
-  isLoading: boolean = false;
-  hasLoadedAll: boolean = false;
-  lastLoadedFollowing: Timestamp | null = null;
-  private _isFirstLoad: boolean = true;
-
   ngOnInit(): void {
+    this.followUsers.set(
+      this._processFollowUsers(
+        this.data.followUsers.flatMap((user) => {
+          const uid = (user as { uid?: unknown }).uid;
+          return typeof uid === "string" ? [{ ...user, uid }] : [];
+        })
+      )
+    );
     this._loadFollowing();
   }
 
@@ -119,28 +146,25 @@ export class FollowListComponent implements OnInit {
   }
 
   private _loadFollowing() {
-    this.isLoading = true;
-    const chunkSize = 20;
+    this.isLoading.set(true);
 
-    let obs: Observable<FollowingDataSchema[]>;
+    let obs: Observable<FollowingSchema[]>;
     if (this.data.type === "followers") {
       obs = this._followingService.getFollowersOfUser(
         this.data.userId,
-        chunkSize
+        this._chunkSize
       );
     } else {
       obs = this._followingService.getFollowingsOfUser(
         this.data.userId,
-        chunkSize
+        this._chunkSize
       );
     }
 
-    // Use take(1) to get only the first emission from the real-time observable
-    obs.pipe(take(1)).subscribe(
-      (followings) => {
-        this.isLoading = false;
-
-        // Debugging: Log counts and IDs to help trace "empty list" bug
+    obs.pipe(take(1)).subscribe({
+      next: (followings) => {
+        this.isLoading.set(false);
+        this.hasLoadedFirstPage.set(true);
         console.log(`Loaded ${followings.length} items for ${this.data.type}`);
         if (followings.length === 0 && this._isFirstLoad) {
           console.warn(
@@ -148,67 +172,42 @@ export class FollowListComponent implements OnInit {
           );
         }
 
-        this._processFollowUsers(followings);
+        const processedFollowings = this._processFollowUsers(followings);
 
-        // On first load, replace the array instead of concatenating
         if (this._isFirstLoad) {
-          this.data.followUsers = followings;
+          this.followUsers.set(processedFollowings);
           this._isFirstLoad = false;
         } else {
-          this.data.followUsers = this.data.followUsers.concat(followings);
+          this.followUsers.update((existing) =>
+            existing.concat(processedFollowings)
+          );
         }
 
-        if (followings.length < chunkSize) {
-          // We are at the end, and have loaded all the things
-          // console.log("The end!");
+        if (followings.length < this._chunkSize) {
           this.lastLoadedFollowing = null;
-          this.hasLoadedAll = true;
+          this.hasLoadedAll.set(true);
         } else {
-          // this was not the end
-          // console.log("not the end!");
           this.lastLoadedFollowing =
             followings[followings.length - 1].start_following ?? null;
         }
       },
-      (err) => {
+      error: (err: unknown) => {
         console.error("Error loading follow list:", err);
-        this.isLoading = false;
-        // Optionally show snackbar here
+        this.isLoading.set(false);
+        this.hasLoadedFirstPage.set(true);
       },
-      () => {}
-    );
+    });
   }
 
-  private _processFollowUsers(users: FollowingDataSchema[]) {
-    users.forEach((u: any) => {
-      // Generate profile picture URL from user ID - no need to store or sync URLs
-      if (!u._profileSrc && u.uid) {
-        u._profileSrc = getProfilePictureUrl(u.uid, 200);
-      }
-    });
+  private _processFollowUsers(users: FollowingSchema[]): FollowListUser[] {
+    return users.map((user) => ({
+      ...user,
+      _profileSrc: user.uid ? getProfilePictureUrl(user.uid, 200) : undefined,
+    }));
   }
 
   getInitials(displayName: string | undefined): string {
     if (!displayName) return "?";
     return displayName.charAt(0).toUpperCase();
-  }
-
-  onImgError(event: any) {
-    event.target.style.display = "none";
-    // The sibling element (fallback div) will become visible if handled in template,
-    // or we can set a backup src, but hiding the broken img and showing a div behind it is better for letter avatars.
-    // However, simplified approach: set a flag on the user object or just use *ngIf in template.
-    // Let's rely on template logic: *ngIf="!imageError" and (error)="imageError = true"
-    // But since we are iterating, we can't easily use a single variable.
-    // We can add a property to the user object in the list.
-    const element = event.target;
-    // Mark this element as failed so we can show the fallback
-    element.dataset.hasError = "true";
-    // For this simple implementation, let's just use the 'onError' in HTML to switch a variable on the user object if possible,
-    // or use a class-based toggle.
-    // Actually, simplest way for *ngFor: add a `_imgError` property to the schema locally.
-
-    // We can't easily access the scope variable here without passing it.
-    // Let's handle it in the template with a local template variable if possible, or update the model.
   }
 }
