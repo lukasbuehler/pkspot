@@ -39,6 +39,8 @@ import { MediaReportDialogComponent } from "../../media-report-dialog/media-repo
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MapsApiService } from "../../services/maps-api.service";
 
+export type ImgCarouselImageFit = "cover" | "contain";
+
 @Component({
   selector: "app-img-carousel",
   imports: [NgOptimizedImage, MatProgressSpinnerModule],
@@ -58,10 +60,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   failedCopyFallbackIndices = signal<Set<number>>(new Set());
 
   horizontalPaddingPx = input<number>(0);
-  containedImageIndices = input<readonly number[]>([]);
-  containedImageBackground = input<string>(
-    "var(--mat-sys-surface-container-highest)",
-  );
+  imageFits = input<readonly ImgCarouselImageFit[]>([]);
+  imageBackgroundColors = input<readonly (string | null | undefined)[]>([]);
 
   /** Tracks the retry count for each image index */
   private retryCountMap = new Map<number, number>();
@@ -83,6 +83,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   private previewDragStartScrollLeft = 0;
   private previewDragMoved = false;
   private readonly previewGapPx = 10;
+  private readonly containedImageDefaultBackground =
+    "var(--mat-sys-surface-container-highest)";
 
   @ViewChild("previewViewport")
   private previewViewport: ElementRef<HTMLElement> | undefined;
@@ -353,8 +355,19 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     return String(this.imageAspectRatios().get(index) ?? 1);
   }
 
-  isContainedImage(index: number): boolean {
-    return this.containedImageIndices().includes(index);
+  getImagePreviewFit(index: number): ImgCarouselImageFit {
+    return this.imageFits()[index] ?? "cover";
+  }
+
+  getImagePreviewBackgroundColor(index: number): string | null {
+    if (this.getImagePreviewFit(index) !== "contain") {
+      return null;
+    }
+
+    return (
+      this.imageBackgroundColors()[index] ??
+      this.containedImageDefaultBackground
+    );
   }
 
   openImageViewer(index: number = 0) {

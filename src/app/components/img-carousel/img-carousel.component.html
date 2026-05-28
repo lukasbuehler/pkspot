@@ -3,7 +3,6 @@
   class="carousel"
   [style.padding-left]="horizontalPaddingPx() + 'px'"
   [style.padding-right]="horizontalPaddingPx() + 'px'"
-  [style.--contained-image-background]="containedImageBackground()"
 >
   <div class="carousel-visual-layer">
     @for (mediaObj of media(); track $index) {
@@ -14,11 +13,14 @@
       ) {
         <div
           class="spot-img-container"
-          [class.contained-preview]="isContainedImage($index)"
+          [class.contained-preview]="getImagePreviewFit($index) === 'contain'"
           [style.aspect-ratio]="getImageAspectRatio($index)"
           [attr.data-media-index]="$index"
         >
-          <div class="spot-img-frame">
+          <div
+            class="spot-img-frame"
+            [style.background-color]="getImagePreviewBackgroundColor($index)"
+          >
             @if (
               !imageLoadErrors().has($index) && getImageSrc($index, mediaObj)
             ) {

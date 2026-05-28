@@ -98,8 +98,10 @@
         @if (heroMedia().length) {
           <app-img-carousel
             [media]="heroMedia()"
-            [containedImageIndices]="event.bannerFit === 'contain' ? [0] : []"
-            containedImageBackground="var(--mat-sys-surface-container-lowest)"
+            [imageFits]="event.bannerFit === 'contain' ? ['contain'] : []"
+            [imageBackgroundColors]="
+              event.bannerFit === 'contain' ? [event.bannerAccentColor] : []
+            "
           ></app-img-carousel>
         } @else {
           <app-media-placeholder
