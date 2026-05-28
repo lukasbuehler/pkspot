@@ -96,7 +96,11 @@
         [class.contain]="event.bannerFit === 'contain'"
       >
         @if (heroMedia().length) {
-          <app-img-carousel [media]="heroMedia()"></app-img-carousel>
+          <app-img-carousel
+            [media]="heroMedia()"
+            [containedImageIndices]="event.bannerFit === 'contain' ? [0] : []"
+            containedImageBackground="var(--mat-sys-surface-container-lowest)"
+          ></app-img-carousel>
         } @else {
           <app-media-placeholder
             src="assets/spot_placeholder.png"

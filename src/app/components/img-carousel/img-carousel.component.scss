@@ -1,26 +1,64 @@
-::ng-deep .carousel {
+.carousel {
+  --carousel-shape: 20px;
+
   position: relative;
   height: 100%;
-  overflow-x: scroll;
-  display: flex;
-  flex-direction: row;
+  overflow: hidden;
+  width: 100%;
+  touch-action: pan-x pan-y;
 
-  // hide scrollbar
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE 10+ */
-  &::-webkit-scrollbar {
-    display: none; /* Safari and Chrome */
+  .carousel-visual-layer,
+  .carousel-scroll-layer {
+    position: absolute;
+    inset: 0;
+  }
+
+  .carousel-visual-layer {
+    pointer-events: none;
+  }
+
+  .carousel-scroll-layer {
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 2;
+    cursor: pointer;
+    user-select: none;
+
+    // hide scrollbar
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+    &::-webkit-scrollbar {
+      display: none; /* Safari and Chrome */
+    }
+  }
+
+  .carousel-scroll-track {
+    height: 1px;
   }
 
   .spot-img-container {
-    position: relative;
+    position: absolute;
+    top: 0;
     height: 100%;
-    width: auto;
-    aspect-ratio: 1/1;
+    width: 120px;
 
-    border-radius: 20px;
-    margin-right: 10px;
-    flex-shrink: 0; // for now
+    border-radius: var(--carousel-shape);
+    overflow: hidden;
+    transform: translateZ(0);
+    will-change: left, width, opacity;
+
+    .spot-img-frame {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: transparent;
+    }
+
+    &.contained-preview .spot-img-frame {
+      background-color: var(--contained-image-background);
+    }
 
     img {
       object-fit: cover;
@@ -37,12 +75,9 @@
         opacity: 0;
       }
     }
-    :hover {
-      filter: brightness(1.2);
-      transform: scale(1.1);
-      transition:
-        filter 0.2s ease-in-out,
-        transform 0.2s ease-in-out;
+
+    &.contained-preview img {
+      object-fit: contain;
     }
 
     .processing-overlay {
@@ -55,7 +90,7 @@
       align-items: center;
       justify-content: center;
       background-color: rgba(0, 0, 0, 0.1);
-      border-radius: 20px;
+      border-radius: var(--carousel-shape);
       z-index: 1;
     }
   }

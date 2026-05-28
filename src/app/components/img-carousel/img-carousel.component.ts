@@ -2,18 +2,18 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  Input,
-  Output,
-  EventEmitter,
   CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
   Inject,
+  OnDestroy,
   PLATFORM_ID,
+  ViewChild,
   inject,
   signal,
   computed,
   input,
+  output,
 } from "@angular/core";
-import { MatRippleModule } from "@angular/material/core";
 import { MatButtonModule, MatIconButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import {
@@ -41,14 +41,14 @@ import { MapsApiService } from "../../services/maps-api.service";
 
 @Component({
   selector: "app-img-carousel",
-  imports: [MatRippleModule, NgOptimizedImage, MatProgressSpinnerModule],
+  imports: [NgOptimizedImage, MatProgressSpinnerModule],
   templateUrl: "./img-carousel.component.html",
   styleUrl: "./img-carousel.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ImgCarouselComponent {
-  @Input() media: AnyMedia[] | undefined;
-  @Input() spotId: string | undefined;
+export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
+  media = input<AnyMedia[] | undefined>();
+  spotId = input<string | undefined>();
 
   /** Tracks images that failed to load and are being retried */
   imageLoadErrors = signal<Set<number>>(new Set());
@@ -58,6 +58,10 @@ export class ImgCarouselComponent {
   failedCopyFallbackIndices = signal<Set<number>>(new Set());
 
   horizontalPaddingPx = input<number>(0);
+  containedImageIndices = input<readonly number[]>([]);
+  containedImageBackground = input<string>(
+    "var(--mat-sys-surface-container-highest)",
+  );
 
   /** Tracks the retry count for each image index */
   private retryCountMap = new Map<number, number>();
@@ -65,17 +69,51 @@ export class ImgCarouselComponent {
   private readonly RETRY_DELAY_MS = 3000;
 
   /** Tracks indices of images that should be hidden (e.g. broken external images) */
-  /** Tracks indices of images that should be hidden (e.g. broken external images) */
   hiddenIndices = signal<Set<number>>(new Set());
 
-  @Output() mediaRemove = new EventEmitter<AnyMedia>();
+  mediaRemove = output<AnyMedia>();
+  imageAspectRatios = signal<Map<number, number>>(new Map());
+  previewTrackWidth = signal(1);
 
   mapsApiService = inject(MapsApiService);
+  private resizeAnimationFrame: number | null = null;
+  private previewResizeObserver: ResizeObserver | null = null;
+  private activePreviewPointerId: number | null = null;
+  private previewDragStartX = 0;
+  private previewDragStartScrollLeft = 0;
+  private previewDragMoved = false;
+  private readonly previewGapPx = 10;
+
+  @ViewChild("previewViewport")
+  private previewViewport: ElementRef<HTMLElement> | undefined;
+
+  @ViewChild("previewScroller")
+  private previewScroller: ElementRef<HTMLElement> | undefined;
 
   constructor(
     public dialog: MatDialog,
     public storageService: StorageService,
   ) {}
+
+  ngAfterViewInit(): void {
+    if (
+      typeof ResizeObserver !== "undefined" &&
+      this.previewViewport?.nativeElement
+    ) {
+      this.previewResizeObserver = new ResizeObserver(() => {
+        this.queuePreviewResize();
+      });
+      this.previewResizeObserver.observe(this.previewViewport.nativeElement);
+    }
+    this.queuePreviewResize();
+  }
+
+  ngOnDestroy(): void {
+    if (this.resizeAnimationFrame !== null) {
+      cancelAnimationFrame(this.resizeAnimationFrame);
+    }
+    this.previewResizeObserver?.disconnect();
+  }
 
   /**
    * Called when an image fails to load.
@@ -171,9 +209,21 @@ export class ImgCarouselComponent {
   /**
    * Called when an image successfully loads.
    */
-  onImageLoad(index: number, mediaObj: AnyMedia): void {
+  onImageLoad(event: Event, index: number, mediaObj: AnyMedia): void {
     if (mediaObj instanceof StorageImage) {
       mediaObj.isProcessing.set(false);
+    }
+    const image = event.currentTarget as HTMLImageElement;
+    if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+      const aspectRatio = image.naturalWidth / image.naturalHeight;
+      this.imageAspectRatios.update((ratios) => {
+        const next = new Map(ratios);
+        next.set(index, aspectRatio);
+        return next;
+      });
+      const container = image.closest<HTMLElement>(".spot-img-container");
+      container?.style.setProperty("--image-aspect-ratio", String(aspectRatio));
+      this.queuePreviewResize();
     }
     this.retryCountMap.delete(index);
     this.imageLoadErrors.update((set) => {
@@ -218,9 +268,98 @@ export class ImgCarouselComponent {
     this.openImageViewer(index);
   }
 
+  onPreviewScroll(): void {
+    this.queuePreviewResize();
+  }
+
+  onPreviewClick(event: MouseEvent): void {
+    if (this.previewDragMoved) {
+      this.previewDragMoved = false;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    const viewport = this.previewViewport?.nativeElement;
+    if (!viewport) {
+      return;
+    }
+
+    const clickX = event.clientX;
+    let closestIndex: number | null = null;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    for (const item of Array.from(
+      viewport.querySelectorAll<HTMLElement>(".spot-img-container"),
+    )) {
+      const index = Number(item.dataset["mediaIndex"]);
+      if (!Number.isFinite(index)) {
+        continue;
+      }
+
+      const rect = item.getBoundingClientRect();
+      const distance = Math.abs(rect.left + rect.width / 2 - clickX);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = index;
+      }
+    }
+
+    if (closestIndex !== null) {
+      this.imageClick(closestIndex);
+    }
+  }
+
+  onPreviewPointerDown(event: PointerEvent): void {
+    const scroller = this.previewScroller?.nativeElement;
+    if (!scroller || event.button !== 0) {
+      return;
+    }
+
+    this.activePreviewPointerId = event.pointerId;
+    this.previewDragStartX = event.clientX;
+    this.previewDragStartScrollLeft = scroller.scrollLeft;
+    this.previewDragMoved = false;
+    scroller.setPointerCapture(event.pointerId);
+  }
+
+  onPreviewPointerMove(event: PointerEvent): void {
+    const scroller = this.previewScroller?.nativeElement;
+    if (!scroller || this.activePreviewPointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaX = event.clientX - this.previewDragStartX;
+    if (Math.abs(deltaX) > 3) {
+      this.previewDragMoved = true;
+    }
+    scroller.scrollLeft = this.previewDragStartScrollLeft - deltaX;
+    this.queuePreviewResize();
+  }
+
+  onPreviewPointerEnd(event: PointerEvent): void {
+    const scroller = this.previewScroller?.nativeElement;
+    if (this.activePreviewPointerId !== event.pointerId) {
+      return;
+    }
+
+    if (scroller?.hasPointerCapture(event.pointerId)) {
+      scroller.releasePointerCapture(event.pointerId);
+    }
+    this.activePreviewPointerId = null;
+  }
+
+  getImageAspectRatio(index: number): string {
+    return String(this.imageAspectRatios().get(index) ?? 1);
+  }
+
+  isContainedImage(index: number): boolean {
+    return this.containedImageIndices().includes(index);
+  }
+
   openImageViewer(index: number = 0) {
     const dialogRef = this.dialog.open(SwiperDialogComponent, {
-      data: { media: this.media, index: index, spotId: this.spotId },
+      data: { media: this.media(), index: index, spotId: this.spotId() },
       hasBackdrop: true,
       maxWidth: "95vw",
       maxHeight: "95vh",
@@ -240,6 +379,125 @@ export class ImgCarouselComponent {
         });
       }
     });
+  }
+
+  private queuePreviewResize(): void {
+    if (typeof requestAnimationFrame !== "function") {
+      return;
+    }
+
+    if (this.resizeAnimationFrame !== null) {
+      cancelAnimationFrame(this.resizeAnimationFrame);
+    }
+
+    this.resizeAnimationFrame = requestAnimationFrame(() => {
+      this.resizeAnimationFrame = null;
+      this.resizePreviewItems();
+    });
+  }
+
+  private resizePreviewItems(): void {
+    const viewport = this.previewViewport?.nativeElement;
+    const scroller = this.previewScroller?.nativeElement;
+    if (!viewport || !scroller) {
+      return;
+    }
+
+    const viewportRect = viewport.getBoundingClientRect();
+    const viewportWidth = viewportRect.width;
+    const viewportHeight = viewportRect.height;
+    const scrollLeft = scroller.scrollLeft;
+    const layout = this.getPreviewLayout(viewportWidth, viewportHeight);
+    let virtualLeft = layout.startInset;
+
+    this.previewTrackWidth.set(layout.trackWidth);
+
+    for (const item of Array.from(
+      viewport.querySelectorAll<HTMLElement>(".spot-img-container"),
+    )) {
+      const aspectRatio = Number(
+        item.style.getPropertyValue("--image-aspect-ratio"),
+      );
+      const fullWidth = this.getPreviewFullWidth(
+        viewportWidth,
+        viewportHeight,
+        aspectRatio,
+      );
+      const virtualItemLeft = virtualLeft - scrollLeft;
+      const virtualItemRight = virtualItemLeft + fullWidth;
+      const visualLeft = Math.max(0, virtualItemLeft);
+      const visualRight = Math.min(viewportWidth, virtualItemRight);
+      const visualWidth = Math.max(0, visualRight - visualLeft);
+
+      item.style.width = `${visualWidth}px`;
+      item.style.left = `${visualLeft}px`;
+      item.style.opacity = visualWidth > 0 ? "1" : "0";
+      item.style.zIndex = "";
+
+      const frame = item.querySelector<HTMLElement>(".spot-img-frame");
+      if (frame) {
+        if (item.classList.contains("contained-preview")) {
+          frame.style.width = `${fullWidth}px`;
+          frame.style.left = `${virtualItemLeft - visualLeft}px`;
+        } else {
+          frame.style.width = "";
+          frame.style.left = "";
+        }
+      }
+
+      virtualLeft += fullWidth + this.previewGapPx;
+    }
+  }
+
+  private getPreviewLayout(
+    viewportWidth: number,
+    viewportHeight: number,
+  ): { startInset: number; trackWidth: number } {
+    const mediaItems = this.media() ?? [];
+    const widths: number[] = [];
+
+    for (let index = 0; index < mediaItems.length; index++) {
+      const mediaObj = mediaItems[index];
+      if (
+        mediaObj?.type !== "image" ||
+        this.hiddenIndices().has(index) ||
+        mediaObj.isReported
+      ) {
+        continue;
+      }
+
+      widths.push(
+        this.getPreviewFullWidth(
+          viewportWidth,
+          viewportHeight,
+          this.imageAspectRatios().get(index) ?? 1,
+        ),
+      );
+    }
+
+    if (widths.length === 0) {
+      return { startInset: 0, trackWidth: 1 };
+    }
+
+    const contentWidth =
+      widths.reduce((total, width) => total + width, 0) +
+      this.previewGapPx * (widths.length - 1);
+
+    return {
+      startInset: 0,
+      trackWidth: Math.max(1, contentWidth),
+    };
+  }
+
+  private getPreviewFullWidth(
+    viewportWidth: number,
+    viewportHeight: number,
+    aspectRatio: number,
+  ): number {
+    const imageAspectRatio = Number.isFinite(aspectRatio) ? aspectRatio : 1;
+    const naturalWidth = viewportHeight * imageAspectRatio;
+    const maxWidth = Math.min(420, viewportWidth * 0.76);
+    return Math.max(112, Math.min(naturalWidth, maxWidth));
   }
 }
 

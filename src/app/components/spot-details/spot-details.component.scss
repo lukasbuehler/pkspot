@@ -44,7 +44,7 @@ mat-tab-group {
 }
 
 form {
-  >mat-form-field {
+  > mat-form-field {
     margin-bottom: 5px;
   }
 }
@@ -145,8 +145,6 @@ app-img-carousel {
   min-height: 150px;
   max-height: 410px;
   height: 26vh;
-  margin-left: -32px;
-  margin-right: -32px;
 }
 
 .flex-basis-0 {
@@ -162,7 +160,7 @@ app-img-carousel {
   background-color: #ffdad6;
   margin-bottom: 10px;
 
-  >* {
+  > * {
     color: #410002;
   }
 }
@@ -173,7 +171,7 @@ div.hist-grid-container {
   gap: 10px;
   align-items: center;
 
-  >div.grid-item {
+  > div.grid-item {
     text-align: end;
   }
 }
@@ -183,7 +181,7 @@ div.google-img-container {
   aspect-ratio: 4/3;
   position: relative;
 
-  >img {
+  > img {
     object-fit: cover;
   }
 }
@@ -196,7 +194,6 @@ div.google-img-container {
 
 // Styling for negative amenities
 .negative-amenity {
-
   // Use a muted red color scheme for negative amenities
   &.mat-mdc-chip {
     border-color: rgba(244, 67, 54, 0.6);
@@ -263,7 +260,9 @@ div.google-img-container {
   opacity: var(--open-progress, 1);
   max-height: calc(var(--open-progress, 1) * 100px);
   overflow: hidden;
-  transition: opacity 0.2s ease-out, max-height 0.2s ease-out;
+  transition:
+    opacity 0.2s ease-out,
+    max-height 0.2s ease-out;
 
   // When fully collapsed, prevent interaction
   pointer-events: auto;
