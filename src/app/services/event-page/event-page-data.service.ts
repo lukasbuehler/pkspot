@@ -1,5 +1,5 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
-import { firstValueFrom } from "rxjs";
+import { Observable, catchError, firstValueFrom, map, of } from "rxjs";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -52,6 +52,16 @@ export class EventPageDataService {
     }
 
     return loaded;
+  }
+
+  observeEventBySlugOrId(slugOrId: string): Observable<PkEvent | null> {
+    return this._eventsService.observeEventBySlugOrId(slugOrId).pipe(
+      map((loaded) => loaded ?? this._staticFallbackEvent(slugOrId)),
+      catchError((err) => {
+        console.warn("EventPageDataService: failed to observe event", err);
+        return of(this._staticFallbackEvent(slugOrId));
+      }),
+    );
   }
 
   eventCanonicalPath(event: PkEvent): string {
@@ -320,5 +330,10 @@ export class EventPageDataService {
         amenities: {},
       };
     return new LocalSpot(data, this._locale);
+  }
+
+  private _staticFallbackEvent(slugOrId: string): PkEvent | null {
+    if (slugOrId !== "swissjam25") return null;
+    return new PkEvent("swissjam25" as EventId, SWISSJAM25_STATIC);
   }
 }

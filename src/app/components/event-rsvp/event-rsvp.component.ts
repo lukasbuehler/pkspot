@@ -11,11 +11,8 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
-import {
-  MatButtonToggleChange,
-  MatButtonToggleModule,
-} from "@angular/material/button-toggle";
 import { MatIconModule } from "@angular/material/icon";
+import { MatMenuModule } from "@angular/material/menu";
 import { Subscription } from "rxjs";
 import {
   EventRSVPCountsSchema,
@@ -30,8 +27,8 @@ import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component"
   imports: [
     RouterLink,
     MatButtonModule,
-    MatButtonToggleModule,
     MatIconModule,
+    MatMenuModule,
     FancyCounterComponent,
   ],
   templateUrl: "./event-rsvp.component.html",
@@ -47,6 +44,7 @@ export class EventRsvpComponent implements OnDestroy {
 
   readonly eventId = input<string | null>(null);
   readonly counts = input<EventRSVPCountsSchema | null>(null);
+  readonly showDisclaimer = input(true);
 
   readonly userId = signal<string | null>(this._authService.user.uid ?? null);
   readonly selectedRsvp = signal<EventRSVPOption | null>(null);
@@ -54,14 +52,9 @@ export class EventRsvpComponent implements OnDestroy {
   readonly countedRsvp = signal<EventRSVPOption | null>(null);
   readonly isLoading = signal(false);
   readonly isSaving = signal(false);
-  readonly isEditingRsvp = signal(false);
   readonly errorMessage = signal("");
 
   readonly isSignedIn = computed(() => !!this.userId());
-  readonly hasRsvp = computed(() => !!this.selectedRsvp());
-  readonly shouldShowRsvpControls = computed(
-    () => this.isSignedIn() && (!this.hasRsvp() || this.isEditingRsvp()),
-  );
   readonly displayCounts = computed(() => {
     const base = this.counts() ?? {
       going: 0,
@@ -97,7 +90,6 @@ export class EventRsvpComponent implements OnDestroy {
         this.selectedRsvp.set(null);
         this.loadedRsvp.set(null);
         this.countedRsvp.set(null);
-        this.isEditingRsvp.set(false);
         return;
       }
       void this._loadRsvp(eventId);
@@ -117,12 +109,10 @@ export class EventRsvpComponent implements OnDestroy {
     this._authSubscription?.unsubscribe();
   }
 
-  async onRsvpChange(change: MatButtonToggleChange): Promise<void> {
+  async selectRsvp(next: EventRSVPOption): Promise<void> {
     const eventId = this.eventId();
     if (!eventId || !this.userId()) return;
-
-    const next = this._normalizeRsvp(change.value);
-    if (!next || next === this.selectedRsvp()) return;
+    if (next === this.selectedRsvp()) return;
 
     const previousSelected = this.selectedRsvp();
     const previousLoaded = this.loadedRsvp();
@@ -134,14 +124,13 @@ export class EventRsvpComponent implements OnDestroy {
     try {
       await this._eventsService.setMyRsvp(eventId, next);
       this.loadedRsvp.set(next);
-      this.isEditingRsvp.set(false);
     } catch (err) {
       console.error("Failed to save event RSVP", err);
       this.selectedRsvp.set(previousSelected);
       this.loadedRsvp.set(previousLoaded);
       this.countedRsvp.set(previousCounted);
       this.errorMessage.set(
-        $localize`:@@event_rsvp.save_failed:Couldn't save your RSVP. Try again in a moment.`,
+        $localize`:@@event_rsvp.save_failed:Couldn't save your response. Try again in a moment.`,
       );
     } finally {
       this.isSaving.set(false);
@@ -162,14 +151,13 @@ export class EventRsvpComponent implements OnDestroy {
     try {
       await this._eventsService.clearMyRsvp(eventId);
       this.loadedRsvp.set(null);
-      this.isEditingRsvp.set(false);
     } catch (err) {
       console.error("Failed to clear event RSVP", err);
       this.selectedRsvp.set(previousSelected);
       this.loadedRsvp.set(previousLoaded);
       this.countedRsvp.set(previousCounted);
       this.errorMessage.set(
-        $localize`:@@event_rsvp.clear_failed:Couldn't clear your RSVP. Try again in a moment.`,
+        $localize`:@@event_rsvp.clear_failed:Couldn't clear your response. Try again in a moment.`,
       );
     } finally {
       this.isSaving.set(false);
@@ -187,12 +175,11 @@ export class EventRsvpComponent implements OnDestroy {
       this.loadedRsvp.set(rsvp);
       this.selectedRsvp.set(rsvp);
       this.countedRsvp.set(this._rsvpAlreadyCounted(rsvp, this.counts()));
-      this.isEditingRsvp.set(false);
     } catch (err) {
       if (version !== this._loadVersion) return;
       console.error("Failed to load event RSVP", err);
       this.errorMessage.set(
-        $localize`:@@event_rsvp.load_failed:Couldn't load your RSVP.`,
+        $localize`:@@event_rsvp.load_failed:Couldn't load your response.`,
       );
     } finally {
       if (version === this._loadVersion) {

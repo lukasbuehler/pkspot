@@ -1,6 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { deleteField } from "@angular/fire/firestore";
 import { Timestamp } from "firebase/firestore";
+import { Observable, from, map, of, switchMap } from "rxjs";
 import { Event } from "../../../../db/models/Event";
 import {
   EventId,
@@ -239,6 +240,26 @@ export class EventsService extends ConsentAwareService {
     if (!doc) return null;
     if (doc.published === false) return null;
     return new Event(eventId, this._assetUrls.resolveEventAssetUrls(doc));
+  }
+
+  observeEventBySlugOrId(slugOrId: string): Observable<Event | null> {
+    return from(this._resolveEventId(slugOrId)).pipe(
+      switchMap((id) => {
+        if (!id) return of(null);
+        return this.observeEventById(id as EventId);
+      }),
+    );
+  }
+
+  observeEventById(eventId: EventId): Observable<Event | null> {
+    return this._firestoreAdapter
+      .documentSnapshots<EventDocument>(`events/${eventId}`)
+      .pipe(
+        map((doc) => {
+          if (!doc || doc.published === false) return null;
+          return new Event(eventId, this._assetUrls.resolveEventAssetUrls(doc));
+        }),
+      );
   }
 
   /**

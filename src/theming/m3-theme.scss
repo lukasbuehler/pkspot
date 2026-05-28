@@ -200,6 +200,24 @@ html {
   );
 
   @include mat.all-component-themes($dark-theme);
+
+  .mat-mdc-button.mat-accent,
+  .mat-mdc-unelevated-button.mat-accent,
+  .mat-mdc-raised-button.mat-accent,
+  .mat-mdc-outlined-button.mat-accent,
+  .mat-tonal-button.mat-accent {
+    @include mat.button-color($dark-theme, $color-variant: secondary);
+  }
+
+  .mat-mdc-fab.mat-accent,
+  .mat-mdc-mini-fab.mat-accent {
+    @include mat.fab-color($dark-theme, $color-variant: secondary);
+  }
+
+  .mat-mdc-icon-button.mat-accent {
+    @include mat.icon-button-color($dark-theme, $color-variant: secondary);
+  }
+
   @include mat3-nav-button.theme($dark-theme);
   @include bottom-sheet.theme($dark-theme);
   @include about-page.theme($dark-theme);

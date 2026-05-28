@@ -92,6 +92,43 @@ describe("Event", () => {
     ).toBe(true);
   });
 
+  it("normalizes event links and ticket option dates", () => {
+    const event = new Event("event-1" as EventId, {
+      ...baseEvent,
+      start: "2026-06-14T10:00:00.000Z",
+      end: "2026-06-15T10:00:00.000Z",
+      event_links: [
+        {
+          label: "Schedule",
+          url: "https://example.com/schedule",
+          kind: "schedule",
+        },
+      ],
+      ticket_options: [
+        {
+          id: "early",
+          label: "Early bird",
+          price: { amount: 35, currency: "CHF" },
+          sale_ends_at: "2026-06-01T00:00:00.000Z",
+          badge: "early_bird",
+        },
+      ],
+    } as EventSchema);
+
+    expect(event.eventLinks[0].kind).toBe("schedule");
+    expect(event.ticketOptions[0]).toEqual(
+      expect.objectContaining({
+        id: "early",
+        label: "Early bird",
+        price: { amount: 35, currency: "CHF" },
+        badge: "early_bird",
+      }),
+    );
+    expect(event.ticketOptions[0].saleEndsAt?.toISOString()).toBe(
+      "2026-06-01T00:00:00.000Z",
+    );
+  });
+
   it("derives bounds promo geometry for ranking overlapping promotions", () => {
     const event = new Event("event-1" as EventId, {
       ...baseEvent,

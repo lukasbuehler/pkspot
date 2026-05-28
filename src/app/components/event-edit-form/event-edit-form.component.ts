@@ -37,8 +37,13 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventBoundsSchema,
   EventCustomMarkerSchema,
+  EventLinkKind,
+  EventLinkSchema,
   EventOrganizerSchema,
   EventSchema,
+  EventTicketAvailability,
+  EventTicketBadge,
+  EventTicketOptionSchema,
 } from "../../../db/schemas/EventSchema";
 import {
   OrganizationReferenceSchema,
@@ -62,6 +67,28 @@ type EditableEventMarker = {
   icons: string;
   color: "primary" | "secondary" | "tertiary" | "gray";
   priority: "auto" | "required";
+};
+type EditableEventLink = {
+  id: string;
+  label: string;
+  url: string;
+  kind: EventLinkKind;
+  primary: boolean;
+  provider: string;
+};
+type EditableTicketOption = {
+  id: string;
+  label: string;
+  description: string;
+  url: string;
+  currency: string;
+  amount: number | null;
+  minAmount: number | null;
+  maxAmount: number | null;
+  availability: EventTicketAvailability;
+  badge: EventTicketBadge | "";
+  saleStartsAt: string;
+  saleEndsAt: string;
 };
 export type EventEditPatch = Omit<
   Partial<EventSchema>,
@@ -209,6 +236,8 @@ export class EventEditFormComponent {
   autoSuggestedCommunityKeys = signal<string[]>([]);
   customMarkers = signal<EditableEventMarker[]>([]);
   externalMedia = signal<MediaSchema[]>([]);
+  eventLinks = signal<EditableEventLink[]>([]);
+  ticketOptions = signal<EditableTicketOption[]>([]);
 
   /** Whether the parent passed in an existing event (vs. create mode). */
   readonly isEditMode = computed(() => this.event() !== null);
@@ -289,6 +318,8 @@ export class EventEditFormComponent {
         this.organizerQuery.set("");
         this.customMarkers.set([]);
         this.externalMedia.set([]);
+        this.eventLinks.set([]);
+        this.ticketOptions.set([]);
         return;
       }
       this.form.reset({
@@ -337,6 +368,41 @@ export class EventEditFormComponent {
         })),
       );
       this.externalMedia.set([...e.media]);
+      this.eventLinks.set(
+        e.eventLinks.map((link, index) => ({
+          id: `link-${index}`,
+          label: link.label,
+          url: link.url,
+          kind: link.kind,
+          primary: link.primary === true,
+          provider: link.provider ?? "",
+        })),
+      );
+      this.ticketOptions.set(
+        e.ticketOptions.map((ticket, index) => ({
+          id: ticket.id || `ticket-${index}`,
+          label: ticket.label,
+          description: ticket.description ?? "",
+          url: ticket.url ?? "",
+          currency: ticket.price?.currency ?? "CHF",
+          amount:
+            ticket.price && "amount" in ticket.price
+              ? ticket.price.amount
+              : null,
+          minAmount:
+            ticket.price && "min_amount" in ticket.price
+              ? ticket.price.min_amount
+              : null,
+          maxAmount:
+            ticket.price && "max_amount" in ticket.price
+              ? ticket.price.max_amount
+              : null,
+          availability: ticket.availability ?? "available",
+          badge: ticket.badge ?? "",
+          saleStartsAt: dateInputValue(ticket.saleStartsAt),
+          saleEndsAt: dateInputValue(ticket.saleEndsAt),
+        })),
+      );
     });
 
     this._loadOrganizations();
@@ -528,6 +594,95 @@ export class EventEditFormComponent {
     );
   }
 
+  addEventLink(): void {
+    this.eventLinks.update((links) => [
+      ...links,
+      {
+        id: `link-${Date.now()}-${links.length}`,
+        label: "",
+        url: "",
+        kind: "website",
+        primary: links.length === 0,
+        provider: "",
+      },
+    ]);
+  }
+
+  updateEventLink(id: string, patch: Partial<Omit<EditableEventLink, "id">>): void {
+    this.eventLinks.update((links) =>
+      links.map((link) => (link.id === id ? { ...link, ...patch } : link)),
+    );
+  }
+
+  updateEventLinkKind(id: string, kind: string): void {
+    if (isEventLinkKind(kind)) {
+      this.updateEventLink(id, { kind });
+    }
+  }
+
+  removeEventLink(id: string): void {
+    this.eventLinks.update((links) => links.filter((link) => link.id !== id));
+  }
+
+  addTicketOption(): void {
+    this.ticketOptions.update((tickets) => [
+      ...tickets,
+      {
+        id: `ticket-${Date.now()}-${tickets.length}`,
+        label: "",
+        description: "",
+        url: "",
+        currency: "CHF",
+        amount: null,
+        minAmount: null,
+        maxAmount: null,
+        availability: "available",
+        badge: "",
+        saleStartsAt: "",
+        saleEndsAt: "",
+      },
+    ]);
+  }
+
+  updateTicketOption(
+    id: string,
+    patch: Partial<Omit<EditableTicketOption, "id">>,
+  ): void {
+    this.ticketOptions.update((tickets) =>
+      tickets.map((ticket) =>
+        ticket.id === id ? { ...ticket, ...patch } : ticket,
+      ),
+    );
+  }
+
+  updateTicketAvailability(id: string, availability: string): void {
+    if (isTicketAvailability(availability)) {
+      this.updateTicketOption(id, { availability });
+    }
+  }
+
+  updateTicketBadge(id: string, badge: string): void {
+    if (badge === "" || isTicketBadge(badge)) {
+      this.updateTicketOption(id, { badge });
+    }
+  }
+
+  updateTicketNumber(
+    id: string,
+    field: "amount" | "minAmount" | "maxAmount",
+    value: number,
+  ): void {
+    this.updateTicketOption(id, {
+      [field]: Number.isFinite(value) ? value : null,
+    });
+  }
+
+  removeTicketOption(id: string): void {
+    this.ticketOptions.update((tickets) =>
+      tickets.filter((ticket) => ticket.id !== id),
+    );
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -553,6 +708,8 @@ export class EventEditFormComponent {
       start: Timestamp.fromDate(start),
       end: Timestamp.fromDate(end),
       url: trimOrUndefined(v.url),
+      event_links: this._buildEventLinksPatch(),
+      ticket_options: this._buildTicketOptionsPatch(),
       published: v.published === true,
       banner_src: trimOrUndefined(v.banner_src),
       banner_fit: v.banner_fit ?? "cover",
@@ -669,12 +826,13 @@ export class EventEditFormComponent {
     EventEditPatch,
     "bounds" | "area_polygon"
   > {
-    if (!this.areaTouched()) {
+    if (!this.areaTouched() && this.event()?.areaPolygon) {
       return {};
     }
     const path = this.areaPath();
     const bounds = pathToBounds(path);
     if (!path || !bounds) {
+      if (!this.areaTouched()) return {};
       return {
         bounds: null,
         area_polygon: null,
@@ -703,6 +861,45 @@ export class EventEditFormComponent {
             marker.priority === "required" ? ("required" as const) : undefined,
         });
         return markers;
+      },
+      [],
+    );
+  }
+
+  private _buildEventLinksPatch(): EventLinkSchema[] {
+    return this.eventLinks().reduce<EventLinkSchema[]>((links, link) => {
+      const url = safeExternalUrl(link.url);
+      const label = trimOrUndefined(link.label);
+      if (!url || !label) return links;
+      links.push({
+        label,
+        url,
+        kind: link.kind,
+        primary: link.primary || undefined,
+        provider: trimOrUndefined(link.provider),
+      });
+      return links;
+    }, []);
+  }
+
+  private _buildTicketOptionsPatch(): EventTicketOptionSchema[] {
+    return this.ticketOptions().reduce<EventTicketOptionSchema[]>(
+      (tickets, ticket, index) => {
+        const label = trimOrUndefined(ticket.label);
+        if (!label) return tickets;
+        const price = buildTicketPrice(ticket);
+        tickets.push({
+          id: trimOrUndefined(ticket.id) ?? `ticket-${index + 1}`,
+          label,
+          description: trimOrUndefined(ticket.description),
+          url: safeExternalUrl(ticket.url) ?? undefined,
+          price,
+          availability: ticket.availability,
+          sale_starts_at: timestampFromDateInput(ticket.saleStartsAt),
+          sale_ends_at: timestampFromDateInput(ticket.saleEndsAt),
+          badge: ticket.badge || undefined,
+        });
+        return tickets;
       },
       [],
     );
@@ -819,6 +1016,82 @@ function inferMediaType(url: string): MediaType {
   return /\.(?:mp4|m4v|mov|webm|ogv)$/u.test(pathname)
     ? MediaType.Video
     : MediaType.Image;
+}
+
+function isEventLinkKind(value: string): value is EventLinkKind {
+  return (
+    value === "website" ||
+    value === "tickets" ||
+    value === "schedule" ||
+    value === "results" ||
+    value === "livestream" ||
+    value === "other"
+  );
+}
+
+function isTicketAvailability(
+  value: string,
+): value is EventTicketAvailability {
+  return (
+    value === "available" ||
+    value === "coming_soon" ||
+    value === "sold_out" ||
+    value === "waitlist" ||
+    value === "ended"
+  );
+}
+
+function isTicketBadge(value: string): value is EventTicketBadge {
+  return (
+    value === "early_bird" ||
+    value === "discount" ||
+    value === "regular" ||
+    value === "late" ||
+    value === "member"
+  );
+}
+
+function buildTicketPrice(
+  ticket: EditableTicketOption,
+): EventTicketOptionSchema["price"] | undefined {
+  const currency = trimOrUndefined(ticket.currency)?.toUpperCase();
+  if (!currency) return undefined;
+
+  if (ticket.amount !== null && Number.isFinite(ticket.amount)) {
+    return {
+      amount: ticket.amount,
+      currency,
+    };
+  }
+
+  if (
+    ticket.minAmount !== null &&
+    ticket.maxAmount !== null &&
+    Number.isFinite(ticket.minAmount) &&
+    Number.isFinite(ticket.maxAmount)
+  ) {
+    return {
+      min_amount: ticket.minAmount,
+      max_amount: ticket.maxAmount,
+      currency,
+    };
+  }
+
+  return undefined;
+}
+
+function dateInputValue(date: Date | undefined): string {
+  if (!date || Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function timestampFromDateInput(value: string): Timestamp | undefined {
+  if (!value) return undefined;
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? undefined : Timestamp.fromDate(date);
 }
 
 /**

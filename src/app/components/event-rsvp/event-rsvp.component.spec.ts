@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatButtonToggleChange } from "@angular/material/button-toggle";
 import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { BehaviorSubject } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -61,9 +60,7 @@ describe("EventRsvpComponent", () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    await component.onRsvpChange({
-      value: "going",
-    } as MatButtonToggleChange);
+    await component.selectRsvp("going");
 
     expect(component.loadedRsvp()).toBe("going");
     expect(component.countedRsvp()).toBeNull();
@@ -114,9 +111,7 @@ describe("EventRsvpComponent", () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    await component.onRsvpChange({
-      value: "going",
-    } as MatButtonToggleChange);
+    await component.selectRsvp("going");
 
     fixture.componentRef.setInput("counts", {
       going: 1,
@@ -151,7 +146,7 @@ describe("EventRsvpComponent", () => {
     ).toHaveLength(2);
   });
 
-  it("hides RSVP controls behind an edit summary when a response is loaded", async () => {
+  it("shows the selected RSVP in a menu button when a response is loaded", async () => {
     eventsService.getMyRsvp.mockResolvedValue({
       user_id: "user-1",
       event_id: "event-1",
@@ -168,37 +163,25 @@ describe("EventRsvpComponent", () => {
       fixture.nativeElement.querySelector("mat-button-toggle-group"),
     ).toBeNull();
     expect(
-      fixture.nativeElement.querySelector('button[aria-label="Edit RSVP"]'),
+      fixture.nativeElement.querySelector(".rsvp-menu-button"),
     ).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain("I'm");
   });
 
-  it("reveals RSVP controls from the edit summary", async () => {
-    eventsService.getMyRsvp.mockResolvedValue({
-      user_id: "user-1",
-      event_id: "event-1",
-      rsvp: "going",
-      time_created: new Date(),
-      time_updated: new Date(),
-    });
+  it("prompts for an RSVP in the menu button when no response is loaded", async () => {
     fixture.componentRef.setInput("eventId", "event-1");
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    (
-      fixture.nativeElement.querySelector(
-        'button[aria-label="Edit RSVP"]',
-      ) as HTMLButtonElement
-    ).click();
-    fixture.detectChanges();
-
-    expect(
-      fixture.nativeElement.querySelector("mat-button-toggle-group"),
-    ).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain("Are you going?");
+    expect(fixture.nativeElement.querySelector(".rsvp-menu-button")).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain(
+      "These numbers show PK Spot user intent, not tickets bought.",
+    );
   });
 
-  it("collapses back to the summary after saving an edited RSVP", async () => {
+  it("updates the menu button after saving an edited RSVP", async () => {
     eventsService.getMyRsvp.mockResolvedValue({
       user_id: "user-1",
       event_id: "event-1",
@@ -210,20 +193,20 @@ describe("EventRsvpComponent", () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    component.isEditingRsvp.set(true);
-    await component.onRsvpChange({
-      value: "interested",
-    } as MatButtonToggleChange);
+    await component.selectRsvp("interested");
     fixture.detectChanges();
 
     expect(component.selectedRsvp()).toBe("interested");
-    expect(component.isEditingRsvp()).toBe(false);
     expect(
       fixture.nativeElement.querySelector("mat-button-toggle-group"),
     ).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain("interested");
+    expect(fixture.nativeElement.textContent).toContain(
+      "These numbers show PK Spot user intent, not tickets bought.",
+    );
   });
 
-  it("shows RSVP controls again after clearing a response", async () => {
+  it("shows the RSVP prompt again after clearing a response", async () => {
     eventsService.getMyRsvp.mockResolvedValue({
       user_id: "user-1",
       event_id: "event-1",
@@ -239,9 +222,17 @@ describe("EventRsvpComponent", () => {
     fixture.detectChanges();
 
     expect(component.selectedRsvp()).toBeNull();
-    expect(component.isEditingRsvp()).toBe(false);
-    expect(
-      fixture.nativeElement.querySelector("mat-button-toggle-group"),
-    ).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain("Are you going?");
+  });
+
+  it("can hide the RSVP disclaimer", async () => {
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.componentRef.setInput("showDisclaimer", false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "These numbers show",
+    );
   });
 });

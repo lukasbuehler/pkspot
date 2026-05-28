@@ -249,6 +249,255 @@
 
       <mat-divider />
 
+      <!-- ----------------- Links + tickets ----------------- -->
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+          <h4 class="mat-title-small m-0 flex-grow-1" i18n="@@event_edit.links_heading">
+            Event links
+          </h4>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="addEventLink()"
+            [disabled]="saving()"
+          >
+            <mat-icon>link</mat-icon>
+            <span i18n="@@event_edit.link_add">Add link</span>
+          </button>
+        </div>
+        @if (eventLinks().length > 0) {
+          <div class="event-link-list">
+            @for (link of eventLinks(); track link.id) {
+              <div class="event-link-editor">
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.link_label">Label</mat-label>
+                  <input
+                    matInput
+                    [value]="link.label"
+                    (input)="updateEventLink(link.id, { label: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.link_url">URL</mat-label>
+                  <input
+                    matInput
+                    [value]="link.url"
+                    placeholder="https://…"
+                    (input)="updateEventLink(link.id, { url: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.link_kind">Kind</mat-label>
+                  <mat-select
+                    [value]="link.kind"
+                    (selectionChange)="updateEventLinkKind(link.id, $event.value)"
+                  >
+                    <mat-option value="website" i18n="@@event_edit.link_kind.website">Website</mat-option>
+                    <mat-option value="tickets" i18n="@@event_edit.link_kind.tickets">Tickets</mat-option>
+                    <mat-option value="schedule" i18n="@@event_edit.link_kind.schedule">Schedule</mat-option>
+                    <mat-option value="results" i18n="@@event_edit.link_kind.results">Results</mat-option>
+                    <mat-option value="livestream" i18n="@@event_edit.link_kind.livestream">Livestream</mat-option>
+                    <mat-option value="other" i18n="@@event_edit.link_kind.other">Other</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.link_provider">
+                    Provider
+                  </mat-label>
+                  <input
+                    matInput
+                    [value]="link.provider"
+                    placeholder="Eventfrog"
+                    (input)="updateEventLink(link.id, { provider: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <mat-checkbox
+                  [checked]="link.primary"
+                  (change)="updateEventLink(link.id, { primary: $event.checked })"
+                  i18n="@@event_edit.link_primary"
+                >
+                  Primary CTA
+                </mat-checkbox>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeEventLink(link.id)"
+                  [disabled]="saving()"
+                  aria-label="Remove event link"
+                  i18n-aria-label="@@event_edit.link_remove"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="d-flex flex-row align-items-center gap-2 flex-wrap mt-2">
+          <h4 class="mat-title-small m-0 flex-grow-1" i18n="@@event_edit.tickets_heading">
+            Ticket options
+          </h4>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="addTicketOption()"
+            [disabled]="saving()"
+          >
+            <mat-icon>paid</mat-icon>
+            <span i18n="@@event_edit.ticket_add">Add ticket</span>
+          </button>
+        </div>
+        @if (ticketOptions().length > 0) {
+          <div class="ticket-edit-list">
+            @for (ticket of ticketOptions(); track ticket.id) {
+              <div class="ticket-editor">
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_label">Label</mat-label>
+                  <input
+                    matInput
+                    [value]="ticket.label"
+                    (input)="updateTicketOption(ticket.id, { label: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_url">URL</mat-label>
+                  <input
+                    matInput
+                    [value]="ticket.url"
+                    placeholder="https://…"
+                    (input)="updateTicketOption(ticket.id, { url: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="span-2">
+                  <mat-label i18n="@@event_edit.ticket_description">
+                    Description
+                  </mat-label>
+                  <textarea
+                    matInput
+                    rows="2"
+                    [value]="ticket.description"
+                    (input)="updateTicketOption(ticket.id, { description: $any($event.target).value })"
+                  ></textarea>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_amount">
+                    Fixed price
+                  </mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    [value]="ticket.amount ?? ''"
+                    (input)="updateTicketNumber(ticket.id, 'amount', $any($event.target).valueAsNumber)"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_currency">
+                    Currency
+                  </mat-label>
+                  <input
+                    matInput
+                    [value]="ticket.currency"
+                    placeholder="CHF"
+                    (input)="updateTicketOption(ticket.id, { currency: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_min">
+                    Range min
+                  </mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    [value]="ticket.minAmount ?? ''"
+                    (input)="updateTicketNumber(ticket.id, 'minAmount', $any($event.target).valueAsNumber)"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_max">
+                    Range max
+                  </mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    [value]="ticket.maxAmount ?? ''"
+                    (input)="updateTicketNumber(ticket.id, 'maxAmount', $any($event.target).valueAsNumber)"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_availability">
+                    Availability
+                  </mat-label>
+                  <mat-select
+                    [value]="ticket.availability"
+                    (selectionChange)="updateTicketAvailability(ticket.id, $event.value)"
+                  >
+                    <mat-option value="available" i18n="@@event_edit.ticket_availability.available">Available</mat-option>
+                    <mat-option value="coming_soon" i18n="@@event_edit.ticket_availability.coming_soon">Coming soon</mat-option>
+                    <mat-option value="sold_out" i18n="@@event_edit.ticket_availability.sold_out">Sold out</mat-option>
+                    <mat-option value="waitlist" i18n="@@event_edit.ticket_availability.waitlist">Waitlist</mat-option>
+                    <mat-option value="ended" i18n="@@event_edit.ticket_availability.ended">Ended</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_badge">Badge</mat-label>
+                  <mat-select
+                    [value]="ticket.badge"
+                    (selectionChange)="updateTicketBadge(ticket.id, $event.value)"
+                  >
+                    <mat-option value="" i18n="@@event_edit.ticket_badge.none">None</mat-option>
+                    <mat-option value="early_bird" i18n="@@event_edit.ticket_badge.early_bird">Early bird</mat-option>
+                    <mat-option value="discount" i18n="@@event_edit.ticket_badge.discount">Discount</mat-option>
+                    <mat-option value="regular" i18n="@@event_edit.ticket_badge.regular">Regular</mat-option>
+                    <mat-option value="late" i18n="@@event_edit.ticket_badge.late">Late</mat-option>
+                    <mat-option value="member" i18n="@@event_edit.ticket_badge.member">Member</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_sale_start">
+                    Sale starts
+                  </mat-label>
+                  <input
+                    matInput
+                    type="date"
+                    [value]="ticket.saleStartsAt"
+                    (input)="updateTicketOption(ticket.id, { saleStartsAt: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.ticket_sale_end">
+                    Sale ends
+                  </mat-label>
+                  <input
+                    matInput
+                    type="date"
+                    [value]="ticket.saleEndsAt"
+                    (input)="updateTicketOption(ticket.id, { saleEndsAt: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeTicketOption(ticket.id)"
+                  [disabled]="saving()"
+                  aria-label="Remove ticket option"
+                  i18n-aria-label="@@event_edit.ticket_remove"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <mat-divider />
+
       <!-- ----------------- Imagery (banner + logo) ----------------- -->
       <div class="d-flex flex-column gap-2">
         <h4 class="mat-title-small m-0" i18n="@@event_edit.imagery">Imagery</h4>

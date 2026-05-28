@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { LOCALE_ID } from "@angular/core";
+import { firstValueFrom, of } from "rxjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
@@ -54,6 +55,30 @@ describe("EventPageDataService", () => {
 
     await expect(service.loadEventBySlugOrId("city-jam")).resolves.toBe(event);
     expect(eventsService.getEventBySlugOrId).toHaveBeenCalledWith("city-jam");
+  });
+
+  it("observes events by slug through EventsService", async () => {
+    const event = buildEvent("city-jam");
+    const eventsService = {
+      observeEventBySlugOrId: vi.fn(() => of(event)),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: eventsService },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+
+    await expect(firstValueFrom(service.observeEventBySlugOrId("city-jam")))
+      .resolves.toBe(event);
+    expect(eventsService.observeEventBySlugOrId).toHaveBeenCalledWith(
+      "city-jam",
+    );
   });
 
   it("builds event spot and custom marker data for event maps", () => {

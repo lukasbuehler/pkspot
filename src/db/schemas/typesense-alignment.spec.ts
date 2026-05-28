@@ -39,6 +39,8 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "start",
     "end",
     "url",
+    "event_links",
+    "ticket_options",
     "promo_starts_at",
     "spot_ids",
     "inline_spots",

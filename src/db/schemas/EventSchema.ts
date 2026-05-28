@@ -101,6 +101,61 @@ export interface EventExternalSourceSchema {
   url: string;
 }
 
+export type EventLinkKind =
+  | "website"
+  | "tickets"
+  | "schedule"
+  | "results"
+  | "livestream"
+  | "other";
+
+export interface EventLinkSchema {
+  label: string;
+  url: string;
+  kind: EventLinkKind;
+  primary?: boolean;
+  provider?: string;
+}
+
+export type EventTicketAvailability =
+  | "available"
+  | "coming_soon"
+  | "sold_out"
+  | "waitlist"
+  | "ended";
+
+export type EventTicketBadge =
+  | "early_bird"
+  | "discount"
+  | "regular"
+  | "late"
+  | "member";
+
+export interface EventTicketPriceFixedSchema {
+  amount: number;
+  currency: string;
+}
+
+export interface EventTicketPriceRangeSchema {
+  min_amount: number;
+  max_amount: number;
+  currency: string;
+}
+
+export interface EventTicketOptionSchema {
+  id: string;
+  label: string;
+  description?: string;
+  url?: string;
+  price?: EventTicketPriceFixedSchema | EventTicketPriceRangeSchema;
+  availability?: EventTicketAvailability;
+  sale_starts_at?: Timestamp;
+  sale_ends_at?: Timestamp;
+  valid_from?: Timestamp;
+  valid_until?: Timestamp;
+  badge?: EventTicketBadge;
+}
+
 export interface EventSchema {
   /** Display name (plain string; LocaleMap can be added later if needed). */
   name: string;
@@ -150,6 +205,10 @@ export interface EventSchema {
   end: Timestamp;
   /** Optional external event URL (ticketing, organizer site). */
   url?: string;
+  /** Public external CTAs shown on the event page. */
+  event_links?: EventLinkSchema[];
+  /** Public ticket tiers/offers. Transactions happen on linked external sites. */
+  ticket_options?: EventTicketOptionSchema[];
 
   /**
    * Optional time at which the map-island promo for this event becomes

@@ -1974,7 +1974,7 @@
     </unit>
     <unit id="event_rsvp.clear_failed">
       <segment>
-        <source>Couldn&apos;t clear your RSVP. Try again in a moment.</source>
+        <source>Couldn&apos;t clear your response. Try again in a moment.</source>
       </segment>
     </unit>
     <unit id="event_rsvp.count_going">
@@ -1985,6 +1985,16 @@
     <unit id="event_rsvp.count_interested">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {interested} other {interested}}</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.prompt">
+      <segment>
+        <source>Are you going?</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.disclaimer">
+      <segment>
+        <source>These numbers show PK Spot user intent, not tickets bought.</source>
       </segment>
     </unit>
     <unit id="event_rsvp.current_going">
@@ -2006,11 +2016,6 @@
             type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not going</pc></source>
       </segment>
     </unit>
-    <unit id="event_rsvp.edit">
-      <segment>
-        <source>Edit RSVP</source>
-      </segment>
-    </unit>
     <unit id="event_rsvp.going">
       <segment>
         <source>Going</source>
@@ -2018,7 +2023,7 @@
     </unit>
     <unit id="event_rsvp.group_label">
       <segment>
-        <source>RSVP</source>
+        <source>Response</source>
       </segment>
     </unit>
     <unit id="event_rsvp.interested">
@@ -2028,7 +2033,7 @@
     </unit>
     <unit id="event_rsvp.load_failed">
       <segment>
-        <source>Couldn&apos;t load your RSVP.</source>
+        <source>Couldn&apos;t load your response.</source>
       </segment>
     </unit>
     <unit id="event_rsvp.notgoing">
@@ -2038,12 +2043,12 @@
     </unit>
     <unit id="event_rsvp.save_failed">
       <segment>
-        <source>Couldn&apos;t save your RSVP. Try again in a moment.</source>
+        <source>Couldn&apos;t save your response. Try again in a moment.</source>
       </segment>
     </unit>
     <unit id="event_rsvp.sign_in">
       <segment>
-        <source>Sign in to RSVP</source>
+        <source>Sign in to respond</source>
       </segment>
     </unit>
     <unit id="events.create">

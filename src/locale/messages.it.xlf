@@ -6469,20 +6469,20 @@
     </unit>
     <unit id="event_rsvp.save_failed">
       <segment state="initial">
-        <source>Couldn&apos;t save your RSVP. Try again in a moment.</source>
-        <target>Impossibile salvare la tua RSVP. Riprova tra poco.</target>
+        <source>Couldn&apos;t save your response. Try again in a moment.</source>
+        <target>Impossibile salvare la tua risposta. Riprova tra poco.</target>
       </segment>
     </unit>
     <unit id="event_rsvp.clear_failed">
       <segment state="initial">
-        <source>Couldn&apos;t clear your RSVP. Try again in a moment.</source>
-        <target>Impossibile cancellare la tua RSVP. Riprova tra poco.</target>
+        <source>Couldn&apos;t clear your response. Try again in a moment.</source>
+        <target>Impossibile cancellare la tua risposta. Riprova tra poco.</target>
       </segment>
     </unit>
     <unit id="event_rsvp.load_failed">
       <segment state="initial">
-        <source>Couldn&apos;t load your RSVP.</source>
-        <target>Impossibile caricare la tua RSVP.</target>
+        <source>Couldn&apos;t load your response.</source>
+        <target>Impossibile caricare la tua risposta.</target>
       </segment>
     </unit>
     <unit id="event_rsvp.count_going">
@@ -6495,6 +6495,18 @@
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {interested} other {interested}}</source>
         <target>{VAR_PLURAL, plural, =1 {interessato} other {interessati}}</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.prompt">
+      <segment state="initial">
+        <source>Are you going?</source>
+        <target>Parteciperai?</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.disclaimer">
+      <segment state="initial">
+        <source>These numbers show PK Spot user intent, not tickets bought.</source>
+        <target>Questi numeri mostrano l’intenzione degli utenti PK Spot, non biglietti acquistati.</target>
       </segment>
     </unit>
     <unit id="event_rsvp.current_going">
@@ -6524,16 +6536,10 @@
         </target>
       </segment>
     </unit>
-    <unit id="event_rsvp.edit">
-      <segment state="initial">
-        <source>Edit RSVP</source>
-        <target>Modifica RSVP</target>
-      </segment>
-    </unit>
     <unit id="event_rsvp.group_label">
       <segment state="initial">
-        <source>RSVP</source>
-        <target>RSVP</target>
+        <source>Response</source>
+        <target>Risposta</target>
       </segment>
     </unit>
     <unit id="event_rsvp.going">
@@ -6562,7 +6568,7 @@
     </unit>
     <unit id="event_rsvp.sign_in">
       <segment state="initial">
-        <source>Sign in to RSVP</source>
+        <source>Sign in to respond</source>
         <target>Accedi per rispondere</target>
       </segment>
     </unit>

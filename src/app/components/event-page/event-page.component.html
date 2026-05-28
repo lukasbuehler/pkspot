@@ -149,24 +149,100 @@
     </section> -->
 
       <section class="event-section action-row">
-        @if (websiteUrl(); as url) {
-          <a
-            mat-flat-button
-            color="primary"
-            [href]="url"
-            target="_blank"
-            rel="noopener noreferrer"
-            (click)="trackWebsiteClick()"
-          >
-            <mat-icon>open_in_new</mat-icon>
-            <span i18n="@@event_info.website_button">Website</span>
-          </a>
+        @for (link of eventLinks(); track link.url) {
+          @if (link.primary) {
+            <a
+              mat-flat-button
+              color="primary"
+              [href]="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              (click)="trackEventLinkClick(link)"
+            >
+              <mat-icon>{{ eventLinkIcon(link) }}</mat-icon>
+              <span>{{ link.label }}</span>
+            </a>
+          } @else {
+            <a
+              mat-stroked-button
+              [href]="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              (click)="trackEventLinkClick(link)"
+            >
+              <mat-icon>{{ eventLinkIcon(link) }}</mat-icon>
+              <span>{{ link.label }}</span>
+            </a>
+          }
         }
         <button mat-stroked-button type="button" (click)="shareEvent()">
           <mat-icon>share</mat-icon>
           <span i18n="@@event_info.share_button">Share</span>
         </button>
       </section>
+
+      @if (ticketOptions().length > 0) {
+        <section class="event-section ticket-section">
+          <div class="ticket-section-heading">
+            <h2 class="mat-title-medium m-0" i18n="@@event_tickets.heading">
+              Tickets
+            </h2>
+          </div>
+          <div class="ticket-grid">
+            @for (ticket of ticketOptions(); track ticket.id) {
+              <article class="ticket-option">
+                <div class="ticket-copy">
+                  <div class="ticket-title-row">
+                    <h3 class="mat-title-small m-0">{{ ticket.label }}</h3>
+                    @if (ticketBadgeLabel(ticket)) {
+                      <span class="ticket-badge mat-label-small">
+                        {{ ticketBadgeLabel(ticket) }}
+                      </span>
+                    }
+                  </div>
+                  @if (ticket.description) {
+                    <p class="mat-body-small ticket-description">
+                      {{ ticket.description }}
+                    </p>
+                  }
+                  @if (ticketAvailabilityLabel(ticket)) {
+                    <p
+                      class="mat-label-small ticket-availability"
+                      [attr.data-availability]="ticket.availability"
+                    >
+                      {{ ticketAvailabilityLabel(ticket) }}
+                    </p>
+                  }
+                </div>
+                <div class="ticket-side">
+                  <p class="mat-title-medium ticket-price">
+                    {{ formatTicketPrice(ticket) }}
+                  </p>
+                  @if (ticket.url) {
+                    <a
+                      mat-stroked-button
+                      [href]="ticket.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      (click)="
+                        trackEventLinkClick({
+                          label: ticket.label,
+                          url: ticket.url!,
+                          kind: 'tickets',
+                          primary: false
+                        })
+                      "
+                    >
+                      <mat-icon>open_in_new</mat-icon>
+                      <span i18n="@@event_tickets.open">Open</span>
+                    </a>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
 
       @if (hasMapPreview()) {
         @defer (on viewport) {

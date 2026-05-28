@@ -19,7 +19,11 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { Subscription, firstValueFrom, take } from "rxjs";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { EventSchema } from "../../../db/schemas/EventSchema";
+import {
+  EventLinkSchema,
+  EventSchema,
+} from "../../../db/schemas/EventSchema";
+import { EventTicketOption } from "../../../db/models/Event";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { MarkerSchema } from "../map/markers/map-marker.model";
@@ -84,6 +88,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   private _paramMapSubscription?: Subscription;
   private _queryParamsSubscription?: Subscription;
+  private _eventSnapshotSubscription?: Subscription;
   private _eventLoadRequestVersion = 0;
   private _spotsLoadRequestVersion = 0;
 
@@ -182,6 +187,35 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       "event_page",
     ),
   );
+  readonly eventLinks = computed<EventLinkSchema[]>(() => {
+    const event = this.event();
+    if (!event) return [];
+
+    const links = [...event.eventLinks];
+    const fallbackUrl = this._safeExternalUrl(
+      event.url ?? event.externalSource?.url,
+    );
+    if (fallbackUrl && !links.some((link) => link.url === fallbackUrl)) {
+      links.unshift({
+        label: $localize`:@@event_info.website_button:Website`,
+        url: fallbackUrl,
+        kind: event.externalSource ? "other" : "website",
+        provider: event.externalSource?.provider,
+        primary: links.length === 0,
+      });
+    }
+
+    return links
+      .map((link) => ({
+        ...link,
+        url: this._analytics.addUtmToUrl(
+          this._safeExternalUrl(link.url),
+          "event_page",
+        ) ?? link.url,
+      }))
+      .filter((link) => !!this._safeExternalUrl(link.url));
+  });
+  readonly ticketOptions = computed(() => this.event()?.ticketOptions ?? []);
   readonly mapMarkers = computed<MarkerSchema[]>(() => {
     const event = this.event();
     if (!event) return [];
@@ -253,7 +287,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this._paramMapSubscription = this._route.paramMap.subscribe((paramMap) => {
-      void this._loadEventFromRoute(paramMap);
+      if (this.isBrowser()) {
+        this._subscribeToEventFromRoute(paramMap);
+      } else {
+        void this._loadEventFromRoute(paramMap);
+      }
     });
 
     if (
@@ -269,6 +307,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this._structuredData.removeStructuredData("event");
     this._paramMapSubscription?.unsubscribe();
     this._queryParamsSubscription?.unsubscribe();
+    this._eventSnapshotSubscription?.unsubscribe();
   }
 
   trackWebsiteClick(): boolean {
@@ -284,6 +323,22 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       organizer_name: this.organizerName(),
       external_provider: event?.externalSource?.provider,
       url: this.websiteUrl(),
+    });
+    return true;
+  }
+
+  trackEventLinkClick(link: EventLinkSchema): boolean {
+    const event = this.event();
+    this._analytics.trackEvent("click_event_link", {
+      surface: "event_info_page",
+      event_id: event?.id,
+      event_slug: event?.slug,
+      event_name: event?.name,
+      event_status: event?.status(),
+      link_kind: link.kind,
+      link_label: link.label,
+      provider: link.provider,
+      url: link.url,
     });
     return true;
   }
@@ -392,6 +447,29 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  private _subscribeToEventFromRoute(paramMap: ParamMap): void {
+    const slug = paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
+    const requestVersion = ++this._eventLoadRequestVersion;
+    this._eventSnapshotSubscription?.unsubscribe();
+    this._eventSnapshotSubscription = this._eventPageData
+      .observeEventBySlugOrId(slug)
+      .subscribe({
+        next: (loaded) => {
+          if (requestVersion !== this._eventLoadRequestVersion) return;
+          if (!loaded) {
+            void this._router.navigate(["/events"]);
+            return;
+          }
+          this.event.set(loaded);
+        },
+        error: (err) => {
+          if (requestVersion !== this._eventLoadRequestVersion) return;
+          console.warn("EventInfoPageComponent: failed to observe event", err);
+          void this._router.navigate(["/events"]);
+        },
+      });
+  }
+
   private async _loadEventFromRoute(paramMap: ParamMap): Promise<void> {
     const slug = paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
     const requestVersion = ++this._eventLoadRequestVersion;
@@ -459,8 +537,73 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
             : undefined,
         }
         : undefined,
-      offers: event.url ? { "@type": "Offer", url: event.url } : undefined,
+      offers: this._buildEventOffers(event),
     };
+  }
+
+  formatTicketPrice(ticket: EventTicketOption): string {
+    const price = ticket.price;
+    if (!price) {
+      return $localize`:@@event_tickets.price_unknown:Price TBA`;
+    }
+    if ("amount" in price) {
+      return this._formatCurrency(price.amount, price.currency);
+    }
+    return `${this._formatCurrency(
+      price.min_amount,
+      price.currency,
+    )} - ${this._formatCurrency(price.max_amount, price.currency)}`;
+  }
+
+  ticketAvailabilityLabel(ticket: EventTicketOption): string {
+    switch (ticket.availability) {
+      case "available":
+        return $localize`:@@event_tickets.availability.available:Available`;
+      case "coming_soon":
+        return $localize`:@@event_tickets.availability.coming_soon:Coming soon`;
+      case "sold_out":
+        return $localize`:@@event_tickets.availability.sold_out:Sold out`;
+      case "waitlist":
+        return $localize`:@@event_tickets.availability.waitlist:Waitlist`;
+      case "ended":
+        return $localize`:@@event_tickets.availability.ended:Ended`;
+      default:
+        return "";
+    }
+  }
+
+  ticketBadgeLabel(ticket: EventTicketOption): string {
+    switch (ticket.badge) {
+      case "early_bird":
+        return $localize`:@@event_tickets.badge.early_bird:Early bird`;
+      case "discount":
+        return $localize`:@@event_tickets.badge.discount:Discount`;
+      case "regular":
+        return $localize`:@@event_tickets.badge.regular:Regular`;
+      case "late":
+        return $localize`:@@event_tickets.badge.late:Late`;
+      case "member":
+        return $localize`:@@event_tickets.badge.member:Member`;
+      default:
+        return "";
+    }
+  }
+
+  eventLinkIcon(link: EventLinkSchema): string {
+    switch (link.kind) {
+      case "tickets":
+        return "paid";
+      case "schedule":
+        return "calendar_month";
+      case "results":
+        return "checklist";
+      case "livestream":
+        return "video_camera_front";
+      case "website":
+        return "language";
+      default:
+        return "open_in_new";
+    }
   }
 
   private _relativeFromNow(target: Date): string {
@@ -497,6 +640,68 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       return path;
     }
     return `${environment.baseUrl}/${path.replace(/^\/+/, "")}`;
+  }
+
+  private _formatCurrency(amount: number, currency: string): string {
+    return new Intl.NumberFormat(this._locale, {
+      style: "currency",
+      currency,
+      maximumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    }).format(amount);
+  }
+
+  private _buildEventOffers(event: PkEvent): unknown {
+    const offers = event.ticketOptions
+      .map((ticket) => this._buildTicketOffer(ticket))
+      .filter((offer): offer is Record<string, unknown> => offer !== null);
+
+    if (offers.length > 0) {
+      return offers.length === 1 ? offers[0] : offers;
+    }
+
+    const url = this._safeExternalUrl(event.url);
+    return url ? { "@type": "Offer", url } : undefined;
+  }
+
+  private _buildTicketOffer(
+    ticket: EventTicketOption,
+  ): Record<string, unknown> | null {
+    const url = this._safeExternalUrl(ticket.url);
+    const price = ticket.price;
+    if (!url && !price) return null;
+
+    return {
+      "@type": "Offer",
+      name: ticket.label,
+      description: ticket.description,
+      url,
+      price: price
+        ? "amount" in price
+          ? price.amount
+          : price.min_amount
+        : undefined,
+      priceCurrency: price?.currency,
+      availability: ticket.availability
+        ? `https://schema.org/${this._schemaAvailability(ticket.availability)}`
+        : undefined,
+      validFrom: ticket.saleStartsAt?.toISOString(),
+      priceValidUntil: ticket.saleEndsAt?.toISOString(),
+    };
+  }
+
+  private _schemaAvailability(availability: string): string {
+    switch (availability) {
+      case "sold_out":
+        return "SoldOut";
+      case "coming_soon":
+        return "PreOrder";
+      case "ended":
+        return "Discontinued";
+      case "waitlist":
+        return "LimitedAvailability";
+      default:
+        return "InStock";
+    }
   }
 
   private _eventSocialImage(event: PkEvent): string {

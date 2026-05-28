@@ -160,6 +160,76 @@
   gap: 0.75rem;
 }
 
+.ticket-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.ticket-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  padding: 1rem;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.ticket-title-row,
+.ticket-side {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ticket-title-row {
+  flex-wrap: wrap;
+}
+
+.ticket-side {
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.ticket-badge {
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  color: var(--mat-sys-on-tertiary-container);
+  background: var(--mat-sys-tertiary-container);
+}
+
+.ticket-description {
+  margin: 0.35rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.ticket-availability {
+  margin: 0.5rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.ticket-availability[data-availability="available"] {
+  color: var(--mat-sys-secondary);
+}
+
+.ticket-availability[data-availability="sold_out"],
+.ticket-availability[data-availability="ended"] {
+  color: var(--mat-sys-error);
+}
+
+.ticket-price {
+  margin: 0;
+  white-space: nowrap;
+}
+
 .map-preview {
   overflow: hidden;
   border: 1px solid var(--mat-sys-outline-variant);
@@ -213,5 +283,13 @@
 
   .info-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ticket-option {
+    grid-template-columns: 1fr;
+  }
+
+  .ticket-side {
+    align-items: flex-start;
   }
 }

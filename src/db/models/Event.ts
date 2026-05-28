@@ -4,14 +4,32 @@ import {
   EventCustomMarkerSchema,
   EventExternalSourceSchema,
   EventId,
+  EventLinkSchema,
   EventOrganizerSchema,
   EventPromoRegionSchema,
   EventSchema,
   EventSponsorSchema,
+  EventTicketAvailability,
+  EventTicketBadge,
+  EventTicketOptionSchema,
   InlineEventSpotSchema,
 } from "../schemas/EventSchema";
 import { EventRSVPCountsSchema } from "../schemas/EventRSVPSchema";
 import { MediaSchema } from "../schemas/Media";
+
+export interface EventTicketOption {
+  id: string;
+  label: string;
+  description?: string;
+  url?: string;
+  price?: EventTicketOptionSchema["price"];
+  availability?: EventTicketAvailability;
+  saleStartsAt?: Date;
+  saleEndsAt?: Date;
+  validFrom?: Date;
+  validUntil?: Date;
+  badge?: EventTicketBadge;
+}
 
 /**
  * An Event is a parkour-community event (jam, camp, competition) that
@@ -40,6 +58,8 @@ export class Event {
   readonly end: Date;
   readonly promoStartsAt?: Date;
   readonly url?: string;
+  readonly eventLinks: EventLinkSchema[];
+  readonly ticketOptions: EventTicketOption[];
 
   readonly spotIds: string[];
   readonly inlineSpots: InlineEventSpotSchema[];
@@ -84,6 +104,26 @@ export class Event {
       ? Event.toDate(data.promo_starts_at)
       : undefined;
     this.url = data.url;
+    this.eventLinks = data.event_links ?? [];
+    this.ticketOptions = (data.ticket_options ?? []).map((option) => ({
+      id: option.id,
+      label: option.label,
+      description: option.description,
+      url: option.url,
+      price: option.price,
+      availability: option.availability,
+      saleStartsAt: option.sale_starts_at
+        ? Event.toDate(option.sale_starts_at)
+        : undefined,
+      saleEndsAt: option.sale_ends_at
+        ? Event.toDate(option.sale_ends_at)
+        : undefined,
+      validFrom: option.valid_from ? Event.toDate(option.valid_from) : undefined,
+      validUntil: option.valid_until
+        ? Event.toDate(option.valid_until)
+        : undefined,
+      badge: option.badge,
+    }));
     this.spotIds = data.spot_ids ?? [];
     this.inlineSpots = data.inline_spots ?? [];
     this.customMarkers = data.custom_markers ?? [];
