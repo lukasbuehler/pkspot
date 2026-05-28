@@ -2,6 +2,7 @@ import { GeoPoint, Timestamp } from "firebase/firestore";
 import {
   EventBoundsSchema,
   EventCustomMarkerSchema,
+  EventAreaPolygonSchema,
   EventExternalSourceSchema,
   EventId,
   EventLinkSchema,
@@ -69,7 +70,7 @@ export class Event {
   readonly bounds?: EventBoundsSchema;
   readonly focusZoom?: number;
   readonly minZoom?: number;
-  readonly areaPolygon?: Array<{ points: Array<{ lat: number; lng: number }> }>;
+  readonly areaPolygon?: EventAreaPolygonSchema[];
   readonly promoRegion?: EventPromoRegionSchema;
 
   readonly sponsor?: EventSponsorSchema;

@@ -232,4 +232,25 @@ describe("EventRsvpComponent", () => {
       "These numbers show",
     );
   });
+
+  it("shows only aggregate counts in preview mode", async () => {
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.componentRef.setInput("preview", true);
+    fixture.componentRef.setInput("counts", {
+      going: 2,
+      interested: 1,
+      notgoing: 0,
+      total: 3,
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(eventsService.getMyRsvp).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelectorAll("app-fancy-counter")).toHaveLength(2);
+    expect(fixture.nativeElement.querySelector(".rsvp-menu-button")).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain("Sign in");
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "These numbers show",
+    );
+  });
 });

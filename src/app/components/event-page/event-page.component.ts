@@ -20,6 +20,8 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { Subscription, firstValueFrom, take } from "rxjs";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
+  EventAreaPolygonSchema,
+  EventBoundsSchema,
   EventLinkSchema,
   EventSchema,
 } from "../../../db/schemas/EventSchema";
@@ -50,7 +52,7 @@ import {
   ExternalVideo,
 } from "../../../db/models/Media";
 import { MediaSchema } from "../../../db/schemas/Media";
-import { isBot } from "../../../scripts/Helpers";
+import { isBot, formatDateRange } from "../../../scripts/Helpers";
 
 type EventStatus = "upcoming" | "live" | "past";
 
@@ -95,6 +97,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly event = signal<PkEvent | null>(null);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
   readonly areaPolygon = signal<PolygonSchema | null>(null);
+  readonly mapPreviewViewportBounds = signal<EventBoundsSchema | null>(null);
   readonly showHeader = signal(true);
   readonly isEmbedded = signal(false);
   readonly isBrowser = signal(isPlatformBrowser(this._platformId));
@@ -104,26 +107,19 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isAdmin = computed(() => this._authService.isAdmin());
   readonly isSponsored = computed(() => this.event()?.isSponsored ?? false);
 
-  readonly startDateText = computed(() => this.event()?.start.toLocaleDateString(this._locale, {
-    dateStyle: "medium",
-  }));
-  readonly endDateText = computed(() => this.event()?.end.toLocaleDateString(this._locale, {
-    dateStyle: "medium",
-  }));
+  readonly dateRange = computed(() => {
+    const event = this.event();
+    if (!event) return "";
+    return formatDateRange(event.start, event.end, this._locale);
+  });
   readonly description = computed(() => {
     const event = this.event();
     if (!event) return "";
-    const startDateText = this.startDateText();
-    const endDateText = this.endDateText();
     return (
       event.description ??
       $localize`Event in ` +
       event.localityString +
-      ", (" +
-      (this._isSameDay(event.start, event.end)
-        ? startDateText
-        : `${startDateText} - ${endDateText}`) +
-      ")"
+      ` (${this.dateRange()})`
     );
   });
 
@@ -276,13 +272,19 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
       effect(() => {
         const event = this.event();
+        const viewportBounds = this.mapPreviewViewportBounds();
         const polygon = this._eventPageData.buildAreaPolygon(
           event,
           this.mapsApiService.isApiLoaded(),
+          viewportBounds,
         );
         this.areaPolygon.set(polygon);
       });
     }
+  }
+
+  updateMapPreviewViewportBounds(bounds: google.maps.LatLngBounds): void {
+    this.mapPreviewViewportBounds.set(bounds.toJSON());
   }
 
   ngOnInit(): void {
@@ -401,9 +403,20 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     if (!current || !this.isAdmin()) return;
     this.isSavingEvent.set(true);
     try {
+      console.debug("[EventAreaDebug] event page save start", {
+        eventId: current.id,
+        patchArea: summarizeAreaPolygon(patch.area_polygon),
+        currentArea: summarizeAreaPolygon(current.areaPolygon),
+        currentBounds: current.bounds ?? null,
+      });
       await this._eventsService.updateEvent(current.id, patch);
       const reloaded = await this._eventsService.getEventById(current.id);
       if (reloaded) {
+        console.debug("[EventAreaDebug] event page save reloaded", {
+          eventId: reloaded.id,
+          reloadedArea: summarizeAreaPolygon(reloaded.areaPolygon),
+          reloadedBounds: reloaded.bounds ?? null,
+        });
         this.event.set(reloaded);
       }
       this.isEditingEvent.set(false);
@@ -459,6 +472,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           if (!loaded) {
             void this._router.navigate(["/events"]);
             return;
+          }
+          if (this.isEditingEvent()) {
+            console.debug("[EventAreaDebug] event page live snapshot while editing", {
+              eventId: loaded.id,
+              area: summarizeAreaPolygon(loaded.areaPolygon),
+              bounds: loaded.bounds ?? null,
+            });
           }
           this.event.set(loaded);
         },
@@ -762,4 +782,32 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
     return null;
   }
+}
+
+function summarizeAreaPolygon(
+  areaPolygon: EventAreaPolygonSchema[] | null | undefined,
+): Array<{
+  areaName?: string;
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+}> | null {
+  if (!areaPolygon) return null;
+  return areaPolygon.map((ring) => ({
+    areaName: ring.area_name,
+    ...summarizePath(ring.points),
+  }));
+}
+
+function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+} {
+  if (!path || path.length === 0) return { count: 0 };
+  return {
+    count: path.length,
+    first: path[0],
+    last: path[path.length - 1],
+  };
 }

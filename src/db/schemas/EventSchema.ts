@@ -17,6 +17,16 @@ export interface EventBoundsSchema {
   west: number;
 }
 
+export interface EventAreaPolygonSchema {
+  points: Array<{ lat: number; lng: number }>;
+  /**
+   * Optional display/editor label for this cutout. Legacy documents may still
+   * include an unlabeled outer mask ring as the first entry; current clients
+   * ignore those and build the outer mask from the visible map viewport.
+   */
+  area_name?: string;
+}
+
 /**
  * Region that triggers the event-promo variant of the map island when the
  * map's visible viewport intersects it. Use either a bounding box OR a
@@ -255,7 +265,7 @@ export interface EventSchema {
    *
    * Wrapped in `{ points: [...] }` because Firestore disallows nested arrays.
    */
-  area_polygon?: Array<{ points: Array<{ lat: number; lng: number }> }>;
+  area_polygon?: EventAreaPolygonSchema[];
 
   /**
    * Legacy region that surfaces the event in the map-island. New promoted

@@ -1,4 +1,4 @@
-<div style="position: relative">
+<div class="chip-select">
   <mat-chip
     clickable
     (click)="openSelect(select)"
@@ -24,6 +24,7 @@
   <mat-form-field
     appearance="fill"
     class="visually-hidden-select"
+    aria-hidden="true"
   >
     <mat-select
       #select

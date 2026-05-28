@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  OnDestroy,
+  Injector,
   computed,
   effect,
   inject,
@@ -12,7 +12,6 @@ import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
-import { Subscription } from "rxjs";
 import {
   EventRSVPCountsSchema,
   EventRSVPOption,
@@ -34,17 +33,18 @@ import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component"
   styleUrl: "./event-rsvp.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EventRsvpComponent implements OnDestroy {
-  private _eventsService = inject(EventsService);
-  private _authService = inject(AuthenticationService);
-  private _authSubscription?: Subscription;
+export class EventRsvpComponent {
+  private _injector = inject(Injector);
+  private _eventsService?: EventsService;
+  private _authService?: AuthenticationService;
   private _loadVersion = 0;
 
   readonly eventId = input<string | null>(null);
   readonly counts = input<EventRSVPCountsSchema | null>(null);
   readonly showDisclaimer = input(true);
+  readonly preview = input(false);
 
-  readonly userId = signal<string | null>(this._authService.user.uid ?? null);
+  readonly userId = signal<string | null>(null);
   readonly selectedRsvp = signal<EventRSVPOption | null>(null);
   readonly loadedRsvp = signal<EventRSVPOption | null>(null);
   readonly isLoading = signal(false);
@@ -63,11 +63,24 @@ export class EventRsvpComponent implements OnDestroy {
   });
 
   constructor() {
-    this._authSubscription = this._authService.authState$.subscribe((user) => {
-      this.userId.set(user?.uid ?? null);
+    effect((onCleanup) => {
+      if (this.preview()) {
+        this.userId.set(null);
+        this.selectedRsvp.set(null);
+        this.loadedRsvp.set(null);
+        return;
+      }
+
+      const authService = this._auth();
+      this.userId.set(authService.user.uid ?? null);
+      const authSubscription = authService.authState$.subscribe((user) => {
+        this.userId.set(user?.uid ?? null);
+      });
+      onCleanup(() => authSubscription.unsubscribe());
     });
 
     effect(() => {
+      if (this.preview()) return;
       const eventId = this.eventId();
       const userId = this.userId();
       if (!eventId || !userId) {
@@ -77,10 +90,6 @@ export class EventRsvpComponent implements OnDestroy {
       }
       void this._loadRsvp(eventId);
     });
-  }
-
-  ngOnDestroy(): void {
-    this._authSubscription?.unsubscribe();
   }
 
   async selectRsvp(next: EventRSVPOption): Promise<void> {
@@ -95,7 +104,7 @@ export class EventRsvpComponent implements OnDestroy {
     this.isSaving.set(true);
 
     try {
-      await this._eventsService.setMyRsvp(eventId, next);
+      await this._events().setMyRsvp(eventId, next);
       this.loadedRsvp.set(next);
     } catch (err) {
       console.error("Failed to save event RSVP", err);
@@ -120,7 +129,7 @@ export class EventRsvpComponent implements OnDestroy {
     this.isSaving.set(true);
 
     try {
-      await this._eventsService.clearMyRsvp(eventId);
+      await this._events().clearMyRsvp(eventId);
       this.loadedRsvp.set(null);
     } catch (err) {
       console.error("Failed to clear event RSVP", err);
@@ -139,7 +148,7 @@ export class EventRsvpComponent implements OnDestroy {
     this.isLoading.set(true);
     this.errorMessage.set("");
     try {
-      const doc = await this._eventsService.getMyRsvp(eventId);
+      const doc = await this._events().getMyRsvp(eventId);
       if (version !== this._loadVersion) return;
       const rsvp = this._normalizeRsvp(doc?.rsvp);
       this.loadedRsvp.set(rsvp);
@@ -161,5 +170,15 @@ export class EventRsvpComponent implements OnDestroy {
     return value === "going" || value === "interested" || value === "notgoing"
       ? value
       : null;
+  }
+
+  private _events(): EventsService {
+    this._eventsService ??= this._injector.get(EventsService);
+    return this._eventsService;
+  }
+
+  private _auth(): AuthenticationService {
+    this._authService ??= this._injector.get(AuthenticationService);
+    return this._authService;
   }
 }

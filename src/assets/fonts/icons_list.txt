@@ -175,4 +175,6 @@ playground_2
 garage
 calendar_month
 handshake
-
+calendar_add_on
+camping
+cancel

@@ -1,10 +1,25 @@
+:host {
+  display: inline-block;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  max-width: 100%;
+}
+
 .event-rsvp {
-  display: flex;
+  display: inline-grid;
+  grid-template-columns: auto;
+  justify-items: start;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--mat-sys-on-surface);
+}
+
+.rsvp-main {
+  display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: end;
   gap: 12px;
-  color: var(--mat-sys-on-surface);
+  max-width: 100%;
 }
 
 .rsvp-counts {
@@ -56,7 +71,13 @@
 }
 
 .rsvp-error {
-  flex-basis: 100%;
   margin: 0;
   color: var(--mat-sys-error);
+}
+
+.rsvp-disclaimer {
+  display: block;
+  width: 0;
+  min-width: 100%;
+  margin-top: 12px;
 }

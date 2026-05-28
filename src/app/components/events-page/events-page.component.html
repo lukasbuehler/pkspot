@@ -5,8 +5,15 @@
         Events
       </h2>
       @if (isAdmin()) {
-        <a mat-flat-button color="primary" routerLink="/events/new">
-          <mat-icon>add</mat-icon>
+        <a
+          matFab
+          extended="true"
+          color="primary"
+          routerLink="/events/new"
+          class="position-absolute"
+          style="bottom: 30px; right: 30px"
+        >
+          <mat-icon>calendar_add_on</mat-icon>
           <span i18n="@@events.create">Create event</span>
         </a>
       }

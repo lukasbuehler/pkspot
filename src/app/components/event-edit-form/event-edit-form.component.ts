@@ -8,6 +8,7 @@ import {
   output,
   signal,
   untracked,
+  ViewChild,
 } from "@angular/core";
 import {
   FormBuilder,
@@ -32,7 +33,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTimepickerModule } from "@angular/material/timepicker";
-import { GeoPoint, Timestamp } from "firebase/firestore";
+import { Timestamp } from "@angular/fire/firestore";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventBoundsSchema,
@@ -92,9 +93,8 @@ type EditableTicketOption = {
 };
 export type EventEditPatch = Omit<
   Partial<EventSchema>,
-  "bounds" | "area_polygon"
+  "bounds" | "area_polygon" | "location"
 > & {
-  bounds?: EventBoundsSchema | null;
   area_polygon?: EventSchema["area_polygon"] | null;
 };
 
@@ -110,8 +110,8 @@ export type EventEditPatch = Omit<
  *   - Image fields: <app-media-upload> writing to Firebase Storage
  *     under `event_media/`. On upload completion we capture the
  *     returned URL and patch the corresponding form control.
- *   - Bounds: <app-bounds-picker> (small map with a draggable +
- *     editable rectangle).
+ *   - Area: <app-bounds-picker> (small map with a draggable event pin +
+ *     editable area polygon).
  *   - Spot list: <app-spot-picker> (chip list backed by SearchField).
  *   - Community keys: chip list auto-suggested from event center
  *     vs. published community circles. User can add / remove freely.
@@ -166,6 +166,8 @@ export class EventEditFormComponent {
   private _fb = inject(FormBuilder);
   private _searchService = inject(SearchService);
   private _organizationsService = inject(OrganizationsService);
+  private _loadedEventId: string | null = null;
+  @ViewChild(BoundsPickerComponent) private _boundsPicker?: BoundsPickerComponent;
 
   /** Storage folder for banner / logo / sponsor-logo uploads. */
   readonly eventMediaBucket = StorageBucket.EventMedia;
@@ -244,7 +246,7 @@ export class EventEditFormComponent {
 
   /** Center of the bounds rectangle — used for community auto-suggest. */
   readonly boundsCenter = computed(() => {
-    const b = this.bounds();
+    const b = pathToBounds(this.areaPath()) ?? this.bounds();
     if (!b) return null;
     return {
       lat: (b.north + b.south) / 2,
@@ -304,6 +306,8 @@ export class EventEditFormComponent {
     effect(() => {
       const e = this.event();
       if (!e) {
+        console.debug("[EventAreaDebug] form reset empty event");
+        this._loadedEventId = null;
         this.form.reset({
           published: true,
           banner_fit: "cover",
@@ -322,6 +326,22 @@ export class EventEditFormComponent {
         this.ticketOptions.set([]);
         return;
       }
+      if (this._loadedEventId === e.id) {
+        console.debug("[EventAreaDebug] form ignored same-event refresh", {
+          eventId: e.id,
+          incomingArea: summarizePath(eventAreaPath(e.areaPolygon)),
+          incomingBounds: e.bounds ?? null,
+          localArea: summarizePath(this.areaPath()),
+          areaTouched: this.areaTouched(),
+        });
+        return;
+      }
+      this._loadedEventId = e.id;
+      console.debug("[EventAreaDebug] form initializing from event", {
+        eventId: e.id,
+        incomingArea: summarizePath(eventAreaPath(e.areaPolygon)),
+        incomingBounds: e.bounds ?? null,
+      });
       this.form.reset({
         name: e.name,
         description: e.description ?? "",
@@ -349,7 +369,7 @@ export class EventEditFormComponent {
         external_media_url: "",
       });
       this.location.set(e.location);
-      this.areaPath.set(eventAreaPath(e.areaPolygon) ?? boundsToPath(e.bounds));
+      this.areaPath.set(eventAreaPath(e.areaPolygon));
       this.bounds.set(e.bounds ?? null);
       this.areaTouched.set(false);
       this.spotIds.set([...e.spotIds]);
@@ -431,8 +451,12 @@ export class EventEditFormComponent {
   });
 
   onAreaChange(path: Array<{ lat: number; lng: number }> | null): void {
+    console.debug("[EventAreaDebug] form areaChange", {
+      path: summarizePath(path),
+      previousArea: summarizePath(this.areaPath()),
+      boundsContext: this.bounds(),
+    });
     this.areaPath.set(path);
-    this.bounds.set(pathToBounds(path));
     this.areaTouched.set(true);
   }
 
@@ -696,6 +720,7 @@ export class EventEditFormComponent {
       this.form.markAllAsTouched();
       return;
     }
+    this._syncAreaFromPickerForSubmit();
 
     const patch: EventEditPatch = {
       ...this._buildLocationPatch(v.location_lat, v.location_lng),
@@ -734,7 +759,37 @@ export class EventEditFormComponent {
           : undefined,
     };
 
+    console.debug("[EventAreaDebug] form submit patch", {
+      localArea: summarizePath(this.areaPath()),
+      areaTouched: this.areaTouched(),
+      patchArea: summarizeAreaPolygon(patch.area_polygon),
+      hasBoundsInPatch: "bounds" in patch,
+    });
     this.save.emit(patch);
+  }
+
+  private _syncAreaFromPickerForSubmit(): void {
+    const livePath = this._boundsPicker?.currentAreaPath() ?? null;
+    const originalPath = eventAreaPath(this.event()?.areaPolygon);
+    const localPath = this.areaPath();
+    const differsFromLocal = !pathsEqual(livePath, localPath);
+    const differsFromOriginal = !pathsEqual(livePath, originalPath);
+
+    console.debug("[EventAreaDebug] form submit live picker sync", {
+      livePath: summarizePath(livePath),
+      localPath: summarizePath(localPath),
+      originalPath: summarizePath(originalPath),
+      differsFromLocal,
+      differsFromOriginal,
+      areaTouchedBefore: this.areaTouched(),
+    });
+
+    if (differsFromLocal) {
+      this.areaPath.set(livePath);
+    }
+    if (differsFromOriginal) {
+      this.areaTouched.set(true);
+    }
   }
 
   onCancel() {
@@ -811,12 +866,11 @@ export class EventEditFormComponent {
   private _buildLocationPatch(
     latitude: number | null | undefined,
     longitude: number | null | undefined,
-  ): Pick<Partial<EventSchema>, "location" | "location_raw"> {
+  ): Pick<Partial<EventSchema>, "location_raw"> {
     const lat = numberOrUndefined(latitude);
     const lng = numberOrUndefined(longitude);
     return lat !== undefined && lng !== undefined
       ? {
-          location: new GeoPoint(lat, lng),
           location_raw: { lat, lng },
         }
       : {};
@@ -824,22 +878,26 @@ export class EventEditFormComponent {
 
   private _buildGeometryPatch(): Pick<
     EventEditPatch,
-    "bounds" | "area_polygon"
+    "area_polygon"
   > {
     if (!this.areaTouched() && this.event()?.areaPolygon) {
       return {};
     }
     const path = this.areaPath();
-    const bounds = pathToBounds(path);
-    if (!path || !bounds) {
+    if (!path || path.length < 3) {
       if (!this.areaTouched()) return {};
+      console.debug("[EventAreaDebug] form geometry patch clears area", {
+        areaTouched: this.areaTouched(),
+        path: summarizePath(path),
+      });
       return {
-        bounds: null,
         area_polygon: null,
       };
     }
+    console.debug("[EventAreaDebug] form geometry patch writes area", {
+      path: summarizePath(path),
+    });
     return {
-      bounds,
       area_polygon: pathToAreaPolygon(path),
     };
   }
@@ -929,14 +987,7 @@ function pathToAreaPolygon(
 ): EventSchema["area_polygon"] {
   return [
     {
-      points: [
-        { lat: -85, lng: -180 },
-        { lat: -85, lng: 180 },
-        { lat: 85, lng: 180 },
-        { lat: 85, lng: -180 },
-      ],
-    },
-    {
+      area_name: "Main area",
       points: path,
     },
   ];
@@ -945,22 +996,12 @@ function pathToAreaPolygon(
 function eventAreaPath(
   areaPolygon: EventSchema["area_polygon"] | undefined
 ): Array<{ lat: number; lng: number }> | null {
-  const ring = areaPolygon?.find((candidate) =>
-    candidate.points.every((point) => Math.abs(point.lat) < 85)
+  const ring = areaPolygon?.find(
+    (candidate) =>
+      candidate.area_name?.toLowerCase() !== "outer" &&
+      candidate.points.every((point) => Math.abs(point.lat) < 85)
   );
   return ring && ring.points.length >= 3 ? [...ring.points] : null;
-}
-
-function boundsToPath(
-  bounds: EventBoundsSchema | undefined
-): Array<{ lat: number; lng: number }> | null {
-  if (!bounds) return null;
-  return [
-    { lat: bounds.north, lng: bounds.west },
-    { lat: bounds.north, lng: bounds.east },
-    { lat: bounds.south, lng: bounds.east },
-    { lat: bounds.south, lng: bounds.west },
-  ];
 }
 
 function pathToBounds(
@@ -981,6 +1022,49 @@ function pathToBounds(
       west: Number.POSITIVE_INFINITY,
     }
   );
+}
+
+function pathsEqual(
+  a: Array<{ lat: number; lng: number }> | null,
+  b: Array<{ lat: number; lng: number }> | null,
+): boolean {
+  if (!a || !b) return a === b;
+  if (a.length !== b.length) return false;
+  return a.every((point, index) => {
+    const other = b[index];
+    return (
+      Math.abs(point.lat - other.lat) < 0.0000001 &&
+      Math.abs(point.lng - other.lng) < 0.0000001
+    );
+  });
+}
+
+function summarizeAreaPolygon(
+  areaPolygon: EventSchema["area_polygon"] | null | undefined,
+): Array<{
+  areaName?: string;
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+}> | null {
+  if (!areaPolygon) return null;
+  return areaPolygon.map((ring) => ({
+    areaName: ring.area_name,
+    ...summarizePath(ring.points),
+  }));
+}
+
+function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+} {
+  if (!path || path.length === 0) return { count: 0 };
+  return {
+    count: path.length,
+    first: path[0],
+    last: path[path.length - 1],
+  };
 }
 
 function trimOrUndefined(value: string | null | undefined): string | undefined {

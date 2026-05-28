@@ -64,33 +64,35 @@
     }
 
     <article class="event-content">
-      <header class="event-heading d-flex pb-3 gap-3">
-        <div class="d-flex flex-column flex-grow-1 gap-2">
-          <h1 class="mat-heading-medium">{{ event.name }}</h1>
+      <header class="event-heading pb-3">
+        <div class="event-heading-main">
+          <div class="event-title-block">
+            <h1 class="mat-heading-medium">{{ event.name }}</h1>
 
-          @if (isSponsored()) {
-            <p class="mat-title-medium sponsored-line d-flex gap-1 m-0">
-              <mat-icon inline>handshake</mat-icon>
-              <span i18n="@@event_card.sponsored">Sponsored Event</span>
-            </p>
-          }
+            @if (isSponsored()) {
+              <p class="mat-title-medium sponsored-line d-flex gap-1 m-0">
+                <mat-icon inline>handshake</mat-icon>
+                <span i18n="@@event_card.sponsored">Sponsored Event</span>
+              </p>
+            }
 
-          @if (statusLabel()) {
-            <p
-              class="event-meta mat-title-medium m-0"
-              [attr.data-status]="status()"
-            >
-              {{ statusLabel() }} ({{ startDateText() }} - {{ endDateText() }})
-            </p>
+            @if (statusLabel()) {
+              <p
+                class="event-meta mat-title-medium m-0"
+                [attr.data-status]="status()"
+              >
+                {{ statusLabel() }} ({{ dateRange() }})
+              </p>
+            }
+          </div>
+
+          @if (showRsvp()) {
+            <app-event-rsvp
+              [eventId]="event.id"
+              [counts]="event.rsvpCounts"
+            ></app-event-rsvp>
           }
         </div>
-
-        @if (showRsvp()) {
-          <app-event-rsvp
-            [eventId]="event.id"
-            [counts]="event.rsvpCounts"
-          ></app-event-rsvp>
-        }
       </header>
 
       <section
@@ -229,7 +231,7 @@
                           label: ticket.label,
                           url: ticket.url!,
                           kind: 'tickets',
-                          primary: false
+                          primary: false,
                         })
                       "
                     >
@@ -282,6 +284,7 @@
                 [highlightedSpots]="[]"
                 [hideRegularSpotPins]="true"
                 [showSpotPreview]="false"
+                (boundsChange)="updateMapPreviewViewportBounds($event)"
               ></app-google-map-2d>
             </div>
           </section>

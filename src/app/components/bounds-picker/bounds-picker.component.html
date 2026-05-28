@@ -42,6 +42,7 @@
           [options]="areaPolygonOptions"
           (polygonInitialized)="onPolygonInitialized($event)"
           (polygonDragend)="onPolygonChanged()"
+          (polygonMouseup)="onPolygonChanged()"
         ></map-polygon>
       }
       <map-marker

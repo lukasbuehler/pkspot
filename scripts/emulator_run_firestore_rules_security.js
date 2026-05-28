@@ -14,7 +14,6 @@ const {
   getDoc,
   getDocs,
   getFirestore,
-  GeoPoint,
   query,
   setDoc,
   Timestamp,
@@ -625,7 +624,6 @@ async function testEventWriteGuards(owner, adminUser) {
   await assertAllowed("admin creates event with editable fields", () =>
     setDoc(doc(adminUser.db, "events/admin-event"), {
       name: "Admin Event",
-      location: new GeoPoint(47.3769, 8.5417),
       location_raw: { lat: 47.3769, lng: 8.5417 },
       organizer: {
         type: "organization",
@@ -643,10 +641,14 @@ async function testEventWriteGuards(owner, adminUser) {
       bounds_center: [47.3769, 8.5417],
     })
   );
-  await assertAllowed("admin can write event GeoPoint with raw fallback", () =>
+  await assertAllowed("admin can write event raw location fallback", () =>
     updateDoc(doc(adminUser.db, "events/admin-event"), {
-      location: new GeoPoint(47.37, 8.55),
       location_raw: { lat: 47.37, lng: 8.55 },
+    })
+  );
+  await assertDenied("admin cannot write event canonical location", () =>
+    updateDoc(doc(adminUser.db, "events/admin-event"), {
+      location: { lat: 47.37, lng: 8.55 },
     })
   );
   await assertDenied("admin cannot update event computed radius", () =>

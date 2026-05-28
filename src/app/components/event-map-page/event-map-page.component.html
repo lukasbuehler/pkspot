@@ -50,11 +50,7 @@
 
     <!-- Dates row, always visible. -->
     <p class="mat-title-medium m-0 dates-line">
-      {{
-      readableStartDate() !== readableEndDate()
-      ? readableStartDate() + " - " + readableEndDate()
-      : readableStartDate()
-      }}
+      {{ dateRange() }}
     </p>
 
     <!-- Status row: red 'past' notice / countdown for upcoming / 'ongoing' for live -->
@@ -188,6 +184,7 @@
         [highlightedSpots]="[]" [hideRegularSpotPins]="true" [selectedSpot]="selectedSpot()"
         (spotClick)="selectSpot($event)" (mapClick)="deselectSpot()" [showSpotPreview]="!sidenavOpen()"
         (markerClickEvent)="onMarkerClickFromMap($event)"
+        (boundsChange)="updateVisibleMapBounds($event)"
         class="w-100 h-100 overflow-hidden d-block"></app-google-map-2d>
       }
       @if (!sidenavOpen() && challenges().length > 0) {

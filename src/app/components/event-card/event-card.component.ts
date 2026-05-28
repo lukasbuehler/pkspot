@@ -14,6 +14,9 @@ import { RouterLink } from "@angular/router";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
+import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
+import { MatTooltip } from "@angular/material/tooltip";
+import { formatDateRange } from "../../../scripts/Helpers";
 
 type EventStatus = "upcoming" | "live" | "past";
 
@@ -26,6 +29,8 @@ type EventStatus = "upcoming" | "live" | "past";
     MatIconModule,
     RouterLink,
     MediaPlaceholderComponent,
+    EventRsvpComponent,
+    MatTooltip,
   ],
   templateUrl: "./event-card.component.html",
   styleUrl: "./event-card.component.scss",
@@ -41,13 +46,7 @@ export class EventCardComponent {
   readonly status = computed<EventStatus>(() => this.event().status());
   readonly dateRange = computed(() => {
     const event = this.event();
-    const start = event.start.toLocaleDateString(this._locale, {
-      dateStyle: "full",
-    });
-    const end = event.end.toLocaleDateString(this._locale, {
-      dateStyle: "full",
-    });
-    return start === end ? start : `${start} - ${end}`;
+    return formatDateRange(event.start, event.end, this._locale);
   });
   readonly route = computed(() => [
     "/events",

@@ -251,4 +251,105 @@ describe("EventPageDataService", () => {
     expect(Math.max(...outer.map((point) => point.lng))).toBeCloseTo(8.65);
     expect(Math.min(...outer.map((point) => point.lng))).toBeCloseTo(8.45);
   });
+
+  it("ignores legacy outer rings and uses the visible viewport for the cutout", () => {
+    class MockLatLng {
+      constructor(
+        private readonly latValue: number,
+        private readonly lngValue: number,
+      ) {}
+
+      lat(): number {
+        return this.latValue;
+      }
+
+      lng(): number {
+        return this.lngValue;
+      }
+    }
+
+    class MockMVCArray<T> {
+      constructor(private readonly items: T[]) {}
+
+      getLength(): number {
+        return this.items.length;
+      }
+
+      getAt(index: number): T {
+        return this.items[index];
+      }
+    }
+
+    vi.stubGlobal("google", {
+      maps: {
+        LatLng: MockLatLng,
+        MVCArray: MockMVCArray,
+      },
+    });
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("city-jam", {
+      area_polygon: [
+        {
+          points: [
+            { lat: 0, lng: -90 },
+            { lat: 0, lng: 90 },
+            { lat: 90, lng: -90 },
+            { lat: 90, lng: 90 },
+          ],
+        },
+        {
+          area_name: "Main area",
+          points: [
+            { lat: 47.31, lng: 8.51 },
+            { lat: 47.32, lng: 8.53 },
+            { lat: 47.3, lng: 8.54 },
+          ],
+        },
+        {
+          area_name: "Warmup area",
+          points: [
+            { lat: 47.34, lng: 8.55 },
+            { lat: 47.35, lng: 8.56 },
+            { lat: 47.33, lng: 8.57 },
+          ],
+        },
+      ],
+    });
+
+    const polygon = service.buildAreaPolygon(event, true, {
+      north: 47.5,
+      south: 47.2,
+      east: 8.7,
+      west: 8.4,
+    });
+    const paths =
+      polygon?.paths as unknown as MockMVCArray<MockMVCArray<MockLatLng>>;
+
+    expect(paths.getLength()).toBe(3);
+    expect(paths.getAt(0).getLength()).toBe(4);
+    expect(paths.getAt(1).getAt(0).lat()).toBeCloseTo(47.3);
+    expect(paths.getAt(2).getAt(0).lat()).toBeCloseTo(47.33);
+
+    const outer = Array.from(
+      { length: paths.getAt(0).getLength() },
+      (_, index) => ({
+        lat: paths.getAt(0).getAt(index).lat(),
+        lng: paths.getAt(0).getAt(index).lng(),
+      }),
+    );
+    expect(Math.max(...outer.map((point) => point.lat))).toBeCloseTo(47.65);
+    expect(Math.min(...outer.map((point) => point.lat))).toBeCloseTo(47.05);
+    expect(Math.max(...outer.map((point) => point.lng))).toBeCloseTo(8.85);
+    expect(Math.min(...outer.map((point) => point.lng))).toBeCloseTo(8.25);
+  });
 });

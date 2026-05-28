@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { Timestamp } from "firebase/firestore";
+import { Timestamp } from "@angular/fire/firestore";
 import { BehaviorSubject, Observable } from "rxjs";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { EventId, EventSchema } from "../../../../db/schemas/EventSchema";
@@ -255,6 +255,60 @@ describe("EventsService", () => {
 
     expect(firestoreAdapter.deleteDocument).toHaveBeenCalledWith(
       "events/event-1/rsvps/admin-user",
+    );
+  });
+
+  it("updates event area polygons without accepting client-written bounds", async () => {
+    await service.updateEvent("event-1" as EventId, {
+      name: "Updated Event",
+      location_raw: { lat: 47.4, lng: 8.5 },
+      area_polygon: [
+        {
+          area_name: "Main area",
+          points: [
+            { lat: 47.45, lng: 8.5 },
+            { lat: 47.45, lng: 8.6 },
+            { lat: 47.35, lng: 8.6 },
+          ],
+        },
+      ],
+      custom_markers: [
+        {
+          name: "Info",
+          location: { lat: 47.4, lng: 8.5 },
+          priority: undefined,
+        },
+      ],
+    });
+
+    expect(firestoreAdapter.updateDocument).toHaveBeenCalledWith(
+      "events/event-1",
+      expect.objectContaining({
+        name: "Updated Event",
+        location_raw: { lat: 47.4, lng: 8.5 },
+        area_polygon: [
+          {
+            area_name: "Main area",
+            points: [
+              { lat: 47.45, lng: 8.5 },
+              { lat: 47.45, lng: 8.6 },
+              { lat: 47.35, lng: 8.6 },
+            ],
+          },
+        ],
+        custom_markers: [
+          {
+            name: "Info",
+            location: { lat: 47.4, lng: 8.5 },
+          },
+        ],
+      }),
+    );
+    expect(firestoreAdapter.updateDocument.mock.calls[0][1]).not.toHaveProperty(
+      "bounds",
+    );
+    expect(firestoreAdapter.updateDocument.mock.calls[0][1]).not.toHaveProperty(
+      "location",
     );
   });
 

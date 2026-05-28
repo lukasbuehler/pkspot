@@ -49,25 +49,23 @@
   }
 }
 
-.status-line,
-.sponsored-line {
-  margin: 0 0 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
 .status-line[data-status="past"] {
   color: var(--mat-sys-error);
 }
 
-.status-line[data-status="upcoming"],
-.sponsored-line {
+.status-line[data-status="upcoming"] {
   color: var(--mat-sys-primary);
+}
+
+.sponsored-line {
+  color: var(--mat-sys-tertiary);
 }
 
 .status-line[data-status="live"] {
   color: var(--mat-sys-secondary);
+}
+
+.event-card-rsvp {
+  display: block;
+  margin-top: 0.75rem;
 }

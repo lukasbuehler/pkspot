@@ -18,6 +18,7 @@ import { CountdownComponent } from "../countdown/countdown.component";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { AnalyticsService } from "../../services/analytics.service";
+import { formatDateRange } from "../../../scripts/Helpers";
 
 /**
  * Event preview panel for the map page sidebar (desktop) or bottom-sheet
@@ -89,15 +90,8 @@ export class EventPreviewComponent {
 
   readonly dateRange = computed(() => {
     const e = this.event();
-    if (!e) return "";
-    if (!this.hasValidDates()) return "";
-    const start = e.start.toLocaleDateString(this._locale, {
-      dateStyle: "medium",
-    });
-    const end = e.end.toLocaleDateString(this._locale, {
-      dateStyle: "medium",
-    });
-    return start === end ? start : `${start} – ${end}`;
+    if (!e || !this.hasValidDates()) return "";
+    return formatDateRange(e.start, e.end, this._locale);
   });
 
   readonly statusPrefix = computed<string>(() => {

@@ -1008,10 +1008,9 @@ export class FirestoreAdapterService {
   }
 
   private documentSnapshotsWeb<T>(path: string): Observable<T | null> {
-    return runInInjectionContext(this.injector, () => {
-      const docRef = doc(this.firestore, path);
-
-      return new Observable<T | null>((observer) => {
+    return new Observable<T | null>((observer) => {
+      return runInInjectionContext(this.injector, () => {
+        const docRef = doc(this.firestore, path);
         const unsubscribe = onSnapshot(
           docRef,
           (snapshot) => {
@@ -1107,14 +1106,13 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Observable<T[]> {
-    return runInInjectionContext(this.injector, () => {
-      const collRef = collection(this.firestore, collectionPath);
-      const q = query(
-        collRef,
-        ...this.buildWebQueryConstraints(collectionPath, filters, constraints)
-      );
-
-      return new Observable<T[]>((observer) => {
+    return new Observable<T[]>((observer) => {
+      return runInInjectionContext(this.injector, () => {
+        const collRef = collection(this.firestore, collectionPath);
+        const q = query(
+          collRef,
+          ...this.buildWebQueryConstraints(collectionPath, filters, constraints)
+        );
         const unsubscribe = onSnapshot(
           q,
           (snapshot) => {
@@ -1507,14 +1505,13 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Observable<T[]> {
-    return runInInjectionContext(this.injector, () => {
-      const collGroupRef = collectionGroup(this.firestore, collectionId);
-      const q = query(
-        collGroupRef,
-        ...this.buildWebQueryConstraints(collectionId, filters, constraints)
-      );
-
-      return new Observable<T[]>((observer) => {
+    return new Observable<T[]>((observer) => {
+      return runInInjectionContext(this.injector, () => {
+        const collGroupRef = collectionGroup(this.firestore, collectionId);
+        const q = query(
+          collGroupRef,
+          ...this.buildWebQueryConstraints(collectionId, filters, constraints)
+        );
         const unsubscribe = onSnapshot(
           q,
           (snapshot) => {
@@ -1551,15 +1548,14 @@ export class FirestoreAdapterService {
       );
     }
 
-    return runInInjectionContext(injector, () => {
-      const collGroupRef = collectionGroup(this.firestore, collectionId);
-      const q = query(
-        collGroupRef,
-        ...this.buildWebQueryConstraints(collectionId, filters, constraints)
-      );
-
-      return new Observable<Array<T & { id: string; path: string }>>(
-        (observer) => {
+    return new Observable<Array<T & { id: string; path: string }>>(
+      (observer) => {
+        return runInInjectionContext(injector, () => {
+          const collGroupRef = collectionGroup(this.firestore, collectionId);
+          const q = query(
+            collGroupRef,
+            ...this.buildWebQueryConstraints(collectionId, filters, constraints)
+          );
           const unsubscribe = onSnapshot(
             q,
             (snapshot) => {
@@ -1575,9 +1571,9 @@ export class FirestoreAdapterService {
             }
           );
           return () => unsubscribe();
-        }
-      );
-    });
+        });
+      }
+    );
   }
 
   private collectionGroupSnapshotsNative<T>(

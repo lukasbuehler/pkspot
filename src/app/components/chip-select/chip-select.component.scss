@@ -1,15 +1,25 @@
+.chip-select {
+  position: relative;
+  display: inline-flex;
+}
+
 ::ng-deep .visible-select-panel {
   width: auto !important;
-  min-width: 0 !important;
+  min-width: max(14rem, var(--mat-select-trigger-text-size, 0px)) !important;
   max-width: 90vw !important;
-  overflow: visible !important;
 }
+
+::ng-deep .visible-select-panel .mat-mdc-option {
+  min-width: max-content;
+}
+
 .visually-hidden-select {
-  width: 1px !important;
-  height: 1px !important;
+  width: 100% !important;
+  height: 100% !important;
   opacity: 0 !important;
   position: absolute !important;
   pointer-events: none !important;
+  inset: 0;
   left: 0;
   top: 0;
   z-index: 0;

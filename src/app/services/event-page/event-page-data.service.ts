@@ -214,23 +214,27 @@ export class EventPageDataService {
   buildAreaPolygon(
     event: PkEvent | null,
     mapsApiLoaded: boolean,
+    outerBounds?: EventBoundsSchema | null,
   ): PolygonSchema | null {
     if (!event?.areaPolygon || !mapsApiLoaded) {
       return null;
     }
 
-    const eventAreaRing = this._eventAreaRing(event.areaPolygon);
-    if (eventAreaRing.length < 3) {
+    const eventAreaRings = this._eventAreaRings(event.areaPolygon);
+    if (eventAreaRings.length === 0) {
       return null;
     }
 
-    const outerRing = this._outerCutoutRing(this.eventMapBounds(event));
-    const holeRing = this._oppositeWinding(eventAreaRing, outerRing);
+    const outerRing = this._outerCutoutRing(
+      outerBounds ?? this.eventMapBounds(event),
+    );
     const paths = new google.maps.MVCArray<
       google.maps.MVCArray<google.maps.LatLng>
     >([
       this._toGoogleRing(outerRing),
-      this._toGoogleRing(holeRing),
+      ...eventAreaRings.map((eventAreaRing) =>
+        this._toGoogleRing(this._oppositeWinding(eventAreaRing, outerRing)),
+      ),
     ]);
 
     return {
@@ -242,15 +246,63 @@ export class EventPageDataService {
     };
   }
 
-  private _eventAreaRing(
+  private _eventAreaRings(
     rings: NonNullable<PkEvent["areaPolygon"]>,
-  ): Array<{ lat: number; lng: number }> {
+  ): Array<Array<{ lat: number; lng: number }>> {
+    return rings
+      .filter((ring) => this._isEventAreaRing(ring))
+      .map((ring) => ring.points)
+      .filter((points) => points.length >= 3);
+  }
+
+  private _isEventAreaRing(
+    ring: NonNullable<PkEvent["areaPolygon"]>[number],
+  ): boolean {
+    if (ring.area_name?.toLowerCase() === "outer") {
+      return false;
+    }
+
+    if (this._isLegacyOuterRing(ring.points)) {
+      return false;
+    }
+
+    return ring.points.every(
+      (point) =>
+        Number.isFinite(point.lat) &&
+        Number.isFinite(point.lng) &&
+        Math.abs(point.lat) < 85,
+    );
+  }
+
+  private _isLegacyOuterRing(
+    points: Array<{ lat: number; lng: number }>,
+  ): boolean {
     return (
-      rings.find((ring) =>
-        ring.points.every((point) => Math.abs(point.lat) < 85),
-      )?.points ??
-      rings[0]?.points ??
-      []
+      this._matchesRing(points, [
+        { lat: 0, lng: -90 },
+        { lat: 0, lng: 90 },
+        { lat: 90, lng: -90 },
+        { lat: 90, lng: 90 },
+      ]) ||
+      this._matchesRing(points, [
+        { lat: -85, lng: -180 },
+        { lat: -85, lng: 180 },
+        { lat: 85, lng: 180 },
+        { lat: 85, lng: -180 },
+      ])
+    );
+  }
+
+  private _matchesRing(
+    points: Array<{ lat: number; lng: number }>,
+    expected: Array<{ lat: number; lng: number }>,
+  ): boolean {
+    return (
+      points.length === expected.length &&
+      points.every(
+        (point, index) =>
+          point.lat === expected[index].lat && point.lng === expected[index].lng,
+      )
     );
   }
 

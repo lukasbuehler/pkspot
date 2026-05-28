@@ -1,6 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { deleteField } from "@angular/fire/firestore";
-import { Timestamp } from "firebase/firestore";
+import { deleteField, Timestamp } from "@angular/fire/firestore";
 import { Observable, from, map, of, switchMap } from "rxjs";
 import { Event } from "../../../../db/models/Event";
 import {
@@ -25,9 +24,8 @@ type EventSlugDocument = EventSlugSchema & { id: string };
 type EventRSVPDocument = EventRSVPSchema & { id: string };
 export type EventWritePatch = Omit<
   Partial<EventSchema>,
-  "bounds" | "area_polygon"
+  "bounds" | "area_polygon" | "location"
 > & {
-  bounds?: EventSchema["bounds"] | null;
   area_polygon?: EventSchema["area_polygon"] | null;
 };
 
@@ -37,18 +35,31 @@ export type EventWritePatch = Omit<
  * `deleteField()` because the form layer already excludes empty fields
  * before patching.
  */
-function stripUndefined<T extends Record<string, unknown>>(value: T): T {
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== "object") return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((entry) => stripUndefined(entry)) as T;
+  }
+  if (!isPlainObject(value)) {
+    return value;
+  }
+
   const out: Record<string, unknown> = {};
   for (const [key, raw] of Object.entries(value)) {
     if (raw === undefined) continue;
-    if (raw !== null && typeof raw === "object" && !Array.isArray(raw)) {
-      const cleaned = stripUndefined(raw as Record<string, unknown>);
+    if (isPlainObject(raw)) {
+      const cleaned = stripUndefined(raw);
       // Drop completely empty nested objects to avoid creating `{}` in
       // Firestore where the caller meant "leave this alone".
       if (Object.keys(cleaned).length > 0) out[key] = cleaned;
       continue;
     }
-    out[key] = raw;
+    out[key] = stripUndefined(raw);
   }
   return out as T;
 }
@@ -144,11 +155,18 @@ export class EventsService extends ConsentAwareService {
 
     const cleaned = stripUndefined({
       ...patch,
-      bounds: patch.bounds === null ? deleteField() : patch.bounds,
       area_polygon:
         patch.area_polygon === null ? deleteField() : patch.area_polygon,
       time_updated: Timestamp.now(),
     }) as Partial<EventSchema>;
+
+    console.debug("[EventAreaDebug] service updateEvent write", {
+      eventId,
+      areaPolygon: summarizeAreaPolygon(patch.area_polygon),
+      cleanedAreaPolygon: summarizeAreaPolygon(cleaned.area_polygon),
+      hasBoundsInPatch: "bounds" in patch,
+      hasLocationInPatch: "location" in patch,
+    });
 
     await this._firestoreAdapter.updateDocument(
       `events/${eventId}`,
@@ -351,4 +369,32 @@ export class EventsService extends ConsentAwareService {
 
     return null;
   }
+}
+
+function summarizeAreaPolygon(
+  areaPolygon: EventSchema["area_polygon"] | null | undefined,
+): Array<{
+  areaName?: string;
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+}> | null {
+  if (!areaPolygon || !Array.isArray(areaPolygon)) return null;
+  return areaPolygon.map((ring) => ({
+    areaName: ring.area_name,
+    ...summarizePath(ring.points),
+  }));
+}
+
+function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+} {
+  if (!path || path.length === 0) return { count: 0 };
+  return {
+    count: path.length,
+    first: path[0],
+    last: path[path.length - 1],
+  };
 }

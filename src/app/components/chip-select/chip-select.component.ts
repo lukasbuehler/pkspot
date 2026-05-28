@@ -1,4 +1,10 @@
-import { Component, Input, Output, EventEmitter } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+} from "@angular/core";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatSelectModule } from "@angular/material/select";
@@ -6,7 +12,6 @@ import { MatIconModule } from "@angular/material/icon";
 
 @Component({
   selector: "app-chip-select",
-  standalone: true,
   imports: [
     MatChipsModule,
     MatSelectModule,
@@ -15,6 +20,7 @@ import { MatIconModule } from "@angular/material/icon";
   ],
   templateUrl: "./chip-select.component.html",
   styleUrls: ["./chip-select.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChipSelectComponent {
   @Input() icon: string = "arrow_drop_down";

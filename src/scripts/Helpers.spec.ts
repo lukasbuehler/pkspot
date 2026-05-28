@@ -4,6 +4,7 @@ import {
   parseFirestoreGeoPoint,
   parseFirestoreTimestamp,
   transformFirestoreData,
+  formatDateRange,
 } from "./Helpers";
 
 describe("Helpers", () => {
@@ -131,6 +132,33 @@ describe("Helpers", () => {
       expect(parsedFromFallback).toBeInstanceOf(GeoPoint);
       expect(parsedFromFallback?.latitude).toBe(46.948);
       expect(parsedFromFallback?.longitude).toBe(7.4474);
+    });
+  });
+
+  describe("formatDateRange", () => {
+    it("should format single date and date ranges cleanly for different locales", () => {
+      const sameDay = new Date("2026-08-05T12:00:00Z");
+      const sameMonth = new Date("2026-08-08T12:00:00Z");
+      const sameYear = new Date("2026-09-08T12:00:00Z");
+      const diffYear = new Date("2027-08-08T12:00:00Z");
+
+      // German
+      expect(formatDateRange(sameDay, sameDay, "de")).toBe("5.8.26");
+      expect(formatDateRange(sameDay, sameMonth, "de")).toBe("5.–8.8.26");
+      expect(formatDateRange(sameDay, sameYear, "de")).toBe("5.8.–8.9.26");
+      expect(formatDateRange(sameDay, diffYear, "de")).toBe("5.8.26 – 8.8.27");
+
+      // English
+      expect(formatDateRange(sameDay, sameDay, "en")).toBe("8/5/26");
+      expect(formatDateRange(sameDay, sameMonth, "en")).toBe("8/5–8/8/26");
+      expect(formatDateRange(sameDay, sameYear, "en")).toBe("8/5–9/8/26");
+      expect(formatDateRange(sameDay, diffYear, "en")).toBe("8/5/26 – 8/8/27");
+
+      // French
+      expect(formatDateRange(sameDay, sameDay, "fr")).toBe("5/8/26");
+      expect(formatDateRange(sameDay, sameMonth, "fr")).toBe("5–8/8/26");
+      expect(formatDateRange(sameDay, sameYear, "fr")).toBe("5/8–8/9/26");
+      expect(formatDateRange(sameDay, diffYear, "fr")).toBe("5/8/26 – 8/8/27");
     });
   });
 });

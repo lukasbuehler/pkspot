@@ -121,6 +121,78 @@ export function humanTimeSince(date: Date): string {
 }
 
 /**
+ * Format a date range cleanly, reducing redundant year or month information when they are shared.
+ * Example outputs:
+ * - Same day (German): "5.8.26"
+ * - Same month (German): "5.–8.8.26"
+ * - Same year (German): "5.8.–8.9.26"
+ * - Different year (German): "5.8.26 – 8.8.27"
+ */
+export function formatDateRange(
+  start: Date,
+  end: Date,
+  locale: string
+): string {
+  const startDay = start.getDate();
+  const startMonth = start.getMonth() + 1;
+  const startYear = start.getFullYear();
+  const endDay = end.getDate();
+  const endMonth = end.getMonth() + 1;
+  const endYear = end.getFullYear();
+
+  const sameDay =
+    startDay === endDay &&
+    startMonth === endMonth &&
+    startYear === endYear;
+  const sameMonth = startMonth === endMonth && startYear === endYear;
+  const sameYear = startYear === endYear;
+
+  const yy = String(startYear).slice(-2);
+  const endYy = String(endYear).slice(-2);
+
+  const isEn = locale.startsWith("en");
+
+  let sep = "/";
+  if (locale.startsWith("de")) {
+    sep = ".";
+  } else if (locale.startsWith("nl")) {
+    sep = "-";
+  }
+
+  if (isEn) {
+    if (sameDay) {
+      return `${startMonth}/${startDay}/${yy}`;
+    }
+    if (sameMonth) {
+      return `${startMonth}/${startDay}–${endMonth}/${endDay}/${yy}`;
+    }
+    if (sameYear) {
+      return `${startMonth}/${startDay}–${endMonth}/${endDay}/${yy}`;
+    }
+    return `${startMonth}/${startDay}/${yy} – ${endMonth}/${endDay}/${endYy}`;
+  }
+
+  // Non-English (DMY format)
+  if (sameDay) {
+    return `${startDay}${sep}${startMonth}${sep}${yy}`;
+  }
+  if (sameMonth) {
+    if (sep === ".") {
+      return `${startDay}.–${endDay}.${startMonth}.${yy}`;
+    }
+    return `${startDay}–${endDay}${sep}${startMonth}${sep}${yy}`;
+  }
+  if (sameYear) {
+    if (sep === ".") {
+      return `${startDay}.${startMonth}.–${endDay}.${endMonth}.${yy}`;
+    }
+    return `${startDay}${sep}${startMonth}–${endDay}${sep}${endMonth}${sep}${yy}`;
+  }
+  return `${startDay}${sep}${startMonth}${sep}${yy} – ${endDay}${sep}${endMonth}${sep}${endYy}`;
+}
+
+
+/**
  * Parse a Firestore timestamp into a JavaScript Date.
  * Handles multiple formats:
  * - Firestore Timestamp objects with toDate() method

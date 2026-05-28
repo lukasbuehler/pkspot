@@ -16,6 +16,7 @@ import {
 } from "@angular/fire/auth";
 import {
   Firestore,
+  Timestamp,
   connectFirestoreEmulator,
   doc,
   getDoc,
@@ -290,6 +291,81 @@ runWithEmulator("EventsService emulator integration", () => {
     });
   });
 
+  it("updates event edit fields through the real web Firestore adapter", async () => {
+    const uid = authService.user.uid;
+    expect(uid).toBeTruthy();
+    authService.user.data.isAdmin = true;
+    await adminDb().doc(`users/${uid}`).set({ is_admin: true });
+
+    const eventId = `event-edit-emulator-${uid}`;
+    await adminDb()
+      .doc(`events/${eventId}`)
+      .set({
+        name: "Editable emulator event",
+        venue_string: "Old venue",
+        locality_string: "Zurich, Switzerland",
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+        start: admin.firestore.Timestamp.fromDate(
+          new Date("2026-06-01T10:00:00.000Z"),
+        ),
+        end: admin.firestore.Timestamp.fromDate(
+          new Date("2026-06-01T12:00:00.000Z"),
+        ),
+      });
+
+    await service.updateEvent(eventId, {
+      name: "Updated emulator event",
+      venue_string: "New venue",
+      locality_string: "Zurich, Switzerland",
+      location_raw: { lat: 47.4, lng: 8.5 },
+      start: Timestamp.fromDate(new Date("2026-06-02T10:00:00.000Z")),
+      end: Timestamp.fromDate(new Date("2026-06-02T12:00:00.000Z")),
+      area_polygon: [
+        {
+          area_name: "Main area",
+          points: [
+            { lat: 47.45, lng: 8.5 },
+            { lat: 47.45, lng: 8.6 },
+            { lat: 47.35, lng: 8.6 },
+            { lat: 47.35, lng: 8.5 },
+          ],
+        },
+      ],
+      custom_markers: [
+        {
+          name: "Camp",
+          location: { lat: 47.4, lng: 8.5 },
+          icons: ["camping"],
+        },
+      ],
+    });
+
+    const snapshot = await adminDb().doc(`events/${eventId}`).get();
+    const data = snapshot.data();
+
+    expect(data).toEqual(
+      expect.objectContaining({
+        name: "Updated emulator event",
+        venue_string: "New venue",
+        location_raw: { lat: 47.4, lng: 8.5 },
+      }),
+    );
+    expect(data?.["start"]).toBeInstanceOf(admin.firestore.Timestamp);
+    expect(data?.["end"]).toBeInstanceOf(admin.firestore.Timestamp);
+    expect(data?.["time_updated"]).toBeInstanceOf(admin.firestore.Timestamp);
+    expect(data?.["area_polygon"]).toEqual([
+      {
+        area_name: "Main area",
+        points: [
+          { lat: 47.45, lng: 8.5 },
+          { lat: 47.45, lng: 8.6 },
+          { lat: 47.35, lng: 8.6 },
+          { lat: 47.35, lng: 8.5 },
+        ],
+      },
+    ]);
+  });
+
   it("normalizes event Typesense helper fields to Firestore runtime types", async () => {
     const eventId = `typesense-contract-${Date.now()}-${Math.random()
       .toString(36)
@@ -306,12 +382,25 @@ runWithEmulator("EventsService emulator integration", () => {
         start: { seconds: 1_780_311_600, nanoseconds: 0 },
         end: { seconds: 1_780_318_800, nanoseconds: 0 },
         promo_starts_at: { seconds: 1_779_793_200, nanoseconds: 0 },
-        bounds: {
-          north: 47.45,
-          south: 47.35,
-          east: 8.6,
-          west: 8.5,
-        },
+        area_polygon: [
+          {
+            points: [
+              { lat: 0, lng: -90 },
+              { lat: 0, lng: 90 },
+              { lat: 90, lng: -90 },
+              { lat: 90, lng: 90 },
+            ],
+          },
+          {
+            area_name: "Main area",
+            points: [
+              { lat: 47.45, lng: 8.5 },
+              { lat: 47.45, lng: 8.6 },
+              { lat: 47.35, lng: 8.6 },
+              { lat: 47.35, lng: 8.5 },
+            ],
+          },
+        ],
         promo_region: {
           center: { lat: 46.8, lng: 8.2 },
           radius_m: 150_000,
@@ -327,6 +416,12 @@ runWithEmulator("EventsService emulator integration", () => {
     expect(data?.["bounds_center"]).toBeInstanceOf(admin.firestore.GeoPoint);
     expect(data?.["bounds_center"].latitude).toBeCloseTo(47.4, 6);
     expect(data?.["bounds_center"].longitude).toBeCloseTo(8.55, 6);
+    expect(data?.["bounds"]).toEqual({
+      north: 47.45,
+      south: 47.35,
+      east: 8.6,
+      west: 8.5,
+    });
     expect(data?.["promo_region_center"]).toBeInstanceOf(
       admin.firestore.GeoPoint,
     );

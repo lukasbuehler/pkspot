@@ -31,6 +31,10 @@ const TYPESENSE_HELPER_FIELDS = [
   "promo_region_center",
   "promo_region_radius_m",
 ] as const;
+const SERVER_DERIVED_EVENT_FIELDS = [
+  ...TYPESENSE_HELPER_FIELDS,
+  "bounds",
+] as const;
 
 /**
  * Skip non-runtime docs that share the events collection space (the
@@ -192,6 +196,138 @@ const _geoPointCoordinate = (
   return { lat: value.latitude, lng: value.longitude };
 };
 
+const _plainCoordinate = (
+  value: unknown
+): { lat: number; lng: number } | undefined => {
+  if (isGeoPointValue(value)) {
+    return { lat: value.latitude, lng: value.longitude };
+  }
+  if (!value || typeof value !== "object") return undefined;
+  const data = value as {
+    lat?: unknown;
+    lng?: unknown;
+    latitude?: unknown;
+    longitude?: unknown;
+  };
+  const lat = Number(data.lat ?? data.latitude);
+  const lng = Number(data.lng ?? data.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return undefined;
+  return { lat, lng };
+};
+
+const _boundsFromPoints = (
+  points: Array<{ lat: number; lng: number }>
+): EventBoundsSchema | undefined => {
+  if (points.length === 0) return undefined;
+  return points.reduce<EventBoundsSchema>(
+    (bounds, point) => ({
+      north: Math.max(bounds.north, point.lat),
+      south: Math.min(bounds.south, point.lat),
+      east: Math.max(bounds.east, point.lng),
+      west: Math.min(bounds.west, point.lng),
+    }),
+    {
+      north: Number.NEGATIVE_INFINITY,
+      south: Number.POSITIVE_INFINITY,
+      east: Number.NEGATIVE_INFINITY,
+      west: Number.POSITIVE_INFINITY,
+    }
+  );
+};
+
+const _isLegacyOuterEventRing = (
+  points: Array<{ lat: number; lng: number }>
+): boolean => {
+  const matches = (expected: Array<{ lat: number; lng: number }>) =>
+    points.length === expected.length &&
+    points.every(
+      (point, index) =>
+        point.lat === expected[index].lat && point.lng === expected[index].lng
+    );
+  return (
+    matches([
+      { lat: 0, lng: -90 },
+      { lat: 0, lng: 90 },
+      { lat: 90, lng: -90 },
+      { lat: 90, lng: 90 },
+    ]) ||
+    matches([
+      { lat: -85, lng: -180 },
+      { lat: -85, lng: 180 },
+      { lat: 85, lng: 180 },
+      { lat: 85, lng: -180 },
+    ])
+  );
+};
+
+const _eventAreaPoints = (
+  eventData: EventSchema
+): Array<{ lat: number; lng: number }> => {
+  return (eventData.area_polygon ?? []).flatMap((ring) => {
+    if (ring.area_name?.toLowerCase() === "outer") return [];
+    if (_isLegacyOuterEventRing(ring.points)) return [];
+    return ring.points.filter(
+      (point) =>
+        Number.isFinite(point.lat) &&
+        Number.isFinite(point.lng) &&
+        Math.abs(point.lat) < 85
+    );
+  });
+};
+
+const _eventInlineSpotPoints = (
+  eventData: EventSchema
+): Array<{ lat: number; lng: number }> =>
+  (eventData.inline_spots ?? []).flatMap((spot) => [
+    ...((spot.bounds ?? []).map(_plainCoordinate).filter(Boolean) as Array<{
+      lat: number;
+      lng: number;
+    }>),
+    ...(_plainCoordinate(spot.location) ? [_plainCoordinate(spot.location)!] : []),
+  ]);
+
+const _spotDocumentPoints = (
+  data: FirebaseFirestore.DocumentData | undefined
+): Array<{ lat: number; lng: number }> => {
+  if (!data) return [];
+  const rawBounds = Array.isArray(data["bounds_raw"])
+    ? data["bounds_raw"]
+    : Array.isArray(data["bounds"])
+    ? data["bounds"]
+    : [];
+  const bounds = rawBounds
+    .map(_plainCoordinate)
+    .filter(Boolean) as Array<{ lat: number; lng: number }>;
+  const location =
+    _plainCoordinate(data["location_raw"]) ?? _plainCoordinate(data["location"]);
+  return location ? [...bounds, location] : bounds;
+};
+
+const _eventSpotPoints = async (
+  eventData: EventSchema
+): Promise<Array<{ lat: number; lng: number }>> => {
+  const spotIds = eventData.spot_ids ?? [];
+  if (spotIds.length === 0) return [];
+
+  const snapshots = await Promise.all(
+    spotIds.map((spotId) => admin.firestore().collection("spots").doc(spotId).get())
+  );
+  return snapshots.flatMap((snapshot) => _spotDocumentPoints(snapshot.data()));
+};
+
+const _deriveEventBounds = async (
+  eventData: EventSchema
+): Promise<EventBoundsSchema | undefined> => {
+  const areaPoints = _eventAreaPoints(eventData);
+  if (areaPoints.length > 0) return _boundsFromPoints(areaPoints);
+
+  const spotPoints = [
+    ..._eventInlineSpotPoints(eventData),
+    ...(await _eventSpotPoints(eventData)),
+  ];
+  return _boundsFromPoints(spotPoints);
+};
+
 const _timestampSeconds = (value: unknown): number | undefined => {
   const timestamp = _timestampValue(value);
   return timestamp?.seconds;
@@ -229,10 +365,11 @@ const _timestampValue = (value: unknown): Timestamp | undefined => {
  * event document so the Firestore→Typesense extension can sync them as-is.
  * Returns only the fields that have a defined value.
  */
-const _addTypesenseFields = (
+const _addTypesenseFields = async (
   eventData: EventSchema
-): Partial<EventSchema> => {
+): Promise<Partial<EventSchema>> => {
   const out: Partial<EventSchema> = {};
+  const derivedBounds = await _deriveEventBounds(eventData);
 
   out.start_seconds = _timestampSeconds(eventData.start);
   out.end_seconds = _timestampSeconds(eventData.end);
@@ -251,9 +388,7 @@ const _addTypesenseFields = (
   const location =
     _rawCoordinate(eventData.location_raw) ??
     _geoPointCoordinate(eventData.location) ??
-    (eventData.bounds
-      ? _bboxCenterAndRadius(eventData.bounds).center
-      : undefined);
+    (derivedBounds ? _bboxCenterAndRadius(derivedBounds).center : undefined);
   if (location) {
     out.location = new GeoPoint(
       location.lat,
@@ -262,8 +397,9 @@ const _addTypesenseFields = (
     out.location_raw = location;
   }
 
-  if (eventData.bounds) {
-    const { center, radiusM } = _bboxCenterAndRadius(eventData.bounds);
+  if (derivedBounds) {
+    out.bounds = derivedBounds;
+    const { center, radiusM } = _bboxCenterAndRadius(derivedBounds);
     // The Firestore→Typesense extension converts Firestore GeoPoints to
     // Typesense geopoint arrays.
     out.bounds_center = new GeoPoint(center.lat, center.lng) as unknown as [
@@ -324,7 +460,7 @@ const _getChangedFields = (
   const out = Object.fromEntries(changed) as Record<string, unknown>;
 
   const current = currentData as unknown as Record<string, unknown>;
-  for (const field of TYPESENSE_HELPER_FIELDS) {
+  for (const field of SERVER_DERIVED_EVENT_FIELDS) {
     if (field in proposed) continue;
     if (current[field] !== undefined) {
       out[field] = admin.firestore.FieldValue.delete();
@@ -349,7 +485,7 @@ export const updateEventFieldsOnWrite = onDocumentWritten(
     const afterData = event.data.after.data() as EventSchema | undefined;
     if (!afterData) return null;
 
-    const derived = _addTypesenseFields(afterData);
+    const derived = await _addTypesenseFields(afterData);
     const changed = _getChangedFields(afterData, derived);
     if (Object.keys(changed).length === 0) return null;
 
@@ -411,7 +547,7 @@ export const updateAllEventsWithTypesenseFields = onDocumentCreated(
       if (!isEventRuntimeDoc(doc.id)) continue;
 
       const eventData = doc.data() as EventSchema;
-      const derived = _addTypesenseFields(eventData);
+      const derived = await _addTypesenseFields(eventData);
       const changed = _getChangedFields(eventData, derived);
 
       if (Object.keys(changed).length > 0) {

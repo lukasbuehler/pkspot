@@ -30,6 +30,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
+import { formatDateRange } from "../../../scripts/Helpers";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MatMenuModule } from "@angular/material/menu";
@@ -68,7 +69,12 @@ import {
   EventEditFormComponent,
   EventEditPatch,
 } from "../event-edit-form/event-edit-form.component";
-import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
+import {
+  EventAreaPolygonSchema,
+  EventBoundsSchema,
+  EventId,
+  EventSchema,
+} from "../../../db/schemas/EventSchema";
 import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
@@ -82,6 +88,34 @@ export class ReversePipe implements PipeTransform {
     if (!Array.isArray(value)) return value;
     return [...value].reverse();
   }
+}
+
+function summarizeAreaPolygon(
+  areaPolygon: EventAreaPolygonSchema[] | null | undefined,
+): Array<{
+  areaName?: string;
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+}> | null {
+  if (!areaPolygon) return null;
+  return areaPolygon.map((ring) => ({
+    areaName: ring.area_name,
+    ...summarizePath(ring.points),
+  }));
+}
+
+function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+} {
+  if (!path || path.length === 0) return { count: 0 };
+  return {
+    count: path.length,
+    first: path[0],
+    last: path[path.length - 1],
+  };
 }
 
 type EventPageMapMarker = MarkerSchema & {
@@ -213,17 +247,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     return event ? this._eventPageData.eventMapBounds(event) : null;
   });
   readonly focusZoom = computed(() => this.event()?.focusZoom ?? 18);
-  readonly readableStartDate = computed(() => {
+  readonly dateRange = computed(() => {
     const e = this.event();
-    return e
-      ? e.start.toLocaleDateString(this.locale, { dateStyle: "full" })
-      : "";
-  });
-  readonly readableEndDate = computed(() => {
-    const e = this.event();
-    return e
-      ? e.end.toLocaleDateString(this.locale, { dateStyle: "full" })
-      : "";
+    if (!e) return "";
+    return formatDateRange(e.start, e.end, this.locale);
   });
 
   /** Live event status, recomputed against the current event's dates. */
@@ -265,6 +292,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     ...this.spotMapMarkers(),
   ]);
   readonly areaPolygon = signal<PolygonSchema | null>(null);
+  readonly visibleMapBounds = signal<EventBoundsSchema | null>(null);
 
   /**
    * Spots passed to the map's `highlightedSpots` input — these render as
@@ -376,6 +404,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
           this._eventPageData.buildAreaPolygon(
             this.event(),
             this.mapsApiService.isApiLoaded(),
+            this.visibleMapBounds(),
           ),
         );
       });
@@ -432,6 +461,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       });
     }
 
+  }
+
+  updateVisibleMapBounds(bounds: google.maps.LatLngBounds): void {
+    this.visibleMapBounds.set(bounds.toJSON());
   }
 
   private async _loadEventFromRoute(paramMap: ParamMap) {
@@ -519,18 +552,13 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   private _eventDescription(event: PkEvent): string {
-    const startDateText = this._formatDateForMeta(event.start);
-    const endDateText = this._formatDateForMeta(event.end);
+    const range = formatDateRange(event.start, event.end, this.locale);
 
     return (
       event.description ??
       $localize`Event in ` +
         event.localityString +
-        ", (" +
-        (this._isSameDay(event.start, event.end)
-          ? startDateText
-          : `${startDateText} - ${endDateText}`) +
-        ")"
+        ` (${range})`
     );
   }
 
@@ -736,11 +764,22 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     if (!current || !this.isAdmin()) return;
     this.isSavingEvent.set(true);
     try {
+      console.debug("[EventAreaDebug] event map page save start", {
+        eventId: current.id,
+        patchArea: summarizeAreaPolygon(patch.area_polygon),
+        currentArea: summarizeAreaPolygon(current.areaPolygon),
+        currentBounds: current.bounds ?? null,
+      });
       await this._eventsService.updateEvent(current.id, patch);
       // Reload from Firestore so all downstream computeds (status,
       // countdown, structured data) see the new values.
       const reloaded = await this._eventsService.getEventById(current.id);
       if (reloaded) {
+        console.debug("[EventAreaDebug] event map page save reloaded", {
+          eventId: reloaded.id,
+          reloadedArea: summarizeAreaPolygon(reloaded.areaPolygon),
+          reloadedBounds: reloaded.bounds ?? null,
+        });
         this.event.set(reloaded);
       }
       this.isEditingEvent.set(false);

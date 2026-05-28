@@ -1,6 +1,7 @@
 import { LOCALE_ID } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { provideRouter } from "@angular/router";
 import { Timestamp } from "firebase/firestore";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,7 +32,11 @@ describe("EventCardComponent", () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [EventCardComponent],
-      providers: [provideRouter([]), { provide: LOCALE_ID, useValue: "en" }],
+      providers: [
+        provideNoopAnimations(),
+        provideRouter([]),
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
     });
 
     fixture = TestBed.createComponent(EventCardComponent);
@@ -172,6 +177,32 @@ describe("EventCardComponent", () => {
 
     expect(selected).toEqual([event]);
     expect(fixture.debugElement.query(By.css("a.event-card-action"))).toBeNull();
+  });
+
+  it("includes a lightweight intent count preview for upcoming events", () => {
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "event-123",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+        {
+          rsvp_counts: {
+            going: 2,
+            interested: 1,
+            notgoing: 0,
+            total: 3,
+          },
+        },
+      ),
+    );
+
+    fixture.detectChanges();
+
+    const rsvp = fixture.debugElement.query(By.css("app-event-rsvp"));
+    expect(rsvp).toBeTruthy();
+    expect(rsvp.componentInstance.preview()).toBe(true);
+    expect(rsvp.componentInstance.showDisclaimer()).toBe(false);
   });
 });
 

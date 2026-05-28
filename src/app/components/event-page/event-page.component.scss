@@ -36,6 +36,17 @@
   padding: 1rem 0;
 }
 
+.event-heading-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+}
+
+.event-title-block {
+  min-width: 0;
+}
+
 // .event-meta {
 //   color: var(--mat-sys-primary, #b8c4ff);
 // }
@@ -45,7 +56,7 @@
 // }
 
 .sponsored-line {
-  color: var(--mat-sys-primary, #b8c4ff);
+  color: var(--mat-sys-tertiary);
 }
 
 .event-hero {
@@ -282,6 +293,10 @@
   }
 
   .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .event-heading-main {
     grid-template-columns: 1fr;
   }
 

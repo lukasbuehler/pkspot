@@ -20,10 +20,11 @@ import { EventBoundsSchema } from "../../../db/schemas/EventSchema";
 
 /**
  * Lightweight map picker for an event's geometry. Renders a required,
- * draggable event pin plus an optional editable area polygon. The form
- * derives Event.bounds from the polygon path.
+ * draggable event pin plus an optional editable area polygon. Event bounds are
+ * server-owned; this component only uses the bounds input to frame existing
+ * event context when no area exists yet.
  *
- * Emits the new bounds on every change. Doesn't reuse google-map-2d
+ * Emits the new area path on every change. Doesn't reuse google-map-2d
  * intentionally — that component is tuned for clustered spots, not
  * geometry editing, and the simple primitives here keep the surface
  * area predictable.
@@ -39,7 +40,7 @@ export class BoundsPickerComponent implements OnInit {
   private _platformId = inject(PLATFORM_ID);
   mapsApiService = inject(MapsApiService);
 
-  /** Current bounds. Null = no rectangle drawn yet. */
+  /** Server-derived event context bounds. Null = frame around the location. */
   bounds = input<EventBoundsSchema | null>(null);
 
   /** Current editable area path. Null = no event area drawn yet. */
@@ -62,6 +63,7 @@ export class BoundsPickerComponent implements OnInit {
 
   @ViewChild(GoogleMap) private _googleMap?: GoogleMap;
   @ViewChild(MapPolygon) private _polygonRef?: MapPolygon;
+  private _polygon?: google.maps.Polygon;
   private _pathListeners: google.maps.MapsEventListener[] = [];
 
   internalAreaPath = signal<Array<{ lat: number; lng: number }> | null>(null);
@@ -118,18 +120,25 @@ export class BoundsPickerComponent implements OnInit {
     effect(() => {
       const path = this.areaPath();
       const boundsFallback = this.bounds();
-      const nextPath =
-        path && path.length >= 3
-          ? path
-          : boundsFallback
-          ? boundsToPath(boundsFallback)
-          : null;
+      const nextPath = path && path.length >= 3 ? path : null;
+
+      console.debug("[EventAreaDebug] picker input sync", {
+        inputArea: summarizePath(path),
+        boundsFallback,
+        nextPath: summarizePath(nextPath),
+      });
 
       if (nextPath) {
         this.internalAreaPath.set(nextPath);
         this.initialCenter.set(pathCenter(nextPath));
+      } else if (boundsFallback) {
+        this.internalAreaPath.set(null);
+        this.initialCenter.set(pathCenter(boundsToPath(boundsFallback)));
       } else if (this.centerHint()) {
+        this.internalAreaPath.set(null);
         this.initialCenter.set(this.centerHint()!);
+      } else {
+        this.internalAreaPath.set(null);
       }
     });
 
@@ -160,6 +169,10 @@ export class BoundsPickerComponent implements OnInit {
       east: lng + half,
       west: lng - half,
     });
+    console.debug("[EventAreaDebug] picker map click created rectangle", {
+      click: { lat, lng },
+      next: summarizePath(next),
+    });
     this.internalAreaPath.set(next);
     this.areaChange.emit(next);
   }
@@ -175,8 +188,12 @@ export class BoundsPickerComponent implements OnInit {
   }
 
   onPolygonInitialized(polygon: google.maps.Polygon): void {
+    this._polygon = polygon;
     this._pathListeners.forEach((listener) => listener.remove());
     const path = polygon.getPath();
+    console.debug("[EventAreaDebug] picker polygon initialized", {
+      path: summarizeMvcPath(path),
+    });
     this._pathListeners = [
       path.addListener("insert_at", () => this.onPolygonChanged()),
       path.addListener("remove_at", () => this.onPolygonChanged()),
@@ -185,7 +202,7 @@ export class BoundsPickerComponent implements OnInit {
   }
 
   onPolygonChanged(): void {
-    const polygon = this._polygonRef?.polygon;
+    const polygon = this._polygon ?? this._polygonRef?.polygon;
     if (!polygon) return;
     const path = polygon.getPath();
     const next: Array<{ lat: number; lng: number }> = [];
@@ -194,12 +211,28 @@ export class BoundsPickerComponent implements OnInit {
       next.push({ lat: point.lat(), lng: point.lng() });
     }
     if (next.length < 3) return;
+    console.debug("[EventAreaDebug] picker polygon changed", {
+      next: summarizePath(next),
+    });
     this.internalAreaPath.set(next);
     this.areaChange.emit(next);
   }
 
+  currentAreaPath(): Array<{ lat: number; lng: number }> | null {
+    const polygon = this._polygon ?? this._polygonRef?.polygon;
+    if (!polygon) return this.internalAreaPath();
+    const path = polygon.getPath();
+    const next: Array<{ lat: number; lng: number }> = [];
+    for (let i = 0; i < path.getLength(); i++) {
+      const point = path.getAt(i);
+      next.push({ lat: point.lat(), lng: point.lng() });
+    }
+    return next.length >= 3 ? next : null;
+  }
+
   /** Reset the area so the user can click somewhere else to drop a fresh one. */
   clear(): void {
+    console.debug("[EventAreaDebug] picker clear");
     this.internalAreaPath.set(null);
     this.areaChange.emit(null);
   }
@@ -235,5 +268,31 @@ function pathCenter(path: Array<{ lat: number; lng: number }>): {
   return {
     lat: (bounds.north + bounds.south) / 2,
     lng: (bounds.east + bounds.west) / 2,
+  };
+}
+
+function summarizeMvcPath(path: google.maps.MVCArray<google.maps.LatLng>): {
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+} {
+  const points: Array<{ lat: number; lng: number }> = [];
+  for (let i = 0; i < path.getLength(); i++) {
+    const point = path.getAt(i);
+    points.push({ lat: point.lat(), lng: point.lng() });
+  }
+  return summarizePath(points);
+}
+
+function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
+  count: number;
+  first?: { lat: number; lng: number };
+  last?: { lat: number; lng: number };
+} {
+  if (!path || path.length === 0) return { count: 0 };
+  return {
+    count: path.length,
+    first: path[0],
+    last: path[path.length - 1],
   };
 }
