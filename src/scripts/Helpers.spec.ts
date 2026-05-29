@@ -160,5 +160,25 @@ describe("Helpers", () => {
       expect(formatDateRange(sameDay, sameYear, "fr")).toBe("5/8–8/9/26");
       expect(formatDateRange(sameDay, diffYear, "fr")).toBe("5/8/26 – 8/8/27");
     });
+
+    it("should format long German date ranges with month names", () => {
+      const sameDay = new Date("2026-08-05T12:00:00Z");
+      const sameMonth = new Date("2026-08-09T12:00:00Z");
+      const sameYear = new Date("2026-09-09T12:00:00Z");
+      const diffYear = new Date("2027-08-09T12:00:00Z");
+
+      expect(formatDateRange(sameDay, sameDay, "de", "long")).toBe(
+        "5. August 2026"
+      );
+      expect(formatDateRange(sameDay, sameMonth, "de", "long")).toBe(
+        "5.-9. August 2026"
+      );
+      expect(formatDateRange(sameDay, sameYear, "de", "long")).toBe(
+        "5. August - 9. September 2026"
+      );
+      expect(formatDateRange(sameDay, diffYear, "de", "long")).toBe(
+        "5. August 2026 - 9. August 2027"
+      );
+    });
   });
 });

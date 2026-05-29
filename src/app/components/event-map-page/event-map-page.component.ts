@@ -180,7 +180,6 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   private _authService = inject(AuthenticationService);
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
-  private _locationStrategy = inject(LocationStrategy);
   private _snackbar = inject(MatSnackBar);
   private _analytics = inject(AnalyticsService);
   private _eventPageData = inject(EventPageDataService);
@@ -237,10 +236,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   readonly url = computed(() =>
     this._analytics.addUtmToUrl(
       this._safeExternalUrl(
-        this.event()?.url ?? this.event()?.externalSource?.url
+        this.event()?.url ?? this.event()?.externalSource?.url,
       ),
-      "event_page"
-    )
+      "event_page",
+    ),
   );
   readonly bounds = computed(() => {
     const event = this.event();
@@ -438,29 +437,29 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         }
 
         const requestVersion = ++this._challengeLoadRequestVersion;
-        this._eventPageData.loadEventChallenges(event, spots).then((allChallenges) => {
-          if (requestVersion !== this._challengeLoadRequestVersion) return;
+        this._eventPageData
+          .loadEventChallenges(event, spots)
+          .then((allChallenges) => {
+            if (requestVersion !== this._challengeLoadRequestVersion) return;
 
-          this.challenges.set(this._eventPageData.numberChallenges(allChallenges));
-          const challengeMarkers = this._eventPageData.challengeMarkers(
-            allChallenges,
-            selectedLabels,
-            selectedParticipantTypes,
-          );
+            this.challenges.set(
+              this._eventPageData.numberChallenges(allChallenges),
+            );
+            const challengeMarkers = this._eventPageData.challengeMarkers(
+              allChallenges,
+              selectedLabels,
+              selectedParticipantTypes,
+            );
 
-          if (challengeMarkers.length > 0) {
-            this.markers.set([
-              ...this.customMarkers(),
-              ...challengeMarkers,
-            ]);
-            this.tab.set("challenges");
-          } else {
-            this.markers.set(this.staticMarkers());
-          }
-        });
+            if (challengeMarkers.length > 0) {
+              this.markers.set([...this.customMarkers(), ...challengeMarkers]);
+              this.tab.set("challenges");
+            } else {
+              this.markers.set(this.staticMarkers());
+            }
+          });
       });
     }
-
   }
 
   updateVisibleMapBounds(bounds: google.maps.LatLngBounds): void {
@@ -556,9 +555,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
     return (
       event.description ??
-      $localize`Event in ` +
-        event.localityString +
-        ` (${range})`
+      $localize`Event in ` + event.localityString + ` (${range})`
     );
   }
 
@@ -786,14 +783,14 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.saved:Event saved.`,
         $localize`:@@common.dismiss:Dismiss`,
-        { duration: 3000 }
+        { duration: 3000 },
       );
     } catch (err) {
       console.error("Failed to save event", err);
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.save_failed:Couldn't save the event. Check the console for details.`,
         $localize`:@@common.dismiss:Dismiss`,
-        { duration: 5000 }
+        { duration: 5000 },
       );
     } finally {
       this.isSavingEvent.set(false);
@@ -809,7 +806,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.deleted:Event deleted.`,
         $localize`:@@common.dismiss:Dismiss`,
-        { duration: 3000 }
+        { duration: 3000 },
       );
       // Leave the page — the event no longer exists.
       this._router.navigate(["/events"]);
@@ -818,7 +815,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.delete_failed:Couldn't delete the event.`,
         $localize`:@@common.dismiss:Dismiss`,
-        { duration: 5000 }
+        { duration: 5000 },
       );
       this.isSavingEvent.set(false);
     }

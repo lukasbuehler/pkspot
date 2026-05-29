@@ -84,6 +84,14 @@
                 {{ statusLabel() }} ({{ dateRange() }})
               </p>
             }
+            @if (localityString()) {
+              <p class="mat-title-medium">
+                @if (venueString()) {
+                  {{ venueString() }},
+                }
+                {{ localityString() }}
+              </p>
+            }
           </div>
 
           @if (showRsvp()) {

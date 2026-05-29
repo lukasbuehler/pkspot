@@ -46,7 +46,7 @@ export class EventCardComponent {
   readonly status = computed<EventStatus>(() => this.event().status());
   readonly dateRange = computed(() => {
     const event = this.event();
-    return formatDateRange(event.start, event.end, this._locale);
+    return formatDateRange(event.start, event.end, this._locale, "long");
   });
   readonly route = computed(() => [
     "/events",

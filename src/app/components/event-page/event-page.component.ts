@@ -110,20 +110,20 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly dateRange = computed(() => {
     const event = this.event();
     if (!event) return "";
-    return formatDateRange(event.start, event.end, this._locale);
+    return formatDateRange(event.start, event.end, this._locale, "long");
   });
   readonly description = computed(() => {
     const event = this.event();
     if (!event) return "";
     return (
       event.description ??
-      $localize`Event in ` +
-      event.localityString +
-      ` (${this.dateRange()})`
+      $localize`Event in ` + event.localityString + ` (${this.dateRange()})`
     );
   });
 
   readonly name = computed(() => this.event()?.name ?? "");
+  readonly venueString = computed(() => this.event()?.venueString ?? "");
+  readonly localityString = computed(() => this.event()?.localityString ?? "");
   readonly heroMedia = computed<AnyMedia[]>(() => {
     const event = this.event();
     if (!event) return [];
@@ -204,10 +204,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return links
       .map((link) => ({
         ...link,
-        url: this._analytics.addUtmToUrl(
-          this._safeExternalUrl(link.url),
-          "event_page",
-        ) ?? link.url,
+        url:
+          this._analytics.addUtmToUrl(
+            this._safeExternalUrl(link.url),
+            "event_page",
+          ) ?? link.url,
       }))
       .filter((link) => !!this._safeExternalUrl(link.url));
   });
@@ -461,7 +462,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   private _subscribeToEventFromRoute(paramMap: ParamMap): void {
-    const slug = paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
+    const slug =
+      paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
     const requestVersion = ++this._eventLoadRequestVersion;
     this._eventSnapshotSubscription?.unsubscribe();
     this._eventSnapshotSubscription = this._eventPageData
@@ -474,11 +476,14 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
             return;
           }
           if (this.isEditingEvent()) {
-            console.debug("[EventAreaDebug] event page live snapshot while editing", {
-              eventId: loaded.id,
-              area: summarizeAreaPolygon(loaded.areaPolygon),
-              bounds: loaded.bounds ?? null,
-            });
+            console.debug(
+              "[EventAreaDebug] event page live snapshot while editing",
+              {
+                eventId: loaded.id,
+                area: summarizeAreaPolygon(loaded.areaPolygon),
+                bounds: loaded.bounds ?? null,
+              },
+            );
           }
           this.event.set(loaded);
         },
@@ -491,7 +496,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   private async _loadEventFromRoute(paramMap: ParamMap): Promise<void> {
-    const slug = paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
+    const slug =
+      paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
     const requestVersion = ++this._eventLoadRequestVersion;
     const loaded = await this._eventPageData.loadEventBySlugOrId(slug);
 
@@ -516,7 +522,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this._structuredData.addStructuredData(
       "event",
       event.structuredData ??
-      this._buildEventStructuredData(event, canonicalPath, description),
+        this._buildEventStructuredData(event, canonicalPath, description),
     );
   }
 
@@ -550,12 +556,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       sameAs: event.url,
       organizer: event.organizer
         ? {
-          "@type": "Organization",
-          name: event.organizer.organization.name,
-          url: event.organizer.organization.slug
-            ? `${environment.baseUrl}/${this._locale}/organizations/${event.organizer.organization.slug}`
-            : undefined,
-        }
+            "@type": "Organization",
+            name: event.organizer.organization.name,
+            url: event.organizer.organization.slug
+              ? `${environment.baseUrl}/${this._locale}/organizations/${event.organizer.organization.slug}`
+              : undefined,
+          }
         : undefined,
       offers: this._buildEventOffers(event),
     };

@@ -127,11 +127,15 @@ export function humanTimeSince(date: Date): string {
  * - Same month (German): "5.–8.8.26"
  * - Same year (German): "5.8.–8.9.26"
  * - Different year (German): "5.8.26 – 8.8.27"
+ * - Same month, long (German): "5.-8. August 2026"
  */
+export type DateRangeFormat = "short" | "long";
+
 export function formatDateRange(
   start: Date,
   end: Date,
-  locale: string
+  locale: string,
+  format: DateRangeFormat = "short"
 ): string {
   const startDay = start.getDate();
   const startMonth = start.getMonth() + 1;
@@ -146,6 +150,14 @@ export function formatDateRange(
     startYear === endYear;
   const sameMonth = startMonth === endMonth && startYear === endYear;
   const sameYear = startYear === endYear;
+
+  if (format === "long") {
+    return formatLongDateRange(start, end, locale, {
+      sameDay,
+      sameMonth,
+      sameYear,
+    });
+  }
 
   const yy = String(startYear).slice(-2);
   const endYy = String(endYear).slice(-2);
@@ -189,6 +201,53 @@ export function formatDateRange(
     return `${startDay}${sep}${startMonth}–${endDay}${sep}${endMonth}${sep}${yy}`;
   }
   return `${startDay}${sep}${startMonth}${sep}${yy} – ${endDay}${sep}${endMonth}${sep}${endYy}`;
+}
+
+function formatLongDateRange(
+  start: Date,
+  end: Date,
+  locale: string,
+  sameness: { sameDay: boolean; sameMonth: boolean; sameYear: boolean }
+): string {
+  const startDay = start.getDate();
+  const endDay = end.getDate();
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+  const startMonthName = formatMonthName(start, locale);
+  const endMonthName = formatMonthName(end, locale);
+  const isEn = locale.startsWith("en");
+  const isDe = locale.startsWith("de");
+
+  if (isEn) {
+    if (sameness.sameDay) {
+      return `${startMonthName} ${startDay}, ${startYear}`;
+    }
+    if (sameness.sameMonth) {
+      return `${startMonthName} ${startDay}-${endDay}, ${startYear}`;
+    }
+    if (sameness.sameYear) {
+      return `${startMonthName} ${startDay} - ${endMonthName} ${endDay}, ${startYear}`;
+    }
+    return `${startMonthName} ${startDay}, ${startYear} - ${endMonthName} ${endDay}, ${endYear}`;
+  }
+
+  const startDayText = isDe ? `${startDay}.` : String(startDay);
+  const endDayText = isDe ? `${endDay}.` : String(endDay);
+
+  if (sameness.sameDay) {
+    return `${startDayText} ${startMonthName} ${startYear}`;
+  }
+  if (sameness.sameMonth) {
+    return `${startDayText}-${endDayText} ${startMonthName} ${startYear}`;
+  }
+  if (sameness.sameYear) {
+    return `${startDayText} ${startMonthName} - ${endDayText} ${endMonthName} ${startYear}`;
+  }
+  return `${startDayText} ${startMonthName} ${startYear} - ${endDayText} ${endMonthName} ${endYear}`;
+}
+
+function formatMonthName(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { month: "long" }).format(date);
 }
 
 
