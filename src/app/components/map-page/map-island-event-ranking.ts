@@ -12,25 +12,43 @@ export interface MapIslandEventRank {
   normalizedCenterDistance: number;
 }
 
-const EVENT_MARKER_PRIORITY_BASE = 1_000;
-const EVENT_MARKER_PRIORITY_MAX_BOOST = 999;
+const EVENT_MARKER_PRIORITY_BASE = 250;
+const EVENT_RECENCY_MAX_BOOST = 125;
+const EVENT_SPONSORED_BOOST = 130;
+const EVENT_ORGANIZATION_BOOST = 35;
+const EVENT_VENUE_BOOST = 50;
+const EVENT_ACTIVE_VENUE_BOOST = 50;
+const EVENT_RECENCY_WINDOW_DAYS = 90;
+const EVENT_MARKER_PRIORITY_CLAMP = 999;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export function getMapEventMarkerPriority(
   event: PkEvent,
   now: Date = new Date(),
 ): number {
-  if (event.isLive(now)) {
-    return EVENT_MARKER_PRIORITY_BASE + EVENT_MARKER_PRIORITY_MAX_BOOST;
-  }
-
-  const daysUntilStart = Math.max(
-    0,
-    Math.floor((event.start.getTime() - now.getTime()) / ONE_DAY_MS),
-  );
-  return (
+  const live = event.isLive(now);
+  const daysUntilStart = (event.start.getTime() - now.getTime()) / ONE_DAY_MS;
+  const recencyProgress = live
+    ? 1
+    : Math.max(
+        0,
+        Math.min(
+          1,
+          (EVENT_RECENCY_WINDOW_DAYS - daysUntilStart) /
+            EVENT_RECENCY_WINDOW_DAYS,
+        ),
+      );
+  const score =
     EVENT_MARKER_PRIORITY_BASE +
-    Math.max(0, EVENT_MARKER_PRIORITY_MAX_BOOST - daysUntilStart)
+    recencyProgress * EVENT_RECENCY_MAX_BOOST +
+    (event.isSponsored ? EVENT_SPONSORED_BOOST : 0) +
+    (event.hasOrganization ? EVENT_ORGANIZATION_BOOST : 0) +
+    (event.hasVenueSpot ? EVENT_VENUE_BOOST : 0) +
+    (live && event.hasVenueSpot ? EVENT_ACTIVE_VENUE_BOOST : 0);
+
+  return Math.max(
+    0,
+    Math.min(EVENT_MARKER_PRIORITY_CLAMP, Math.round(score)),
   );
 }
 

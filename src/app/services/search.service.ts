@@ -879,6 +879,9 @@ export class SearchService {
     const promoRadius =
       SearchService._readFloat(doc?.promo_radius_m) ??
       SearchService._readFloat(doc?.promo_region_radius_m);
+    const spotIds = Array.isArray(doc?.spot_ids) ? doc.spot_ids : [];
+    const venueSpotCount =
+      SearchService._readInt(doc?.venue_spot_count) ?? spotIds.length;
 
     return {
       id: String(doc?.id ?? ""),
@@ -911,6 +914,11 @@ export class SearchService {
           ? sponsor.logo_background_color
           : undefined,
       isSponsored: doc?.is_sponsored === true,
+      hasOrganization:
+        doc?.has_organization === true ||
+        doc?.organizer?.type === "organization",
+      hasVenueSpot: doc?.has_venue_spot === true || venueSpotCount > 0,
+      venueSpotCount,
       startSeconds: SearchService._readInt(doc?.start_seconds),
       endSeconds: SearchService._readInt(doc?.end_seconds),
       promoStartsAtSeconds: SearchService._readInt(
@@ -926,7 +934,7 @@ export class SearchService {
           ? externalSource.provider
           : undefined,
       url: typeof doc?.url === "string" ? doc.url : undefined,
-      spotIds: Array.isArray(doc?.spot_ids) ? doc.spot_ids : [],
+      spotIds,
       communityKeys: Array.isArray(doc?.community_keys)
         ? doc.community_keys
         : [],
@@ -1009,6 +1017,9 @@ export class SearchService {
             }
           : undefined,
       is_sponsored: preview.isSponsored,
+      has_organization: preview.hasOrganization,
+      has_venue_spot: preview.hasVenueSpot,
+      venue_spot_count: preview.venueSpotCount,
       external_source: preview.externalProvider
         ? { provider: preview.externalProvider, url: preview.url ?? "" }
         : undefined,
@@ -1104,6 +1115,9 @@ export class SearchService {
       "sponsor.logo_src",
       "sponsor.logo_background_color",
       "is_sponsored",
+      "has_organization",
+      "has_venue_spot",
+      "venue_spot_count",
       "start_seconds",
       "end_seconds",
       "promo_starts_at_seconds",
@@ -1565,6 +1579,9 @@ export interface EventSearchPreview {
   sponsorLogoSrc?: string;
   sponsorLogoBackgroundColor?: string;
   isSponsored: boolean;
+  hasOrganization: boolean;
+  hasVenueSpot: boolean;
+  venueSpotCount: number;
   /** Unix seconds; undefined only if the indexer hasn't run yet. */
   startSeconds?: number;
   endSeconds?: number;

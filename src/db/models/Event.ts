@@ -75,6 +75,9 @@ export class Event {
 
   readonly sponsor?: EventSponsorSchema;
   readonly isSponsored: boolean;
+  readonly hasOrganization: boolean;
+  readonly hasVenueSpot: boolean;
+  readonly venueSpotCount: number;
   readonly communityKeys: string[];
   readonly seriesIds: string[];
   readonly externalSource?: EventExternalSourceSchema;
@@ -143,6 +146,12 @@ export class Event {
         : undefined);
     this.sponsor = data.sponsor;
     this.isSponsored = data.is_sponsored ?? false;
+    this.hasOrganization =
+      data.has_organization ?? (data.organizer?.type === "organization");
+    this.venueSpotCount =
+      data.venue_spot_count ??
+      new Set(data.spot_ids ?? []).size + (data.inline_spots?.length ?? 0);
+    this.hasVenueSpot = data.has_venue_spot ?? this.venueSpotCount > 0;
     this.communityKeys = data.community_keys ?? [];
     this.seriesIds = data.series_ids ?? [];
     this.externalSource = data.external_source;

@@ -30,6 +30,9 @@ const TYPESENSE_HELPER_FIELDS = [
   "promo_bounds_west",
   "promo_region_center",
   "promo_region_radius_m",
+  "has_organization",
+  "has_venue_spot",
+  "venue_spot_count",
 ] as const;
 const SERVER_DERIVED_EVENT_FIELDS = [
   ...TYPESENSE_HELPER_FIELDS,
@@ -315,6 +318,16 @@ const _eventSpotPoints = async (
   return snapshots.flatMap((snapshot) => _spotDocumentPoints(snapshot.data()));
 };
 
+const _venueSpotCount = (eventData: EventSchema): number => {
+  const realSpotCount = new Set(
+    (eventData.spot_ids ?? []).filter(
+      (spotId): spotId is string =>
+        typeof spotId === "string" && spotId.length > 0
+    )
+  ).size;
+  return realSpotCount + (eventData.inline_spots ?? []).length;
+};
+
 const _deriveEventBounds = async (
   eventData: EventSchema
 ): Promise<EventBoundsSchema | undefined> => {
@@ -374,6 +387,9 @@ const _addTypesenseFields = async (
   out.start_seconds = _timestampSeconds(eventData.start);
   out.end_seconds = _timestampSeconds(eventData.end);
   out.promo_starts_at_seconds = _timestampSeconds(eventData.promo_starts_at);
+  out.has_organization = eventData.organizer?.type === "organization";
+  out.venue_spot_count = _venueSpotCount(eventData);
+  out.has_venue_spot = out.venue_spot_count > 0;
 
   const start = _timestampValue(eventData.start);
   if (start) out.start = start as unknown as EventSchema["start"];

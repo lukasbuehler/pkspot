@@ -87,6 +87,9 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "promo_bounds_west",
     "promo_region_center",
     "promo_region_radius_m",
+    "has_organization",
+    "has_venue_spot",
+    "venue_spot_count",
   ] as const;
 
   const requiredFirestoreFields = [
@@ -156,6 +159,9 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     promo_bounds_west: "float",
     promo_region_center: "firestore-geopoint",
     promo_region_radius_m: "float",
+    has_organization: "bool",
+    has_venue_spot: "bool",
+    venue_spot_count: "int64",
     published: "bool",
   } as const;
 
@@ -225,6 +231,9 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
       kind: "direct",
       source: "promo_region_radius_m",
     },
+    has_organization: { kind: "direct", source: "has_organization" },
+    has_venue_spot: { kind: "direct", source: "has_venue_spot" },
+    venue_spot_count: { kind: "direct", source: "venue_spot_count" },
 
     published: { kind: "direct", source: "published" },
     _force_sync: {
@@ -336,6 +345,7 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     amenities_false: "string[]",
     type: "string",
     access: "string",
+    is_iconic: "bool",
     hide_streetview: "bool",
     rating: "float",
     location: "firestore-geopoint",
@@ -362,6 +372,7 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     amenities_false: { kind: "direct", source: "amenities_false" },
     type: { kind: "direct", source: "type" },
     access: { kind: "direct", source: "access" },
+    is_iconic: { kind: "direct", source: "is_iconic" },
     hide_streetview: { kind: "direct", source: "hide_streetview" },
     rating: { kind: "direct", source: "rating" },
     location: { kind: "direct", source: "location" },

@@ -94,7 +94,10 @@ async function waitForEventTypesenseFields(eventId: string): Promise<void> {
       data?.["promo_region_center"] instanceof admin.firestore.GeoPoint &&
       data?.["start"] instanceof admin.firestore.Timestamp &&
       data?.["end"] instanceof admin.firestore.Timestamp &&
-      data?.["promo_starts_at"] instanceof admin.firestore.Timestamp
+      data?.["promo_starts_at"] instanceof admin.firestore.Timestamp &&
+      data?.["has_organization"] === true &&
+      data?.["has_venue_spot"] === true &&
+      data?.["venue_spot_count"] === 2
     ) {
       return;
     }
@@ -405,6 +408,22 @@ runWithEmulator("EventsService emulator integration", () => {
           center: { lat: 46.8, lng: 8.2 },
           radius_m: 150_000,
         },
+        organizer: {
+          type: "organization",
+          organization: {
+            id: "org-a",
+            name: "Organization A",
+            slug: "org-a",
+          },
+        },
+        spot_ids: ["spot-a", "spot-a"],
+        inline_spots: [
+          {
+            id: "inline-a",
+            name: "Inline venue spot",
+            location: { lat: 47.4, lng: 8.55 },
+          },
+        ],
       });
 
     await waitForEventTypesenseFields(eventId);
@@ -439,6 +458,9 @@ runWithEmulator("EventsService emulator integration", () => {
         promo_starts_at_seconds: 1_779_793_200,
         bounds_radius_m: expect.any(Number),
         promo_region_radius_m: 150_000,
+        has_organization: true,
+        has_venue_spot: true,
+        venue_spot_count: 2,
         location_raw: {
           lat: 47.39732893509323,
           lng: 8.548509576285669,

@@ -23,6 +23,7 @@ import {
   parseSpotAccess,
   parseSpotType,
 } from "../../../db/schemas/SpotTypeAndAccess";
+import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
 
 @Component({
   selector: "app-spot-preview-marker",
@@ -217,7 +218,7 @@ export class SpotPreviewMarkerComponent {
   hoverPreviewEnabled = input<boolean>(true);
   forcePreviewVisible = input<boolean>(false);
   color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
-  zIndexBase = input<number>(4200);
+  zIndexBase = input<number>(0);
   collisionBehavior = input<google.maps.CollisionBehavior>(
     google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
   );
@@ -322,9 +323,21 @@ export class SpotPreviewMarkerComponent {
   });
 
   computedZIndex = computed(() => {
-    const rating = this.markerNumber() ?? 0;
+    const spot = this.spot();
+    const priority =
+      spot instanceof Spot || spot instanceof LocalSpot
+        ? getSpotMarkerPriority({
+            rating: spot.rating,
+            access: spot.access(),
+            isIconic: spot.isIconic,
+          })
+        : getSpotMarkerPriority({
+            rating: spot.rating,
+            access: spot.access,
+            isIconic: spot.isIconic,
+          });
     const hoverBoost = this.effectivePreviewVisible() ? 1_000_000 : 0;
-    return this.zIndexBase() + Math.round(rating * 40) + hoverBoost;
+    return this.zIndexBase() + priority + hoverBoost;
   });
 
   markerOptions = computed<google.maps.marker.AdvancedMarkerElementOptions>(

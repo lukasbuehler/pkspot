@@ -122,10 +122,12 @@ describe("MapPageComponent URL-driven panel state", () => {
     )?.[0];
 
     expect(method).toContain(
-      "this.openEventPath(event.slug ?? event.id, event, replaceUrl)"
+      "this.openEventPath(event.slug ?? event.id, event, replaceUrl, {"
     );
+    expect(method).toContain("refresh: true");
+    expect(source).toContain("previewEvent: event ?? null");
     expect(source).toContain(
-      "this.openEventPreview(cachedEvent, { updateUrl: false })"
+      "this.openEventPreview(previewEvent, { updateUrl: false })"
     );
     expect(source).toContain(
       "this.openEventPreview(event, { updateUrl: false })"

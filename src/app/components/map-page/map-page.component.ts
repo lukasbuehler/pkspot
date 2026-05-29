@@ -1409,12 +1409,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     eventIdOrSlug: string,
     event?: PkEvent | null,
     replaceUrl: boolean = false,
+    options: { refresh?: boolean } = {},
   ): void {
     if (!eventIdOrSlug) {
       return;
     }
 
-    if (event) {
+    if (event && !options.refresh) {
       this._eventPreviewCache.set(eventIdOrSlug, event);
       this._eventPreviewCache.set(event.id, event);
       if (event.slug) {
@@ -1429,7 +1430,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.panelBackTarget.set(this._getCurrentPanelBackTarget(nextPath));
       this._location.go(nextPath);
     }
-    this._loadEventFromRouteIfPresent(nextPath);
+    this._loadEventFromRouteIfPresent(nextPath, {
+      previewEvent: event ?? null,
+      refresh: options.refresh ?? false,
+    });
   }
 
   private _prepareCommunityPanelOpen(): void {
@@ -1587,7 +1591,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const updateUrl = options.updateUrl ?? true;
     const replaceUrl = options.replaceUrl ?? false;
     if (updateUrl) {
-      this.openEventPath(event.slug ?? event.id, event, replaceUrl);
+      this.openEventPath(event.slug ?? event.id, event, replaceUrl, {
+        refresh: true,
+      });
       return;
     }
 
@@ -3842,7 +3848,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * intact (e.g., user opened the event programmatically via the
    * island chip and the URL was patched via replaceState).
    */
-  private _loadEventFromRouteIfPresent(url: string): void {
+  private _loadEventFromRouteIfPresent(
+    url: string,
+    options: { previewEvent?: PkEvent | null; refresh?: boolean } = {},
+  ): void {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
     const match = cleanUrl.match(/^\/map\/events?\/([^/]+)$/u);
     if (!match) {
@@ -3856,6 +3865,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const eventIdOrSlug = decodeURIComponent(match[1]);
     const current = this.selectedEvent();
     if (
+      !options.refresh &&
       current &&
       (current.slug === eventIdOrSlug || current.id === (eventIdOrSlug as any))
     ) {
@@ -3863,11 +3873,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return; // already showing
     }
 
-    this._openPendingEventFromRoute(eventIdOrSlug);
-    const cachedEvent = this._eventPreviewCache.get(eventIdOrSlug);
-    if (cachedEvent) {
+    const previewEvent =
+      options.previewEvent ?? this._eventPreviewCache.get(eventIdOrSlug) ?? null;
+    if (previewEvent) {
       this.pendingEventPreview.set(null);
-      this.openEventPreview(cachedEvent, { updateUrl: false });
+      this.openEventPreview(previewEvent, { updateUrl: false });
+    } else {
+      this._openPendingEventFromRoute(eventIdOrSlug);
+    }
+
+    if (previewEvent && !options.refresh) {
       return;
     }
 
@@ -3875,6 +3890,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .getEventBySlugOrId(eventIdOrSlug)
       .then((event) => {
         if (!event) return;
+        this._eventPreviewCache.set(eventIdOrSlug, event);
+        this._eventPreviewCache.set(event.id, event);
+        if (event.slug) {
+          this._eventPreviewCache.set(event.slug, event);
+        }
         // Only apply if the URL is still on this event — guard against
         // navigation racing with the fetch.
         const currentUrl = (this._location.path() || this.router.url || "")

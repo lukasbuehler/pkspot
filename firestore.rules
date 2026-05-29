@@ -53,6 +53,9 @@ service cloud.firestore {
         'bounds_radius_m',
         'promo_region_center',
         'promo_region_radius_m',
+        'has_organization',
+        'has_venue_spot',
+        'venue_spot_count',
         'rsvp_counts'
       ];
     }

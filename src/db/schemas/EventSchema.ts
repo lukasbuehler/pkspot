@@ -343,4 +343,10 @@ export interface EventSchema {
   promo_bounds_west?: number;
   promo_region_center?: [number, number];
   promo_region_radius_m?: number;
+  /** True when the event has an organization organizer. Server-derived. */
+  has_organization?: boolean;
+  /** True when the event is tied to real or inline venue spots. Server-derived. */
+  has_venue_spot?: boolean;
+  /** Count of unique real spot ids plus inline event spots. Server-derived. */
+  venue_spot_count?: number;
 }

@@ -12,6 +12,7 @@ function event(
   promoRadiusM: number,
   start: string = "2026-06-14T10:00:00.000Z",
   end: string = "2026-06-15T10:00:00.000Z",
+  overrides: Partial<EventSchema> = {},
 ): PkEvent {
   return new PkEvent(id as EventId, {
     name: id,
@@ -31,6 +32,7 @@ function event(
       center: promoCenter,
       radius_m: promoRadiusM,
     },
+    ...overrides,
   } as EventSchema);
 }
 
@@ -77,7 +79,7 @@ describe("rankMapIslandEventsForPoint", () => {
     expect(ranked.map((row) => row.event.id)).toEqual(["local-jam", "national-promo"]);
   });
 
-  it("gives earlier upcoming event markers a higher collision priority", () => {
+  it("increases marker priority as an event approaches", () => {
     const earlier = event(
       "wpf-camp",
       { lat: 47.5596, lng: 7.5886 },
@@ -98,15 +100,33 @@ describe("rankMapIslandEventsForPoint", () => {
     );
   });
 
-  it("keeps promoted event markers below regular spot pin collision priority", () => {
+  it("keeps far future normal events below strong spots", () => {
+    const farEvent = event(
+      "far-jam",
+      { lat: 47.5596, lng: 7.5886 },
+      150_000,
+      "2026-12-26T10:00:00.000Z",
+      "2026-12-26T22:00:00.000Z",
+    );
+
+    expect(getMapEventMarkerPriority(farEvent, now)).toBe(250);
+  });
+
+  it("lets active sponsored venue events overtake iconic five-star spots", () => {
     const liveEvent = event(
       "live-jam",
       { lat: 47.5596, lng: 7.5886 },
       150_000,
-      "2026-05-26T10:00:00.000Z",
-      "2026-05-26T22:00:00.000Z",
+      "2026-06-14T10:00:00.000Z",
+      "2026-06-14T22:00:00.000Z",
+      {
+        is_sponsored: true,
+        has_organization: true,
+        has_venue_spot: true,
+        venue_spot_count: 1,
+      },
     );
 
-    expect(getMapEventMarkerPriority(liveEvent, now)).toBeLessThan(4_200);
+    expect(getMapEventMarkerPriority(liveEvent, now)).toBe(640);
   });
 });
