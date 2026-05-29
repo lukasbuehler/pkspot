@@ -56,6 +56,12 @@
         <span class="status-line" [attr.data-status]="status()">{{
           statusLabel()
         }}</span>
+        @if (!event().published) {
+          <span class="draft-line">
+            <mat-icon inline>visibility_off</mat-icon>
+            <span i18n="@@event_card.draft">Draft</span>
+          </span>
+        }
         ({{ dateRange() }})</mat-card-subtitle
       >
     </mat-card-header>

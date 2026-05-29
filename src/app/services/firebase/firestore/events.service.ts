@@ -1,4 +1,4 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { deleteField, Timestamp } from "@angular/fire/firestore";
 import { Observable, from, map, of, switchMap } from "rxjs";
 import { Event } from "../../../../db/models/Event";
@@ -71,6 +71,7 @@ export class EventsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _authService = inject(AuthenticationService);
   private _assetUrls = inject(AssetUrlService);
+  private _locale = inject(LOCALE_ID);
 
   constructor() {
     super();
@@ -86,11 +87,18 @@ export class EventsService extends ConsentAwareService {
   // ---------------------------------------------------------------------
 
   private _requireAdmin(action: string): void {
-    if (this._authService.user.data?.isAdmin !== true) {
+    if (!this._isAdmin()) {
       throw new Error(
         `EventsService.${action}: requires admin privileges on the current user.`
       );
     }
+  }
+
+  private _isAdmin(): boolean {
+    return (
+      this._authService.isAdmin?.() === true ||
+      this._authService.user.data?.isAdmin === true
+    );
   }
 
   /**
@@ -256,8 +264,12 @@ export class EventsService extends ConsentAwareService {
       `events/${eventId}`
     );
     if (!doc) return null;
-    if (doc.published === false) return null;
-    return new Event(eventId, this._assetUrls.resolveEventAssetUrls(doc));
+    if (doc.published === false && !this._isAdmin()) return null;
+    return new Event(
+      eventId,
+      this._assetUrls.resolveEventAssetUrls(doc),
+      this._locale,
+    );
   }
 
   observeEventBySlugOrId(slugOrId: string): Observable<Event | null> {
@@ -274,8 +286,12 @@ export class EventsService extends ConsentAwareService {
       .documentSnapshots<EventDocument>(`events/${eventId}`)
       .pipe(
         map((doc) => {
-          if (!doc || doc.published === false) return null;
-          return new Event(eventId, this._assetUrls.resolveEventAssetUrls(doc));
+          if (!doc || (doc.published === false && !this._isAdmin())) return null;
+          return new Event(
+            eventId,
+            this._assetUrls.resolveEventAssetUrls(doc),
+            this._locale,
+          );
         }),
       );
   }
@@ -295,10 +311,19 @@ export class EventsService extends ConsentAwareService {
     );
 
     const events = docs
-      .filter((d) => options.includeUnpublished || d.published !== false)
+      .filter(
+        (d) =>
+          options.includeUnpublished ||
+          this._isAdmin() ||
+          d.published !== false,
+      )
       .map(
         (d) =>
-          new Event(d.id as EventId, this._assetUrls.resolveEventAssetUrls(d)),
+          new Event(
+            d.id as EventId,
+            this._assetUrls.resolveEventAssetUrls(d),
+            this._locale,
+          ),
       );
 
     if (options.sortByNext) {

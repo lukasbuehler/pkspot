@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { signal } from "@angular/core";
 import { Timestamp } from "@angular/fire/firestore";
 import { BehaviorSubject, Observable } from "rxjs";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
@@ -36,6 +37,7 @@ describe("EventsService", () => {
     updateDocument: Mock;
     deleteDocument: Mock;
     addDocument: Mock;
+    documentSnapshots: Mock;
   };
   let consentService: {
     hasConsent: Mock;
@@ -54,6 +56,7 @@ describe("EventsService", () => {
       updateDocument: vi.fn(),
       deleteDocument: vi.fn(),
       addDocument: vi.fn(),
+      documentSnapshots: vi.fn(),
     };
     consentService = {
       hasConsent: vi.fn(() => true),
@@ -70,7 +73,10 @@ describe("EventsService", () => {
         { provide: FirestoreAdapterService, useValue: firestoreAdapter },
         {
           provide: AuthenticationService,
-          useValue: { user: { uid: "admin-user", data: { isAdmin: true } } },
+          useValue: {
+            user: { uid: "admin-user", data: { isAdmin: true } },
+            isAdmin: signal(true),
+          },
         },
         {
           provide: AssetUrlService,
@@ -134,6 +140,13 @@ describe("EventsService", () => {
   });
 
   it("does not expose unpublished events by id or listing", async () => {
+    const authService = TestBed.inject(AuthenticationService) as unknown as {
+      user: { data: { isAdmin: boolean } };
+      isAdmin: ReturnType<typeof signal<boolean>>;
+    };
+    authService.user.data.isAdmin = false;
+    authService.isAdmin.set(false);
+
     firestoreAdapter.getDocument.mockResolvedValue(
       buildEventDoc(
         "draft-event",
@@ -161,6 +174,80 @@ describe("EventsService", () => {
     const events = await service.getEvents();
 
     expect(events.map((event) => event.id)).toEqual(["published-event"]);
+  });
+
+  it("exposes unpublished events to admins", async () => {
+    firestoreAdapter.getDocument.mockResolvedValue(
+      buildEventDoc(
+        "draft-event",
+        "2026-06-01T10:00:00.000Z",
+        "2026-06-02T10:00:00.000Z",
+        { published: false },
+      ),
+    );
+    firestoreAdapter.getCollection.mockResolvedValue([
+      buildEventDoc(
+        "draft-event",
+        "2026-06-01T10:00:00.000Z",
+        "2026-06-02T10:00:00.000Z",
+        { published: false },
+      ),
+    ]);
+
+    await expect(service.getEventById("draft-event" as EventId)).resolves
+      .toMatchObject({ id: "draft-event" });
+
+    const events = await service.getEvents();
+
+    expect(events.map((event) => event.id)).toEqual(["draft-event"]);
+  });
+
+  it("observes unpublished events for admins", async () => {
+    firestoreAdapter.documentSnapshots.mockReturnValue(
+      new BehaviorSubject(
+        buildEventDoc(
+          "draft-event",
+          "2026-06-01T10:00:00.000Z",
+          "2026-06-02T10:00:00.000Z",
+          { published: false },
+        ),
+      ).asObservable(),
+    );
+
+    const values: Array<string | null> = [];
+    const subscription = service
+      .observeEventById("draft-event" as EventId)
+      .subscribe((event) => values.push(event?.id ?? null));
+
+    expect(values).toEqual(["draft-event"]);
+    subscription.unsubscribe();
+  });
+
+  it("hides unpublished event snapshots from non-admins", async () => {
+    const authService = TestBed.inject(AuthenticationService) as unknown as {
+      user: { data: { isAdmin: boolean } };
+      isAdmin: ReturnType<typeof signal<boolean>>;
+    };
+    authService.user.data.isAdmin = false;
+    authService.isAdmin.set(false);
+    firestoreAdapter.documentSnapshots.mockReturnValue(
+      new BehaviorSubject(
+        buildEventDoc(
+          "draft-event",
+          "2026-06-01T10:00:00.000Z",
+          "2026-06-02T10:00:00.000Z",
+          { published: false },
+        ),
+      ).asObservable(),
+    );
+
+    const values: Array<string | null> = [];
+    const subscription = service
+      .observeEventById("draft-event" as EventId)
+      .subscribe((event) => values.push(event?.id ?? null));
+
+    expect(values).toEqual([null]);
+    subscription.unsubscribe();
   });
 
   it("sorts upcoming/live events before past events when asked for next events", async () => {

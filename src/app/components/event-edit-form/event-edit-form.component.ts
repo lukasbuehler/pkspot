@@ -51,13 +51,15 @@ import {
   OrganizationSchema,
 } from "../../../db/schemas/OrganizationSchema";
 import { MediaSchema, StorageBucket } from "../../../db/schemas/Media";
-import { MediaType } from "../../../db/models/Interfaces";
+import { LocaleMap, MediaType } from "../../../db/models/Interfaces";
+import { makeLocaleMapFromObject } from "../../../scripts/LanguageHelpers";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 import { SearchService } from "../../services/search.service";
 import { BoundsPickerComponent } from "../bounds-picker/bounds-picker.component";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { MarkerComponent } from "../marker/marker.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
+import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 
 type OrganizationDocument = OrganizationSchema & { id: string };
 type EditableEventMarker = {
@@ -143,6 +145,7 @@ export type EventEditPatch = Omit<
     MediaUpload,
     MarkerComponent,
     SpotPickerComponent,
+    LocaleMapEditFieldComponent,
   ],
   templateUrl: "./event-edit-form.component.html",
   styleUrl: "./event-edit-form.component.scss",
@@ -240,6 +243,7 @@ export class EventEditFormComponent {
   externalMedia = signal<MediaSchema[]>([]);
   eventLinks = signal<EditableEventLink[]>([]);
   ticketOptions = signal<EditableTicketOption[]>([]);
+  private _descriptionLocaleMap = signal<LocaleMap | undefined>(undefined);
 
   /** Whether the parent passed in an existing event (vs. create mode). */
   readonly isEditMode = computed(() => this.event() !== null);
@@ -324,6 +328,7 @@ export class EventEditFormComponent {
         this.externalMedia.set([]);
         this.eventLinks.set([]);
         this.ticketOptions.set([]);
+        this._descriptionLocaleMap.set(undefined);
         return;
       }
       if (this._loadedEventId === e.id) {
@@ -423,6 +428,7 @@ export class EventEditFormComponent {
           saleEndsAt: dateInputValue(ticket.saleEndsAt),
         })),
       );
+      this._descriptionLocaleMap.set(e.descriptions);
     });
 
     this._loadOrganizations();
@@ -726,7 +732,10 @@ export class EventEditFormComponent {
       ...this._buildLocationPatch(v.location_lat, v.location_lng),
       ...this._buildGeometryPatch(),
       name: v.name!.trim(),
-      description: trimOrUndefined(v.description),
+      description: EventEditFormComponent._defaultDescription(
+        this._descriptionLocaleMap(),
+      ),
+      description_i18n: this._descriptionI18nPatch(),
       slug: trimOrUndefined(v.slug?.toLowerCase()),
       venue_string: v.venue_string!.trim(),
       locality_string: v.locality_string!.trim(),
@@ -960,6 +969,35 @@ export class EventEditFormComponent {
         return tickets;
       },
       [],
+    );
+  }
+
+  get descriptionLocaleMap(): LocaleMap | undefined {
+    return this._descriptionLocaleMap();
+  }
+
+  set descriptionLocaleMap(value: LocaleMap | undefined | null) {
+    this._descriptionLocaleMap.set(
+      value ? makeLocaleMapFromObject(value) : undefined,
+    );
+  }
+
+  private _descriptionI18nPatch(): LocaleMap | undefined {
+    const descriptions = this._descriptionLocaleMap();
+    if (!descriptions || Object.keys(descriptions).length === 0) {
+      return undefined;
+    }
+    return descriptions;
+  }
+
+  private static _defaultDescription(
+    descriptions: LocaleMap | undefined,
+  ): string | undefined {
+    if (!descriptions) return undefined;
+    return (
+      descriptions["en"]?.text ??
+      descriptions["de"]?.text ??
+      Object.values(descriptions).find((entry) => entry?.text?.trim())?.text
     );
   }
 

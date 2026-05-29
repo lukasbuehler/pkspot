@@ -195,10 +195,13 @@
     </mat-expansion-panel-header>
 
     <div class="d-flex flex-column gap-3 pt-2">
-      <mat-form-field appearance="outline">
-        <mat-label i18n="@@event_edit.description">Description</mat-label>
-        <textarea matInput formControlName="description" rows="3"></textarea>
-      </mat-form-field>
+      <app-locale-map-edit-field
+        class="w-100"
+        i18n-placeholder="@@event_edit.description"
+        placeholder="Description"
+        [isTextArea]="true"
+        [(localeMap)]="descriptionLocaleMap"
+      ></app-locale-map-edit-field>
 
       <mat-form-field appearance="outline">
         <mat-label i18n="@@event_edit.organizer">Organizer</mat-label>

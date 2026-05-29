@@ -66,6 +66,30 @@
       "optional": true
     },
     {
+      "name": "event_categories",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "series_roles",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "qualifies_to_keys",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "required_qualifier_keys",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
       "name": "external_source.provider",
       "type": "string",
       "facet": true,
@@ -93,6 +117,24 @@
     { "name": "promo_bounds_west", "type": "float", "optional": true },
     { "name": "promo_region_center", "type": "geopoint", "optional": true },
     { "name": "promo_region_radius_m", "type": "float", "optional": true },
+    {
+      "name": "has_organization",
+      "type": "bool",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "has_venue_spot",
+      "type": "bool",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "venue_spot_count",
+      "type": "int64",
+      "optional": true,
+      "index": false
+    },
 
     { "name": "published", "type": "bool", "facet": true, "optional": true },
     { "name": "_force_sync", "type": "int64", "optional": true, "index": false }

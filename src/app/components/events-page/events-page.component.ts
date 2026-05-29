@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   OnInit,
   signal,
@@ -30,6 +31,7 @@ export class EventsPageComponent implements OnInit {
 
   events = signal<PkEvent[]>([]);
   loading = signal<boolean>(true);
+  private _lastIncludeUnpublished: boolean | null = null;
 
   /** Events sorted by start date — live + upcoming first, past last. */
   readonly upcomingEvents = computed(() =>
@@ -46,9 +48,23 @@ export class EventsPageComponent implements OnInit {
     void this._loadEvents();
   }
 
+  constructor() {
+    effect(() => {
+      const includeUnpublished = this.isAdmin();
+      if (this._lastIncludeUnpublished === null) return;
+      if (includeUnpublished === this._lastIncludeUnpublished) return;
+      void this._loadEvents();
+    });
+  }
+
   private async _loadEvents() {
+    const includeUnpublished = this.isAdmin();
+    this._lastIncludeUnpublished = includeUnpublished;
     try {
-      const events = await this._eventsService.getEvents({ sortByNext: true });
+      const events = await this._eventsService.getEvents({
+        sortByNext: true,
+        ...(includeUnpublished ? { includeUnpublished } : {}),
+      });
 
       // Surface the swissjam25 static fallback when no Firestore doc exists,
       // so the calendar isn't empty before any events are migrated.

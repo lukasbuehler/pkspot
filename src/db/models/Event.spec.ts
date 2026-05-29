@@ -129,6 +129,153 @@ describe("Event", () => {
     );
   });
 
+  it("uses localized descriptions when available", () => {
+    const event = new Event(
+      "event-1" as EventId,
+      {
+        ...baseEvent,
+        start: "2026-06-14T10:00:00.000Z",
+        end: "2026-06-15T10:00:00.000Z",
+        description: "Fallback description",
+        description_i18n: {
+          de: { text: "Deutsche Beschreibung", provider: "test" },
+          en: { text: "English description", provider: "test" },
+        },
+      } as EventSchema,
+      "de-CH",
+    );
+
+    expect(event.description).toBe("Deutsche Beschreibung");
+    expect(event.descriptions?.de?.text).toBe("Deutsche Beschreibung");
+  });
+
+  it("normalizes event program dates, linked events, and runtime overrides", () => {
+    const event = new Event("event-1" as EventId, {
+      ...baseEvent,
+      start: "2026-08-05T14:00:00.000Z",
+      end: "2026-08-09T15:00:00.000Z",
+      event_categories: ["camp", "competition"],
+      time_zone: "Europe/Zurich",
+      program: {
+        active_plan_id: "main",
+        plans: [
+          {
+            id: "main",
+            label: "Main program",
+            kind: "main",
+            items: [
+              {
+                id: "skills",
+                title: "WPF Skills Competition",
+                category: "competition",
+                start: "2026-08-08T09:00:00.000Z",
+                end: "2026-08-08T12:00:00.000Z",
+                linked_event_id: "wpf-skills-competition-2026",
+                participation: {
+                  access: "included_with_event",
+                  note: "Included with WPF Camp ticket.",
+                },
+                runtime_override: {
+                  start: "2026-08-08T09:30:00.000Z",
+                  status: "delayed",
+                  note: "Warm-up moved by 30 minutes.",
+                },
+                series_memberships: [
+                  {
+                    series_id: "swiss-parkour-tour",
+                    role: "qualifier",
+                    disciplines: ["skill"],
+                    qualifies_to: [
+                      {
+                        kind: "program_item",
+                        event_id: "swissjam26",
+                        program_item_id: "swiss-parkour-championships",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    } as unknown as EventSchema);
+
+    expect(event.eventCategories).toEqual(["camp", "competition"]);
+    expect(event.timeZone).toBe("Europe/Zurich");
+    expect(event.program?.active_plan_id).toBe("main");
+    expect(event.program?.plans[0].items[0]).toEqual(
+      expect.objectContaining({
+        id: "skills",
+        title: "WPF Skills Competition",
+        category: "competition",
+        linked_event_id: "wpf-skills-competition-2026",
+      }),
+    );
+    expect(event.program?.plans[0].items[0].start.toISOString()).toBe(
+      "2026-08-08T09:00:00.000Z",
+    );
+    expect(event.program?.plans[0].items[0].end?.toISOString()).toBe(
+      "2026-08-08T12:00:00.000Z",
+    );
+    expect(
+      event.program?.plans[0].items[0].runtimeOverride?.start?.toISOString(),
+    ).toBe("2026-08-08T09:30:00.000Z");
+    expect(event.program?.plans[0].items[0].runtimeOverride?.status).toBe(
+      "delayed",
+    );
+  });
+
+  it("combines legacy series ids with rich series memberships", () => {
+    const event = new Event("event-1" as EventId, {
+      ...baseEvent,
+      start: "2026-08-29T08:00:00.000Z",
+      end: "2026-08-30T14:00:00.000Z",
+      series_ids: ["swiss-parkour-tour"],
+      series_memberships: [
+        {
+          series_id: "swiss-parkour-tour",
+          role: "championship",
+          qualification_required: true,
+          qualification_hint:
+            "Participation requires qualification through Swiss Parkour Tour events.",
+          required_qualifiers: [
+            {
+              kind: "event",
+              event_id: "parkour-day-staefa-2026",
+            },
+          ],
+          qualifies_to: [
+            {
+              kind: "event",
+              event_id: "parkour-earth-worlds-2026",
+            },
+          ],
+        },
+        {
+          series_id: "parkour-earth",
+          role: "qualifier",
+        },
+      ],
+    } as unknown as EventSchema);
+
+    expect(event.seriesIds).toEqual([
+      "swiss-parkour-tour",
+      "parkour-earth",
+    ]);
+    expect(event.seriesMemberships[0]).toEqual(
+      expect.objectContaining({
+        series_id: "swiss-parkour-tour",
+        role: "championship",
+        qualification_required: true,
+      }),
+    );
+    expect(event.seriesMemberships[0].required_qualifiers?.[0]).toEqual({
+      kind: "event",
+      event_id: "parkour-day-staefa-2026",
+    });
+  });
+
   it("derives bounds promo geometry for ranking overlapping promotions", () => {
     const event = new Event("event-1" as EventId, {
       ...baseEvent,

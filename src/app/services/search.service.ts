@@ -1,4 +1,4 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { SearchClient } from "typesense";
 import { SearchParams } from "typesense/lib/Typesense/Documents";
 import { environment } from "../../environments/environment";
@@ -25,6 +25,7 @@ export class SearchService {
   constructor(private _mapsService: MapsApiService) {}
 
   private readonly _assetUrls = inject(AssetUrlService);
+  private readonly _locale = inject(LOCALE_ID);
 
   readonly TYPESENSE_COLLECTION_SPOTS = "spots_v2";
   readonly TYPESENSE_COLLECTION_COMMUNITIES = "communities_v1";
@@ -939,6 +940,16 @@ export class SearchService {
         ? doc.community_keys
         : [],
       seriesIds: Array.isArray(doc?.series_ids) ? doc.series_ids : [],
+      eventCategories: Array.isArray(doc?.event_categories)
+        ? doc.event_categories
+        : [],
+      seriesRoles: Array.isArray(doc?.series_roles) ? doc.series_roles : [],
+      qualifiesToKeys: Array.isArray(doc?.qualifies_to_keys)
+        ? doc.qualifies_to_keys
+        : [],
+      requiredQualifierKeys: Array.isArray(doc?.required_qualifier_keys)
+        ? doc.required_qualifier_keys
+        : [],
     };
   }
 
@@ -998,6 +1009,10 @@ export class SearchService {
       spot_ids: preview.spotIds,
       community_keys: preview.communityKeys,
       series_ids: preview.seriesIds,
+      event_categories: preview.eventCategories,
+      series_roles: preview.seriesRoles,
+      qualifies_to_keys: preview.qualifiesToKeys,
+      required_qualifier_keys: preview.requiredQualifierKeys,
       location_raw: markerLocation
         ? {
             lat: markerLocation[0],
@@ -1027,7 +1042,7 @@ export class SearchService {
     };
 
     try {
-      return new PkEvent(preview.id as any, schema);
+      return new PkEvent(preview.id as any, schema, this._locale);
     } catch (err) {
       console.warn("[SearchService] failed to build Event from hit:", err);
       return null;
@@ -1051,6 +1066,126 @@ export class SearchService {
         .filter((p: EventSearchPreview) => p.id);
     } catch (error) {
       console.error("typesense events error:", error);
+      return [];
+    }
+  }
+
+  public async getEventPreviewsByIds(
+    ids: readonly string[],
+  ): Promise<EventSearchPreview[]> {
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    if (uniqueIds.length === 0) return [];
+
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_EVENTS)
+        .documents()
+        .search(
+          {
+            q: "*",
+            query_by: "name",
+            filter_by: SearchService._joinFilters([
+              "published:!=false",
+              `id:=[${uniqueIds.map(SearchService._quoteFilterValue).join(",")}]`,
+            ]),
+            sort_by: "start_seconds:asc",
+            per_page: Math.min(uniqueIds.length, 250),
+            page: 1,
+            highlight_fields: "none",
+          },
+          {},
+        );
+
+      const order = new Map(uniqueIds.map((id, index) => [id, index]));
+      return ((result as any)?.hits ?? [])
+        .map((hit: any) => this.getEventPreviewFromHit(hit))
+        .filter((preview: EventSearchPreview) => preview.id)
+        .sort(
+          (left: EventSearchPreview, right: EventSearchPreview) =>
+            (order.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
+            (order.get(right.id) ?? Number.MAX_SAFE_INTEGER),
+        );
+    } catch (error) {
+      console.error("typesense events-by-id error:", error);
+      return [];
+    }
+  }
+
+  public async getEventsBySeries(
+    seriesId: string,
+    options: { includePast?: boolean; limit?: number } = {},
+  ): Promise<EventSearchPreview[]> {
+    const trimmedSeriesId = seriesId.trim();
+    if (!trimmedSeriesId) return [];
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const limit = Math.max(1, Math.min(250, options.limit ?? 50));
+
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_EVENTS)
+        .documents()
+        .search(
+          {
+            q: "*",
+            query_by: "name",
+            filter_by: SearchService._joinFilters([
+              "published:!=false",
+              `series_ids:=[${SearchService._quoteFilterValue(trimmedSeriesId)}]`,
+              options.includePast ? undefined : `end_seconds:>=${nowSeconds}`,
+            ]),
+            sort_by: "start_seconds:asc",
+            per_page: limit,
+            page: 1,
+            highlight_fields: "none",
+          },
+          {},
+        );
+
+      return ((result as any)?.hits ?? [])
+        .map((hit: any) => this.getEventPreviewFromHit(hit))
+        .filter((preview: EventSearchPreview) => preview.id);
+    } catch (error) {
+      console.error("typesense events-by-series error:", error);
+      return [];
+    }
+  }
+
+  public async getEventCardsByIds(ids: readonly string[]): Promise<PkEvent[]> {
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    if (uniqueIds.length === 0) return [];
+
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_EVENTS)
+        .documents()
+        .search(
+          {
+            q: "*",
+            query_by: "name",
+            filter_by: SearchService._joinFilters([
+              "published:!=false",
+              `id:=[${uniqueIds.map(SearchService._quoteFilterValue).join(",")}]`,
+            ]),
+            sort_by: "start_seconds:asc",
+            per_page: Math.min(uniqueIds.length, 250),
+            page: 1,
+            highlight_fields: "none",
+          },
+          {},
+        );
+
+      const order = new Map(uniqueIds.map((id, index) => [id, index]));
+      return ((result as any)?.hits ?? [])
+        .map((hit: any) => this.getEventFromHit(hit))
+        .filter((event: PkEvent | null): event is PkEvent => event !== null)
+        .sort(
+          (left: PkEvent, right: PkEvent) =>
+            (order.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
+            (order.get(right.id) ?? Number.MAX_SAFE_INTEGER),
+        );
+    } catch (error) {
+      console.error("typesense event-cards-by-id error:", error);
       return [];
     }
   }
@@ -1257,6 +1392,10 @@ export class SearchService {
       (filter): filter is string => typeof filter === "string" && !!filter,
     );
     return activeFilters.length > 0 ? activeFilters.join(" && ") : undefined;
+  }
+
+  private static _quoteFilterValue(value: string): string {
+    return `\`${value.replace(/[`\\]/g, "\\$&")}\``;
   }
 
   private static _boundsToLiteral(bounds: google.maps.LatLngBounds): {
@@ -1596,4 +1735,8 @@ export interface EventSearchPreview {
   spotIds: string[];
   communityKeys: string[];
   seriesIds: string[];
+  eventCategories: string[];
+  seriesRoles: string[];
+  qualifiesToKeys: string[];
+  requiredQualifierKeys: string[];
 }

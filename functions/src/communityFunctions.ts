@@ -52,6 +52,48 @@ const MAX_FALLBACK_COMMUNITY_PICKS = 4;
 const MAX_CHILD_COMMUNITIES = 8;
 const MAX_COMMUNITY_EVENT_PREVIEWS = 2;
 const COMMUNITY_EVENT_LOOKAHEAD_MONTHS = 6;
+const COMMUNITY_EVENT_PREVIEW_SOURCE_FIELDS = [
+  "community_keys",
+  "published",
+  "name",
+  "slug",
+  "description",
+  "description_i18n",
+  "banner_src",
+  "banner_fit",
+  "banner_accent_color",
+  "logo_src",
+  "venue_string",
+  "locality_string",
+  "start",
+  "end",
+  "url",
+  "location",
+  "location_raw",
+  "bounds",
+  "sponsor",
+  "is_sponsored",
+  "external_source",
+  "event_categories",
+  "series_ids",
+] as const;
+const SPOT_COMMUNITY_PAGE_SOURCE_FIELDS = [
+  "name",
+  "location",
+  "location_raw",
+  "type",
+  "access",
+  "address",
+  "media",
+  "is_iconic",
+  "hide_streetview",
+  "rating",
+  "num_reviews",
+  "amenities",
+  "bounds",
+  "bounds_raw",
+  "landing",
+] as const;
 const PURPOSE_BUILT_SPOT_TYPES = new Set([
   "parkour gym",
   "parkour park",
@@ -111,6 +153,91 @@ const removeUndefinedValues = <T>(value: T): T => {
   }
 
   return value;
+};
+
+const normalizeComparableValue = (value: unknown): unknown => {
+  if (value instanceof Timestamp) {
+    return {
+      seconds: value.seconds,
+      nanoseconds: value.nanoseconds,
+    };
+  }
+
+  if (
+    value &&
+    typeof value === "object" &&
+    typeof (value as { toMillis?: unknown }).toMillis === "function" &&
+    typeof (value as { seconds?: unknown }).seconds === "number"
+  ) {
+    return {
+      seconds: (value as { seconds: number }).seconds,
+      nanoseconds:
+        (value as { nanoseconds?: number }).nanoseconds ??
+        (value as { _nanoseconds?: number })._nanoseconds ??
+        0,
+    };
+  }
+
+  if (
+    value &&
+    typeof value === "object" &&
+    typeof (value as { latitude?: unknown }).latitude === "number" &&
+    typeof (value as { longitude?: unknown }).longitude === "number"
+  ) {
+    return {
+      latitude: (value as { latitude: number }).latitude,
+      longitude: (value as { longitude: number }).longitude,
+    };
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeComparableValue(entry));
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, entryValue]) => entryValue !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entryValue]) => [
+        key,
+        normalizeComparableValue(entryValue),
+      ]);
+    return Object.fromEntries(entries);
+  }
+
+  return value;
+};
+
+const areValuesEqual = (left: unknown, right: unknown): boolean =>
+  JSON.stringify(normalizeComparableValue(left)) ===
+  JSON.stringify(normalizeComparableValue(right));
+
+const stripGeneratedPageFields = (
+  page: Partial<CommunityPageSchema> | undefined | null
+): Partial<CommunityPageSchema> | null => {
+  if (!page) return null;
+  const { generatedAt: _generatedAt, ...rest } = page;
+  return rest;
+};
+
+const shouldWriteCommunityPage = (
+  existingPage: CommunityPageSchema | undefined,
+  nextPage: CommunityPageSchema
+): boolean =>
+  !areValuesEqual(
+    stripGeneratedPageFields(existingPage),
+    stripGeneratedPageFields(nextPage)
+  );
+
+const didAnyFieldChange = <T extends Record<string, unknown>>(
+  beforeData: T | null,
+  afterData: T | null,
+  fieldNames: readonly string[]
+): boolean => {
+  if (!beforeData || !afterData) return true;
+  return fieldNames.some(
+    (fieldName) => !areValuesEqual(beforeData[fieldName], afterData[fieldName])
+  );
 };
 
 const toMillis = (
@@ -431,9 +558,12 @@ const buildCommunityEventPreview = (
     id: eventId,
     slug: event.slug,
     name: event.name,
+    description: event.description,
+    description_i18n: event.description_i18n,
     banner_src: event.banner_src,
     banner_fit: event.banner_fit,
     banner_accent_color: event.banner_accent_color,
+    logo_src: event.logo_src,
     venue_string: event.venue_string,
     locality_string: event.locality_string,
     start: event.start,
@@ -445,6 +575,8 @@ const buildCommunityEventPreview = (
     sponsor: event.sponsor,
     is_sponsored: event.is_sponsored,
     external_source: event.external_source,
+    event_categories: event.event_categories,
+    series_ids: event.series_ids,
   }) as CommunityEventPreviewSchema;
 };
 
@@ -854,6 +986,13 @@ const writeOrDeleteCommunityPage = async (
     return;
   }
 
+  const existingPage = (await pageRef.get()).data() as
+    | CommunityPageSchema
+    | undefined;
+  if (!shouldWriteCommunityPage(existingPage, pageDoc)) {
+    return;
+  }
+
   await pageRef.set(pageDoc, { merge: true });
 };
 
@@ -886,10 +1025,14 @@ const refreshCommunityEventPreviews = async (
 ): Promise<void> => {
   for (const communityKey of communityKeys) {
     const eventPreviews = await getCommunityEventPreviews(db, communityKey);
-    await db
-      .collection(COMMUNITY_PAGES_COLLECTION)
-      .doc(communityKey)
-      .set({ eventPreviews }, { merge: true });
+    const pageRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(communityKey);
+    const current = (await pageRef.get()).data() as
+      | CommunityPageSchema
+      | undefined;
+    if (areValuesEqual(current?.eventPreviews ?? [], eventPreviews)) {
+      continue;
+    }
+    await pageRef.set({ eventPreviews }, { merge: true });
   }
 };
 
@@ -935,6 +1078,16 @@ export const rebuildCommunityPagesOnSpotWrite = onDocumentWritten(
       ? ((event.data.after.data() as SpotSchema) ?? null)
       : null;
 
+    if (
+      !didAnyFieldChange(
+        beforeData as unknown as Record<string, unknown> | null,
+        afterData as unknown as Record<string, unknown> | null,
+        SPOT_COMMUNITY_PAGE_SOURCE_FIELDS
+      )
+    ) {
+      return null;
+    }
+
     if (beforeData) {
       for (const candidate of getSpotCommunityCandidates(beforeData)) {
         impactedCandidates.set(candidate.communityKey, candidate);
@@ -975,6 +1128,16 @@ export const rebuildCommunityEventPreviewsOnEventWrite = onDocumentWritten(
     const afterData = event.data?.after?.exists
       ? ((event.data.after.data() as EventSchema) ?? null)
       : null;
+
+    if (
+      !didAnyFieldChange(
+        beforeData as unknown as Record<string, unknown> | null,
+        afterData as unknown as Record<string, unknown> | null,
+        COMMUNITY_EVENT_PREVIEW_SOURCE_FIELDS
+      )
+    ) {
+      return null;
+    }
 
     for (const key of beforeData?.community_keys ?? []) {
       impactedCommunityKeys.add(key);

@@ -33,7 +33,9 @@ export {
 
 // event functions
 export {
+  backfillSpotUpcomingEvents,
   countEventRsvpsOnWrite,
+  syncSpotUpcomingEventsOnEventWrite,
   updateEventFieldsOnWrite,
   updateAllEventsWithTypesenseFields,
 } from "./eventFunctions";

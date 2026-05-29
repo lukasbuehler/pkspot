@@ -17,13 +17,18 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { Subscription, firstValueFrom, take } from "rxjs";
-import { Event as PkEvent } from "../../../db/models/Event";
+import { Event as PkEvent, EventProgramItem } from "../../../db/models/Event";
 import {
+  EventCategory,
   EventAreaPolygonSchema,
   EventBoundsSchema,
   EventLinkSchema,
+  EventQualificationRefSchema,
   EventSchema,
+  EventSeriesMembershipSchema,
 } from "../../../db/schemas/EventSchema";
 import { EventTicketOption } from "../../../db/models/Event";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
@@ -37,6 +42,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
+import { SearchService } from "../../services/search.service";
 import { environment } from "../../../environments/environment";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
 import {
@@ -46,6 +52,7 @@ import {
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { EventHeroMediaComponent } from "../event-display/event-hero-media.component";
 import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
+import { EventCardComponent } from "../event-card/event-card.component";
 import {
   eventStatusLabel,
   type EventStatus,
@@ -60,11 +67,14 @@ import { isBot, formatDateRange } from "../../../scripts/Helpers";
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
+    MatChipsModule,
+    MatProgressSpinnerModule,
     GoogleMap2dComponent,
     EventEditFormComponent,
     EventRsvpComponent,
     EventHeroMediaComponent,
     EventSummaryMetaComponent,
+    EventCardComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -80,6 +90,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _structuredData = inject(StructuredDataService);
   private _metaTags = inject(MetaTagService);
   private _eventPageData = inject(EventPageDataService);
+  private _search = inject(SearchService);
   private _platformId = inject(PLATFORM_ID);
   private _locale = inject<LocaleCode>(LOCALE_ID);
   readonly mapsApiService = inject(MapsApiService);
@@ -89,6 +100,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _eventSnapshotSubscription?: Subscription;
   private _eventLoadRequestVersion = 0;
   private _spotsLoadRequestVersion = 0;
+  private _qualifierLoadRequestVersion = 0;
 
   readonly event = signal<PkEvent | null>(null);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
@@ -100,6 +112,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isCrawler = signal(this.isBrowser() && isBot());
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
+  readonly qualifierEventsById = signal<Record<string, PkEvent>>({});
+  readonly isLoadingQualifierEvents = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
 
   readonly dateRange = computed(() => {
@@ -179,6 +193,49 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       .filter((link) => !!this._safeExternalUrl(link.url));
   });
   readonly ticketOptions = computed(() => this.event()?.ticketOptions ?? []);
+  readonly activeProgramItems = computed<EventProgramItem[]>(() => {
+    const event = this.event();
+    if (!event?.program) return [];
+    const activePlan =
+      event.program.plans.find(
+        (plan) => plan.id === event.program?.active_plan_id,
+      ) ?? event.program.plans[0];
+    return activePlan?.items ?? [];
+  });
+  readonly visibleSeriesMemberships = computed(() =>
+    [
+      ...(this.event()?.seriesMemberships ?? []),
+      ...this.activeProgramItems().flatMap(
+        (item) => item.series_memberships ?? [],
+      ),
+    ].filter(
+      (membership, index, memberships) =>
+        memberships.findIndex(
+          (candidate) =>
+            candidate.series_id === membership.series_id &&
+            candidate.role === membership.role,
+        ) === index,
+    ),
+  );
+  readonly qualificationMemberships = computed(() =>
+    this.visibleSeriesMemberships().filter(
+      (membership) =>
+        membership.qualification_required ||
+        (membership.required_qualifiers?.length ?? 0) > 0,
+    ),
+  );
+  readonly requiredQualifierRefs = computed(() =>
+    this.qualificationMemberships()
+      .flatMap((membership) => membership.required_qualifiers ?? [])
+      .filter(
+        (ref, index, refs) =>
+          refs.findIndex(
+            (candidate) =>
+              candidate.event_id === ref.event_id &&
+              candidate.program_item_id === ref.program_item_id,
+          ) === index,
+      ),
+  );
   readonly mapMarkers = computed<MarkerSchema[]>(() => {
     const event = this.event();
     if (!event) return [];
@@ -234,6 +291,29 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           if (requestVersion === this._spotsLoadRequestVersion) {
             this.spots.set(spots);
           }
+        });
+      });
+
+      effect(() => {
+        const refs = this.requiredQualifierRefs();
+        const eventIds = [...new Set(refs.map((ref) => ref.event_id))].filter(
+          Boolean,
+        );
+        const requestVersion = ++this._qualifierLoadRequestVersion;
+
+        if (eventIds.length === 0 || this.isCrawler()) {
+          this.qualifierEventsById.set({});
+          this.isLoadingQualifierEvents.set(false);
+          return;
+        }
+
+        this.isLoadingQualifierEvents.set(true);
+        this._search.getEventCardsByIds(eventIds).then((events) => {
+          if (requestVersion !== this._qualifierLoadRequestVersion) return;
+          this.qualifierEventsById.set(
+            Object.fromEntries(events.map((event) => [event.id, event])),
+          );
+          this.isLoadingQualifierEvents.set(false);
         });
       });
 
@@ -596,6 +676,90 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       default:
         return "open_in_new";
     }
+  }
+
+  categoryLabel(category: EventCategory): string {
+    switch (category) {
+      case "jam":
+        return $localize`:@@event_category.jam:Jam`;
+      case "competition":
+        return $localize`:@@event_category.competition:Competition`;
+      case "workshop":
+        return $localize`:@@event_category.workshop:Workshop`;
+      case "camp":
+        return $localize`:@@event_category.camp:Camp`;
+      case "show":
+        return $localize`:@@event_category.show:Show`;
+      case "awards":
+        return $localize`:@@event_category.awards:Awards`;
+      case "social":
+        return $localize`:@@event_category.social:Social`;
+      case "travel":
+        return $localize`:@@event_category.travel:Travel`;
+      default:
+        return $localize`:@@event_category.other:Other`;
+    }
+  }
+
+  seriesLabel(seriesId: string): string {
+    switch (seriesId) {
+      case "swiss-parkour-tour":
+        return "Swiss Parkour Tour";
+      case "parkour-earth":
+        return "Parkour Earth";
+      case "sport-parkour-league":
+        return "Sport Parkour League";
+      default:
+        return seriesId
+          .split("-")
+          .filter(Boolean)
+          .map((word) => word[0]?.toUpperCase() + word.slice(1))
+          .join(" ");
+    }
+  }
+
+  seriesRoleLabel(role: EventSeriesMembershipSchema["role"]): string {
+    switch (role) {
+      case "qualifier":
+        return $localize`:@@event_series_role.qualifier:Qualifier`;
+      case "final":
+        return $localize`:@@event_series_role.final:Final`;
+      case "championship":
+        return $localize`:@@event_series_role.championship:Championship`;
+      case "feeder":
+        return $localize`:@@event_series_role.feeder:Feeder`;
+      case "related":
+        return $localize`:@@event_series_role.related:Related`;
+      default:
+        return $localize`:@@event_series_role.series_event:Series event`;
+    }
+  }
+
+  programItemTime(item: EventProgramItem): string {
+    const event = this.event();
+    return new Intl.DateTimeFormat(this._locale, {
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: event?.timeZone,
+    }).format(item.start);
+  }
+
+  qualificationRefLabel(ref: EventQualificationRefSchema): string {
+    return ref.program_item_id
+      ? `${ref.event_id} / ${ref.program_item_id}`
+      : String(ref.event_id);
+  }
+
+  qualifierEventsFor(membership: EventSeriesMembershipSchema): PkEvent[] {
+    const eventsById = this.qualifierEventsById();
+    return (membership.required_qualifiers ?? [])
+      .map((ref) => eventsById[ref.event_id])
+      .filter((event): event is PkEvent => !!event)
+      .filter(
+        (event, index, events) =>
+          events.findIndex((candidate) => candidate.id === event.id) === index,
+      );
   }
 
   private _absoluteUrl(path: string): string {

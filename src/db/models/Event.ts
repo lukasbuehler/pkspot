@@ -2,6 +2,11 @@ import { GeoPoint, Timestamp } from "firebase/firestore";
 import {
   EventBoundsSchema,
   EventCustomMarkerSchema,
+  EventCategory,
+  EventProgramItemSchema,
+  EventProgramPlanSchema,
+  EventProgramRuntimeOverrideSchema,
+  EventProgramSchema,
   EventAreaPolygonSchema,
   EventExternalSourceSchema,
   EventId,
@@ -9,6 +14,7 @@ import {
   EventOrganizerSchema,
   EventPromoRegionSchema,
   EventSchema,
+  EventSeriesMembershipSchema,
   EventSponsorSchema,
   EventTicketAvailability,
   EventTicketBadge,
@@ -17,6 +23,11 @@ import {
 } from "../schemas/EventSchema";
 import { EventRSVPCountsSchema } from "../schemas/EventRSVPSchema";
 import { MediaSchema } from "../schemas/Media";
+import { LocaleCode, LocaleMap } from "./Interfaces";
+import {
+  getBestLocale,
+  makeLocaleMapFromObject,
+} from "../../scripts/LanguageHelpers";
 
 export interface EventTicketOption {
   id: string;
@@ -32,6 +43,31 @@ export interface EventTicketOption {
   badge?: EventTicketBadge;
 }
 
+export interface EventProgramRuntimeOverride
+  extends Omit<EventProgramRuntimeOverrideSchema, "start" | "end"> {
+  start?: Date;
+  end?: Date;
+}
+
+export interface EventProgramItem
+  extends Omit<
+    EventProgramItemSchema,
+    "start" | "end" | "runtime_override"
+  > {
+  start: Date;
+  end?: Date;
+  runtimeOverride?: EventProgramRuntimeOverride;
+}
+
+export interface EventProgramPlan
+  extends Omit<EventProgramPlanSchema, "items"> {
+  items: EventProgramItem[];
+}
+
+export interface EventProgram extends Omit<EventProgramSchema, "plans"> {
+  plans: EventProgramPlan[];
+}
+
 /**
  * An Event is a parkour-community event (jam, camp, competition) that
  * highlights one or more spots and runs over a defined time window.
@@ -44,6 +80,7 @@ export class Event {
 
   readonly name: string;
   readonly description?: string;
+  readonly descriptions?: LocaleMap;
 
   readonly bannerSrc?: string;
   readonly bannerFit: "cover" | "contain";
@@ -61,6 +98,9 @@ export class Event {
   readonly url?: string;
   readonly eventLinks: EventLinkSchema[];
   readonly ticketOptions: EventTicketOption[];
+  readonly eventCategories: EventCategory[];
+  readonly timeZone?: string;
+  readonly program?: EventProgram;
 
   readonly spotIds: string[];
   readonly inlineSpots: InlineEventSpotSchema[];
@@ -80,17 +120,20 @@ export class Event {
   readonly venueSpotCount: number;
   readonly communityKeys: string[];
   readonly seriesIds: string[];
+  readonly seriesMemberships: EventSeriesMembershipSchema[];
   readonly externalSource?: EventExternalSourceSchema;
 
   readonly structuredData?: Record<string, any>;
   readonly rsvpCounts: EventRSVPCountsSchema;
   readonly published: boolean;
 
-  constructor(id: EventId, data: EventSchema) {
+  constructor(id: EventId, data: EventSchema, locale: LocaleCode = "en") {
     this.id = id;
     this.slug = data.slug;
     this.name = data.name;
-    this.description = data.description;
+    this.descriptions = Event.mapDescriptionLocaleMap(data);
+    this.description =
+      Event.descriptionForLocale(this.descriptions, locale) ?? data.description;
     this.bannerSrc = data.banner_src;
     this.bannerFit = data.banner_fit ?? "cover";
     this.bannerAccentColor = data.banner_accent_color;
@@ -128,6 +171,11 @@ export class Event {
         : undefined,
       badge: option.badge,
     }));
+    this.eventCategories = data.event_categories ?? [];
+    this.timeZone = data.time_zone;
+    this.program = data.program
+      ? Event.mapProgram(data.program)
+      : undefined;
     this.spotIds = data.spot_ids ?? [];
     this.inlineSpots = data.inline_spots ?? [];
     this.customMarkers = data.custom_markers ?? [];
@@ -153,7 +201,11 @@ export class Event {
       new Set(data.spot_ids ?? []).size + (data.inline_spots?.length ?? 0);
     this.hasVenueSpot = data.has_venue_spot ?? this.venueSpotCount > 0;
     this.communityKeys = data.community_keys ?? [];
-    this.seriesIds = data.series_ids ?? [];
+    this.seriesMemberships = data.series_memberships ?? [];
+    this.seriesIds = Event.uniqueSeriesIds(
+      data.series_ids,
+      this.seriesMemberships,
+    );
     this.externalSource = data.external_source;
     this.structuredData = data.structured_data;
     this.rsvpCounts = data.rsvp_counts ?? {
@@ -365,6 +417,72 @@ export class Event {
     return {
       lat: (bounds.north + bounds.south) / 2,
       lng: (bounds.east + bounds.west) / 2,
+    };
+  }
+
+  private static uniqueSeriesIds(
+    seriesIds: string[] | undefined,
+    memberships: EventSeriesMembershipSchema[],
+  ): string[] {
+    return Array.from(
+      new Set([
+        ...(seriesIds ?? []),
+        ...memberships.map((membership) => membership.series_id),
+      ]),
+    );
+  }
+
+  private static mapProgram(program: EventProgramSchema): EventProgram {
+    return {
+      ...program,
+      plans: program.plans.map((plan) => ({
+        ...plan,
+        items: plan.items.map((item) => Event.mapProgramItem(item)),
+      })),
+    };
+  }
+
+  private static mapDescriptionLocaleMap(
+    data: EventSchema
+  ): LocaleMap | undefined {
+    if (data.description_i18n) {
+      return makeLocaleMapFromObject(data.description_i18n);
+    }
+    if (typeof data.description === "string" && data.description.trim()) {
+      return makeLocaleMapFromObject({ en: data.description });
+    }
+    return undefined;
+  }
+
+  private static descriptionForLocale(
+    descriptions: LocaleMap | undefined,
+    locale: LocaleCode
+  ): string | undefined {
+    const locales = Object.keys(descriptions ?? {});
+    if (locales.length === 0) return undefined;
+    const bestLocale = getBestLocale(locales, locale);
+    return descriptions?.[bestLocale]?.text;
+  }
+
+  private static mapProgramItem(item: EventProgramItemSchema): EventProgramItem {
+    const { runtime_override: runtimeOverrideSchema, ...rest } = item;
+    return {
+      ...rest,
+      start: Event.toDate(item.start),
+      end: item.end ? Event.toDate(item.end) : undefined,
+      runtimeOverride: runtimeOverrideSchema
+        ? Event.mapRuntimeOverride(runtimeOverrideSchema)
+        : undefined,
+    };
+  }
+
+  private static mapRuntimeOverride(
+    override: EventProgramRuntimeOverrideSchema,
+  ): EventProgramRuntimeOverride {
+    return {
+      ...override,
+      start: override.start ? Event.toDate(override.start) : undefined,
+      end: override.end ? Event.toDate(override.end) : undefined,
     };
   }
 

@@ -187,6 +187,7 @@ import {
   buildSpotChallengeCanonicalPath,
 } from "../../../scripts/SpotRouteHelpers";
 import { SpotProvenanceComponent } from "../spot-provenance/spot-provenance.component";
+import { EventCardComponent } from "../event-card/event-card.component";
 
 @Pipe({ name: "reverse", standalone: true })
 export class ReversePipe implements PipeTransform {
@@ -296,6 +297,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     JsonPipe,
     RouterLink,
     SpotProvenanceComponent,
+    EventCardComponent,
   ],
   schemas: [],
 })
@@ -343,6 +345,7 @@ export class SpotDetailsComponent
   isLocalSpot = computed(
     () => this.spot() !== null && !(this.spot() instanceof Spot)
   );
+  upcomingEvents = computed(() => this.spot()?.upcomingEvents() ?? []);
 
   countryCode = computed(() => {
     return this.spot()?.address()?.country?.code;

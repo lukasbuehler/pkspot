@@ -7,6 +7,7 @@ import { ChallengePreviewSchema } from "./SpotChallengeSchema";
 import { SpotReportReason } from "./SpotReportSchema";
 import { SpotLandingSchema } from "./SpotLandingSchema";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
+import type { EventCardPreviewSchema } from "./EventSchema";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
@@ -85,6 +86,8 @@ export interface SpotSchema {
 
   top_challenges?: ChallengePreviewSchema[]; // 0-3 challenges
   num_challenges?: number; // integer
+  /** Server-owned preview of the next public live/upcoming events at this spot. */
+  upcoming_events?: EventCardPreviewSchema[];
 
   is_iconic?: boolean;
   stewardship?: SpotStewardshipStateSchema;

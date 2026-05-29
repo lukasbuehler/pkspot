@@ -71,6 +71,11 @@ form {
   flex-shrink: 0;
 }
 
+.spot-event-grid {
+  display: grid;
+  gap: 12px;
+}
+
 .spot-loading-body {
   display: flex;
   flex-direction: column;

@@ -435,6 +435,20 @@
       </div>
     </div>
 
+    @if (!isLocalSpot() && upcomingEvents().length > 0) {
+    <div class="mb-4">
+      <mat-divider class="my-3"></mat-divider>
+      <h4 class="mat-title-medium" i18n="@@spot.upcoming_events.header">
+        Upcoming events
+      </h4>
+      <div class="spot-event-grid">
+        @for (event of upcomingEvents(); track event.id) {
+        <app-event-card [event]="event"></app-event-card>
+        }
+      </div>
+    </div>
+    }
+
     <!-- Ratings -->
     @if (
     !isLocalSpot() && (spot()?.rating || authenticationService.isSignedIn)

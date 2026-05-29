@@ -204,6 +204,23 @@ describe("EventCardComponent", () => {
     expect(rsvp.componentInstance.preview()).toBe(true);
     expect(rsvp.componentInstance.showDisclaimer()).toBe(false);
   });
+
+  it("marks unpublished events as drafts", () => {
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "event-123",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+        { published: false },
+      ),
+    );
+
+    fixture.detectChanges();
+
+    const draft = fixture.debugElement.query(By.css(".draft-line"));
+    expect(draft.nativeElement.textContent).toContain("Draft");
+  });
 });
 
 describe("EventCardComponent localization", () => {

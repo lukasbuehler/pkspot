@@ -1,9 +1,5 @@
-import type { GeoPoint, Timestamp } from "firebase/firestore";
-import {
-  EventBoundsSchema,
-  EventExternalSourceSchema,
-  EventSponsorSchema,
-} from "./EventSchema";
+import type { Timestamp } from "firebase/firestore";
+import { EventCardPreviewSchema } from "./EventSchema";
 import { SpotPreviewData } from "./SpotPreviewData";
 
 export type CommunityScope = "country" | "region" | "locality";
@@ -55,25 +51,7 @@ export interface CommunityChildSummarySchema {
   dryCount: number;
 }
 
-export interface CommunityEventPreviewSchema {
-  id: string;
-  slug?: string;
-  name: string;
-  banner_src?: string;
-  banner_fit?: "cover" | "contain";
-  banner_accent_color?: string;
-  venue_string: string;
-  locality_string: string;
-  start: Timestamp | { seconds: number; nanoseconds: number };
-  end: Timestamp | { seconds: number; nanoseconds: number };
-  url?: string;
-  location?: GeoPoint;
-  location_raw?: { lat: number; lng: number };
-  bounds?: EventBoundsSchema;
-  sponsor?: EventSponsorSchema;
-  is_sponsored?: boolean;
-  external_source?: EventExternalSourceSchema;
-}
+export type CommunityEventPreviewSchema = EventCardPreviewSchema;
 
 export interface CommunityImageSchema {
   type: "custom" | "default";

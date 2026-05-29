@@ -1,10 +1,29 @@
 import type { GeoPoint, Timestamp } from "firebase/firestore";
+import type { LocaleMap } from "../models/Interfaces";
 import type { MediaSchema } from "./Media";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
 import { EventRSVPCountsSchema } from "./EventRSVPSchema";
 
 export type EventId = string & { __brand: "EventId" };
 export type EventSlug = string & { __brand: "EventSlug" };
+
+export type EventCategory =
+  | "jam"
+  | "competition"
+  | "workshop"
+  | "camp"
+  | "show"
+  | "awards"
+  | "social"
+  | "travel"
+  | "other";
+
+export type EventDiscipline =
+  | "speed"
+  | "skill"
+  | "style"
+  | "freestyle"
+  | "other";
 
 export interface EventSlugSchema {
   event_id: EventId | string;
@@ -75,6 +94,31 @@ export interface EventSponsorSchema {
   logo_background_color?: string;
   /** Where the sponsor links to (defaults to event url if absent). */
   url?: string;
+}
+
+export interface EventCardPreviewSchema {
+  id: string;
+  slug?: string;
+  name: string;
+  description?: string;
+  description_i18n?: LocaleMap | Record<string, string>;
+  banner_src?: string;
+  banner_fit?: "cover" | "contain";
+  banner_accent_color?: string;
+  logo_src?: string;
+  venue_string?: string;
+  locality_string: string;
+  start: Timestamp | { seconds: number; nanoseconds: number };
+  end: Timestamp | { seconds: number; nanoseconds: number };
+  url?: string;
+  location?: GeoPoint;
+  location_raw?: { lat: number; lng: number };
+  bounds?: EventBoundsSchema;
+  sponsor?: EventSponsorSchema;
+  is_sponsored?: boolean;
+  external_source?: EventExternalSourceSchema;
+  event_categories?: EventCategory[];
+  series_ids?: string[];
 }
 
 export interface EventOrganizerSchema {
@@ -166,10 +210,115 @@ export interface EventTicketOptionSchema {
   badge?: EventTicketBadge;
 }
 
+export type EventSeriesRole =
+  | "series_event"
+  | "qualifier"
+  | "final"
+  | "championship"
+  | "feeder"
+  | "related";
+
+export interface EventQualificationRefSchema {
+  /**
+   * Event-level refs point at a standalone event page. Program-item refs point
+   * at a schedule item inside another event, which lets larger festivals host
+   * qualifier/final blocks without turning every block into a separate event.
+   */
+  kind: "event" | "program_item";
+  event_id: EventId | string;
+  program_item_id?: string;
+}
+
+export interface EventSeriesMembershipSchema {
+  series_id: string;
+  role: EventSeriesRole;
+  disciplines?: EventDiscipline[];
+  /**
+   * True when the referenced event/program item is not open-entry. Displayed
+   * as a user-facing hint first; richer qualification paths can be derived
+   * from `required_qualifiers` and `qualifies_to`.
+   */
+  qualification_required?: boolean;
+  qualification_hint?: string;
+  /** Outgoing qualification edges: competing here can qualify you for these. */
+  qualifies_to?: EventQualificationRefSchema[];
+  /** Incoming qualification edges: these must happen before competing here. */
+  required_qualifiers?: EventQualificationRefSchema[];
+  source_url?: string;
+}
+
+export type EventProgramPlanKind = "main" | "alternate";
+
+export type EventProgramItemStatus =
+  | "scheduled"
+  | "cancelled"
+  | "moved"
+  | "delayed";
+
+export interface EventProgramSpotRefSchema {
+  kind: "spot" | "inline_spot";
+  id: string;
+}
+
+export interface EventProgramRuntimeOverrideSchema {
+  start?: Timestamp;
+  end?: Timestamp;
+  status?: EventProgramItemStatus;
+  note?: string;
+}
+
+export interface EventProgramParticipationSchema {
+  access?:
+    | "included_with_event"
+    | "separate_ticket"
+    | "free"
+    | "registration_required"
+    | "invite_or_qualified";
+  note?: string;
+  qualification_required?: boolean;
+  qualification_hint?: string;
+}
+
+export interface EventProgramItemSchema {
+  id: string;
+  title: string;
+  description?: string;
+  category: EventCategory;
+  start: Timestamp;
+  end?: Timestamp;
+  spot_ref?: EventProgramSpotRefSchema;
+  status?: EventProgramItemStatus;
+  runtime_override?: EventProgramRuntimeOverrideSchema;
+  /**
+   * Optional bridge to a standalone event that represents the same activity.
+   * Example: WPF Camp has a program item for WPF Skills Competition, while the
+   * skills competition also has its own public event for filtering/search.
+   */
+  linked_event_id?: EventId | string;
+  series_memberships?: EventSeriesMembershipSchema[];
+  participation?: EventProgramParticipationSchema;
+}
+
+export interface EventProgramPlanSchema {
+  id: string;
+  label: string;
+  kind: EventProgramPlanKind;
+  condition_label?: string;
+  items: EventProgramItemSchema[];
+}
+
+export interface EventProgramSchema {
+  active_plan_id: string;
+  plans: EventProgramPlanSchema[];
+}
+
 export interface EventSchema {
   /** Display name (plain string; LocaleMap can be added later if needed). */
   name: string;
+  /** Default/plain description kept for search and old clients. */
   description?: string;
+  /** Localized event description rendered by clients when available. */
+  description_i18n?: LocaleMap | Record<string, string>;
 
   /** Preferred slug — canonical URL fragment under /events/. */
   slug?: string;
@@ -219,6 +368,13 @@ export interface EventSchema {
   event_links?: EventLinkSchema[];
   /** Public ticket tiers/offers. Transactions happen on linked external sites. */
   ticket_options?: EventTicketOptionSchema[];
+
+  /** Top-level browse/filter categories for the attendable event itself. */
+  event_categories?: EventCategory[];
+  /** IANA time zone used to group and render program items by local event day. */
+  time_zone?: string;
+  /** Event-owned schedule/program data, including alternate plans. */
+  program?: EventProgramSchema;
 
   /**
    * Optional time at which the map-island promo for this event becomes
@@ -301,6 +457,11 @@ export interface EventSchema {
    * page.
    */
   series_ids?: string[];
+  /**
+   * Rich event-level series links. Prefer this for new curated series data;
+   * keep `series_ids` populated for search/index/backwards compatibility.
+   */
+  series_memberships?: EventSeriesMembershipSchema[];
 
   /**
    * If set, this event is canonically hosted somewhere else (typically
@@ -349,4 +510,10 @@ export interface EventSchema {
   has_venue_spot?: boolean;
   /** Count of unique real spot ids plus inline event spots. Server-derived. */
   venue_spot_count?: number;
+  /** Flattened event/program roles for Typesense faceting. Server-derived. */
+  series_roles?: string[];
+  /** Qualification targets as `eventId` or `eventId#programItemId`. Server-derived. */
+  qualifies_to_keys?: string[];
+  /** Required qualifiers as `eventId` or `eventId#programItemId`. Server-derived. */
+  required_qualifier_keys?: string[];
 }

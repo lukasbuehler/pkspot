@@ -42,6 +42,8 @@ import {
   ChallengeLabel,
   ChallengeParticipantType,
 } from "../schemas/SpotChallengeLabels";
+import { Event as PkEvent } from "./Event";
+import { EventId, EventSchema } from "../schemas/EventSchema";
 
 /**
  * A spot is a location of interest to the Parkour and Freerunning community.
@@ -68,6 +70,7 @@ export class LocalSpot {
   readonly media: Signal<AnyMedia[]>;
   readonly hasMedia: Signal<boolean>;
   readonly previewImageSrc: Signal<string>;
+  upcomingEvents: WritableSignal<PkEvent[]>;
 
   isEligableForHighlights: Signal<boolean> = computed(() => {
     return this.userMedia().length > 0 && this.hasRating();
@@ -173,6 +176,9 @@ export class LocalSpot {
       this.location = signal({ lat: 0, lng: 0 });
     }
     this.tileCoordinates = data.tile_coordinates;
+    this.upcomingEvents = signal(
+      LocalSpot.makeUpcomingEvents(data.upcoming_events, this.locale)
+    );
 
     this.locationString = computed(() => {
       return MapHelpers.getHumanReadableCoordinates(this.location());
@@ -392,6 +398,9 @@ export class LocalSpot {
   public applyFromSchema(data: SpotSchema): void {
     // Names and descriptions
     this.names.set(makeLocaleMapFromObject(data.name));
+    this.upcomingEvents.set(
+      LocalSpot.makeUpcomingEvents(data.upcoming_events, this.locale)
+    );
 
     let newLocation: { lat: number; lng: number };
     if (
@@ -677,6 +686,24 @@ export class LocalSpot {
   public clone(): LocalSpot {
     const dataCopy: SpotSchema = JSON.parse(JSON.stringify(this.data()));
     return new LocalSpot(dataCopy, this.locale);
+  }
+
+  private static makeUpcomingEvents(
+    previews: SpotSchema["upcoming_events"] | undefined,
+    locale: LocaleCode
+  ): PkEvent[] {
+    return (previews ?? []).map((preview) => {
+      const locationRaw = preview.location_raw ?? { lat: 0, lng: 0 };
+      const eventData = {
+        ...preview,
+        venue_string: preview.venue_string ?? "",
+        locality_string: preview.locality_string ?? "",
+        location:
+          preview.location ?? new GeoPoint(locationRaw.lat, locationRaw.lng),
+        location_raw: locationRaw,
+      } as EventSchema;
+      return new PkEvent(preview.id as EventId, eventData, locale);
+    });
   }
 
   private _makePathsFromBounds(

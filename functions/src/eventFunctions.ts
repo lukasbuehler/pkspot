@@ -6,10 +6,12 @@ import {
 import * as admin from "firebase-admin";
 
 import {
+  EventCardPreviewSchema,
   EventBoundsSchema,
   EventPromoRegionSchema,
   EventSchema,
 } from "../../src/db/schemas/EventSchema";
+import { SpotSchema } from "../../src/db/schemas/SpotSchema";
 import {
   EventRSVPCountsSchema,
   EventRSVPSchema,
@@ -17,6 +19,35 @@ import {
 
 const MAINTENANCE_COLLECTION = "maintenance";
 const RUN_BACKFILL_EVENT_TYPESENSE_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-event-typesense-fields`;
+const RUN_BACKFILL_SPOT_UPCOMING_EVENTS_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-spot-upcoming-events`;
+const EVENTS_COLLECTION = "events";
+const SPOTS_COLLECTION = "spots";
+const MAX_SPOT_UPCOMING_EVENT_PREVIEWS = 2;
+const EVENT_SPOT_PREVIEW_SOURCE_FIELDS = [
+  "published",
+  "spot_ids",
+  "name",
+  "slug",
+  "description",
+  "description_i18n",
+  "banner_src",
+  "banner_fit",
+  "banner_accent_color",
+  "logo_src",
+  "venue_string",
+  "locality_string",
+  "start",
+  "end",
+  "url",
+  "location",
+  "location_raw",
+  "bounds",
+  "sponsor",
+  "is_sponsored",
+  "external_source",
+  "event_categories",
+  "series_ids",
+] as const;
 const TYPESENSE_HELPER_FIELDS = [
   "start_seconds",
   "end_seconds",
@@ -33,6 +64,9 @@ const TYPESENSE_HELPER_FIELDS = [
   "has_organization",
   "has_venue_spot",
   "venue_spot_count",
+  "series_roles",
+  "qualifies_to_keys",
+  "required_qualifier_keys",
 ] as const;
 const SERVER_DERIVED_EVENT_FIELDS = [
   ...TYPESENSE_HELPER_FIELDS,
@@ -46,6 +80,9 @@ const SERVER_DERIVED_EVENT_FIELDS = [
  * from acting on those.
  */
 const isEventRuntimeDoc = (docId: string): boolean =>
+  docId !== "typesense" && !docId.startsWith("run-");
+
+const isSpotRuntimeDoc = (docId: string): boolean =>
   docId !== "typesense" && !docId.startsWith("run-");
 
 const isGeoPointValue = (value: unknown): value is GeoPoint => {
@@ -101,6 +138,17 @@ const _normalizeComparableValue = (value: unknown): unknown => {
 const _areValuesEqual = (left: unknown, right: unknown): boolean =>
   JSON.stringify(_normalizeComparableValue(left)) ===
   JSON.stringify(_normalizeComparableValue(right));
+
+const _didAnyFieldChange = <T extends Record<string, unknown>>(
+  beforeData: T | null,
+  afterData: T | null,
+  fieldNames: readonly string[]
+): boolean => {
+  if (!beforeData || !afterData) return true;
+  return fieldNames.some(
+    (fieldName) => !_areValuesEqual(beforeData[fieldName], afterData[fieldName])
+  );
+};
 
 const _toRadians = (deg: number): number => (deg * Math.PI) / 180;
 
@@ -373,6 +421,58 @@ const _timestampValue = (value: unknown): Timestamp | undefined => {
   return undefined;
 };
 
+const _qualificationRefKey = (
+  ref:
+    | {
+        event_id?: string;
+        program_item_id?: string;
+      }
+    | undefined
+): string | null => {
+  if (!ref?.event_id) return null;
+  return ref.program_item_id
+    ? `${ref.event_id}#${ref.program_item_id}`
+    : ref.event_id;
+};
+
+const _collectSeriesSearchFields = (
+  eventData: EventSchema
+): Pick<
+  EventSchema,
+  "series_roles" | "qualifies_to_keys" | "required_qualifier_keys"
+> => {
+  const memberships = [
+    ...(eventData.series_memberships ?? []),
+    ...(eventData.program?.plans ?? []).flatMap((plan) =>
+      plan.items.flatMap((item) => item.series_memberships ?? [])
+    ),
+  ];
+
+  const seriesRoles = new Set<string>();
+  const qualifiesToKeys = new Set<string>();
+  const requiredQualifierKeys = new Set<string>();
+
+  for (const membership of memberships) {
+    seriesRoles.add(`${membership.series_id}:${membership.role}`);
+
+    for (const ref of membership.qualifies_to ?? []) {
+      const key = _qualificationRefKey(ref);
+      if (key) qualifiesToKeys.add(key);
+    }
+
+    for (const ref of membership.required_qualifiers ?? []) {
+      const key = _qualificationRefKey(ref);
+      if (key) requiredQualifierKeys.add(key);
+    }
+  }
+
+  return {
+    series_roles: [...seriesRoles].sort(),
+    qualifies_to_keys: [...qualifiesToKeys].sort(),
+    required_qualifier_keys: [...requiredQualifierKeys].sort(),
+  };
+};
+
 /**
  * Compute the Typesense helper fields that need to live on the Firestore
  * event document so the Firestore→Typesense extension can sync them as-is.
@@ -390,6 +490,7 @@ const _addTypesenseFields = async (
   out.has_organization = eventData.organizer?.type === "organization";
   out.venue_spot_count = _venueSpotCount(eventData);
   out.has_venue_spot = out.venue_spot_count > 0;
+  Object.assign(out, _collectSeriesSearchFields(eventData));
 
   const start = _timestampValue(eventData.start);
   if (start) out.start = start as unknown as EventSchema["start"];
@@ -486,6 +587,103 @@ const _getChangedFields = (
   return out;
 };
 
+const _eventCardPreview = (
+  eventId: string,
+  eventData: EventSchema
+): EventCardPreviewSchema | null => {
+  if (!_timestampValue(eventData.start) || !_timestampValue(eventData.end)) {
+    return null;
+  }
+
+  return _removeUndefinedValues({
+    id: eventId,
+    slug: eventData.slug,
+    name: eventData.name,
+    description: eventData.description,
+    description_i18n: eventData.description_i18n,
+    banner_src: eventData.banner_src,
+    banner_fit: eventData.banner_fit,
+    banner_accent_color: eventData.banner_accent_color,
+    logo_src: eventData.logo_src,
+    venue_string: eventData.venue_string,
+    locality_string: eventData.locality_string,
+    start: eventData.start,
+    end: eventData.end,
+    url: eventData.url,
+    location: eventData.location,
+    location_raw: eventData.location_raw,
+    bounds: eventData.bounds,
+    sponsor: eventData.sponsor,
+    is_sponsored: eventData.is_sponsored,
+    external_source: eventData.external_source,
+    event_categories: eventData.event_categories,
+    series_ids: eventData.series_ids,
+  }) as EventCardPreviewSchema;
+};
+
+const _spotIdsFromEvent = (eventData: EventSchema | null): string[] => [
+  ...new Set(
+    (eventData?.spot_ids ?? []).filter(
+      (spotId): spotId is string =>
+        typeof spotId === "string" && spotId.trim().length > 0
+    )
+  ),
+];
+
+const _upcomingEventPreviewsForSpot = async (
+  db: admin.firestore.Firestore,
+  spotId: string,
+  now: Timestamp = Timestamp.now()
+): Promise<EventCardPreviewSchema[]> => {
+  const snapshot = await db
+    .collection(EVENTS_COLLECTION)
+    .where("spot_ids", "array-contains", spotId)
+    .get();
+
+  return snapshot.docs
+    .filter((doc) => isEventRuntimeDoc(doc.id))
+    .map((doc) => ({ id: doc.id, data: doc.data() as EventSchema }))
+    .filter(({ data }) => data.published !== false)
+    .filter(({ data }) => {
+      const start = _timestampValue(data.start);
+      const end = _timestampValue(data.end);
+      return Boolean(start && end && end.toMillis() >= now.toMillis());
+    })
+    .sort((left, right) => {
+      const leftStart = _timestampValue(left.data.start)?.toMillis() ?? 0;
+      const rightStart = _timestampValue(right.data.start)?.toMillis() ?? 0;
+      return leftStart - rightStart;
+    })
+    .map(({ id, data }) => _eventCardPreview(id, data))
+    .filter((preview): preview is EventCardPreviewSchema => Boolean(preview))
+    .slice(0, MAX_SPOT_UPCOMING_EVENT_PREVIEWS);
+};
+
+const _syncSpotUpcomingEventPreviews = async (
+  db: admin.firestore.Firestore,
+  spotId: string
+): Promise<void> => {
+  const spotRef = db.collection(SPOTS_COLLECTION).doc(spotId);
+  const spotSnapshot = await spotRef.get();
+  if (!spotSnapshot.exists) return;
+
+  const spotData = spotSnapshot.data() as SpotSchema | undefined;
+  const previews = await _upcomingEventPreviewsForSpot(db, spotId);
+  const currentValue = spotData?.upcoming_events ?? [];
+
+  if (previews.length === 0 && spotData?.upcoming_events === undefined) {
+    return;
+  }
+  if (previews.length > 0 && _areValuesEqual(currentValue, previews)) {
+    return;
+  }
+
+  await spotRef.update({
+    upcoming_events:
+      previews.length > 0 ? previews : admin.firestore.FieldValue.delete(),
+  });
+};
+
 /**
  * Maintain the Typesense helper fields on every event write. The Firestore
  * → Typesense Firebase Extension then syncs the event document verbatim,
@@ -506,6 +704,50 @@ export const updateEventFieldsOnWrite = onDocumentWritten(
     if (Object.keys(changed).length === 0) return null;
 
     return event.data.after.ref.update(changed);
+  }
+);
+
+/**
+ * Keep each spot's small event preview list in sync with published events that
+ * reference that spot. The trigger only reacts to fields used by the preview,
+ * so Typesense helper-field writebacks from `updateEventFieldsOnWrite` do not
+ * cause redundant spot writes.
+ */
+export const syncSpotUpcomingEventsOnEventWrite = onDocumentWritten(
+  { document: "events/{eventId}" },
+  async (event) => {
+    if (!isEventRuntimeDoc(String(event.params.eventId ?? ""))) return null;
+
+    const db = admin.firestore();
+    const beforeData = event.data?.before?.exists
+      ? ((event.data.before.data() as EventSchema) ?? null)
+      : null;
+    const afterData = event.data?.after?.exists
+      ? ((event.data.after.data() as EventSchema) ?? null)
+      : null;
+
+    if (
+      !_didAnyFieldChange(
+        beforeData as unknown as Record<string, unknown> | null,
+        afterData as unknown as Record<string, unknown> | null,
+        EVENT_SPOT_PREVIEW_SOURCE_FIELDS
+      )
+    ) {
+      return null;
+    }
+
+    const affectedSpotIds = new Set([
+      ..._spotIdsFromEvent(beforeData),
+      ..._spotIdsFromEvent(afterData),
+    ]);
+
+    await Promise.all(
+      [...affectedSpotIds].map((spotId) =>
+        _syncSpotUpcomingEventPreviews(db, spotId)
+      )
+    );
+
+    return null;
   }
 );
 
@@ -569,6 +811,27 @@ export const updateAllEventsWithTypesenseFields = onDocumentCreated(
       if (Object.keys(changed).length > 0) {
         await doc.ref.update(changed);
       }
+    }
+
+    return event.data?.ref.delete();
+  }
+);
+
+/**
+ * Backfill helper. Create a doc at
+ * `maintenance/run-backfill-spot-upcoming-events` (any contents) to refresh the
+ * `upcoming_events` previews on every runtime spot. The doc is deleted on
+ * completion so a future create re-triggers the job.
+ */
+export const backfillSpotUpcomingEvents = onDocumentCreated(
+  { document: RUN_BACKFILL_SPOT_UPCOMING_EVENTS_DOC, timeoutSeconds: 540 },
+  async (event) => {
+    const db = admin.firestore();
+    const spots = await db.collection(SPOTS_COLLECTION).get();
+
+    for (const spot of spots.docs) {
+      if (!isSpotRuntimeDoc(spot.id)) continue;
+      await _syncSpotUpcomingEventPreviews(db, spot.id);
     }
 
     return event.data?.ref.delete();
