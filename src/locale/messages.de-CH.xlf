@@ -3384,6 +3384,12 @@
           trainierst. Hinterlasse keine Spuren. </target>
       </segment>
     </unit>
+    <unit id="welcomeDialogPromotedEventsBody">
+      <segment state="initial">
+        <source> Some events may be marked as Promoted because PK Spot has a paid or otherwise material relationship with the organizer. Other events appear because they are relevant to your area or timing. </source>
+        <target> Einige Events können als Promoted markiert sein, weil PK Spot eine bezahlte oder anderweitig wesentliche Beziehung zum Veranstalter hat. Andere Events erscheinen, weil sie für deine Gegend oder den Zeitpunkt relevant sind. </target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogTechBody">
       <segment state="initial">
         <source> After you agree, PK Spot loads essential services like Google Maps, which may use
@@ -4021,12 +4027,6 @@
         <target>Promoted event</target>
       </segment>
     </unit>
-    <unit id="event_preview.status.ends_in">
-      <segment state="initial">
-        <source>ends in</source>
-        <target>ends in</target>
-      </segment>
-    </unit>
     <unit id="event_preview.status.live_event">
       <segment state="initial">
         <source>Live Event</source>
@@ -4049,12 +4049,6 @@
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
         <target>Promoted Upcoming Event</target>
-      </segment>
-    </unit>
-    <unit id="event_preview.status.starts_in">
-      <segment state="initial">
-        <source>starts in</source>
-        <target>starts in</target>
       </segment>
     </unit>
     <unit id="event_preview.status.upcoming_event">

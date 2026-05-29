@@ -1,0 +1,33 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+} from "@angular/core";
+import { Event as PkEvent } from "../../../db/models/Event";
+import { eventHeroMedia } from "./event-display.helpers";
+import {
+  ImgCarouselComponent,
+  type ImgCarouselImageFit,
+} from "../img-carousel/img-carousel.component";
+import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
+
+@Component({
+  selector: "app-event-hero-media",
+  imports: [ImgCarouselComponent, MediaPlaceholderComponent],
+  templateUrl: "./event-hero-media.component.html",
+  styleUrl: "./event-hero-media.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class EventHeroMediaComponent {
+  event = input.required<PkEvent>();
+  readonly heroMedia = computed(() => eventHeroMedia(this.event()));
+  readonly imageFits = computed<readonly ImgCarouselImageFit[]>(() =>
+    this.event().bannerFit === "contain" ? ["contain"] : [],
+  );
+  readonly imageBackgroundColors = computed(() =>
+    this.event().bannerFit === "contain"
+      ? [this.event().bannerAccentColor]
+      : [],
+  );
+}

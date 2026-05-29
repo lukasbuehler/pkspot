@@ -3196,6 +3196,12 @@
         <target> Respecteer eigendom, lokale wetten, andere mensen en de plekken waar je traint. Laat geen sporen achter. </target>
       </segment>
     </unit>
+    <unit id="welcomeDialogPromotedEventsBody">
+      <segment state="initial">
+        <source> Some events may be marked as Promoted because PK Spot has a paid or otherwise material relationship with the organizer. Other events appear because they are relevant to your area or timing. </source>
+        <target> Sommige evenementen kunnen als Promoted gemarkeerd zijn omdat PK Spot een betaalde of anderszins materiële relatie met de organisator heeft. Andere evenementen verschijnen omdat ze relevant zijn voor je omgeving of timing. </target>
+      </segment>
+    </unit>
     <unit id="welcomeDialogTechBody">
       <segment state="initial">
         <source> After you agree, PK Spot loads essential services like Google Maps, which may use cookies. Analytics stay cookie-free. </source>
@@ -3815,12 +3821,6 @@
         <target>Promoted event</target>
       </segment>
     </unit>
-    <unit id="event_preview.status.ends_in">
-      <segment state="initial">
-        <source>ends in</source>
-        <target>ends in</target>
-      </segment>
-    </unit>
     <unit id="event_preview.status.live_event">
       <segment state="initial">
         <source>Live Event</source>
@@ -3843,12 +3843,6 @@
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
         <target>Gepromoot aankomend evenement</target>
-      </segment>
-    </unit>
-    <unit id="event_preview.status.starts_in">
-      <segment state="initial">
-        <source>starts in</source>
-        <target>Begint over</target>
       </segment>
     </unit>
     <unit id="event_preview.status.upcoming_event">

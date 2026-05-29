@@ -1907,11 +1907,6 @@
         <source>Promoted event</source>
       </segment>
     </unit>
-    <unit id="event_preview.status.ends_in">
-      <segment>
-        <source>ends in</source>
-      </segment>
-    </unit>
     <unit id="event_preview.status.live_event">
       <segment>
         <source>Live Event</source>
@@ -1930,11 +1925,6 @@
     <unit id="event_preview.status.sponsored_upcoming">
       <segment>
         <source>Promoted Upcoming Event</source>
-      </segment>
-    </unit>
-    <unit id="event_preview.status.starts_in">
-      <segment>
-        <source>starts in</source>
       </segment>
     </unit>
     <unit id="event_preview.status.upcoming_event">
@@ -4476,6 +4466,11 @@
     <unit id="welcomeDialogCommunityBody">
       <segment>
         <source> Only share places and content when you have all needed rights and permissions. By contributing, you license them to PK Spot so we can run the service. </source>
+      </segment>
+    </unit>
+    <unit id="welcomeDialogPromotedEventsBody">
+      <segment>
+        <source> Some events may be marked as Promoted because PK Spot has a paid or otherwise material relationship with the organizer. Other events appear because they are relevant to your area or timing. </source>
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">

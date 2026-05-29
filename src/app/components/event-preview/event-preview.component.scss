@@ -2,46 +2,41 @@
   display: block;
 }
 
-.event-preview-media {
+.event-preview-meta {
+  display: block;
+  min-width: 0;
+}
+
+:host ::ng-deep .event-preview-meta .mat-title-medium {
+  font: var(--mat-sys-label-medium);
+  line-height: 1.25;
+}
+
+:host ::ng-deep .event-preview-meta .event-venue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-preview-hero {
+  display: block;
   aspect-ratio: 4 / 3;
-  background: var(--mat-sys-surface-container-high);
   margin-left: -16px;
   margin-right: -16px;
-  overflow: hidden;
-  position: relative;
-}
-
-.status {
-  font-weight: 600;
-}
-
-.status.past {
-  color: var(--mat-sys-error);
-}
-
-.status.upcoming {
-  color: var(--mat-sys-primary);
-}
-
-.status.live {
-  color: var(--mat-sys-secondary);
-}
-
-.status.sponsored {
-  color: var(--mat-sys-tertiary);
 }
 
 .description {
   margin: 0;
   color: var(--mat-sys-on-surface-variant);
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .website-cta,
+.ticket-cta,
 .full-event-cta {
   align-self: flex-start;
 }

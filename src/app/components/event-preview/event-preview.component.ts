@@ -4,21 +4,18 @@ import {
   computed,
   inject,
   input,
-  LOCALE_ID,
   output,
 } from "@angular/core";
-import { NgOptimizedImage } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { RouterLink } from "@angular/router";
-import { LocaleCode } from "../../../db/models/Interfaces";
-import { Event as PkEvent } from "../../../db/models/Event";
-import { CountdownComponent } from "../countdown/countdown.component";
+import { Event as PkEvent, EventTicketOption } from "../../../db/models/Event";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
-import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { AnalyticsService } from "../../services/analytics.service";
-import { formatDateRange } from "../../../scripts/Helpers";
+import { EventHeroMediaComponent } from "../event-display/event-hero-media.component";
+import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
+import { type EventStatus } from "../event-display/event-display.helpers";
 
 /**
  * Event preview panel for the map page sidebar (desktop) or bottom-sheet
@@ -32,21 +29,19 @@ import { formatDateRange } from "../../../scripts/Helpers";
 @Component({
   selector: "app-event-preview",
   imports: [
-    NgOptimizedImage,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     RouterLink,
-    CountdownComponent,
     MapInfoPanelComponent,
-    MediaPlaceholderComponent,
+    EventHeroMediaComponent,
+    EventSummaryMetaComponent,
   ],
   templateUrl: "./event-preview.component.html",
   styleUrl: "./event-preview.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventPreviewComponent {
-  private _locale = inject<LocaleCode>(LOCALE_ID);
   private _analytics = inject(AnalyticsService);
 
   /** The event to render. */
@@ -74,48 +69,9 @@ export class EventPreviewComponent {
       Number.isFinite(e.start.getTime()) && Number.isFinite(e.end.getTime())
     );
   });
-  readonly status = computed<"upcoming" | "live" | "past" | null>(() =>
+  readonly status = computed<EventStatus | null>(() =>
     this.hasValidDates() ? (this.event()?.status() ?? null) : null
   );
-
-  readonly countdownTarget = computed<Date | null>(() => {
-    const e = this.event();
-    if (!e) return null;
-    if (!this.hasValidDates()) return null;
-    const status = this.status();
-    if (status === "upcoming") return e.start;
-    if (status === "live") return e.end;
-    return null;
-  });
-
-  readonly dateRange = computed(() => {
-    const e = this.event();
-    if (!e || !this.hasValidDates()) return "";
-    return formatDateRange(e.start, e.end, this._locale);
-  });
-
-  readonly statusPrefix = computed<string>(() => {
-    const status = this.status();
-    const event = this.event();
-    if (!event) return "";
-    if (status === "live") {
-      return event.isSponsored
-        ? $localize`:@@event_preview.status.sponsored_live:Promoted Live Event`
-        : $localize`:@@event_preview.status.live_event:Live Event`;
-    }
-    if (status === "upcoming") {
-      return event.isSponsored
-        ? $localize`:@@event_preview.status.sponsored_upcoming:Promoted Upcoming Event`
-        : $localize`:@@event_preview.status.upcoming_event:Upcoming Event`;
-    }
-    return "";
-  });
-
-  readonly venueLine = computed(() => {
-    const e = this.event();
-    if (!e) return "";
-    return [e.venueString, e.localityString].filter(Boolean).join(", ");
-  });
 
   readonly eventIcon = computed(() =>
     this.event()?.isSponsored ? "handshake" : "event",
@@ -137,6 +93,15 @@ export class EventPreviewComponent {
     if (!event) return null;
     const url = this._safeExternalUrl(event.url ?? event.externalSource?.url);
     return this._analytics.addUtmToUrl(url, "map_event_preview");
+  });
+
+  readonly ticketLink = computed<EventTicketOption | null>(() => {
+    const event = this.event();
+    if (!event) return null;
+    return (
+      event.ticketOptions.find((ticket) => this._safeExternalUrl(ticket.url)) ??
+      null
+    );
   });
 
   /**
@@ -186,6 +151,21 @@ export class EventPreviewComponent {
       sponsor_name: event?.sponsor?.name,
       external_provider: event?.externalSource?.provider,
       url: this.websiteUrl(),
+    });
+    return true;
+  }
+
+  trackTicketClick(ticket: EventTicketOption): boolean {
+    const event = this.event();
+    this._analytics.trackEvent("click_event_link", {
+      surface: "map_event_preview",
+      event_id: event?.id,
+      event_slug: event?.slug,
+      event_name: event?.name,
+      event_status: this.status(),
+      link_kind: "tickets",
+      link_label: ticket.label,
+      url: ticket.url,
     });
     return true;
   }

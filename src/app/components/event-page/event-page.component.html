@@ -69,29 +69,7 @@
           <div class="event-title-block">
             <h1 class="mat-heading-medium">{{ event.name }}</h1>
 
-            @if (isSponsored()) {
-              <p class="mat-title-medium sponsored-line d-flex gap-1 m-0">
-                <mat-icon inline>handshake</mat-icon>
-                <span i18n="@@event_card.sponsored">Promoted Event</span>
-              </p>
-            }
-
-            @if (statusLabel()) {
-              <p
-                class="event-meta mat-title-medium m-0"
-                [attr.data-status]="status()"
-              >
-                {{ statusLabel() }} ({{ dateRange() }})
-              </p>
-            }
-            @if (localityString()) {
-              <p class="mat-title-medium">
-                @if (venueString()) {
-                  {{ venueString() }},
-                }
-                {{ localityString() }}
-              </p>
-            }
+            <app-event-summary-meta [event]="event"></app-event-summary-meta>
           </div>
 
           @if (showRsvp()) {
@@ -103,24 +81,8 @@
         </div>
       </header>
 
-      <section
-        class="event-hero"
-        [class.contain]="event.bannerFit === 'contain'"
-      >
-        @if (heroMedia().length) {
-          <app-img-carousel
-            [media]="heroMedia()"
-            [imageFits]="event.bannerFit === 'contain' ? ['contain'] : []"
-            [imageBackgroundColors]="
-              event.bannerFit === 'contain' ? [event.bannerAccentColor] : []
-            "
-          ></app-img-carousel>
-        } @else {
-          <app-media-placeholder
-            src="assets/spot_placeholder.png"
-            [label]="event.name"
-          ></app-media-placeholder>
-        }
+      <section class="event-hero">
+        <app-event-hero-media [event]="event"></app-event-hero-media>
       </section>
 
       @if (event.description) {

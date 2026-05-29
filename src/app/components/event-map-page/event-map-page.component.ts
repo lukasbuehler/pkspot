@@ -78,6 +78,10 @@ import {
 import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
+import {
+  eventStatusLabel,
+  type EventStatus,
+} from "../event-display/event-display.helpers";
 
 @Pipe({
   name: "reverse",
@@ -253,7 +257,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   });
 
   /** Live event status, recomputed against the current event's dates. */
-  readonly eventStatus = computed<"upcoming" | "live" | "past" | null>(
+  readonly eventStatus = computed<EventStatus | null>(
     () => this.event()?.status() ?? null,
   );
 
@@ -261,16 +265,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     const event = this.event();
     const status = this.eventStatus();
     if (!event || !status) return "";
-    if (status === "past") {
-      return $localize`:@@events.status.past:Past event`;
-    }
-
-    const target = status === "live" ? event.end : event.start;
-    const relative = this._relativeFromNow(target);
-    if (status === "live") {
-      return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
-    }
-    return $localize`:@@events.status.upcoming_starts:Starts ${relative}`;
+    return eventStatusLabel(event, status, this.locale);
   });
 
   readonly customMarkers = computed<MarkerSchema[]>(() =>
@@ -702,35 +697,6 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _formatDateForMeta(date: Date): string {
     return date.toLocaleDateString(this.locale, { dateStyle: "medium" });
-  }
-
-  private _relativeFromNow(target: Date): string {
-    const diffMs = target.getTime() - Date.now();
-    if (diffMs <= 0) {
-      return $localize`:@@events.now_or_past:now`;
-    }
-
-    const formatter = new Intl.RelativeTimeFormat(this.locale, {
-      numeric: "always",
-    });
-
-    const hours = Math.round(diffMs / 3_600_000);
-    if (hours < 48) {
-      return hours >= 2
-        ? formatter.format(hours, "hour")
-        : formatter.format(1, "hour");
-    }
-
-    const days = Math.max(1, Math.round(diffMs / 86_400_000));
-    if (days < 14) {
-      return formatter.format(days, "day");
-    }
-    const weeks = Math.round(days / 7);
-    if (weeks < 8) {
-      return formatter.format(weeks, "week");
-    }
-    const months = Math.round(days / 30);
-    return formatter.format(months, "month");
   }
 
   private _isSameDay(a: Date, b: Date): boolean {

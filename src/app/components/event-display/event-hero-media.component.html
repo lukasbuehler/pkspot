@@ -1,0 +1,14 @@
+<section class="event-hero-media" [class.contain]="event().bannerFit === 'contain'">
+  @if (heroMedia().length) {
+    <app-img-carousel
+      [media]="heroMedia()"
+      [imageFits]="imageFits()"
+      [imageBackgroundColors]="imageBackgroundColors()"
+    ></app-img-carousel>
+  } @else {
+    <app-media-placeholder
+      src="assets/spot_placeholder.png"
+      [label]="event().name"
+    ></app-media-placeholder>
+  }
+</section>

@@ -16,6 +16,7 @@ import { MapsApiService } from "../../services/maps-api.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { ResponsiveService } from "../../services/responsive.service";
 import { StructuredDataService } from "../../services/structured-data.service";
+import { eventHeroMedia } from "../event-display/event-display.helpers";
 import { EventInfoPageComponent } from "./event-page.component";
 
 const flushPromises = () =>
@@ -340,26 +341,25 @@ describe("EventInfoPageComponent", () => {
       () => new EventInfoPageComponent(),
     );
 
-    component.event.set(
-      buildEvent("swissjam26", "Swiss Jam 2026", {
-        banner_src: "assets/swissjam/swissjam0.jpg",
-        inline_spots: [
-          {
-            id: "main",
-            name: "Main",
-            location: { lat: 47.38, lng: 8.55 },
-            images: [
-              "assets/swissjam/swissjam2.jpg",
-              "assets/swissjam/swissjam0.jpg",
-              "assets/swissjam/swissjam1.jpg",
-            ],
-          },
-        ],
-      }),
-    );
+    const event = buildEvent("swissjam26", "Swiss Jam 2026", {
+      banner_src: "assets/swissjam/swissjam0.jpg",
+      inline_spots: [
+        {
+          id: "main",
+          name: "Main",
+          location: { lat: 47.38, lng: 8.55 },
+          images: [
+            "assets/swissjam/swissjam2.jpg",
+            "assets/swissjam/swissjam0.jpg",
+            "assets/swissjam/swissjam1.jpg",
+          ],
+        },
+      ],
+    });
+    component.event.set(event);
 
     expect(
-      component.heroMedia().map((media) => media.getPreviewImageSrc()),
+      eventHeroMedia(event).map((media) => media.getPreviewImageSrc()),
     ).toEqual([
       "assets/swissjam/swissjam0.jpg",
       "assets/swissjam/swissjam2.jpg",
@@ -422,23 +422,22 @@ describe("EventInfoPageComponent", () => {
       () => new EventInfoPageComponent(),
     );
 
-    component.event.set(
-      buildEvent("media-event", "Media Event", {
-        banner_src: undefined,
-        media: [
-          {
-            src: "https://cdn.example.com/event-photo.jpg",
-            type: "image",
-            isInStorage: false,
-          },
-          {
-            src: "https://cdn.example.com/event-video.mp4",
-            type: "video",
-            isInStorage: false,
-          },
-        ],
-      }),
-    );
+    const event = buildEvent("media-event", "Media Event", {
+      banner_src: undefined,
+      media: [
+        {
+          src: "https://cdn.example.com/event-photo.jpg",
+          type: "image",
+          isInStorage: false,
+        },
+        {
+          src: "https://cdn.example.com/event-video.mp4",
+          type: "video",
+          isInStorage: false,
+        },
+      ],
+    });
+    component.event.set(event);
     flushSignalEffects();
 
     expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
@@ -454,7 +453,7 @@ describe("EventInfoPageComponent", () => {
       }),
     );
     expect(
-      component.heroMedia().map((media) => media.getPreviewImageSrc()),
+      eventHeroMedia(event).map((media) => media.getPreviewImageSrc()),
     ).toEqual([
       "https://cdn.example.com/event-photo.jpg",
       "https://cdn.example.com/event-video.mp4",

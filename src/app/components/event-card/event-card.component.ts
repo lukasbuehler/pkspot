@@ -17,8 +17,10 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { MatTooltip } from "@angular/material/tooltip";
 import { formatDateRange } from "../../../scripts/Helpers";
-
-type EventStatus = "upcoming" | "live" | "past";
+import {
+  eventStatusLabel,
+  type EventStatus,
+} from "../event-display/event-display.helpers";
 
 @Component({
   selector: "app-event-card",
@@ -52,48 +54,11 @@ export class EventCardComponent {
     "/events",
     this.event().slug ?? this.event().id,
   ]);
-  readonly statusLabel = computed(() => {
-    const event = this.event();
-    const status = this.status();
-    if (status === "past") {
-      return $localize`:@@events.status.past:Past event`;
-    }
-
-    const target = status === "live" ? event.end : event.start;
-    const relative = this._relativeFromNow(target);
-    if (status === "live") {
-      return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
-    }
-    return $localize`:@@events.status.upcoming_starts:Starts ${relative}`;
-  });
+  readonly statusLabel = computed(() =>
+    eventStatusLabel(this.event(), this.status(), this._locale),
+  );
 
   onSelect(): void {
     this.select.emit(this.event());
-  }
-
-  private _relativeFromNow(target: Date): string {
-    const diffMs = target.getTime() - Date.now();
-    if (diffMs <= 0) {
-      return $localize`:@@events.now_or_past:now`;
-    }
-    const formatter = new Intl.RelativeTimeFormat(this._locale, {
-      numeric: "always",
-    });
-
-    const hours = Math.round(diffMs / 3_600_000);
-    if (hours < 48) {
-      return hours >= 2
-        ? formatter.format(hours, "hour")
-        : formatter.format(1, "hour");
-    }
-
-    const days = Math.max(1, Math.round(diffMs / 86_400_000));
-    if (days < 14) return formatter.format(days, "day");
-
-    const weeks = Math.round(days / 7);
-    if (weeks < 8) return formatter.format(weeks, "week");
-
-    const months = Math.round(days / 30);
-    return formatter.format(months, "month");
   }
 }

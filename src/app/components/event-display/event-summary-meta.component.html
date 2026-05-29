@@ -1,0 +1,16 @@
+@if (event().isSponsored) {
+  <p class="mat-title-medium promoted-line d-flex gap-1 m-0">
+    <mat-icon inline>handshake</mat-icon>
+    <span i18n="@@event_card.sponsored">Promoted Event</span>
+  </p>
+}
+
+@if (statusLabel()) {
+  <p class="event-meta mat-title-medium m-0" [attr.data-status]="status()">
+    {{ statusLabel() }} ({{ dateRange() }})
+  </p>
+}
+
+@if (showVenue() && venueLine()) {
+  <p class="event-venue mat-title-medium m-0">{{ venueLine() }}</p>
+}

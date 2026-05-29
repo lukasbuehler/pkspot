@@ -43,18 +43,14 @@ import {
   EventEditFormComponent,
   EventEditPatch,
 } from "../event-edit-form/event-edit-form.component";
-import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
-import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
+import { EventHeroMediaComponent } from "../event-display/event-hero-media.component";
+import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
 import {
-  AnyMedia,
-  ExternalImage,
-  ExternalVideo,
-} from "../../../db/models/Media";
-import { MediaSchema } from "../../../db/schemas/Media";
+  eventStatusLabel,
+  type EventStatus,
+} from "../event-display/event-display.helpers";
 import { isBot, formatDateRange } from "../../../scripts/Helpers";
-
-type EventStatus = "upcoming" | "live" | "past";
 
 @Component({
   selector: "app-event-info-page",
@@ -66,9 +62,9 @@ type EventStatus = "upcoming" | "live" | "past";
     MatTooltipModule,
     GoogleMap2dComponent,
     EventEditFormComponent,
-    MediaPlaceholderComponent,
     EventRsvpComponent,
-    ImgCarouselComponent,
+    EventHeroMediaComponent,
+    EventSummaryMetaComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -105,7 +101,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
-  readonly isSponsored = computed(() => this.event()?.isSponsored ?? false);
 
   readonly dateRange = computed(() => {
     const event = this.event();
@@ -122,26 +117,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   });
 
   readonly name = computed(() => this.event()?.name ?? "");
-  readonly venueString = computed(() => this.event()?.venueString ?? "");
-  readonly localityString = computed(() => this.event()?.localityString ?? "");
-  readonly heroMedia = computed<AnyMedia[]>(() => {
-    const event = this.event();
-    if (!event) return [];
-
-    const media = [
-      ...(event.bannerSrc ? [new ExternalImage(event.bannerSrc)] : []),
-      ...event.media.map((item) => this._eventMediaFromSchema(item)),
-      ...event.inlineSpots
-        .flatMap((spot) => spot.images ?? [])
-        .map((src) => new ExternalImage(src)),
-    ];
-    const seen = new Set<string>();
-    return media.filter((item) => {
-      if (seen.has(item.baseSrc)) return false;
-      seen.add(item.baseSrc);
-      return true;
-    });
-  });
   readonly mapRoute = computed(() => {
     const event = this.event();
     return event ? ["/events", event.slug ?? event.id, "map"] : ["/events"];
@@ -156,16 +131,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const event = this.event();
     const status = this.status();
     if (!event || !status) return "";
-    if (status === "past") {
-      return $localize`:@@events.status.past:Past event`;
-    }
-
-    const target = status === "live" ? event.end : event.start;
-    const relative = this._relativeFromNow(target);
-    if (status === "live") {
-      return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
-    }
-    return $localize`:@@events.status.upcoming_starts:Starts ${relative}`;
+    return eventStatusLabel(event, status, this._locale);
   });
   readonly startDateTime = computed(() => {
     const event = this.event();
@@ -632,35 +598,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  private _relativeFromNow(target: Date): string {
-    const diffMs = target.getTime() - Date.now();
-    if (diffMs <= 0) {
-      return $localize`:@@events.now_or_past:now`;
-    }
-
-    const formatter = new Intl.RelativeTimeFormat(this._locale, {
-      numeric: "always",
-    });
-
-    const hours = Math.round(diffMs / 3_600_000);
-    if (hours < 48) {
-      return hours >= 2
-        ? formatter.format(hours, "hour")
-        : formatter.format(1, "hour");
-    }
-
-    const days = Math.max(1, Math.round(diffMs / 86_400_000));
-    if (days < 14) {
-      return formatter.format(days, "day");
-    }
-    const weeks = Math.round(days / 7);
-    if (weeks < 8) {
-      return formatter.format(weeks, "week");
-    }
-    const months = Math.round(days / 30);
-    return formatter.format(months, "month");
-  }
-
   private _absoluteUrl(path: string): string {
     if (/^https?:\/\//i.test(path)) {
       return path;
@@ -748,24 +685,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ...event.inlineSpots.flatMap((spot) => spot.images ?? []),
     ];
     return [...new Set(images)];
-  }
-
-  private _eventMediaFromSchema(media: MediaSchema): AnyMedia {
-    return media.type === MediaType.Video
-      ? new ExternalVideo(
-          media.src,
-          media.uid,
-          media.attribution,
-          media.origin,
-          media.isReported,
-        )
-      : new ExternalImage(
-          media.src,
-          media.uid,
-          media.attribution,
-          media.origin,
-          media.isReported,
-        );
   }
 
   private _isSameDay(a: Date, b: Date): boolean {
