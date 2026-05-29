@@ -100,12 +100,12 @@ export class EventPreviewComponent {
     if (!event) return "";
     if (status === "live") {
       return event.isSponsored
-        ? $localize`:@@event_preview.status.sponsored_live:Sponsored Live Event`
+        ? $localize`:@@event_preview.status.sponsored_live:Promoted Live Event`
         : $localize`:@@event_preview.status.live_event:Live Event`;
     }
     if (status === "upcoming") {
       return event.isSponsored
-        ? $localize`:@@event_preview.status.sponsored_upcoming:Sponsored Upcoming Event`
+        ? $localize`:@@event_preview.status.sponsored_upcoming:Promoted Upcoming Event`
         : $localize`:@@event_preview.status.upcoming_event:Upcoming Event`;
     }
     return "";
@@ -122,7 +122,7 @@ export class EventPreviewComponent {
   );
   readonly eventIconTooltip = computed(() =>
     this.event()?.isSponsored
-      ? $localize`:@@event_preview.sponsored_tooltip:Sponsored event`
+      ? $localize`:@@event_preview.sponsored_tooltip:Promoted event`
       : $localize`:@@event_preview.event_tooltip:Event`,
   );
 

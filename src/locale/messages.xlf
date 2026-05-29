@@ -43,12 +43,12 @@
     </unit>
     <unit id="map_island.event_sponsored_live">
       <segment>
-        <source>Sponsored Live Event</source>
+        <source>Promoted Live Event</source>
       </segment>
     </unit>
     <unit id="map_island.event_sponsored_upcoming">
       <segment>
-        <source>Sponsored Upcoming Event</source>
+        <source>Promoted Upcoming Event</source>
       </segment>
     </unit>
     <unit id="map_island.event_upcoming">
@@ -1444,7 +1444,12 @@
     </unit>
     <unit id="event_card.sponsored">
       <segment>
-        <source>Sponsored Event</source>
+        <source>Promoted Event</source>
+      </segment>
+    </unit>
+    <unit id="event_card.sponsored_tooltip">
+      <segment>
+        <source>Promoted event</source>
       </segment>
     </unit>
     <unit id="event_create.meta.description">
@@ -1654,7 +1659,7 @@
     </unit>
     <unit id="event_edit.optional_section_hint">
       <segment>
-        <source> Description, banner, spots, sponsor, … </source>
+        <source> Description, banner, spots, promotion, … </source>
       </segment>
     </unit>
     <unit id="event_edit.organizer">
@@ -1724,27 +1729,27 @@
     </unit>
     <unit id="event_edit.sponsor_heading">
       <segment>
-        <source> Sponsor </source>
+        <source> Promotion </source>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_hint">
       <segment>
-        <source> If set, the event is treated as a paid promo — sponsor logo shows on event spot pins and inside the map-island chip. </source>
+        <source> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </source>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
       <segment>
-        <source> Sponsor logo </source>
+        <source> Promotion logo </source>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_name">
       <segment>
-        <source> Sponsor name </source>
+        <source> Promotion name </source>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_url">
       <segment>
-        <source>Sponsor URL</source>
+        <source>Promotion URL</source>
       </segment>
     </unit>
     <unit id="event_edit.spot_picker_label">
@@ -1869,12 +1874,12 @@
     </unit>
     <unit id="event_page.status.sponsored_live">
       <segment>
-        <source>Sponsored Live Event</source>
+        <source>Promoted Live Event</source>
       </segment>
     </unit>
     <unit id="event_page.status.sponsored_upcoming">
       <segment>
-        <source>Sponsored Upcoming Event</source>
+        <source>Promoted Upcoming Event</source>
       </segment>
     </unit>
     <unit id="event_page.status.starts_in">
@@ -1899,7 +1904,7 @@
     </unit>
     <unit id="event_preview.sponsored_tooltip">
       <segment>
-        <source>Sponsored event</source>
+        <source>Promoted event</source>
       </segment>
     </unit>
     <unit id="event_preview.status.ends_in">
@@ -1919,12 +1924,12 @@
     </unit>
     <unit id="event_preview.status.sponsored_live">
       <segment>
-        <source>Sponsored Live Event</source>
+        <source>Promoted Live Event</source>
       </segment>
     </unit>
     <unit id="event_preview.status.sponsored_upcoming">
       <segment>
-        <source>Sponsored Upcoming Event</source>
+        <source>Promoted Upcoming Event</source>
       </segment>
     </unit>
     <unit id="event_preview.status.starts_in">

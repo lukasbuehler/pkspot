@@ -93,11 +93,11 @@ export class MapIslandComponent {
     const status = this.eventStatus();
     if (status === "live") {
       return c.event.isSponsored
-        ? $localize`:@@map_island.event_sponsored_live:Sponsored Live Event`
+        ? $localize`:@@map_island.event_sponsored_live:Promoted Live Event`
         : $localize`:@@map_island.event_live:Live Event`;
     }
     return c.event.isSponsored
-      ? $localize`:@@map_island.event_sponsored_upcoming:Sponsored Upcoming Event`
+      ? $localize`:@@map_island.event_sponsored_upcoming:Promoted Upcoming Event`
       : $localize`:@@map_island.event_upcoming:Upcoming Event`;
   });
 

@@ -829,27 +829,27 @@
 
       <mat-divider />
 
-      <!-- ----------------- Sponsor ----------------- -->
+      <!-- ----------------- Promotion ----------------- -->
       <div class="d-flex flex-column gap-2">
         <h4 class="mat-title-small m-0" i18n="@@event_edit.sponsor_heading">
-          Sponsor
+          Promotion
         </h4>
         <p
           class="mat-label-small text-muted m-0"
           i18n="@@event_edit.sponsor_hint"
         >
-          If set, the event is treated as a paid promo — sponsor logo
+          If set, the event is treated as promoted — the promotion logo
           shows on event spot pins and inside the map-island chip.
         </p>
         <div class="d-flex flex-row gap-2 flex-wrap">
           <mat-form-field appearance="outline" class="flex-grow-1">
             <mat-label i18n="@@event_edit.sponsor_name">
-              Sponsor name
+              Promotion name
             </mat-label>
             <input matInput formControlName="sponsor_name" />
           </mat-form-field>
           <mat-form-field appearance="outline" class="flex-grow-1">
-            <mat-label i18n="@@event_edit.sponsor_url">Sponsor URL</mat-label>
+            <mat-label i18n="@@event_edit.sponsor_url">Promotion URL</mat-label>
             <input
               matInput
               formControlName="sponsor_url"
@@ -858,7 +858,7 @@
           </mat-form-field>
         </div>
         <p class="mat-label-medium text-muted m-0" i18n="@@event_edit.sponsor_logo">
-          Sponsor logo
+          Promotion logo
         </p>
         <app-media-upload
           [allowedMimeTypes]="[

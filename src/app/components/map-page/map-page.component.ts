@@ -725,7 +725,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * the Events chip.
    *
    * Past events are not surfaced as pins (out-of-date pins clutter the
-   * map without value). Sponsored events render with the highlighted
+   * map without value). Promoted events render with the highlighted
    * border style.
    */
   availableEventMarkers = computed(() => {
@@ -787,7 +787,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * Active map-island content. Picks the most relevant variant for the
    * visible viewport. Reserved for high-signal content:
    *   1. Filter helper ("no spots match this filter") — user-action context.
-   *   2. Promoted / sponsored events — paid surface + first-class events.
+   *   2. Promoted events — paid surface + first-class events.
    *
    * Communities are intentionally NOT surfaced here — they're already
    * visible as clickable circles on the map (less attention-grabbing

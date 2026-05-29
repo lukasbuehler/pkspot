@@ -805,14 +805,14 @@
     </unit>
     <unit id="map_island.event_sponsored_live">
       <segment state="initial">
-        <source>Sponsored Live Event</source>
-        <target>Gesponsord live-evenement</target>
+        <source>Promoted Live Event</source>
+        <target>Gepromoot live-evenement</target>
       </segment>
     </unit>
     <unit id="map_island.event_sponsored_upcoming">
       <segment state="initial">
-        <source>Sponsored Upcoming Event</source>
-        <target>Gesponsord aankomend evenement</target>
+        <source>Promoted Upcoming Event</source>
+        <target>Gepromoot aankomend evenement</target>
       </segment>
     </unit>
     <unit id="map_island.event_upcoming">
@@ -3337,8 +3337,14 @@
     </unit>
     <unit id="event_card.sponsored">
       <segment state="initial">
-        <source>Sponsored Event</source>
-        <target>Sponsored Event</target>
+        <source>Promoted Event</source>
+        <target>Promoted Event</target>
+      </segment>
+    </unit>
+    <unit id="event_card.sponsored_tooltip">
+      <segment state="initial">
+        <source>Promoted event</source>
+        <target>Promoted event</target>
       </segment>
     </unit>
     <unit id="event_create.meta.description">
@@ -3589,8 +3595,8 @@
     </unit>
     <unit id="event_edit.optional_section_hint">
       <segment state="initial">
-        <source> Description, banner, spots, sponsor, … </source>
-        <target> Description, banner, spots, sponsor, … </target>
+        <source> Description, banner, spots, promotion, … </source>
+        <target> Description, banner, spots, promotion, … </target>
       </segment>
     </unit>
     <unit id="event_edit.organizer">
@@ -3673,32 +3679,32 @@
     </unit>
     <unit id="event_edit.sponsor_heading">
       <segment state="initial">
-        <source> Sponsor </source>
-        <target> Sponsor </target>
+        <source> Promotion </source>
+        <target> Promotion </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_hint">
       <segment state="initial">
-        <source> If set, the event is treated as a paid promo — sponsor logo shows on event spot pins and inside the map-island chip. </source>
-        <target> If set, the event is treated as a paid promo — sponsor logo shows on event spot pins and inside the map-island chip. </target>
+        <source> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </source>
+        <target> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
       <segment state="initial">
-        <source> Sponsor logo </source>
-        <target> Sponsor logo </target>
+        <source> Promotion logo </source>
+        <target> Promotion logo </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_name">
       <segment state="initial">
-        <source> Sponsor name </source>
-        <target> Sponsor name </target>
+        <source> Promotion name </source>
+        <target> Promotion name </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_url">
       <segment state="initial">
-        <source>Sponsor URL</source>
-        <target>Sponsor URL</target>
+        <source>Promotion URL</source>
+        <target>Promotion URL</target>
       </segment>
     </unit>
     <unit id="event_edit.spot_picker_label">
@@ -3769,14 +3775,14 @@
     </unit>
     <unit id="event_page.status.sponsored_live">
       <segment state="initial">
-        <source>Sponsored Live Event</source>
-        <target>Gesponsord live-evenement</target>
+        <source>Promoted Live Event</source>
+        <target>Gepromoot live-evenement</target>
       </segment>
     </unit>
     <unit id="event_page.status.sponsored_upcoming">
       <segment state="initial">
-        <source>Sponsored Upcoming Event</source>
-        <target>Gesponsord aankomend evenement</target>
+        <source>Promoted Upcoming Event</source>
+        <target>Gepromoot aankomend evenement</target>
       </segment>
     </unit>
     <unit id="event_page.status.starts_in">
@@ -3805,8 +3811,8 @@
     </unit>
     <unit id="event_preview.sponsored_tooltip">
       <segment state="initial">
-        <source>Sponsored event</source>
-        <target>Sponsored event</target>
+        <source>Promoted event</source>
+        <target>Promoted event</target>
       </segment>
     </unit>
     <unit id="event_preview.status.ends_in">
@@ -3829,14 +3835,14 @@
     </unit>
     <unit id="event_preview.status.sponsored_live">
       <segment state="initial">
-        <source>Sponsored Live Event</source>
-        <target>Gesponsord live-evenement</target>
+        <source>Promoted Live Event</source>
+        <target>Gepromoot live-evenement</target>
       </segment>
     </unit>
     <unit id="event_preview.status.sponsored_upcoming">
       <segment state="initial">
-        <source>Sponsored Upcoming Event</source>
-        <target>Gesponsord aankomend evenement</target>
+        <source>Promoted Upcoming Event</source>
+        <target>Gepromoot aankomend evenement</target>
       </segment>
     </unit>
     <unit id="event_preview.status.starts_in">
