@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   effect,
@@ -21,6 +22,7 @@ import { EventCardComponent } from "../event-card/event-card.component";
   imports: [EventCardComponent, MatButtonModule, MatIconModule, RouterLink],
   templateUrl: "./events-page.component.html",
   styleUrl: "./events-page.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventsPageComponent implements OnInit {
   private _eventsService = inject(EventsService);

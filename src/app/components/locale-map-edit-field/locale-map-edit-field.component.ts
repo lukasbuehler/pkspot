@@ -78,20 +78,13 @@ export class LocaleMapEditFieldComponent {
 
   localeKeys: Signal<LocaleCode[]> = computed(() => {
     const localeMap = this.localeMap();
-    console.log("localeMap", localeMap);
-
-    const localeKeys = Object.keys(localeMap ?? {}) as LocaleCode[];
-    console.log("localeKeys", localeKeys);
-
-    return localeKeys;
+    return Object.keys(localeMap ?? {}) as LocaleCode[];
   });
   shownLocales: Signal<LocaleCode[]> = computed(() => {
     const isExpanded = this.isExpanded();
     const localeMap = this.localeMap() ?? {};
     const localeKeys = this.localeKeys();
     const bestLocale = this.bestLocale();
-
-    console.log("localeKeys", localeKeys);
 
     if (localeKeys.length === 0) {
       return [];
@@ -139,21 +132,15 @@ export class LocaleMapEditFieldComponent {
     });
 
     dialogRef.afterClosed().subscribe((locale: LocaleCode | null) => {
-      console.log("Selected locale: ", locale);
-
       if (locale) {
         this.localeMap.update((val) => {
-          const newVal = {
+          return {
             ...(val ?? {}),
             [locale]: { text: "", provider: "user" },
           };
-          console.log("newVal", newVal);
-          return newVal;
         });
         // Expand only after we actually added a locale
         this.isExpanded.set(true);
-      } else {
-        console.error("No locale selected");
       }
     });
   }

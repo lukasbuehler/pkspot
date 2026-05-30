@@ -23,7 +23,6 @@ import { Subscription, firstValueFrom, take } from "rxjs";
 import { Event as PkEvent, EventProgramItem } from "../../../db/models/Event";
 import {
   EventCategory,
-  EventAreaPolygonSchema,
   EventBoundsSchema,
   EventLinkSchema,
   EventQualificationRefSchema,
@@ -452,20 +451,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     if (!current || !this.isAdmin()) return;
     this.isSavingEvent.set(true);
     try {
-      console.debug("[EventAreaDebug] event page save start", {
-        eventId: current.id,
-        patchArea: summarizeAreaPolygon(patch.area_polygon),
-        currentArea: summarizeAreaPolygon(current.areaPolygon),
-        currentBounds: current.bounds ?? null,
-      });
       await this._eventsService.updateEvent(current.id, patch);
       const reloaded = await this._eventsService.getEventById(current.id);
       if (reloaded) {
-        console.debug("[EventAreaDebug] event page save reloaded", {
-          eventId: reloaded.id,
-          reloadedArea: summarizeAreaPolygon(reloaded.areaPolygon),
-          reloadedBounds: reloaded.bounds ?? null,
-        });
         this.event.set(reloaded);
       }
       this.isEditingEvent.set(false);
@@ -522,16 +510,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           if (!loaded) {
             void this._router.navigate(["/events"]);
             return;
-          }
-          if (this.isEditingEvent()) {
-            console.debug(
-              "[EventAreaDebug] event page live snapshot while editing",
-              {
-                eventId: loaded.id,
-                area: summarizeAreaPolygon(loaded.areaPolygon),
-                bounds: loaded.bounds ?? null,
-              },
-            );
           }
           this.event.set(loaded);
         },
@@ -738,9 +716,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   qualificationRefLabel(ref: EventQualificationRefSchema): string {
+    const eventLabel = this._knownQualificationEventLabel(String(ref.event_id));
     return ref.program_item_id
-      ? `${ref.event_id} / ${ref.program_item_id}`
-      : String(ref.event_id);
+      ? `${eventLabel} / ${this._humanizeSlug(ref.program_item_id)}`
+      : eventLabel;
   }
 
   qualifierEventsFor(membership: EventSeriesMembershipSchema): PkEvent[] {
@@ -752,6 +731,35 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         (event, index, events) =>
           events.findIndex((candidate) => candidate.id === event.id) === index,
       );
+  }
+
+  private _knownQualificationEventLabel(eventId: string): string {
+    switch (eventId) {
+      case "parkour-expo-skill-2026":
+        return "Parkour Expo Skill Competition 2026";
+      case "nurf-skill-2026":
+        return "Nurf Skill Competition 2026";
+      case "parkour-luzern-speed-2026":
+        return "Parkour Luzern Speed Competition 2026";
+      case "parkour-day-staefa-2026":
+        return "Parkour Day Stafa 2026";
+      case "wpf-skills-competition-2026":
+        return "WPF Skills Competition 2026";
+      default:
+        return this._humanizeSlug(eventId);
+    }
+  }
+
+  private _humanizeSlug(value: string): string {
+    return value
+      .split("-")
+      .filter(Boolean)
+      .map((word) =>
+        /^\\d+$/.test(word) || word.length <= 3
+          ? word.toUpperCase()
+          : word[0]?.toUpperCase() + word.slice(1),
+      )
+      .join(" ");
   }
 
   private _absoluteUrl(path: string): string {
@@ -863,32 +871,4 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
     return null;
   }
-}
-
-function summarizeAreaPolygon(
-  areaPolygon: EventAreaPolygonSchema[] | null | undefined,
-): Array<{
-  areaName?: string;
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-}> | null {
-  if (!areaPolygon) return null;
-  return areaPolygon.map((ring) => ({
-    areaName: ring.area_name,
-    ...summarizePath(ring.points),
-  }));
-}
-
-function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-} {
-  if (!path || path.length === 0) return { count: 0 };
-  return {
-    count: path.length,
-    first: path[0],
-    last: path[path.length - 1],
-  };
 }

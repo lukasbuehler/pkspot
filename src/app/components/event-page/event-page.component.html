@@ -140,13 +140,6 @@
                 <p class="mat-label-large qualifier-label" i18n="@@event_qualification.qualifiers">
                   Qualifying events
                 </p>
-                <div class="qualifier-list">
-                  @for (ref of membership.required_qualifiers; track qualificationRefLabel(ref)) {
-                    <span class="qualifier-pill mat-label-medium">
-                      {{ qualificationRefLabel(ref) }}
-                    </span>
-                  }
-                </div>
                 @if (isLoadingQualifierEvents()) {
                   <div class="d-flex align-items-center gap-2 mt-2">
                     <mat-progress-spinner
@@ -168,6 +161,14 @@
                       <app-event-card [event]="qualifier"></app-event-card>
                     }
                   </div>
+                } @else {
+                  <div class="qualifier-list">
+                    @for (ref of membership.required_qualifiers; track qualificationRefLabel(ref)) {
+                      <span class="qualifier-pill mat-label-medium">
+                        {{ qualificationRefLabel(ref) }}
+                      </span>
+                    }
+                  </div>
                 }
               }
             </article>
@@ -181,9 +182,6 @@
             <h2 class="mat-title-medium m-0" i18n="@@event_program.heading">
               Program
             </h2>
-            <span class="mat-label-medium muted" i18n="@@event_program.placeholder">
-              Full schedule tools are coming later.
-            </span>
           </div>
           <app-event-program-timeline
             [items]="activeProgramItems()"

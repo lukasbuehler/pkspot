@@ -122,12 +122,6 @@ export class BoundsPickerComponent implements OnInit {
       const boundsFallback = this.bounds();
       const nextPath = path && path.length >= 3 ? path : null;
 
-      console.debug("[EventAreaDebug] picker input sync", {
-        inputArea: summarizePath(path),
-        boundsFallback,
-        nextPath: summarizePath(nextPath),
-      });
-
       if (nextPath) {
         this.internalAreaPath.set(nextPath);
         this.initialCenter.set(pathCenter(nextPath));
@@ -169,10 +163,6 @@ export class BoundsPickerComponent implements OnInit {
       east: lng + half,
       west: lng - half,
     });
-    console.debug("[EventAreaDebug] picker map click created rectangle", {
-      click: { lat, lng },
-      next: summarizePath(next),
-    });
     this.internalAreaPath.set(next);
     this.areaChange.emit(next);
   }
@@ -191,9 +181,6 @@ export class BoundsPickerComponent implements OnInit {
     this._polygon = polygon;
     this._pathListeners.forEach((listener) => listener.remove());
     const path = polygon.getPath();
-    console.debug("[EventAreaDebug] picker polygon initialized", {
-      path: summarizeMvcPath(path),
-    });
     this._pathListeners = [
       path.addListener("insert_at", () => this.onPolygonChanged()),
       path.addListener("remove_at", () => this.onPolygonChanged()),
@@ -211,9 +198,6 @@ export class BoundsPickerComponent implements OnInit {
       next.push({ lat: point.lat(), lng: point.lng() });
     }
     if (next.length < 3) return;
-    console.debug("[EventAreaDebug] picker polygon changed", {
-      next: summarizePath(next),
-    });
     this.internalAreaPath.set(next);
     this.areaChange.emit(next);
   }
@@ -232,7 +216,6 @@ export class BoundsPickerComponent implements OnInit {
 
   /** Reset the area so the user can click somewhere else to drop a fresh one. */
   clear(): void {
-    console.debug("[EventAreaDebug] picker clear");
     this.internalAreaPath.set(null);
     this.areaChange.emit(null);
   }
@@ -268,31 +251,5 @@ function pathCenter(path: Array<{ lat: number; lng: number }>): {
   return {
     lat: (bounds.north + bounds.south) / 2,
     lng: (bounds.east + bounds.west) / 2,
-  };
-}
-
-function summarizeMvcPath(path: google.maps.MVCArray<google.maps.LatLng>): {
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-} {
-  const points: Array<{ lat: number; lng: number }> = [];
-  for (let i = 0; i < path.getLength(); i++) {
-    const point = path.getAt(i);
-    points.push({ lat: point.lat(), lng: point.lng() });
-  }
-  return summarizePath(points);
-}
-
-function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-} {
-  if (!path || path.length === 0) return { count: 0 };
-  return {
-    count: path.length,
-    first: path[0],
-    last: path[path.length - 1],
   };
 }

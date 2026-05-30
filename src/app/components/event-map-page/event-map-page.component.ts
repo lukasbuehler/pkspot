@@ -70,7 +70,6 @@ import {
   EventEditPatch,
 } from "../event-edit-form/event-edit-form.component";
 import {
-  EventAreaPolygonSchema,
   EventBoundsSchema,
   EventId,
   EventSchema,
@@ -92,34 +91,6 @@ export class ReversePipe implements PipeTransform {
     if (!Array.isArray(value)) return value;
     return [...value].reverse();
   }
-}
-
-function summarizeAreaPolygon(
-  areaPolygon: EventAreaPolygonSchema[] | null | undefined,
-): Array<{
-  areaName?: string;
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-}> | null {
-  if (!areaPolygon) return null;
-  return areaPolygon.map((ring) => ({
-    areaName: ring.area_name,
-    ...summarizePath(ring.points),
-  }));
-}
-
-function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-} {
-  if (!path || path.length === 0) return { count: 0 };
-  return {
-    count: path.length,
-    first: path[0],
-    last: path[path.length - 1],
-  };
 }
 
 type EventPageMapMarker = MarkerSchema & {
@@ -727,22 +698,11 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     if (!current || !this.isAdmin()) return;
     this.isSavingEvent.set(true);
     try {
-      console.debug("[EventAreaDebug] event map page save start", {
-        eventId: current.id,
-        patchArea: summarizeAreaPolygon(patch.area_polygon),
-        currentArea: summarizeAreaPolygon(current.areaPolygon),
-        currentBounds: current.bounds ?? null,
-      });
       await this._eventsService.updateEvent(current.id, patch);
       // Reload from Firestore so all downstream computeds (status,
       // countdown, structured data) see the new values.
       const reloaded = await this._eventsService.getEventById(current.id);
       if (reloaded) {
-        console.debug("[EventAreaDebug] event map page save reloaded", {
-          eventId: reloaded.id,
-          reloadedArea: summarizeAreaPolygon(reloaded.areaPolygon),
-          reloadedBounds: reloaded.bounds ?? null,
-        });
         this.event.set(reloaded);
       }
       this.isEditingEvent.set(false);

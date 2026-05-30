@@ -177,14 +177,6 @@ export class EventsService extends ConsentAwareService {
       time_updated: Timestamp.now(),
     }) as Partial<EventSchema>;
 
-    console.debug("[EventAreaDebug] service updateEvent write", {
-      eventId,
-      areaPolygon: summarizeAreaPolygon(patch.area_polygon),
-      cleanedAreaPolygon: summarizeAreaPolygon(cleaned.area_polygon),
-      hasBoundsInPatch: "bounds" in patch,
-      hasLocationInPatch: "location" in patch,
-    });
-
     await this._firestoreAdapter.updateDocument(
       `events/${eventId}`,
       cleaned as Record<string, unknown>
@@ -403,32 +395,4 @@ export class EventsService extends ConsentAwareService {
 
     return null;
   }
-}
-
-function summarizeAreaPolygon(
-  areaPolygon: EventSchema["area_polygon"] | null | undefined,
-): Array<{
-  areaName?: string;
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-}> | null {
-  if (!areaPolygon || !Array.isArray(areaPolygon)) return null;
-  return areaPolygon.map((ring) => ({
-    areaName: ring.area_name,
-    ...summarizePath(ring.points),
-  }));
-}
-
-function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-} {
-  if (!path || path.length === 0) return { count: 0 };
-  return {
-    count: path.length,
-    first: path[0],
-    last: path[path.length - 1],
-  };
 }

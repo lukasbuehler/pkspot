@@ -312,7 +312,6 @@ export class EventEditFormComponent {
     effect(() => {
       const e = this.event();
       if (!e) {
-        console.debug("[EventAreaDebug] form reset empty event");
         this._loadedEventId = null;
         this.form.reset({
           published: true,
@@ -334,21 +333,9 @@ export class EventEditFormComponent {
         return;
       }
       if (this._loadedEventId === e.id) {
-        console.debug("[EventAreaDebug] form ignored same-event refresh", {
-          eventId: e.id,
-          incomingArea: summarizePath(eventAreaPath(e.areaPolygon)),
-          incomingBounds: e.bounds ?? null,
-          localArea: summarizePath(this.areaPath()),
-          areaTouched: this.areaTouched(),
-        });
         return;
       }
       this._loadedEventId = e.id;
-      console.debug("[EventAreaDebug] form initializing from event", {
-        eventId: e.id,
-        incomingArea: summarizePath(eventAreaPath(e.areaPolygon)),
-        incomingBounds: e.bounds ?? null,
-      });
       this.form.reset({
         name: e.name,
         description: e.description ?? "",
@@ -461,11 +448,6 @@ export class EventEditFormComponent {
   });
 
   onAreaChange(path: Array<{ lat: number; lng: number }> | null): void {
-    console.debug("[EventAreaDebug] form areaChange", {
-      path: summarizePath(path),
-      previousArea: summarizePath(this.areaPath()),
-      boundsContext: this.bounds(),
-    });
     this.areaPath.set(path);
     this.areaTouched.set(true);
   }
@@ -769,12 +751,6 @@ export class EventEditFormComponent {
           : undefined,
     };
 
-    console.debug("[EventAreaDebug] form submit patch", {
-      localArea: summarizePath(this.areaPath()),
-      areaTouched: this.areaTouched(),
-      patchArea: summarizeAreaPolygon(patch.area_polygon),
-      hasBoundsInPatch: "bounds" in patch,
-    });
     this.save.emit(patch);
   }
 
@@ -784,15 +760,6 @@ export class EventEditFormComponent {
     const localPath = this.areaPath();
     const differsFromLocal = !pathsEqual(livePath, localPath);
     const differsFromOriginal = !pathsEqual(livePath, originalPath);
-
-    console.debug("[EventAreaDebug] form submit live picker sync", {
-      livePath: summarizePath(livePath),
-      localPath: summarizePath(localPath),
-      originalPath: summarizePath(originalPath),
-      differsFromLocal,
-      differsFromOriginal,
-      areaTouchedBefore: this.areaTouched(),
-    });
 
     if (differsFromLocal) {
       this.areaPath.set(livePath);
@@ -896,17 +863,10 @@ export class EventEditFormComponent {
     const path = this.areaPath();
     if (!path || path.length < 3) {
       if (!this.areaTouched()) return {};
-      console.debug("[EventAreaDebug] form geometry patch clears area", {
-        areaTouched: this.areaTouched(),
-        path: summarizePath(path),
-      });
       return {
         area_polygon: null,
       };
     }
-    console.debug("[EventAreaDebug] form geometry patch writes area", {
-      path: summarizePath(path),
-    });
     return {
       area_polygon: pathToAreaPolygon(path),
     };
@@ -1067,34 +1027,6 @@ function pathsEqual(
       Math.abs(point.lng - other.lng) < 0.0000001
     );
   });
-}
-
-function summarizeAreaPolygon(
-  areaPolygon: EventSchema["area_polygon"] | null | undefined,
-): Array<{
-  areaName?: string;
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-}> | null {
-  if (!areaPolygon) return null;
-  return areaPolygon.map((ring) => ({
-    areaName: ring.area_name,
-    ...summarizePath(ring.points),
-  }));
-}
-
-function summarizePath(path: Array<{ lat: number; lng: number }> | null): {
-  count: number;
-  first?: { lat: number; lng: number };
-  last?: { lat: number; lng: number };
-} {
-  if (!path || path.length === 0) return { count: 0 };
-  return {
-    count: path.length,
-    first: path[0],
-    last: path[path.length - 1],
-  };
 }
 
 function trimOrUndefined(value: string | null | undefined): string | undefined {
