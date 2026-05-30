@@ -33,6 +33,8 @@ const seriesDocs = [
       organizer: "Swiss Parkour Association",
       organizer_url: "https://swissparkourassociation.ch/",
       url: SPT_SOURCE,
+      logo_src: "assets/swissjam/spt_logo_orange_on_white.png",
+      logo_background_color: "#ffffff",
       description:
         "Swiss competition system with qualifying events leading to the Swiss Parkour Championships.",
       published: true,
@@ -44,6 +46,8 @@ const seriesDocs = [
       name: "Parkour Earth",
       slug: "parkour-earth",
       url: "https://parkourearth.org/",
+      logo_src: "assets/logos/parkour_earth_white.png",
+      logo_background_color: "#111111",
       description:
         "Independent international parkour federation and organizer of the Parkour Earth World Championships.",
       published: true,
@@ -55,6 +59,7 @@ const seriesDocs = [
       name: "Sport Parkour League",
       slug: "sport-parkour-league",
       url: "https://www.sportparkourleague.com/",
+      logo_background_color: "#f2e7ff",
       description:
         "International sport parkour competition league with sanctioned qualification routes.",
       published: true,

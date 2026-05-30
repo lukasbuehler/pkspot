@@ -14,6 +14,7 @@ export interface MapIslandEventRank {
 
 const EVENT_MARKER_PRIORITY_BASE = 250;
 const EVENT_RECENCY_MAX_BOOST = 125;
+const EVENT_PROMO_ACTIVE_BOOST = 175;
 const EVENT_SPONSORED_BOOST = 130;
 const EVENT_ORGANIZATION_BOOST = 35;
 const EVENT_VENUE_BOOST = 50;
@@ -41,6 +42,7 @@ export function getMapEventMarkerPriority(
   const score =
     EVENT_MARKER_PRIORITY_BASE +
     recencyProgress * EVENT_RECENCY_MAX_BOOST +
+    (event.isPromotable(now) ? EVENT_PROMO_ACTIVE_BOOST : 0) +
     (event.isSponsored ? EVENT_SPONSORED_BOOST : 0) +
     (event.hasOrganization ? EVENT_ORGANIZATION_BOOST : 0) +
     (event.hasVenueSpot ? EVENT_VENUE_BOOST : 0) +

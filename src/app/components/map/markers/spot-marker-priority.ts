@@ -11,6 +11,7 @@ export interface SpotMarkerPriorityInput {
 
 const DEFAULT_UNRATED_SPOT_SCORE = 150;
 const ICONIC_SPOT_BOOST = 75;
+const ICONIC_SPOT_MIN_SCORE = 275;
 const ACCESS_PENALTIES: Partial<Record<SpotAccess, number>> = {
   [SpotAccess.Residential]: -25,
   [SpotAccess.Private]: -60,
@@ -28,6 +29,9 @@ export function getSpotMarkerPriority(spot: SpotMarkerPriorityInput): number {
       : DEFAULT_UNRATED_SPOT_SCORE;
   const accessPenalty = ACCESS_PENALTIES[parseSpotAccess(spot.access)] ?? 0;
   const iconicBoost = spot.isIconic === true ? ICONIC_SPOT_BOOST : 0;
+  const score = base + iconicBoost + accessPenalty;
 
-  return clampMarkerScore(base + iconicBoost + accessPenalty);
+  return clampMarkerScore(
+    spot.isIconic === true ? Math.max(score, ICONIC_SPOT_MIN_SCORE) : score,
+  );
 }

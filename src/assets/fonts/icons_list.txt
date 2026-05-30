@@ -178,3 +178,9 @@ handshake
 calendar_add_on
 camping
 cancel
+trophy
+celebration
+sell
+theater_comedy
+workspace_premium
+diversity_3

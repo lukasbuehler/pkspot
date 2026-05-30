@@ -681,6 +681,29 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  categoryIcon(category: EventCategory): string {
+    switch (category) {
+      case "camp":
+        return "camping";
+      case "competition":
+        return "trophy";
+      case "jam":
+        return "groups";
+      case "workshop":
+        return "school";
+      case "show":
+        return "theater_comedy";
+      case "awards":
+        return "workspace_premium";
+      case "social":
+        return "celebration";
+      case "travel":
+        return "directions_bus";
+      default:
+        return "sell";
+    }
+  }
+
   seriesLabel(seriesId: string): string {
     switch (seriesId) {
       case "swiss-parkour-tour":
@@ -696,6 +719,38 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           .map((word) => word[0]?.toUpperCase() + word.slice(1))
           .join(" ");
     }
+  }
+
+  seriesVisual(seriesId: string): { logoSrc?: string; background: string } {
+    switch (seriesId) {
+      case "swiss-parkour-tour":
+        return {
+          logoSrc: "assets/swissjam/spt_logo_orange_on_white.png",
+          background: "var(--mat-sys-surface)",
+        };
+      case "parkour-earth":
+        return {
+          logoSrc: "assets/logos/parkour_earth_white.png",
+          background: "var(--mat-sys-inverse-surface)",
+        };
+      case "sport-parkour-league":
+        return {
+          background: "var(--mat-sys-tertiary-container)",
+        };
+      default:
+        return {
+          background: "var(--mat-sys-surface-container-high)",
+        };
+    }
+  }
+
+  seriesInitials(seriesId: string): string {
+    return this.seriesLabel(seriesId)
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 3)
+      .map((word) => word[0]?.toUpperCase() ?? "")
+      .join("");
   }
 
   seriesRoleLabel(role: EventSeriesMembershipSchema["role"]): string {

@@ -2,6 +2,15 @@
   display: contents;
 }
 
+.event-map-marker-collision-shell {
+  align-items: center;
+  display: flex;
+  height: 48px;
+  justify-content: center;
+  overflow: visible;
+  width: 48px;
+}
+
 .event-map-marker {
   align-items: center;
   backdrop-filter: blur(4px);

@@ -471,7 +471,8 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         forceFullMarker: false,
         maxZoom: undefined,
         dotModeThreshold: Number.POSITIVE_INFINITY,
-        priority: "required",
+        priority: 40,
+        ignoreCollisions: true,
       })),
   );
 

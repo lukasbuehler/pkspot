@@ -25,6 +25,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "banner_fit",
     "banner_accent_color",
     "logo_src",
+    "logo_background_color",
     "media",
     "organizer",
     "organizer.type",
@@ -216,6 +217,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     url: "string",
     banner_src: "string",
     logo_src: "string",
+    logo_background_color: "string",
     "sponsor.name": "string",
     "sponsor.logo_src": "string",
     "sponsor.logo_background_color": "string",
@@ -261,6 +263,10 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
 
     banner_src: { kind: "direct", source: "banner_src" },
     logo_src: { kind: "direct", source: "logo_src" },
+    logo_background_color: {
+      kind: "direct",
+      source: "logo_background_color",
+    },
     "sponsor.name": { kind: "direct", source: "sponsor.name" },
     "sponsor.logo_src": { kind: "direct", source: "sponsor.logo_src" },
     "sponsor.logo_background_color": {

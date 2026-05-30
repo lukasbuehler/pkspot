@@ -42,7 +42,9 @@ import { GeoPoint } from "firebase/firestore";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MarkerComponent } from "../marker/marker.component";
-import { MarkerSchema } from "../map/markers/map-marker.model";
+import { getMapMarkerPriority } from "../map/markers/map-marker.model";
+import type { MarkerSchema } from "../map/markers/map-marker.model";
+import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { MapBase, VisibleViewport } from "../maps/map-base";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
@@ -66,6 +68,13 @@ import {
   MapPolygonOverlay,
   MapPointMarker,
 } from "../maps/map-overlays";
+import {
+  filterEventSpotCollisions,
+} from "./map-marker-collision-filter";
+import type {
+  MapMarkerCollisionCandidate,
+  MapMarkerCollisionLayout,
+} from "./map-marker-collision-filter";
 
 function enumerateTileRangeX(
   start: number,
@@ -103,6 +112,26 @@ interface SpotPreviewAreaOverlay {
 }
 
 const SPOT_AREA_MIN_ZOOM = 14;
+const EVENT_MARKER_COLLISION_SIZE_PX = 48;
+const SPOT_MARKER_COLLISION_WIDTH_PX = 124;
+const SPOT_MARKER_COLLISION_HEIGHT_PX = 52;
+const COMMUNITY_MARKER_COLLISION_SIZE_PX = 16;
+
+interface MarkerCollisionLayoutCache {
+  highlightedSpots: SpotPreviewData[];
+  pointMarkers: MapPointMarker[];
+  regularSpots: (LocalSpot | Spot)[];
+  zoom: number;
+  layout: MapMarkerCollisionLayout;
+}
+
+interface VisibleRegularSpotMarkersCache {
+  spots: (LocalSpot | Spot)[];
+  selectedSpot: LocalSpot | Spot | null;
+  isEditing: boolean;
+  shouldRenderRegularSpotMarkers: boolean;
+  visibleSpots: (LocalSpot | Spot)[];
+}
 
 export interface TilesObject {
   zoom: number;
@@ -359,6 +388,49 @@ export class GoogleMap2dComponent
    * @returns Array of SpotPreviewData to display as highlight markers
    */
   getVisibleHighlightedSpots(): SpotPreviewData[] {
+    const spots = this._getVisibleHighlightedSpotPreviews();
+    const hiddenSpotIds = this._getMarkerCollisionLayout().hiddenSpotIds;
+
+    if (hiddenSpotIds.size === 0) {
+      return spots;
+    }
+
+    return spots.filter(
+      (spot) => !hiddenSpotIds.has(this._getSpotPreviewCollisionId(spot)),
+    );
+  }
+
+  getVisibleSpotMarkers(): (LocalSpot | Spot)[] {
+    const spots = this._getVisibleRegularSpotMarkers();
+    const hiddenSpotIds = this._getMarkerCollisionLayout().hiddenSpotIds;
+
+    if (hiddenSpotIds.size === 0) {
+      return spots;
+    }
+
+    return spots.filter(
+      (spot) => !hiddenSpotIds.has(this._getSpotModelCollisionId(spot)),
+    );
+  }
+
+  getVisiblePointMarkers(): MapPointMarker[] {
+    const { hiddenCommunityIds, hiddenEventIds } =
+      this._getMarkerCollisionLayout();
+
+    if (hiddenEventIds.size === 0 && hiddenCommunityIds.size === 0) {
+      return this.pointMarkers;
+    }
+
+    return this.pointMarkers.filter(
+      (marker) =>
+        (!this._isEventCollisionMarker(marker) ||
+          !hiddenEventIds.has(marker.id)) &&
+        (!this._isCommunityCollisionMarker(marker) ||
+          !hiddenCommunityIds.has(marker.id)),
+    );
+  }
+
+  private _getVisibleHighlightedSpotPreviews(): SpotPreviewData[] {
     const spots = this._highlightedSpotsSignal();
     if (spots.length === 0) {
       return spots;
@@ -376,26 +448,215 @@ export class GoogleMap2dComponent
     return spots;
   }
 
+  private _getVisibleRegularSpotMarkers(): (LocalSpot | Spot)[] {
+    const shouldRenderRegularSpotMarkers =
+      ((this.zoom >= 16 && this.showSpotPreview()) ||
+        this.showVisibleSpotPins()) &&
+      !this.hideRegularSpotPins();
+    const selectedSpot = this.selectedSpot();
+    const isEditing = this.isEditing();
+
+    if (!shouldRenderRegularSpotMarkers) {
+      return [];
+    }
+
+    if (
+      this._visibleRegularSpotMarkersCache &&
+      this._visibleRegularSpotMarkersCache.spots === this.spots &&
+      this._visibleRegularSpotMarkersCache.selectedSpot === selectedSpot &&
+      this._visibleRegularSpotMarkersCache.isEditing === isEditing &&
+      this._visibleRegularSpotMarkersCache.shouldRenderRegularSpotMarkers ===
+        shouldRenderRegularSpotMarkers
+    ) {
+      return this._visibleRegularSpotMarkersCache.visibleSpots;
+    }
+
+    const visibleSpots = this.spots.filter(
+      (spot) =>
+        !this.isSelectedSpotBeingEdited(spot) && !this.isSameAsSelectedSpot(spot),
+    );
+
+    this._visibleRegularSpotMarkersCache = {
+      spots: this.spots,
+      selectedSpot,
+      isEditing,
+      shouldRenderRegularSpotMarkers,
+      visibleSpots,
+    };
+
+    return visibleSpots;
+  }
+
+  private _getMarkerCollisionLayout(): MapMarkerCollisionLayout {
+    const highlightedSpots = this._getVisibleHighlightedSpotPreviews();
+    const regularSpots = this._getVisibleRegularSpotMarkers();
+    const zoom = this._getMarkerCollisionZoom();
+
+    if (
+      this._markerCollisionLayoutCache &&
+      this._markerCollisionLayoutCache.highlightedSpots === highlightedSpots &&
+      this._markerCollisionLayoutCache.regularSpots === regularSpots &&
+      this._markerCollisionLayoutCache.pointMarkers === this.pointMarkers &&
+      this._markerCollisionLayoutCache.zoom === zoom
+    ) {
+      return this._markerCollisionLayoutCache.layout;
+    }
+
+    const layout = filterEventSpotCollisions(
+      [
+        ...this._getEventCollisionCandidates(zoom),
+        ...this._getCommunityCollisionCandidates(zoom),
+        ...this._getSpotPreviewCollisionCandidates(highlightedSpots),
+        ...this._getSpotModelCollisionCandidates(regularSpots),
+      ],
+      zoom,
+    );
+
+    this._markerCollisionLayoutCache = {
+      highlightedSpots,
+      pointMarkers: this.pointMarkers,
+      regularSpots,
+      zoom,
+      layout,
+    };
+
+    return layout;
+  }
+
+  private _getEventCollisionCandidates(
+    zoom: number,
+  ): MapMarkerCollisionCandidate[] {
+    return this.pointMarkers
+      .filter(
+        (marker) =>
+          this._isEventCollisionMarker(marker) &&
+          this._isPointMarkerVisibleAtZoom(marker, zoom),
+      )
+      .map((marker): MapMarkerCollisionCandidate => ({
+        id: marker.id,
+        kind: "event",
+        location: marker.location,
+        priority: getMapMarkerPriority(marker),
+        widthPx: EVENT_MARKER_COLLISION_SIZE_PX,
+        heightPx: EVENT_MARKER_COLLISION_SIZE_PX,
+        anchor: "center",
+      }));
+  }
+
+  private _getCommunityCollisionCandidates(
+    zoom: number,
+  ): MapMarkerCollisionCandidate[] {
+    return this.pointMarkers
+      .filter(
+        (marker) =>
+          this._isCommunityCollisionMarker(marker) &&
+          this._isPointMarkerVisibleAtZoom(marker, zoom),
+      )
+      .map((marker): MapMarkerCollisionCandidate => ({
+        id: marker.id,
+        kind: "community",
+        location: marker.location,
+        priority: getMapMarkerPriority(marker),
+        widthPx: COMMUNITY_MARKER_COLLISION_SIZE_PX,
+        heightPx: COMMUNITY_MARKER_COLLISION_SIZE_PX,
+        anchor: "center",
+      }));
+  }
+
+  private _getSpotPreviewCollisionCandidates(
+    spots: readonly SpotPreviewData[],
+  ): MapMarkerCollisionCandidate[] {
+    return spots.flatMap((spot): MapMarkerCollisionCandidate[] => {
+      if (!spot.location) {
+        return [];
+      }
+
+      return [
+        {
+          id: this._getSpotPreviewCollisionId(spot),
+          kind: "spot",
+          location: {
+            lat: spot.location.latitude,
+            lng: spot.location.longitude,
+          },
+          priority: getSpotMarkerPriority({
+            rating: spot.rating,
+            access: spot.access,
+            isIconic: spot.isIconic,
+          }),
+          widthPx: SPOT_MARKER_COLLISION_WIDTH_PX,
+          heightPx: SPOT_MARKER_COLLISION_HEIGHT_PX,
+          anchor: "bottom-center",
+        },
+      ];
+    });
+  }
+
+  private _getSpotModelCollisionCandidates(
+    spots: readonly (LocalSpot | Spot)[],
+  ): MapMarkerCollisionCandidate[] {
+    return spots.map((spot): MapMarkerCollisionCandidate => ({
+      id: this._getSpotModelCollisionId(spot),
+      kind: "spot",
+      location: spot.location(),
+      priority: getSpotMarkerPriority({
+        rating: spot.rating,
+        access: spot.access(),
+        isIconic: spot.isIconic,
+      }),
+      widthPx: SPOT_MARKER_COLLISION_WIDTH_PX,
+      heightPx: SPOT_MARKER_COLLISION_HEIGHT_PX,
+      anchor: "bottom-center",
+    }));
+  }
+
+  private _getMarkerCollisionZoom(): number {
+    return this.googleMap?.getZoom() ?? this.zoom;
+  }
+
+  private _isEventCollisionMarker(marker: MapPointMarker): boolean {
+    return marker.type === "event";
+  }
+
+  private _isCommunityCollisionMarker(marker: MapPointMarker): boolean {
+    return marker.type === "community";
+  }
+
+  private _isPointMarkerVisibleAtZoom(
+    marker: MapPointMarker,
+    zoom: number,
+  ): boolean {
+    return (
+      (marker.minZoom === undefined || zoom >= marker.minZoom) &&
+      (marker.maxZoom === undefined || zoom <= marker.maxZoom)
+    );
+  }
+
+  private _getSpotPreviewCollisionId(spot: SpotPreviewData): string {
+    return `spot:${spot.id}`;
+  }
+
+  private _getSpotModelCollisionId(spot: LocalSpot | Spot): string {
+    if (spot instanceof Spot) {
+      return `spot:${spot.id}`;
+    }
+
+    const location = spot.location();
+    return `local-spot:${location.lat}:${location.lng}`;
+  }
+
   getVisibleHighlightedSpotAreas(): SpotPreviewAreaOverlay[] {
     if (this.zoom < SPOT_AREA_MIN_ZOOM) {
       return [];
     }
 
-    const loadedSpotIds = new Set(
-      this.spots
-        .filter((spot): spot is Spot => spot instanceof Spot)
-        .map((spot) => spot.id),
-    );
-
     return this.getVisibleHighlightedSpots()
-      .filter((spot) => !loadedSpotIds.has(spot.id))
       .map((spot) => this._getSpotPreviewAreaOverlay(spot))
       .filter((area): area is SpotPreviewAreaOverlay => !!area);
   }
 
-  getHighlightZIndex(spot: SpotPreviewData): number {
-    const rating = spot.rating ?? 0;
-    return 50000 + Math.round(rating * 10);
+  getHighlightZIndex(_spot: SpotPreviewData): number {
+    return 0;
   }
 
   resetMapOrientation() {
@@ -445,6 +706,9 @@ export class GoogleMap2dComponent
   private _featureBoundaryLayer: google.maps.FeatureLayer | null = null;
   private _featureBoundaryRequestVersion = 0;
   private _featureBoundaryPlaceIdCache = new Map<string, string | null>();
+  private _markerCollisionLayoutCache: MarkerCollisionLayoutCache | null = null;
+  private _visibleRegularSpotMarkersCache: VisibleRegularSpotMarkersCache | null =
+    null;
 
   /**
    * Passive locality circles begin with the stronger dot treatment while

@@ -107,9 +107,35 @@ describe("rankMapIslandEventsForPoint", () => {
       150_000,
       "2026-12-26T10:00:00.000Z",
       "2026-12-26T22:00:00.000Z",
+      {
+        promo_region: undefined,
+        promo_starts_at: undefined,
+      },
     );
 
     expect(getMapEventMarkerPriority(farEvent, now)).toBe(250);
+  });
+
+  it("lets active promo venue events overtake five-star spots", () => {
+    const promotedVenueEvent = event(
+      "wpf-camp",
+      { lat: 47.5596, lng: 7.5886 },
+      150_000,
+      "2026-07-16T10:00:00.000Z",
+      "2026-07-19T10:00:00.000Z",
+      {
+        has_organization: true,
+        has_venue_spot: true,
+        venue_spot_count: 1,
+      },
+    );
+
+    expect(
+      getMapEventMarkerPriority(
+        promotedVenueEvent,
+        new Date("2026-06-01T10:00:00.000Z"),
+      ),
+    ).toBeGreaterThan(500);
   });
 
   it("lets active sponsored venue events overtake iconic five-star spots", () => {
@@ -127,6 +153,6 @@ describe("rankMapIslandEventsForPoint", () => {
       },
     );
 
-    expect(getMapEventMarkerPriority(liveEvent, now)).toBe(640);
+    expect(getMapEventMarkerPriority(liveEvent, now)).toBe(815);
   });
 });

@@ -22,6 +22,7 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { getBestLocale } from "../../../scripts/LanguageHelpers";
 import { SpotFilterMode } from "./spot-filter-config";
+import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
 
 // Re-export SpotFilterMode for backward compatibility with existing imports
 export { SpotFilterMode } from "./spot-filter-config";
@@ -131,9 +132,20 @@ export class SpotMapDataManager {
     a: SpotPreviewData,
     b: SpotPreviewData
   ): number {
-    const ratingDifference = (b.rating ?? 0) - (a.rating ?? 0);
-    if (ratingDifference !== 0) {
-      return ratingDifference;
+    const priorityDifference =
+      getSpotMarkerPriority({
+        rating: b.rating,
+        access: b.access,
+        isIconic: b.isIconic,
+      }) -
+      getSpotMarkerPriority({
+        rating: a.rating,
+        access: a.access,
+        isIconic: a.isIconic,
+      });
+
+    if (priorityDifference !== 0) {
+      return priorityDifference;
     }
 
     const aHasImage = !!a.imageSrc;

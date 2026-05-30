@@ -80,6 +80,14 @@
   margin-top: 0.35rem;
 }
 
+.program-side mat-chip {
+  --mdc-chip-with-avatar-avatar-size: 1.25rem;
+}
+
+.program-side mat-icon[matChipAvatar] {
+  color: var(--mat-sys-primary);
+}
+
 @media (max-width: 720px) {
   .program-item {
     grid-template-columns: 4.75rem minmax(0, 1fr);

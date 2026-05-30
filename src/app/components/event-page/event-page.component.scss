@@ -16,6 +16,7 @@
   min-height: 64px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .event-nav-actions {
@@ -54,6 +55,30 @@
   margin-top: 1.5rem;
 }
 
+.event-tags mat-chip {
+  --mdc-chip-with-avatar-avatar-size: 1.25rem;
+}
+
+.event-tags mat-icon[matChipAvatar] {
+  color: var(--mat-sys-primary);
+}
+
+.series-logo {
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid
+    color-mix(in srgb, var(--mat-sys-outline-variant), transparent 28%);
+  color: var(--mat-sys-on-tertiary-container);
+  font: var(--mat-sys-label-small);
+}
+
+.series-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .event-description {
   margin: 0;
   max-width: 72ch;
@@ -85,13 +110,18 @@
   margin-bottom: 0.75rem;
 }
 
-.qualification-section, .program-section, .ticket-option, .map-preview {
+.qualification-section,
+.program-section,
+.ticket-option,
+.map-preview {
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   background: var(--mat-sys-surface-container-low);
 }
 
-.qualification-section, .program-section, .ticket-option {
+.qualification-section,
+.program-section,
+.ticket-option {
   padding: 1rem;
 }
 
@@ -101,8 +131,13 @@
   border-top: 1px solid var(--mat-sys-outline-variant);
 }
 
-.qualification-title, .qualification-copy, .qualifier-label,
-.ticket-description, .ticket-availability, .ticket-price, .map-preview-title {
+.qualification-title,
+.qualification-copy,
+.qualifier-label,
+.ticket-description,
+.ticket-availability,
+.ticket-price,
+.map-preview-title {
   margin: 0;
 }
 
@@ -219,7 +254,8 @@
 }
 
 @media (max-width: 720px) {
-  .event-nav, .event-content {
+  .event-nav,
+  .event-content {
     width: min(100% - 1rem, 960px);
   }
 

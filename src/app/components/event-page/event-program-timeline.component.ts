@@ -23,7 +23,13 @@ type ProgramDayGroup = {
 
 @Component({
   selector: "app-event-program-timeline",
-  imports: [RouterLink, MatButtonModule, MatChipsModule, MatIconModule, MatTabsModule],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatChipsModule,
+    MatIconModule,
+    MatTabsModule,
+  ],
   template: `
     <mat-tab-group class="program-tabs" mat-stretch-tabs="false">
       @for (day of dayGroups(); track day.key) {
@@ -48,14 +54,21 @@ type ProgramDayGroup = {
                       }
                     </div>
                     <div class="program-side">
-                      <mat-chip>{{ categoryLabel(item.category) }}</mat-chip>
+                      <mat-chip>
+                        <mat-icon matChipAvatar>{{
+                          categoryIcon(item.category)
+                        }}</mat-icon>
+                        {{ categoryLabel(item.category) }}
+                      </mat-chip>
                       @if (item.linked_event_id) {
                         <a
                           mat-stroked-button
                           [routerLink]="['/events', item.linked_event_id]"
                         >
                           <mat-icon>open_in_new</mat-icon>
-                          <span i18n="@@event_program.open_linked">Open event</span>
+                          <span i18n="@@event_program.open_linked"
+                            >Open event</span
+                          >
                         </a>
                       }
                     </div>
@@ -65,9 +78,15 @@ type ProgramDayGroup = {
                       {{ item.description }}
                     </p>
                   }
-                  @if (item.participation?.note || item.participation?.qualification_hint) {
+                  @if (
+                    item.participation?.note ||
+                    item.participation?.qualification_hint
+                  ) {
                     <p class="mat-body-small program-description">
-                      {{ item.participation?.note || item.participation?.qualification_hint }}
+                      {{
+                        item.participation?.note ||
+                          item.participation?.qualification_hint
+                      }}
                     </p>
                   }
                 </div>
@@ -154,6 +173,29 @@ export class EventProgramTimelineComponent {
         return $localize`:@@event_category.travel:Travel`;
       default:
         return $localize`:@@event_category.other:Other`;
+    }
+  }
+
+  categoryIcon(category: EventCategory): string {
+    switch (category) {
+      case "camp":
+        return "camping";
+      case "competition":
+        return "trophy";
+      case "jam":
+        return "person_celebrate";
+      case "workshop":
+        return "groups";
+      case "show":
+        return "theater_comedy";
+      case "awards":
+        return "workspace_premium";
+      case "social":
+        return "diversity_3";
+      case "travel":
+        return "directions_bus";
+      default:
+        return "sell";
     }
   }
 }

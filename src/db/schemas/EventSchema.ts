@@ -353,6 +353,8 @@ export interface EventSchema {
   banner_accent_color?: string;
   /** Optional event-specific logo (distinct from sponsor logo). */
   logo_src?: string;
+  /** Optional background color behind the event-specific logo. */
+  logo_background_color?: string;
 
   /**
    * Optional externally linked event media. These are public media URLs

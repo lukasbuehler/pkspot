@@ -153,11 +153,9 @@
     }
 
     @if(((zoom >= 16 && showSpotPreview()) || showVisibleSpotPins()) && !hideRegularSpotPins()) {
-    @for(spot of spots; track trackSpotMarker($index, spot)) {
-    @if(!isSelectedSpotBeingEdited(spot) && !isSameAsSelectedSpot(spot)) {
+    @for(spot of getVisibleSpotMarkers(); track trackSpotMarker($index, spot)) {
     <app-spot-preview-marker [spot]="spot" [mapZoom]="zoom" [hoverPreviewEnabled]="showSpotPreview()"
       (markerClick)="spotClick.emit($event)"></app-spot-preview-marker>
-    }
     }
     }
 
@@ -172,7 +170,7 @@
     <app-advanced-map-marker [marker]="marker" [index]="$index" [zoom]="zoom" [forceFullMarker]="true"
       (markerClick)="markerClick($event)"></app-advanced-map-marker>
     }
-    @for(marker of pointMarkers; track marker.id) {
+    @for(marker of getVisiblePointMarkers(); track marker.id) {
     @if((marker.minZoom === undefined || zoom >= marker.minZoom) && (marker.maxZoom === undefined || zoom <=
     marker.maxZoom)) {
     @if(marker.type === "event") {

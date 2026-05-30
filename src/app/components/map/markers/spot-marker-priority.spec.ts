@@ -20,5 +20,12 @@ describe("getSpotMarkerPriority", () => {
     expect(
       getSpotMarkerPriority({ rating: 4.5, access: SpotAccess.OffLimits }),
     ).toBe(310);
+    expect(
+      getSpotMarkerPriority({
+        rating: 0,
+        access: SpotAccess.OffLimits,
+        isIconic: true,
+      }),
+    ).toBe(275);
   });
 });

@@ -905,6 +905,10 @@ export class SearchService {
         typeof doc?.logo_src === "string"
           ? this._assetUrls.resolveBundledAssetUrl(doc.logo_src)
           : undefined,
+      logoBackgroundColor:
+        typeof doc?.logo_background_color === "string"
+          ? doc.logo_background_color
+          : undefined,
       sponsorName: typeof sponsor?.name === "string" ? sponsor.name : undefined,
       sponsorLogoSrc:
         typeof sponsor?.logo_src === "string"
@@ -997,6 +1001,7 @@ export class SearchService {
       slug: preview.slug,
       banner_src: preview.bannerSrc,
       logo_src: preview.logoSrc,
+      logo_background_color: preview.logoBackgroundColor,
       venue_string: preview.venueString ?? "",
       locality_string: preview.localityString,
       start: { seconds: startSeconds, nanoseconds: 0 },
@@ -1714,6 +1719,7 @@ export interface EventSearchPreview {
   localityString: string;
   bannerSrc?: string;
   logoSrc?: string;
+  logoBackgroundColor?: string;
   sponsorName?: string;
   sponsorLogoSrc?: string;
   sponsorLogoBackgroundColor?: string;

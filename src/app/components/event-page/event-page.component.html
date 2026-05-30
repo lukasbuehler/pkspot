@@ -96,7 +96,10 @@
           @if (event.eventCategories.length > 0) {
             <mat-chip-set aria-label="Event categories">
               @for (category of event.eventCategories; track category) {
-                <mat-chip>{{ categoryLabel(category) }}</mat-chip>
+                <mat-chip>
+                  <mat-icon matChipAvatar>{{ categoryIcon(category) }}</mat-icon>
+                  {{ categoryLabel(category) }}
+                </mat-chip>
               }
             </mat-chip-set>
           }
@@ -104,6 +107,20 @@
             <mat-chip-set aria-label="Event series">
               @for (membership of visibleSeriesMemberships(); track membership.series_id + membership.role) {
                 <mat-chip highlighted>
+                  <span
+                    matChipAvatar
+                    class="series-logo"
+                    [style.background]="seriesVisual(membership.series_id).background"
+                  >
+                    @if (seriesVisual(membership.series_id).logoSrc) {
+                      <img
+                        [src]="seriesVisual(membership.series_id).logoSrc"
+                        [alt]="seriesLabel(membership.series_id)"
+                      />
+                    } @else {
+                      <span>{{ seriesInitials(membership.series_id) }}</span>
+                    }
+                  </span>
                   {{ seriesLabel(membership.series_id) }} ·
                   {{ seriesRoleLabel(membership.role) }}
                 </mat-chip>

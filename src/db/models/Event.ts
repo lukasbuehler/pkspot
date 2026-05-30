@@ -88,6 +88,7 @@ export class Event {
   readonly bannerFit: "cover" | "contain";
   readonly bannerAccentColor?: string;
   readonly logoSrc?: string;
+  readonly logoBackgroundColor?: string;
   readonly media: MediaSchema[];
   readonly organizer?: EventOrganizerSchema;
 
@@ -140,6 +141,7 @@ export class Event {
     this.bannerFit = data.banner_fit ?? "cover";
     this.bannerAccentColor = data.banner_accent_color;
     this.logoSrc = data.logo_src;
+    this.logoBackgroundColor = data.logo_background_color;
     this.media = data.media ?? [];
     this.organizer = data.organizer;
     this.venueString = data.venue_string;
@@ -263,7 +265,7 @@ export class Event {
 
   /** Optional sponsor-provided background for badge/logo treatments. */
   effectiveBadgeLogoBackgroundColor(): string | undefined {
-    return this.sponsor?.logo_background_color;
+    return this.sponsor?.logo_background_color ?? this.logoBackgroundColor;
   }
 
   /**

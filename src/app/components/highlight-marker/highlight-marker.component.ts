@@ -1,4 +1,10 @@
-import { Component, computed, input, output } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+} from "@angular/core";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-marker.component";
 
@@ -8,7 +14,6 @@ import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-
  */
 @Component({
   selector: "app-highlight-marker",
-  standalone: true,
   imports: [SpotPreviewMarkerComponent],
   template: `
     <app-spot-preview-marker
@@ -16,11 +21,12 @@ import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-
       [mapZoom]="mapZoom()"
       [hoverPreviewEnabled]="hoverPreviewEnabled()"
       [color]="color()"
-      [zIndexBase]="computedZIndex()"
+      [zIndexBase]="zIndex()"
       [collisionBehavior]="highlightCollisionBehavior()"
       (markerClick)="emitMarkerClick($event)"
     ></app-spot-preview-marker>
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HighlightMarkerComponent {
   spot = input.required<SpotPreviewData>();
@@ -30,14 +36,8 @@ export class HighlightMarkerComponent {
   color = input<"primary" | "secondary" | "tertiary" | "gray">("primary");
   markerClick = output<SpotPreviewData>();
   readonly highlightCollisionBehavior = computed(
-    () => google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
+    () => google.maps.CollisionBehavior.REQUIRED,
   );
-
-  computedZIndex = computed(() => {
-    const baseZ = this.zIndex();
-    const rating = this.spot().rating ?? 0;
-    return baseZ + Math.round(rating * 10);
-  });
 
   emitMarkerClick(spot: SpotPreviewData | unknown) {
     this.markerClick.emit(spot as SpotPreviewData);

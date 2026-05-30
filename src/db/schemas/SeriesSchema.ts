@@ -17,6 +17,8 @@ export interface SeriesSchema {
   description?: string;
   /** Optional logo shown on event-page chips and the series landing. */
   logo_src?: string;
+  /** Optional background behind the logo when rendered in a small circle. */
+  logo_background_color?: string;
   /** Organizer name (e.g. "Swiss Parkour Association"). */
   organizer?: string;
   /** Organizer site URL. */

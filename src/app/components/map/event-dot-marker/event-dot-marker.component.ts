@@ -32,7 +32,10 @@ export class EventDotMarkerComponent {
 
   readonly markerOptions =
     computed<google.maps.marker.AdvancedMarkerElementOptions>(() =>
-      buildMapMarkerOptions(this.marker())
+      ({
+        ...buildMapMarkerOptions(this.marker()),
+        collisionBehavior: google.maps.CollisionBehavior.REQUIRED,
+      })
     );
   readonly zIndex = computed(() => getMapMarkerPriority(this.marker()));
 
