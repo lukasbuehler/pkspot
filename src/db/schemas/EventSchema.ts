@@ -199,7 +199,9 @@ export interface EventTicketPriceRangeSchema {
 export interface EventTicketOptionSchema {
   id: string;
   label: string;
+  label_i18n?: LocaleMap | Record<string, string>;
   description?: string;
+  description_i18n?: LocaleMap | Record<string, string>;
   url?: string;
   price?: EventTicketPriceFixedSchema | EventTicketPriceRangeSchema;
   availability?: EventTicketAvailability;
@@ -240,6 +242,7 @@ export interface EventSeriesMembershipSchema {
    */
   qualification_required?: boolean;
   qualification_hint?: string;
+  qualification_hint_i18n?: LocaleMap | Record<string, string>;
   /** Outgoing qualification edges: competing here can qualify you for these. */
   qualifies_to?: EventQualificationRefSchema[];
   /** Incoming qualification edges: these must happen before competing here. */
@@ -265,6 +268,7 @@ export interface EventProgramRuntimeOverrideSchema {
   end?: Timestamp;
   status?: EventProgramItemStatus;
   note?: string;
+  note_i18n?: LocaleMap | Record<string, string>;
 }
 
 export interface EventProgramParticipationSchema {
@@ -275,14 +279,18 @@ export interface EventProgramParticipationSchema {
     | "registration_required"
     | "invite_or_qualified";
   note?: string;
+  note_i18n?: LocaleMap | Record<string, string>;
   qualification_required?: boolean;
   qualification_hint?: string;
+  qualification_hint_i18n?: LocaleMap | Record<string, string>;
 }
 
 export interface EventProgramItemSchema {
   id: string;
   title: string;
+  title_i18n?: LocaleMap | Record<string, string>;
   description?: string;
+  description_i18n?: LocaleMap | Record<string, string>;
   category: EventCategory;
   start: Timestamp;
   end?: Timestamp;
@@ -302,8 +310,10 @@ export interface EventProgramItemSchema {
 export interface EventProgramPlanSchema {
   id: string;
   label: string;
+  label_i18n?: LocaleMap | Record<string, string>;
   kind: EventProgramPlanKind;
   condition_label?: string;
+  condition_label_i18n?: LocaleMap | Record<string, string>;
   items: EventProgramItemSchema[];
 }
 
@@ -315,7 +325,7 @@ export interface EventProgramSchema {
 export interface EventSchema {
   /** Display name (plain string; LocaleMap can be added later if needed). */
   name: string;
-  /** Default/plain description kept for search and old clients. */
+  /** Server-derived from `description_i18n` for search and old clients. */
   description?: string;
   /** Localized event description rendered by clients when available. */
   description_i18n?: LocaleMap | Record<string, string>;

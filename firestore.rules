@@ -44,6 +44,7 @@ service cloud.firestore {
 
     function eventComputedFields() {
       return [
+        'description',
         'start_seconds',
         'end_seconds',
         'promo_starts_at_seconds',

@@ -32,7 +32,9 @@ import {
 export interface EventTicketOption {
   id: string;
   label: string;
+  labelI18n?: LocaleMap;
   description?: string;
+  descriptionI18n?: LocaleMap;
   url?: string;
   price?: EventTicketOptionSchema["price"];
   availability?: EventTicketAvailability;
@@ -154,8 +156,14 @@ export class Event {
     this.eventLinks = data.event_links ?? [];
     this.ticketOptions = (data.ticket_options ?? []).map((option) => ({
       id: option.id,
-      label: option.label,
-      description: option.description,
+      label:
+        Event.localizedText(option.label_i18n, locale) ??
+        option.label,
+      labelI18n: Event.mapLocaleMap(option.label_i18n),
+      description:
+        Event.localizedText(option.description_i18n, locale) ??
+        option.description,
+      descriptionI18n: Event.mapLocaleMap(option.description_i18n),
       url: option.url,
       price: option.price,
       availability: option.availability,
@@ -174,7 +182,7 @@ export class Event {
     this.eventCategories = data.event_categories ?? [];
     this.timeZone = data.time_zone;
     this.program = data.program
-      ? Event.mapProgram(data.program)
+      ? Event.mapProgram(data.program, locale)
       : undefined;
     this.spotIds = data.spot_ids ?? [];
     this.inlineSpots = data.inline_spots ?? [];
@@ -432,12 +440,19 @@ export class Event {
     );
   }
 
-  private static mapProgram(program: EventProgramSchema): EventProgram {
+  private static mapProgram(
+    program: EventProgramSchema,
+    locale: LocaleCode,
+  ): EventProgram {
     return {
       ...program,
       plans: program.plans.map((plan) => ({
         ...plan,
-        items: plan.items.map((item) => Event.mapProgramItem(item)),
+        label: Event.localizedText(plan.label_i18n, locale) ?? plan.label,
+        condition_label:
+          Event.localizedText(plan.condition_label_i18n, locale) ??
+          plan.condition_label,
+        items: plan.items.map((item) => Event.mapProgramItem(item, locale)),
       })),
     };
   }
@@ -464,23 +479,58 @@ export class Event {
     return descriptions?.[bestLocale]?.text;
   }
 
-  private static mapProgramItem(item: EventProgramItemSchema): EventProgramItem {
+  private static localizedText(
+    value: LocaleMap | Record<string, string> | undefined,
+    locale: LocaleCode,
+  ): string | undefined {
+    const localeMap = Event.mapLocaleMap(value);
+    return Event.descriptionForLocale(localeMap, locale);
+  }
+
+  private static mapLocaleMap(
+    value: LocaleMap | Record<string, string> | undefined,
+  ): LocaleMap | undefined {
+    return value ? makeLocaleMapFromObject(value) : undefined;
+  }
+
+  private static mapProgramItem(
+    item: EventProgramItemSchema,
+    locale: LocaleCode,
+  ): EventProgramItem {
     const { runtime_override: runtimeOverrideSchema, ...rest } = item;
     return {
       ...rest,
+      title: Event.localizedText(item.title_i18n, locale) ?? item.title,
+      description:
+        Event.localizedText(item.description_i18n, locale) ?? item.description,
+      participation: item.participation
+        ? {
+            ...item.participation,
+            note:
+              Event.localizedText(item.participation.note_i18n, locale) ??
+              item.participation.note,
+            qualification_hint:
+              Event.localizedText(
+                item.participation.qualification_hint_i18n,
+                locale,
+              ) ?? item.participation.qualification_hint,
+          }
+        : undefined,
       start: Event.toDate(item.start),
       end: item.end ? Event.toDate(item.end) : undefined,
       runtimeOverride: runtimeOverrideSchema
-        ? Event.mapRuntimeOverride(runtimeOverrideSchema)
+        ? Event.mapRuntimeOverride(runtimeOverrideSchema, locale)
         : undefined,
     };
   }
 
   private static mapRuntimeOverride(
     override: EventProgramRuntimeOverrideSchema,
+    locale: LocaleCode,
   ): EventProgramRuntimeOverride {
     return {
       ...override,
+      note: Event.localizedText(override.note_i18n, locale) ?? override.note,
       start: override.start ? Event.toDate(override.start) : undefined,
       end: override.end ? Event.toDate(override.end) : undefined,
     };

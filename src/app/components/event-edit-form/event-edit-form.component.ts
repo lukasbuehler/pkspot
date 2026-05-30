@@ -82,7 +82,9 @@ type EditableEventLink = {
 type EditableTicketOption = {
   id: string;
   label: string;
+  labelI18n?: LocaleMap;
   description: string;
+  descriptionI18n?: LocaleMap;
   url: string;
   currency: string;
   amount: number | null;
@@ -407,7 +409,9 @@ export class EventEditFormComponent {
         e.ticketOptions.map((ticket, index) => ({
           id: ticket.id || `ticket-${index}`,
           label: ticket.label,
+          labelI18n: ticket.labelI18n,
           description: ticket.description ?? "",
+          descriptionI18n: ticket.descriptionI18n,
           url: ticket.url ?? "",
           currency: ticket.price?.currency ?? "CHF",
           amount:
@@ -732,9 +736,6 @@ export class EventEditFormComponent {
       ...this._buildLocationPatch(v.location_lat, v.location_lng),
       ...this._buildGeometryPatch(),
       name: v.name!.trim(),
-      description: EventEditFormComponent._defaultDescription(
-        this._descriptionLocaleMap(),
-      ),
       description_i18n: this._descriptionI18nPatch(),
       slug: trimOrUndefined(v.slug?.toLowerCase()),
       venue_string: v.venue_string!.trim(),
@@ -958,7 +959,9 @@ export class EventEditFormComponent {
         tickets.push({
           id: trimOrUndefined(ticket.id) ?? `ticket-${index + 1}`,
           label,
+          label_i18n: ticket.labelI18n,
           description: trimOrUndefined(ticket.description),
+          description_i18n: ticket.descriptionI18n,
           url: safeExternalUrl(ticket.url) ?? undefined,
           price,
           availability: ticket.availability,
@@ -988,17 +991,6 @@ export class EventEditFormComponent {
       return undefined;
     }
     return descriptions;
-  }
-
-  private static _defaultDescription(
-    descriptions: LocaleMap | undefined,
-  ): string | undefined {
-    if (!descriptions) return undefined;
-    return (
-      descriptions["en"]?.text ??
-      descriptions["de"]?.text ??
-      Object.values(descriptions).find((entry) => entry?.text?.trim())?.text
-    );
   }
 
   /** Approximate point-in-circle test in meters via haversine. */

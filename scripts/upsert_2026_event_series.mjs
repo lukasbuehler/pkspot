@@ -709,6 +709,85 @@ function ts(iso) {
   return Timestamp.fromDate(new Date(iso));
 }
 
+function withDefaultEventI18n(data) {
+  return {
+    ...data,
+    ticket_options: data.ticket_options?.map((ticket) => ({
+      ...ticket,
+      label_i18n: ticket.label_i18n ?? localeMap({ en: ticket.label }),
+      description_i18n:
+        ticket.description && !ticket.description_i18n
+          ? localeMap({ en: ticket.description })
+          : ticket.description_i18n,
+    })),
+    series_memberships: data.series_memberships?.map(withDefaultMembershipI18n),
+    program: data.program
+      ? {
+          ...data.program,
+          plans: data.program.plans.map((plan) => ({
+            ...plan,
+            label_i18n: plan.label_i18n ?? localeMap({ en: plan.label }),
+            condition_label_i18n:
+              plan.condition_label && !plan.condition_label_i18n
+                ? localeMap({ en: plan.condition_label })
+                : plan.condition_label_i18n,
+            items: plan.items.map((item) => ({
+              ...item,
+              title_i18n: item.title_i18n ?? localeMap({ en: item.title }),
+              description_i18n:
+                item.description && !item.description_i18n
+                  ? localeMap({ en: item.description })
+                  : item.description_i18n,
+              runtime_override: item.runtime_override
+                ? withDefaultRuntimeOverrideI18n(item.runtime_override)
+                : undefined,
+              participation: item.participation
+                ? withDefaultParticipationI18n(item.participation)
+                : undefined,
+              series_memberships: item.series_memberships?.map(
+                withDefaultMembershipI18n,
+              ),
+            })),
+          })),
+        }
+      : undefined,
+  };
+}
+
+function withDefaultRuntimeOverrideI18n(runtimeOverride) {
+  return {
+    ...runtimeOverride,
+    note_i18n:
+      runtimeOverride.note && !runtimeOverride.note_i18n
+        ? localeMap({ en: runtimeOverride.note })
+        : runtimeOverride.note_i18n,
+  };
+}
+
+function withDefaultParticipationI18n(participation) {
+  return {
+    ...participation,
+    note_i18n:
+      participation.note && !participation.note_i18n
+        ? localeMap({ en: participation.note })
+        : participation.note_i18n,
+    qualification_hint_i18n:
+      participation.qualification_hint && !participation.qualification_hint_i18n
+        ? localeMap({ en: participation.qualification_hint })
+        : participation.qualification_hint_i18n,
+  };
+}
+
+function withDefaultMembershipI18n(membership) {
+  return {
+    ...membership,
+    qualification_hint_i18n:
+      membership.qualification_hint && !membership.qualification_hint_i18n
+        ? localeMap({ en: membership.qualification_hint })
+        : membership.qualification_hint_i18n,
+  };
+}
+
 function localeMap(translations) {
   return Object.fromEntries(
     Object.entries(translations).map(([locale, text]) => [
@@ -716,6 +795,21 @@ function localeMap(translations) {
       { text, provider: "admin" },
     ]),
   );
+}
+
+function removeUndefined(value) {
+  if (Array.isArray(value)) {
+    return value.map(removeUndefined);
+  }
+  if (value && typeof value === "object") {
+    if (typeof value.toDate === "function") return value;
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, entryValue]) => entryValue !== undefined)
+        .map(([key, entryValue]) => [key, removeUndefined(entryValue)]),
+    );
+  }
+  return value;
 }
 
 async function resolveEventId(slugs) {
@@ -756,7 +850,7 @@ async function upsertEvents() {
     const ref = db.collection("events").doc(id);
     const existing = await ref.get();
     const payload = {
-      ...event.data,
+      ...removeUndefined(withDefaultEventI18n(event.data)),
       time_updated: FieldValue.serverTimestamp(),
       ...(existing.exists ? {} : { time_created: FieldValue.serverTimestamp() }),
     };

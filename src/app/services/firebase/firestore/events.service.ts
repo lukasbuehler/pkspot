@@ -64,6 +64,13 @@ function stripUndefined<T>(value: T): T {
   return out as T;
 }
 
+function stripServerDerivedEventFields<T extends { description?: unknown }>(
+  value: T,
+): Omit<T, "description"> {
+  const { description: _description, ...rest } = value;
+  return rest;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -114,12 +121,13 @@ export class EventsService extends ConsentAwareService {
     this._requireAdmin("createEvent");
 
     const now = Timestamp.now();
+    const clientData = stripServerDerivedEventFields(data);
     const docData = stripUndefined({
-      ...data,
+      ...clientData,
       published: data.published ?? true,
       time_created: now,
       time_updated: now,
-      created_by: data.created_by ?? {
+      created_by: clientData.created_by ?? {
         uid: this._authService.user.uid ?? "",
         username: this._authService.user.data?.displayName,
       },
@@ -161,10 +169,11 @@ export class EventsService extends ConsentAwareService {
   ): Promise<void> {
     this._requireAdmin("updateEvent");
 
+    const clientPatch = stripServerDerivedEventFields(patch);
     const cleaned = stripUndefined({
-      ...patch,
+      ...clientPatch,
       area_polygon:
-        patch.area_polygon === null ? deleteField() : patch.area_polygon,
+        clientPatch.area_polygon === null ? deleteField() : clientPatch.area_polygon,
       time_updated: Timestamp.now(),
     }) as Partial<EventSchema>;
 

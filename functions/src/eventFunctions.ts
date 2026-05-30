@@ -71,6 +71,7 @@ const TYPESENSE_HELPER_FIELDS = [
 const SERVER_DERIVED_EVENT_FIELDS = [
   ...TYPESENSE_HELPER_FIELDS,
   "bounds",
+  "description",
 ] as const;
 
 /**
@@ -138,6 +139,33 @@ const _normalizeComparableValue = (value: unknown): unknown => {
 const _areValuesEqual = (left: unknown, right: unknown): boolean =>
   JSON.stringify(_normalizeComparableValue(left)) ===
   JSON.stringify(_normalizeComparableValue(right));
+
+const _hasOwn = (value: unknown, key: string): boolean =>
+  Boolean(value && typeof value === "object" && key in value);
+
+const _localizedDefaultText = (value: unknown): string | undefined => {
+  if (!value || typeof value !== "object") return undefined;
+  const map = value as Record<string, unknown>;
+  const textFor = (locale: string): string | undefined => {
+    const entry = map[locale];
+    const text =
+      typeof entry === "string"
+        ? entry
+        : entry && typeof entry === "object"
+        ? (entry as { text?: unknown }).text
+        : undefined;
+    return typeof text === "string" && text.trim().length > 0
+      ? text
+      : undefined;
+  };
+
+  return (
+    textFor("en") ??
+    Object.keys(map)
+      .map((locale) => textFor(locale))
+      .find((text): text is string => Boolean(text))
+  );
+};
 
 const _didAnyFieldChange = <T extends Record<string, unknown>>(
   beforeData: T | null,
@@ -389,6 +417,124 @@ const _deriveEventBounds = async (
   return _boundsFromPoints(spotPoints);
 };
 
+const _withLocalizedDefault = <T extends Record<string, unknown>>(
+  value: T,
+  field: string,
+  i18nField: string
+): T => {
+  if (!_hasOwn(value, i18nField)) return value;
+  const localized = _localizedDefaultText(value[i18nField]);
+  if (!localized) {
+    const { [field]: _unused, ...rest } = value;
+    return rest as T;
+  }
+  return { ...value, [field]: localized };
+};
+
+const _deriveSeriesMembershipTexts = (
+  memberships: EventSchema["series_memberships"] | undefined
+): EventSchema["series_memberships"] | undefined =>
+  memberships?.map((membership) =>
+    _withLocalizedDefault(
+      membership as unknown as Record<string, unknown>,
+      "qualification_hint",
+      "qualification_hint_i18n"
+    )
+  ) as EventSchema["series_memberships"];
+
+const _deriveProgramItemTexts = (
+  item: NonNullable<EventSchema["program"]>["plans"][number]["items"][number]
+): NonNullable<EventSchema["program"]>["plans"][number]["items"][number] => {
+  let out = _withLocalizedDefault(
+    _withLocalizedDefault(
+      item as unknown as Record<string, unknown>,
+      "title",
+      "title_i18n"
+    ),
+    "description",
+    "description_i18n"
+  ) as unknown as typeof item;
+
+  if (out.runtime_override) {
+    out = {
+      ...out,
+      runtime_override: _withLocalizedDefault(
+        out.runtime_override as unknown as Record<string, unknown>,
+        "note",
+        "note_i18n"
+      ) as typeof out.runtime_override,
+    };
+  }
+  if (out.participation) {
+    out = {
+      ...out,
+      participation: _withLocalizedDefault(
+        _withLocalizedDefault(
+          out.participation as unknown as Record<string, unknown>,
+          "note",
+          "note_i18n"
+        ),
+        "qualification_hint",
+        "qualification_hint_i18n"
+      ) as typeof out.participation,
+    };
+  }
+  const seriesMemberships = _deriveSeriesMembershipTexts(out.series_memberships);
+  return seriesMemberships ? { ...out, series_memberships: seriesMemberships } : out;
+};
+
+const _deriveLocalizedLegacyFields = (
+  eventData: EventSchema
+): Partial<EventSchema> => {
+  const out: Partial<EventSchema> = {};
+
+  if (_hasOwn(eventData, "description_i18n")) {
+    const description = _localizedDefaultText(eventData.description_i18n);
+    out.description = description;
+  } else if (eventData.description !== undefined) {
+    out.description = eventData.description;
+  }
+
+  if (eventData.ticket_options) {
+    out.ticket_options = eventData.ticket_options.map((ticket) =>
+      _withLocalizedDefault(
+        _withLocalizedDefault(
+          ticket as unknown as Record<string, unknown>,
+          "label",
+          "label_i18n"
+        ),
+        "description",
+        "description_i18n"
+      )
+    ) as unknown as EventSchema["ticket_options"];
+  }
+
+  const seriesMemberships = _deriveSeriesMembershipTexts(
+    eventData.series_memberships
+  );
+  if (seriesMemberships) out.series_memberships = seriesMemberships;
+
+  if (eventData.program) {
+    out.program = {
+      ...eventData.program,
+      plans: eventData.program.plans.map((plan) => ({
+        ...(_withLocalizedDefault(
+          _withLocalizedDefault(
+            plan as unknown as Record<string, unknown>,
+            "label",
+            "label_i18n"
+          ),
+          "condition_label",
+          "condition_label_i18n"
+        ) as unknown as typeof plan),
+        items: plan.items.map(_deriveProgramItemTexts),
+      })),
+    };
+  }
+
+  return _removeUndefinedValues(out);
+};
+
 const _timestampSeconds = (value: unknown): number | undefined => {
   const timestamp = _timestampValue(value);
   return timestamp?.seconds;
@@ -483,6 +629,8 @@ const _addTypesenseFields = async (
 ): Promise<Partial<EventSchema>> => {
   const out: Partial<EventSchema> = {};
   const derivedBounds = await _deriveEventBounds(eventData);
+
+  Object.assign(out, _deriveLocalizedLegacyFields(eventData));
 
   out.start_seconds = _timestampSeconds(eventData.start);
   out.end_seconds = _timestampSeconds(eventData.end);

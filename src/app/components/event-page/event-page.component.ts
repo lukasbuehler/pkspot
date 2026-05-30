@@ -53,6 +53,7 @@ import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { EventHeroMediaComponent } from "../event-display/event-hero-media.component";
 import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
 import { EventCardComponent } from "../event-card/event-card.component";
+import { EventProgramTimelineComponent } from "./event-program-timeline.component";
 import {
   eventStatusLabel,
   type EventStatus,
@@ -75,6 +76,7 @@ import { isBot, formatDateRange } from "../../../scripts/Helpers";
     EventHeroMediaComponent,
     EventSummaryMetaComponent,
     EventCardComponent,
+    EventProgramTimelineComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -733,16 +735,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       default:
         return $localize`:@@event_series_role.series_event:Series event`;
     }
-  }
-
-  programItemTime(item: EventProgramItem): string {
-    const event = this.event();
-    return new Intl.DateTimeFormat(this._locale, {
-      weekday: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: event?.timeZone,
-    }).format(item.start);
   }
 
   qualificationRefLabel(ref: EventQualificationRefSchema): string {

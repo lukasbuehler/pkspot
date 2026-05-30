@@ -399,6 +399,29 @@ describe("EventsService", () => {
     );
   });
 
+  it("does not write server-derived plain event descriptions", async () => {
+    await service.updateEvent("event-1" as EventId, {
+      description: "English fallback",
+      description_i18n: {
+        en: { text: "English fallback", provider: "user" },
+        de: { text: "Deutsche Fassung", provider: "user" },
+      },
+    });
+
+    expect(firestoreAdapter.updateDocument).toHaveBeenCalledWith(
+      "events/event-1",
+      expect.objectContaining({
+        description_i18n: {
+          en: { text: "English fallback", provider: "user" },
+          de: { text: "Deutsche Fassung", provider: "user" },
+        },
+      }),
+    );
+    expect(firestoreAdapter.updateDocument.mock.calls[0][1]).not.toHaveProperty(
+      "description",
+    );
+  });
+
   it("does not write an RSVP while signed out", async () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({

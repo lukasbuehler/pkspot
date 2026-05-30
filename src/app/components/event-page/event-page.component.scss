@@ -1,7 +1,5 @@
 .event-info-page {
   min-height: 100%;
-  background: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
 }
 
 .event-info-page.embedded {
@@ -17,9 +15,7 @@
 .event-nav {
   min-height: 64px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
 }
 
 .event-nav-actions {
@@ -43,21 +39,15 @@
   gap: 1rem;
 }
 
-.event-title-block {
-  min-width: 0;
-}
-
 .event-hero {
-  position: relative;
   overflow: hidden;
-  width: 100%;
   height: clamp(180px, 28vw, 300px);
 }
 
 .event-hero app-event-hero-media {
   display: block;
-  width: 100%;
-  height: 100%;
+  inline-size: 100%;
+  block-size: 100%;
 }
 
 .event-section {
@@ -69,7 +59,6 @@
   max-width: 72ch;
   white-space: pre-line;
   font: var(--mat-sys-body-large);
-  color: var(--mat-sys-on-surface);
 }
 
 .info-label {
@@ -96,18 +85,13 @@
   margin-bottom: 0.75rem;
 }
 
-.qualification-section,
-.program-section,
-.ticket-option,
-.map-preview {
+.qualification-section, .program-section, .ticket-option, .map-preview {
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   background: var(--mat-sys-surface-container-low);
 }
 
-.qualification-section,
-.program-section,
-.ticket-option {
+.qualification-section, .program-section, .ticket-option {
   padding: 1rem;
 }
 
@@ -117,16 +101,12 @@
   border-top: 1px solid var(--mat-sys-outline-variant);
 }
 
-.qualification-title,
-.qualification-copy,
-.qualifier-label,
-.program-time,
-.program-description {
+.qualification-title, .qualification-copy, .qualifier-label,
+.ticket-description, .ticket-availability, .ticket-price, .map-preview-title {
   margin: 0;
 }
 
-.qualification-copy,
-.program-description {
+.qualification-copy {
   margin-top: 0.35rem;
   color: var(--mat-sys-on-surface-variant);
 }
@@ -144,34 +124,6 @@
   padding: 0.25rem 0.55rem;
   color: var(--mat-sys-on-surface-variant);
   background: var(--mat-sys-surface);
-}
-
-.program-list {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.program-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem;
-  align-items: start;
-  padding: 0.75rem;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 8px;
-  background: var(--mat-sys-surface);
-}
-
-.program-time {
-  color: var(--mat-sys-primary);
-}
-
-.program-side {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .ticket-grid {
@@ -210,13 +162,13 @@
   background: var(--mat-sys-tertiary-container);
 }
 
-.ticket-description {
-  margin: 0.35rem 0 0;
+.ticket-availability {
+  margin: 0.5rem 0 0;
   color: var(--mat-sys-on-surface-variant);
 }
 
-.ticket-availability {
-  margin: 0.5rem 0 0;
+.ticket-description {
+  margin-top: 0.35rem;
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -226,7 +178,6 @@
 }
 
 .ticket-price {
-  margin: 0;
   white-space: nowrap;
 }
 
@@ -243,7 +194,6 @@
 }
 
 .map-preview-title {
-  margin: 0;
   font: var(--mat-sys-title-medium);
 }
 
@@ -254,8 +204,8 @@
 
 .map-preview-frame app-google-map-2d {
   display: block;
-  width: 100%;
-  height: 100%;
+  inline-size: 100%;
+  block-size: 100%;
 }
 
 .event-edit-host {
@@ -269,8 +219,7 @@
 }
 
 @media (max-width: 720px) {
-  .event-nav,
-  .event-content {
+  .event-nav, .event-content {
     width: min(100% - 1rem, 960px);
   }
 
@@ -284,14 +233,6 @@
 
   .ticket-option {
     grid-template-columns: 1fr;
-  }
-
-  .program-item {
-    grid-template-columns: 1fr;
-  }
-
-  .program-side {
-    justify-content: flex-start;
   }
 
   .ticket-side {

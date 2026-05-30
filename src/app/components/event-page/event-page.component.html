@@ -179,46 +179,16 @@
         <section class="event-section program-section">
           <div class="section-heading-row">
             <h2 class="mat-title-medium m-0" i18n="@@event_program.heading">
-              Program preview
+              Program
             </h2>
             <span class="mat-label-medium muted" i18n="@@event_program.placeholder">
               Full schedule tools are coming later.
             </span>
           </div>
-          <div class="program-list">
-            @for (item of activeProgramItems(); track item.id) {
-              <article class="program-item">
-                <div class="program-copy">
-                  <p class="mat-label-medium program-time">
-                    {{ programItemTime(item) }}
-                  </p>
-                  <h3 class="mat-title-small m-0">{{ item.title }}</h3>
-                  @if (item.description) {
-                    <p class="mat-body-small program-description">
-                      {{ item.description }}
-                    </p>
-                  }
-                  @if (item.participation?.note || item.participation?.qualification_hint) {
-                    <p class="mat-body-small program-description">
-                      {{ item.participation?.note || item.participation?.qualification_hint }}
-                    </p>
-                  }
-                </div>
-                <div class="program-side">
-                  <mat-chip>{{ categoryLabel(item.category) }}</mat-chip>
-                  @if (item.linked_event_id) {
-                    <a
-                      mat-stroked-button
-                      [routerLink]="['/events', item.linked_event_id]"
-                    >
-                      <mat-icon>open_in_new</mat-icon>
-                      <span i18n="@@event_program.open_linked">Open event</span>
-                    </a>
-                  }
-                </div>
-              </article>
-            }
-          </div>
+          <app-event-program-timeline
+            [items]="activeProgramItems()"
+            [timeZone]="event.timeZone"
+          />
         </section>
       }
 
