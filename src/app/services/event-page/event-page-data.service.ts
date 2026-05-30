@@ -17,6 +17,8 @@ import { EventsService } from "../firebase/firestore/events.service";
 import { SpotsService } from "../firebase/firestore/spots.service";
 import { SpotChallengesService } from "../firebase/firestore/spot-challenges.service";
 import { SWISSJAM25_STATIC } from "../../components/event-page/swissjam25.static";
+import { SearchService } from "../search.service";
+import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 
 export type EventPageMapMarker = MarkerSchema & {
   spotIndex?: number;
@@ -37,6 +39,7 @@ export class EventPageDataService {
   private _eventsService = inject(EventsService);
   private _spotsService = inject(SpotsService);
   private _challengeService = inject(SpotChallengesService);
+  private _search = inject(SearchService);
   private _locale = inject<LocaleCode>(LOCALE_ID);
 
   async loadEventBySlugOrId(slugOrId: string): Promise<PkEvent | null> {
@@ -93,15 +96,39 @@ export class EventPageDataService {
       return inline;
     }
 
-    const loaded = await Promise.all(
-      event.spotIds.map((id) =>
+    const previewSpots = await this._search
+      .searchSpotPreviewsByIds(event.spotIds)
+      .catch((err) => {
+        console.warn("EventPageDataService: failed to load spot previews", err);
+        return [];
+      });
+    const previewsById = new Map(
+      previewSpots.map((preview) => [String(preview.id), preview]),
+    );
+    const missingIds = event.spotIds.filter(
+      (id) => !previewsById.has(String(id)),
+    );
+    const fallbackSpots = await Promise.all(
+      missingIds.map((id) =>
         firstValueFrom(
           this._spotsService.getSpotById$(id as SpotId, this._locale),
         ).catch(() => null),
       ),
     );
+    const fallbackById = new Map(
+      fallbackSpots
+        .filter((spot): spot is Spot => !!spot)
+        .map((spot) => [String(spot.id), spot]),
+    );
+    const loaded = event.spotIds
+      .map(
+        (id) =>
+          fallbackById.get(String(id)) ??
+          this._buildSpotPreview(previewsById.get(String(id))),
+      )
+      .filter((spot): spot is Spot | LocalSpot => !!spot);
 
-    return [...inline, ...loaded.filter((spot): spot is Spot => !!spot)];
+    return [...inline, ...loaded];
   }
 
   async loadEventChallenges(
@@ -381,6 +408,41 @@ export class EventPageDataService {
         is_iconic: inline.is_iconic ?? false,
         amenities: {},
       };
+    return new LocalSpot(data, this._locale);
+  }
+
+  private _buildSpotPreview(preview: SpotPreviewData | undefined): LocalSpot | null {
+    if (!preview) return null;
+    const rawLocation =
+      preview.location_raw ??
+      (preview.location
+        ? { lat: preview.location.latitude, lng: preview.location.longitude }
+        : null);
+    if (!rawLocation) return null;
+
+    const data: SpotSchema = {
+      location: new GeoPoint(rawLocation.lat, rawLocation.lng),
+      location_raw: rawLocation,
+      name: {
+        [this._locale]: { text: preview.name, provider: "user" },
+      },
+      address: null,
+      bounds: preview.bounds,
+      bounds_raw: preview.bounds_raw,
+      media: preview.imageSrc
+        ? [
+            {
+              src: preview.imageSrc,
+              type: MediaType.Image,
+              isInStorage: false,
+            },
+          ]
+        : [],
+      is_iconic: preview.isIconic,
+      type: preview.type as SpotSchema["type"],
+      access: preview.access as SpotSchema["access"],
+      amenities: preview.amenities ?? {},
+    };
     return new LocalSpot(data, this._locale);
   }
 

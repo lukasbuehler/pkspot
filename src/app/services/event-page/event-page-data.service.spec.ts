@@ -8,6 +8,7 @@ import { EventsService } from "../firebase/firestore/events.service";
 import { SpotsService } from "../firebase/firestore/spots.service";
 import { SpotChallengesService } from "../firebase/firestore/spot-challenges.service";
 import { EventPageDataService } from "./event-page-data.service";
+import { SearchService } from "../search.service";
 
 const buildEvent = (
   id: string,
@@ -47,6 +48,7 @@ describe("EventPageDataService", () => {
         { provide: EventsService, useValue: eventsService },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
         { provide: LOCALE_ID, useValue: "en" },
       ],
     });
@@ -68,6 +70,7 @@ describe("EventPageDataService", () => {
         { provide: EventsService, useValue: eventsService },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
         { provide: LOCALE_ID, useValue: "en" },
       ],
     });
@@ -87,6 +90,7 @@ describe("EventPageDataService", () => {
         { provide: EventsService, useValue: {} },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
         { provide: LOCALE_ID, useValue: "en" },
       ],
     });
@@ -135,12 +139,57 @@ describe("EventPageDataService", () => {
     );
   });
 
+  it("loads linked event spots from Typesense previews", async () => {
+    const searchService = {
+      searchSpotPreviewsByIds: vi.fn(() =>
+        Promise.resolve([
+          {
+            id: "spot-1",
+            name: "Preview Spot",
+            location_raw: { lat: 47.33, lng: 8.54 },
+            locality: "Zurich",
+            imageSrc: "",
+            isIconic: true,
+          },
+        ]),
+      ),
+    };
+    const spotsService = {
+      getSpotById$: vi.fn(() => of(null)),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: spotsService },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: searchService },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("city-jam", {
+      spot_ids: ["spot-1"],
+    });
+
+    const spots = await service.loadEventSpots(event);
+
+    expect(searchService.searchSpotPreviewsByIds).toHaveBeenCalledWith([
+      "spot-1",
+    ]);
+    expect(spotsService.getSpotById$).not.toHaveBeenCalled();
+    expect(spots[0]?.name()).toBe("Preview Spot");
+    expect(spots[0]?.location()).toEqual({ lat: 47.33, lng: 8.54 });
+  });
+
   it("prioritizes event custom markers above challenge markers and spot markers", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: EventsService, useValue: {} },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
         { provide: LOCALE_ID, useValue: "en" },
       ],
     });
@@ -216,6 +265,7 @@ describe("EventPageDataService", () => {
         { provide: EventsService, useValue: {} },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
         { provide: LOCALE_ID, useValue: "en" },
       ],
     });
@@ -292,6 +342,7 @@ describe("EventPageDataService", () => {
         { provide: EventsService, useValue: {} },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
         { provide: LOCALE_ID, useValue: "en" },
       ],
     });

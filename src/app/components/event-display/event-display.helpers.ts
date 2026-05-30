@@ -3,6 +3,8 @@ import {
   AnyMedia,
   ExternalImage,
   ExternalVideo,
+  StorageImage,
+  StorageVideo,
 } from "../../../db/models/Media";
 import { MediaType } from "../../../db/models/Interfaces";
 import { MediaSchema } from "../../../db/schemas/Media";
@@ -10,6 +12,12 @@ import { MediaSchema } from "../../../db/schemas/Media";
 export type EventStatus = "upcoming" | "live" | "past";
 
 export function eventMediaFromSchema(media: MediaSchema): AnyMedia {
+  if (media.isInStorage) {
+    return media.type === MediaType.Video
+      ? StorageVideo.fromSchema(media)
+      : StorageImage.fromSchema(media);
+  }
+
   return media.type === MediaType.Video
     ? new ExternalVideo(
         media.src,
@@ -27,13 +35,32 @@ export function eventMediaFromSchema(media: MediaSchema): AnyMedia {
       );
 }
 
+export function eventImageDisplaySrc(
+  src: string | undefined,
+): string | undefined {
+  if (!src) return undefined;
+  try {
+    return new StorageImage(src).getSrc(800);
+  } catch {
+    return src;
+  }
+}
+
+function eventImageMedia(src: string): StorageImage | ExternalImage {
+  try {
+    return new StorageImage(src);
+  } catch {
+    return new ExternalImage(src);
+  }
+}
+
 export function eventHeroMedia(event: PkEvent): AnyMedia[] {
   const media = [
-    ...(event.bannerSrc ? [new ExternalImage(event.bannerSrc)] : []),
+    ...(event.bannerSrc ? [eventImageMedia(event.bannerSrc)] : []),
     ...event.media.map(eventMediaFromSchema),
     ...event.inlineSpots
       .flatMap((spot) => spot.images ?? [])
-      .map((src) => new ExternalImage(src)),
+      .map((src) => eventImageMedia(src)),
   ];
   const seen = new Set<string>();
   return media.filter((item) => {

@@ -22,7 +22,7 @@ import {
   InlineEventSpotSchema,
 } from "../schemas/EventSchema";
 import { EventRSVPCountsSchema } from "../schemas/EventRSVPSchema";
-import { MediaSchema } from "../schemas/Media";
+import type { MediaSchema } from "../schemas/Media";
 import { LocaleCode, LocaleMap } from "./Interfaces";
 import {
   getBestLocale,

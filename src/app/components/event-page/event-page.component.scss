@@ -151,16 +151,6 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.qualifier-pill {
-  display: inline-block;
-  margin: 0.45rem 0.4rem 0 0;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 999px;
-  padding: 0.25rem 0.55rem;
-  color: var(--mat-sys-on-surface-variant);
-  background: var(--mat-sys-surface);
-}
-
 .ticket-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

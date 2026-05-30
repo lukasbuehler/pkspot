@@ -18,6 +18,7 @@ function eventStub(
     isPast: () => false,
     isLive: () => false,
     isUpcoming: () => true,
+    isPromotable: () => false,
     start: new Date("2026-06-01T10:00:00Z"),
     status: () => "upcoming",
     effectiveBadgeLogoSrc: () => undefined,
@@ -28,6 +29,8 @@ function eventStub(
 
 describe("map event map items", () => {
   const now = new Date("2026-05-27T10:00:00Z");
+  const storageEventImageUrl =
+    "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbadge.png?alt=media";
 
   it("builds event markers without duplicating the open event", () => {
     const selectedEvent = eventStub({
@@ -82,6 +85,25 @@ describe("map event map items", () => {
     expect(markers.map((marker) => marker.id)).toEqual([
       "event-custom:event-1:0",
     ]);
+  });
+
+  it("uses resized storage images for event marker logos", () => {
+    const markers = buildVisibleEventMarkers({
+      visibleEvents: [
+        eventStub({
+          id: "event-2",
+          effectiveBadgeLogoSrc: () => storageEventImageUrl,
+        }),
+      ],
+      selectedEvent: null,
+      pendingEventRef: null,
+      mode: "events",
+      now,
+    });
+
+    expect(markers[0].imageSrc).toBe(
+      "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbadge_800x800.png?alt=media",
+    );
   });
 
   it("builds area overlays from event bounds or polygon data", () => {

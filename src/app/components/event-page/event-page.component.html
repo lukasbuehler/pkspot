@@ -153,7 +153,34 @@
                   Qualification is required for this competition.
                 </p>
               }
-              @if ((membership.required_qualifiers?.length ?? 0) > 0) {
+              @if ((membership.qualifies_to?.length ?? 0) > 0 && (isLoadingQualifierEvents() || qualificationTargetEventsFor(membership).length > 0)) {
+                <p class="mat-label-large qualifier-label" i18n="@@event_qualification.qualifies_to">
+                  Qualifies for
+                </p>
+                @if (isLoadingQualifierEvents()) {
+                  <div class="d-flex align-items-center gap-2 mt-2">
+                    <mat-progress-spinner
+                      mode="indeterminate"
+                      diameter="20"
+                      aria-label="Loading qualification target events"
+                      i18n-aria-label="@@event_qualification.loading_targets"
+                    ></mat-progress-spinner>
+                    <span
+                      class="mat-body-small muted"
+                      i18n="@@event_qualification.loading_targets_text"
+                    >
+                      Loading qualification target events
+                    </span>
+                  </div>
+                } @else {
+                  <div class="ticket-grid mt-2">
+                    @for (target of qualificationTargetEventsFor(membership); track target.id) {
+                      <app-event-card [event]="target"></app-event-card>
+                    }
+                  </div>
+                }
+              }
+              @if ((membership.required_qualifiers?.length ?? 0) > 0 && (isLoadingQualifierEvents() || qualifierEventsFor(membership).length > 0)) {
                 <p class="mat-label-large qualifier-label" i18n="@@event_qualification.qualifiers">
                   Qualifying events
                 </p>
@@ -176,14 +203,6 @@
                   <div class="ticket-grid mt-2">
                     @for (qualifier of qualifierEventsFor(membership); track qualifier.id) {
                       <app-event-card [event]="qualifier"></app-event-card>
-                    }
-                  </div>
-                } @else {
-                  <div class="qualifier-list">
-                    @for (ref of membership.required_qualifiers; track qualificationRefLabel(ref)) {
-                      <span class="qualifier-pill mat-label-medium">
-                        {{ qualificationRefLabel(ref) }}
-                      </span>
                     }
                   </div>
                 }

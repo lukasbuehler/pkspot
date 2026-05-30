@@ -220,7 +220,12 @@ async function main() {
   await assertDenied("regular user event media upload", () =>
     uploadAs(uploader, `event_media/${suffix}.webp`, "image/webp")
   );
-  await uploadAs(adminClient, `event_media/${suffix}.webp`, "image/webp");
+  const eventMediaPath = `event_media/${suffix}.webp`;
+  await uploadAs(adminClient, eventMediaPath, "image/webp");
+  assert.match(
+    await getDownloadURL(ref(anonymous.storage, eventMediaPath)),
+    /^http/
+  );
   await assertDenied("admin event text upload", () =>
     uploadAs(adminClient, `event_media/${suffix}.txt`, "text/plain")
   );

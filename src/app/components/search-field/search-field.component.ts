@@ -55,6 +55,7 @@ import {
 } from "rxjs/operators";
 import { countries } from "../../../scripts/Countries";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
+import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 
 interface SearchSelection {
   type: "place" | "spot" | "community" | "event";
@@ -634,7 +635,9 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
   /** First non-empty among sponsor logo, event logo, and banner. */
   getEventImage(event: EventSearchPreview): string | undefined {
-    return event.sponsorLogoSrc || event.logoSrc || event.bannerSrc;
+    return eventImageDisplaySrc(
+      event.sponsorLogoSrc || event.logoSrc || event.bannerSrc,
+    );
   }
 
   /**

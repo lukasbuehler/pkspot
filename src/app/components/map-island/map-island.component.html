@@ -15,7 +15,7 @@
   }
 
   @case ("event") {
-  @if (island.event.effectiveBadgeLogoSrc(); as logoSrc) {
+  @if (eventLogoSrc(island.event); as logoSrc) {
   <div class="island-logo flex-shrink-0" [style.background-color]="
               island.event.effectiveBadgeLogoBackgroundColor() ?? null
             ">

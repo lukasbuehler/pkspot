@@ -18,6 +18,7 @@ import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { MatTooltip } from "@angular/material/tooltip";
 import { formatDateRange } from "../../../scripts/Helpers";
 import {
+  eventImageDisplaySrc,
   eventStatusLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
@@ -57,6 +58,10 @@ export class EventCardComponent {
   readonly statusLabel = computed(() =>
     eventStatusLabel(this.event(), this.status(), this._locale),
   );
+  readonly bannerImageSrc = computed(() => {
+    const bannerSrc = this.event().bannerSrc;
+    return eventImageDisplaySrc(bannerSrc);
+  });
 
   onSelect(): void {
     this.select.emit(this.event());

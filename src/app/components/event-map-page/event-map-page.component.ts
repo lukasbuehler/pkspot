@@ -78,6 +78,7 @@ import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
 import {
+  eventImageDisplaySrc,
   eventStatusLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
@@ -206,7 +207,9 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   readonly name = computed(() => this.event()?.name ?? "");
   readonly venueString = computed(() => this.event()?.venueString ?? "");
   readonly localityString = computed(() => this.event()?.localityString ?? "");
-  readonly bannerImageSrc = computed(() => this.event()?.bannerSrc ?? "");
+  readonly bannerImageSrc = computed(
+    () => eventImageDisplaySrc(this.event()?.bannerSrc) ?? "",
+  );
   readonly isSponsored = computed(() => this.event()?.isSponsored ?? false);
   readonly url = computed(() =>
     this._analytics.addUtmToUrl(
@@ -496,7 +499,8 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   private _syncEventSeoData(event: PkEvent): void {
     const canonicalPath = this._eventCanonicalPath(event);
     const description = this._eventDescription(event);
-    const image = event.bannerSrc ?? "/assets/banner_1200x630.png";
+    const image =
+      eventImageDisplaySrc(event.bannerSrc) ?? "/assets/banner_1200x630.png";
 
     this.metaTagService.setEventMetaTags(
       {

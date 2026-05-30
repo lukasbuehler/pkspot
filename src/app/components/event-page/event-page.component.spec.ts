@@ -10,6 +10,7 @@ import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import { AnalyticsService } from "../../services/analytics.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
+import { SeriesService } from "../../services/firebase/firestore/series.service";
 import { SpotChallengesService } from "../../services/firebase/firestore/spot-challenges.service";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { MapsApiService } from "../../services/maps-api.service";
@@ -52,6 +53,10 @@ const buildEvent = (
     ...extra,
   } as unknown as EventSchema);
 
+const seriesServiceStub = () => ({
+  getSeriesByIds: vi.fn(async () => ({})),
+});
+
 describe("EventInfoPageComponent", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -89,6 +94,7 @@ describe("EventInfoPageComponent", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: EventsService, useValue: eventsService },
+        { provide: SeriesService, useValue: seriesServiceStub() },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
         {
@@ -214,6 +220,7 @@ describe("EventInfoPageComponent", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
         {
@@ -288,10 +295,99 @@ describe("EventInfoPageComponent", () => {
     expect(component.showRsvp()).toBe(false);
   });
 
+  it("uses Firestore series documents for event series labels and logos", async () => {
+    const seriesService = {
+      getSeriesByIds: vi.fn(async () => ({
+        "parkour-earth": {
+          id: "parkour-earth",
+          name: "Parkour Earth",
+          logo_src: "assets/logos/parkour_earth.jpg",
+          logo_background_color: "#ffffff",
+        },
+      })),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesService },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "swissjam26" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "swissjam26" }) },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: { setEventMetaTags: vi.fn() } },
+        {
+          provide: StructuredDataService,
+          useValue: {
+            addStructuredData: vi.fn(),
+            removeStructuredData: vi.fn(),
+          },
+        },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: vi.fn((url?: string) => url),
+          },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+
+    component.event.set(
+      buildEvent("swissjam26", "Swiss Jam 2026", {
+        series_memberships: [
+          {
+            series_id: "parkour-earth",
+            role: "qualifier",
+          },
+        ],
+      }),
+    );
+    flushSignalEffects();
+    await flushPromises();
+
+    expect(seriesService.getSeriesByIds).toHaveBeenCalledWith([
+      "parkour-earth",
+    ]);
+    expect(component.seriesLabel("parkour-earth")).toBe("Parkour Earth");
+    expect(component.seriesVisual("parkour-earth")).toEqual({
+      logoSrc: "assets/logos/parkour_earth.jpg",
+      background: "#ffffff",
+    });
+  });
+
   it("builds the hero carousel from the banner followed by inline spot images", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
         {
@@ -379,6 +475,7 @@ describe("EventInfoPageComponent", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
         {
@@ -469,6 +566,7 @@ describe("EventInfoPageComponent", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
         { provide: SpotsService, useValue: {} },
         { provide: SpotChallengesService, useValue: {} },
         {

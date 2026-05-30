@@ -46,8 +46,8 @@ const seriesDocs = [
       name: "Parkour Earth",
       slug: "parkour-earth",
       url: "https://parkourearth.org/",
-      logo_src: "assets/logos/parkour_earth_white.png",
-      logo_background_color: "#111111",
+      logo_src: "assets/logos/parkour_earth.jpg",
+      logo_background_color: "#ffffff",
       description:
         "Independent international parkour federation and organizer of the Parkour Earth World Championships.",
       published: true,
@@ -125,8 +125,7 @@ const eventDocs = [
           disciplines: ["speed", "skill", "style"],
           qualification_required: true,
           qualification_hint:
-            "Swiss athletes qualify for Parkour Earth Worlds through the Swiss Parkour Championships pathway.",
-          required_qualifiers: qualifierRefs,
+            "This event is the Swiss qualification pathway toward the Parkour Earth World Championships.",
           qualifies_to: [eventRef("parkour-earth-world-championships-2026")],
           source_url: PKE_CALENDAR_SOURCE,
         },
@@ -295,7 +294,8 @@ const eventDocs = [
                     role: "qualifier",
                     disciplines: ["speed", "skill", "style"],
                     qualification_required: true,
-                    required_qualifiers: qualifierRefs,
+                    qualification_hint:
+                      "This event is the Swiss qualification pathway toward the Parkour Earth World Championships.",
                     qualifies_to: [
                       eventRef("parkour-earth-world-championships-2026"),
                     ],
@@ -518,33 +518,38 @@ const eventDocs = [
     event_categories: ["camp", "jam", "workshop"],
     time_zone: "Europe/Zurich",
   }),
-  draftEvent("parkour-earth-world-championships-2026", {
-    name: "Parkour Earth World Championships 2026",
-    venue_string: "Brno",
-    locality_string: "Brno (CZ)",
-    location: geo(49.1951, 16.6068),
-    location_raw: latLng(49.1951, 16.6068),
-    start: ts("2026-10-28T08:00:00.000Z"),
-    end: ts("2026-11-01T17:00:00.000Z"),
-    url: PKE_WORLDS_SOURCE,
-    event_categories: ["competition"],
-    time_zone: "Europe/Prague",
-    series_ids: ["parkour-earth"],
-    series_memberships: [
-      {
-        series_id: "parkour-earth",
-        role: "championship",
-        disciplines: ["speed", "skill", "style"],
-        qualification_required: true,
-        qualification_hint:
-          "Swiss athletes qualify through the Swiss Parkour Championships pathway.",
-        required_qualifiers: [
-          programRef("swissjam26", "swiss-parkour-championships"),
-        ],
-        source_url: PKE_CALENDAR_SOURCE,
-      },
-    ],
-  }),
+  {
+    slug: "parkour-earth-world-championships-2026",
+    data: {
+      slug: "parkour-earth-world-championships-2026",
+      name: "Parkour Earth World Championships 2026",
+      venue_string: "Brno",
+      locality_string: "Brno (CZ)",
+      location: geo(49.1951, 16.6068),
+      location_raw: latLng(49.1951, 16.6068),
+      start: ts("2026-10-28T08:00:00.000Z"),
+      end: ts("2026-11-01T17:00:00.000Z"),
+      url: PKE_WORLDS_SOURCE,
+      event_categories: ["competition"],
+      time_zone: "Europe/Prague",
+      series_ids: ["parkour-earth"],
+      series_memberships: [
+        {
+          series_id: "parkour-earth",
+          role: "championship",
+          disciplines: ["speed", "skill", "style"],
+          qualification_required: true,
+          qualification_hint:
+            "Swiss athletes qualify through the Swiss Parkour Championships pathway.",
+          required_qualifiers: [
+            programRef("swissjam26", "swiss-parkour-championships"),
+          ],
+          source_url: PKE_CALENDAR_SOURCE,
+        },
+      ],
+      published: true,
+    },
+  },
   draftEvent("spl5-2026", {
     name: "SPL5 2026",
     venue_string: "Vancouver",

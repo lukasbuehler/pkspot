@@ -15,7 +15,7 @@
     [attr.data-status]="status()"
   >
     <div mat-card-image class="image-wrap">
-      @if (event().bannerSrc) {
+      @if (bannerImageSrc()) {
         <div
           class="banner-frame"
           [style.background-color]="
@@ -25,7 +25,7 @@
           "
         >
           <img
-            [ngSrc]="event().bannerSrc!"
+            [ngSrc]="bannerImageSrc()!"
             fill
             [class.object-fit-cover]="event().bannerFit === 'cover'"
             [class.object-fit-contain]="event().bannerFit === 'contain'"

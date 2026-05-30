@@ -6,6 +6,7 @@ import {
 } from "../maps/map-overlays";
 import { MapObjectMode } from "./map-object-mode.model";
 import { getMapEventMarkerPriority } from "../map-page/map-island-event-ranking";
+import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 
 const eventBoundsColorFallback = "rgb(184 196 255)";
 const eventAreaColorFallback = "rgb(0 54 186)";
@@ -47,7 +48,7 @@ export function buildVisibleEventMarkers({
         name: event.name,
         location: event.location,
         icons: [status === "live" ? "stars" : "event"],
-        imageSrc: event.effectiveBadgeLogoSrc(),
+        imageSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
         imageBackgroundColor: event.effectiveBadgeLogoBackgroundColor(),
         color: status === "live" ? "secondary" : "primary",
         type: "event",

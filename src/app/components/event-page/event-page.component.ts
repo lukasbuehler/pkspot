@@ -41,6 +41,10 @@ import { MetaTagService } from "../../services/meta-tag.service";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
+import {
+  SeriesDocument,
+  SeriesService,
+} from "../../services/firebase/firestore/series.service";
 import { SearchService } from "../../services/search.service";
 import { environment } from "../../../environments/environment";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
@@ -54,6 +58,7 @@ import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.c
 import { EventCardComponent } from "../event-card/event-card.component";
 import { EventProgramTimelineComponent } from "./event-program-timeline.component";
 import {
+  eventImageDisplaySrc,
   eventStatusLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
@@ -91,6 +96,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _structuredData = inject(StructuredDataService);
   private _metaTags = inject(MetaTagService);
   private _eventPageData = inject(EventPageDataService);
+  private _seriesService = inject(SeriesService);
   private _search = inject(SearchService);
   private _platformId = inject(PLATFORM_ID);
   private _locale = inject<LocaleCode>(LOCALE_ID);
@@ -102,6 +108,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _eventLoadRequestVersion = 0;
   private _spotsLoadRequestVersion = 0;
   private _qualifierLoadRequestVersion = 0;
+  private _seriesLoadRequestVersion = 0;
 
   readonly event = signal<PkEvent | null>(null);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
@@ -114,6 +121,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
   readonly qualifierEventsById = signal<Record<string, PkEvent>>({});
+  readonly seriesById = signal<Record<string, SeriesDocument>>({});
   readonly isLoadingQualifierEvents = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
 
@@ -218,16 +226,27 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         ) === index,
     ),
   );
+  readonly visibleSeriesIds = computed(() => [
+    ...new Set(
+      this.visibleSeriesMemberships()
+        .map((membership) => membership.series_id)
+        .filter(Boolean),
+    ),
+  ]);
   readonly qualificationMemberships = computed(() =>
     this.visibleSeriesMemberships().filter(
       (membership) =>
         membership.qualification_required ||
-        (membership.required_qualifiers?.length ?? 0) > 0,
+        (membership.required_qualifiers?.length ?? 0) > 0 ||
+        (membership.qualifies_to?.length ?? 0) > 0,
     ),
   );
-  readonly requiredQualifierRefs = computed(() =>
+  readonly qualificationEventRefs = computed(() =>
     this.qualificationMemberships()
-      .flatMap((membership) => membership.required_qualifiers ?? [])
+      .flatMap((membership) => [
+        ...(membership.required_qualifiers ?? []),
+        ...(membership.qualifies_to ?? []),
+      ])
       .filter(
         (ref, index, refs) =>
           refs.findIndex(
@@ -280,6 +299,30 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this._syncEventSeoData(event);
     });
 
+    effect(() => {
+      const seriesIds = this.visibleSeriesIds();
+      const requestVersion = ++this._seriesLoadRequestVersion;
+
+      if (seriesIds.length === 0) {
+        this.seriesById.set({});
+        return;
+      }
+
+      this._seriesService
+        .getSeriesByIds(seriesIds)
+        .then((seriesById) => {
+          if (requestVersion === this._seriesLoadRequestVersion) {
+            this.seriesById.set(seriesById);
+          }
+        })
+        .catch((error) => {
+          console.warn("Failed to load event series documents.", error);
+          if (requestVersion === this._seriesLoadRequestVersion) {
+            this.seriesById.set({});
+          }
+        });
+    });
+
     if (isPlatformBrowser(this._platformId)) {
       effect(() => {
         const event = this.event();
@@ -296,7 +339,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       });
 
       effect(() => {
-        const refs = this.requiredQualifierRefs();
+        const refs = this.qualificationEventRefs();
         const eventIds = [...new Set(refs.map((ref) => ref.event_id))].filter(
           Boolean,
         );
@@ -311,6 +354,14 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         this.isLoadingQualifierEvents.set(true);
         this._search.getEventCardsByIds(eventIds).then((events) => {
           if (requestVersion !== this._qualifierLoadRequestVersion) return;
+          const foundIds = new Set(events.map((event) => String(event.id)));
+          const missingIds = eventIds.filter((id) => !foundIds.has(String(id)));
+          if (missingIds.length > 0) {
+            console.warn(
+              "Event qualification refs were hidden because no published Typesense event card was found.",
+              missingIds,
+            );
+          }
           this.qualifierEventsById.set(
             Object.fromEntries(events.map((event) => [event.id, event])),
           );
@@ -705,43 +756,16 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   seriesLabel(seriesId: string): string {
-    switch (seriesId) {
-      case "swiss-parkour-tour":
-        return "Swiss Parkour Tour";
-      case "parkour-earth":
-        return "Parkour Earth";
-      case "sport-parkour-league":
-        return "Sport Parkour League";
-      default:
-        return seriesId
-          .split("-")
-          .filter(Boolean)
-          .map((word) => word[0]?.toUpperCase() + word.slice(1))
-          .join(" ");
-    }
+    return this.seriesById()[seriesId]?.name ?? this._seriesFallbackLabel(seriesId);
   }
 
   seriesVisual(seriesId: string): { logoSrc?: string; background: string } {
-    switch (seriesId) {
-      case "swiss-parkour-tour":
-        return {
-          logoSrc: "assets/swissjam/spt_logo_orange_on_white.png",
-          background: "var(--mat-sys-surface)",
-        };
-      case "parkour-earth":
-        return {
-          logoSrc: "assets/logos/parkour_earth_white.png",
-          background: "var(--mat-sys-inverse-surface)",
-        };
-      case "sport-parkour-league":
-        return {
-          background: "var(--mat-sys-tertiary-container)",
-        };
-      default:
-        return {
-          background: "var(--mat-sys-surface-container-high)",
-        };
-    }
+    const series = this.seriesById()[seriesId];
+    return {
+      logoSrc: eventImageDisplaySrc(series?.logo_src),
+      background:
+        series?.logo_background_color ?? "var(--mat-sys-surface-container-high)",
+    };
   }
 
   seriesInitials(seriesId: string): string {
@@ -770,16 +794,21 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  qualificationRefLabel(ref: EventQualificationRefSchema): string {
-    const eventLabel = this._knownQualificationEventLabel(String(ref.event_id));
-    return ref.program_item_id
-      ? `${eventLabel} / ${this._humanizeSlug(ref.program_item_id)}`
-      : eventLabel;
+  qualifierEventsFor(membership: EventSeriesMembershipSchema): PkEvent[] {
+    return this._eventsForQualificationRefs(membership.required_qualifiers);
   }
 
-  qualifierEventsFor(membership: EventSeriesMembershipSchema): PkEvent[] {
+  qualificationTargetEventsFor(
+    membership: EventSeriesMembershipSchema,
+  ): PkEvent[] {
+    return this._eventsForQualificationRefs(membership.qualifies_to);
+  }
+
+  private _eventsForQualificationRefs(
+    refs: EventQualificationRefSchema[] | undefined,
+  ): PkEvent[] {
     const eventsById = this.qualifierEventsById();
-    return (membership.required_qualifiers ?? [])
+    return (refs ?? [])
       .map((ref) => eventsById[ref.event_id])
       .filter((event): event is PkEvent => !!event)
       .filter(
@@ -788,32 +817,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       );
   }
 
-  private _knownQualificationEventLabel(eventId: string): string {
-    switch (eventId) {
-      case "parkour-expo-skill-2026":
-        return "Parkour Expo Skill Competition 2026";
-      case "nurf-skill-2026":
-        return "Nurf Skill Competition 2026";
-      case "parkour-luzern-speed-2026":
-        return "Parkour Luzern Speed Competition 2026";
-      case "parkour-day-staefa-2026":
-        return "Parkour Day Stafa 2026";
-      case "wpf-skills-competition-2026":
-        return "WPF Skills Competition 2026";
-      default:
-        return this._humanizeSlug(eventId);
-    }
-  }
-
-  private _humanizeSlug(value: string): string {
-    return value
+  private _seriesFallbackLabel(seriesId: string): string {
+    return seriesId
       .split("-")
       .filter(Boolean)
-      .map((word) =>
-        /^\\d+$/.test(word) || word.length <= 3
-          ? word.toUpperCase()
-          : word[0]?.toUpperCase() + word.slice(1),
-      )
+      .map((word) => word[0]?.toUpperCase() + word.slice(1))
       .join(" ");
   }
 

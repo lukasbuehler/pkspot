@@ -374,7 +374,7 @@ export class StorageImage extends StorageMedia {
    * Tracks whether the resized versions of this image are still being processed.
    * When true, the image should show a loading placeholder.
    */
-  readonly isProcessing: WritableSignal<boolean> = signal(false);
+  readonly isProcessing: WritableSignal<boolean>;
 
   constructor(
     src: string,
@@ -431,7 +431,7 @@ export class StorageImage extends StorageMedia {
     }
 
     super(src, MediaType.Image, userId, attribution, origin, isReported);
-    this.isProcessing.set(isProcessing);
+    this.isProcessing = signal(isProcessing);
   }
 
   /**

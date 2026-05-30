@@ -28,6 +28,8 @@ const buildEvent = (
 
 describe("EventCardComponent", () => {
   let fixture: ComponentFixture<EventCardComponent>;
+  const storageEventImageUrl =
+    "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbanner.png?alt=media";
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -220,6 +222,24 @@ describe("EventCardComponent", () => {
 
     const draft = fixture.debugElement.query(By.css(".draft-line"));
     expect(draft.nativeElement.textContent).toContain("Draft");
+  });
+
+  it("renders storage-backed event banners through the resized object", () => {
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "event-123",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+        { banner_src: storageEventImageUrl },
+      ),
+    );
+
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.bannerImageSrc()).toBe(
+      "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbanner_800x800.png?alt=media",
+    );
   });
 });
 
