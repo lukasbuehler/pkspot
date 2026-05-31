@@ -69,6 +69,11 @@ import {
 } from "../event-display/event-display.helpers";
 import { isBot, formatDateRange } from "../../../scripts/Helpers";
 
+interface VisibleSeriesTag {
+  seriesId: string;
+  role?: EventSeriesMembershipSchema["role"];
+}
+
 @Component({
   selector: "app-event-info-page",
   imports: [
@@ -237,12 +242,29 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         ) === index,
     ),
   );
+  readonly visibleSeriesTags = computed<VisibleSeriesTag[]>(() => {
+    const tags: VisibleSeriesTag[] = this.visibleSeriesMemberships().map(
+      (membership) => ({
+        seriesId: membership.series_id,
+        role: membership.role,
+      }),
+    );
+    const keyedTags = new Set(
+      tags.map((tag) => this._seriesTagKey(tag.seriesId, tag.role)),
+    );
+
+    for (const seriesId of this.event()?.seriesIds ?? []) {
+      const key = this._seriesTagKey(seriesId);
+      if (!keyedTags.has(key)) {
+        tags.push({ seriesId });
+        keyedTags.add(key);
+      }
+    }
+
+    return tags;
+  });
   readonly visibleSeriesIds = computed(() => [
-    ...new Set(
-      this.visibleSeriesMemberships()
-        .map((membership) => membership.series_id)
-        .filter(Boolean),
-    ),
+    ...new Set(this.visibleSeriesTags().map((tag) => tag.seriesId)),
   ]);
   readonly qualificationMemberships = computed(() =>
     this.visibleSeriesMemberships().filter(
@@ -824,6 +846,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  seriesTagTrackKey(tag: VisibleSeriesTag): string {
+    return this._seriesTagKey(tag.seriesId, tag.role);
+  }
+
   qualifierEventsFor(membership: EventSeriesMembershipSchema): PkEvent[] {
     return this._eventsForQualificationRefs(membership.required_qualifiers);
   }
@@ -987,6 +1013,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       .filter(Boolean)
       .map((word) => word[0]?.toUpperCase() + word.slice(1))
       .join(" ");
+  }
+
+  private _seriesTagKey(
+    seriesId: string,
+    role?: EventSeriesMembershipSchema["role"],
+  ): string {
+    return `${seriesId}:${role ?? "series"}`;
   }
 
   private _qualificationEventGroupKey(

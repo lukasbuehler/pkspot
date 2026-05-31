@@ -626,6 +626,548 @@
 
       <mat-divider />
 
+      <!-- ----------------- Series + qualification ----------------- -->
+      <mat-expansion-panel class="nested-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title
+            class="mat-title-small"
+            i18n="@@event_edit.series_qualification_heading"
+          >
+            Series & qualification
+          </mat-panel-title>
+          <mat-panel-description i18n="@@event_edit.series_qualification_hint">
+            Event series, qualifier targets, and required paths
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="d-flex flex-column gap-3 pt-2">
+          <mat-form-field appearance="outline">
+            <mat-label i18n="@@event_edit.series_ids">
+              Series ids
+            </mat-label>
+            <input
+              matInput
+              formControlName="series_ids_csv"
+              placeholder="swiss-parkour-tour, parkour-earth"
+            />
+            <mat-hint i18n="@@event_edit.series_ids_hint">
+              Plain ids for filtering/search. Membership ids are added on save.
+            </mat-hint>
+          </mat-form-field>
+
+          <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+            <h4 class="mat-title-small m-0 flex-grow-1" i18n="@@event_edit.series_memberships_heading">
+              Series memberships
+            </h4>
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="addSeriesMembership()"
+              [disabled]="saving()"
+            >
+              <mat-icon>add</mat-icon>
+              <span i18n="@@event_edit.series_membership_add">
+                Add membership
+              </span>
+            </button>
+          </div>
+
+          @if (seriesMemberships().length > 0) {
+            <div class="series-membership-list">
+              @for (membership of seriesMemberships(); track membership.id) {
+                <section class="series-membership-editor">
+                  <div class="series-membership-header">
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@event_edit.series_id">
+                        Series id
+                      </mat-label>
+                      <input
+                        matInput
+                        [value]="membership.seriesId"
+                        placeholder="parkour-earth"
+                        (input)="updateSeriesMembership(membership.id, { seriesId: $any($event.target).value })"
+                      />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@event_edit.series_role">
+                        Role
+                      </mat-label>
+                      <mat-select
+                        [value]="membership.role"
+                        (selectionChange)="updateSeriesMembershipRole(membership.id, $event.value)"
+                      >
+                        <mat-option value="series_event" i18n="@@event_edit.series_role.series_event">Series event</mat-option>
+                        <mat-option value="qualifier" i18n="@@event_edit.series_role.qualifier">Qualifier</mat-option>
+                        <mat-option value="final" i18n="@@event_edit.series_role.final">Final</mat-option>
+                        <mat-option value="championship" i18n="@@event_edit.series_role.championship">Championship</mat-option>
+                        <mat-option value="feeder" i18n="@@event_edit.series_role.feeder">Feeder</mat-option>
+                        <mat-option value="related" i18n="@@event_edit.series_role.related">Related</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-checkbox
+                      [checked]="membership.qualificationRequired"
+                      (change)="updateSeriesMembership(membership.id, { qualificationRequired: $event.checked })"
+                      i18n="@@event_edit.qualification_required"
+                    >
+                      Qualification required
+                    </mat-checkbox>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      (click)="removeSeriesMembership(membership.id)"
+                      [disabled]="saving()"
+                      aria-label="Remove series membership"
+                      i18n-aria-label="@@event_edit.series_membership_remove"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.qualification_hint">
+                      Qualification hint
+                    </mat-label>
+                    <textarea
+                      matInput
+                      rows="2"
+                      [value]="membership.qualificationHint"
+                      (input)="updateSeriesMembership(membership.id, { qualificationHint: $any($event.target).value })"
+                    ></textarea>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.series_source_url">
+                      Source URL
+                    </mat-label>
+                    <input
+                      matInput
+                      [value]="membership.sourceUrl"
+                      placeholder="https://…"
+                      (input)="updateSeriesMembership(membership.id, { sourceUrl: $any($event.target).value })"
+                    />
+                  </mat-form-field>
+
+                  <div class="qualification-subsection">
+                    <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+                      <p class="mat-label-large m-0 flex-grow-1" i18n="@@event_edit.qualifies_to_heading">
+                        Qualifies to
+                      </p>
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="addQualificationTarget(membership.id)"
+                        [disabled]="saving()"
+                      >
+                        <mat-icon>add_link</mat-icon>
+                        <span i18n="@@event_edit.qualifies_to_add">
+                          Add target
+                        </span>
+                      </button>
+                    </div>
+                    @for (ref of membership.qualifiesTo; track ref.id) {
+                      <div class="qualification-ref-editor">
+                        <ng-container
+                          [ngTemplateOutlet]="qualificationRefFields"
+                          [ngTemplateOutletContext]="{
+                            ref,
+                            updateKind: updateQualificationTargetKind.bind(this, membership.id, ref.id),
+                            updateRef: updateQualificationTarget.bind(this, membership.id, ref.id),
+                          }"
+                        ></ng-container>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          (click)="removeQualificationTarget(membership.id, ref.id)"
+                          [disabled]="saving()"
+                          aria-label="Remove qualification target"
+                          i18n-aria-label="@@event_edit.qualifies_to_remove"
+                        >
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="qualification-subsection">
+                    <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+                      <p class="mat-label-large m-0 flex-grow-1" i18n="@@event_edit.qualification_paths_heading">
+                        Required qualification paths
+                      </p>
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="addQualificationPath(membership.id)"
+                        [disabled]="saving()"
+                      >
+                        <mat-icon>account_tree</mat-icon>
+                        <span i18n="@@event_edit.qualification_path_add">
+                          Add path
+                        </span>
+                      </button>
+                    </div>
+
+                    @if (membership.qualificationPaths.length > 0) {
+                      <div class="qualification-path-list">
+                        @for (path of membership.qualificationPaths; track path.id) {
+                          <section class="qualification-path-editor">
+                            <div class="qualification-path-header">
+                              <mat-form-field appearance="outline">
+                                <mat-label i18n="@@event_edit.qualification_path_id">
+                                  Path id
+                                </mat-label>
+                                <input
+                                  matInput
+                                  [value]="path.id"
+                                  (input)="updateQualificationPath(membership.id, path.id, { id: $any($event.target).value })"
+                                />
+                              </mat-form-field>
+                              <mat-form-field appearance="outline">
+                                <mat-label i18n="@@event_edit.qualification_path_label">
+                                  Label
+                                </mat-label>
+                                <input
+                                  matInput
+                                  [value]="path.label"
+                                  placeholder="Swiss pathway"
+                                  (input)="updateQualificationPath(membership.id, path.id, { label: $any($event.target).value })"
+                                />
+                              </mat-form-field>
+                              <mat-form-field appearance="outline">
+                                <mat-label i18n="@@event_edit.requirement_mode">
+                                  Requirement
+                                </mat-label>
+                                <mat-select
+                                  [value]="path.requirementMode"
+                                  (selectionChange)="updateQualificationPathRequirementMode(membership.id, path.id, $event.value)"
+                                >
+                                  <mat-option value="any" i18n="@@event_edit.requirement_mode.any">
+                                    Any one listed event
+                                  </mat-option>
+                                  <mat-option value="all" i18n="@@event_edit.requirement_mode.all">
+                                    All listed events
+                                  </mat-option>
+                                </mat-select>
+                              </mat-form-field>
+                              <button
+                                mat-icon-button
+                                type="button"
+                                (click)="removeQualificationPath(membership.id, path.id)"
+                                [disabled]="saving()"
+                                aria-label="Remove qualification path"
+                                i18n-aria-label="@@event_edit.qualification_path_remove"
+                              >
+                                <mat-icon>delete</mat-icon>
+                              </button>
+                            </div>
+
+                            <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+                              <p class="mat-label-medium m-0 flex-grow-1" i18n="@@event_edit.qualification_requirements">
+                                Requirements
+                              </p>
+                              <button
+                                mat-stroked-button
+                                type="button"
+                                (click)="addQualificationRequirement(membership.id, path.id)"
+                                [disabled]="saving()"
+                              >
+                                <mat-icon>add</mat-icon>
+                                <span i18n="@@event_edit.qualification_requirement_add">
+                                  Add requirement
+                                </span>
+                              </button>
+                            </div>
+
+                            @for (ref of path.requirements; track ref.id) {
+                              <div class="qualification-ref-editor">
+                                <ng-container
+                                  [ngTemplateOutlet]="qualificationRefFields"
+                                  [ngTemplateOutletContext]="{
+                                    ref,
+                                    updateKind: updateQualificationRequirementKind.bind(this, membership.id, path.id, ref.id),
+                                    updateRef: updateQualificationRequirement.bind(this, membership.id, path.id, ref.id),
+                                  }"
+                                ></ng-container>
+                                <button
+                                  mat-icon-button
+                                  type="button"
+                                  (click)="removeQualificationRequirement(membership.id, path.id, ref.id)"
+                                  [disabled]="saving()"
+                                  aria-label="Remove qualification requirement"
+                                  i18n-aria-label="@@event_edit.qualification_requirement_remove"
+                                >
+                                  <mat-icon>delete</mat-icon>
+                                </button>
+                              </div>
+                            }
+                          </section>
+                        }
+                      </div>
+                    } @else {
+                      <p class="mat-label-small text-muted m-0" i18n="@@event_edit.qualification_paths_empty">
+                        Add paths when this event requires qualification.
+                      </p>
+                    }
+                  </div>
+                </section>
+              }
+            </div>
+          } @else {
+            <p class="mat-label-small text-muted m-0" i18n="@@event_edit.series_memberships_empty">
+              Add memberships when this event belongs to a tour, qualifier path, or championship.
+            </p>
+          }
+        </div>
+      </mat-expansion-panel>
+
+      <mat-divider />
+
+      <!-- ----------------- Program ----------------- -->
+      <mat-expansion-panel class="nested-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title
+            class="mat-title-small"
+            i18n="@@event_edit.program_heading"
+          >
+            Program
+          </mat-panel-title>
+          <mat-panel-description i18n="@@event_edit.program_hint">
+            Plans, schedule items, linked spots, and linked events
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+      <div class="d-flex flex-column gap-2 pt-2">
+        <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+          <h4 class="mat-title-small m-0 flex-grow-1" i18n="@@event_edit.program_heading">
+            Program
+          </h4>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="addProgramPlan()"
+            [disabled]="saving()"
+          >
+            <mat-icon>playlist_add</mat-icon>
+            <span i18n="@@event_edit.program_plan_add">Add plan</span>
+          </button>
+        </div>
+        @if (programPlans().length > 0) {
+          <div class="program-plan-list">
+            @for (plan of programPlans(); track plan.id) {
+              <section class="program-plan-editor">
+                <div class="program-plan-header">
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.program_plan_label">
+                      Plan label
+                    </mat-label>
+                    <input
+                      matInput
+                      [value]="plan.label"
+                      (input)="updateProgramPlan(plan.id, { label: $any($event.target).value })"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.program_plan_kind">
+                      Kind
+                    </mat-label>
+                    <mat-select
+                      [value]="plan.kind"
+                      (selectionChange)="updateProgramPlanKind(plan.id, $event.value)"
+                    >
+                      <mat-option value="main" i18n="@@event_edit.program_plan_kind.main">Main</mat-option>
+                      <mat-option value="alternate" i18n="@@event_edit.program_plan_kind.alternate">Alternate</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.program_plan_condition">
+                      Condition label
+                    </mat-label>
+                    <input
+                      matInput
+                      [value]="plan.conditionLabel"
+                      placeholder="Bad weather"
+                      (input)="updateProgramPlan(plan.id, { conditionLabel: $any($event.target).value })"
+                    />
+                  </mat-form-field>
+                  <mat-checkbox
+                    [checked]="activeProgramPlanId() === plan.id"
+                    (change)="activeProgramPlanId.set($event.checked ? plan.id : activeProgramPlanId())"
+                    i18n="@@event_edit.program_plan_active"
+                  >
+                    Active
+                  </mat-checkbox>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="removeProgramPlan(plan.id)"
+                    [disabled]="saving()"
+                    aria-label="Remove program plan"
+                    i18n-aria-label="@@event_edit.program_plan_remove"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+
+                <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+                  <p class="mat-label-large m-0 flex-grow-1" i18n="@@event_edit.program_items">
+                    Program items
+                  </p>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="addProgramItem(plan.id)"
+                    [disabled]="saving()"
+                  >
+                    <mat-icon>add</mat-icon>
+                    <span i18n="@@event_edit.program_item_add">Add item</span>
+                  </button>
+                </div>
+
+                @if (plan.items.length > 0) {
+                  <div class="program-item-list">
+                    @for (item of plan.items; track item.id) {
+                      <div class="program-item-editor">
+                        <mat-form-field appearance="outline">
+                          <mat-label i18n="@@event_edit.program_item_title">
+                            Title
+                          </mat-label>
+                          <input
+                            matInput
+                            [value]="item.title"
+                            (input)="updateProgramItem(plan.id, item.id, { title: $any($event.target).value })"
+                          />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                          <mat-label i18n="@@event_edit.program_item_category">
+                            Category
+                          </mat-label>
+                          <mat-select
+                            [value]="item.category"
+                            (selectionChange)="updateProgramItemCategory(plan.id, item.id, $event.value)"
+                          >
+                            <mat-option value="jam">Jam</mat-option>
+                            <mat-option value="competition">Competition</mat-option>
+                            <mat-option value="workshop">Workshop</mat-option>
+                            <mat-option value="camp">Camp</mat-option>
+                            <mat-option value="show">Show</mat-option>
+                            <mat-option value="awards">Awards</mat-option>
+                            <mat-option value="social">Social</mat-option>
+                            <mat-option value="travel">Travel</mat-option>
+                            <mat-option value="other">Other</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                          <mat-label i18n="@@event_edit.program_item_start">
+                            Start
+                          </mat-label>
+                          <input
+                            matInput
+                            type="datetime-local"
+                            [value]="item.start"
+                            (input)="updateProgramItem(plan.id, item.id, { start: $any($event.target).value })"
+                          />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                          <mat-label i18n="@@event_edit.program_item_end">
+                            End
+                          </mat-label>
+                          <input
+                            matInput
+                            type="datetime-local"
+                            [value]="item.end"
+                            (input)="updateProgramItem(plan.id, item.id, { end: $any($event.target).value })"
+                          />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="span-2">
+                          <mat-label i18n="@@event_edit.program_item_description">
+                            Description
+                          </mat-label>
+                          <textarea
+                            matInput
+                            rows="2"
+                            [value]="item.description"
+                            (input)="updateProgramItem(plan.id, item.id, { description: $any($event.target).value })"
+                          ></textarea>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                          <mat-label i18n="@@event_edit.program_item_spot_kind">
+                            Spot target
+                          </mat-label>
+                          <mat-select
+                            [value]="item.spotRefKind"
+                            (selectionChange)="updateProgramSpotRefKind(plan.id, item.id, $event.value)"
+                          >
+                            <mat-option value="" i18n="@@event_edit.program_item_spot_none">None</mat-option>
+                            <mat-option value="spot" i18n="@@event_edit.program_item_spot_real">Spot</mat-option>
+                            <mat-option value="inline_spot" i18n="@@event_edit.program_item_spot_inline">Inline spot</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                          <mat-label i18n="@@event_edit.program_item_spot_id">
+                            Spot id
+                          </mat-label>
+                          <input
+                            matInput
+                            [value]="item.spotRefId"
+                            [disabled]="!item.spotRefKind"
+                            (input)="updateProgramItem(plan.id, item.id, { spotRefId: $any($event.target).value })"
+                          />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                          <mat-label i18n="@@event_edit.program_item_status">
+                            Status
+                          </mat-label>
+                          <mat-select
+                            [value]="item.status"
+                            (selectionChange)="updateProgramItemStatus(plan.id, item.id, $event.value)"
+                          >
+                            <mat-option value="scheduled" i18n="@@event_edit.program_item_status.scheduled">Scheduled</mat-option>
+                            <mat-option value="cancelled" i18n="@@event_edit.program_item_status.cancelled">Cancelled</mat-option>
+                            <mat-option value="moved" i18n="@@event_edit.program_item_status.moved">Moved</mat-option>
+                            <mat-option value="delayed" i18n="@@event_edit.program_item_status.delayed">Delayed</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                          <mat-label i18n="@@event_edit.program_item_linked_event">
+                            Linked event id
+                          </mat-label>
+                          <input
+                            matInput
+                            [value]="item.linkedEventId"
+                            placeholder="event-id"
+                            (input)="updateProgramItem(plan.id, item.id, { linkedEventId: $any($event.target).value })"
+                          />
+                        </mat-form-field>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          (click)="removeProgramItem(plan.id, item.id)"
+                          [disabled]="saving()"
+                          aria-label="Remove program item"
+                          i18n-aria-label="@@event_edit.program_item_remove"
+                        >
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <p class="mat-label-small text-muted m-0" i18n="@@event_edit.program_items_empty">
+                    Add schedule blocks, workshops, competitions, travel windows, or alternate-plan items.
+                  </p>
+                }
+              </section>
+            }
+          </div>
+        } @else {
+          <p class="mat-label-small text-muted m-0" i18n="@@event_edit.program_empty">
+            Add a main plan to publish a day-by-day event schedule.
+          </p>
+        }
+      </div>
+      </mat-expansion-panel>
+
+      <mat-divider />
+
       <!-- ----------------- Spots ----------------- -->
       <div class="d-flex flex-column gap-2">
         <h4 class="mat-title-small m-0" i18n="@@event_edit.spots_heading">
@@ -801,7 +1343,11 @@
                 (removed)="removeCommunityKey(key)"
               >
                 {{ key }}
-                <button matChipRemove [attr.aria-label]="'remove ' + key">
+                <button
+                  matChipRemove
+                  type="button"
+                  [attr.aria-label]="'remove ' + key"
+                >
                   <mat-icon>cancel</mat-icon>
                 </button>
               </mat-chip-row>
@@ -902,19 +1448,56 @@
             Optional. 14–18 is typical for a venue-level view.
           </mat-hint>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="flex-grow-1">
-          <mat-label i18n="@@event_edit.series">
-            Series (comma-separated)
-          </mat-label>
-          <input
-            matInput
-            formControlName="series_ids_csv"
-            placeholder="series-id, another-series"
-          />
-        </mat-form-field>
       </div>
     </div>
   </mat-expansion-panel>
+
+  <ng-template
+    #qualificationRefFields
+    let-ref="ref"
+    let-updateKind="updateKind"
+    let-updateRef="updateRef"
+  >
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.qualification_ref_kind">
+        Kind
+      </mat-label>
+      <mat-select
+        [value]="ref.kind"
+        (selectionChange)="updateKind($event.value)"
+      >
+        <mat-option value="event" i18n="@@event_edit.qualification_ref_event">
+          Event
+        </mat-option>
+        <mat-option value="program_item" i18n="@@event_edit.qualification_ref_program_item">
+          Program item
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.qualification_ref_event_id">
+        Event id
+      </mat-label>
+      <input
+        matInput
+        [value]="ref.eventId"
+        placeholder="swissjam26"
+        (input)="updateRef({ eventId: $any($event.target).value })"
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_edit.qualification_ref_program_item_id">
+        Program item id
+      </mat-label>
+      <input
+        matInput
+        [value]="ref.programItemId"
+        [disabled]="ref.kind !== 'program_item'"
+        placeholder="swiss-parkour-championships"
+        (input)="updateRef({ programItemId: $any($event.target).value })"
+      />
+    </mat-form-field>
+  </ng-template>
 
   <!-- ============================ Footer actions ============================ -->
   <footer class="d-flex flex-row align-items-center gap-2 pt-2 flex-wrap">

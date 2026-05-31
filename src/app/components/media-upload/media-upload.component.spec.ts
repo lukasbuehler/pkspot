@@ -1,4 +1,4 @@
-import { TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MediaType } from "../../../db/models/Interfaces";
@@ -23,6 +23,7 @@ describe("MediaUpload", () => {
     };
 
     TestBed.configureTestingModule({
+      imports: [MediaUpload],
       providers: [
         { provide: StorageService, useValue: storageService },
         { provide: MatSnackBar, useValue: snackBar },
@@ -39,6 +40,11 @@ describe("MediaUpload", () => {
     return TestBed.runInInjectionContext(() => new MediaUpload());
   }
 
+  async function createFixture(): Promise<ComponentFixture<MediaUpload>> {
+    await TestBed.compileComponents();
+    return TestBed.createComponent(MediaUpload);
+  }
+
   function inputWithFiles(files: File[]): EventTarget {
     return {
       files: {
@@ -53,6 +59,17 @@ describe("MediaUpload", () => {
     await Promise.resolve();
     await Promise.resolve();
   }
+
+  it("marks the attach button as non-submit so parent edit forms stay open", async () => {
+    const fixture = await createFixture();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector(
+      "#attachMedia",
+    ) as HTMLButtonElement | null;
+
+    expect(button?.type).toBe("button");
+  });
 
   it("uploads selected spot images to storage and emits individual and batch media", async () => {
     const component = createComponent();

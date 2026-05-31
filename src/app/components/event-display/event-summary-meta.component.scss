@@ -6,6 +6,18 @@
   color: var(--mat-sys-tertiary);
 }
 
+.event-meta[data-status="past"] {
+  color: var(--mat-sys-error);
+}
+
+.event-meta[data-status="upcoming"] {
+  color: var(--mat-sys-primary);
+}
+
+.event-meta[data-status="live"] {
+  color: var(--mat-sys-secondary);
+}
+
 .event-venue {
   color: var(--mat-sys-on-surface);
 }

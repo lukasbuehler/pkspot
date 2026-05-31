@@ -5,6 +5,7 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
+import { SeriesService } from "../../services/firebase/firestore/series.service";
 import { EventsPageComponent } from "./events-page.component";
 
 const flushPromises = () =>
@@ -38,6 +39,10 @@ describe("EventsPageComponent", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: EventsService, useValue: eventsService },
+        {
+          provide: SeriesService,
+          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
+        },
         {
           provide: AuthenticationService,
           useValue: { user: { data: null }, isAdmin: signal(false) },

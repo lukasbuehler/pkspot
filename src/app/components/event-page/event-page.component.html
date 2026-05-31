@@ -93,7 +93,7 @@
 
       @if (
         event.eventCategories.length > 0 ||
-        visibleSeriesMemberships().length > 0
+        visibleSeriesTags().length > 0
       ) {
         <section class="event-section event-tags" aria-label="Event tags">
           @if (event.eventCategories.length > 0) {
@@ -108,35 +108,213 @@
               }
             </mat-chip-set>
           }
-          @if (visibleSeriesMemberships().length > 0) {
+          @if (visibleSeriesTags().length > 0) {
             <mat-chip-set aria-label="Event series">
-              @for (
-                membership of visibleSeriesMemberships();
-                track membership.series_id + membership.role
-              ) {
+              @for (tag of visibleSeriesTags(); track seriesTagTrackKey(tag)) {
                 <mat-chip highlighted>
                   <span
                     matChipAvatar
                     class="series-logo"
                     [style.background]="
-                      seriesVisual(membership.series_id).background
+                      seriesVisual(tag.seriesId).background
                     "
                   >
-                    @if (seriesVisual(membership.series_id).logoSrc) {
+                    @if (seriesVisual(tag.seriesId).logoSrc) {
                       <img
-                        [src]="seriesVisual(membership.series_id).logoSrc"
-                        [alt]="seriesLabel(membership.series_id)"
+                        [src]="seriesVisual(tag.seriesId).logoSrc"
+                        [alt]="seriesLabel(tag.seriesId)"
                       />
                     } @else {
-                      <span>{{ seriesInitials(membership.series_id) }}</span>
+                      <span>{{ seriesInitials(tag.seriesId) }}</span>
                     }
                   </span>
-                  {{ seriesLabel(membership.series_id) }} ·
-                  {{ seriesRoleLabel(membership.role) }}
+                  {{ seriesLabel(tag.seriesId) }}
+                  @if (tag.role) {
+                    · {{ seriesRoleLabel(tag.role) }}
+                  }
                 </mat-chip>
               }
             </mat-chip-set>
           }
+        </section>
+      }
+
+      <section class="event-section action-row">
+        @for (link of eventLinks(); track link.url) {
+          @if (link.primary) {
+            <a
+              mat-flat-button
+              color="primary"
+              [href]="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              (click)="trackEventLinkClick(link)"
+            >
+              <mat-icon>{{ eventLinkIcon(link) }}</mat-icon>
+              <span>{{ link.label }}</span>
+            </a>
+          } @else {
+            <a
+              mat-stroked-button
+              [href]="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              (click)="trackEventLinkClick(link)"
+            >
+              <mat-icon>{{ eventLinkIcon(link) }}</mat-icon>
+              <span>{{ link.label }}</span>
+            </a>
+          }
+        }
+        <button mat-stroked-button type="button" (click)="shareEvent()">
+          <mat-icon>share</mat-icon>
+          <span i18n="@@event_info.share_button">Share</span>
+        </button>
+      </section>
+
+      @if (hasMapPreview()) {
+        @defer (on viewport) {
+          <section class="event-section map-preview">
+            <div class="map-preview-header">
+              <div>
+                <span class="info-label" i18n="@@event_info.map_label">
+                  Event map
+                </span>
+                <p class="map-preview-title">
+                  {{ event.venueString }}, {{ event.localityString }}
+                </p>
+              </div>
+              <a
+                mat-icon-button
+                [routerLink]="mapRoute()"
+                aria-label="Open event map"
+                matTooltip="Open event map"
+                i18n-matTooltip="@@event_info.open_map"
+              >
+                <mat-icon>open_in_full</mat-icon>
+              </a>
+            </div>
+
+            <div class="map-preview-frame">
+              <app-google-map-2d
+                id="eventInfoMap"
+                [showGeolocation]="false"
+                [fitToBounds]="mapPreviewBounds()"
+                [boundRestriction]="mapPreviewBounds()!"
+                [polygons]="areaPolygon() ? [areaPolygon()!] : []"
+                [minZoom]="3"
+                [focusZoom]="event.focusZoom ?? 18"
+                mapStyle="hybrid"
+                [markers]="[]"
+                [priorityMarkers]="mapMarkers()"
+                [spots]="spots()"
+                [highlightedSpots]="[]"
+                [hideRegularSpotPins]="true"
+                [showSpotPreview]="false"
+                (boundsChange)="updateMapPreviewViewportBounds($event)"
+              ></app-google-map-2d>
+            </div>
+          </section>
+        } @placeholder {
+          <section class="event-section map-preview">
+            <div class="map-preview-header">
+              <div>
+                <span class="info-label" i18n="@@event_info.map_label">
+                  Event map
+                </span>
+                <p class="map-preview-title">
+                  {{ event.venueString }}, {{ event.localityString }}
+                </p>
+              </div>
+              <a
+                mat-icon-button
+                [routerLink]="mapRoute()"
+                aria-label="Open event map"
+                matTooltip="Open event map"
+                i18n-matTooltip="@@event_info.open_map"
+              >
+                <mat-icon>open_in_full</mat-icon>
+              </a>
+            </div>
+            <div class="map-preview-frame" aria-hidden="true"></div>
+          </section>
+        }
+      }
+
+      @if (activeProgramItems().length > 0) {
+        <section class="event-section program-section">
+          <div class="section-heading-row">
+            <h2 class="mat-title-medium m-0" i18n="@@event_program.heading">
+              Program
+            </h2>
+          </div>
+          <app-event-program-timeline
+            [items]="activeProgramItems()"
+            [timeZone]="event.timeZone"
+          />
+        </section>
+      }
+
+      @if (ticketOptions().length > 0) {
+        <section class="event-section ticket-section">
+          <div class="ticket-section-heading">
+            <h2 class="mat-title-medium m-0" i18n="@@event_tickets.heading">
+              Tickets
+            </h2>
+          </div>
+          <div class="ticket-grid">
+            @for (ticket of ticketOptions(); track ticket.id) {
+              <article class="ticket-option">
+                <div class="ticket-copy">
+                  <div class="ticket-title-row">
+                    <h3 class="mat-title-small m-0">{{ ticket.label }}</h3>
+                    @if (ticketBadgeLabel(ticket)) {
+                      <span class="ticket-badge mat-label-small">
+                        {{ ticketBadgeLabel(ticket) }}
+                      </span>
+                    }
+                  </div>
+                  @if (ticket.description) {
+                    <p class="mat-body-small ticket-description">
+                      {{ ticket.description }}
+                    </p>
+                  }
+                  @if (ticketAvailabilityLabel(ticket)) {
+                    <p
+                      class="mat-label-small ticket-availability"
+                      [attr.data-availability]="ticket.availability"
+                    >
+                      {{ ticketAvailabilityLabel(ticket) }}
+                    </p>
+                  }
+                </div>
+                <div class="ticket-side">
+                  <p class="mat-title-medium ticket-price">
+                    {{ formatTicketPrice(ticket) }}
+                  </p>
+                  @if (ticket.url) {
+                    <a
+                      mat-stroked-button
+                      [href]="ticket.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      (click)="
+                        trackEventLinkClick({
+                          label: ticket.label,
+                          url: ticket.url!,
+                          kind: 'tickets',
+                          primary: false,
+                        })
+                      "
+                    >
+                      <mat-icon>open_in_new</mat-icon>
+                      <span i18n="@@event_tickets.open">Open</span>
+                    </a>
+                  }
+                </div>
+              </article>
+            }
+          </div>
         </section>
       }
 
@@ -254,10 +432,7 @@
                   </div>
                 }
               }
-              @for (
-                path of qualificationPathsFor(membership);
-                track path.id
-              ) {
+              @for (path of qualificationPathsFor(membership); track path.id) {
                 @if (
                   isLoadingQualifierEvents() ||
                   qualificationPathEvents(path).length > 0
@@ -328,214 +503,6 @@
             </article>
           }
         </section>
-      }
-
-      @if (activeProgramItems().length > 0) {
-        <section class="event-section program-section">
-          <div class="section-heading-row">
-            <h2 class="mat-title-medium m-0" i18n="@@event_program.heading">
-              Program
-            </h2>
-          </div>
-          <app-event-program-timeline
-            [items]="activeProgramItems()"
-            [timeZone]="event.timeZone"
-          />
-        </section>
-      }
-
-      <!-- <section class="event-section info-grid">
-      <div class="info-block">
-        <span class="info-label" i18n="@@event_info.organizer_label">
-          Organizer
-        </span>
-        @if (organizer(); as organizer) {
-        <div class="organizer-row">
-          @if (organizer.logo_url) {
-          <img [ngSrc]="organizer.logo_url" width="40" height="40" [alt]="organizer.name" />
-          }
-          <div>
-            <p class="info-value">{{ organizer.name }}</p>
-          </div>
-        </div>
-        } @else {
-        <p class="info-value muted" i18n="@@event_info.no_organizer">
-          Organizer to be announced
-        </p>
-        }
-      </div>
-
-      <div class="info-block">
-        <span class="info-label" i18n="@@event_info.start_label">
-          Start
-        </span>
-        <p class="info-value">{{ startDateTime() }}</p>
-      </div>
-    </section> -->
-
-      <section class="event-section action-row">
-        @for (link of eventLinks(); track link.url) {
-          @if (link.primary) {
-            <a
-              mat-flat-button
-              color="primary"
-              [href]="link.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              (click)="trackEventLinkClick(link)"
-            >
-              <mat-icon>{{ eventLinkIcon(link) }}</mat-icon>
-              <span>{{ link.label }}</span>
-            </a>
-          } @else {
-            <a
-              mat-stroked-button
-              [href]="link.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              (click)="trackEventLinkClick(link)"
-            >
-              <mat-icon>{{ eventLinkIcon(link) }}</mat-icon>
-              <span>{{ link.label }}</span>
-            </a>
-          }
-        }
-        <button mat-stroked-button type="button" (click)="shareEvent()">
-          <mat-icon>share</mat-icon>
-          <span i18n="@@event_info.share_button">Share</span>
-        </button>
-      </section>
-
-      @if (ticketOptions().length > 0) {
-        <section class="event-section ticket-section">
-          <div class="ticket-section-heading">
-            <h2 class="mat-title-medium m-0" i18n="@@event_tickets.heading">
-              Tickets
-            </h2>
-          </div>
-          <div class="ticket-grid">
-            @for (ticket of ticketOptions(); track ticket.id) {
-              <article class="ticket-option">
-                <div class="ticket-copy">
-                  <div class="ticket-title-row">
-                    <h3 class="mat-title-small m-0">{{ ticket.label }}</h3>
-                    @if (ticketBadgeLabel(ticket)) {
-                      <span class="ticket-badge mat-label-small">
-                        {{ ticketBadgeLabel(ticket) }}
-                      </span>
-                    }
-                  </div>
-                  @if (ticket.description) {
-                    <p class="mat-body-small ticket-description">
-                      {{ ticket.description }}
-                    </p>
-                  }
-                  @if (ticketAvailabilityLabel(ticket)) {
-                    <p
-                      class="mat-label-small ticket-availability"
-                      [attr.data-availability]="ticket.availability"
-                    >
-                      {{ ticketAvailabilityLabel(ticket) }}
-                    </p>
-                  }
-                </div>
-                <div class="ticket-side">
-                  <p class="mat-title-medium ticket-price">
-                    {{ formatTicketPrice(ticket) }}
-                  </p>
-                  @if (ticket.url) {
-                    <a
-                      mat-stroked-button
-                      [href]="ticket.url"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      (click)="
-                        trackEventLinkClick({
-                          label: ticket.label,
-                          url: ticket.url!,
-                          kind: 'tickets',
-                          primary: false,
-                        })
-                      "
-                    >
-                      <mat-icon>open_in_new</mat-icon>
-                      <span i18n="@@event_tickets.open">Open</span>
-                    </a>
-                  }
-                </div>
-              </article>
-            }
-          </div>
-        </section>
-      }
-
-      @if (hasMapPreview()) {
-        @defer (on viewport) {
-          <section class="event-section map-preview">
-            <div class="map-preview-header">
-              <div>
-                <span class="info-label" i18n="@@event_info.map_label">
-                  Event map
-                </span>
-                <p class="map-preview-title">
-                  {{ event.venueString }}, {{ event.localityString }}
-                </p>
-              </div>
-              <a
-                mat-icon-button
-                [routerLink]="mapRoute()"
-                aria-label="Open event map"
-                matTooltip="Open event map"
-                i18n-matTooltip="@@event_info.open_map"
-              >
-                <mat-icon>open_in_full</mat-icon>
-              </a>
-            </div>
-
-            <div class="map-preview-frame">
-              <app-google-map-2d
-                id="eventInfoMap"
-                [showGeolocation]="false"
-                [fitToBounds]="mapPreviewBounds()"
-                [boundRestriction]="mapPreviewBounds()!"
-                [polygons]="areaPolygon() ? [areaPolygon()!] : []"
-                [minZoom]="3"
-                [focusZoom]="event.focusZoom ?? 18"
-                mapStyle="hybrid"
-                [markers]="[]"
-                [priorityMarkers]="mapMarkers()"
-                [spots]="spots()"
-                [highlightedSpots]="[]"
-                [hideRegularSpotPins]="true"
-                [showSpotPreview]="false"
-                (boundsChange)="updateMapPreviewViewportBounds($event)"
-              ></app-google-map-2d>
-            </div>
-          </section>
-        } @placeholder {
-          <section class="event-section map-preview">
-            <div class="map-preview-header">
-              <div>
-                <span class="info-label" i18n="@@event_info.map_label">
-                  Event map
-                </span>
-                <p class="map-preview-title">
-                  {{ event.venueString }}, {{ event.localityString }}
-                </p>
-              </div>
-              <a
-                mat-icon-button
-                [routerLink]="mapRoute()"
-                aria-label="Open event map"
-                matTooltip="Open event map"
-                i18n-matTooltip="@@event_info.open_map"
-              >
-                <mat-icon>open_in_full</mat-icon>
-              </a>
-            </div>
-            <div class="map-preview-frame" aria-hidden="true"></div>
-          </section>
-        }
       }
     </article>
   </main>

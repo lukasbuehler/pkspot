@@ -10,6 +10,7 @@ import {
   untracked,
   ViewChild,
 } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import {
   FormBuilder,
   FormGroup,
@@ -37,11 +38,23 @@ import { Timestamp } from "@angular/fire/firestore";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventBoundsSchema,
+  EventCategory,
   EventCustomMarkerSchema,
   EventLinkKind,
   EventLinkSchema,
   EventOrganizerSchema,
+  EventProgramItemSchema,
+  EventProgramPlanKind,
+  EventProgramPlanSchema,
+  EventProgramSchema,
+  EventProgramSpotRefSchema,
+  EventProgramItemStatus,
   EventSchema,
+  EventQualificationPathSchema,
+  EventQualificationRefSchema,
+  EventQualificationRequirementMode,
+  EventSeriesMembershipSchema,
+  EventSeriesRole,
   EventTicketAvailability,
   EventTicketBadge,
   EventTicketOptionSchema,
@@ -95,6 +108,85 @@ type EditableTicketOption = {
   saleStartsAt: string;
   saleEndsAt: string;
 };
+type EditableProgramItem = {
+  id: string;
+  title: string;
+  description: string;
+  category: EventCategory;
+  start: string;
+  end: string;
+  spotRefKind: EventProgramSpotRefSchema["kind"] | "";
+  spotRefId: string;
+  status: EventProgramItemStatus;
+  linkedEventId: string;
+  preserved: Partial<
+    Omit<
+      EventProgramItemSchema,
+      | "id"
+      | "title"
+      | "description"
+      | "category"
+      | "start"
+      | "end"
+      | "spot_ref"
+      | "status"
+      | "linked_event_id"
+    >
+  >;
+};
+type EditableProgramPlan = {
+  id: string;
+  label: string;
+  kind: EventProgramPlanKind;
+  conditionLabel: string;
+  items: EditableProgramItem[];
+  preserved: Partial<
+    Omit<
+      EventProgramPlanSchema,
+      "id" | "label" | "kind" | "condition_label" | "items"
+    >
+  >;
+};
+type EditableQualificationRef = {
+  id: string;
+  kind: EventQualificationRefSchema["kind"];
+  eventId: string;
+  programItemId: string;
+};
+type EditableQualificationPath = {
+  id: string;
+  label: string;
+  requirementMode: EventQualificationRequirementMode;
+  requirements: EditableQualificationRef[];
+  preserved: Partial<
+    Omit<
+      EventQualificationPathSchema,
+      "id" | "label" | "requirement_mode" | "requirements"
+    >
+  >;
+};
+type EditableSeriesMembership = {
+  id: string;
+  seriesId: string;
+  role: EventSeriesRole;
+  qualificationRequired: boolean;
+  qualificationHint: string;
+  sourceUrl: string;
+  qualifiesTo: EditableQualificationRef[];
+  qualificationPaths: EditableQualificationPath[];
+  preserved: Partial<
+    Omit<
+      EventSeriesMembershipSchema,
+      | "series_id"
+      | "role"
+      | "qualification_required"
+      | "qualification_hint"
+      | "source_url"
+      | "qualifies_to"
+      | "qualification_paths"
+    >
+  >;
+};
 export type EventEditPatch = Omit<
   Partial<EventSchema>,
   "bounds" | "area_polygon" | "location"
@@ -128,6 +220,7 @@ export type EventEditPatch = Omit<
 @Component({
   selector: "app-event-edit-form",
   imports: [
+    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatAutocompleteModule,
@@ -245,6 +338,9 @@ export class EventEditFormComponent {
   externalMedia = signal<MediaSchema[]>([]);
   eventLinks = signal<EditableEventLink[]>([]);
   ticketOptions = signal<EditableTicketOption[]>([]);
+  programPlans = signal<EditableProgramPlan[]>([]);
+  activeProgramPlanId = signal<string>("");
+  seriesMemberships = signal<EditableSeriesMembership[]>([]);
   private _descriptionLocaleMap = signal<LocaleMap | undefined>(undefined);
 
   /** Whether the parent passed in an existing event (vs. create mode). */
@@ -329,6 +425,9 @@ export class EventEditFormComponent {
         this.externalMedia.set([]);
         this.eventLinks.set([]);
         this.ticketOptions.set([]);
+        this.programPlans.set([]);
+        this.activeProgramPlanId.set("");
+        this.seriesMemberships.set([]);
         this._descriptionLocaleMap.set(undefined);
         return;
       }
@@ -418,6 +517,53 @@ export class EventEditFormComponent {
           saleStartsAt: dateInputValue(ticket.saleStartsAt),
           saleEndsAt: dateInputValue(ticket.saleEndsAt),
         })),
+      );
+      this.programPlans.set(
+        (e.program?.plans ?? []).map((plan) => ({
+          id: plan.id,
+          label: plan.label,
+          kind: plan.kind,
+          conditionLabel: plan.condition_label ?? "",
+          preserved: {
+            label_i18n: plan.label_i18n,
+            condition_label_i18n: plan.condition_label_i18n,
+          },
+          items: plan.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            description: item.description ?? "",
+            category: item.category,
+            start: dateTimeLocalValue(item.start),
+            end: dateTimeLocalValue(item.end),
+            spotRefKind: item.spot_ref?.kind ?? "",
+            spotRefId: item.spot_ref?.id ?? "",
+            status: item.status ?? "scheduled",
+            linkedEventId: item.linked_event_id ?? "",
+            preserved: {
+              title_i18n: item.title_i18n,
+              description_i18n: item.description_i18n,
+              runtime_override: item.runtimeOverride
+                ? {
+                    ...item.runtimeOverride,
+                    start: item.runtimeOverride.start
+                      ? Timestamp.fromDate(item.runtimeOverride.start)
+                      : undefined,
+                    end: item.runtimeOverride.end
+                      ? Timestamp.fromDate(item.runtimeOverride.end)
+                      : undefined,
+                  }
+                : undefined,
+              series_memberships: item.series_memberships,
+              participation: item.participation,
+            },
+          })),
+        })),
+      );
+      this.activeProgramPlanId.set(e.program?.active_plan_id ?? "");
+      this.seriesMemberships.set(
+        e.seriesMemberships.map((membership, index) =>
+          editableSeriesMembership(membership, index),
+        ),
       );
       this._descriptionLocaleMap.set(e.descriptions);
     });
@@ -699,6 +845,403 @@ export class EventEditFormComponent {
     );
   }
 
+  addProgramPlan(): void {
+    this.programPlans.update((plans) => {
+      const id = `plan-${Date.now()}-${plans.length}`;
+      if (!this.activeProgramPlanId()) {
+        this.activeProgramPlanId.set(id);
+      }
+      return [
+        ...plans,
+        {
+          id,
+          label: plans.length === 0 ? "Main program" : "Alternate plan",
+          kind: plans.length === 0 ? "main" : "alternate",
+          conditionLabel: "",
+          items: [],
+          preserved: {},
+        },
+      ];
+    });
+  }
+
+  removeProgramPlan(id: string): void {
+    this.programPlans.update((plans) => plans.filter((plan) => plan.id !== id));
+    if (this.activeProgramPlanId() === id) {
+      this.activeProgramPlanId.set(this.programPlans()[0]?.id ?? "");
+    }
+  }
+
+  updateProgramPlan(
+    id: string,
+    patch: Partial<Omit<EditableProgramPlan, "id" | "items" | "preserved">>,
+  ): void {
+    this.programPlans.update((plans) =>
+      plans.map((plan) => (plan.id === id ? { ...plan, ...patch } : plan)),
+    );
+  }
+
+  updateProgramPlanKind(id: string, kind: string): void {
+    if (kind === "main" || kind === "alternate") {
+      this.updateProgramPlan(id, { kind });
+    }
+  }
+
+  addProgramItem(planId: string): void {
+    this.programPlans.update((plans) =>
+      plans.map((plan) =>
+        plan.id === planId
+          ? {
+              ...plan,
+              items: [
+                ...plan.items,
+                {
+                  id: `item-${Date.now()}-${plan.items.length}`,
+                  title: "",
+                  description: "",
+                  category: "other",
+                  start: "",
+                  end: "",
+                  spotRefKind: "",
+                  spotRefId: "",
+                  status: "scheduled",
+                  linkedEventId: "",
+                  preserved: {},
+                },
+              ],
+            }
+          : plan,
+      ),
+    );
+  }
+
+  removeProgramItem(planId: string, itemId: string): void {
+    this.programPlans.update((plans) =>
+      plans.map((plan) =>
+        plan.id === planId
+          ? {
+              ...plan,
+              items: plan.items.filter((item) => item.id !== itemId),
+            }
+          : plan,
+      ),
+    );
+  }
+
+  updateProgramItem(
+    planId: string,
+    itemId: string,
+    patch: Partial<Omit<EditableProgramItem, "id" | "preserved">>,
+  ): void {
+    this.programPlans.update((plans) =>
+      plans.map((plan) =>
+        plan.id === planId
+          ? {
+              ...plan,
+              items: plan.items.map((item) =>
+                item.id === itemId ? { ...item, ...patch } : item,
+              ),
+            }
+          : plan,
+      ),
+    );
+  }
+
+  updateProgramItemCategory(
+    planId: string,
+    itemId: string,
+    category: string,
+  ): void {
+    if (isEventCategory(category)) {
+      this.updateProgramItem(planId, itemId, { category });
+    }
+  }
+
+  updateProgramItemStatus(
+    planId: string,
+    itemId: string,
+    status: string,
+  ): void {
+    if (isProgramItemStatus(status)) {
+      this.updateProgramItem(planId, itemId, { status });
+    }
+  }
+
+  updateProgramSpotRefKind(
+    planId: string,
+    itemId: string,
+    kind: string,
+  ): void {
+    if (kind === "" || kind === "spot" || kind === "inline_spot") {
+      this.updateProgramItem(planId, itemId, { spotRefKind: kind });
+    }
+  }
+
+  addSeriesMembership(): void {
+    this.seriesMemberships.update((memberships) => [
+      ...memberships,
+      {
+        id: `membership-${Date.now()}-${memberships.length}`,
+        seriesId: "",
+        role: "series_event",
+        qualificationRequired: false,
+        qualificationHint: "",
+        sourceUrl: "",
+        qualifiesTo: [],
+        qualificationPaths: [],
+        preserved: {},
+      },
+    ]);
+  }
+
+  removeSeriesMembership(id: string): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.filter((membership) => membership.id !== id),
+    );
+  }
+
+  updateSeriesMembership(
+    id: string,
+    patch: Partial<
+      Omit<
+        EditableSeriesMembership,
+        | "id"
+        | "qualifiesTo"
+        | "qualificationPaths"
+        | "preserved"
+      >
+    >,
+  ): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === id ? { ...membership, ...patch } : membership,
+      ),
+    );
+  }
+
+  updateSeriesMembershipRole(id: string, role: string): void {
+    if (isSeriesRole(role)) {
+      this.updateSeriesMembership(id, { role });
+    }
+  }
+
+  addQualificationTarget(membershipId: string): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === membershipId
+          ? {
+              ...membership,
+              qualifiesTo: [
+                ...membership.qualifiesTo,
+                this._newQualificationRef(membership.qualifiesTo.length),
+              ],
+            }
+          : membership,
+      ),
+    );
+  }
+
+  removeQualificationTarget(membershipId: string, refId: string): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === membershipId
+          ? {
+              ...membership,
+              qualifiesTo: membership.qualifiesTo.filter(
+                (ref) => ref.id !== refId,
+              ),
+            }
+          : membership,
+      ),
+    );
+  }
+
+  updateQualificationTarget(
+    membershipId: string,
+    refId: string,
+    patch: Partial<Omit<EditableQualificationRef, "id">>,
+  ): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === membershipId
+          ? {
+              ...membership,
+              qualifiesTo: membership.qualifiesTo.map((ref) =>
+                ref.id === refId ? { ...ref, ...patch } : ref,
+              ),
+            }
+          : membership,
+      ),
+    );
+  }
+
+  updateQualificationTargetKind(
+    membershipId: string,
+    refId: string,
+    kind: string,
+  ): void {
+    if (isQualificationRefKind(kind)) {
+      this.updateQualificationTarget(membershipId, refId, { kind });
+    }
+  }
+
+  addQualificationPath(membershipId: string): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === membershipId
+          ? {
+              ...membership,
+              qualificationPaths: [
+                ...membership.qualificationPaths,
+                {
+                  id: `path-${Date.now()}-${membership.qualificationPaths.length}`,
+                  label: "",
+                  requirementMode: "any",
+                  requirements: [],
+                  preserved: {},
+                },
+              ],
+            }
+          : membership,
+      ),
+    );
+  }
+
+  removeQualificationPath(membershipId: string, pathId: string): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === membershipId
+          ? {
+              ...membership,
+              qualificationPaths: membership.qualificationPaths.filter(
+                (path) => path.id !== pathId,
+              ),
+            }
+          : membership,
+      ),
+    );
+  }
+
+  updateQualificationPath(
+    membershipId: string,
+    pathId: string,
+    patch: Partial<
+      Omit<EditableQualificationPath, "requirements" | "preserved">
+    >,
+  ): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === membershipId
+          ? {
+              ...membership,
+              qualificationPaths: membership.qualificationPaths.map((path) =>
+                path.id === pathId ? { ...path, ...patch } : path,
+              ),
+            }
+          : membership,
+      ),
+    );
+  }
+
+  updateQualificationPathRequirementMode(
+    membershipId: string,
+    pathId: string,
+    requirementMode: string,
+  ): void {
+    if (requirementMode === "any" || requirementMode === "all") {
+      this.updateQualificationPath(membershipId, pathId, { requirementMode });
+    }
+  }
+
+  addQualificationRequirement(membershipId: string, pathId: string): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === membershipId
+          ? {
+              ...membership,
+              qualificationPaths: membership.qualificationPaths.map((path) =>
+                path.id === pathId
+                  ? {
+                      ...path,
+                      requirements: [
+                        ...path.requirements,
+                        this._newQualificationRef(path.requirements.length),
+                      ],
+                    }
+                  : path,
+              ),
+            }
+          : membership,
+      ),
+    );
+  }
+
+  removeQualificationRequirement(
+    membershipId: string,
+    pathId: string,
+    refId: string,
+  ): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === membershipId
+          ? {
+              ...membership,
+              qualificationPaths: membership.qualificationPaths.map((path) =>
+                path.id === pathId
+                  ? {
+                      ...path,
+                      requirements: path.requirements.filter(
+                        (ref) => ref.id !== refId,
+                      ),
+                    }
+                  : path,
+              ),
+            }
+          : membership,
+      ),
+    );
+  }
+
+  updateQualificationRequirement(
+    membershipId: string,
+    pathId: string,
+    refId: string,
+    patch: Partial<Omit<EditableQualificationRef, "id">>,
+  ): void {
+    this.seriesMemberships.update((memberships) =>
+      memberships.map((membership) =>
+        membership.id === membershipId
+          ? {
+              ...membership,
+              qualificationPaths: membership.qualificationPaths.map((path) =>
+                path.id === pathId
+                  ? {
+                      ...path,
+                      requirements: path.requirements.map((ref) =>
+                        ref.id === refId ? { ...ref, ...patch } : ref,
+                      ),
+                    }
+                  : path,
+              ),
+            }
+          : membership,
+      ),
+    );
+  }
+
+  updateQualificationRequirementKind(
+    membershipId: string,
+    pathId: string,
+    refId: string,
+    kind: string,
+  ): void {
+    if (isQualificationRefKind(kind)) {
+      this.updateQualificationRequirement(membershipId, pathId, refId, {
+        kind,
+      });
+    }
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -727,6 +1270,7 @@ export class EventEditFormComponent {
       url: trimOrUndefined(v.url),
       event_links: this._buildEventLinksPatch(),
       ticket_options: this._buildTicketOptionsPatch(),
+      program: this._buildProgramPatch(),
       published: v.published === true,
       banner_src: trimOrUndefined(v.banner_src),
       banner_fit: v.banner_fit ?? "cover",
@@ -737,7 +1281,11 @@ export class EventEditFormComponent {
       custom_markers: this._buildCustomMarkersPatch(),
       spot_ids: [...this.spotIds()],
       community_keys: [...this.communityKeys()],
-      series_ids: csvToArray(v.series_ids_csv),
+      series_ids: uniqueStrings([
+        ...csvToArray(v.series_ids_csv),
+        ...this.seriesMemberships().map((membership) => membership.seriesId),
+      ]),
+      series_memberships: this._buildSeriesMembershipsPatch(),
       organizer: this._buildOrganizerPatch(),
       sponsor:
         v.sponsor_name?.trim() ||
@@ -935,6 +1483,138 @@ export class EventEditFormComponent {
     );
   }
 
+  private _buildProgramPatch(): EventProgramSchema | undefined {
+    const plans = this.programPlans()
+      .map((plan) => this._buildProgramPlanPatch(plan))
+      .filter((plan): plan is EventProgramPlanSchema => !!plan);
+
+    if (plans.length === 0) return undefined;
+
+    const activePlanId =
+      plans.some((plan) => plan.id === this.activeProgramPlanId())
+        ? this.activeProgramPlanId()
+        : plans[0].id;
+
+    return {
+      active_plan_id: activePlanId,
+      plans,
+    };
+  }
+
+  private _buildProgramPlanPatch(
+    plan: EditableProgramPlan,
+  ): EventProgramPlanSchema | null {
+    const id = trimOrUndefined(plan.id);
+    const label = trimOrUndefined(plan.label);
+    if (!id || !label) return null;
+
+    return {
+      ...plan.preserved,
+      id,
+      label,
+      kind: plan.kind,
+      condition_label: trimOrUndefined(plan.conditionLabel),
+      items: plan.items
+        .map((item) => this._buildProgramItemPatch(item))
+        .filter((item): item is EventProgramItemSchema => !!item)
+        .sort((left, right) => left.start.toMillis() - right.start.toMillis()),
+    };
+  }
+
+  private _buildProgramItemPatch(
+    item: EditableProgramItem,
+  ): EventProgramItemSchema | null {
+    const id = trimOrUndefined(item.id);
+    const title = trimOrUndefined(item.title);
+    const start = timestampFromDateTimeLocal(item.start);
+    if (!id || !title || !start) return null;
+
+    const spotRef =
+      item.spotRefKind && trimOrUndefined(item.spotRefId)
+        ? {
+            kind: item.spotRefKind,
+            id: item.spotRefId.trim(),
+          }
+        : undefined;
+
+    return {
+      ...item.preserved,
+      id,
+      title,
+      description: trimOrUndefined(item.description),
+      category: item.category,
+      start,
+      end: timestampFromDateTimeLocal(item.end),
+      spot_ref: spotRef,
+      status: item.status === "scheduled" ? undefined : item.status,
+      linked_event_id: trimOrUndefined(item.linkedEventId),
+    };
+  }
+
+  private _buildSeriesMembershipsPatch(): EventSeriesMembershipSchema[] {
+    return this.seriesMemberships().reduce<EventSeriesMembershipSchema[]>(
+      (memberships, membership) => {
+        const seriesId = trimOrUndefined(membership.seriesId);
+        if (!seriesId) return memberships;
+
+        const qualifiesTo = membership.qualifiesTo
+          .map((ref) => this._buildQualificationRefPatch(ref))
+          .filter((ref): ref is EventQualificationRefSchema => !!ref);
+        const qualificationPaths = membership.qualificationPaths
+          .map((path) => this._buildQualificationPathPatch(path))
+          .filter((path): path is EventQualificationPathSchema => !!path);
+
+        memberships.push({
+          ...membership.preserved,
+          series_id: seriesId,
+          role: membership.role,
+          qualification_required: membership.qualificationRequired || undefined,
+          qualification_hint: trimOrUndefined(membership.qualificationHint),
+          qualifies_to: qualifiesTo.length > 0 ? qualifiesTo : undefined,
+          qualification_paths:
+            qualificationPaths.length > 0 ? qualificationPaths : undefined,
+          source_url: safeExternalUrl(membership.sourceUrl) ?? undefined,
+        });
+        return memberships;
+      },
+      [],
+    );
+  }
+
+  private _buildQualificationPathPatch(
+    path: EditableQualificationPath,
+  ): EventQualificationPathSchema | null {
+    const id = trimOrUndefined(path.id);
+    if (!id) return null;
+
+    const requirements = path.requirements
+      .map((ref) => this._buildQualificationRefPatch(ref))
+      .filter((ref): ref is EventQualificationRefSchema => !!ref);
+
+    if (requirements.length === 0) return null;
+
+    return {
+      ...path.preserved,
+      id,
+      label: trimOrUndefined(path.label),
+      requirement_mode: path.requirementMode,
+      requirements,
+    };
+  }
+
+  private _buildQualificationRefPatch(
+    ref: EditableQualificationRef,
+  ): EventQualificationRefSchema | null {
+    const eventId = trimOrUndefined(ref.eventId);
+    if (!eventId) return null;
+    const programItemId = trimOrUndefined(ref.programItemId);
+    return {
+      kind: ref.kind,
+      event_id: eventId,
+      program_item_id: ref.kind === "program_item" ? programItemId : undefined,
+    };
+  }
+
   get descriptionLocaleMap(): LocaleMap | undefined {
     return this._descriptionLocaleMap();
   }
@@ -951,6 +1631,15 @@ export class EventEditFormComponent {
       return undefined;
     }
     return descriptions;
+  }
+
+  private _newQualificationRef(index: number): EditableQualificationRef {
+    return {
+      id: `ref-${Date.now()}-${index}`,
+      kind: "event",
+      eventId: "",
+      programItemId: "",
+    };
   }
 
   /** Approximate point-in-circle test in meters via haversine. */
@@ -1045,6 +1734,14 @@ function csvToArray(value: string | null | undefined): string[] {
     .filter((part) => part.length > 0);
 }
 
+function uniqueStrings(values: string[]): string[] {
+  return [
+    ...new Set(
+      values.map((value) => value.trim()).filter((value) => value.length > 0),
+    ),
+  ];
+}
+
 function safeExternalUrl(value: string | null | undefined): string | null {
   if (!value) return null;
   try {
@@ -1073,6 +1770,48 @@ function isEventLinkKind(value: string): value is EventLinkKind {
     value === "livestream" ||
     value === "other"
   );
+}
+
+function isEventCategory(value: string): value is EventCategory {
+  return (
+    value === "jam" ||
+    value === "competition" ||
+    value === "workshop" ||
+    value === "camp" ||
+    value === "show" ||
+    value === "awards" ||
+    value === "social" ||
+    value === "travel" ||
+    value === "other"
+  );
+}
+
+function isProgramItemStatus(
+  value: string,
+): value is EventProgramItemStatus {
+  return (
+    value === "scheduled" ||
+    value === "cancelled" ||
+    value === "moved" ||
+    value === "delayed"
+  );
+}
+
+function isSeriesRole(value: string): value is EventSeriesRole {
+  return (
+    value === "series_event" ||
+    value === "qualifier" ||
+    value === "final" ||
+    value === "championship" ||
+    value === "feeder" ||
+    value === "related"
+  );
+}
+
+function isQualificationRefKind(
+  value: string,
+): value is EventQualificationRefSchema["kind"] {
+  return value === "event" || value === "program_item";
 }
 
 function isTicketAvailability(
@@ -1138,6 +1877,69 @@ function timestampFromDateInput(value: string): Timestamp | undefined {
   if (!value) return undefined;
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime()) ? undefined : Timestamp.fromDate(date);
+}
+
+function dateTimeLocalValue(date: Date | undefined): string {
+  if (!date || Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function timestampFromDateTimeLocal(value: string): Timestamp | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : Timestamp.fromDate(date);
+}
+
+function editableSeriesMembership(
+  membership: EventSeriesMembershipSchema,
+  index: number,
+): EditableSeriesMembership {
+  return {
+    id: `membership-${index}`,
+    seriesId: membership.series_id,
+    role: membership.role,
+    qualificationRequired: membership.qualification_required === true,
+    qualificationHint: membership.qualification_hint ?? "",
+    sourceUrl: membership.source_url ?? "",
+    qualifiesTo: (membership.qualifies_to ?? []).map((ref, refIndex) =>
+      editableQualificationRef(ref, refIndex),
+    ),
+    qualificationPaths: (membership.qualification_paths ?? []).map(
+      (path, pathIndex) => ({
+        id: path.id || `path-${pathIndex}`,
+        label: path.label ?? "",
+        requirementMode: path.requirement_mode,
+        requirements: path.requirements.map((ref, refIndex) =>
+          editableQualificationRef(ref, refIndex),
+        ),
+        preserved: {
+          label_i18n: path.label_i18n,
+        },
+      }),
+    ),
+    preserved: {
+      disciplines: membership.disciplines,
+      qualification_hint_i18n: membership.qualification_hint_i18n,
+      required_qualifiers: membership.required_qualifiers,
+    },
+  };
+}
+
+function editableQualificationRef(
+  ref: EventQualificationRefSchema,
+  index: number,
+): EditableQualificationRef {
+  return {
+    id: `ref-${index}`,
+    kind: ref.kind,
+    eventId: String(ref.event_id),
+    programItemId: ref.program_item_id ?? "",
+  };
 }
 
 /**

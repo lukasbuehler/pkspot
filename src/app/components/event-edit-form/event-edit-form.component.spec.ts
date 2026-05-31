@@ -133,4 +133,148 @@ describe("EventEditFormComponent", () => {
       },
     ]);
   });
+
+  it("serializes edited program plans and items on submit", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        program: {
+          active_plan_id: "main",
+          plans: [
+            {
+              id: "main",
+              label: "Main program",
+              kind: "main",
+              items: [
+                {
+                  id: "jam",
+                  title: "Jam",
+                  category: "jam",
+                  start: "2026-06-01T10:00:00.000Z",
+                  end: "2026-06-01T12:00:00.000Z",
+                  spot_ref: { kind: "spot", id: "spot-1" },
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    component.updateProgramItem("main", "jam", {
+      title: "Open jam",
+      linkedEventId: "linked-event",
+    });
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].program).toEqual(
+      expect.objectContaining({
+        active_plan_id: "main",
+        plans: [
+          expect.objectContaining({
+            id: "main",
+            label: "Main program",
+            items: [
+              expect.objectContaining({
+                id: "jam",
+                title: "Open jam",
+                category: "jam",
+                spot_ref: { kind: "spot", id: "spot-1" },
+                linked_event_id: "linked-event",
+              }),
+            ],
+          }),
+        ],
+      }),
+    );
+  });
+
+  it("serializes series memberships and qualification paths on submit", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        series_ids: ["parkour-earth"],
+        series_memberships: [
+          {
+            series_id: "parkour-earth",
+            role: "qualifier",
+            qualification_required: true,
+            qualification_hint: "Swiss athletes qualify through Swiss Jam.",
+            qualification_paths: [
+              {
+                id: "swiss-pathway",
+                label: "Swiss pathway",
+                requirement_mode: "any",
+                requirements: [
+                  {
+                    kind: "program_item",
+                    event_id: "swissjam26",
+                    program_item_id: "swiss-parkour-championships",
+                  },
+                ],
+              },
+            ],
+            qualifies_to: [
+              {
+                kind: "event",
+                event_id: "parkour-earth-world-championships-2026",
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    component.updateQualificationPathRequirementMode(
+      "membership-0",
+      "swiss-pathway",
+      "all",
+    );
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].series_ids).toEqual(["parkour-earth"]);
+    expect(saveSpy.mock.calls[0][0].series_memberships).toEqual([
+      expect.objectContaining({
+        series_id: "parkour-earth",
+        role: "qualifier",
+        qualification_required: true,
+        qualification_hint: "Swiss athletes qualify through Swiss Jam.",
+        qualifies_to: [
+          {
+            kind: "event",
+            event_id: "parkour-earth-world-championships-2026",
+            program_item_id: undefined,
+          },
+        ],
+        qualification_paths: [
+          expect.objectContaining({
+            id: "swiss-pathway",
+            label: "Swiss pathway",
+            requirement_mode: "all",
+            requirements: [
+              {
+                kind: "program_item",
+                event_id: "swissjam26",
+                program_item_id: "swiss-parkour-championships",
+              },
+            ],
+          }),
+        ],
+      }),
+    ]);
+  });
 });

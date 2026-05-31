@@ -33,9 +33,15 @@
   </mat-form-field>
 </mat-dialog-content>
 <mat-dialog-actions class="d-flex flex-row justify-content-between">
-  <button i18n mat-button (click)="onNoClick()">Abort</button>
+  <button i18n mat-button type="button" (click)="onNoClick()">Abort</button>
   <div class="spacer"></div>
-  <button mat-flat-button color="primary" [mat-dialog-close]="data.locale" i18n>
+  <button
+    mat-flat-button
+    type="button"
+    color="primary"
+    [mat-dialog-close]="data.locale"
+    i18n
+  >
     Continue
   </button>
 </mat-dialog-actions>

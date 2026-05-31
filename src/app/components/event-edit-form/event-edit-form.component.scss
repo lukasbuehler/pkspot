@@ -38,14 +38,23 @@ input[type="number"] {
 }
 
 .event-link-list,
-.ticket-edit-list {
+.ticket-edit-list,
+.program-plan-list,
+.program-item-list,
+.series-membership-list,
+.qualification-path-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
 .event-link-editor,
-.ticket-editor {
+.ticket-editor,
+.program-plan-editor,
+.program-item-editor,
+.series-membership-editor,
+.qualification-path-editor,
+.qualification-ref-editor {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
   gap: 0.5rem;
@@ -56,8 +65,44 @@ input[type="number"] {
   background: var(--mat-sys-surface-container-low);
 }
 
+.program-plan-editor {
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.series-membership-editor,
+.qualification-path-editor {
+  grid-template-columns: 1fr;
+}
+
+.nested-panel {
+  border: 1px solid var(--mat-sys-outline-variant);
+  box-shadow: none;
+}
+
+.qualification-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.program-plan-header,
+.series-membership-header,
+.qualification-path-header {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.series-membership-header,
+.qualification-path-header {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+}
+
 .event-link-editor mat-checkbox,
-.ticket-editor .span-2 {
+.ticket-editor .span-2,
+.program-item-editor .span-2 {
   grid-column: span 2;
 }
 
@@ -121,14 +166,27 @@ input[type="number"] {
 
 @media (max-width: 599.99px) {
   .event-link-editor,
-  .ticket-editor {
+  .ticket-editor,
+  .program-item-editor,
+  .qualification-ref-editor,
+  .program-plan-header,
+  .series-membership-header,
+  .qualification-path-header {
     grid-template-columns: 1fr auto;
   }
 
   .event-link-editor mat-form-field,
   .event-link-editor mat-checkbox,
   .ticket-editor mat-form-field,
-  .ticket-editor .span-2 {
+  .ticket-editor .span-2,
+  .program-item-editor mat-form-field,
+  .program-item-editor .span-2,
+  .qualification-ref-editor mat-form-field,
+  .program-plan-header mat-form-field,
+  .program-plan-header mat-checkbox,
+  .series-membership-header mat-form-field,
+  .series-membership-header mat-checkbox,
+  .qualification-path-header mat-form-field {
     grid-column: 1 / -1;
   }
 

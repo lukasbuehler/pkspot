@@ -19,6 +19,35 @@
     </div>
   </div>
 
+  @if (seriesFilterOptions().length > 0) {
+    <div class="row pb-3">
+      <div class="col-12">
+        <mat-chip-set aria-label="Filter events by series">
+          @for (series of seriesFilterOptions(); track series.id) {
+            <mat-chip-option
+              [selected]="isSeriesSelected(series.id)"
+              (click)="toggleSeriesFilter(series.id)"
+            >
+              {{ series.label }}
+              <span class="series-count">{{ series.count }}</span>
+            </mat-chip-option>
+          }
+          @if (selectedSeriesIds().length > 0) {
+            <button
+              mat-button
+              type="button"
+              class="clear-series-button"
+              (click)="clearSeriesFilters()"
+            >
+              <mat-icon>filter_alt_off</mat-icon>
+              <span i18n="@@events.clear_series_filters">Clear</span>
+            </button>
+          }
+        </mat-chip-set>
+      </div>
+    </div>
+  }
+
   @if (loading()) {
     <div class="row mb-5">
       <div class="col-md-12">
@@ -31,12 +60,23 @@
         <p class="mat-body-medium" i18n>No events scheduled yet.</p>
       </div>
     </div>
+  } @else if (filteredEvents().length === 0) {
+    <div class="row mb-5">
+      <div class="col-md-12">
+        <p class="mat-body-medium" i18n="@@events.no_filtered_events">
+          No events match the selected series.
+        </p>
+      </div>
+    </div>
   } @else {
     @if (upcomingEvents().length > 0) {
       <div class="row mb-5">
         @for (event of upcomingEvents(); track event.id) {
           <div class="col-md-6 col-lg-4 mb-3">
-            <app-event-card [event]="event"></app-event-card>
+            <app-event-card
+              [event]="event"
+              [seriesById]="seriesById()"
+            ></app-event-card>
           </div>
         }
       </div>
@@ -53,7 +93,10 @@
       <div class="row mb-5">
         @for (event of pastEvents(); track event.id) {
           <div class="col-md-6 col-lg-4 mb-3">
-            <app-event-card [event]="event"></app-event-card>
+            <app-event-card
+              [event]="event"
+              [seriesById]="seriesById()"
+            ></app-event-card>
           </div>
         }
       </div>

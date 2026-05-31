@@ -2,13 +2,21 @@
 
 @mixin color($theme) {
   app-bottom-sheet > div.sheet {
-    background: var(--map-glass-surface);
+    background: color-mix(
+      in srgb,
+      #{mat.get-theme-color($theme, surface-container-low)} 88%,
+      transparent
+    );
     backdrop-filter: var(--map-glass-blur);
     -webkit-backdrop-filter: var(--map-glass-blur);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+  }
+
+  html.platform-ios app-bottom-sheet > div.sheet {
+    background: mat.get-theme-color($theme, surface-container-low);
   }
 }
 

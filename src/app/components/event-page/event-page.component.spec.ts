@@ -362,17 +362,15 @@ describe("EventInfoPageComponent", () => {
 
     component.event.set(
       buildEvent("swissjam26", "Swiss Jam 2026", {
-        series_memberships: [
-          {
-            series_id: "parkour-earth",
-            role: "qualifier",
-          },
-        ],
+        series_ids: ["parkour-earth"],
       }),
     );
     flushSignalEffects();
     await flushPromises();
 
+    expect(component.visibleSeriesTags()).toEqual([
+      { seriesId: "parkour-earth" },
+    ]);
     expect(seriesService.getSeriesByIds).toHaveBeenCalledWith([
       "parkour-earth",
     ]);

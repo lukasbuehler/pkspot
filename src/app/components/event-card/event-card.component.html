@@ -15,6 +15,23 @@
     [attr.data-status]="status()"
   >
     <div mat-card-image class="image-wrap">
+      @if (seriesBadges().length > 0) {
+        <div class="series-badges" aria-label="Event series">
+          @for (series of seriesBadges(); track series.id) {
+            <span
+              class="series-badge"
+              [style.background]="series.background"
+              [matTooltip]="series.label"
+            >
+              @if (series.logoSrc) {
+                <img [src]="series.logoSrc" [alt]="series.label" />
+              } @else {
+                <span>{{ series.shortLabel }}</span>
+              }
+            </span>
+          }
+        </div>
+      }
       @if (bannerImageSrc()) {
         <div
           class="banner-frame"
