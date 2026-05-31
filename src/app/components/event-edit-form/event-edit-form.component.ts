@@ -307,6 +307,7 @@ export class EventEditFormComponent {
     sponsor_url: [""],
     sponsor_logo_src: [""],
     external_media_url: [""],
+    external_media_source_url: [""],
   });
 
   /**
@@ -460,6 +461,7 @@ export class EventEditFormComponent {
         sponsor_url: e.sponsor?.url ?? "",
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
         external_media_url: "",
+        external_media_source_url: "",
       });
       this.location.set(e.location);
       this.areaPath.set(eventAreaPath(e.areaPolygon));
@@ -732,6 +734,13 @@ export class EventEditFormComponent {
       this.form.controls["external_media_url"].setErrors({ url: true });
       return;
     }
+    const sourcePageUrl = safeExternalUrl(
+      this.form.value.external_media_source_url,
+    );
+    if (this.form.value.external_media_source_url && !sourcePageUrl) {
+      this.form.controls["external_media_source_url"].setErrors({ url: true });
+      return;
+    }
 
     this.externalMedia.update((items) =>
       items.some((item) => item.src === url)
@@ -743,11 +752,16 @@ export class EventEditFormComponent {
               type: inferMediaType(url),
               isInStorage: false,
               origin: "other",
+              source_page_url: sourcePageUrl ?? undefined,
             },
           ],
     );
-    this.form.patchValue({ external_media_url: "" });
+    this.form.patchValue({
+      external_media_url: "",
+      external_media_source_url: "",
+    });
     this.form.controls["external_media_url"].setErrors(null);
+    this.form.controls["external_media_source_url"].setErrors(null);
   }
 
   removeExternalMedia(src: string): void {

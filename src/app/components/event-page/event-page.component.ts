@@ -272,7 +272,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return tags;
   });
   readonly visibleSeriesIds = computed(() => [
-    ...new Set(this.visibleSeriesTags().map((tag) => tag.seriesId)),
+    ...new Set([
+      ...this.visibleSeriesTags().map((tag) => tag.seriesId),
+      ...Object.values(this.qualifierEventsById()).flatMap(
+        (event) => event.seriesIds,
+      ),
+    ]),
   ]);
   readonly qualificationMemberships = computed(() =>
     this.visibleSeriesMemberships().filter(

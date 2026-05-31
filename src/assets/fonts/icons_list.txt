@@ -184,3 +184,5 @@ sell
 theater_comedy
 workspace_premium
 diversity_3
+volume_off
+volume_up

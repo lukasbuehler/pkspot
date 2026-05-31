@@ -586,6 +586,21 @@
               </mat-error>
             }
           </mat-form-field>
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.external_media_source_page_url">
+              Source page URL
+            </mat-label>
+            <input
+              matInput
+              formControlName="external_media_source_url"
+              placeholder="https://…"
+            />
+            @if (form.controls["external_media_source_url"].hasError("url")) {
+              <mat-error i18n="@@event_edit.external_media_source_invalid">
+                Use a public http or https link.
+              </mat-error>
+            }
+          </mat-form-field>
           <button
             mat-stroked-button
             type="button"
@@ -608,6 +623,11 @@
                   </div>
                 }
                 <span class="mat-label-small text-truncate">{{ media.src }}</span>
+                @if (media.source_page_url) {
+                  <span class="mat-label-small text-truncate">
+                    {{ media.source_page_url }}
+                  </span>
+                }
                 <button
                   mat-icon-button
                   type="button"

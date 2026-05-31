@@ -391,7 +391,8 @@ export function makeAnyMediaFromMediaSchema(
           mediaSchema.uid,
           mediaSchema.attribution,
           mediaSchema.origin as "user" | "streetview" | "other",
-          mediaSchema.isReported ?? false
+          mediaSchema.isReported ?? false,
+          mediaSchema.source_page_url
         );
       } else if (mediaSchema.type === MediaType.Video) {
         return new ExternalVideo(
@@ -399,7 +400,8 @@ export function makeAnyMediaFromMediaSchema(
           mediaSchema.uid,
           mediaSchema.attribution,
           mediaSchema.origin as "user" | "streetview" | "other",
-          mediaSchema.isReported ?? false
+          mediaSchema.isReported ?? false,
+          mediaSchema.source_page_url
         );
       } else {
         throw new Error("Unknown media type for external media");
@@ -419,7 +421,8 @@ export function makeAnyMediaFromMediaSchema(
         mediaSchema.uid,
         mediaSchema.attribution,
         (mediaSchema.origin as "user" | "streetview" | "other") ?? "other",
-        mediaSchema.isReported ?? false
+        mediaSchema.isReported ?? false,
+        mediaSchema.source_page_url
       );
     }
 
@@ -428,7 +431,8 @@ export function makeAnyMediaFromMediaSchema(
       mediaSchema.uid,
       mediaSchema.attribution,
       (mediaSchema.origin as "user" | "streetview" | "other") ?? "other",
-      mediaSchema.isReported ?? false
+      mediaSchema.isReported ?? false,
+      mediaSchema.source_page_url
     );
   }
 }

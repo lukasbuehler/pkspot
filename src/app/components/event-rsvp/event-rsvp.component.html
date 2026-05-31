@@ -123,7 +123,7 @@
     <span class="rsvp-error">{{ errorMessage() }}</span>
   }
 
-  @if (!preview() && showDisclaimer()) {
+  @if (!preview() && showDisclaimer() && hasNumbers()) {
     <span class="rsvp-disclaimer mat-label-small" i18n="@@event_rsvp.disclaimer"
       >These numbers show PK Spot user intent, not tickets bought.</span
     >

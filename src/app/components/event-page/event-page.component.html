@@ -386,7 +386,10 @@
                         );
                         track target.id
                       ) {
-                        <app-event-card [event]="target"></app-event-card>
+                        <app-event-card
+                          [event]="target"
+                          [seriesById]="seriesById()"
+                        ></app-event-card>
                       }
                     </div>
                     @if (
@@ -468,7 +471,10 @@
                           );
                           track qualifier.id
                         ) {
-                          <app-event-card [event]="qualifier"></app-event-card>
+                          <app-event-card
+                            [event]="qualifier"
+                            [seriesById]="seriesById()"
+                          ></app-event-card>
                         }
                       </div>
                       @if (hasHiddenQualificationPathEvents(path)) {

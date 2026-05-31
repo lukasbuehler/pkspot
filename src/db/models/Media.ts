@@ -20,7 +20,8 @@ export abstract class Media {
     userId?: string,
     attribution?: MediaSchema["attribution"],
     origin?: MediaSchema["origin"],
-    isReported: boolean = false
+    isReported: boolean = false,
+    sourcePageUrl?: string
   ) {
     this._src = src;
     this.type = type;
@@ -28,6 +29,7 @@ export abstract class Media {
     this.attribution = attribution;
     this.origin = origin;
     this.isReported = isReported;
+    this.sourcePageUrl = sourcePageUrl;
   }
 
   protected readonly _src: string;
@@ -36,6 +38,7 @@ export abstract class Media {
   readonly origin?: MediaSchema["origin"];
   readonly type: MediaType;
   readonly isReported: boolean;
+  readonly sourcePageUrl?: string;
 
   abstract getPreviewImageSrc(): string;
 
@@ -49,6 +52,7 @@ export abstract class Media {
       type: this.type,
       uid: this.userId,
       attribution: this.attribution,
+      source_page_url: this.sourcePageUrl,
       origin: this.origin,
       isInStorage: false,
       isReported: this.isReported,
@@ -76,14 +80,16 @@ export class ExternalImage extends Media {
     userId?: string,
     attribution?: MediaSchema["attribution"],
     origin?: MediaSchema["origin"],
-    isReported?: boolean
+    isReported?: boolean,
+    sourcePageUrl?: string
   );
   constructor(
     src: string,
     userId?: string,
     attributionOrOrigin?: MediaSchema["attribution"] | MediaSchema["origin"],
     originOrIsReported?: MediaSchema["origin"] | boolean,
-    isReportedMaybe: boolean = false
+    isReportedMaybe: boolean = false,
+    sourcePageUrl?: string
   ) {
     let attribution: MediaSchema["attribution"] | undefined;
     let origin: MediaSchema["origin"] | undefined;
@@ -102,7 +108,15 @@ export class ExternalImage extends Media {
       }
     }
 
-    super(src, MediaType.Image, userId, attribution, origin, isReported);
+    super(
+      src,
+      MediaType.Image,
+      userId,
+      attribution,
+      origin,
+      isReported,
+      sourcePageUrl
+    );
   }
 
   get src(): string {
@@ -130,14 +144,16 @@ export class ExternalVideo extends Media {
     userId?: string,
     attribution?: MediaSchema["attribution"],
     origin?: MediaSchema["origin"],
-    isReported?: boolean
+    isReported?: boolean,
+    sourcePageUrl?: string
   );
   constructor(
     src: string,
     userId?: string,
     attributionOrOrigin?: MediaSchema["attribution"] | MediaSchema["origin"],
     originOrIsReported?: MediaSchema["origin"] | boolean,
-    isReportedMaybe: boolean = false
+    isReportedMaybe: boolean = false,
+    sourcePageUrl?: string
   ) {
     let attribution: MediaSchema["attribution"] | undefined;
     let origin: MediaSchema["origin"] | undefined;
@@ -156,7 +172,15 @@ export class ExternalVideo extends Media {
       }
     }
 
-    super(src, MediaType.Video, userId, attribution, origin, isReported);
+    super(
+      src,
+      MediaType.Video,
+      userId,
+      attribution,
+      origin,
+      isReported,
+      sourcePageUrl
+    );
   }
 
   get src(): string {

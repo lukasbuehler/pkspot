@@ -8,9 +8,15 @@ export interface MediaSchema {
   attribution?: {
     title?: string;
     author?: string;
+    /**
+     * Legacy source-page URL for attribution. Prefer `source_page_url` for new
+     * writes when the link points to the page where the media was found.
+     */
     source_url?: string;
     license?: string;
   };
+  /** Optional page where this media was found, distinct from the direct media file URL. */
+  source_page_url?: string;
   uid?: string; // old
   user?: UserReferenceSchema;
   isInStorage: boolean;

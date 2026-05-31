@@ -62,6 +62,12 @@ export class EventRsvpComponent {
     return base;
   });
 
+  hasNumbers = computed(() => {
+    return (
+      this.displayCounts().going > 0 || this.displayCounts().interested > 0
+    );
+  });
+
   constructor() {
     effect((onCleanup) => {
       if (this.preview()) {

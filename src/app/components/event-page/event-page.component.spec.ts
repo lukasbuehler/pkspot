@@ -381,6 +381,102 @@ describe("EventInfoPageComponent", () => {
     });
   });
 
+  it("loads series documents referenced by qualification event cards", async () => {
+    const seriesService = {
+      getSeriesByIds: vi.fn(async () => ({
+        "parkour-earth": {
+          id: "parkour-earth",
+          name: "Parkour Earth",
+          logo_src: "assets/logos/parkour_earth.jpg",
+        },
+        "sport-parkour-league": {
+          id: "sport-parkour-league",
+          name: "Sport Parkour League",
+          logo_src: "assets/logos/spl.jpg",
+        },
+      })),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesService },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "swissjam26" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "swissjam26" }) },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: { setEventMetaTags: vi.fn() } },
+        {
+          provide: StructuredDataService,
+          useValue: {
+            addStructuredData: vi.fn(),
+            removeStructuredData: vi.fn(),
+          },
+        },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: vi.fn((url?: string) => url),
+          },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+
+    component.event.set(
+      buildEvent("swissjam26", "Swiss Jam 2026", {
+        series_ids: ["parkour-earth"],
+      }),
+    );
+    component.qualifierEventsById.set({
+      "spl5-qualifier": buildEvent("spl5-qualifier", "SPL5 Qualifier", {
+        series_ids: ["sport-parkour-league"],
+      }),
+    });
+    flushSignalEffects();
+    await flushPromises();
+
+    expect(component.visibleSeriesIds()).toEqual([
+      "parkour-earth",
+      "sport-parkour-league",
+    ]);
+    expect(seriesService.getSeriesByIds).toHaveBeenLastCalledWith([
+      "parkour-earth",
+      "sport-parkour-league",
+    ]);
+    expect(component.seriesVisual("sport-parkour-league")).toEqual({
+      logoSrc: "assets/logos/spl.jpg",
+      background: "var(--mat-sys-surface-container-high)",
+    });
+  });
+
   it("hides plain series tags when role-specific memberships are visible", () => {
     TestBed.configureTestingModule({
       providers: [

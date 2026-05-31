@@ -9,7 +9,7 @@
   display: inline-grid;
   grid-template-columns: auto;
   justify-items: start;
-  width: fit-content;
+  width: 100%;
   max-width: 100%;
   color: var(--mat-sys-on-surface);
 }

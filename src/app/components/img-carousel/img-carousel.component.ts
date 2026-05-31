@@ -32,6 +32,7 @@ import { isPlatformBrowser, NgOptimizedImage } from "@angular/common";
 import {
   AnyMedia,
   ExternalImage,
+  ExternalVideo,
   StorageImage,
   StorageVideo,
 } from "../../../db/models/Media";
@@ -43,7 +44,13 @@ export type ImgCarouselImageFit = "cover" | "contain";
 
 @Component({
   selector: "app-img-carousel",
-  imports: [NgOptimizedImage, MatProgressSpinnerModule, MatIconButton, MatIcon],
+  imports: [
+    NgOptimizedImage,
+    MatProgressSpinnerModule,
+    MatButtonModule,
+    MatIconButton,
+    MatIcon,
+  ],
   templateUrl: "./img-carousel.component.html",
   styleUrl: "./img-carousel.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,10 +82,14 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   previewTrackWidth = signal(1);
   canScrollLeft = signal(false);
   canScrollRight = signal(false);
+  videoMuted = signal(true);
 
   mapsApiService = inject(MapsApiService);
   private resizeAnimationFrame: number | null = null;
   private previewResizeObserver: ResizeObserver | null = null;
+  private autoplayIntersectionObserver: IntersectionObserver | null = null;
+  private readonly autoplayVideos = new Map<number, HTMLVideoElement>();
+  private readonly videoCurrentTimes = new Map<number, number>();
   private activePreviewPointerId: number | null = null;
   private previewDragStartX = 0;
   private previewDragStartY = 0;
@@ -113,6 +124,23 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       });
       this.previewResizeObserver.observe(this.previewViewport.nativeElement);
     }
+    if (typeof IntersectionObserver !== "undefined") {
+      this.autoplayIntersectionObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const video = entry.target as HTMLVideoElement;
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.35) {
+              void video.play().catch(() => {
+                // Muted autoplay can still be blocked on some platforms.
+              });
+            } else {
+              video.pause();
+            }
+          }
+        },
+        { threshold: [0, 0.35, 0.7] },
+      );
+    }
     this.queuePreviewResize();
   }
 
@@ -121,6 +149,8 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       cancelAnimationFrame(this.resizeAnimationFrame);
     }
     this.previewResizeObserver?.disconnect();
+    this.autoplayIntersectionObserver?.disconnect();
+    this.autoplayVideos.clear();
   }
 
   /**
@@ -241,6 +271,47 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  onVideoMetadataLoaded(event: Event, index: number): void {
+    const video = event.currentTarget as HTMLVideoElement;
+    video.muted = this.videoMuted();
+    const savedTime = this.videoCurrentTimes.get(index);
+    if (savedTime !== undefined && Number.isFinite(savedTime)) {
+      video.currentTime = Math.min(savedTime, video.duration || savedTime);
+    }
+    if (video.videoWidth > 0 && video.videoHeight > 0) {
+      const aspectRatio = video.videoWidth / video.videoHeight;
+      this.imageAspectRatios.update((ratios) => {
+        const next = new Map(ratios);
+        next.set(index, aspectRatio);
+        return next;
+      });
+      const container = video.closest<HTMLElement>(".spot-img-container");
+      container?.style.setProperty("--image-aspect-ratio", String(aspectRatio));
+      this.queuePreviewResize();
+    }
+    this.registerAutoplayVideo(index, video);
+  }
+
+  onPreviewVideoTimeUpdate(event: Event, index: number): void {
+    const video = event.currentTarget as HTMLVideoElement;
+    if (Number.isFinite(video.currentTime)) {
+      this.videoCurrentTimes.set(index, video.currentTime);
+    }
+  }
+
+  private registerAutoplayVideo(index: number, video: HTMLVideoElement): void {
+    const current = this.autoplayVideos.get(index);
+    if (current === video) {
+      return;
+    }
+    if (current) {
+      this.autoplayIntersectionObserver?.unobserve(current);
+      current.pause();
+    }
+    this.autoplayVideos.set(index, video);
+    this.autoplayIntersectionObserver?.observe(video);
+  }
+
   /**
    * Returns true if the image at the given index is currently being processed/loading.
    */
@@ -268,12 +339,48 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     return mediaObj.getPreviewImageSrc();
   }
 
+  isPreviewMedia(mediaObj: AnyMedia): boolean {
+    return mediaObj instanceof ExternalVideo || mediaObj.type === "image";
+  }
+
+  isExternalVideo(mediaObj: AnyMedia): mediaObj is ExternalVideo {
+    return mediaObj instanceof ExternalVideo;
+  }
+
+  getExternalSourceUrl(mediaObj: AnyMedia): string | null {
+    if (
+      mediaObj instanceof ExternalImage ||
+      mediaObj instanceof ExternalVideo
+    ) {
+      if (mediaObj.userId === "streetview") {
+        return null;
+      }
+      return (
+        mediaObj.sourcePageUrl ||
+        mediaObj.attribution?.source_url ||
+        mediaObj.src
+      );
+    }
+    return null;
+  }
+
   getReferrerPolicyForMedia(mediaObj: AnyMedia): "no-referrer" | null {
     return mediaObj.userId === "streetview" ? null : "no-referrer";
   }
 
   imageClick(index: number) {
     this.openImageViewer(index);
+  }
+
+  onExternalSourceClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
+
+  togglePreviewVideoMuted(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.videoMuted.update((muted) => !muted);
+    this.syncPreviewVideosMuted();
   }
 
   onPreviewScroll(): void {
@@ -423,8 +530,24 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   openImageViewer(index: number = 0) {
+    const previewVideo = this.autoplayVideos.get(index);
+    const previewVideoParent = previewVideo?.parentNode ?? null;
+    const previewVideoNextSibling = previewVideo?.nextSibling ?? null;
+    if (previewVideo) {
+      this.autoplayIntersectionObserver?.unobserve(previewVideo);
+    }
     const dialogRef = this.dialog.open(SwiperDialogComponent, {
-      data: { media: this.media(), index: index, spotId: this.spotId() },
+      data: {
+        media: this.media(),
+        index: index,
+        spotId: this.spotId(),
+        initialVideoMuted: this.videoMuted(),
+        initialVideoTime:
+          previewVideo?.currentTime ?? this.videoCurrentTimes.get(index),
+        reusedVideoElement: previewVideo,
+        reusedVideoParent: previewVideoParent,
+        reusedVideoNextSibling: previewVideoNextSibling,
+      },
       hasBackdrop: true,
       maxWidth: "95vw",
       maxHeight: "95vh",
@@ -432,6 +555,36 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
+      if (previewVideo && previewVideoParent) {
+        previewVideo.removeAttribute("controls");
+        previewVideo.classList.remove("swiper-video");
+        previewVideo.style.position = "";
+        previewVideo.style.inset = "";
+        previewVideo.style.width = "";
+        previewVideo.style.height = "";
+        previewVideo.style.maxWidth = "";
+        previewVideo.style.maxHeight = "";
+        previewVideo.style.objectFit = "";
+        previewVideoParent.insertBefore(previewVideo, previewVideoNextSibling);
+        this.autoplayIntersectionObserver?.observe(previewVideo);
+      }
+      if (typeof result?.videoMuted === "boolean") {
+        this.videoMuted.set(result.videoMuted);
+        this.syncPreviewVideosMuted();
+      }
+      if (
+        typeof result?.mediaIndex === "number" &&
+        typeof result?.videoCurrentTime === "number"
+      ) {
+        this.videoCurrentTimes.set(result.mediaIndex, result.videoCurrentTime);
+        const video = this.autoplayVideos.get(result.mediaIndex);
+        if (video) {
+          video.currentTime = Math.min(
+            result.videoCurrentTime,
+            video.duration || result.videoCurrentTime,
+          );
+        }
+      }
       if (result?.reportedMediaIndex !== undefined) {
         console.log(
           "Hiding reported media at index",
@@ -444,6 +597,13 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
         });
       }
     });
+  }
+
+  private syncPreviewVideosMuted(): void {
+    const muted = this.videoMuted();
+    for (const video of this.autoplayVideos.values()) {
+      video.muted = muted;
+    }
   }
 
   private queuePreviewResize(): void {
@@ -541,7 +701,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     for (let index = 0; index < mediaItems.length; index++) {
       const mediaObj = mediaItems[index];
       if (
-        mediaObj?.type !== "image" ||
+        !this.isPreviewMedia(mediaObj) ||
         this.hiddenIndices().has(index) ||
         mediaObj.isReported
       ) {
@@ -583,21 +743,66 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   }
 }
 
+interface SwiperDialogData {
+  media?: AnyMedia[];
+  index?: number;
+  spotId?: string;
+  initialVideoMuted?: boolean;
+  initialVideoTime?: number;
+  reusedVideoElement?: HTMLVideoElement;
+  reusedVideoParent?: ParentNode | null;
+  reusedVideoNextSibling?: ChildNode | null;
+}
+
+interface SwiperDialogResult {
+  reportedMediaIndex?: number;
+  mediaIndex?: number;
+  videoMuted?: boolean;
+  videoCurrentTime?: number;
+}
+
 @Component({
   selector: "swiper-dialog",
   template: `
     <div id="swiper" class="swiper w-100">
       <div class="swiper-wrapper">
-        @for (mediaObj of data.media; track $index) {
-          @if (mediaObj.type === "image") {
+        @for (mediaObj of getDialogMedia(); track $index) {
+          @if (isDialogMedia(mediaObj)) {
             <div class="swiper-slide">
               <div class="swiper-zoom-container">
                 <div class="swiper-img-container">
-                  <img
-                    ngSrc="{{ getSrc(mediaObj) }}"
-                    fill
-                    [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"
-                  />
+                  @if (mediaObj.type === "video") {
+                    @if (isReusedVideoMedia(mediaObj)) {
+                      <div
+                        class="swiper-video-reuse-host"
+                        [attr.data-media-index]="
+                          getOriginalMediaIndexFromDialogIndex($index)
+                        "
+                      ></div>
+                    } @else {
+                      <video
+                        class="swiper-video"
+                        [src]="getVideoSrc(mediaObj)"
+                        controls
+                        playsinline
+                        [muted]="videoMuted()"
+                        [attr.referrerpolicy]="
+                          getReferrerPolicyForMedia(mediaObj)
+                        "
+                        (loadedmetadata)="onSwiperVideoLoaded($event, $index)"
+                        (timeupdate)="onSwiperVideoTimeUpdate($event, $index)"
+                        (volumechange)="onSwiperVideoVolumeChange($event)"
+                      ></video>
+                    }
+                  } @else {
+                    <img
+                      ngSrc="{{ getSrc(mediaObj) }}"
+                      fill
+                      [attr.referrerpolicy]="
+                        getReferrerPolicyForMedia(mediaObj)
+                      "
+                    />
+                  }
                 </div>
               </div>
             </div>
@@ -614,28 +819,29 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       <!-- scrollbar -->
       <!-- <div class="swiper-scrollbar"></div> -->
 
-      @if (canReportCurrentMedia()) {
-        <button
-          mat-icon-button
-          style="position: absolute; top: 10px; left: 10px; z-index: 1; background-color: #00000080;"
-          (click)="onReportClick()"
-        >
-          <mat-icon>report</mat-icon>
-        </button>
-      }
-
-      @if (getActiveExternalSourceUrl(); as sourceUrl) {
-        <a
-          mat-stroked-button
-          style="position: absolute; left: 10px; bottom: 10px; z-index: 1; background-color: #000000b0;"
-          [href]="sourceUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <mat-icon>open_in_new</mat-icon>
-          <span>Open Source</span>
-        </a>
-      }
+      <div class="swiper-top-left-actions">
+        @if (getActiveExternalSourceUrl(); as sourceUrl) {
+          <a
+            mat-stroked-button
+            class="swiper-external-source"
+            [href]="sourceUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <mat-icon>open_in_new</mat-icon>
+            <span i18n="@@img_carousel.external_source">External source</span>
+          </a>
+        }
+        @if (canReportCurrentMedia()) {
+          <button
+            mat-icon-button
+            class="swiper-report-button d-flex"
+            (click)="onReportClick()"
+          >
+            <mat-icon>report</mat-icon>
+          </button>
+        }
+      </div>
       @if (getActiveAttributionText(); as attributionText) {
         <div
           style="position: absolute; right: 10px; bottom: 10px; z-index: 1; background-color: #000000b0; border-radius: 12px; padding: 6px 10px; max-width: 70%;"
@@ -646,7 +852,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       }
       <button
         mat-icon-button
-        style="position: absolute; top: 10px; right: 10px; z-index: 1; background-color: #00000080;"
+        style="display: flex; position: absolute; top: 10px; right: 10px; z-index: 1; background-color: #00000080;"
         (click)="onNoClick()"
       >
         <mat-icon>close</mat-icon>
@@ -685,19 +891,81 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
         > img {
           object-fit: contain;
         }
+
+        > .swiper-video,
+        > .swiper-video-reuse-host {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+
+        > .swiper-video-reuse-host {
+          display: block;
+
+          > video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+          }
+        }
+      }
+
+      .swiper-top-left-actions {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: calc(100% - 68px);
+      }
+
+      .swiper-external-source {
+        min-width: 0;
+        max-width: min(320px, 100%);
+        color: var(--mat-sys-primary);
+        border-color: color-mix(
+          in srgb,
+          var(--mat-sys-primary) 42%,
+          transparent
+        );
+        background: color-mix(in srgb, var(--mat-sys-shadow) 70%, transparent);
+        backdrop-filter: blur(12px) saturate(1.3);
+        -webkit-backdrop-filter: blur(12px) saturate(1.3);
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .swiper-report-button {
+        --mat-icon-button-hover-state-layer-opacity: 0;
+        --mat-icon-button-focus-state-layer-opacity: 0;
+        --mat-icon-button-pressed-state-layer-opacity: 0;
+
+        flex: 0 0 auto;
+        color: var(--mat-sys-on-surface);
+        background: color-mix(in srgb, var(--mat-sys-shadow) 58%, transparent);
+        backdrop-filter: blur(12px) saturate(1.3);
+        -webkit-backdrop-filter: blur(12px) saturate(1.3);
       }
     `,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class SwiperDialogComponent implements AfterViewInit {
+export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
   swiper: Swiper | undefined;
   isBroswer: boolean = false;
   activeSlideIndex = signal<number>(0);
+  videoMuted = signal(true);
+  private readonly videoCurrentTimes = new Map<number, number>();
+  private reusedVideoElement: HTMLVideoElement | undefined;
 
   canReportCurrentMedia = computed(() => {
-    const index = this.activeSlideIndex();
-    const media = this.data.media?.[index];
+    const media = this.getActiveMedia();
     if (!media) return false;
     // Hide report button for Street View media
     return media.userId !== "streetview";
@@ -706,25 +974,47 @@ export class SwiperDialogComponent implements AfterViewInit {
   dialog = inject(MatDialog);
 
   constructor(
-    public dialogRef: MatDialogRef<SwiperDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    public dialogRef: MatDialogRef<SwiperDialogComponent, SwiperDialogResult>,
+    @Inject(MAT_DIALOG_DATA) public data: SwiperDialogData,
     @Inject(PLATFORM_ID) platformId: Object,
     public storageService: StorageService,
   ) {
-    dialogRef.disableClose = false;
+    dialogRef.disableClose = true;
+    dialogRef.backdropClick().subscribe(() => this.onNoClick());
+    dialogRef.keydownEvents().subscribe((event) => {
+      if (event.key === "Escape") {
+        this.onNoClick();
+      }
+    });
 
     this.isBroswer = isPlatformBrowser(platformId);
+    this.videoMuted.set(data.initialVideoMuted ?? true);
+    if (
+      data.index !== undefined &&
+      data.initialVideoTime !== undefined &&
+      Number.isFinite(data.initialVideoTime)
+    ) {
+      this.videoCurrentTimes.set(data.index, data.initialVideoTime);
+    }
   }
 
-  getSrc(mediaObj: StorageImage | ExternalImage): string {
+  getSrc(mediaObj: AnyMedia): string {
     if (mediaObj instanceof StorageImage) {
       return mediaObj.getSrc(800);
-    } else {
+    } else if (mediaObj instanceof ExternalImage) {
       if (mediaObj.userId === "streetview") {
         return mediaObj.src.replace(/size=\d+x\d+/i, "size=800x800");
       }
       return mediaObj.src;
     }
+    return mediaObj.getPreviewImageSrc();
+  }
+
+  getVideoSrc(mediaObj: AnyMedia): string {
+    if (mediaObj instanceof StorageVideo || mediaObj instanceof ExternalVideo) {
+      return mediaObj.getVideoSrc();
+    }
+    return "";
   }
 
   getReferrerPolicyForMedia(mediaObj: AnyMedia): "no-referrer" | null {
@@ -733,25 +1023,55 @@ export class SwiperDialogComponent implements AfterViewInit {
 
   getActiveMedia(): AnyMedia | undefined {
     const activeIndex = this.swiper?.activeIndex ?? this.activeSlideIndex();
-    const images =
-      this.data.media?.filter((m: AnyMedia) => m.type === "image") ?? [];
-    return images[activeIndex];
+    const media = this.getDialogMedia();
+    return media[activeIndex];
+  }
+
+  onSwiperVideoLoaded(event: Event, index: number): void {
+    const video = event.currentTarget as HTMLVideoElement;
+    const originalIndex = this.getOriginalMediaIndexFromDialogIndex(index);
+    video.muted = this.videoMuted();
+    const savedTime = this.videoCurrentTimes.get(originalIndex);
+    if (savedTime !== undefined && Number.isFinite(savedTime)) {
+      video.currentTime = Math.min(savedTime, video.duration || savedTime);
+    }
+  }
+
+  onSwiperVideoTimeUpdate(event: Event, index: number): void {
+    const video = event.currentTarget as HTMLVideoElement;
+    if (Number.isFinite(video.currentTime)) {
+      this.videoCurrentTimes.set(
+        this.getOriginalMediaIndexFromDialogIndex(index),
+        video.currentTime,
+      );
+    }
+  }
+
+  onSwiperVideoVolumeChange(event: Event): void {
+    const video = event.currentTarget as HTMLVideoElement;
+    this.videoMuted.set(video.muted);
   }
 
   getActiveExternalSourceUrl(): string | null {
     const active = this.getActiveMedia();
-    if (!active || !(active instanceof ExternalImage)) {
+    if (
+      !active ||
+      !(active instanceof ExternalImage || active instanceof ExternalVideo)
+    ) {
       return null;
     }
     if (active.userId === "streetview") {
       return null;
     }
-    return active.attribution?.source_url || active.src;
+    return active.sourcePageUrl || active.attribution?.source_url || active.src;
   }
 
   getActiveAttributionText(): string | null {
     const active = this.getActiveMedia();
-    if (!active || !(active instanceof ExternalImage)) {
+    if (
+      !active ||
+      !(active instanceof ExternalImage || active instanceof ExternalVideo)
+    ) {
       return null;
     }
     const parts = [
@@ -767,15 +1087,13 @@ export class SwiperDialogComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     if (this.isBroswer) {
-      // Filter images to match template logic
-      const images =
-        this.data.media?.filter((m: AnyMedia) => m.type === "image") ?? [];
+      const media = this.getDialogMedia();
 
       // Find the initial slide index corresponding to the passed original index
       let initialSlide = 0;
       if (this.data.index !== undefined && this.data.media) {
         const targetMedia = this.data.media[this.data.index];
-        initialSlide = images.indexOf(targetMedia);
+        initialSlide = media.indexOf(targetMedia);
         if (initialSlide === -1) initialSlide = 0;
       }
 
@@ -815,20 +1133,33 @@ export class SwiperDialogComponent implements AfterViewInit {
 
       // Set initial index
       this.activeSlideIndex.set(initialSlide);
+      this.attachReusedVideoElement();
     }
   }
 
+  ngOnDestroy(): void {
+    if (!this.reusedVideoElement) {
+      return;
+    }
+    this.reusedVideoElement.removeEventListener(
+      "timeupdate",
+      this.onReusedVideoTimeUpdate,
+    );
+    this.reusedVideoElement.removeEventListener(
+      "volumechange",
+      this.onReusedVideoVolumeChange,
+    );
+  }
+
   onNoClick(): void {
-    this.dialogRef.close();
+    this.dialogRef.close(this.getVideoSyncResult());
   }
 
   onReportClick(): void {
     const activeIndex = this.swiper?.activeIndex ?? this.activeSlideIndex();
 
-    // Get filtered images (as rendered in swiper)
-    const images =
-      this.data.media?.filter((m: AnyMedia) => m.type === "image") ?? [];
-    const mediaItem = images[activeIndex];
+    const media = this.getDialogMedia();
+    const mediaItem = media[activeIndex];
 
     if (!mediaItem) {
       console.warn("Could not find media item to report");
@@ -836,7 +1167,7 @@ export class SwiperDialogComponent implements AfterViewInit {
     }
 
     // Find original index in the full media list
-    const originalIndex = this.data.media.indexOf(mediaItem);
+    const originalIndex = this.data.media?.indexOf(mediaItem) ?? -1;
 
     const mediaDialogRef = this.dialog.open(MediaReportDialogComponent, {
       data: {
@@ -851,8 +1182,101 @@ export class SwiperDialogComponent implements AfterViewInit {
       if (result === true) {
         // Report was submitted successfully
         // Close the swiper dialog and pass back the reported index (original)
-        this.dialogRef.close({ reportedMediaIndex: originalIndex });
+        this.dialogRef.close({
+          ...this.getVideoSyncResult(),
+          reportedMediaIndex: originalIndex,
+        });
       }
     });
+  }
+
+  private getVideoSyncResult(): SwiperDialogResult {
+    this.captureReusedVideoState();
+    const activeIndex = this.swiper?.activeIndex ?? this.activeSlideIndex();
+    const media = this.getDialogMedia();
+    const mediaItem = media[activeIndex];
+    const originalIndex = this.data.media?.indexOf(mediaItem) ?? activeIndex;
+
+    return {
+      mediaIndex: originalIndex,
+      videoMuted: this.videoMuted(),
+      videoCurrentTime: this.videoCurrentTimes.get(originalIndex),
+    };
+  }
+
+  getOriginalMediaIndexFromDialogIndex(index: number): number {
+    const mediaItem = this.getDialogMedia()[index];
+    return this.data.media?.indexOf(mediaItem) ?? index;
+  }
+
+  isReusedVideoMedia(mediaObj: AnyMedia): boolean {
+    return (
+      !!this.data.reusedVideoElement &&
+      this.data.index !== undefined &&
+      this.data.media?.[this.data.index] === mediaObj
+    );
+  }
+
+  private attachReusedVideoElement(): void {
+    const reusedVideo = this.data.reusedVideoElement;
+    if (!reusedVideo || this.data.index === undefined) {
+      return;
+    }
+
+    const host = document.querySelector<HTMLElement>(
+      `.swiper-video-reuse-host[data-media-index="${this.data.index}"]`,
+    );
+    if (!host) {
+      return;
+    }
+
+    this.reusedVideoElement = reusedVideo;
+    reusedVideo.classList.add("swiper-video");
+    reusedVideo.setAttribute("controls", "");
+    reusedVideo.style.position = "absolute";
+    reusedVideo.style.inset = "0";
+    reusedVideo.style.width = "100%";
+    reusedVideo.style.height = "100%";
+    reusedVideo.style.maxWidth = "100%";
+    reusedVideo.style.maxHeight = "100%";
+    reusedVideo.style.objectFit = "contain";
+    reusedVideo.muted = this.videoMuted();
+    reusedVideo.addEventListener("timeupdate", this.onReusedVideoTimeUpdate);
+    reusedVideo.addEventListener(
+      "volumechange",
+      this.onReusedVideoVolumeChange,
+    );
+    host.appendChild(reusedVideo);
+  }
+
+  private readonly onReusedVideoTimeUpdate = (): void => {
+    this.captureReusedVideoState();
+  };
+
+  private readonly onReusedVideoVolumeChange = (): void => {
+    if (this.reusedVideoElement) {
+      this.videoMuted.set(this.reusedVideoElement.muted);
+    }
+  };
+
+  private captureReusedVideoState(): void {
+    if (!this.reusedVideoElement || this.data.index === undefined) {
+      return;
+    }
+    this.videoMuted.set(this.reusedVideoElement.muted);
+    if (Number.isFinite(this.reusedVideoElement.currentTime)) {
+      this.videoCurrentTimes.set(
+        this.data.index,
+        this.reusedVideoElement.currentTime,
+      );
+    }
+  }
+
+  isDialogMedia(mediaObj: AnyMedia): boolean {
+    return mediaObj instanceof ExternalVideo || mediaObj.type === "image";
+  }
+
+  getDialogMedia(): AnyMedia[] {
+    return this.data.media?.filter((m) => this.isDialogMedia(m)) ?? [];
   }
 }
