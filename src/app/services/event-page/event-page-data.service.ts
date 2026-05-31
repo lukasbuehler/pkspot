@@ -27,6 +27,10 @@ export type EventPageMapMarker = MarkerSchema & {
 };
 
 export type NumberedSpotChallenge = SpotChallenge & { number: number };
+export type EventPageMapBoundsPoint = Pick<
+  google.maps.LatLngLiteral,
+  "lat" | "lng"
+>;
 
 const EVENT_SPOT_MARKER_PRIORITY = 1_000;
 const EVENT_CHALLENGE_MARKER_PRIORITY = 2_000;
@@ -71,19 +75,67 @@ export class EventPageDataService {
     return `/events/${event.slug ?? event.id}`;
   }
 
-  eventMapBounds(event: PkEvent): EventBoundsSchema {
-    if (event.bounds) return event.bounds;
+  eventMapBounds(
+    event: PkEvent,
+    extraPoints: EventPageMapBoundsPoint[] = [],
+  ): EventBoundsSchema {
+    const baseBounds = this._normalizeBounds(
+      event.bounds ?? this._boundsAroundPoint(event.location),
+    );
 
+    const bounds = extraPoints.reduce(
+      (bounds, point) => this._boundsIncludingPoint(bounds, point),
+      baseBounds,
+    );
+
+    return this._normalizeBounds(bounds);
+  }
+
+  private _boundsAroundPoint(
+    point: EventPageMapBoundsPoint,
+  ): EventBoundsSchema {
     const latitudeRadius = 0.005;
     const longitudeRadius =
-      latitudeRadius /
-      Math.max(Math.cos((event.location.lat * Math.PI) / 180), 0.1);
+      latitudeRadius / Math.max(Math.cos((point.lat * Math.PI) / 180), 0.1);
 
     return {
-      north: event.location.lat + latitudeRadius,
-      south: event.location.lat - latitudeRadius,
-      east: event.location.lng + longitudeRadius,
-      west: event.location.lng - longitudeRadius,
+      north: point.lat + latitudeRadius,
+      south: point.lat - latitudeRadius,
+      east: point.lng + longitudeRadius,
+      west: point.lng - longitudeRadius,
+    };
+  }
+
+  private _boundsIncludingPoint(
+    bounds: EventBoundsSchema,
+    point: EventPageMapBoundsPoint,
+  ): EventBoundsSchema {
+    if (!Number.isFinite(point.lat) || !Number.isFinite(point.lng)) {
+      return bounds;
+    }
+
+    return {
+      north: Math.max(bounds.north, point.lat),
+      south: Math.min(bounds.south, point.lat),
+      east: Math.max(bounds.east, point.lng),
+      west: Math.min(bounds.west, point.lng),
+    };
+  }
+
+  private _normalizeBounds(bounds: EventBoundsSchema): EventBoundsSchema {
+    const north = Math.max(bounds.north, bounds.south);
+    const south = Math.min(bounds.north, bounds.south);
+    const east = Math.max(bounds.east, bounds.west);
+    const west = Math.min(bounds.east, bounds.west);
+    const minimumSpan = 0.0005;
+    const latitudePadding = north === south ? minimumSpan / 2 : 0;
+    const longitudePadding = east === west ? minimumSpan / 2 : 0;
+
+    return {
+      north: Math.min(90, north + latitudePadding),
+      south: Math.max(-90, south - latitudePadding),
+      east: Math.min(180, east + longitudePadding),
+      west: Math.max(-180, west - longitudePadding),
     };
   }
 
@@ -108,18 +160,37 @@ export class EventPageDataService {
     const missingIds = event.spotIds.filter(
       (id) => !previewsById.has(String(id)),
     );
-    const fallbackSpots = await Promise.all(
-      missingIds.map((id) =>
-        firstValueFrom(
-          this._spotsService.getSpotById$(id as SpotId, this._locale),
-        ).catch(() => null),
-      ),
+    const fallbackEntries = await Promise.all(
+      missingIds.map(async (id) => {
+        const spot =
+          (await firstValueFrom(
+            this._spotsService.getSpotById$(id as SpotId, this._locale),
+          ).catch(() => null)) ??
+          (await this._spotsService
+            .getSpotBySlug(id, this._locale)
+            .catch(() => null));
+        return [id, spot] as const;
+      }),
     );
     const fallbackById = new Map(
-      fallbackSpots
-        .filter((spot): spot is Spot => !!spot)
-        .map((spot) => [String(spot.id), spot]),
+      fallbackEntries
+        .filter((entry): entry is readonly [string, Spot] => !!entry[1])
+        .flatMap(([id, spot]) => [
+          [id, spot] as const,
+          [String(spot.id), spot] as const,
+          ...(spot.slug ? ([[spot.slug, spot]] as const) : []),
+        ]),
     );
+    const unresolvedIds = missingIds.filter((id) => !fallbackById.has(id));
+    if (unresolvedIds.length > 0) {
+      console.warn(
+        "EventPageDataService: event spot refs could not be resolved.",
+        {
+          eventId: event.id,
+          spotRefs: unresolvedIds,
+        },
+      );
+    }
     const loaded = event.spotIds
       .map(
         (id) =>

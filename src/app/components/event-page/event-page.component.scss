@@ -151,6 +151,20 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.qualification-event-list {
+  margin-top: 0.5rem;
+}
+
+.qualification-event-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.qualification-toggle {
+  margin-top: 0.75rem;
+}
+
 .ticket-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -263,5 +277,9 @@
 
   .ticket-side {
     align-items: flex-start;
+  }
+
+  .qualification-event-grid {
+    grid-template-columns: 1fr;
   }
 }

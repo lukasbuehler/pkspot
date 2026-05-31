@@ -518,6 +518,8 @@ describe("SearchService", () => {
           venue_string: "Sportzentrum Josef",
           locality_string: "Zurich, Switzerland",
           banner_src: "assets/swissjam/banner.jpg",
+          banner_fit: "contain",
+          banner_accent_color: "#f8f8f8",
           logo_src: "assets/swissjam/logo.png",
           sponsor: {
             name: "Sponsor",
@@ -543,6 +545,12 @@ describe("SearchService", () => {
           spot_ids: ["spot-a"],
           community_keys: ["ch/zurich"],
           series_ids: ["swissjam"],
+          rsvp_counts: {
+            going: "7",
+            interested: 3,
+            notgoing: 1,
+            total: "11",
+          },
         },
       });
 
@@ -554,6 +562,8 @@ describe("SearchService", () => {
         venueString: "Sportzentrum Josef",
         localityString: "Zurich, Switzerland",
         bannerSrc: "assets/swissjam/banner.jpg",
+        bannerFit: "contain",
+        bannerAccentColor: "#f8f8f8",
         logoSrc: "assets/swissjam/logo.png",
         sponsorName: "Sponsor",
         sponsorLogoSrc: "assets/sponsors/sponsor.png",
@@ -575,6 +585,12 @@ describe("SearchService", () => {
         spotIds: ["spot-a"],
         communityKeys: ["ch/zurich"],
         seriesIds: ["swissjam"],
+        rsvpCounts: {
+          going: 7,
+          interested: 3,
+          notgoing: 1,
+          total: 11,
+        },
       });
     });
 
@@ -622,6 +638,8 @@ describe("SearchService", () => {
           name: "WPF Camp",
           venue_string: "Camp venue",
           locality_string: "Basel, Switzerland",
+          banner_fit: "contain",
+          banner_accent_color: "#111111",
           start_seconds: Math.floor(
             new Date("2026-06-10T10:00:00.000Z").getTime() / 1000,
           ),
@@ -633,10 +651,21 @@ describe("SearchService", () => {
           bounds_radius_m: 30_000,
           promo_region_center: [47.35, 7.9],
           promo_region_radius_m: 150_000,
+          "rsvp_counts.going": "2",
+          "rsvp_counts.interested": "4",
+          "rsvp_counts.total": "6",
         },
       });
 
       expect(event?.location).toEqual({ lat: 47.5596, lng: 7.5886 });
+      expect(event?.bannerFit).toBe("contain");
+      expect(event?.bannerAccentColor).toBe("#111111");
+      expect(event?.rsvpCounts).toEqual({
+        going: 2,
+        interested: 4,
+        notgoing: 0,
+        total: 6,
+      });
     });
 
     it("fetches map events broadly and filters visible markers locally", async () => {

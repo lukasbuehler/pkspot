@@ -91,13 +91,18 @@
         </section>
       }
 
-      @if (event.eventCategories.length > 0 || visibleSeriesMemberships().length > 0) {
+      @if (
+        event.eventCategories.length > 0 ||
+        visibleSeriesMemberships().length > 0
+      ) {
         <section class="event-section event-tags" aria-label="Event tags">
           @if (event.eventCategories.length > 0) {
             <mat-chip-set aria-label="Event categories">
               @for (category of event.eventCategories; track category) {
                 <mat-chip>
-                  <mat-icon matChipAvatar>{{ categoryIcon(category) }}</mat-icon>
+                  <mat-icon matChipAvatar>{{
+                    categoryIcon(category)
+                  }}</mat-icon>
                   {{ categoryLabel(category) }}
                 </mat-chip>
               }
@@ -105,12 +110,17 @@
           }
           @if (visibleSeriesMemberships().length > 0) {
             <mat-chip-set aria-label="Event series">
-              @for (membership of visibleSeriesMemberships(); track membership.series_id + membership.role) {
+              @for (
+                membership of visibleSeriesMemberships();
+                track membership.series_id + membership.role
+              ) {
                 <mat-chip highlighted>
                   <span
                     matChipAvatar
                     class="series-logo"
-                    [style.background]="seriesVisual(membership.series_id).background"
+                    [style.background]="
+                      seriesVisual(membership.series_id).background
+                    "
                   >
                     @if (seriesVisual(membership.series_id).logoSrc) {
                       <img
@@ -133,12 +143,18 @@
       @if (qualificationMemberships().length > 0) {
         <section class="event-section qualification-section">
           <div class="section-heading-row">
-            <h2 class="mat-title-medium m-0" i18n="@@event_qualification.heading">
+            <h2
+              class="mat-title-medium m-0"
+              i18n="@@event_qualification.heading"
+            >
               Qualification
             </h2>
             <mat-icon aria-hidden="true">checklist</mat-icon>
           </div>
-          @for (membership of qualificationMemberships(); track membership.series_id + membership.role) {
+          @for (
+            membership of qualificationMemberships();
+            track membership.series_id + membership.role
+          ) {
             <article class="qualification-block">
               <p class="mat-title-small qualification-title">
                 {{ seriesLabel(membership.series_id) }} ·
@@ -149,12 +165,22 @@
                   {{ membership.qualification_hint }}
                 </p>
               } @else if (membership.qualification_required) {
-                <p class="mat-body-medium qualification-copy" i18n="@@event_qualification.required">
+                <p
+                  class="mat-body-medium qualification-copy"
+                  i18n="@@event_qualification.required"
+                >
                   Qualification is required for this competition.
                 </p>
               }
-              @if ((membership.qualifies_to?.length ?? 0) > 0 && (isLoadingQualifierEvents() || qualificationTargetEventsFor(membership).length > 0)) {
-                <p class="mat-label-large qualifier-label" i18n="@@event_qualification.qualifies_to">
+              @if (
+                (membership.qualifies_to?.length ?? 0) > 0 &&
+                (isLoadingQualifierEvents() ||
+                  qualificationTargetEventsFor(membership).length > 0)
+              ) {
+                <p
+                  class="mat-label-large qualifier-label"
+                  i18n="@@event_qualification.qualifies_to"
+                >
                   Qualifies for
                 </p>
                 @if (isLoadingQualifierEvents()) {
@@ -173,15 +199,70 @@
                     </span>
                   </div>
                 } @else {
-                  <div class="ticket-grid mt-2">
-                    @for (target of qualificationTargetEventsFor(membership); track target.id) {
-                      <app-event-card [event]="target"></app-event-card>
+                  <div class="qualification-event-list">
+                    <div class="qualification-event-grid">
+                      @for (
+                        target of visibleQualificationEventsFor(
+                          membership,
+                          "qualifies_to"
+                        );
+                        track target.id
+                      ) {
+                        <app-event-card [event]="target"></app-event-card>
+                      }
+                    </div>
+                    @if (
+                      hasHiddenQualificationEvents(membership, "qualifies_to")
+                    ) {
+                      <button
+                        type="button"
+                        mat-stroked-button
+                        class="qualification-toggle"
+                        (click)="
+                          toggleQualificationEventGroup(
+                            membership,
+                            'qualifies_to'
+                          )
+                        "
+                      >
+                        <mat-icon>
+                          {{
+                            isQualificationEventGroupExpanded(
+                              membership,
+                              "qualifies_to"
+                            )
+                              ? "expand_less"
+                              : "expand_more"
+                          }}
+                        </mat-icon>
+                        @if (
+                          isQualificationEventGroupExpanded(
+                            membership,
+                            "qualifies_to"
+                          )
+                        ) {
+                          <span i18n="@@event_qualification.show_less"
+                            >Show less</span
+                          >
+                        } @else {
+                          <span i18n="@@event_qualification.show_more"
+                            >Show more</span
+                          >
+                        }
+                      </button>
                     }
                   </div>
                 }
               }
-              @if ((membership.required_qualifiers?.length ?? 0) > 0 && (isLoadingQualifierEvents() || qualifierEventsFor(membership).length > 0)) {
-                <p class="mat-label-large qualifier-label" i18n="@@event_qualification.qualifiers">
+              @if (
+                (membership.required_qualifiers?.length ?? 0) > 0 &&
+                (isLoadingQualifierEvents() ||
+                  qualifierEventsFor(membership).length > 0)
+              ) {
+                <p
+                  class="mat-label-large qualifier-label"
+                  i18n="@@event_qualification.qualifiers"
+                >
                   Qualifying events
                 </p>
                 @if (isLoadingQualifierEvents()) {
@@ -200,9 +281,60 @@
                     </span>
                   </div>
                 } @else if (qualifierEventsFor(membership).length > 0) {
-                  <div class="ticket-grid mt-2">
-                    @for (qualifier of qualifierEventsFor(membership); track qualifier.id) {
-                      <app-event-card [event]="qualifier"></app-event-card>
+                  <div class="qualification-event-list">
+                    <div class="qualification-event-grid">
+                      @for (
+                        qualifier of visibleQualificationEventsFor(
+                          membership,
+                          "required_qualifiers"
+                        );
+                        track qualifier.id
+                      ) {
+                        <app-event-card [event]="qualifier"></app-event-card>
+                      }
+                    </div>
+                    @if (
+                      hasHiddenQualificationEvents(
+                        membership,
+                        "required_qualifiers"
+                      )
+                    ) {
+                      <button
+                        type="button"
+                        mat-stroked-button
+                        class="qualification-toggle"
+                        (click)="
+                          toggleQualificationEventGroup(
+                            membership,
+                            'required_qualifiers'
+                          )
+                        "
+                      >
+                        <mat-icon>
+                          {{
+                            isQualificationEventGroupExpanded(
+                              membership,
+                              "required_qualifiers"
+                            )
+                              ? "expand_less"
+                              : "expand_more"
+                          }}
+                        </mat-icon>
+                        @if (
+                          isQualificationEventGroupExpanded(
+                            membership,
+                            "required_qualifiers"
+                          )
+                        ) {
+                          <span i18n="@@event_qualification.show_less"
+                            >Show less</span
+                          >
+                        } @else {
+                          <span i18n="@@event_qualification.show_more"
+                            >Show more</span
+                          >
+                        }
+                      </button>
                     }
                   </div>
                 }
@@ -378,11 +510,12 @@
               <app-google-map-2d
                 id="eventInfoMap"
                 [showGeolocation]="false"
+                [fitToBounds]="mapPreviewBounds()"
                 [boundRestriction]="mapPreviewBounds()!"
                 [polygons]="areaPolygon() ? [areaPolygon()!] : []"
-                [minZoom]="event.minZoom ?? 10"
+                [minZoom]="3"
                 [focusZoom]="event.focusZoom ?? 18"
-                mapStyle="satellite"
+                mapStyle="hybrid"
                 [markers]="[]"
                 [priorityMarkers]="mapMarkers()"
                 [spots]="spots()"

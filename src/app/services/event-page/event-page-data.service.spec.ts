@@ -139,6 +139,89 @@ describe("EventPageDataService", () => {
     );
   });
 
+  it("expands event map bounds to include loaded marker locations", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("city-jam");
+
+    expect(
+      service.eventMapBounds(event, [
+        { lat: 47.8, lng: 8.2 },
+        { lat: 47.2, lng: 8.9 },
+      ]),
+    ).toEqual({
+      north: 47.8,
+      south: 47.2,
+      east: 8.9,
+      west: 8.2,
+    });
+  });
+
+  it("normalizes inverted saved event bounds before passing them to maps", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("city-jam", {
+      bounds: {
+        north: 47.3,
+        south: 47.4,
+        east: 8.5,
+        west: 8.6,
+      },
+    });
+
+    expect(service.eventMapBounds(event)).toEqual({
+      north: 47.4,
+      south: 47.3,
+      east: 8.6,
+      west: 8.5,
+    });
+  });
+
+  it("pads collapsed saved event bounds before passing them to maps", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("city-jam", {
+      bounds: {
+        north: 49.1951,
+        south: 49.1951,
+        east: 16.6068,
+        west: 16.6068,
+      },
+    });
+
+    const bounds = service.eventMapBounds(event);
+
+    expect(bounds.north).toBeGreaterThan(bounds.south);
+    expect(bounds.east).toBeGreaterThan(bounds.west);
+  });
+
   it("loads linked event spots from Typesense previews", async () => {
     const searchService = {
       searchSpotPreviewsByIds: vi.fn(() =>
@@ -181,6 +264,46 @@ describe("EventPageDataService", () => {
     expect(spotsService.getSpotById$).not.toHaveBeenCalled();
     expect(spots[0]?.name()).toBe("Preview Spot");
     expect(spots[0]?.location()).toEqual({ lat: 47.33, lng: 8.54 });
+  });
+
+  it("falls back to Firestore slug lookup for unresolved event spot refs", async () => {
+    const slugSpot = {
+      id: "spot-id-1",
+      slug: "in-motion-academy",
+      name: () => "In Motion Academy",
+      location: () => ({ lat: 49.1951, lng: 16.6068 }),
+    };
+    const searchService = {
+      searchSpotPreviewsByIds: vi.fn(() => Promise.resolve([])),
+    };
+    const spotsService = {
+      getSpotById$: vi.fn(() => of(null)),
+      getSpotBySlug: vi.fn(() => Promise.resolve(slugSpot)),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: spotsService },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: searchService },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("parkour-earth-worlds", {
+      spot_ids: ["in-motion-academy"],
+    });
+
+    const spots = await service.loadEventSpots(event);
+
+    expect(spotsService.getSpotBySlug).toHaveBeenCalledWith(
+      "in-motion-academy",
+      "en",
+    );
+    expect(spots[0]?.name()).toBe("In Motion Academy");
+    expect(spots[0]?.location()).toEqual({ lat: 49.1951, lng: 16.6068 });
   });
 
   it("prioritizes event custom markers above challenge markers and spot markers", () => {

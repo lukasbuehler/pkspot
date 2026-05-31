@@ -687,6 +687,7 @@ export class GoogleMap2dComponent
     west: number;
     east: number;
   } | null = null;
+  @Input() fitToBounds: google.maps.LatLngBoundsLiteral | null = null;
   @Input() minZoom: number | null = null;
   /**
    * Whether to apply a bottom offset (via CSS) to the Google Maps logo/copyright.
@@ -1224,6 +1225,7 @@ export class GoogleMap2dComponent
       // Also apply minZoom dynamically
       this.googleMap.googleMap?.setOptions({ minZoom: this.minZoom });
     }
+    this._applyFitBounds();
 
     this.positionGoogleMapsLogo();
     this._subscribeToHeadingChanges();
@@ -1340,6 +1342,12 @@ export class GoogleMap2dComponent
     });
   }
 
+  private _applyFitBounds(): void {
+    if (!this.googleMap?.googleMap || !this.fitToBounds) return;
+
+    this.googleMap.fitBounds(this.fitToBounds, 40);
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     // Check if selectedSpot has changed
     if (changes["selectedSpot"]) {
@@ -1352,6 +1360,10 @@ export class GoogleMap2dComponent
     // Reapply bound restriction if it changes
     if (changes["boundRestriction"] && this.googleMap?.googleMap) {
       this._applyBoundRestriction();
+    }
+
+    if (changes["fitToBounds"] && this.googleMap?.googleMap) {
+      this._applyFitBounds();
     }
 
     if (changes["featureBoundaryOverlay"]) {

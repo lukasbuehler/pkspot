@@ -287,7 +287,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   platformId = inject(PLATFORM_ID);
 
-  mapStyle: "roadmap" | "satellite" = "satellite";
+  mapStyle: "roadmap" | "hybrid" = "hybrid";
 
   selectedLabels = signal<string[]>([]);
   selectedParticipantTypes = signal<string[]>([]);

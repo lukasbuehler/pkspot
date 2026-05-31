@@ -577,6 +577,7 @@ const buildCommunityEventPreview = (
     external_source: event.external_source,
     event_categories: event.event_categories,
     series_ids: event.series_ids,
+    rsvp_counts: event.rsvp_counts,
   }) as CommunityEventPreviewSchema;
 };
 

@@ -263,6 +263,7 @@ export class LandingPagesService {
         sponsor: preview.sponsor,
         is_sponsored: preview.is_sponsored,
         external_source: preview.external_source,
+        rsvp_counts: preview.rsvp_counts,
         published: true,
       } as EventSchema),
     );

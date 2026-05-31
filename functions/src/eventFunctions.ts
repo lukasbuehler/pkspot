@@ -768,6 +768,7 @@ const _eventCardPreview = (
     external_source: eventData.external_source,
     event_categories: eventData.event_categories,
     series_ids: eventData.series_ids,
+    rsvp_counts: eventData.rsvp_counts,
   }) as EventCardPreviewSchema;
 };
 

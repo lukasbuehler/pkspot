@@ -109,6 +109,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _spotsLoadRequestVersion = 0;
   private _qualifierLoadRequestVersion = 0;
   private _seriesLoadRequestVersion = 0;
+  private readonly _qualificationGridResizeListener = () =>
+    this._syncQualificationGridColumns();
 
   readonly event = signal<PkEvent | null>(null);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
@@ -122,6 +124,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isSavingEvent = signal(false);
   readonly qualifierEventsById = signal<Record<string, PkEvent>>({});
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
+  readonly expandedQualificationEventGroups = signal<Record<string, boolean>>(
+    {},
+  );
+  readonly qualificationGridColumns = signal(3);
   readonly isLoadingQualifierEvents = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
 
@@ -266,7 +272,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   });
   readonly mapPreviewBounds = computed(() => {
     const event = this.event();
-    return event ? this._eventPageData.eventMapBounds(event) : null;
+    return event
+      ? this._eventPageData.eventMapBounds(
+          event,
+          this.mapMarkers().map((marker) => marker.location),
+        )
+      : null;
   });
   readonly hasMapPreview = computed(
     () =>
@@ -324,6 +335,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     });
 
     if (isPlatformBrowser(this._platformId)) {
+      this._syncQualificationGridColumns();
+      window.addEventListener("resize", this._qualificationGridResizeListener, {
+        passive: true,
+      });
+
       effect(() => {
         const event = this.event();
         if (!event || this.isCrawler()) {
@@ -409,6 +425,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this._paramMapSubscription?.unsubscribe();
     this._queryParamsSubscription?.unsubscribe();
     this._eventSnapshotSubscription?.unsubscribe();
+    if (this.isBrowser()) {
+      window.removeEventListener(
+        "resize",
+        this._qualificationGridResizeListener,
+      );
+    }
   }
 
   trackWebsiteClick(): boolean {
@@ -804,6 +826,53 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return this._eventsForQualificationRefs(membership.qualifies_to);
   }
 
+  visibleQualificationEventsFor(
+    membership: EventSeriesMembershipSchema,
+    kind: "qualifies_to" | "required_qualifiers",
+  ): PkEvent[] {
+    const events =
+      kind === "qualifies_to"
+        ? this.qualificationTargetEventsFor(membership)
+        : this.qualifierEventsFor(membership);
+    if (this.isQualificationEventGroupExpanded(membership, kind)) {
+      return events;
+    }
+    return events.slice(0, this.qualificationGridColumns());
+  }
+
+  hasHiddenQualificationEvents(
+    membership: EventSeriesMembershipSchema,
+    kind: "qualifies_to" | "required_qualifiers",
+  ): boolean {
+    const events =
+      kind === "qualifies_to"
+        ? this.qualificationTargetEventsFor(membership)
+        : this.qualifierEventsFor(membership);
+    return events.length > this.qualificationGridColumns();
+  }
+
+  isQualificationEventGroupExpanded(
+    membership: EventSeriesMembershipSchema,
+    kind: "qualifies_to" | "required_qualifiers",
+  ): boolean {
+    return (
+      this.expandedQualificationEventGroups()[
+        this._qualificationEventGroupKey(membership, kind)
+      ] === true
+    );
+  }
+
+  toggleQualificationEventGroup(
+    membership: EventSeriesMembershipSchema,
+    kind: "qualifies_to" | "required_qualifiers",
+  ): void {
+    const key = this._qualificationEventGroupKey(membership, kind);
+    this.expandedQualificationEventGroups.update((groups) => ({
+      ...groups,
+      [key]: !groups[key],
+    }));
+  }
+
   private _eventsForQualificationRefs(
     refs: EventQualificationRefSchema[] | undefined,
   ): PkEvent[] {
@@ -823,6 +892,24 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       .filter(Boolean)
       .map((word) => word[0]?.toUpperCase() + word.slice(1))
       .join(" ");
+  }
+
+  private _qualificationEventGroupKey(
+    membership: EventSeriesMembershipSchema,
+    kind: "qualifies_to" | "required_qualifiers",
+  ): string {
+    return `${membership.series_id}:${membership.role}:${kind}`;
+  }
+
+  private _syncQualificationGridColumns(): void {
+    if (!isPlatformBrowser(this._platformId)) return;
+    const isMobile =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia("(max-width: 720px)").matches
+        : window.innerWidth <= 720;
+    this.qualificationGridColumns.set(
+      isMobile ? 1 : 3,
+    );
   }
 
   private _absoluteUrl(path: string): string {

@@ -383,6 +383,104 @@ describe("EventInfoPageComponent", () => {
     });
   });
 
+  it("collapses qualification event grids to one row and expands them on demand", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "swissjam26" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "swissjam26" }) },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: { setEventMetaTags: vi.fn() } },
+        {
+          provide: StructuredDataService,
+          useValue: {
+            addStructuredData: vi.fn(),
+            removeStructuredData: vi.fn(),
+          },
+        },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: vi.fn((url?: string) => url),
+          },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+    const membership = {
+      series_id: "swiss-parkour-tour",
+      role: "championship",
+      required_qualifiers: [
+        { kind: "event", event_id: "qualifier-1" },
+        { kind: "event", event_id: "qualifier-2" },
+        { kind: "event", event_id: "qualifier-3" },
+        { kind: "event", event_id: "qualifier-4" },
+      ],
+    } as const;
+
+    component.qualificationGridColumns.set(3);
+    component.qualifierEventsById.set({
+      "qualifier-1": buildEvent("qualifier-1", "Qualifier 1"),
+      "qualifier-2": buildEvent("qualifier-2", "Qualifier 2"),
+      "qualifier-3": buildEvent("qualifier-3", "Qualifier 3"),
+      "qualifier-4": buildEvent("qualifier-4", "Qualifier 4"),
+    });
+
+    expect(
+      component.visibleQualificationEventsFor(
+        membership,
+        "required_qualifiers",
+      ),
+    ).toHaveLength(3);
+    expect(
+      component.hasHiddenQualificationEvents(
+        membership,
+        "required_qualifiers",
+      ),
+    ).toBe(true);
+
+    component.toggleQualificationEventGroup(
+      membership,
+      "required_qualifiers",
+    );
+
+    expect(
+      component.visibleQualificationEventsFor(
+        membership,
+        "required_qualifiers",
+      ),
+    ).toHaveLength(4);
+  });
+
   it("builds the hero carousel from the banner followed by inline spot images", () => {
     TestBed.configureTestingModule({
       providers: [

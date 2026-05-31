@@ -17,6 +17,7 @@ import {
 } from "../components/spot-map/spot-filter-config";
 import { Event as PkEvent } from "../../db/models/Event";
 import { AssetUrlService } from "./asset-url.service";
+import type { EventRSVPCountsSchema } from "../../db/schemas/EventRSVPSchema";
 
 @Injectable({
   providedIn: "root",
@@ -901,6 +902,14 @@ export class SearchService {
         typeof doc?.banner_src === "string"
           ? this._assetUrls.resolveBundledAssetUrl(doc.banner_src)
           : undefined,
+      bannerFit:
+        doc?.banner_fit === "cover" || doc?.banner_fit === "contain"
+          ? doc.banner_fit
+          : undefined,
+      bannerAccentColor:
+        typeof doc?.banner_accent_color === "string"
+          ? doc.banner_accent_color
+          : undefined,
       logoSrc:
         typeof doc?.logo_src === "string"
           ? this._assetUrls.resolveBundledAssetUrl(doc.logo_src)
@@ -947,6 +956,7 @@ export class SearchService {
       eventCategories: Array.isArray(doc?.event_categories)
         ? doc.event_categories
         : [],
+      rsvpCounts: SearchService._readRsvpCounts(doc),
       seriesRoles: Array.isArray(doc?.series_roles) ? doc.series_roles : [],
       qualifiesToKeys: Array.isArray(doc?.qualifies_to_keys)
         ? doc.qualifies_to_keys
@@ -1000,6 +1010,8 @@ export class SearchService {
       description: preview.description,
       slug: preview.slug,
       banner_src: preview.bannerSrc,
+      banner_fit: preview.bannerFit,
+      banner_accent_color: preview.bannerAccentColor,
       logo_src: preview.logoSrc,
       logo_background_color: preview.logoBackgroundColor,
       venue_string: preview.venueString ?? "",
@@ -1015,6 +1027,7 @@ export class SearchService {
       community_keys: preview.communityKeys,
       series_ids: preview.seriesIds,
       event_categories: preview.eventCategories,
+      rsvp_counts: preview.rsvpCounts,
       series_roles: preview.seriesRoles,
       qualifies_to_keys: preview.qualifiesToKeys,
       required_qualifier_keys: preview.requiredQualifierKeys,
@@ -1634,6 +1647,43 @@ export class SearchService {
     return Number.isFinite(n) ? Math.trunc(n) : undefined;
   }
 
+  private static _readRsvpCounts(
+    doc: Record<string, unknown> | undefined,
+  ): EventRSVPCountsSchema | undefined {
+    if (!doc) return undefined;
+    const nested =
+      doc["rsvp_counts"] && typeof doc["rsvp_counts"] === "object"
+        ? (doc["rsvp_counts"] as Record<string, unknown>)
+        : {};
+    const going = SearchService._readInt(
+      nested["going"] ?? doc["rsvp_counts.going"],
+    );
+    const interested = SearchService._readInt(
+      nested["interested"] ?? doc["rsvp_counts.interested"],
+    );
+    const notgoing = SearchService._readInt(
+      nested["notgoing"] ?? doc["rsvp_counts.notgoing"],
+    );
+    const total = SearchService._readInt(
+      nested["total"] ?? doc["rsvp_counts.total"],
+    );
+    if (
+      going === undefined &&
+      interested === undefined &&
+      notgoing === undefined &&
+      total === undefined
+    ) {
+      return undefined;
+    }
+
+    return {
+      going: going ?? 0,
+      interested: interested ?? 0,
+      notgoing: notgoing ?? 0,
+      total: total ?? (going ?? 0) + (interested ?? 0) + (notgoing ?? 0),
+    };
+  }
+
   private static _bboxFromCenterRadius(
     center: [number, number],
     radiusM: number,
@@ -1718,6 +1768,8 @@ export interface EventSearchPreview {
   venueString?: string;
   localityString: string;
   bannerSrc?: string;
+  bannerFit?: "cover" | "contain";
+  bannerAccentColor?: string;
   logoSrc?: string;
   logoBackgroundColor?: string;
   sponsorName?: string;
@@ -1742,6 +1794,7 @@ export interface EventSearchPreview {
   communityKeys: string[];
   seriesIds: string[];
   eventCategories: string[];
+  rsvpCounts?: EventRSVPCountsSchema;
   seriesRoles: string[];
   qualifiesToKeys: string[];
   requiredQualifierKeys: string[];

@@ -119,6 +119,7 @@ export interface EventCardPreviewSchema {
   external_source?: EventExternalSourceSchema;
   event_categories?: EventCategory[];
   series_ids?: string[];
+  rsvp_counts?: EventRSVPCountsSchema;
 }
 
 export interface EventOrganizerSchema {
