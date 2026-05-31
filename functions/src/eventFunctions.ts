@@ -611,6 +611,13 @@ const _collectSeriesSearchFields = (
       const key = _qualificationRefKey(ref);
       if (key) requiredQualifierKeys.add(key);
     }
+
+    for (const path of membership.qualification_paths ?? []) {
+      for (const ref of path.requirements ?? []) {
+        const key = _qualificationRefKey(ref);
+        if (key) requiredQualifierKeys.add(key);
+      }
+    }
   }
 
   return {

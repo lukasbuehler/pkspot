@@ -232,6 +232,21 @@ export interface EventQualificationRefSchema {
   program_item_id?: string;
 }
 
+export type EventQualificationRequirementMode = "any" | "all";
+
+export interface EventQualificationPathSchema {
+  /** Stable id for UI expansion state and future generated path updates. */
+  id: string;
+  label?: string;
+  label_i18n?: LocaleMap | Record<string, string>;
+  /**
+   * `any` means one listed requirement is enough; `all` means every listed
+   * requirement must be completed.
+   */
+  requirement_mode: EventQualificationRequirementMode;
+  requirements: EventQualificationRefSchema[];
+}
+
 export interface EventSeriesMembershipSchema {
   series_id: string;
   role: EventSeriesRole;
@@ -246,6 +261,11 @@ export interface EventSeriesMembershipSchema {
   qualification_hint_i18n?: LocaleMap | Record<string, string>;
   /** Outgoing qualification edges: competing here can qualify you for these. */
   qualifies_to?: EventQualificationRefSchema[];
+  /**
+   * Incoming qualification paths. Prefer this over `required_qualifiers` for
+   * new data so it is explicit whether one or all listed requirements apply.
+   */
+  qualification_paths?: EventQualificationPathSchema[];
   /** Incoming qualification edges: these must happen before competing here. */
   required_qualifiers?: EventQualificationRefSchema[];
   source_url?: string;

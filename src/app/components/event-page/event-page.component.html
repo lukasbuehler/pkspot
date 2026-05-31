@@ -254,89 +254,75 @@
                   </div>
                 }
               }
-              @if (
-                (membership.required_qualifiers?.length ?? 0) > 0 &&
-                (isLoadingQualifierEvents() ||
-                  qualifierEventsFor(membership).length > 0)
+              @for (
+                path of qualificationPathsFor(membership);
+                track path.id
               ) {
-                <p
-                  class="mat-label-large qualifier-label"
-                  i18n="@@event_qualification.qualifiers"
-                >
-                  Qualifying events
-                </p>
-                @if (isLoadingQualifierEvents()) {
-                  <div class="d-flex align-items-center gap-2 mt-2">
-                    <mat-progress-spinner
-                      mode="indeterminate"
-                      diameter="20"
-                      aria-label="Loading qualifying events"
-                      i18n-aria-label="@@event_qualification.loading"
-                    ></mat-progress-spinner>
-                    <span
-                      class="mat-body-small muted"
-                      i18n="@@event_qualification.loading_text"
-                    >
-                      Loading qualifying events
-                    </span>
-                  </div>
-                } @else if (qualifierEventsFor(membership).length > 0) {
-                  <div class="qualification-event-list">
-                    <div class="qualification-event-grid">
-                      @for (
-                        qualifier of visibleQualificationEventsFor(
-                          membership,
-                          "required_qualifiers"
-                        );
-                        track qualifier.id
-                      ) {
-                        <app-event-card [event]="qualifier"></app-event-card>
+                @if (
+                  isLoadingQualifierEvents() ||
+                  qualificationPathEvents(path).length > 0
+                ) {
+                  <p class="mat-label-large qualifier-label">
+                    {{ qualificationPathLabel(path) }}
+                  </p>
+                  <p class="mat-body-small muted">
+                    {{ qualificationPathRequirementLabel(path) }}
+                  </p>
+                  @if (isLoadingQualifierEvents()) {
+                    <div class="d-flex align-items-center gap-2 mt-2">
+                      <mat-progress-spinner
+                        mode="indeterminate"
+                        diameter="20"
+                        aria-label="Loading qualifying events"
+                        i18n-aria-label="@@event_qualification.loading"
+                      ></mat-progress-spinner>
+                      <span
+                        class="mat-body-small muted"
+                        i18n="@@event_qualification.loading_text"
+                      >
+                        Loading qualifying events
+                      </span>
+                    </div>
+                  } @else if (qualificationPathEvents(path).length > 0) {
+                    <div class="qualification-event-list">
+                      <div class="qualification-event-grid">
+                        @for (
+                          qualifier of visibleQualificationPathEvents(
+                            membership,
+                            path
+                          );
+                          track qualifier.id
+                        ) {
+                          <app-event-card [event]="qualifier"></app-event-card>
+                        }
+                      </div>
+                      @if (hasHiddenQualificationPathEvents(path)) {
+                        <button
+                          type="button"
+                          mat-stroked-button
+                          class="qualification-toggle"
+                          (click)="toggleQualificationPath(membership, path)"
+                        >
+                          <mat-icon>
+                            {{
+                              isQualificationPathExpanded(membership, path)
+                                ? "expand_less"
+                                : "expand_more"
+                            }}
+                          </mat-icon>
+                          @if (isQualificationPathExpanded(membership, path)) {
+                            <span i18n="@@event_qualification.show_less"
+                              >Show less</span
+                            >
+                          } @else {
+                            <span i18n="@@event_qualification.show_more"
+                              >Show more</span
+                            >
+                          }
+                        </button>
                       }
                     </div>
-                    @if (
-                      hasHiddenQualificationEvents(
-                        membership,
-                        "required_qualifiers"
-                      )
-                    ) {
-                      <button
-                        type="button"
-                        mat-stroked-button
-                        class="qualification-toggle"
-                        (click)="
-                          toggleQualificationEventGroup(
-                            membership,
-                            'required_qualifiers'
-                          )
-                        "
-                      >
-                        <mat-icon>
-                          {{
-                            isQualificationEventGroupExpanded(
-                              membership,
-                              "required_qualifiers"
-                            )
-                              ? "expand_less"
-                              : "expand_more"
-                          }}
-                        </mat-icon>
-                        @if (
-                          isQualificationEventGroupExpanded(
-                            membership,
-                            "required_qualifiers"
-                          )
-                        ) {
-                          <span i18n="@@event_qualification.show_less"
-                            >Show less</span
-                          >
-                        } @else {
-                          <span i18n="@@event_qualification.show_more"
-                            >Show more</span
-                          >
-                        }
-                      </button>
-                    }
-                  </div>
+                  }
                 }
               }
             </article>

@@ -1,9 +1,20 @@
 import admin from "firebase-admin";
+import { existsSync, readFileSync } from "node:fs";
 
 const PROJECT_ID = "parkour-base-project";
 const APPLY = process.argv.includes("--apply");
+const SERVICE_ACCOUNT_URL = new URL("./serviceAccountKey.json", import.meta.url);
 
-admin.initializeApp({ projectId: PROJECT_ID });
+admin.initializeApp({
+  projectId: PROJECT_ID,
+  ...(existsSync(SERVICE_ACCOUNT_URL)
+    ? {
+        credential: admin.credential.cert(
+          JSON.parse(readFileSync(SERVICE_ACCOUNT_URL, "utf8")),
+        ),
+      }
+    : {}),
+});
 
 const db = admin.firestore();
 const { FieldValue, GeoPoint, Timestamp } = admin.firestore;
@@ -15,6 +26,13 @@ const WPF_TICKET_URL =
 const PKE_WORLDS_SOURCE = "https://parkourearth.org/world-championships2026";
 const PKE_CALENDAR_SOURCE = "https://parkourearth.org/qualification-calendar";
 const SPL_SOURCE = "https://www.sportparkourleague.com/2026-spl-season";
+const JAMZAC_SOURCE = "https://www.nzparkour.co.nz/events-1/jamzac";
+const USPK_NATIONALS_SOURCE =
+  "https://www.uspk.org/competition/2026-uspk-national-championship-event/";
+const WCPF_SOURCE = "https://www.westcoastplaygroundfestival.com/";
+const WCPF_COMPS_SOURCE =
+  "https://www.westcoastplaygroundfestival.com/parkourcomps";
+const OMFG_SOURCE = "https://oslomovementfestival.com/";
 
 const qualifierRefs = [
   eventRef("parkour-expo-skill-2026"),
@@ -22,6 +40,31 @@ const qualifierRefs = [
   eventRef("parkour-luzern-speed-2026"),
   eventRef("parkour-day-staefa-2026"),
   eventRef("wpf-skills-competition-2026"),
+];
+
+const pkeQualifierRefs = [
+  eventRef("austria-nationals-2026"),
+  eventRef("france-nationals-fpk-series-1-2026"),
+  eventRef("jamzac-2026"),
+  eventRef("way-to-the-top-2026"),
+  eventRef("czech-nationals-2026"),
+  eventRef("xtreme-days-italy-2026"),
+  eventRef("polish-nationals-2026"),
+  eventRef("singapore-iqe-2026"),
+  eventRef("uspk-nationals-2026"),
+  eventRef("westcoast-playground-festival-2026"),
+  eventRef("uk-nationals-2026"),
+  programRef("swissjam26", "swiss-parkour-championships"),
+  eventRef("skill-takeover-2026"),
+];
+
+const splQualifierRefs = [
+  eventRef("european-parkour-championships-2026"),
+  eventRef("project-underground-2026"),
+  eventRef("soro-skill-challenge-2026"),
+  eventRef("way-to-the-top-2026"),
+  eventRef("cpl4-2026"),
+  eventRef("uspk-nationals-2026"),
 ];
 
 const seriesDocs = [
@@ -540,10 +583,16 @@ const eventDocs = [
           disciplines: ["speed", "skill", "style"],
           qualification_required: true,
           qualification_hint:
-            "Swiss athletes qualify through the Swiss Parkour Championships pathway.",
-          required_qualifiers: [
-            programRef("swissjam26", "swiss-parkour-championships"),
+            "Athletes qualify through national pathways, international qualification events, or selected final qualification opportunities.",
+          qualification_paths: [
+            qualificationPath(
+              "pke-national-and-iqe-pathways",
+              "Parkour Earth qualification pathways",
+              "any",
+              pkeQualifierRefs,
+            ),
           ],
+          required_qualifiers: pkeQualifierRefs,
           source_url: PKE_CALENDAR_SOURCE,
         },
       ],
@@ -569,9 +618,213 @@ const eventDocs = [
         qualification_required: true,
         qualification_hint:
           "SPL5 does not have on-site qualifiers; athletes qualify through sanctioned pathways before the event.",
+        qualification_paths: [
+          qualificationPath(
+            "spl5-sanctioned-pathways",
+            "SPL sanctioned qualification pathways",
+            "any",
+            splQualifierRefs,
+          ),
+        ],
+        required_qualifiers: splQualifierRefs,
         source_url: SPL_SOURCE,
       },
     ],
+  }),
+  pkeQualifierEvent("austria-nationals-2026", {
+    name: "Austria Nationals 2026",
+    venue_string: "Austria",
+    locality_string: "Austria",
+    location: geo(47.5162, 14.5501),
+    location_raw: latLng(47.5162, 14.5501),
+    start: ts("2026-04-11T08:00:00.000Z"),
+    end: ts("2026-04-12T16:00:00.000Z"),
+    time_zone: "Europe/Vienna",
+  }),
+  pkeQualifierEvent("france-nationals-fpk-series-1-2026", {
+    name: "France Nationals / FPK Series 1 2026",
+    venue_string: "France",
+    locality_string: "France",
+    location: geo(46.2276, 2.2137),
+    location_raw: latLng(46.2276, 2.2137),
+    start: ts("2026-04-11T08:00:00.000Z"),
+    end: ts("2026-04-11T16:00:00.000Z"),
+    time_zone: "Europe/Paris",
+  }),
+  pkeQualifierEvent("jamzac-2026", {
+    name: "JAMZAC 2026",
+    venue_string: "Flow Academy of Motion",
+    locality_string: "New Zealand",
+    location: geo(-36.8485, 174.7633),
+    location_raw: latLng(-36.8485, 174.7633),
+    start: ts("2026-04-24T20:00:00.000Z"),
+    end: ts("2026-04-27T05:00:00.000Z"),
+    time_zone: "Pacific/Auckland",
+    url: JAMZAC_SOURCE,
+    source_url: JAMZAC_SOURCE,
+  }),
+  pkeSplQualifierEvent("way-to-the-top-2026", {
+    name: "Way To The Top 2026",
+    venue_string: "Underkover",
+    locality_string: "South Korea",
+    location: geo(37.5665, 126.978),
+    location_raw: latLng(37.5665, 126.978),
+    start: ts("2026-05-01T23:00:00.000Z"),
+    end: ts("2026-05-05T09:00:00.000Z"),
+    time_zone: "Asia/Seoul",
+    description:
+      "South Korea international qualification event listed by Parkour Earth and sanctioned as an SPL5 qualifier.",
+  }),
+  pkeQualifierEvent("czech-nationals-2026", {
+    name: "Czech Nationals 2026",
+    venue_string: "Czech Republic",
+    locality_string: "Czech Republic",
+    location: geo(49.8175, 15.473),
+    location_raw: latLng(49.8175, 15.473),
+    start: ts("2026-05-25T08:00:00.000Z"),
+    end: ts("2026-05-25T16:00:00.000Z"),
+    time_zone: "Europe/Prague",
+  }),
+  pkeQualifierEvent("xtreme-days-italy-2026", {
+    name: "Xtreme Days Italy 2026",
+    venue_string: "Italy",
+    locality_string: "Italy",
+    location: geo(41.8719, 12.5674),
+    location_raw: latLng(41.8719, 12.5674),
+    start: ts("2026-05-30T08:00:00.000Z"),
+    end: ts("2026-05-31T16:00:00.000Z"),
+    time_zone: "Europe/Rome",
+  }),
+  pkeQualifierEvent("polish-nationals-2026", {
+    name: "Polish Nationals 2026",
+    venue_string: "Poland",
+    locality_string: "Poland",
+    location: geo(51.9194, 19.1451),
+    location_raw: latLng(51.9194, 19.1451),
+    start: ts("2026-05-31T08:00:00.000Z"),
+    end: ts("2026-05-31T16:00:00.000Z"),
+    time_zone: "Europe/Warsaw",
+  }),
+  pkeQualifierEvent("singapore-iqe-2026", {
+    name: "Singapore IQE 2026",
+    venue_string: "Singapore",
+    locality_string: "Singapore",
+    location: geo(1.3521, 103.8198),
+    location_raw: latLng(1.3521, 103.8198),
+    start: ts("2026-06-25T16:00:00.000Z"),
+    end: ts("2026-06-28T10:00:00.000Z"),
+    time_zone: "Asia/Singapore",
+  }),
+  pkeSplQualifierEvent("uspk-nationals-2026", {
+    name: "USPK National Championship 2026",
+    venue_string: "HUB PTC",
+    locality_string: "Sudbury, MA (US)",
+    location: geo(42.3834, -71.4162),
+    location_raw: latLng(42.3834, -71.4162),
+    start: ts("2026-06-26T13:00:00.000Z"),
+    end: ts("2026-06-29T01:00:00.000Z"),
+    time_zone: "America/New_York",
+    url: USPK_NATIONALS_SOURCE,
+    source_url: USPK_NATIONALS_SOURCE,
+    description:
+      "USPK national championship. Public event information says podium athletes qualify for the Parkour Earth World Championships and SPL5.",
+  }),
+  pkeQualifierEvent("westcoast-playground-festival-2026", {
+    name: "Westcoast Playground Festival 2026",
+    venue_string: "Uddevalla",
+    locality_string: "Uddevalla (SE)",
+    location: geo(58.3498, 11.9356),
+    location_raw: latLng(58.3498, 11.9356),
+    start: ts("2026-06-30T08:00:00.000Z"),
+    end: ts("2026-07-04T16:00:00.000Z"),
+    time_zone: "Europe/Stockholm",
+    url: WCPF_SOURCE,
+    source_url: WCPF_COMPS_SOURCE,
+    event_categories: ["competition", "jam", "workshop"],
+  }),
+  pkeQualifierEvent("uk-nationals-2026", {
+    name: "UK Nationals 2026",
+    venue_string: "United Kingdom",
+    locality_string: "United Kingdom",
+    location: geo(55.3781, -3.436),
+    location_raw: latLng(55.3781, -3.436),
+    start: ts("2026-08-01T08:00:00.000Z"),
+    end: ts("2026-08-02T16:00:00.000Z"),
+    time_zone: "Europe/London",
+  }),
+  pkeQualifierEvent("skill-takeover-2026", {
+    name: "Skill Takeover 2026",
+    venue_string: "Brno",
+    locality_string: "Brno (CZ)",
+    location: geo(49.1951, 16.6068),
+    location_raw: latLng(49.1951, 16.6068),
+    start: ts("2026-10-27T08:00:00.000Z"),
+    end: ts("2026-10-27T16:00:00.000Z"),
+    time_zone: "Europe/Prague",
+    disciplines: ["skill"],
+  }),
+  splQualifierEvent("european-parkour-championships-2026", {
+    name: "European Parkour Championships 2026",
+    venue_string: "HAL 5",
+    locality_string: "Belgium",
+    location: geo(50.8503, 4.3517),
+    location_raw: latLng(50.8503, 4.3517),
+    start: ts("2026-04-17T08:00:00.000Z"),
+    end: ts("2026-04-19T16:00:00.000Z"),
+    time_zone: "Europe/Brussels",
+    qualification_required: true,
+    qualification_hint:
+      "The European Championship has feeder events before the championship; details are still being verified.",
+  }),
+  splQualifierEvent("project-underground-2026", {
+    name: "Project Underground 2026",
+    venue_string: "Nova City",
+    locality_string: "United Kingdom",
+    location: geo(52.4862, -1.8904),
+    location_raw: latLng(52.4862, -1.8904),
+    start: ts("2026-03-13T09:00:00.000Z"),
+    end: ts("2026-03-15T17:00:00.000Z"),
+    time_zone: "Europe/London",
+  }),
+  splQualifierEvent("soro-skill-challenge-2026", {
+    name: "Soro Skill Challenge 2026",
+    venue_string: "Soro",
+    locality_string: "Soro (DK)",
+    location: geo(55.4318, 11.5555),
+    location_raw: latLng(55.4318, 11.5555),
+    start: ts("2026-05-02T08:00:00.000Z"),
+    end: ts("2026-05-02T16:00:00.000Z"),
+    time_zone: "Europe/Copenhagen",
+    disciplines: ["skill"],
+  }),
+  splQualifierEvent("cpl4-2026", {
+    name: "CPL4 2026",
+    venue_string: "Canada",
+    locality_string: "Canada",
+    location: geo(56.1304, -106.3468),
+    location_raw: latLng(56.1304, -106.3468),
+    start: ts("2026-05-15T13:00:00.000Z"),
+    end: ts("2026-05-19T01:00:00.000Z"),
+    time_zone: "America/Toronto",
+  }),
+  draftEvent("omfg-2026", {
+    name: "Oslo Movement Festival 2026",
+    description:
+      "Norwegian movement and parkour festival with competitions, workshops and jam programming.",
+    venue_string: "Brumunddal",
+    locality_string: "Brumunddal (NO)",
+    location: geo(60.8819, 10.9395),
+    location_raw: latLng(60.8819, 10.9395),
+    start: ts("2026-06-10T08:00:00.000Z"),
+    end: ts("2026-06-14T16:00:00.000Z"),
+    url: OMFG_SOURCE,
+    event_categories: ["jam", "competition", "workshop"],
+    time_zone: "Europe/Oslo",
+    external_source: {
+      provider: "other",
+      id: "omfg-2026",
+      url: OMFG_SOURCE,
+    },
   }),
 ];
 
@@ -684,6 +937,103 @@ function wpfTicket(id, label, amount, flexAmount, extraDescription) {
   };
 }
 
+function pkeQualifierEvent(slug, data) {
+  const disciplines = data.disciplines ?? ["speed", "skill", "style"];
+  const sourceUrl = data.source_url ?? PKE_CALENDAR_SOURCE;
+  return draftEvent(slug, {
+    description:
+      data.description ??
+      "Draft event seeded from the Parkour Earth qualification calendar.",
+    ...data,
+    event_categories: data.event_categories ?? ["competition"],
+    series_ids: [...new Set([...(data.series_ids ?? []), "parkour-earth"])],
+    series_memberships: [
+      ...(data.series_memberships ?? []),
+      {
+        series_id: "parkour-earth",
+        role: "qualifier",
+        disciplines,
+        qualifies_to: [eventRef("parkour-earth-world-championships-2026")],
+        source_url: sourceUrl,
+      },
+    ],
+    external_source: data.external_source ?? {
+      provider: "parkour_earth",
+      id: slug,
+      url: sourceUrl,
+    },
+  });
+}
+
+function splQualifierEvent(slug, data) {
+  const disciplines = data.disciplines ?? ["speed", "skill", "style"];
+  const sourceUrl = data.source_url ?? SPL_SOURCE;
+  return draftEvent(slug, {
+    description:
+      data.description ??
+      "Draft event seeded from the Sport Parkour League 2026 season information.",
+    ...data,
+    event_categories: data.event_categories ?? ["competition"],
+    series_ids: [
+      ...new Set([...(data.series_ids ?? []), "sport-parkour-league"]),
+    ],
+    series_memberships: [
+      ...(data.series_memberships ?? []),
+      {
+        series_id: "sport-parkour-league",
+        role: "qualifier",
+        disciplines,
+        qualifies_to: [eventRef("spl5-2026")],
+        qualification_required: data.qualification_required,
+        qualification_hint: data.qualification_hint,
+        source_url: sourceUrl,
+      },
+    ],
+    external_source: data.external_source ?? {
+      provider: "spl",
+      id: slug,
+      url: sourceUrl,
+    },
+  });
+}
+
+function pkeSplQualifierEvent(slug, data) {
+  const disciplines = data.disciplines ?? ["speed", "skill", "style"];
+  return draftEvent(slug, {
+    ...data,
+    event_categories: data.event_categories ?? ["competition"],
+    series_ids: [
+      ...new Set([
+        ...(data.series_ids ?? []),
+        "parkour-earth",
+        "sport-parkour-league",
+      ]),
+    ],
+    series_memberships: [
+      ...(data.series_memberships ?? []),
+      {
+        series_id: "parkour-earth",
+        role: "qualifier",
+        disciplines,
+        qualifies_to: [eventRef("parkour-earth-world-championships-2026")],
+        source_url: data.source_url ?? PKE_CALENDAR_SOURCE,
+      },
+      {
+        series_id: "sport-parkour-league",
+        role: "qualifier",
+        disciplines,
+        qualifies_to: [eventRef("spl5-2026")],
+        source_url: data.source_url ?? SPL_SOURCE,
+      },
+    ],
+    external_source: data.external_source ?? {
+      provider: "other",
+      id: slug,
+      url: data.source_url ?? SPL_SOURCE,
+    },
+  });
+}
+
 function draftEvent(slug, data) {
   return {
     slug,
@@ -704,6 +1054,16 @@ function programRef(eventId, programItemId) {
     kind: "program_item",
     event_id: eventId,
     program_item_id: programItemId,
+  };
+}
+
+function qualificationPath(id, label, requirementMode, requirements) {
+  return {
+    id,
+    label,
+    label_i18n: localeMap({ en: label }),
+    requirement_mode: requirementMode,
+    requirements,
   };
 }
 
@@ -795,6 +1155,13 @@ function withDefaultMembershipI18n(membership) {
       membership.qualification_hint && !membership.qualification_hint_i18n
         ? localeMap({ en: membership.qualification_hint })
         : membership.qualification_hint_i18n,
+    qualification_paths: membership.qualification_paths?.map((path) => ({
+      ...path,
+      label_i18n:
+        path.label && !path.label_i18n
+          ? localeMap({ en: path.label })
+          : path.label_i18n,
+    })),
   };
 }
 

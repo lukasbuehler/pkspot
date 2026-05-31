@@ -25,12 +25,17 @@ import {
   EventCategory,
   EventBoundsSchema,
   EventLinkSchema,
+  EventQualificationPathSchema,
   EventQualificationRefSchema,
   EventSchema,
   EventSeriesMembershipSchema,
 } from "../../../db/schemas/EventSchema";
 import { EventTicketOption } from "../../../db/models/Event";
-import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
+import {
+  LocaleCode,
+  LocaleMap,
+  MediaType,
+} from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
@@ -243,6 +248,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this.visibleSeriesMemberships().filter(
       (membership) =>
         membership.qualification_required ||
+        (membership.qualification_paths?.length ?? 0) > 0 ||
         (membership.required_qualifiers?.length ?? 0) > 0 ||
         (membership.qualifies_to?.length ?? 0) > 0,
     ),
@@ -250,7 +256,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly qualificationEventRefs = computed(() =>
     this.qualificationMemberships()
       .flatMap((membership) => [
-        ...(membership.required_qualifiers ?? []),
+        ...this.qualificationPathsFor(membership).flatMap(
+          (path) => path.requirements,
+        ),
         ...(membership.qualifies_to ?? []),
       ])
       .filter(
@@ -826,6 +834,93 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return this._eventsForQualificationRefs(membership.qualifies_to);
   }
 
+  qualificationPathsFor(
+    membership: EventSeriesMembershipSchema,
+  ): EventQualificationPathSchema[] {
+    if ((membership.qualification_paths?.length ?? 0) > 0) {
+      return membership.qualification_paths ?? [];
+    }
+
+    if ((membership.required_qualifiers?.length ?? 0) === 0) {
+      return [];
+    }
+
+    return [
+      {
+        id: "legacy-required-qualifiers",
+        requirement_mode: "any",
+        requirements: membership.required_qualifiers ?? [],
+      },
+    ];
+  }
+
+  qualificationPathLabel(path: EventQualificationPathSchema): string {
+    return (
+      this._localizedText(path.label_i18n) ??
+      path.label ??
+      $localize`:@@event_qualification.path_default:Qualification pathway`
+    );
+  }
+
+  qualificationPathRequirementLabel(
+    path: EventQualificationPathSchema,
+  ): string {
+    switch (path.requirement_mode) {
+      case "all":
+        return $localize`:@@event_qualification.path_all:Qualification requires all of these events`;
+      default:
+        return $localize`:@@event_qualification.path_any:Qualify through one of these events`;
+    }
+  }
+
+  qualificationPathEvents(
+    path: EventQualificationPathSchema,
+  ): PkEvent[] {
+    return this._eventsForQualificationRefs(path.requirements);
+  }
+
+  visibleQualificationPathEvents(
+    membership: EventSeriesMembershipSchema,
+    path: EventQualificationPathSchema,
+  ): PkEvent[] {
+    const events = this.qualificationPathEvents(path);
+    if (this.isQualificationPathExpanded(membership, path)) {
+      return events;
+    }
+    return events.slice(0, this.qualificationGridColumns());
+  }
+
+  hasHiddenQualificationPathEvents(
+    path: EventQualificationPathSchema,
+  ): boolean {
+    return (
+      this.qualificationPathEvents(path).length >
+      this.qualificationGridColumns()
+    );
+  }
+
+  isQualificationPathExpanded(
+    membership: EventSeriesMembershipSchema,
+    path: EventQualificationPathSchema,
+  ): boolean {
+    return (
+      this.expandedQualificationEventGroups()[
+        this._qualificationPathGroupKey(membership, path)
+      ] === true
+    );
+  }
+
+  toggleQualificationPath(
+    membership: EventSeriesMembershipSchema,
+    path: EventQualificationPathSchema,
+  ): void {
+    const key = this._qualificationPathGroupKey(membership, path);
+    this.expandedQualificationEventGroups.update((groups) => ({
+      ...groups,
+      [key]: !groups[key],
+    }));
+  }
+
   visibleQualificationEventsFor(
     membership: EventSeriesMembershipSchema,
     kind: "qualifies_to" | "required_qualifiers",
@@ -899,6 +994,22 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     kind: "qualifies_to" | "required_qualifiers",
   ): string {
     return `${membership.series_id}:${membership.role}:${kind}`;
+  }
+
+  private _qualificationPathGroupKey(
+    membership: EventSeriesMembershipSchema,
+    path: EventQualificationPathSchema,
+  ): string {
+    return `${membership.series_id}:${membership.role}:path:${path.id}`;
+  }
+
+  private _localizedText(
+    map: LocaleMap | Record<string, string> | undefined,
+  ): string | undefined {
+    if (!map) return undefined;
+    const localeEntry = map[this._locale] ?? map["en"] ?? Object.values(map)[0];
+    if (!localeEntry) return undefined;
+    return typeof localeEntry === "string" ? localeEntry : localeEntry.text;
   }
 
   private _syncQualificationGridColumns(): void {

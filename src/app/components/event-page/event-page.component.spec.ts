@@ -439,13 +439,26 @@ describe("EventInfoPageComponent", () => {
     const membership = {
       series_id: "swiss-parkour-tour",
       role: "championship",
-      required_qualifiers: [
-        { kind: "event", event_id: "qualifier-1" },
-        { kind: "event", event_id: "qualifier-2" },
-        { kind: "event", event_id: "qualifier-3" },
-        { kind: "event", event_id: "qualifier-4" },
+      qualification_paths: [
+        {
+          id: "spt-qualifiers",
+          label_i18n: {
+            en: {
+              text: "Swiss Parkour Tour qualifiers",
+              provider: "admin",
+            },
+          },
+          requirement_mode: "any",
+          requirements: [
+            { kind: "event", event_id: "qualifier-1" },
+            { kind: "event", event_id: "qualifier-2" },
+            { kind: "event", event_id: "qualifier-3" },
+            { kind: "event", event_id: "qualifier-4" },
+          ],
+        },
       ],
     } as const;
+    const path = component.qualificationPathsFor(membership)[0];
 
     component.qualificationGridColumns.set(3);
     component.qualifierEventsById.set({
@@ -456,28 +469,20 @@ describe("EventInfoPageComponent", () => {
     });
 
     expect(
-      component.visibleQualificationEventsFor(
-        membership,
-        "required_qualifiers",
-      ),
-    ).toHaveLength(3);
-    expect(
-      component.hasHiddenQualificationEvents(
-        membership,
-        "required_qualifiers",
-      ),
-    ).toBe(true);
-
-    component.toggleQualificationEventGroup(
-      membership,
-      "required_qualifiers",
+      component.qualificationPathLabel(path),
+    ).toBe("Swiss Parkour Tour qualifiers");
+    expect(component.qualificationPathRequirementLabel(path)).toBe(
+      "Qualify through one of these events",
     );
+    expect(
+      component.visibleQualificationPathEvents(membership, path),
+    ).toHaveLength(3);
+    expect(component.hasHiddenQualificationPathEvents(path)).toBe(true);
+
+    component.toggleQualificationPath(membership, path);
 
     expect(
-      component.visibleQualificationEventsFor(
-        membership,
-        "required_qualifiers",
-      ),
+      component.visibleQualificationPathEvents(membership, path),
     ).toHaveLength(4);
   });
 
