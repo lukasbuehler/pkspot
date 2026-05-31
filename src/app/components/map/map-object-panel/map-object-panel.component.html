@@ -13,6 +13,7 @@
     <app-map-event-list
       class="px-3 d-block"
       [events]="visibleEvents()"
+      [seriesById]="eventSeriesById()"
       (selectEvent)="eventSelect.emit($event)"
     ></app-map-event-list>
   }

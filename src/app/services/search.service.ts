@@ -1263,6 +1263,8 @@ export class SearchService {
       "venue_string",
       "locality_string",
       "banner_src",
+      "banner_fit",
+      "banner_accent_color",
       "logo_src",
       "sponsor.name",
       "sponsor.logo_src",

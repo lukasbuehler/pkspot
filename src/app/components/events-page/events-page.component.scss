@@ -10,11 +10,31 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.series-count {
+.filter-group {
+  margin-bottom: 0.5rem;
+}
+
+.filter-count {
   margin-left: 0.35rem;
   color: var(--mat-sys-on-surface-variant);
 }
 
-.clear-series-button {
+.series-filter-avatar {
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid
+    color-mix(in srgb, var(--mat-sys-outline-variant), transparent 28%);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-small);
+}
+
+.series-filter-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.clear-filter-button {
   margin-left: 0.25rem;
 }

@@ -50,10 +50,14 @@ describe("EventSummaryMetaComponent", () => {
     );
     fixture.detectChanges();
 
-    let status = fixture.debugElement.query(By.css(".event-meta"));
+    let status = fixture.debugElement.query(By.css(".event-status"));
+    let dateRange = fixture.debugElement.query(By.css(".event-date-range"));
     expect(status.attributes["data-status"]).toBe("live");
     expect(getComputedStyle(status.nativeElement).color).toBe(
       "var(--mat-sys-secondary)",
+    );
+    expect(getComputedStyle(dateRange.nativeElement).color).toBe(
+      "var(--mat-sys-on-surface)",
     );
 
     vi.setSystemTime(new Date("2026-06-01T12:00:00.000Z"));
@@ -67,10 +71,14 @@ describe("EventSummaryMetaComponent", () => {
     );
     fixture.detectChanges();
 
-    status = fixture.debugElement.query(By.css(".event-meta"));
+    status = fixture.debugElement.query(By.css(".event-status"));
+    dateRange = fixture.debugElement.query(By.css(".event-date-range"));
     expect(status.attributes["data-status"]).toBe("upcoming");
     expect(getComputedStyle(status.nativeElement).color).toBe(
       "var(--mat-sys-primary)",
+    );
+    expect(getComputedStyle(dateRange.nativeElement).color).toBe(
+      "var(--mat-sys-on-surface)",
     );
   });
 });

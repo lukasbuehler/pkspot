@@ -381,6 +381,83 @@ describe("EventInfoPageComponent", () => {
     });
   });
 
+  it("hides plain series tags when role-specific memberships are visible", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "swissjam26" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "swissjam26" }) },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: { setEventMetaTags: vi.fn() } },
+        {
+          provide: StructuredDataService,
+          useValue: {
+            addStructuredData: vi.fn(),
+            removeStructuredData: vi.fn(),
+          },
+        },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: vi.fn((url?: string) => url),
+          },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+
+    component.event.set(
+      buildEvent("swissjam26", "Swiss Jam 2026", {
+        series_ids: ["swiss-parkour-tour", "parkour-earth"],
+        series_memberships: [
+          {
+            series_id: "swiss-parkour-tour",
+            role: "championship",
+          },
+          {
+            series_id: "parkour-earth",
+            role: "qualifier",
+          },
+        ],
+      }),
+    );
+    flushSignalEffects();
+
+    expect(component.visibleSeriesTags()).toEqual([
+      { seriesId: "swiss-parkour-tour", role: "championship" },
+      { seriesId: "parkour-earth", role: "qualifier" },
+    ]);
+  });
+
   it("collapses qualification event grids to one row and expands them on demand", () => {
     TestBed.configureTestingModule({
       providers: [
@@ -711,8 +788,23 @@ describe("EventInfoPageComponent", () => {
       () => new EventInfoPageComponent(),
     );
 
+    component.seriesById.set({
+      "swiss-parkour-tour": {
+        id: "swiss-parkour-tour",
+        name: "Swiss Parkour Tour",
+        slug: "swiss-parkour-tour",
+        organizer: "Swiss Parkour Association",
+        organizer_url: "https://swissparkour.ch",
+      },
+    });
     component.event.set(
       buildEvent("ticket-event", "Ticket Event", {
+        external_source: {
+          provider: "eventfrog",
+          id: "123",
+          url: "https://eventfrog.ch/ticket-event",
+        },
+        series_ids: ["swiss-parkour-tour"],
         ticket_options: [
           {
             id: "early",
@@ -730,6 +822,30 @@ describe("EventInfoPageComponent", () => {
             availability: "coming_soon",
           },
         ],
+        program: {
+          active_plan_id: "main",
+          plans: [
+            {
+              id: "main",
+              label: "Main program",
+              kind: "main",
+              items: [
+                {
+                  id: "speed-qualifier",
+                  title: "Speed qualifier",
+                  description: "Timed qualifier rounds.",
+                  category: "competition",
+                  start: "2026-06-14T12:00:00.000Z",
+                  end: "2026-06-14T14:00:00.000Z",
+                  runtime_override: {
+                    start: "2026-06-14T12:30:00.000Z",
+                    status: "delayed",
+                  },
+                },
+              ],
+            },
+          ],
+        },
       } as Partial<EventSchema>),
     );
     flushSignalEffects();
@@ -750,6 +866,28 @@ describe("EventInfoPageComponent", () => {
           expect.objectContaining({
             name: "Regular",
             availability: "https://schema.org/PreOrder",
+          }),
+        ],
+        sameAs: "https://eventfrog.ch/ticket-event",
+        superEvent: expect.objectContaining({
+          "@type": "EventSeries",
+          name: "Swiss Parkour Tour",
+          url: "https://pkspot.app/en/series/swiss-parkour-tour",
+          organizer: expect.objectContaining({
+            name: "Swiss Parkour Association",
+          }),
+        }),
+        subEvent: [
+          expect.objectContaining({
+            "@type": "Event",
+            name: "Speed qualifier",
+            startDate: "2026-06-14T12:30:00.000Z",
+            endDate: "2026-06-14T14:00:00.000Z",
+            eventStatus: "https://schema.org/EventPostponed",
+            superEvent: expect.objectContaining({
+              name: "Ticket Event",
+              url: "https://pkspot.app/en/events/ticket-event",
+            }),
           }),
         ],
       }),

@@ -121,6 +121,10 @@ import {
 } from "../../services/firebase/firestore/landing-pages.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { Event as PkEvent } from "../../../db/models/Event";
+import {
+  SeriesDocument,
+  SeriesService,
+} from "../../services/firebase/firestore/series.service";
 import { AnalyticsService } from "../../services/analytics.service";
 import {
   MapIslandComponent,
@@ -478,11 +482,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ----- Map island state -----
   private _eventsService = inject(EventsService);
+  private _seriesService = inject(SeriesService);
   private _landingPagesService = inject(LandingPagesService);
   /** Promoted events whose promo radius intersects the viewport. */
   private _promotableEvents = signal<PkEvent[]>([]);
   /** Non-promo event markers whose actual location is in the viewport. */
   private _visibleMapEvents = signal<PkEvent[]>([]);
+  private _visibleEventSeriesById = signal<Record<string, SeriesDocument>>({});
+  private _visibleEventSeriesLoadVersion = 0;
   /**
    * All published communities (lightweight previews from typesense), loaded
    * once on init. Drives the "popular communities" SEO list and the
@@ -552,6 +559,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return mode === "all" ? null : this._mapObjectModeLabel(mode);
   });
   visibleMapEvents = computed(() => this._visibleMapEvents());
+  visibleEventSeriesById = computed(() => this._visibleEventSeriesById());
   visibleMapCommunities = computed(() => this._visibleMapCommunities());
   private _mapObjectModeBeforeSpotFilter: MapObjectMode | null = null;
 
@@ -1819,6 +1827,36 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         clearTimeout(handle);
         this._mapObjectSearchVersion++;
       });
+    });
+
+    effect(() => {
+      const eventSeriesIds = [
+        ...new Set(
+          [
+            ...this._visibleMapEvents(),
+            ...this._promotableEvents(),
+            ...(this.selectedEvent() ? [this.selectedEvent()!] : []),
+          ].flatMap((event) => event.seriesIds),
+        ),
+      ].filter(Boolean);
+      const requestVersion = ++this._visibleEventSeriesLoadVersion;
+
+      if (eventSeriesIds.length === 0) {
+        this._visibleEventSeriesById.set({});
+        return;
+      }
+
+      this._seriesService
+        .getSeriesByIds(eventSeriesIds)
+        .then((seriesById) => {
+          if (requestVersion !== this._visibleEventSeriesLoadVersion) return;
+          this._visibleEventSeriesById.set(seriesById);
+        })
+        .catch((err) => {
+          if (requestVersion !== this._visibleEventSeriesLoadVersion) return;
+          console.warn("MapPage: failed to load event series metadata", err);
+          this._visibleEventSeriesById.set({});
+        });
     });
 
     effect((onCleanup) => {

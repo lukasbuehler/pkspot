@@ -6,15 +6,19 @@
   color: var(--mat-sys-tertiary);
 }
 
-.event-meta[data-status="past"] {
+.event-meta {
+  color: var(--mat-sys-on-surface);
+}
+
+.event-status[data-status="past"] {
   color: var(--mat-sys-error);
 }
 
-.event-meta[data-status="upcoming"] {
+.event-status[data-status="upcoming"] {
   color: var(--mat-sys-primary);
 }
 
-.event-meta[data-status="live"] {
+.event-status[data-status="live"] {
   color: var(--mat-sys-secondary);
 }
 

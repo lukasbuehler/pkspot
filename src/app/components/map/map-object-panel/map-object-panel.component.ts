@@ -4,6 +4,7 @@ import { LocalSpot, Spot } from "../../../../db/models/Spot";
 import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
 import { Event as PkEvent } from "../../../../db/models/Event";
 import { CommunitySearchPreview } from "../../../services/search.service";
+import { SeriesDocument } from "../../../services/firebase/firestore/series.service";
 import {
   ChipSelectorComponent,
   ChipSelectorOption,
@@ -34,6 +35,7 @@ export class MapObjectPanelComponent {
   visibleSpots = input<(Spot | LocalSpot)[]>([]);
   highlightedSpots = input<SpotPreviewData[]>([]);
   visibleEvents = input<PkEvent[]>([]);
+  eventSeriesById = input<Record<string, SeriesDocument>>({});
   visibleCommunities = input<CommunitySearchPreview[]>([]);
   popularCommunities = input<CommunitySearchPreview[]>([]);
   spotListLimit = input<number | undefined>(undefined);

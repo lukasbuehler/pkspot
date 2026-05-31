@@ -12,7 +12,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { EventId } from "../../../db/schemas/EventSchema";
+import { EventCategory, EventId } from "../../../db/schemas/EventSchema";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
@@ -21,6 +21,7 @@ import {
   SeriesDocument,
   SeriesService,
 } from "../../services/firebase/firestore/series.service";
+import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 
 @Component({
   selector: "app-events-page",
@@ -46,15 +47,27 @@ export class EventsPageComponent implements OnInit {
   events = signal<PkEvent[]>([]);
   seriesById = signal<Record<string, SeriesDocument>>({});
   selectedSeriesIds = signal<string[]>([]);
+  selectedCategories = signal<EventCategory[]>([]);
   loading = signal<boolean>(true);
   private _lastIncludeUnpublished: boolean | null = null;
 
   /** Events sorted by start date — live + upcoming first, past last. */
   readonly filteredEvents = computed(() => {
-    const selected = this.selectedSeriesIds();
-    if (selected.length === 0) return this.events();
-    return this.events().filter((event) =>
-      selected.some((seriesId) => event.seriesIds.includes(seriesId)),
+    const selectedSeriesIds = this.selectedSeriesIds();
+    const selectedCategories = this.selectedCategories();
+    if (selectedSeriesIds.length === 0 && selectedCategories.length === 0) {
+      return this.events();
+    }
+    return this.events().filter(
+      (event) =>
+        (selectedSeriesIds.length === 0 ||
+          selectedSeriesIds.some((seriesId) =>
+            event.seriesIds.includes(seriesId),
+          )) &&
+        (selectedCategories.length === 0 ||
+          selectedCategories.some((category) =>
+            event.eventCategories.includes(category),
+          )),
     );
   });
 
@@ -81,8 +94,31 @@ export class EventsPageComponent implements OnInit {
         id,
         count,
         label: seriesById[id]?.name ?? this._seriesFallbackLabel(id),
+        logoSrc: eventImageDisplaySrc(seriesById[id]?.logo_src),
+        logoBackground:
+          seriesById[id]?.logo_background_color ??
+          "var(--mat-sys-surface-container-high)",
+        initials: this._seriesInitials(seriesById[id]?.name ?? id),
       }))
       .sort((left, right) => left.label.localeCompare(right.label));
+  });
+
+  readonly categoryFilterOptions = computed(() => {
+    const counts = new Map<EventCategory, number>();
+    for (const event of this.events()) {
+      for (const category of event.eventCategories) {
+        if (EVENT_CATEGORY_FILTER_SET.has(category)) {
+          counts.set(category, (counts.get(category) ?? 0) + 1);
+        }
+      }
+    }
+
+    return EVENT_CATEGORY_FILTERS.map((category) => ({
+      id: category,
+      icon: this.categoryIcon(category),
+      label: this.categoryLabel(category),
+      count: counts.get(category) ?? 0,
+    })).filter((option) => option.count > 0);
   });
 
   ngOnInit() {
@@ -146,6 +182,48 @@ export class EventsPageComponent implements OnInit {
     this.selectedSeriesIds.set([]);
   }
 
+  toggleCategoryFilter(category: EventCategory): void {
+    this.selectedCategories.update((selected) =>
+      selected.includes(category)
+        ? selected.filter((item) => item !== category)
+        : [...selected, category],
+    );
+  }
+
+  isCategorySelected(category: EventCategory): boolean {
+    return this.selectedCategories().includes(category);
+  }
+
+  clearCategoryFilters(): void {
+    this.selectedCategories.set([]);
+  }
+
+  categoryLabel(category: EventCategory): string {
+    switch (category) {
+      case "competition":
+        return $localize`:@@event_category.competition:Competition`;
+      case "jam":
+        return $localize`:@@event_category.jam:Jam`;
+      case "camp":
+        return $localize`:@@event_category.camp:Camp`;
+      default:
+        return category;
+    }
+  }
+
+  categoryIcon(category: EventCategory): string {
+    switch (category) {
+      case "competition":
+        return "trophy";
+      case "jam":
+        return "groups";
+      case "camp":
+        return "camping";
+      default:
+        return "sell";
+    }
+  }
+
   private async _loadSeriesForEvents(events: readonly PkEvent[]): Promise<void> {
     const seriesIds = [
       ...new Set(events.flatMap((event) => event.seriesIds)),
@@ -170,4 +248,23 @@ export class EventsPageComponent implements OnInit {
       .map((word) => word[0]?.toUpperCase() + word.slice(1))
       .join(" ");
   }
+
+  private _seriesInitials(label: string): string {
+    return label
+      .split(/[\s-]+/)
+      .filter(Boolean)
+      .slice(0, 3)
+      .map((word) => word[0]?.toUpperCase() ?? "")
+      .join("");
+  }
 }
+
+const EVENT_CATEGORY_FILTERS = [
+  "competition",
+  "jam",
+  "camp",
+] satisfies EventCategory[];
+
+const EVENT_CATEGORY_FILTER_SET: ReadonlySet<EventCategory> = new Set(
+  EVENT_CATEGORY_FILTERS,
+);

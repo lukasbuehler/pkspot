@@ -74,6 +74,12 @@ interface VisibleSeriesTag {
   role?: EventSeriesMembershipSchema["role"];
 }
 
+type EventStructuredDataStatus =
+  | "EventCancelled"
+  | "EventPostponed"
+  | "EventRescheduled"
+  | "EventScheduled";
+
 @Component({
   selector: "app-event-info-page",
   imports: [
@@ -252,8 +258,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const keyedTags = new Set(
       tags.map((tag) => this._seriesTagKey(tag.seriesId, tag.role)),
     );
+    const seriesIdsWithSpecificTags = new Set(tags.map((tag) => tag.seriesId));
 
     for (const seriesId of this.event()?.seriesIds ?? []) {
+      if (seriesIdsWithSpecificTags.has(seriesId)) continue;
       const key = this._seriesTagKey(seriesId);
       if (!keyedTags.has(key)) {
         tags.push({ seriesId });
@@ -337,6 +345,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     effect(() => {
       const event = this.event();
       if (!event) return;
+      this.seriesById();
       this._syncEventSeoData(event);
     });
 
@@ -650,8 +659,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
     this._structuredData.addStructuredData(
       "event",
-      event.structuredData ??
-        this._buildEventStructuredData(event, canonicalPath, description),
+      this._buildEventStructuredData(event, canonicalPath, description),
     );
   }
 
@@ -674,6 +682,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           "@type": "PostalAddress",
           addressLocality: event.localityString || undefined,
         },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: event.location.lat,
+          longitude: event.location.lng,
+        },
       },
       image: [
         ...this._eventStructuredImages(event).map((src) =>
@@ -682,7 +695,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ],
       description,
       url: `${environment.baseUrl}/${this._locale}${canonicalPath}`,
-      sameAs: event.url,
+      sameAs: event.url ?? event.externalSource?.url,
       organizer: event.organizer
         ? {
             "@type": "Organization",
@@ -693,6 +706,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           }
         : undefined,
       offers: this._buildEventOffers(event),
+      superEvent: this._buildEventSeriesStructuredData(event),
+      subEvent: this._buildProgramStructuredData(event),
     };
   }
 
@@ -1080,7 +1095,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       return offers.length === 1 ? offers[0] : offers;
     }
 
-    const url = this._safeExternalUrl(event.url);
+    const url = this._safeExternalUrl(event.url ?? event.externalSource?.url);
     return url ? { "@type": "Offer", url } : undefined;
   }
 
@@ -1122,6 +1137,84 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         return "LimitedAvailability";
       default:
         return "InStock";
+    }
+  }
+
+  private _buildEventSeriesStructuredData(event: PkEvent): unknown {
+    const seriesById = this.seriesById();
+    const series = event.seriesIds
+      .map((seriesId) => seriesById[seriesId])
+      .filter((item): item is SeriesDocument => !!item);
+
+    if (series.length === 0) return undefined;
+
+    const items = series.map((item) => ({
+      "@type": "EventSeries",
+      name: item.name,
+      url: item.slug
+        ? `${environment.baseUrl}/${this._locale}/series/${item.slug}`
+        : item.url,
+      organizer: item.organizer
+        ? {
+            "@type": "Organization",
+            name: item.organizer,
+            url: item.organizer_url,
+          }
+        : undefined,
+    }));
+
+    return items.length === 1 ? items[0] : items;
+  }
+
+  private _buildProgramStructuredData(event: PkEvent): unknown {
+    const items = this.activeProgramItems()
+      .map((item) => {
+        const status = this._programItemSchemaStatus(item);
+        const start = item.runtimeOverride?.start ?? item.start;
+        const end = item.runtimeOverride?.end ?? item.end;
+
+        return {
+          "@type": "Event",
+          name: item.title,
+          description: item.description,
+          startDate: start.toISOString(),
+          endDate: end?.toISOString(),
+          eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+          eventStatus: `https://schema.org/${status}`,
+          location: {
+            "@type": "Place",
+            name: event.venueString || event.localityString || event.name,
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: event.localityString || undefined,
+            },
+          },
+          superEvent: {
+            "@type": "Event",
+            name: event.name,
+            url:
+              `${environment.baseUrl}/${this._locale}` +
+              this._eventPageData.eventCanonicalPath(event),
+          },
+        };
+      })
+      .filter((item) => item.name && item.startDate);
+
+    return items.length > 0 ? items : undefined;
+  }
+
+  private _programItemSchemaStatus(
+    item: EventProgramItem,
+  ): EventStructuredDataStatus {
+    switch (item.runtimeOverride?.status ?? item.status) {
+      case "cancelled":
+        return "EventCancelled";
+      case "moved":
+        return "EventRescheduled";
+      case "delayed":
+        return "EventPostponed";
+      default:
+        return "EventScheduled";
     }
   }
 

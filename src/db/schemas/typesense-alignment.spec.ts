@@ -155,7 +155,6 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "external_source.provider",
     "external_source.id",
     "external_source.url",
-    "structured_data",
     "rsvp_counts",
     "rsvp_counts.going",
     "rsvp_counts.interested",

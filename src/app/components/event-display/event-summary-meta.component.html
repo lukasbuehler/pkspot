@@ -6,8 +6,11 @@
 }
 
 @if (statusLabel()) {
-  <p class="event-meta mat-title-medium m-0" [attr.data-status]="status()">
-    {{ statusLabel() }} ({{ dateRange() }})
+  <p class="event-meta mat-title-medium m-0">
+    <span class="event-status" [attr.data-status]="status()">{{
+      statusLabel()
+    }}</span>
+    <span class="event-date-range">({{ dateRange() }})</span>
   </p>
 }
 

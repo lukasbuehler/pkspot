@@ -35,6 +35,35 @@ describe("MapPageComponent search template", () => {
     expect(banner).toContain('(dismiss)="dismissCheckInSpot($event)"');
   });
 
+  it("passes event series metadata to map event cards", () => {
+    const mapTemplate = readFileSync(templatePath, "utf8");
+    const objectPanel = mapTemplate.match(
+      /<app-map-object-panel[\s\S]*?<\/app-map-object-panel>/
+    )?.[0];
+    const objectPanelTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/map-object-panel/map-object-panel.component.html",
+      ),
+      "utf8",
+    );
+    const eventListTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/map-event-list/map-event-list.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(objectPanel).toContain(
+      '[eventSeriesById]="visibleEventSeriesById()"',
+    );
+    expect(objectPanelTemplate).toContain(
+      '[seriesById]="eventSeriesById()"',
+    );
+    expect(eventListTemplate).toContain('[seriesById]="seriesById()"');
+  });
+
   it("should hide the Add Spot button while a spot is selected", () => {
     const template = readFileSync(templatePath, "utf8");
     const controls = template.match(

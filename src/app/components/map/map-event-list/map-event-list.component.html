@@ -3,6 +3,7 @@
     @for (event of events(); track event.id) {
       <app-event-card
         [event]="event"
+        [seriesById]="seriesById()"
         [selectMode]="true"
         (select)="onSelect($event)"
       ></app-event-card>

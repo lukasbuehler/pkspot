@@ -716,6 +716,8 @@ describe("SearchService", () => {
       expect(searches[1].filter_by).toContain("published:!=false");
       expect(searches[1].filter_by).toContain("end_seconds:>=");
       expect(searches[1].filter_by).not.toContain("location:(");
+      expect(searches[1].include_fields).toContain("banner_fit");
+      expect(searches[1].include_fields).toContain("banner_accent_color");
       expect(searches[1].per_page).toBe(250);
       expect(events.map((event) => event.id)).toEqual(["visible-event"]);
 

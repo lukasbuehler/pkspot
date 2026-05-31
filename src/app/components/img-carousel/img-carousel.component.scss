@@ -5,7 +5,7 @@
   height: 100%;
   overflow: hidden;
   width: 100%;
-  touch-action: pan-x pan-y;
+  touch-action: none;
 
   .carousel-visual-layer,
   .carousel-scroll-layer {
@@ -23,6 +23,7 @@
     z-index: 2;
     cursor: pointer;
     user-select: none;
+    touch-action: none;
 
     // hide scrollbar
     scrollbar-width: none; /* Firefox */

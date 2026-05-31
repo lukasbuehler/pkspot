@@ -55,7 +55,7 @@
 
     <div class="event-preview-body px-3 pb-3">
       <app-event-hero-media
-        class="event-preview-hero"
+        class="event-preview-hero px-3"
         [event]="event"
       ></app-event-hero-media>
 
@@ -63,7 +63,16 @@
         <p class="mat-body-medium description mt-2">{{ event.description }}</p>
       }
 
-      <div class="cta-stack d-flex flex-column align-items-start gap-2 mt-2">
+      <div class="cta-stack d-flex flex-wrap align-items-start gap-2 mt-2">
+        <a
+          [matButton]="websiteUrl() ? 'outlined' : 'filled'"
+          color="primary"
+          [routerLink]="fullEventLink()"
+          class="full-event-cta"
+        >
+          <mat-icon>open_in_new</mat-icon>
+          <span i18n="@@event_preview.see_full">See full event</span>
+        </a>
         @if (websiteUrl(); as url) {
           <a
             mat-flat-button
@@ -89,27 +98,6 @@
           >
             <mat-icon>paid</mat-icon>
             <span>{{ ticket.label }}</span>
-          </a>
-        }
-        @if (websiteUrl()) {
-          <a
-            mat-stroked-button
-            color="primary"
-            [routerLink]="fullEventLink()"
-            class="full-event-cta"
-          >
-            <mat-icon>open_in_new</mat-icon>
-            <span i18n="@@event_preview.see_full">See full event</span>
-          </a>
-        } @else {
-          <a
-            mat-flat-button
-            color="primary"
-            [routerLink]="fullEventLink()"
-            class="full-event-cta"
-          >
-            <mat-icon>open_in_new</mat-icon>
-            <span i18n="@@event_preview.see_full">See full event</span>
           </a>
         }
       </div>

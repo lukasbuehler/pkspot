@@ -504,9 +504,6 @@ export interface EventSchema {
    */
   external_source?: EventExternalSourceSchema;
 
-  /** Optional pre-built JSON-LD blob for SEO. */
-  structured_data?: Record<string, any>;
-
   /**
    * Public aggregate maintained from private `/events/{eventId}/rsvps/*`
    * docs by Cloud Functions. Individual RSVP docs stay private to the

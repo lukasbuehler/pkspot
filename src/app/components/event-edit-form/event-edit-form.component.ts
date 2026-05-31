@@ -213,9 +213,9 @@ export type EventEditPatch = Omit<
  *     vs. published community circles. User can add / remove freely.
  *
  * Specialized fields (inline_spots, area_polygon, promo_region,
- * custom_markers, challenge_spot_map, structured_data) are still
- * Firestore-console territory — they're preserved on save via the
- * patch surface (we only emit the fields this form owns).
+ * custom_markers, challenge_spot_map) are still Firestore-console territory
+ * — they're preserved on save via the patch surface (we only emit the fields
+ * this form owns).
  */
 @Component({
   selector: "app-event-edit-form",

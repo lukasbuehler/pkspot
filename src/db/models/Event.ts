@@ -126,7 +126,6 @@ export class Event {
   readonly seriesMemberships: EventSeriesMembershipSchema[];
   readonly externalSource?: EventExternalSourceSchema;
 
-  readonly structuredData?: Record<string, any>;
   readonly rsvpCounts: EventRSVPCountsSchema;
   readonly published: boolean;
 
@@ -217,7 +216,6 @@ export class Event {
       this.seriesMemberships,
     );
     this.externalSource = data.external_source;
-    this.structuredData = data.structured_data;
     this.rsvpCounts = data.rsvp_counts ?? {
       going: 0,
       interested: 0,

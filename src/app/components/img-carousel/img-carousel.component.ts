@@ -81,8 +81,11 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   private previewResizeObserver: ResizeObserver | null = null;
   private activePreviewPointerId: number | null = null;
   private previewDragStartX = 0;
+  private previewDragStartY = 0;
   private previewDragStartScrollLeft = 0;
   private previewDragMoved = false;
+  private previewDragDirection: "horizontal" | "vertical" | null = null;
+  private readonly previewDragLockThresholdPx = 6;
   private readonly previewGapPx = 10;
   private readonly containedImageDefaultBackground =
     "var(--mat-sys-surface-container-highest)";
@@ -336,8 +339,11 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
 
     this.activePreviewPointerId = event.pointerId;
     this.previewDragStartX = event.clientX;
+    this.previewDragStartY = event.clientY;
     this.previewDragStartScrollLeft = scroller.scrollLeft;
     this.previewDragMoved = false;
+    this.previewDragDirection = null;
+    event.stopPropagation();
     scroller.setPointerCapture(event.pointerId);
   }
 
@@ -348,7 +354,33 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     }
 
     const deltaX = event.clientX - this.previewDragStartX;
-    if (Math.abs(deltaX) > 3) {
+    const deltaY = event.clientY - this.previewDragStartY;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+
+    if (
+      this.previewDragDirection === null &&
+      Math.max(absDeltaX, absDeltaY) >= this.previewDragLockThresholdPx
+    ) {
+      this.previewDragDirection =
+        absDeltaX >= absDeltaY ? "horizontal" : "vertical";
+    }
+
+    if (this.previewDragDirection === "vertical") {
+      this.previewDragMoved = true;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    if (this.previewDragDirection !== "horizontal") {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (absDeltaX > 3) {
       this.previewDragMoved = true;
     }
     scroller.scrollLeft = this.previewDragStartScrollLeft - deltaX;
@@ -364,7 +396,11 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     if (scroller?.hasPointerCapture(event.pointerId)) {
       scroller.releasePointerCapture(event.pointerId);
     }
+    if (this.previewDragDirection !== null) {
+      event.stopPropagation();
+    }
     this.activePreviewPointerId = null;
+    this.previewDragDirection = null;
   }
 
   getImageAspectRatio(index: number): string {
