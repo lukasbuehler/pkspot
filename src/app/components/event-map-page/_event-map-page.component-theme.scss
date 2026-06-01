@@ -5,3 +5,7 @@
     background-color: mat.get-theme-color($theme, surface-container-low);
   }
 }
+
+@mixin theme($theme) {
+  @include color($theme);
+}

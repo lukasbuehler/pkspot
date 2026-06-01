@@ -252,9 +252,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
    * still shows its participating spot pins when zoomed out.
    */
   readonly highlightedSpots = computed<SpotPreviewData[]>(() =>
-    this.spots()
-      .filter((s): s is Spot => s instanceof Spot)
-      .map((s) => s.makePreviewData()),
+    this._eventPageData.spotPreviewMarkers(this.spots()),
   );
 
   readonly challenges = signal<(SpotChallenge & { number: number })[]>([]);

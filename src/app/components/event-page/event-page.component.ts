@@ -37,6 +37,7 @@ import {
   MediaType,
 } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
+import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -314,11 +315,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly mapMarkers = computed<MarkerSchema[]>(() => {
     const event = this.event();
     if (!event) return [];
-    return [
-      ...this._eventPageData.customMarkers(event),
-      ...this._eventPageData.spotMapMarkers(this.spots()),
-    ];
+    return this._eventPageData.customMarkers(event);
   });
+  readonly mapPreviewSpotMarkers = computed<SpotPreviewData[]>(() =>
+    this._eventPageData.spotPreviewMarkers(this.spots()),
+  );
   readonly eventLocationMarker = computed<MarkerSchema | null>(() =>
     this._eventPageData.eventLocationMarker(this.event()),
   );
@@ -327,7 +328,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return event
       ? this._eventPageData.eventMapBounds(
           event,
-          this.mapMarkers().map((marker) => marker.location),
+          [
+            ...this.mapMarkers().map((marker) => marker.location),
+            ...this.spots().map((spot) => spot.location()),
+          ],
         )
       : null;
   });
@@ -336,7 +340,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this.isBrowser() &&
       !this.isCrawler() &&
       !!this.mapPreviewBounds() &&
-      this.mapMarkers().length > 0,
+      (this.mapMarkers().length > 0 || this.mapPreviewSpotMarkers().length > 0),
   );
 
   constructor() {

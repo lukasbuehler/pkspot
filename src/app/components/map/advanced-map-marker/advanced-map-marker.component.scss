@@ -61,7 +61,6 @@
 .advanced-map-marker-card__heading {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
   min-width: 0;
 
   span {
@@ -70,6 +69,35 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+.advanced-map-marker-card__subtitle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.advanced-map-marker-card__icon {
+  width: 1rem;
+  height: 1rem;
+  font-size: 1rem;
+}
+
+.marker-image-shell {
+  align-items: center;
+  border-radius: 4px;
+  display: inline-flex;
+  height: 1rem;
+  justify-content: center;
+  overflow: hidden;
+  width: 1rem;
+}
+
+.marker-image {
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
 }
 
 .advanced-map-marker-card p {

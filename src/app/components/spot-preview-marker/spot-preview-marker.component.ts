@@ -14,13 +14,11 @@ import { ResponsiveService } from "../../services/responsive.service";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { MediaType } from "../../../db/models/Interfaces";
-import { getImportantAmenities } from "../../../db/models/Amenities";
+import type { AmenitiesMap } from "../../../db/models/Amenities";
+import { AmenityIcons } from "../../../db/schemas/Amenities";
 import {
-  SpotAccess,
-  SpotAccessIcons,
   SpotTypes,
   SpotTypesIcons,
-  parseSpotAccess,
   parseSpotType,
 } from "../../../db/schemas/SpotTypeAndAccess";
 import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
@@ -286,43 +284,42 @@ export class SpotPreviewMarkerComponent {
     return !!spot.imageSrc;
   });
 
-  markerIcons = computed<string[]>(() => {
+  markerIcons = computed<string[] | null>(() => {
     const spot = this.spot();
 
     if ("isIconic" in spot && spot.isIconic) {
       return ["stars"];
     }
 
-    const amenityIcons = this.getAmenityIcons();
-    if (amenityIcons.length > 0) {
-      return amenityIcons;
-    }
+    const icons: string[] = [];
 
     if (spot instanceof Spot || spot instanceof LocalSpot) {
       const spotType = spot.type();
       if (spotType && spotType !== SpotTypes.Other) {
-        return [SpotTypesIcons[spotType]];
+        icons.push(SpotTypesIcons[spotType]);
       }
-
-      const spotAccess = spot.access();
-      if (spotAccess && spotAccess !== SpotAccess.Other) {
-        return [SpotAccessIcons[spotAccess]];
+      icons.push(...this.getEnvironmentIcons(spot.amenities()));
+      if (icons.length === 0 && spot.rating) {
+        return null;
+      }
+      if (icons.length === 0 && spot.amenities().outdoor === true) {
+        icons.push(AmenityIcons.outdoor ?? "nature_people");
       }
     } else {
       const spotType = parseSpotType(spot.type ?? null);
       if (spotType && spotType !== SpotTypes.Other) {
-        return [SpotTypesIcons[spotType]];
+        icons.push(SpotTypesIcons[spotType]);
+      }
+      icons.push(...this.getEnvironmentIcons(spot.amenities));
+      if (icons.length === 0 && spot.rating) {
+        return null;
+      }
+      if (icons.length === 0 && spot.amenities?.outdoor === true) {
+        icons.push(AmenityIcons.outdoor ?? "nature_people");
       }
     }
 
-    if (!(spot instanceof Spot || spot instanceof LocalSpot)) {
-      const spotAccess = parseSpotAccess(spot.access ?? null);
-      if (spotAccess && spotAccess !== SpotAccess.Other) {
-        return [SpotAccessIcons[spotAccess]];
-      }
-    }
-
-    return ["star"];
+    return icons.length > 0 ? icons : ["fiber_manual_record"];
   });
 
   computedZIndex = computed(() => {
@@ -374,22 +371,16 @@ export class SpotPreviewMarkerComponent {
     this.markerClick.emit(this.spot());
   }
 
-  private getAmenityIcons(): string[] {
-    const spot = this.spot();
+  private getEnvironmentIcons(amenities: AmenitiesMap | undefined): string[] {
+    if (!amenities) return [];
 
-    if (spot instanceof Spot || spot instanceof LocalSpot) {
-      return spot
-        .importantAmenitiesArray()
-        .filter((amenity) => !!amenity.icon)
-        .map((amenity) => amenity.icon!);
+    const icons: string[] = [];
+    if (amenities.covered === true) {
+      icons.push(AmenityIcons.covered ?? "roofing");
     }
-
-    if (!spot.amenities) {
-      return [];
+    if (amenities.indoor === true) {
+      icons.push(AmenityIcons.indoor ?? "home");
     }
-
-    return getImportantAmenities(spot.amenities, spot.type)
-      .filter((amenity) => !!amenity.icon)
-      .map((amenity) => amenity.icon!);
+    return icons;
   }
 }

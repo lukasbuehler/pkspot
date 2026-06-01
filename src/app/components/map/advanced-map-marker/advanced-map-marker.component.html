@@ -37,16 +37,25 @@
   <div class="advanced-map-marker-preview">
     <div class="advanced-map-marker-card">
       <div class="advanced-map-marker-card__heading">
-        <app-marker
-          [icons]="marker().icons"
-          [imageSrc]="marker().imageSrc"
-          [imageBackgroundColor]="marker().imageBackgroundColor"
-          [number]="marker().number"
-          [color]="marker().color ?? 'primary'"
-          [size]="0.56"
-        />
-        <span class="mat-title-small">{{ marker().name }}</span>
+        <span class="mat-title-medium">{{ marker().name }}</span>
       </div>
+      @if(marker().icons?.length || marker().imageSrc) {
+      <div class="advanced-map-marker-card__subtitle">
+        @if(marker().imageSrc) {
+        <span
+          class="marker-image-shell"
+          [style.background-color]="
+            marker().imageBackgroundColor ??
+            'var(--mat-sys-surface-container-highest)'
+          "
+        >
+          <img [src]="marker().imageSrc" alt="" class="marker-image" />
+        </span>
+        } @for(icon of marker().icons ?? []; track $index) {
+        <mat-icon class="advanced-map-marker-card__icon">{{ icon }}</mat-icon>
+        }
+      </div>
+      }
       @if(marker().description) {
       <p class="mat-body-small">{{ marker().description }}</p>
       }

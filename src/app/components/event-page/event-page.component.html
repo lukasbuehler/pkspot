@@ -222,9 +222,9 @@
           <section class="event-section map-preview">
             <div class="map-preview-header">
               <div>
-                <span class="info-label" i18n="@@event_info.map_label">
+                <h4 class="mat-title-medium" i18n="@@event_info.map_label">
                   Event map
-                </span>
+                </h4>
                 <p class="map-preview-title">
                   {{ event.venueString }}, {{ event.localityString }}
                 </p>
@@ -254,9 +254,9 @@
                 [markers]="[]"
                 [priorityMarkers]="mapMarkers()"
                 [spots]="spots()"
-                [highlightedSpots]="[]"
+                [highlightedSpots]="mapPreviewSpotMarkers()"
                 [hideRegularSpotPins]="true"
-                [showSpotPreview]="false"
+                [showSpotPreview]="true"
                 (boundsChange)="updateMapPreviewViewportBounds($event)"
               ></app-google-map-2d>
 

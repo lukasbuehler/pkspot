@@ -246,13 +246,47 @@ export class EventPageDataService {
     return spots.map((spot, spotIndex) => ({
       name: spot.name(),
       location: spot.location(),
-      icons: [spot instanceof Spot && spot.isIconic ? "stars" : "location_on"],
+      icons: [
+        spot instanceof Spot && spot.isIconic ? "stars" : "fiber_manual_record",
+      ],
       color: "primary",
       priority: EVENT_SPOT_MARKER_PRIORITY,
       ignoreCollisions: true,
       type: "event-spot",
       spotIndex,
     }));
+  }
+
+  spotPreviewMarkers(spots: (Spot | LocalSpot)[]): SpotPreviewData[] {
+    return spots.map((spot, index) => {
+      if (spot instanceof Spot) {
+        return spot.makePreviewData();
+      }
+
+      const location = spot.location();
+      const address = spot.address();
+      const data = spot.data();
+      return {
+        name: spot.name(),
+        id: `event-local-spot-${index}` as SpotId,
+        location: new GeoPoint(location.lat, location.lng),
+        location_raw: location,
+        type: spot.type(),
+        access: spot.access(),
+        locality: spot.localityString(),
+        countryCode: address?.country?.code,
+        countryName: address?.country?.name,
+        imageSrc: spot.previewImageSrc(),
+        isIconic: spot.isIconic,
+        hideStreetview: spot.hideStreetview,
+        rating: spot.rating || undefined,
+        numReviews: spot.numReviews,
+        amenities: spot.amenities(),
+        bounds: data.bounds,
+        bounds_raw: data.bounds_raw,
+        bounds_radius_m: data.bounds_radius_m,
+      };
+    });
   }
 
   eventLocationMarker(event: PkEvent | null): EventPageMapMarker | null {

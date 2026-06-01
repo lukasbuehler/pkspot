@@ -8,6 +8,7 @@ import {
   signal,
 } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
+import { MatIconModule } from "@angular/material/icon";
 import { MarkerComponent } from "../../marker/marker.component";
 import { buildMapMarkerOptions } from "../markers/map-marker.model";
 import type { MapMarkerSchema } from "../markers/map-marker.model";
@@ -20,7 +21,7 @@ import type { MapMarkerSchema } from "../markers/map-marker.model";
  */
 @Component({
   selector: "app-advanced-map-marker",
-  imports: [MapAdvancedMarker, MarkerComponent],
+  imports: [MapAdvancedMarker, MatIconModule, MarkerComponent],
   animations: [
     trigger("fadeInOut", [
       transition(":enter", [
@@ -59,9 +60,15 @@ export class AdvancedMapMarkerComponent {
   );
 
   readonly markerOptions =
-    computed<google.maps.marker.AdvancedMarkerElementOptions>(() =>
-      buildMapMarkerOptions(this.marker())
-    );
+    computed<google.maps.marker.AdvancedMarkerElementOptions>(() => {
+      const options = buildMapMarkerOptions(this.marker());
+      const hoverBoost =
+        this.hoverPreviewEnabled() && this.previewVisible() ? 1_000_000 : 0;
+      return {
+        ...options,
+        zIndex: (options.zIndex ?? 0) + hoverBoost,
+      };
+    });
 
   onDotMapClick(el: HTMLElement | null | undefined, event?: unknown): void {
     this.focusMarkerShell(el);
