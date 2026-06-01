@@ -134,6 +134,39 @@ describe("EventEditFormComponent", () => {
     ]);
   });
 
+  it("preserves the existing sponsor logo background color on submit", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        sponsor: {
+          name: "Original Sponsor",
+          url: "https://sponsor.example",
+          logo_src: "assets/sponsors/original.png",
+          logo_background_color: "#ffffff",
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    component.form.patchValue({
+      sponsor_name: "Updated Sponsor",
+    });
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].sponsor).toEqual({
+      name: "Updated Sponsor",
+      url: "https://sponsor.example",
+      logo_src: "assets/sponsors/original.png",
+      logo_background_color: "#ffffff",
+    });
+  });
+
   it("serializes edited program plans and items on submit", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

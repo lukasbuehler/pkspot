@@ -86,6 +86,13 @@
   font: var(--mat-sys-body-large);
 }
 
+.event-description--collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .info-label {
   display: block;
   margin-bottom: 0.5rem;
@@ -237,6 +244,8 @@ app-event-program-timeline {
 .map-preview-frame {
   height: min(54vh, 420px);
   min-height: 260px;
+
+  position: relative;
 }
 
 .map-preview-frame app-google-map-2d {

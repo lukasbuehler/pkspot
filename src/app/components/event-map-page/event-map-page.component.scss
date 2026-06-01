@@ -13,6 +13,8 @@
 
 .drawer-container {
   overflow: hidden;
+  width: 100%;
+  border-radius: 16px;
 }
 
 ::ng-deep .mat-drawer-content {
@@ -31,36 +33,63 @@
   padding-bottom: 1rem;
 }
 
-.dates-line {
-  color: var(--mat-sys-on-surface);
+.event-map-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
-// !important keeps these rules from being beaten by the typography
-// classes' own `color` resolution.
-.status-line {
-  margin: 0;
-  display: inline-flex;
+.custom-marker-card {
+  padding: 0.25rem 0;
+}
+
+.custom-marker-copy {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.custom-marker-row {
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  font-weight: 600;
+  appearance: none;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
   color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  text-align: start;
+  width: 100%;
+  min-height: 56px;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--mat-sys-surface-container-high);
+  }
+
+  app-marker {
+    flex: 0 0 auto;
+  }
+
+  span {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  mat-icon:last-child {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
 }
 
-.status-line.past {
-  color: var(--mat-sys-error) !important;
+.event-spot-list {
+  padding: 1rem 0.75rem 1rem 1rem;
+  width: 100%;
 }
 
-.status-line.upcoming {
-  color: var(--mat-sys-primary) !important;
-}
-
-.status-line.live {
-  color: var(--mat-sys-secondary) !important;
-}
-
-.status-line.sponsored {
-  color: var(--mat-sys-tertiary) !important;
+:host ::ng-deep .event-spot-list mat-card.compact {
+  width: 100%;
 }
 
 // Hint text-overflow safety on a tight header row.

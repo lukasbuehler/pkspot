@@ -39,6 +39,7 @@ import {
 import { MediaReportDialogComponent } from "../../media-report-dialog/media-report-dialog.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MapsApiService } from "../../services/maps-api.service";
+import { isFirstPartyStorageUrl } from "../../utils/first-party-media-url";
 
 export type ImgCarouselImageFit = "cover" | "contain";
 
@@ -540,6 +541,9 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       if (mediaObj.userId === "streetview") {
         return null;
       }
+      if (isFirstPartyStorageUrl(mediaObj.src)) {
+        return mediaObj.attribution?.source_url ?? null;
+      }
       return mediaObj.attribution?.source_url ?? this.getRemoteUrl(mediaObj.src);
     }
     return null;
@@ -805,7 +809,9 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     return (
       mediaObj instanceof ExternalImage ||
       mediaObj instanceof ExternalVideo
-    ) && mediaObj.userId !== "streetview" && this.getRemoteUrl(mediaObj.src) !== null;
+    ) && mediaObj.userId !== "streetview" &&
+      this.getRemoteUrl(mediaObj.src) !== null &&
+      !isFirstPartyStorageUrl(mediaObj.src);
   }
 
   private readExternalMediaPreference(): ExternalMediaPreference {
@@ -1572,7 +1578,8 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
       !(
         (mediaObj instanceof ExternalImage ||
           mediaObj instanceof ExternalVideo) &&
-        mediaObj.userId !== "streetview"
+        mediaObj.userId !== "streetview" &&
+        !isFirstPartyStorageUrl(mediaObj.src)
       )
     ) {
       return false;
@@ -1583,9 +1590,11 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
       return false;
     }
     const preference = this.data.externalMediaPreference;
+    const temporaryExpiry = preference?.temporaryAllowedDomains?.[domain];
     return !(
       preference?.allowAll ||
-      preference?.allowedDomains?.includes(domain)
+      preference?.allowedDomains?.includes(domain) ||
+      (typeof temporaryExpiry === "number" && temporaryExpiry > Date.now())
     );
   }
 

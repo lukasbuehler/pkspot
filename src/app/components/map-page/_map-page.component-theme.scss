@@ -24,17 +24,16 @@
     .glass {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
-      background-color: mat.get-theme-color(
-        $theme,
-        surface-container-high
-      );
+      background-color: mat.get-theme-color($theme, surface-container-high);
     }
   }
 
-  mat-drawer,
-  .mat-drawer,
-  .mat-drawer-inner-container {
-    background-color: mat.get-theme-color($theme, surface-container-low);
+  app-map-page {
+    mat-drawer,
+    .mat-drawer,
+    .mat-drawer-inner-container {
+      background-color: mat.get-theme-color($theme, surface-container-low);
+    }
   }
 }
 

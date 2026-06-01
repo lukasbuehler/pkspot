@@ -1,0 +1,7 @@
+@use "@angular/material" as mat;
+
+@mixin color($theme) {
+  .drawer-container {
+    background-color: mat.get-theme-color($theme, surface-container-low);
+  }
+}

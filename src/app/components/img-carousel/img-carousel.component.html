@@ -1,7 +1,4 @@
-<div
-  #previewViewport
-  class="carousel"
->
+<div #previewViewport class="carousel">
   <div class="carousel-visual-layer">
     @for (mediaObj of media(); track $index) {
       @if (shouldShowPreviewMedia(mediaObj, $index)) {
@@ -34,7 +31,9 @@
                 [attr.aria-label]="videoMuted() ? 'Unmute video' : 'Mute video'"
                 (click)="togglePreviewVideoMuted($event)"
               >
-                <mat-icon>{{ videoMuted() ? "volume_off" : "volume_up" }}</mat-icon>
+                <mat-icon>{{
+                  videoMuted() ? "volume_off" : "volume_up"
+                }}</mat-icon>
               </button>
             } @else if (
               !imageLoadErrors().has($index) && getImageSrc($index, mediaObj)
@@ -75,7 +74,16 @@
       } @else if (shouldShowExternalMediaGate(mediaObj, $index)) {
         <div
           class="spot-img-container external-media-gate-card"
-          style="display: flex; align-items: center; justify-content: center; padding: 14px; aspect-ratio: 1.25; min-width: 260px; background: var(--mat-sys-surface-container-high); pointer-events: auto"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            aspect-ratio: 1.25;
+            min-width: 260px;
+            background: var(--mat-sys-surface-container-high);
+            pointer-events: auto;
+          "
           [attr.data-media-index]="$index"
           (click)="onExternalMediaGateCardClick($event)"
         >
@@ -85,7 +93,13 @@
                 Load external media from
               </span>
               @if (getExternalMediaDomainLabel(mediaObj); as domain) {
-                <strong style="display: block; overflow-wrap: anywhere; margin-top: 4px;">
+                <strong
+                  style="
+                    display: block;
+                    overflow-wrap: anywhere;
+                    margin-top: 4px;
+                  "
+                >
                   {{ domain }}
                 </strong>
               }
@@ -120,7 +134,7 @@
               (click)="allowAllExternalMedia()"
             >
               <span i18n="@@img_carousel.always_allow_all_external_media">
-                Always allow all external media
+                Always allow ALL external media
               </span>
             </button>
           </div>

@@ -806,13 +806,13 @@
     <unit id="map_island.event_sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Gepromoot live-evenement</target>
+        <target>Advertentie: live-evenement</target>
       </segment>
     </unit>
     <unit id="map_island.event_sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Gepromoot aankomend evenement</target>
+        <target>Advertentie: aankomend evenement</target>
       </segment>
     </unit>
     <unit id="map_island.event_upcoming">
@@ -3199,7 +3199,7 @@
     <unit id="welcomeDialogPromotedEventsBody">
       <segment state="initial">
         <source> Some events may be marked as Promoted because PK Spot has a paid or otherwise material relationship with the organizer. Other events appear because they are relevant to your area or timing. </source>
-        <target> Sommige evenementen kunnen als Promoted gemarkeerd zijn omdat PK Spot een betaalde of anderszins materiële relatie met de organisator heeft. Andere evenementen verschijnen omdat ze relevant zijn voor je omgeving of timing. </target>
+        <target> Sommige evenementen kunnen als advertentie worden gemarkeerd omdat PK Spot een betaalde of anderszins materiële relatie met de organisator heeft. Andere evenementen verschijnen omdat ze relevant zijn voor je omgeving of timing. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
@@ -3344,13 +3344,13 @@
     <unit id="event_card.sponsored">
       <segment state="initial">
         <source>Promoted Event</source>
-        <target>Promoted Event</target>
+        <target>Advertentie</target>
       </segment>
     </unit>
     <unit id="event_card.sponsored_tooltip">
       <segment state="initial">
         <source>Promoted event</source>
-        <target>Promoted event</target>
+        <target>Advertentie</target>
       </segment>
     </unit>
     <unit id="event_create.meta.description">
@@ -3692,7 +3692,7 @@
     <unit id="event_edit.sponsor_hint">
       <segment state="initial">
         <source> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </source>
-        <target> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </target>
+        <target> Als dit is ingesteld, wordt het evenement behandeld als advertentie: het promotielogo verschijnt op evenementspelden en in de kaartchip. </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
@@ -3782,13 +3782,13 @@
     <unit id="event_page.status.sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Gepromoot live-evenement</target>
+        <target>Advertentie: live-evenement</target>
       </segment>
     </unit>
     <unit id="event_page.status.sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Gepromoot aankomend evenement</target>
+        <target>Advertentie: aankomend evenement</target>
       </segment>
     </unit>
     <unit id="event_page.status.starts_in">
@@ -3818,7 +3818,7 @@
     <unit id="event_preview.sponsored_tooltip">
       <segment state="initial">
         <source>Promoted event</source>
-        <target>Promoted event</target>
+        <target>Advertentie</target>
       </segment>
     </unit>
     <unit id="event_preview.status.live_event">
@@ -3836,13 +3836,13 @@
     <unit id="event_preview.status.sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Gepromoot live-evenement</target>
+        <target>Advertentie: live-evenement</target>
       </segment>
     </unit>
     <unit id="event_preview.status.sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Gepromoot aankomend evenement</target>
+        <target>Advertentie: aankomend evenement</target>
       </segment>
     </unit>
     <unit id="event_preview.status.upcoming_event">

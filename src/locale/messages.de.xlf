@@ -829,13 +829,13 @@
     <unit id="map_island.event_sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Gesponsertes Live-Event</target>
+        <target>Anzeige · Live-Event</target>
       </segment>
     </unit>
     <unit id="map_island.event_sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Gesponsertes bevorstehendes Event</target>
+        <target>Anzeige · bevorstehendes Event</target>
       </segment>
     </unit>
     <unit id="map_island.event_upcoming">
@@ -3365,8 +3365,12 @@
     </unit>
     <unit id="welcomeDialogPromotedEventsBody">
       <segment state="initial">
-        <source> Some events may be marked as Promoted because PK Spot has a paid or otherwise material relationship with the organizer. Other events appear because they are relevant to your area or timing. </source>
-        <target> Einige Events können als Promoted markiert sein, weil PK Spot eine bezahlte oder anderweitig wesentliche Beziehung zum Veranstalter hat. Andere Events erscheinen, weil sie für deine Gegend oder den Zeitpunkt relevant sind. </target>
+        <source> Some events may be marked as Promoted because PK Spot has a paid or otherwise
+          material relationship with the organizer. Other events appear because they are relevant to
+          your area or timing. </source>
+        <target> Einige Events können als Anzeige gekennzeichnet sein, weil PK Spot eine bezahlte
+          oder anderweitig wesentliche Beziehung zum Veranstalter hat. Andere Events erscheinen,
+          weil sie für deine Gegend oder den Zeitpunkt relevant sind. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
@@ -3524,13 +3528,13 @@
     <unit id="event_card.sponsored">
       <segment state="initial">
         <source>Promoted Event</source>
-        <target>Promoted Event</target>
+        <target>Anzeige</target>
       </segment>
     </unit>
     <unit id="event_card.sponsored_tooltip">
       <segment state="initial">
         <source>Promoted event</source>
-        <target>Promoted event</target>
+        <target>Anzeige</target>
       </segment>
     </unit>
     <unit id="event_create.meta.description">
@@ -3875,8 +3879,10 @@
     </unit>
     <unit id="event_edit.sponsor_hint">
       <segment state="initial">
-        <source> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </source>
-        <target> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </target>
+        <source> If set, the event is treated as promoted — the promotion logo shows on event spot
+          pins and inside the map-island chip. </source>
+        <target> Wenn gesetzt, wird das Event als Anzeige behandelt: Das Promotion-Logo erscheint
+          auf Event-Spot-Pins und im Map-Island-Chip. </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
@@ -3966,13 +3972,13 @@
     <unit id="event_page.status.sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Gesponsertes Live-Event</target>
+        <target>Anzeige · Live-Event</target>
       </segment>
     </unit>
     <unit id="event_page.status.sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Gesponsertes bevorstehendes Event</target>
+        <target>Anzeige · bevorstehendes Event</target>
       </segment>
     </unit>
     <unit id="event_page.status.starts_in">
@@ -4002,7 +4008,7 @@
     <unit id="event_preview.sponsored_tooltip">
       <segment state="initial">
         <source>Promoted event</source>
-        <target>Promoted event</target>
+        <target>Anzeige</target>
       </segment>
     </unit>
     <unit id="event_preview.status.live_event">
@@ -4020,13 +4026,13 @@
     <unit id="event_preview.status.sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Gesponsertes Live-Event</target>
+        <target>Anzeige · Live-Event</target>
       </segment>
     </unit>
     <unit id="event_preview.status.sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Gesponsertes bevorstehendes Event</target>
+        <target>Anzeige · bevorstehendes Event</target>
       </segment>
     </unit>
     <unit id="event_preview.status.upcoming_event">
@@ -6733,7 +6739,7 @@
     <unit id="459311985687858272">
       <segment state="initial">
         <source>Spots</source>
-        <target>Spot-Orte</target>
+        <target>Spots</target>
       </segment>
     </unit>
     <unit id="4608107035538313233">

@@ -138,6 +138,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isCrawler = signal(this.isBrowser() && isBot());
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
+  readonly isEventDescriptionExpanded = signal(false);
   readonly qualifierEventsById = signal<Record<string, PkEvent>>({});
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
   readonly expandedQualificationEventGroups = signal<Record<string, boolean>>(
@@ -159,6 +160,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       event.description ??
       $localize`Event in ` + event.localityString + ` (${this.dateRange()})`
     );
+  });
+  readonly hasLongDescription = computed(() => {
+    const description = this.description();
+    if (!description) return false;
+    return description.split(/\r?\n/).length > 6 || description.length > 520;
   });
 
   readonly name = computed(() => this.event()?.name ?? "");
@@ -313,6 +319,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ...this._eventPageData.spotMapMarkers(this.spots()),
     ];
   });
+  readonly eventLocationMarker = computed<MarkerSchema | null>(() =>
+    this._eventPageData.eventLocationMarker(this.event()),
+  );
   readonly mapPreviewBounds = computed(() => {
     const event = this.event();
     return event
@@ -563,6 +572,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this.isEditingEvent.set(false);
   }
 
+  toggleEventDescription(): void {
+    this.isEventDescriptionExpanded.update((expanded) => !expanded);
+  }
+
   async onSaveEvent(patch: EventEditPatch): Promise<void> {
     const current = this.event();
     if (!current || !this.isAdmin()) return;
@@ -571,7 +584,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       await this._eventsService.updateEvent(current.id, patch);
       const reloaded = await this._eventsService.getEventById(current.id);
       if (reloaded) {
-        this.event.set(reloaded);
+        this._setEvent(reloaded);
       }
       this.isEditingEvent.set(false);
       this._snackbar.open(
@@ -628,7 +641,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
             void this._router.navigate(["/events"]);
             return;
           }
-          this.event.set(loaded);
+          this._setEvent(loaded);
         },
         error: (err) => {
           if (requestVersion !== this._eventLoadRequestVersion) return;
@@ -649,7 +662,14 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       void this._router.navigate(["/events"]);
       return;
     }
-    this.event.set(loaded);
+    this._setEvent(loaded);
+  }
+
+  private _setEvent(event: PkEvent): void {
+    if (this.event()?.id !== event.id) {
+      this.isEventDescriptionExpanded.set(false);
+    }
+    this.event.set(event);
   }
 
   private _syncEventSeoData(event: PkEvent): void {

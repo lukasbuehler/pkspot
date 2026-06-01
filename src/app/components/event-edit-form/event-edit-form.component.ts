@@ -1315,6 +1315,7 @@ export class EventEditFormComponent {
               name: (v.sponsor_name ?? "").trim() || "Sponsor",
               url: trimOrUndefined(v.sponsor_url),
               logo_src: trimOrUndefined(v.sponsor_logo_src),
+              logo_background_color: this.event()?.sponsor?.logo_background_color,
             }
           : undefined,
     };

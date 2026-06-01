@@ -782,13 +782,13 @@
     <unit id="map_island.event_sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Evento en directo patrocinado</target>
+        <target>Publicidad: evento en directo</target>
       </segment>
     </unit>
     <unit id="map_island.event_sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Evento próximo patrocinado</target>
+        <target>Publicidad: evento próximo</target>
       </segment>
     </unit>
     <unit id="map_island.event_upcoming">
@@ -3151,7 +3151,7 @@
     <unit id="welcomeDialogPromotedEventsBody">
       <segment state="initial">
         <source> Some events may be marked as Promoted because PK Spot has a paid or otherwise material relationship with the organizer. Other events appear because they are relevant to your area or timing. </source>
-        <target> Algunos eventos pueden estar marcados como Promoted porque PK Spot tiene una relación pagada o de otro tipo material con el organizador. Otros eventos aparecen porque son relevantes para tu zona o el momento. </target>
+        <target> Algunos eventos pueden estar marcados como publicidad porque PK Spot tiene una relación pagada o de otro tipo material con el organizador. Otros eventos aparecen porque son relevantes para tu zona o el momento. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
@@ -3296,13 +3296,13 @@
     <unit id="event_card.sponsored">
       <segment state="initial">
         <source>Promoted Event</source>
-        <target>Promoted Event</target>
+        <target>Publicidad</target>
       </segment>
     </unit>
     <unit id="event_card.sponsored_tooltip">
       <segment state="initial">
         <source>Promoted event</source>
-        <target>Promoted event</target>
+        <target>Publicidad</target>
       </segment>
     </unit>
     <unit id="event_create.meta.description">
@@ -3644,7 +3644,7 @@
     <unit id="event_edit.sponsor_hint">
       <segment state="initial">
         <source> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </source>
-        <target> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </target>
+        <target> Si se activa, el evento se trata como publicidad: el logotipo de promoción aparece en los marcadores de eventos y dentro de la pastilla del mapa. </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
@@ -3734,13 +3734,13 @@
     <unit id="event_page.status.sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Evento en directo patrocinado</target>
+        <target>Publicidad: evento en directo</target>
       </segment>
     </unit>
     <unit id="event_page.status.sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Evento próximo patrocinado</target>
+        <target>Publicidad: evento próximo</target>
       </segment>
     </unit>
     <unit id="event_page.status.starts_in">
@@ -3770,7 +3770,7 @@
     <unit id="event_preview.sponsored_tooltip">
       <segment state="initial">
         <source>Promoted event</source>
-        <target>Promoted event</target>
+        <target>Publicidad</target>
       </segment>
     </unit>
     <unit id="event_preview.status.live_event">
@@ -3788,13 +3788,13 @@
     <unit id="event_preview.status.sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Evento en directo patrocinado</target>
+        <target>Publicidad: evento en directo</target>
       </segment>
     </unit>
     <unit id="event_preview.status.sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Evento próximo patrocinado</target>
+        <target>Publicidad: evento próximo</target>
       </segment>
     </unit>
     <unit id="event_preview.status.upcoming_event">

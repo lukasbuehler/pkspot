@@ -782,13 +782,13 @@
     <unit id="map_island.event_sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Evento live promosso</target>
+        <target>Pubblicità: evento live</target>
       </segment>
     </unit>
     <unit id="map_island.event_sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Evento imminente promosso</target>
+        <target>Pubblicità: evento imminente</target>
       </segment>
     </unit>
     <unit id="map_island.event_upcoming">
@@ -3151,7 +3151,7 @@
     <unit id="welcomeDialogPromotedEventsBody">
       <segment state="initial">
         <source> Some events may be marked as Promoted because PK Spot has a paid or otherwise material relationship with the organizer. Other events appear because they are relevant to your area or timing. </source>
-        <target> Alcuni eventi possono essere contrassegnati come Promoted perché PK Spot ha un rapporto retribuito o comunque materiale con l’organizzatore. Gli altri eventi appaiono perché sono rilevanti per la tua zona o per il momento. </target>
+        <target> Alcuni eventi possono essere contrassegnati come pubblicità perché PK Spot ha un rapporto retribuito o comunque materiale con l’organizzatore. Gli altri eventi appaiono perché sono rilevanti per la tua zona o per il momento. </target>
       </segment>
     </unit>
     <unit id="welcomeDialogTechBody">
@@ -3296,13 +3296,13 @@
     <unit id="event_card.sponsored">
       <segment state="initial">
         <source>Promoted Event</source>
-        <target>Promoted Event</target>
+        <target>Pubblicità</target>
       </segment>
     </unit>
     <unit id="event_card.sponsored_tooltip">
       <segment state="initial">
         <source>Promoted event</source>
-        <target>Promoted event</target>
+        <target>Pubblicità</target>
       </segment>
     </unit>
     <unit id="event_create.meta.description">
@@ -3644,7 +3644,7 @@
     <unit id="event_edit.sponsor_hint">
       <segment state="initial">
         <source> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </source>
-        <target> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </target>
+        <target> Se attiva, l’evento viene trattato come pubblicità: il logo promozionale appare sui pin evento e nel chip della mappa. </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
@@ -3734,13 +3734,13 @@
     <unit id="event_page.status.sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Evento live promosso</target>
+        <target>Pubblicità: evento live</target>
       </segment>
     </unit>
     <unit id="event_page.status.sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Evento imminente promosso</target>
+        <target>Pubblicità: evento imminente</target>
       </segment>
     </unit>
     <unit id="event_page.status.starts_in">
@@ -3770,7 +3770,7 @@
     <unit id="event_preview.sponsored_tooltip">
       <segment state="initial">
         <source>Promoted event</source>
-        <target>Promoted event</target>
+        <target>Pubblicità</target>
       </segment>
     </unit>
     <unit id="event_preview.status.live_event">
@@ -3788,13 +3788,13 @@
     <unit id="event_preview.status.sponsored_live">
       <segment state="initial">
         <source>Promoted Live Event</source>
-        <target>Evento live promosso</target>
+        <target>Pubblicità: evento live</target>
       </segment>
     </unit>
     <unit id="event_preview.status.sponsored_upcoming">
       <segment state="initial">
         <source>Promoted Upcoming Event</source>
-        <target>Evento imminente promosso</target>
+        <target>Pubblicità: evento imminente</target>
       </segment>
     </unit>
     <unit id="event_preview.status.upcoming_event">

@@ -168,6 +168,7 @@
     <!-- Priority Markers (always visible) -->
     @for(marker of priorityMarkers(); track $index) {
     <app-advanced-map-marker [marker]="marker" [index]="$index" [zoom]="zoom" [forceFullMarker]="true"
+      [hoverPreviewEnabled]="marker.type === 'event-custom'"
       (markerClick)="markerClick($event)"></app-advanced-map-marker>
     }
     @for(marker of getVisiblePointMarkers(); track marker.id) {

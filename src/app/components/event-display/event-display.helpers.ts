@@ -8,6 +8,7 @@ import {
 } from "../../../db/models/Media";
 import { MediaType } from "../../../db/models/Interfaces";
 import { MediaSchema } from "../../../db/schemas/Media";
+import { isFirstPartyStorageUrl } from "../../utils/first-party-media-url";
 
 export type EventStatus = "upcoming" | "live" | "past";
 
@@ -72,6 +73,25 @@ export function eventHeroMedia(event: PkEvent): AnyMedia[] {
     seen.add(item.baseSrc);
     return true;
   });
+}
+
+export function isRemoteExternalMedia(
+  media: AnyMedia,
+): media is ExternalImage | ExternalVideo {
+  if (
+    !(media instanceof ExternalImage || media instanceof ExternalVideo) ||
+    media.userId === "streetview" ||
+    isFirstPartyStorageUrl(media.src)
+  ) {
+    return false;
+  }
+
+  try {
+    const url = new URL(media.src);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 export function eventVenueLine(event: PkEvent): string {

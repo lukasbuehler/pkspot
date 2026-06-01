@@ -167,6 +167,21 @@ describe("ImgCarouselComponent", () => {
     expect(element.querySelector(".external-source-link")).toBeNull();
   });
 
+  it("does not gate first-party Firebase Storage media", () => {
+    const fixture = createFixture();
+    const media = new ExternalImage(
+      "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbanner.png?alt=media",
+    );
+
+    fixture.componentRef.setInput("media", [media]);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector(".external-media-gate-card")).toBeNull();
+    expect(element.querySelector("img")).not.toBeNull();
+    expect(element.querySelector(".external-source-link")).toBeNull();
+  });
+
   it("does not open blocked external media in the swiper", () => {
     const fixture = createFixture();
     const media = new ExternalVideo("https://cdn.example.com/session.mp4");
@@ -309,5 +324,47 @@ describe("SwiperDialogComponent", () => {
 
     const fixture = TestBed.createComponent(SwiperDialogComponent);
     expect(fixture.componentInstance.getDialogMedia()).toEqual([local]);
+  });
+
+  it("keeps temporarily allowed external media in the swiper", () => {
+    const temporaryAllowed = new ExternalImage(
+      "https://temporary.example.com/image.jpg",
+    );
+    TestBed.configureTestingModule({
+      imports: [SwiperDialogComponent],
+      providers: [
+        {
+          provide: MatDialogRef,
+          useValue: {
+            disableClose: false,
+            close: vi.fn(),
+            backdropClick: () => EMPTY,
+            keydownEvents: () => EMPTY,
+          },
+        },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            media: [temporaryAllowed],
+            index: 0,
+            externalMediaPreference: {
+              allowAll: false,
+              allowedDomains: [],
+              temporaryAllowedDomains: {
+                "temporary.example.com": Date.now() + 60 * 60 * 1000,
+              },
+            },
+          },
+        },
+        { provide: StorageService, useValue: {} },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SwiperDialogComponent);
+
+    expect(fixture.componentInstance.getDialogMedia()).toEqual([
+      temporaryAllowed,
+    ]);
   });
 });

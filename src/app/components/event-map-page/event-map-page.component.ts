@@ -47,7 +47,6 @@ import { SpotChallenge } from "../../../db/models/SpotChallenge";
 import { ChallengeListComponent } from "../challenge-list/challenge-list.component";
 import { MatDividerModule } from "@angular/material/divider";
 import { ChallengeDetailComponent } from "../challenge-detail/challenge-detail.component";
-import { Pipe, PipeTransform } from "@angular/core";
 import { ChipSelectComponent } from "../chip-select/chip-select.component";
 import { FormControl } from "@angular/forms";
 import {
@@ -79,25 +78,15 @@ import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
 import {
   eventImageDisplaySrc,
-  eventStatusLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
-
-@Pipe({
-  name: "reverse",
-  standalone: true,
-})
-export class ReversePipe implements PipeTransform {
-  transform<T>(value: T[]): T[] {
-    if (!Array.isArray(value)) return value;
-    return [...value].reverse();
-  }
-}
+import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
 
 type EventPageMapMarker = MarkerSchema & {
   spotIndex?: number;
   challengeIndex?: number;
 };
+type EventMapTab = "event" | "spots" | "challenges";
 
 @Component({
   selector: "app-event-map-page",
@@ -117,9 +106,9 @@ type EventPageMapMarker = MarkerSchema & {
     ChallengeDetailComponent,
     KeyValuePipe,
     MarkerComponent,
-    ReversePipe,
     ChipSelectComponent,
     EventEditFormComponent,
+    EventSummaryMetaComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -179,20 +168,28 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   selectedSpot = signal<Spot | LocalSpot | null>(null);
   selectedChallenge = signal<(SpotChallenge & { number: number }) | null>(null);
+  selectedCustomMarker = signal<MarkerSchema | null>(null);
 
   sidenavOpen = signal<boolean>(false);
-  tabs = {
+  tabs: Record<EventMapTab, string> = {
+    event: $localize`Event`,
     spots: $localize`Spots`,
     challenges: $localize`Challenges`,
   };
-  tab = signal<(typeof this.tabs)[keyof typeof this.tabs]>("spots");
+  tab = signal<EventMapTab>("spots");
+  private _hasInitializedResponsiveSidenav = false;
+  private _userToggledSidenav = false;
 
   /**
    * Tabs to render in the sidebar. Hides "Challenges" when there are none —
    * an event without challenges shouldn't show an empty tab.
    */
   readonly visibleTabs = computed<Record<string, string>>(() => {
-    const out: Record<string, string> = { spots: this.tabs.spots };
+    const out: Record<string, string> = {};
+    if (this.customMarkers().length > 0) {
+      out["event"] = this.tabs.event;
+    }
+    out["spots"] = this.tabs.spots;
     if (this.challenges().length > 0) {
       out["challenges"] = this.tabs.challenges;
     }
@@ -224,23 +221,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     return event ? this._eventPageData.eventMapBounds(event) : null;
   });
   readonly focusZoom = computed(() => this.event()?.focusZoom ?? 18);
-  readonly dateRange = computed(() => {
-    const e = this.event();
-    if (!e) return "";
-    return formatDateRange(e.start, e.end, this.locale);
-  });
-
   /** Live event status, recomputed against the current event's dates. */
   readonly eventStatus = computed<EventStatus | null>(
     () => this.event()?.status() ?? null,
   );
-
-  readonly compactStatusLabel = computed(() => {
-    const event = this.event();
-    const status = this.eventStatus();
-    if (!event || !status) return "";
-    return eventStatusLabel(event, status, this.locale);
-  });
 
   readonly customMarkers = computed<MarkerSchema[]>(() =>
     this._eventPageData.customMarkers(this.event()),
@@ -255,10 +239,9 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   readonly spotMapMarkers = computed<EventPageMapMarker[]>(() =>
     this._eventPageData.spotMapMarkers(this.spots()),
   );
-  readonly mapPriorityMarkers = computed<EventPageMapMarker[]>(() => [
-    ...this.markers(),
-    ...this.spotMapMarkers(),
-  ]);
+  readonly mapPriorityMarkers = computed<EventPageMapMarker[]>(() =>
+    this.markers(),
+  );
   readonly areaPolygon = signal<PolygonSchema | null>(null);
   readonly visibleMapBounds = signal<EventBoundsSchema | null>(null);
 
@@ -459,6 +442,22 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       return;
     }
     this.isCompactView = this._isEmbedded || window.innerWidth <= 576;
+    const hasSidenavRoom = this._hasSidenavRoom();
+
+    if (!this._hasInitializedResponsiveSidenav) {
+      this.sidenavOpen.set(hasSidenavRoom);
+      this._hasInitializedResponsiveSidenav = true;
+      return;
+    }
+
+    if (!hasSidenavRoom) {
+      this.sidenavOpen.set(false);
+      return;
+    }
+
+    if (!this._userToggledSidenav) {
+      this.sidenavOpen.set(true);
+    }
   }
 
   public get isEmbedded(): boolean {
@@ -592,6 +591,8 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   selectSpot(spot: Spot | LocalSpot | SpotId | SpotPreviewData) {
     this.tab.set("spots");
     this.sidenavOpen.set(true);
+    this.selectedCustomMarker.set(null);
+    this.selectedChallenge.set(null);
 
     if (spot instanceof Spot || spot instanceof LocalSpot) {
       this.selectedSpot.set(spot);
@@ -617,6 +618,9 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     const challenge = this.challenges()[challengeIndex];
     if (!challenge) return;
     const location = challenge.location()!;
+    this.tab.set("challenges");
+    this.selectedSpot.set(null);
+    this.selectedCustomMarker.set(null);
     this.selectedChallenge.set(challenge);
 
     if (this.spotMap instanceof SpotMapComponent && this.spotMap.map) {
@@ -628,14 +632,27 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   deselectSpot() {
     this.selectedSpot.set(null);
+    this.selectedChallenge.set(null);
+    this.selectedCustomMarker.set(null);
   }
 
   toggleSidenav() {
+    this._userToggledSidenav = true;
     this.sidenavOpen.update((open) => !open);
+  }
+
+  selectTab(tab: string): void {
+    if (tab === "event" || tab === "spots" || tab === "challenges") {
+      this.tab.set(tab);
+    }
   }
 
   markerClick(markerIndex: number) {
     const marker = this.mapPriorityMarkers()[markerIndex];
+    if (marker?.type === "event-custom") {
+      this.selectCustomMarker(marker);
+      return;
+    }
     if (marker?.type === "event-spot" && marker.spotIndex !== undefined) {
       this.selectSpot(this.spots()[marker.spotIndex]);
       return;
@@ -651,11 +668,30 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
     this.tab.set("challenges");
     this.sidenavOpen.set(true);
+    this.selectedSpot.set(null);
+    this.selectedCustomMarker.set(null);
     this.selectedChallenge.set(challenge);
   }
 
+  selectCustomMarker(marker: MarkerSchema): void {
+    this.tab.set("event");
+    this.sidenavOpen.set(true);
+    this.selectedSpot.set(null);
+    this.selectedChallenge.set(null);
+    this.selectedCustomMarker.set(marker);
+    this.focusCustomMarker(marker);
+  }
+
+  focusCustomMarker(marker: MarkerSchema): void {
+    if (this.spotMap instanceof SpotMapComponent && this.spotMap.map) {
+      this.spotMap.map.focusOnLocation(marker.location, this.focusZoom());
+    } else if (this.spotMap instanceof GoogleMap2dComponent) {
+      this.spotMap.focusOnLocation(marker.location, this.focusZoom());
+    }
+  }
+
   tabChanged(event: MatChipListboxChange) {
-    const selectedTab = event.value;
+    const selectedTab = event.value as EventMapTab | undefined;
     if (selectedTab) {
       this.tab.set(selectedTab);
     }
@@ -679,6 +715,15 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       a.getFullYear() === b.getFullYear() &&
       a.getMonth() === b.getMonth() &&
       a.getDate() === b.getDate()
+    );
+  }
+
+  private _hasSidenavRoom(): boolean {
+    return (
+      !this._isEmbedded &&
+      isPlatformBrowser(this.platformId) &&
+      typeof window !== "undefined" &&
+      window.innerWidth >= 992
     );
   }
 

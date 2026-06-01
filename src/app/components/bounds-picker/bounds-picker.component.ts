@@ -78,7 +78,7 @@ export class BoundsPickerComponent implements OnInit {
     zoomControl: true,
     streetViewControl: false,
     clickableIcons: false,
-    mapTypeId: "satellite",
+    mapTypeId: "hybrid",
     mapId: "BOUNDS_PICKER",
   };
 
@@ -221,7 +221,9 @@ export class BoundsPickerComponent implements OnInit {
   }
 }
 
-function boundsToPath(bounds: EventBoundsSchema): Array<{ lat: number; lng: number }> {
+function boundsToPath(
+  bounds: EventBoundsSchema,
+): Array<{ lat: number; lng: number }> {
   return [
     { lat: bounds.north, lng: bounds.west },
     { lat: bounds.north, lng: bounds.east },

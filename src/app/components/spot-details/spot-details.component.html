@@ -159,11 +159,11 @@
             {{
             (spot()?.rating ||
             spot()!.importantAmenitiesArray().length > 0) &&
-            spot()?.type()
+            spot()?.type() !== "other"
             ? "⸱"
             : null
             }}
-            @if (spot()?.type()) {
+            @if (spot()?.type() !== "other") {
             <div class="d-flex align-items-center" [@fadeSlideOnChange]="typeAnimKey()" style="min-width: 0">
               <mat-icon class="amenity-icon me-1 flex-shrink-0">{{
                 spotTypesIcons[spot()!.type()]
@@ -177,12 +177,12 @@
             {{
             (spot()?.rating ||
             spot()!.importantAmenitiesArray().length > 0 ||
-            spot()?.type()) &&
-            spot()?.access()
+            spot()?.type() !== "other") &&
+            spot()?.access() !== "other"
             ? "⸱"
             : null
             }}
-            @if (spot()?.access()) {
+            @if (spot()?.access() !== "other") {
             <div class="d-flex align-items-center" [class.access-off-limits]="
                         spot()!.access() === 'off-limits'
                       " [class.access-private]="spot()!.access() === 'private'" [@fadeSlideOnChange]="accessAnimKey()"
@@ -362,6 +362,7 @@
         Spot Type and Access
       </h4>
       <div class="d-flex flex-row gap-2">
+        @if (spot()?.type() !== "other") {
         <div
           class="d-flex flex-column justify-content-start align-items-start gap-2 p-2 flex-grow-1 flex-basis-0 border rounded">
           <span class="mat-label-small px-1 border rounded" i18n="@@spot.details.spot_type_chip">Spot Type</span>
@@ -374,6 +375,8 @@
             {{ spotTypeDescriptions[spot()!.type()] }}
           </p>
         </div>
+        }
+        @if (spot()?.access() !== "other") {
         <div
           class="d-flex flex-column justify-content-start align-items-start gap-2 p-2 flex-grow-1 flex-basis-0 border rounded">
           <span class="mat-label-small px-1 border rounded" i18n="@@spot.details.spot_access_chip">Spot Access</span>
@@ -387,6 +390,7 @@
             {{ spotAccessDescriptions[spot()!.access()] }}
           </p>
         </div>
+        }
       </div>
       <p class="mat-body-small m-0 py-2" i18n="@@spot.details.type_access_disclaimer">
         Info can be outdated or wrong. Always check signs and local rules
@@ -887,10 +891,17 @@
                   Spot type label|Label for the spot type selection
                   field@@spot_type_label">Spot Type</mat-label>
           <mat-select [value]="spot()!.type()" (valueChange)="spot()!.type.set($event)">
+            <mat-select-trigger>
+              <span class="d-flex align-items-center gap-2">
+                <mat-icon>{{ spotTypesIcons[spot()!.type()] }}</mat-icon>
+                <span>{{ spotTypeNames[spot()!.type()] }}</span>
+              </span>
+            </mat-select-trigger>
             @for (spotType of spotTypes; track $index) {
-            <mat-option [value]="spotType">{{
-              spotTypeNames[spotType]
-              }}</mat-option>
+            <mat-option [value]="spotType">
+              <mat-icon>{{ spotTypesIcons[spotType] }}</mat-icon>
+              <span>{{ spotTypeNames[spotType] }}</span>
+            </mat-option>
             }
           </mat-select>
           <mat-hint>{{ spotTypeDescriptions[spot()!.type()] }}</mat-hint>
@@ -900,10 +911,17 @@
                   Spot access label|Label for the spot access selection
                   field@@spot_access_label">Spot Access</mat-label>
           <mat-select [value]="spot()!.access()" (valueChange)="spot()!.access.set($event)">
+            <mat-select-trigger>
+              <span class="d-flex align-items-center gap-2">
+                <mat-icon>{{ spotAccessIcons[spot()!.access()] }}</mat-icon>
+                <span>{{ spotAccessNames[spot()!.access()] }}</span>
+              </span>
+            </mat-select-trigger>
             @for (spotAccess of spotAccesses; track $index) {
-            <mat-option [value]="spotAccess">{{
-              spotAccessNames[spotAccess]
-              }}</mat-option>
+            <mat-option [value]="spotAccess">
+              <mat-icon>{{ spotAccessIcons[spotAccess] }}</mat-icon>
+              <span>{{ spotAccessNames[spotAccess] }}</span>
+            </mat-option>
             }
           </mat-select>
           <mat-hint>{{

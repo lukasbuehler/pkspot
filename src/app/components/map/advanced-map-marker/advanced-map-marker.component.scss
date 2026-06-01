@@ -3,9 +3,12 @@
 }
 
 .advanced-map-marker-shell {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  outline: none;
+  overflow: visible;
 }
 
 .advanced-map-marker-shell--dot,
@@ -13,4 +16,98 @@
   width: 8px;
   height: 8px;
   border-radius: 4px;
+}
+
+.advanced-map-marker-pin {
+  transition:
+    opacity 0.18s ease,
+    transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
+  transform-origin: bottom center;
+}
+
+.advanced-map-marker-preview {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(16px) scale(0.88);
+  transform-origin: bottom center;
+  transition:
+    opacity 0.18s ease,
+    transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
+  width: clamp(210px, 22vw, 280px);
+  will-change: opacity, transform;
+}
+
+.advanced-map-marker-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  border-radius: 8px;
+  background: var(
+    --mat-card-elevated-container-color,
+    var(--mat-sys-surface-container-low)
+  );
+  color: var(--mat-sys-on-surface);
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.34));
+  padding: 0.75rem;
+}
+
+.advanced-map-marker-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.advanced-map-marker-card p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin: 0;
+  overflow: hidden;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.advanced-map-marker-tail {
+  margin-top: -7px;
+  fill: var(
+    --mat-card-elevated-container-color,
+    var(--mat-sys-surface-container-low)
+  );
+  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.18));
+}
+
+.advanced-map-marker-shell.preview-enabled.preview-visible {
+  z-index: 1;
+}
+
+.advanced-map-marker-shell.preview-enabled.preview-visible
+  .advanced-map-marker-preview {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.advanced-map-marker-shell.preview-enabled.preview-visible
+  .advanced-map-marker-pin {
+  opacity: 0;
+  transform: translateY(10px) scale(0.8);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .advanced-map-marker-preview {
+    display: none;
+  }
 }

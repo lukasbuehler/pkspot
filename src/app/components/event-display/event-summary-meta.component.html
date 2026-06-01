@@ -6,7 +6,7 @@
 }
 
 @if (statusLabel()) {
-  <p class="event-meta mat-title-medium m-0">
+  <p class="event-meta mat-title-medium m-0 d-flex flex-wrap gap-1">
     <span class="event-status" [attr.data-status]="status()">{{
       statusLabel()
     }}</span>

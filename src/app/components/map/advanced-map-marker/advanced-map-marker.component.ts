@@ -5,6 +5,7 @@ import {
   computed,
   input,
   output,
+  signal,
 } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { MarkerComponent } from "../../marker/marker.component";
@@ -49,7 +50,9 @@ export class AdvancedMapMarkerComponent {
   dotModeThreshold = input<number>(17);
   forceFullMarker = input<boolean>(false);
   emitDotClick = input<boolean>(false);
+  hoverPreviewEnabled = input<boolean>(false);
   markerClick = output<number>();
+  readonly previewVisible = signal(false);
 
   readonly useDotMode = computed(
     () => !this.forceFullMarker() && this.zoom() <= this.dotModeThreshold()
@@ -74,6 +77,16 @@ export class AdvancedMapMarkerComponent {
     this.focusMarkerShell(markerContent);
     this.stopPropagation(event);
     this.markerClick.emit(this.index());
+  }
+
+  showPreview(): void {
+    if (this.hoverPreviewEnabled()) {
+      this.previewVisible.set(true);
+    }
+  }
+
+  hidePreview(): void {
+    this.previewVisible.set(false);
   }
 
   private focusMarkerShell(el: HTMLElement | null | undefined): void {

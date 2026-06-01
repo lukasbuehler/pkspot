@@ -5,7 +5,7 @@ import {
   input,
 } from "@angular/core";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { eventHeroMedia } from "./event-display.helpers";
+import { eventHeroMedia, isRemoteExternalMedia } from "./event-display.helpers";
 import {
   ImgCarouselComponent,
   type ImgCarouselImageFit,
@@ -21,7 +21,14 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
 })
 export class EventHeroMediaComponent {
   event = input.required<PkEvent>();
-  readonly heroMedia = computed(() => eventHeroMedia(this.event()));
+  hideExternalMedia = input(false);
+  readonly heroMedia = computed(() => {
+    const media = eventHeroMedia(this.event());
+    if (!this.hideExternalMedia()) {
+      return media;
+    }
+    return media.filter((item) => !isRemoteExternalMedia(item));
+  });
   readonly imageFits = computed<readonly ImgCarouselImageFit[]>(() =>
     this.event().bannerFit === "contain" ? ["contain"] : [],
   );

@@ -119,7 +119,7 @@ describe("EventMapPageComponent", () => {
     );
   });
 
-  it("orders map markers so custom pins and challenges win collisions before event spots", () => {
+  it("keeps custom pins and challenges in priority markers while event spots use preview markers", () => {
     const eventPageData = {
       eventCanonicalPath: vi.fn(() => "/events/swissjam26"),
       customMarkers: vi.fn(() => [
@@ -221,7 +221,10 @@ describe("EventMapPageComponent", () => {
       "event-custom",
     ]);
     expect(component.mapPriorityMarkers().map((marker) => marker.type)).toEqual(
-      ["event-custom", "challenge", "event-spot"],
+      ["event-custom", "challenge"],
     );
+    expect(component.spotMapMarkers().map((marker) => marker.type)).toEqual([
+      "event-spot",
+    ]);
   });
 });
