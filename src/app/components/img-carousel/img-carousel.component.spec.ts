@@ -1,12 +1,21 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
-import { describe, expect, it, vi } from "vitest";
-import { ExternalVideo } from "../../../db/models/Media";
+import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { EMPTY } from "rxjs";
+import { ExternalImage, ExternalVideo } from "../../../db/models/Media";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MapsApiService } from "../../services/maps-api.service";
-import { ImgCarouselComponent } from "./img-carousel.component";
+import {
+  ImgCarouselComponent,
+  SwiperDialogComponent,
+} from "./img-carousel.component";
 
 describe("ImgCarouselComponent", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   const createFixture = (): ComponentFixture<ImgCarouselComponent> => {
     TestBed.configureTestingModule({
       imports: [ImgCarouselComponent],
@@ -21,6 +30,10 @@ describe("ImgCarouselComponent", () => {
   };
 
   it("renders external videos with an external media source link", () => {
+    localStorage.setItem(
+      "pkspot.showExternalMedia.v1",
+      JSON.stringify({ allowAll: true, allowedDomains: [] }),
+    );
     const fixture = createFixture();
     const media = new ExternalVideo(
       "https://cdn.example.com/session.mp4",
@@ -50,5 +63,251 @@ describe("ImgCarouselComponent", () => {
     expect(
       element.querySelector<HTMLButtonElement>(".video-mute-button"),
     ).not.toBeNull();
+  });
+
+  it("gates external media until the user allows it", () => {
+    const fixture = createFixture();
+    const media = new ExternalVideo(
+      "https://cdn.example.com/session.mp4",
+      undefined,
+      { author: "Parkour Stäfa" },
+      "other",
+      false,
+      "https://example.com/media-page",
+    );
+
+    fixture.componentRef.setInput("media", [media]);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector("video")).toBeNull();
+    expect(
+      element.querySelector(".external-media-gate-card")?.textContent,
+    ).toContain("cdn.example.com");
+    expect(
+      element.querySelector(".external-media-gate-card")?.textContent,
+    ).toContain("Load external media from");
+
+    element
+      .querySelector<HTMLButtonElement>(".external-media-gate-button")
+      ?.click();
+    fixture.detectChanges();
+
+    const storedPreference = JSON.parse(
+      localStorage.getItem("pkspot.showExternalMedia.v1")!,
+    );
+    expect(storedPreference.allowAll).toBe(false);
+    expect(storedPreference.allowedDomains).toEqual([]);
+    expect(
+      storedPreference.temporaryAllowedDomains["cdn.example.com"],
+    ).toBeGreaterThan(Date.now());
+    expect(element.querySelector("video")).not.toBeNull();
+  });
+
+  it("can always allow one external domain", () => {
+    const fixture = createFixture();
+    const media = new ExternalVideo("https://cdn.example.com/session.mp4");
+
+    fixture.componentRef.setInput("media", [media]);
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        ".external-media-gate-card button",
+      ),
+    );
+    buttons[1].click();
+    fixture.detectChanges();
+
+    expect(
+      JSON.parse(localStorage.getItem("pkspot.showExternalMedia.v1")!),
+    ).toEqual({
+      allowAll: false,
+      allowedDomains: ["cdn.example.com"],
+      temporaryAllowedDomains: {},
+    });
+    expect((fixture.nativeElement as HTMLElement).querySelector("video")).not.toBeNull();
+  });
+
+  it("can always allow all external domains", () => {
+    const fixture = createFixture();
+    const media = new ExternalVideo("https://cdn.example.com/session.mp4");
+
+    fixture.componentRef.setInput("media", [media]);
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        ".external-media-gate-card button",
+      ),
+    );
+    buttons[2].click();
+    fixture.detectChanges();
+
+    expect(
+      JSON.parse(localStorage.getItem("pkspot.showExternalMedia.v1")!),
+    ).toEqual({
+      allowAll: true,
+      allowedDomains: [],
+      temporaryAllowedDomains: {},
+    });
+    expect((fixture.nativeElement as HTMLElement).querySelector("video")).not.toBeNull();
+  });
+
+  it("does not gate local asset media", () => {
+    const fixture = createFixture();
+    const media = new ExternalImage("assets/events/wpf-camp-banner.jpg");
+
+    fixture.componentRef.setInput("media", [media]);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector(".external-media-gate-card")).toBeNull();
+    expect(element.querySelector("img")).not.toBeNull();
+    expect(element.querySelector(".external-source-link")).toBeNull();
+  });
+
+  it("does not open blocked external media in the swiper", () => {
+    const fixture = createFixture();
+    const media = new ExternalVideo("https://cdn.example.com/session.mp4");
+    fixture.componentRef.setInput("media", [media]);
+    fixture.detectChanges();
+
+    const dialog = TestBed.inject(MatDialog) as unknown as {
+      open: ReturnType<typeof vi.fn>;
+    };
+
+    fixture.componentInstance.imageClick(0);
+
+    expect(dialog.open).not.toHaveBeenCalled();
+  });
+
+  it("keeps separate gates for separate external domains", () => {
+    const fixture = createFixture();
+    const firstMedia = new ExternalVideo(
+      "https://cdn.example.com/session.mp4",
+      undefined,
+      { author: "Parkour Stäfa" },
+      "other",
+    );
+    const secondMedia = new ExternalVideo(
+      "https://video.example.org/session.mp4",
+      undefined,
+      { author: "OMFG" },
+      "other",
+    );
+
+    fixture.componentRef.setInput("media", [firstMedia, secondMedia]);
+    fixture.detectChanges();
+
+    let element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll(".external-media-gate-card").length).toBe(2);
+
+    element
+      .querySelector<HTMLButtonElement>(".external-media-gate-button")
+      ?.click();
+    fixture.detectChanges();
+
+    element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll("video").length).toBe(1);
+    expect(element.querySelector(".external-media-gate-card")?.textContent).toContain(
+      "video.example.org",
+    );
+  });
+});
+
+describe("SwiperDialogComponent", () => {
+  const createDialogFixture = (media: ExternalImage[]) => {
+    TestBed.configureTestingModule({
+      imports: [SwiperDialogComponent],
+      providers: [
+        {
+          provide: MatDialogRef,
+          useValue: {
+            disableClose: false,
+            close: vi.fn(),
+            backdropClick: () => EMPTY,
+            keydownEvents: () => EMPTY,
+          },
+        },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            media,
+            index: 0,
+            externalMediaPreference: {
+              allowAll: true,
+              allowedDomains: [],
+            },
+          },
+        },
+        { provide: StorageService, useValue: {} },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+      ],
+    });
+
+    return TestBed.createComponent(SwiperDialogComponent);
+  };
+
+  it("updates the external source link from the active swiper slide", () => {
+    const fixture = createDialogFixture([
+      new ExternalImage(
+        "https://cdn.example.com/first.jpg",
+        undefined,
+        undefined,
+        "other",
+        false,
+        "https://source.example.com/first",
+      ),
+      new ExternalImage(
+        "https://cdn.example.com/second.jpg",
+        undefined,
+        undefined,
+        "other",
+        false,
+        "https://source.example.com/second",
+      ),
+    ]);
+
+    fixture.componentInstance.activeSlideIndex.set(1);
+
+    expect(fixture.componentInstance.getActiveExternalSourceUrl()).toBe(
+      "https://source.example.com/second",
+    );
+  });
+
+  it("filters blocked external media out of the swiper", () => {
+    const blocked = new ExternalImage("https://blocked.example.com/image.jpg");
+    const local = new ExternalImage("assets/events/wpf-camp-banner.jpg");
+    TestBed.configureTestingModule({
+      imports: [SwiperDialogComponent],
+      providers: [
+        {
+          provide: MatDialogRef,
+          useValue: {
+            disableClose: false,
+            close: vi.fn(),
+            backdropClick: () => EMPTY,
+            keydownEvents: () => EMPTY,
+          },
+        },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            media: [local, blocked],
+            index: 0,
+            externalMediaPreference: {
+              allowAll: false,
+              allowedDomains: [],
+            },
+          },
+        },
+        { provide: StorageService, useValue: {} },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SwiperDialogComponent);
+    expect(fixture.componentInstance.getDialogMedia()).toEqual([local]);
   });
 });

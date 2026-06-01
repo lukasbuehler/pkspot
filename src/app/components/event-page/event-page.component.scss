@@ -52,7 +52,7 @@
 }
 
 .event-section {
-  margin-top: 1.5rem;
+  margin-top: 3rem;
 }
 
 .event-tags mat-chip {
@@ -108,19 +108,17 @@
   display: flex;
   align-items: center;
   margin-bottom: 0.75rem;
+  gap: 0.25rem;
 }
-
-.qualification-section,
-.program-section,
 .ticket-option,
-.map-preview {
+.map-preview,
+app-event-program-timeline {
+  display: block;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 8px;
   background: var(--mat-sys-surface-container-low);
 }
 
-.qualification-section,
-.program-section,
 .ticket-option {
   padding: 1rem;
 }

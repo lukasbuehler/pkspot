@@ -91,10 +91,7 @@
         </section>
       }
 
-      @if (
-        event.eventCategories.length > 0 ||
-        visibleSeriesTags().length > 0
-      ) {
+      @if (event.eventCategories.length > 0 || visibleSeriesTags().length > 0) {
         <section class="event-section event-tags" aria-label="Event tags">
           @if (event.eventCategories.length > 0) {
             <mat-chip-set aria-label="Event categories">
@@ -112,22 +109,18 @@
             <mat-chip-set aria-label="Event series">
               @for (tag of visibleSeriesTags(); track seriesTagTrackKey(tag)) {
                 <mat-chip highlighted>
-                  <span
-                    matChipAvatar
-                    class="series-logo"
-                    [style.background]="
-                      seriesVisual(tag.seriesId).background
-                    "
-                  >
-                    @if (seriesVisual(tag.seriesId).logoSrc) {
+                  @if (seriesVisual(tag.seriesId).logoSrc) {
+                    <span
+                      matChipAvatar
+                      class="series-logo"
+                      [style.background]="seriesVisual(tag.seriesId).background"
+                    >
                       <img
                         [src]="seriesVisual(tag.seriesId).logoSrc"
                         [alt]="seriesLabel(tag.seriesId)"
                       />
-                    } @else {
-                      <span>{{ seriesInitials(tag.seriesId) }}</span>
-                    }
-                  </span>
+                    </span>
+                  }
                   {{ seriesLabel(tag.seriesId) }}
                   @if (tag.role) {
                     · {{ seriesRoleLabel(tag.role) }}
@@ -244,9 +237,10 @@
       @if (activeProgramItems().length > 0) {
         <section class="event-section program-section">
           <div class="section-heading-row">
-            <h2 class="mat-title-medium m-0" i18n="@@event_program.heading">
+            <h2 class="mat-title-large m-0" i18n="@@event_program.heading">
               Program
             </h2>
+            <mat-icon>schedule</mat-icon>
           </div>
           <app-event-program-timeline
             [items]="activeProgramItems()"
@@ -257,10 +251,11 @@
 
       @if (ticketOptions().length > 0) {
         <section class="event-section ticket-section">
-          <div class="ticket-section-heading">
-            <h2 class="mat-title-medium m-0" i18n="@@event_tickets.heading">
+          <div class="section-heading-row">
+            <h2 class="mat-title-large m-0" i18n="@@event_tickets.heading">
               Tickets
             </h2>
+            <mat-icon>local_activity</mat-icon>
           </div>
           <div class="ticket-grid">
             @for (ticket of ticketOptions(); track ticket.id) {
@@ -322,7 +317,7 @@
         <section class="event-section qualification-section">
           <div class="section-heading-row">
             <h2
-              class="mat-title-medium m-0"
+              class="mat-title-large m-0"
               i18n="@@event_qualification.heading"
             >
               Qualification
@@ -334,7 +329,7 @@
             track membership.series_id + membership.role
           ) {
             <article class="qualification-block">
-              <p class="mat-title-small qualification-title">
+              <p class="mat-title-medium qualification-title">
                 {{ seriesLabel(membership.series_id) }} ·
                 {{ seriesRoleLabel(membership.role) }}
               </p>

@@ -14,7 +14,14 @@
         style="object-fit: contain"
         priority
         fill
-      />}
+      />} @else if (getVideoPreviewSrc(dialogData.media)) {
+        <video
+          [src]="getVideoPreviewSrc(dialogData.media)!"
+          muted
+          playsinline
+          style="width: 100%; height: 100%; object-fit: contain"
+        ></video>
+      }
     </div>
   </div>
   <p class="mat-body-large" i18n>Please select the reason for this report:</p>
@@ -24,23 +31,22 @@
       class="d-flex flex-column mb-3 gap-3"
       formControlName="reason"
     >
-      <mat-radio-button value="not of spot" i18n
+      <mat-radio-button value="not relevant" i18n
         ><span class="mat-body-large"
-          >Not a picture of this spot: This image does not show the location or
-          is misleading.</span
+          >Not relevant: This media does not belong here or is misleading.</span
         ></mat-radio-button
       >
 
       <mat-radio-button value="bad quality" i18n
         ><span class="mat-body-large"
-          >Bad quality: This picture is blurry, too dark, or generally poor
+          >Bad quality: This media is blurry, too dark, or generally poor
           quality.</span
         ></mat-radio-button
       >
 
       <mat-radio-button value="duplicate" i18n
         ><span class="mat-body-large"
-          >Duplicate: This image is already present on this spot.</span
+          >Duplicate: This media is already present.</span
         ></mat-radio-button
       >
 
@@ -58,7 +64,7 @@
       >
       <mat-radio-button value="tos violation" i18n
         ><span class="mat-body-large"
-          >This picture violates the terms of service in other ways (nudity,
+          >This media violates the terms of service in other ways (nudity,
           violence, etc.)</span
         ></mat-radio-button
       >

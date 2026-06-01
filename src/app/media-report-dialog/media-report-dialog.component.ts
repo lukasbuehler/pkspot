@@ -26,6 +26,7 @@ import { MatInputModule } from "@angular/material/input";
 import { NgOptimizedImage } from "@angular/common";
 import {
   ExternalImage,
+  ExternalVideo,
   StorageImage,
   AnyMedia,
   StorageVideo,
@@ -35,7 +36,13 @@ import { UsersService } from "../services/firebase/firestore/users.service";
 import { MediaReportsService } from "../services/firebase/firestore/media-reports.service";
 import { AuthenticationService } from "../services/firebase/authentication.service";
 import { firstValueFrom } from "rxjs";
-import { isEmailValid } from "../../scripts/Helpers";
+
+interface MediaReportDialogData {
+  media: AnyMedia;
+  spotId?: string;
+  context?: "spot" | "event" | "media";
+  targetId?: string;
+}
 
 @Component({
   selector: "app-media-report-dialog",
@@ -67,19 +74,23 @@ export class MediaReportDialogComponent implements AfterViewInit {
   isAuthenticated = signal(false);
 
   reportForm: FormGroup;
-  public dialogData: any = inject<{
-    media: AnyMedia;
-    spotId?: string;
-  }>(MAT_DIALOG_DATA);
+  public dialogData = inject<MediaReportDialogData>(MAT_DIALOG_DATA);
+  readonly contextLabel =
+    this.dialogData.context === "event" ? "event" : "spot";
 
   getPreviewSrc(media: AnyMedia): string | null {
     if (media instanceof StorageImage) {
       return media.getSrc(200);
     } else if (media instanceof StorageVideo) {
       return media.getPreviewImageSrc();
-    } else {
+    } else if (media instanceof ExternalImage) {
       return media.src;
     }
+    return null;
+  }
+
+  getVideoPreviewSrc(media: AnyMedia): string | null {
+    return media instanceof ExternalVideo ? media.src : null;
   }
 
   constructor() {
@@ -149,7 +160,9 @@ export class MediaReportDialogComponent implements AfterViewInit {
         comment,
         !this.isAuthenticated() ? reporterEmail : undefined,
         this.locale,
-        this.dialogData.spotId
+        this.dialogData.spotId,
+        this.dialogData.spotId ? "spot" : this.dialogData.context,
+        this.dialogData.targetId ?? this.dialogData.spotId
       )
       .then(() => {
         console.log("Media report submitted successfully");

@@ -371,7 +371,9 @@ export function makeAnyMediaFromMediaSchema(
           mediaSchema.attribution,
           (mediaSchema.origin as "user" | "other") ?? "other",
           false, // isProcessing
-          mediaSchema.isReported ?? false
+          mediaSchema.isReported ?? false,
+          mediaSchema.source_page_url,
+          mediaSchema.attribution_text
         );
       } else if (mediaSchema.type === MediaType.Video) {
         return new StorageVideo(
@@ -379,7 +381,9 @@ export function makeAnyMediaFromMediaSchema(
           mediaSchema.uid,
           mediaSchema.attribution,
           (mediaSchema.origin as "user" | "other") ?? "other",
-          mediaSchema.isReported ?? false
+          mediaSchema.isReported ?? false,
+          mediaSchema.source_page_url,
+          mediaSchema.attribution_text
         );
       } else {
         throw new Error("Unknown media type for storage media");
@@ -392,7 +396,8 @@ export function makeAnyMediaFromMediaSchema(
           mediaSchema.attribution,
           mediaSchema.origin as "user" | "streetview" | "other",
           mediaSchema.isReported ?? false,
-          mediaSchema.source_page_url
+          mediaSchema.source_page_url,
+          mediaSchema.attribution_text
         );
       } else if (mediaSchema.type === MediaType.Video) {
         return new ExternalVideo(
@@ -401,7 +406,8 @@ export function makeAnyMediaFromMediaSchema(
           mediaSchema.attribution,
           mediaSchema.origin as "user" | "streetview" | "other",
           mediaSchema.isReported ?? false,
-          mediaSchema.source_page_url
+          mediaSchema.source_page_url,
+          mediaSchema.attribution_text
         );
       } else {
         throw new Error("Unknown media type for external media");
@@ -422,7 +428,8 @@ export function makeAnyMediaFromMediaSchema(
         mediaSchema.attribution,
         (mediaSchema.origin as "user" | "streetview" | "other") ?? "other",
         mediaSchema.isReported ?? false,
-        mediaSchema.source_page_url
+        mediaSchema.source_page_url,
+        mediaSchema.attribution_text
       );
     }
 
@@ -432,7 +439,8 @@ export function makeAnyMediaFromMediaSchema(
       mediaSchema.attribution,
       (mediaSchema.origin as "user" | "streetview" | "other") ?? "other",
       mediaSchema.isReported ?? false,
-      mediaSchema.source_page_url
+      mediaSchema.source_page_url,
+      mediaSchema.attribution_text
     );
   }
 }

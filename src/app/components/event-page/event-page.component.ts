@@ -840,15 +840,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     };
   }
 
-  seriesInitials(seriesId: string): string {
-    return this.seriesLabel(seriesId)
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 3)
-      .map((word) => word[0]?.toUpperCase() ?? "")
-      .join("");
-  }
-
   seriesRoleLabel(role: EventSeriesMembershipSchema["role"]): string {
     switch (role) {
       case "qualifier":

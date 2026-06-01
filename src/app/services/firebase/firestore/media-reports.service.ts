@@ -23,22 +23,16 @@ export class MediaReportsService extends ConsentAwareService {
    * Only includes fields that are valid Firestore types (no undefined values)
    */
   private serializeMedia(media: AnyMedia): MediaReportSchema["media"] {
-    const serialized: { type: string; userId?: string; src?: string } = {
-      type: media.type,
+    const serialized = {
+      ...media.getData(),
+      userId: media.userId,
+      src: media.baseSrc,
     };
-
-    // Only add userId if it exists
-    if (media.userId) {
-      serialized.userId = media.userId;
+    for (const key of Object.keys(serialized) as (keyof typeof serialized)[]) {
+      if (serialized[key] === undefined) {
+        delete serialized[key];
+      }
     }
-
-    // Add src (check baseSrc for StorageMedia, then src for others)
-    if ((media as any).baseSrc) {
-      serialized.src = (media as any).baseSrc;
-    } else if ((media as any).src) {
-      serialized.src = (media as any).src;
-    }
-
     return serialized;
   }
 
@@ -56,7 +50,9 @@ export class MediaReportsService extends ConsentAwareService {
     comment: string,
     reporterEmail?: string,
     locale?: string,
-    spotId?: string
+    spotId?: string,
+    context?: MediaReportSchema["context"],
+    targetId?: string
   ): Promise<string> {
     const authUser = await firstValueFrom(this.authService.authState$);
 
@@ -74,6 +70,8 @@ export class MediaReportsService extends ConsentAwareService {
       createdAt: new Date(),
       ...(locale && { locale }),
       ...(spotId && { spotId }),
+      ...(context && { context }),
+      ...(targetId && { targetId }),
     };
 
     console.log("Submitting media report with data:", {

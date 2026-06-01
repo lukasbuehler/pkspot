@@ -308,6 +308,7 @@ export class EventEditFormComponent {
     sponsor_logo_src: [""],
     external_media_url: [""],
     external_media_source_url: [""],
+    external_media_attribution_text: [""],
   });
 
   /**
@@ -462,6 +463,7 @@ export class EventEditFormComponent {
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
         external_media_url: "",
         external_media_source_url: "",
+        external_media_attribution_text: "",
       });
       this.location.set(e.location);
       this.areaPath.set(eventAreaPath(e.areaPolygon));
@@ -753,12 +755,16 @@ export class EventEditFormComponent {
               isInStorage: false,
               origin: "other",
               source_page_url: sourcePageUrl ?? undefined,
+              attribution_text:
+                this.form.value.external_media_attribution_text?.trim() ||
+                undefined,
             },
           ],
     );
     this.form.patchValue({
       external_media_url: "",
       external_media_source_url: "",
+      external_media_attribution_text: "",
     });
     this.form.controls["external_media_url"].setErrors(null);
     this.form.controls["external_media_source_url"].setErrors(null);

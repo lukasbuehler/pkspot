@@ -42,6 +42,12 @@ import { MapsApiService } from "../../services/maps-api.service";
 
 export type ImgCarouselImageFit = "cover" | "contain";
 
+interface ExternalMediaPreference {
+  allowAll: boolean;
+  allowedDomains: string[];
+  temporaryAllowedDomains?: Record<string, number>;
+}
+
 @Component({
   selector: "app-img-carousel",
   imports: [
@@ -58,6 +64,8 @@ export type ImgCarouselImageFit = "cover" | "contain";
 export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   media = input<AnyMedia[] | undefined>();
   spotId = input<string | undefined>();
+  reportContext = input<"spot" | "event" | "media">("media");
+  reportTargetId = input<string | undefined>();
 
   /** Tracks images that failed to load and are being retried */
   imageLoadErrors = signal<Set<number>>(new Set());
@@ -83,6 +91,22 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   canScrollLeft = signal(false);
   canScrollRight = signal(false);
   videoMuted = signal(true);
+  private readonly externalMediaPreferenceStorageKey =
+    "pkspot.showExternalMedia.v1";
+  private readonly temporaryExternalMediaDurationMs = 60 * 60 * 1000;
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  externalMediaPreference = signal(this.readExternalMediaPreference());
+
+  hasBlockedExternalMedia = computed(() =>
+    (this.media() ?? []).some(
+      (mediaObj, index) =>
+        this.isExternalMedia(mediaObj) &&
+        this.isPreviewMedia(mediaObj) &&
+        !this.hiddenIndices().has(index) &&
+        !mediaObj.isReported &&
+        !this.isExternalMediaAllowed(mediaObj),
+    ),
+  );
 
   mapsApiService = inject(MapsApiService);
   private resizeAnimationFrame: number | null = null;
@@ -343,11 +367,172 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     return mediaObj instanceof ExternalVideo || mediaObj.type === "image";
   }
 
+  shouldShowPreviewMedia(mediaObj: AnyMedia, index: number): boolean {
+    return (
+      this.isPreviewMedia(mediaObj) &&
+      !this.hiddenIndices().has(index) &&
+      !mediaObj.isReported &&
+      (!this.isExternalMedia(mediaObj) || this.isExternalMediaAllowed(mediaObj))
+    );
+  }
+
+  shouldShowExternalMediaGate(mediaObj: AnyMedia, index: number): boolean {
+    const domain = this.getExternalMediaDomain(mediaObj);
+    return (
+      this.isExternalMedia(mediaObj) &&
+      this.isPreviewMedia(mediaObj) &&
+      !this.hiddenIndices().has(index) &&
+      !mediaObj.isReported &&
+      domain !== null &&
+      !this.isExternalMediaAllowed(mediaObj) &&
+      index === this.getFirstBlockedExternalMediaIndexForDomain(domain)
+    );
+  }
+
   isExternalVideo(mediaObj: AnyMedia): mediaObj is ExternalVideo {
     return mediaObj instanceof ExternalVideo;
   }
 
+  allowExternalMediaDomain(mediaObj: AnyMedia): void {
+    this.allowExternalMediaDomainWithDuration(mediaObj, null);
+  }
+
+  allowExternalMediaDomainTemporarily(mediaObj: AnyMedia): void {
+    this.allowExternalMediaDomainWithDuration(
+      mediaObj,
+      Date.now() + this.temporaryExternalMediaDurationMs,
+    );
+  }
+
+  private allowExternalMediaDomainWithDuration(
+    mediaObj: AnyMedia,
+    expiresAt: number | null,
+  ): void {
+    const domain = this.getExternalMediaDomain(mediaObj);
+    if (!domain) {
+      return;
+    }
+    this.externalMediaPreference.update((preference) => {
+      const temporaryAllowedDomains = {
+        ...(preference.temporaryAllowedDomains ?? {}),
+      };
+
+      if (expiresAt === null) {
+        delete temporaryAllowedDomains[domain];
+      } else {
+        temporaryAllowedDomains[domain] = expiresAt;
+      }
+
+      const next = {
+        ...preference,
+        allowedDomains:
+          expiresAt === null && !preference.allowedDomains.includes(domain)
+            ? [...preference.allowedDomains, domain]
+            : preference.allowedDomains,
+        temporaryAllowedDomains,
+      };
+      this.writeExternalMediaPreference(next);
+      return next;
+    });
+    this.queuePreviewResize();
+  }
+
+  allowAllExternalMedia(): void {
+    const next = {
+      ...this.externalMediaPreference(),
+      allowAll: true,
+    };
+    this.externalMediaPreference.set(next);
+    this.writeExternalMediaPreference(next);
+    this.queuePreviewResize();
+  }
+
+  getExternalMediaSourceLabel(mediaObj?: AnyMedia): string | null {
+    const externalMediaObj =
+      mediaObj && this.isExternalMedia(mediaObj)
+        ? mediaObj
+        : (this.media() ?? []).find((item) => this.isExternalMedia(item));
+    if (!externalMediaObj) {
+      return null;
+    }
+    return (
+      externalMediaObj.attributionText ||
+      externalMediaObj.attribution?.author ||
+      externalMediaObj.attribution?.title ||
+      this.getExternalMediaDomain(externalMediaObj)
+    );
+  }
+
+  getExternalMediaDomainLabel(mediaObj: AnyMedia): string | null {
+    return this.getExternalMediaDomain(mediaObj);
+  }
+
+  getTemporaryExternalMediaExpiry(mediaObj: AnyMedia): number | null {
+    const domain = this.getExternalMediaDomain(mediaObj);
+    if (!domain) {
+      return null;
+    }
+    return (
+      this.externalMediaPreference().temporaryAllowedDomains?.[domain] ?? null
+    );
+  }
+
+  private isExternalMediaAllowed(mediaObj: AnyMedia): boolean {
+    const domain = this.getExternalMediaDomain(mediaObj);
+    if (!domain) {
+      return false;
+    }
+    const preference = this.externalMediaPreference();
+    const temporaryExpiry = preference.temporaryAllowedDomains?.[domain];
+    return (
+      preference.allowAll ||
+      preference.allowedDomains.includes(domain) ||
+      (typeof temporaryExpiry === "number" && temporaryExpiry > Date.now())
+    );
+  }
+
+  private getFirstBlockedExternalMediaIndexForDomain(domain: string): number {
+    return (this.media() ?? []).findIndex(
+      (mediaObj, index) =>
+        this.isExternalMedia(mediaObj) &&
+        this.isPreviewMedia(mediaObj) &&
+        this.getExternalMediaDomain(mediaObj) === domain &&
+        !this.hiddenIndices().has(index) &&
+        !mediaObj.isReported &&
+        !this.isExternalMediaAllowed(mediaObj),
+    );
+  }
+
+  private getExternalMediaDomain(mediaObj: AnyMedia): string | null {
+    if (!this.isExternalMedia(mediaObj)) {
+      return null;
+    }
+    return this.getUrlDomain(mediaObj.src);
+  }
+
+  private writeExternalMediaPreference(preference: ExternalMediaPreference): void {
+    if (this.isBrowser) {
+      const now = Date.now();
+      const temporaryAllowedDomains = Object.fromEntries(
+        Object.entries(preference.temporaryAllowedDomains ?? {}).filter(
+          ([, expiresAt]) => expiresAt > now,
+        ),
+      );
+      localStorage.setItem(
+        this.externalMediaPreferenceStorageKey,
+        JSON.stringify({
+          allowAll: preference.allowAll,
+          allowedDomains: preference.allowedDomains,
+          temporaryAllowedDomains,
+        }),
+      );
+    }
+  }
+
   getExternalSourceUrl(mediaObj: AnyMedia): string | null {
+    if (mediaObj.sourcePageUrl) {
+      return mediaObj.sourcePageUrl;
+    }
     if (
       mediaObj instanceof ExternalImage ||
       mediaObj instanceof ExternalVideo
@@ -355,11 +540,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       if (mediaObj.userId === "streetview") {
         return null;
       }
-      return (
-        mediaObj.sourcePageUrl ||
-        mediaObj.attribution?.source_url ||
-        mediaObj.src
-      );
+      return mediaObj.attribution?.source_url ?? this.getRemoteUrl(mediaObj.src);
     }
     return null;
   }
@@ -369,10 +550,19 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   imageClick(index: number) {
+    const mediaObj = this.media()?.[index];
+    if (!mediaObj || !this.shouldShowPreviewMedia(mediaObj, index)) {
+      return;
+    }
     this.openImageViewer(index);
   }
 
   onExternalSourceClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
+
+  onExternalMediaGateCardClick(event: MouseEvent): void {
+    event.preventDefault();
     event.stopPropagation();
   }
 
@@ -541,6 +731,9 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
         media: this.media(),
         index: index,
         spotId: this.spotId(),
+        reportContext: this.reportContext(),
+        reportTargetId: this.reportTargetId() ?? this.spotId(),
+        externalMediaPreference: this.externalMediaPreference(),
         initialVideoMuted: this.videoMuted(),
         initialVideoTime:
           previewVideo?.currentTime ?? this.videoCurrentTimes.get(index),
@@ -606,6 +799,77 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  private isExternalMedia(
+    mediaObj: AnyMedia,
+  ): mediaObj is ExternalImage | ExternalVideo {
+    return (
+      mediaObj instanceof ExternalImage ||
+      mediaObj instanceof ExternalVideo
+    ) && mediaObj.userId !== "streetview" && this.getRemoteUrl(mediaObj.src) !== null;
+  }
+
+  private readExternalMediaPreference(): ExternalMediaPreference {
+    const fallback = { allowAll: false, allowedDomains: [] };
+    if (!this.isBrowser) {
+      return fallback;
+    }
+    const raw = localStorage.getItem(this.externalMediaPreferenceStorageKey);
+    if (raw === "true") {
+      return { allowAll: true, allowedDomains: [] };
+    }
+    if (!raw) {
+      return fallback;
+    }
+    try {
+      const parsed = JSON.parse(raw) as Partial<ExternalMediaPreference>;
+      const now = Date.now();
+      const temporaryAllowedDomains = Object.fromEntries(
+        Object.entries(parsed.temporaryAllowedDomains ?? {}).filter(
+          ([, expiresAt]) =>
+            typeof expiresAt === "number" && expiresAt > now,
+        ),
+      );
+      return {
+        allowAll: parsed.allowAll === true,
+        allowedDomains: Array.isArray(parsed.allowedDomains)
+          ? parsed.allowedDomains.filter(
+              (domain): domain is string =>
+                typeof domain === "string" && domain.length > 0,
+            )
+          : [],
+        temporaryAllowedDomains,
+      };
+    } catch {
+      return fallback;
+    }
+  }
+
+  private getUrlDomain(url: string | null): string | null {
+    const remoteUrl = this.getRemoteUrl(url);
+    if (!remoteUrl || !this.isBrowser) {
+      return null;
+    }
+    try {
+      return new URL(remoteUrl).hostname.replace(/^www\./, "");
+    } catch {
+      return null;
+    }
+  }
+
+  private getRemoteUrl(url: string | null): string | null {
+    if (!url) {
+      return null;
+    }
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:"
+        ? parsed.toString()
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
   private queuePreviewResize(): void {
     if (typeof requestAnimationFrame !== "function") {
       return;
@@ -644,11 +908,9 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       const aspectRatio = Number(
         item.style.getPropertyValue("--image-aspect-ratio"),
       );
-      const fullWidth = this.getPreviewFullWidth(
-        viewportWidth,
-        viewportHeight,
-        aspectRatio,
-      );
+      const fullWidth = item.classList.contains("external-media-gate-card")
+        ? this.getExternalMediaGateFullWidth(viewportWidth)
+        : this.getPreviewFullWidth(viewportWidth, viewportHeight, aspectRatio);
       const virtualItemLeft = virtualLeft - scrollLeft;
       const virtualItemRight = virtualItemLeft + fullWidth;
       const visualLeft = Math.max(0, virtualItemLeft);
@@ -702,6 +964,12 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       const mediaObj = mediaItems[index];
       if (
         !this.isPreviewMedia(mediaObj) ||
+        (this.isExternalMedia(mediaObj) &&
+          !this.isExternalMediaAllowed(mediaObj) &&
+          index !==
+            this.getFirstBlockedExternalMediaIndexForDomain(
+              this.getExternalMediaDomain(mediaObj) ?? "",
+            )) ||
         this.hiddenIndices().has(index) ||
         mediaObj.isReported
       ) {
@@ -709,11 +977,13 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       }
 
       widths.push(
-        this.getPreviewFullWidth(
-          viewportWidth,
-          viewportHeight,
-          this.imageAspectRatios().get(index) ?? 1,
-        ),
+        this.shouldShowExternalMediaGate(mediaObj, index)
+          ? this.getExternalMediaGateFullWidth(viewportWidth)
+          : this.getPreviewFullWidth(
+              viewportWidth,
+              viewportHeight,
+              this.imageAspectRatios().get(index) ?? 1,
+            ),
       );
     }
 
@@ -741,12 +1011,19 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     const maxWidth = Math.min(420, viewportWidth * 0.76);
     return Math.max(112, Math.min(naturalWidth, maxWidth));
   }
+
+  private getExternalMediaGateFullWidth(viewportWidth: number): number {
+    return Math.max(200, Math.min(300, viewportWidth * 0.72));
+  }
 }
 
 interface SwiperDialogData {
   media?: AnyMedia[];
   index?: number;
   spotId?: string;
+  reportContext?: "spot" | "event" | "media";
+  reportTargetId?: string;
+  externalMediaPreference?: ExternalMediaPreference;
   initialVideoMuted?: boolean;
   initialVideoTime?: number;
   reusedVideoElement?: HTMLVideoElement;
@@ -1022,7 +1299,7 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   getActiveMedia(): AnyMedia | undefined {
-    const activeIndex = this.swiper?.activeIndex ?? this.activeSlideIndex();
+    const activeIndex = this.activeSlideIndex();
     const media = this.getDialogMedia();
     return media[activeIndex];
   }
@@ -1063,7 +1340,11 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
     if (active.userId === "streetview") {
       return null;
     }
-    return active.sourcePageUrl || active.attribution?.source_url || active.src;
+    return (
+      active.sourcePageUrl ||
+      active.attribution?.source_url ||
+      this.getRemoteUrl(active.src)
+    );
   }
 
   getActiveAttributionText(): string | null {
@@ -1077,6 +1358,7 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
     const parts = [
       active.attribution?.title,
       active.attribution?.author,
+      active.attributionText,
       active.attribution?.license,
     ].filter((p) => !!p);
     if (parts.length === 0) {
@@ -1156,7 +1438,7 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   onReportClick(): void {
-    const activeIndex = this.swiper?.activeIndex ?? this.activeSlideIndex();
+    const activeIndex = this.activeSlideIndex();
 
     const media = this.getDialogMedia();
     const mediaItem = media[activeIndex];
@@ -1173,6 +1455,8 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
       data: {
         media: mediaItem,
         spotId: this.data.spotId,
+        context: this.data.reportContext,
+        targetId: this.data.reportTargetId,
         reason: "",
         comment: "",
       },
@@ -1192,7 +1476,7 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
 
   private getVideoSyncResult(): SwiperDialogResult {
     this.captureReusedVideoState();
-    const activeIndex = this.swiper?.activeIndex ?? this.activeSlideIndex();
+    const activeIndex = this.activeSlideIndex();
     const media = this.getDialogMedia();
     const mediaItem = media[activeIndex];
     const originalIndex = this.data.media?.indexOf(mediaItem) ?? activeIndex;
@@ -1273,10 +1557,55 @@ export class SwiperDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   isDialogMedia(mediaObj: AnyMedia): boolean {
-    return mediaObj instanceof ExternalVideo || mediaObj.type === "image";
+    if (!(mediaObj instanceof ExternalVideo || mediaObj.type === "image")) {
+      return false;
+    }
+    return !this.isBlockedExternalDialogMedia(mediaObj);
   }
 
   getDialogMedia(): AnyMedia[] {
     return this.data.media?.filter((m) => this.isDialogMedia(m)) ?? [];
+  }
+
+  private isBlockedExternalDialogMedia(mediaObj: AnyMedia): boolean {
+    if (
+      !(
+        (mediaObj instanceof ExternalImage ||
+          mediaObj instanceof ExternalVideo) &&
+        mediaObj.userId !== "streetview"
+      )
+    ) {
+      return false;
+    }
+
+    const domain = this.getRemoteDomain(mediaObj.src);
+    if (!domain) {
+      return false;
+    }
+    const preference = this.data.externalMediaPreference;
+    return !(
+      preference?.allowAll ||
+      preference?.allowedDomains?.includes(domain)
+    );
+  }
+
+  private getRemoteDomain(url: string): string | null {
+    const remoteUrl = this.getRemoteUrl(url);
+    if (!remoteUrl) {
+      return null;
+    }
+    return new URL(remoteUrl).hostname.replace(/^www\./, "");
+  }
+
+  private getRemoteUrl(url: string): string | null {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return null;
+      }
+      return parsed.toString();
+    } catch {
+      return null;
+    }
   }
 }

@@ -21,7 +21,8 @@ export abstract class Media {
     attribution?: MediaSchema["attribution"],
     origin?: MediaSchema["origin"],
     isReported: boolean = false,
-    sourcePageUrl?: string
+    sourcePageUrl?: string,
+    attributionText?: string
   ) {
     this._src = src;
     this.type = type;
@@ -30,6 +31,7 @@ export abstract class Media {
     this.origin = origin;
     this.isReported = isReported;
     this.sourcePageUrl = sourcePageUrl;
+    this.attributionText = attributionText;
   }
 
   protected readonly _src: string;
@@ -39,6 +41,7 @@ export abstract class Media {
   readonly type: MediaType;
   readonly isReported: boolean;
   readonly sourcePageUrl?: string;
+  readonly attributionText?: string;
 
   abstract getPreviewImageSrc(): string;
 
@@ -53,6 +56,7 @@ export abstract class Media {
       uid: this.userId,
       attribution: this.attribution,
       source_page_url: this.sourcePageUrl,
+      attribution_text: this.attributionText,
       origin: this.origin,
       isInStorage: false,
       isReported: this.isReported,
@@ -81,7 +85,8 @@ export class ExternalImage extends Media {
     attribution?: MediaSchema["attribution"],
     origin?: MediaSchema["origin"],
     isReported?: boolean,
-    sourcePageUrl?: string
+    sourcePageUrl?: string,
+    attributionText?: string
   );
   constructor(
     src: string,
@@ -89,7 +94,8 @@ export class ExternalImage extends Media {
     attributionOrOrigin?: MediaSchema["attribution"] | MediaSchema["origin"],
     originOrIsReported?: MediaSchema["origin"] | boolean,
     isReportedMaybe: boolean = false,
-    sourcePageUrl?: string
+    sourcePageUrl?: string,
+    attributionText?: string
   ) {
     let attribution: MediaSchema["attribution"] | undefined;
     let origin: MediaSchema["origin"] | undefined;
@@ -115,7 +121,8 @@ export class ExternalImage extends Media {
       attribution,
       origin,
       isReported,
-      sourcePageUrl
+      sourcePageUrl,
+      attributionText
     );
   }
 
@@ -145,7 +152,8 @@ export class ExternalVideo extends Media {
     attribution?: MediaSchema["attribution"],
     origin?: MediaSchema["origin"],
     isReported?: boolean,
-    sourcePageUrl?: string
+    sourcePageUrl?: string,
+    attributionText?: string
   );
   constructor(
     src: string,
@@ -153,7 +161,8 @@ export class ExternalVideo extends Media {
     attributionOrOrigin?: MediaSchema["attribution"] | MediaSchema["origin"],
     originOrIsReported?: MediaSchema["origin"] | boolean,
     isReportedMaybe: boolean = false,
-    sourcePageUrl?: string
+    sourcePageUrl?: string,
+    attributionText?: string
   ) {
     let attribution: MediaSchema["attribution"] | undefined;
     let origin: MediaSchema["origin"] | undefined;
@@ -179,7 +188,8 @@ export class ExternalVideo extends Media {
       attribution,
       origin,
       isReported,
-      sourcePageUrl
+      sourcePageUrl,
+      attributionText
     );
   }
 
@@ -213,9 +223,20 @@ export abstract class StorageMedia extends Media {
     userId?: string,
     attribution?: MediaSchema["attribution"],
     origin?: "user" | "other",
-    isReported: boolean = false
+    isReported: boolean = false,
+    sourcePageUrl?: string,
+    attributionText?: string
   ) {
-    super(src, type, userId, attribution, origin, isReported);
+    super(
+      src,
+      type,
+      userId,
+      attribution,
+      origin,
+      isReported,
+      sourcePageUrl,
+      attributionText
+    );
     this.parsed = parseStorageMediaUrl(src);
 
     this.uriBeforeBucket = this.parsed.uriBeforeBucket;
@@ -255,6 +276,8 @@ export abstract class StorageMedia extends Media {
       type: this.type,
       uid: this.userId,
       attribution: this.attribution,
+      source_page_url: this.sourcePageUrl,
+      attribution_text: this.attributionText,
       origin: this.origin,
       isInStorage: true,
       isReported: this.isReported,
@@ -302,14 +325,18 @@ export class StorageVideo extends StorageMedia {
     userId?: string,
     attribution?: MediaSchema["attribution"],
     origin?: "user" | "other",
-    isReported?: boolean
+    isReported?: boolean,
+    sourcePageUrl?: string,
+    attributionText?: string
   );
   constructor(
     src: string,
     userId?: string,
     attributionOrOrigin?: MediaSchema["attribution"] | "user" | "other",
     originOrIsReported?: "user" | "other" | boolean,
-    isReportedMaybe: boolean = false
+    isReportedMaybe: boolean = false,
+    sourcePageUrl?: string,
+    attributionText?: string
   ) {
     let attribution: MediaSchema["attribution"] | undefined;
     let origin: "user" | "other" | undefined;
@@ -337,7 +364,9 @@ export class StorageVideo extends StorageMedia {
       userId,
       attribution,
       origin,
-      isReported
+      isReported,
+      sourcePageUrl,
+      attributionText
     );
     // Build thumbnail URL with correct prefix format: thumb_{filename}.png
     // This creates a base URL that StorageImage can then add size suffixes to
@@ -346,7 +375,11 @@ export class StorageVideo extends StorageMedia {
       thumbnailSrc,
       this.userId,
       this.attribution,
-      this.origin as "user" | "other"
+      this.origin as "user" | "other",
+      false,
+      false,
+      this.sourcePageUrl,
+      this.attributionText
     );
   }
 
@@ -365,7 +398,9 @@ export class StorageVideo extends StorageMedia {
       schema.uid,
       schema.attribution,
       schema.origin as "user" | "other",
-      schema.isReported ?? false
+      schema.isReported ?? false,
+      schema.source_page_url,
+      schema.attribution_text
     );
   }
 
@@ -413,7 +448,9 @@ export class StorageImage extends StorageMedia {
     attribution?: MediaSchema["attribution"],
     origin?: "user" | "other",
     isProcessing?: boolean,
-    isReported?: boolean
+    isReported?: boolean,
+    sourcePageUrl?: string,
+    attributionText?: string
   );
   constructor(
     src: string,
@@ -421,7 +458,9 @@ export class StorageImage extends StorageMedia {
     attributionOrOrigin?: MediaSchema["attribution"] | "user" | "other",
     originOrIsProcessing?: "user" | "other" | boolean,
     isProcessingOrReported: boolean = false,
-    isReportedMaybe: boolean = false
+    isReportedMaybe: boolean = false,
+    sourcePageUrl?: string,
+    attributionText?: string
   ) {
     let attribution: MediaSchema["attribution"] | undefined;
     let origin: "user" | "other" | undefined;
@@ -454,7 +493,16 @@ export class StorageImage extends StorageMedia {
       }
     }
 
-    super(src, MediaType.Image, userId, attribution, origin, isReported);
+    super(
+      src,
+      MediaType.Image,
+      userId,
+      attribution,
+      origin,
+      isReported,
+      sourcePageUrl,
+      attributionText
+    );
     this.isProcessing = signal(isProcessing);
   }
 
@@ -474,7 +522,9 @@ export class StorageImage extends StorageMedia {
       schema.attribution,
       schema.origin as "user" | "other",
       false, // isProcessing
-      schema.isReported ?? false
+      schema.isReported ?? false,
+      schema.source_page_url,
+      schema.attribution_text
     );
   }
 

@@ -17,6 +17,8 @@ export interface MediaSchema {
   };
   /** Optional page where this media was found, distinct from the direct media file URL. */
   source_page_url?: string;
+  /** Optional human-readable credit/attribution line shown near the media. */
+  attribution_text?: string;
   uid?: string; // old
   user?: UserReferenceSchema;
   isInStorage: boolean;

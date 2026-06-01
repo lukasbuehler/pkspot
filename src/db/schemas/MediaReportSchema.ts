@@ -11,6 +11,8 @@ export interface MediaReportSchema {
     [key: string]: any;
   };
   spotId?: string;
+  context?: "spot" | "event" | "media";
+  targetId?: string;
   reason: string;
   comment: string;
   // User can be authenticated or unauthenticated

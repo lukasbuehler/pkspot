@@ -98,7 +98,6 @@ export class EventsPageComponent implements OnInit {
         logoBackground:
           seriesById[id]?.logo_background_color ??
           "var(--mat-sys-surface-container-high)",
-        initials: this._seriesInitials(seriesById[id]?.name ?? id),
       }))
       .sort((left, right) => left.label.localeCompare(right.label));
   });
@@ -249,14 +248,6 @@ export class EventsPageComponent implements OnInit {
       .join(" ");
   }
 
-  private _seriesInitials(label: string): string {
-    return label
-      .split(/[\s-]+/)
-      .filter(Boolean)
-      .slice(0, 3)
-      .map((word) => word[0]?.toUpperCase() ?? "")
-      .join("");
-  }
 }
 
 const EVENT_CATEGORY_FILTERS = [

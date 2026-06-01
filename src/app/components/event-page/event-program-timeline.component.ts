@@ -34,7 +34,7 @@ type ProgramDayGroup = {
     <mat-tab-group class="program-tabs" mat-stretch-tabs="false">
       @for (day of dayGroups(); track day.key) {
         <mat-tab [label]="day.label">
-          <div class="program-timeline">
+          <div class="program-timeline px-3">
             @for (item of day.items; track item.id) {
               <article class="program-item">
                 <div class="program-rail">

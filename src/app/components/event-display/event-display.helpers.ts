@@ -26,6 +26,7 @@ export function eventMediaFromSchema(media: MediaSchema): AnyMedia {
         media.origin,
         media.isReported,
         media.source_page_url,
+        media.attribution_text,
       )
     : new ExternalImage(
         media.src,
@@ -34,6 +35,7 @@ export function eventMediaFromSchema(media: MediaSchema): AnyMedia {
         media.origin,
         media.isReported,
         media.source_page_url,
+        media.attribution_text,
       );
 }
 

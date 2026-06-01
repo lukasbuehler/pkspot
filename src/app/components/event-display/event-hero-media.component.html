@@ -2,6 +2,8 @@
   @if (heroMedia().length) {
     <app-img-carousel
       [media]="heroMedia()"
+      reportContext="event"
+      [reportTargetId]="event().id"
       [imageFits]="imageFits()"
       [imageBackgroundColors]="imageBackgroundColors()"
     ></app-img-carousel>

@@ -51,37 +51,35 @@
       @if (seriesFilterOptions().length > 0) {
         <div class="col-12 filter-group">
           <mat-chip-set aria-label="Filter events by series">
-          @for (series of seriesFilterOptions(); track series.id) {
-            <mat-chip-option
-              [selected]="isSeriesSelected(series.id)"
-              (click)="toggleSeriesFilter(series.id)"
-            >
-              <span
-                matChipAvatar
-                class="series-filter-avatar"
-                [style.background]="series.logoBackground"
+            @for (series of seriesFilterOptions(); track series.id) {
+              <mat-chip-option
+                [selected]="isSeriesSelected(series.id)"
+                (click)="toggleSeriesFilter(series.id)"
               >
                 @if (series.logoSrc) {
-                  <img [src]="series.logoSrc" [alt]="series.label" />
-                } @else {
-                  <span>{{ series.initials }}</span>
+                  <span
+                    matChipAvatar
+                    class="series-filter-avatar"
+                    [style.background]="series.logoBackground"
+                  >
+                    <img [src]="series.logoSrc" [alt]="series.label" />
+                  </span>
                 }
-              </span>
-              {{ series.label }}
-              <span class="filter-count">{{ series.count }}</span>
-            </mat-chip-option>
-          }
-          @if (selectedSeriesIds().length > 0) {
-            <button
-              mat-button
-              type="button"
-              class="clear-filter-button"
-              (click)="clearSeriesFilters()"
-            >
-              <mat-icon>filter_alt_off</mat-icon>
-              <span i18n="@@events.clear_series_filters">Clear</span>
-            </button>
-          }
+                {{ series.label }}
+                <span class="filter-count">{{ series.count }}</span>
+              </mat-chip-option>
+            }
+            @if (selectedSeriesIds().length > 0) {
+              <button
+                mat-button
+                type="button"
+                class="clear-filter-button"
+                (click)="clearSeriesFilters()"
+              >
+                <mat-icon>filter_alt_off</mat-icon>
+                <span i18n="@@events.clear_series_filters">Clear</span>
+              </button>
+            }
           </mat-chip-set>
         </div>
       }

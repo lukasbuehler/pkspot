@@ -163,7 +163,6 @@ describe("EventsPageComponent", () => {
         label: "Parkour Earth",
         logoSrc: "assets/logos/parkour_earth.jpg",
         logoBackground: "#ffffff",
-        initials: "PE",
       },
     ]);
   });

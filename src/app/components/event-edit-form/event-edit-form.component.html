@@ -601,6 +601,17 @@
               </mat-error>
             }
           </mat-form-field>
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.external_media_attribution">
+              Attribution text
+            </mat-label>
+            <input
+              matInput
+              formControlName="external_media_attribution_text"
+              placeholder="Photo: Author name"
+              i18n-placeholder="@@event_edit.external_media_attribution_placeholder"
+            />
+          </mat-form-field>
           <button
             mat-stroked-button
             type="button"
@@ -626,6 +637,11 @@
                 @if (media.source_page_url) {
                   <span class="mat-label-small text-truncate">
                     {{ media.source_page_url }}
+                  </span>
+                }
+                @if (media.attribution_text) {
+                  <span class="mat-label-small text-truncate">
+                    {{ media.attribution_text }}
                   </span>
                 }
                 <button

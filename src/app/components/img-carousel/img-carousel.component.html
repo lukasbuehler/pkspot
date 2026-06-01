@@ -4,11 +4,7 @@
 >
   <div class="carousel-visual-layer">
     @for (mediaObj of media(); track $index) {
-      @if (
-        isPreviewMedia(mediaObj) &&
-        !hiddenIndices().has($index) &&
-        !mediaObj.isReported
-      ) {
+      @if (shouldShowPreviewMedia(mediaObj, $index)) {
         <div
           class="spot-img-container"
           [class.contained-preview]="getImagePreviewFit($index) === 'contain'"
@@ -75,6 +71,59 @@
               <mat-spinner diameter="40"></mat-spinner>
             </div>
           }
+        </div>
+      } @else if (shouldShowExternalMediaGate(mediaObj, $index)) {
+        <div
+          class="spot-img-container external-media-gate-card"
+          style="display: flex; align-items: center; justify-content: center; padding: 14px; aspect-ratio: 1.25; min-width: 260px; background: var(--mat-sys-surface-container-high); pointer-events: auto"
+          [attr.data-media-index]="$index"
+          (click)="onExternalMediaGateCardClick($event)"
+        >
+          <div class="d-flex flex-column gap-2 w-100 align-items-stretch">
+            <div class="mat-body-medium text-center">
+              <span i18n="@@img_carousel.load_external_media_from">
+                Load external media from
+              </span>
+              @if (getExternalMediaDomainLabel(mediaObj); as domain) {
+                <strong style="display: block; overflow-wrap: anywhere; margin-top: 4px;">
+                  {{ domain }}
+                </strong>
+              }
+            </div>
+            <button
+              type="button"
+              mat-flat-button
+              class="external-media-gate-button"
+              style="width: 100%"
+              (click)="allowExternalMediaDomainTemporarily(mediaObj)"
+            >
+              <span i18n="@@img_carousel.allow_external_media_temporarily">
+                Allow temporarily (1h)
+              </span>
+            </button>
+            <button
+              type="button"
+              mat-stroked-button
+              style="width: 100%"
+              (click)="allowExternalMediaDomain(mediaObj)"
+            >
+              @if (getExternalMediaDomainLabel(mediaObj); as domain) {
+                <span i18n="@@img_carousel.always_allow_external_media_domain">
+                  Always allow {{ domain }}
+                </span>
+              }
+            </button>
+            <button
+              type="button"
+              mat-stroked-button
+              style="width: 100%"
+              (click)="allowAllExternalMedia()"
+            >
+              <span i18n="@@img_carousel.always_allow_all_external_media">
+                Always allow all external media
+              </span>
+            </button>
+          </div>
         </div>
       }
     }

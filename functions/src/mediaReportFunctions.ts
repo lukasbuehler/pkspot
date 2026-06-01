@@ -15,6 +15,8 @@ interface MediaReportSchema {
   createdAt: any;
   locale?: string;
   spotId?: string;
+  context?: "spot" | "event" | "media";
+  targetId?: string;
 }
 
 /**
@@ -96,6 +98,53 @@ export const onMediaReportCreate = onDocumentCreated(
         }
       }
 
+      if (
+        reportData.context === "event" &&
+        reportData.targetId &&
+        reportData.media?.src
+      ) {
+        try {
+          const eventRef = admin
+            .firestore()
+            .doc(`events/${reportData.targetId}`);
+          await admin.firestore().runTransaction(async (transaction) => {
+            const eventDoc = await transaction.get(eventRef);
+            if (!eventDoc.exists) {
+              logger.warn(`Event ${reportData.targetId} not found`);
+              return;
+            }
+
+            const eventData = eventDoc.data();
+            const currentMedia = eventData?.["media"] || [];
+            let found = false;
+
+            const updatedMedia = currentMedia.map((m: any) => {
+              if (m.src === reportData.media.src) {
+                found = true;
+                return { ...m, isReported: true };
+              }
+              return m;
+            });
+
+            if (found) {
+              transaction.update(eventRef, { media: updatedMedia });
+              logger.info(
+                `Marked media as reported for event ${reportData.targetId}`
+              );
+            } else {
+              logger.warn(
+                `Media ${reportData.media.src} not found in event ${reportData.targetId}`
+              );
+            }
+          });
+        } catch (error) {
+          logger.error(
+            `Failed to update event ${reportData.targetId} media status:`,
+            error
+          );
+        }
+      }
+
       if (!webhookUrl) {
         logger.error(
           "DISCORD_WEBHOOK_URL secret not set. Set it with: firebase functions:secrets:set DISCORD_WEBHOOK_URL"
@@ -136,6 +185,26 @@ export const onMediaReportCreate = onDocumentCreated(
             value: reportData.media.type || "Unknown",
             inline: true,
           },
+          ...(reportData.context || reportData.targetId
+            ? [
+                {
+                  name: "Context",
+                  value: `${reportData.context || "media"}${
+                    reportData.targetId ? `: ${reportData.targetId}` : ""
+                  }`,
+                  inline: true,
+                },
+              ]
+            : []),
+          ...(reportData.media.source_page_url
+            ? [
+                {
+                  name: "Source Page",
+                  value: reportData.media.source_page_url,
+                  inline: false,
+                },
+              ]
+            : []),
           ...(reportData.locale
             ? [
                 {
