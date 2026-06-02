@@ -25,6 +25,7 @@ import {
   ChipSelectorComponent,
   ChipSelectorOption,
 } from "../../chip-selector/chip-selector.component";
+import { buildUnembeddedUrlFromHref } from "../../../shared/embedded-url";
 
 type EmbedType = "map" | "event" | "event-map";
 
@@ -145,10 +146,23 @@ export class EmbedPageComponent {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   });
 
-  iframeCode = computed<string>(() => {
+  publicContentUrl = computed<string>(() => {
     const url = this.unsafeIframeUrl();
     if (!url) return "";
-    return `<iframe src="${url}" style="display: block;"></iframe>`;
+    return buildUnembeddedUrlFromHref(url, { includeEmbedCtaUtm: false });
+  });
+
+  iframeCode = computed<string>(() => {
+    const url = this.unsafeIframeUrl();
+    const publicUrl = this.publicContentUrl();
+    if (!url) return "";
+    return `<div style="width:100%;max-width:100%;height:620px;border-radius:8px;overflow:hidden;">
+  <iframe src="${url}" title="PK Spot embedded event" loading="lazy" style="display:block;width:100%;height:calc(100% - 22px);border:0;overflow:hidden;"></iframe>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 12px 0;font:11px/1.35 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#6f7378;">
+    <span>Interactive event embed</span>
+    <span>Event data by <a href="${publicUrl}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">PK Spot</a></span>
+  </div>
+</div>`;
   });
 
   constructor() {

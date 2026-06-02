@@ -9,10 +9,10 @@
         <span class="community-avatar" aria-hidden="true">
           @if (community.imageUrl) {
             <img [src]="community.imageUrl" alt="" />
-          } @else if (community.countryCode) {
-            <span>{{ community.countryCode }}</span>
+          } @else if (flagEmoji(community)) {
+            <span class="community-flag">{{ flagEmoji(community) }}</span>
           } @else {
-            <mat-icon>groups</mat-icon>
+            <mat-icon>{{ fallbackIcon(community) }}</mat-icon>
           }
         </span>
         <span class="community-copy">

@@ -140,3 +140,65 @@ body:has(.terms-footer) {
   pointer-events: auto;
   cursor: pointer;
 }
+
+.embedded-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.embedded-content {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.embedded-promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  flex: 0 0 auto;
+}
+
+.embedded-promo__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  white-space: nowrap;
+}
+
+.embedded-promo__logo {
+  width: auto;
+  height: 22px;
+  object-fit: contain;
+}
+
+.embedded-promo__cta {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 599.98px) {
+  .embedded-promo {
+    min-height: 44px;
+    padding: 4px 8px 4px 12px;
+  }
+
+  .embedded-promo__brand {
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .embedded-promo__logo {
+    height: 18px;
+    max-width: 92px;
+  }
+}

@@ -5,12 +5,10 @@ import {
   input,
   output,
   signal,
-  inject,
 } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
 import { MarkerComponent } from "../marker/marker.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
-import { ResponsiveService } from "../../services/responsive.service";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { MediaType } from "../../../db/models/Interfaces";
@@ -212,8 +210,6 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotPreviewMarkerComponent {
-  private readonly responsive = inject(ResponsiveService);
-
   spot = input.required<Spot | LocalSpot | SpotPreviewData>();
   mapZoom = input<number | null>(null);
   hoverPreviewEnabled = input<boolean>(true);
@@ -227,9 +223,7 @@ export class SpotPreviewMarkerComponent {
 
   previewVisible = signal(false);
 
-  hoverPreviewActive = computed(
-    () => this.hoverPreviewEnabled() && this.responsive.isDesktop()
-  );
+  hoverPreviewActive = computed(() => this.hoverPreviewEnabled());
   effectivePreviewVisible = computed(
     () =>
       this.hoverPreviewActive() &&
@@ -375,11 +369,10 @@ export class SpotPreviewMarkerComponent {
     if (!amenities) return [];
 
     const icons: string[] = [];
-    if (amenities.covered === true) {
-      icons.push(AmenityIcons.covered ?? "roofing");
-    }
     if (amenities.indoor === true) {
       icons.push(AmenityIcons.indoor ?? "home");
+    } else if (amenities.covered === true) {
+      icons.push(AmenityIcons.covered ?? "roofing");
     }
     return icons;
   }

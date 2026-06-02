@@ -222,6 +222,7 @@ export class GoogleMap2dComponent
   focusZoom = input<number>(17);
   isDebug = input<boolean>(false);
   showSpotPreview = input<boolean>(false);
+  showAllHighlightedSpotPins = input<boolean>(false);
   isEditing = input<boolean>(false);
 
   headingIsNotNorth = signal<boolean>(false);
@@ -389,6 +390,10 @@ export class GoogleMap2dComponent
    */
   getVisibleHighlightedSpots(): SpotPreviewData[] {
     const spots = this._getVisibleHighlightedSpotPreviews();
+    if (this.showAllHighlightedSpotPins()) {
+      return spots;
+    }
+
     const hiddenSpotIds = this._getMarkerCollisionLayout().hiddenSpotIds;
 
     if (hiddenSpotIds.size === 0) {

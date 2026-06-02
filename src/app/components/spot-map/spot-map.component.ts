@@ -479,14 +479,24 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   readonly communityCircleOverlays = computed<MapCircleOverlay[]>(() =>
     this.availableCommunities
       .filter((community) => !this._shouldShowCommunityCenterDot(community))
-      .map((community) => ({
-        id: `community:${community.communityKey}`,
-        center: community.center,
-        radiusM: community.radiusM,
-        options: {
-          clickable: this._isCommunityCircleClickable(community),
-        },
-      })),
+      .map((community) => {
+        const clickable = this._isCommunityCircleClickable(community);
+
+        return {
+          id: `community:${community.communityKey}`,
+          center: community.center,
+          radiusM: community.radiusM,
+          options: {
+            clickable,
+            ...(clickable
+              ? {}
+              : {
+                  fillOpacity: 0,
+                  strokeOpacity: 0,
+                }),
+          },
+        };
+      }),
   );
 
   headingIsNotNorth: Signal<boolean> = computed(() => {

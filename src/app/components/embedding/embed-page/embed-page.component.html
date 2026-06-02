@@ -72,11 +72,28 @@
       </div>
     </div>
     <div class="col-md-6">
-      <iframe
-        class="bg-black shadow-lg border w-100 overflow-hidden d-block"
-        [src]="safeIframeUrl()"
-        height="600px"
-      ></iframe>
+      <div class="embed-preview shadow-lg border">
+        <iframe
+          class="bg-black overflow-hidden d-block"
+          [src]="safeIframeUrl()"
+          title="PK Spot embedded event preview"
+          i18n-title="@@embed_preview_iframe_title"
+        ></iframe>
+        @if (publicContentUrl()) {
+          <div
+            class="embed-preview__credit"
+            i18n="@@embed_preview_event_data_by_pkspot"
+          >
+            <span>Interactive event embed</span>
+            <span
+              >Event data by
+              <a [href]="publicContentUrl()" target="_blank" rel="noopener"
+                >PK Spot</a
+              ></span
+            >
+          </div>
+        }
+      </div>
     </div>
   </div>
   <div class="row my-5">

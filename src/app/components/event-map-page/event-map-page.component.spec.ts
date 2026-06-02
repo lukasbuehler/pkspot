@@ -3,10 +3,14 @@ import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
+import { GeoPoint } from "firebase/firestore";
 import { of } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
+import { LocalSpot } from "../../../db/models/Spot";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
+import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
+import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -45,6 +49,21 @@ const buildEvent = (id: string): PkEvent =>
       west: 8.5,
     },
   } as unknown as EventSchema);
+
+const buildLocalSpot = (name: string): LocalSpot =>
+  new LocalSpot(
+    {
+      name: {
+        en: { text: name, provider: "user" },
+      },
+      location: new GeoPoint(47.3, 8.5),
+      location_raw: { lat: 47.3, lng: 8.5 },
+      address: null,
+      media: [],
+      amenities: {},
+    } as SpotSchema,
+    "en",
+  );
 
 describe("EventMapPageComponent", () => {
   it("keeps the map view noindex and canonicalized to the event info page", async () => {
@@ -226,5 +245,19 @@ describe("EventMapPageComponent", () => {
     expect(component.spotMapMarkers().map((marker) => marker.type)).toEqual([
       "event-spot",
     ]);
+
+    const localSpot = buildLocalSpot("Inline spot");
+    component.spots.set([localSpot]);
+    component.selectSpot({
+      id: "event-local-spot-0" as SpotId,
+      name: "Inline spot",
+      location: new GeoPoint(47.3, 8.5),
+      location_raw: { lat: 47.3, lng: 8.5 },
+      locality: "",
+      imageSrc: "",
+      isIconic: false,
+    } satisfies SpotPreviewData);
+
+    expect(component.selectedSpot()).toBe(localSpot);
   });
 });

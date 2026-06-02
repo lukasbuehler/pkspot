@@ -82,6 +82,7 @@ import { MetaTagService } from "./services/meta-tag.service";
 import { KeyboardService } from "./services/keyboard.service";
 import type { ContentType } from "./resolvers/content.resolver";
 import { APP_LINKS } from "./shared/app-links";
+import { buildUnembeddedUrlFromHref } from "./shared/embedded-url";
 
 interface ButtonBase {
   name: string;
@@ -1343,14 +1344,7 @@ html.pkspot-roboto-loaded body {
    */
   getUnembeddedUrl(): string {
     if (typeof window === "undefined") return "https://pkspot.app";
-    const url = new URL(window.location.href);
-    // Remove '/embedded' from the path if present
-    url.pathname = url.pathname.replace(/\/embedded(\/)?/, "/");
-    // Remove any trailing slash (except root)
-    if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-      url.pathname = url.pathname.slice(0, -1);
-    }
-    return url.toString();
+    return buildUnembeddedUrlFromHref(window.location.href);
   }
 
   /**

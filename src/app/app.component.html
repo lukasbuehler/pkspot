@@ -248,41 +248,51 @@
 
 } @else {
 <!-- is embedded -->
-<div class="d-flex flex-column h-100">
-  <div
-    class="w-100 text-center d-flex flex-row align-items-center justify-content-between flex-shrink-1 p-3"
-    style="height: 60px"
-  >
+<div class="embedded-shell">
+  <div class="embedded-content">
+    <router-outlet></router-outlet>
+  </div>
+  <div class="embedded-promo">
     <a
       target="_blank"
       href="https://pkspot.app"
-      class="text-decoration-none text-center text-light text-wrap"
-      style="height: 100%; display: flex; align-items: center"
+      class="embedded-promo__brand"
+      aria-label="PK Spot"
     >
+      <span i18n="@@embedded-promo-powered-by">Powered by</span>
       <img
         ngSrc="assets/logos/pkspot/pkspot_logo_oneline_dark.png"
         alt="PK Spot"
-        style="height: 36px; width: auto; object-fit: contain"
+        class="embedded-promo__logo"
         width="200"
         height="33.78"
         priority
       />
     </a>
     @if(responsive.isNotMobile()) {
-    <a mat-stroked-button target="_blank" [href]="getUnembeddedUrl()">
+    <a
+      mat-flat-button
+      target="_blank"
+      [href]="getUnembeddedUrl()"
+      class="embedded-promo__cta"
+    >
       <mat-icon>open_in_new</mat-icon>
       <span i18n="@@open-embedded-in-pkspot-button-label"
         >Open this on PK Spot</span
       >
     </a>
     } @else {
-    <a [href]="getUnembeddedUrl()" target="_blank" mat-mini-fab color="primary">
+    <a
+      [href]="getUnembeddedUrl()"
+      target="_blank"
+      mat-mini-fab
+      color="primary"
+      aria-label="Open this on PK Spot"
+      i18n-aria-label="@@open-embedded-in-pkspot-button-aria-label"
+    >
       <mat-icon> open_in_new </mat-icon>
     </a>
     }
-  </div>
-  <div class="flex-grow-1">
-    <router-outlet></router-outlet>
   </div>
 </div>
 }

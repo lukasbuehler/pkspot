@@ -290,6 +290,7 @@ export class EventEditFormComponent {
     start_time: [null as Date | null, Validators.required],
     end_date: [null as Date | null, Validators.required],
     end_time: [null as Date | null, Validators.required],
+    legacy_area_polygon_outer_ring: [false],
 
     // Optional
     description: [""],
@@ -414,6 +415,7 @@ export class EventEditFormComponent {
         this.form.reset({
           published: true,
           banner_fit: "cover",
+          legacy_area_polygon_outer_ring: false,
         });
         this.location.set(null);
         this.areaPath.set(null);
@@ -450,6 +452,9 @@ export class EventEditFormComponent {
         start_time: e.start,
         end_date: e.end,
         end_time: e.end,
+        legacy_area_polygon_outer_ring: hasLegacyAreaPolygonOuterRing(
+          e.areaPolygon,
+        ),
         url: e.url ?? "",
         published: e.published,
         banner_src: e.bannerSrc ?? "",
@@ -1426,7 +1431,12 @@ export class EventEditFormComponent {
     EventEditPatch,
     "area_polygon"
   > {
-    if (!this.areaTouched() && this.event()?.areaPolygon) {
+    const eventAreaPolygon = this.event()?.areaPolygon;
+    const wantsLegacyOuterRing =
+      this.form.value.legacy_area_polygon_outer_ring === true;
+    const legacyOuterRingChanged =
+      hasLegacyAreaPolygonOuterRing(eventAreaPolygon) !== wantsLegacyOuterRing;
+    if (!this.areaTouched() && eventAreaPolygon && !legacyOuterRingChanged) {
       return {};
     }
     const path = this.areaPath();
@@ -1437,7 +1447,7 @@ export class EventEditFormComponent {
       };
     }
     return {
-      area_polygon: pathToAreaPolygon(path),
+      area_polygon: pathToAreaPolygon(path, wantsLegacyOuterRing),
     };
   }
 
@@ -1683,14 +1693,19 @@ export class EventEditFormComponent {
 }
 
 function pathToAreaPolygon(
-  path: Array<{ lat: number; lng: number }>
+  path: Array<{ lat: number; lng: number }>,
+  includeLegacyOuterRing = false,
 ): EventSchema["area_polygon"] {
-  return [
+  const areaPolygon: EventSchema["area_polygon"] = [
     {
       area_name: "Main area",
       points: path,
     },
   ];
+  if (includeLegacyOuterRing) {
+    areaPolygon.unshift(legacyAreaPolygonOuterRing());
+  }
+  return areaPolygon;
 }
 
 function eventAreaPath(
@@ -1702,6 +1717,27 @@ function eventAreaPath(
       candidate.points.every((point) => Math.abs(point.lat) < 85)
   );
   return ring && ring.points.length >= 3 ? [...ring.points] : null;
+}
+
+function legacyAreaPolygonOuterRing(): NonNullable<
+  EventSchema["area_polygon"]
+>[number] {
+  return {
+    points: [
+      { lat: 0, lng: -90 },
+      { lat: 0, lng: 90 },
+      { lat: 90, lng: -90 },
+      { lat: 90, lng: 90 },
+    ],
+  };
+}
+
+function hasLegacyAreaPolygonOuterRing(
+  areaPolygon: EventSchema["area_polygon"] | undefined,
+): boolean {
+  const firstRing = areaPolygon?.[0];
+  if (!firstRing || firstRing.points.length !== 4) return false;
+  return pathsEqual(firstRing.points, legacyAreaPolygonOuterRing().points);
 }
 
 function pathToBounds(

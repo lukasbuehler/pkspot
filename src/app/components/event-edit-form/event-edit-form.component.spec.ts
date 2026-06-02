@@ -134,6 +134,109 @@ describe("EventEditFormComponent", () => {
     ]);
   });
 
+  it("prepends the legacy outer ring when compatibility is enabled", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    const mainArea = [
+      { lat: 47.45, lng: 8.5 },
+      { lat: 47.44, lng: 8.61 },
+      { lat: 47.35, lng: 8.58 },
+      { lat: 47.34, lng: 8.49 },
+    ];
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        area_polygon: [
+          {
+            area_name: "Main area",
+            points: mainArea,
+          },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    component.form.patchValue({
+      legacy_area_polygon_outer_ring: true,
+    });
+    (
+      component as unknown as {
+        _boundsPicker: { currentAreaPath: () => typeof mainArea };
+      }
+    )._boundsPicker = {
+      currentAreaPath: () => mainArea,
+    };
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].area_polygon).toEqual([
+      {
+        points: [
+          { lat: 0, lng: -90 },
+          { lat: 0, lng: 90 },
+          { lat: 90, lng: -90 },
+          { lat: 90, lng: 90 },
+        ],
+      },
+      {
+        area_name: "Main area",
+        points: mainArea,
+      },
+    ]);
+  });
+
+  it("keeps existing legacy compatibility unchanged unless the toggle changes", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    const mainArea = [
+      { lat: 47.45, lng: 8.5 },
+      { lat: 47.44, lng: 8.61 },
+      { lat: 47.35, lng: 8.58 },
+      { lat: 47.34, lng: 8.49 },
+    ];
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        area_polygon: [
+          {
+            points: [
+              { lat: 0, lng: -90 },
+              { lat: 0, lng: 90 },
+              { lat: 90, lng: -90 },
+              { lat: 90, lng: 90 },
+            ],
+          },
+          {
+            area_name: "Main area",
+            points: mainArea,
+          },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    expect(component.form.value.legacy_area_polygon_outer_ring).toBe(true);
+    (
+      component as unknown as {
+        _boundsPicker: { currentAreaPath: () => typeof mainArea };
+      }
+    )._boundsPicker = {
+      currentAreaPath: () => mainArea,
+    };
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).not.toHaveProperty("area_polygon");
+  });
+
   it("preserves the existing sponsor logo background color on submit", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

@@ -592,13 +592,64 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     this.selectedCustomMarker.set(null);
     this.selectedChallenge.set(null);
 
-    if (spot instanceof Spot || spot instanceof LocalSpot) {
-      this.selectedSpot.set(spot);
-      if (this.spotMap instanceof SpotMapComponent) {
-        this.spotMap?.focusSpot(spot);
-      } else if (this.spotMap instanceof GoogleMap2dComponent) {
-        this.spotMap?.focusOnLocation(spot.location());
+    if (this._isSpotPreviewData(spot)) {
+      const resolvedSpot = this._resolveSpotPreviewSelection(spot);
+      if (resolvedSpot) {
+        this._selectResolvedSpot(resolvedSpot);
       }
+      return;
+    }
+
+    if (typeof spot === "string") {
+      const resolvedSpot = this.spots().find(
+        (eventSpot) => eventSpot instanceof Spot && eventSpot.id === spot,
+      );
+      if (resolvedSpot) {
+        this._selectResolvedSpot(resolvedSpot);
+      }
+      return;
+    }
+
+    if (spot instanceof Spot || spot instanceof LocalSpot) {
+      this._selectResolvedSpot(spot);
+    }
+  }
+
+  private _isSpotPreviewData(
+    spot: Spot | LocalSpot | SpotId | SpotPreviewData,
+  ): spot is SpotPreviewData {
+    return (
+      typeof spot === "object" &&
+      !(spot instanceof Spot) &&
+      !(spot instanceof LocalSpot) &&
+      "id" in spot
+    );
+  }
+
+  private _resolveSpotPreviewSelection(
+    preview: SpotPreviewData,
+  ): Spot | LocalSpot | null {
+    const directSpot = this.spots().find(
+      (spot) => spot instanceof Spot && spot.id === preview.id,
+    );
+    if (directSpot) return directSpot;
+
+    const localIndexMatch = /^event-local-spot-(\d+)$/u.exec(
+      String(preview.id),
+    );
+    if (!localIndexMatch) return null;
+
+    const index = Number(localIndexMatch[1]);
+    const localSpot = this.spots()[index];
+    return localSpot instanceof LocalSpot ? localSpot : null;
+  }
+
+  private _selectResolvedSpot(spot: Spot | LocalSpot): void {
+    this.selectedSpot.set(spot);
+    if (this.spotMap instanceof SpotMapComponent) {
+      this.spotMap?.focusSpot(spot);
+    } else if (this.spotMap instanceof GoogleMap2dComponent) {
+      this.spotMap?.focusOnLocation(spot.location());
     }
   }
 
