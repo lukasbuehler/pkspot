@@ -1,0 +1,157 @@
+.contact-page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 48px 16px 56px;
+  color: var(--mat-sys-on-surface);
+}
+
+.back-link {
+  margin-bottom: 1rem;
+}
+
+.contact-hero {
+  max-width: 760px;
+  margin-bottom: 2rem;
+
+  h1 {
+    margin: 0 0 0.75rem;
+  }
+
+  p:last-child {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.section-kicker {
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mat-sys-primary);
+}
+
+.contact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.contact-form-card {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  padding: 1.25rem;
+  background: var(--mat-sys-surface-container);
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  button[type="submit"] {
+    align-self: flex-start;
+
+    mat-spinner {
+      display: inline-flex;
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+.website-field {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.form-error {
+  color: var(--mat-sys-error);
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  > mat-icon {
+    color: var(--mat-sys-primary);
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  h2,
+  p {
+    margin: 0;
+  }
+}
+
+.contact-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aside-section,
+.instagram-section,
+.discord-section {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 0.875rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+
+  h2 {
+    margin: 0 0 0.25rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.aside-section > mat-icon {
+  color: var(--mat-sys-primary);
+}
+
+.instagram-section,
+.discord-section {
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  a {
+    margin-top: 0.75rem;
+
+    img {
+      width: 18px;
+      height: 18px;
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+.discord-section > img,
+.discord-section a img {
+  padding: 2px;
+  border-radius: 4px;
+  background: var(--mat-sys-primary);
+}
+
+@media (max-width: 767.98px) {
+  .contact-page {
+    padding: 24px 12px 40px;
+  }
+
+  .contact-layout {
+    grid-template-columns: 1fr;
+  }
+}

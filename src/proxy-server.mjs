@@ -96,6 +96,7 @@ function isKnownAngularRoute(pathname) {
   const staticRoutes = new Set([
     "about",
     "support",
+    "contact",
     "terms-of-service",
     "tos",
     "privacy-policy",

@@ -12,11 +12,8 @@ import { User } from "../../../db/models/User";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
-import { SpotsService } from "../../services/firebase/firestore/spots.service";
-import { Spot } from "../../../db/models/Spot";
 import { CropImageComponent } from "../crop-image/crop-image.component";
 import { MatIcon } from "@angular/material/icon";
-import { MatTooltip } from "@angular/material/tooltip";
 import { MatInput } from "@angular/material/input";
 import {
   MatFormField,
@@ -31,8 +28,6 @@ import {
   MatIconButton,
   MatButtonModule,
 } from "@angular/material/button";
-import { MatMenu, MatMenuTrigger } from "@angular/material/menu";
-import { SearchFieldComponent } from "../search-field/search-field.component";
 import { StorageService } from "../../services/firebase/storage.service";
 import { StorageBucket } from "../../../db/schemas/Media";
 import { MatBadge } from "@angular/material/badge";
@@ -40,7 +35,7 @@ import { LocaleCode } from "../../../db/models/Interfaces";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { Observable, startWith, map } from "rxjs";
 import { countries } from "../../../scripts/Countries";
-import { SpotId } from "../../../db/schemas/SpotSchema";
+import { Timestamp } from "@angular/fire/firestore";
 import {
   MatDatepickerInput,
   MatDatepickerToggle,
@@ -49,10 +44,10 @@ import {
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 import { ExternalImage } from "../../../db/models/Media";
-import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { MatExpansionModule } from "@angular/material/expansion";
 import {
   UserSocialCustomLinkSchema,
+  UserSchema,
   UserSocialsSchema,
 } from "../../../db/schemas/UserSchema";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
@@ -76,7 +71,6 @@ type NormalizedSocials = {
     FormsModule,
     MatButton,
     MatIconButton,
-    SearchFieldComponent,
     MatBadge,
     MatHint,
     MatAutocompleteModule,
@@ -88,7 +82,6 @@ type NormalizedSocials = {
     MatDatepickerModule,
     MatSuffix,
     MatProgressSpinner,
-    SpotPreviewCardComponent,
     MatExpansionModule,
     AutocompleteOverlayRepositionDirective,
   ],
@@ -99,11 +92,8 @@ export class EditProfileComponent implements OnInit {
 
   displayName: string = "";
   biography: string = "";
-  homeSpots: string[] = [];
-  homeSpotsObjects: Spot[] = [];
   startDate: Date | null = null;
   nationalityCode: string | null = null;
-  homeCity: string | null = null;
   instagramHandle: string = "";
   youtubeHandle: string = "";
   customSocialLinks: UserSocialCustomLinkSchema[] = [];
@@ -129,7 +119,6 @@ export class EditProfileComponent implements OnInit {
   constructor(
     public authService: AuthenticationService,
     private _userService: UsersService,
-    private _spotsService: SpotsService,
     private _storageService: StorageService,
     private _snackbar: MatSnackBar,
     @Inject(LOCALE_ID) public locale: LocaleCode
@@ -195,38 +184,18 @@ export class EditProfileComponent implements OnInit {
       this.displayName = this.user.displayName ?? "";
       this.startDate = this.user.startDate ?? null;
       this.biography = this.user.biography ?? "";
-      this.homeSpots = [...(this.user.homeSpots ?? [])];
       this.nationalityCode = this.user.nationalityCode ?? null;
-      this.homeCity = this.user.homeCity ?? null;
       this.instagramHandle = this.user.socials?.instagram_handle ?? "";
       this.youtubeHandle = this.user.socials?.youtube_handle ?? "";
       this.customSocialLinks = (this.user.socials?.other ?? []).map((link) => ({
         name: link.name,
         url: link.url,
       }));
-      this.homeSpotsObjects = [];
 
       if (this.nationalityCode && this.countries[this.nationalityCode]) {
         this.countryControl.setValue(this.countries[this.nationalityCode].name);
       } else {
         this.countryControl.setValue("");
-      }
-
-      // Fetch home spots if any
-      if (this.homeSpots.length > 0) {
-        this.homeSpots.forEach((spotId) => {
-          this._spotsService
-            .getSpotById(spotId as SpotId, this.locale)
-            .then((spot) => {
-              if (
-                spot &&
-                !this.homeSpotsObjects.find((s) => s.id === spot.id)
-              ) {
-                this.homeSpotsObjects.push(spot);
-              }
-            })
-            .catch(console.error);
-        });
       }
     }
   }
@@ -418,52 +387,6 @@ export class EditProfileComponent implements OnInit {
     }
   }
 
-  onSpotSelected(selection: {
-    type: "place" | "spot" | "community" | "event";
-    id: string;
-  }) {
-    if (selection.type === "spot") {
-      // Check limit
-      if (this.homeSpots.length >= 3) {
-        this._snackbar.open("You can only have up to 3 home spots.", "OK", {
-          duration: 3000,
-        });
-        return;
-      }
-
-      const addSpot = (spot: Spot) => {
-        if (this.homeSpots.includes(spot.id)) return;
-        this.homeSpots.push(spot.id);
-        this.homeSpotsObjects.push(spot);
-        this.detectIfChanges();
-      };
-
-      this._spotsService
-        .getSpotById(selection.id as SpotId, this.locale)
-        .then((spot) => {
-          addSpot(spot);
-        })
-        .catch(() => {
-          // If ID lookup fails, try lookup by slug
-          this._spotsService
-            .getSpotBySlug(selection.id, this.locale)
-            .then((spot) => {
-              if (spot) {
-                addSpot(spot);
-              }
-            });
-        });
-    }
-  }
-
-  removeHomeSpot(spotId: string) {
-    this.homeSpots = this.homeSpots.filter((id) => id !== spotId);
-    this.homeSpotsObjects = this.homeSpotsObjects.filter(
-      (spot) => spot.id !== spotId
-    );
-    this.detectIfChanges();
-  }
-
   addCustomSocialLink() {
     this.customSocialLinks.push({
       name: "",
@@ -478,8 +401,6 @@ export class EditProfileComponent implements OnInit {
   }
 
   detectIfChanges() {
-    const currentHomeSpots = [...this.homeSpots].sort();
-    const originalHomeSpots = [...(this.user?.homeSpots || [])].sort();
     const currentSocials = this._buildCurrentSocials();
     const originalSocials = this._buildOriginalSocials();
 
@@ -488,9 +409,7 @@ export class EditProfileComponent implements OnInit {
       this.startDate !== this.user?.startDate ||
       this.biography !== this.user?.biography ||
       this.nationalityCode !== (this.user?.nationalityCode ?? null) ||
-      this.homeCity !== (this.user?.homeCity ?? null) ||
-      JSON.stringify(currentSocials) !== JSON.stringify(originalSocials) ||
-      JSON.stringify(currentHomeSpots) !== JSON.stringify(originalHomeSpots)
+      JSON.stringify(currentSocials) !== JSON.stringify(originalSocials)
     ) {
       this.changes.emit(true);
     } else {
@@ -508,33 +427,24 @@ export class EditProfileComponent implements OnInit {
   saveAllChanges(): Promise<void> {
     if (!this.user || !this.user.uid) return Promise.reject("No user");
 
-    const data: any = {};
+    const data: Partial<UserSchema> = {};
 
     if (this.displayName !== this.user.displayName) {
       data.display_name = this.displayName;
     }
 
     if (this.startDate !== this.user.startDate) {
-      data.start_date = this.startDate;
+      data.start_date = this.startDate
+        ? Timestamp.fromDate(this.startDate)
+        : undefined;
     }
 
     if (this.biography !== this.user.biography) {
       data.biography = this.biography;
     }
 
-    if (
-      JSON.stringify(this.homeSpots.sort()) !==
-      JSON.stringify(this.user.homeSpots.sort())
-    ) {
-      data.home_spots = this.homeSpots;
-    }
-
     if (this.nationalityCode !== this.user.nationalityCode) {
       data.nationality_code = this.nationalityCode ?? undefined;
-    }
-
-    if (this.homeCity !== this.user.homeCity) {
-      data.home_city = this.homeCity ?? undefined;
     }
 
     const currentSocials = this._buildCurrentSocials();

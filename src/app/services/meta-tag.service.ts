@@ -2,6 +2,7 @@ import { DOCUMENT, isPlatformServer } from "@angular/common";
 import { inject, Injectable, LOCALE_ID, PLATFORM_ID } from "@angular/core";
 import { Meta, Title } from "@angular/platform-browser";
 import { Spot, LocalSpot } from "../../db/models/Spot";
+import { User } from "../../db/models/User";
 import {
   SpotChallenge,
   LocalSpotChallenge,
@@ -305,9 +306,8 @@ export class MetaTagService {
   /**
    * Sets meta tags for a user profile with canonical URL
    */
-  public setUserMetaTags(user: any, canonicalPath?: string): void {
-    // TODO: Replace 'any' with proper User type when you have it
-    const title = `${user.displayName || user.name || "User"} | PK Spot`;
+  public setUserMetaTags(user: User, canonicalPath?: string): void {
+    const title = `${user.displayName || "User"} | PK Spot`;
     const image =
       user.profilePicture?.getPreviewImageSrc() ||
       this.defaultImageUrl;
@@ -316,12 +316,13 @@ export class MetaTagService {
       ? `${displayName}'`
       : `${displayName}'s`;
     const description =
-      user.bio || `Check out ${possessive} profile on PK Spot.`;
+      user.biography || `Check out ${possessive} profile on PK Spot.`;
 
     const canonical = canonicalPath
       ? this.buildCanonicalUrl(canonicalPath)
       : undefined;
     this.setMetaTags(title, image, description, canonical);
+    this.setRobotsContent("noindex,follow");
   }
 
   /**

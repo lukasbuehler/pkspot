@@ -175,8 +175,9 @@ export class SpotEditsService extends ConsentAwareService {
   }
 
   /**
-   * Get a page of recent public spot edits submitted by a specific user.
+   * Get a page of recent spot edits submitted by a specific user.
    * Check-ins are intentionally stored elsewhere and are not part of this feed.
+   * Use only from appropriately gated moderation/admin surfaces.
    */
   async getSpotEditsPageByUserId(
     userId: string,

@@ -119,5 +119,4 @@ export class SupportPageComponent implements OnInit {
 
   readonly discordUrl = "https://discord.gg/Th5vx4KnQb";
   readonly instagramUrl = "https://instagram.com/pkspot.app";
-  readonly supportEmail = "contact@lukasbuehler.ch";
 }

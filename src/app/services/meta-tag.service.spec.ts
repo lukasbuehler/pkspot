@@ -4,6 +4,7 @@ import { TestBed } from "@angular/core/testing";
 import { Meta, Title } from "@angular/platform-browser";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MetaTagService } from "./meta-tag.service";
+import { User } from "../../db/models/User";
 
 const createDocumentMetaMock = (doc: Document) => ({
   updateTag: vi.fn(
@@ -121,6 +122,18 @@ describe("MetaTagService", () => {
     );
     expect(linkHref(doc, 'link[rel="canonical"]')).toBe(
       "https://pkspot.app/en/events/swissjam26",
+    );
+  });
+
+  it("marks user profile pages as noindex", () => {
+    service.setUserMetaTags(
+      new User("user-1", { display_name: "Avery" }),
+      "/u/user-1",
+    );
+
+    expect(metaContent(doc, 'meta[name="robots"]')).toBe("noindex,follow");
+    expect(linkHref(doc, 'link[rel="canonical"]')).toBe(
+      "https://pkspot.app/en/u/user-1",
     );
   });
 });

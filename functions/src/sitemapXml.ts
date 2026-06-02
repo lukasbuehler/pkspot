@@ -245,14 +245,18 @@ function buildUserEntries(
   let userCount = 0;
 
   for (const user of users) {
-    const displayName = user.data.display_name?.trim();
-    if (!displayName) {
+    const entry = buildUserSitemapEntry(user.id, user.data, fallbackDate);
+    if (!entry) {
       continue;
     }
 
     userCount += 1;
-    const path = `/u/${encodeURIComponent(user.id)}`;
-    xml += generateUrlWithHreflang(path, fallbackDate, "weekly", "0.6");
+    xml += generateUrlWithHreflang(
+      entry.path,
+      entry.lastmod,
+      entry.changefreq,
+      entry.priority
+    );
   }
 
   return { xml, userCount };
@@ -338,17 +342,10 @@ export function buildUserSitemapEntry(
   data: UserSitemapData,
   fallbackDate: string
 ): ResolvedSitemapEntry | null {
-  const displayName = data.display_name?.trim();
-  if (!displayName) {
-    return null;
-  }
-
-  return {
-    path: `/u/${encodeURIComponent(id)}`,
-    lastmod: fallbackDate,
-    changefreq: "weekly",
-    priority: "0.6",
-  };
+  void id;
+  void data;
+  void fallbackDate;
+  return null;
 }
 
 export function buildCommunitySitemapEntry(

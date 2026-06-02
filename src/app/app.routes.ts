@@ -6,6 +6,7 @@ import { environment } from "../environments/environment";
 export const ACCEPTANCE_FREE_PREFIXES = [
   "/about",
   "/support",
+  "/contact",
   "/terms-of-service",
   "/tos",
   "/privacy-policy",
@@ -470,6 +471,14 @@ export const routes: Routes = [
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Support", acceptanceFree: true },
+  },
+  {
+    path: "contact",
+    loadComponent: () =>
+      import("./components/contact-page/contact-page.component").then(
+        (m) => m.ContactPageComponent
+      ),
+    data: { routeName: "Contact", acceptanceFree: true },
   },
   {
     path: "terms-of-service",

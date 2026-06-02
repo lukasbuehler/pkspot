@@ -56,19 +56,12 @@
               </span>
               }
               <div class="d-flex flex-column gap-1">
-                @if (user.nationalityCode || user.homeCity) {
+                @if (user.nationalityCode && countries[user.nationalityCode]) {
                 <div class="mat-body-large profile-overview__location d-flex align-items-center">
                   <mat-icon class="m-1 icon-size-small">location_on</mat-icon>
-
-                  @if(user.homeCity) {
-                  <span i18n>In</span>&nbsp;<strong>{{ user.homeCity }}</strong>
-                  } @if(user.homeCity && user.nationalityCode)
-                  {<span>,&nbsp;</span>} @if(user.nationalityCode &&
-                  countries[user.nationalityCode]) {
                   <span i18n>from</span>&nbsp;<strong>{{
                     countries[user.nationalityCode].name
                     }}</strong>&nbsp;{{ countries[user.nationalityCode].emoji }}
-                  }
                 </div>
                 } @if (user.startTimeDiffString) {
                 <div class="mat-body-large profile-overview__tenure d-flex align-items-center">
@@ -197,26 +190,15 @@
       </mat-card>
       }
 
-      <!-- homespots -->
-      @if(homeSpotsObjects.length > 0) {
-      <mat-card>
-        <mat-card-header class="profile-section__header">
-          <mat-card-title class="mat-title-small d-flex align-items-center gap-2"><span i18n>Home Spots</span>
-            @if(isMyProfile) {
-            <span class="mat-body-small border rounded p-1" i18n>Public</span>
-            }</mat-card-title>
-        </mat-card-header>
-        <mat-card-content class="profile-section__content home-spots-container">
-          @for (spot of homeSpotsObjects; track spot.id) {
-          <a [routerLink]="['/map', 'spots', spot.slug ?? spot.id]" style="text-decoration: none; color: inherit">
-            <app-spot-preview-card [spotData]="spot" [imgSize]="200" [clickable]="true"></app-spot-preview-card></a>
-          }
-        </mat-card-content>
-      </mat-card>
-      }
-
-      @if (userId) {
-      <app-user-activity [userId]="userId" [displayName]="user.displayName || ''"></app-user-activity>
+      @if (userId && isAdmin()) {
+      <mat-accordion>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title i18n>Admin only activity feed</mat-panel-title>
+          </mat-expansion-panel-header>
+          <app-user-activity [userId]="userId" [displayName]="user.displayName || ''"></app-user-activity>
+        </mat-expansion-panel>
+      </mat-accordion>
       }
       <!-- 
       <mat-card class="profile-section mat-elevation-z1">

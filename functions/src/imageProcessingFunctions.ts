@@ -172,6 +172,8 @@ const resizeImage = async (input: Buffer, size: ImageSize): Promise<Buffer> => {
   return sharp(input)
     .rotate()
     .resize({ ...resizeOptions, withoutEnlargement: true })
+    // Do not call withMetadata(): resized public derivatives must not retain
+    // EXIF/GPS metadata from user uploads.
     .toBuffer();
 };
 

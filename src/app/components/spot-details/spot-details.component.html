@@ -710,6 +710,52 @@
       </button>
       }
     </mat-card-actions>
+
+    <section class="mb-3 border rounded p-2 d-flex flex-column gap-2">
+      <div class="d-flex gap-2 align-items-start">
+        <mat-icon color="primary">map</mat-icon>
+        <div>
+          <h4 class="mat-title-small m-0" i18n="@@spot.edit.import_help.title">
+            Have an existing spot map?
+          </h4>
+          <p class="mat-body-small m-0" i18n="@@spot.edit.import_help.body">
+            If you have a Google My Maps, KML/KMZ, spreadsheet, or local spot
+            list, we are happy to help import it.
+          </p>
+          <a
+            mat-button
+            routerLink="/contact"
+            [queryParams]="{ topic: 'spot-import' }"
+            class="mt-1"
+          >
+            <mat-icon>email</mat-icon>
+            <span i18n="@@spot.edit.import_help.contact">Contact us</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 align-items-start">
+        <mat-icon color="primary">groups</mat-icon>
+        <div>
+          <h4 class="mat-title-small m-0" i18n="@@spot.edit.crew_help.title">
+            Want to help PK Spot?
+          </h4>
+          <p class="mat-body-small m-0" i18n="@@spot.edit.crew_help.body">
+            We are open to help with testing, software, spot reviews,
+            translations, design, and local community work.
+          </p>
+          <a
+            mat-button
+            routerLink="/contact"
+            [queryParams]="{ topic: 'crew' }"
+            class="mt-1"
+          >
+            <mat-icon>email</mat-icon>
+            <span i18n="@@spot.edit.crew_help.contact">Join the crew</span>
+          </a>
+        </div>
+      </div>
+    </section>
     }
 
     <!-- Spot title editing field -->

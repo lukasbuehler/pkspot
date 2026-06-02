@@ -38,5 +38,6 @@ describe("app link rules", () => {
     expect(manifest).toContain('android:path="/"');
     expect(manifest).toContain('android:pathPrefix="/map"');
     expect(manifest).toContain('android:pathPrefix="/organizations"');
+    expect(manifest).toContain('android:pathPrefix="/contact"');
   });
 });

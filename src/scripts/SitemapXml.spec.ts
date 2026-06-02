@@ -83,19 +83,14 @@ describe("sitemapXml", () => {
     ).toBeNull();
   });
 
-  it("only includes public user profiles in sitemap entries", () => {
+  it("does not include user profiles in sitemap entries", () => {
     expect(
       buildUserSitemapEntry(
         "lukas",
         { display_name: "Lukas" },
         "2026-04-17"
       )
-    ).toEqual({
-      path: "/u/lukas",
-      lastmod: "2026-04-17",
-      changefreq: "weekly",
-      priority: "0.6",
-    });
+    ).toBeNull();
 
     expect(
       buildUserSitemapEntry(
@@ -151,7 +146,7 @@ describe("sitemapXml", () => {
     });
   });
 
-  it("builds sitemap XML with spot, profile, community, and Firestore event URLs using preferred paths", () => {
+  it("builds sitemap XML with spot, community, and Firestore event URLs using preferred paths", () => {
     const { xml, stats } = buildSitemapXml({
       now: "2026-04-17",
       spots: [
@@ -217,7 +212,7 @@ describe("sitemapXml", () => {
 
     expect(xml).toContain(`${BASE_URL}/en/map/spots/imax`);
     expect(xml).toContain(`${BASE_URL}/de-CH/map/spots/dame-du-lac`);
-    expect(xml).toContain(`${BASE_URL}/en/u/lukas`);
+    expect(xml).not.toContain(`${BASE_URL}/en/u/lukas`);
     expect(xml).not.toContain(`${BASE_URL}/en/u/private-user`);
     expect(xml).toContain(`${BASE_URL}/en/map/communities/lausanne`);
     expect(xml).not.toContain(`${BASE_URL}/en/map/communities/lausanne-old`);
@@ -231,9 +226,6 @@ describe("sitemapXml", () => {
       `<loc>${BASE_URL}/${DEFAULT_LOCALE}/map/spots/imax</loc>\n    <lastmod>2024-01-01</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>`
     );
     expect(xml).toContain(
-      `<loc>${BASE_URL}/${DEFAULT_LOCALE}/u/lukas</loc>\n    <lastmod>2026-04-17</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>`
-    );
-    expect(xml).toContain(
       `<loc>${BASE_URL}/${DEFAULT_LOCALE}/map/communities/lausanne</loc>\n    <lastmod>2024-02-01</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>`
     );
     expect(xml).toContain(
@@ -243,12 +235,12 @@ describe("sitemapXml", () => {
     expect(stats).toEqual({
       staticPageCount: STATIC_PAGES.length,
       spotCount: 2,
-      userCount: 1,
+      userCount: 0,
       communityCount: 2,
       eventCount: 1,
       slugCount: 2,
       totalUrls:
-        (STATIC_PAGES.length + 2 + 1 + 2 + 1) * SUPPORTED_LOCALES.length,
+        (STATIC_PAGES.length + 2 + 0 + 2 + 1) * SUPPORTED_LOCALES.length,
     });
   });
 });

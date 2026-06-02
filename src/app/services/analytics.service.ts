@@ -27,6 +27,12 @@ export interface ErrorReportOptions {
   properties?: Record<string, unknown>;
 }
 
+export interface AnalyticsContext {
+  posthog_distinct_id?: string;
+  posthog_session_id?: string;
+  posthog_session_replay_url?: string;
+}
+
 export function stripUtmParametersFromUrl(url: string): string {
   const parsedUrl = new URL(url, "https://pkspot.app");
 
@@ -534,6 +540,46 @@ export class AnalyticsService {
       return false; // Native SDK manages this internally usually, assuming opted in if initialized
     }
     return this._posthog?.has_opted_out_capturing() ?? true;
+  }
+
+  getCurrentAnalyticsContext(): AnalyticsContext {
+    if (
+      !this.isAvailable() ||
+      this.isNative() ||
+      !this._consentService.hasConsent() ||
+      this.hasOptedOut()
+    ) {
+      return {};
+    }
+
+    try {
+      const posthog = this._posthog;
+      if (!posthog) {
+        return {};
+      }
+
+      const context: AnalyticsContext = {};
+      const distinctId = posthog.get_distinct_id();
+      const sessionId = posthog.get_session_id();
+      const sessionReplayUrl = posthog.get_session_replay_url({
+        withTimestamp: true,
+        timestampLookBack: 30,
+      });
+
+      if (distinctId) {
+        context.posthog_distinct_id = distinctId;
+      }
+      if (sessionId) {
+        context.posthog_session_id = sessionId;
+      }
+      if (sessionReplayUrl) {
+        context.posthog_session_replay_url = sessionReplayUrl;
+      }
+
+      return context;
+    } catch (e) {
+      return {};
+    }
   }
 
   // ========================================================================

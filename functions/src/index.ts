@@ -78,6 +78,9 @@ export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
 // media report functions
 export { onMediaReportCreate } from "./mediaReportFunctions";
 
+// contact message functions
+export { onContactMessageCreate } from "./contactMessageFunctions";
+
 // spot report functions
 export { onSpotReportCreate } from "./spotReportFunctions";
 

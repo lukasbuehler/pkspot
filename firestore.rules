@@ -79,6 +79,90 @@ service cloud.firestore {
         );
     }
 
+    function validContactUser() {
+      return !('user' in request.resource.data)
+        || (
+          request.auth.uid != null
+          && request.resource.data.user is map
+          && request.resource.data.user.keys().hasOnly([
+            'uid',
+            'email',
+            'display_name'
+          ])
+          && request.resource.data.user.keys().hasAll(['uid'])
+          && request.resource.data.user.uid == request.auth.uid
+          && (!('email' in request.resource.data.user) || request.resource.data.user.email is string)
+          && (!('display_name' in request.resource.data.user) || request.resource.data.user.display_name is string)
+        );
+    }
+
+    function validContactAnalytics() {
+      return !('analytics' in request.resource.data)
+        || (
+          request.resource.data.analytics is map
+          && request.resource.data.analytics.keys().hasOnly([
+            'posthog_distinct_id',
+            'posthog_session_id',
+            'posthog_session_replay_url'
+          ])
+          && (!('posthog_distinct_id' in request.resource.data.analytics) || (
+            request.resource.data.analytics.posthog_distinct_id is string
+            && request.resource.data.analytics.posthog_distinct_id.size() <= 200
+          ))
+          && (!('posthog_session_id' in request.resource.data.analytics) || (
+            request.resource.data.analytics.posthog_session_id is string
+            && request.resource.data.analytics.posthog_session_id.size() <= 200
+          ))
+          && (!('posthog_session_replay_url' in request.resource.data.analytics) || (
+            request.resource.data.analytics.posthog_session_replay_url is string
+            && request.resource.data.analytics.posthog_session_replay_url.size() <= 500
+          ))
+        );
+    }
+
+    function validContactMessage() {
+      return request.resource.data.keys().hasAll([
+          'message',
+          'contact_info',
+          'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'message',
+          'contact_info',
+          'user',
+          'auth_email',
+          'topic',
+          'analytics',
+          'locale',
+          'source_path',
+          'user_agent',
+          'createdAt'
+        ])
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 1
+        && request.resource.data.message.size() <= 4000
+        && request.resource.data.contact_info is string
+        && request.resource.data.contact_info.size() >= 1
+        && request.resource.data.contact_info.size() <= 240
+        && request.resource.data.createdAt is timestamp
+        && (!('auth_email' in request.resource.data) || (
+          request.auth.uid != null
+          && request.resource.data.auth_email is string
+        ))
+        && (!('topic' in request.resource.data) || request.resource.data.topic in ['general', 'spot-import', 'crew'])
+        && (!('locale' in request.resource.data) || request.resource.data.locale is string)
+        && (!('source_path' in request.resource.data) || (
+          request.resource.data.source_path is string
+          && request.resource.data.source_path.size() <= 500
+        ))
+        && (!('user_agent' in request.resource.data) || (
+          request.resource.data.user_agent is string
+          && request.resource.data.user_agent.size() <= 500
+        ))
+        && validContactUser()
+        && validContactAnalytics();
+    }
+
     match /spots/{spotId}
     {
       // all the spots are visible to everyone, authenticated or not
@@ -345,6 +429,14 @@ service cloud.firestore {
     // Unauthenticated users: create reports with their email
     match /media_reports/{reportId} {
       allow create: if true;
+      allow read, update, delete: if false;
+    }
+
+    // Contact Messages
+    // Anyone can create a message, but clients cannot read, update, or delete
+    // the private inbox. Cloud Functions send Discord notifications via Admin SDK.
+    match /contact_messages/{messageId} {
+      allow create: if validContactMessage();
       allow read, update, delete: if false;
     }
 

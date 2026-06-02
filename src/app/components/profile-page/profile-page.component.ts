@@ -35,18 +35,13 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FollowingService } from "../../services/firebase/firestore/following.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { PostsService } from "../../services/firebase/firestore/posts.service";
-import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTabsModule } from "@angular/material/tabs";
-import { MatMenuModule } from "@angular/material/menu";
 import { MatRippleModule } from "@angular/material/core";
-import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { BlockUserDialogComponent } from "../block-user-dialog/block-user-dialog.component";
 import { UnblockUserDialogComponent } from "../unblock-user-dialog/unblock-user-dialog.component";
-import { Spot } from "../../../db/models/Spot";
-import { SpotId } from "../../../db/schemas/SpotSchema";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { countries } from "../../../scripts/Countries";
 import { BadgeService } from "../../services/badge.service";
@@ -56,6 +51,7 @@ import { NgOptimizedImage } from "@angular/common";
 import { PrivateSpotListsDialogComponent } from "../private-spot-lists-dialog/private-spot-lists-dialog.component";
 import { AnalyticsService } from "../../services/analytics.service";
 import { UserActivityComponent } from "../user-activity/user-activity.component";
+import { MatExpansionModule } from "@angular/material/expansion";
 
 type ProfileSocialLink = {
   id: string;
@@ -81,13 +77,12 @@ type ProfileSocialLink = {
     MatCardTitle,
     MatIconModule,
     MatTabsModule,
-    MatMenuModule,
     MatDialogModule,
     MatRippleModule,
-    SpotPreviewCardComponent,
     MatTooltipModule,
     NgOptimizedImage,
     UserActivityComponent,
+    MatExpansionModule,
   ],
 })
 export class ProfilePageComponent implements OnInit, OnDestroy {
@@ -107,7 +102,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     private _followingService: FollowingService,
     private _usersService: UsersService,
     private _postsService: PostsService,
-    private _spotsService: SpotsService,
     private _badgeService: BadgeService,
     private _route: ActivatedRoute,
     private _router: Router,
@@ -132,7 +126,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   followingCount: number = 0;
   isLoadingStats: boolean = false;
 
-  homeSpotsObjects: Spot[] = [];
   badges: Badge[] = [];
   profileSocialLinks: ProfileSocialLink[] = [];
 
@@ -280,26 +273,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         // Set meta tags with canonical URL
         const canonicalPath = `/u/${user.uid}`;
         this._metaTagService.setUserMetaTags(user, canonicalPath);
-
-        this.homeSpotsObjects = [];
-        if (this.user.homeSpots && this.user.homeSpots.length > 0) {
-          this.user.homeSpots.forEach((spotId) => {
-            this._spotsService
-              .getSpotById(spotId as SpotId, this.locale)
-              .then((spot) => {
-                // Avoid duplicates if spot is already in list (e.g. if loaded twice)
-                if (
-                  spot &&
-                  !this.homeSpotsObjects.find((s) => s.id === spot.id)
-                ) {
-                  this.homeSpotsObjects.push(spot);
-                  // Trigger change detection just in case
-                  this._cdr.detectChanges();
-                }
-              })
-              .catch(console.error);
-          });
-        }
 
         // Load the profile picture of this user
         if (this.user.profilePicture) {
@@ -822,6 +795,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       console.warn("Invalid custom social URL", value, error);
       return null;
     }
+  }
+
+  isAdmin(): boolean {
+    return this._authService.isAdmin();
   }
 
   ngOnDestroy(): void {

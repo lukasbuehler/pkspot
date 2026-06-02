@@ -615,6 +615,88 @@ async function testReadOnlyBackendCollections(owner) {
   }
 }
 
+async function testContactMessageGuards(anon, owner, other) {
+  const anonymousMessageRef = await assertAllowed("anonymous contact message create", () =>
+    addDoc(collection(anon.db, "contact_messages"), {
+      message: "I have a spot map to share.",
+      contact_info: "hello@example.com",
+      topic: "spot-import",
+      analytics: {
+        posthog_distinct_id: "ph-test-distinct",
+        posthog_session_id: "ph-test-session",
+      },
+      locale: "en",
+      source_path: "/contact?topic=spot-import",
+      user_agent: "rules-test",
+      createdAt: Timestamp.now(),
+    })
+  );
+
+  await assertDenied("anonymous contact message read", () =>
+    getDoc(anonymousMessageRef)
+  );
+  await assertDenied("anonymous contact message update", () =>
+    updateDoc(anonymousMessageRef, {
+      message: "changed",
+    })
+  );
+  await assertDenied("anonymous contact message delete", () =>
+    deleteDoc(anonymousMessageRef)
+  );
+
+  await assertAllowed("authenticated contact message create", () =>
+    addDoc(collection(owner.db, "contact_messages"), {
+      message: "I want to help test.",
+      contact_info: "owner@example.com",
+      topic: "crew",
+      auth_email: "owner@example.com",
+      user: {
+        uid: "owner",
+        email: "owner@example.com",
+        display_name: "Owner",
+      },
+      createdAt: Timestamp.now(),
+    })
+  );
+
+  await assertDenied("contact message user spoofing", () =>
+    addDoc(collection(other.db, "contact_messages"), {
+      message: "I am someone else.",
+      contact_info: "other@example.com",
+      user: {
+        uid: "owner",
+      },
+      createdAt: Timestamp.now(),
+    })
+  );
+
+  await assertDenied("contact message oversized analytics", () =>
+    addDoc(collection(anon.db, "contact_messages"), {
+      message: "hello",
+      contact_info: "hello@example.com",
+      analytics: {
+        posthog_distinct_id: "x".repeat(201),
+      },
+      createdAt: Timestamp.now(),
+    })
+  );
+
+  await assertDenied("contact message missing contact info", () =>
+    addDoc(collection(anon.db, "contact_messages"), {
+      message: "hello",
+      createdAt: Timestamp.now(),
+    })
+  );
+
+  await assertDenied("contact message oversized body", () =>
+    addDoc(collection(anon.db, "contact_messages"), {
+      message: "x".repeat(4001),
+      contact_info: "hello@example.com",
+      createdAt: Timestamp.now(),
+    })
+  );
+}
+
 async function testEventWriteGuards(owner, adminUser) {
   await assertDenied("regular user cannot create event", () =>
     setDoc(doc(owner.db, "events/client-event"), {
@@ -865,6 +947,7 @@ async function main() {
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);
   await testUserPrivacyAndPrivilegeEscalation(anon, owner, other);
   await testReadOnlyBackendCollections(owner);
+  await testContactMessageGuards(anon, owner, other);
   await testEventWriteGuards(owner, adminUser);
   await testEventRsvpPrivacy(anon, owner, other, adminUser);
   await testPostAndImportGuards(anon, owner, other, adminUser);

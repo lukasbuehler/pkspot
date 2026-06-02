@@ -59,6 +59,14 @@ describe("app routes", () => {
     expect(organizationRoute?.data?.["routeName"]).toBe("Organization");
   });
 
+  it("should register the contact page as an acceptance-free static route", () => {
+    const contactRoute = routes.find((route) => route.path === "contact");
+
+    expect(contactRoute).toBeDefined();
+    expect(contactRoute?.data?.["routeName"]).toBe("Contact");
+    expect(contactRoute?.data?.["acceptanceFree"]).toBe(true);
+  });
+
   it("should register event map routes before generic event info routes", () => {
     const publicMapIndex = routes.findIndex(
       (route) => route.path === "events/:slug/map"

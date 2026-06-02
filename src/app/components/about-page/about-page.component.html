@@ -273,6 +273,17 @@
           </div>
         }
       </div>
+      <div class="d-flex gap-3 mt-4 flex-wrap">
+        <a
+          matButton="filled"
+          color="primary"
+          routerLink="/contact"
+          [queryParams]="{ topic: 'crew' }"
+        >
+          <mat-icon>groups</mat-icon>
+          <span i18n="@@about.crew.contact_button">Join us</span>
+        </a>
+      </div>
     </section>
 
     <hr class="section-rule" />
@@ -322,6 +333,7 @@
         >
         <a routerLink="/privacy-policy" i18n="@@policy.long">Privacy Policy</a>
         <a routerLink="/support" i18n>Support</a>
+        <a routerLink="/contact" i18n>Contact</a>
         <a routerLink="/impressum">Impressum</a>
       </div>
     </footer>

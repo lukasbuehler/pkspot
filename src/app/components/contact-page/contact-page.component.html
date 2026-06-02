@@ -1,0 +1,166 @@
+<div class="contact-page keyboard-padding">
+  <a mat-button routerLink="/support" class="back-link">
+    <mat-icon>arrow_back</mat-icon>
+    <span i18n="@@contact.back_to_support">Support</span>
+  </a>
+
+  <section class="contact-hero">
+    <p class="mat-label-large section-kicker" i18n="@@contact.kicker">
+      Get in touch
+    </p>
+    <h1 class="mat-headline-large">{{ topicTitle() }}</h1>
+    <p class="mat-title-medium">{{ topicIntro() }}</p>
+  </section>
+
+  <div class="contact-layout">
+    <mat-card class="contact-form-card">
+      @if (submitted()) {
+        <div class="success-state">
+          <mat-icon>check_circle</mat-icon>
+          <h2 class="mat-headline-small" i18n="@@contact.success.title">
+            Message sent
+          </h2>
+          <p class="mat-body-medium" i18n="@@contact.success.body">
+            Thanks for reaching out. We will get back to you through the contact
+            info you shared.
+          </p>
+          <button mat-stroked-button type="button" (click)="submitted.set(false)">
+            <mat-icon>email</mat-icon>
+            <span i18n="@@contact.success.send_another">Send another</span>
+          </button>
+        </div>
+      } @else {
+        <form
+          [formGroup]="contactForm"
+          class="contact-form"
+          [attr.aria-busy]="isSubmitting()"
+          (ngSubmit)="submitContactMessage()"
+        >
+          <mat-form-field appearance="outline">
+            <mat-label i18n="@@contact.contact_info.label">
+              How can we reach you?
+            </mat-label>
+            <input
+              matInput
+              formControlName="contactInfo"
+              autocomplete="email"
+              appAutoScrollOnFocus
+            />
+            <mat-hint i18n="@@contact.contact_info.hint">
+              Email, Instagram, Discord, or whatever works best for you.
+            </mat-hint>
+            @if (contactInfoHasError) {
+              <mat-error i18n="@@contact.contact_info.error">
+                Please add contact information, up to 240 characters.
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label i18n="@@contact.message.label">Message</mat-label>
+            <textarea
+              matInput
+              formControlName="message"
+              rows="9"
+              appAutoScrollOnFocus
+            ></textarea>
+            <mat-hint i18n="@@contact.message.hint">
+              We only use this information to reply to your message.
+            </mat-hint>
+            @if (messageHasError) {
+              <mat-error i18n="@@contact.message.error">
+                Please add a message, up to 4000 characters.
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <input
+            class="website-field"
+            formControlName="website"
+            tabindex="-1"
+            autocomplete="off"
+            aria-hidden="true"
+          />
+
+          @if (submitError()) {
+            <div class="form-error" role="alert">{{ submitError() }}</div>
+          }
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="isSubmitting()"
+          >
+            @if (isSubmitting()) {
+              <mat-spinner diameter="20" strokeWidth="3"></mat-spinner>
+            } @else {
+              <mat-icon>email</mat-icon>
+            }
+            <span i18n="@@contact.submit">Send message</span>
+          </button>
+        </form>
+      }
+    </mat-card>
+
+    <aside class="contact-aside">
+      <section class="aside-section">
+        <mat-icon>map</mat-icon>
+        <div>
+          <h2 class="mat-title-medium" i18n="@@contact.aside.import.title">
+            Spot map imports
+          </h2>
+          <p class="mat-body-medium" i18n="@@contact.aside.import.body">
+            Google My Maps, KML/KMZ files, spreadsheets, and local crew lists
+            are all welcome starting points.
+          </p>
+        </div>
+      </section>
+
+      <section class="aside-section">
+        <mat-icon>groups</mat-icon>
+        <div>
+          <h2 class="mat-title-medium" i18n="@@contact.aside.crew.title">
+            Join the crew
+          </h2>
+          <p class="mat-body-medium" i18n="@@contact.aside.crew.body">
+            Help with testing, software, spot reviews, translations, design, or
+            local community work.
+          </p>
+        </div>
+      </section>
+
+      <section class="instagram-section">
+        <img src="assets/logos/instagram.svg" alt="" />
+        <div>
+          <h2 class="mat-title-medium" i18n="@@contact.instagram.title">
+            Instagram works too
+          </h2>
+          <p class="mat-body-medium" i18n="@@contact.instagram.body">
+            Quick question or casual hello? You can also reach us on Instagram.
+          </p>
+          <a mat-stroked-button [href]="instagramUrl" target="_blank">
+            <img src="assets/logos/instagram.svg" alt="" />
+            <span i18n="@@contact.instagram.link">@pkspot.app</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="discord-section">
+        <img src="assets/logos/discord_white.svg" alt="" />
+        <div>
+          <h2 class="mat-title-medium" i18n="@@contact.discord.title">
+            Discord works too
+          </h2>
+          <p class="mat-body-medium" i18n="@@contact.discord.body">
+            Prefer a community chat? Join the Discord and say hello there.
+          </p>
+          <a mat-stroked-button [href]="discordUrl" target="_blank">
+            <img src="assets/logos/discord_white.svg" alt="" />
+            <span i18n="@@contact.discord.link">Join Discord</span>
+          </a>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>

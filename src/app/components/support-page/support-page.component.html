@@ -44,18 +44,18 @@
           <div class="contact-icon email">
             <mat-icon>email</mat-icon>
           </div>
-          <h3 class="mat-title-large" i18n>Email Support</h3>
+          <h3 class="mat-title-large" i18n>Contact Form</h3>
           <p class="mat-body-medium" i18n>
-            For formal inquiries, partnerships, or issues that require privacy,
-            reach out via email.
+            For private questions, partnerships, spot map imports, or joining
+            the crew, send us a message directly.
           </p>
           <a
             mat-stroked-button
-            [href]="'mailto:' + supportEmail"
+            routerLink="/contact"
             class="mt-auto"
           >
             <mat-icon>email</mat-icon>
-            <span>{{ supportEmail }}</span>
+            <span i18n>Contact us</span>
           </a>
         </mat-card>
 
@@ -116,6 +116,10 @@
         <a mat-stroked-button routerLink="/about">
           <mat-icon>info</mat-icon>
           <span i18n>About PK Spot</span>
+        </a>
+        <a mat-stroked-button routerLink="/contact">
+          <mat-icon>email</mat-icon>
+          <span i18n>Contact us</span>
         </a>
         <a mat-stroked-button routerLink="/privacy-policy">
           <mat-icon>policy</mat-icon>
