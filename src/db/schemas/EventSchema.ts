@@ -115,6 +115,9 @@ export interface EventCardPreviewSchema {
   location_raw?: { lat: number; lng: number };
   bounds?: EventBoundsSchema;
   sponsor?: EventSponsorSchema;
+  /** New promoted flag. Prefer this over legacy `is_sponsored`. */
+  is_promoted?: boolean;
+  /** @deprecated Use `is_promoted`. Kept for older clients and indexes. */
   is_sponsored?: boolean;
   external_source?: EventExternalSourceSchema;
   event_categories?: EventCategory[];
@@ -470,7 +473,9 @@ export interface EventSchema {
 
   /** Sponsor metadata for branding/logo treatments. Does not imply paid advertising. */
   sponsor?: EventSponsorSchema;
-  /** True only when PK Spot is paid to promote this event and must disclose advertising. */
+  /** True when PK Spot boosts this event in promoted map placements. */
+  is_promoted?: boolean;
+  /** @deprecated Use `is_promoted`. Kept for older clients and indexes. */
   is_sponsored?: boolean;
 
   /**

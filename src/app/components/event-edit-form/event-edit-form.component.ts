@@ -50,6 +50,7 @@ import {
   EventProgramSpotRefSchema,
   EventProgramItemStatus,
   EventSchema,
+  InlineEventSpotSchema,
   EventQualificationPathSchema,
   EventQualificationRefSchema,
   EventQualificationRequirementMode,
@@ -83,6 +84,22 @@ type EditableEventMarker = {
   icons: string;
   color: "primary" | "secondary" | "tertiary" | "gray";
   priority: "auto" | "required";
+};
+type EditableInlineSpotBoundsPoint = {
+  id: string;
+  lat: number | null;
+  lng: number | null;
+};
+type EditableInlineEventSpot = {
+  key: string;
+  id: string;
+  name: string;
+  lat: number | null;
+  lng: number | null;
+  description: string;
+  imagesCsv: string;
+  isIconic: boolean;
+  bounds: EditableInlineSpotBoundsPoint[];
 };
 type EditableEventLink = {
   id: string;
@@ -212,8 +229,8 @@ export type EventEditPatch = Omit<
  *   - Community keys: chip list auto-suggested from event center
  *     vs. published community circles. User can add / remove freely.
  *
- * Specialized fields (inline_spots, area_polygon, promo_region,
- * custom_markers, challenge_spot_map) are still Firestore-console territory
+ * Specialized fields (promo_region, challenge_spot_map) are still
+ * Firestore-console territory
  * — they're preserved on save via the patch surface (we only emit the fields
  * this form owns).
  */
@@ -302,11 +319,15 @@ export class EventEditFormComponent {
     banner_fit: ["cover"],
     banner_accent_color: [""],
     logo_src: [""],
+    logo_background_color: [""],
     focus_zoom: [null as number | null],
     series_ids_csv: [""],
+    promo_radius_m: [null as number | null],
+    is_promoted: [false],
     sponsor_name: [""],
     sponsor_url: [""],
     sponsor_logo_src: [""],
+    sponsor_logo_background_color: [""],
     external_media_url: [""],
     external_media_source_url: [""],
     external_media_attribution_text: [""],
@@ -338,6 +359,7 @@ export class EventEditFormComponent {
   /** Community keys auto-suggested from the current bounds center. */
   autoSuggestedCommunityKeys = signal<string[]>([]);
   customMarkers = signal<EditableEventMarker[]>([]);
+  inlineSpots = signal<EditableInlineEventSpot[]>([]);
   externalMedia = signal<MediaSchema[]>([]);
   eventLinks = signal<EditableEventLink[]>([]);
   ticketOptions = signal<EditableTicketOption[]>([]);
@@ -371,7 +393,9 @@ export class EventEditFormComponent {
       e.location ||
       e.bannerSrc ||
       e.logoSrc ||
+      e.inlineSpots.length > 0 ||
       e.sponsor ||
+      e.promoRegion ||
       e.focusZoom ||
       (e.seriesIds && e.seriesIds.length > 0)
     );
@@ -426,6 +450,7 @@ export class EventEditFormComponent {
         this.selectedOrganizer.set(null);
         this.organizerQuery.set("");
         this.customMarkers.set([]);
+        this.inlineSpots.set([]);
         this.externalMedia.set([]);
         this.eventLinks.set([]);
         this.ticketOptions.set([]);
@@ -461,11 +486,19 @@ export class EventEditFormComponent {
         banner_fit: e.bannerFit,
         banner_accent_color: e.bannerAccentColor ?? "",
         logo_src: e.logoSrc ?? "",
+        logo_background_color: e.logoBackgroundColor ?? "",
         focus_zoom: e.focusZoom ?? null,
         series_ids_csv: e.seriesIds.join(", "),
+        promo_radius_m:
+          typeof e.promoRegion?.radius_m === "number"
+            ? e.promoRegion.radius_m
+            : null,
+        is_promoted: e.isPromoted,
         sponsor_name: e.sponsor?.name ?? "",
         sponsor_url: e.sponsor?.url ?? "",
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
+        sponsor_logo_background_color:
+          e.sponsor?.logo_background_color ?? "",
         external_media_url: "",
         external_media_source_url: "",
         external_media_attribution_text: "",
@@ -487,6 +520,23 @@ export class EventEditFormComponent {
           icons: (marker.icons ?? ["info"]).join(", "),
           color: marker.color ?? "tertiary",
           priority: marker.priority === "required" ? "required" : "auto",
+        })),
+      );
+      this.inlineSpots.set(
+        e.inlineSpots.map((spot, index) => ({
+          key: `temporary-spot-${index}`,
+          id: spot.id || `temporary-spot-${index + 1}`,
+          name: spot.name ?? "",
+          lat: spot.location.lat,
+          lng: spot.location.lng,
+          description: spot.description ?? "",
+          imagesCsv: (spot.images ?? []).join(", "),
+          isIconic: spot.is_iconic === true,
+          bounds: (spot.bounds ?? []).map((point, pointIndex) => ({
+            id: `temporary-spot-${index}-bounds-${pointIndex}`,
+            lat: point.lat,
+            lng: point.lng,
+          })),
         })),
       );
       this.externalMedia.set([...e.media]);
@@ -668,6 +718,106 @@ export class EventEditFormComponent {
 
   onSponsorLogoUploaded(event: { src: string }): void {
     this.form.patchValue({ sponsor_logo_src: event.src });
+  }
+
+  addInlineSpot(): void {
+    const location = this.location();
+    this.inlineSpots.update((spots) => [
+      ...spots,
+      {
+        key: `temporary-spot-${Date.now()}-${spots.length}`,
+        id: `temporary-spot-${spots.length + 1}`,
+        name: "",
+        lat: location?.lat ?? null,
+        lng: location?.lng ?? null,
+        description: "",
+        imagesCsv: "",
+        isIconic: spots.length === 0,
+        bounds: [],
+      },
+    ]);
+  }
+
+  removeInlineSpot(key: string): void {
+    this.inlineSpots.update((spots) => spots.filter((spot) => spot.key !== key));
+  }
+
+  updateInlineSpot(
+    key: string,
+    patch: Partial<Omit<EditableInlineEventSpot, "bounds" | "key">>,
+  ): void {
+    this.inlineSpots.update((spots) =>
+      spots.map((spot) => (spot.key === key ? { ...spot, ...patch } : spot)),
+    );
+  }
+
+  updateInlineSpotCoordinate(
+    key: string,
+    field: "lat" | "lng",
+    value: number,
+  ): void {
+    this.updateInlineSpot(key, {
+      [field]: Number.isFinite(value) ? value : null,
+    });
+  }
+
+  addInlineSpotBoundsPoint(spotKey: string): void {
+    const location = this.location();
+    this.inlineSpots.update((spots) =>
+      spots.map((spot) =>
+        spot.key === spotKey
+          ? {
+              ...spot,
+              bounds: [
+                ...spot.bounds,
+                {
+                  id: `bounds-${Date.now()}-${spot.bounds.length}`,
+                  lat: location?.lat ?? spot.lat,
+                  lng: location?.lng ?? spot.lng,
+                },
+              ],
+            }
+          : spot,
+      ),
+    );
+  }
+
+  removeInlineSpotBoundsPoint(spotKey: string, pointId: string): void {
+    this.inlineSpots.update((spots) =>
+      spots.map((spot) =>
+        spot.key === spotKey
+          ? {
+              ...spot,
+              bounds: spot.bounds.filter((point) => point.id !== pointId),
+            }
+          : spot,
+      ),
+    );
+  }
+
+  updateInlineSpotBoundsPoint(
+    spotKey: string,
+    pointId: string,
+    field: "lat" | "lng",
+    value: number,
+  ): void {
+    this.inlineSpots.update((spots) =>
+      spots.map((spot) =>
+        spot.key === spotKey
+          ? {
+              ...spot,
+              bounds: spot.bounds.map((point) =>
+                point.id === pointId
+                  ? {
+                      ...point,
+                      [field]: Number.isFinite(value) ? value : null,
+                    }
+                  : point,
+              ),
+            }
+          : spot,
+      ),
+    );
   }
 
   addCustomMarker(): void {
@@ -1301,9 +1451,11 @@ export class EventEditFormComponent {
       banner_fit: v.banner_fit ?? "cover",
       banner_accent_color: trimOrUndefined(v.banner_accent_color),
       logo_src: trimOrUndefined(v.logo_src),
+      logo_background_color: trimOrUndefined(v.logo_background_color),
       focus_zoom: numberOrUndefined(v.focus_zoom),
       media: [...this.externalMedia()],
       custom_markers: this._buildCustomMarkersPatch(),
+      inline_spots: this._buildInlineSpotsPatch(),
       spot_ids: [...this.spotIds()],
       community_keys: [...this.communityKeys()],
       series_ids: uniqueStrings([
@@ -1312,15 +1464,21 @@ export class EventEditFormComponent {
       ]),
       series_memberships: this._buildSeriesMembershipsPatch(),
       organizer: this._buildOrganizerPatch(),
+      promo_radius_m: numberOrUndefined(v.promo_radius_m),
+      is_promoted: v.is_promoted === true,
+      is_sponsored: v.is_promoted === true,
       sponsor:
         v.sponsor_name?.trim() ||
         v.sponsor_url?.trim() ||
-        v.sponsor_logo_src?.trim()
+        v.sponsor_logo_src?.trim() ||
+        v.sponsor_logo_background_color?.trim()
           ? {
               name: (v.sponsor_name ?? "").trim() || "Sponsor",
               url: trimOrUndefined(v.sponsor_url),
               logo_src: trimOrUndefined(v.sponsor_logo_src),
-              logo_background_color: this.event()?.sponsor?.logo_background_color,
+              logo_background_color: trimOrUndefined(
+                v.sponsor_logo_background_color,
+              ),
             }
           : undefined,
     };
@@ -1471,6 +1629,37 @@ export class EventEditFormComponent {
       },
       [],
     );
+  }
+
+  private _buildInlineSpotsPatch(): InlineEventSpotSchema[] {
+    return this.inlineSpots().reduce<InlineEventSpotSchema[]>((spots, spot) => {
+      const name = trimOrUndefined(spot.name);
+      const lat = numberOrUndefined(spot.lat);
+      const lng = numberOrUndefined(spot.lng);
+      if (!name || lat === undefined || lng === undefined) return spots;
+
+      const bounds = spot.bounds.reduce<Array<{ lat: number; lng: number }>>(
+        (points, point) => {
+          const pointLat = numberOrUndefined(point.lat);
+          const pointLng = numberOrUndefined(point.lng);
+          if (pointLat === undefined || pointLng === undefined) return points;
+          points.push({ lat: pointLat, lng: pointLng });
+          return points;
+        },
+        [],
+      );
+
+      spots.push({
+        id: trimOrUndefined(spot.id) ?? slugifyId(name),
+        name,
+        location: { lat, lng },
+        description: trimOrUndefined(spot.description),
+        images: csvToArray(spot.imagesCsv),
+        bounds: bounds.length >= 3 ? bounds : undefined,
+        is_iconic: spot.isIconic || undefined,
+      });
+      return spots;
+    }, []);
   }
 
   private _buildEventLinksPatch(): EventLinkSchema[] {
@@ -1789,6 +1978,16 @@ function csvToArray(value: string | null | undefined): string[] {
     .split(",")
     .map((part) => part.trim())
     .filter((part) => part.length > 0);
+}
+
+function slugifyId(value: string): string {
+  return (
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || `temporary-spot-${Date.now()}`
+  );
 }
 
 function uniqueStrings(values: string[]): string[] {

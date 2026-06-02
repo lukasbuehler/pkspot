@@ -927,7 +927,7 @@ export class SearchService {
         typeof sponsor?.logo_background_color === "string"
           ? sponsor.logo_background_color
           : undefined,
-      isSponsored: doc?.is_sponsored === true,
+      isSponsored: doc?.is_promoted === true || doc?.is_sponsored === true,
       hasOrganization:
         doc?.has_organization === true ||
         doc?.organizer?.type === "organization",
@@ -1049,6 +1049,7 @@ export class SearchService {
               logo_background_color: preview.sponsorLogoBackgroundColor,
             }
           : undefined,
+      is_promoted: preview.isSponsored,
       is_sponsored: preview.isSponsored,
       has_organization: preview.hasOrganization,
       has_venue_spot: preview.hasVenueSpot,
@@ -1269,6 +1270,7 @@ export class SearchService {
       "sponsor.name",
       "sponsor.logo_src",
       "sponsor.logo_background_color",
+      "is_promoted",
       "is_sponsored",
       "has_organization",
       "has_venue_spot",

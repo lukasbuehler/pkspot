@@ -44,6 +44,7 @@ const EVENT_SPOT_PREVIEW_SOURCE_FIELDS = [
   "location_raw",
   "bounds",
   "sponsor",
+  "is_promoted",
   "is_sponsored",
   "external_source",
   "event_categories",
@@ -646,6 +647,11 @@ const _addTypesenseFields = async (
   out.has_organization = eventData.organizer?.type === "organization";
   out.venue_spot_count = _venueSpotCount(eventData);
   out.has_venue_spot = out.venue_spot_count > 0;
+  const isPromoted = eventData.is_promoted ?? eventData.is_sponsored;
+  if (typeof isPromoted === "boolean") {
+    out.is_promoted = isPromoted;
+    out.is_sponsored = isPromoted;
+  }
   Object.assign(out, _collectSeriesSearchFields(eventData));
 
   const start = _timestampValue(eventData.start);
@@ -771,7 +777,8 @@ const _eventCardPreview = (
     location_raw: eventData.location_raw,
     bounds: eventData.bounds,
     sponsor: eventData.sponsor,
-    is_sponsored: eventData.is_sponsored,
+    is_promoted: eventData.is_promoted ?? eventData.is_sponsored,
+    is_sponsored: eventData.is_sponsored ?? eventData.is_promoted,
     external_source: eventData.external_source,
     event_categories: eventData.event_categories,
     series_ids: eventData.series_ids,

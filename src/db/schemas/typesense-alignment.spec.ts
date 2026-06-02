@@ -123,6 +123,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "sponsor.logo_src",
     "sponsor.logo_background_color",
     "sponsor.url",
+    "is_promoted",
     "is_sponsored",
     "community_keys",
     "series_ids",
@@ -221,6 +222,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "qualifies_to_keys",
     "required_qualifier_keys",
     "is_sponsored",
+    "is_promoted",
     "published",
   ] as const;
 
@@ -239,6 +241,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "sponsor.logo_src": "string",
     "sponsor.logo_background_color": "string",
     "sponsor.url": "string",
+    is_promoted: "bool",
     is_sponsored: "bool",
     start_seconds: "int64",
     end_seconds: "int64",
@@ -291,6 +294,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
       source: "sponsor.logo_background_color",
     },
     "sponsor.url": { kind: "direct", source: "sponsor.url" },
+    is_promoted: { kind: "direct", source: "is_promoted" },
     is_sponsored: { kind: "direct", source: "is_sponsored" },
 
     // Helper fields are materialized onto the Firestore event doc by

@@ -42,7 +42,8 @@ input[type="number"] {
 .program-plan-list,
 .program-item-list,
 .series-membership-list,
-.qualification-path-list {
+.qualification-path-list,
+.tmp-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -54,6 +55,7 @@ input[type="number"] {
 .program-item-editor,
 .series-membership-editor,
 .qualification-path-editor,
+.tmp-editor,
 .qualification-ref-editor {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
@@ -71,7 +73,8 @@ input[type="number"] {
 }
 
 .series-membership-editor,
-.qualification-path-editor {
+.qualification-path-editor,
+.tmp-editor {
   grid-template-columns: 1fr;
 }
 
@@ -88,7 +91,8 @@ input[type="number"] {
 
 .program-plan-header,
 .series-membership-header,
-.qualification-path-header {
+.qualification-path-header,
+.tmp-header {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) auto auto;
   gap: 0.5rem;
@@ -96,14 +100,28 @@ input[type="number"] {
 }
 
 .series-membership-header,
-.qualification-path-header {
+.qualification-path-header,
+.tmp-header {
   grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
 }
 
 .event-link-editor mat-checkbox,
 .ticket-editor .span-2,
-.program-item-editor .span-2 {
+.program-item-editor .span-2,
+.tmp-fields .span-2 {
   grid-column: span 2;
+}
+
+.tmp-fields,
+.tmp-bounds-point {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.tmp-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .external-media-item {
@@ -171,7 +189,10 @@ input[type="number"] {
   .qualification-ref-editor,
   .program-plan-header,
   .series-membership-header,
-  .qualification-path-header {
+  .qualification-path-header,
+  .tmp-header,
+  .tmp-fields,
+  .tmp-bounds-point {
     grid-template-columns: 1fr auto;
   }
 
@@ -186,7 +207,12 @@ input[type="number"] {
   .program-plan-header mat-checkbox,
   .series-membership-header mat-form-field,
   .series-membership-header mat-checkbox,
-  .qualification-path-header mat-form-field {
+  .qualification-path-header mat-form-field,
+  .tmp-header mat-form-field,
+  .tmp-header mat-checkbox,
+  .tmp-fields mat-form-field,
+  .tmp-fields .span-2,
+  .tmp-bounds-point mat-form-field {
     grid-column: 1 / -1;
   }
 

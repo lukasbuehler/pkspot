@@ -48,6 +48,12 @@
       "index": false
     },
     {
+      "name": "is_promoted",
+      "type": "bool",
+      "facet": true,
+      "optional": true
+    },
+    {
       "name": "is_sponsored",
       "type": "bool",
       "facet": true,

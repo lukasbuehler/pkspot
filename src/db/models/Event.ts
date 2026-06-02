@@ -117,6 +117,8 @@ export class Event {
   readonly promoRegion?: EventPromoRegionSchema;
 
   readonly sponsor?: EventSponsorSchema;
+  readonly isPromoted: boolean;
+  /** @deprecated Use `isPromoted`. */
   readonly isSponsored: boolean;
   readonly hasOrganization: boolean;
   readonly hasVenueSpot: boolean;
@@ -202,7 +204,8 @@ export class Event {
           }
         : undefined);
     this.sponsor = data.sponsor;
-    this.isSponsored = data.is_sponsored ?? false;
+    this.isPromoted = data.is_promoted ?? data.is_sponsored ?? false;
+    this.isSponsored = this.isPromoted;
     this.hasOrganization =
       data.has_organization ?? (data.organizer?.type === "organization");
     this.venueSpotCount =

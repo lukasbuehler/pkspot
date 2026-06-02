@@ -196,7 +196,7 @@
         Optional details
       </mat-panel-title>
       <mat-panel-description i18n="@@event_edit.optional_section_hint">
-        Description, banner, spots, sponsor, …
+        Description, banner, spots, promotion, …
       </mat-panel-description>
     </mat-expansion-panel-header>
 
@@ -507,7 +507,7 @@
 
       <mat-divider />
 
-      <!-- ----------------- Imagery (banner + logo) ----------------- -->
+      <!-- ----------------- Imagery ----------------- -->
       <div class="d-flex flex-column gap-2">
         <h4 class="mat-title-small m-0" i18n="@@event_edit.imagery">Imagery</h4>
 
@@ -555,7 +555,7 @@
         </div>
 
         <p class="mat-label-medium text-muted m-0 mt-2" i18n="@@event_edit.logo_label">
-          Event logo (optional)
+          Event marker logo
         </p>
         <app-media-upload
           [allowedMimeTypes]="['image/jpeg', 'image/png', 'image/webp']"
@@ -572,6 +572,67 @@
             <span>{{ form.value.logo_src }}</span>
           </p>
         }
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@event_edit.logo_background_color">
+            Event logo background
+          </mat-label>
+          <input
+            matInput
+            formControlName="logo_background_color"
+            placeholder="#ffffff"
+          />
+        </mat-form-field>
+
+        <div class="d-flex flex-row gap-2 flex-wrap">
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.sponsor_name">
+              Partner name
+            </mat-label>
+            <input matInput formControlName="sponsor_name" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.sponsor_url">Partner URL</mat-label>
+            <input
+              matInput
+              formControlName="sponsor_url"
+              placeholder="https://…"
+            />
+          </mat-form-field>
+        </div>
+        <p class="mat-label-medium text-muted m-0" i18n="@@event_edit.sponsor_logo">
+          Partner logo override
+        </p>
+        <app-media-upload
+          [allowedMimeTypes]="[
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'image/svg+xml',
+          ]"
+          [maximumSizeInBytes]="5 * 1024 * 1024"
+          [multipleAllowed]="false"
+          [storageFolder]="eventMediaBucket"
+          (newMedia)="onSponsorLogoUploaded($event)"
+        ></app-media-upload>
+        @if (form.value.sponsor_logo_src) {
+          <p class="mat-label-small text-muted text-truncate">
+            <ng-container i18n="@@event_edit.current_image_label">
+              Current:
+            </ng-container>
+            <span>{{ form.value.sponsor_logo_src }}</span>
+          </p>
+        }
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@event_edit.sponsor_logo_background_color">
+            Partner logo background
+          </mat-label>
+          <input
+            matInput
+            formControlName="sponsor_logo_background_color"
+            placeholder="#ffffff"
+          />
+        </mat-form-field>
 
         <p class="mat-label-medium text-muted m-0 mt-2" i18n="@@event_edit.external_media_label">
           External media links
@@ -1213,7 +1274,7 @@
       <!-- ----------------- Spots ----------------- -->
       <div class="d-flex flex-column gap-2">
         <h4 class="mat-title-small m-0" i18n="@@event_edit.spots_heading">
-          Spots
+          General map spots
         </h4>
         <app-spot-picker
           label="Add a spot to this event"
@@ -1223,6 +1284,215 @@
           (valueChange)="onSpotIdsChange($event)"
         ></app-spot-picker>
       </div>
+
+      <mat-divider />
+
+      <!-- ----------------- Temporary event spots ----------------- -->
+      <mat-expansion-panel class="nested-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title
+            class="mat-title-small"
+            i18n="@@event_edit.temporary_spots_heading"
+          >
+            Temporary event spots
+          </mat-panel-title>
+          <mat-panel-description i18n="@@event_edit.temporary_spots_hint">
+            Event-only local spots saved inside this event
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="d-flex flex-column gap-3 pt-2">
+          <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+            <p
+              class="mat-label-small text-muted m-0 flex-grow-1"
+              i18n="@@event_edit.temporary_spots_description"
+            >
+              Use these for temporary builds, stages, training areas, or named
+              zones that should appear only on the event map.
+            </p>
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="addInlineSpot()"
+              [disabled]="saving()"
+            >
+              <mat-icon>add_location</mat-icon>
+              <span i18n="@@event_edit.temporary_spot_add">Add spot</span>
+            </button>
+          </div>
+
+          @if (inlineSpots().length > 0) {
+            <div class="tmp-list">
+              @for (spot of inlineSpots(); track spot.key) {
+                <section class="tmp-editor">
+                  <div class="tmp-header">
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@event_edit.temporary_spot_id">
+                        Spot id
+                      </mat-label>
+                      <input
+                        matInput
+                        [value]="spot.id"
+                        placeholder="main-stage"
+                        (input)="updateInlineSpot(spot.key, { id: $any($event.target).value })"
+                      />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@event_edit.temporary_spot_name">
+                        Name
+                      </mat-label>
+                      <input
+                        matInput
+                        [value]="spot.name"
+                        placeholder="Main stage"
+                        (input)="updateInlineSpot(spot.key, { name: $any($event.target).value })"
+                      />
+                    </mat-form-field>
+                    <mat-checkbox
+                      [checked]="spot.isIconic"
+                      (change)="updateInlineSpot(spot.key, { isIconic: $event.checked })"
+                      i18n="@@event_edit.temporary_spot_iconic"
+                    >
+                      Iconic
+                    </mat-checkbox>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      (click)="removeInlineSpot(spot.key)"
+                      [disabled]="saving()"
+                      aria-label="Remove temporary spot"
+                      i18n-aria-label="@@event_edit.temporary_spot_remove"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+
+                  <div class="tmp-fields">
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@event_edit.temporary_spot_lat">
+                        Latitude
+                      </mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        step="0.000001"
+                        [value]="spot.lat ?? ''"
+                        (input)="updateInlineSpotCoordinate(spot.key, 'lat', $any($event.target).valueAsNumber)"
+                      />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@event_edit.temporary_spot_lng">
+                        Longitude
+                      </mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        step="0.000001"
+                        [value]="spot.lng ?? ''"
+                        (input)="updateInlineSpotCoordinate(spot.key, 'lng', $any($event.target).valueAsNumber)"
+                      />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="span-2">
+                      <mat-label i18n="@@event_edit.temporary_spot_description">
+                        Description
+                      </mat-label>
+                      <textarea
+                        matInput
+                        rows="2"
+                        [value]="spot.description"
+                        (input)="updateInlineSpot(spot.key, { description: $any($event.target).value })"
+                      ></textarea>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="span-2">
+                      <mat-label i18n="@@event_edit.temporary_spot_images">
+                        Image URLs
+                      </mat-label>
+                      <input
+                        matInput
+                        [value]="spot.imagesCsv"
+                        placeholder="https://example.com/image.webp, https://…"
+                        (input)="updateInlineSpot(spot.key, { imagesCsv: $any($event.target).value })"
+                      />
+                      <mat-hint i18n="@@event_edit.temporary_spot_images_hint">
+                        Comma-separated. First image becomes the preview.
+                      </mat-hint>
+                    </mat-form-field>
+                  </div>
+
+                  <div class="tmp-bounds d-flex flex-column gap-2">
+                    <div class="d-flex flex-row align-items-center gap-2 flex-wrap">
+                      <p class="mat-label-medium m-0 flex-grow-1" i18n="@@event_edit.temporary_spot_bounds">
+                        Bounds
+                      </p>
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="addInlineSpotBoundsPoint(spot.key)"
+                        [disabled]="saving()"
+                      >
+                        <mat-icon>add</mat-icon>
+                        <span i18n="@@event_edit.temporary_spot_bounds_add">
+                          Add point
+                        </span>
+                      </button>
+                    </div>
+                    @if (spot.bounds.length > 0) {
+                      <div class="d-flex flex-column gap-2">
+                        @for (point of spot.bounds; track point.id) {
+                          <div class="tmp-bounds-point">
+                            <mat-form-field appearance="outline">
+                              <mat-label i18n="@@event_edit.temporary_spot_bounds_lat">
+                                Lat
+                              </mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                step="0.000001"
+                                [value]="point.lat ?? ''"
+                                (input)="updateInlineSpotBoundsPoint(spot.key, point.id, 'lat', $any($event.target).valueAsNumber)"
+                              />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline">
+                              <mat-label i18n="@@event_edit.temporary_spot_bounds_lng">
+                                Lng
+                              </mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                step="0.000001"
+                                [value]="point.lng ?? ''"
+                                (input)="updateInlineSpotBoundsPoint(spot.key, point.id, 'lng', $any($event.target).valueAsNumber)"
+                              />
+                            </mat-form-field>
+                            <button
+                              mat-icon-button
+                              type="button"
+                              (click)="removeInlineSpotBoundsPoint(spot.key, point.id)"
+                              [disabled]="saving()"
+                              aria-label="Remove bounds point"
+                              i18n-aria-label="@@event_edit.temporary_spot_bounds_remove"
+                            >
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <p class="mat-label-small text-muted m-0" i18n="@@event_edit.temporary_spot_bounds_empty">
+                        Add at least three points when this temporary spot has its own area.
+                      </p>
+                    }
+                  </div>
+                </section>
+              }
+            </div>
+          } @else {
+            <p class="mat-label-small text-muted m-0" i18n="@@event_edit.temporary_spots_empty">
+              No temporary event spots yet.
+            </p>
+          }
+        </div>
+      </mat-expansion-panel>
 
       <mat-divider />
 
@@ -1421,57 +1691,54 @@
       <mat-divider />
 
       <!-- ----------------- Promotion ----------------- -->
-      <div class="d-flex flex-column gap-2">
-        <h4 class="mat-title-small m-0" i18n="@@event_edit.sponsor_heading">
-          Promotion
-        </h4>
-        <p
-          class="mat-label-small text-muted m-0"
-          i18n="@@event_edit.sponsor_hint"
-        >
-          If set, the event is treated as promoted — the promotion logo
-          shows on event spot pins and inside the map-island chip.
-        </p>
-        <div class="d-flex flex-row gap-2 flex-wrap">
-          <mat-form-field appearance="outline" class="flex-grow-1">
-            <mat-label i18n="@@event_edit.sponsor_name">
-              Promotion name
-            </mat-label>
-            <input matInput formControlName="sponsor_name" />
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="flex-grow-1">
-            <mat-label i18n="@@event_edit.sponsor_url">Promotion URL</mat-label>
-            <input
-              matInput
-              formControlName="sponsor_url"
-              placeholder="https://…"
-            />
-          </mat-form-field>
-        </div>
-        <p class="mat-label-medium text-muted m-0" i18n="@@event_edit.sponsor_logo">
-          Promotion logo
-        </p>
-        <app-media-upload
-          [allowedMimeTypes]="[
-            'image/jpeg',
-            'image/png',
-            'image/webp',
-            'image/svg+xml',
-          ]"
-          [maximumSizeInBytes]="5 * 1024 * 1024"
-          [multipleAllowed]="false"
-          [storageFolder]="eventMediaBucket"
-          (newMedia)="onSponsorLogoUploaded($event)"
-        ></app-media-upload>
-        @if (form.value.sponsor_logo_src) {
-          <p class="mat-label-small text-muted text-truncate">
-            <ng-container i18n="@@event_edit.current_image_label">
-              Current:
-            </ng-container>
-            <span>{{ form.value.sponsor_logo_src }}</span>
+      <mat-expansion-panel class="nested-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title
+            class="mat-title-small"
+            i18n="@@event_edit.promote_heading"
+          >
+            Promote
+          </mat-panel-title>
+          <mat-panel-description i18n="@@event_edit.promote_hint">
+            Boosting and map-island radius
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="d-flex flex-column gap-3 pt-2">
+          <p
+            class="mat-label-small text-muted m-0"
+            i18n="@@event_edit.promote_description"
+          >
+            Promotion is admin-only for now. The radius controls where the event
+            can surface in promoted map-island placements.
           </p>
-        }
-      </div>
+
+          <div class="d-flex flex-row gap-2 flex-wrap">
+            <mat-form-field appearance="outline" class="flex-grow-1">
+              <mat-label i18n="@@event_edit.promo_radius">
+                Promotion radius (m)
+              </mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                step="100"
+                formControlName="promo_radius_m"
+                placeholder="30000"
+              />
+              <mat-hint i18n="@@event_edit.promo_radius_hint">
+                Centered on the event pin. Leave empty for no radius promotion.
+              </mat-hint>
+            </mat-form-field>
+            <mat-checkbox
+              formControlName="is_promoted"
+              i18n="@@event_edit.is_promoted"
+            >
+              Promote in the map island
+            </mat-checkbox>
+          </div>
+        </div>
+      </mat-expansion-panel>
 
       <mat-divider />
 

@@ -270,6 +270,88 @@ describe("EventEditFormComponent", () => {
     });
   });
 
+  it("serializes temporary event spots with local bounds on submit", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput("event", eventWith("event-1"));
+    fixture.detectChanges();
+
+    component.addInlineSpot();
+    const spotKey = component.inlineSpots()[0].key;
+    component.updateInlineSpot(spotKey, {
+      id: "main-stage",
+      name: "Main stage",
+      description: "Temporary event build.",
+      imagesCsv: "https://example.com/stage.webp",
+      isIconic: true,
+    });
+    component.updateInlineSpotCoordinate(spotKey, "lat", 47.37);
+    component.updateInlineSpotCoordinate(spotKey, "lng", 8.54);
+    component.addInlineSpotBoundsPoint(spotKey);
+    component.addInlineSpotBoundsPoint(spotKey);
+    component.addInlineSpotBoundsPoint(spotKey);
+    const points = component.inlineSpots()[0].bounds;
+    component.updateInlineSpotBoundsPoint(spotKey, points[0].id, "lat", 47.371);
+    component.updateInlineSpotBoundsPoint(spotKey, points[0].id, "lng", 8.541);
+    component.updateInlineSpotBoundsPoint(spotKey, points[1].id, "lat", 47.372);
+    component.updateInlineSpotBoundsPoint(spotKey, points[1].id, "lng", 8.542);
+    component.updateInlineSpotBoundsPoint(spotKey, points[2].id, "lat", 47.373);
+    component.updateInlineSpotBoundsPoint(spotKey, points[2].id, "lng", 8.543);
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].inline_spots).toEqual([
+      {
+        id: "main-stage",
+        name: "Main stage",
+        location: { lat: 47.37, lng: 8.54 },
+        description: "Temporary event build.",
+        images: ["https://example.com/stage.webp"],
+        bounds: [
+          { lat: 47.371, lng: 8.541 },
+          { lat: 47.372, lng: 8.542 },
+          { lat: 47.373, lng: 8.543 },
+        ],
+        is_iconic: true,
+      },
+    ]);
+  });
+
+  it("writes promoted state with the legacy sponsored mirror", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        is_promoted: true,
+        promo_radius_m: 25_000,
+      }),
+    );
+    fixture.detectChanges();
+
+    component.form.patchValue({
+      promo_radius_m: 30_000,
+      is_promoted: true,
+    });
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        promo_radius_m: 30_000,
+        is_promoted: true,
+        is_sponsored: true,
+      }),
+    );
+  });
+
   it("serializes edited program plans and items on submit", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;
