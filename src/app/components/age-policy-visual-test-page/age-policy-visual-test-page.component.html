@@ -1,0 +1,41 @@
+<main class="age-policy-visual-page">
+  <section class="age-policy-surface" aria-label="Age policy visual regression">
+    <mat-card class="age-policy-card">
+      <mat-card-header>
+        <mat-card-title>Own profile</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="profile-preview">
+          <div class="profile-avatar" aria-hidden="true">P</div>
+          <div class="profile-main">
+            <h1 class="mat-headline-small m-0">Parkour Tester</h1>
+            <p class="mat-body-medium m-0 muted">Public profile preview</p>
+            <app-contribution-status-note></app-contribution-status-note>
+            <div class="action-row">
+              <button matButton="filled" color="primary">
+                <mat-icon>settings</mat-icon>
+                <span>Settings</span>
+              </button>
+              <button mat-stroked-button color="warn">
+                <mat-icon>logout</mat-icon>
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="age-policy-card">
+      <mat-card-header>
+        <mat-card-title>Settings profile tab</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="mat-body-medium muted">
+          Profile editing is hidden while public contributions are unavailable.
+        </p>
+        <app-contribution-status-note></app-contribution-status-note>
+      </mat-card-content>
+    </mat-card>
+  </section>
+</main>

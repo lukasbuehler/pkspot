@@ -1,0 +1,60 @@
+.age-policy-visual-page {
+  min-height: 100dvh;
+  padding: 32px;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.age-policy-surface {
+  width: min(920px, 100%);
+  display: grid;
+  gap: 20px;
+}
+
+.age-policy-card {
+  border-radius: 8px;
+}
+
+.profile-preview {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.profile-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font-size: 42px;
+  font-weight: 600;
+}
+
+.profile-main {
+  display: grid;
+  gap: 12px;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+@media (max-width: 599px) {
+  .age-policy-visual-page {
+    padding: 18px;
+  }
+
+  .profile-preview {
+    grid-template-columns: 1fr;
+  }
+}

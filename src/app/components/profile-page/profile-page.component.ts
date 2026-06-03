@@ -56,6 +56,8 @@ import {
   ProfileReportDialogComponent,
   ProfileReportDialogResult,
 } from "../profile-report-dialog/profile-report-dialog.component";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
+import { ContributionStatusNoteComponent } from "../contribution-status-note/contribution-status-note.component";
 
 type ProfileSocialLink = {
   id: string;
@@ -87,6 +89,7 @@ type ProfileSocialLink = {
     NgOptimizedImage,
     UserActivityComponent,
     MatExpansionModule,
+    ContributionStatusNoteComponent,
   ],
 })
 export class ProfilePageComponent implements OnInit, OnDestroy {
@@ -113,6 +116,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     private _storageService: StorageService,
     private _analytics: AnalyticsService,
     private _cdr: ChangeDetectorRef,
+    public ageAssurance: AgeAssuranceService,
     @Inject(LOCALE_ID) public locale: LocaleCode
   ) {}
 

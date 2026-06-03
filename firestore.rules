@@ -193,6 +193,32 @@ service cloud.firestore {
         || !('other' in request.resource.data.socials);
     }
 
+    function agePolicyAllowsPublicParticipation() {
+      return request.auth.uid != null
+        && (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('age_policy', {}).get('participation_state', 'allowed') in [
+            'allowed',
+            'platform_signal_unavailable'
+          ]
+        );
+    }
+
+    function userPublicParticipationFields() {
+      return [
+        'display_name',
+        'biography',
+        'home_spots',
+        'profile_picture',
+        'start_date',
+        'start_date_raw_ms',
+        'nationality_code',
+        'home_city',
+        'socials',
+        'pinned_badges'
+      ];
+    }
+
     function validReportUserReference(userRef) {
       return userRef is map
         && userRef.keys().hasOnly([
@@ -263,6 +289,7 @@ service cloud.firestore {
       // The cloud function will populate the spot when processing the CREATE edit.
       // Updates are disabled - changes must go through the edits system
       allow create: if request.auth.uid != null 
+        && agePolicyAllowsPublicParticipation()
         && request.resource.data.keys().size() == 0;
       allow update: if false;
       allow delete: if isAdmin();
@@ -275,6 +302,7 @@ service cloud.firestore {
       match /reviews/{userId} {
         allow read: if true;
         allow create: if request.auth.uid != null 
+          && agePolicyAllowsPublicParticipation()
           && request.auth.uid == userId
           && request.auth.uid == request.resource.data.user.uid
           && !exists(/databases/$(database)/documents/spots/$(spotId)/reviews/$(userId))
@@ -282,6 +310,7 @@ service cloud.firestore {
           && request.resource.data.rating >= 1 
           && request.resource.data.rating <= 5;
         allow update: if request.auth.uid != null
+          && agePolicyAllowsPublicParticipation()
           && request.auth.uid == request.resource.data.user.uid
           && request.auth.uid == userId
           && request.resource.data.rating is int 
@@ -311,6 +340,7 @@ service cloud.firestore {
           (resource.data.release_date <= request.time) ||
           (resource.data.user.uid == request.auth.uid);
         allow create, update: if request.auth.uid != null 
+          && agePolicyAllowsPublicParticipation()
           && request.auth.uid == request.resource.data.user.uid;
         allow delete: if isAdmin();
       }
@@ -319,6 +349,7 @@ service cloud.firestore {
       {
         allow read: if canReadSpotEdit();
         allow create: if request.auth.uid != null 
+          && agePolicyAllowsPublicParticipation()
           && request.auth.uid == request.resource.data.user.uid
           && (
             !requiresOrganizationReview(spotId)
@@ -331,6 +362,7 @@ service cloud.firestore {
         {
           allow read: if true;
           allow create, update: if request.auth.uid != null 
+            && agePolicyAllowsPublicParticipation()
             && request.auth.uid == userId
             && request.auth.uid == request.resource.data.user.uid;
           allow delete: if isAdmin();
@@ -349,6 +381,7 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if request.auth.uid != null
+        && agePolicyAllowsPublicParticipation()
         && slug.matches('^[a-z0-9-]+$')
         && !exists(/databases/$(database)/documents/spot_slugs/$(slug))
         && exists(/databases/$(database)/documents/spots/$(request.resource.data.spot_id));
@@ -393,6 +426,7 @@ service cloud.firestore {
 
       // only authenticated users can create and edit posts and only create and edit it if it's their post. Also, they can't set the like_count variable.
       allow create, update: if request.auth.uid != null 
+        && agePolicyAllowsPublicParticipation()
         && request.auth.uid == request.resource.data.user.uid
         && !('like_count' in request.resource.data);
       allow delete: if request.auth.uid != null 
@@ -405,6 +439,7 @@ service cloud.firestore {
 
         // Only you can edit your like
         allow create, update: if request.auth.uid == userId
+          && agePolicyAllowsPublicParticipation()
           && request.auth.uid == request.resource.data.user.uid;
         allow delete: if request.auth.uid == userId
           && request.auth.uid == resource.data.user.uid;
@@ -417,11 +452,15 @@ service cloud.firestore {
       allow read: if true;
       // It is not allowed to update protected fields. These are handled by cloud functions.
       allow create: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges'])
+         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy'])
          && validUserSocials()
          && noUserCustomSocialLinksOnCreate();
       allow update: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges'])
+         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy'])
+         && (
+           !request.resource.data.diff(resource.data).affectedKeys().hasAny(userPublicParticipationFields())
+           || agePolicyAllowsPublicParticipation()
+         )
          && validUserSocials()
          && userCustomSocialLinksUnchanged();
       allow delete: if request.auth.uid != null && request.auth.uid == userId;
@@ -429,14 +468,20 @@ service cloud.firestore {
       match /following/{otherUserId} {
         // A user can only see and update his own following
         allow read: if request.auth.uid != null && request.auth.uid == userId;
-        allow write: if request.auth.uid != null 
-        && request.auth.uid == userId && request.auth.uid != otherUserId; 
+        allow create, update: if request.auth.uid != null
+        && agePolicyAllowsPublicParticipation()
+        && request.auth.uid == userId && request.auth.uid != otherUserId;
+        allow delete: if request.auth.uid != null
+        && request.auth.uid == userId && request.auth.uid != otherUserId;
       }
       match /followers/{otherUserId} {
         // A user can only see his own followers
         allow read: if request.auth.uid != null && request.auth.uid == userId;
         // TODO write cloud function to handle updating followers and remove this permission to write.
-        allow write: if request.auth.uid != null && 
+        allow create, update: if request.auth.uid != null
+        && agePolicyAllowsPublicParticipation()
+        && request.auth.uid == otherUserId && request.auth.uid != userId;
+        allow delete: if request.auth.uid != null &&
         request.auth.uid == otherUserId && request.auth.uid != userId;
       }
 
@@ -497,6 +542,7 @@ service cloud.firestore {
             || isMutualFriend(userId)
           );
         allow create, update: if request.auth.uid != null
+          && agePolicyAllowsPublicParticipation()
           && request.auth.uid == userId
           && validEventRsvp(eventId, userId);
         allow delete: if request.auth.uid != null

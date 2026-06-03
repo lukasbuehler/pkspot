@@ -105,6 +105,7 @@ export { assignSignupNumberOnCreate } from "./userSignupFunctions";
 export {
   onCheckInCreate,
   syncVisitedSpotsCountOnPrivateDataWrite,
+  updateAgePolicy,
 } from "./userFunctions";
 
 export { cleanupAllOrphanedMedia } from "./mediaCleanupFunctions";

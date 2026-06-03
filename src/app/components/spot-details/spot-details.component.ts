@@ -138,6 +138,7 @@ import {
 } from "../../services/firebase/firestore/organizations.service";
 import { SpotReportsService } from "../../services/firebase/firestore/spot-reports.service";
 import { PostsService } from "../../services/firebase/firestore/posts.service";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { SpotReviewSchema } from "../../../db/schemas/SpotReviewSchema";
 import { SpotReviewsService } from "../../services/firebase/firestore/spot-reviews.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
@@ -311,6 +312,7 @@ export class SpotDetailsComponent
   private _analyticsService = inject(AnalyticsService);
   private _usersService = inject(UsersService);
   private _organizationsService = inject(OrganizationsService);
+  private _ageAssuranceService = inject(AgeAssuranceService);
 
   /**
    * Sets the --open-progress CSS custom property on the host element.
@@ -1157,9 +1159,21 @@ export class SpotDetailsComponent
 
   editButtonClick() {
     if (this.editable && this.authenticationService.isSignedIn) {
+      if (!this._ageAssuranceService.canParticipatePublicly()) {
+        this._snackbar.open(
+          this._ageAssuranceService.getRestrictionMessage(),
+          $localize`Dismiss`,
+          { duration: 6000 }
+        );
+        return;
+      }
       this.isEditing.set(true);
       void this._ensureOrganizationsLoadedForAdmin();
     }
+  }
+
+  canParticipatePublicly(): boolean {
+    return this._ageAssuranceService.canParticipatePublicly();
   }
 
   editHistoryButtonClick() {
@@ -1623,6 +1637,15 @@ export class SpotDetailsComponent
   }
 
   openMediaUploadDialog() {
+    if (!this._ageAssuranceService.canParticipatePublicly()) {
+      this._snackbar.open(
+        this._ageAssuranceService.getRestrictionMessage(),
+        $localize`Dismiss`,
+        { duration: 6000 }
+      );
+      return;
+    }
+
     const spot = this.spot();
     if (!(spot instanceof Spot)) return;
     import("../media-upload-dialog/media-upload-dialog.component").then((m) => {

@@ -23,7 +23,7 @@ const visualTestRoutes: Routes = environment.production
           import(
             "./components/map/marker-visual-test-page/marker-visual-test-page.component"
           ).then((m) => m.MarkerVisualTestPageComponent),
-        data: { routeName: "Marker Visual Test" },
+        data: { routeName: "Marker Visual Test", acceptanceFree: true },
       },
       {
         path: "__visual/map-overlay",
@@ -31,7 +31,15 @@ const visualTestRoutes: Routes = environment.production
           import(
             "./components/map/map-overlay-visual-test-page/map-overlay-visual-test-page.component"
           ).then((m) => m.MapOverlayVisualTestPageComponent),
-        data: { routeName: "Map Overlay Visual Test" },
+        data: { routeName: "Map Overlay Visual Test", acceptanceFree: true },
+      },
+      {
+        path: "__visual/age-policy",
+        loadComponent: () =>
+          import(
+            "./components/age-policy-visual-test-page/age-policy-visual-test-page.component"
+          ).then((m) => m.AgePolicyVisualTestPageComponent),
+        data: { routeName: "Age Policy Visual Test", acceptanceFree: true },
       },
     ];
 

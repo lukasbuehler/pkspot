@@ -3,6 +3,141 @@ import {
   onDocumentCreated,
   onDocumentWritten,
 } from "firebase-functions/v2/firestore";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
+
+type AgeParticipationState =
+  | "allowed"
+  | "read_only_age_restricted"
+  | "needs_age_signal"
+  | "needs_parental_consent"
+  | "age_signal_declined_required"
+  | "platform_signal_unavailable";
+
+type AgePolicyPayload = {
+  participation_state?: AgeParticipationState;
+  source?: string;
+  platform?: string;
+  reason?: string;
+  age_range?: {
+    lower?: number;
+    upper?: number;
+  };
+  required_regulatory_features?: string[];
+};
+
+const allowedParticipationStates = new Set<AgeParticipationState>([
+  "allowed",
+  "read_only_age_restricted",
+  "needs_age_signal",
+  "needs_parental_consent",
+  "age_signal_declined_required",
+  "platform_signal_unavailable",
+]);
+
+const allowedAgePolicySources = new Set([
+  "android_play_age_signals",
+  "ios_declared_age_range",
+  "web_tos",
+  "manual",
+]);
+
+const allowedAgePolicyPlatforms = new Set(["android", "ios", "web"]);
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+};
+
+const toStringArray = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.slice(0, 120))
+    .slice(0, 10);
+};
+
+const sanitizeAgePolicy = (value: unknown): AgePolicyPayload => {
+  if (!isPlainObject(value)) {
+    throw new HttpsError("invalid-argument", "policy must be an object");
+  }
+
+  const participationState = value["participation_state"];
+  if (
+    typeof participationState !== "string" ||
+    !allowedParticipationStates.has(participationState as AgeParticipationState)
+  ) {
+    throw new HttpsError("invalid-argument", "invalid participation state");
+  }
+
+  const source = value["source"];
+  if (typeof source !== "string" || !allowedAgePolicySources.has(source)) {
+    throw new HttpsError("invalid-argument", "invalid policy source");
+  }
+
+  const platform = value["platform"];
+  if (
+    typeof platform !== "string" ||
+    !allowedAgePolicyPlatforms.has(platform)
+  ) {
+    throw new HttpsError("invalid-argument", "invalid policy platform");
+  }
+
+  const sanitized: AgePolicyPayload = {
+    participation_state: participationState as AgeParticipationState,
+    source,
+    platform,
+  };
+
+  if (typeof value["reason"] === "string") {
+    sanitized.reason = value["reason"].slice(0, 500);
+  }
+
+  const ageRange = value["age_range"];
+  if (isPlainObject(ageRange)) {
+    const lower = ageRange["lower"];
+    const upper = ageRange["upper"];
+    sanitized.age_range = {
+      ...(typeof lower === "number" && Number.isFinite(lower)
+        ? { lower: Math.trunc(lower) }
+        : {}),
+      ...(typeof upper === "number" && Number.isFinite(upper)
+        ? { upper: Math.trunc(upper) }
+        : {}),
+    };
+  }
+
+  const regulatoryFeatures = toStringArray(
+    value["required_regulatory_features"]
+  );
+  if (regulatoryFeatures?.length) {
+    sanitized.required_regulatory_features = regulatoryFeatures;
+  }
+
+  return sanitized;
+};
+
+export const updateAgePolicy = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "Authentication is required");
+  }
+
+  const data = isPlainObject(request.data) ? request.data : {};
+  const policy = sanitizeAgePolicy(data["policy"]);
+
+  await admin.firestore().collection("users").doc(uid).set(
+    {
+      age_policy: {
+        ...policy,
+        signal_updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      },
+    },
+    { merge: true }
+  );
+
+  return { ok: true };
+});
 
 export const onCheckInCreate = onDocumentCreated(
   "users/{userId}/check_ins/{checkInId}",

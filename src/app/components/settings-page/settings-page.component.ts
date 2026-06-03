@@ -28,6 +28,8 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { languageCodes } from "../../../scripts/Languages";
 import { UiLanguageService } from "../../services/ui-language.service";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
+import { ContributionStatusNoteComponent } from "../contribution-status-note/contribution-status-note.component";
 import { version } from "../../../../package.json";
 import crew from "../../../assets/data/crew.json";
 
@@ -55,6 +57,7 @@ import crew from "../../../assets/data/crew.json";
     MatProgressSpinner,
     MatSlideToggleModule,
     RouterLink,
+    ContributionStatusNoteComponent,
   ],
   host: { ngSkipHydration: "true" },
 })
@@ -72,7 +75,8 @@ export class SettingsPageComponent implements OnInit {
     private _snackbar: MatSnackBar,
     private _metaTagService: MetaTagService,
     public appSettings: AppSettingsService,
-    private _uiLanguageService: UiLanguageService
+    private _uiLanguageService: UiLanguageService,
+    public ageAssurance: AgeAssuranceService
   ) {}
   languageCodes = languageCodes;
 
@@ -470,6 +474,18 @@ export class SettingsPageComponent implements OnInit {
   }
 
   saveAllChanges() {
+    if (
+      this.selectedPoint === "profile" &&
+      !this.ageAssurance.canParticipatePublicly()
+    ) {
+      this._snackbar.open(
+        this.ageAssurance.getRestrictionMessage(),
+        $localize`Dismiss`,
+        { duration: 6000 }
+      );
+      return;
+    }
+
     // Save all changes in components
     this.editProfileComponent
       ?.saveAllChanges()

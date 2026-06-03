@@ -54,11 +54,15 @@
             visitors.
           </span>
 
+          @if (!ageAssurance.canParticipatePublicly()) {
+          <app-contribution-status-note class="mt-4 d-block"></app-contribution-status-note>
+          } @else {
           <app-edit-profile
             #editProfileComponent
             class="mt-4"
             (changes)="profileHasChanges($event)"
           ></app-edit-profile>
+          }
         </div>
         <div *ngSwitchCase="'account'">
           <h2
@@ -469,7 +473,7 @@
     </div>
   </div>
 </div>
-@if(hasChanges) {
+@if(hasChanges && (selectedPoint !== 'profile' || ageAssurance.canParticipatePublicly())) {
 <app-speed-dial-fab
   #saveSpeedDial
   id="saveSpeedDial"
