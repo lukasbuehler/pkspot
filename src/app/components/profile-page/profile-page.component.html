@@ -130,6 +130,11 @@
                   (click)="toggleBlockUser()">
                   {{ isBlocked ? "Unblock" : "Block" }}
                 </button>
+                <button mat-stroked-button color="warn" class="profile-overview__action flex-grow-1 flex-basis-0"
+                  (click)="openProfileReportDialog()">
+                  <mat-icon>report</mat-icon>
+                  <span i18n>Report</span>
+                </button>
               </div>
               } @else {
               <div class="profile-overview__actions w-100 d-flex flex-wrap gap-2"

@@ -14,6 +14,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.getcapacitor.BridgeActivity;
+import com.google.android.play.agesignals.AgeSignalsException;
+import com.google.android.play.agesignals.AgeSignalsManager;
+import com.google.android.play.agesignals.AgeSignalsManagerFactory;
+import com.google.android.play.agesignals.AgeSignalsRequest;
 
 public class MainActivity extends BridgeActivity {
   private static final String TAG = "PKSpotMainActivity";
@@ -27,6 +31,7 @@ public class MainActivity extends BridgeActivity {
     // Enable edge-to-edge display for proper safe-area-inset CSS support
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
     Log.d(TAG, "onCreate: decorFitsSystemWindows=false");
+    logPlayAgeSignals();
     setupImeInsetsGuard();
   }
 
@@ -170,5 +175,33 @@ public class MainActivity extends BridgeActivity {
         Log.d(TAG, "imeGuard: failed to install listeners", e);
       }
     });
+  }
+
+  private void logPlayAgeSignals() {
+    try {
+      AgeSignalsManager ageSignalsManager = AgeSignalsManagerFactory.create(getApplicationContext());
+      ageSignalsManager
+          .checkAgeSignals(AgeSignalsRequest.builder().build())
+          .addOnSuccessListener(ageSignalsResult -> Log.d(
+              TAG,
+              "playAgeSignals: userStatus=" + ageSignalsResult.userStatus()
+                  + " ageLower=" + ageSignalsResult.ageLower()
+                  + " ageUpper=" + ageSignalsResult.ageUpper()
+                  + " mostRecentApprovalDate=" + ageSignalsResult.mostRecentApprovalDate()
+                  + " installId=" + ageSignalsResult.installId()))
+          .addOnFailureListener(error -> {
+            if (error instanceof AgeSignalsException) {
+              Log.d(
+                  TAG,
+                  "playAgeSignals: failed errorCode=" + ((AgeSignalsException) error).getErrorCode(),
+                  error);
+              return;
+            }
+
+            Log.d(TAG, "playAgeSignals: failed", error);
+          });
+    } catch (Exception error) {
+      Log.d(TAG, "playAgeSignals: request setup failed", error);
+    }
   }
 }

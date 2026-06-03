@@ -234,6 +234,14 @@ async function seedSecurityFixture() {
     display_name: "Owner",
     is_admin: false,
     spot_edits_count: 4,
+    socials: {
+      other: [
+        {
+          name: "Manual link",
+          url: "https://example.com/manual",
+        },
+      ],
+    },
   });
   batch.set(adminDb.doc("users/other"), {
     display_name: "Other",
@@ -537,7 +545,7 @@ async function testPrivateOrganizationReviewEdits(anon, owner, other, adminUser)
   );
 }
 
-async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other) {
+async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh) {
   await assertAllowed("anonymous public user profile read", () =>
     getDoc(doc(anon.db, "users/owner"))
   );
@@ -549,6 +557,35 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other) {
   await assertAllowed("owner updates own display name", () =>
     updateDoc(doc(owner.db, "users/owner"), {
       display_name: "Owner Updated",
+    })
+  );
+  await assertAllowed("owner updates allowed social handles", () =>
+    updateDoc(doc(owner.db, "users/owner"), {
+      "socials.instagram_handle": "owner",
+      "socials.youtube_handle": "@owner",
+    })
+  );
+  await assertDenied("owner cannot change manual custom profile links", () =>
+    updateDoc(doc(owner.db, "users/owner"), {
+      "socials.other": [
+        {
+          name: "Injected",
+          url: "https://attacker.example",
+        },
+      ],
+    })
+  );
+  await assertDenied("new profile cannot include custom profile links", () =>
+    setDoc(doc(fresh.db, "users/fresh"), {
+      display_name: "Fresh",
+      socials: {
+        other: [
+          {
+            name: "Injected",
+            url: "https://attacker.example",
+          },
+        ],
+      },
     })
   );
   await assertDenied("owner escalates is_admin", () =>
@@ -596,6 +633,64 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other) {
     setDoc(doc(other.db, "users/owner/followers/attacker-controlled"), {
       created_at_raw_ms: 2,
     })
+  );
+}
+
+async function testUserReportGuards(anon, owner, other) {
+  await assertAllowed("signed-in user creates profile report", () =>
+    addDoc(collection(owner.db, "user_reports"), {
+      reportedUser: {
+        uid: "other",
+        display_name: "Other",
+      },
+      reason: "spam_or_malicious_links",
+      comment: "Suspicious profile link.",
+      user: {
+        uid: "owner",
+        display_name: "Owner",
+      },
+      createdAt: Timestamp.now(),
+      sourcePath: "/en/u/other",
+    })
+  );
+  await assertDenied("anonymous cannot create profile report", () =>
+    addDoc(collection(anon.db, "user_reports"), {
+      reportedUser: {
+        uid: "other",
+      },
+      reason: "other",
+      user: {
+        uid: "anonymous",
+      },
+      createdAt: Timestamp.now(),
+    })
+  );
+  await assertDenied("reporter cannot spoof profile report user", () =>
+    addDoc(collection(owner.db, "user_reports"), {
+      reportedUser: {
+        uid: "other",
+      },
+      reason: "other",
+      user: {
+        uid: "other",
+      },
+      createdAt: Timestamp.now(),
+    })
+  );
+  await assertDenied("profile report reason must be known", () =>
+    addDoc(collection(other.db, "user_reports"), {
+      reportedUser: {
+        uid: "owner",
+      },
+      reason: "whatever",
+      user: {
+        uid: "other",
+      },
+      createdAt: Timestamp.now(),
+    })
+  );
+  await assertDenied("client cannot read profile reports", () =>
+    getDocs(collection(owner.db, "user_reports"))
   );
 }
 
@@ -938,6 +1033,7 @@ async function main() {
   const anon = await createClient(null);
   const owner = await createClient("owner");
   const other = await createClient("other");
+  const fresh = await createClient("fresh");
   const adminUser = await createClient("admin");
 
   console.log("Running Firestore rules security tests...");
@@ -945,7 +1041,8 @@ async function main() {
   await testSpotWriteGuards(anon, owner, other, adminUser);
   await testOrganizationGuards(anon, owner, other, adminUser);
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);
-  await testUserPrivacyAndPrivilegeEscalation(anon, owner, other);
+  await testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh);
+  await testUserReportGuards(anon, owner, other);
   await testReadOnlyBackendCollections(owner);
   await testContactMessageGuards(anon, owner, other);
   await testEventWriteGuards(owner, adminUser);

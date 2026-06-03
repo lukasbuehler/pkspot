@@ -163,6 +163,95 @@ service cloud.firestore {
         && validContactAnalytics();
     }
 
+    function validUserSocials() {
+      return !('socials' in request.resource.data)
+        || (
+          request.resource.data.socials is map
+          && request.resource.data.socials.keys().hasOnly([
+            'instagram_handle',
+            'youtube_handle',
+            'other'
+          ])
+          && (!('instagram_handle' in request.resource.data.socials) || (
+            request.resource.data.socials.instagram_handle is string
+            && request.resource.data.socials.instagram_handle.size() <= 120
+          ))
+          && (!('youtube_handle' in request.resource.data.socials) || (
+            request.resource.data.socials.youtube_handle is string
+            && request.resource.data.socials.youtube_handle.size() <= 160
+          ))
+        );
+    }
+
+    function userCustomSocialLinksUnchanged() {
+      return request.resource.data.get('socials', {}).get('other', []) ==
+        resource.data.get('socials', {}).get('other', []);
+    }
+
+    function noUserCustomSocialLinksOnCreate() {
+      return !('socials' in request.resource.data)
+        || !('other' in request.resource.data.socials);
+    }
+
+    function validReportUserReference(userRef) {
+      return userRef is map
+        && userRef.keys().hasOnly([
+          'uid',
+          'display_name',
+          'profile_picture'
+        ])
+        && userRef.keys().hasAll(['uid'])
+        && userRef.uid is string
+        && userRef.uid.size() > 0
+        && userRef.uid.size() <= 128
+        && (!('display_name' in userRef) || (
+          userRef.display_name is string
+          && userRef.display_name.size() <= 120
+        ))
+        && (!('profile_picture' in userRef) || (
+          userRef.profile_picture is string
+          && userRef.profile_picture.size() <= 500
+        ));
+    }
+
+    function validUserReport() {
+      return request.auth.uid != null
+        && request.resource.data.keys().hasOnly([
+          'reportedUser',
+          'reason',
+          'comment',
+          'user',
+          'createdAt',
+          'sourcePath'
+        ])
+        && request.resource.data.keys().hasAll([
+          'reportedUser',
+          'reason',
+          'user',
+          'createdAt'
+        ])
+        && validReportUserReference(request.resource.data.reportedUser)
+        && validReportUserReference(request.resource.data.user)
+        && request.resource.data.user.uid == request.auth.uid
+        && request.resource.data.reportedUser.uid != request.auth.uid
+        && request.resource.data.reason in [
+          'harassment',
+          'impersonation',
+          'unsafe_profile',
+          'spam_or_malicious_links',
+          'other'
+        ]
+        && request.resource.data.createdAt is timestamp
+        && (!('comment' in request.resource.data) || (
+          request.resource.data.comment is string
+          && request.resource.data.comment.size() <= 2000
+        ))
+        && (!('sourcePath' in request.resource.data) || (
+          request.resource.data.sourcePath is string
+          && request.resource.data.sourcePath.size() <= 500
+        ));
+    }
+
     match /spots/{spotId}
     {
       // all the spots are visible to everyone, authenticated or not
@@ -328,9 +417,13 @@ service cloud.firestore {
       allow read: if true;
       // It is not allowed to update protected fields. These are handled by cloud functions.
       allow create: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges']);
+         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges'])
+         && validUserSocials()
+         && noUserCustomSocialLinksOnCreate();
       allow update: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges']);
+         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges'])
+         && validUserSocials()
+         && userCustomSocialLinksUnchanged();
       allow delete: if request.auth.uid != null && request.auth.uid == userId;
 
       match /following/{otherUserId} {
@@ -429,6 +522,11 @@ service cloud.firestore {
     // Unauthenticated users: create reports with their email
     match /media_reports/{reportId} {
       allow create: if true;
+      allow read, update, delete: if false;
+    }
+
+    match /user_reports/{reportId} {
+      allow create: if validUserReport();
       allow read, update, delete: if false;
     }
 

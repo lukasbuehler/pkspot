@@ -52,6 +52,10 @@ import { PrivateSpotListsDialogComponent } from "../private-spot-lists-dialog/pr
 import { AnalyticsService } from "../../services/analytics.service";
 import { UserActivityComponent } from "../user-activity/user-activity.component";
 import { MatExpansionModule } from "@angular/material/expansion";
+import {
+  ProfileReportDialogComponent,
+  ProfileReportDialogResult,
+} from "../profile-report-dialog/profile-report-dialog.component";
 
 type ProfileSocialLink = {
   id: string;
@@ -617,6 +621,80 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           }
         });
     }
+  }
+
+  openProfileReportDialog(): void {
+    if (!this.user || this.isMyProfile) {
+      return;
+    }
+
+    if (!this._authService.user.uid) {
+      this._snackbar.open("You need to log in to report a profile.", "OK", {
+        duration: 5000,
+        horizontalPosition: "center",
+        verticalPosition: "bottom",
+      });
+      return;
+    }
+
+    const reportedUser = {
+      uid: this.userId,
+      display_name: this.user.displayName,
+      ...(this.user.data?.profile_picture
+        ? { profile_picture: this.user.data.profile_picture }
+        : {}),
+    };
+
+    this.followListDialog
+      .open(ProfileReportDialogComponent, {
+        ...this.dialogConfig,
+        width: "min(560px, 95vw)",
+        data: {
+          reportedUser,
+          displayName: this.user.displayName || "this user",
+          sourcePath: this._router.url,
+        },
+      })
+      .afterClosed()
+      .subscribe((result?: ProfileReportDialogResult) => {
+        if (!result?.reported) {
+          return;
+        }
+
+        this._snackbar.open("Profile report submitted", "OK", {
+          duration: 3000,
+        });
+
+        if (result.blockUser) {
+          this._blockProfileAfterReport();
+        }
+      });
+  }
+
+  private _blockProfileAfterReport(): void {
+    const myId = this._authService.user.uid;
+    const targetId = this.userId;
+    if (!myId || !targetId || this.isBlocked) {
+      return;
+    }
+
+    this._usersService
+      .blockUser(myId, targetId)
+      .then(() => {
+        this.blockedUsers = Array.from(
+          new Set([...(this.blockedUsers || []), targetId])
+        );
+        if (this._authService.user.data?.data) {
+          this._authService.user.data.data.blocked_users = this.blockedUsers;
+        }
+        this._snackbar.open("User blocked", "OK", { duration: 3000 });
+      })
+      .catch((error) => {
+        console.error(error);
+        this._snackbar.open("Error blocking user", "OK", {
+          duration: 3000,
+        });
+      });
   }
 
   get isBlocked(): boolean {

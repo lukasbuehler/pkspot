@@ -23,11 +23,7 @@ import {
 } from "@angular/material/form-field";
 import { FormsModule, ReactiveFormsModule, FormControl } from "@angular/forms";
 import { AsyncPipe } from "@angular/common";
-import {
-  MatButton,
-  MatIconButton,
-  MatButtonModule,
-} from "@angular/material/button";
+import { MatButton, MatButtonModule } from "@angular/material/button";
 import { StorageService } from "../../services/firebase/storage.service";
 import { StorageBucket } from "../../../db/schemas/Media";
 import { MatBadge } from "@angular/material/badge";
@@ -46,7 +42,6 @@ import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 import { ExternalImage } from "../../../db/models/Media";
 import { MatExpansionModule } from "@angular/material/expansion";
 import {
-  UserSocialCustomLinkSchema,
   UserSchema,
   UserSocialsSchema,
 } from "../../../db/schemas/UserSchema";
@@ -55,7 +50,6 @@ import { AutocompleteOverlayRepositionDirective } from "../../directives/autocom
 type NormalizedSocials = {
   instagram_handle?: string;
   youtube_handle?: string;
-  other: UserSocialCustomLinkSchema[];
 };
 
 @Component({
@@ -70,7 +64,6 @@ type NormalizedSocials = {
     MatLabel,
     FormsModule,
     MatButton,
-    MatIconButton,
     MatBadge,
     MatHint,
     MatAutocompleteModule,
@@ -96,7 +89,6 @@ export class EditProfileComponent implements OnInit {
   nationalityCode: string | null = null;
   instagramHandle: string = "";
   youtubeHandle: string = "";
-  customSocialLinks: UserSocialCustomLinkSchema[] = [];
 
   newProfilePicture: File | null = null;
   newProfilePictureSrc: string = "";
@@ -187,10 +179,6 @@ export class EditProfileComponent implements OnInit {
       this.nationalityCode = this.user.nationalityCode ?? null;
       this.instagramHandle = this.user.socials?.instagram_handle ?? "";
       this.youtubeHandle = this.user.socials?.youtube_handle ?? "";
-      this.customSocialLinks = (this.user.socials?.other ?? []).map((link) => ({
-        name: link.name,
-        url: link.url,
-      }));
 
       if (this.nationalityCode && this.countries[this.nationalityCode]) {
         this.countryControl.setValue(this.countries[this.nationalityCode].name);
@@ -387,19 +375,6 @@ export class EditProfileComponent implements OnInit {
     }
   }
 
-  addCustomSocialLink() {
-    this.customSocialLinks.push({
-      name: "",
-      url: "",
-    });
-    this.detectIfChanges();
-  }
-
-  removeCustomSocialLink(index: number) {
-    this.customSocialLinks.splice(index, 1);
-    this.detectIfChanges();
-  }
-
   detectIfChanges() {
     const currentSocials = this._buildCurrentSocials();
     const originalSocials = this._buildOriginalSocials();
@@ -450,14 +425,15 @@ export class EditProfileComponent implements OnInit {
     const currentSocials = this._buildCurrentSocials();
     const originalSocials = this._buildOriginalSocials();
     if (JSON.stringify(currentSocials) !== JSON.stringify(originalSocials)) {
-      const socials: UserSocialsSchema = {
-        other: currentSocials.other,
-      };
+      const socials: UserSocialsSchema = {};
       if (currentSocials.instagram_handle) {
         socials.instagram_handle = currentSocials.instagram_handle;
       }
       if (currentSocials.youtube_handle) {
         socials.youtube_handle = currentSocials.youtube_handle;
+      }
+      if (this.user.socials?.other) {
+        socials.other = this.user.socials.other;
       }
       data.socials = socials;
     }
@@ -480,7 +456,6 @@ export class EditProfileComponent implements OnInit {
     return this._normalizeSocials({
       instagram_handle: this.instagramHandle,
       youtube_handle: this.youtubeHandle,
-      other: this.customSocialLinks,
     });
   }
 
@@ -494,23 +469,9 @@ export class EditProfileComponent implements OnInit {
     );
     const youtubeHandle = this._normalizeYoutubeHandle(socials?.youtube_handle);
 
-    const otherLinks: UserSocialCustomLinkSchema[] = [];
-    for (const link of socials?.other ?? []) {
-      const name = (link?.name ?? "").trim();
-      const url = this._normalizeExternalUrl(link?.url ?? "");
-      if (!name || !url) {
-        continue;
-      }
-      otherLinks.push({
-        name,
-        url,
-      });
-    }
-
     return {
       instagram_handle: instagramHandle,
       youtube_handle: youtubeHandle,
-      other: otherLinks,
     };
   }
 
@@ -581,21 +542,4 @@ export class EditProfileComponent implements OnInit {
     return trimmed.includes("/") ? trimmed : `@${trimmed}`;
   }
 
-  private _normalizeExternalUrl(value?: string | null): string | null {
-    const trimmed = value?.trim();
-    if (!trimmed) {
-      return null;
-    }
-
-    const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
-      ? trimmed
-      : `https://${trimmed}`;
-
-    try {
-      return new URL(withProtocol).toString();
-    } catch (error) {
-      console.warn("Invalid custom social URL", value, error);
-      return null;
-    }
-  }
 }

@@ -84,6 +84,9 @@ export { onContactMessageCreate } from "./contactMessageFunctions";
 // spot report functions
 export { onSpotReportCreate } from "./spotReportFunctions";
 
+// user report functions
+export { onUserReportCreate } from "./userReportFunctions";
+
 // sitemap functions
 export {
   generateSitemapOnSchedule,
