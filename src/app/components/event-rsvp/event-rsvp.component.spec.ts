@@ -167,6 +167,12 @@ describe("EventRsvpComponent", () => {
 
   it("prompts for an RSVP in the menu button when no response is loaded", async () => {
     fixture.componentRef.setInput("eventId", "event-1");
+    fixture.componentRef.setInput("counts", {
+      going: 1,
+      interested: 0,
+      notgoing: 0,
+      total: 1,
+    });
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -187,6 +193,12 @@ describe("EventRsvpComponent", () => {
       time_updated: new Date(),
     });
     fixture.componentRef.setInput("eventId", "event-1");
+    fixture.componentRef.setInput("counts", {
+      going: 1,
+      interested: 0,
+      notgoing: 0,
+      total: 1,
+    });
     fixture.detectChanges();
     await fixture.whenStable();
 
