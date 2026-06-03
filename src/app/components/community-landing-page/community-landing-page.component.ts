@@ -20,20 +20,34 @@ import { CommunityLandingPageData as CommunityPanelData } from "../../services/f
 import { Event as PkEvent } from "../../../db/models/Event";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { EventCardComponent } from "../event-card/event-card.component";
+import { CommunityInfoCardSchema } from "../../../db/schemas/CommunityPageSchema";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { countries } from "../../../scripts/Countries";
+import { buildSpotCanonicalPath } from "../../../scripts/SpotRouteHelpers";
 
 type CommunityExploreMode = "all" | "dry";
 
-interface CommunityExternalLink {
-  label: string;
-  url: string;
-}
+type CommunityInfoCardCtaView =
+  | {
+      label: string;
+      target: "spot" | "event";
+      path: string;
+    }
+  | {
+      label: string;
+      target: "url";
+      url: string;
+    };
 
-interface CommunitySectionItem {
-  name: string;
-  url: string | null;
+interface CommunityInfoCardView {
+  id: string;
+  title: string;
+  body: string | null;
+  icon: string;
+  disclosure: string | null;
+  cta: CommunityInfoCardCtaView | null;
+  priority: number;
 }
 
 @Component({
@@ -138,7 +152,7 @@ export class CommunityLandingPageComponent {
       return "We could not find a PK Spot community page for this route yet.";
     }
 
-    return data.description;
+    return `Find parkour spots, events, and local community info for ${data.displayName}.`;
   });
 
   scopeLabel = computed(() => {
@@ -187,28 +201,9 @@ export class CommunityLandingPageComponent {
   childCommunities = computed(
     () => this.communityData()?.childCommunities ?? [],
   );
-  communityLinks = computed(() => this._toCommunityLinks(this.communityData()));
-  resources = computed(() =>
-    this._toSectionItems(this.communityData()?.resources ?? []),
+  communityInfoCards = computed(() =>
+    this._toCommunityInfoCards(this.communityData()?.infoCards ?? []),
   );
-  organisations = computed(() =>
-    this._toSectionItems(this.communityData()?.organisations ?? []),
-  );
-  athletes = computed(() =>
-    this._toSectionItems(this.communityData()?.athletes ?? []),
-  );
-  events = computed(() =>
-    this._toSectionItems(this.communityData()?.events ?? []),
-  );
-  hasManualSections = computed(() => {
-    return (
-      this.communityLinks().length > 0 ||
-      this.resources().length > 0 ||
-      this.organisations().length > 0 ||
-      this.athletes().length > 0 ||
-      this.events().length > 0
-    );
-  });
   hasFeaturedSpots = computed(() => {
     const data = this.communityData();
     return (
@@ -289,37 +284,104 @@ export class CommunityLandingPageComponent {
     return null;
   });
 
-  private _toCommunityLinks(
-    data: CommunityPanelData | undefined,
-  ): CommunityExternalLink[] {
-    if (!data) {
-      return [];
-    }
-
-    const linkEntries: Array<[string, string | null | undefined]> = [
-      ["WhatsApp", data.links.whatsapp],
-      ["Telegram", data.links.telegram],
-      ["Instagram", data.links.instagram],
-      ["Discord", data.links.discord],
-    ];
-
-    return linkEntries
-      .map(([label, url]) => ({
-        label,
-        url: this._safeExternalUrl(url),
+  private _toCommunityInfoCards(
+    cards: CommunityInfoCardSchema[],
+  ): CommunityInfoCardView[] {
+    return cards
+      .filter((card) => card.visibility !== "hidden")
+      .map((card, index) => ({
+        id: card.id || `${index}-${card.title}`,
+        title: card.title.trim(),
+        body: card.body?.trim() || null,
+        icon: card.icon?.trim() || this._communityInfoCardIcon(card),
+        disclosure: this._communityInfoDisclosure(card),
+        cta: this._communityInfoCardCta(card),
+        priority: card.priority ?? index,
       }))
-      .filter((item): item is CommunityExternalLink => item.url !== null);
+      .filter((card) => card.title.length > 0)
+      .sort(
+        (left, right) =>
+          left.priority - right.priority || left.id.localeCompare(right.id),
+      );
   }
 
-  private _toSectionItems(
-    items: CommunityPanelData["resources"],
-  ): CommunitySectionItem[] {
-    return items
-      .map((item) => ({
-        name: item.name.trim(),
-        url: this._safeExternalUrl(item.url ?? undefined),
-      }))
-      .filter((item) => item.name.length > 0);
+  private _communityInfoCardIcon(card: CommunityInfoCardSchema): string {
+    switch (card.category) {
+      case "jams":
+        return "calendar_month";
+      case "chat":
+        return "groups";
+      case "classes":
+        return "school";
+      case "spots":
+        return "place";
+      case "events":
+        return "event";
+      case "safety":
+        return "info";
+      default:
+        return card.cta?.target === "url" ? "link" : "info";
+    }
+  }
+
+  private _communityInfoDisclosure(
+    card: CommunityInfoCardSchema,
+  ): string | null {
+    switch (card.commercialDisclosure) {
+      case "classes":
+        return $localize`:@@community.info_disclosure_classes:Classes`;
+      case "paid-partnership":
+        return $localize`:@@community.info_disclosure_paid:Paid partnership`;
+      case "shop":
+        return $localize`:@@community.info_disclosure_shop:Shop`;
+      default:
+        return null;
+    }
+  }
+
+  private _communityInfoCardCta(
+    card: CommunityInfoCardSchema,
+  ): CommunityInfoCardCtaView | null {
+    const cta = card.cta;
+    if (!cta) {
+      return null;
+    }
+
+    const label = cta.label.trim();
+    if (!label) {
+      return null;
+    }
+
+    switch (cta.target) {
+      case "spot":
+        if (!cta.spotId.trim()) {
+          return null;
+        }
+        return {
+          label,
+          target: "spot",
+          path: buildSpotCanonicalPath(cta.spotId),
+        };
+      case "event":
+        if (!cta.eventId.trim()) {
+          return null;
+        }
+        return {
+          label,
+          target: "event",
+          path: `/events/${encodeURIComponent(cta.eventId)}`,
+        };
+      case "url": {
+        const url = this._safeExternalUrl(cta.url);
+        return url
+          ? {
+              label,
+              target: "url",
+              url,
+            }
+          : null;
+      }
+    }
   }
 
   private _safeExternalUrl(value: string | null | undefined): string | null {

@@ -32,6 +32,7 @@ const communityData: CommunityLandingPageData = {
   topRatedSpots: [],
   drySpots: [],
   links: {},
+  infoCards: [],
   resources: [],
   organisations: [],
   athletes: [],
@@ -205,5 +206,70 @@ describe("CommunityLandingPageComponent", () => {
     expect(
       fixture.nativeElement.querySelector("app-spot-preview-card"),
     ).not.toBeNull();
+  });
+
+  it("renders curated info cards with one sanitized CTA", () => {
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      infoCards: [
+        {
+          id: "tuesday-jam",
+          title: "Jams every Tuesday evening",
+          body: "Locations are announced in the WhatsApp group.",
+          category: "jams",
+          priority: 2,
+          cta: {
+            label: "View event",
+            target: "event",
+            eventId: "zurich-tuesday-jam",
+          },
+        },
+        {
+          id: "chat",
+          title: "WhatsApp group chat",
+          category: "chat",
+          priority: 1,
+          cta: {
+            label: "Open WhatsApp",
+            target: "url",
+            url: "https://chat.whatsapp.com/example",
+          },
+        },
+        {
+          id: "unsafe",
+          title: "Unsafe Link",
+          cta: {
+            label: "Open",
+            target: "url",
+            url: "javascript:alert(1)",
+          },
+        },
+        {
+          id: "hidden",
+          title: "Hidden Card",
+          visibility: "hidden",
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain("Local Info");
+    expect(text).toContain("Jams every Tuesday evening");
+    expect(text).toContain("WhatsApp group chat");
+    expect(text).not.toContain("Hidden Card");
+
+    const links = [
+      ...fixture.nativeElement.querySelectorAll(".local-info-actions a"),
+    ] as HTMLAnchorElement[];
+    expect(links.map((link) => link.textContent?.trim())).toEqual([
+      "linkOpen WhatsApp",
+      "eventView event",
+    ]);
+    expect(links[0].getAttribute("href")).toBe(
+      "https://chat.whatsapp.com/example",
+    );
+    expect(links[1].getAttribute("href")).toBe("/events/zurich-tuesday-jam");
+    expect(text).not.toContain("Unsafe LinkOpen");
   });
 });

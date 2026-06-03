@@ -54,6 +54,7 @@ const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
     url: "/assets/banner_1200x630.png",
   },
   links: {},
+  infoCards: [],
   resources: [],
   organisations: [],
   athletes: [],
@@ -125,6 +126,48 @@ describe("LandingPagesService", () => {
       2,
       "community_pages/locality:gb:london"
     );
+  });
+
+  it("maps curated community info cards from the page document", async () => {
+    mockFirestoreAdapter.getDocument
+      .mockResolvedValueOnce({
+        id: "london",
+        communityKey: "locality:gb:london",
+        isPreferred: true,
+      })
+      .mockResolvedValueOnce(
+        buildCommunityDoc({
+          infoCards: [
+            {
+              id: "supaxxl",
+              title: "Supa XXL Jam",
+              body: "Follow the organizer account for current jam locations.",
+              category: "jams",
+              cta: {
+                label: "Open Instagram",
+                target: "url",
+                url: "https://instagram.com/supaxxl",
+              },
+            },
+          ],
+        })
+      );
+
+    const result = await service.getCommunityPage("london");
+
+    expect(result?.infoCards).toEqual([
+      {
+        id: "supaxxl",
+        title: "Supa XXL Jam",
+        body: "Follow the organizer account for current jam locations.",
+        category: "jams",
+        cta: {
+          label: "Open Instagram",
+          target: "url",
+          url: "https://instagram.com/supaxxl",
+        },
+      },
+    ]);
   });
 
   it("falls back to top rated spots for older community documents", async () => {

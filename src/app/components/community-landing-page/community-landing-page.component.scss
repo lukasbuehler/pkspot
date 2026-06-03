@@ -22,11 +22,6 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-// Events row above the spots grid
-.events-section {
-  margin-bottom: 24px;
-}
-
 // Always 2 columns — works in both the sidebar panel mode (narrow) and the
 // full-page view. Min 0 lets the cards shrink to fit narrow widths.
 .events-grid {
@@ -38,7 +33,7 @@
 
 .hero-section,
 .content-section {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .section-heading {
@@ -127,10 +122,62 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.detail-grid {
+.local-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  gap: 12px;
+}
+
+.local-info-card {
+  height: 100%;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+}
+
+.local-info-card mat-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+}
+
+.local-info-card-header {
+  display: flex;
+  gap: 12px;
+}
+
+.local-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.local-info-title-block {
+  min-width: 0;
+}
+
+.local-info-disclosure {
+  margin-top: 6px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.local-info-body {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.local-info-actions {
+  margin-top: auto;
 }
 
 .community-directory-grid {
@@ -168,35 +215,6 @@
 
 .community-link-meta {
   color: var(--mat-sys-on-surface-variant);
-}
-
-.detail-card {
-  height: 100%;
-  border-radius: 24px;
-  background: var(--mat-sys-surface-container);
-  color: var(--mat-sys-on-surface);
-}
-
-.detail-card-wide {
-  grid-column: 1 / -1;
-}
-
-.detail-list {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.detail-list li + li {
-  margin-top: 8px;
-}
-
-.detail-list a {
-  color: var(--mat-sys-primary);
-  text-decoration: none;
-}
-
-.detail-list a:hover {
-  text-decoration: underline;
 }
 
 .manual-state {

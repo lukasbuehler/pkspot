@@ -937,6 +937,7 @@ const buildCommunityPageDoc = async (
       .slice(0, MAX_SPOTS_PER_LEGACY_SECTION)
       .map((spot) => buildSpotPreview(spot.id, spot.data)),
     links: existingPage?.links ?? {},
+    infoCards: existingPage?.infoCards ?? [],
     resources: existingPage?.resources ?? [],
     organisations: existingPage?.organisations ?? [],
     athletes: existingPage?.athletes ?? [],

@@ -41,6 +41,50 @@ export interface CommunityListItemSchema {
   url?: string | null;
 }
 
+export type CommunityInfoCardCategory =
+  | "jams"
+  | "chat"
+  | "classes"
+  | "safety"
+  | "spots"
+  | "events"
+  | "other";
+
+export type CommunityInfoCardDisclosure =
+  | "none"
+  | "classes"
+  | "paid-partnership"
+  | "shop";
+
+export type CommunityInfoCardCta =
+  | {
+      label: string;
+      target: "spot";
+      spotId: string;
+    }
+  | {
+      label: string;
+      target: "event";
+      eventId: string;
+    }
+  | {
+      label: string;
+      target: "url";
+      url: string;
+    };
+
+export interface CommunityInfoCardSchema {
+  id: string;
+  title: string;
+  body?: string;
+  icon?: string;
+  category?: CommunityInfoCardCategory;
+  cta?: CommunityInfoCardCta;
+  commercialDisclosure?: CommunityInfoCardDisclosure;
+  priority?: number;
+  visibility?: "public" | "hidden";
+}
+
 export interface CommunityChildSummarySchema {
   communityKey: string;
   scope: CommunityScope;
@@ -94,6 +138,7 @@ export interface CommunityPageSchema {
   topRatedSpots: SpotPreviewData[];
   drySpots: SpotPreviewData[];
   links: CommunityLinksSchema;
+  infoCards?: CommunityInfoCardSchema[];
   resources: CommunityListItemSchema[];
   organisations: CommunityListItemSchema[];
   athletes: CommunityListItemSchema[];

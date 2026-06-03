@@ -75,6 +75,7 @@ export const communityLandingResolver: ResolveFn<
       topRatedSpots: [],
       drySpots: [],
       links: {},
+      infoCards: [],
       resources: [],
       organisations: [],
       athletes: [],

@@ -74,6 +74,7 @@ const buildCommunityLandingPageData = (): CommunityLandingPageData => ({
   links: {
     instagram: "https://instagram.com/example",
   },
+  infoCards: [],
   resources: [],
   organisations: [],
   athletes: [],
@@ -186,6 +187,68 @@ describe("StructuredDataService", () => {
       "https://pkspot.app/en/map/communities/pfaeffikon"
     );
     expect(parsed["description"]).toBe(pageData.description);
+  });
+
+  it("includes visible community info cards in community JSON-LD", () => {
+    const pageData: CommunityLandingPageData = {
+      ...buildCommunityLandingPageData(),
+      infoCards: [
+        {
+          id: "jam",
+          title: "Tuesday Jam",
+          body: "Locations are announced in the group chat.",
+          cta: {
+            label: "Open event",
+            target: "event",
+            eventId: "zurich-tuesday-jam",
+          },
+        },
+        {
+          id: "chat",
+          title: "WhatsApp group chat",
+          cta: {
+            label: "Open WhatsApp",
+            target: "url",
+            url: "https://chat.whatsapp.com/example",
+          },
+        },
+        {
+          id: "unsafe",
+          title: "Unsafe Link",
+          cta: {
+            label: "Open",
+            target: "url",
+            url: "javascript:alert(1)",
+          },
+        },
+        {
+          id: "hidden",
+          title: "Hidden Card",
+          visibility: "hidden",
+        },
+      ],
+    };
+
+    const payload = service.generateCommunityLandingPageData(pageData);
+    const hasPart = payload["hasPart"] as Record<string, unknown>[];
+
+    expect(hasPart).toEqual([
+      {
+        "@type": "CreativeWork",
+        name: "Tuesday Jam",
+        text: "Locations are announced in the group chat.",
+        url: "https://pkspot.app/events/zurich-tuesday-jam",
+      },
+      {
+        "@type": "CreativeWork",
+        name: "WhatsApp group chat",
+        url: "https://chat.whatsapp.com/example",
+      },
+      {
+        "@type": "CreativeWork",
+        name: "Unsafe Link",
+      },
+    ]);
   });
 
   it("should generate parseable breadcrumb JSON-LD", () => {

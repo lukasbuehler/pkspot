@@ -133,6 +133,8 @@ export class StructuredDataService {
   generateCommunityLandingPageData(
     pageData: CommunityLandingPageData
   ): Record<string, unknown> {
+    const infoCardParts = this.buildCommunityInfoCardParts(pageData);
+
     return {
       "@type": "CollectionPage",
       name: pageData.title,
@@ -163,7 +165,49 @@ export class StructuredDataService {
           name: "Dry Spots",
         },
       ],
+      ...(infoCardParts.length > 0 ? { hasPart: infoCardParts } : {}),
     };
+  }
+
+  private buildCommunityInfoCardParts(
+    pageData: CommunityLandingPageData
+  ): Record<string, unknown>[] {
+    return (pageData.infoCards ?? [])
+      .filter((card) => card.visibility !== "hidden" && card.title.trim())
+      .map((card) => {
+        const part: Record<string, unknown> = {
+          "@type": "CreativeWork",
+          name: card.title.trim(),
+        };
+        const text = card.body?.trim();
+        if (text) {
+          part["text"] = text;
+        }
+        const url = this.buildCommunityInfoCardUrl(card.cta);
+        if (url) {
+          part["url"] = url;
+        }
+        return part;
+      });
+  }
+
+  private buildCommunityInfoCardUrl(
+    cta: CommunityLandingPageData["infoCards"][number]["cta"]
+  ): string | undefined {
+    if (!cta) {
+      return undefined;
+    }
+
+    switch (cta.target) {
+      case "spot":
+        return this.normalizeAbsoluteUrl(buildSpotCanonicalPath(cta.spotId));
+      case "event":
+        return this.normalizeAbsoluteUrl(
+          `/events/${encodeURIComponent(cta.eventId)}`
+        );
+      case "url":
+        return this.normalizeHttpUrl(cta.url);
+    }
   }
 
   /**
@@ -536,6 +580,14 @@ export class StructuredDataService {
       return `${environment.baseUrl}${trimmed}`;
     }
     return `${environment.baseUrl}/${trimmed.replace(/^\/+/, "")}`;
+  }
+
+  private normalizeHttpUrl(url?: string): string | undefined {
+    const trimmed = url?.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    return /^https?:\/\//i.test(trimmed) ? trimmed : undefined;
   }
 
   private getSpotPreviewReviewCount(

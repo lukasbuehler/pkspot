@@ -3,6 +3,7 @@ import { Event as PkEvent } from "../../../../db/models/Event";
 import {
   CommunityChildSummarySchema,
   CommunityEventPreviewSchema,
+  CommunityInfoCardSchema,
   CommunityPickSectionSchema,
   CommunityPageSchema,
 } from "../../../../db/schemas/CommunityPageSchema";
@@ -31,6 +32,7 @@ export interface CommunityLandingBreadcrumb {
 
 export type CommunityChildSummary = CommunityChildSummarySchema;
 export type CommunityPickSection = CommunityPickSectionSchema;
+export type CommunityInfoCard = CommunityInfoCardSchema;
 
 export interface CommunityLandingPageData {
   communityKey: string;
@@ -55,6 +57,7 @@ export interface CommunityLandingPageData {
   topRatedSpots: SpotPreviewData[];
   drySpots: SpotPreviewData[];
   links: CommunityPageSchema["links"];
+  infoCards: CommunityInfoCard[];
   resources: CommunityPageSchema["resources"];
   organisations: CommunityPageSchema["organisations"];
   athletes: CommunityPageSchema["athletes"];
@@ -185,6 +188,7 @@ export class LandingPagesService {
       topRatedSpots,
       drySpots,
       links: pageDoc.links ?? {},
+      infoCards: pageDoc.infoCards ?? [],
       resources: pageDoc.resources ?? [],
       organisations: pageDoc.organisations ?? [],
       athletes: pageDoc.athletes ?? [],
