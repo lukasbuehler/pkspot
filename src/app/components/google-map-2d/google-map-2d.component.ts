@@ -112,6 +112,7 @@ interface SpotPreviewAreaOverlay {
 }
 
 const SPOT_AREA_MIN_ZOOM = 14;
+const DEFAULT_SPOT_AREA_RADIUS_M = 10;
 const EVENT_MARKER_COLLISION_SIZE_PX = 48;
 const SPOT_MARKER_COLLISION_WIDTH_PX = 124;
 const SPOT_MARKER_COLLISION_HEIGHT_PX = 52;
@@ -127,6 +128,7 @@ interface MarkerCollisionLayoutCache {
 
 interface VisibleRegularSpotMarkersCache {
   spots: (LocalSpot | Spot)[];
+  highlightedSpots: SpotPreviewData[];
   selectedSpot: LocalSpot | Spot | null;
   isEditing: boolean;
   shouldRenderRegularSpotMarkers: boolean;
@@ -460,6 +462,7 @@ export class GoogleMap2dComponent
       !this.hideRegularSpotPins();
     const selectedSpot = this.selectedSpot();
     const isEditing = this.isEditing();
+    const highlightedSpots = this._getVisibleHighlightedSpotPreviews();
 
     if (!shouldRenderRegularSpotMarkers) {
       return [];
@@ -468,6 +471,7 @@ export class GoogleMap2dComponent
     if (
       this._visibleRegularSpotMarkersCache &&
       this._visibleRegularSpotMarkersCache.spots === this.spots &&
+      this._visibleRegularSpotMarkersCache.highlightedSpots === highlightedSpots &&
       this._visibleRegularSpotMarkersCache.selectedSpot === selectedSpot &&
       this._visibleRegularSpotMarkersCache.isEditing === isEditing &&
       this._visibleRegularSpotMarkersCache.shouldRenderRegularSpotMarkers ===
@@ -476,13 +480,17 @@ export class GoogleMap2dComponent
       return this._visibleRegularSpotMarkersCache.visibleSpots;
     }
 
+    const highlightedSpotIds = new Set(highlightedSpots.map((spot) => spot.id));
     const visibleSpots = this.spots.filter(
       (spot) =>
-        !this.isSelectedSpotBeingEdited(spot) && !this.isSameAsSelectedSpot(spot),
+        !this.isSelectedSpotBeingEdited(spot) &&
+        !this.isSameAsSelectedSpot(spot) &&
+        !this._hasHighlightedPreviewMarker(spot, highlightedSpotIds),
     );
 
     this._visibleRegularSpotMarkersCache = {
       spots: this.spots,
+      highlightedSpots,
       selectedSpot,
       isEditing,
       shouldRenderRegularSpotMarkers,
@@ -490,6 +498,13 @@ export class GoogleMap2dComponent
     };
 
     return visibleSpots;
+  }
+
+  private _hasHighlightedPreviewMarker(
+    spot: LocalSpot | Spot,
+    highlightedSpotIds: ReadonlySet<string>,
+  ): boolean {
+    return spot instanceof Spot && highlightedSpotIds.has(spot.id);
   }
 
   private _getMarkerCollisionLayout(): MapMarkerCollisionLayout {
@@ -655,7 +670,7 @@ export class GoogleMap2dComponent
       return [];
     }
 
-    return this.getVisibleHighlightedSpots()
+    return this._getVisibleHighlightedSpotPreviews()
       .map((spot) => this._getSpotPreviewAreaOverlay(spot))
       .filter((area): area is SpotPreviewAreaOverlay => !!area);
   }
@@ -2388,6 +2403,15 @@ export class GoogleMap2dComponent
         spot,
         center,
         radiusM,
+      };
+    }
+
+    if (center) {
+      return {
+        id: `${spot.id}-location-radius`,
+        spot,
+        center,
+        radiusM: DEFAULT_SPOT_AREA_RADIUS_M,
       };
     }
 

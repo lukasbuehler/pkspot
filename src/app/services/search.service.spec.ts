@@ -155,6 +155,26 @@ describe("SearchService", () => {
       expect(preview.location?.longitude).toBe(11.5678);
     });
 
+    it("should parse Firestore-style internal geopoint objects", () => {
+      const hit = {
+        document: {
+          id: "test-id",
+          name: "Test",
+          location: { _latitude: 47.389738, _longitude: 8.517314 },
+          bounds_center: { _latitude: 47.389739, _longitude: 8.517315 },
+        },
+      };
+
+      const preview = service.getSpotPreviewFromHit(hit);
+
+      expect(preview.location).toBeInstanceOf(GeoPoint);
+      expect(preview.location?.latitude).toBe(47.389738);
+      expect(preview.location?.longitude).toBe(8.517314);
+      expect(preview.bounds_center).toBeInstanceOf(GeoPoint);
+      expect(preview.bounds_center?.latitude).toBe(47.389739);
+      expect(preview.bounds_center?.longitude).toBe(8.517315);
+    });
+
     it("should build locality string correctly", () => {
       const hit = {
         document: {
@@ -305,6 +325,48 @@ describe("SearchService", () => {
       expect(preview.bounds_center?.latitude).toBe(47.2);
       expect(preview.bounds_center?.longitude).toBe(8.2);
       expect(preview.bounds_radius_m).toBe(42);
+    });
+
+    it("should preserve Firestore-style internal geopoints in spot bounds", () => {
+      const hit = {
+        document: {
+          id: "test-id",
+          name: "Test",
+          bounds: [
+            { _latitude: 47.389738, _longitude: 8.517314 },
+            { _latitude: 47.38974, _longitude: 8.517316 },
+            { _latitude: 47.389742, _longitude: 8.517312 },
+          ],
+        },
+      };
+
+      const preview = service.getSpotPreviewFromHit(hit);
+
+      expect(preview.bounds_raw).toEqual([
+        { lat: 47.389738, lng: 8.517314 },
+        { lat: 47.38974, lng: 8.517316 },
+        { lat: 47.389742, lng: 8.517312 },
+      ]);
+    });
+  });
+
+  describe("searchSpotsInRawBounds", () => {
+    it("keeps enough coordinate precision for close zoom viewport searches", async () => {
+      await service.searchSpotsInRawBounds(
+        47.3897383,
+        47.3891289,
+        8.5179139,
+        8.5173139,
+        10,
+      );
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter_by:
+            "location:(47.389738, 8.517914, 47.389129, 8.517914, 47.389129, 8.517314, 47.389738, 8.517314)",
+        }),
+        {},
+      );
     });
   });
 

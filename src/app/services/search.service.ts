@@ -141,11 +141,11 @@ export class SearchService {
       if (doc.location) {
         if (Array.isArray(doc.location) && doc.location.length >= 2) {
           location = new GeoPoint(doc.location[0], doc.location[1]);
-        } else if (doc.location.latitude && doc.location.longitude) {
-          location = new GeoPoint(
-            doc.location.latitude,
-            doc.location.longitude,
-          );
+        } else {
+          const locationPoint = SearchService._readGeopoint(doc.location);
+          if (locationPoint) {
+            location = new GeoPoint(locationPoint[0], locationPoint[1]);
+          }
         }
       }
 
@@ -576,7 +576,7 @@ export class SearchService {
       // northwest
       north,
       west,
-    ].map((num) => (Math.round(num * 1000) / 1000).toString());
+    ].map((num) => SearchService._formatGeoFilterCoordinate(num));
 
     // Reuse filter logic
     return this._executeSearch(
@@ -724,7 +724,7 @@ export class SearchService {
       // northwest
       neLat,
       swLng,
-    ].map((num) => (Math.round(num * 1000) / 1000).toString());
+    ].map((num) => SearchService._formatGeoFilterCoordinate(num));
 
     return this._executeSearch(
       latLongPairList,
@@ -1420,6 +1420,10 @@ export class SearchService {
     return `\`${value.replace(/[`\\]/g, "\\$&")}\``;
   }
 
+  private static _formatGeoFilterCoordinate(value: number): string {
+    return Number.isFinite(value) ? value.toFixed(6) : String(value);
+  }
+
   private static _boundsToLiteral(bounds: google.maps.LatLngBounds): {
     north: number;
     south: number;
@@ -1615,8 +1619,16 @@ export class SearchService {
       if (Number.isFinite(lat) && Number.isFinite(lng)) return [lat, lng];
     }
     if (value && typeof value === "object") {
-      const lat = Number((value as any).lat ?? (value as any).latitude);
-      const lng = Number((value as any).lng ?? (value as any).longitude);
+      const point = value as {
+        lat?: unknown;
+        lng?: unknown;
+        latitude?: unknown;
+        longitude?: unknown;
+        _latitude?: unknown;
+        _longitude?: unknown;
+      };
+      const lat = Number(point.lat ?? point.latitude ?? point._latitude);
+      const lng = Number(point.lng ?? point.longitude ?? point._longitude);
       if (Number.isFinite(lat) && Number.isFinite(lng)) return [lat, lng];
     }
     return undefined;

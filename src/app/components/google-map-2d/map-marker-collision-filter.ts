@@ -52,7 +52,7 @@ export function filterEventSpotCollisions(
 
   for (const candidate of orderedCandidates) {
     const hasHigherPriorityCollision = accepted.some((winner) =>
-      collisionBoxesOverlap(winner, candidate),
+      winner.id !== candidate.id && collisionBoxesOverlap(winner, candidate),
     );
 
     if (hasHigherPriorityCollision) {

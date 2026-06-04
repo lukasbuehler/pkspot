@@ -107,6 +107,17 @@ describe("filterEventSpotCollisions", () => {
     expect(layout.hiddenCommunityIds).toEqual(new Set());
   });
 
+  it("does not hide alternate marker candidates for the same spot", () => {
+    const layout = filterEventSpotCollisions(
+      [spot("spot", 500), spot("spot", 100)],
+      14,
+    );
+
+    expect(layout.hiddenEventIds).toEqual(new Set());
+    expect(layout.hiddenSpotIds).toEqual(new Set());
+    expect(layout.hiddenCommunityIds).toEqual(new Set());
+  });
+
   it("hides overlapping communities behind spots and events", () => {
     const layout = filterEventSpotCollisions(
       [community("community"), spot("spot", 500), event("event", 600)],
