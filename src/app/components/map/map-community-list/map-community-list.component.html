@@ -1,10 +1,10 @@
 @if (communities().length > 0) {
   <div class="map-community-list">
     @for (community of communities(); track community.communityKey) {
-      <button
-        type="button"
+      <a
+        [attr.href]="community.canonicalPath"
         class="community-row"
-        (click)="onSelect(community)"
+        (click)="onSelect($event, community)"
       >
         <span class="community-avatar" aria-hidden="true">
           @if (community.imageUrl) {
@@ -32,7 +32,7 @@
         <mat-icon class="community-action" aria-hidden="true"
           >chevron_right</mat-icon
         >
-      </button>
+      </a>
     }
   </div>
 } @else {

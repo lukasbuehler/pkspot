@@ -1346,6 +1346,7 @@ export class SearchService {
       "spot_ids",
       "community_keys",
       "series_ids",
+      "event_categories",
       "external_source.provider",
     ].join(",");
 

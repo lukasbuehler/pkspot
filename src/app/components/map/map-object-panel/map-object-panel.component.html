@@ -1,12 +1,13 @@
-<app-chip-selector
+<app-filter-chips-bar
   class="d-block pb-2 px-3"
-  [options]="objectTypes()"
-  [selectedValue]="mode()"
-  [requireSelection]="true"
-  fallbackValue="all"
+  [selectedFilter]="mode()"
+  [presetFilters]="objectTypeFilterChips()"
+  [showFiltersChip]="false"
+  [showClearChip]="false"
+  [allowDeselect]="false"
   [ariaLabel]="objectTypeLabel"
-  (selectedValueChange)="onModeChange($event)"
-></app-chip-selector>
+  (filterChange)="onModeFilterChange($event)"
+></app-filter-chips-bar>
 
 @switch (mode()) {
   @case ("events") {
@@ -25,42 +26,89 @@
     ></app-map-community-list>
   }
   @default {
-    <app-spot-list
-      class="px-3 d-block"
-      [spots]="visibleSpots()"
-      [hideHeader]="true"
-      [highlightedSpots]="highlightedSpots()"
-      [mapZoom]="mapZoom()"
-      [limit]="spotListLimit()"
-      [enableAnimation]="enableSpotListAnimation()"
-      [withHrefLink]="false"
-      (spotClick)="spotSelect.emit($event)"
-    ></app-spot-list>
+    @if (mode() === "all") {
+      @if (allModeEvents().length > 0) {
+        <section class="object-panel-section px-3">
+          <div
+            class="peek-title"
+            [class.peek-title--hidden]="hidePeekTitles()"
+          >
+            <h2 class="mat-title-medium m-0" i18n="@@map.all_events_heading">
+              Events nearby
+            </h2>
+          </div>
+          <app-map-event-list
+            [events]="allModeEvents()"
+            [seriesById]="eventSeriesById()"
+            (selectEvent)="eventSelect.emit($event)"
+          ></app-map-event-list>
+        </section>
+      }
+      <section class="object-panel-section px-3">
+        <div
+          class="peek-title"
+          [class.peek-title--hidden]="hidePeekTitles()"
+        >
+          <h2 class="mat-title-medium m-0" i18n="@@map.all_spots_heading">
+            Spots in this area
+          </h2>
+        </div>
+        <app-spot-list
+          class="d-block"
+          [spots]="visibleSpots()"
+          [hideHeader]="true"
+          [highlightedSpots]="highlightedSpots()"
+          [mapZoom]="mapZoom()"
+          [limit]="spotListLimit()"
+          [enableAnimation]="enableSpotListAnimation()"
+          [withHrefLink]="false"
+          (spotClick)="spotSelect.emit($event)"
+        ></app-spot-list>
+        @if (hasMoreSpots()) {
+          <button
+            mat-stroked-button
+            type="button"
+            class="show-more-spots"
+            (click)="showMoreSpots()"
+          >
+            <mat-icon aria-hidden="true">read_more</mat-icon>
+            <span i18n="@@map.all_show_more_spots">Show more spots</span>
+          </button>
+        }
+      </section>
+      @if (allModeCommunities().length > 0) {
+        <section class="object-panel-section px-3">
+          <h2
+            class="mat-title-medium mb-2"
+            i18n="@@map.all_communities_heading"
+          >
+            Communities nearby
+          </h2>
+          <app-map-community-list
+            [communities]="allModeCommunities()"
+            (selectCommunity)="communitySelect.emit($event)"
+          ></app-map-community-list>
+        </section>
+      }
+    } @else {
+      <app-spot-list
+        class="px-3 d-block"
+        [spots]="visibleSpots()"
+        [hideHeader]="true"
+        [highlightedSpots]="highlightedSpots()"
+        [mapZoom]="mapZoom()"
+        [limit]="spotListLimit()"
+        [enableAnimation]="enableSpotListAnimation()"
+        [withHrefLink]="false"
+        (spotClick)="spotSelect.emit($event)"
+      ></app-spot-list>
+    }
   }
 }
 
-@if (mode() === "all" || mode() === "spots") {
+@if (mode() === "all") {
   <section class="px-3 pt-4 pb-5 seo-blurb">
-    @if (popularCommunities().length > 0) {
-      <h2 class="mat-title-large mb-2" i18n="@@map.seo.popular_heading">
-        Popular parkour communities
-      </h2>
-      <ul class="seo-community-list">
-        @for (community of popularCommunities(); track community.canonicalPath) {
-          <li>
-            <a [routerLink]="community.canonicalPath">
-              {{ community.displayName }}
-            </a>
-            <span class="seo-community-meta">
-              · {{ community.totalSpots }}
-              <span i18n="@@map.seo.spots_suffix">spots</span>
-            </span>
-          </li>
-        }
-      </ul>
-    }
-
-    <h2 class="mat-title-large mb-2 mt-4" i18n="@@map.seo.about_heading">
+    <h2 class="mat-title-large mb-2" i18n="@@map.seo.about_heading">
       About PK Spot
     </h2>
     <p class="mat-body-small" i18n="@@map.seo.about_p1">
@@ -73,5 +121,9 @@
       photos, ratings, and tags telling you whether a spot is good for Parkour,
       Freerunning, dry training, indoor sessions, and more!
     </p>
+    <a class="about-link mat-label-large" routerLink="/about">
+      <span i18n="@@map.seo.about_link">About Us</span>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+    </a>
   </section>
 }

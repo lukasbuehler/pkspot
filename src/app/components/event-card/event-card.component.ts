@@ -57,6 +57,9 @@ export class EventCardComponent {
     "/events",
     this.event().slug ?? this.event().id,
   ]);
+  readonly href = computed(
+    () => `/events/${encodeURIComponent(this.event().slug ?? this.event().id)}`,
+  );
   readonly statusLabel = computed(() =>
     eventStatusLabel(this.event(), this.status(), this._locale),
   );
@@ -79,7 +82,12 @@ export class EventCardComponent {
     }),
   );
 
-  onSelect(): void {
+  onSelectClick(event: MouseEvent): void {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
     this.select.emit(this.event());
   }
 

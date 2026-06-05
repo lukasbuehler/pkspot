@@ -1,7 +1,11 @@
 @if (selectMode()) {
-  <button type="button" class="event-card-action" (click)="onSelect()">
+  <a
+    [attr.href]="href()"
+    class="event-card-action"
+    (click)="onSelectClick($event)"
+  >
     <ng-container [ngTemplateOutlet]="card"></ng-container>
-  </button>
+  </a>
 } @else {
   <a [routerLink]="route()" class="event-card-action">
     <ng-container [ngTemplateOutlet]="card"></ng-container>

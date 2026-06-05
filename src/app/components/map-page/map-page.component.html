@@ -94,12 +94,19 @@
         [objectTypes]="mapObjectTypeChips()"
         [visibleSpots]="visibleSpots"
         [highlightedSpots]="highlightedSpots"
-        [visibleEvents]="visibleMapEvents()"
+        [visibleEvents]="
+          mapObjectMode() === 'events'
+            ? filteredVisibleMapEvents()
+            : visibleMapEvents()
+        "
         [eventSeriesById]="visibleEventSeriesById()"
         [visibleCommunities]="visibleMapCommunities()"
         [popularCommunities]="popularCommunities()"
         [spotListLimit]="spotListLimit()"
         [mapZoom]="spotMap ? spotMap.mapZoom() : null"
+        [openProgress]="
+          responsiveService.isMobile() ? bottomSheetProgress() : 1
+        "
         [enableSpotListAnimation]="
           !responsiveService.isMobile() || bottomSheetOpen()
         "
@@ -231,6 +238,16 @@
       (clearClick)="clearActiveFilter()"
       (filtersClick)="openCustomFilterDialog()"
     ></app-filter-chips-bar>
+  } @else if (showEventFilterChips()) {
+    <app-filter-chips-bar
+      @fadeInOut
+      [selectedFilter]="selectedEventFilter()"
+      [presetFilters]="eventFilterOptions"
+      [showFiltersChip]="false"
+      [ariaLabel]="eventFiltersLabel"
+      (filterChange)="eventFilterChanged($event)"
+      (clearClick)="eventFilterChanged('')"
+    ></app-filter-chips-bar>
   }
 </ng-template>
 
@@ -278,11 +295,13 @@
   <mat-drawer-container
     class="h-100 bg-transparent"
     [class.sidenav-open]="sidenavOpen()"
+    [class.compact-sidenav]="compactSidenavRange()"
+    [hasBackdrop]="false"
   >
     <mat-drawer
       [opened]="sidenavOpen()"
       position="start"
-      mode="side"
+      [mode]="mapSidenavMode()"
       class="bg-transparent info-panel"
     >
       <div [style.height.px]="chipsSpacerHeight()"></div>

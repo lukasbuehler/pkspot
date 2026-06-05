@@ -270,6 +270,19 @@ describe("EventEditFormComponent", () => {
     });
   });
 
+  it("uses display-sized image URLs for media previews", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const storageUrl =
+      "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbanner.png?alt=media";
+
+    component.form.patchValue({ banner_src: storageUrl });
+
+    expect(component.previewImageSrc("banner_src")).toBe(
+      "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbanner_800x800.png?alt=media",
+    );
+  });
+
   it("serializes temporary event spots with local bounds on submit", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

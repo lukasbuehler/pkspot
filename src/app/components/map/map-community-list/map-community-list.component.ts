@@ -14,7 +14,12 @@ export class MapCommunityListComponent {
   communities = input<readonly CommunitySearchPreview[]>([]);
   selectCommunity = output<CommunitySearchPreview>();
 
-  onSelect(community: CommunitySearchPreview): void {
+  onSelect(event: MouseEvent, community: CommunitySearchPreview): void {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
     this.selectCommunity.emit(community);
   }
 

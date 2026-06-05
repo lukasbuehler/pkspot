@@ -45,19 +45,23 @@
       </app-spot-preview-card>
     </a>
     } @else {
-    <app-spot-preview-card
-      [spotData]="spot"
-      [mapZoom]="mapZoom()"
-      [forcePlaceholderContainer]="true"
-      [infoOnly]="true"
-      [showRating]="showRatings()"
-      [clickable]="true"
-      [isCompact]="viewMode() === 'compact'"
-      [loadingPriority]="$index < 2"
-      (click)="onSpotClick(spot, $index)"
-      class="w-100"
+    <a
+      [attr.href]="getSpotPathForPreview(spot)"
+      (click)="onSpotLinkClick($event, spot, $index)"
     >
-    </app-spot-preview-card>
+      <app-spot-preview-card
+        [spotData]="spot"
+        [mapZoom]="mapZoom()"
+        [forcePlaceholderContainer]="true"
+        [infoOnly]="true"
+        [showRating]="showRatings()"
+        [clickable]="true"
+        [isCompact]="viewMode() === 'compact'"
+        [loadingPriority]="$index < 2"
+        class="w-100"
+      >
+      </app-spot-preview-card>
+    </a>
     }
   </div>
   }
@@ -92,20 +96,24 @@
       >
       </app-spot-preview-card> </a
     >} @else {
-    <app-spot-preview-card
-      [spotData]="spot"
-      [mapZoom]="mapZoom()"
-      [forcePlaceholderContainer]="true"
-      [infoOnly]="true"
-      [showRating]="showRatings()"
-      [clickable]="true"
-      [isCompact]="viewMode() === 'compact'"
-      [imgSize]="400"
-      [loadingPriority]="$index < 2"
-      class="w-100"
-      (click)="onSpotClick(spot, $index)"
+    <a
+      [attr.href]="getSpotPathForSpotObj(spot)"
+      (click)="onSpotLinkClick($event, spot, $index)"
     >
-    </app-spot-preview-card>
+      <app-spot-preview-card
+        [spotData]="spot"
+        [mapZoom]="mapZoom()"
+        [forcePlaceholderContainer]="true"
+        [infoOnly]="true"
+        [showRating]="showRatings()"
+        [clickable]="true"
+        [isCompact]="viewMode() === 'compact'"
+        [imgSize]="400"
+        [loadingPriority]="$index < 2"
+        class="w-100"
+      >
+      </app-spot-preview-card>
+    </a>
     }
   </div>
   }

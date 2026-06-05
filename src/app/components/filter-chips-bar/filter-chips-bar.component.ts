@@ -2,7 +2,9 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
+  effect,
   NgZone,
   OnDestroy,
   PLATFORM_ID,
@@ -21,11 +23,11 @@ import { SpotFilterMode } from "../spot-map/spot-filter-config";
 /**
  * Preset filter chip definition for display.
  */
-interface PresetFilterChip {
-  mode: SpotFilterMode;
+export interface PresetFilterChip {
+  mode?: SpotFilterMode | string;
   urlParam: string;
   label: string;
-  icon: string;
+  icon?: string;
 }
 
 /**
@@ -52,6 +54,21 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   /** Whether a custom filter is currently active */
   customFilterActive = input(false);
 
+  /** Preset chips to show. Defaults to the standard spot filters. */
+  presetFilters = input<readonly PresetFilterChip[] | null>(null);
+
+  /** Whether to show the trailing "Filters" action when no filter is active. */
+  showFiltersChip = input(true);
+
+  /** Whether to show the trailing clear chip when a filter is active. */
+  showClearChip = input(true);
+
+  /** Whether clicking the active chip clears the selection. */
+  allowDeselect = input(true);
+
+  /** Optional aria label override for non-spot filter bars. */
+  ariaLabel = input<string | null>(null);
+
   /** Emits when a preset filter is selected/deselected */
   filterChange = output<string>();
 
@@ -73,9 +90,10 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   private _resizeObserver: ResizeObserver | null = null;
   private _removeScrollListener: (() => void) | null = null;
   private _animationFrameId: number | null = null;
+  private _deferredScrollStateUpdateId: number | null = null;
 
   /** Preset filter chips derived from SPOT_FILTER_CONFIGS */
-  readonly presetFilters: PresetFilterChip[] = [
+  private readonly _spotPresetFilters: readonly PresetFilterChip[] = [
     {
       mode: SpotFilterMode.ForParkour,
       urlParam: "parkour",
@@ -107,6 +125,9 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       icon: "water",
     },
   ];
+  readonly visiblePresetFilters = computed(
+    () => this.presetFilters() ?? this._spotPresetFilters,
+  );
 
   /** Label for the filters button */
   readonly filtersLabel = $localize`:@@filters_chip_label:Filters`;
@@ -116,6 +137,27 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   readonly quickFiltersLabel = $localize`:@@quick_filters_aria_label:Quick filters`;
   readonly scrollLeftLabel = $localize`:@@filter_scroll_left:Scroll filters left`;
   readonly scrollRightLabel = $localize`:@@filter_scroll_right:Scroll filters right`;
+
+  constructor() {
+    effect(() => {
+      const filtersKey = this.visiblePresetFilters()
+        .map((filter) => `${filter.urlParam}:${filter.label}:${filter.icon}`)
+        .join("|");
+      const layoutKey = [
+        filtersKey,
+        this.selectedFilter(),
+        this.showSavedChip(),
+        this.showVisitedChip(),
+        this.showFiltersChip(),
+        this.showClearChip(),
+        this.customFilterActive(),
+      ].join(";");
+
+      if (layoutKey) {
+        this._scheduleScrollStateUpdateAfterRender();
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
     if (!this.isBrowser) {
@@ -155,9 +197,18 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       window.cancelAnimationFrame(this._animationFrameId);
       this._animationFrameId = null;
     }
+
+    if (this._deferredScrollStateUpdateId !== null) {
+      window.clearTimeout(this._deferredScrollStateUpdateId);
+      this._deferredScrollStateUpdateId = null;
+    }
   }
 
   onPresetChipClick(value: string): void {
+    if (!this.allowDeselect() && this.selectedFilter() === value) {
+      return;
+    }
+
     this.filterChange.emit(this.selectedFilter() === value ? "" : value);
   }
 
@@ -191,6 +242,17 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       this._animationFrameId = null;
       this._updateScrollState();
     });
+  }
+
+  private _scheduleScrollStateUpdateAfterRender(): void {
+    if (!this.isBrowser || this._deferredScrollStateUpdateId !== null) {
+      return;
+    }
+
+    this._deferredScrollStateUpdateId = window.setTimeout(() => {
+      this._deferredScrollStateUpdateId = null;
+      this._scheduleScrollStateUpdate();
+    }, 0);
   }
 
   private _updateScrollState(): void {

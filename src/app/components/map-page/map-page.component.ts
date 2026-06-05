@@ -121,6 +121,7 @@ import {
 } from "../../services/firebase/firestore/landing-pages.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { Event as PkEvent } from "../../../db/models/Event";
+import { EventCategory } from "../../../db/schemas/EventSchema";
 import {
   SeriesDocument,
   SeriesService,
@@ -156,6 +157,8 @@ interface EventPromoDismissalRecord {
   showAgainAt: string;
   dismissCount: number;
 }
+
+type MapEventFilter = "live" | "competition" | "jam" | "camp";
 
 type CommunityCountryFocusData = {
   boundsCenter?: [number, number];
@@ -387,6 +390,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   compactTabletSidenavOpen = computed(
     () => this.sidenavOpen() && this.compactSidenavRange(),
   );
+  mapSidenavMode = computed<"over" | "side">(() =>
+    this.compactSidenavRange() ? "over" : "side",
+  );
 
   // Height of the top spacer in the sidebar/bottom-sheet to match chip listbox
   // Default to expected fallback (32 chip + 100 padding)
@@ -396,6 +402,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // If mobile and bottom sheet is "closed" (progress < 0.2), limit the list
     if (this.responsiveService.isMobile() && this.bottomSheetProgress() <= 0) {
       return 2;
+    }
+    if (this.mapObjectMode() === "all") {
+      return 8;
     }
     return undefined;
   });
@@ -426,6 +435,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * Tracks the currently selected filter chip for URL sync.
    */
   selectedFilter = signal<string>("");
+  selectedEventFilter = signal<MapEventFilter | "">("");
 
   /**
    * Effect to apply filter when map becomes available or filter changes.
@@ -510,7 +520,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   );
   mapObjectMode = signal<MapObjectMode>("all");
   mapObjectTypeChips = computed<ChipSelectorOption<MapObjectMode>[]>(() => {
-    const counts = this.mapObjectCounts();
+    const counts = this._displayMapObjectCounts();
     return [
       { value: "all", label: $localize`:@@map_objects_all_chip_label:All` },
       {
@@ -543,9 +553,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const mode = this.mapObjectMode();
     return mode === "all" || mode === "spots";
   });
+  showEventFilterChips = computed(() => this.mapObjectMode() === "events");
   activeMapQueryParams = computed<Record<string, string> | null>(() => {
     const filter = this.selectedFilter();
-    return filter ? { filter } : null;
+    const eventFilter = this.selectedEventFilter();
+    const type = this.mapObjectMode();
+    const params: Record<string, string> = {};
+    if (filter) params["filter"] = filter;
+    if (eventFilter) params["eventFilter"] = eventFilter;
+    if (type !== "all") params["type"] = type;
+    return Object.keys(params).length > 0 ? params : null;
   });
   searchContextLabel = computed<string | null>(() => {
     const filter = this.selectedFilter();
@@ -555,13 +572,55 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       )}`;
     }
 
+    const eventFilter = this.selectedEventFilter();
+    if (eventFilter) {
+      return `${this._mapObjectModeLabel("events")} ${this._eventFilterLabel(
+        eventFilter,
+      )}`;
+    }
+
     const mode = this.mapObjectMode();
     return mode === "all" ? null : this._mapObjectModeLabel(mode);
   });
   visibleMapEvents = computed(() => this._visibleMapEvents());
+  filteredVisibleMapEvents = computed(() =>
+    this._filterEvents(this._visibleMapEvents(), this.selectedEventFilter()),
+  );
   visibleEventSeriesById = computed(() => this._visibleEventSeriesById());
   visibleMapCommunities = computed(() => this._visibleMapCommunities());
-  private _mapObjectModeBeforeSpotFilter: MapObjectMode | null = null;
+
+  readonly eventFilterOptions: ReadonlyArray<{
+    value: MapEventFilter;
+    urlParam: MapEventFilter;
+    label: string;
+    icon: string;
+  }> = [
+    {
+      value: "live",
+      urlParam: "live",
+      label: $localize`:@@map_event_filter.live:Live`,
+      icon: "sensors",
+    },
+    {
+      value: "competition",
+      urlParam: "competition",
+      label: $localize`:@@event_category.competition:Competition`,
+      icon: "trophy",
+    },
+    {
+      value: "jam",
+      urlParam: "jam",
+      label: $localize`:@@event_category.jam:Jam`,
+      icon: "groups",
+    },
+    {
+      value: "camp",
+      urlParam: "camp",
+      label: $localize`:@@event_category.camp:Camp`,
+      icon: "camping",
+    },
+  ];
+  readonly eventFiltersLabel = $localize`:@@map_event_filters_aria_label:Event filters`;
 
   private _promotableCommunitiesRequested = false;
   /** Per-event promo dismissals persisted in localStorage. */
@@ -739,7 +798,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   availableEventMarkers = computed(() => {
     const now = new Date();
     return buildVisibleEventMarkers({
-      visibleEvents: this._visibleMapEvents(),
+      visibleEvents:
+        this.mapObjectMode() === "events"
+          ? this.filteredVisibleMapEvents()
+          : this._visibleMapEvents(),
       selectedEvent: this.selectedEvent(),
       pendingEventRef: this.pendingEventPreview()?.idOrSlug ?? null,
       mode: this.mapObjectMode(),
@@ -1933,6 +1995,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.showAllChallenges();
       this.showSpotEditHistory();
       this.selectedFilter(); // Include filter in URL sync
+      this.selectedEventFilter();
+      this.mapObjectMode();
 
       this.updateMapURL();
     });
@@ -2452,13 +2516,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     });
 
-    // Read filter from URL query params and apply if present
-    // Read filter from URL query params and set signal
-    const filterParam =
-      this.activatedRoute.snapshot.queryParamMap.get("filter");
-    if (filterParam) {
-      this.selectedFilter.set(filterParam);
-    }
+    const queryIndex = this.router.url.indexOf("?");
+    const initialQuery =
+      queryIndex >= 0 ? this.router.url.slice(queryIndex + 1) : "";
+    this._syncMapQueryStateFromParams(new URLSearchParams(initialQuery));
     this._pendingCommunityFocusSlug =
       this.activatedRoute.snapshot.queryParamMap.get("community");
 
@@ -2523,10 +2584,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
               ? navEvent.urlAfterRedirects.substring(queryIndex + 1)
               : "";
           const params = new URLSearchParams(queryString);
-          const filterParam = params.get("filter") ?? "";
-          if (this.selectedFilter() !== filterParam) {
-            this.filterChipChanged(filterParam);
-          }
+          this._syncMapQueryStateFromParams(params);
           this._pendingCommunityFocusSlug = params.get("community");
           this._focusCommunityFromQueryParam();
         });
@@ -2546,6 +2604,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         const params = new URLSearchParams(
           queryIndex >= 0 ? url.substring(queryIndex + 1) : "",
         );
+        this._syncMapQueryStateFromParams(params);
         this._pendingCommunityFocusSlug = params.get("community");
         this._focusCommunityFromQueryParam();
       });
@@ -3044,12 +3103,66 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   mapObjectModeChanged(mode: MapObjectMode): void {
     if (mode === this.mapObjectMode()) return;
 
-    this._mapObjectModeBeforeSpotFilter = null;
-    if (this.selectedFilter() || this.customFilterParams()) {
-      this._clearSpotFilterState({ restoreMode: false });
+    if (mode !== "all" && mode !== "spots" && this._hasActiveSpotFilter()) {
+      this._clearSpotFilterState();
+    }
+    if (mode !== "events" && this.selectedEventFilter()) {
+      this.selectedEventFilter.set("");
     }
 
     this.mapObjectMode.set(mode);
+  }
+
+  private _syncMapQueryStateFromParams(params: URLSearchParams): void {
+    const filterParam = params.get("filter") ?? "";
+    if (this.selectedFilter() !== filterParam) {
+      this.filterChipChanged(filterParam);
+    }
+
+    const eventFilterParam = params.get("eventFilter") ?? "";
+    if (this._isMapEventFilter(eventFilterParam)) {
+      if (this.selectedEventFilter() !== eventFilterParam) {
+        this.eventFilterChanged(eventFilterParam);
+      }
+    } else if (this.selectedEventFilter()) {
+      this.eventFilterChanged("");
+    }
+
+    const typeParam = params.get("type");
+    const mode = this._isMapObjectMode(typeParam)
+      ? typeParam
+      : filterParam
+        ? "spots"
+        : eventFilterParam
+          ? "events"
+          : "all";
+    if (this.mapObjectMode() !== mode) {
+      this.mapObjectMode.set(mode);
+    }
+    if (mode !== "all" && mode !== "spots" && this._hasActiveSpotFilter()) {
+      this._clearSpotFilterState();
+    }
+    if (mode !== "events" && this.selectedEventFilter()) {
+      this.selectedEventFilter.set("");
+    }
+  }
+
+  private _isMapObjectMode(value: string | null): value is MapObjectMode {
+    return (
+      value === "all" ||
+      value === "spots" ||
+      value === "events" ||
+      value === "communities"
+    );
+  }
+
+  private _isMapEventFilter(value: string | null): value is MapEventFilter {
+    return (
+      value === "live" ||
+      value === "competition" ||
+      value === "jam" ||
+      value === "camp"
+    );
   }
 
   private _pluralizeMapObjectCount(
@@ -3072,6 +3185,50 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       default:
         return $localize`:@@map_search_context_all:All`;
     }
+  }
+
+  private _eventFilterLabel(filter: MapEventFilter): string {
+    switch (filter) {
+      case "live":
+        return $localize`:@@map_event_filter.live:Live`;
+      case "competition":
+        return $localize`:@@event_category.competition:Competition`;
+      case "jam":
+        return $localize`:@@event_category.jam:Jam`;
+      case "camp":
+        return $localize`:@@event_category.camp:Camp`;
+    }
+  }
+
+  private _displayMapObjectCounts(): MapObjectCounts {
+    const counts = this.mapObjectCounts();
+    const eventFilter = this.selectedEventFilter();
+    if (!eventFilter) {
+      return counts;
+    }
+
+    return {
+      ...counts,
+      events: this.filteredVisibleMapEvents().length,
+    };
+  }
+
+  private _filterEvents(
+    events: readonly PkEvent[],
+    filter: MapEventFilter | "",
+  ): PkEvent[] {
+    if (!filter) {
+      return [...events];
+    }
+
+    if (filter === "live") {
+      const now = new Date();
+      return events.filter((event) => event.isLive(now));
+    }
+
+    return events.filter((event) =>
+      event.eventCategories.includes(filter as EventCategory),
+    );
   }
 
   private _spotFilterLabel(filter: string): string {
@@ -3100,24 +3257,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return Boolean(this.selectedFilter() || this.customFilterParams());
   }
 
-  private _activateSpotFilterObjectMode(): void {
-    if (this.mapObjectMode() === "spots") return;
-
-    if (!this._mapObjectModeBeforeSpotFilter) {
-      this._mapObjectModeBeforeSpotFilter = this.mapObjectMode();
-    }
-    this.mapObjectMode.set("spots");
-  }
-
-  private _restoreMapObjectModeAfterSpotFilter(): void {
-    const previousMode = this._mapObjectModeBeforeSpotFilter;
-    this._mapObjectModeBeforeSpotFilter = null;
-
-    if (previousMode && this.mapObjectMode() === "spots") {
-      this.mapObjectMode.set(previousMode);
-    }
-  }
-
   private _setFilteredSpotCount(count: number): void {
     this.mapObjectCounts.update((current) => ({
       ...current,
@@ -3129,7 +3268,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mapObjectCounts.set(this._baseMapObjectCounts());
   }
 
-  private _clearSpotFilterState(options: { restoreMode: boolean }): void {
+  private _clearSpotFilterState(): void {
     this._activeFilter = "";
     this._pendingFilter = null;
     this.noSpotsForFilter.set(false);
@@ -3142,9 +3281,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.selectedFilter()) {
       this.selectedFilter.set("");
-    }
-    if (options.restoreMode) {
-      this._restoreMapObjectModeAfterSpotFilter();
     }
   }
 
@@ -3242,11 +3378,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   filterChipChanged(selectedChip: string) {
     if (!selectedChip || selectedChip.length === 0) {
-      this._clearSpotFilterState({ restoreMode: true });
+      this._clearSpotFilterState();
       return;
     }
 
-    this._activateSpotFilterObjectMode();
+    if (this.mapObjectMode() === "all") {
+      this.mapObjectMode.set("spots");
+    }
+    if (this.selectedEventFilter()) {
+      this.selectedEventFilter.set("");
+    }
 
     // Update the selectedFilter signal for URL sync and chip binding
     // Only update signal if it's different to avoid infinite effect loops
@@ -3373,10 +3514,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
+  eventFilterChanged(selectedFilter: string): void {
+    const filter = this._isMapEventFilter(selectedFilter) ? selectedFilter : "";
+    if (filter && this.mapObjectMode() !== "events") {
+      this.mapObjectMode.set("events");
+    }
+
+    this.selectedEventFilter.set(
+      this.selectedEventFilter() === filter ? "" : filter,
+    );
+  }
+
   /**
    * Opens the custom filter dialog and applies the selected filters.
    */
   openCustomFilterDialog(): void {
+    if (this.mapObjectMode() === "all") {
+      this.mapObjectMode.set("spots");
+    }
+    if (this.selectedEventFilter()) {
+      this.selectedEventFilter.set("");
+    }
+
     const editableState = this._getEditableFilterParams();
     const dialogRef = this._dialog.open(CustomFilterDialogComponent, {
       width: "400px",
@@ -3407,8 +3566,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.filterChipChanged(matchingPreset);
         return;
       }
-
-      this._activateSpotFilterObjectMode();
 
       // Store the custom filter params
       this.customFilterParams.set(this._cloneCustomFilterParams(result));
@@ -3474,10 +3631,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const selectedChallenge = this.selectedChallenge();
     const showEditHistory = this.showSpotEditHistory();
     const activeFilter = this.selectedFilter();
+    const activeEventFilter = this.selectedEventFilter();
     const communityLanding = this.selectedCommunityLanding();
     const pendingCommunityLanding = this.pendingCommunityLanding();
     const selectedEvent = this.selectedEvent();
     const pendingEvent = this.pendingEventPreview();
+    const mapObjectMode = this.mapObjectMode();
 
     // Get the spot - prefer selectedSpot, but fall back to challenge's spot
     const spot =
@@ -3537,6 +3696,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       existingParams.set("filter", activeFilter);
     } else {
       existingParams.delete("filter");
+    }
+    if (activeEventFilter) {
+      existingParams.set("eventFilter", activeEventFilter);
+    } else {
+      existingParams.delete("eventFilter");
+    }
+    if (mapObjectMode !== "all") {
+      existingParams.set("type", mapObjectMode);
+    } else {
+      existingParams.delete("type");
     }
 
     // Build the new URL

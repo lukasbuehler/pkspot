@@ -163,7 +163,7 @@ describe("EventCardComponent", () => {
     );
   });
 
-  it("emits selection instead of navigating in select mode", () => {
+  it("keeps select mode crawlable while normal clicks emit selection", () => {
     const event = buildEvent(
       "event-123",
       "2026-06-14T10:00:00.000Z",
@@ -175,10 +175,14 @@ describe("EventCardComponent", () => {
     fixture.componentInstance.select.subscribe((value) => selected.push(value));
 
     fixture.detectChanges();
-    fixture.debugElement.query(By.css("button.event-card-action")).nativeElement.click();
+    fixture.debugElement
+      .query(By.css("a.event-card-action"))
+      .nativeElement.click();
 
     expect(selected).toEqual([event]);
-    expect(fixture.debugElement.query(By.css("a.event-card-action"))).toBeNull();
+    expect(
+      fixture.debugElement.query(By.css("button.event-card-action")),
+    ).toBeNull();
   });
 
   it("includes a lightweight intent count preview for upcoming events", () => {

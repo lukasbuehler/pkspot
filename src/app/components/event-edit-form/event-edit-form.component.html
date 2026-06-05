@@ -529,6 +529,20 @@
             <span>{{ form.value.banner_src }}</span>
           </p>
         }
+        @if (previewImageSrc("banner_src"); as bannerPreviewSrc) {
+          <figure class="m-0" style="display: grid; gap: 0.35rem; width: min(100%, 420px)">
+            <img
+              [src]="bannerPreviewSrc"
+              alt=""
+              style="width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-high); overflow: hidden"
+              [style.object-fit]="form.value.banner_fit === 'contain' ? 'contain' : 'cover'"
+              [style.background]="form.value.banner_accent_color || 'var(--mat-sys-surface-container-high)'"
+            />
+            <figcaption class="mat-label-small text-muted" i18n="@@event_edit.banner_preview">
+              Banner preview
+            </figcaption>
+          </figure>
+        }
 
         <div class="d-flex flex-row gap-2 flex-wrap">
           <mat-form-field appearance="outline" class="flex-grow-1">
@@ -571,6 +585,19 @@
             </ng-container>
             <span>{{ form.value.logo_src }}</span>
           </p>
+        }
+        @if (previewImageSrc("logo_src"); as logoPreviewSrc) {
+          <figure class="m-0" style="display: grid; gap: 0.35rem; width: min(100%, 180px)">
+            <img
+              [src]="logoPreviewSrc"
+              alt=""
+              style="width: 100%; aspect-ratio: 1; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-high); object-fit: contain; overflow: hidden; padding: 0.75rem"
+              [style.background]="form.value.logo_background_color || 'var(--mat-sys-surface-container-high)'"
+            />
+            <figcaption class="mat-label-small text-muted" i18n="@@event_edit.logo_preview">
+              Event logo preview
+            </figcaption>
+          </figure>
         }
 
         <mat-form-field appearance="outline">
@@ -622,6 +649,19 @@
             </ng-container>
             <span>{{ form.value.sponsor_logo_src }}</span>
           </p>
+        }
+        @if (previewImageSrc("sponsor_logo_src"); as sponsorLogoPreviewSrc) {
+          <figure class="m-0" style="display: grid; gap: 0.35rem; width: min(100%, 180px)">
+            <img
+              [src]="sponsorLogoPreviewSrc"
+              alt=""
+              style="width: 100%; aspect-ratio: 1; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-high); object-fit: contain; overflow: hidden; padding: 0.75rem"
+              [style.background]="form.value.sponsor_logo_background_color || 'var(--mat-sys-surface-container-high)'"
+            />
+            <figcaption class="mat-label-small text-muted" i18n="@@event_edit.sponsor_logo_preview">
+              Partner logo preview
+            </figcaption>
+          </figure>
         }
         <mat-form-field appearance="outline">
           <mat-label i18n="@@event_edit.sponsor_logo_background_color">

@@ -221,4 +221,84 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(source).toContain('includedType: "country"');
     expect(source).toContain('fields: ["id", "viewport"]');
   });
+
+  it("stores map object type separately from spot filter chips", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const updateMethod = source.match(/\n  updateMapURL\([\s\S]*?\n  \}/)?.[0];
+    const querySyncMethod = source.match(
+      /private _syncMapQueryStateFromParams[\s\S]*?\n  \}/
+    )?.[0];
+
+    expect(updateMethod).toContain('existingParams.set("filter", activeFilter)');
+    expect(updateMethod).toContain('existingParams.set("type", mapObjectMode)');
+    expect(updateMethod).toContain('existingParams.delete("type")');
+    expect(querySyncMethod).toContain('params.get("filter")');
+    expect(querySyncMethod).toContain('params.get("type")');
+    expect(source).toContain('mode !== "all" && mode !== "spots"');
+    expect(source).toContain("_clearSpotFilterState");
+  });
+
+  it("keeps event filters separate from spot filters in URL state", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const template = readFileSync(templatePath, "utf8");
+    const updateMethod = source.match(/\n  updateMapURL\([\s\S]*?\n  \}/)?.[0];
+    const querySyncMethod = source.match(
+      /private _syncMapQueryStateFromParams[\s\S]*?\n  \}/
+    )?.[0];
+
+    expect(source).toContain(
+      'type MapEventFilter = "live" | "competition" | "jam" | "camp"'
+    );
+    expect(template).toContain("showEventFilterChips()");
+    expect(template).toContain("<app-filter-chips-bar");
+    expect(template).toContain("eventFilterOptions");
+    expect(template).toContain('[showFiltersChip]="false"');
+    expect(updateMethod).toContain(
+      'existingParams.set("eventFilter", activeEventFilter)'
+    );
+    expect(querySyncMethod).toContain('params.get("eventFilter")');
+    expect(querySyncMethod).toContain('filterParam\n        ? "spots"');
+    expect(querySyncMethod).toContain('eventFilterParam\n          ? "events"');
+    expect(source).toContain('this.mapObjectMode.set("events")');
+  });
+
+  it("promotes spot filters from all mode into the spots tab", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const filterMethod = source.match(
+      /filterChipChanged\([\s\S]*?\n  eventFilterChanged/
+    )?.[0];
+
+    expect(filterMethod).toContain('this.mapObjectMode() === "all"');
+    expect(filterMethod).toContain('this.mapObjectMode.set("spots")');
+  });
+
+  it("keeps all-panel community and about links crawlable", () => {
+    const objectPanel = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/map-object-panel/map-object-panel.component.html",
+      ),
+      "utf8"
+    );
+    const objectPanelSource = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/map-object-panel/map-object-panel.component.ts",
+      ),
+      "utf8"
+    );
+    const communityList = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/map-community-list/map-community-list.component.html",
+      ),
+      "utf8"
+    );
+
+    expect(objectPanelSource).toContain("this.popularCommunities()");
+    expect(objectPanel).toContain('routerLink="/about"');
+    expect(objectPanel).not.toContain("seo-community-list");
+    expect(communityList).toContain("<a");
+    expect(communityList).toContain('[attr.href]="community.canonicalPath"');
+  });
 });

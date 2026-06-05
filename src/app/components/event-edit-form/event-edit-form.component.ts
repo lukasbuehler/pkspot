@@ -74,6 +74,7 @@ import { MediaUpload } from "../media-upload/media-upload.component";
 import { MarkerComponent } from "../marker/marker.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
+import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 
 type OrganizationDocument = OrganizationSchema & { id: string };
 type EditableEventMarker = {
@@ -718,6 +719,15 @@ export class EventEditFormComponent {
 
   onSponsorLogoUploaded(event: { src: string }): void {
     this.form.patchValue({ sponsor_logo_src: event.src });
+  }
+
+  previewImageSrc(
+    controlName: "banner_src" | "logo_src" | "sponsor_logo_src",
+  ): string | undefined {
+    const value = this.form.controls[controlName].value;
+    return typeof value === "string"
+      ? eventImageDisplaySrc(value.trim())
+      : undefined;
   }
 
   addInlineSpot(): void {

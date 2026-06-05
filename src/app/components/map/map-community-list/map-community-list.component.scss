@@ -20,9 +20,11 @@
   background: var(--mat-sys-surface-container);
   color: var(--mat-sys-on-surface);
   text-align: left;
+  text-decoration: none;
 }
 
-.community-row:hover {
+.community-row:hover,
+.community-row:focus-visible {
   background: var(--mat-sys-surface-container-high);
 }
 

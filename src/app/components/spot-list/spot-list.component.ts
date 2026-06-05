@@ -110,6 +110,19 @@ export class SpotListComponent {
     this.spotClickIndexEvent.emit(spotIndex);
   }
 
+  onSpotLinkClick(
+    event: MouseEvent,
+    spot: SpotPreviewData | Spot | LocalSpot,
+    spotIndex: number,
+  ): void {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    this.onSpotClick(spot, spotIndex);
+  }
+
   setViewMode(event: MatButtonToggleChange) {
     this.viewMode.set(event.value === "compact" ? "compact" : "grid");
   }
@@ -124,6 +137,19 @@ export class SpotListComponent {
     } else {
       return "";
     }
+  }
+
+  getSpotPathForPreview(spot: SpotPreviewData): string {
+    const idOrSlug = spot.slug ?? spot.id ?? "";
+    return this.getSpotPath(idOrSlug);
+  }
+
+  getSpotPathForSpotObj(spot: Spot | LocalSpot): string {
+    return this.getSpotPath(this.getSpotIdOrSlugForSpotObj(spot));
+  }
+
+  private getSpotPath(idOrSlug: string): string {
+    return `/map/spots/${encodeURIComponent(idOrSlug)}`;
   }
 
   trackSpot(index: number, spot: SpotPreviewData | Spot | LocalSpot): string {
