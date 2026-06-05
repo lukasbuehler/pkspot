@@ -6,7 +6,7 @@
       appearance="outline"
       subscriptSizing="dynamic"
     >
-      <mat-label>{{ languages[locale].name_native ?? locale }}</mat-label>
+      <mat-label>{{ localeLabel(locale) }}</mat-label>
 
       @if(isTextArea()) {
       <textarea

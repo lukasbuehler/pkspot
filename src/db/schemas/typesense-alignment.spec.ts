@@ -13,6 +13,39 @@ import {
 // `firestoreFields` (and to `expectedIndexedFirestoreFields` if it should
 // be searchable). The harness will fail loudly when either side drifts.
 
+const tileCoordinateFieldPaths = [
+  "tile_coordinates.z2.x",
+  "tile_coordinates.z2.y",
+  "tile_coordinates.z4.x",
+  "tile_coordinates.z4.y",
+  "tile_coordinates.z6.x",
+  "tile_coordinates.z6.y",
+  "tile_coordinates.z8.x",
+  "tile_coordinates.z8.y",
+  "tile_coordinates.z10.x",
+  "tile_coordinates.z10.y",
+  "tile_coordinates.z12.x",
+  "tile_coordinates.z12.y",
+  "tile_coordinates.z14.x",
+  "tile_coordinates.z14.y",
+  "tile_coordinates.z16.x",
+  "tile_coordinates.z16.y",
+] as const;
+
+const tileCoordinateFieldTypes = Object.fromEntries(
+  tileCoordinateFieldPaths.map((field) => [field, "int32"]),
+) as Record<(typeof tileCoordinateFieldPaths)[number], "int32">;
+
+const tileCoordinateMapping = Object.fromEntries(
+  tileCoordinateFieldPaths.map((field) => [
+    field,
+    { kind: "direct", source: field },
+  ]),
+) as Record<
+  (typeof tileCoordinateFieldPaths)[number],
+  { kind: "direct"; source: (typeof tileCoordinateFieldPaths)[number] }
+>;
+
 describe("Typesense events_v1 ↔ EventSchema", () => {
   // Field paths from src/db/schemas/EventSchema.ts. Keep in sync when the
   // TS interface changes. Dotted paths represent nested object fields.
@@ -427,6 +460,7 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     "description_search",
     "bounds_center",
     "bounds_radius_m",
+    ...tileCoordinateFieldPaths,
   ] as const;
 
   const requiredFirestoreFields = ["name", "address"] as const;
@@ -448,6 +482,7 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     "amenities_false",
     "rating",
     "location",
+    ...tileCoordinateFieldPaths,
   ] as const;
 
   const firestoreFieldTypes = {
@@ -471,6 +506,7 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     bounds: "firestore-geopoint[]",
     bounds_center: "firestore-geopoint",
     bounds_radius_m: "float",
+    ...tileCoordinateFieldTypes,
   } as const;
 
   const mapping: CollectionMapping = {
@@ -498,6 +534,7 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     bounds: { kind: "direct", source: "bounds" },
     bounds_center: { kind: "direct", source: "bounds_center" },
     bounds_radius_m: { kind: "direct", source: "bounds_radius_m" },
+    ...tileCoordinateMapping,
     _force_sync: {
       kind: "synthetic",
       reason: "Operator-only knob to force Typesense re-index without doc change",
@@ -566,6 +603,8 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
     "sourceMaxUpdatedAt",
     "bounds_center",
     "bounds_radius_m",
+    "tile_coordinates",
+    ...tileCoordinateFieldPaths,
     "visibility_bounds_north",
     "visibility_bounds_south",
     "visibility_bounds_east",
@@ -625,6 +664,7 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
     "counts.dry": "int32",
     bounds_center: "typesense-geopoint-array",
     bounds_radius_m: "float",
+    ...tileCoordinateFieldTypes,
     visibility_bounds_north: "float",
     visibility_bounds_south: "float",
     visibility_bounds_east: "float",
@@ -671,6 +711,7 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
 
     bounds_center: { kind: "direct", source: "bounds_center" },
     bounds_radius_m: { kind: "direct", source: "bounds_radius_m" },
+    ...tileCoordinateMapping,
     visibility_bounds_north: {
       kind: "direct",
       source: "visibility_bounds_north",

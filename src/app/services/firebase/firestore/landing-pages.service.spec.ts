@@ -6,6 +6,7 @@ import { FirestoreAdapterService } from "../firestore-adapter.service";
 const createMockFirestoreAdapter = () => ({
   getDocument: vi.fn(),
   getCollection: vi.fn(),
+  updateDocument: vi.fn(),
 });
 
 const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
@@ -140,11 +141,13 @@ describe("LandingPagesService", () => {
           infoCards: [
             {
               id: "supaxxl",
-              title: "Supa XXL Jam",
-              body: "Follow the organizer account for current jam locations.",
+              title: { en: "Supa XXL Jam" },
+              body: {
+                en: "Follow the organizer account for current jam locations.",
+              },
               category: "jams",
               cta: {
-                label: "Open Instagram",
+                label: { en: "Open Instagram" },
                 target: "url",
                 url: "https://instagram.com/supaxxl",
               },
@@ -158,16 +161,49 @@ describe("LandingPagesService", () => {
     expect(result?.infoCards).toEqual([
       {
         id: "supaxxl",
-        title: "Supa XXL Jam",
-        body: "Follow the organizer account for current jam locations.",
+        title: { en: "Supa XXL Jam" },
+        body: {
+          en: "Follow the organizer account for current jam locations.",
+        },
         category: "jams",
         cta: {
-          label: "Open Instagram",
+          label: { en: "Open Instagram" },
           target: "url",
           url: "https://instagram.com/supaxxl",
         },
       },
     ]);
+  });
+
+  it("updates only community info cards", async () => {
+    await service.updateCommunityInfoCards("locality:gb:london", [
+      {
+        id: "chat",
+        title: { en: "London group chat" },
+        cta: {
+          label: { en: "Join chat" },
+          target: "url",
+          url: "https://chat.whatsapp.com/example",
+        },
+      },
+    ]);
+
+    expect(mockFirestoreAdapter.updateDocument).toHaveBeenCalledWith(
+      "community_pages/locality:gb:london",
+      {
+        infoCards: [
+          {
+            id: "chat",
+            title: { en: "London group chat" },
+            cta: {
+              label: { en: "Join chat" },
+              target: "url",
+              url: "https://chat.whatsapp.com/example",
+            },
+          },
+        ],
+      },
+    );
   });
 
   it("falls back to top rated spots for older community documents", async () => {

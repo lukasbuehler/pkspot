@@ -1775,6 +1775,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Debounced 400ms so rapid pans don't fan out into a request per frame.
     effect((onCleanup) => {
       const viewport = this._viewport();
+      const objectMode = this.mapObjectMode();
       if (!viewport) return;
       if (typeof google === "undefined" || !google?.maps) return;
 
@@ -1790,6 +1791,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .searchMapObjectsInBounds(bounds, {
             eventLimit: searchLimits.events,
             communityLimit: searchLimits.communities,
+            includeCountryCommunities: objectMode === "communities",
+            viewportZoom: viewport.zoom,
           })
           .then((result) => {
             if (requestVersion !== this._mapObjectSearchVersion) return;
@@ -3189,7 +3192,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!customParams) return;
 
       this._searchService
-        .searchSpotsWithCustomFilter(bounds, customParams)
+        .searchSpotsWithCustomFilter(
+          bounds,
+          customParams,
+          10,
+          this._viewport()?.zoom,
+        )
         .then((result) => {
           const previews: SpotPreviewData[] = (result.hits || [])
             .filter((h: any) => !!h)
@@ -3214,7 +3222,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (filterMode === SpotFilterMode.None) return;
 
     this._searchService
-      .searchSpotsInBoundsWithFilter(bounds, filterMode)
+      .searchSpotsInBoundsWithFilter(
+        bounds,
+        filterMode,
+        10,
+        this._viewport()?.zoom,
+      )
       .then((result) => {
         const previews: SpotPreviewData[] = (result.hits || [])
           .filter((h: any) => !!h)
@@ -3339,7 +3352,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log(`Searching for ${selectedChip} spots in bounds:`, bounds);
 
     this._searchService
-      .searchSpotsInBoundsWithFilter(bounds, filterMode)
+      .searchSpotsInBoundsWithFilter(
+        bounds,
+        filterMode,
+        10,
+        this._viewport()?.zoom,
+      )
       .then((result) => {
         const hits = result.hits || [];
         console.log(`Found ${selectedChip} spots:`, hits);
@@ -3419,7 +3437,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log("Searching with custom filter:", result);
 
       this._searchService
-        .searchSpotsWithCustomFilter(bounds, result)
+        .searchSpotsWithCustomFilter(
+          bounds,
+          result,
+          10,
+          this._viewport()?.zoom,
+        )
         .then((searchResult) => {
           const hits = searchResult.hits || [];
           console.log("Found custom filter spots:", hits);

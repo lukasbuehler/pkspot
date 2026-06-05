@@ -29,6 +29,7 @@ import {
   computeCommunityBounds,
   getDistanceMeters,
 } from "../../src/scripts/CommunityBoundsHelpers";
+import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 import { isDrySpotCandidate } from "../../src/scripts/SpotLandingHelpers";
 import {
   getSpotCountryDisplayName,
@@ -950,6 +951,12 @@ const buildCommunityPageDoc = async (
     sourceMaxUpdatedAt: sourceMaxUpdatedAt ?? undefined,
     bounds_center: communityBounds?.bounds_center,
     bounds_radius_m: communityBounds?.bounds_radius_m,
+    tile_coordinates: communityBounds?.bounds_center
+      ? computeTileCoordinates(
+          communityBounds.bounds_center[0],
+          communityBounds.bounds_center[1],
+        )
+      : undefined,
     visibility_bounds_north: visibilityBounds?.visibility_bounds_north,
     visibility_bounds_south: visibilityBounds?.visibility_bounds_south,
     visibility_bounds_east: visibilityBounds?.visibility_bounds_east,

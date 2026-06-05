@@ -27,6 +27,7 @@ const buildCommunityLandingPageData = (): CommunityLandingPageData => ({
   title: "Parkour in Pfaffikon, Switzerland | PK Spot Community",
   description: "Discover spots and community info in Pfaffikon.",
   imageUrl: "/assets/banner_1200x630.png",
+  hasCustomImage: false,
   country: {
     code: "CH",
     name: "Switzerland",
@@ -90,9 +91,12 @@ const buildSpot = (
   new Spot(
     id as SpotId,
     {
-      name: { en: { text: "Google Rules Spot" } },
+      name: { en: { text: "Google Rules Spot", provider: "test" } },
       description: {
-        en: { text: "A spot used to test Google structured data rules." },
+        en: {
+          text: "A spot used to test Google structured data rules.",
+          provider: "test",
+        },
       },
       location_raw: { lat: 47.3769, lng: 8.5417 },
       rating: 4.7,
@@ -195,35 +199,35 @@ describe("StructuredDataService", () => {
       infoCards: [
         {
           id: "jam",
-          title: "Tuesday Jam",
-          body: "Locations are announced in the group chat.",
+          title: { en: "Tuesday Jam" },
+          body: { en: "Locations are announced in the group chat." },
           cta: {
-            label: "Open event",
+            label: { en: "Open event" },
             target: "event",
             eventId: "zurich-tuesday-jam",
           },
         },
         {
           id: "chat",
-          title: "WhatsApp group chat",
+          title: { en: "WhatsApp group chat" },
           cta: {
-            label: "Open WhatsApp",
+            label: { en: "Open WhatsApp" },
             target: "url",
             url: "https://chat.whatsapp.com/example",
           },
         },
         {
           id: "unsafe",
-          title: "Unsafe Link",
+          title: { en: "Unsafe Link" },
           cta: {
-            label: "Open",
+            label: { en: "Open" },
             target: "url",
             url: "javascript:alert(1)",
           },
         },
         {
           id: "hidden",
-          title: "Hidden Card",
+          title: { en: "Hidden Card" },
           visibility: "hidden",
         },
       ],

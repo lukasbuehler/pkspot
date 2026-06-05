@@ -199,67 +199,93 @@
     }
 
     @if (!data.notFound) {
-      @if (communityInfoCards().length > 0) {
+      @if (communityInfoCards().length > 0 || canEditKnowledge()) {
         <section class="content-section local-info-section">
-          <div class="section-heading">
+          <div class="section-heading section-heading-row">
             <h2
               class="mat-title-large m-0"
               i18n="@@community.local_knowledge_heading"
             >
               Local Knowledge
             </h2>
-          </div>
-
-          <div class="local-info-grid">
-            @for (card of communityInfoCards(); track card.id) {
-              <mat-card class="local-info-card border">
-                <mat-card-content>
-                  <div class="local-info-card-header">
-                    <span class="local-info-icon" aria-hidden="true">
-                      <mat-icon>{{ card.icon }}</mat-icon>
-                    </span>
-                    <div class="local-info-title-block">
-                      <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
-                      @if (card.disclosure) {
-                        <span class="local-info-disclosure">{{
-                          card.disclosure
-                        }}</span>
-                      }
-                    </div>
-                  </div>
-
-                  @if (card.body) {
-                    <p class="mat-body-medium local-info-body">
-                      {{ card.body }}
-                    </p>
-                  }
-
-                  @if (card.cta; as cta) {
-                    <div class="local-info-actions">
-                      @if (cta.target === "url") {
-                        <a
-                          mat-stroked-button
-                          [href]="cta.url"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <mat-icon>link</mat-icon>
-                          <span>{{ cta.label }}</span>
-                        </a>
-                      } @else {
-                        <a mat-stroked-button [routerLink]="cta.path">
-                          <mat-icon>{{
-                            cta.target === "spot" ? "place" : "event"
-                          }}</mat-icon>
-                          <span>{{ cta.label }}</span>
-                        </a>
-                      }
-                    </div>
-                  }
-                </mat-card-content>
-              </mat-card>
+            @if (canEditKnowledge() && !isEditingKnowledge()) {
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Edit community knowledge"
+                matTooltip="Edit community knowledge"
+                (click)="startKnowledgeEdit()"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
             }
           </div>
+
+          @if (isEditingKnowledge()) {
+            <app-community-knowledge-editor
+              [cards]="communityKnowledgeCards()"
+              [saving]="isSavingKnowledge()"
+              (save)="saveKnowledgeCards($event)"
+              (cancel)="cancelKnowledgeEdit()"
+            ></app-community-knowledge-editor>
+          } @else {
+            @if (communityInfoCards().length > 0) {
+              <div class="local-info-grid">
+                @for (card of communityInfoCards(); track card.id) {
+                  <mat-card class="local-info-card border">
+                    <mat-card-content>
+                      <div class="local-info-card-header">
+                        <span class="local-info-icon" aria-hidden="true">
+                          <mat-icon>{{ card.icon }}</mat-icon>
+                        </span>
+                        <div class="local-info-title-block">
+                          <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
+                          @if (card.disclosure) {
+                            <span class="local-info-disclosure">{{
+                              card.disclosure
+                            }}</span>
+                          }
+                        </div>
+                      </div>
+
+                      @if (card.body) {
+                        <p class="mat-body-medium local-info-body">
+                          {{ card.body }}
+                        </p>
+                      }
+
+                      @if (card.cta; as cta) {
+                        <div class="local-info-actions">
+                          @if (cta.target === "url") {
+                            <a
+                              mat-stroked-button
+                              [href]="cta.url"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <mat-icon>link</mat-icon>
+                              <span>{{ cta.label }}</span>
+                            </a>
+                          } @else {
+                            <a mat-stroked-button [routerLink]="cta.path">
+                              <mat-icon>{{
+                                cta.target === "spot" ? "place" : "event"
+                              }}</mat-icon>
+                              <span>{{ cta.label }}</span>
+                            </a>
+                          }
+                        </div>
+                      }
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            } @else {
+              <p class="mat-body-medium local-info-empty m-0">
+                No knowledge cards yet.
+              </p>
+            }
+          }
         </section>
       }
 

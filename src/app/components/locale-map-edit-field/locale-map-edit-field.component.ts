@@ -76,6 +76,11 @@ export class LocaleMapEditFieldComponent {
 
   languages = languageCodes;
 
+  localeLabel(locale: LocaleCode): string {
+    const language = this.languages[locale];
+    return language?.name_native ?? language?.name_english ?? locale;
+  }
+
   localeKeys: Signal<LocaleCode[]> = computed(() => {
     const localeMap = this.localeMap();
     return Object.keys(localeMap ?? {}) as LocaleCode[];

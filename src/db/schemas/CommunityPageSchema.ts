@@ -1,4 +1,5 @@
 import type { Timestamp } from "firebase/firestore";
+import type { LocaleMap } from "../models/Interfaces";
 import { EventCardPreviewSchema } from "./EventSchema";
 import { SpotPreviewData } from "./SpotPreviewData";
 
@@ -56,27 +57,29 @@ export type CommunityInfoCardDisclosure =
   | "paid-partnership"
   | "shop";
 
+export type CommunityLocalizedTextSchema = LocaleMap | Record<string, string>;
+
 export type CommunityInfoCardCta =
   | {
-      label: string;
+      label: CommunityLocalizedTextSchema;
       target: "spot";
       spotId: string;
     }
   | {
-      label: string;
+      label: CommunityLocalizedTextSchema;
       target: "event";
       eventId: string;
     }
   | {
-      label: string;
+      label: CommunityLocalizedTextSchema;
       target: "url";
       url: string;
     };
 
 export interface CommunityInfoCardSchema {
   id: string;
-  title: string;
-  body?: string;
+  title: CommunityLocalizedTextSchema;
+  body?: CommunityLocalizedTextSchema;
   icon?: string;
   category?: CommunityInfoCardCategory;
   cta?: CommunityInfoCardCta;
@@ -164,6 +167,17 @@ export interface CommunityPageSchema {
   bounds_center?: [number, number];
   /** Radius in meters from `bounds_center` covering the community area. */
   bounds_radius_m?: number;
+  /** Web Mercator tile buckets derived from `bounds_center` for map search grouping. */
+  tile_coordinates?: {
+    z2: { x: number; y: number };
+    z4: { x: number; y: number };
+    z6: { x: number; y: number };
+    z8: { x: number; y: number };
+    z10: { x: number; y: number };
+    z12: { x: number; y: number };
+    z14: { x: number; y: number };
+    z16: { x: number; y: number };
+  };
   /** Derived bbox used by Typesense to find communities overlapping a viewport. */
   visibility_bounds_north?: number;
   visibility_bounds_south?: number;

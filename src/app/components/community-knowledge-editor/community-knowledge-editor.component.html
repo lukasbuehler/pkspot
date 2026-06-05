@@ -1,0 +1,196 @@
+<form class="knowledge-editor" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="knowledge-editor-toolbar">
+    <button mat-stroked-button type="button" (click)="addCard()">
+      <mat-icon>add</mat-icon>
+      <span>Add card</span>
+    </button>
+  </div>
+
+  <div formArrayName="cards" class="knowledge-editor-list">
+    @for (card of cardGroups(); track card.controls.id.value; let index = $index) {
+      <mat-card class="knowledge-editor-card border" [formGroupName]="index">
+        <mat-card-content>
+          <div class="knowledge-editor-card-header">
+            <h3 class="mat-title-medium m-0">Card {{ index + 1 }}</h3>
+            <div class="knowledge-editor-icon-actions">
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Move card up"
+                matTooltip="Move up"
+                [disabled]="index === 0"
+                (click)="moveCard(index, -1)"
+              >
+                <mat-icon>arrow_upward</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Move card down"
+                matTooltip="Move down"
+                [disabled]="index === cardGroups().length - 1"
+                (click)="moveCard(index, 1)"
+              >
+                <mat-icon>arrow_downward</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Delete card"
+                matTooltip="Delete"
+                (click)="removeCard(index)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="knowledge-editor-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>ID</mat-label>
+              <input matInput formControlName="id" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Icon</mat-label>
+              <input matInput formControlName="icon" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Category</mat-label>
+              <mat-select formControlName="category">
+                @for (category of categories; track category) {
+                  <mat-option [value]="category">{{ category }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Visibility</mat-label>
+              <mat-select formControlName="visibility">
+                <mat-option value="public">public</mat-option>
+                <mat-option value="hidden">hidden</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Disclosure</mat-label>
+              <mat-select formControlName="commercialDisclosure">
+                @for (disclosure of disclosures; track disclosure) {
+                  <mat-option [value]="disclosure">{{ disclosure }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="knowledge-editor-map-field">
+            <h4 class="mat-label-large m-0">Title</h4>
+            <app-locale-map-edit-field
+              class="w-100"
+              placeholder="Title"
+              [localeMap]="localeModels()[index].title()"
+              (localeMapChange)="updateLocaleMap(index, 'title', $event)"
+            ></app-locale-map-edit-field>
+          </div>
+
+          <div class="knowledge-editor-map-field">
+            <h4 class="mat-label-large m-0">Body</h4>
+            <app-locale-map-edit-field
+              class="w-100"
+              placeholder="Body"
+              [isTextArea]="true"
+              [localeMap]="localeModels()[index].body()"
+              (localeMapChange)="updateLocaleMap(index, 'body', $event)"
+            ></app-locale-map-edit-field>
+          </div>
+
+          <mat-expansion-panel
+            class="knowledge-editor-cta-panel mat-elevation-z0 border"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title>CTA</mat-panel-title>
+              <mat-panel-description>
+                {{ ctaTarget(card) === "none" ? "Optional" : ctaTarget(card) }}
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="knowledge-editor-cta-content">
+              <mat-form-field appearance="outline">
+                <mat-label>CTA target</mat-label>
+                <mat-select formControlName="ctaTarget">
+                  @for (target of ctaTargets; track target) {
+                    <mat-option [value]="target">{{ target }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              @if (ctaTarget(card) !== "none") {
+                <div class="knowledge-editor-map-field">
+                  <h4 class="mat-label-large m-0">CTA label</h4>
+                  <app-locale-map-edit-field
+                    class="w-100"
+                    placeholder="CTA label"
+                    [localeMap]="localeModels()[index].ctaLabel()"
+                    (localeMapChange)="
+                      updateLocaleMap(index, 'ctaLabel', $event)
+                    "
+                  ></app-locale-map-edit-field>
+                </div>
+
+                @switch (ctaTarget(card)) {
+                  @case ("url") {
+                    <mat-form-field
+                      appearance="outline"
+                      class="knowledge-editor-wide-field"
+                    >
+                      <mat-label>URL</mat-label>
+                      <input matInput formControlName="ctaUrl" />
+                    </mat-form-field>
+                  }
+                  @case ("spot") {
+                    <mat-form-field
+                      appearance="outline"
+                      class="knowledge-editor-wide-field"
+                    >
+                      <mat-label>Spot ID</mat-label>
+                      <input matInput formControlName="ctaSpotId" />
+                    </mat-form-field>
+                  }
+                  @case ("event") {
+                    <mat-form-field
+                      appearance="outline"
+                      class="knowledge-editor-wide-field"
+                    >
+                      <mat-label>Event ID</mat-label>
+                      <input matInput formControlName="ctaEventId" />
+                    </mat-form-field>
+                  }
+                }
+              }
+            </div>
+          </mat-expansion-panel>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
+  @if (cardGroups().length === 0) {
+    <p class="mat-body-medium knowledge-editor-empty m-0">
+      No knowledge cards yet.
+    </p>
+  }
+
+  @if (validationMessage(); as message) {
+    <p class="mat-body-small knowledge-editor-error m-0">{{ message }}</p>
+  }
+
+  <div class="knowledge-editor-actions">
+    <button mat-button type="button" [disabled]="saving()" (click)="cancel.emit()">
+      Cancel
+    </button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+      <mat-icon>save</mat-icon>
+      <span>{{ saving() ? "Saving..." : "Save cards" }}</span>
+    </button>
+  </div>
+</form>

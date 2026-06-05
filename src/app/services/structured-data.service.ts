@@ -20,6 +20,7 @@ import {
   getDisplaySublocalityName,
 } from "../../scripts/AddressHelpers";
 import { buildSpotCanonicalPath } from "../../scripts/SpotRouteHelpers";
+import { communityLocalizedText } from "../../scripts/CommunityInfoCardHelpers";
 import { APP_LINKS } from "../shared/app-links";
 
 type SpotStructuredData = Record<string, unknown> & {
@@ -173,13 +174,18 @@ export class StructuredDataService {
     pageData: CommunityLandingPageData
   ): Record<string, unknown>[] {
     return (pageData.infoCards ?? [])
-      .filter((card) => card.visibility !== "hidden" && card.title.trim())
+      .filter(
+        (card) =>
+          card.visibility !== "hidden" &&
+          communityLocalizedText(card.title, this.locale),
+      )
       .map((card) => {
+        const title = communityLocalizedText(card.title, this.locale);
+        const text = communityLocalizedText(card.body, this.locale);
         const part: Record<string, unknown> = {
           "@type": "CreativeWork",
-          name: card.title.trim(),
+          name: title,
         };
-        const text = card.body?.trim();
         if (text) {
           part["text"] = text;
         }

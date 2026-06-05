@@ -2,21 +2,27 @@ import { DatePipe, NgOptimizedImage } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
+  LOCALE_ID,
   computed,
   inject,
   input,
   output,
+  signal,
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatCardModule } from "@angular/material/card";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { map } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
-import { CommunityLandingPageData as CommunityPanelData } from "../../services/firebase/firestore/landing-pages.service";
+import {
+  CommunityLandingPageData as CommunityPanelData,
+  LandingPagesService,
+} from "../../services/firebase/firestore/landing-pages.service";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { EventCardComponent } from "../event-card/event-card.component";
@@ -25,6 +31,9 @@ import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { countries } from "../../../scripts/Countries";
 import { buildSpotCanonicalPath } from "../../../scripts/SpotRouteHelpers";
+import { communityLocalizedText } from "../../../scripts/CommunityInfoCardHelpers";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { CommunityKnowledgeEditorComponent } from "../community-knowledge-editor/community-knowledge-editor.component";
 
 type CommunityExploreMode = "all" | "dry";
 
@@ -59,11 +68,13 @@ interface CommunityInfoCardView {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatSnackBarModule,
     MatTooltipModule,
     RouterLink,
     SpotListComponent,
     EventCardComponent,
     MapInfoPanelComponent,
+    CommunityKnowledgeEditorComponent,
   ],
   templateUrl: "./community-landing-page.component.html",
   styleUrl: "./community-landing-page.component.scss",
@@ -71,6 +82,10 @@ interface CommunityInfoCardView {
 })
 export class CommunityLandingPageComponent {
   private _route = inject(ActivatedRoute);
+  private _authService = inject(AuthenticationService);
+  private _landingPagesService = inject(LandingPagesService);
+  private _snackbar = inject(MatSnackBar);
+  private _locale = inject(LOCALE_ID);
 
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
@@ -98,6 +113,14 @@ export class CommunityLandingPageComponent {
   selectSpot = output<SpotPreviewData>();
   /** Emitted when panel mode should close and show the map around this community. */
   exploreCommunitySpots = output<CommunityExploreMode>();
+
+  isAdmin = computed(() => this._authService.isAdmin());
+  isEditingKnowledge = signal(false);
+  isSavingKnowledge = signal(false);
+  private _infoCardsOverride = signal<{
+    communityKey: string;
+    infoCards: CommunityInfoCardSchema[];
+  } | null>(null);
 
   onClose() {
     this.closePanel.emit();
@@ -129,9 +152,18 @@ export class CommunityLandingPageComponent {
     },
   );
 
-  communityData = computed(
-    () => this.communityDataInput() ?? this._communityData() ?? undefined,
-  );
+  communityData = computed(() => {
+    const data = this.communityDataInput() ?? this._communityData() ?? undefined;
+    const override = this._infoCardsOverride();
+    if (!data || override?.communityKey !== data.communityKey) {
+      return data;
+    }
+
+    return {
+      ...data,
+      infoCards: override.infoCards,
+    };
+  });
 
   heading = computed(() => {
     if (this.loading()) {
@@ -204,6 +236,12 @@ export class CommunityLandingPageComponent {
   communityInfoCards = computed(() =>
     this._toCommunityInfoCards(this.communityData()?.infoCards ?? []),
   );
+  communityKnowledgeCards = computed(
+    () => this.communityData()?.infoCards ?? [],
+  );
+  canEditKnowledge = computed(
+    () => this.isAdmin() && !!this.communityData()?.communityKey,
+  );
   hasFeaturedSpots = computed(() => {
     const data = this.communityData();
     return (
@@ -261,6 +299,49 @@ export class CommunityLandingPageComponent {
     this.exploreCommunitySpots.emit(mode);
   }
 
+  startKnowledgeEdit(): void {
+    if (!this.canEditKnowledge()) {
+      return;
+    }
+    this.isEditingKnowledge.set(true);
+  }
+
+  cancelKnowledgeEdit(): void {
+    this.isEditingKnowledge.set(false);
+  }
+
+  async saveKnowledgeCards(cards: CommunityInfoCardSchema[]): Promise<void> {
+    const data = this.communityData();
+    if (!data || !this.canEditKnowledge()) {
+      return;
+    }
+
+    this.isSavingKnowledge.set(true);
+    try {
+      await this._landingPagesService.updateCommunityInfoCards(
+        data.communityKey,
+        cards,
+      );
+      this._infoCardsOverride.set({
+        communityKey: data.communityKey,
+        infoCards: cards,
+      });
+      this.isEditingKnowledge.set(false);
+      this._snackbar.open($localize`Community knowledge saved`, undefined, {
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Failed to save community knowledge cards", error);
+      this._snackbar.open(
+        $localize`Failed to save community knowledge`,
+        undefined,
+        { duration: 5000 },
+      );
+    } finally {
+      this.isSavingKnowledge.set(false);
+    }
+  }
+
   lastUpdatedDate = computed(() => {
     const data = this.communityData();
     const timestamp = data?.sourceMaxUpdatedAt ?? data?.generatedAt;
@@ -289,15 +370,18 @@ export class CommunityLandingPageComponent {
   ): CommunityInfoCardView[] {
     return cards
       .filter((card) => card.visibility !== "hidden")
-      .map((card, index) => ({
-        id: card.id || `${index}-${card.title}`,
-        title: card.title.trim(),
-        body: card.body?.trim() || null,
-        icon: card.icon?.trim() || this._communityInfoCardIcon(card),
-        disclosure: this._communityInfoDisclosure(card),
-        cta: this._communityInfoCardCta(card),
-        priority: card.priority ?? index,
-      }))
+      .map((card, index) => {
+        const title = communityLocalizedText(card.title, this._locale);
+        return {
+          id: card.id || `${index}-${title}`,
+          title,
+          body: communityLocalizedText(card.body, this._locale) || null,
+          icon: card.icon?.trim() || this._communityInfoCardIcon(card),
+          disclosure: this._communityInfoDisclosure(card),
+          cta: this._communityInfoCardCta(card),
+          priority: card.priority ?? index,
+        };
+      })
       .filter((card) => card.title.length > 0)
       .sort(
         (left, right) =>
@@ -347,7 +431,7 @@ export class CommunityLandingPageComponent {
       return null;
     }
 
-    const label = cta.label.trim();
+    const label = communityLocalizedText(cta.label, this._locale);
     if (!label) {
       return null;
     }

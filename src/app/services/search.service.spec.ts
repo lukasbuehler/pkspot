@@ -453,6 +453,45 @@ describe("SearchService", () => {
       expect(results.hits).toEqual([]);
       expect(results.found).toBe(0);
     });
+
+    it("groups filtered spot searches by the current viewport tile", async () => {
+      const mockBounds = {
+        getNorthEast: () => ({ lat: () => 48.2, lng: () => 11.7 }),
+        getSouthWest: () => ({ lat: () => 48.1, lng: () => 11.5 }),
+        toJSON: () => ({}),
+      } as unknown as google.maps.LatLngBounds;
+
+      typesenseSearchMock.mockResolvedValueOnce({
+        found: 2,
+        grouped_hits: [
+          {
+            group_key: [33, 21],
+            hits: [{ document: { id: "spot-a", rating: 5 } }],
+          },
+          {
+            group_key: [34, 21],
+            hits: [{ document: { id: "spot-b", rating: 4 } }],
+          },
+        ],
+      });
+
+      const results = await service.searchSpotsInBoundsWithFilter(
+        mockBounds,
+        SpotFilterMode.ForParkour,
+        10,
+        6.4,
+      );
+
+      const params = typesenseSearchMock.mock.calls[0][0];
+      expect(params.group_by).toBe(
+        "tile_coordinates.z6.x,tile_coordinates.z6.y",
+      );
+      expect(params.group_limit).toBe(2);
+      expect(results.hits.map((hit) => hit.document.id)).toEqual([
+        "spot-a",
+        "spot-b",
+      ]);
+    });
   });
 
   describe("searchSpotsAndPlaces", () => {
@@ -804,8 +843,73 @@ describe("SearchService", () => {
       expect(searches[1].filter_by).not.toContain("location:(");
       expect(searches[2].filter_by).toContain("promo_radius_m:>0");
       expect(searches[2].filter_by).not.toContain("promo_bounds_");
-      expect(searches[3].filter_by).toContain("scope:=[locality,country]");
+      expect(searches[3].filter_by).toContain("scope:=[locality]");
       expect(searches[3].filter_by).not.toContain("visibility_bounds_");
+    });
+
+    it("groups locality communities by viewport tile and fetches countries only when requested", async () => {
+      const bounds = {
+        getNorthEast: () => ({ lat: () => 47.4, lng: () => 8.55 }),
+        getSouthWest: () => ({ lat: () => 47.39, lng: () => 8.54 }),
+      } as google.maps.LatLngBounds;
+
+      typesenseMultiSearchMock.mockResolvedValueOnce({
+        results: [
+          { hits: [], found: 0 },
+          { hits: [], found: 0 },
+          { hits: [], found: 0 },
+          {
+            found: 2,
+            grouped_hits: [
+              {
+                group_key: [134, 91],
+                hits: [
+                  {
+                    document: {
+                      communityKey: "locality:ch:zh:zurich",
+                      displayName: "Zurich",
+                      scope: "locality",
+                      counts: { totalSpots: 42 },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            found: 1,
+            hits: [
+              {
+                document: {
+                  communityKey: "country:ch",
+                  displayName: "Switzerland",
+                  scope: "country",
+                  counts: { totalSpots: 120 },
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await service.searchMapObjectsInBounds(bounds, {
+        includeCountryCommunities: true,
+        viewportZoom: 8.7,
+      });
+
+      const searches = typesenseMultiSearchMock.mock.calls[0][0].searches;
+      expect(searches[3]).toMatchObject({
+        collection: "communities_v1",
+        group_by: "tile_coordinates.z8.x,tile_coordinates.z8.y",
+        group_limit: 2,
+      });
+      expect(searches[3].filter_by).toContain("scope:=[locality]");
+      expect(searches[4].filter_by).toContain("scope:=[country]");
+      expect(searches[4].group_by).toBeUndefined();
+      expect(result.counts.communities).toBe(3);
+      expect(
+        result.communities.map((community) => community.communityKey),
+      ).toEqual(["locality:ch:zh:zurich", "country:ch"]);
     });
   });
 });

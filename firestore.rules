@@ -374,11 +374,19 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    function onlyCommunityInfoCardsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'infoCards'
+      ]);
+    }
+
     // Materialized community landing pages and slug aliases are public read-only
-    // data used by SSR and crawlers. Writes are owned by backend rebuild jobs.
+    // data used by SSR and crawlers. Admin clients may curate only infoCards;
+    // all generated fields stay owned by backend rebuild jobs.
     match /community_pages/{communityKey} {
       allow read: if true;
-      allow write: if false;
+      allow update: if isAdmin() && onlyCommunityInfoCardsChanged();
+      allow create, delete: if false;
     }
 
     match /community_slugs/{slug} {

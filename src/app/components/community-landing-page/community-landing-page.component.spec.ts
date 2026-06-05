@@ -3,11 +3,17 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 import { ActivatedRoute } from "@angular/router";
+import { signal } from "@angular/core";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { CommunityLandingPageComponent } from "./community-landing-page.component";
-import { CommunityLandingPageData } from "../../services/firebase/firestore/landing-pages.service";
+import {
+  CommunityLandingPageData,
+  LandingPagesService,
+} from "../../services/firebase/firestore/landing-pages.service";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MapsApiService } from "../../services/maps-api.service";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
 
 const communityData: CommunityLandingPageData = {
   communityKey: "country:ch",
@@ -19,6 +25,7 @@ const communityData: CommunityLandingPageData = {
   title: "Parkour in Switzerland | PK Spot Community",
   description: "Discover parkour spots in Switzerland.",
   imageUrl: "/assets/banner_1200x630.png",
+  hasCustomImage: false,
   country: { name: "Switzerland", slug: "switzerland" },
   breadcrumbs: [
     { name: "Map", path: "/map" },
@@ -79,6 +86,18 @@ describe("CommunityLandingPageComponent", () => {
             getStaticStreetViewImageForLocation: vi.fn(() => ""),
             hasStreetViewPanoramaForLocation: vi.fn().mockResolvedValue(false),
           },
+        },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: LandingPagesService,
+          useValue: { updateCommunityInfoCards: vi.fn() },
+        },
+        {
+          provide: MatSnackBar,
+          useValue: { open: vi.fn() },
         },
       ],
     }).compileComponents();
@@ -214,39 +233,39 @@ describe("CommunityLandingPageComponent", () => {
       infoCards: [
         {
           id: "tuesday-jam",
-          title: "Jams every Tuesday evening",
-          body: "Locations are announced in the WhatsApp group.",
+          title: { en: "Jams every Tuesday evening" },
+          body: { en: "Locations are announced in the WhatsApp group." },
           category: "jams",
           priority: 2,
           cta: {
-            label: "View event",
+            label: { en: "View event" },
             target: "event",
             eventId: "zurich-tuesday-jam",
           },
         },
         {
           id: "chat",
-          title: "WhatsApp group chat",
+          title: { en: "WhatsApp group chat" },
           category: "chat",
           priority: 1,
           cta: {
-            label: "Open WhatsApp",
+            label: { en: "Open WhatsApp" },
             target: "url",
             url: "https://chat.whatsapp.com/example",
           },
         },
         {
           id: "unsafe",
-          title: "Unsafe Link",
+          title: { en: "Unsafe Link" },
           cta: {
-            label: "Open",
+            label: { en: "Open" },
             target: "url",
             url: "javascript:alert(1)",
           },
         },
         {
           id: "hidden",
-          title: "Hidden Card",
+          title: { en: "Hidden Card" },
           visibility: "hidden",
         },
       ],
@@ -254,7 +273,7 @@ describe("CommunityLandingPageComponent", () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain("Local Info");
+    expect(text).toContain("Local Knowledge");
     expect(text).toContain("Jams every Tuesday evening");
     expect(text).toContain("WhatsApp group chat");
     expect(text).not.toContain("Hidden Card");

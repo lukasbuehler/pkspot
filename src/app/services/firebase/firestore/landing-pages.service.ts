@@ -205,6 +205,16 @@ export class LandingPagesService {
     };
   }
 
+  async updateCommunityInfoCards(
+    communityKey: string,
+    infoCards: CommunityInfoCardSchema[],
+  ): Promise<void> {
+    await this._firestoreAdapter.updateDocument(
+      `community_pages/${communityKey}`,
+      { infoCards },
+    );
+  }
+
   private _normalizeCommunityPath(path: string): string {
     return path.replace(/^\/map\/community\//u, "/map/communities/");
   }

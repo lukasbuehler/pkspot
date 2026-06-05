@@ -34,6 +34,7 @@ export class SearchService {
   readonly SPOT_SORT_BY_RATING = "rating:desc";
   readonly COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE =
     "_text_match:desc,counts.totalSpots:desc";
+  private readonly MAP_GROUP_LIMIT = 2;
 
   private readonly client: SearchClient = new SearchClient({
     nodes: [
@@ -116,6 +117,31 @@ export class SearchService {
       if (hasMediaA === hasMediaB) return 0;
       return hasMediaA ? -1 : 1;
     });
+  }
+
+  private static _tileGroupFieldsForZoom(
+    zoom: number | undefined,
+  ): string | undefined {
+    if (typeof zoom !== "number" || !Number.isFinite(zoom)) {
+      return undefined;
+    }
+
+    const evenZoom = Math.max(2, Math.min(16, Math.floor(zoom) & ~1));
+    return `tile_coordinates.z${evenZoom}.x,tile_coordinates.z${evenZoom}.y`;
+  }
+
+  private static _flattenTypesenseHits(result: unknown): any[] {
+    const groupedHits = (result as { grouped_hits?: unknown } | null)
+      ?.grouped_hits;
+    if (Array.isArray(groupedHits)) {
+      return groupedHits.flatMap((group) => {
+        const hits = (group as { hits?: unknown } | null)?.hits;
+        return Array.isArray(hits) ? hits : [];
+      });
+    }
+
+    const hits = (result as { hits?: unknown } | null)?.hits;
+    return Array.isArray(hits) ? hits : [];
   }
 
   public getSpotPreviewFromHit(hit: any): SpotPreviewData {
@@ -467,6 +493,7 @@ export class SearchService {
     bounds: google.maps.LatLngBounds,
     filterMode: SpotFilterMode,
     num_spots: number = 10,
+    viewportZoom?: number,
   ): Promise<{ hits: any[]; found: number }> {
     const config = SPOT_FILTER_CONFIGS.get(filterMode);
     if (!config) {
@@ -479,6 +506,7 @@ export class SearchService {
       config.accesses,
       config.amenities_true,
       config.amenities_false,
+      viewportZoom,
     );
   }
 
@@ -537,6 +565,7 @@ export class SearchService {
       amenities_false?: (keyof AmenitiesMap)[];
     },
     num_spots: number = 10,
+    viewportZoom?: number,
   ): Promise<{ hits: any[]; found: number }> {
     return this.searchSpotsInBounds(
       bounds,
@@ -545,6 +574,7 @@ export class SearchService {
       params.accesses,
       params.amenities_true,
       params.amenities_false,
+      viewportZoom,
     );
   }
 
@@ -559,6 +589,7 @@ export class SearchService {
     amenities_true?: (keyof AmenitiesMap)[],
     amenities_false?: (keyof AmenitiesMap)[],
     onlyWithImages: boolean = false,
+    viewportZoom?: number,
   ): Promise<{ hits: any[]; found: number }> {
     const latLongPairList: string[] = [
       // northeast
@@ -587,6 +618,7 @@ export class SearchService {
       amenities_true,
       amenities_false,
       onlyWithImages,
+      viewportZoom,
     );
   }
 
@@ -598,6 +630,7 @@ export class SearchService {
     amenities_true?: (keyof AmenitiesMap)[],
     amenities_false?: (keyof AmenitiesMap)[],
     onlyWithImages: boolean = false,
+    viewportZoom?: number,
   ) {
     const filters: string[] = [];
     if (types?.length) filters.push(`type:=[${types.join(", ")}]`);
@@ -621,6 +654,13 @@ export class SearchService {
 
     const MAX_PER_PAGE = 250;
     const perPage = Math.min(MAX_PER_PAGE, Math.max(1, num_spots));
+    const groupBy = SearchService._tileGroupFieldsForZoom(viewportZoom);
+    const groupingParams = groupBy
+      ? {
+          group_by: groupBy,
+          group_limit: this.MAP_GROUP_LIMIT,
+        }
+      : {};
 
     // Fetch first page to learn total found and to return early when small
     const firstPage = await this.client
@@ -633,11 +673,12 @@ export class SearchService {
           sort_by: this.SPOT_SORT_BY_RATING,
           per_page: perPage,
           page: 1,
+          ...groupingParams,
         },
         {},
       );
 
-    let allHits: any[] = (firstPage && (firstPage as any).hits) || [];
+    let allHits: any[] = SearchService._flattenTypesenseHits(firstPage);
 
     const found: number =
       (firstPage && (firstPage as any).found) || allHits.length;
@@ -668,6 +709,7 @@ export class SearchService {
               sort_by: this.SPOT_SORT_BY_RATING,
               per_page: perPage,
               page: i,
+              ...groupingParams,
             },
             {},
           ),
@@ -676,8 +718,8 @@ export class SearchService {
 
     const settled = await Promise.allSettled(pageRequests);
     for (const res of settled) {
-      if (res.status === "fulfilled" && res.value && res.value.hits) {
-        allHits.push(...res.value.hits);
+      if (res.status === "fulfilled" && res.value) {
+        allHits.push(...SearchService._flattenTypesenseHits(res.value));
       }
     }
     allHits = this.sortHitsByRatingThenMedia(allHits);
@@ -697,6 +739,7 @@ export class SearchService {
     accesses?: SpotAccess[],
     amenities_true?: (keyof AmenitiesMap)[],
     amenities_false?: (keyof AmenitiesMap)[],
+    viewportZoom?: number,
   ): Promise<{ hits: any[]; found: number }> {
     let neLat = bounds.getNorthEast().lat();
     let neLng = bounds.getNorthEast().lng();
@@ -733,6 +776,8 @@ export class SearchService {
       accesses,
       amenities_true,
       amenities_false,
+      false,
+      viewportZoom,
     );
   }
 
@@ -1235,6 +1280,8 @@ export class SearchService {
     options: {
       eventLimit?: number;
       communityLimit?: number;
+      includeCountryCommunities?: boolean;
+      viewportZoom?: number;
     } = {},
   ): Promise<MapViewportSearchResult> {
     const nowSeconds = Math.floor(Date.now() / 1000);
@@ -1257,6 +1304,16 @@ export class SearchService {
       1,
       Math.min(250, options.communityLimit ?? 80),
     );
+    const countryCommunityLimit = 20;
+    const communityGroupBy = SearchService._tileGroupFieldsForZoom(
+      options.viewportZoom,
+    );
+    const communityGroupingParams = communityGroupBy
+      ? {
+          group_by: communityGroupBy,
+          group_limit: this.MAP_GROUP_LIMIT,
+        }
+      : {};
     const eventIncludeFields = [
       "id",
       "name",
@@ -1291,6 +1348,57 @@ export class SearchService {
       "series_ids",
       "external_source.provider",
     ].join(",");
+
+    const communityIncludeFields = [
+      "communityKey",
+      "scope",
+      "displayName",
+      "preferredSlug",
+      "canonicalPath",
+      "geography.countryCode",
+      "geography.countryName",
+      "geography.regionName",
+      "geography.localityName",
+      "counts.totalSpots",
+      "bounds_center",
+      "bounds_radius_m",
+      "google_maps_place_id",
+    ].join(",");
+    const communitySearches = [
+      {
+        collection: this.TYPESENSE_COLLECTION_COMMUNITIES,
+        q: "*",
+        filter_by: SearchService._joinFilters([
+          "published:!=false",
+          "scope:=[locality]",
+          communityFilterBy,
+        ]),
+        sort_by: "counts.totalSpots:desc",
+        per_page: communityLimit,
+        page: 1,
+        include_fields: communityIncludeFields,
+        highlight_fields: "none",
+        ...communityGroupingParams,
+      },
+      ...(options.includeCountryCommunities
+        ? [
+            {
+              collection: this.TYPESENSE_COLLECTION_COMMUNITIES,
+              q: "*",
+              filter_by: SearchService._joinFilters([
+                "published:!=false",
+                "scope:=[country]",
+                communityFilterBy,
+              ]),
+              sort_by: "counts.totalSpots:desc",
+              per_page: countryCommunityLimit,
+              page: 1,
+              include_fields: communityIncludeFields,
+              highlight_fields: "none",
+            },
+          ]
+        : []),
+    ];
 
     const response = await this.client.multiSearch.perform(
       {
@@ -1333,34 +1441,7 @@ export class SearchService {
             include_fields: eventIncludeFields,
             highlight_fields: "none",
           },
-          {
-            collection: this.TYPESENSE_COLLECTION_COMMUNITIES,
-            q: "*",
-            filter_by: SearchService._joinFilters([
-              "published:!=false",
-              "scope:=[locality,country]",
-              communityFilterBy,
-            ]),
-            sort_by: "counts.totalSpots:desc",
-            per_page: communityLimit,
-            page: 1,
-            include_fields: [
-              "communityKey",
-              "scope",
-              "displayName",
-              "preferredSlug",
-              "canonicalPath",
-              "geography.countryCode",
-              "geography.countryName",
-              "geography.regionName",
-              "geography.localityName",
-              "counts.totalSpots",
-              "bounds_center",
-              "bounds_radius_m",
-              "google_maps_place_id",
-            ].join(","),
-            highlight_fields: "none",
-          },
+          ...communitySearches,
         ],
       } as any,
       {},
@@ -1372,6 +1453,7 @@ export class SearchService {
     const eventsResult = results[1] ?? {};
     const promoEventsResult = results[2] ?? {};
     const communitiesResult = results[3] ?? {};
+    const countryCommunitiesResult = results[4] ?? {};
     const eventCandidates = ((eventsResult.hits ?? []) as any[])
       .map((hit) => this.getEventFromHit(hit))
       .filter((event): event is PkEvent => !!event);
@@ -1384,9 +1466,10 @@ export class SearchService {
     const promoEvents = ((promoEventsResult.hits ?? []) as any[])
       .map((hit) => this.getEventFromHit(hit))
       .filter((event): event is PkEvent => !!event);
-    const communities = ((communitiesResult.hits ?? []) as any[]).map((hit) =>
-      this.getCommunityPreviewFromHit(hit),
-    );
+    const communities = [
+      ...SearchService._flattenTypesenseHits(communitiesResult),
+      ...SearchService._flattenTypesenseHits(countryCommunitiesResult),
+    ].map((hit) => this.getCommunityPreviewFromHit(hit));
 
     return {
       counts: {
@@ -1394,7 +1477,9 @@ export class SearchService {
         events: bbox.coversWorld
           ? SearchService._readFound(eventsResult)
           : events.length,
-        communities: SearchService._readFound(communitiesResult),
+        communities:
+          SearchService._readFound(communitiesResult) +
+          SearchService._readFound(countryCommunitiesResult),
       },
       events,
       promoEvents,

@@ -40,6 +40,13 @@
   margin-bottom: 14px;
 }
 
+.section-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .section-eyebrow {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -178,6 +185,10 @@
 
 .local-info-actions {
   margin-top: auto;
+}
+
+.local-info-empty {
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .community-directory-grid {
