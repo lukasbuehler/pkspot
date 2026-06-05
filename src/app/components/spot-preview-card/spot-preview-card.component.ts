@@ -26,6 +26,7 @@ import { NgOptimizedImage } from "@angular/common";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { getImportantAmenities } from "../../../db/models/Amenities";
 import { isoCountryCodeToFlagEmoji } from "../../../scripts/Helpers";
 import {
@@ -54,6 +55,7 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
+    MatProgressSpinnerModule,
   ],
 })
 export class SpotPreviewCardComponent
@@ -197,6 +199,7 @@ export class SpotPreviewCardComponent
     return mediaArr;
   });
   failedMediaSrcs = signal<string[]>([]);
+  private _loadedMediaSrcs = signal<string[]>([]);
   primaryMediaSrc = computed<string | null>(() => {
     const failed = new Set(this.failedMediaSrcs());
     const media = this.media();
@@ -206,6 +209,12 @@ export class SpotPreviewCardComponent
       }
     }
     return null;
+  });
+  isPrimaryMediaLoaded = computed(() => {
+    const primaryMediaSrc = this.primaryMediaSrc();
+    return primaryMediaSrc
+      ? this._loadedMediaSrcs().includes(primaryMediaSrc)
+      : false;
   });
   showNoMediaLabel = computed(
     () =>
@@ -316,6 +325,7 @@ export class SpotPreviewCardComponent
       if (currentCacheKey !== this._lastSpotCacheKey) {
         this._lastSpotCacheKey = currentCacheKey;
         this.failedMediaSrcs.set([]);
+        this._loadedMediaSrcs.set([]);
         this._hasLoadedMedia.set(false);
         this._streetViewPreviewSrc.set(null);
         this._knownNoStreetViewForSpot.set(false);
@@ -484,12 +494,15 @@ export class SpotPreviewCardComponent
   //   }
   // }
 
-  onImageError(event?: Event) {
+  onImageError(expectedSrc: string, event?: Event) {
     const target = event?.target as HTMLImageElement | null;
-    const failedSrc = target?.currentSrc || target?.src;
+    const failedSrc = target?.currentSrc || target?.src || expectedSrc;
     if (failedSrc) {
       this.failedMediaSrcs.update((current) =>
-        current.includes(failedSrc) ? current : [...current, failedSrc]
+        current.includes(expectedSrc) ? current : [...current, expectedSrc]
+      );
+      this._loadedMediaSrcs.update((current) =>
+        current.filter((src) => src !== expectedSrc)
       );
     }
 
@@ -498,14 +511,17 @@ export class SpotPreviewCardComponent
     }
   }
 
-  onImageLoad(event?: Event) {
+  onImageLoad(expectedSrc: string, event?: Event) {
     const target = event?.target as HTMLImageElement | null;
-    const loadedSrc = target?.currentSrc || target?.src;
+    const loadedSrc = target?.currentSrc || target?.src || expectedSrc;
     if (!loadedSrc) return;
 
     this._hasLoadedMedia.set(true);
+    this._loadedMediaSrcs.update((current) =>
+      current.includes(expectedSrc) ? current : [...current, expectedSrc]
+    );
     this.failedMediaSrcs.update((current) =>
-      current.filter((src) => src !== loadedSrc)
+      current.filter((src) => src !== expectedSrc)
     );
   }
 

@@ -126,24 +126,42 @@
     [class.isCompact]="isCompact"
   >
     @if(shouldLoadMedia() && primaryMediaSrc()) {
+    <app-media-placeholder
+      class="media-placeholder-layer"
+      [class.is-hidden]="isPrimaryMediaLoaded()"
+      [src]="fallbackImgSrc"
+      [showLabel]="false"
+    ></app-media-placeholder>
+    @if(!isPrimaryMediaLoaded()) {
+      <mat-progress-spinner
+        class="media-loading-spinner"
+        mode="indeterminate"
+        diameter="32"
+        strokeWidth="3"
+        aria-label="Loading spot media"
+        i18n-aria-label="@@spot-preview-card.media.loading"
+      ></mat-progress-spinner>
+    }
     @if(loadingPriority()) {
       <img
         [ngSrc]="primaryMediaSrc()!"
         fill
         priority
+        [class.is-loaded]="isPrimaryMediaLoaded()"
         [alt]="spotName || ''"
         [attr.referrerpolicy]="getReferrerPolicyForSrc(primaryMediaSrc())"
-        (error)="onImageError($event)"
-        (load)="onImageLoad($event)"
+        (error)="onImageError(primaryMediaSrc()!, $event)"
+        (load)="onImageLoad(primaryMediaSrc()!, $event)"
       />
     } @else {
       <img
         [ngSrc]="primaryMediaSrc()!"
         fill
+        [class.is-loaded]="isPrimaryMediaLoaded()"
         [alt]="spotName || ''"
         [attr.referrerpolicy]="getReferrerPolicyForSrc(primaryMediaSrc())"
-        (error)="onImageError($event)"
-        (load)="onImageLoad($event)"
+        (error)="onImageError(primaryMediaSrc()!, $event)"
+        (load)="onImageLoad(primaryMediaSrc()!, $event)"
       />
     }
     } @else {
