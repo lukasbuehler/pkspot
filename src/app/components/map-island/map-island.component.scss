@@ -129,13 +129,40 @@
 }
 
 .event-disclosure {
-  color: var(--mat-sys-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
   font-weight: 600;
-  // line-height: 1.1;
 }
 
-.event-island-live .event-disclosure {
+.event-sponsored-label {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  color: var(--mat-sys-tertiary);
+}
+
+.event-disclosure-separator {
+  flex: 0 0 auto;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.event-status-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--mat-sys-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-status-label[data-status="live"] {
   color: var(--mat-sys-secondary);
+}
+
+.event-status-label[data-status="past"] {
+  color: var(--mat-sys-error);
 }
 
 .island-actions {

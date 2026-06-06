@@ -36,6 +36,9 @@ import { MatDividerModule } from "@angular/material/divider";
     SpotListComponent,
     MatDividerModule,
   ],
+  host: {
+    "[style.--open-progress]": "openProgress()",
+  },
   templateUrl: "./map-object-panel.component.html",
   styleUrl: "./map-object-panel.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -86,6 +89,7 @@ export class MapObjectPanelComponent {
 
     return this.visibleSpotCount() > limit;
   });
+  titleCollapsed = computed(() => this.openProgress() < 0.1);
   hidePeekTitles = computed(() => this.openProgress() < 0.2);
   visibleSpotCount = computed(() => {
     const highlightedIds = new Set(

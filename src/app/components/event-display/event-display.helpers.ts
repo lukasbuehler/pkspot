@@ -11,6 +11,7 @@ import { MediaSchema } from "../../../db/schemas/Media";
 import { isFirstPartyStorageUrl } from "../../utils/first-party-media-url";
 
 export type EventStatus = "upcoming" | "live" | "past";
+export type EventStatusLabelContext = "default" | "compact" | "mapIsland";
 
 export function eventMediaFromSchema(media: MediaSchema): AnyMedia {
   if (media.isInStorage) {
@@ -129,10 +130,24 @@ export function relativeFromNow(target: Date, locale: string): string {
   return formatter.format(months, "month");
 }
 
+function capitalizeFirstLetter(value: string): string {
+  return value.length > 0
+    ? value.charAt(0).toLocaleUpperCase() + value.slice(1)
+    : value;
+}
+
+export function promotedEventLabel(context: "full" | "short" = "full"): string {
+  if (context === "short") {
+    return $localize`:@@events.sponsored.short:Promoted`;
+  }
+  return $localize`:@@event_card.sponsored:Promoted Event`;
+}
+
 export function eventStatusLabel(
   event: PkEvent,
   status: EventStatus,
   locale: string,
+  context: EventStatusLabelContext = "default",
 ): string {
   if (status === "past") {
     return $localize`:@@events.status.past:Past event`;
@@ -141,7 +156,19 @@ export function eventStatusLabel(
   const target = status === "live" ? event.end : event.start;
   const relative = relativeFromNow(target, locale);
   if (status === "live") {
+    if (context === "mapIsland") {
+      return $localize`:@@map_island.event_live:Live Event`;
+    }
     return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
   }
+
+  if (context === "compact") {
+    return capitalizeFirstLetter(relative);
+  }
+
+  if (context === "mapIsland") {
+    return $localize`:@@events.status.upcoming_event_relative:Event ${relative}`;
+  }
+
   return $localize`:@@events.status.upcoming_starts:Starts ${relative}`;
 }

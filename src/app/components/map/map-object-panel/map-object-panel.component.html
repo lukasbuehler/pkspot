@@ -1,6 +1,9 @@
 <!-- <mat-divider class="mx-3 mt-0 mb-3"></mat-divider> -->
 
-<div class="area-title" [class.area-title--hidden]="hidePeekTitles()">
+<div
+  class="area-title"
+  [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
+>
   <h4 class="mat-title-large m-0 px-3 pt-2 pb-3" i18n="@@map.contents_heading">
     In this area
   </h4>

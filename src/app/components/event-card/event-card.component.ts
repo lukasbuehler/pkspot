@@ -62,7 +62,7 @@ export class EventCardComponent {
     () => `/events/${encodeURIComponent(this.event().slug ?? this.event().id)}`,
   );
   readonly statusLabel = computed(() =>
-    eventStatusLabel(this.event(), this.status(), this._locale),
+    eventStatusLabel(this.event(), this.status(), this._locale, "compact"),
   );
   readonly bannerImageSrc = computed(() => {
     const bannerSrc = this.event().bannerSrc;

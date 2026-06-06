@@ -3549,6 +3549,12 @@
         <target>Anzeige</target>
       </segment>
     </unit>
+    <unit id="events.sponsored.short">
+      <segment state="initial">
+        <source>Promoted</source>
+        <target>Anzeige</target>
+      </segment>
+    </unit>
     <unit id="event_card.sponsored_tooltip">
       <segment state="initial">
         <source>Promoted event</source>
@@ -4121,6 +4127,12 @@
       <segment state="initial">
         <source>Starts <ph id="0" equiv="PH" disp="relative" /></source>
         <target>Starts <ph id="0" equiv="PH" disp="relative" /></target>
+      </segment>
+    </unit>
+    <unit id="events.status.upcoming_event_relative">
+      <segment state="initial">
+        <source>Event <ph id="0" equiv="PH" disp="relative" /></source>
+        <target>Event <ph id="0" equiv="PH" disp="relative" /></target>
       </segment>
     </unit>
     <unit id="events.title">

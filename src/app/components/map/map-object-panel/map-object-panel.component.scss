@@ -11,20 +11,18 @@
 }
 
 .area-title {
-  max-height: 48px;
-  opacity: 1;
+  opacity: var(--open-progress, 1);
+  max-height: calc(var(--open-progress, 1) * 64px);
   overflow: hidden;
-  transform: translateY(0);
   transition:
-    max-height 180ms ease,
-    opacity 160ms ease,
-    transform 180ms ease;
-}
+    opacity 0.2s ease-out,
+    max-height 0.2s ease-out;
 
-.area-title--hidden {
-  max-height: 0;
-  opacity: 0;
-  transform: translateY(-6px);
+  &[data-collapsed="true"] {
+    opacity: 0;
+    max-height: 0;
+    pointer-events: none;
+  }
 }
 
 .peek-title {

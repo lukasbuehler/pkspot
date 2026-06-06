@@ -60,30 +60,40 @@
         ></app-media-placeholder>
       }
     </div>
-    <mat-card-header>
-      <mat-card-title class="d-flex align-items-center gap-1">
-        <span class="text-truncate"> {{ event().name }}</span>
-        @if (event().isPromoted) {
-          <mat-icon
-            class="sponsored-line flex-shrink-0"
-            matTooltip="Promoted event"
-            i18n-matTooltip="@@event_card.sponsored_tooltip"
-            inline
-            >handshake</mat-icon
-          >
-        }
+    <mat-card-header class="pt-2">
+      <mat-card-title>
+        <span
+          class="mat-title-medium d-flex align-items-center gap-1"
+          style="font-size: 1.1rem"
+        >
+          <span class="text-truncate"> {{ event().name }}</span>
+          @if (event().isPromoted) {
+            <mat-icon
+              class="sponsored-line flex-shrink-0"
+              matTooltip="Promoted event"
+              i18n-matTooltip="@@event_card.sponsored_tooltip"
+              inline
+              >handshake</mat-icon
+            >
+          }
+        </span>
       </mat-card-title>
-      <mat-card-subtitle class="d-flex flex-wrap">
-        <span class="status-line text-truncate" [attr.data-status]="status()">{{
-          statusLabel()
-        }}</span>
+      <mat-card-subtitle class="d-flex flex-column">
+        <span
+          class="status-line text-truncate mat-body-medium"
+          [attr.data-status]="status()"
+          style="font-weight: 500"
+          >{{ statusLabel() }}</span
+        >
         @if (!event().published) {
           <span class="draft-line">
             <mat-icon inline>visibility_off</mat-icon>
             <span i18n="@@event_card.draft">Draft</span>
           </span>
         }
-        <span class="text-truncate">{{ dateRange() }}</span></mat-card-subtitle
+        <span class="text-truncate mat-body-medium">{{
+          dateRange()
+        }}</span></mat-card-subtitle
       >
     </mat-card-header>
     <mat-card-content>

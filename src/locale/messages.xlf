@@ -2056,6 +2056,11 @@
         <source>now</source>
       </segment>
     </unit>
+    <unit id="events.sponsored.short">
+      <segment>
+        <source>Promoted</source>
+      </segment>
+    </unit>
     <unit id="events.past_heading">
       <segment>
         <source> Past events </source>
@@ -2074,6 +2079,11 @@
     <unit id="events.status.upcoming_starts">
       <segment>
         <source>Starts <ph id="0" equiv="PH" disp="relative"/></source>
+      </segment>
+    </unit>
+    <unit id="events.status.upcoming_event_relative">
+      <segment>
+        <source>Event <ph id="0" equiv="PH" disp="relative"/></source>
       </segment>
     </unit>
     <unit id="events.title">

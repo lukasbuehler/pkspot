@@ -27,8 +27,17 @@
 
   <button type="button" class="island-text bg-transparent border-0 p-0 text-start flex-grow-1 overflow-hidden"
     (click)="onOpenEvent(); $event.stopPropagation()">
-    <div class="event-disclosure mat-label-small text-truncate">
-      {{ eventDisclosure() }}
+    <div class="event-disclosure mat-label-small">
+      @if (island.event.isSponsored) {
+      <span class="event-sponsored-label">
+        <mat-icon inline>handshake</mat-icon>
+        <span>{{ promotedEventLabel() }}</span>
+      </span>
+      <span class="event-disclosure-separator" aria-hidden="true">·</span>
+      }
+      <span class="event-status-label" [attr.data-status]="eventStatus()">
+        {{ eventDisclosure() }}
+      </span>
     </div>
     <div class="island-primary-text mat-title-small text-truncate">
       {{ island.event.name }}

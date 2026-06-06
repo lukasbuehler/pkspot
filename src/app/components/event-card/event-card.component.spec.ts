@@ -125,7 +125,7 @@ describe("EventCardComponent", () => {
     fixture.detectChanges();
 
     const status = fixture.debugElement.query(By.css(".status-line"));
-    expect(status.nativeElement.textContent).toContain("in 3 weeks");
+    expect(status.nativeElement.textContent).toContain("In 3 weeks");
   });
 
   it("uses semantic status colors for live and upcoming cards", () => {
@@ -276,6 +276,6 @@ describe("EventCardComponent localization", () => {
     fixture.detectChanges();
 
     const status = fixture.debugElement.query(By.css(".status-line"));
-    expect(status.nativeElement.textContent).toContain("in 3 Wochen");
+    expect(status.nativeElement.textContent).toContain("In 3 Wochen");
   });
 });

@@ -1,15 +1,22 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  LOCALE_ID,
   computed,
   input,
+  inject,
   output,
 } from "@angular/core";
 import { animate, style, transition, trigger } from "@angular/animations";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import { LocaleCode } from "../../../db/models/Interfaces";
+import {
+  eventImageDisplaySrc,
+  eventStatusLabel,
+  promotedEventLabel,
+} from "../event-display/event-display.helpers";
 
 /**
  * Shape needed by the island chip and its open/dismiss handlers. The
@@ -72,6 +79,8 @@ export type MapIslandContent =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapIslandComponent {
+  private readonly _locale = inject<LocaleCode>(LOCALE_ID);
+
   /** Active content. When null, the island renders nothing. */
   content = input<MapIslandContent | null>(null);
 
@@ -92,15 +101,11 @@ export class MapIslandComponent {
     const c = this.content();
     if (c?.kind !== "event") return "";
     const status = this.eventStatus();
-    if (status === "live") {
-      return c.event.isSponsored
-        ? $localize`:@@map_island.event_sponsored_live:Promoted Live Event`
-        : $localize`:@@map_island.event_live:Live Event`;
-    }
-    return c.event.isSponsored
-      ? $localize`:@@map_island.event_sponsored_upcoming:Promoted Upcoming Event`
-      : $localize`:@@map_island.event_upcoming:Upcoming Event`;
+    if (!status) return "";
+    return eventStatusLabel(c.event, status, this._locale, "mapIsland");
   });
+
+  readonly promotedEventLabel = computed(() => promotedEventLabel("short"));
 
   eventLogoSrc(event: PkEvent): string | undefined {
     return eventImageDisplaySrc(event.effectiveBadgeLogoSrc());
