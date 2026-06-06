@@ -46,6 +46,7 @@ export class EventCardComponent {
   event = input.required<PkEvent>();
   seriesById = input<Record<string, SeriesDocument>>({});
   selectMode = input(false);
+  showVenue = input(true);
   select = output<PkEvent>();
 
   readonly status = computed<EventStatus>(() => this.event().status());
@@ -83,7 +84,12 @@ export class EventCardComponent {
   );
 
   onSelectClick(event: MouseEvent): void {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey
+    ) {
       return;
     }
 

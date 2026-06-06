@@ -62,8 +62,8 @@
     </div>
     <mat-card-header>
       <mat-card-title class="d-flex align-items-center gap-1">
-        <span> {{ event().name }}</span>
-        @if (event().isSponsored) {
+        <span class="text-truncate"> {{ event().name }}</span>
+        @if (event().isPromoted) {
           <mat-icon
             class="sponsored-line flex-shrink-0"
             matTooltip="Promoted event"
@@ -73,8 +73,8 @@
           >
         }
       </mat-card-title>
-      <mat-card-subtitle>
-        <span class="status-line" [attr.data-status]="status()">{{
+      <mat-card-subtitle class="d-flex flex-wrap">
+        <span class="status-line text-truncate" [attr.data-status]="status()">{{
           statusLabel()
         }}</span>
         @if (!event().published) {
@@ -83,13 +83,15 @@
             <span i18n="@@event_card.draft">Draft</span>
           </span>
         }
-        ({{ dateRange() }})</mat-card-subtitle
+        <span class="text-truncate">{{ dateRange() }}</span></mat-card-subtitle
       >
     </mat-card-header>
     <mat-card-content>
-      <p class="mat-body-medium mb-0">
-        {{ event().venueString }}, {{ event().localityString }}
-      </p>
+      @if (showVenue()) {
+        <p class="mat-body-medium mb-0">
+          {{ event().venueString }}, {{ event().localityString }}
+        </p>
+      }
       @if (status() === "upcoming" && event().rsvpCounts.total > 0) {
         <app-event-rsvp
           class="event-card-rsvp"

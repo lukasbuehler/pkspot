@@ -50,7 +50,7 @@
   height: 32px;
   background: var(--map-glass-surface);
   color: var(--mat-sys-on-surface);
-  border: 0;
+  border: 1px solid var(--mat-chip-outline-color, var(--mat-sys-outline));
   backdrop-filter: var(--map-glass-blur);
   -webkit-backdrop-filter: var(--map-glass-blur);
 
@@ -60,6 +60,20 @@
 
   &.right {
     right: 0;
+  }
+}
+
+.solid-appearance {
+  .chips-scroll-area {
+    border-radius: 8px;
+  }
+
+  .scroll-button {
+    background: var(--mat-sys-surface-container-high);
+    border-color: var(--mat-chip-outline-color, var(--mat-sys-outline));
+    border-radius: 8px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
@@ -76,6 +90,10 @@ mat-chip {
   border-radius: 20px;
   overflow: hidden;
   flex-shrink: 0;
+}
+
+.solid-chip {
+  border-radius: 8px;
 }
 
 // Filters chip - standalone mat-chip for opening the filter dialog
@@ -139,4 +157,38 @@ mat-chip {
     border: none !important;
   }
 
+  .solid-chip .mdc-evolution-chip__action--primary,
+  .solid-chip .mdc-evolution-chip__action--secondary {
+    --mdc-chip-elevated-container-color: var(
+      --mat-sys-surface-container-high
+    );
+    --mat-chip-elevated-container-color: var(
+      --mat-sys-surface-container-high
+    );
+    --mdc-chip-outline-color: var(--mat-sys-outline-variant);
+
+    background: var(--mat-sys-surface-container-high) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .solid-chip.mat-mdc-standard-chip {
+    --mdc-chip-elevated-container-color: var(
+      --mat-sys-surface-container-high
+    );
+    --mat-chip-elevated-container-color: var(
+      --mat-sys-surface-container-high
+    );
+    --mdc-chip-outline-color: var(--mat-sys-outline-variant);
+    background: var(--mat-sys-surface-container-high) !important;
+  }
+
+  .solid-chip.mat-mdc-chip-selected .mdc-evolution-chip__action--primary {
+    background: var(--mat-sys-secondary-container) !important;
+  }
+
+  .solid-chip.mat-mdc-chip-selected .mdc-evolution-chip__text-label,
+  .solid-chip.mat-mdc-chip-selected .mat-icon {
+    color: var(--mat-sys-on-secondary-container) !important;
+  }
 }

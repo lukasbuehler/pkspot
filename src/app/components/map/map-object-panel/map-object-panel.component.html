@@ -1,12 +1,22 @@
+<!-- <mat-divider class="mx-3 mt-0 mb-3"></mat-divider> -->
+
+<div class="area-title" [class.area-title--hidden]="hidePeekTitles()">
+  <h4 class="mat-title-large m-0 px-3 pt-2 pb-3" i18n="@@map.contents_heading">
+    In this area
+  </h4>
+</div>
+
 <app-filter-chips-bar
-  class="d-block pb-2 px-3"
+  class="d-block pb-3 px-3"
   [selectedFilter]="mode()"
   [presetFilters]="objectTypeFilterChips()"
   [showFiltersChip]="false"
   [showClearChip]="false"
   [allowDeselect]="false"
   [ariaLabel]="objectTypeLabel"
+  appearance="solid"
   (filterChange)="onModeFilterChange($event)"
+  style="margin-top: -4px"
 ></app-filter-chips-bar>
 
 @switch (mode()) {
@@ -29,12 +39,9 @@
     @if (mode() === "all") {
       @if (allModeEvents().length > 0) {
         <section class="object-panel-section px-3">
-          <div
-            class="peek-title"
-            [class.peek-title--hidden]="hidePeekTitles()"
-          >
+          <div class="peek-title" [class.peek-title--hidden]="hidePeekTitles()">
             <h2 class="mat-title-medium m-0" i18n="@@map.all_events_heading">
-              Events nearby
+              Events
             </h2>
           </div>
           <app-map-event-list
@@ -45,12 +52,9 @@
         </section>
       }
       <section class="object-panel-section px-3">
-        <div
-          class="peek-title"
-          [class.peek-title--hidden]="hidePeekTitles()"
-        >
+        <div class="peek-title" [class.peek-title--hidden]="hidePeekTitles()">
           <h2 class="mat-title-medium m-0" i18n="@@map.all_spots_heading">
-            Spots in this area
+            Spots
           </h2>
         </div>
         <app-spot-list
@@ -82,7 +86,7 @@
             class="mat-title-medium mb-2"
             i18n="@@map.all_communities_heading"
           >
-            Communities nearby
+            Communities
           </h2>
           <app-map-community-list
             [communities]="allModeCommunities()"

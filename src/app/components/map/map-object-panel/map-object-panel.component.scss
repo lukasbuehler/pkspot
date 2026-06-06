@@ -10,6 +10,23 @@
   color: var(--mat-sys-on-surface);
 }
 
+.area-title {
+  max-height: 48px;
+  opacity: 1;
+  overflow: hidden;
+  transform: translateY(0);
+  transition:
+    max-height 180ms ease,
+    opacity 160ms ease,
+    transform 180ms ease;
+}
+
+.area-title--hidden {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
 .peek-title {
   max-height: 32px;
   margin-bottom: 0.5rem;

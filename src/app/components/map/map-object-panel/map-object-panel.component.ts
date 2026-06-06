@@ -22,6 +22,7 @@ import { SpotListComponent } from "../../spot-list/spot-list.component";
 import { MapCommunityListComponent } from "../map-community-list/map-community-list.component";
 import { MapEventListComponent } from "../map-event-list/map-event-list.component";
 import { MapObjectMode } from "../map-object-mode.model";
+import { MatDividerModule } from "@angular/material/divider";
 
 @Component({
   selector: "app-map-object-panel",
@@ -33,6 +34,7 @@ import { MapObjectMode } from "../map-object-mode.model";
     MatIconModule,
     RouterLink,
     SpotListComponent,
+    MatDividerModule,
   ],
   templateUrl: "./map-object-panel.component.html",
   styleUrl: "./map-object-panel.component.scss",

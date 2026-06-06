@@ -30,6 +30,8 @@ export interface PresetFilterChip {
   icon?: string;
 }
 
+export type FilterChipsBarAppearance = "glass" | "solid";
+
 /**
  * Horizontally scrollable filter chips bar with preset filters
  * and a "Filters" button for custom filtering.
@@ -68,6 +70,9 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
 
   /** Optional aria label override for non-spot filter bars. */
   ariaLabel = input<string | null>(null);
+
+  /** Visual treatment for the chips. */
+  appearance = input<FilterChipsBarAppearance>("glass");
 
   /** Emits when a preset filter is selected/deselected */
   filterChange = output<string>();
@@ -151,6 +156,7 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
         this.showFiltersChip(),
         this.showClearChip(),
         this.customFilterActive(),
+        this.appearance(),
       ].join(";");
 
       if (layoutKey) {

@@ -1518,6 +1518,8 @@ export class SearchService {
     crossesAntimeridian: boolean;
     coversWorld: boolean;
   } {
+    const north = bounds.getNorthEast().lat();
+    const south = bounds.getSouthWest().lat();
     const rawEast = bounds.getNorthEast().lng();
     const rawWest = bounds.getSouthWest().lng();
     const east = SearchService._normalizeLongitude(rawEast);
@@ -1525,14 +1527,17 @@ export class SearchService {
     const crossesAntimeridian = west > east;
     const longitudeSpan = crossesAntimeridian ? east + 360 - west : east - west;
     const rawLongitudeSpan = Math.abs(rawEast - rawWest);
+    const wrapsFullWorld =
+      Math.abs(rawEast - rawWest) < 1e-9 && Math.abs(north - south) > 1e-9;
 
     return {
-      north: bounds.getNorthEast().lat(),
-      south: bounds.getSouthWest().lat(),
+      north,
+      south,
       east,
       west,
       crossesAntimeridian,
-      coversWorld: rawLongitudeSpan >= 340 || longitudeSpan >= 340,
+      coversWorld:
+        wrapsFullWorld || rawLongitudeSpan >= 340 || longitudeSpan >= 340,
     };
   }
 
@@ -1567,15 +1572,58 @@ export class SearchService {
       return undefined;
     }
 
-    const west = bbox.crossesAntimeridian ? bbox.west - 360 : bbox.west;
+    const intervals = SearchService._viewportLongitudeIntervals(bbox);
+    const filters = intervals.map(([west, east]) =>
+      SearchService._geoRectangleFilter(
+        field,
+        bbox.north,
+        bbox.south,
+        west,
+        east,
+      ),
+    );
+
+    return filters.length === 1 ? filters[0] : `(${filters.join(" || ")})`;
+  }
+
+  private static _viewportLongitudeIntervals(bbox: {
+    east: number;
+    west: number;
+    crossesAntimeridian: boolean;
+  }): Array<[number, number]> {
+    if (bbox.crossesAntimeridian) {
+      return [
+        [bbox.west, 180],
+        [-180, bbox.east],
+      ];
+    }
+
+    const longitudeSpan = bbox.east - bbox.west;
+    if (longitudeSpan > 180 && bbox.west < 0 && bbox.east > 0) {
+      return [
+        [bbox.west, 0],
+        [0, bbox.east],
+      ];
+    }
+
+    return [[bbox.west, bbox.east]];
+  }
+
+  private static _geoRectangleFilter(
+    field: string,
+    north: number,
+    south: number,
+    west: number,
+    east: number,
+  ): string {
     const latLongPairList = [
-      bbox.north,
-      bbox.east,
-      bbox.south,
-      bbox.east,
-      bbox.south,
+      north,
+      east,
+      south,
+      east,
+      south,
       west,
-      bbox.north,
+      north,
       west,
     ].map((num) => (Math.round(num * 1000) / 1000).toString());
 

@@ -113,10 +113,7 @@ mat-drawer-container.compact-sidenav.sidenav-open .sidenav-toggle {
 
 .sidenav-toggle__button {
   background-color: var(--mat-bottom-sheet-container-background-color);
-  border-color: var(
-    --mat-icon-button-icon-color,
-    var(--mat-sys-on-surface-variant)
-  );
+  border-color: var(--mat-chip-outline-color, var(--mat-sys-outline));
   border-width: 0.8px;
 }
 

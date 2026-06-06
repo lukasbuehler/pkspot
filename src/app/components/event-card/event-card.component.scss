@@ -25,6 +25,10 @@
   transform: translateY(-2px);
 }
 
+::ng-deep .mat-mdc-card-header-text {
+  width: 100%;
+}
+
 .image-wrap {
   position: relative;
   height: 200px;
