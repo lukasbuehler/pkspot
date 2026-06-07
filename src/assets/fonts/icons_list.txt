@@ -98,6 +98,8 @@ sports_gymnastics
 castle
 child_care
 school
+forum
+health_and_safety
 park
 location_city
 nature
@@ -181,6 +183,7 @@ camping
 cancel
 trophy
 celebration
+person_celebrate
 sell
 theater_comedy
 workspace_premium

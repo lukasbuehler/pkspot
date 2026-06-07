@@ -10,7 +10,8 @@ import {
 import { MatButtonModule } from "@angular/material/button";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
-import { RouterLink } from "@angular/router";
+import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventCategory, EventId } from "../../../db/schemas/EventSchema";
 import { EventsService } from "../../services/firebase/firestore/events.service";
@@ -40,6 +41,8 @@ export class EventsPageComponent implements OnInit {
   private _eventsService = inject(EventsService);
   private _authService = inject(AuthenticationService);
   private _seriesService = inject(SeriesService);
+  private _route = inject(ActivatedRoute, { optional: true });
+  private _router = inject(Router, { optional: true });
 
   /** Shows the "+ Create event" button only to admins. */
   readonly isAdmin = computed(() => this._authService.isAdmin());
@@ -125,6 +128,10 @@ export class EventsPageComponent implements OnInit {
   }
 
   constructor() {
+    this._route?.queryParamMap
+      .pipe(takeUntilDestroyed())
+      .subscribe((params) => this._syncFiltersFromQueryParams(params));
+
     effect(() => {
       const includeUnpublished = this.isAdmin();
       if (this._lastIncludeUnpublished === null) return;
@@ -171,6 +178,7 @@ export class EventsPageComponent implements OnInit {
         ? selected.filter((id) => id !== seriesId)
         : [...selected, seriesId],
     );
+    void this._updateFilterQueryParams();
   }
 
   isSeriesSelected(seriesId: string): boolean {
@@ -179,6 +187,7 @@ export class EventsPageComponent implements OnInit {
 
   clearSeriesFilters(): void {
     this.selectedSeriesIds.set([]);
+    void this._updateFilterQueryParams();
   }
 
   toggleCategoryFilter(category: EventCategory): void {
@@ -187,6 +196,7 @@ export class EventsPageComponent implements OnInit {
         ? selected.filter((item) => item !== category)
         : [...selected, category],
     );
+    void this._updateFilterQueryParams();
   }
 
   isCategorySelected(category: EventCategory): boolean {
@@ -195,6 +205,7 @@ export class EventsPageComponent implements OnInit {
 
   clearCategoryFilters(): void {
     this.selectedCategories.set([]);
+    void this._updateFilterQueryParams();
   }
 
   categoryLabel(category: EventCategory): string {
@@ -248,6 +259,49 @@ export class EventsPageComponent implements OnInit {
       .join(" ");
   }
 
+  private _syncFiltersFromQueryParams(params: ParamMap): void {
+    const categoryValues = this._parseQueryParamList(params, CATEGORY_QUERY_PARAM)
+      .filter(isEventCategoryFilter);
+    const seriesValues = this._parseQueryParamList(params, SERIES_QUERY_PARAM);
+
+    if (!areStringListsEqual(this.selectedCategories(), categoryValues)) {
+      this.selectedCategories.set(categoryValues);
+    }
+    if (!areStringListsEqual(this.selectedSeriesIds(), seriesValues)) {
+      this.selectedSeriesIds.set(seriesValues);
+    }
+  }
+
+  private async _updateFilterQueryParams(): Promise<void> {
+    if (!this._router || !this._route) return;
+
+    await this._router.navigate([], {
+      relativeTo: this._route,
+      queryParams: {
+        [CATEGORY_QUERY_PARAM]: this._serializeQueryParamList(
+          this.selectedCategories(),
+        ),
+        [SERIES_QUERY_PARAM]: this._serializeQueryParamList(
+          this.selectedSeriesIds(),
+        ),
+      },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
+  }
+
+  private _parseQueryParamList(params: ParamMap, key: string): string[] {
+    const values = params
+      .getAll(key)
+      .flatMap((value) => value.split(","))
+      .map((value) => value.trim())
+      .filter(Boolean);
+    return [...new Set(values)];
+  }
+
+  private _serializeQueryParamList(values: readonly string[]): string | null {
+    return values.length > 0 ? values.join(",") : null;
+  }
 }
 
 const EVENT_CATEGORY_FILTERS = [
@@ -259,3 +313,20 @@ const EVENT_CATEGORY_FILTERS = [
 const EVENT_CATEGORY_FILTER_SET: ReadonlySet<EventCategory> = new Set(
   EVENT_CATEGORY_FILTERS,
 );
+
+const CATEGORY_QUERY_PARAM = "category";
+const SERIES_QUERY_PARAM = "series";
+
+function isEventCategoryFilter(value: string): value is EventCategory {
+  return EVENT_CATEGORY_FILTER_SET.has(value as EventCategory);
+}
+
+function areStringListsEqual(
+  left: readonly string[],
+  right: readonly string[],
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((item, index) => item === right[index])
+  );
+}

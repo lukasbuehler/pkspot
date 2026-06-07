@@ -31,7 +31,10 @@ import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { countries } from "../../../scripts/Countries";
 import { buildSpotCanonicalPath } from "../../../scripts/SpotRouteHelpers";
-import { communityLocalizedText } from "../../../scripts/CommunityInfoCardHelpers";
+import {
+  communityInfoCardCategoryIcon,
+  communityLocalizedText,
+} from "../../../scripts/CommunityInfoCardHelpers";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityKnowledgeEditorComponent } from "../community-knowledge-editor/community-knowledge-editor.component";
 
@@ -376,7 +379,7 @@ export class CommunityLandingPageComponent {
           id: card.id || `${index}-${title}`,
           title,
           body: communityLocalizedText(card.body, this._locale) || null,
-          icon: card.icon?.trim() || this._communityInfoCardIcon(card),
+          icon: communityInfoCardCategoryIcon(card.category),
           disclosure: this._communityInfoDisclosure(card),
           cta: this._communityInfoCardCta(card),
           priority: card.priority ?? index,
@@ -387,25 +390,6 @@ export class CommunityLandingPageComponent {
         (left, right) =>
           left.priority - right.priority || left.id.localeCompare(right.id),
       );
-  }
-
-  private _communityInfoCardIcon(card: CommunityInfoCardSchema): string {
-    switch (card.category) {
-      case "jams":
-        return "calendar_month";
-      case "chat":
-        return "groups";
-      case "classes":
-        return "school";
-      case "spots":
-        return "place";
-      case "events":
-        return "event";
-      case "safety":
-        return "info";
-      default:
-        return card.cta?.target === "url" ? "link" : "info";
-    }
   }
 
   private _communityInfoDisclosure(

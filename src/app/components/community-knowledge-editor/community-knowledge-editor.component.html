@@ -52,15 +52,13 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Icon</mat-label>
-              <input matInput formControlName="icon" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
               <mat-label>Category</mat-label>
               <mat-select formControlName="category">
                 @for (category of categories; track category) {
-                  <mat-option [value]="category">{{ category }}</mat-option>
+                  <mat-option [value]="category">
+                    <mat-icon>{{ categoryIcon(category) }}</mat-icon>
+                    <span>{{ category }}</span>
+                  </mat-option>
                 }
               </mat-select>
             </mat-form-field>

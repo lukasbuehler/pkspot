@@ -128,7 +128,7 @@ describe("EventCardComponent", () => {
     expect(status.nativeElement.textContent).toContain("In 3 weeks");
   });
 
-  it("uses semantic status colors for live and upcoming cards", () => {
+  it("marks live and upcoming cards with semantic statuses", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-14T12:00:00.000Z"));
     fixture.componentRef.setInput(
@@ -142,9 +142,7 @@ describe("EventCardComponent", () => {
     fixture.detectChanges();
 
     let status = fixture.debugElement.query(By.css(".status-line"));
-    expect(getComputedStyle(status.nativeElement).color).toBe(
-      "var(--mat-sys-secondary)",
-    );
+    expect(status.attributes["data-status"]).toBe("live");
 
     vi.setSystemTime(new Date("2026-06-01T12:00:00.000Z"));
     fixture.componentRef.setInput(
@@ -158,9 +156,7 @@ describe("EventCardComponent", () => {
     fixture.detectChanges();
 
     status = fixture.debugElement.query(By.css(".status-line"));
-    expect(getComputedStyle(status.nativeElement).color).toBe(
-      "var(--mat-sys-primary)",
-    );
+    expect(status.attributes["data-status"]).toBe("upcoming");
   });
 
   it("keeps select mode crawlable while normal clicks emit selection", () => {

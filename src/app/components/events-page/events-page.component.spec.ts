@@ -1,5 +1,7 @@
 import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
+import { BehaviorSubject } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
@@ -165,5 +167,106 @@ describe("EventsPageComponent", () => {
         logoBackground: "#ffffff",
       },
     ]);
+  });
+
+  it("restores selected filters from URL query params", () => {
+    const queryParamMap = new BehaviorSubject(
+      convertToParamMap({
+        category: "jam,competition,unknown",
+        series: "parkour-earth, swissjam",
+      }),
+    );
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: { getEvents: vi.fn() } },
+        {
+          provide: SeriesService,
+          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
+        },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: { queryParamMap: queryParamMap.asObservable() },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventsPageComponent(),
+    );
+
+    expect(component.selectedCategories()).toEqual(["jam", "competition"]);
+    expect(component.selectedSeriesIds()).toEqual([
+      "parkour-earth",
+      "swissjam",
+    ]);
+
+    queryParamMap.next(convertToParamMap({ category: "camp" }));
+
+    expect(component.selectedCategories()).toEqual(["camp"]);
+    expect(component.selectedSeriesIds()).toEqual([]);
+  });
+
+  it("updates URL query params when filters change", () => {
+    const route = {
+      queryParamMap: new BehaviorSubject(convertToParamMap({})).asObservable(),
+    };
+    const router = { navigate: vi.fn().mockResolvedValue(true) };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: { getEvents: vi.fn() } },
+        {
+          provide: SeriesService,
+          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
+        },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        { provide: ActivatedRoute, useValue: route },
+        { provide: Router, useValue: router },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventsPageComponent(),
+    );
+
+    component.toggleCategoryFilter("competition");
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { category: "competition", series: null },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
+
+    component.toggleSeriesFilter("parkour-earth");
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: {
+        category: "competition",
+        series: "parkour-earth",
+      },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
+
+    component.clearCategoryFilters();
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { category: null, series: "parkour-earth" },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
   });
 });

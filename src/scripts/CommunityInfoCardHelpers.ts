@@ -1,6 +1,31 @@
 import type { LocaleMap } from "../db/models/Interfaces";
-import type { CommunityLocalizedTextSchema } from "../db/schemas/CommunityPageSchema";
+import type {
+  CommunityInfoCardCategory,
+  CommunityLocalizedTextSchema,
+} from "../db/schemas/CommunityPageSchema";
 import { getBestLocale, makeLocaleMapFromObject } from "./LanguageHelpers";
+
+export function communityInfoCardCategoryIcon(
+  category: CommunityInfoCardCategory | null | undefined,
+): string {
+  switch (category) {
+    case "jams":
+      return "person_celebrate";
+    case "chat":
+      return "forum";
+    case "classes":
+      return "school";
+    case "spots":
+      return "place";
+    case "events":
+      return "person_celebrate";
+    case "safety":
+      return "health_and_safety";
+    case "other":
+    default:
+      return "info";
+  }
+}
 
 export function communityLocalizedText(
   value: CommunityLocalizedTextSchema | null | undefined,

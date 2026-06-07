@@ -29,6 +29,7 @@ import type {
   CommunityInfoCardSchema,
   CommunityLocalizedTextSchema,
 } from "../../../db/schemas/CommunityPageSchema";
+import { communityInfoCardCategoryIcon } from "../../../scripts/CommunityInfoCardHelpers";
 import { makeLocaleMapFromObject } from "../../../scripts/LanguageHelpers";
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 
@@ -39,7 +40,6 @@ type CommunityInfoCardCtaTarget = CommunityInfoCardCta["target"] | "none";
 
 interface CommunityKnowledgeCardControls {
   id: FormControl<string>;
-  icon: FormControl<string>;
   category: FormControl<CommunityInfoCardCategory>;
   visibility: FormControl<CommunityInfoCardVisibility>;
   commercialDisclosure: FormControl<CommunityInfoCardDisclosure>;
@@ -132,6 +132,10 @@ export class CommunityKnowledgeEditorComponent {
     return card.controls.ctaTarget.value;
   }
 
+  categoryIcon(category: CommunityInfoCardCategory): string {
+    return communityInfoCardCategoryIcon(category);
+  }
+
   addCard(): void {
     this.form.controls.cards.push(
       this._createCardForm({
@@ -217,7 +221,6 @@ export class CommunityKnowledgeEditorComponent {
     const cta = card.cta;
     return new FormGroup({
       id: new FormControl(card.id, { nonNullable: true }),
-      icon: new FormControl(card.icon ?? "", { nonNullable: true }),
       category: new FormControl(card.category ?? "other", { nonNullable: true }),
       visibility: new FormControl(card.visibility ?? "public", {
         nonNullable: true,
@@ -261,9 +264,6 @@ export class CommunityKnowledgeEditorComponent {
       id: group.controls.id.value.trim() || `knowledge-${index + 1}`,
       title,
       ...(Object.keys(body).length > 0 ? { body } : {}),
-      ...(group.controls.icon.value.trim()
-        ? { icon: group.controls.icon.value.trim() }
-        : {}),
       category: group.controls.category.value,
       ...(cta ? { cta } : {}),
       commercialDisclosure: group.controls.commercialDisclosure.value,

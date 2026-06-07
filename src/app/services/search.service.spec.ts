@@ -13,16 +13,18 @@ const typesenseMultiSearchMock = vi.hoisted(() => vi.fn());
 
 // Mock the Typesense SearchClient
 vi.mock("typesense", () => ({
-  SearchClient: vi.fn().mockImplementation(() => ({
-    multiSearch: {
-      perform: typesenseMultiSearchMock,
-    },
-    collections: vi.fn().mockReturnValue({
-      documents: vi.fn().mockReturnValue({
-        search: typesenseSearchMock,
+  SearchClient: function SearchClient() {
+    return {
+      multiSearch: {
+        perform: typesenseMultiSearchMock,
+      },
+      collections: vi.fn().mockReturnValue({
+        documents: vi.fn().mockReturnValue({
+          search: typesenseSearchMock,
+        }),
       }),
-    }),
-  })),
+    };
+  },
 }));
 
 // Mock environment
