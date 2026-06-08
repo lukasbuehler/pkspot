@@ -21,8 +21,8 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import {
   ModerationReportItem,
   ModerationReportsService,
-  ModerationReportStatus,
 } from "../../services/firebase/firestore/moderation-reports.service";
+import { ModerationActionType } from "../../../db/schemas/ModerationActionSchema";
 
 type ReportFilter = "open" | "spot" | "media" | "resolved" | "dismissed" | "all";
 
@@ -110,46 +110,45 @@ export class ModerationReportsPageComponent implements OnDestroy {
     }
   }
 
-  async resolve(
+  async handle(
     report: ModerationReportItem,
-    status: Exclude<ModerationReportStatus, "open">,
+    actionType: Extract<
+      ModerationActionType,
+      "close_report" | "keep_warning" | "delete_media" | "delete_spot"
+    >,
   ): Promise<void> {
     if (this.actionPath()) {
       return;
     }
 
-    this.actionPath.set(report.path);
-    try {
-      await this._reportsService.resolveReport(report, status);
-      await this.reload();
-      this._snackbar.open($localize`Report updated`, undefined, {
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Failed to update report", error);
-      this._snackbar.open($localize`Failed to update report`, undefined, {
-        duration: 4000,
-      });
-    } finally {
-      this.actionPath.set(null);
+    if (
+      actionType === "delete_spot" &&
+      !globalThis.confirm(
+        $localize`Delete this spot and all of its nested data? This action is permanent and will be recorded in moderation provenance.`,
+      )
+    ) {
+      return;
     }
-  }
 
-  async delete(report: ModerationReportItem): Promise<void> {
-    if (this.actionPath()) {
+    if (
+      actionType === "delete_media" &&
+      !globalThis.confirm(
+        $localize`Delete this media item from its spot or event? This action is permanent and will be recorded in moderation provenance.`,
+      )
+    ) {
       return;
     }
 
     this.actionPath.set(report.path);
     try {
-      await this._reportsService.deleteReport(report);
+      await this._reportsService.handleReport(report, actionType);
       await this.reload();
-      this._snackbar.open($localize`Report deleted`, undefined, {
+      this._snackbar.open($localize`Moderation action recorded`, undefined, {
         duration: 3000,
       });
     } catch (error) {
-      console.error("Failed to delete report", error);
-      this._snackbar.open($localize`Failed to delete report`, undefined, {
+      console.error("Failed to handle report", error);
+      this._snackbar.open($localize`Failed to handle report`, undefined, {
         duration: 4000,
       });
     } finally {

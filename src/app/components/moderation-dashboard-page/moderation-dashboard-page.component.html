@@ -165,6 +165,35 @@
                     </a>
                   }
                 </mat-card-content>
+                <mat-card-actions align="end">
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    [disabled]="actionPath() === message.path"
+                    matTooltip="Record this message in provenance and remove it from the active inbox."
+                    i18n-matTooltip="
+                      @@moderation.dashboard.archive_contact_tooltip"
+                    (click)="handleContactMessage(message, 'archive_contact_message')"
+                  >
+                    <mat-icon>done</mat-icon>
+                    <span i18n>Archive</span>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="queue-card__delete"
+                    [disabled]="actionPath() === message.path"
+                    aria-label="Delete contact message"
+                    i18n-aria-label="
+                      @@moderation.dashboard.delete_contact_aria"
+                    matTooltip="Remove this contact message from the active inbox after recording provenance."
+                    i18n-matTooltip="
+                      @@moderation.dashboard.delete_contact_tooltip"
+                    (click)="handleContactMessage(message, 'delete_contact_message')"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-card-actions>
               </mat-card>
             }
           </div>

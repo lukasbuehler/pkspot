@@ -214,6 +214,82 @@ service cloud.firestore {
         ));
     }
 
+    function validModerationReportUser(userRef) {
+      return userRef is map
+        && (
+          ('uid' in userRef
+            && userRef.uid is string
+            && userRef.uid.size() > 0
+            && userRef.uid.size() <= 128)
+          || ('email' in userRef
+            && userRef.email is string
+            && userRef.email.size() > 0
+            && userRef.email.size() <= 240)
+        )
+        && (!('display_name' in userRef) || (
+          userRef.display_name is string
+          && userRef.display_name.size() <= 120
+        ));
+    }
+
+    function validSpotReport(spotId) {
+      return request.auth.uid != null
+        && request.resource.data.keys().hasAll([
+          'spot',
+          'reason',
+          'user',
+          'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'spot',
+          'reason',
+          'duplicateOf',
+          'user',
+          'createdAt'
+        ])
+        && request.resource.data.spot is map
+        && request.resource.data.spot.id == spotId
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() >= 1
+        && request.resource.data.reason.size() <= 120
+        && validModerationReportUser(request.resource.data.user)
+        && request.resource.data.user.uid == request.auth.uid
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function validMediaReport() {
+      return request.resource.data.keys().hasAll([
+          'media',
+          'reason',
+          'comment',
+          'user',
+          'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'media',
+          'spotId',
+          'context',
+          'targetId',
+          'reason',
+          'comment',
+          'user',
+          'createdAt',
+          'locale'
+        ])
+        && request.resource.data.media is map
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() >= 1
+        && request.resource.data.reason.size() <= 120
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() <= 2000
+        && validModerationReportUser(request.resource.data.user)
+        && request.resource.data.createdAt is timestamp
+        && (!('spotId' in request.resource.data) || request.resource.data.spotId is string)
+        && (!('targetId' in request.resource.data) || request.resource.data.targetId is string)
+        && (!('context' in request.resource.data) || request.resource.data.context in ['spot', 'event', 'media'])
+        && (!('locale' in request.resource.data) || request.resource.data.locale is string);
+    }
+
     function validUserReport() {
       return request.auth.uid != null
         && request.resource.data.keys().hasOnly([
@@ -298,8 +374,7 @@ service cloud.firestore {
         // Only allow to read and create if the report is from the same user.
         // Disallow altering and viewing other users reports.
         allow read: if true;
-        allow create: if request.auth.uid != null 
-          && request.auth.uid == request.resource.data.user.uid;
+        allow create: if validSpotReport(spotId);
         allow update: if isAdmin();
         allow delete: if isAdmin();
       }
@@ -529,7 +604,7 @@ service cloud.firestore {
     // Authenticated users: create reports tied to their uid
     // Unauthenticated users: create reports with their email
     match /media_reports/{reportId} {
-      allow create: if true;
+      allow create: if validMediaReport();
       allow read, update, delete: if isAdmin();
     }
 
@@ -544,6 +619,11 @@ service cloud.firestore {
     match /contact_messages/{messageId} {
       allow create: if validContactMessage();
       allow read, update, delete: if isAdmin();
+    }
+
+    match /moderation_actions/{actionId} {
+      allow read: if isAdmin();
+      allow write: if false;
     }
 
     match /imports/{importId} {

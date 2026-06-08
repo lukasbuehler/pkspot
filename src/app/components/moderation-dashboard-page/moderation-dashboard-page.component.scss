@@ -99,6 +99,10 @@
   white-space: nowrap;
 }
 
+.queue-card__delete {
+  color: var(--mat-sys-on-surface-variant);
+}
+
 mat-card-actions {
   flex-wrap: wrap;
   gap: 0.5rem;

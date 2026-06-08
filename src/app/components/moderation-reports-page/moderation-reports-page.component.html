@@ -175,41 +175,58 @@
                   }
                   @if (report.status === "open") {
                     <button
-                      matButton="filled"
-                      type="button"
-                      [disabled]="actionPath() === report.path"
-                      matTooltip="Mark handled. For spot reports, clears the spot warning once no open reports remain."
-                      i18n-matTooltip="@@moderation.reports.resolve_tooltip"
-                      (click)="resolve(report, 'resolved')"
-                    >
-                      <mat-icon>done</mat-icon>
-                      <span i18n>Resolve</span>
-                    </button>
-                    <button
                       matButton="outlined"
                       type="button"
                       [disabled]="actionPath() === report.path"
-                      matTooltip="Close only this report without changing the target."
-                      i18n-matTooltip="@@moderation.reports.dismiss_tooltip"
-                      (click)="resolve(report, 'dismissed')"
+                      matTooltip="Close this report as no further investigation. The report is recorded in provenance and removed from the queue."
+                      i18n-matTooltip="@@moderation.reports.close_tooltip"
+                      (click)="handle(report, 'close_report')"
                     >
-                      <mat-icon>close</mat-icon>
-                      <span i18n>Dismiss</span>
+                      <mat-icon>done</mat-icon>
+                      <span i18n>Close report</span>
                     </button>
+                    <button
+                      matButton="filled"
+                      type="button"
+                      [disabled]="actionPath() === report.path"
+                      matTooltip="Record the report as handled, remove it from the queue, and keep the warning on the target."
+                      i18n-matTooltip="@@moderation.reports.keep_warning_tooltip"
+                      (click)="handle(report, 'keep_warning')"
+                    >
+                      <mat-icon>report</mat-icon>
+                      <span i18n>Keep warning</span>
+                    </button>
+                    @if (report.kind === "media") {
+                      <button
+                        matButton="outlined"
+                        type="button"
+                        class="report-card__destructive-action"
+                        [disabled]="actionPath() === report.path"
+                        matTooltip="Delete this media item from its target and record the action."
+                        i18n-matTooltip="
+                          @@moderation.reports.delete_media_tooltip"
+                        (click)="handle(report, 'delete_media')"
+                      >
+                        <mat-icon>delete</mat-icon>
+                        <span i18n>Delete media</span>
+                      </button>
+                    }
+                    @if (report.kind === "spot") {
+                      <button
+                        matButton="outlined"
+                        type="button"
+                        class="report-card__destructive-action"
+                        [disabled]="actionPath() === report.path"
+                        matTooltip="Delete the spot with its nested data and record the action."
+                        i18n-matTooltip="
+                          @@moderation.reports.delete_spot_tooltip"
+                        (click)="handle(report, 'delete_spot')"
+                      >
+                        <mat-icon>delete</mat-icon>
+                        <span i18n>Delete spot</span>
+                      </button>
+                    }
                   }
-                  <button
-                    mat-icon-button
-                    type="button"
-                    class="report-card__delete"
-                    [disabled]="actionPath() === report.path"
-                    aria-label="Delete report"
-                    i18n-aria-label="@@moderation.reports.delete_aria"
-                    matTooltip="Delete only this report document."
-                    i18n-matTooltip="@@moderation.reports.delete_tooltip"
-                    (click)="delete(report)"
-                  >
-                    <mat-icon>delete</mat-icon>
-                  </button>
                 </mat-card-actions>
               </div>
             </div>

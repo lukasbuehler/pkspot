@@ -84,6 +84,9 @@ export { onContactMessageCreate } from "./contactMessageFunctions";
 // spot report functions
 export { onSpotReportCreate, resolveSpotReport } from "./spotReportFunctions";
 
+// moderation action functions
+export { handleModerationAction } from "./moderationActionFunctions";
+
 // user report functions
 export { onUserReportCreate } from "./userReportFunctions";
 

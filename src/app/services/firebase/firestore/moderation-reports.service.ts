@@ -6,11 +6,10 @@ import { StorageImage } from "../../../../db/models/Media";
 import { ContactMessageSchema } from "../../../../db/schemas/ContactMessageSchema";
 import type { MediaSchema } from "../../../../db/schemas/Media";
 import { MediaReportSchema } from "../../../../db/schemas/MediaReportSchema";
+import { ModerationActionType } from "../../../../db/schemas/ModerationActionSchema";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
-import { createUserReference } from "../../../../scripts/Helpers";
 import { SearchService } from "../../search.service";
 import { isFirstPartyStorageUrl } from "../../../utils/first-party-media-url";
-import { AuthenticationService } from "../authentication.service";
 import {
   FirestoreAdapterService,
   QueryConstraintOptions,
@@ -62,18 +61,17 @@ export interface ModerationContactMessageItem {
 })
 export class ModerationReportsService {
   private readonly _firestoreAdapter = inject(FirestoreAdapterService);
-  private readonly _authService = inject(AuthenticationService);
   private readonly _searchService = inject(SearchService);
   private readonly _functions = inject(Functions, { optional: true });
-  private readonly _resolveSpotReportCallable = this._functions
+  private readonly _handleModerationActionCallable = this._functions
     ? httpsCallable<
         {
-          reportPath: string;
-          status: "resolved" | "dismissed";
-          resolutionNote?: string;
+          action_type: ModerationActionType;
+          source_path: string;
+          note?: string;
         },
         { ok: boolean }
-      >(this._functions, "resolveSpotReport")
+      >(this._functions, "handleModerationAction")
     : null;
 
   async getReports(limitCount: number = 200): Promise<ModerationReportItem[]> {
@@ -117,37 +115,42 @@ export class ModerationReportsService {
       .sort((left, right) => right.createdAtMillis - left.createdAtMillis);
   }
 
-  async resolveReport(
+  async handleReport(
     item: ModerationReportItem,
-    status: "resolved" | "dismissed",
-    resolutionNote?: string,
+    actionType: Extract<
+      ModerationActionType,
+      "close_report" | "keep_warning" | "delete_media" | "delete_spot"
+    >,
+    note?: string,
   ): Promise<void> {
-    const user = this._authService.user.data;
-    const resolvedBy = user ? createUserReference(user) : undefined;
-    const update = {
-      status,
-      resolvedAt: Timestamp.now(),
-      ...(resolvedBy ? { resolvedBy } : {}),
-      ...(resolutionNote ? { resolutionNote } : {}),
-    };
-
-    if (item.kind === "spot") {
-      if (!this._resolveSpotReportCallable) {
-        throw new Error("Spot report resolution is unavailable.");
-      }
-      await this._resolveSpotReportCallable({
-        reportPath: item.path,
-        status,
-        ...(resolutionNote ? { resolutionNote } : {}),
-      });
-      return;
+    if (!this._handleModerationActionCallable) {
+      throw new Error("Moderation actions are unavailable.");
     }
 
-    await this._firestoreAdapter.updateDocument(item.path, update);
+    await this._handleModerationActionCallable({
+      action_type: actionType,
+      source_path: item.path,
+      ...(note ? { note } : {}),
+    });
   }
 
-  async deleteReport(item: ModerationReportItem): Promise<void> {
-    await this._firestoreAdapter.deleteDocument(item.path);
+  async handleContactMessage(
+    item: ModerationContactMessageItem,
+    actionType: Extract<
+      ModerationActionType,
+      "archive_contact_message" | "delete_contact_message"
+    >,
+    note?: string,
+  ): Promise<void> {
+    if (!this._handleModerationActionCallable) {
+      throw new Error("Moderation actions are unavailable.");
+    }
+
+    await this._handleModerationActionCallable({
+      action_type: actionType,
+      source_path: item.path,
+      ...(note ? { note } : {}),
+    });
   }
 
   private _mapSpotReport(

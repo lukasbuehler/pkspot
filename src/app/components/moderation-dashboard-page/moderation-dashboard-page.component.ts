@@ -14,6 +14,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { Subscription } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
@@ -21,6 +22,7 @@ import {
   ModerationReportItem,
   ModerationReportsService,
 } from "../../services/firebase/firestore/moderation-reports.service";
+import { ModerationActionType } from "../../../db/schemas/ModerationActionSchema";
 
 @Component({
   selector: "app-moderation-dashboard-page",
@@ -32,6 +34,7 @@ import {
     MatChipsModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
   ],
   templateUrl: "./moderation-dashboard-page.component.html",
   styleUrl: "./moderation-dashboard-page.component.scss",
@@ -45,6 +48,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   readonly authResolved = this.authService.initialAuthStateResolved;
   readonly isAdmin = signal(false);
   readonly isLoading = signal(false);
+  readonly actionPath = signal<string | null>(null);
   readonly reports = signal<ModerationReportItem[]>([]);
   readonly contactMessages = signal<ModerationContactMessageItem[]>([]);
   private readonly _authSubscription: Subscription;
@@ -101,6 +105,43 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       });
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  async handleContactMessage(
+    message: ModerationContactMessageItem,
+    actionType: Extract<
+      ModerationActionType,
+      "archive_contact_message" | "delete_contact_message"
+    >,
+  ): Promise<void> {
+    if (this.actionPath()) {
+      return;
+    }
+
+    if (
+      actionType === "delete_contact_message" &&
+      !globalThis.confirm(
+        $localize`Delete this contact message from the active inbox? The message will still be recorded in moderation provenance.`,
+      )
+    ) {
+      return;
+    }
+
+    this.actionPath.set(message.path);
+    try {
+      await this._reportsService.handleContactMessage(message, actionType);
+      await this.reload();
+      this._snackbar.open($localize`Contact message archived`, undefined, {
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Failed to handle contact message", error);
+      this._snackbar.open($localize`Failed to update contact message`, undefined, {
+        duration: 4000,
+      });
+    } finally {
+      this.actionPath.set(null);
     }
   }
 }

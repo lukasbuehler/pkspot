@@ -14,7 +14,7 @@ export const environment = {
   },
   appCheck: {
     enabled: true,
-    recaptchaEnterpriseSiteKey: "",
+    recaptchaEnterpriseSiteKey: "6LcxpBMtAAAAAMJs-idyJ6QVbkJYx82Fi0pUUNn5",
     debugToken: false,
   },
   keys: {
