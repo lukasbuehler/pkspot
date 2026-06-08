@@ -187,10 +187,6 @@
   margin-top: auto;
 }
 
-.local-info-empty {
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .community-directory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

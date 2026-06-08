@@ -52,7 +52,7 @@ import {
   SearchService,
 } from "../../services/search.service";
 import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
-import { rankMapIslandEventsForPoint } from "./map-island-event-ranking";
+import { rankMapIslandEventsForViewport } from "./map-island-event-ranking";
 import {
   buildSelectedEventBoundsOverlays,
   buildSelectedEventPolygonOverlays,
@@ -875,12 +875,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const eventPanelOpen = this.selectedEvent() || this.pendingEventPreview();
     if (viewport && !eventPanelOpen) {
       const dismissals = this._eventPromoDismissals();
-      const center = this._viewportCenter(viewport.bbox);
-      const event = rankMapIslandEventsForPoint(
+      const event = rankMapIslandEventsForViewport(
         this._promotableEvents().filter(
           (e) => !this._isEventPromoDismissed(e, dismissals),
         ),
-        center,
+        viewport.bbox,
       )[0]?.event;
       if (event) return { kind: "event", event };
     }

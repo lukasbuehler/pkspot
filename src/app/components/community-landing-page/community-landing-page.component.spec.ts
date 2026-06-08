@@ -291,4 +291,46 @@ describe("CommunityLandingPageComponent", () => {
     expect(links[1].getAttribute("href")).toBe("/events/zurich-tuesday-jam");
     expect(text).not.toContain("Unsafe LinkOpen");
   });
+
+  it("shows the community knowledge contact CTA after info cards", () => {
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      infoCards: [
+        {
+          id: "chat",
+          title: { en: "WhatsApp group chat" },
+          category: "chat",
+          priority: 1,
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const cta = fixture.nativeElement.querySelector(
+      ".community-knowledge-cta a",
+    ) as HTMLAnchorElement;
+
+    expect(fixture.nativeElement.textContent).toContain("WhatsApp group chat");
+    expect(cta.textContent).toContain("Share community info");
+    expect(cta.getAttribute("href")).toBe(
+      "/contact?topic=general&source=%2Fmap%2Fcommunities%2Fswitzerland&community=Switzerland",
+    );
+  });
+
+  it("shows the community knowledge contact CTA when there are no info cards", () => {
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      infoCards: [],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain("Local Knowledge");
+    expect(fixture.nativeElement.textContent).toContain("Know this community?");
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "No knowledge cards yet.",
+    );
+    expect(
+      fixture.nativeElement.querySelector(".community-knowledge-cta a"),
+    ).not.toBeNull();
+  });
 });

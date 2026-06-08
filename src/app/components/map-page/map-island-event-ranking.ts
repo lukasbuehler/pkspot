@@ -1,4 +1,5 @@
 import { Event as PkEvent } from "../../../db/models/Event";
+import type { EventBoundsSchema } from "../../../db/schemas/EventSchema";
 
 export interface MapIslandEventRank {
   event: PkEvent;
@@ -60,30 +61,27 @@ function getMapIslandStatusRank(event: PkEvent, now: Date): number {
   return 2;
 }
 
-/**
- * Explain and rank active event promos for one map point.
- *
- * The map island intentionally uses a small lexicographic rule instead of a
- * hidden weighted score:
- * 1. The promo must be active and contain the viewport center.
- * 2. Prefer live events, then the event that starts sooner.
- * 3. Prefer the event whose viewport center sits deepest inside its promo
- *    region (`distance / radius`, lower is better).
- * 4. If equally central, prefer the smaller promo region (more specific).
- * 5. If still tied, prefer the stable event id.
- *
- * Returning the full rank rows keeps the decision inspectable in tests and
- * future debugging instead of collapsing the result straight to one event.
- */
-export function rankMapIslandEventsForPoint(
+function viewportCenter(viewport: EventBoundsSchema): {
+  lat: number;
+  lng: number;
+} {
+  return {
+    lat: (viewport.north + viewport.south) / 2,
+    lng: (viewport.east + viewport.west) / 2,
+  };
+}
+
+function rankMapIslandEvents(
   events: readonly PkEvent[],
-  point: { lat: number; lng: number },
-  now: Date = new Date(),
+  rankPoint: { lat: number; lng: number },
+  isEligible: (event: PkEvent) => boolean,
+  now: Date,
 ): MapIslandEventRank[] {
   return events
-    .filter((event) => event.isPromotable(now) && event.containsPromoPoint(point))
+    .filter((event) => event.isPromotable(now) && isEligible(event))
     .map((event) => {
-      const distanceToPromoCenterM = event.distanceFromPromoCenterMeters(point);
+      const distanceToPromoCenterM =
+        event.distanceFromPromoCenterMeters(rankPoint);
       const promoRadiusM = event.promoRadiusMeters();
 
       return {
@@ -115,4 +113,52 @@ export function rankMapIslandEventsForPoint(
 
       return left.event.id.localeCompare(right.event.id);
     });
+}
+
+/**
+ * Explain and rank active event promos for one map point.
+ *
+ * The map island intentionally uses a small lexicographic rule instead of a
+ * hidden weighted score:
+ * 1. The promo must be active and contain the viewport center.
+ * 2. Prefer live events, then the event that starts sooner.
+ * 3. Prefer the event whose viewport center sits deepest inside its promo
+ *    region (`distance / radius`, lower is better).
+ * 4. If equally central, prefer the smaller promo region (more specific).
+ * 5. If still tied, prefer the stable event id.
+ *
+ * Returning the full rank rows keeps the decision inspectable in tests and
+ * future debugging instead of collapsing the result straight to one event.
+ */
+export function rankMapIslandEventsForPoint(
+  events: readonly PkEvent[],
+  point: { lat: number; lng: number },
+  now: Date = new Date(),
+): MapIslandEventRank[] {
+  return rankMapIslandEvents(
+    events,
+    point,
+    (event) => event.containsPromoPoint(point),
+    now,
+  );
+}
+
+/**
+ * Explain and rank active event promos for a visible map viewport.
+ *
+ * Eligibility uses viewport intersection so a promoted event remains surfaced
+ * when its pin/region is visible near the edge of a zoomed-out map. Ranking
+ * still measures from the viewport center to keep overlapping promos stable.
+ */
+export function rankMapIslandEventsForViewport(
+  events: readonly PkEvent[],
+  viewport: EventBoundsSchema,
+  now: Date = new Date(),
+): MapIslandEventRank[] {
+  return rankMapIslandEvents(
+    events,
+    viewportCenter(viewport),
+    (event) => event.intersectsViewport(viewport),
+    now,
+  );
 }

@@ -4,6 +4,7 @@ import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import {
   getMapEventMarkerPriority,
   rankMapIslandEventsForPoint,
+  rankMapIslandEventsForViewport,
 } from "./map-island-event-ranking";
 
 function event(
@@ -154,5 +155,30 @@ describe("rankMapIslandEventsForPoint", () => {
     );
 
     expect(getMapEventMarkerPriority(liveEvent, now)).toBe(815);
+  });
+});
+
+describe("rankMapIslandEventsForViewport", () => {
+  const now = new Date("2026-06-14T11:00:00.000Z");
+
+  it("includes promos whose radius intersects the viewport edge", () => {
+    const edgePromo = event("edge-promo", { lat: 47, lng: 8.2 }, 16_000);
+    const viewport = {
+      north: 47.05,
+      south: 46.95,
+      east: 8,
+      west: 7.8,
+    };
+
+    expect(
+      rankMapIslandEventsForPoint(
+        [edgePromo],
+        { lat: 47, lng: 7.9 },
+        now,
+      ),
+    ).toEqual([]);
+    expect(
+      rankMapIslandEventsForViewport([edgePromo], viewport, now)[0]?.event.id,
+    ).toBe("edge-promo");
   });
 });

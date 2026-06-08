@@ -105,8 +105,11 @@ export class ContactPageComponent implements OnInit {
     const topic = this._normalizeTopic(
       this._route.snapshot.queryParamMap.get("topic")
     );
+    const communityName = this._normalizeCommunityName(
+      this._route.snapshot.queryParamMap.get("community")
+    );
     this.topic.set(topic);
-    this._prefillMessage(topic);
+    this._prefillMessage(topic, communityName);
     this._prefillContactInfoWhenAvailable();
     this._analyticsService.trackEvent("Contact Opened", {
       topic,
@@ -191,7 +194,10 @@ export class ContactPageComponent implements OnInit {
       });
   }
 
-  private _prefillMessage(topic: ContactMessageTopic): void {
+  private _prefillMessage(
+    topic: ContactMessageTopic,
+    communityName: string | null
+  ): void {
     if (topic === "spot-import") {
       this.contactForm.controls.message.setValue(
         $localize`:@@contact.prefill.spot_import:Hi PK Spot, I have a spot map or list I would like to share: `
@@ -204,6 +210,12 @@ export class ContactPageComponent implements OnInit {
         $localize`:@@contact.prefill.crew:Hi PK Spot, I would like to help with: `
       );
     }
+
+    if (communityName) {
+      this.contactForm.controls.message.setValue(
+        $localize`:@@contact.prefill.community_knowledge:Hi PK Spot, I have local knowledge for ${communityName}:communityName:: `
+      );
+    }
   }
 
   private _normalizeTopic(value: string | null): ContactMessageTopic {
@@ -214,10 +226,36 @@ export class ContactPageComponent implements OnInit {
   }
 
   private _sourcePath(): string | undefined {
+    const sourcePath = this._normalizeSourcePath(
+      this._route.snapshot.queryParamMap.get("source")
+    );
+    if (sourcePath) {
+      return sourcePath;
+    }
+
     if (!isPlatformBrowser(this._platformId)) {
       return undefined;
     }
     return `${window.location.pathname}${window.location.search}`;
+  }
+
+  private _normalizeSourcePath(value: string | null): string | null {
+    const sourcePath = value?.trim();
+    if (
+      !sourcePath ||
+      sourcePath.length > 600 ||
+      !sourcePath.startsWith("/") ||
+      sourcePath.startsWith("//") ||
+      sourcePath.includes("://")
+    ) {
+      return null;
+    }
+    return sourcePath;
+  }
+
+  private _normalizeCommunityName(value: string | null): string | null {
+    const communityName = value?.trim();
+    return communityName && communityName.length <= 120 ? communityName : null;
   }
 
   private _userAgent(): string | undefined {

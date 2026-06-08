@@ -242,6 +242,14 @@ export class CommunityLandingPageComponent {
   communityKnowledgeCards = computed(
     () => this.communityData()?.infoCards ?? [],
   );
+  contactQueryParams = computed(() => {
+    const data = this.communityData();
+    return {
+      topic: "general",
+      ...(data?.canonicalPath ? { source: data.canonicalPath } : {}),
+      ...(data?.displayName ? { community: data.displayName } : {}),
+    };
+  });
   canEditKnowledge = computed(
     () => this.isAdmin() && !!this.communityData()?.communityKey,
   );
