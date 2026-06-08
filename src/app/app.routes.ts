@@ -232,6 +232,14 @@ export const routes: Routes = [
     data: { routeName: "Organization Admin" },
   },
   {
+    path: "moderation",
+    loadComponent: () =>
+      import(
+        "./components/moderation-dashboard-page/moderation-dashboard-page.component"
+      ).then((m) => m.ModerationDashboardPageComponent),
+    data: { routeName: "Moderation" },
+  },
+  {
     path: "moderation/reports",
     loadComponent: () =>
       import(

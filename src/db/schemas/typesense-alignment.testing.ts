@@ -49,6 +49,13 @@ export interface AlignmentSpec {
    * check. Document why each entry is here in a leading comment.
    */
   indexerProvidedDefaults?: readonly string[];
+  /**
+   * Enforce snake_case for Firestore and Typesense field paths in collections
+   * whose persisted schema has standardized on snake_case.
+   */
+  enforceSnakeCaseFieldNames?: boolean;
+  /** Existing legacy field paths that are exempt from snake_case enforcement. */
+  snakeCaseFieldNameExceptions?: readonly string[];
   /** One entry per Typesense field. */
   mapping: CollectionMapping;
 }
@@ -123,6 +130,12 @@ function sourcesOf(origin: FieldOrigin): string[] {
   return [];
 }
 
+function isSnakeCaseFieldPath(path: string): boolean {
+  return path
+    .split(".")
+    .every((segment) => /^_?[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/.test(segment));
+}
+
 /**
  * Register a vitest suite that asserts the given Typesense JSON schema is
  * in sync with the Firestore TS interface. Call inside a `describe` block.
@@ -134,6 +147,29 @@ export function registerAlignmentTests(spec: AlignmentSpec): void {
   it(`schema name matches "${spec.expectedCollectionName}"`, () => {
     expect(name).toBe(spec.expectedCollectionName);
   });
+
+  if (spec.enforceSnakeCaseFieldNames) {
+    it("Firestore and Typesense field paths use snake_case", () => {
+      const exceptions = new Set(spec.snakeCaseFieldNameExceptions ?? []);
+      const problems = [
+        ...spec.firestoreFields
+          .filter(
+            (field) =>
+              !exceptions.has(field) && !isSnakeCaseFieldPath(field),
+          )
+          .map((field) => `Firestore field "${field}"`),
+        ...fields
+          .map((field) => field.name)
+          .filter(
+            (field) =>
+              !exceptions.has(field) && !isSnakeCaseFieldPath(field),
+          )
+          .map((field) => `Typesense field "${field}"`),
+      ];
+
+      expect(problems).toEqual([]);
+    });
+  }
 
   it("every Typesense field has a mapping entry", () => {
     const missing = fields

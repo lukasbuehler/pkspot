@@ -550,6 +550,15 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
   registerAlignmentTests({
     typesenseSchemaPath: "typesense/typesense_spots_v2_schema.json",
     expectedCollectionName: "spots_v2",
+    enforceSnakeCaseFieldNames: true,
+    snakeCaseFieldNameExceptions: [
+      // Legacy persisted spot fields. New persisted spot fields should use
+      // snake_case unless there is a documented compatibility reason.
+      "isMiniSpot",
+      "address.formattedLocal",
+      "address.localityLocal",
+      "address.sublocalityLocal",
+    ],
     firestoreFields,
     requiredFirestoreFields,
     indexerProvidedDefaults,

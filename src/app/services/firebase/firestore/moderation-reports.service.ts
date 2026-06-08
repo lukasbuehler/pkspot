@@ -1,6 +1,7 @@
 import { inject, Injectable } from "@angular/core";
 import { Functions, httpsCallable } from "@angular/fire/functions";
 import { Timestamp } from "@angular/fire/firestore";
+import { ContactMessageSchema } from "../../../../db/schemas/ContactMessageSchema";
 import { MediaReportSchema } from "../../../../db/schemas/MediaReportSchema";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
 import { createUserReference } from "../../../../scripts/Helpers";
@@ -29,6 +30,21 @@ export interface ModerationReportItem {
   spotId?: string;
   spotName?: string;
   raw: SpotReportSchema | MediaReportSchema;
+}
+
+export interface ModerationContactMessageItem {
+  id: string;
+  path: string;
+  topic: string;
+  message: string;
+  contactInfo: string;
+  createdAt: unknown;
+  createdAtMillis: number;
+  userLabel: string;
+  sourcePath?: string;
+  locale?: string;
+  replayUrl?: string;
+  raw: ContactMessageSchema;
 }
 
 @Injectable({
@@ -70,6 +86,22 @@ export class ModerationReportsService {
       ...spotReports.data.map((report) => this._mapSpotReport(report)),
       ...mediaReports.map((report) => this._mapMediaReport(report)),
     ].sort((left, right) => right.createdAtMillis - left.createdAtMillis);
+  }
+
+  async getContactMessages(
+    limitCount: number = 100,
+  ): Promise<ModerationContactMessageItem[]> {
+    const constraints: QueryConstraintOptions[] = [
+      { type: "orderBy", fieldPath: "createdAt", direction: "desc" },
+      { type: "limit", limit: limitCount },
+    ];
+    const messages = await this._firestoreAdapter.getCollection<
+      ContactMessageSchema & { id: string }
+    >("contact_messages", undefined, constraints);
+
+    return messages
+      .map((message) => this._mapContactMessage(message))
+      .sort((left, right) => right.createdAtMillis - left.createdAtMillis);
   }
 
   async resolveReport(
@@ -156,6 +188,25 @@ export class ModerationReportsService {
     };
   }
 
+  private _mapContactMessage(
+    message: ContactMessageSchema & { id: string },
+  ): ModerationContactMessageItem {
+    return {
+      id: message.id,
+      path: `contact_messages/${message.id}`,
+      topic: message.topic ?? "general",
+      message: message.message,
+      contactInfo: message.contact_info,
+      createdAt: message.createdAt,
+      createdAtMillis: this._toMillis(message.createdAt),
+      userLabel: this._formatContactUser(message),
+      sourcePath: message.source_path,
+      locale: message.locale,
+      replayUrl: message.analytics?.posthog_session_replay_url,
+      raw: message,
+    };
+  }
+
   private _normalizeStatus(
     status: ModerationReportStatus | undefined,
   ): ModerationReportStatus {
@@ -173,6 +224,22 @@ export class ModerationReportsService {
       return user.uid;
     }
     return "Unknown";
+  }
+
+  private _formatContactUser(message: ContactMessageSchema): string {
+    if (message.user?.display_name) {
+      return message.user.display_name;
+    }
+    if (message.user?.email) {
+      return message.user.email;
+    }
+    if (message.auth_email) {
+      return message.auth_email;
+    }
+    if (message.user?.uid) {
+      return message.user.uid;
+    }
+    return "Anonymous";
   }
 
   private _spotIdFromReportPath(path: string): string | undefined {

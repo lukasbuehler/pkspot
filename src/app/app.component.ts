@@ -1416,6 +1416,14 @@ html.pkspot-roboto-loaded body {
         link: "/about",
         icon: "info",
       });
+
+      if (this.authService.isAdmin()) {
+        buttons.push({
+          name: $localize`:Moderation navbar button label|A very short label for the admin moderation page button@@moderation_label:Moderation`,
+          link: "/moderation",
+          icon: "gavel",
+        });
+      }
     }
 
     if (isOnMobileWeb) {

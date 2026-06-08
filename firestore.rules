@@ -543,7 +543,7 @@ service cloud.firestore {
     // the private inbox. Cloud Functions send Discord notifications via Admin SDK.
     match /contact_messages/{messageId} {
       allow create: if validContactMessage();
-      allow read, update, delete: if false;
+      allow read, update, delete: if isAdmin();
     }
 
     match /imports/{importId} {
@@ -556,6 +556,10 @@ service cloud.firestore {
       }
     }
     // Collection Group Queries
+    match /{path=**}/reports/{reportId} {
+      allow read, update, delete: if isAdmin();
+    }
+
     match /{path=**}/edits/{editId} {
       allow read: if canReadSpotEdit();
     }

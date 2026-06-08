@@ -1,0 +1,162 @@
+<section class="moderation-dashboard">
+  <header class="moderation-dashboard__header">
+    <div>
+      <h1 class="mat-headline-medium" i18n>Moderation</h1>
+      <p class="mat-body-medium text-secondary" i18n>
+        Review community reports and contact messages.
+      </p>
+    </div>
+
+    @if (isAdmin()) {
+      <button matButton="outlined" type="button" (click)="reload()">
+        <mat-icon>refresh</mat-icon>
+        <span i18n>Refresh</span>
+      </button>
+    }
+  </header>
+
+  @if (!authResolved()) {
+    <div class="moderation-dashboard__center">
+      <mat-progress-spinner mode="indeterminate" diameter="32" />
+      <span i18n>Checking admin access...</span>
+    </div>
+  } @else if (!isAdmin()) {
+    <p i18n>Admin access required.</p>
+  } @else if (isLoading()) {
+    <div class="moderation-dashboard__center">
+      <mat-progress-spinner mode="indeterminate" diameter="32" />
+      <span i18n>Loading moderation dashboard...</span>
+    </div>
+  } @else {
+    <div class="moderation-dashboard__stats">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <span class="stat-card__value">{{ openReportCount() }}</span>
+          <span class="stat-card__label" i18n>Open reports</span>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <span class="stat-card__value">{{ spotReportCount() }}</span>
+          <span class="stat-card__label" i18n>Spot reports</span>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <span class="stat-card__value">{{ mediaReportCount() }}</span>
+          <span class="stat-card__label" i18n>Media reports</span>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <span class="stat-card__value">{{ contactMessages().length }}</span>
+          <span class="stat-card__label" i18n>Contact messages</span>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="moderation-dashboard__grid">
+      <section class="moderation-dashboard__panel">
+        <div class="moderation-dashboard__panel-header">
+          <div>
+            <h2 class="mat-title-large" i18n>Reports</h2>
+            <p class="mat-body-medium text-secondary" i18n>
+              Latest open spot and media reports.
+            </p>
+          </div>
+          <a matButton="filled" routerLink="/moderation/reports">
+            <mat-icon>gavel</mat-icon>
+            <span i18n>Open reports</span>
+          </a>
+        </div>
+
+        @if (recentOpenReports().length === 0) {
+          <p class="mat-body-medium" i18n>No open reports.</p>
+        } @else {
+          <div class="moderation-dashboard__list">
+            @for (report of recentOpenReports(); track report.path) {
+              <mat-card class="queue-card">
+                <mat-card-header>
+                  <mat-card-title>{{ report.targetLabel }}</mat-card-title>
+                  <mat-card-subtitle>
+                    {{ report.createdAtMillis | date: "medium" }} ·
+                    {{ report.reporterLabel }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <mat-chip-set>
+                    <mat-chip>{{ report.kind }}</mat-chip>
+                    <mat-chip>{{ report.reason }}</mat-chip>
+                  </mat-chip-set>
+                </mat-card-content>
+                @if (report.targetPath) {
+                  <mat-card-actions align="end">
+                    <a matButton="outlined" [routerLink]="report.targetPath">
+                      <mat-icon>open_in_new</mat-icon>
+                      <span i18n>Target</span>
+                    </a>
+                  </mat-card-actions>
+                }
+              </mat-card>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="moderation-dashboard__panel">
+        <div class="moderation-dashboard__panel-header">
+          <div>
+            <h2 class="mat-title-large" i18n>Contact messages</h2>
+            <p class="mat-body-medium text-secondary" i18n>
+              Recent messages from the public contact form.
+            </p>
+          </div>
+        </div>
+
+        @if (recentContactMessages().length === 0) {
+          <p class="mat-body-medium" i18n>No contact messages yet.</p>
+        } @else {
+          <div class="moderation-dashboard__list">
+            @for (message of recentContactMessages(); track message.path) {
+              <mat-card class="queue-card">
+                <mat-card-header>
+                  <mat-card-title>{{ message.userLabel }}</mat-card-title>
+                  <mat-card-subtitle>
+                    {{ message.createdAtMillis | date: "medium" }} ·
+                    {{ message.contactInfo }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <mat-chip-set>
+                    <mat-chip>{{ message.topic }}</mat-chip>
+                    @if (message.locale) {
+                      <mat-chip>{{ message.locale }}</mat-chip>
+                    }
+                  </mat-chip-set>
+                  <p class="queue-card__message">{{ message.message }}</p>
+                  @if (message.sourcePath) {
+                    <a class="queue-card__link" [href]="message.sourcePath">
+                      <mat-icon>open_in_new</mat-icon>
+                      <span>{{ message.sourcePath }}</span>
+                    </a>
+                  }
+                  @if (message.replayUrl) {
+                    <a
+                      class="queue-card__link"
+                      [href]="message.replayUrl"
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      <mat-icon>play_circle</mat-icon>
+                      <span i18n>Session replay</span>
+                    </a>
+                  }
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        }
+      </section>
+    </div>
+  }
+</section>
