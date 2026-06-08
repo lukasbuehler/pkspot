@@ -63,49 +63,36 @@ test.describe("Spot Details Visual Regression @visual", () => {
 
   test("should match spot details - mobile bottom sheet", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-
-    await mapPage.goto("de");
-    await mapPage.waitForMapReady();
-    await page.waitForTimeout(1000);
-
-    const isMapVisible = await mapPage.isMapVisible();
-
-    if (isMapVisible) {
-      // Try to open a spot
-      const mapBounds = await mapPage.spotMap.boundingBox();
-      if (mapBounds) {
-        await page.mouse.click(
-          mapBounds.x + mapBounds.width * 0.5,
-          mapBounds.y + mapBounds.height * 0.3
-        );
-        await page.waitForTimeout(2000);
-
-        // Check for bottom sheet or spot details on mobile
-        const bottomSheet = page.locator("app-bottom-sheet, .bottom-sheet");
-        const details = page.locator("app-spot-details");
-
-        if (await bottomSheet.isVisible()) {
-          await expect(bottomSheet).toHaveScreenshot(
-            "spot-details-bottom-sheet.png",
-            {
-              maxDiffPixels: 200,
-              animations: "disabled",
-              mask: [page.locator("app-spot-details img")],
-            }
-          );
-        } else if (await details.isVisible()) {
-          await expect(details).toHaveScreenshot("spot-details-mobile.png", {
-            maxDiffPixels: 200,
-            animations: "disabled",
-            mask: [page.locator("app-spot-details img")],
-          });
-        } else {
-          test.skip();
+    await page.addInitScript(() => {
+      localStorage.setItem("acceptedVersion", "5");
+    });
+    await page.goto("/de/__visual/spot-bottom-sheet", {
+      waitUntil: "domcontentloaded",
+    });
+    await page.addStyleTag({
+      content: `
+        app-nav-rail,
+        app-footer,
+        footer,
+        .terms-footer,
+        .footer,
+        .app-footer {
+          visibility: hidden !important;
         }
-      }
-    } else {
-      test.skip();
-    }
+      `,
+    });
+
+    const bottomSheet = page.locator("app-bottom-sheet");
+    const sheet = bottomSheet.locator(".sheet");
+    const details = bottomSheet.locator("app-spot-details");
+    await expect(details).toBeVisible();
+    await page.waitForTimeout(700);
+
+    await expect(sheet).toHaveScreenshot("spot-details-bottom-sheet.png", {
+      maxDiffPixels: 200,
+      animations: "disabled",
+      mask: [details.locator("img")],
+    });
   });
 });
 

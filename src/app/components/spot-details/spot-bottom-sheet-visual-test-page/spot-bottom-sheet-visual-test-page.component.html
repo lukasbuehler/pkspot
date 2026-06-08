@@ -1,0 +1,18 @@
+<main class="spot-bottom-sheet-visual-page">
+  <div class="map-backdrop" aria-hidden="true">
+    <span class="grid-line grid-line--vertical"></span>
+    <span class="grid-line grid-line--horizontal"></span>
+    <span class="map-marker map-marker--primary"></span>
+    <span class="map-marker map-marker--secondary"></span>
+    <span class="map-label map-label--one">Zurich</span>
+    <span class="map-label map-label--two">Limmat</span>
+  </div>
+
+  <app-bottom-sheet class="visual-bottom-sheet" [closedHeight]="90">
+    <app-map-spot-details-panel
+      [spot]="spot"
+      [openProgress]="1"
+      [pendingVoteCount]="3"
+    ></app-map-spot-details-panel>
+  </app-bottom-sheet>
+</main>

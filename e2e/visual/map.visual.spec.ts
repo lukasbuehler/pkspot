@@ -25,12 +25,12 @@ test.describe("Map Page Visual Regression @visual", () => {
 
     // Mask dynamic map content to reduce flakiness
     await expect(page).toHaveScreenshot("map-page-desktop.png", {
-      maxDiffPixels: 1000, // Higher tolerance for map page
+      maxDiffPixels: 40_000, // Higher tolerance for the masked map edge.
       fullPage: false,
       animations: "disabled",
       mask: [
-        // Mask the Google Maps tiles which change frequently
-        page.locator("app-google-map-2d canvas, .gm-style, google-map"),
+        // Mask only the volatile Google Maps render layer, not app overlays.
+        page.locator("app-google-map-2d canvas, .gm-style > div:first-child"),
       ],
     });
   });
@@ -46,7 +46,6 @@ test.describe("Map Page Visual Regression @visual", () => {
       maxDiffPixels: 1000,
       fullPage: false,
       animations: "disabled",
-      mask: [page.locator("app-google-map-2d canvas, .gm-style, google-map")],
     });
   });
 

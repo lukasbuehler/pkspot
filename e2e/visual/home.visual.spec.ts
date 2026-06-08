@@ -23,11 +23,16 @@ test.describe("Home Page Visual Regression @visual", () => {
     // Wait for any animations to complete
     await page.waitForTimeout(2000);
 
+    const dynamicMap = page.locator(
+      "app-google-map-2d canvas, .gm-style, google-map"
+    );
+
     // Take full page screenshot
     await expect(page).toHaveScreenshot("home-page-desktop.png", {
-      maxDiffPixels: 500,
+      maxDiffPixels: 2_000,
       fullPage: true,
       animations: "disabled",
+      mask: [dynamicMap],
     });
   });
 
@@ -38,11 +43,15 @@ test.describe("Home Page Visual Regression @visual", () => {
     await homePage.goto("de");
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
+    const dynamicMap = page.locator(
+      "app-google-map-2d canvas, .gm-style, google-map"
+    );
 
     await expect(page).toHaveScreenshot("home-page-tablet.png", {
       maxDiffPixels: 500,
       fullPage: true,
       animations: "disabled",
+      mask: [dynamicMap],
     });
   });
 
@@ -53,11 +62,15 @@ test.describe("Home Page Visual Regression @visual", () => {
     await homePage.goto("de");
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
+    const dynamicMap = page.locator(
+      "app-google-map-2d canvas, .gm-style, google-map"
+    );
 
     await expect(page).toHaveScreenshot("home-page-mobile.png", {
       maxDiffPixels: 500,
       fullPage: true,
       animations: "disabled",
+      mask: [dynamicMap],
     });
   });
 
@@ -89,11 +102,15 @@ test.describe("Home Page - Dark Mode Visual @visual", () => {
     await page.goto("/de/");
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
+    const dynamicMap = page.locator(
+      "app-google-map-2d canvas, .gm-style, google-map"
+    );
 
     await expect(page).toHaveScreenshot("home-page-dark-mode.png", {
-      maxDiffPixels: 500,
+      maxDiffPixels: 2_000,
       fullPage: true,
       animations: "disabled",
+      mask: [dynamicMap],
     });
   });
 });

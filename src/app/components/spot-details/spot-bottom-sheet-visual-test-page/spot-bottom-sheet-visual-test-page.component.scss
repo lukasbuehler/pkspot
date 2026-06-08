@@ -1,0 +1,106 @@
+:host {
+  display: block;
+  min-height: 100%;
+  color: var(--mat-sys-on-surface);
+}
+
+.spot-bottom-sheet-visual-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.map-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    linear-gradient(140deg, rgba(23, 77, 87, 0.92), rgba(18, 36, 52, 0.96)),
+    var(--mat-sys-surface-container);
+}
+
+.map-backdrop::before,
+.map-backdrop::after {
+  position: absolute;
+  content: "";
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 42%, transparent);
+}
+
+.map-backdrop::before {
+  width: 260px;
+  height: 92px;
+  top: 120px;
+  left: -52px;
+  transform: rotate(-24deg);
+}
+
+.map-backdrop::after {
+  width: 340px;
+  height: 120px;
+  right: -96px;
+  bottom: 118px;
+  transform: rotate(-32deg);
+}
+
+.grid-line {
+  position: absolute;
+  opacity: 0.32;
+  background: var(--mat-sys-outline-variant);
+}
+
+.grid-line--vertical {
+  inset-block: 0;
+  left: 45%;
+  width: 1px;
+}
+
+.grid-line--horizontal {
+  inset-inline: 0;
+  top: 33%;
+  height: 1px;
+}
+
+.map-marker {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border: 4px solid var(--mat-sys-on-primary);
+  border-radius: 999px;
+  background: var(--mat-sys-primary);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.map-marker--primary {
+  right: 40px;
+  top: 174px;
+}
+
+.map-marker--secondary {
+  left: 58px;
+  bottom: 214px;
+}
+
+.map-label {
+  position: absolute;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-large);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.42);
+}
+
+.map-label--one {
+  left: 48px;
+  top: 132px;
+}
+
+.map-label--two {
+  right: 64px;
+  bottom: 192px;
+}
+
+.visual-bottom-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+}

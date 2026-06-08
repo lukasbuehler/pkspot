@@ -339,6 +339,10 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.resizeObserver.observe(sheetEl, { box: "border-box" });
     }
 
+    if (typeof window === "undefined") {
+      return;
+    }
+
     // Also listen to window resize in case ResizeObserver doesn't catch it
     // (e.g., when parent layout changes due to CSS or nav bar appearance)
     const handleWindowResize = () => {

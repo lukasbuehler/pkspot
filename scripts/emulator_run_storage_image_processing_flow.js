@@ -154,6 +154,7 @@ async function main() {
   console.log("Checking spot image upload derivatives and archiving...");
   await bucket.upload(ORIGINAL_IMAGE, {
     destination: originalPath,
+    resumable: false,
     metadata: {
       contentType: "image/jpeg",
       metadata: customMetadata,
@@ -170,6 +171,7 @@ async function main() {
   const profilePath = `profile_pictures/${uid}`;
   await bucket.upload(ORIGINAL_IMAGE, {
     destination: profilePath,
+    resumable: false,
     metadata: {
       contentType: "image/jpeg",
       cacheControl: PROFILE_CACHE_CONTROL,

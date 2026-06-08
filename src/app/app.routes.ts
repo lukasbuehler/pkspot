@@ -33,6 +33,14 @@ const visualTestRoutes: Routes = environment.production
           ).then((m) => m.MapOverlayVisualTestPageComponent),
         data: { routeName: "Map Overlay Visual Test" },
       },
+      {
+        path: "__visual/spot-bottom-sheet",
+        loadComponent: () =>
+          import(
+            "./components/spot-details/spot-bottom-sheet-visual-test-page/spot-bottom-sheet-visual-test-page.component"
+          ).then((m) => m.SpotBottomSheetVisualTestPageComponent),
+        data: { routeName: "Spot Bottom Sheet Visual Test" },
+      },
     ];
 
 export const routes: Routes = [

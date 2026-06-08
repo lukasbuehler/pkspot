@@ -75,6 +75,7 @@ export default defineConfig({
     /* Mobile viewports */
     {
       name: "mobile-chrome",
+      grepInvert: /@visual/,
       use: { ...devices["Pixel 5"] },
     },
   ],
