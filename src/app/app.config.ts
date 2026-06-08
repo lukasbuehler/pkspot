@@ -6,6 +6,7 @@ import {
   DOCUMENT,
   PLATFORM_ID,
   inject,
+  provideAppInitializer,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { environment } from "../environments/environment";
@@ -54,6 +55,7 @@ import { routes } from "./app.routes";
 import { provideRouter } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
 import { ApplicationErrorHandler } from "./services/application-error-handler.service";
+import { FirebaseAppCheckService } from "./services/firebase/app-check.service";
 
 // Module-level singleton to ensure Firestore is only initialized once
 let firestoreInstance: Firestore | null = null;
@@ -61,6 +63,7 @@ let firestoreInstance: Firestore | null = null;
 export const appConfig: ApplicationConfig = {
   providers: [
     provideFirebaseApp(() => initializeApp(environment.keys.firebaseConfig)),
+    provideAppInitializer(() => inject(FirebaseAppCheckService).initialize()),
     // Bind Firestore/Storage/Functions to the injected FirebaseApp to enforce init ordering
     provideFirestore(() => {
       // Return cached instance if already initialized

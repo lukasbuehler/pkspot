@@ -12,6 +12,11 @@ export const environment = {
       previewMinZoom: 13,
     },
   },
+  appCheck: {
+    enabled: true,
+    recaptchaEnterpriseSiteKey: "",
+    debugToken: false,
+  },
   keys: {
     firebaseConfig: {
       projectId: "parkour-base-project",

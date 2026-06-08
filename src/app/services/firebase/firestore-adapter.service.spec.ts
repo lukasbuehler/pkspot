@@ -163,6 +163,7 @@ import {
   QueryConstraintOptions,
 } from "./firestore-adapter.service";
 import { PlatformService } from "../platform.service";
+import { FirebaseAppCheckService } from "./app-check.service";
 
 // Mock Firestore instance
 const mockFirestore = {};
@@ -176,19 +177,26 @@ const createMockPlatformService = (
   getPlatform: vi.fn().mockReturnValue(platform),
 });
 
+const createMockAppCheckService = () => ({
+  initialize: vi.fn().mockResolvedValue(undefined),
+});
+
 describe("FirestoreAdapterService", () => {
   let service: FirestoreAdapterService;
   let mockPlatformService: ReturnType<typeof createMockPlatformService>;
+  let mockAppCheckService: ReturnType<typeof createMockAppCheckService>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockPlatformService = createMockPlatformService(false, "web");
+    mockAppCheckService = createMockAppCheckService();
 
     TestBed.configureTestingModule({
       providers: [
         FirestoreAdapterService,
         { provide: Firestore, useValue: mockFirestore },
         { provide: PlatformService, useValue: mockPlatformService },
+        { provide: FirebaseAppCheckService, useValue: mockAppCheckService },
       ],
     });
 
@@ -207,6 +215,27 @@ describe("FirestoreAdapterService", () => {
   });
 
   describe("getDocument (web)", () => {
+    it("waits for App Check initialization before using the web SDK", async () => {
+      const { getDoc } = await import("@angular/fire/firestore");
+      let resolveAppCheck!: () => void;
+      mockAppCheckService.initialize.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveAppCheck = resolve;
+        })
+      );
+
+      const resultPromise = service.getDocument("collection/test-id");
+      await Promise.resolve();
+
+      expect(getDoc).not.toHaveBeenCalled();
+
+      resolveAppCheck();
+      await resultPromise;
+
+      expect(mockAppCheckService.initialize).toHaveBeenCalledTimes(1);
+      expect(getDoc).toHaveBeenCalled();
+    });
+
     it("should return document data when document exists", async () => {
       const { getDoc } = await import("@angular/fire/firestore");
       (getDoc as Mock).mockResolvedValueOnce({
@@ -475,6 +504,7 @@ describe("FirestoreAdapterService (native)", () => {
   let service: FirestoreAdapterService;
   let FirebaseFirestore: any;
   let nativeMockPlatformService: ReturnType<typeof createMockPlatformService>;
+  let mockAppCheckService: ReturnType<typeof createMockAppCheckService>;
   let fetchMock: Mock;
 
   beforeEach(async () => {
@@ -483,6 +513,7 @@ describe("FirestoreAdapterService (native)", () => {
     FirebaseFirestore = (await import("@capacitor-firebase/firestore"))
       .FirebaseFirestore;
     nativeMockPlatformService = createMockPlatformService(true, "ios");
+    mockAppCheckService = createMockAppCheckService();
     fetchMock = vi.fn().mockRejectedValue(new Error("mock fetch not configured"));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -491,6 +522,7 @@ describe("FirestoreAdapterService (native)", () => {
         FirestoreAdapterService,
         { provide: Firestore, useValue: mockFirestore },
         { provide: PlatformService, useValue: nativeMockPlatformService },
+        { provide: FirebaseAppCheckService, useValue: mockAppCheckService },
       ],
     });
 
@@ -498,6 +530,28 @@ describe("FirestoreAdapterService (native)", () => {
   });
 
   describe("getDocument (native)", () => {
+    it("waits for App Check initialization before using the native SDK", async () => {
+      let resolveAppCheck!: () => void;
+      mockAppCheckService.initialize.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveAppCheck = resolve;
+        })
+      );
+
+      const resultPromise = service.getDocument("collection/doc-id");
+      await Promise.resolve();
+
+      expect(FirebaseFirestore.getDocument).not.toHaveBeenCalled();
+
+      resolveAppCheck();
+      await resultPromise;
+
+      expect(mockAppCheckService.initialize).toHaveBeenCalledTimes(1);
+      expect(FirebaseFirestore.getDocument).toHaveBeenCalledWith({
+        reference: "collection/doc-id",
+      });
+    });
+
     it("should call native getDocument", async () => {
       const result = await service.getDocument<{ name: string; id: string }>(
         "collection/doc-id"
@@ -961,6 +1015,8 @@ describe("FirestoreAdapterService (native)", () => {
         .subscribe((value) => {
           received = value;
         });
+      await Promise.resolve();
+      await Promise.resolve();
 
       expect(FirebaseFirestore.addDocumentSnapshotListener).toHaveBeenCalledWith(
         { reference: "collection/doc-id" },
@@ -996,6 +1052,8 @@ describe("FirestoreAdapterService (native)", () => {
         .subscribe((value) => {
           received = value;
         });
+      await Promise.resolve();
+      await Promise.resolve();
 
       expect(FirebaseFirestore.addCollectionSnapshotListener).toHaveBeenCalledWith(
         expect.objectContaining({ reference: "collection" }),
@@ -1017,6 +1075,8 @@ describe("FirestoreAdapterService (native)", () => {
       const subscription = service
         .documentSnapshots("collection/doc-id")
         .subscribe();
+      await Promise.resolve();
+      await Promise.resolve();
       subscription.unsubscribe();
 
       await Promise.resolve();

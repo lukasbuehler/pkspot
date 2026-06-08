@@ -18,6 +18,7 @@ import {
 // Native imports (Capacitor Firebase)
 import { FirebaseStorage } from "@capacitor-firebase/storage";
 import { Filesystem, Directory } from "@capacitor/filesystem";
+import { FirebaseAppCheckService } from "./app-check.service";
 
 /**
  * Options for uploading a file to Firebase Storage.
@@ -65,6 +66,7 @@ export interface UploadFileOptions {
 })
 export class StorageAdapterService {
   private platformService = inject(PlatformService);
+  private appCheckService = inject(FirebaseAppCheckService);
   private storage = inject(Storage);
   private injector = inject(Injector);
 
@@ -72,6 +74,10 @@ export class StorageAdapterService {
     console.log(
       `[StorageAdapter] Initialized for platform: ${this.platformService.getPlatform()}`
     );
+  }
+
+  private ensureAppCheckReady(): Promise<void> {
+    return this.appCheckService.initialize();
   }
 
   // ============================================================================
@@ -84,6 +90,7 @@ export class StorageAdapterService {
    * @returns Promise resolving to the public download URL
    */
   async uploadFile(options: UploadFileOptions): Promise<string> {
+    await this.ensureAppCheckReady();
     if (this.platformService.isNative()) {
       return this.uploadFileNative(options);
     }
@@ -288,6 +295,7 @@ export class StorageAdapterService {
    * @param path Full path to the file in storage
    */
   async deleteFile(path: string): Promise<void> {
+    await this.ensureAppCheckReady();
     if (this.platformService.isNative()) {
       return this.deleteFileNative(path);
     }
@@ -315,6 +323,7 @@ export class StorageAdapterService {
    * @returns Promise resolving to the download URL
    */
   async getDownloadUrl(path: string): Promise<string> {
+    await this.ensureAppCheckReady();
     if (this.platformService.isNative()) {
       return this.getDownloadUrlNative(path);
     }

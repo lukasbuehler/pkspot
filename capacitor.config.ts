@@ -1,3 +1,4 @@
+/// <reference types="@capacitor-firebase/app-check" />
 /// <reference types="@capacitor-firebase/authentication" />
 
 import type { CapacitorConfig } from "@capacitor/cli";
@@ -9,6 +10,17 @@ const config: CapacitorConfig = {
   webDir: "dist/pkspot/browser",
   ios: {
     loggingBehavior: "debug", // Logs JS console to Xcode console
+  },
+  experimental: {
+    ios: {
+      spm: {
+        packageOptions: {
+          "@capacitor-firebase/app-check": {
+            symlink: true,
+          },
+        },
+      },
+    },
   },
   server: {
     hostname: "pkspot.app",

@@ -12,6 +12,11 @@ export const environment = {
       previewMinZoom: 13,
     },
   },
+  appCheck: {
+    enabled: false,
+    recaptchaEnterpriseSiteKey: "",
+    debugToken: false,
+  },
   keys: {
     firebaseConfig: {
       projectId: "",

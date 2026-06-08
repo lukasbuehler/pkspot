@@ -44,6 +44,7 @@ import {
   FieldValue as CapacitorFieldValue,
 } from "@capacitor-firebase/firestore";
 import { transformFirestoreData } from "../../../scripts/Helpers";
+import { FirebaseAppCheckService } from "./app-check.service";
 
 /**
  * Query filter for Firestore queries.
@@ -89,6 +90,7 @@ export interface QueryConstraintOptions {
 })
 export class FirestoreAdapterService {
   private platformService = inject(PlatformService);
+  private appCheckService = inject(FirebaseAppCheckService);
   private firestore = inject(Firestore);
   private ngZone = inject(NgZone);
   private injector = inject(Injector);
@@ -102,6 +104,34 @@ export class FirestoreAdapterService {
     console.log(
       `[FirestoreAdapter] Initialized for platform: ${this.platformService.getPlatform()}`
     );
+  }
+
+  private ensureAppCheckReady(): Promise<void> {
+    return this.appCheckService.initialize();
+  }
+
+  private waitForAppCheck<T>(createObservable: () => Observable<T>): Observable<T> {
+    return new Observable<T>((observer) => {
+      let teardown: (() => void) | null = null;
+      let unsubscribed = false;
+
+      this.ensureAppCheckReady()
+        .then(() => {
+          if (unsubscribed) {
+            return;
+          }
+          const subscription = createObservable().subscribe(observer);
+          teardown = () => subscription.unsubscribe();
+        })
+        .catch((error) => {
+          this.ngZone.run(() => observer.error(error));
+        });
+
+      return () => {
+        unsubscribed = true;
+        teardown?.();
+      };
+    });
   }
 
   private removeSnapshotListenerSafe(callbackId: string): void {
@@ -830,6 +860,7 @@ export class FirestoreAdapterService {
    * @returns Promise resolving to document data or null if not found
    */
   async getDocument<T>(path: string): Promise<T | null> {
+    await this.ensureAppCheckReady();
     if (this.platformService.isNative()) {
       return this.getDocumentNative<T>(path);
     }
@@ -876,6 +907,7 @@ export class FirestoreAdapterService {
     data: T,
     options?: { merge?: boolean }
   ): Promise<void> {
+    await this.ensureAppCheckReady();
     if (this.platformService.isNative()) {
       return this.setDocumentNative(path, data, options);
     }
@@ -914,6 +946,7 @@ export class FirestoreAdapterService {
     path: string,
     data: Partial<T>
   ): Promise<void> {
+    await this.ensureAppCheckReady();
     if (this.platformService.isNative()) {
       return this.updateDocumentNative(path, data);
     }
@@ -945,6 +978,7 @@ export class FirestoreAdapterService {
    * @param path Full document path
    */
   async deleteDocument(path: string): Promise<void> {
+    await this.ensureAppCheckReady();
     if (this.platformService.isNative()) {
       return this.deleteDocumentNative(path);
     }
@@ -974,6 +1008,7 @@ export class FirestoreAdapterService {
     collectionPath: string,
     data: T
   ): Promise<string> {
+    await this.ensureAppCheckReady();
     if (this.platformService.isNative()) {
       return this.addDocumentNative(collectionPath, data);
     }
@@ -1019,6 +1054,7 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
+    await this.ensureAppCheckReady();
     const useNativeBridge = this.shouldUseNativeQueryBridge();
     return this.runCollectionQuery(
       "getCollection",
@@ -1151,10 +1187,11 @@ export class FirestoreAdapterService {
    * @returns Observable that emits document data on changes
    */
   documentSnapshots<T>(path: string): Observable<T | null> {
-    if (this.platformService.isNative()) {
-      return this.documentSnapshotsNative<T>(path);
-    }
-    return this.documentSnapshotsWeb<T>(path);
+    return this.waitForAppCheck(() =>
+      this.platformService.isNative()
+        ? this.documentSnapshotsNative<T>(path)
+        : this.documentSnapshotsWeb<T>(path)
+    );
   }
 
   private documentSnapshotsWeb<T>(path: string): Observable<T | null> {
@@ -1241,14 +1278,11 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Observable<T[]> {
-    if (this.platformService.isNative()) {
-      return this.collectionSnapshotsNative<T>(
-        collectionPath,
-        filters,
-        constraints
-      );
-    }
-    return this.collectionSnapshotsWeb<T>(collectionPath, filters, constraints);
+    return this.waitForAppCheck(() =>
+      this.platformService.isNative()
+        ? this.collectionSnapshotsNative<T>(collectionPath, filters, constraints)
+        : this.collectionSnapshotsWeb<T>(collectionPath, filters, constraints)
+    );
   }
 
   private collectionSnapshotsWeb<T>(
@@ -1405,6 +1439,7 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
+    await this.ensureAppCheckReady();
     const useNativeBridge = this.shouldUseNativeQueryBridge();
     return this.runCollectionQuery(
       "getCollectionGroup",
@@ -1470,6 +1505,7 @@ export class FirestoreAdapterService {
     constraints?: QueryConstraintOptions[],
     startAfterDoc?: any
   ): Promise<{ data: Array<T & { id: string; path: string }>; lastDoc: any }> {
+    await this.ensureAppCheckReady();
     if (this.shouldUseNativeQueryBridge()) {
       console.warn(
         "getCollectionGroupWithMetadata pagination not fully supported on native yet."
@@ -1604,17 +1640,10 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Observable<T[]> {
-    if (this.platformService.isNative()) {
-      return this.collectionGroupSnapshotsNative<T>(
-        collectionId,
-        filters,
-        constraints
-      );
-    }
-    return this.collectionGroupSnapshotsWeb<T>(
-      collectionId,
-      filters,
-      constraints
+    return this.waitForAppCheck(() =>
+      this.platformService.isNative()
+        ? this.collectionGroupSnapshotsNative<T>(collectionId, filters, constraints)
+        : this.collectionGroupSnapshotsWeb<T>(collectionId, filters, constraints)
     );
   }
 
@@ -1658,16 +1687,16 @@ export class FirestoreAdapterService {
   ): Observable<Array<T & { id: string; path: string }>> {
     const injector = this.injector;
 
-    if (this.platformService.isNative()) {
-      return this.collectionGroupSnapshotsNativeWithMetadata<T>(
-        collectionId,
-        filters,
-        constraints
-      );
-    }
+    return this.waitForAppCheck(() => {
+      if (this.platformService.isNative()) {
+        return this.collectionGroupSnapshotsNativeWithMetadata<T>(
+          collectionId,
+          filters,
+          constraints
+        );
+      }
 
-    return new Observable<Array<T & { id: string; path: string }>>(
-      (observer) => {
+      return new Observable<Array<T & { id: string; path: string }>>((observer) => {
         return runInInjectionContext(injector, () => {
           const collGroupRef = collectionGroup(this.firestore, collectionId);
           const q = query(
@@ -1690,8 +1719,8 @@ export class FirestoreAdapterService {
           );
           return () => unsubscribe();
         });
-      }
-    );
+      });
+    });
   }
 
   private collectionGroupSnapshotsNative<T>(
