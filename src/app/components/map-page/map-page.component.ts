@@ -93,6 +93,7 @@ import { SpotEdit } from "../../../db/models/SpotEdit";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { MatDialog } from "@angular/material/dialog";
@@ -263,6 +264,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _structuredDataService = inject(StructuredDataService);
   private _backHandlingService = inject(BackHandlingService);
   private _analytics = inject(AnalyticsService);
+  readonly ageAssurance = inject(AgeAssuranceService);
   private _pendingCommunityFocusSlug: string | null = null;
 
   /** Viewport counts for object type chips. */

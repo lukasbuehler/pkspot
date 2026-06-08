@@ -73,6 +73,7 @@ import { AnyMedia } from "../../../db/models/Media";
 
 import { GeolocationService } from "../../services/geolocation.service";
 import { CheckInService } from "../../services/check-in.service";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { environment } from "../../../environments/environment";
 import { StartRegionService } from "../../services/start-region.service";
 import {
@@ -270,6 +271,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   // Check-In Service integration
   private _checkInService = inject(CheckInService);
+  private _ageAssuranceService = inject(AgeAssuranceService);
   readonly checkInEnabled = environment.features.checkIns;
 
   // Expose check-in spot to template
@@ -1122,6 +1124,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
+    if (!this._ageAssuranceService.canParticipatePublicly()) {
+      this.snackBar.open(
+        this._ageAssuranceService.getRestrictionMessage(),
+        $localize`Dismiss`,
+        { duration: 6000 }
+      );
+      return;
+    }
+
     if (!this.map || !this.map.googleMap) return;
 
     let center_coordinates: google.maps.LatLngLiteral | undefined =
@@ -1182,6 +1193,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   async saveSpot(spot: LocalSpot | Spot) {
+    if (!this._ageAssuranceService.canParticipatePublicly()) {
+      this.snackBar.open(
+        this._ageAssuranceService.getRestrictionMessage(),
+        $localize`Dismiss`,
+        { duration: 6000 }
+      );
+      return;
+    }
+
     // Get the current polygon paths from the map component using the proper method
     if (this.map && this.isEditing()) {
       // Try the main async method first

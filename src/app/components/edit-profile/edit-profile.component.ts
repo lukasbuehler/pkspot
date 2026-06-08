@@ -46,6 +46,7 @@ import {
   UserSocialsSchema,
 } from "../../../db/schemas/UserSchema";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
 
 type NormalizedSocials = {
   instagram_handle?: string;
@@ -113,6 +114,7 @@ export class EditProfileComponent implements OnInit {
     private _userService: UsersService,
     private _storageService: StorageService,
     private _snackbar: MatSnackBar,
+    private _ageAssuranceService: AgeAssuranceService,
     @Inject(LOCALE_ID) public locale: LocaleCode
   ) {}
 
@@ -260,6 +262,19 @@ export class EditProfileComponent implements OnInit {
       return;
     }
 
+    if (!this._ageAssuranceService.canParticipatePublicly()) {
+      this._snackbar.open(
+        this._ageAssuranceService.getRestrictionMessage(),
+        "Dismiss",
+        {
+          duration: 6000,
+          horizontalPosition: "center",
+          verticalPosition: "bottom",
+        }
+      );
+      return;
+    }
+
     this._handleProfilePictureUploadAndSave()
       .then(() => {
         console.log("saveNewProfilePicture success");
@@ -401,6 +416,18 @@ export class EditProfileComponent implements OnInit {
 
   saveAllChanges(): Promise<void> {
     if (!this.user || !this.user.uid) return Promise.reject("No user");
+    if (!this._ageAssuranceService.canParticipatePublicly()) {
+      this._snackbar.open(
+        this._ageAssuranceService.getRestrictionMessage(),
+        "Dismiss",
+        {
+          duration: 6000,
+          horizontalPosition: "center",
+          verticalPosition: "bottom",
+        }
+      );
+      return Promise.reject("Public profile participation is read-only");
+    }
 
     const data: Partial<UserSchema> = {};
 

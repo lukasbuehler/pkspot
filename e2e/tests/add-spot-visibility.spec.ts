@@ -68,4 +68,56 @@ test.describe("Add Spot Button Visibility", () => {
     await expect(addSpotButton).toBeVisible();
     await expect(addSpotButton).toContainText(/Add Spot|Spot hinzufügen/);
   });
+
+  test("should hide the Add Spot button when signed in but contribution restricted", async ({
+    page,
+  }) => {
+    await page.evaluate(() => {
+      localStorage.setItem(
+        "pkspot.mockAgePolicyState.v1",
+        "read_only_age_restricted"
+      );
+    });
+
+    const mockApplied = await page.evaluate(() => {
+      const angular = (window as unknown as { ng?: {
+        getComponent?: (element: Element) => unknown;
+        applyChanges?: (component: unknown) => void;
+      } }).ng;
+
+      if (!angular?.getComponent) {
+        return false;
+      }
+
+      const mapPageEl = document.querySelector("app-map-page");
+      const spotMapEl = document.querySelector("app-spot-map");
+      if (!mapPageEl || !spotMapEl) {
+        return false;
+      }
+
+      const mapPageComponent = angular.getComponent(mapPageEl) as {
+        isSignedIn?: { set: (value: boolean) => void };
+      };
+      const spotMapComponent = angular.getComponent(spotMapEl) as {
+        mapZoom?: { set: (value: number) => void };
+      };
+
+      if (!mapPageComponent?.isSignedIn || !spotMapComponent?.mapZoom) {
+        return false;
+      }
+
+      mapPageComponent.isSignedIn.set(true);
+      spotMapComponent.mapZoom.set(15);
+      angular.applyChanges?.(mapPageComponent);
+      angular.applyChanges?.(spotMapComponent);
+      return true;
+    });
+
+    test.skip(
+      !mockApplied,
+      "Angular debug APIs are unavailable in the built E2E app."
+    );
+    const addSpotButton = page.locator("#createSpotSpeedDial");
+    await expect(addSpotButton).not.toBeVisible();
+  });
 });

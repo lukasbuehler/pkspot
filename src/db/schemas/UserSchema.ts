@@ -11,6 +11,31 @@ export interface UserSocialsSchema {
   other?: UserSocialCustomLinkSchema[];
 }
 
+export type AgeParticipationState =
+  | "allowed"
+  | "read_only_age_restricted"
+  | "needs_age_signal"
+  | "needs_parental_consent"
+  | "age_signal_declined_required"
+  | "platform_signal_unavailable";
+
+export interface UserAgePolicySchema {
+  participation_state?: AgeParticipationState;
+  source?:
+    | "android_play_age_signals"
+    | "ios_declared_age_range"
+    | "web_tos"
+    | "manual";
+  platform?: "android" | "ios" | "web";
+  signal_updated_at?: Timestamp | Date;
+  reason?: string;
+  age_range?: {
+    lower?: number;
+    upper?: number;
+  };
+  required_regulatory_features?: string[];
+}
+
 export interface UserSchema {
   display_name?: string;
   biography?: string;
@@ -34,6 +59,7 @@ export interface UserSchema {
   invite_code?: string;
   home_city?: string;
   socials?: UserSocialsSchema;
+  age_policy?: UserAgePolicySchema;
 
   creationDate?: Timestamp;
   // NOTE: bookmarks, visited_spots, and settings are now in private_data subcollection

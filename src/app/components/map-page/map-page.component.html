@@ -197,6 +197,7 @@
       [geolocationIcon]="geolocationIcon()"
       [showCreateSpot]="
         isSignedIn() &&
+        ageAssurance.canParticipatePublicly() &&
         !compactTabletSidenavOpen() &&
         !selectedSpot() &&
         !isEditing() &&

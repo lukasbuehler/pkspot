@@ -57,6 +57,7 @@ const USERS = {
   uploader: "media-flow-uploader",
   other: "media-flow-other",
   admin: "media-flow-admin",
+  restricted: "media-flow-restricted",
 };
 
 async function resetEmulators() {
@@ -152,10 +153,19 @@ async function main() {
     display_name: "Media Flow Admin",
     is_admin: true,
   });
+  await adminDb.collection("users").doc(USERS.restricted).set({
+    display_name: "Media Flow Restricted",
+    age_policy: {
+      participation_state: "read_only_age_restricted",
+      source: "android_play_age_signals",
+      platform: "android",
+    },
+  });
 
   const uploader = await createClient("uploader", USERS.uploader);
   const other = await createClient("other", USERS.other);
   const adminClient = await createClient("admin", USERS.admin);
+  const restricted = await createClient("restricted", USERS.restricted);
   const anonymous = await createClient("anonymous");
   const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
 
@@ -178,6 +188,9 @@ async function main() {
   );
   await assertDenied("profile picture svg upload", () =>
     uploadAs(uploader, `profile_pictures/${USERS.uploader}`, "image/svg+xml")
+  );
+  await assertDenied("restricted profile picture upload", () =>
+    uploadAs(restricted, `profile_pictures/${USERS.restricted}`, "image/png")
   );
 
   console.log("Checking spot media upload rules...");
@@ -202,6 +215,9 @@ async function main() {
       metadataUid: USERS.other,
     })
   );
+  await assertDenied("restricted spot image upload", () =>
+    uploadAs(restricted, `spot_pictures/restricted-${suffix}.jpg`, "image/jpeg")
+  );
   await assertDenied("signed-in upload to unknown path", () =>
     uploadAs(uploader, `random_bucket/${suffix}.jpg`, "image/jpeg")
   );
@@ -209,6 +225,12 @@ async function main() {
   console.log("Checking post and challenge media paths...");
   await uploadAs(uploader, `post_media/${suffix}.mp4`, "video/mp4");
   await uploadAs(uploader, `challenges/${suffix}.mov`, "video/quicktime");
+  await assertDenied("restricted post media upload", () =>
+    uploadAs(restricted, `post_media/restricted-${suffix}.mp4`, "video/mp4")
+  );
+  await assertDenied("restricted challenge media upload", () =>
+    uploadAs(restricted, `challenges/restricted-${suffix}.mov`, "video/quicktime")
+  );
   await assertDenied("post media extension/content type mismatch", () =>
     uploadAs(uploader, `post_media/mismatch-${suffix}.mp4`, "image/jpeg")
   );

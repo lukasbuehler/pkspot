@@ -106,8 +106,13 @@
                 </div>
               </div>
 
+              @if (isMyProfile && !ageAssurance.canParticipatePublicly()) {
+              <app-contribution-status-note></app-contribution-status-note>
+              }
+
               @if (!isMyProfile) {
               <div class="profile-overview__actions w-100 d-flex gap-2" aria-label="Profile actions">
+                @if (ageAssurance.canParticipatePublicly()) {
                 <button [matButton]="isFollowing ? 'outlined' : 'filled'" color="primary"
                   class="profile-overview__action flex-grow-1 flex-basis-0" (click)="followButtonClick()">
                   @if (loadingFollowing) {
@@ -119,6 +124,7 @@
                   <span i18n>Follow</span>
                   }
                 </button>
+                }
                 <!-- <button
                   mat-stroked-button
                   color="primary"
@@ -143,10 +149,12 @@
                   routerLink="/settings/general">
                   Settings
                 </button>
+                @if (ageAssurance.canParticipatePublicly()) {
                 <button mat-stroked-button color="accent" class="profile-overview__action flex-grow-1 flex-basis-0"
                   routerLink="/settings/profile">
                   Edit Profile
                 </button>
+                }
                 <button mat-stroked-button color="warn" class="profile-overview__action flex-grow-1 flex-basis-0"
                   (click)="logOut()" i18n>
                   Log out

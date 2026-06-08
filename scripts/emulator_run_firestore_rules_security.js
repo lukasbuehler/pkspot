@@ -251,6 +251,19 @@ async function seedSecurityFixture() {
     display_name: "Admin",
     is_admin: true,
   });
+  batch.set(adminDb.doc("users/restricted"), {
+    display_name: "Restricted",
+    is_admin: false,
+    age_policy: {
+      participation_state: "read_only_age_restricted",
+      source: "android_play_age_signals",
+      platform: "android",
+      signal_updated_at: admin.firestore.Timestamp.now(),
+    },
+  });
+  batch.set(adminDb.doc("users/restricted/private_data/profile"), {
+    bookmarks: ["public-spot"],
+  });
   batch.set(adminDb.doc("users/owner/private_data/profile"), {
     bookmarks: ["public-spot"],
   });
@@ -694,6 +707,63 @@ async function testUserReportGuards(anon, owner, other) {
   );
 }
 
+async function testAgePolicyParticipationGuards(restricted) {
+  await assertAllowed("restricted user reads public profile", () =>
+    getDoc(doc(restricted.db, "users/owner"))
+  );
+  await assertAllowed("restricted user writes private saved spots", () =>
+    setDoc(doc(restricted.db, "users/restricted/private_data/profile"), {
+      bookmarks: ["public-spot", "verified-spot"],
+      visited_spots: ["public-spot"],
+    })
+  );
+  await assertDenied("restricted user edits public profile fields", () =>
+    updateDoc(doc(restricted.db, "users/restricted"), {
+      biography: "Public profile update should be blocked",
+    })
+  );
+  await assertAllowed("restricted user can update block list", () =>
+    updateDoc(doc(restricted.db, "users/restricted"), {
+      blocked_users: ["other"],
+    })
+  );
+  await assertDenied("restricted user cannot create spot placeholder", () =>
+    setDoc(doc(restricted.db, "spots/restricted-new-spot"), {})
+  );
+  await assertDenied("restricted user cannot create public spot edit", () =>
+    addDoc(collection(restricted.db, "spots/public-spot/edits"), {
+      type: "UPDATE",
+      user: { uid: "restricted" },
+      data: { description: { en: "blocked" } },
+    })
+  );
+  await assertDenied("restricted user cannot create spot review", () =>
+    setDoc(doc(restricted.db, "spots/public-spot/reviews/restricted"), {
+      rating: 5,
+      user: { uid: "restricted" },
+    })
+  );
+  await assertDenied("restricted user cannot follow another user", () =>
+    setDoc(doc(restricted.db, "users/restricted/following/owner"), {
+      created_at_raw_ms: 3,
+    })
+  );
+  await assertDenied("restricted user cannot create public post", () =>
+    setDoc(doc(restricted.db, "posts/restricted-post"), {
+      user: { uid: "restricted" },
+      text: "blocked",
+    })
+  );
+  await assertDenied("restricted user cannot RSVP to event", () =>
+    setDoc(doc(restricted.db, "events/event-1/rsvps/restricted"), {
+      user_id: "restricted",
+      event_id: "event-1",
+      rsvp: "going",
+      time_updated: Timestamp.now(),
+    })
+  );
+}
+
 async function testReadOnlyBackendCollections(owner) {
   for (const [label, path] of [
     ["spot cluster", "spot_clusters/z16_1_2"],
@@ -1034,6 +1104,7 @@ async function main() {
   const owner = await createClient("owner");
   const other = await createClient("other");
   const fresh = await createClient("fresh");
+  const restricted = await createClient("restricted");
   const adminUser = await createClient("admin");
 
   console.log("Running Firestore rules security tests...");
@@ -1043,6 +1114,7 @@ async function main() {
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);
   await testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh);
   await testUserReportGuards(anon, owner, other);
+  await testAgePolicyParticipationGuards(restricted);
   await testReadOnlyBackendCollections(owner);
   await testContactMessageGuards(anon, owner, other);
   await testEventWriteGuards(owner, adminUser);

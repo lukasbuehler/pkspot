@@ -286,7 +286,7 @@
       </app-img-carousel>
       }
       <!-- if the user is signed in, show an add media button to upload new media -->
-      @if (authenticationService.isSignedIn && !isLocalSpot()) {
+      @if (authenticationService.isSignedIn && canParticipatePublicly() && !isLocalSpot()) {
       <button matButton="outlined" class="mb-3" color="primary" (click)="openMediaUploadDialog()">
         <mat-icon>add_photo_alternate</mat-icon>
         <span i18n="@@add_media.label">Add Media</span>
@@ -548,6 +548,7 @@
     @if (authenticationService.isSignedIn && editable) {
     <mat-divider></mat-divider>
     <div class="d-flex my-3 gap-2">
+      @if (canParticipatePublicly()) {
       <button mat-stroked-button i18n-matTooltip="
                 edit spot tooltip|Tooltip for edit spot
                 button@@spot.edit.tooltip" matTooltip="Edit this spot" i18n-aria-label="
@@ -557,6 +558,7 @@
         <mat-icon>edit</mat-icon>
         <span i18n="Edit button label|Label of the button to edit the spot">Edit Spot</span>
       </button>
+      }
       <a mat-stroked-button [routerLink]="['/map', 'spots', spotSlugOrId(), 'edits']" [queryParams]="mapQueryParams()"
         queryParamsHandling="merge"
         (click)="editHistoryButtonClick()" class="flex-grow-1 flex-basis-0" i18n-matTooltip="
@@ -790,7 +792,7 @@
       }
 
       <!-- Image upload -->
-      @if (!isNewSpot) {
+      @if (!isNewSpot && canParticipatePublicly()) {
       <div class="w-full pb-3 pt-2">
         <button matButton="filled" color="primary" (click)="openMediaUploadDialog()">
           <mat-icon>add_photo_alternate</mat-icon>

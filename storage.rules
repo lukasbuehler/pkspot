@@ -12,6 +12,17 @@ service firebase.storage {
         && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('is_admin', false) == true;
     }
 
+    function agePolicyAllowsPublicParticipation() {
+      return isSignedIn()
+        && (
+          !firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+          || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('age_policy', {}).get('participation_state', 'allowed') in [
+            'allowed',
+            'platform_signal_unavailable'
+          ]
+        );
+    }
+
     function hasOwnerMetadata() {
       return request.resource != null
         && request.resource.metadata.uid == request.auth.uid;
@@ -72,6 +83,7 @@ service firebase.storage {
     match /profile_pictures/{filename} {
       allow read: if true;
       allow create, update: if isProfilePictureFilename(filename)
+        && agePolicyAllowsPublicParticipation()
         && hasOwnerMetadata()
         && isAllowedImage()
         && isUnderSize(10 * 1024 * 1024);
@@ -81,6 +93,7 @@ service firebase.storage {
     match /spot_pictures/{filename} {
       allow read: if true;
       allow create: if isSignedIn()
+        && agePolicyAllowsPublicParticipation()
         && hasOwnerMetadata()
         && isAllowedImageUpload(filename)
         && isUnderSize(50 * 1024 * 1024);
@@ -89,6 +102,7 @@ service firebase.storage {
     match /post_media/{filename} {
       allow read: if true;
       allow create: if isSignedIn()
+        && agePolicyAllowsPublicParticipation()
         && hasOwnerMetadata()
         && (isAllowedImageUpload(filename) || isAllowedVideoUpload(filename))
         && isUnderSize(500 * 1024 * 1024);
@@ -97,6 +111,7 @@ service firebase.storage {
     match /challenges/{filename} {
       allow read: if true;
       allow create: if isSignedIn()
+        && agePolicyAllowsPublicParticipation()
         && hasOwnerMetadata()
         && (isAllowedImageUpload(filename) || isAllowedVideoUpload(filename))
         && isUnderSize(500 * 1024 * 1024);

@@ -80,6 +80,7 @@ import { CheckInService } from "./services/check-in.service";
 import { SpotId } from "../db/schemas/SpotSchema";
 import { MetaTagService } from "./services/meta-tag.service";
 import { KeyboardService } from "./services/keyboard.service";
+import { AgeAssuranceService } from "./services/age-assurance.service";
 import type { ContentType } from "./resolvers/content.resolver";
 import { APP_LINKS } from "./shared/app-links";
 import { buildUnembeddedUrlFromHref } from "./shared/embedded-url";
@@ -193,6 +194,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private _backHandlingService = inject(BackHandlingService);
   private _keyboardService = inject(KeyboardService);
+  private _ageAssuranceService = inject(AgeAssuranceService);
   public checkInService = inject(CheckInService);
   readonly checkInEnabled = environment.features.checkIns;
   readonly activityEnabled = environment.features.activity;
@@ -297,6 +299,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     // Setup auth state listener immediately for session restoration
     // (This is now safe - only reCAPTCHA-triggering operations like sign-up require consent)
     this.setupAuthStateListener();
+    this.authService.authState$.subscribe((authUser) => {
+      if (authUser?.uid) {
+        void this._ageAssuranceService.syncNativeAgePolicyForCurrentUser();
+      }
+    });
 
     this.maybeOpenInitialWelcomeDialog();
 
