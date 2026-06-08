@@ -19,13 +19,8 @@
     >
       @for(locale of filteredOptions | async; track $index) {
       <mat-option [value]="locale">
-        <!-- @if(spot.hasMedia()) { <img [src]="spot.previewImageSrc()" alt="Img" /> } -->
-        <span
-          >{{ languages[locale].emoji ?? "" }}
-          {{ languages[locale].name_native ?? data.locale }}</span
-        >
-
-        <!-- <small>{{ languages[locale].name_english ?? "" }}</small> -->
+        <span>{{ languages[locale].name_native ?? locale }}</span>
+        <small class="text-secondary ms-2">{{ locale }}</small>
       </mat-option>
       }
     </mat-autocomplete>

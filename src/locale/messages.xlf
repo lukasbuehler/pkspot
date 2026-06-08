@@ -11,6 +11,11 @@
         <source>Policy</source>
       </segment>
     </unit>
+    <unit id="open-embedded-in-pkspot-button-aria-label">
+      <segment>
+        <source>Open this on PK Spot</source>
+      </segment>
+    </unit>
     <unit id="open-embedded-in-pkspot-button-label">
       <segment>
         <source>Open this on PK Spot</source>
@@ -24,6 +29,21 @@
     <unit id="4250467317941972098">
       <segment>
         <source> Log out </source>
+      </segment>
+    </unit>
+    <unit id="4262052603921665097">
+      <segment>
+        <source>Failed to load moderation dashboard</source>
+      </segment>
+    </unit>
+    <unit id="map_event_filter.live">
+      <segment>
+        <source>Live</source>
+      </segment>
+    </unit>
+    <unit id="map_event_filters_aria_label">
+      <segment>
+        <source>Event filters</source>
       </segment>
     </unit>
     <unit id="map_island.community_open">
@@ -41,19 +61,9 @@
         <source>Open</source>
       </segment>
     </unit>
-    <unit id="map_island.event_sponsored_live">
+    <unit id="spot.upcoming_events.header">
       <segment>
-        <source>Promoted Live Event</source>
-      </segment>
-    </unit>
-    <unit id="map_island.event_sponsored_upcoming">
-      <segment>
-        <source>Promoted Upcoming Event</source>
-      </segment>
-    </unit>
-    <unit id="map_island.event_upcoming">
-      <segment>
-        <source>Upcoming Event</source>
+        <source> Upcoming events </source>
       </segment>
     </unit>
     <unit id="map_label">
@@ -143,6 +153,11 @@
         <source>Mark this spot as visited</source>
       </segment>
     </unit>
+    <unit id="about.crew.contact_button">
+      <segment>
+        <source>Join us</source>
+      </segment>
+    </unit>
     <unit id="about_page_label">
       <notes>
         <note category="description">A very short label for the navbar about page button</note>
@@ -157,14 +172,19 @@
         <source>Account</source>
       </segment>
     </unit>
+    <unit id="4093287037558611372">
+      <segment>
+        <source>Personal or unsafe profile information</source>
+      </segment>
+    </unit>
     <unit id="2551128161531504907">
       <segment>
         <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> for everything parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
       </segment>
     </unit>
-    <unit id="5885323567263446594">
+    <unit id="5881351283414819200">
       <segment>
-        <source> Freerun Zürich member </source>
+        <source>No contact messages yet.</source>
       </segment>
     </unit>
     <unit id="5897595860261783392">
@@ -207,14 +227,34 @@
         <source> Choose the language used in the app. </source>
       </segment>
     </unit>
+    <unit id="1055686627716339120">
+      <segment>
+        <source>Archive</source>
+      </segment>
+    </unit>
+    <unit id="4854396465510517671">
+      <segment>
+        <source>Target</source>
+      </segment>
+    </unit>
     <unit id="4867740992596809732">
       <segment>
         <source>Verified organization removed</source>
       </segment>
     </unit>
+    <unit id="4878856420342830743">
+      <segment>
+        <source>Loading moderation dashboard...</source>
+      </segment>
+    </unit>
     <unit id="4881902536872851671">
       <segment>
         <source>Sign in to vote on this edit.</source>
+      </segment>
+    </unit>
+    <unit id="6684903098036930968">
+      <segment>
+        <source>Delete media</source>
       </segment>
     </unit>
     <unit id="6698699817404417146">
@@ -242,17 +282,14 @@
         <source>Organization members</source>
       </segment>
     </unit>
+    <unit id="6943542297023366963">
+      <segment>
+        <source>Contact Form</source>
+      </segment>
+    </unit>
     <unit id="6944287574672504844">
       <segment>
         <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> ground. </source>
-      </segment>
-    </unit>
-    <unit id="977584861053902811">
-      <notes>
-        <note category="description">seconds short</note>
-      </notes>
-      <segment>
-        <source>s.</source>
       </segment>
     </unit>
     <unit id="6910865064463105075">
@@ -305,9 +342,24 @@
         <source> Start Exploring </source>
       </segment>
     </unit>
+    <unit id="5137148690998116244">
+      <segment>
+        <source>Impersonation</source>
+      </segment>
+    </unit>
+    <unit id="5141203522177015720">
+      <segment>
+        <source> Review community reports and contact messages. </source>
+      </segment>
+    </unit>
     <unit id="744750008248382275">
       <segment>
         <source> Sign Up </source>
+      </segment>
+    </unit>
+    <unit id="7462147415369156631">
+      <segment>
+        <source>Open target</source>
       </segment>
     </unit>
     <unit id="746689080802550943">
@@ -470,6 +522,11 @@
         <source>This link is invalid or has expired. Please request a new one.</source>
       </segment>
     </unit>
+    <unit id="6266780676699111627">
+      <segment>
+        <source> Latest open spot and media reports. </source>
+      </segment>
+    </unit>
     <unit id="6275309169485929724">
       <segment>
         <source>Authentication Error</source>
@@ -630,6 +687,11 @@
         <source>Recovery Failed</source>
       </segment>
     </unit>
+    <unit id="8665225557897160418">
+      <segment>
+        <source>Spot report</source>
+      </segment>
+    </unit>
     <unit id="8672443665211234755">
       <segment>
         <source>This link has expired. Please request a new one.</source>
@@ -670,6 +732,11 @@
         <source> No public edits yet. </source>
       </segment>
     </unit>
+    <unit id="7053728652419731548">
+      <segment>
+        <source>Session replay</source>
+      </segment>
+    </unit>
     <unit id="7059749880989073519">
       <segment>
         <source>Water challenge</source>
@@ -700,6 +767,16 @@
         <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}"/>, at <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}"/>. </source>
       </segment>
     </unit>
+    <unit id="7408848507140682339">
+      <segment>
+        <source>Keep warning</source>
+      </segment>
+    </unit>
+    <unit id="2472016265373616532">
+      <segment>
+        <source>Open Data License</source>
+      </segment>
+    </unit>
     <unit id="2496518471623524249">
       <segment>
         <source>Uploaded by: </source>
@@ -713,6 +790,11 @@
     <unit id="7585826646011739428">
       <segment>
         <source>Edit</source>
+      </segment>
+    </unit>
+    <unit id="7593555694782789615">
+      <segment>
+        <source>Open</source>
       </segment>
     </unit>
     <unit id="7599542245105770623">
@@ -826,6 +908,16 @@
       </notes>
       <segment>
         <source>Cancel</source>
+      </segment>
+    </unit>
+    <unit id="2159535252430707382">
+      <segment>
+        <source>Moderation action recorded</source>
+      </segment>
+    </unit>
+    <unit id="2197674250183489104">
+      <segment>
+        <source>Loading reports...</source>
       </segment>
     </unit>
     <unit id="2198590276913934346">
@@ -994,9 +1086,19 @@
         <source>Copy</source>
       </segment>
     </unit>
+    <unit id="4386559202007821626">
+      <segment>
+        <source>The Crew</source>
+      </segment>
+    </unit>
     <unit id="4392375821538337917">
       <segment>
         <source>No events scheduled yet.</source>
+      </segment>
+    </unit>
+    <unit id="4399476985310100803">
+      <segment>
+        <source>Open all reports</source>
       </segment>
     </unit>
     <unit id="crop.preview">
@@ -1017,9 +1119,19 @@
         <source> Crop the image above </source>
       </segment>
     </unit>
+    <unit id="common.close">
+      <segment>
+        <source>Close</source>
+      </segment>
+    </unit>
     <unit id="common.dismiss">
       <segment>
         <source>Dismiss</source>
+      </segment>
+    </unit>
+    <unit id="community.add_community_knowledge">
+      <segment>
+        <source>Add community knowledge</source>
       </segment>
     </unit>
     <unit id="community.discover_more_events">
@@ -1040,6 +1152,211 @@
     <unit id="community.explore_more_spots">
       <segment>
         <source>Explore more spots</source>
+      </segment>
+    </unit>
+    <unit id="community.info_disclosure_classes">
+      <segment>
+        <source>Classes</source>
+      </segment>
+    </unit>
+    <unit id="community.info_disclosure_paid">
+      <segment>
+        <source>Paid partnership</source>
+      </segment>
+    </unit>
+    <unit id="community.info_disclosure_shop">
+      <segment>
+        <source>Shop</source>
+      </segment>
+    </unit>
+    <unit id="community.knowledge_cta.body">
+      <segment>
+        <source> Tell us about jams, chats, classes, shops, or anything locals should know so we can add it here. </source>
+      </segment>
+    </unit>
+    <unit id="community.knowledge_cta.button">
+      <segment>
+        <source> Share community info </source>
+      </segment>
+    </unit>
+    <unit id="community.knowledge_cta.title">
+      <segment>
+        <source> Know this community? </source>
+      </segment>
+    </unit>
+    <unit id="community.local_knowledge_heading">
+      <segment>
+        <source> Local Knowledge </source>
+      </segment>
+    </unit>
+    <unit id="contact.aside.crew.body">
+      <segment>
+        <source> Help with testing, software, spot reviews, translations, design, or local community work. </source>
+      </segment>
+    </unit>
+    <unit id="contact.aside.crew.title">
+      <segment>
+        <source> Join the crew </source>
+      </segment>
+    </unit>
+    <unit id="contact.aside.import.body">
+      <segment>
+        <source> Google My Maps, KML/KMZ files, spreadsheets, and local crew lists are all welcome starting points. </source>
+      </segment>
+    </unit>
+    <unit id="contact.aside.import.title">
+      <segment>
+        <source> Spot map imports </source>
+      </segment>
+    </unit>
+    <unit id="contact.back_to_support">
+      <segment>
+        <source>Support</source>
+      </segment>
+    </unit>
+    <unit id="contact.contact_info.error">
+      <segment>
+        <source> Please add contact information, up to 240 characters. </source>
+      </segment>
+    </unit>
+    <unit id="contact.contact_info.hint">
+      <segment>
+        <source> Email, Instagram, Discord, or whatever works best for you. </source>
+      </segment>
+    </unit>
+    <unit id="contact.contact_info.label">
+      <segment>
+        <source> How can we reach you? </source>
+      </segment>
+    </unit>
+    <unit id="contact.discord.body">
+      <segment>
+        <source> Prefer a community chat? Join the Discord and say hello there. </source>
+      </segment>
+    </unit>
+    <unit id="contact.discord.link">
+      <segment>
+        <source>Join Discord</source>
+      </segment>
+    </unit>
+    <unit id="contact.discord.title">
+      <segment>
+        <source> Discord works too </source>
+      </segment>
+    </unit>
+    <unit id="contact.instagram.body">
+      <segment>
+        <source> Quick question or casual hello? You can also reach us on Instagram. </source>
+      </segment>
+    </unit>
+    <unit id="contact.instagram.link">
+      <segment>
+        <source>@pkspot.app</source>
+      </segment>
+    </unit>
+    <unit id="contact.instagram.title">
+      <segment>
+        <source> Instagram works too </source>
+      </segment>
+    </unit>
+    <unit id="contact.kicker">
+      <segment>
+        <source> Get in touch </source>
+      </segment>
+    </unit>
+    <unit id="contact.message.error">
+      <segment>
+        <source> Please add a message, up to 4000 characters. </source>
+      </segment>
+    </unit>
+    <unit id="contact.message.hint">
+      <segment>
+        <source> We only use this information to reply to your message. </source>
+      </segment>
+    </unit>
+    <unit id="contact.message.label">
+      <segment>
+        <source>Message</source>
+      </segment>
+    </unit>
+    <unit id="contact.meta.description">
+      <segment>
+        <source>Contact PK Spot about support, spot map imports, partnerships, testing, or joining the crew.</source>
+      </segment>
+    </unit>
+    <unit id="contact.meta.title">
+      <segment>
+        <source>Contact</source>
+      </segment>
+    </unit>
+    <unit id="contact.prefill.community_knowledge">
+      <segment>
+        <source>Hi PK Spot, I have local knowledge for <ph id="0" equiv="communityName" disp="communityName"/>: </source>
+      </segment>
+    </unit>
+    <unit id="contact.prefill.crew">
+      <segment>
+        <source>Hi PK Spot, I would like to help with: </source>
+      </segment>
+    </unit>
+    <unit id="contact.prefill.spot_import">
+      <segment>
+        <source>Hi PK Spot, I have a spot map or list I would like to share: </source>
+      </segment>
+    </unit>
+    <unit id="contact.submit">
+      <segment>
+        <source>Send message</source>
+      </segment>
+    </unit>
+    <unit id="contact.submit.error">
+      <segment>
+        <source>Could not send your message. Please try again or reach out on Instagram.</source>
+      </segment>
+    </unit>
+    <unit id="contact.success.body">
+      <segment>
+        <source> Thanks for reaching out. We will get back to you through the contact info you shared. </source>
+      </segment>
+    </unit>
+    <unit id="contact.success.send_another">
+      <segment>
+        <source>Send another</source>
+      </segment>
+    </unit>
+    <unit id="contact.success.title">
+      <segment>
+        <source> Message sent </source>
+      </segment>
+    </unit>
+    <unit id="contact.topic.crew.intro">
+      <segment>
+        <source>Want to help with testing, spot reviews, translations, design, community work, or software? We&apos;d love to hear where you want to pitch in.</source>
+      </segment>
+    </unit>
+    <unit id="contact.topic.crew.title">
+      <segment>
+        <source>Join the crew</source>
+      </segment>
+    </unit>
+    <unit id="contact.topic.general.intro">
+      <segment>
+        <source>Questions, ideas, bug reports, partnerships, or anything else around PK Spot are welcome here.</source>
+      </segment>
+    </unit>
+    <unit id="contact.topic.general.title">
+      <segment>
+        <source>Contact PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="contact.topic.spot_import.intro">
+      <segment>
+        <source>Have a Google My Maps, KML/KMZ, spreadsheet, or local spot list? Send it over and we can help bring those spots into PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="contact.topic.spot_import.title">
+      <segment>
+        <source>Share a spot map</source>
       </segment>
     </unit>
     <unit id="crop.cancel">
@@ -1264,23 +1581,7 @@
         <note category="description">nationality code label</note>
       </notes>
       <segment>
-        <source>Nationality</source>
-      </segment>
-    </unit>
-    <unit id="editProfile.homeCity">
-      <notes>
-        <note category="description">home city label</note>
-      </notes>
-      <segment>
-        <source>Home City</source>
-      </segment>
-    </unit>
-    <unit id="editProfile.homeSpots">
-      <notes>
-        <note category="description">home spots label</note>
-      </notes>
-      <segment>
-        <source>Home Spots</source>
+        <source>Country (optional, public)</source>
       </segment>
     </unit>
     <unit id="editProfile.startDate">
@@ -1301,6 +1602,21 @@
         <source>This is the date you started practicing Parkour and Freerunning. It will be rounded to full years after one year or more so don&apos;t sweat it.</source>
       </segment>
     </unit>
+    <unit id="embed_preview_event_data_by_pkspot">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span &gt;" dispEnd="&lt;/span &gt;">Interactive event embed</pc><pc id="1" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span &gt;" dispEnd="&lt;/span &gt;">Event data by <pc id="2" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;publicContentUrl()&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; &gt;" dispEnd="&lt;/a &gt;">PK Spot</pc></pc></source>
+      </segment>
+    </unit>
+    <unit id="embed_preview_iframe_title">
+      <segment>
+        <source>PK Spot embedded event preview</source>
+      </segment>
+    </unit>
+    <unit id="embedded-promo-powered-by">
+      <segment>
+        <source>Powered by</source>
+      </segment>
+    </unit>
     <unit id="8151017381798767627">
       <segment>
         <source>Embed</source>
@@ -1319,6 +1635,11 @@
     <unit id="5837993987248997726">
       <segment>
         <source>Embedding Preferences</source>
+      </segment>
+    </unit>
+    <unit id="2820594571760643464">
+      <segment>
+        <source>Spot reports</source>
       </segment>
     </unit>
     <unit id="2826581353496868063">
@@ -1351,14 +1672,14 @@
         <source>Now</source>
       </segment>
     </unit>
-    <unit id="8238479245314070918">
-      <segment>
-        <source> Computational Scientist, Past Parkour instructor </source>
-      </segment>
-    </unit>
     <unit id="5176605689144016167">
       <segment>
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
+      </segment>
+    </unit>
+    <unit id="5804136287826733566">
+      <segment>
+        <source>No open reports.</source>
       </segment>
     </unit>
     <unit id="5813867925497374051">
@@ -1371,11 +1692,6 @@
         <source>Smart Scorecard</source>
       </segment>
     </unit>
-    <unit id="579260441550762823">
-      <segment>
-        <source>Testing, Map data</source>
-      </segment>
-    </unit>
     <unit id="8981724482694536509">
       <segment>
         <source>Directions</source>
@@ -1383,12 +1699,17 @@
     </unit>
     <unit id="187187500641108332">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ tabKeyVal.value }}"/></source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ member.role }}"/></source>
       </segment>
     </unit>
     <unit id="3483311644139102304">
       <segment>
         <source>All Event Challenges</source>
+      </segment>
+    </unit>
+    <unit id="8746766771069368125">
+      <segment>
+        <source>Open reports</source>
       </segment>
     </unit>
     <unit id="8749228736834878459">
@@ -1407,6 +1728,11 @@
       </notes>
       <segment>
         <source>All Types</source>
+      </segment>
+    </unit>
+    <unit id="5684792847924520522">
+      <segment>
+        <source> Your bio is public. Avoid private contact details and exact places you train. </source>
       </segment>
     </unit>
     <unit id="5688462374174490321">
@@ -1437,9 +1763,19 @@
         <source>Challenges</source>
       </segment>
     </unit>
+    <unit id="3167739142487195096">
+      <segment>
+        <source>Moderation reports</source>
+      </segment>
+    </unit>
     <unit id="7629436164719717851">
       <segment>
         <source>Event in </source>
+      </segment>
+    </unit>
+    <unit id="event_card.draft">
+      <segment>
+        <source>Draft</source>
       </segment>
     </unit>
     <unit id="event_card.sponsored">
@@ -1450,6 +1786,51 @@
     <unit id="event_card.sponsored_tooltip">
       <segment>
         <source>Promoted event</source>
+      </segment>
+    </unit>
+    <unit id="event_category.awards">
+      <segment>
+        <source>Awards</source>
+      </segment>
+    </unit>
+    <unit id="event_category.camp">
+      <segment>
+        <source>Camp</source>
+      </segment>
+    </unit>
+    <unit id="event_category.competition">
+      <segment>
+        <source>Competition</source>
+      </segment>
+    </unit>
+    <unit id="event_category.jam">
+      <segment>
+        <source>Jam</source>
+      </segment>
+    </unit>
+    <unit id="event_category.other">
+      <segment>
+        <source>Other</source>
+      </segment>
+    </unit>
+    <unit id="event_category.show">
+      <segment>
+        <source>Show</source>
+      </segment>
+    </unit>
+    <unit id="event_category.social">
+      <segment>
+        <source>Social</source>
+      </segment>
+    </unit>
+    <unit id="event_category.travel">
+      <segment>
+        <source>Travel</source>
+      </segment>
+    </unit>
+    <unit id="event_category.workshop">
+      <segment>
+        <source>Workshop</source>
       </segment>
     </unit>
     <unit id="event_create.meta.description">
@@ -1487,6 +1868,16 @@
         <source>Couldn&apos;t create the event. Check the console for details.</source>
       </segment>
     </unit>
+    <unit id="event_description.show_less">
+      <segment>
+        <source>Show less</source>
+      </segment>
+    </unit>
+    <unit id="event_description.show_more">
+      <segment>
+        <source>Show more</source>
+      </segment>
+    </unit>
     <unit id="event_edit.area_label">
       <segment>
         <source> Event area </source>
@@ -1517,6 +1908,11 @@
         <source> Banner image </source>
       </segment>
     </unit>
+    <unit id="event_edit.banner_preview">
+      <segment>
+        <source> Banner preview </source>
+      </segment>
+    </unit>
     <unit id="event_edit.bounds_required">
       <segment>
         <source> Optional. Drop an area on the map to define where the event happens. </source>
@@ -1545,6 +1941,56 @@
     <unit id="event_edit.current_image_label">
       <segment>
         <source> Current: </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_add">
+      <segment>
+        <source>Add marker</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_color">
+      <segment>
+        <source> Color </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_icons">
+      <segment>
+        <source> Icons </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_lat">
+      <segment>
+        <source> Latitude </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_lng">
+      <segment>
+        <source> Longitude </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_name">
+      <segment>
+        <source> Label </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_priority">
+      <segment>
+        <source> Priority </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_remove">
+      <segment>
+        <source>Remove marker</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_markers_empty">
+      <segment>
+        <source> Add parking, info stands, toilets, meetup points, or other temporary event markers. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_markers_heading">
+      <segment>
+        <source> Custom map markers </source>
       </segment>
     </unit>
     <unit id="event_edit.dates_end_label">
@@ -1592,6 +2038,51 @@
         <source>End time</source>
       </segment>
     </unit>
+    <unit id="event_edit.external_media_add">
+      <segment>
+        <source>Add link</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_media_attribution">
+      <segment>
+        <source> Attribution text </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_media_attribution_placeholder">
+      <segment>
+        <source>Photo: Author name</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_media_invalid">
+      <segment>
+        <source> Use a public http or https link. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_media_label">
+      <segment>
+        <source> External media links </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_media_remove">
+      <segment>
+        <source>Remove external media</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_media_source_invalid">
+      <segment>
+        <source> Use a public http or https link. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_media_source_page_url">
+      <segment>
+        <source> Source page URL </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_media_url">
+      <segment>
+        <source> Image or video URL </source>
+      </segment>
+    </unit>
     <unit id="event_edit.focus_zoom">
       <segment>
         <source>Map focus zoom</source>
@@ -1617,6 +2108,86 @@
         <source>Imagery</source>
       </segment>
     </unit>
+    <unit id="event_edit.is_promoted">
+      <segment>
+        <source> Promote in the map island </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.legacy_area_polygon_outer_ring">
+      <segment>
+        <source> Add legacy mobile app area compatibility </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_add">
+      <segment>
+        <source>Add link</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_kind">
+      <segment>
+        <source>Kind</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_kind.livestream">
+      <segment>
+        <source>Livestream</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_kind.other">
+      <segment>
+        <source>Other</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_kind.results">
+      <segment>
+        <source>Results</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_kind.schedule">
+      <segment>
+        <source>Schedule</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_kind.tickets">
+      <segment>
+        <source>Tickets</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_kind.website">
+      <segment>
+        <source>Website</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_label">
+      <segment>
+        <source>Label</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_primary">
+      <segment>
+        <source> Primary CTA </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_provider">
+      <segment>
+        <source> Provider </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_remove">
+      <segment>
+        <source>Remove event link</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.link_url">
+      <segment>
+        <source>URL</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.links_heading">
+      <segment>
+        <source> Event links </source>
+      </segment>
+    </unit>
     <unit id="event_edit.locality">
       <segment>
         <source>Locality</source>
@@ -1637,9 +2208,49 @@
         <source> Event pin longitude </source>
       </segment>
     </unit>
+    <unit id="event_edit.logo_background_color">
+      <segment>
+        <source> Event logo background </source>
+      </segment>
+    </unit>
     <unit id="event_edit.logo_label">
       <segment>
-        <source> Event logo (optional) </source>
+        <source> Event marker logo </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.logo_preview">
+      <segment>
+        <source> Event logo preview </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.marker_color.gray">
+      <segment>
+        <source> Muted </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.marker_color.primary">
+      <segment>
+        <source> Primary </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.marker_color.secondary">
+      <segment>
+        <source> Live </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.marker_color.tertiary">
+      <segment>
+        <source> Utility </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.marker_priority.auto">
+      <segment>
+        <source> Normal </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.marker_priority.required">
+      <segment>
+        <source> Always visible </source>
       </segment>
     </unit>
     <unit id="event_edit.name">
@@ -1677,9 +2288,119 @@
         <source> Published — visible to the public </source>
       </segment>
     </unit>
+    <unit id="event_edit.qualification_hint">
+      <segment>
+        <source> Qualification hint </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_path_add">
+      <segment>
+        <source> Add path </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_path_id">
+      <segment>
+        <source> Path id </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_path_label">
+      <segment>
+        <source> Label </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_path_remove">
+      <segment>
+        <source>Remove qualification path</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_paths_empty">
+      <segment>
+        <source> Add paths when this event requires qualification. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_paths_heading">
+      <segment>
+        <source> Required qualification paths </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_ref_event">
+      <segment>
+        <source> Event </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_ref_event_id">
+      <segment>
+        <source> Event id </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_ref_kind">
+      <segment>
+        <source> Kind </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_ref_program_item">
+      <segment>
+        <source> Program item </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_ref_program_item_id">
+      <segment>
+        <source> Program item id </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_required">
+      <segment>
+        <source> Qualification required </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_requirement_add">
+      <segment>
+        <source> Add requirement </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_requirement_remove">
+      <segment>
+        <source>Remove qualification requirement</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualification_requirements">
+      <segment>
+        <source> Requirements </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualifies_to_add">
+      <segment>
+        <source> Add target </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualifies_to_heading">
+      <segment>
+        <source> Qualifies to </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.qualifies_to_remove">
+      <segment>
+        <source>Remove qualification target</source>
+      </segment>
+    </unit>
     <unit id="event_edit.required_section">
       <segment>
         <source> Essentials </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.requirement_mode">
+      <segment>
+        <source> Requirement </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.requirement_mode.all">
+      <segment>
+        <source> All listed events </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.requirement_mode.any">
+      <segment>
+        <source> Any one listed event </source>
       </segment>
     </unit>
     <unit id="event_edit.save">
@@ -1687,9 +2408,89 @@
         <source>Save</source>
       </segment>
     </unit>
-    <unit id="event_edit.series">
+    <unit id="event_edit.series_id">
       <segment>
-        <source> Series (comma-separated) </source>
+        <source> Series id </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_ids">
+      <segment>
+        <source> Series ids </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_ids_hint">
+      <segment>
+        <source> Plain ids for filtering/search. Membership ids are added on save. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_membership_add">
+      <segment>
+        <source> Add membership </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_membership_remove">
+      <segment>
+        <source>Remove series membership</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_memberships_empty">
+      <segment>
+        <source> Add memberships when this event belongs to a tour, qualifier path, or championship. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_memberships_heading">
+      <segment>
+        <source> Series memberships </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_qualification_heading">
+      <segment>
+        <source> Series &amp; qualification </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_qualification_hint">
+      <segment>
+        <source> Event series, qualifier targets, and required paths </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_role">
+      <segment>
+        <source> Role </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_role.championship">
+      <segment>
+        <source>Championship</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_role.feeder">
+      <segment>
+        <source>Feeder</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_role.final">
+      <segment>
+        <source>Final</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_role.qualifier">
+      <segment>
+        <source>Qualifier</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_role.related">
+      <segment>
+        <source>Related</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_role.series_event">
+      <segment>
+        <source>Series event</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.series_source_url">
+      <segment>
+        <source> Source URL </source>
       </segment>
     </unit>
     <unit id="event_edit.slug">
@@ -1727,29 +2528,29 @@
         <source>Event saved.</source>
       </segment>
     </unit>
-    <unit id="event_edit.sponsor_heading">
-      <segment>
-        <source> Promotion </source>
-      </segment>
-    </unit>
-    <unit id="event_edit.sponsor_hint">
-      <segment>
-        <source> If set, the event is treated as promoted — the promotion logo shows on event spot pins and inside the map-island chip. </source>
-      </segment>
-    </unit>
     <unit id="event_edit.sponsor_logo">
       <segment>
-        <source> Promotion logo </source>
+        <source> Partner logo override </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.sponsor_logo_background_color">
+      <segment>
+        <source> Partner logo background </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.sponsor_logo_preview">
+      <segment>
+        <source> Partner logo preview </source>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_name">
       <segment>
-        <source> Promotion name </source>
+        <source> Partner name </source>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_url">
       <segment>
-        <source>Promotion URL</source>
+        <source>Partner URL</source>
       </segment>
     </unit>
     <unit id="event_edit.spot_picker_label">
@@ -1759,7 +2560,7 @@
     </unit>
     <unit id="event_edit.spots_heading">
       <segment>
-        <source> Spots </source>
+        <source> General map spots </source>
       </segment>
     </unit>
     <unit id="event_edit.start_date">
@@ -1770,6 +2571,231 @@
     <unit id="event_edit.start_time">
       <segment>
         <source>Start time</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_add">
+      <segment>
+        <source>Add spot</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_bounds">
+      <segment>
+        <source> Bounds </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_bounds_add">
+      <segment>
+        <source> Add point </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_bounds_empty">
+      <segment>
+        <source> Add at least three points when this temporary spot has its own area. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_bounds_lat">
+      <segment>
+        <source> Lat </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_bounds_lng">
+      <segment>
+        <source> Lng </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_bounds_remove">
+      <segment>
+        <source>Remove bounds point</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_description">
+      <segment>
+        <source> Description </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_iconic">
+      <segment>
+        <source> Iconic </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_id">
+      <segment>
+        <source> Spot id </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_images">
+      <segment>
+        <source> Image URLs </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_images_hint">
+      <segment>
+        <source> Comma-separated. First image becomes the preview. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_lat">
+      <segment>
+        <source> Latitude </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_lng">
+      <segment>
+        <source> Longitude </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_name">
+      <segment>
+        <source> Name </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_remove">
+      <segment>
+        <source>Remove temporary spot</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spots_description">
+      <segment>
+        <source> Use these for temporary builds, stages, training areas, or named zones that should appear only on the event map. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spots_empty">
+      <segment>
+        <source> No temporary event spots yet. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spots_heading">
+      <segment>
+        <source> Temporary event spots </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spots_hint">
+      <segment>
+        <source> Event-only local spots saved inside this event </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_add">
+      <segment>
+        <source>Add ticket</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_amount">
+      <segment>
+        <source> Fixed price </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_availability">
+      <segment>
+        <source> Availability </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_availability.available">
+      <segment>
+        <source>Available</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_availability.coming_soon">
+      <segment>
+        <source>Coming soon</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_availability.ended">
+      <segment>
+        <source>Ended</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_availability.sold_out">
+      <segment>
+        <source>Sold out</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_availability.waitlist">
+      <segment>
+        <source>Waitlist</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_badge">
+      <segment>
+        <source>Badge</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_badge.discount">
+      <segment>
+        <source>Discount</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_badge.early_bird">
+      <segment>
+        <source>Early bird</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_badge.late">
+      <segment>
+        <source>Late</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_badge.member">
+      <segment>
+        <source>Member</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_badge.none">
+      <segment>
+        <source>None</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_badge.regular">
+      <segment>
+        <source>Regular</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_currency">
+      <segment>
+        <source> Currency </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_description">
+      <segment>
+        <source> Description </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_label">
+      <segment>
+        <source>Label</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_max">
+      <segment>
+        <source> Range max </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_min">
+      <segment>
+        <source> Range min </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_remove">
+      <segment>
+        <source>Remove ticket option</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_sale_end">
+      <segment>
+        <source> Sale ends </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_sale_start">
+      <segment>
+        <source> Sale starts </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_url">
+      <segment>
+        <source>URL</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.tickets_heading">
+      <segment>
+        <source> Ticket options </source>
       </segment>
     </unit>
     <unit id="event_edit.url">
@@ -1792,11 +2818,6 @@
         <source> Event map </source>
       </segment>
     </unit>
-    <unit id="event_info.no_organizer">
-      <segment>
-        <source> Organizer to be announced </source>
-      </segment>
-    </unit>
     <unit id="event_info.open_map">
       <segment>
         <source>Open event map</source>
@@ -1805,11 +2826,6 @@
     <unit id="event_info.open_website">
       <segment>
         <source>Open event website</source>
-      </segment>
-    </unit>
-    <unit id="event_info.organizer_label">
-      <segment>
-        <source> Organizer </source>
       </segment>
     </unit>
     <unit id="event_info.share">
@@ -1822,9 +2838,184 @@
         <source>Share</source>
       </segment>
     </unit>
-    <unit id="event_info.start_label">
+    <unit id="event_edit.program_empty">
+      <segment>
+        <source> Add a main plan to publish a day-by-day event schedule. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_heading">
+      <segment>
+        <source> Program </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_hint">
+      <segment>
+        <source> Plans, schedule items, linked spots, and linked events </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_add">
+      <segment>
+        <source>Add item</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_category">
+      <segment>
+        <source> Category </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_description">
+      <segment>
+        <source> Description </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_end">
+      <segment>
+        <source> End </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_linked_event">
+      <segment>
+        <source> Linked event id </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_remove">
+      <segment>
+        <source>Remove program item</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_spot_id">
+      <segment>
+        <source> Spot id </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_spot_inline">
+      <segment>
+        <source>Inline spot</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_spot_kind">
+      <segment>
+        <source> Spot target </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_spot_none">
+      <segment>
+        <source>None</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_spot_real">
+      <segment>
+        <source>Spot</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_start">
       <segment>
         <source> Start </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_status">
+      <segment>
+        <source> Status </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_status.cancelled">
+      <segment>
+        <source>Cancelled</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_status.delayed">
+      <segment>
+        <source>Delayed</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_status.moved">
+      <segment>
+        <source>Moved</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_status.scheduled">
+      <segment>
+        <source>Scheduled</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_item_title">
+      <segment>
+        <source> Title </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_items">
+      <segment>
+        <source> Program items </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_items_empty">
+      <segment>
+        <source> Add schedule blocks, workshops, competitions, travel windows, or alternate-plan items. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_plan_active">
+      <segment>
+        <source> Active </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_plan_add">
+      <segment>
+        <source>Add plan</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_plan_condition">
+      <segment>
+        <source> Condition label </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_plan_kind">
+      <segment>
+        <source> Kind </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_plan_kind.alternate">
+      <segment>
+        <source>Alternate</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_plan_kind.main">
+      <segment>
+        <source>Main</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_plan_label">
+      <segment>
+        <source> Plan label </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.program_plan_remove">
+      <segment>
+        <source>Remove program plan</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.promo_radius">
+      <segment>
+        <source> Promotion radius (m) </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.promo_radius_hint">
+      <segment>
+        <source> Centered on the event pin. Leave empty for no radius promotion. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.promote_description">
+      <segment>
+        <source> Promotion is admin-only for now. The radius controls where the event can surface in promoted map-island placements. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.promote_heading">
+      <segment>
+        <source> Promote </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.promote_hint">
+      <segment>
+        <source> Boosting and map-island radius </source>
       </segment>
     </unit>
     <unit id="event_info.website_button">
@@ -1837,14 +3028,14 @@
         <source>Back to event</source>
       </segment>
     </unit>
-    <unit id="event_map_page.more_info">
+    <unit id="event_map_page.close_marker_details">
       <segment>
-        <source>More info</source>
+        <source>Close marker details</source>
       </segment>
     </unit>
-    <unit id="event_map_page.more_info_tooltip">
+    <unit id="event_map_page.description">
       <segment>
-        <source>More event info</source>
+        <source> This is an interactive map of the event area. Click on blue spots or other pins to see more information. </source>
       </segment>
     </unit>
     <unit id="event_page.back_to_events">
@@ -1855,41 +3046,6 @@
     <unit id="event_page.edit_tooltip">
       <segment>
         <source>Edit event</source>
-      </segment>
-    </unit>
-    <unit id="event_page.status.ends_in">
-      <segment>
-        <source>ends in</source>
-      </segment>
-    </unit>
-    <unit id="event_page.status.live">
-      <segment>
-        <source>Live Event</source>
-      </segment>
-    </unit>
-    <unit id="event_page.status.past">
-      <segment>
-        <source> This event is over. Information shown below may be outdated. </source>
-      </segment>
-    </unit>
-    <unit id="event_page.status.sponsored_live">
-      <segment>
-        <source>Promoted Live Event</source>
-      </segment>
-    </unit>
-    <unit id="event_page.status.sponsored_upcoming">
-      <segment>
-        <source>Promoted Upcoming Event</source>
-      </segment>
-    </unit>
-    <unit id="event_page.status.starts_in">
-      <segment>
-        <source>starts in</source>
-      </segment>
-    </unit>
-    <unit id="event_page.status.upcoming">
-      <segment>
-        <source>Upcoming Event</source>
       </segment>
     </unit>
     <unit id="event_preview.event_tooltip">
@@ -1905,31 +3061,6 @@
     <unit id="event_preview.sponsored_tooltip">
       <segment>
         <source>Promoted event</source>
-      </segment>
-    </unit>
-    <unit id="event_preview.status.live_event">
-      <segment>
-        <source>Live Event</source>
-      </segment>
-    </unit>
-    <unit id="event_preview.status.past">
-      <segment>
-        <source> Past event </source>
-      </segment>
-    </unit>
-    <unit id="event_preview.status.sponsored_live">
-      <segment>
-        <source>Promoted Live Event</source>
-      </segment>
-    </unit>
-    <unit id="event_preview.status.sponsored_upcoming">
-      <segment>
-        <source>Promoted Upcoming Event</source>
-      </segment>
-    </unit>
-    <unit id="event_preview.status.upcoming_event">
-      <segment>
-        <source>Upcoming Event</source>
       </segment>
     </unit>
     <unit id="event_preview.view_eventfrog">
@@ -1960,6 +3091,76 @@
     <unit id="event_preview.website">
       <segment>
         <source>Website</source>
+      </segment>
+    </unit>
+    <unit id="event_program.heading">
+      <segment>
+        <source> Program </source>
+      </segment>
+    </unit>
+    <unit id="event_program.open_linked">
+      <segment>
+        <source>Open event</source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.heading">
+      <segment>
+        <source> Qualification </source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.loading">
+      <segment>
+        <source>Loading qualifying events</source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.loading_targets">
+      <segment>
+        <source>Loading qualification target events</source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.loading_targets_text">
+      <segment>
+        <source> Loading qualification target events </source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.loading_text">
+      <segment>
+        <source> Loading qualifying events </source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.path_all">
+      <segment>
+        <source>Qualification requires all of these events</source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.path_any">
+      <segment>
+        <source>Qualify through one of these events</source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.path_default">
+      <segment>
+        <source>Qualification pathway</source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.qualifies_to">
+      <segment>
+        <source> Qualifies for </source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.required">
+      <segment>
+        <source> Qualification is required for this competition. </source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.show_less">
+      <segment>
+        <source>Show less</source>
+      </segment>
+    </unit>
+    <unit id="event_qualification.show_more">
+      <segment>
+        <source>Show more</source>
       </segment>
     </unit>
     <unit id="event_rsvp.clear">
@@ -1994,21 +3195,17 @@
     </unit>
     <unit id="event_rsvp.current_going">
       <segment>
-        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
-            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">going</pc></source>
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">going</pc></source>
       </segment>
     </unit>
     <unit id="event_rsvp.current_interested">
       <segment>
-        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
-            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">interested</pc>
-        </source>
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">interested</pc></source>
       </segment>
     </unit>
     <unit id="event_rsvp.current_notgoing">
       <segment>
-        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG"
-            type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not going</pc></source>
+        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not going</pc></source>
       </segment>
     </unit>
     <unit id="event_rsvp.going">
@@ -2046,9 +3243,119 @@
         <source>Sign in to respond</source>
       </segment>
     </unit>
+    <unit id="event_series_role.championship">
+      <segment>
+        <source>Championship</source>
+      </segment>
+    </unit>
+    <unit id="event_series_role.feeder">
+      <segment>
+        <source>Feeder</source>
+      </segment>
+    </unit>
+    <unit id="event_series_role.final">
+      <segment>
+        <source>Final</source>
+      </segment>
+    </unit>
+    <unit id="event_series_role.qualifier">
+      <segment>
+        <source>Qualifier</source>
+      </segment>
+    </unit>
+    <unit id="event_series_role.related">
+      <segment>
+        <source>Related</source>
+      </segment>
+    </unit>
+    <unit id="event_series_role.series_event">
+      <segment>
+        <source>Series event</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.availability.available">
+      <segment>
+        <source>Available</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.availability.coming_soon">
+      <segment>
+        <source>Coming soon</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.availability.ended">
+      <segment>
+        <source>Ended</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.availability.sold_out">
+      <segment>
+        <source>Sold out</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.availability.waitlist">
+      <segment>
+        <source>Waitlist</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.badge.discount">
+      <segment>
+        <source>Discount</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.badge.early_bird">
+      <segment>
+        <source>Early bird</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.badge.late">
+      <segment>
+        <source>Late</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.badge.member">
+      <segment>
+        <source>Member</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.badge.regular">
+      <segment>
+        <source>Regular</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.heading">
+      <segment>
+        <source> Tickets </source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.open">
+      <segment>
+        <source>Open</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.price_unknown">
+      <segment>
+        <source>Price TBA</source>
+      </segment>
+    </unit>
+    <unit id="events.clear_category_filters">
+      <segment>
+        <source>Clear</source>
+      </segment>
+    </unit>
+    <unit id="events.clear_series_filters">
+      <segment>
+        <source>Clear</source>
+      </segment>
+    </unit>
     <unit id="events.create">
       <segment>
         <source>Create event</source>
+      </segment>
+    </unit>
+    <unit id="events.no_filtered_events">
+      <segment>
+        <source> No events match the selected filters. </source>
       </segment>
     </unit>
     <unit id="events.now_or_past">
@@ -2111,6 +3418,36 @@
     <unit id="dry_spots_chip_label">
       <segment>
         <source>Dry</source>
+      </segment>
+    </unit>
+    <unit id="img_carousel.allow_external_media_temporarily">
+      <segment>
+        <source> Allow temporarily (1h) </source>
+      </segment>
+    </unit>
+    <unit id="img_carousel.always_allow_all_external_media">
+      <segment>
+        <source> Always allow ALL external media </source>
+      </segment>
+    </unit>
+    <unit id="img_carousel.always_allow_external_media_domain">
+      <segment>
+        <source> Always allow <ph id="0" equiv="INTERPOLATION" disp="{{ domain }}"/> </source>
+      </segment>
+    </unit>
+    <unit id="img_carousel.external_media">
+      <segment>
+        <source>External media</source>
+      </segment>
+    </unit>
+    <unit id="img_carousel.external_source">
+      <segment>
+        <source>External source</source>
+      </segment>
+    </unit>
+    <unit id="img_carousel.load_external_media_from">
+      <segment>
+        <source> Load external media from </source>
       </segment>
     </unit>
     <unit id="indoor_spots_chip_label">
@@ -2184,6 +3521,11 @@
         <source>This E-Mail address is not valid!</source>
       </segment>
     </unit>
+    <unit id="1102717806459547726">
+      <segment>
+        <source>Refresh</source>
+      </segment>
+    </unit>
     <unit id="1118027788072351320">
       <segment>
         <source>Sending...</source>
@@ -2194,9 +3536,19 @@
         <source>Reset password</source>
       </segment>
     </unit>
+    <unit id="1644771681227658602">
+      <segment>
+        <source>Delete this media item from its spot or event? This action is permanent and will be recorded in moderation provenance.</source>
+      </segment>
+    </unit>
     <unit id="1645193489541371451">
       <segment>
         <source>No results found</source>
+      </segment>
+    </unit>
+    <unit id="1669593749761062093">
+      <segment>
+        <source>Failed to handle report</source>
       </segment>
     </unit>
     <unit id="1675135336563892261">
@@ -2217,6 +3569,11 @@
     <unit id="6340970481322850527">
       <segment>
         <source>Return to sign in</source>
+      </segment>
+    </unit>
+    <unit id="8525213662266893834">
+      <segment>
+        <source>Contact us</source>
       </segment>
     </unit>
     <unit id="8535056559014052836">
@@ -2360,14 +3717,14 @@
         <source>Initializing map...</source>
       </segment>
     </unit>
-    <unit id="1740926895804586805">
-      <segment>
-        <source> Creator, Lead Developer </source>
-      </segment>
-    </unit>
     <unit id="1744316082077040772">
       <segment>
         <source>Loading Google Maps® API...</source>
+      </segment>
+    </unit>
+    <unit id="2729703763662350648">
+      <segment>
+        <source> Everything on this page is public. Do not add your address, school, private training spots, phone number, or anything that shows where you usually are. </source>
       </segment>
     </unit>
     <unit id="2735597846335347226">
@@ -2388,6 +3745,26 @@
         <source>There are no spots matching the filter in this area.</source>
       </segment>
     </unit>
+    <unit id="map.all_communities_heading">
+      <segment>
+        <source> Communities </source>
+      </segment>
+    </unit>
+    <unit id="map.all_events_heading">
+      <segment>
+        <source> Events </source>
+      </segment>
+    </unit>
+    <unit id="map.all_show_more_spots">
+      <segment>
+        <source>Show more spots</source>
+      </segment>
+    </unit>
+    <unit id="map.all_spots_heading">
+      <segment>
+        <source> Spots </source>
+      </segment>
+    </unit>
     <unit id="map.communities_list_placeholder">
       <segment>
         <source> Communities in this area will show here. </source>
@@ -2396,6 +3773,11 @@
     <unit id="map.community_loading_label">
       <segment>
         <source> Opening community </source>
+      </segment>
+    </unit>
+    <unit id="map.contents_heading">
+      <segment>
+        <source> In this area </source>
       </segment>
     </unit>
     <unit id="pk.home.description">
@@ -2443,6 +3825,11 @@
         <source> About PK Spot </source>
       </segment>
     </unit>
+    <unit id="map.seo.about_link">
+      <segment>
+        <source>About Us</source>
+      </segment>
+    </unit>
     <unit id="map.seo.about_p1">
       <segment>
         <source> PK Spot is the spot for everything Parkour. Use it to discover spots near you, check in, find events and jams, and connect with your local community. </source>
@@ -2451,11 +3838,6 @@
     <unit id="map.seo.about_p2">
       <segment>
         <source> Every spot can be edited by people who actually train there. You&apos;ll find photos, ratings, and tags telling you whether a spot is good for Parkour, Freerunning, dry training, indoor sessions, and more! </source>
-      </segment>
-    </unit>
-    <unit id="map.seo.popular_heading">
-      <segment>
-        <source> Popular parkour communities </source>
       </segment>
     </unit>
     <unit id="map.seo.spots_suffix">
@@ -2500,6 +3882,65 @@
       </notes>
       <segment>
         <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
+      </segment>
+    </unit>
+    <unit id="moderation.dashboard.archive_contact_tooltip">
+      <segment>
+        <source>Record this message in provenance and remove it from the active inbox.</source>
+      </segment>
+    </unit>
+    <unit id="moderation.dashboard.delete_contact_aria">
+      <segment>
+        <source>Delete contact message</source>
+      </segment>
+    </unit>
+    <unit id="moderation.dashboard.delete_contact_tooltip">
+      <segment>
+        <source>Remove this contact message from the active inbox after recording provenance.</source>
+      </segment>
+    </unit>
+    <unit id="moderation.reports.close_tooltip">
+      <segment>
+        <source>Close this report as no further investigation. The report is recorded in provenance and removed from the queue.</source>
+      </segment>
+    </unit>
+    <unit id="moderation.reports.delete_media_tooltip">
+      <segment>
+        <source>Delete this media item from its target and record the action.</source>
+      </segment>
+    </unit>
+    <unit id="moderation.reports.delete_spot_tooltip">
+      <segment>
+        <source>Delete the spot with its nested data and record the action.</source>
+      </segment>
+    </unit>
+    <unit id="moderation.reports.filter">
+      <segment>
+        <source>Report filter</source>
+      </segment>
+    </unit>
+    <unit id="moderation.reports.keep_warning_tooltip">
+      <segment>
+        <source>Record the report as handled, remove it from the queue, and keep the warning on the target.</source>
+      </segment>
+    </unit>
+    <unit id="moderation.reports.open_spot_preview_aria">
+      <segment>
+        <source>Open reported spot</source>
+      </segment>
+    </unit>
+    <unit id="moderation.reports.open_target_preview_aria">
+      <segment>
+        <source>Open report target</source>
+      </segment>
+    </unit>
+    <unit id="moderation_label">
+      <notes>
+        <note category="description">A very short label for the admin moderation page button</note>
+        <note category="meaning">Moderation navbar button label</note>
+      </notes>
+      <segment>
+        <source>Moderation</source>
       </segment>
     </unit>
     <unit id="801213320890707566">
@@ -2582,11 +4023,6 @@
         <source>Open in Google Maps</source>
       </segment>
     </unit>
-    <unit id="2841739558138901231">
-      <segment>
-        <source>In</source>
-      </segment>
-    </unit>
     <unit id="2846098641732030728">
       <segment>
         <source>Save favorites and come back to the spots you want to session later.</source>
@@ -2622,19 +4058,9 @@
         <source>Unfollow</source>
       </segment>
     </unit>
-    <unit id="9164543829936380764">
-      <segment>
-        <source> Parkour instructor, Freerun Zürich member </source>
-      </segment>
-    </unit>
     <unit id="6018246591673612412">
       <segment>
         <source>Follow</source>
-      </segment>
-    </unit>
-    <unit id="8155714392761937762">
-      <segment>
-        <source>Home Spots</source>
       </segment>
     </unit>
     <unit id="2676566549378671128">
@@ -2650,6 +4076,11 @@
     <unit id="6715130059718666635">
       <segment>
         <source>Contributions</source>
+      </segment>
+    </unit>
+    <unit id="6727906839729645379">
+      <segment>
+        <source>Harassment or abuse</source>
       </segment>
     </unit>
     <unit id="7102657004519673825">
@@ -2702,19 +4133,14 @@
         <source>Unnamed Spot</source>
       </segment>
     </unit>
-    <unit id="3363996805082732987">
-      <segment>
-        <source> Swiss Parkour OG, Creator of original Swiss Parkour spot map </source>
-      </segment>
-    </unit>
     <unit id="3368417786821334758">
       <segment>
         <source>Abort</source>
       </segment>
     </unit>
-    <unit id="3370839803061654054">
+    <unit id="2902020729496987690">
       <segment>
-        <source>hours</source>
+        <source>Delete this contact message from the active inbox? The message will still be recorded in moderation provenance.</source>
       </segment>
     </unit>
     <unit id="2903281922331638025">
@@ -2777,6 +4203,52 @@
         <source>Events</source>
       </segment>
     </unit>
+    <unit id="settings.about.description">
+      <notes>
+        <note category="description">about section description</note>
+      </notes>
+      <segment>
+        <source> Learn more about PK Spot, our values, and the people behind the project. </source>
+      </segment>
+    </unit>
+    <unit id="settings.about.github_repository">
+      <segment>
+        <source>GitHub Repository</source>
+      </segment>
+    </unit>
+    <unit id="settings.about.header">
+      <notes>
+        <note category="description">about section header</note>
+      </notes>
+      <segment>
+        <source> About &amp; Credits </source>
+      </segment>
+    </unit>
+    <unit id="settings.about.license_prefix">
+      <segment>
+        <source> All community spot data on PK Spot is licensed under </source>
+      </segment>
+    </unit>
+    <unit id="settings.about.license_suffix">
+      <segment>
+        <source> This means the data belongs to the community and remains open and shareable. </source>
+      </segment>
+    </unit>
+    <unit id="settings.about.open_source_label">
+      <segment>
+        <source>(Open Source)</source>
+      </segment>
+    </unit>
+    <unit id="settings.about.read_full_about">
+      <segment>
+        <source>Read Full About Page</source>
+      </segment>
+    </unit>
+    <unit id="settings.about.version_label">
+      <segment>
+        <source>Version</source>
+      </segment>
+    </unit>
     <unit id="settings.account.description">
       <notes>
         <note category="description">account section description</note>
@@ -2790,6 +4262,11 @@
         <source>E-Mail address</source>
       </segment>
     </unit>
+    <unit id="5370838177584249385">
+      <segment>
+        <source>Resolved</source>
+      </segment>
+    </unit>
     <unit id="5377078063439833222">
       <segment>
         <source> Edit </source>
@@ -2798,6 +4275,11 @@
     <unit id="5014960004929658159">
       <segment>
         <source>Verified</source>
+      </segment>
+    </unit>
+    <unit id="5028777105388019087">
+      <segment>
+        <source>Details</source>
       </segment>
     </unit>
     <unit id="991761096918819245">
@@ -2875,6 +4357,11 @@
         <source>Delete Account</source>
       </segment>
     </unit>
+    <unit id="1632949913064020849">
+      <segment>
+        <source>Dismissed</source>
+      </segment>
+    </unit>
     <unit id="1634423786949067514">
       <segment>
         <source> Permanently delete your account and all associated data. This action cannot be undone. </source>
@@ -2905,6 +4392,11 @@
         <source>Website</source>
       </segment>
     </unit>
+    <unit id="5483010098788822387">
+      <segment>
+        <source> Review spot and media reports from the community. </source>
+      </segment>
+    </unit>
     <unit id="5492320356892382782">
       <segment>
         <source>Permanently delete</source>
@@ -2918,6 +4410,16 @@
     <unit id="5223089976416033243">
       <segment>
         <source> General settings to tune your experience on PK Spot. </source>
+      </segment>
+    </unit>
+    <unit id="5227214585962403800">
+      <segment>
+        <source> Recent messages from the public contact form. </source>
+      </segment>
+    </unit>
+    <unit id="5235264493064101963">
+      <segment>
+        <source>Reporting...</source>
       </segment>
     </unit>
     <unit id="5851560788527570644">
@@ -3045,6 +4547,11 @@
         <source>New password is too weak.</source>
       </segment>
     </unit>
+    <unit id="1868606282505332204">
+      <segment>
+        <source>Reports</source>
+      </segment>
+    </unit>
     <unit id="1869005629911328727">
       <segment>
         <source>Your account has been deleted. Goodbye!</source>
@@ -3068,6 +4575,11 @@
     <unit id="4223406000078729869">
       <segment>
         <source>Dismiss event chip</source>
+      </segment>
+    </unit>
+    <unit id="4234811560247297731">
+      <segment>
+        <source>Media reports</source>
       </segment>
     </unit>
     <unit id="aboutHeroSubtitle">
@@ -3103,6 +4615,22 @@
     <unit id="636877598337294512">
       <segment>
         <source> No used spots yet. </source>
+      </segment>
+    </unit>
+    <unit id="account.about.button">
+      <notes>
+        <note category="description">account about button</note>
+      </notes>
+      <segment>
+        <source>About</source>
+      </segment>
+    </unit>
+    <unit id="account.about.top_button">
+      <notes>
+        <note category="description">account about top button</note>
+      </notes>
+      <segment>
+        <source>About Us</source>
       </segment>
     </unit>
     <unit id="account.auth.kicker">
@@ -3203,6 +4731,22 @@
       </notes>
       <segment>
         <source> The password field is empty! </source>
+      </segment>
+    </unit>
+    <unit id="signin.about.kicker">
+      <notes>
+        <note category="description">about link kicker</note>
+      </notes>
+      <segment>
+        <source>Curious about our values, partners, or team?</source>
+      </segment>
+    </unit>
+    <unit id="signin.about.link">
+      <notes>
+        <note category="description">about link text</note>
+      </notes>
+      <segment>
+        <source>Read the About page</source>
       </segment>
     </unit>
     <unit id="signin.button">
@@ -3399,6 +4943,11 @@
     <unit id="3614817395578126884">
       <segment>
         <source> One organization controls the official info for a managed venue. </source>
+      </segment>
+    </unit>
+    <unit id="3621763709254270239">
+      <segment>
+        <source>Close report</source>
       </segment>
     </unit>
     <unit id="2231151963929640898">
@@ -3765,6 +5314,21 @@
         <source>Edit button with a pencil icon</source>
       </segment>
     </unit>
+    <unit id="spot.edit.crew_help.body">
+      <segment>
+        <source> We are open to help with testing, software, spot reviews, translations, design, and local community work. </source>
+      </segment>
+    </unit>
+    <unit id="spot.edit.crew_help.contact">
+      <segment>
+        <source>Join the crew</source>
+      </segment>
+    </unit>
+    <unit id="spot.edit.crew_help.title">
+      <segment>
+        <source> Want to help PK Spot? </source>
+      </segment>
+    </unit>
     <unit id="8902169607450414056">
       <notes>
         <note category="description">Label of the button to edit the spot</note>
@@ -3804,6 +5368,11 @@
       </notes>
       <segment>
         <source>Edit History</source>
+      </segment>
+    </unit>
+    <unit id="spot.report.reason.unknown">
+      <segment>
+        <source>reported</source>
       </segment>
     </unit>
     <unit id="spot.report.tooltip">
@@ -3869,6 +5438,11 @@
         <source>Spot name</source>
       </segment>
     </unit>
+    <unit id="6422745118544210611">
+      <segment>
+        <source>Delete this spot and all of its nested data? This action is permanent and will be recorded in moderation provenance.</source>
+      </segment>
+    </unit>
     <unit id="spot.edit.media.header">
       <notes>
         <note category="description">Header for media editing section</note>
@@ -3901,6 +5475,21 @@
         <source>Hide Streetview</source>
       </segment>
     </unit>
+    <unit id="spot.edit.import_help.body">
+      <segment>
+        <source> If you have a Google My Maps, KML/KMZ, spreadsheet, or local spot list, we are happy to help import it. </source>
+      </segment>
+    </unit>
+    <unit id="spot.edit.import_help.contact">
+      <segment>
+        <source>Contact us</source>
+      </segment>
+    </unit>
+    <unit id="spot.edit.import_help.title">
+      <segment>
+        <source> Have an existing spot map? </source>
+      </segment>
+    </unit>
     <unit id="8126459137636028145">
       <notes>
         <note category="description">The header for the spot description</note>
@@ -3908,11 +5497,6 @@
       </notes>
       <segment>
         <source> Description </source>
-      </segment>
-    </unit>
-    <unit id="8928816882866356838">
-      <segment>
-        <source>Public</source>
       </segment>
     </unit>
     <unit id="8942517704279686805">
@@ -3934,9 +5518,24 @@
         <source>Unlink</source>
       </segment>
     </unit>
+    <unit id="4662252870324398885">
+      <segment>
+        <source>Community knowledge saved</source>
+      </segment>
+    </unit>
     <unit id="7772746290400709115">
       <segment>
         <source>Search Google Places near this spot</source>
+      </segment>
+    </unit>
+    <unit id="778210565718150542">
+      <segment>
+        <source>Tell us what is wrong with</source>
+      </segment>
+    </unit>
+    <unit id="7788049772453800084">
+      <segment>
+        <source>Failed to load reports</source>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -4053,11 +5652,6 @@
         <source>Follow what others discover, contribute updates, and help keep the map alive.</source>
       </segment>
     </unit>
-    <unit id="8463135805202778440">
-      <segment>
-        <source> Map data, Testing, UI/UX Advisor </source>
-      </segment>
-    </unit>
     <unit id="8470446025763473581">
       <segment>
         <source>Added media</source>
@@ -4083,6 +5677,16 @@
         <source>Failed to link Google Place</source>
       </segment>
     </unit>
+    <unit id="2762746842237643658">
+      <segment>
+        <source>Spam or malicious links</source>
+      </segment>
+    </unit>
+    <unit id="2766652354178868162">
+      <segment>
+        <source>Contact messages</source>
+      </segment>
+    </unit>
     <unit id="2781971407154812080">
       <segment>
         <source>Unlinked Google Place</source>
@@ -4096,14 +5700,6 @@
     <unit id="6670068416688791508">
       <segment>
         <source>Cannot share a spot that hasn&apos;t been saved yet</source>
-      </segment>
-    </unit>
-    <unit id="7522163249854323083">
-      <notes>
-        <note category="description">minutes short</note>
-      </notes>
-      <segment>
-        <source>min.</source>
       </segment>
     </unit>
     <unit id="7523630390926625638">
@@ -4199,6 +5795,16 @@
         <source>Torn down</source>
       </segment>
     </unit>
+    <unit id="4179201237650463482">
+      <segment>
+        <source>Delete spot</source>
+      </segment>
+    </unit>
+    <unit id="8361822038727829961">
+      <segment>
+        <source>No reports match this filter.</source>
+      </segment>
+    </unit>
     <unit id="8374523856907728400">
       <segment>
         <source>Does not exist</source>
@@ -4224,6 +5830,11 @@
         <source>Other</source>
       </segment>
     </unit>
+    <unit id="8696081743971951222">
+      <segment>
+        <source> Also block this user after reporting </source>
+      </segment>
+    </unit>
     <unit id="4965889425715950321">
       <segment>
         <source>Which spot is this spot a duplicate of?</source>
@@ -4232,6 +5843,11 @@
     <unit id="4411046525037051458">
       <segment>
         <source> Note: Spot reports are public and will be displayed on the spot itself together with your profile and user name. </source>
+      </segment>
+    </unit>
+    <unit id="4411678463999056889">
+      <segment>
+        <source> For private questions, partnerships, spot map imports, or joining the crew, send us a message directly. </source>
       </segment>
     </unit>
     <unit id="3209433866980480523">
@@ -4244,12 +5860,14 @@
         <source> Loading activity... </source>
       </segment>
     </unit>
-    <unit id="3228321309780982411">
-      <notes>
-        <note category="meaning">report button label</note>
-      </notes>
+    <unit id="5945359866777111462">
       <segment>
         <source> Report </source>
+      </segment>
+    </unit>
+    <unit id="5948611274018267787">
+      <segment>
+        <source>Contact message archived</source>
       </segment>
     </unit>
     <unit id="9074160907730350759">
@@ -4343,14 +5961,9 @@
         <source> Join our Discord server to chat with the community, report bugs, and request features. This is the fastest way to get help! </source>
       </segment>
     </unit>
-    <unit id="1336542143746897548">
+    <unit id="3849719587486813146">
       <segment>
-        <source>Email Support</source>
-      </segment>
-    </unit>
-    <unit id="7655174159902173121">
-      <segment>
-        <source> For formal inquiries, partnerships, or issues that require privacy, reach out via email. </source>
+        <source> PK Spot is a free, privacy-first, community-owned map for parkour. The project is built entirely by volunteers to help athletes find spots, connect, and share their local scene. </source>
       </segment>
     </unit>
     <unit id="3857035781062897227">
@@ -4485,7 +6098,7 @@
     </unit>
     <unit id="welcomeDialogTechBody">
       <segment>
-        <source> After you agree, PK Spot loads essential services like Google Maps, which may use cookies. Analytics stay cookie-free. </source>
+        <source> After you agree, PK Spot loads essential services like Google Maps, which may use cookies. Analytics stay cookie-free. This site is protected by reCAPTCHA. </source>
       </segment>
     </unit>
     <unit id="welcomeDialogButtonInfo">
@@ -4536,14 +6149,14 @@
         <source>Please select the reason for this report:</source>
       </segment>
     </unit>
-    <unit id="1444810422143574364">
+    <unit id="3294546743782337747">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Not a picture of this spot: This image does not show the location or is misleading.</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Not relevant: This media does not belong here or is misleading.</pc></source>
       </segment>
     </unit>
-    <unit id="9203623357458240065">
+    <unit id="2540890198002687328">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Bad quality: This picture is blurry, too dark, or generally poor quality.</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Bad quality: This media is blurry, too dark, or generally poor quality.</pc></source>
       </segment>
     </unit>
     <unit id="93057103339884764">
@@ -4551,9 +6164,19 @@
         <source> Backed by the <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">community</pc>. </source>
       </segment>
     </unit>
+    <unit id="791844227054671315">
+      <segment>
+        <source>Media report</source>
+      </segment>
+    </unit>
     <unit id="7918594686638498781">
       <segment>
         <source>Organization not found.</source>
+      </segment>
+    </unit>
+    <unit id="7922989125096435449">
+      <segment>
+        <source>Contact</source>
       </segment>
     </unit>
     <unit id="7941428823403788384">
@@ -4561,9 +6184,9 @@
         <source> Create </source>
       </segment>
     </unit>
-    <unit id="7952543174289794111">
+    <unit id="5245603112373072943">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This image is already present on this spot.</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This media is already present.</pc></source>
       </segment>
     </unit>
     <unit id="798956693238681279">
@@ -4586,14 +6209,9 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">I&apos;m visible and have a problem with it.</pc></source>
       </segment>
     </unit>
-    <unit id="6454977624040653568">
+    <unit id="6851417304024228444">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">This picture violates the terms of service in other ways (nudity, violence, etc.)</pc></source>
-      </segment>
-    </unit>
-    <unit id="6756581455198295879">
-      <segment>
-        <source> Parkour Instructor </source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">This media violates the terms of service in other ways (nudity, violence, etc.)</pc></source>
       </segment>
     </unit>
     <unit id="6772316127315505952">
@@ -4627,17 +6245,17 @@
         <source>Your Email</source>
       </segment>
     </unit>
+    <unit id="2049290282534091182">
+      <segment>
+        <source>Moderation</source>
+      </segment>
+    </unit>
     <unit id="8981818401286656238">
       <notes>
         <note category="description">reporter email placeholder</note>
       </notes>
       <segment>
         <source>your-email@example.com</source>
-      </segment>
-    </unit>
-    <unit id="8985868511640294928">
-      <segment>
-        <source>Testing</source>
       </segment>
     </unit>
     <unit id="8552587679160911578">
@@ -4687,6 +6305,11 @@
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
       </segment>
     </unit>
+    <unit id="6113189419449428585">
+      <segment>
+        <source>About &amp; Credits</source>
+      </segment>
+    </unit>
     <unit id="6114788636278653503">
       <segment>
         <source> No managed spots yet. </source>
@@ -4697,6 +6320,11 @@
         <source> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()"/></source>
       </segment>
     </unit>
+    <unit id="6116080434907209479">
+      <segment>
+        <source>Your display name is public. Use a nickname if you prefer.</source>
+      </segment>
+    </unit>
     <unit id="pk.spotmap.title">
       <segment>
         <source>Parkour Spots, Events &amp; Communities | PK Spot</source>
@@ -4705,6 +6333,11 @@
     <unit id="7724618434121262533">
       <segment>
         <source>Unnamed Drinking Water spot</source>
+      </segment>
+    </unit>
+    <unit id="7727546793696327095">
+      <segment>
+        <source>Report profile</source>
       </segment>
     </unit>
     <unit id="6598126152282792001">
@@ -4725,6 +6358,11 @@
     <unit id="4320994550381609480">
       <segment>
         <source>Pioneer</source>
+      </segment>
+    </unit>
+    <unit id="9010970051369341213">
+      <segment>
+        <source> Optional and public. Leave it blank if you do not want to share it. </source>
       </segment>
     </unit>
     <unit id="9019759608416406738">
@@ -4797,6 +6435,11 @@
         <source>Architect</source>
       </segment>
     </unit>
+    <unit id="2890458965362106208">
+      <segment>
+        <source>Report submitted. Thanks for helping keep spots accurate.</source>
+      </segment>
+    </unit>
     <unit id="4744376889247353452">
       <segment>
         <source>Curator</source>
@@ -4840,6 +6483,11 @@
     <unit id="1764129256318376973">
       <segment>
         <source>My Spots</source>
+      </segment>
+    </unit>
+    <unit id="1768706793994634024">
+      <segment>
+        <source>Failed to update contact message</source>
       </segment>
     </unit>
     <unit id="1770355449441392558">
@@ -5086,6 +6734,11 @@
         <source>Sketchy</source>
       </segment>
     </unit>
+    <unit id="6523645604640002372">
+      <segment>
+        <source>Admin only activity feed</source>
+      </segment>
+    </unit>
     <unit id="6554529363159797991">
       <segment>
         <source>Creative</source>
@@ -5096,6 +6749,11 @@
         <source>Techy</source>
       </segment>
     </unit>
+    <unit id="6185035155992471587">
+      <segment>
+        <source>Something else</source>
+      </segment>
+    </unit>
     <unit id="5451766476743569122">
       <segment>
         <source>Fun</source>
@@ -5104,11 +6762,6 @@
     <unit id="7027401708987643293">
       <segment>
         <source>Core</source>
-      </segment>
-    </unit>
-    <unit id="7036284206110282007">
-      <segment>
-        <source>days</source>
       </segment>
     </unit>
     <unit id="3998090677451328461">
@@ -5129,6 +6782,11 @@
     <unit id="2085915950119931041">
       <segment>
         <source>The goal of this challenge is to be creative. This challenge may also be more open to interpretation.</source>
+      </segment>
+    </unit>
+    <unit id="2092047258741296207">
+      <segment>
+        <source>Failed to save community knowledge</source>
       </segment>
     </unit>
     <unit id="3420095157187102720">
@@ -5324,6 +6982,21 @@
     <unit id="spot-type-description.university-campus">
       <segment>
         <source>This spot is on university or college grounds where some areas may be open while others require permission.</source>
+      </segment>
+    </unit>
+    <unit id="spot-preview-card.media.loading">
+      <segment>
+        <source>Loading spot media</source>
+      </segment>
+    </unit>
+    <unit id="spot-preview-card.reported">
+      <segment>
+        <source>Reported</source>
+      </segment>
+    </unit>
+    <unit id="spot-preview-card.reported-with-reason">
+      <segment>
+        <source>Reported: <ph id="0" equiv="PH" disp="this._formatReportReason(reason)"/></source>
       </segment>
     </unit>
     <unit id="spot-type-description.art">

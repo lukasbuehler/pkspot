@@ -172,12 +172,7 @@ export class SelectLanguageDialogComponent implements OnInit, AfterViewInit {
   }
 
   getLanguageNameFromLocale(locale: LocaleCode): string {
-    if (languageCodes[locale]) {
-      return `${languageCodes[locale]?.emoji ?? ""} ${
-        languageCodes[locale]?.name_native ?? ""
-      }`;
-    }
-    return "";
+    return languageCodes[locale]?.name_native ?? locale;
   }
 
   onNoClick(): void {

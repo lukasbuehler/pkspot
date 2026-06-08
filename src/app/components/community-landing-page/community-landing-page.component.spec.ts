@@ -306,13 +306,15 @@ describe("CommunityLandingPageComponent", () => {
     });
     fixture.detectChanges();
 
-    const cta = fixture.nativeElement.querySelector(
-      ".community-knowledge-cta a",
-    ) as HTMLAnchorElement;
+    const cta = [
+      ...fixture.nativeElement.querySelectorAll('a[href^="/contact"]'),
+    ].find((link: HTMLAnchorElement) =>
+      link.textContent?.includes("Share community info"),
+    ) as HTMLAnchorElement | undefined;
 
     expect(fixture.nativeElement.textContent).toContain("WhatsApp group chat");
-    expect(cta.textContent).toContain("Share community info");
-    expect(cta.getAttribute("href")).toBe(
+    expect(cta?.textContent).toContain("Share community info");
+    expect(cta?.getAttribute("href")).toBe(
       "/contact?topic=general&source=%2Fmap%2Fcommunities%2Fswitzerland&community=Switzerland",
     );
   });
@@ -324,13 +326,16 @@ describe("CommunityLandingPageComponent", () => {
     });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain("Local Knowledge");
+    expect(fixture.nativeElement.textContent).not.toContain("Local Knowledge");
     expect(fixture.nativeElement.textContent).toContain("Know this community?");
     expect(fixture.nativeElement.textContent).not.toContain(
       "No knowledge cards yet.",
     );
-    expect(
-      fixture.nativeElement.querySelector(".community-knowledge-cta a"),
-    ).not.toBeNull();
+    const cta = [
+      ...fixture.nativeElement.querySelectorAll('a[href^="/contact"]'),
+    ].find((link: HTMLAnchorElement) =>
+      link.textContent?.includes("Share community info"),
+    );
+    expect(cta).toBeDefined();
   });
 });

@@ -385,6 +385,10 @@ export const languageCodes: {
     emoji: "🇵🇷",
   },
   es: {
+    name_english: "Spanish",
+    name_native: "Español",
+  },
+  "es-EN": {
     name_english: "Spanish (Spain)",
     name_native: "Español (España)",
     emoji: "🇪🇸",
