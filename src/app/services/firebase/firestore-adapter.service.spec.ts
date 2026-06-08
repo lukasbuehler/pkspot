@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { Firestore } from "@angular/fire/firestore";
+import {
+  GeoPoint,
+  Timestamp,
+  deleteField,
+  serverTimestamp,
+} from "firebase/firestore";
 import { of } from "rxjs";
 
 // Note: vi.mock calls are hoisted, so we need inline mocks
@@ -34,29 +40,121 @@ vi.mock("@angular/fire/firestore", async (importOriginal) => {
   };
 });
 
-vi.mock("@capacitor-firebase/firestore", () => ({
-  FirebaseFirestore: {
-    getDocument: vi.fn().mockResolvedValue({
-      snapshot: { id: "native-doc-id", data: { name: "Native Doc" } },
-    }),
-    setDocument: vi.fn().mockResolvedValue(undefined),
-    updateDocument: vi.fn().mockResolvedValue(undefined),
-    deleteDocument: vi.fn().mockResolvedValue(undefined),
-    addDocument: vi.fn().mockResolvedValue({
-      reference: { path: "collection/new-id" },
-    }),
-    getCollection: vi.fn().mockResolvedValue({
-      snapshots: [{ id: "doc1", data: { name: "Doc 1" } }],
-    }),
-    getCollectionGroup: vi.fn().mockResolvedValue({
-      snapshots: [{ id: "group-doc1", data: { name: "Group Doc 1" } }],
-    }),
-    addDocumentSnapshotListener: vi.fn().mockResolvedValue("listener-1"),
-    addCollectionSnapshotListener: vi.fn().mockResolvedValue("listener-2"),
-    addCollectionGroupSnapshotListener: vi.fn().mockResolvedValue("listener-3"),
-    removeSnapshotListener: vi.fn().mockResolvedValue(undefined),
-  },
-}));
+vi.mock("@capacitor-firebase/firestore", () => {
+  class MockTimestamp {
+    constructor(
+      public seconds: number,
+      public nanoseconds: number
+    ) {}
+
+    static fromDate(date: Date): MockTimestamp {
+      const ms = date.getTime();
+      return new MockTimestamp(
+        Math.floor(ms / 1000),
+        (ms % 1000) * 1_000_000
+      );
+    }
+
+    toJSON(): Record<string, unknown> {
+      return {
+        __type__: "timestamp",
+        seconds: this.seconds,
+        nanoseconds: this.nanoseconds,
+      };
+    }
+  }
+
+  class MockGeoPoint {
+    constructor(
+      public latitude: number,
+      public longitude: number
+    ) {}
+
+    toJSON(): Record<string, unknown> {
+      return {
+        __type__: "geopoint",
+        latitude: this.latitude,
+        longitude: this.longitude,
+      };
+    }
+  }
+
+  class MockDocumentReference {
+    id: string;
+
+    constructor(public path: string) {
+      this.id = path.substring(path.lastIndexOf("/") + 1);
+    }
+
+    static fromPath(path: string): MockDocumentReference {
+      return new MockDocumentReference(path);
+    }
+
+    toJSON(): Record<string, unknown> {
+      return {
+        __type__: "documentReference",
+        id: this.id,
+        path: this.path,
+      };
+    }
+  }
+
+  class MockFieldValue {
+    constructor(private marker: Record<string, unknown>) {}
+
+    static serverTimestamp(): MockFieldValue {
+      return new MockFieldValue({ __type__: "serverTimestamp" });
+    }
+
+    static arrayUnion(...elements: unknown[]): MockFieldValue {
+      return new MockFieldValue({ __type__: "arrayUnion", elements });
+    }
+
+    static arrayRemove(...elements: unknown[]): MockFieldValue {
+      return new MockFieldValue({ __type__: "arrayRemove", elements });
+    }
+
+    static delete(): MockFieldValue {
+      return new MockFieldValue({ __type__: "delete" });
+    }
+
+    static increment(operand: number): MockFieldValue {
+      return new MockFieldValue({ __type__: "increment", operand });
+    }
+
+    toJSON(): Record<string, unknown> {
+      return { ...this.marker };
+    }
+  }
+
+  return {
+    FirebaseFirestore: {
+      getDocument: vi.fn().mockResolvedValue({
+        snapshot: { id: "native-doc-id", data: { name: "Native Doc" } },
+      }),
+      setDocument: vi.fn().mockResolvedValue(undefined),
+      updateDocument: vi.fn().mockResolvedValue(undefined),
+      deleteDocument: vi.fn().mockResolvedValue(undefined),
+      addDocument: vi.fn().mockResolvedValue({
+        reference: { path: "collection/new-id" },
+      }),
+      getCollection: vi.fn().mockResolvedValue({
+        snapshots: [{ id: "doc1", data: { name: "Doc 1" } }],
+      }),
+      getCollectionGroup: vi.fn().mockResolvedValue({
+        snapshots: [{ id: "group-doc1", data: { name: "Group Doc 1" } }],
+      }),
+      addDocumentSnapshotListener: vi.fn().mockResolvedValue("listener-1"),
+      addCollectionSnapshotListener: vi.fn().mockResolvedValue("listener-2"),
+      addCollectionGroupSnapshotListener: vi.fn().mockResolvedValue("listener-3"),
+      removeSnapshotListener: vi.fn().mockResolvedValue(undefined),
+    },
+    Timestamp: MockTimestamp,
+    GeoPoint: MockGeoPoint,
+    DocumentReference: MockDocumentReference,
+    FieldValue: MockFieldValue,
+  };
+});
 
 // Import after mocks are set up
 import {
@@ -492,8 +590,50 @@ describe("FirestoreAdapterService (native)", () => {
 
       expect(FirebaseFirestore.setDocument).toHaveBeenCalledWith({
         reference: "events/event-1/rsvps/user-1",
-        data: payload,
+        data: {
+          ...payload,
+          time_updated: expect.objectContaining({
+            seconds: 1_779_652_800,
+            nanoseconds: 0,
+          }),
+        },
         merge: true,
+      });
+    });
+
+    it("should normalize Firebase special values before native setDocument", async () => {
+      await service.setDocument("events/event-1", {
+        start: Timestamp.fromDate(new Date("2026-05-24T20:00:00.123Z")),
+        location: new GeoPoint(47.3769, 8.5417),
+        owner: { type: "document", path: "users/user-1" },
+        time_updated: serverTimestamp(),
+        hidden_until: deleteField(),
+        plain_location: { latitude: 47.3769, longitude: 8.5417 },
+      });
+
+      const call = FirebaseFirestore.setDocument.mock.calls[0][0];
+      expect(call.data.start.toJSON()).toEqual({
+        __type__: "timestamp",
+        seconds: 1_779_652_800,
+        nanoseconds: 123_000_000,
+      });
+      expect(call.data.location.toJSON()).toEqual({
+        __type__: "geopoint",
+        latitude: 47.3769,
+        longitude: 8.5417,
+      });
+      expect(call.data.owner.toJSON()).toEqual({
+        __type__: "documentReference",
+        id: "user-1",
+        path: "users/user-1",
+      });
+      expect(call.data.time_updated.toJSON()).toEqual({
+        __type__: "serverTimestamp",
+      });
+      expect(call.data.hidden_until.toJSON()).toEqual({ __type__: "delete" });
+      expect(call.data.plain_location).toEqual({
+        latitude: 47.3769,
+        longitude: 8.5417,
       });
     });
   });
@@ -506,6 +646,21 @@ describe("FirestoreAdapterService (native)", () => {
         reference: "collection/doc-id",
         data: { name: "Updated" },
       });
+    });
+
+    it("should normalize Firebase special values before native updateDocument", async () => {
+      await service.updateDocument("collection/doc-id", {
+        time_updated: Timestamp.fromMillis(1_748_118_400_000),
+        removed: deleteField(),
+      });
+
+      const call = FirebaseFirestore.updateDocument.mock.calls[0][0];
+      expect(call.data.time_updated.toJSON()).toEqual({
+        __type__: "timestamp",
+        seconds: 1_748_118_400,
+        nanoseconds: 0,
+      });
+      expect(call.data.removed.toJSON()).toEqual({ __type__: "delete" });
     });
   });
 
@@ -548,6 +703,27 @@ describe("FirestoreAdapterService (native)", () => {
       expect(FirebaseFirestore.addDocument).toHaveBeenCalledWith({
         reference: "spots/spot-1/edits",
         data: payload,
+      });
+    });
+
+    it("should normalize nested Firebase special values before native addDocument", async () => {
+      await service.addDocument("spots/spot-1/edits", {
+        timestamp: Timestamp.fromMillis(1_748_118_400_000),
+        data: {
+          location: new GeoPoint(47.3769, 8.5417),
+        },
+      });
+
+      const call = FirebaseFirestore.addDocument.mock.calls[0][0];
+      expect(call.data.timestamp.toJSON()).toEqual({
+        __type__: "timestamp",
+        seconds: 1_748_118_400,
+        nanoseconds: 0,
+      });
+      expect(call.data.data.location.toJSON()).toEqual({
+        __type__: "geopoint",
+        latitude: 47.3769,
+        longitude: 8.5417,
       });
     });
   });

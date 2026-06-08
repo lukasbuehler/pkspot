@@ -38,6 +38,10 @@ import {
   QueryFieldFilterConstraint,
   QueryNonFilterConstraint,
   DocumentSnapshot,
+  Timestamp as CapacitorTimestamp,
+  GeoPoint as CapacitorGeoPoint,
+  DocumentReference as CapacitorDocumentReference,
+  FieldValue as CapacitorFieldValue,
 } from "@capacitor-firebase/firestore";
 import { transformFirestoreData } from "../../../scripts/Helpers";
 
@@ -470,6 +474,187 @@ export class FirestoreAdapterService {
     throw new Error(`Unsupported filter value type: ${typeof value}`);
   }
 
+  private normalizeNativeRecord<T extends Record<string, unknown>>(
+    data: T
+  ): Record<string, unknown> {
+    return this.normalizeNativeValue(data) as Record<string, unknown>;
+  }
+
+  private normalizeNativeQueryFilter(
+    filter: QueryFilter
+  ): QueryFieldFilterConstraint {
+    return {
+      type: "where",
+      fieldPath: filter.fieldPath,
+      opStr: filter.opStr,
+      value: this.normalizeNativeValue(filter.value),
+    };
+  }
+
+  private normalizeNativeValue(value: unknown): unknown {
+    if (value === null || value === undefined) {
+      return value;
+    }
+
+    if (
+      value instanceof CapacitorTimestamp ||
+      value instanceof CapacitorGeoPoint ||
+      value instanceof CapacitorDocumentReference ||
+      value instanceof CapacitorFieldValue
+    ) {
+      return value;
+    }
+
+    if (value instanceof Date) {
+      return CapacitorTimestamp.fromDate(value);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((entry) => this.normalizeNativeValue(entry));
+    }
+
+    if (typeof value !== "object") {
+      return value;
+    }
+
+    const candidate = value as Record<string, unknown>;
+    const nativeMarker = this.normalizeNativeMarker(candidate);
+    if (nativeMarker !== undefined) {
+      return nativeMarker;
+    }
+
+    if (
+      typeof candidate["seconds"] === "number" &&
+      typeof candidate["nanoseconds"] === "number" &&
+      (typeof candidate["toDate"] === "function" ||
+        typeof candidate["toMillis"] === "function" ||
+        candidate.constructor?.name === "Timestamp")
+    ) {
+      return new CapacitorTimestamp(
+        candidate["seconds"],
+        candidate["nanoseconds"]
+      );
+    }
+
+    if (
+      typeof candidate["latitude"] === "number" &&
+      typeof candidate["longitude"] === "number" &&
+      (typeof candidate["isEqual"] === "function" ||
+        candidate.constructor?.name === "GeoPoint")
+    ) {
+      return new CapacitorGeoPoint(
+        candidate["latitude"],
+        candidate["longitude"]
+      );
+    }
+
+    if (
+      typeof candidate["_methodName"] === "string" &&
+      candidate.constructor?.name.endsWith("FieldValueImpl")
+    ) {
+      const fieldValue = this.normalizeFirebaseFieldValue(candidate);
+      if (fieldValue) {
+        return fieldValue;
+      }
+    }
+
+    if (
+      candidate["type"] === "document" &&
+      typeof candidate["path"] === "string"
+    ) {
+      return CapacitorDocumentReference.fromPath(candidate["path"]);
+    }
+
+    const normalized: Record<string, unknown> = {};
+    for (const [key, nestedValue] of Object.entries(candidate)) {
+      normalized[key] = this.normalizeNativeValue(nestedValue);
+    }
+    return normalized;
+  }
+
+  private normalizeNativeMarker(
+    marker: Record<string, unknown>
+  ): unknown | undefined {
+    switch (marker["__type__"]) {
+      case "timestamp":
+        if (
+          typeof marker["seconds"] === "number" &&
+          typeof marker["nanoseconds"] === "number"
+        ) {
+          return new CapacitorTimestamp(
+            marker["seconds"],
+            marker["nanoseconds"]
+          );
+        }
+        return undefined;
+      case "geopoint":
+        if (
+          typeof marker["latitude"] === "number" &&
+          typeof marker["longitude"] === "number"
+        ) {
+          return new CapacitorGeoPoint(
+            marker["latitude"],
+            marker["longitude"]
+          );
+        }
+        return undefined;
+      case "documentReference":
+        return typeof marker["path"] === "string"
+          ? CapacitorDocumentReference.fromPath(marker["path"])
+          : undefined;
+      case "serverTimestamp":
+        return CapacitorFieldValue.serverTimestamp();
+      case "delete":
+        return CapacitorFieldValue.delete();
+      case "increment":
+        return typeof marker["operand"] === "number"
+          ? CapacitorFieldValue.increment(marker["operand"])
+          : undefined;
+      case "arrayUnion":
+        return CapacitorFieldValue.arrayUnion(
+          ...this.normalizeNativeFieldValueElements(marker["elements"])
+        );
+      case "arrayRemove":
+        return CapacitorFieldValue.arrayRemove(
+          ...this.normalizeNativeFieldValueElements(marker["elements"])
+        );
+      default:
+        return undefined;
+    }
+  }
+
+  private normalizeFirebaseFieldValue(
+    value: Record<string, unknown>
+  ): CapacitorFieldValue | undefined {
+    switch (value["_methodName"]) {
+      case "deleteField":
+        return CapacitorFieldValue.delete();
+      case "serverTimestamp":
+        return CapacitorFieldValue.serverTimestamp();
+      case "increment":
+        return typeof value["_operand"] === "number"
+          ? CapacitorFieldValue.increment(value["_operand"])
+          : undefined;
+      case "arrayUnion":
+        return CapacitorFieldValue.arrayUnion(
+          ...this.normalizeNativeFieldValueElements(value["_elements"])
+        );
+      case "arrayRemove":
+        return CapacitorFieldValue.arrayRemove(
+          ...this.normalizeNativeFieldValueElements(value["_elements"])
+        );
+      default:
+        return undefined;
+    }
+  }
+
+  private normalizeNativeFieldValueElements(value: unknown): unknown[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value.map((entry) => this.normalizeNativeValue(entry));
+  }
+
   private buildStructuredWhere(filters?: QueryFilter[]): Record<string, unknown> | null {
     if (!filters || filters.length === 0) {
       return null;
@@ -721,7 +906,7 @@ export class FirestoreAdapterService {
   ): Promise<void> {
     await FirebaseFirestore.setDocument({
       reference: path,
-      data: data,
+      data: this.normalizeNativeRecord(data),
       merge: options?.merge,
     });
   }
@@ -757,7 +942,7 @@ export class FirestoreAdapterService {
   ): Promise<void> {
     await FirebaseFirestore.updateDocument({
       reference: path,
-      data: data as Record<string, any>,
+      data: this.normalizeNativeRecord(data),
     });
   }
 
@@ -818,7 +1003,7 @@ export class FirestoreAdapterService {
   ): Promise<string> {
     const result = await FirebaseFirestore.addDocument({
       reference: collectionPath,
-      data: data,
+      data: this.normalizeNativeRecord(data),
     });
     // Extract ID from reference path
     const parts = result.reference.path.split("/");
@@ -940,12 +1125,9 @@ export class FirestoreAdapterService {
 
     // Build composite filter if we have filters
     if (filters && filters.length > 0) {
-      const queryFilters: QueryFieldFilterConstraint[] = filters.map((f) => ({
-        type: "where" as const,
-        fieldPath: f.fieldPath,
-        opStr: f.opStr,
-        value: f.value,
-      }));
+      const queryFilters = filters.map((f) =>
+        this.normalizeNativeQueryFilter(f)
+      );
 
       if (queryFilters.length === 1) {
         // Single filter - use compositeFilter with 'and' containing one filter
@@ -1150,12 +1332,9 @@ export class FirestoreAdapterService {
 
       // Build composite filter
       if (filters && filters.length > 0) {
-        const queryFilters: QueryFieldFilterConstraint[] = filters.map((f) => ({
-          type: "where" as const,
-          fieldPath: f.fieldPath,
-          opStr: f.opStr,
-          value: f.value,
-        }));
+        const queryFilters = filters.map((f) =>
+          this.normalizeNativeQueryFilter(f)
+        );
 
         options.compositeFilter = {
           type: "and",
@@ -1432,12 +1611,9 @@ export class FirestoreAdapterService {
 
     // Build composite filter if we have filters
     if (filters && filters.length > 0) {
-      const queryFilters: QueryFieldFilterConstraint[] = filters.map((f) => ({
-        type: "where" as const,
-        fieldPath: f.fieldPath,
-        opStr: f.opStr,
-        value: f.value,
-      }));
+      const queryFilters = filters.map((f) =>
+        this.normalizeNativeQueryFilter(f)
+      );
 
       options.compositeFilter = {
         type: "and",
@@ -1591,12 +1767,9 @@ export class FirestoreAdapterService {
 
       // Build composite filter
       if (filters && filters.length > 0) {
-        const queryFilters: QueryFieldFilterConstraint[] = filters.map((f) => ({
-          type: "where" as const,
-          fieldPath: f.fieldPath,
-          opStr: f.opStr,
-          value: f.value,
-        }));
+        const queryFilters = filters.map((f) =>
+          this.normalizeNativeQueryFilter(f)
+        );
 
         options.compositeFilter = {
           type: "and",
@@ -1681,13 +1854,8 @@ export class FirestoreAdapterService {
 
         // Build composite filter
         if (filters && filters.length > 0) {
-          const queryFilters: QueryFieldFilterConstraint[] = filters.map(
-            (f) => ({
-              type: "where" as const,
-              fieldPath: f.fieldPath,
-              opStr: f.opStr,
-              value: f.value,
-            })
+          const queryFilters = filters.map((f) =>
+            this.normalizeNativeQueryFilter(f)
           );
 
           options.compositeFilter = {
