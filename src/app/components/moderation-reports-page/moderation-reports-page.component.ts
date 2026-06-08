@@ -15,6 +15,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { Subscription } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
@@ -36,6 +37,7 @@ type ReportFilter = "open" | "spot" | "media" | "resolved" | "dismissed" | "all"
     MatChipsModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
   ],
   templateUrl: "./moderation-reports-page.component.html",
   styleUrl: "./moderation-reports-page.component.scss",

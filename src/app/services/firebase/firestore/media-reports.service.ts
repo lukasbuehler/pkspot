@@ -3,7 +3,7 @@ import { MediaReportSchema } from "../../../../db/schemas/MediaReportSchema";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { AuthenticationService } from "../../firebase/authentication.service";
-import { AnyMedia } from "../../../../db/models/Media";
+import { AnyMedia, StorageMedia } from "../../../../db/models/Media";
 import { firstValueFrom } from "rxjs";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 
@@ -25,6 +25,7 @@ export class MediaReportsService extends ConsentAwareService {
   private serializeMedia(media: AnyMedia): MediaReportSchema["media"] {
     const serialized = {
       ...media.getData(),
+      is_in_storage: media instanceof StorageMedia,
       userId: media.userId,
       src: media.baseSrc,
     };

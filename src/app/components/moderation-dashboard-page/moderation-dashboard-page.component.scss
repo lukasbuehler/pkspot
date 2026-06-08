@@ -46,6 +46,10 @@
   gap: 0.75rem;
 }
 
+.moderation-dashboard__reports-link {
+  align-self: flex-end;
+}
+
 .stat-card,
 .queue-card {
   border: 1px solid var(--mat-sys-outline-variant);

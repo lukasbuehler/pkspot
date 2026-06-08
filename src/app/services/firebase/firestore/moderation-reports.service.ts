@@ -1,10 +1,15 @@
 import { inject, Injectable } from "@angular/core";
 import { Functions, httpsCallable } from "@angular/fire/functions";
 import { Timestamp } from "@angular/fire/firestore";
+import { MediaType } from "../../../../db/models/Interfaces";
+import { StorageImage } from "../../../../db/models/Media";
 import { ContactMessageSchema } from "../../../../db/schemas/ContactMessageSchema";
+import type { MediaSchema } from "../../../../db/schemas/Media";
 import { MediaReportSchema } from "../../../../db/schemas/MediaReportSchema";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
 import { createUserReference } from "../../../../scripts/Helpers";
+import { SearchService } from "../../search.service";
+import { isFirstPartyStorageUrl } from "../../../utils/first-party-media-url";
 import { AuthenticationService } from "../authentication.service";
 import {
   FirestoreAdapterService,
@@ -27,8 +32,13 @@ export interface ModerationReportItem {
   targetPath?: string;
   comment?: string;
   mediaSrc?: string;
+  previewImageSrc?: string;
+  spotLocality?: string;
   spotId?: string;
   spotName?: string;
+  spotType?: string;
+  mediaSource?: "storage" | "external";
+  mediaSourceLabel?: string;
   raw: SpotReportSchema | MediaReportSchema;
 }
 
@@ -53,6 +63,7 @@ export interface ModerationContactMessageItem {
 export class ModerationReportsService {
   private readonly _firestoreAdapter = inject(FirestoreAdapterService);
   private readonly _authService = inject(AuthenticationService);
+  private readonly _searchService = inject(SearchService);
   private readonly _functions = inject(Functions, { optional: true });
   private readonly _resolveSpotReportCallable = this._functions
     ? httpsCallable<
@@ -82,10 +93,12 @@ export class ModerationReportsService {
       ),
     ]);
 
-    return [
+    const reports = [
       ...spotReports.data.map((report) => this._mapSpotReport(report)),
       ...mediaReports.map((report) => this._mapMediaReport(report)),
     ].sort((left, right) => right.createdAtMillis - left.createdAtMillis);
+
+    return this._withSpotPreviews(reports);
   }
 
   async getContactMessages(
@@ -158,6 +171,9 @@ export class ModerationReportsService {
       targetPath: spotId ? `/map/spots/${spotId}` : undefined,
       spotId,
       spotName,
+      previewImageSrc: report.spot?.imageSrc,
+      spotLocality: report.spot?.locality,
+      spotType: report.spot?.type,
       raw: report,
     };
   }
@@ -169,6 +185,7 @@ export class ModerationReportsService {
     const createdAtMillis = this._toMillis(report.createdAt);
     const targetId = report.targetId ?? report.spotId;
     const targetPath = this._mediaReportTargetPath(report);
+    const mediaSource = this._isStorageMedia(report.media) ? "storage" : "external";
 
     return {
       id: report.id,
@@ -183,9 +200,88 @@ export class ModerationReportsService {
       targetPath,
       comment: report.comment,
       mediaSrc: report.media?.src,
+      previewImageSrc: this._mediaPreviewImageSrc(report.media),
       spotId: report.spotId,
+      mediaSource,
+      mediaSourceLabel: mediaSource === "storage" ? "Storage media" : "External media",
       raw: report,
     };
+  }
+
+  private _mediaPreviewImageSrc(
+    media: MediaReportSchema["media"] | undefined,
+  ): string | undefined {
+    if (!media?.src) {
+      return undefined;
+    }
+
+    const schema = media as MediaSchema;
+    if (schema.type === MediaType.Video) {
+      return undefined;
+    }
+
+    if (!this._isStorageMedia(media)) {
+      return schema.src;
+    }
+
+    try {
+      return StorageImage.fromSchema({
+        ...schema,
+        isInStorage: true,
+        type: MediaType.Image,
+      }).getPreviewImageSrc();
+    } catch (error) {
+      console.warn("Failed to resolve storage media preview URL", error);
+      return undefined;
+    }
+  }
+
+  private _isStorageMedia(media: MediaReportSchema["media"] | undefined): boolean {
+    return Boolean(
+      media?.is_in_storage ||
+        media?.["isInStorage"] ||
+        isFirstPartyStorageUrl(media?.src),
+    );
+  }
+
+  private async _withSpotPreviews(
+    reports: ModerationReportItem[],
+  ): Promise<ModerationReportItem[]> {
+    const spotIds = reports
+      .filter((report) => report.kind === "spot" && report.spotId)
+      .map((report) => report.spotId as string);
+
+    if (spotIds.length === 0) {
+      return reports;
+    }
+
+    try {
+      const previews = await this._searchService.searchSpotPreviewsByIds(spotIds);
+      const previewsById = new Map(
+        previews.map((preview) => [String(preview.id), preview]),
+      );
+
+      return reports.map((report) => {
+        if (report.kind !== "spot" || !report.spotId) {
+          return report;
+        }
+        const preview = previewsById.get(report.spotId);
+        if (!preview) {
+          return report;
+        }
+        return {
+          ...report,
+          targetLabel: preview.name || report.targetLabel,
+          spotName: preview.name || report.spotName,
+          previewImageSrc: preview.imageSrc || report.previewImageSrc,
+          spotLocality: preview.locality || report.spotLocality,
+          spotType: preview.type || report.spotType,
+        };
+      });
+    } catch (error) {
+      console.warn("Failed to enrich moderation spot reports with previews", error);
+      return reports;
+    }
   }
 
   private _mapContactMessage(

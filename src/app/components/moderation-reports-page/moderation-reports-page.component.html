@@ -54,87 +54,165 @@
     } @else {
       <div class="moderation-reports__list">
         @for (report of filteredReports(); track report.path) {
-          <mat-card class="report-card">
-            <mat-card-header>
-              <mat-card-title>
-                <span>{{ report.targetLabel }}</span>
-              </mat-card-title>
-              <mat-card-subtitle>
-                {{ report.createdAtMillis | date: "medium" }} ·
-                {{ report.reporterLabel }}
-              </mat-card-subtitle>
-            </mat-card-header>
-
-            <mat-card-content>
-              <div class="report-card__meta">
-                <mat-chip-set>
-                  <mat-chip [class.report-card__chip-media]="report.kind === 'media'">
-                    <mat-icon>{{ report.kind === "spot" ? "report" : "image" }}</mat-icon>
-                    <span>{{ report.kind }}</span>
-                  </mat-chip>
-                  <mat-chip [class.report-card__chip-open]="report.status === 'open'">
-                    {{ report.status }}
-                  </mat-chip>
-                  <mat-chip>{{ report.reason }}</mat-chip>
-                </mat-chip-set>
-              </div>
-
-              @if (report.comment) {
-                <p class="mat-body-medium report-card__comment">
-                  {{ report.comment }}
-                </p>
-              }
-
-              @if (report.mediaSrc) {
+          <mat-card
+            class="report-card"
+            [class.report-card--with-preview]="
+              report.previewImageSrc || report.kind === 'spot'
+            "
+          >
+            <div class="report-card__body">
+              @if (report.previewImageSrc) {
                 <a
-                  class="report-card__media-link"
-                  [href]="report.mediaSrc"
+                  class="report-card__preview"
+                  [href]="report.mediaSrc || report.targetPath || '#'"
                   target="_blank"
                   rel="noopener"
+                  aria-label="Open report target"
+                  i18n-aria-label="
+                    @@moderation.reports.open_target_preview_aria"
                 >
-                  <mat-icon>open_in_new</mat-icon>
-                  <span class="text-truncate">{{ report.mediaSrc }}</span>
+                  <img [src]="report.previewImageSrc" alt="" loading="lazy" />
+                </a>
+              } @else if (report.kind === "spot") {
+                <a
+                  class="report-card__preview report-card__preview--empty"
+                  [routerLink]="report.targetPath || null"
+                  aria-label="Open reported spot"
+                  i18n-aria-label="@@moderation.reports.open_spot_preview_aria"
+                >
+                  <mat-icon>place</mat-icon>
                 </a>
               }
-            </mat-card-content>
 
-            <mat-card-actions align="end">
-              @if (report.targetPath) {
-                <a matButton="outlined" [routerLink]="report.targetPath">
-                  <mat-icon>open_in_new</mat-icon>
-                  <span i18n>Open target</span>
-                </a>
-              }
-              @if (report.status === "open") {
-                <button
-                  matButton="filled"
-                  type="button"
-                  [disabled]="actionPath() === report.path"
-                  (click)="resolve(report, 'resolved')"
-                >
-                  <mat-icon>done</mat-icon>
-                  <span i18n>Resolve</span>
-                </button>
-                <button
-                  matButton="outlined"
-                  type="button"
-                  [disabled]="actionPath() === report.path"
-                  (click)="resolve(report, 'dismissed')"
-                >
-                  <mat-icon>close</mat-icon>
-                  <span i18n>Dismiss</span>
-                </button>
-              }
-              <button
-                matButton="outlined"
-                type="button"
-                [disabled]="actionPath() === report.path"
-                (click)="delete(report)"
-              >
-                <mat-icon>delete</mat-icon>
-                <span i18n>Delete</span>
-              </button>
-            </mat-card-actions>
+              <div class="report-card__main">
+                <mat-card-header>
+                  <mat-card-title>
+                    <span>{{ report.targetLabel }}</span>
+                  </mat-card-title>
+                  <mat-card-subtitle>
+                    {{ report.createdAtMillis | date: "medium" }} ·
+                    {{ report.reporterLabel }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+
+                <mat-card-content>
+                  <div class="report-card__meta">
+                    <mat-chip-set>
+                      @if (report.kind === "spot") {
+                        <mat-chip class="report-card__chip-spot">
+                          <mat-icon matChipAvatar>report</mat-icon>
+                          <span i18n>Spot report</span>
+                        </mat-chip>
+                      } @else {
+                        <mat-chip class="report-card__chip-media">
+                          <mat-icon matChipAvatar>image</mat-icon>
+                          <span i18n>Media report</span>
+                        </mat-chip>
+                      }
+                      @if (report.mediaSourceLabel) {
+                        <mat-chip>
+                          <mat-icon matChipAvatar>{{
+                            report.mediaSource === "storage"
+                              ? "cloud"
+                              : "public"
+                          }}</mat-icon>
+                          <span>{{ report.mediaSourceLabel }}</span>
+                        </mat-chip>
+                      }
+                      <mat-chip
+                        [class.report-card__chip-open]="
+                          report.status === 'open'
+                        "
+                      >
+                        {{ report.status }}
+                      </mat-chip>
+                      <mat-chip>{{ report.reason }}</mat-chip>
+                    </mat-chip-set>
+                  </div>
+
+                  @if (
+                    report.kind === "spot" &&
+                    (report.spotLocality || report.spotType)
+                  ) {
+                    <p class="mat-body-small report-card__spot-meta">
+                      @if (report.spotLocality) {
+                        <span>{{ report.spotLocality }}</span>
+                      }
+                      @if (report.spotLocality && report.spotType) {
+                        <span>·</span>
+                      }
+                      @if (report.spotType) {
+                        <span>{{ report.spotType }}</span>
+                      }
+                    </p>
+                  }
+
+                  @if (report.comment) {
+                    <p class="mat-body-medium report-card__comment">
+                      {{ report.comment }}
+                    </p>
+                  }
+
+                  @if (report.mediaSrc) {
+                    <a
+                      class="report-card__media-link"
+                      [href]="report.mediaSrc"
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      <mat-icon>open_in_new</mat-icon>
+                      <span class="text-truncate">{{ report.mediaSrc }}</span>
+                    </a>
+                  }
+                </mat-card-content>
+
+                <mat-card-actions align="end">
+                  @if (report.targetPath) {
+                    <a matButton="outlined" [routerLink]="report.targetPath">
+                      <mat-icon>open_in_new</mat-icon>
+                      <span i18n>Open target</span>
+                    </a>
+                  }
+                  @if (report.status === "open") {
+                    <button
+                      matButton="filled"
+                      type="button"
+                      [disabled]="actionPath() === report.path"
+                      matTooltip="Mark handled. For spot reports, clears the spot warning once no open reports remain."
+                      i18n-matTooltip="@@moderation.reports.resolve_tooltip"
+                      (click)="resolve(report, 'resolved')"
+                    >
+                      <mat-icon>done</mat-icon>
+                      <span i18n>Resolve</span>
+                    </button>
+                    <button
+                      matButton="outlined"
+                      type="button"
+                      [disabled]="actionPath() === report.path"
+                      matTooltip="Close only this report without changing the target."
+                      i18n-matTooltip="@@moderation.reports.dismiss_tooltip"
+                      (click)="resolve(report, 'dismissed')"
+                    >
+                      <mat-icon>close</mat-icon>
+                      <span i18n>Dismiss</span>
+                    </button>
+                  }
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="report-card__delete"
+                    [disabled]="actionPath() === report.path"
+                    aria-label="Delete report"
+                    i18n-aria-label="@@moderation.reports.delete_aria"
+                    matTooltip="Delete only this report document."
+                    i18n-matTooltip="@@moderation.reports.delete_tooltip"
+                    (click)="delete(report)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-card-actions>
+              </div>
+            </div>
           </mat-card>
         }
       </div>

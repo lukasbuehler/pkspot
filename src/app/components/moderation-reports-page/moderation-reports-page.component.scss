@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  width: min(100%, 960px);
+  width: min(100%, 880px);
   margin: 0 auto;
   padding: 1rem;
 }
@@ -36,6 +36,50 @@
   border: 1px solid var(--mat-sys-outline-variant);
 }
 
+.report-card__body {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.report-card--with-preview .report-card__body {
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+}
+
+.report-card__main {
+  min-width: 0;
+}
+
+.report-card__preview {
+  display: block;
+  width: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  border-radius: 8px 0 0 8px;
+  background: var(--mat-sys-surface-container-high);
+}
+
+.report-card__preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  max-height: 240px;
+  object-fit: cover;
+}
+
+.report-card__preview--empty {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.report-card__preview--empty mat-icon {
+  width: 3rem;
+  height: 3rem;
+  font-size: 3rem;
+}
+
 .report-card__meta {
   margin-bottom: 0.75rem;
 }
@@ -50,6 +94,19 @@
   background: var(--mat-sys-tertiary-container);
 }
 
+.report-card__chip-spot {
+  color: var(--mat-sys-on-secondary-container);
+  background: var(--mat-sys-secondary-container);
+}
+
+.report-card__spot-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: -0.25rem 0 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .report-card__comment {
   padding: 0.75rem;
   border-radius: 4px;
@@ -61,7 +118,9 @@
   max-width: 100%;
   gap: 0.35rem;
   align-items: center;
+  margin-top: 0.5rem;
   color: var(--mat-sys-primary);
+  font: var(--mat-sys-body-small);
   text-decoration: none;
 }
 
@@ -72,4 +131,18 @@
 mat-card-actions {
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.report-card__delete {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+@media (max-width: 720px) {
+  .report-card--with-preview .report-card__body {
+    grid-template-columns: 1fr;
+  }
+
+  .report-card__preview {
+    border-radius: 8px 8px 0 0;
+  }
 }

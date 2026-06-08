@@ -56,6 +56,7 @@ outlined_flag
 link_off
 link
 smart_display
+play_circle
 tune
 grid_view
 view_list

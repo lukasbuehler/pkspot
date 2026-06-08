@@ -9,6 +9,8 @@ export interface MediaReportSchema {
     userId?: string;
     src?: string;
     spotId?: string;
+    /** Optional explicit storage hint for moderation; old reports may not have it. */
+    is_in_storage?: boolean;
     // ... other media fields
     [key: string]: any;
   };

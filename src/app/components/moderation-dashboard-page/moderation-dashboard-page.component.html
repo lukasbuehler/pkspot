@@ -64,9 +64,13 @@
               Latest open spot and media reports.
             </p>
           </div>
-          <a matButton="filled" routerLink="/moderation/reports">
+          <a
+            matButton="filled"
+            class="moderation-dashboard__reports-link"
+            routerLink="/moderation/reports"
+          >
             <mat-icon>gavel</mat-icon>
-            <span i18n>Open reports</span>
+            <span i18n>Open all reports</span>
           </a>
         </div>
 
@@ -101,6 +105,15 @@
             }
           </div>
         }
+
+        <a
+          matButton="filled"
+          class="moderation-dashboard__reports-link"
+          routerLink="/moderation/reports"
+        >
+          <mat-icon>gavel</mat-icon>
+          <span i18n>Open all reports</span>
+        </a>
       </section>
 
       <section class="moderation-dashboard__panel">
