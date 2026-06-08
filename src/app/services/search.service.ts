@@ -18,6 +18,7 @@ import {
 import { Event as PkEvent } from "../../db/models/Event";
 import { AssetUrlService } from "./asset-url.service";
 import type { EventRSVPCountsSchema } from "../../db/schemas/EventRSVPSchema";
+import { getSpotPriority } from "../../db/schemas/SpotPriority";
 
 @Injectable({
   providedIn: "root",
@@ -88,34 +89,31 @@ export class SearchService {
   }
 
   /**
-   * Sort spots by rating (desc). When ratings match, prioritize spots with media.
+   * Sort spots by derived priority (desc). When priorities match, prioritize spots with media.
    */
-  private sortHitsByRatingThenMedia(hits: any[]): any[] {
+  private sortHitsByPriorityThenMedia(hits: any[]): any[] {
     return hits.sort((a, b) => {
-      const ratingA = this.getNumericRating(a);
-      const ratingB = this.getNumericRating(b);
-
-      if (ratingA !== undefined && ratingB !== undefined) {
-        if (ratingA !== ratingB) {
-          return ratingB - ratingA;
-        }
-
-        const hasMediaA = this.hasSpotMedia(a);
-        const hasMediaB = this.hasSpotMedia(b);
-        if (hasMediaA === hasMediaB) {
-          return 0;
-        }
-        return hasMediaA ? -1 : 1;
+      const priorityDifference =
+        this.getSpotPriorityFromHit(b) - this.getSpotPriorityFromHit(a);
+      if (priorityDifference !== 0) {
+        return priorityDifference;
       }
-
-      if (ratingA !== undefined) return -1;
-      if (ratingB !== undefined) return 1;
 
       const hasMediaA = this.hasSpotMedia(a);
       const hasMediaB = this.hasSpotMedia(b);
 
       if (hasMediaA === hasMediaB) return 0;
       return hasMediaA ? -1 : 1;
+    });
+  }
+
+  private getSpotPriorityFromHit(hit: any): number {
+    const doc = hit?.document || hit;
+    return getSpotPriority({
+      rating: doc?.rating,
+      access: doc?.access,
+      isIconic: doc?.is_iconic ?? doc?.isIconic,
+      isReported: doc?.is_reported ?? doc?.isReported,
     });
   }
 
@@ -244,6 +242,13 @@ export class SearchService {
           doc.image_url ||
           "",
         isIconic: isIconic,
+        isReported: doc.is_reported === true || doc.isReported === true,
+        reportReason:
+          typeof doc.report_reason === "string"
+            ? doc.report_reason
+            : typeof doc.reportReason === "string"
+              ? doc.reportReason
+              : undefined,
         hideStreetview: hideStreetview,
         rating: doc.rating ?? undefined,
         num_reviews: doc.num_reviews ?? undefined,
@@ -390,7 +395,7 @@ export class SearchService {
         .documents()
         .search({ q: query, ...this.spotSearchParameters }, {});
 
-      const hits = this.sortHitsByRatingThenMedia(
+      const hits = this.sortHitsByPriorityThenMedia(
         (result as any).hits || [],
       ).map((hit: any) => {
         hit.preview = this.getSpotPreviewFromHit(hit);
@@ -685,7 +690,7 @@ export class SearchService {
 
     // If we already satisfied the requested number (after filtering)
     if (allHits.length >= num_spots || found <= perPage) {
-      allHits = this.sortHitsByRatingThenMedia(allHits);
+      allHits = this.sortHitsByPriorityThenMedia(allHits);
       return {
         hits: allHits.slice(0, num_spots),
         found: found,
@@ -722,7 +727,7 @@ export class SearchService {
         allHits.push(...SearchService._flattenTypesenseHits(res.value));
       }
     }
-    allHits = this.sortHitsByRatingThenMedia(allHits);
+    allHits = this.sortHitsByPriorityThenMedia(allHits);
 
     // Build a merged result object similar to Typesense response shape
     const mergedResult = { ...(firstPage as any) } as any;
@@ -882,7 +887,7 @@ export class SearchService {
     const spotsResult =
       allResults[0].status === "fulfilled" ? allResults[0].value : null;
     if (spotsResult && Array.isArray((spotsResult as any).hits)) {
-      const orderedHits = this.sortHitsByRatingThenMedia(
+      const orderedHits = this.sortHitsByPriorityThenMedia(
         (spotsResult as any).hits,
       );
       (spotsResult as any).hits = orderedHits.map((hit: any) => {
@@ -1858,7 +1863,7 @@ export class SearchService {
       .documents()
       .search(searchParams, {});
 
-    const hits = this.sortHitsByRatingThenMedia(
+    const hits = this.sortHitsByPriorityThenMedia(
       (typesenseSpotSearchResults as any).hits || [],
     );
 

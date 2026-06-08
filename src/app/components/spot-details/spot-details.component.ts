@@ -7,7 +7,6 @@ import {
   ViewChild,
   OnChanges,
   ElementRef,
-  HostBinding,
   LOCALE_ID,
   AfterViewInit,
   Pipe,
@@ -189,7 +188,7 @@ import {
 import { SpotProvenanceComponent } from "../spot-provenance/spot-provenance.component";
 import { EventCardComponent } from "../event-card/event-card.component";
 
-@Pipe({ name: "reverse", standalone: true })
+@Pipe({ name: "reverse" })
 export class ReversePipe implements PipeTransform {
   transform(value: any[]): any[] {
     if (!Array.isArray(value)) {
@@ -199,7 +198,7 @@ export class ReversePipe implements PipeTransform {
   }
 }
 
-@Pipe({ name: "asRatingKey", standalone: true })
+@Pipe({ name: "asRatingKey" })
 export class AsRatingKeyPipe implements PipeTransform {
   transform(value: any): "1" | "2" | "3" | "4" | "5" {
     return value.toString() as "1" | "2" | "3" | "4" | "5";
@@ -299,6 +298,10 @@ export class AsRatingKeyPipe implements PipeTransform {
     SpotProvenanceComponent,
     EventCardComponent,
   ],
+  host: {
+    "[style.--open-progress]": "openProgressStyle",
+    "[@grow]": "grow",
+  },
   schemas: [],
 })
 export class SpotDetailsComponent
@@ -316,7 +319,6 @@ export class SpotDetailsComponent
    * Sets the --open-progress CSS custom property on the host element.
    * This controls the visibility of collapsible header info sections.
    */
-  @HostBinding("style.--open-progress")
   get openProgressStyle(): number {
     return this.openProgress();
   }
@@ -596,6 +598,28 @@ export class SpotDetailsComponent
   stateCtrl = new UntypedFormControl();
 
   report = signal<SpotReportSchema | null>(null);
+  currentReport = computed(() => {
+    const report = this.report();
+    if (report) {
+      return report;
+    }
+
+    const spot = this.spot();
+    if (spot instanceof Spot && spot.isReported) {
+      return {
+        spot: {
+          id: spot.id,
+          name: spot.name(),
+        },
+        reason: spot.reportReason ?? $localize`:@@spot.report.reason.unknown:reported`,
+        user: {
+          uid: "",
+        },
+      } satisfies SpotReportSchema;
+    }
+
+    return null;
+  });
   private _latestReportRequestSpotId: string | null = null;
 
   automaticallyDetermineAddress: boolean = true;
@@ -934,7 +958,7 @@ export class SpotDetailsComponent
 
   startHeight: number = 0;
 
-  @HostBinding("@grow") get grow() {
+  get grow() {
     return { value: this.spot(), params: { startHeight: this.startHeight } };
   }
 
@@ -1772,6 +1796,21 @@ export class SpotDetailsComponent
     const dialogRef = this.dialog.open(SpotReportDialogComponent, {
       data: spotReportData,
     });
+    dialogRef
+      .afterClosed()
+      .subscribe((result?: { report?: SpotReportSchema; reportId?: string }) => {
+        if (!result?.report) {
+          return;
+        }
+
+        this.report.set(result.report);
+        spot.isReported = true;
+        spot.reportReason = result.report.reason;
+        spot.reportCount += 1;
+        this._snackbar.open($localize`Report submitted. Thanks for helping keep spots accurate.`, undefined, {
+          duration: 4000,
+        });
+      });
   }
 
   openSpotReviewDialog() {

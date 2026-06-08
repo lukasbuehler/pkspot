@@ -76,6 +76,9 @@ export class LocalSpot {
     return this.userMedia().length > 0 && this.hasRating();
   });
   isIconic: boolean = false;
+  isReported: boolean = false;
+  reportReason: SpotSchema["report_reason"];
+  reportCount: number = 0;
   stewardship: SpotSchema["stewardship"];
   management: SpotSchema["management"];
   /** @deprecated Use stewardship or management. */
@@ -271,7 +274,15 @@ export class LocalSpot {
       return "";
     });
 
+    const legacyReportState = data as SpotSchema & {
+      isReported?: boolean;
+      reportReason?: SpotSchema["report_reason"];
+    };
     this.isIconic = data.is_iconic ?? false;
+    this.isReported =
+      data.is_reported === true || legacyReportState.isReported === true;
+    this.reportReason = data.report_reason ?? legacyReportState.reportReason;
+    this.reportCount = data.report_count ?? 0;
     this.stewardship = data.stewardship;
     this.management = data.management;
     this.verification = data.verification;
@@ -453,7 +464,15 @@ export class LocalSpot {
     this.hideStreetview = data.hide_streetview ?? false;
     // Do not mutate _streetview here; it is derived separately
 
+    const legacyReportState = data as SpotSchema & {
+      isReported?: boolean;
+      reportReason?: SpotSchema["report_reason"];
+    };
     this.isIconic = data.is_iconic ?? false;
+    this.isReported =
+      data.is_reported === true || legacyReportState.isReported === true;
+    this.reportReason = data.report_reason ?? legacyReportState.reportReason;
+    this.reportCount = data.report_count ?? 0;
     this.stewardship = data.stewardship;
     this.management = data.management;
     this.verification = data.verification;
@@ -556,6 +575,9 @@ export class LocalSpot {
       description: this.descriptions(),
       media: mediaSchema,
       is_iconic: this.isIconic,
+      is_reported: this.isReported || undefined,
+      report_reason: this.reportReason,
+      report_count: this.reportCount || undefined,
       stewardship: this.stewardship,
       management: this.management,
       verification: this.verification,
@@ -802,6 +824,8 @@ export class Spot extends LocalSpot {
       countryName: getDisplayCountryName(this.address()),
       imageSrc: this.previewImageSrc(),
       isIconic: this.isIconic,
+      isReported: this.isReported,
+      reportReason: this.reportReason,
       hideStreetview: this.hideStreetview,
       rating: this.rating || undefined,
       amenities: this.amenities(),

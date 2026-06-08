@@ -28,4 +28,15 @@ describe("getSpotMarkerPriority", () => {
       }),
     ).toBe(275);
   });
+
+  it("drops reported spots by two rating stars", () => {
+    expect(getSpotMarkerPriority({ rating: 4.5, isReported: true })).toBe(250);
+    expect(
+      getSpotMarkerPriority({
+        rating: 4.5,
+        access: SpotAccess.Private,
+        isReported: true,
+      }),
+    ).toBe(190);
+  });
 });

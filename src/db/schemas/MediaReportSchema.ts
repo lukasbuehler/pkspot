@@ -1,5 +1,7 @@
 import { UserReferenceSchema } from "./UserSchema";
 
+export type ReportModerationStatus = "open" | "resolved" | "dismissed";
+
 export interface MediaReportSchema {
   // Converted to plain object (not StorageImage/ExternalImage class instance)
   media: {
@@ -22,4 +24,8 @@ export interface MediaReportSchema {
   createdAt: Date;
   /** Locale/language code of the reporter (e.g., 'de-CH', 'en', 'fr') */
   locale?: string;
+  status?: ReportModerationStatus;
+  resolvedAt?: unknown;
+  resolvedBy?: UserReferenceSchema;
+  resolutionNote?: string;
 }

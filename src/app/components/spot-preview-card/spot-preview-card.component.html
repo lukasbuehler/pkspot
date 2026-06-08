@@ -19,6 +19,12 @@
         >stars</mat-icon
       >
       }
+      @if(reportLabel(); as label) {
+      <span class="reported-chip mat-label-small">
+        <mat-icon>report</mat-icon>
+        <span>{{ label }}</span>
+      </span>
+      }
       <span class="text-truncate mat-title-medium">{{ spotName }}</span>
     </mat-card-title>
     <!-- @if(isCompact) { -->

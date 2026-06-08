@@ -122,8 +122,10 @@ export interface SpotSchema {
   time_created?: Timestamp;
   time_updated?: { seconds: number; nanoseconds: number };
 
-  isReported?: boolean;
-  reportReason?: SpotReportReason;
+  is_reported?: boolean;
+  report_reason?: SpotReportReason | string;
+  report_count?: number;
+  latest_report_at?: Timestamp | { seconds: number; nanoseconds: number };
   duplicate_check?: {
     status: "clear" | "possible_duplicate";
     radius_m: number;

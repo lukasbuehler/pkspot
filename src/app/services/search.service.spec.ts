@@ -551,8 +551,10 @@ describe("SearchService", () => {
   });
 
   describe("sort order fallback", () => {
-    it("should keep sort_by rating in spot search parameters", () => {
-      expect(service.spotSearchParameters.sort_by).toBe("rating:desc");
+    it("should ask Typesense for the existing rating sort and apply priority client-side", () => {
+      expect(service.spotSearchParameters.sort_by).toBe(
+        "rating:desc",
+      );
     });
 
     it("should use spot count as the community search relevance tiebreaker", () => {
@@ -597,7 +599,7 @@ describe("SearchService", () => {
         },
       ];
 
-      const ordered = (service as any).sortHitsByRatingThenMedia(hits);
+      const ordered = (service as any).sortHitsByPriorityThenMedia(hits);
       const orderedIds = ordered.map((hit: any) => hit.document.id);
 
       expect(orderedIds).toEqual([
@@ -606,6 +608,32 @@ describe("SearchService", () => {
         "same-rating-no-media",
         "unrated-with-media",
         "unrated-no-media",
+      ]);
+    });
+
+    it("applies reported spot priority penalties in the fallback client sort", () => {
+      const hits = [
+        {
+          document: {
+            id: "reported-higher-rating",
+            rating: 4.8,
+            is_reported: true,
+          },
+        },
+        {
+          document: {
+            id: "normal-lower-rating",
+            rating: 3.2,
+          },
+        },
+      ];
+
+      const ordered = (service as any).sortHitsByPriorityThenMedia(hits);
+      const orderedIds = ordered.map((hit: any) => hit.document.id);
+
+      expect(orderedIds).toEqual([
+        "normal-lower-rating",
+        "reported-higher-rating",
       ]);
     });
   });

@@ -82,7 +82,7 @@ export { onMediaReportCreate } from "./mediaReportFunctions";
 export { onContactMessageCreate } from "./contactMessageFunctions";
 
 // spot report functions
-export { onSpotReportCreate } from "./spotReportFunctions";
+export { onSpotReportCreate, resolveSpotReport } from "./spotReportFunctions";
 
 // user report functions
 export { onUserReportCreate } from "./userReportFunctions";

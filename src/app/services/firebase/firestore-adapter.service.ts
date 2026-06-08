@@ -113,14 +113,8 @@ export class FirestoreAdapterService {
     });
   }
 
-  /**
-   * iOS has known serialization issues in the native Firestore collection bridge.
-   * Keep document operations native, but use web SDK for collection queries on iOS.
-   */
   private shouldUseNativeQueryBridge(): boolean {
-    return (
-      this.platformService.isNative() && this.platformService.getPlatform() !== "ios"
-    );
+    return this.platformService.isNative();
   }
 
   private summarizeFilters(
@@ -1025,32 +1019,6 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
-    const platform = this.platformService.getPlatform();
-    if (platform === "ios") {
-      return this.runCollectionQuery(
-        "getCollection",
-        collectionPath,
-        false,
-        filters,
-        constraints,
-        async () => {
-          try {
-            return await this.getCollectionHttp<T>(
-              collectionPath,
-              filters,
-              constraints
-            );
-          } catch (httpError) {
-            console.warn(
-              `[FirestoreAdapter] iOS getCollection HTTP failed, falling back to web SDK for ${collectionPath}.`,
-              httpError
-            );
-            return this.getCollectionWeb<T>(collectionPath, filters, constraints);
-          }
-        }
-      );
-    }
-
     const useNativeBridge = this.shouldUseNativeQueryBridge();
     return this.runCollectionQuery(
       "getCollection",
@@ -1437,32 +1405,6 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
-    const platform = this.platformService.getPlatform();
-    if (platform === "ios") {
-      return this.runCollectionQuery(
-        "getCollectionGroup",
-        collectionId,
-        false,
-        filters,
-        constraints,
-        async () => {
-          try {
-            return await this.getCollectionGroupHttp<T>(
-              collectionId,
-              filters,
-              constraints
-            );
-          } catch (httpError) {
-            console.warn(
-              `[FirestoreAdapter] iOS getCollectionGroup HTTP failed, falling back to web SDK for ${collectionId}.`,
-              httpError
-            );
-            return this.getCollectionGroupWeb<T>(collectionId, filters, constraints);
-          }
-        }
-      );
-    }
-
     const useNativeBridge = this.shouldUseNativeQueryBridge();
     return this.runCollectionQuery(
       "getCollectionGroup",

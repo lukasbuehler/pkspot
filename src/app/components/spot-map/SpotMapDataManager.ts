@@ -137,11 +137,13 @@ export class SpotMapDataManager {
         rating: b.rating,
         access: b.access,
         isIconic: b.isIconic,
+        isReported: b.isReported,
       }) -
       getSpotMarkerPriority({
         rating: a.rating,
         access: a.access,
         isIconic: a.isIconic,
+        isReported: a.isReported,
       });
 
     if (priorityDifference !== 0) {

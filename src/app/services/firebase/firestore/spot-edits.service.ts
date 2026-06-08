@@ -446,7 +446,7 @@ export class SpotEditsService extends ConsentAwareService {
     spotData: Partial<SpotSchema>
   ): Partial<SpotSchema> {
     // Only these fields are allowed in spot edits according to SpotEditDataSchema
-    const fieldsToRemove: (keyof SpotSchema)[] = [
+    const fieldsToRemove: string[] = [
       // Metadata fields (should not be in edits)
       "rating",
       "num_reviews",
@@ -468,11 +468,15 @@ export class SpotEditsService extends ConsentAwareService {
       "time_created",
       "time_updated",
       "isReported",
+      "is_reported",
       "reportReason",
+      "report_reason",
+      "report_count",
+      "latest_report_at",
     ];
     return cleanDataForFirestore(
       spotData,
-      fieldsToRemove as string[]
+      fieldsToRemove
     ) as Partial<SpotSchema>;
   }
 

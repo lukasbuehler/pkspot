@@ -300,7 +300,7 @@ service cloud.firestore {
         allow read: if true;
         allow create: if request.auth.uid != null 
           && request.auth.uid == request.resource.data.user.uid;
-        allow update: if false;
+        allow update: if isAdmin();
         allow delete: if isAdmin();
       }
 
@@ -530,12 +530,12 @@ service cloud.firestore {
     // Unauthenticated users: create reports with their email
     match /media_reports/{reportId} {
       allow create: if true;
-      allow read, update, delete: if false;
+      allow read, update, delete: if isAdmin();
     }
 
     match /user_reports/{reportId} {
       allow create: if validUserReport();
-      allow read, update, delete: if false;
+      allow read, update, delete: if isAdmin();
     }
 
     // Contact Messages

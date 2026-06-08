@@ -287,6 +287,25 @@ export class SpotPreviewCardComponent
     return loc;
   });
 
+  reportLabel = computed(() => {
+    const spot = this.spotData();
+    if (!spot) return null;
+
+    const isReported =
+      spot instanceof Spot || spot instanceof LocalSpot
+        ? spot.isReported
+        : spot.isReported === true;
+    if (!isReported) return null;
+
+    const reason =
+      spot instanceof Spot || spot instanceof LocalSpot
+        ? spot.reportReason
+        : spot.reportReason;
+    return reason
+      ? $localize`:@@spot-preview-card.reported-with-reason:Reported: ${this._formatReportReason(reason)}`
+      : $localize`:@@spot-preview-card.reported:Reported`;
+  });
+
   spotType = computed(() => {
     const spot = this.spotData();
     if (!spot) return undefined;
@@ -527,6 +546,10 @@ export class SpotPreviewCardComponent
 
   private _isStreetViewUrl(url: string): boolean {
     return /maps\.googleapis\.com\/maps\/api\/streetview/i.test(url);
+  }
+
+  private _formatReportReason(reason: string): string {
+    return reason.replace(/[_-]+/g, " ");
   }
 
   private _isStreetViewSrc(src: string): boolean {

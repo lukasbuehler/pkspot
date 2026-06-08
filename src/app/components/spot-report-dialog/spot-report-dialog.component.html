@@ -38,14 +38,16 @@
     Cancel
   </button>
   <button
-    [disabled]="!data.reason"
+    [disabled]="!data.reason || isSubmitting()"
     matButton="filled"
-    [mat-dialog-close]="data"
     color="warn"
     cdkFocusInitial
     (click)="submitReport()"
-    i18n="report button label|"
   >
-    Report
+    @if (isSubmitting()) {
+      <span i18n>Reporting...</span>
+    } @else {
+      <span i18n>Report</span>
+    }
   </button>
 </mat-dialog-actions>

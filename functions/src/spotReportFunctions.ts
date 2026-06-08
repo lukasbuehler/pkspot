@@ -1,6 +1,8 @@
 import * as logger from "firebase-functions/logger";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
+import * as admin from "firebase-admin";
 
 interface SpotReportData {
   spot?: {
@@ -19,7 +21,29 @@ interface SpotReportData {
   };
 }
 
+interface ResolveSpotReportRequest {
+  reportPath: string;
+  status: "resolved" | "dismissed";
+  resolutionNote?: string;
+}
+
 const discordWebhookUrl = defineSecret("DISCORD_WEBHOOK_URL");
+
+const _isAdminUser = async (uid: string): Promise<boolean> => {
+  const userSnap = await admin.firestore().doc(`users/${uid}`).get();
+  return userSnap.data()?.["is_admin"] === true;
+};
+
+const _parseSpotReportPath = (
+  path: string,
+): { spotId: string; reportId: string } => {
+  const match = path.match(/^spots\/([^/]+)\/reports\/([^/]+)$/);
+  if (!match) {
+    throw new HttpsError("invalid-argument", "Invalid spot report path.");
+  }
+
+  return { spotId: match[1], reportId: match[2] };
+};
 
 const _formatReporter = (user?: SpotReportData["user"]): string => {
   if (!user) return "Unknown";
@@ -50,6 +74,15 @@ export const onSpotReportCreate = onDocumentCreated(
       logger.warn(`No data found for spot report ${reportId}`);
       return;
     }
+
+    const spotRef = admin.firestore().collection("spots").doc(spotId);
+    const reportReason = reportData.reason || "other";
+    await spotRef.update({
+      is_reported: true,
+      report_reason: reportReason,
+      report_count: admin.firestore.FieldValue.increment(1),
+      latest_report_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
 
     const webhookUrl = discordWebhookUrl.value();
     if (!webhookUrl) {
@@ -118,4 +151,53 @@ export const onSpotReportCreate = onDocumentCreated(
 
     logger.info(`Discord notification sent for spot report ${reportId}`);
   }
+);
+
+export const resolveSpotReport = onCall<ResolveSpotReportRequest>(
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid || !(await _isAdminUser(uid))) {
+      throw new HttpsError("permission-denied", "Admin access required.");
+    }
+
+    const { reportPath, status, resolutionNote } = request.data;
+    if (status !== "resolved" && status !== "dismissed") {
+      throw new HttpsError("invalid-argument", "Invalid report status.");
+    }
+
+    const { spotId } = _parseSpotReportPath(reportPath);
+    const db = admin.firestore();
+    const reportRef = db.doc(reportPath);
+    const spotRef = db.collection("spots").doc(spotId);
+    const now = admin.firestore.FieldValue.serverTimestamp();
+    const resolvedBy = { uid };
+
+    await reportRef.update({
+      status,
+      resolvedAt: now,
+      resolvedBy,
+      resolutionNote: resolutionNote || admin.firestore.FieldValue.delete(),
+    });
+
+    const reportsSnapshot = await spotRef.collection("reports").get();
+    const hasOpenReports = reportsSnapshot.docs.some((doc) => {
+      if (doc.ref.path === reportRef.path) {
+        return false;
+      }
+      const reportStatus = doc.data()["status"];
+      return reportStatus !== "resolved" && reportStatus !== "dismissed";
+    });
+
+    if (!hasOpenReports) {
+      await spotRef.update({
+        is_reported: admin.firestore.FieldValue.delete(),
+        report_reason: admin.firestore.FieldValue.delete(),
+        isReported: admin.firestore.FieldValue.delete(),
+        reportReason: admin.firestore.FieldValue.delete(),
+        latest_report_at: admin.firestore.FieldValue.delete(),
+      });
+    }
+
+    return { ok: true };
+  },
 );

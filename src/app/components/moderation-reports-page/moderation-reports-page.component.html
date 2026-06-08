@@ -1,0 +1,143 @@
+<section class="moderation-reports">
+  <header class="moderation-reports__header">
+    <div>
+      <h1 class="mat-headline-medium" i18n>Moderation reports</h1>
+      <p class="mat-body-medium text-secondary" i18n>
+        Review spot and media reports from the community.
+      </p>
+    </div>
+
+    @if (isAdmin()) {
+      <button matButton="outlined" type="button" (click)="reload()">
+        <mat-icon>refresh</mat-icon>
+        <span i18n>Refresh</span>
+      </button>
+    }
+  </header>
+
+  @if (!authResolved()) {
+    <div class="moderation-reports__center">
+      <mat-progress-spinner mode="indeterminate" diameter="32" />
+      <span i18n>Checking admin access...</span>
+    </div>
+  } @else if (!isAdmin()) {
+    <p i18n>Admin access required.</p>
+  } @else {
+    <mat-button-toggle-group
+      class="moderation-reports__filters"
+      [value]="filter()"
+      (valueChange)="filter.set($event)"
+      aria-label="Report filter"
+      i18n-aria-label="@@moderation.reports.filter"
+    >
+      <mat-button-toggle value="open">
+        <span i18n>Open</span> ({{ openCount() }})
+      </mat-button-toggle>
+      <mat-button-toggle value="spot">
+        <span i18n>Spots</span> ({{ spotCount() }})
+      </mat-button-toggle>
+      <mat-button-toggle value="media">
+        <span i18n>Media</span> ({{ mediaCount() }})
+      </mat-button-toggle>
+      <mat-button-toggle value="resolved" i18n>Resolved</mat-button-toggle>
+      <mat-button-toggle value="dismissed" i18n>Dismissed</mat-button-toggle>
+      <mat-button-toggle value="all" i18n>All</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (isLoading()) {
+      <div class="moderation-reports__center">
+        <mat-progress-spinner mode="indeterminate" diameter="32" />
+        <span i18n>Loading reports...</span>
+      </div>
+    } @else if (filteredReports().length === 0) {
+      <p class="mat-body-medium" i18n>No reports match this filter.</p>
+    } @else {
+      <div class="moderation-reports__list">
+        @for (report of filteredReports(); track report.path) {
+          <mat-card class="report-card">
+            <mat-card-header>
+              <mat-card-title>
+                <span>{{ report.targetLabel }}</span>
+              </mat-card-title>
+              <mat-card-subtitle>
+                {{ report.createdAtMillis | date: "medium" }} ·
+                {{ report.reporterLabel }}
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <div class="report-card__meta">
+                <mat-chip-set>
+                  <mat-chip [class.report-card__chip-media]="report.kind === 'media'">
+                    <mat-icon>{{ report.kind === "spot" ? "report" : "image" }}</mat-icon>
+                    <span>{{ report.kind }}</span>
+                  </mat-chip>
+                  <mat-chip [class.report-card__chip-open]="report.status === 'open'">
+                    {{ report.status }}
+                  </mat-chip>
+                  <mat-chip>{{ report.reason }}</mat-chip>
+                </mat-chip-set>
+              </div>
+
+              @if (report.comment) {
+                <p class="mat-body-medium report-card__comment">
+                  {{ report.comment }}
+                </p>
+              }
+
+              @if (report.mediaSrc) {
+                <a
+                  class="report-card__media-link"
+                  [href]="report.mediaSrc"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <mat-icon>open_in_new</mat-icon>
+                  <span class="text-truncate">{{ report.mediaSrc }}</span>
+                </a>
+              }
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+              @if (report.targetPath) {
+                <a matButton="outlined" [routerLink]="report.targetPath">
+                  <mat-icon>open_in_new</mat-icon>
+                  <span i18n>Open target</span>
+                </a>
+              }
+              @if (report.status === "open") {
+                <button
+                  matButton="filled"
+                  type="button"
+                  [disabled]="actionPath() === report.path"
+                  (click)="resolve(report, 'resolved')"
+                >
+                  <mat-icon>done</mat-icon>
+                  <span i18n>Resolve</span>
+                </button>
+                <button
+                  matButton="outlined"
+                  type="button"
+                  [disabled]="actionPath() === report.path"
+                  (click)="resolve(report, 'dismissed')"
+                >
+                  <mat-icon>close</mat-icon>
+                  <span i18n>Dismiss</span>
+                </button>
+              }
+              <button
+                matButton="outlined"
+                type="button"
+                [disabled]="actionPath() === report.path"
+                (click)="delete(report)"
+              >
+                <mat-icon>delete</mat-icon>
+                <span i18n>Delete</span>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    }
+  }
+</section>

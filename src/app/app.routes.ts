@@ -231,6 +231,14 @@ export const routes: Routes = [
       ),
     data: { routeName: "Organization Admin" },
   },
+  {
+    path: "moderation/reports",
+    loadComponent: () =>
+      import(
+        "./components/moderation-reports-page/moderation-reports-page.component"
+      ).then((m) => m.ModerationReportsPageComponent),
+    data: { routeName: "Moderation Reports" },
+  },
 
   // Embedded stuff
   {

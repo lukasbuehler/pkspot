@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, Inject } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  signal,
+} from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import {
   MAT_DIALOG_DATA,
@@ -6,7 +11,6 @@ import {
   MatDialogTitle,
   MatDialogContent,
   MatDialogActions,
-  MatDialogClose,
 } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
@@ -26,7 +30,6 @@ import { SpotReportsService } from "../../services/firebase/firestore/spot-repor
     MatDialogTitle,
     MatDialogContent,
     MatDialogActions,
-    MatDialogClose,
     MatRadioModule,
     FormsModule,
   ],
@@ -35,6 +38,8 @@ import { SpotReportsService } from "../../services/firebase/firestore/spot-repor
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotReportDialogComponent {
+  isSubmitting = signal(false);
+
   constructor(
     public dialogRef: MatDialogRef<SpotReportDialogComponent>,
     private _spotReportsService: SpotReportsService,
@@ -45,7 +50,17 @@ export class SpotReportDialogComponent {
     this.dialogRef.close();
   }
 
-  submitReport() {
-    this._spotReportsService.addSpotReport(this.data);
+  async submitReport(): Promise<void> {
+    if (!this.data.reason || this.isSubmitting()) {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    try {
+      const reportId = await this._spotReportsService.addSpotReport(this.data);
+      this.dialogRef.close({ report: this.data, reportId });
+    } finally {
+      this.isSubmitting.set(false);
+    }
   }
 }

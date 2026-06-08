@@ -51,6 +51,8 @@
     { "name": "access", "type": "string", "facet": true, "optional": true },
     { "name": "is_iconic", "type": "bool", "optional": true, "index": false },
     { "name": "hide_streetview", "type": "bool", "optional": true },
+    { "name": "is_reported", "type": "bool", "optional": true },
+    { "name": "report_reason", "type": "string", "optional": true, "facet": true },
 
     { "name": "rating", "type": "float", "optional": false },
     { "name": "location", "type": "geopoint" },

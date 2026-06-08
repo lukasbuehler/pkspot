@@ -33,6 +33,7 @@
                 <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/event" />
                 <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/activity" />
                 <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/kml-import" />
+                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/moderation" />
                 <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/organizations" />
                 <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/embed" />
                 <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/embedded" />

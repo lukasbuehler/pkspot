@@ -138,6 +138,31 @@ mat-card.clickable:hover {
   }
 }
 
+.reported-chip {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.2rem;
+  max-width: 50%;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+
+  mat-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .img-container.isCompact {
   height: 100%;
 }

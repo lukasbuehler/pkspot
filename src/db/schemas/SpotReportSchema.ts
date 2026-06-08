@@ -1,4 +1,5 @@
 import { SpotPreviewData } from "./SpotPreviewData";
+import { ReportModerationStatus } from "./MediaReportSchema";
 import { UserReferenceSchema } from "./UserSchema";
 
 type SpotData = Partial<SpotPreviewData> & {
@@ -16,4 +17,8 @@ export interface SpotReportSchema {
   duplicateOf?: SpotData;
   user: UserReferenceSchema;
   createdAt?: unknown;
+  status?: ReportModerationStatus;
+  resolvedAt?: unknown;
+  resolvedBy?: UserReferenceSchema;
+  resolutionNote?: string;
 }

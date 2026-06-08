@@ -445,8 +445,10 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     "bounds_raw",
     "time_created",
     "time_updated",
-    "isReported",
-    "reportReason",
+    "is_reported",
+    "report_reason",
+    "report_count",
+    "latest_report_at",
     "duplicate_check",
     "slug",
     "landing",
@@ -465,10 +467,10 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
 
   const requiredFirestoreFields = ["name", "address"] as const;
 
-  // `rating` defaults to 0 (set by the spot-rating cloud function); spots
-  // without a `location` are filtered out by the indexer so they never
-  // reach Typesense. Both are effectively guaranteed at index time even
-  // though SpotSchema marks them optional.
+  // `rating` defaults to a derived value; spots without a `location`
+  // are filtered out by the indexer so they never reach Typesense. Both
+  // are effectively guaranteed at index time even though SpotSchema marks
+  // them optional.
   const indexerProvidedDefaults = ["rating", "location"] as const;
 
   const expectedIndexedFirestoreFields = [
@@ -501,6 +503,8 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     access: "string",
     is_iconic: "bool",
     hide_streetview: "bool",
+    is_reported: "bool",
+    report_reason: "string",
     rating: "float",
     location: "firestore-geopoint",
     bounds: "firestore-geopoint[]",
@@ -529,6 +533,8 @@ describe("Typesense spots_v2 ↔ SpotSchema", () => {
     access: { kind: "direct", source: "access" },
     is_iconic: { kind: "direct", source: "is_iconic" },
     hide_streetview: { kind: "direct", source: "hide_streetview" },
+    is_reported: { kind: "direct", source: "is_reported" },
+    report_reason: { kind: "direct", source: "report_reason" },
     rating: { kind: "direct", source: "rating" },
     location: { kind: "direct", source: "location" },
     bounds: { kind: "direct", source: "bounds" },

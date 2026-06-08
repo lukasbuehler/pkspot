@@ -19,6 +19,8 @@ export interface SpotPreviewData {
   rating?: number; // whole number 1-10
   numReviews?: number;
   num_reviews?: number;
+  isReported?: boolean;
+  reportReason?: string;
   amenities?: AmenitiesMap;
   bounds?: GeoPoint[];
   bounds_raw?: { lat: number; lng: number }[];
