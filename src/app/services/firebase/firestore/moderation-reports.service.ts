@@ -8,6 +8,7 @@ import type { MediaSchema } from "../../../../db/schemas/Media";
 import { MediaReportSchema } from "../../../../db/schemas/MediaReportSchema";
 import { ModerationActionType } from "../../../../db/schemas/ModerationActionSchema";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
+import { UserReportSchema } from "../../../../db/schemas/UserReportSchema";
 import { SearchService } from "../../search.service";
 import { isFirstPartyStorageUrl } from "../../../utils/first-party-media-url";
 import {
@@ -15,7 +16,7 @@ import {
   QueryConstraintOptions,
 } from "../firestore-adapter.service";
 
-export type ModerationReportKind = "spot" | "media";
+export type ModerationReportKind = "spot" | "media" | "profile";
 export type ModerationReportStatus = "open" | "resolved" | "dismissed";
 
 export interface ModerationReportItem {
@@ -36,9 +37,11 @@ export interface ModerationReportItem {
   spotId?: string;
   spotName?: string;
   spotType?: string;
+  profileUserId?: string;
+  profileImageSrc?: string;
   mediaSource?: "storage" | "external";
   mediaSourceLabel?: string;
-  raw: SpotReportSchema | MediaReportSchema;
+  raw: SpotReportSchema | MediaReportSchema | UserReportSchema;
 }
 
 export interface ModerationContactMessageItem {
@@ -78,7 +81,7 @@ export class ModerationReportsService {
     const constraints: QueryConstraintOptions[] = [
       { type: "limit", limit: limitCount },
     ];
-    const [spotReports, mediaReports] = await Promise.all([
+    const [spotReports, mediaReports, userReports] = await Promise.all([
       this._firestoreAdapter.getCollectionGroupWithMetadata<SpotReportSchema>(
         "reports",
         undefined,
@@ -89,11 +92,17 @@ export class ModerationReportsService {
         undefined,
         constraints,
       ),
+      this._firestoreAdapter.getCollection<UserReportSchema & { id: string }>(
+        "user_reports",
+        undefined,
+        constraints,
+      ),
     ]);
 
     const reports = [
       ...spotReports.data.map((report) => this._mapSpotReport(report)),
       ...mediaReports.map((report) => this._mapMediaReport(report)),
+      ...userReports.map((report) => this._mapUserReport(report)),
     ].sort((left, right) => right.createdAtMillis - left.createdAtMillis);
 
     return this._withSpotPreviews(reports);
@@ -207,6 +216,33 @@ export class ModerationReportsService {
       spotId: report.spotId,
       mediaSource,
       mediaSourceLabel: mediaSource === "storage" ? "Storage media" : "External media",
+      raw: report,
+    };
+  }
+
+  private _mapUserReport(
+    report: UserReportSchema & { id: string },
+  ): ModerationReportItem {
+    const status = this._normalizeStatus(report.status);
+    const createdAtMillis = this._toMillis(report.createdAt);
+    const profileUserId = report.reportedUser?.uid;
+
+    return {
+      id: report.id,
+      path: `user_reports/${report.id}`,
+      kind: "profile",
+      status,
+      reason: report.reason || "unknown",
+      createdAt: report.createdAt,
+      createdAtMillis,
+      reporterLabel: this._formatUser(report.user),
+      targetLabel:
+        report.reportedUser?.display_name ?? profileUserId ?? "Profile",
+      targetPath: profileUserId ? `/u/${profileUserId}` : undefined,
+      comment: report.comment,
+      profileUserId,
+      profileImageSrc: report.reportedUser?.profile_picture,
+      previewImageSrc: report.reportedUser?.profile_picture,
       raw: report,
     };
   }

@@ -99,6 +99,11 @@
   background: var(--mat-sys-secondary-container);
 }
 
+.report-card__chip-profile {
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
 .report-card__spot-meta {
   display: flex;
   flex-wrap: wrap;

@@ -62,6 +62,9 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   readonly mediaReportCount = computed(
     () => this.reports().filter((report) => report.kind === "media").length,
   );
+  readonly profileReportCount = computed(
+    () => this.reports().filter((report) => report.kind === "profile").length,
+  );
   readonly recentOpenReports = computed(() =>
     this.reports()
       .filter((report) => report.status === "open")

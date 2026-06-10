@@ -10,8 +10,12 @@ type ModerationActionType =
   | "archive_contact_message"
   | "delete_contact_message";
 
-type SourceType = "spot_report" | "media_report" | "contact_message";
-type TargetType = "spot" | "event" | "media" | "contact";
+type SourceType =
+  | "spot_report"
+  | "media_report"
+  | "user_report"
+  | "contact_message";
+type TargetType = "spot" | "event" | "media" | "user" | "contact";
 
 interface HandleModerationActionRequest {
   action_type: ModerationActionType;
@@ -61,6 +65,10 @@ const _parseSourcePath = (
 
   if (/^media_reports\/[^/]+$/.test(sourcePath)) {
     return { sourceType: "media_report" };
+  }
+
+  if (/^user_reports\/[^/]+$/.test(sourcePath)) {
+    return { sourceType: "user_report" };
   }
 
   if (/^contact_messages\/[^/]+$/.test(sourcePath)) {
@@ -113,7 +121,11 @@ const _loadSource = async (sourcePath: string): Promise<ModerationSource> => {
   const targetRef =
     parsed.sourceType === "spot_report"
       ? db.doc(`spots/${parsed.spotId}`)
-      : _targetRefForMediaReport(sourceData);
+      : parsed.sourceType === "user_report"
+        ? typeof sourceData["reportedUser"]?.["uid"] === "string"
+          ? db.doc(`users/${sourceData["reportedUser"]["uid"]}`)
+          : undefined
+        : _targetRefForMediaReport(sourceData);
   const targetSnap = targetRef ? await targetRef.get() : undefined;
 
   return {
@@ -122,7 +134,9 @@ const _loadSource = async (sourcePath: string): Promise<ModerationSource> => {
     sourceRef,
     sourceData,
     targetType:
-      parsed.sourceType === "media_report"
+      parsed.sourceType === "user_report"
+        ? "user"
+        : parsed.sourceType === "media_report"
         ? sourceData["context"] === "event"
           ? "event"
           : "media"
@@ -140,6 +154,7 @@ const _assertActionAllowed = (
   const allowedBySource: Record<SourceType, ModerationActionType[]> = {
     spot_report: ["close_report", "keep_warning", "delete_spot"],
     media_report: ["close_report", "keep_warning", "delete_media"],
+    user_report: ["close_report"],
     contact_message: ["archive_contact_message", "delete_contact_message"],
   };
 

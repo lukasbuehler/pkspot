@@ -39,6 +39,9 @@
       <mat-button-toggle value="media">
         <span i18n>Media</span> ({{ mediaCount() }})
       </mat-button-toggle>
+      <mat-button-toggle value="profile">
+        <span i18n>Profiles</span> ({{ profileCount() }})
+      </mat-button-toggle>
       <mat-button-toggle value="resolved" i18n>Resolved</mat-button-toggle>
       <mat-button-toggle value="dismissed" i18n>Dismissed</mat-button-toggle>
       <mat-button-toggle value="all" i18n>All</mat-button-toggle>
@@ -103,10 +106,15 @@
                           <mat-icon matChipAvatar>report</mat-icon>
                           <span i18n>Spot report</span>
                         </mat-chip>
-                      } @else {
+                      } @else if (report.kind === "media") {
                         <mat-chip class="report-card__chip-media">
                           <mat-icon matChipAvatar>image</mat-icon>
                           <span i18n>Media report</span>
+                        </mat-chip>
+                      } @else {
+                        <mat-chip class="report-card__chip-profile">
+                          <mat-icon matChipAvatar>person</mat-icon>
+                          <span i18n>Profile report</span>
                         </mat-chip>
                       }
                       @if (report.mediaSourceLabel) {
@@ -150,6 +158,12 @@
                   @if (report.comment) {
                     <p class="mat-body-medium report-card__comment">
                       {{ report.comment }}
+                    </p>
+                  }
+
+                  @if (report.kind === "profile" && report.profileUserId) {
+                    <p class="mat-body-small report-card__spot-meta">
+                      <span>{{ report.profileUserId }}</span>
                     </p>
                   }
 

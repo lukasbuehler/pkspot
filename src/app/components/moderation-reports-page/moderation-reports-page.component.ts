@@ -24,7 +24,14 @@ import {
 } from "../../services/firebase/firestore/moderation-reports.service";
 import { ModerationActionType } from "../../../db/schemas/ModerationActionSchema";
 
-type ReportFilter = "open" | "spot" | "media" | "resolved" | "dismissed" | "all";
+type ReportFilter =
+  | "open"
+  | "spot"
+  | "media"
+  | "profile"
+  | "resolved"
+  | "dismissed"
+  | "all";
 
 @Component({
   selector: "app-moderation-reports-page",
@@ -65,6 +72,9 @@ export class ModerationReportsPageComponent implements OnDestroy {
     if (filter === "spot" || filter === "media") {
       return reports.filter((report) => report.kind === filter);
     }
+    if (filter === "profile") {
+      return reports.filter((report) => report.kind === "profile");
+    }
     return reports.filter((report) => report.status === filter);
   });
 
@@ -76,6 +86,9 @@ export class ModerationReportsPageComponent implements OnDestroy {
   );
   readonly mediaCount = computed(
     () => this.reports().filter((report) => report.kind === "media").length,
+  );
+  readonly profileCount = computed(
+    () => this.reports().filter((report) => report.kind === "profile").length,
   );
 
   constructor() {

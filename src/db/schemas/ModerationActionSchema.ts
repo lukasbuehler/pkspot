@@ -9,9 +9,15 @@ export type ModerationActionType =
 export type ModerationActionSourceType =
   | "spot_report"
   | "media_report"
+  | "user_report"
   | "contact_message";
 
-export type ModerationActionTargetType = "spot" | "event" | "media" | "contact";
+export type ModerationActionTargetType =
+  | "spot"
+  | "event"
+  | "media"
+  | "user"
+  | "contact";
 
 export interface ModerationActionUserSchema {
   uid: string;

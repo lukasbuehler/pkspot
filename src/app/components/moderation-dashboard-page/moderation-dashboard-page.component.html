@@ -49,6 +49,12 @@
       </mat-card>
       <mat-card class="stat-card">
         <mat-card-content>
+          <span class="stat-card__value">{{ profileReportCount() }}</span>
+          <span class="stat-card__label" i18n>Profile reports</span>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
           <span class="stat-card__value">{{ contactMessages().length }}</span>
           <span class="stat-card__label" i18n>Contact messages</span>
         </mat-card-content>
@@ -89,7 +95,11 @@
                 </mat-card-header>
                 <mat-card-content>
                   <mat-chip-set>
-                    <mat-chip>{{ report.kind }}</mat-chip>
+                    <mat-chip>
+                      {{
+                        report.kind === "profile" ? "profile" : report.kind
+                      }}
+                    </mat-chip>
                     <mat-chip>{{ report.reason }}</mat-chip>
                   </mat-chip-set>
                 </mat-card-content>
