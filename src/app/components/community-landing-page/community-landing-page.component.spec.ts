@@ -227,6 +227,79 @@ describe("CommunityLandingPageComponent", () => {
     ).not.toBeNull();
   });
 
+  it("renders a crawler-readable text directory with spot links", () => {
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      displayName: "Zuerich",
+      spots: [
+        {
+          id: "mfo-park",
+          slug: "mfo-park",
+          name: "MFO Park",
+          locality: "Zuerich",
+          imageSrc: "/assets/spot_placeholder.png",
+          isIconic: true,
+          type: "pk_park",
+          access: "public",
+          rating: 4.8,
+          amenities: {
+            covered: true,
+            lighting: true,
+          },
+        },
+        {
+          id: "mfo-park",
+          slug: "mfo-park",
+          name: "MFO Park",
+          locality: "Zuerich",
+          imageSrc: "/assets/spot_placeholder.png",
+          isIconic: true,
+        },
+      ],
+    });
+    fixture.componentRef.setInput("panelMode", false);
+    fixture.detectChanges();
+
+    const directory = fixture.nativeElement.querySelector(
+      ".spot-text-directory",
+    ) as HTMLElement | null;
+    const links = [
+      ...fixture.nativeElement.querySelectorAll(".spot-text-directory a"),
+    ] as HTMLAnchorElement[];
+
+    expect(directory?.textContent).toContain("Parkour spots in Zuerich");
+    expect(directory?.textContent).toContain("MFO Park");
+    expect(directory?.textContent).toContain("Zuerich");
+    expect(directory?.textContent).toContain("parkour park");
+    expect(directory?.textContent).toContain("public access");
+    expect(directory?.textContent).toContain("amenities: covered, lighting");
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "/map/spots/mfo-park",
+    ]);
+  });
+
+  it("keeps the crawler text directory out of panel mode", () => {
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      spots: [
+        {
+          id: "spot-1",
+          slug: "spot-one",
+          name: "Spot One",
+          locality: "Zuerich",
+          imageSrc: "/assets/spot_placeholder.png",
+          isIconic: false,
+        },
+      ],
+    });
+    fixture.componentRef.setInput("panelMode", true);
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector(".spot-text-directory"),
+    ).toBeNull();
+  });
+
   it("renders curated info cards with one sanitized CTA", () => {
     fixture.componentRef.setInput("communityDataInput", {
       ...communityData,

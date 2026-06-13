@@ -232,6 +232,33 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.spot-text-directory {
+  padding-top: 8px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.spot-text-directory-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px 24px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.spot-text-directory-list li {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.spot-text-directory-list a {
+  color: var(--mat-sys-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.spot-text-directory-list a:hover {
+  text-decoration: underline;
+}
+
 .venue-line,
 .panel-disclaimer,
 .page-updated-text {

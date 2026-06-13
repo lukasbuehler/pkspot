@@ -191,6 +191,35 @@ describe("StructuredDataService", () => {
       "https://pkspot.app/en/map/communities/pfaeffikon"
     );
     expect(parsed["description"]).toBe(pageData.description);
+
+    const mainEntity = parsed["mainEntity"] as Array<Record<string, unknown>>;
+    expect(mainEntity[0]).toMatchObject({
+      "@type": "ItemList",
+      name: "Pfaffikon Parkour Spots",
+      numberOfItems: 2,
+    });
+    expect(mainEntity[0]["itemListElement"]).toEqual([
+      {
+        "@type": "ListItem",
+        position: 1,
+        item: expect.objectContaining({
+          "@type": "Place",
+          name: "Lake Ledges",
+          url: "https://pkspot.app/en/map/spots/lake-ledges",
+          keywords: "parkour,freerunning,spot,training",
+        }),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        item: expect.objectContaining({
+          "@type": "Place",
+          name: "Indoor Hall",
+          url: "https://pkspot.app/en/map/spots/indoor-hall",
+          keywords: "parkour,freerunning,spot,training",
+        }),
+      },
+    ]);
   });
 
   it("includes visible community info cards in community JSON-LD", () => {
@@ -322,12 +351,17 @@ describe("StructuredDataService", () => {
         name: "Rated With Count",
         slug: "rated-with-count",
         locality: "Zurich, CH",
+        countryCode: "CH",
         imageSrc: "/assets/spot_placeholder.png",
         isIconic: false,
         type: SpotTypes.ParkourGym,
         access: SpotAccess.Commercial,
         rating: 4.8,
         num_reviews: 12,
+        location_raw: {
+          lat: 47.3769,
+          lng: 8.5417,
+        },
       },
       {
         id: "rated-without-count",
@@ -362,6 +396,17 @@ describe("StructuredDataService", () => {
     const thirdItem = listItems[2].item;
 
     expectGoogleAggregateRating(firstItem, 4.8, 12);
+    expect(firstItem["keywords"]).toBe("parkour,freerunning,spot,training");
+    expect(firstItem["geo"]).toEqual({
+      "@type": "GeoCoordinates",
+      latitude: 47.3769,
+      longitude: 8.5417,
+    });
+    expect(firstItem["address"]).toEqual({
+      "@type": "PostalAddress",
+      addressLocality: "Zurich, CH",
+      addressCountry: "CH",
+    });
     expect(secondItem["@type"]).toBe("SportsActivityLocation");
     expect(secondItem["aggregateRating"]).toBeUndefined();
     expect(thirdItem["@type"]).toBe("Place");

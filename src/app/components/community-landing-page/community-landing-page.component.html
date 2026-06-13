@@ -510,6 +510,28 @@
           </div>
         </section>
       }
+
+      @if (!panelMode() && crawlerSpotDirectory().length > 0) {
+        <section class="content-section spot-text-directory">
+          <div class="section-heading">
+            <p class="section-eyebrow m-0">Spot Directory</p>
+            <h2 class="mat-title-large m-0">
+              {{ crawlerSpotDirectoryHeading() }}
+            </h2>
+          </div>
+
+          <ul class="spot-text-directory-list">
+            @for (spot of crawlerSpotDirectory(); track spot.slug ?? spot.id) {
+              <li>
+                <a [routerLink]="spotDirectoryPath(spot)">{{ spot.name }}</a>
+                @if (spotDirectoryDescription(spot); as description) {
+                  <span> - {{ description }}</span>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+      }
     }
 
     @if (lastUpdatedDate(); as lastUpdated) {

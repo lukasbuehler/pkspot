@@ -22,6 +22,7 @@ import {
 import { buildSpotCanonicalPath } from "../../scripts/SpotRouteHelpers";
 import { communityLocalizedText } from "../../scripts/CommunityInfoCardHelpers";
 import { APP_LINKS } from "../shared/app-links";
+import { collectCommunitySpotDirectory } from "../shared/community-spot-directory";
 
 type SpotStructuredData = Record<string, unknown> & {
   "@type": "Place" | "SportsActivityLocation";
@@ -135,6 +136,14 @@ export class StructuredDataService {
     pageData: CommunityLandingPageData
   ): Record<string, unknown> {
     const infoCardParts = this.buildCommunityInfoCardParts(pageData);
+    const spotDirectory = collectCommunitySpotDirectory(pageData);
+    const spotItemList =
+      spotDirectory.length > 0
+        ? this.generateSpotItemList(
+            spotDirectory,
+            `${pageData.displayName} Parkour Spots`
+          )
+        : null;
 
     return {
       "@type": "CollectionPage",
@@ -157,6 +166,7 @@ export class StructuredDataService {
             : pageData.displayName,
       },
       mainEntity: [
+        ...(spotItemList ? [spotItemList] : []),
         {
           "@type": "Thing",
           name: "Top Rated Spots",
@@ -513,13 +523,29 @@ export class StructuredDataService {
           url: `${environment.baseUrl}/${this.locale}${buildSpotCanonicalPath(
             spot.slug ?? spot.id
           )}`,
+          keywords: "parkour,freerunning,spot,training",
         };
 
-        if (spot.location) {
+        const rawLocation = spot.location_raw;
+        if (rawLocation) {
+          placeItem["geo"] = {
+            "@type": "GeoCoordinates",
+            latitude: rawLocation.lat,
+            longitude: rawLocation.lng,
+          };
+        } else if (spot.location) {
           placeItem["geo"] = {
             "@type": "GeoCoordinates",
             latitude: spot.location.latitude,
             longitude: spot.location.longitude,
+          };
+        }
+
+        if (spot.locality || spot.countryCode || spot.countryName) {
+          placeItem["address"] = {
+            "@type": "PostalAddress",
+            addressLocality: spot.locality || undefined,
+            addressCountry: spot.countryCode || spot.countryName || undefined,
           };
         }
 

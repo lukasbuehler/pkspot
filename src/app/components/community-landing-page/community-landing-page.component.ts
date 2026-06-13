@@ -37,6 +37,7 @@ import {
 } from "../../../scripts/CommunityInfoCardHelpers";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityKnowledgeEditorComponent } from "../community-knowledge-editor/community-knowledge-editor.component";
+import { collectCommunitySpotDirectory } from "../../shared/community-spot-directory";
 
 type CommunityExploreMode = "all" | "dry";
 
@@ -271,6 +272,17 @@ export class CommunityLandingPageComponent {
       (section) => section.spots.length > 0,
     ),
   );
+  crawlerSpotDirectory = computed(() => {
+    const data = this.communityData();
+    return data ? collectCommunitySpotDirectory(data) : [];
+  });
+
+  crawlerSpotDirectoryHeading = computed(() => {
+    const data = this.communityData();
+    return data
+      ? `Parkour spots in ${data.displayName}`
+      : "Parkour spot directory";
+  });
 
   onSelectEvent(event: PkEvent): void {
     this.selectEvent.emit(event);
@@ -308,6 +320,24 @@ export class CommunityLandingPageComponent {
 
     event.preventDefault();
     this.exploreCommunitySpots.emit(mode);
+  }
+
+  spotDirectoryPath(spot: SpotPreviewData): string {
+    return buildSpotCanonicalPath(spot.slug ?? spot.id);
+  }
+
+  spotDirectoryDescription(spot: SpotPreviewData): string {
+    const parts = [
+      spot.locality,
+      this._spotTypeLabel(spot.type),
+      this._spotAccessLabel(spot.access),
+      this._spotRatingLabel(spot.rating),
+      this._spotAmenityLabel(spot),
+    ]
+      .filter((part): part is string => !!part)
+      .filter((part, index, all) => all.indexOf(part) === index);
+
+    return parts.join(" - ");
   }
 
   startKnowledgeEdit(): void {
@@ -479,5 +509,45 @@ export class CommunityLandingPageComponent {
   private _getCountryFlag(countryCode: string | null | undefined): string {
     const normalizedCode = String(countryCode ?? "").trim().toUpperCase();
     return normalizedCode ? (countries[normalizedCode]?.emoji ?? "") : "";
+  }
+
+  private _spotTypeLabel(type: string | null | undefined): string | null {
+    const labels: Record<string, string> = {
+      pk_park: "parkour park",
+      parkour_gym: "parkour gym",
+      street_spot: "street spot",
+      school: "schoolyard spot",
+      playground: "playground spot",
+      trampoline_park: "trampoline park",
+      gymnastics_gym: "gymnastics gym",
+    };
+    return type ? (labels[type] ?? null) : null;
+  }
+
+  private _spotAccessLabel(access: string | null | undefined): string | null {
+    const labels: Record<string, string> = {
+      public: "public access",
+      commercial: "commercial access",
+      private: "private access",
+      off_limits: "off limits",
+    };
+    return access ? (labels[access] ?? null) : null;
+  }
+
+  private _spotRatingLabel(rating: number | null | undefined): string | null {
+    if (typeof rating !== "number" || !Number.isFinite(rating) || rating <= 0) {
+      return null;
+    }
+    return `${rating}/5 rating`;
+  }
+
+  private _spotAmenityLabel(spot: SpotPreviewData): string | null {
+    const amenityNames = Object.entries(spot.amenities ?? {})
+      .filter(([, value]) => value === true)
+      .map(([key]) => key.replace(/_/gu, " "));
+
+    return amenityNames.length > 0
+      ? `amenities: ${amenityNames.slice(0, 4).join(", ")}`
+      : null;
   }
 }

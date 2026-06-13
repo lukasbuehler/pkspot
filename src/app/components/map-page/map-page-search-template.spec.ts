@@ -8,6 +8,16 @@ const templatePath = join(
 );
 
 describe("MapPageComponent search template", () => {
+  it("keeps the main map page readable to simple crawlers", () => {
+    const template = readFileSync(templatePath, "utf8");
+
+    expect(template).toContain('<h1 class="visually-hidden"');
+    expect(template).toContain(
+      "PK Spot — find spots, communities, and events near you",
+    );
+    expect(template).toContain("Preparing map layout...");
+  });
+
   it("should allow Google Places results in the main map search fields", () => {
     const template = readFileSync(templatePath, "utf8");
     const searchFields = template.match(

@@ -63,6 +63,102 @@ describe("EventInfoPageComponent", () => {
     TestBed.resetTestingModule();
   });
 
+  it("exposes dummy event info as text and structured data for crawlers", () => {
+    const structuredDataService = {
+      addStructuredData: vi.fn(),
+      removeStructuredData: vi.fn(),
+    };
+    const metaTagService = {
+      setEventMetaTags: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "dummy-city-jam" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: {
+              paramMap: convertToParamMap({ slug: "dummy-city-jam" }),
+            },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: metaTagService },
+        { provide: StructuredDataService, useValue: structuredDataService },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: vi.fn((url?: string) => url),
+          },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+    const event = buildEvent("dummy-city-jam", "Dummy City Jam", {
+      description: "A dummy event page for crawler-readable parkour jam info.",
+      venue_string: "Dummy Training Hall",
+      locality_string: "Dummy City, Switzerland",
+    });
+
+    component.event.set(event);
+    flushSignalEffects();
+
+    expect(component.name()).toBe("Dummy City Jam");
+    expect(component.description()).toBe(
+      "A dummy event page for crawler-readable parkour jam info.",
+    );
+    expect(event.venueString).toBe("Dummy Training Hall");
+    expect(event.localityString).toBe("Dummy City, Switzerland");
+    expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        name: "Dummy City Jam",
+        description: "A dummy event page for crawler-readable parkour jam info.",
+      }),
+      "/events/dummy-city-jam",
+    );
+    expect(structuredDataService.addStructuredData).toHaveBeenLastCalledWith(
+      "event",
+      expect.objectContaining({
+        "@type": "Event",
+        name: "Dummy City Jam",
+        description: "A dummy event page for crawler-readable parkour jam info.",
+        location: expect.objectContaining({
+          name: "Dummy Training Hall",
+          address: expect.objectContaining({
+            addressLocality: "Dummy City, Switzerland",
+          }),
+        }),
+        url: "https://pkspot.app/en/events/dummy-city-jam",
+      }),
+    );
+  });
+
   it("reloads the event when Angular reuses the component for a new route param", async () => {
     const swissjam26 = buildEvent("swissjam26", "Swiss Jam 2026");
     const updatedSwissjam26 = buildEvent(

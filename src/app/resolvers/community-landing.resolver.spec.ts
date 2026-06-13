@@ -96,6 +96,9 @@ describe("communityLandingResolver", () => {
     expect(result.scope).toBe("locality");
     expect(metaTagService.setCommunityLandingMetaTags).toHaveBeenCalled();
     expect(structuredDataService.addStructuredData).toHaveBeenCalled();
+    expect(structuredDataService.removeStructuredData).toHaveBeenCalledWith(
+      "community-spots"
+    );
     expect(response.status).toHaveBeenCalledWith(200);
   });
 

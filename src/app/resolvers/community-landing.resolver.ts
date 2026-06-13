@@ -17,7 +17,7 @@ import {
 const COMMUNITY_STRUCTURED_DATA_IDS = [
   "community-page",
   "community-breadcrumbs",
-  "community-top-rated",
+  "community-spots",
   "community-dry-spots",
 ] as const;
 
