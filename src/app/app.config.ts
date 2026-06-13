@@ -13,6 +13,7 @@ import { environment } from "../environments/environment";
 import {
   provideFunctions,
   getFunctions as ngfGetFunctions,
+  connectFunctionsEmulator,
 } from "@angular/fire/functions";
 
 import { provideAnimations } from "@angular/platform-browser/animations";
@@ -20,6 +21,7 @@ import {
   provideStorage,
   Storage,
   getStorage as ngfGetStorage,
+  connectStorageEmulator,
 } from "@angular/fire/storage";
 import {
   provideFirestore,
@@ -56,13 +58,20 @@ import { provideRouter } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
 import { ApplicationErrorHandler } from "./services/application-error-handler.service";
 import { FirebaseAppCheckService } from "./services/firebase/app-check.service";
+import {
+  getFirebaseConfig,
+  getFirebaseEmulatorSettings,
+} from "./services/firebase/firebase-emulator.config";
 
 // Module-level singleton to ensure Firestore is only initialized once
 let firestoreInstance: Firestore | null = null;
+let firestoreEmulatorConnected = false;
+let storageEmulatorConnected = false;
+let functionsEmulatorConnected = false;
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideFirebaseApp(() => initializeApp(environment.keys.firebaseConfig)),
+    provideFirebaseApp(() => initializeApp(getFirebaseConfig())),
     provideAppInitializer(() => inject(FirebaseAppCheckService).initialize()),
     // Bind Firestore/Storage/Functions to the injected FirebaseApp to enforce init ordering
     provideFirestore(() => {
@@ -111,6 +120,16 @@ export const appConfig: ApplicationConfig = {
         }
       }
 
+      const emulatorSettings = getFirebaseEmulatorSettings();
+      if (emulatorSettings && !firestoreEmulatorConnected) {
+        connectFirestoreEmulator(
+          firestoreInstance,
+          emulatorSettings.firestore.host,
+          emulatorSettings.firestore.port,
+        );
+        firestoreEmulatorConnected = true;
+      }
+
       return firestoreInstance;
     }),
     // Only initialize Storage on the browser; use AngularFire's getStorage to avoid registration issues
@@ -120,9 +139,33 @@ export const appConfig: ApplicationConfig = {
         return null as unknown as Storage;
       }
       // Prefer AngularFire's getStorage which is aware of Angular zones/injection context
-      return ngfGetStorage(inject(FirebaseApp));
+      const storage = ngfGetStorage(inject(FirebaseApp));
+      const emulatorSettings = getFirebaseEmulatorSettings();
+      if (emulatorSettings && !storageEmulatorConnected) {
+        connectStorageEmulator(
+          storage,
+          emulatorSettings.storage.host,
+          emulatorSettings.storage.port,
+        );
+        storageEmulatorConnected = true;
+      }
+
+      return storage;
     }),
-    provideFunctions(() => ngfGetFunctions(inject(FirebaseApp), "europe-west1")),
+    provideFunctions(() => {
+      const functions = ngfGetFunctions(inject(FirebaseApp), "europe-west1");
+      const emulatorSettings = getFirebaseEmulatorSettings();
+      if (emulatorSettings && !functionsEmulatorConnected) {
+        connectFunctionsEmulator(
+          functions,
+          emulatorSettings.functions.host,
+          emulatorSettings.functions.port,
+        );
+        functionsEmulatorConnected = true;
+      }
+
+      return functions;
+    }),
     // TODO: Make Auth provider consent-aware
     // provideAuth(() => getAuth()),
     provideRouter(routes),

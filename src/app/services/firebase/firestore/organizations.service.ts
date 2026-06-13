@@ -9,7 +9,10 @@ import {
   OrganizationUsedSpotSchema,
   OrganizationVerifiedSpotSchema,
 } from "../../../../db/schemas/OrganizationSchema";
-import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
+import {
+  UserReferenceSchema,
+  UserSchema,
+} from "../../../../db/schemas/UserSchema";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { Functions, httpsCallable } from "@angular/fire/functions";
@@ -287,6 +290,23 @@ export class OrganizationsService {
       `organizations/${organizationId}/members/${userId}`,
       member
     );
+  }
+
+  async upsertMemberByUserId(
+    organizationId: string,
+    userId: string,
+    role: OrganizationRole
+  ): Promise<void> {
+    this._requireAdmin("upsertMemberByUserId");
+    const user = await this._firestoreAdapter.getDocument<UserSchema>(
+      `users/${userId}`
+    );
+    const userReference: UserReferenceSchema = {
+      uid: userId,
+      display_name: user?.display_name ?? "",
+      ...(user?.profile_picture ? { profile_picture: user.profile_picture } : {}),
+    };
+    await this.upsertMember(organizationId, userId, role, userReference);
   }
 
   async removeMember(organizationId: string, userId: string): Promise<void> {

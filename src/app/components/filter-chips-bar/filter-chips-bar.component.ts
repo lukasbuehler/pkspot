@@ -15,7 +15,6 @@ import {
   viewChild,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { SpotFilterMode } from "../spot-map/spot-filter-config";
@@ -38,7 +37,7 @@ export type FilterChipsBarAppearance = "glass" | "solid";
  */
 @Component({
   selector: "app-filter-chips-bar",
-  imports: [MatButtonModule, MatChipsModule, MatIconModule],
+  imports: [MatChipsModule, MatIconModule],
   templateUrl: "./filter-chips-bar.component.html",
   styleUrl: "./filter-chips-bar.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

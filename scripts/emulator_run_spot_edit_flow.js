@@ -31,6 +31,11 @@ const THIRD_USER = {
   display_name: "Third Integration Tester",
 };
 
+const ADMIN_USER = {
+  uid: "integration-admin-spot-edits",
+  display_name: "Admin Integration Tester",
+};
+
 const BASE_TIME_MS = Date.UTC(2026, 0, 15, 12, 0, 0);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -998,6 +1003,53 @@ async function testVerifiedSpotRoutesToOrganizationReview() {
   assert.deepEqual(spot.name, { en: "Verified Base" });
 }
 
+async function testAdminEditOnVerifiedSpotAppliesImmediately() {
+  const spotId = "integration-admin-verified-direct-edit";
+  const editId = "admin-direct-update";
+  await db.collection("users").doc(ADMIN_USER.uid).set({
+    display_name: ADMIN_USER.display_name,
+    is_admin: true,
+  });
+  await db.collection("spots").doc(spotId).set({
+    name: { en: "Admin Verified Base" },
+    location: new admin.firestore.GeoPoint(47.0, 8.0),
+    location_raw: { lat: 47.0, lng: 8.0 },
+    media: [],
+    address: null,
+    source: "pkspot",
+    stewardship: {
+      organization_ids: ["wpf"],
+      organizations: {
+        wpf: {
+          status: "active",
+          organization_id: "wpf",
+          organization: { id: "wpf", name: "World's Parkour Family", slug: "wpf" },
+          stewarded_by_user_id: "admin",
+          stewarded_at: timestampAt(8900),
+        },
+      },
+    },
+  });
+
+  const edit = await createEdit(
+    spotId,
+    editId,
+    editPayload({
+      type: "UPDATE",
+      offsetMs: 9000,
+      user: ADMIN_USER,
+      data: { name: { en: "Admin Direct Update" } },
+    })
+  );
+  const spot = await getSpot(spotId);
+
+  assert.equal(edit.approved, true);
+  assert.equal(edit.visibility, "public");
+  assert.equal(edit.processing_status, "APPROVED_IMMEDIATE");
+  assert.equal(edit.review_status, undefined);
+  assert.deepEqual(spot.name, { en: "Admin Direct Update" });
+}
+
 async function testUserContributionCounters() {
   const userSnap = await db.collection("users").doc(USER.uid).get();
   const data = userSnap.data();
@@ -1047,6 +1099,7 @@ async function main() {
   await testForcedVotingFlowAppliesOnlyAfterEligibleVotes();
   await testForcedVotingRejectsWithoutSubmitterSupport();
   await testVerifiedSpotRoutesToOrganizationReview();
+  await testAdminEditOnVerifiedSpotAppliesImmediately();
   await testUserContributionCounters();
   await testLeaderboardsReflectApprovedEdits();
 

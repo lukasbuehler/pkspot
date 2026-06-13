@@ -31,6 +31,7 @@ import {
   inMemoryPersistence,
   reauthenticateWithPopup,
   AuthProvider,
+  connectAuthEmulator,
 } from "@angular/fire/auth";
 import { FirebaseApp } from "@angular/fire/app";
 import { BehaviorSubject, firstValueFrom, Subscription } from "rxjs";
@@ -45,6 +46,7 @@ import {
   User as CapacitorFirebaseUser,
 } from "@capacitor-firebase/authentication";
 import { Browser } from "@capacitor/browser";
+import { getFirebaseEmulatorSettings } from "./firebase-emulator.config";
 
 interface AuthServiceUser {
   uid?: string;
@@ -53,6 +55,8 @@ interface AuthServiceUser {
   data?: User;
   providerId?: string;
 }
+
+let authEmulatorConnected = false;
 
 @Injectable({
   providedIn: "root",
@@ -264,6 +268,14 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     this._auth = getAuth(this._firebaseApp);
+    const emulatorSettings = getFirebaseEmulatorSettings();
+    if (emulatorSettings && !authEmulatorConnected) {
+      connectAuthEmulator(this._auth, emulatorSettings.auth.url, {
+        disableWarnings: true,
+      });
+      authEmulatorConnected = true;
+    }
+
     return this._auth;
   }
 

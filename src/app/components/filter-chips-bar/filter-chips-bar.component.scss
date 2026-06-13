@@ -1,5 +1,6 @@
 :host {
   display: block;
+  min-width: 0;
   overflow: visible;
 }
 
@@ -8,6 +9,7 @@
   align-items: center;
   gap: 10px;
   width: 100%;
+  min-width: 0;
   position: relative;
 }
 
@@ -15,13 +17,61 @@
   flex: 1;
   min-width: 0;
   position: relative;
+
+  &.can-scroll-left .chips-scroll-area {
+    width: calc(100% - 40px);
+    margin-left: 40px;
+  }
+
+  &.can-scroll-right .chips-scroll-area {
+    width: calc(100% - 40px);
+    margin-right: 40px;
+  }
+
+  &.can-scroll-left.can-scroll-right .chips-scroll-area {
+    width: calc(100% - 80px);
+  }
+
+  &.can-scroll-left:not(.can-scroll-right) .chips-scroll-area {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 24px);
+    mask-image: linear-gradient(to right, transparent, #000 24px);
+  }
+
+  &.can-scroll-right:not(.can-scroll-left) .chips-scroll-area {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 calc(100% - 24px),
+      transparent
+    );
+    mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+  }
+
+  &.can-scroll-left.can-scroll-right .chips-scroll-area {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 24px,
+      #000 calc(100% - 24px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 24px,
+      #000 calc(100% - 24px),
+      transparent
+    );
+  }
 }
 
 .chips-scroll-area {
+  width: 100%;
+  box-sizing: border-box;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   border-radius: 100px;
+  clip-path: inset(0 round 100px);
   scrollbar-width: none; // Firefox
   -ms-overflow-style: none; // IE/Edge
 
@@ -48,11 +98,24 @@
   z-index: 2;
   width: 32px;
   height: 32px;
+  padding: 0;
   background: var(--map-glass-surface);
   color: var(--mat-sys-on-surface);
   border: 1px solid var(--mat-chip-outline-color, var(--mat-sys-outline));
-  backdrop-filter: var(--map-glass-blur);
-  -webkit-backdrop-filter: var(--map-glass-blur);
+  border-radius: 50%;
+  appearance: none;
+  cursor: pointer;
+  overflow: hidden;
+  clip-path: circle(50% at 50% 50%);
+  // Firefox paints backdrop-filter over the button's square border box even
+  // when border-radius/clip-path are set, leaving visible square corners.
+  // The chips keep the blur; the small scroll buttons use the glass color only.
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  mat-icon {
+    margin: 0;
+  }
 
   &.left {
     left: 0;
@@ -66,6 +129,7 @@
 .solid-appearance {
   .chips-scroll-area {
     border-radius: 8px;
+    clip-path: inset(0 round 8px);
   }
 
   .scroll-button {
@@ -89,11 +153,13 @@ mat-chip-option,
 mat-chip {
   border-radius: 20px;
   overflow: hidden;
+  clip-path: inset(0 round 20px);
   flex-shrink: 0;
 }
 
 .solid-chip {
   border-radius: 8px;
+  clip-path: inset(0 round 8px);
 }
 
 // Filters chip - standalone mat-chip for opening the filter dialog
@@ -136,6 +202,9 @@ mat-chip {
     --mdc-chip-outline-color: transparent;
 
     background: var(--map-glass-surface) !important;
+    border-radius: 20px;
+    overflow: hidden;
+    clip-path: inset(0 round 20px);
     backdrop-filter: var(--map-glass-blur) !important;
     -webkit-backdrop-filter: var(--map-glass-blur) !important;
     // WebKit GPU acceleration to prevent blur flickering during animations
@@ -150,6 +219,7 @@ mat-chip {
     --mat-chip-elevated-container-color: var(--map-glass-surface);
     --mdc-chip-outline-color: transparent;
     background: var(--map-glass-surface) !important;
+    overflow: hidden;
   }
 
   // Remove border on glass chips
@@ -168,6 +238,9 @@ mat-chip {
     --mdc-chip-outline-color: var(--mat-sys-outline-variant);
 
     background: var(--mat-sys-surface-container-high) !important;
+    border-radius: 8px;
+    overflow: hidden;
+    clip-path: inset(0 round 8px);
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
@@ -181,6 +254,7 @@ mat-chip {
     );
     --mdc-chip-outline-color: var(--mat-sys-outline-variant);
     background: var(--mat-sys-surface-container-high) !important;
+    overflow: hidden;
   }
 
   .solid-chip.mat-mdc-chip-selected .mdc-evolution-chip__action--primary {

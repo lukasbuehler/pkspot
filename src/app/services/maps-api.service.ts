@@ -24,6 +24,15 @@ interface LocationAndZoom {
   zoom: number;
 }
 
+type AutocompleteRequestWithOrigin = google.maps.places.AutocompleteRequest & {
+  origin?: google.maps.LatLngLiteral;
+};
+
+type AutocompletePredictionWithPlacePrediction =
+  google.maps.places.AutocompletePrediction & {
+    getPlacePrediction: () => google.maps.places.PlacePrediction;
+  };
+
 type StreetViewMetadataStatus = "OK" | "ZERO_RESULTS" | "UNKNOWN";
 
 import { AnalyticsService } from "./analytics.service";
@@ -63,6 +72,22 @@ export class MapsApiService extends ConsentAwareService {
 
   constructor() {
     super();
+  }
+
+  private _getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    if (typeof error === "string") {
+      return error;
+    }
+
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
   }
 
   loadGoogleMapsApi() {
@@ -260,74 +285,88 @@ export class MapsApiService extends ConsentAwareService {
   ): Promise<google.maps.places.AutocompletePrediction[]> {
     if (!input || input.length === 0) return Promise.resolve([]);
 
-    // Use consent-aware execution for Places API calls
-    return this.executeWithConsent(async () => {
-      // Use new AutocompleteSuggestion API instead of deprecated AutocompleteService
-      const request: google.maps.places.AutocompleteRequest = {
-        input: input,
-        language: "en",
-      };
+    try {
+      // Use consent-aware execution for Places API calls
+      return await this.executeWithConsent(async () => {
+        if (
+          typeof google === "undefined" ||
+          !google.maps?.places?.AutocompleteSuggestion
+        ) {
+          return [];
+        }
 
-      // Add location bias if provided
-      if (biasRect) {
-        request.locationBias = biasRect;
-      }
-      if (origin) {
-        // Include origin so Google can return distanceMeters in predictions.
-        (request as any).origin = origin;
-      }
+        // Use new AutocompleteSuggestion API instead of deprecated AutocompleteService
+        const request: AutocompleteRequestWithOrigin = {
+          input: input,
+          language: "en",
+        };
 
-      // Note: The new API doesn't support type filtering in the same way.
-      // We'll filter results client-side after fetching suggestions.
+        // Add location bias if provided
+        if (biasRect) {
+          request.locationBias = biasRect;
+        }
+        if (origin) {
+          // Include origin so Google can return distanceMeters in predictions.
+          request.origin = origin;
+        }
 
-      const { suggestions } =
-        await google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-          request
-        );
+        // Note: The new API doesn't support type filtering in the same way.
+        // We'll filter results client-side after fetching suggestions.
 
-      // Convert new suggestions format to legacy AutocompletePrediction format
-      // for backward compatibility
-      const predictions: google.maps.places.AutocompletePrediction[] =
-        suggestions
-          .filter((s) => s.placePrediction)
-          .map((suggestion) => {
-            const placePrediction = suggestion.placePrediction!;
-            const fullText = placePrediction.text.text || "";
-            // Split into main text (first comma-separated part) and secondary text (rest)
-            const commaIndex = fullText.indexOf(",");
-            const mainText =
-              commaIndex >= 0 ? fullText.substring(0, commaIndex) : fullText;
-            const secondaryText =
-              commaIndex >= 0 ? fullText.substring(commaIndex + 1).trim() : "";
+        const { suggestions } =
+          await google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+            request,
+          );
 
-            return {
-              place_id: placePrediction.placeId || "",
-              description: fullText,
-              structured_formatting: {
-                main_text: mainText,
-                secondary_text: secondaryText,
-                main_text_matched_substrings: [],
-              },
-              terms: [
-                {
-                  offset: 0,
-                  value: fullText,
+        // Convert new suggestions format to legacy AutocompletePrediction format
+        // for backward compatibility
+        const predictions: google.maps.places.AutocompletePrediction[] =
+          suggestions
+            .filter((s) => s.placePrediction)
+            .map((suggestion) => {
+              const placePrediction = suggestion.placePrediction!;
+              const fullText = placePrediction.text.text || "";
+              // Split into main text (first comma-separated part) and secondary text (rest)
+              const commaIndex = fullText.indexOf(",");
+              const mainText =
+                commaIndex >= 0 ? fullText.substring(0, commaIndex) : fullText;
+              const secondaryText =
+                commaIndex >= 0
+                  ? fullText.substring(commaIndex + 1).trim()
+                  : "";
+
+              const prediction: AutocompletePredictionWithPlacePrediction = {
+                place_id: placePrediction.placeId || "",
+                description: fullText,
+                structured_formatting: {
+                  main_text: mainText,
+                  secondary_text: secondaryText,
+                  main_text_matched_substrings: [],
                 },
-              ],
-              types: placePrediction.types || [],
-              distance_meters:
-                typeof (placePrediction as any).distanceMeters === "number"
-                  ? (placePrediction as any).distanceMeters
-                  : undefined,
-              matched_substrings: [],
-              getPlacePrediction: () => {
-                return placePrediction;
-              },
-            } as any;
-          });
+                terms: [
+                  {
+                    offset: 0,
+                    value: fullText,
+                  },
+                ],
+                types: placePrediction.types || [],
+                distance_meters: placePrediction.distanceMeters ?? undefined,
+                matched_substrings: [],
+                getPlacePrediction: () => placePrediction,
+              };
 
-      return predictions;
-    });
+              return prediction;
+            });
+
+        return predictions;
+      });
+    } catch (error) {
+      console.warn(
+        "Google Maps places autocomplete API unavailable:",
+        this._getErrorMessage(error),
+      );
+      return [];
+    }
   }
 
   async getGooglePlaceById(placeId: string): Promise<google.maps.places.Place> {

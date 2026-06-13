@@ -149,6 +149,9 @@ export const applySpotEditOnCreate = onDocumentCreated(
       // are public spots verified by one or more orgs; edits enter org review
       // first, with a future path for community fallback if no steward responds.
       if (editData.type === "UPDATE" && spotData) {
+        const submitterUid = editData.user?.uid;
+        const submitterIsAdmin =
+          typeof submitterUid === "string" && (await isAdminUser(submitterUid));
         const managementOrganizationId = spotData.management?.organization_id;
         const stewardOrganizationIds = Array.isArray(
           spotData.stewardship?.organization_ids
@@ -167,7 +170,7 @@ export const applySpotEditOnCreate = onDocumentCreated(
           : [];
         const reviewOrganizationId = reviewOrganizationIds[0];
 
-        if (reviewOrganizationId) {
+        if (reviewOrganizationId && !submitterIsAdmin) {
           const isManagedSpot = typeof managementOrganizationId === "string";
           await editSnapshot.ref.update({
             approved: false,

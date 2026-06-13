@@ -168,6 +168,38 @@ describe("OrganizationsService", () => {
     });
   });
 
+  it("adds a member using the target user's stored profile", async () => {
+    const adapter = createMockFirestoreAdapter();
+    adapter.getDocument.mockResolvedValue({
+      display_name: "World Parkour Owner",
+      profile_picture: "profile-picture-path",
+    });
+    TestBed.configureTestingModule({
+      providers: [
+        OrganizationsService,
+        { provide: FirestoreAdapterService, useValue: adapter },
+        { provide: AuthenticationService, useValue: createMockAuthService(true) },
+        { provide: Functions, useValue: {} },
+      ],
+    });
+    const service = TestBed.inject(OrganizationsService);
+
+    await service.upsertMemberByUserId("wpf", "owner-user", "owner");
+
+    expect(adapter.getDocument).toHaveBeenCalledWith("users/owner-user");
+    expect(adapter.setDocument).toHaveBeenCalledWith(
+      "organizations/wpf/members/owner-user",
+      expect.objectContaining({
+        role: "owner",
+        user: {
+          uid: "owner-user",
+          display_name: "World Parkour Owner",
+          profile_picture: "profile-picture-path",
+        },
+      })
+    );
+  });
+
   it("removes spot stewardship through the compatibility method", async () => {
     const service = configure();
 

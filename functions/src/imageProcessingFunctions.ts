@@ -2,9 +2,13 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onObjectFinalized } from "firebase-functions/v2/storage";
+import nodeModule = require("module");
 import { basename, dirname, extname, posix } from "path";
-import * as sharp from "sharp";
 import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
+
+const sharp = nodeModule.createRequire(__filename)(
+  "sharp"
+) as typeof import("sharp").default;
 
 const DEFAULT_IMAGE_SIZES = [200, 400, 800] as const;
 const OPTIONAL_IMAGE_SIZES = [1600] as const;

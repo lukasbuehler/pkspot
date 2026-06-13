@@ -291,7 +291,7 @@
             </mat-option>
           }
         }
-        @for (hit of results.spots?.hits; track $index) {
+        @for (hit of results.spots?.hits ?? []; track $index) {
           <mat-option
             class="spotAutocompleteOption"
             [value]="{ type: 'spot', id: hit.document.id, spot: hit.preview }"

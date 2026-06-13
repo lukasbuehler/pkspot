@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { MatAutocompleteTrigger } from "@angular/material/autocomplete";
 import { By } from "@angular/platform-browser";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SearchService } from "../../services/search.service";
@@ -59,5 +60,39 @@ describe("SearchFieldComponent", () => {
     button.nativeElement.click();
 
     expect(clears.length).toBe(1);
+  });
+
+  it("renders loaded empty search results without spot hits", () => {
+    fixture.detectChanges();
+
+    const emptyResults: Parameters<
+      typeof fixture.componentInstance.spotAndPlaceSearchResults$.next
+    >[0] = {
+      query: "zurich",
+      isShortQuery: false,
+      typesenseLoading: false,
+      communitiesLoaded: true,
+      communities: [],
+      eventsLoaded: true,
+      events: [],
+      placesLoaded: true,
+      displayedPlace: null,
+      displayedPlacePlacement: "top",
+      previewPlaceId: null,
+      previewCommunity: null,
+      spotsLoaded: true,
+      spots: null,
+    };
+
+    fixture.componentInstance.spotAndPlaceSearchResults$.next(emptyResults);
+    fixture.detectChanges();
+    const trigger = fixture.debugElement
+      .query(By.directive(MatAutocompleteTrigger))
+      .injector.get(MatAutocompleteTrigger);
+
+    trigger.openPanel();
+    fixture.detectChanges();
+
+    expect(document.body.textContent).toContain("No results found");
   });
 });

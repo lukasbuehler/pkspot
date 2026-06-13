@@ -15,7 +15,6 @@ import {
   OrganizationDocument,
   OrganizationsService,
 } from "../../services/firebase/firestore/organizations.service";
-import { createUserReference } from "../../../scripts/Helpers";
 import { OrganizationRole } from "../../../db/schemas/OrganizationSchema";
 import { Subscription } from "rxjs";
 
@@ -44,7 +43,7 @@ export class OrganizationAdminPageComponent implements OnDestroy {
   readonly newOrgLogoBackgroundColor = signal("");
   readonly selectedOrganizationId = signal("");
   readonly memberUserId = signal("");
-  readonly memberRole = signal<OrganizationRole>("reviewer");
+  readonly memberRole = signal<OrganizationRole>("owner");
   readonly isAdmin = signal(false);
   readonly authResolved = this.authService.initialAuthStateResolved;
   private readonly _authSubscription: Subscription;
@@ -86,15 +85,13 @@ export class OrganizationAdminPageComponent implements OnDestroy {
     this.selectedOrganizationId.set(organizationId);
   }
 
-  async addCurrentUserAsMember(): Promise<void> {
-    const user = this.authService.user.data;
-    const uid = this.memberUserId() || this.authService.user.uid;
-    if (!user || !uid || !this.selectedOrganizationId()) return;
-    await this._organizationsService.upsertMember(
+  async addMember(): Promise<void> {
+    const uid = this.memberUserId().trim() || this.authService.user.uid;
+    if (!uid || !this.selectedOrganizationId()) return;
+    await this._organizationsService.upsertMemberByUserId(
       this.selectedOrganizationId(),
       uid,
-      this.memberRole(),
-      createUserReference(user)
+      this.memberRole()
     );
   }
 }

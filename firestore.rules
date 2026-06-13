@@ -427,6 +427,8 @@ service cloud.firestore {
           && agePolicyAllowsPublicParticipation()
           && request.auth.uid == request.resource.data.user.uid
           && (
+            isAdmin()
+            ||
             !requiresOrganizationReview(spotId)
             || request.resource.data.visibility == 'private'
           );
