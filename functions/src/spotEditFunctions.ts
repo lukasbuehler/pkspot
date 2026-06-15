@@ -82,6 +82,7 @@ const MIN_TOTAL_VOTES = 2;
 const MIN_YES_NO_RATIO = 3;
 const PENDING_VOTE_EDITS_LIMIT = 300;
 const PENDING_VOTE_EDITS_FALLBACK_SCAN_LIMIT = 900;
+const CALLABLE_CORS_OPTIONS = { cors: true };
 
 // Rollout control:
 // Keep legacy instant-apply behavior for iconic community spots until clients
@@ -702,7 +703,9 @@ async function isAdminUser(uid: string): Promise<boolean> {
   return userSnap.data()?.["is_admin"] === true;
 }
 
-export const reviewVerifiedSpotEdit = onCall(async (request) => {
+async function reviewVerifiedSpotEditImpl(
+  request: CallableRequest<Record<string, unknown>>
+): Promise<{ ok: true }> {
   const uid = request.auth?.uid;
   if (!uid) {
     throw new HttpsError("unauthenticated", "Sign in to review spot edits.");
@@ -811,7 +814,12 @@ export const reviewVerifiedSpotEdit = onCall(async (request) => {
   }
 
   return { ok: true };
-});
+}
+
+export const reviewVerifiedSpotEdit = onCall(
+  CALLABLE_CORS_OPTIONS,
+  reviewVerifiedSpotEditImpl
+);
 
 interface SetSpotOrganizationRelationshipRequest {
   spotId?: unknown;
@@ -1006,19 +1014,22 @@ async function setSpotOrganizationRelationshipImpl(
 }
 
 export const setSpotOrganizationRelationship = onCall(
+  CALLABLE_CORS_OPTIONS,
   setSpotOrganizationRelationshipImpl
 );
 
 // Backwards-compatible callable name: old "verification" now means stewardship.
-export const setSpotVerification = onCall(async (request) =>
-  setSpotOrganizationRelationshipImpl({
-    ...request,
-    data: {
-      ...(request.data ?? {}),
-      relationship: "steward",
-      enabled: request.data?.organizationId !== null,
-    },
-  })
+export const setSpotVerification = onCall(
+  CALLABLE_CORS_OPTIONS,
+  async (request) =>
+    setSpotOrganizationRelationshipImpl({
+      ...request,
+      data: {
+        ...(request.data ?? {}),
+        relationship: "steward",
+        enabled: request.data?.organizationId !== null,
+      },
+    })
 );
 
 async function tryAcquireEditApplyLock(
