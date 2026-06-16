@@ -6,7 +6,7 @@ import { LocalSpot, Spot } from "../../db/models/Spot";
 import { User } from "../../db/models/User";
 import { StorageImage } from "../../db/models/Media";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
-import { environment } from "../../environments/environment";
+import { environment } from "../../environments/environment.default";
 import {
   SpotAccess,
   SpotTypes,
@@ -48,7 +48,10 @@ export class StructuredDataService {
 
   structuredDataIdPrefix = "structured-data-";
 
-  constructor(private meta: Meta, private titleService: Title) {
+  constructor(
+    private meta: Meta,
+    private titleService: Title,
+  ) {
     this.isServer = isPlatformServer(this.platformId);
   }
 
@@ -108,7 +111,7 @@ export class StructuredDataService {
   }
 
   buildCommunityBreadcrumbs(
-    pageData: CommunityLandingPageData
+    pageData: CommunityLandingPageData,
   ): Array<{ name: string; url: string }> {
     return (pageData.breadcrumbs ?? []).map((breadcrumb) => ({
       name: breadcrumb.name,
@@ -119,7 +122,7 @@ export class StructuredDataService {
   }
 
   generateBreadcrumbList(
-    items: Array<{ name: string; url: string }>
+    items: Array<{ name: string; url: string }>,
   ): Record<string, unknown> {
     return {
       "@type": "BreadcrumbList",
@@ -133,7 +136,7 @@ export class StructuredDataService {
   }
 
   generateCommunityLandingPageData(
-    pageData: CommunityLandingPageData
+    pageData: CommunityLandingPageData,
   ): Record<string, unknown> {
     const infoCardParts = this.buildCommunityInfoCardParts(pageData);
     const spotDirectory = collectCommunitySpotDirectory(pageData);
@@ -141,7 +144,7 @@ export class StructuredDataService {
       spotDirectory.length > 0
         ? this.generateSpotItemList(
             spotDirectory,
-            `${pageData.displayName} Parkour Spots`
+            `${pageData.displayName} Parkour Spots`,
           )
         : null;
 
@@ -181,7 +184,7 @@ export class StructuredDataService {
   }
 
   private buildCommunityInfoCardParts(
-    pageData: CommunityLandingPageData
+    pageData: CommunityLandingPageData,
   ): Record<string, unknown>[] {
     return (pageData.infoCards ?? [])
       .filter(
@@ -208,7 +211,7 @@ export class StructuredDataService {
   }
 
   private buildCommunityInfoCardUrl(
-    cta: CommunityLandingPageData["infoCards"][number]["cta"]
+    cta: CommunityLandingPageData["infoCards"][number]["cta"],
   ): string | undefined {
     if (!cta) {
       return undefined;
@@ -219,7 +222,7 @@ export class StructuredDataService {
         return this.normalizeAbsoluteUrl(buildSpotCanonicalPath(cta.spotId));
       case "event":
         return this.normalizeAbsoluteUrl(
-          `/events/${encodeURIComponent(cta.eventId)}`
+          `/events/${encodeURIComponent(cta.eventId)}`,
         );
       case "url":
         return this.normalizeHttpUrl(cta.url);
@@ -247,7 +250,7 @@ export class StructuredDataService {
 
   removeStructuredData(id: string) {
     const script = this.document.getElementById(
-      this.structuredDataIdPrefix + id
+      this.structuredDataIdPrefix + id,
     );
     if (script) {
       script.remove();
@@ -263,7 +266,7 @@ export class StructuredDataService {
    */
   generateSpotPlaceData(
     spot: Spot | LocalSpot,
-    url?: string
+    url?: string,
   ): SpotStructuredData {
     const isReviewEligible = this.isSpotReviewRichResultEligible(spot);
     const placeData: SpotStructuredData = {
@@ -284,7 +287,7 @@ export class StructuredDataService {
       placeData["url"] =
         url ||
         `${environment.baseUrl}/${this.locale}${buildSpotCanonicalPath(
-          spot.slug ?? spot.id
+          spot.slug ?? spot.id,
         )}`;
       placeData["identifier"] = spot.id;
     }
@@ -294,7 +297,7 @@ export class StructuredDataService {
     if (images.length > 0) {
       const imageUrls = images
         .map((image) =>
-          typeof image.contentUrl === "string" ? image.contentUrl : undefined
+          typeof image.contentUrl === "string" ? image.contentUrl : undefined,
         )
         .filter((imageUrl): imageUrl is string => !!imageUrl);
       if (imageUrls.length > 0) {
@@ -320,7 +323,7 @@ export class StructuredDataService {
         "@type": "PostalAddress",
         streetAddress: this.withLocalityInStreetAddress(
           getDisplayFormattedAddress(address),
-          addressLocality
+          addressLocality,
         ),
         addressLocality: addressLocality,
         addressRegion:
@@ -380,7 +383,7 @@ export class StructuredDataService {
 
   private withLocalityInStreetAddress(
     streetAddress?: string,
-    locality?: string
+    locality?: string,
   ): string | undefined {
     const cleanStreetAddress = streetAddress?.trim();
     const cleanLocality = locality?.trim();
@@ -504,7 +507,7 @@ export class StructuredDataService {
    */
   generateSpotItemList(
     spots: (Spot | LocalSpot | SpotPreviewData)[],
-    listName: string = "Parkour Spots"
+    listName: string = "Parkour Spots",
   ): Record<string, unknown> {
     const listItems = spots.map((spot, index) => {
       if (spot instanceof Spot || spot instanceof LocalSpot) {
@@ -521,7 +524,7 @@ export class StructuredDataService {
           "@type": isReviewEligible ? "SportsActivityLocation" : "Place",
           name: spot.name,
           url: `${environment.baseUrl}/${this.locale}${buildSpotCanonicalPath(
-            spot.slug ?? spot.id
+            spot.slug ?? spot.id,
           )}`,
           keywords: "parkour,freerunning,spot,training",
         };
@@ -622,9 +625,7 @@ export class StructuredDataService {
     return /^https?:\/\//i.test(trimmed) ? trimmed : undefined;
   }
 
-  private getSpotPreviewReviewCount(
-    spot: SpotPreviewData
-  ): number | undefined {
+  private getSpotPreviewReviewCount(spot: SpotPreviewData): number | undefined {
     return (
       this.getPositiveInteger(spot.numReviews) ??
       this.getPositiveInteger(spot.num_reviews)
@@ -644,17 +645,17 @@ export class StructuredDataService {
   }
 
   private isSpotPreviewReviewRichResultEligible(
-    spot: SpotPreviewData
+    spot: SpotPreviewData,
   ): boolean {
     return this.isReviewRichResultEligibleSpotType(
       parseSpotType(spot.type),
-      parseSpotAccess(spot.access)
+      parseSpotAccess(spot.access),
     );
   }
 
   private isReviewRichResultEligibleSpotType(
     type: SpotTypes,
-    access: SpotAccess
+    access: SpotAccess,
   ): boolean {
     if (access === SpotAccess.Commercial) {
       return [

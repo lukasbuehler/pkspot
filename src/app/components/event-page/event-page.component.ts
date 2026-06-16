@@ -52,7 +52,7 @@ import {
   SeriesService,
 } from "../../services/firebase/firestore/series.service";
 import { SearchService } from "../../services/search.service";
-import { environment } from "../../../environments/environment";
+import { environment } from "../../../environments/environment.default";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
 import {
   EventEditFormComponent,
@@ -326,13 +326,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly mapPreviewBounds = computed(() => {
     const event = this.event();
     return event
-      ? this._eventPageData.eventMapBounds(
-          event,
-          [
-            ...this.mapMarkers().map((marker) => marker.location),
-            ...this.spots().map((spot) => spot.location()),
-          ],
-        )
+      ? this._eventPageData.eventMapBounds(event, [
+          ...this.mapMarkers().map((marker) => marker.location),
+          ...this.spots().map((spot) => spot.location()),
+        ])
       : null;
   });
   readonly hasMapPreview = computed(
@@ -852,7 +849,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   seriesLabel(seriesId: string): string {
-    return this.seriesById()[seriesId]?.name ?? this._seriesFallbackLabel(seriesId);
+    return (
+      this.seriesById()[seriesId]?.name ?? this._seriesFallbackLabel(seriesId)
+    );
   }
 
   seriesVisual(seriesId: string): { logoSrc?: string; background: string } {
@@ -860,7 +859,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return {
       logoSrc: eventImageDisplaySrc(series?.logo_src),
       background:
-        series?.logo_background_color ?? "var(--mat-sys-surface-container-high)",
+        series?.logo_background_color ??
+        "var(--mat-sys-surface-container-high)",
     };
   }
 
@@ -934,9 +934,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  qualificationPathEvents(
-    path: EventQualificationPathSchema,
-  ): PkEvent[] {
+  qualificationPathEvents(path: EventQualificationPathSchema): PkEvent[] {
     return this._eventsForQualificationRefs(path.requirements);
   }
 
@@ -1086,9 +1084,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       typeof window.matchMedia === "function"
         ? window.matchMedia("(max-width: 720px)").matches
         : window.innerWidth <= 720;
-    this.qualificationGridColumns.set(
-      isMobile ? 1 : 3,
-    );
+    this.qualificationGridColumns.set(isMobile ? 1 : 3);
   }
 
   private _absoluteUrl(path: string): string {

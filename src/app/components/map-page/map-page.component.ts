@@ -105,7 +105,7 @@ import {
 } from "../custom-filter-dialog/custom-filter-dialog.component";
 import { BackHandlingService } from "../../services/back-handling.service";
 import { AppSettingsService } from "../../services/app-settings.service";
-import { environment } from "../../../environments/environment";
+import { environment } from "../../../environments/environment.default";
 import {
   buildSpotCanonicalPath,
   buildSpotChallengeCanonicalPath,
@@ -136,10 +136,7 @@ import {
 import { afterNextRender } from "@angular/core";
 import { ChipSelectorOption } from "../chip-selector/chip-selector.component";
 import { MapObjectPanelComponent } from "../map/map-object-panel/map-object-panel.component";
-import {
-  MapObjectCounts,
-  MapObjectMode,
-} from "../map/map-object-mode.model";
+import { MapObjectCounts, MapObjectMode } from "../map/map-object-mode.model";
 import { MapSpotEditsPanelComponent } from "../map/map-spot-edits-panel/map-spot-edits-panel.component";
 import { MapSpotChallengesPanelComponent } from "../map/map-spot-challenges-panel/map-spot-challenges-panel.component";
 import { MapSpotDetailsPanelComponent } from "../map/map-spot-details-panel/map-spot-details-panel.component";
@@ -706,14 +703,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   showMapSpots = computed(() => {
     const mode = this.mapObjectMode();
     return (
-      mode === "all" ||
-      mode === "spots" ||
-      this.communitySpotFocus() !== null
+      mode === "all" || mode === "spots" || this.communitySpotFocus() !== null
     );
   });
 
   showVisibleSpotPins = computed(
-    () => this.mapObjectMode() === "spots" && this.communitySpotFocus() === null,
+    () =>
+      this.mapObjectMode() === "spots" && this.communitySpotFocus() === null,
   );
 
   communitySpotFocus = computed<CommunitySpotFocus | null>(() => {
@@ -825,7 +821,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     ),
   );
 
-  private _getCssColorAsHex = (cssVarName: string, fallback: string): string => {
+  private _getCssColorAsHex = (
+    cssVarName: string,
+    fallback: string,
+  ): string => {
     if (typeof window === "undefined") {
       return fallback;
     }
@@ -2361,7 +2360,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     community: CommunitySearchPreview,
     bbox: MapViewportBbox,
   ): boolean {
-    if (!community.boundsCenter || typeof community.boundsRadiusM !== "number") {
+    if (
+      !community.boundsCenter ||
+      typeof community.boundsRadiusM !== "number"
+    ) {
       return false;
     }
 
@@ -2373,8 +2375,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const radiusM = community.boundsRadiusM;
     const latRadius = radiusM / 111_320;
     const lngRadius =
-      radiusM /
-      (111_320 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
+      radiusM / (111_320 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
     const communityBounds = {
       north: lat + latRadius,
       south: lat - latRadius,
@@ -2385,10 +2386,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return this._bboxesIntersect(communityBounds, bbox);
   }
 
-  private _bboxesIntersect(
-    a: MapViewportBbox,
-    b: MapViewportBbox,
-  ): boolean {
+  private _bboxesIntersect(a: MapViewportBbox, b: MapViewportBbox): boolean {
     if (a.north < b.south || a.south > b.north) {
       return false;
     }
@@ -2396,9 +2394,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const aLngIntervals = this._longitudeIntervals(a);
     const bLngIntervals = this._longitudeIntervals(b);
     return aLngIntervals.some(([aWest, aEast]) =>
-      bLngIntervals.some(
-        ([bWest, bEast]) => aEast >= bWest && aWest <= bEast,
-      ),
+      bLngIntervals.some(([bWest, bEast]) => aEast >= bWest && aWest <= bEast),
     );
   }
 
@@ -3379,7 +3375,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .filter((h: any) => !!h)
           .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-        this._setFilteredSpotPreviews(previews, result.found ?? previews.length);
+        this._setFilteredSpotPreviews(
+          previews,
+          result.found ?? previews.length,
+        );
       })
       .catch((err) => {
         console.error("Error re-searching for filter on bounds change:", err);
@@ -3517,7 +3516,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .filter((h: any) => !!h)
           .map((hit: any) => this._searchService.getSpotPreviewFromHit(hit));
 
-        this._setFilteredSpotPreviews(previews, result.found ?? previews.length);
+        this._setFilteredSpotPreviews(
+          previews,
+          result.found ?? previews.length,
+        );
       })
       .catch((err) => {
         console.error(`Error searching for ${selectedChip} spots:`, err);
@@ -3604,12 +3606,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log("Searching with custom filter:", result);
 
       this._searchService
-        .searchSpotsWithCustomFilter(
-          bounds,
-          result,
-          10,
-          this._viewport()?.zoom,
-        )
+        .searchSpotsWithCustomFilter(bounds, result, 10, this._viewport()?.zoom)
         .then((searchResult) => {
           const hits = searchResult.hits || [];
           console.log("Found custom filter spots:", hits);
@@ -4077,7 +4074,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
 
-  private _redirectSignedOutSpotEditHistory(spotIdOrSlug?: string | null): boolean {
+  private _redirectSignedOutSpotEditHistory(
+    spotIdOrSlug?: string | null,
+  ): boolean {
     if (!isPlatformBrowser(this.platformId)) {
       return false;
     }
@@ -4149,7 +4148,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const previewEvent =
-      options.previewEvent ?? this._eventPreviewCache.get(eventIdOrSlug) ?? null;
+      options.previewEvent ??
+      this._eventPreviewCache.get(eventIdOrSlug) ??
+      null;
     if (previewEvent) {
       this.pendingEventPreview.set(null);
       this.openEventPreview(previewEvent, { updateUrl: false });

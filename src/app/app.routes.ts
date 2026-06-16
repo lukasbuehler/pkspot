@@ -1,7 +1,7 @@
 import { Routes } from "@angular/router";
 import { contentResolver } from "./resolvers/content.resolver";
 import { communityLandingResolver } from "./resolvers/community-landing.resolver";
-import { environment } from "../environments/environment";
+import { environment } from "../environments/environment.default";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
   "/about",
@@ -20,33 +20,33 @@ const visualTestRoutes: Routes = environment.production
       {
         path: "__visual/markers",
         loadComponent: () =>
-          import(
-            "./components/map/marker-visual-test-page/marker-visual-test-page.component"
-          ).then((m) => m.MarkerVisualTestPageComponent),
+          import("./components/map/marker-visual-test-page/marker-visual-test-page.component").then(
+            (m) => m.MarkerVisualTestPageComponent,
+          ),
         data: { routeName: "Marker Visual Test", acceptanceFree: true },
       },
       {
         path: "__visual/map-overlay",
         loadComponent: () =>
-          import(
-            "./components/map/map-overlay-visual-test-page/map-overlay-visual-test-page.component"
-          ).then((m) => m.MapOverlayVisualTestPageComponent),
+          import("./components/map/map-overlay-visual-test-page/map-overlay-visual-test-page.component").then(
+            (m) => m.MapOverlayVisualTestPageComponent,
+          ),
         data: { routeName: "Map Overlay Visual Test", acceptanceFree: true },
       },
       {
         path: "__visual/age-policy",
         loadComponent: () =>
-          import(
-            "./components/age-policy-visual-test-page/age-policy-visual-test-page.component"
-          ).then((m) => m.AgePolicyVisualTestPageComponent),
+          import("./components/age-policy-visual-test-page/age-policy-visual-test-page.component").then(
+            (m) => m.AgePolicyVisualTestPageComponent,
+          ),
         data: { routeName: "Age Policy Visual Test", acceptanceFree: true },
       },
       {
         path: "__visual/spot-bottom-sheet",
         loadComponent: () =>
-          import(
-            "./components/spot-details/spot-bottom-sheet-visual-test-page/spot-bottom-sheet-visual-test-page.component"
-          ).then((m) => m.SpotBottomSheetVisualTestPageComponent),
+          import("./components/spot-details/spot-bottom-sheet-visual-test-page/spot-bottom-sheet-visual-test-page.component").then(
+            (m) => m.SpotBottomSheetVisualTestPageComponent,
+          ),
         data: { routeName: "Spot Bottom Sheet Visual Test" },
       },
     ];
@@ -68,7 +68,7 @@ export const routes: Routes = [
           path: "activity",
           loadComponent: () =>
             import("./components/activity-page/activity-page.component").then(
-              (m) => m.ActivityPageComponent
+              (m) => m.ActivityPageComponent,
             ),
           resolve: { content: contentResolver },
           data: { routeName: "Activity" },
@@ -87,7 +87,7 @@ export const routes: Routes = [
     path: "map/communities/:slug",
     loadComponent: () =>
       import("./components/map-page/map-page.component").then(
-        (m) => m.MapPageComponent
+        (m) => m.MapPageComponent,
       ),
     resolve: { communityLanding: communityLandingResolver },
     data: { routeName: "Community Landing" },
@@ -106,7 +106,7 @@ export const routes: Routes = [
     path: "map/events/:eventId",
     loadComponent: () =>
       import("./components/map-page/map-page.component").then(
-        (m) => m.MapPageComponent
+        (m) => m.MapPageComponent,
       ),
     data: { routeName: "Event on Map" },
   },
@@ -165,7 +165,7 @@ export const routes: Routes = [
     path: "map",
     loadComponent: () =>
       import("./components/map-page/map-page.component").then(
-        (m) => m.MapPageComponent
+        (m) => m.MapPageComponent,
       ),
     resolve: { content: contentResolver },
     children: [
@@ -173,7 +173,7 @@ export const routes: Routes = [
         path: "spots/:spot",
         loadComponent: () =>
           import("./components/map-page/map-page.component").then(
-            (m) => m.MapPageComponent
+            (m) => m.MapPageComponent,
           ),
         resolve: { content: contentResolver },
         children: [
@@ -181,7 +181,7 @@ export const routes: Routes = [
             path: "edits",
             loadComponent: () =>
               import("./components/map-page/map-page.component").then(
-                (m) => m.MapPageComponent
+                (m) => m.MapPageComponent,
               ),
             resolve: { content: contentResolver },
           },
@@ -189,7 +189,7 @@ export const routes: Routes = [
             path: "c",
             loadComponent: () =>
               import("./components/map-page/map-page.component").then(
-                (m) => m.MapPageComponent
+                (m) => m.MapPageComponent,
               ),
             resolve: { content: contentResolver },
             children: [
@@ -197,7 +197,7 @@ export const routes: Routes = [
                 path: ":challenge",
                 loadComponent: () =>
                   import("./components/map-page/map-page.component").then(
-                    (m) => m.MapPageComponent
+                    (m) => m.MapPageComponent,
                   ),
                 resolve: { content: contentResolver },
               },
@@ -218,7 +218,7 @@ export const routes: Routes = [
     path: "kml-import",
     loadComponent: () =>
       import("./components/kml-import-page/kml-import-page.component").then(
-        (m) => m.KmlImportPageComponent
+        (m) => m.KmlImportPageComponent,
       ),
     data: { routeName: "KML Import" },
   },
@@ -226,7 +226,7 @@ export const routes: Routes = [
     path: "organizations/:slugOrId",
     loadComponent: () =>
       import("./components/organization-page/organization-page.component").then(
-        (m) => m.OrganizationPageComponent
+        (m) => m.OrganizationPageComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Organization" },
@@ -234,33 +234,33 @@ export const routes: Routes = [
   {
     path: "organization-reviews",
     loadComponent: () =>
-      import(
-        "./components/organization-review-inbox/organization-review-inbox.component"
-      ).then((m) => m.OrganizationReviewInboxComponent),
+      import("./components/organization-review-inbox/organization-review-inbox.component").then(
+        (m) => m.OrganizationReviewInboxComponent,
+      ),
     data: { routeName: "Organization Reviews" },
   },
   {
     path: "organization-admin",
     loadComponent: () =>
       import("./components/organization-admin-page/organization-admin-page.component").then(
-        (m) => m.OrganizationAdminPageComponent
+        (m) => m.OrganizationAdminPageComponent,
       ),
     data: { routeName: "Organization Admin" },
   },
   {
     path: "moderation",
     loadComponent: () =>
-      import(
-        "./components/moderation-dashboard-page/moderation-dashboard-page.component"
-      ).then((m) => m.ModerationDashboardPageComponent),
+      import("./components/moderation-dashboard-page/moderation-dashboard-page.component").then(
+        (m) => m.ModerationDashboardPageComponent,
+      ),
     data: { routeName: "Moderation" },
   },
   {
     path: "moderation/reports",
     loadComponent: () =>
-      import(
-        "./components/moderation-reports-page/moderation-reports-page.component"
-      ).then((m) => m.ModerationReportsPageComponent),
+      import("./components/moderation-reports-page/moderation-reports-page.component").then(
+        (m) => m.ModerationReportsPageComponent,
+      ),
     data: { routeName: "Moderation Reports" },
   },
 
@@ -269,7 +269,7 @@ export const routes: Routes = [
     path: "embed",
     loadComponent: () =>
       import("./components/embedding/embed-page/embed-page.component").then(
-        (m) => m.EmbedPageComponent
+        (m) => m.EmbedPageComponent,
       ),
     data: { routeName: "Embed" },
   },
@@ -304,7 +304,7 @@ export const routes: Routes = [
     path: "embedded/events/:eventID/map",
     loadComponent: () =>
       import("./components/event-map-page/event-map-page.component").then(
-        (m) => m.EventMapPageComponent
+        (m) => m.EventMapPageComponent,
       ),
     data: { routeName: "Embedded Event Map" },
   },
@@ -312,16 +312,16 @@ export const routes: Routes = [
     path: "embedded/events/:eventID",
     loadComponent: () =>
       import("./components/event-page/event-page.component").then(
-        (m) => m.EventInfoPageComponent
+        (m) => m.EventInfoPageComponent,
       ),
     data: { routeName: "Embedded Event" },
   },
   {
     path: "embedded/map",
     loadComponent: () =>
-      import(
-        "./components/embedding/embedded-map-page/embedded-map-page.component"
-      ).then((m) => m.EmbeddedMapPageComponent),
+      import("./components/embedding/embedded-map-page/embedded-map-page.component").then(
+        (m) => m.EmbeddedMapPageComponent,
+      ),
     data: { routeName: "Embedded Map" },
   },
 
@@ -330,7 +330,7 @@ export const routes: Routes = [
     path: "events",
     loadComponent: () =>
       import("./components/events-page/events-page.component").then(
-        (m) => m.EventsPageComponent
+        (m) => m.EventsPageComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Events" },
@@ -341,7 +341,7 @@ export const routes: Routes = [
     path: "events/new",
     loadComponent: () =>
       import("./components/event-create-page/event-create-page.component").then(
-        (m) => m.EventCreatePageComponent
+        (m) => m.EventCreatePageComponent,
       ),
     data: { routeName: "Create Event" },
   },
@@ -355,7 +355,7 @@ export const routes: Routes = [
     path: "events/swissjam25",
     loadComponent: () =>
       import("./components/event-page/event-page.component").then(
-        (m) => m.EventInfoPageComponent
+        (m) => m.EventInfoPageComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Event" },
@@ -364,7 +364,7 @@ export const routes: Routes = [
     path: "events/:slug/map",
     loadComponent: () =>
       import("./components/event-map-page/event-map-page.component").then(
-        (m) => m.EventMapPageComponent
+        (m) => m.EventMapPageComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Event Map" },
@@ -379,7 +379,7 @@ export const routes: Routes = [
     path: "events/:slug",
     loadComponent: () =>
       import("./components/event-page/event-page.component").then(
-        (m) => m.EventInfoPageComponent
+        (m) => m.EventInfoPageComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Event" },
@@ -410,7 +410,7 @@ export const routes: Routes = [
     path: "profile",
     loadComponent: () =>
       import("./components/profile-page/profile-page.component").then(
-        (m) => m.ProfilePageComponent
+        (m) => m.ProfilePageComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Profile" },
@@ -419,7 +419,7 @@ export const routes: Routes = [
     path: "u/:userID",
     loadComponent: () =>
       import("./components/profile-page/profile-page.component").then(
-        (m) => m.ProfilePageComponent
+        (m) => m.ProfilePageComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Profile" },
@@ -428,7 +428,7 @@ export const routes: Routes = [
     path: "account",
     loadComponent: () =>
       import("./components/sign-in-page/sign-in-page.component").then(
-        (m) => m.SignInPageComponent
+        (m) => m.SignInPageComponent,
       ),
     data: { routeName: "Account" },
   },
@@ -444,7 +444,7 @@ export const routes: Routes = [
             return [];
           }
           return [[key, String(value)] as [string, string]];
-        })
+        }),
       ).toString();
       return query ? `/account?${query}` : "/account";
     },
@@ -454,16 +454,16 @@ export const routes: Routes = [
     path: "sign-up",
     loadComponent: () =>
       import("./components/sign-up-page/sign-up-page.component").then(
-        (m) => m.SignUpPageComponent
+        (m) => m.SignUpPageComponent,
       ),
     data: { routeName: "Sign-up" },
   },
   {
     path: "forgot-password",
     loadComponent: () =>
-      import(
-        "./components/forgot-password-page/forgot-password-page.component"
-      ).then((m) => m.ForgotPasswordPageComponent),
+      import("./components/forgot-password-page/forgot-password-page.component").then(
+        (m) => m.ForgotPasswordPageComponent,
+      ),
     data: { routeName: "Forgot password" },
   },
 
@@ -472,7 +472,7 @@ export const routes: Routes = [
     path: "settings",
     loadComponent: () =>
       import("./components/settings-page/settings-page.component").then(
-        (m) => m.SettingsPageComponent
+        (m) => m.SettingsPageComponent,
       ),
     data: { routeName: "Settings" },
   },
@@ -480,7 +480,7 @@ export const routes: Routes = [
     path: "settings/:tab",
     loadComponent: () =>
       import("./components/settings-page/settings-page.component").then(
-        (m) => m.SettingsPageComponent
+        (m) => m.SettingsPageComponent,
       ),
     data: { routeName: "Settings" },
   },
@@ -490,7 +490,7 @@ export const routes: Routes = [
     path: "about",
     loadComponent: () =>
       import("./components/about-page/about-page.component").then(
-        (m) => m.AboutPageComponent
+        (m) => m.AboutPageComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "About", acceptanceFree: true },
@@ -499,7 +499,7 @@ export const routes: Routes = [
     path: "support",
     loadComponent: () =>
       import("./components/support-page/support-page.component").then(
-        (m) => m.SupportPageComponent
+        (m) => m.SupportPageComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Support", acceptanceFree: true },
@@ -508,7 +508,7 @@ export const routes: Routes = [
     path: "contact",
     loadComponent: () =>
       import("./components/contact-page/contact-page.component").then(
-        (m) => m.ContactPageComponent
+        (m) => m.ContactPageComponent,
       ),
     data: { routeName: "Contact", acceptanceFree: true },
   },
@@ -516,7 +516,7 @@ export const routes: Routes = [
     path: "terms-of-service",
     loadComponent: () =>
       import("./components/terms-of-service/terms-of-service.component").then(
-        (m) => m.TermsOfServiceComponent
+        (m) => m.TermsOfServiceComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Terms of Service", acceptanceFree: true },
@@ -526,7 +526,7 @@ export const routes: Routes = [
     path: "privacy-policy",
     loadComponent: () =>
       import("./components/privacy-policy/privacy-policy.component").then(
-        (m) => m.PrivacyPolicyComponent
+        (m) => m.PrivacyPolicyComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Privacy Policy", acceptanceFree: true },
@@ -538,7 +538,7 @@ export const routes: Routes = [
     component: undefined,
     loadComponent: () =>
       import("./components/impressum/impressum.component").then(
-        (m) => m.ImpressumComponent
+        (m) => m.ImpressumComponent,
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Impressum", acceptanceFree: true },
@@ -549,7 +549,7 @@ export const routes: Routes = [
     path: "leaderboard",
     loadComponent: () =>
       import("./components/leaderboard-page/leaderboard-page.component").then(
-        (m) => m.LeaderboardPageComponent
+        (m) => m.LeaderboardPageComponent,
       ),
     data: { routeName: "Leaderboard" },
   },
@@ -560,7 +560,7 @@ export const routes: Routes = [
     path: "__/auth/action",
     loadComponent: () =>
       import("./components/auth-action-page/auth-action-page.component").then(
-        (m) => m.AuthActionPageComponent
+        (m) => m.AuthActionPageComponent,
       ),
     data: { routeName: "Auth Action" },
   },
@@ -569,7 +569,7 @@ export const routes: Routes = [
     path: "**",
     loadComponent: () =>
       import("./components/not-found-page/not-found-page.component").then(
-        (m) => m.NotFoundPageComponent
+        (m) => m.NotFoundPageComponent,
       ),
   },
 ];

@@ -1,6 +1,8 @@
-import { environment } from "../../environments/environment";
+import { environment } from "../../environments/environment.default";
 
-const FALLBACK_FIRST_PARTY_STORAGE_BUCKETS = ["parkour-base-project.appspot.com"];
+const FALLBACK_FIRST_PARTY_STORAGE_BUCKETS = [
+  "parkour-base-project.appspot.com",
+];
 
 function firstPartyStorageBuckets(): Set<string> {
   return new Set(
@@ -11,7 +13,9 @@ function firstPartyStorageBuckets(): Set<string> {
   );
 }
 
-export function isFirstPartyStorageUrl(src: string | null | undefined): boolean {
+export function isFirstPartyStorageUrl(
+  src: string | null | undefined,
+): boolean {
   if (!src) {
     return false;
   }

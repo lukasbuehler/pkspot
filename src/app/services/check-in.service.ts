@@ -12,7 +12,7 @@ import { SearchService } from "./search.service";
 import { Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
-import { environment } from "../../environments/environment";
+import { environment } from "../../environments/environment.default";
 
 @Injectable({
   providedIn: "root",
@@ -57,10 +57,10 @@ export class CheckInService {
       if (locationState && locationState.location) {
         console.debug(
           `[CheckIn Debug] Location update: (${locationState.location.lat.toFixed(
-            6
+            6,
           )}, ${locationState.location.lng.toFixed(6)}), accuracy: ${
             locationState.accuracy?.toFixed(0) ?? "?"
-          }m`
+          }m`,
         );
         this._checkProximity(locationState.location, locationState.accuracy);
       } else {
@@ -69,14 +69,16 @@ export class CheckInService {
     });
 
     // Attempt to start watching if we already have permissions
-    this._getGeolocationService().checkPermissions().then((granted) => {
-      if (granted) {
-        console.debug(
-          "Geolocation permissions already granted, starting watch..."
-        );
-        this._getGeolocationService().startWatching();
-      }
-    });
+    this._getGeolocationService()
+      .checkPermissions()
+      .then((granted) => {
+        if (granted) {
+          console.debug(
+            "Geolocation permissions already granted, starting watch...",
+          );
+          this._getGeolocationService().startWatching();
+        }
+      });
   }
 
   private _getGeolocationService(): GeolocationService {
@@ -120,7 +122,7 @@ export class CheckInService {
     try {
       localStorage.setItem(
         this.STORAGE_KEY_COOLDOWN,
-        JSON.stringify(cooldowns)
+        JSON.stringify(cooldowns),
       );
     } catch (e) {
       console.warn("Failed to save check-in cooldowns", e);
@@ -149,12 +151,12 @@ export class CheckInService {
 
   private async _checkProximity(
     location: google.maps.LatLngLiteral,
-    accuracy: number = 0
+    accuracy: number = 0,
   ) {
     // 0. Accuracy Filter
     if (accuracy > this.ACCURACY_THRESHOLD_METERS) {
       console.debug(
-        `Proactive Check-in: Ignoring update due to low accuracy (${accuracy}m)`
+        `Proactive Check-in: Ignoring update due to low accuracy (${accuracy}m)`,
       );
       this.currentProximitySpot.set(null);
       return;
@@ -165,7 +167,7 @@ export class CheckInService {
     if (this._lastLocation) {
       const distance = this._computeDistanceMeters(
         this._lastLocation,
-        location
+        location,
       );
       const timeDiff = (now - this._lastLocationTime) / 1000; // seconds
 
@@ -175,7 +177,7 @@ export class CheckInService {
           console.debug(
             `Proactive Check-in: Ignoring update due to high speed (${(
               speed * 3.6
-            ).toFixed(1)} km/h)`
+            ).toFixed(1)} km/h)`,
           );
           // Update last location so we don't get stuck if they slow down
           this._lastLocation = location;
@@ -207,8 +209,8 @@ export class CheckInService {
 
     console.debug(
       `[CheckIn Debug] Querying Typesense at (${location.lat.toFixed(
-        6
-      )}, ${location.lng.toFixed(6)})`
+        6,
+      )}, ${location.lng.toFixed(6)})`,
     );
 
     // Use Typesense geo-radius search (single fast query vs 9 Firestore tile queries)
@@ -218,13 +220,13 @@ export class CheckInService {
       .then((result) => {
         this._isQuerying = false;
         console.debug(
-          `[CheckIn Debug] Typesense returned ${result.hits.length} hits (found: ${result.found})`
+          `[CheckIn Debug] Typesense returned ${result.hits.length} hits (found: ${result.found})`,
         );
         if (result.hits.length > 0) {
           // Log full first hit document to see all available fields
           console.debug(
             `[CheckIn Debug] Full first hit document:`,
-            JSON.stringify(result.hits[0].document, null, 2)
+            JSON.stringify(result.hits[0].document, null, 2),
           );
           console.debug(
             `[CheckIn Debug] First few hits summary:`,
@@ -234,7 +236,7 @@ export class CheckInService {
               location: h.document?.location,
               bounds: h.document?.bounds?.length ?? 0,
               bounds_raw: h.document?.bounds_raw?.length ?? 0,
-            }))
+            })),
           );
         }
         this._findClosestSpotFromHits(location, result.hits);
@@ -247,7 +249,7 @@ export class CheckInService {
 
   private _findClosestSpot(
     currentLocation: google.maps.LatLngLiteral,
-    spots: SpotPreviewData[]
+    spots: SpotPreviewData[],
   ) {
     // Filter out spots that are in cooldown
     const cooldowns = this._cooldowns();
@@ -293,7 +295,7 @@ export class CheckInService {
       console.log(
         `Proactive Check-in: Found spot ${
           targetSpot?.name
-        } (Selected: ${!!selectedSpotInRange})`
+        } (Selected: ${!!selectedSpotInRange})`,
       );
       this.currentProximitySpot.set(targetSpot);
     }
@@ -305,7 +307,7 @@ export class CheckInService {
    */
   private _findClosestSpotFromHits(
     currentLocation: google.maps.LatLngLiteral,
-    hits: any[]
+    hits: any[],
   ) {
     // Convert hits to SpotPreviewData objects
     const spots: SpotPreviewData[] = hits
@@ -313,7 +315,7 @@ export class CheckInService {
       .filter((spot): spot is SpotPreviewData => !!spot);
 
     console.debug(
-      `[CheckIn Debug] Converted ${spots.length}/${hits.length} hits to Spot objects`
+      `[CheckIn Debug] Converted ${spots.length}/${hits.length} hits to Spot objects`,
     );
 
     if (spots.length > 0) {
@@ -322,10 +324,10 @@ export class CheckInService {
         const dist = this._getEffectiveDistance(currentLocation, spot);
         console.debug(
           `[CheckIn Debug] Spot "${spot.name}" - distance: ${dist.toFixed(
-            1
+            1,
           )}m, hasBounds: ${!!(
             spot.bounds && spot.bounds.length > 0
-          )}, threshold: ${this.PROXIMITY_THRESHOLD_METERS}m`
+          )}, threshold: ${this.PROXIMITY_THRESHOLD_METERS}m`,
         );
       });
     }
@@ -342,7 +344,7 @@ export class CheckInService {
    */
   private _getEffectiveDistance(
     currentLocation: google.maps.LatLngLiteral,
-    spot: SpotPreviewData
+    spot: SpotPreviewData,
   ): number {
     let spotLoc: google.maps.LatLngLiteral = { lat: 0, lng: 0 };
 
@@ -357,7 +359,7 @@ export class CheckInService {
 
     const centerDistance = this._computeDistanceMeters(
       currentLocation,
-      spotLoc
+      spotLoc,
     );
 
     // If spot has no bounds, just use center distance
@@ -383,7 +385,7 @@ export class CheckInService {
     // Calculate minimum distance to any edge of the polygon
     const boundsDistance = this._distanceToPolygonEdge(
       currentLocation,
-      polygon
+      polygon,
     );
 
     // Return the smaller of center distance and bounds distance
@@ -395,7 +397,7 @@ export class CheckInService {
    */
   private _isPointInPolygon(
     point: google.maps.LatLngLiteral,
-    polygon: google.maps.LatLngLiteral[]
+    polygon: google.maps.LatLngLiteral[],
   ): boolean {
     let inside = false;
     const n = polygon.length;
@@ -423,7 +425,7 @@ export class CheckInService {
    */
   private _distanceToPolygonEdge(
     point: google.maps.LatLngLiteral,
-    polygon: google.maps.LatLngLiteral[]
+    polygon: google.maps.LatLngLiteral[],
   ): number {
     let minDistance = Infinity;
     const n = polygon.length;
@@ -433,7 +435,7 @@ export class CheckInService {
       const edgeDistance = this._distanceToLineSegment(
         point,
         polygon[i],
-        polygon[j]
+        polygon[j],
       );
       if (edgeDistance < minDistance) {
         minDistance = edgeDistance;
@@ -449,7 +451,7 @@ export class CheckInService {
   private _distanceToLineSegment(
     point: google.maps.LatLngLiteral,
     lineStart: google.maps.LatLngLiteral,
-    lineEnd: google.maps.LatLngLiteral
+    lineEnd: google.maps.LatLngLiteral,
   ): number {
     // Convert to projected coordinates for distance calculation
     // Using simple approximation for short distances
@@ -471,7 +473,7 @@ export class CheckInService {
     // Calculate projection parameter
     const t = Math.max(
       0,
-      Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy))
+      Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)),
     );
 
     // Find the closest point on the segment
@@ -488,7 +490,7 @@ export class CheckInService {
    */
   private _computeDistanceMeters(
     p1: google.maps.LatLngLiteral,
-    p2: google.maps.LatLngLiteral
+    p2: google.maps.LatLngLiteral,
   ): number {
     const R = 6371e3; // metres
     const φ1 = (p1.lat * Math.PI) / 180;

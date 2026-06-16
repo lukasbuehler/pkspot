@@ -57,6 +57,9 @@ node_modules/
 # Optional npm cache directory
 .npm
 
+# Firebase testing stuff
+.firbase-emulator*
+
 # Optional eslint cache
 .eslintcache
 

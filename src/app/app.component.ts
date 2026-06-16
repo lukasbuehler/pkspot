@@ -44,7 +44,7 @@ import { AuthenticationService } from "./services/firebase/authentication.servic
 import { StorageService } from "./services/firebase/storage.service";
 import { ResponsiveService } from "./services/responsive.service";
 import { GlobalVariables } from "../scripts/global";
-import { environment } from "../environments/environment";
+import { environment } from "../environments/environment.default";
 import { isBot } from "../scripts/Helpers";
 import { ACCEPTANCE_FREE_PREFIXES } from "./app.routes";
 import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
@@ -763,7 +763,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.dialog.openDialogs
           .filter(
             (dialogRef) =>
-              dialogRef.componentInstance instanceof WelcomeDialogComponent
+              dialogRef.componentInstance instanceof WelcomeDialogComponent,
           )
           .forEach((dialogRef) => dialogRef.close(false));
         return;
@@ -1026,7 +1026,7 @@ html.pkspot-roboto-loaded body {
           if (this._consentService.hasConsent()) {
             this.userPhoto.set(
               this.authService?.user?.data?.profilePicture?.getSrc(200) ??
-              undefined,
+                undefined,
             );
           } else {
             this.userPhoto.set(undefined);
@@ -1225,7 +1225,10 @@ html.pkspot-roboto-loaded body {
   ): string {
     return Object.entries(details)
       .filter(([, value]) => value !== undefined)
-      .map(([key, value]) => `${key}=${this.stringifyNavigationPerformanceValue(value)}`)
+      .map(
+        ([key, value]) =>
+          `${key}=${this.stringifyNavigationPerformanceValue(value)}`,
+      )
       .join(" ");
   }
 
@@ -1449,20 +1452,20 @@ html.pkspot-roboto-loaded body {
         : $localize`:@@login.nav_label:Account`,
       ...(signedIn
         ? {
-          link: "/profile",
-          icon: "person",
-          image: userPhoto || "",
-          active:
-            currentNavUrl.startsWith("/profile") ||
-            currentNavUrl.startsWith("/u/"),
-        }
+            link: "/profile",
+            icon: "person",
+            image: userPhoto || "",
+            active:
+              currentNavUrl.startsWith("/profile") ||
+              currentNavUrl.startsWith("/u/"),
+          }
         : {
-          function: () => this.navigateToAccount(),
-          icon: "manage_accounts",
-          active:
-            currentNavUrl.startsWith("/account") ||
-            currentNavUrl.startsWith("/sign-in"),
-        }),
+            function: () => this.navigateToAccount(),
+            icon: "manage_accounts",
+            active:
+              currentNavUrl.startsWith("/account") ||
+              currentNavUrl.startsWith("/sign-in"),
+          }),
     });
 
     return buttons;

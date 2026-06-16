@@ -74,7 +74,7 @@ import { AnyMedia } from "../../../db/models/Media";
 import { GeolocationService } from "../../services/geolocation.service";
 import { CheckInService } from "../../services/check-in.service";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
-import { environment } from "../../../environments/environment";
+import { environment } from "../../../environments/environment.default";
 import { StartRegionService } from "../../services/start-region.service";
 import {
   resolveInitialMapViewport,
@@ -285,7 +285,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this.markers().forEach((marker) => {
         const tile = MapHelpers.getTileCoordinatesForLocationAndZoom(
           marker.location,
-          16
+          16,
         );
         const key = getClusterTileKey(16, tile.x, tile.y);
         if (map.has(key)) {
@@ -301,7 +301,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   private _spotMapDataManager = new SpotMapDataManager(
     this.locale,
-    inject(Injector)
+    inject(Injector),
   );
 
   /**
@@ -343,7 +343,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     return this.visibleHighlightedSpots();
   });
 
-  private _shouldShowCommunityCenterDot(community: CommunityMapMarker): boolean {
+  private _shouldShowCommunityCenterDot(
+    community: CommunityMapMarker,
+  ): boolean {
     return (
       this._communityCircleDiameterPx(community) <=
       this._communityDotDiameterPx(community)
@@ -376,9 +378,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {
     const latitudeRadians = (latitude * Math.PI) / 180;
-    return (
-      (156_543.033_92 * Math.cos(latitudeRadians)) / Math.pow(2, zoom)
-    );
+    return (156_543.033_92 * Math.cos(latitudeRadians)) / Math.pow(2, zoom);
   }
 
   visibleMarkers = signal<MarkerSchema[]>([]);
@@ -524,7 +524,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     private mapsAPIService: MapsApiService,
     private snackBar: MatSnackBar,
     private cd: ChangeDetectorRef,
-    private analyticsService: AnalyticsService
+    private analyticsService: AnalyticsService,
   ) {
     // Track the previous spot to detect actual changes
     let previousSpotKey: string | null = null;
@@ -685,18 +685,19 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       "SpotMap: initializing center. SelectedSpot:",
       selectedSpot,
       "CenterStart:",
-      centerStart
+      centerStart,
     );
 
     let lastLocationAndZoom: StoredMapViewport | null = null;
 
     if (!selectedSpot && !centerStart && !this.boundRestriction) {
       try {
-        lastLocationAndZoom = await this.mapsAPIService.loadLastLocationAndZoom();
+        lastLocationAndZoom =
+          await this.mapsAPIService.loadLastLocationAndZoom();
       } catch (error) {
         console.warn(
           "Failed to load last location from storage, using regional fallback:",
-          error
+          error,
         );
       }
     }
@@ -712,7 +713,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       boundsCenter,
       lastLocationAndZoom,
       fallbackPreset: this.startRegionService.resolveInitialPreset(
-        this.startZoom
+        this.startZoom,
       ),
       focusZoom: this.focusZoom(),
     });
@@ -864,7 +865,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
             zoom: zoom,
           };
           this.mapsAPIService.storeLastLocationAndZoom(
-            this._lastStoredMapViewport
+            this._lastStoredMapViewport,
           );
           this._debugMapEvent("storeLastViewport", {
             location: this._lastStoredMapViewport.location,
@@ -892,7 +893,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   private _isSameLatLng(
     left: google.maps.LatLngLiteral | undefined,
-    right: google.maps.LatLngLiteral
+    right: google.maps.LatLngLiteral,
   ): boolean {
     if (!left) return false;
 
@@ -917,7 +918,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   // Public Map helper functions
 
   openSpotByWhateverMeansNecessary(
-    spot: LocalSpot | Spot | SpotPreviewData | SpotId
+    spot: LocalSpot | Spot | SpotPreviewData | SpotId,
   ) {
     if (this.spotOpenRequested.observed) {
       this.spotOpenRequested.emit(spot);
@@ -962,7 +963,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           } catch (error) {
             console.error(
               "error focusing spot location (seems not to be GeoPoint even though it should be):",
-              error
+              error,
             );
           }
         } else if (
@@ -998,7 +999,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         .getSpotIdFromSpotSlug(spotIdOrSlug)
         .then((spotId) => {
           return firstValueFrom(
-            this._spotsService.getSpotById$(spotId, this.locale)
+            this._spotsService.getSpotById$(spotId, this.locale),
           );
         })
         .then((spot) => {
@@ -1046,7 +1047,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         } else {
           console.error("Spot with ID", spotId, "not found");
         }
-      }
+      },
     );
   }
 
@@ -1063,7 +1064,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   focusPoint(
     point: google.maps.LatLngLiteral,
-    zoom: number = this.focusZoom()
+    zoom: number = this.focusZoom(),
   ) {
     const targetZoom = Math.max(this.mapZoom(), zoom);
 
@@ -1102,7 +1103,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     // cycle through the map styles
     const currentIndex = mapStylesToCycleThrough.indexOf(
-      currentMapStyle as string
+      currentMapStyle as string,
     );
     const nextIndex = (currentIndex + 1) % mapStylesToCycleThrough.length;
     newMapStyle = mapStylesToCycleThrough[nextIndex] as
@@ -1128,7 +1129,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this.snackBar.open(
         this._ageAssuranceService.getRestrictionMessage(),
         $localize`Dismiss`,
-        { duration: 6000 }
+        { duration: 6000 },
       );
       return;
     }
@@ -1145,7 +1146,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     const nearbySpot = this._spotMapDataManager.findLoadedSpotWithinMeters(
       center_coordinates,
-      this.duplicateSpotCreateRadiusMeters
+      this.duplicateSpotCreateRadiusMeters,
     );
 
     if (nearbySpot) {
@@ -1153,7 +1154,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this.snackBar.open(
         $localize`There is already a spot at this location.`,
         $localize`Dismiss`,
-        { duration: 5000 }
+        { duration: 5000 },
       );
       return;
     }
@@ -1164,12 +1165,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           name: { [this.locale]: $localize`Unnamed Spot` }, // TODO change to user lang
           location: new GeoPoint(
             center_coordinates.lat,
-            center_coordinates.lng
+            center_coordinates.lng,
           ),
           address: null,
         },
-        this.locale as LocaleCode
-      )
+        this.locale as LocaleCode,
+      ),
     );
 
     // sets the map and the spot to edit mode
@@ -1197,7 +1198,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this.snackBar.open(
         this._ageAssuranceService.getRestrictionMessage(),
         $localize`Dismiss`,
-        { duration: 6000 }
+        { duration: 6000 },
       );
       return;
     }
@@ -1217,7 +1218,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this.snackBar.open(
         $localize`Add a name or some spot details before saving this new spot.`,
         $localize`Dismiss`,
-        { duration: 6000 }
+        { duration: 6000 },
       );
       return;
     }
@@ -1236,16 +1237,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         const saveMessage = requiresOrganizationReview
           ? $localize`Edit submitted for organization review`
           : $localize`Spot saved successfully`;
-        this.snackBar.open(
-          saveMessage,
-          $localize`Dismiss`,
-          { duration: 5000 }
-        );
+        this.snackBar.open(saveMessage, $localize`Dismiss`, { duration: 5000 });
 
         if ("id" in spot && spot.id) {
           // If it's an existing spot, update the local cache immediately to avoid stale data from potential race conditions
           this._spotMapDataManager.addOrUpdateNewSpotToLoadedSpotsAndUpdate(
-            spot as Spot
+            spot as Spot,
           );
           this.selectedSpot.set(spot as Spot);
           this.uneditedSpot = (spot as Spot).clone();
@@ -1254,12 +1251,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           // Convert the LocalSpot to a proper Spot with the new ID
           const optimisticSpot = convertLocalSpotToSpot(
             spot as LocalSpot,
-            spotId
+            spotId,
           );
 
           // Add it to the cache immediately so it stays visible
           this._spotMapDataManager.addOrUpdateNewSpotToLoadedSpotsAndUpdate(
-            optimisticSpot
+            optimisticSpot,
           );
 
           // Set as selected and current
@@ -1309,7 +1306,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       spot.access() !== SpotAccess.Other ||
       Boolean(spot.googlePlaceId()) ||
       Object.values(spot.amenities() ?? {}).some(
-        (value) => value !== null && value !== undefined
+        (value) => value !== null && value !== undefined,
       )
     );
   }
@@ -1324,7 +1321,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   private _hasDescription(spot: LocalSpot): boolean {
     return Object.values(spot.descriptions() ?? {}).some((entry) =>
-      Boolean(entry?.text.trim())
+      Boolean(entry?.text.trim()),
     );
   }
 
@@ -1355,7 +1352,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       this.selectedSpot()?.location.set(event.coords); // reflect move on map
     } else {
       console.error(
-        "User somehow could change the spot marker position without having a spot selected"
+        "User somehow could change the spot marker position without having a spot selected",
       );
     }
   }
@@ -1368,7 +1365,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (this.isEditing()) {
       // TODO show dialog
       alert(
-        "You are currently editing a spot. Please save or discard your changes before closing the spot."
+        "You are currently editing a spot. Please save or discard your changes before closing the spot.",
       );
       return;
       //this.discardEdit();
@@ -1385,7 +1382,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   addBounds() {
     if (this.selectedSpot instanceof LocalSpot) {
       console.error(
-        "The spot has no ID. It needs to be saved before bounds can be added to it."
+        "The spot has no ID. It needs to be saved before bounds can be added to it.",
       );
       return;
     }
@@ -1422,7 +1419,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private _debugMapEvent(event: string, payload: Record<string, unknown>): void {
+  private _debugMapEvent(
+    event: string,
+    payload: Record<string, unknown>,
+  ): void {
     if (!this.isDebug()) return;
 
     console.debug("[MapDebug][SpotMap]", event, {

@@ -13,7 +13,7 @@ import {
   isAgeParticipationAllowed,
 } from "./age-policy";
 import { AuthenticationService } from "./firebase/authentication.service";
-import { environment } from "../../environments/environment";
+import { environment } from "../../environments/environment.default";
 
 type AgeAssurancePlugin = {
   getAgeSignal(): Promise<PlatformAgeSignal>;
@@ -92,7 +92,7 @@ export class AgeAssuranceService {
   }
 
   private _sanitizeSignalForFunction(
-    signal: PlatformAgeSignal
+    signal: PlatformAgeSignal,
   ): Record<string, unknown> {
     return {
       platform: signal.platform,
@@ -114,7 +114,7 @@ export class AgeAssuranceService {
     }
 
     const raw = localStorage.getItem(
-      AgeAssuranceService.mockPolicyStateStorageKey
+      AgeAssuranceService.mockPolicyStateStorageKey,
     );
     if (!raw) {
       return null;

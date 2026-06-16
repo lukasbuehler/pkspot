@@ -6,7 +6,7 @@ import {
   inject,
 } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { environment } from "../../environments/environment";
+import { environment } from "../../environments/environment.default";
 import {
   Observable,
   BehaviorSubject,
@@ -46,7 +46,7 @@ export class MapsApiService extends ConsentAwareService {
   public isApiLoaded: Signal<boolean> = this._isApiLoaded;
 
   private _isLoading$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
-    false
+    false,
   );
   public isLoading$: Observable<boolean> = this._isLoading$;
 
@@ -141,7 +141,7 @@ export class MapsApiService extends ConsentAwareService {
 
     localStorage.setItem(
       "lastLocationAndZoom",
-      JSON.stringify(lastLocationAndZoom)
+      JSON.stringify(lastLocationAndZoom),
     );
   }
 
@@ -161,7 +161,7 @@ export class MapsApiService extends ConsentAwareService {
   }
 
   loadMapStyle(
-    defaultStyle: "roadmap" | "satellite" | "hybrid" | "terrain"
+    defaultStyle: "roadmap" | "satellite" | "hybrid" | "terrain",
   ): Promise<"roadmap" | "satellite" | "hybrid" | "terrain"> {
     if (typeof localStorage === "undefined")
       return Promise.resolve(defaultStyle);
@@ -202,7 +202,7 @@ export class MapsApiService extends ConsentAwareService {
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
       "open_in_maps",
-      "referral"
+      "referral",
     );
 
     this._analytics.trackEvent("open_maps", {
@@ -219,7 +219,7 @@ export class MapsApiService extends ConsentAwareService {
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
       "open_in_maps",
-      "referral"
+      "referral",
     );
 
     this._analytics.trackEvent("open_maps", {
@@ -247,7 +247,7 @@ export class MapsApiService extends ConsentAwareService {
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
       "directions",
-      "referral"
+      "referral",
     );
 
     this._analytics.trackEvent("get_directions", {
@@ -265,7 +265,7 @@ export class MapsApiService extends ConsentAwareService {
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
       "directions",
-      "referral"
+      "referral",
     );
 
     this._analytics.trackEvent("get_directions", {
@@ -281,7 +281,7 @@ export class MapsApiService extends ConsentAwareService {
     input: string,
     types?: string[],
     biasRect?: google.maps.LatLngBoundsLiteral,
-    origin?: google.maps.LatLngLiteral
+    origin?: google.maps.LatLngLiteral,
   ): Promise<google.maps.places.AutocompletePrediction[]> {
     if (!input || input.length === 0) return Promise.resolve([]);
 
@@ -407,7 +407,7 @@ export class MapsApiService extends ConsentAwareService {
   async getGooglePlaceByLocation(
     location: google.maps.LatLngLiteral,
     type: string = "point_of_interest",
-    radius: number = 200
+    radius: number = 200,
   ): Promise<google.maps.places.Place | null> {
     console.log("Searching for Google Place at location:", location);
     return Promise.reject(new Error("Not implemented"));
@@ -432,7 +432,7 @@ export class MapsApiService extends ConsentAwareService {
   getPhotoURLOfGooglePlace(
     place: google.maps.places.Place,
     maxWidth: number = 200,
-    maxHeight: number = 200
+    maxHeight: number = 200,
   ): string | null {
     // Get photos from the Place object using the new API structure
     const photos = place.photos;
@@ -445,7 +445,7 @@ export class MapsApiService extends ConsentAwareService {
     location: google.maps.LatLngLiteral,
     imageWidth: number = 400,
     imageHeight: number = 400,
-    spotId?: string
+    spotId?: string,
   ): string | null {
     if (!this.isStreetViewPreviewEnabled()) {
       return null;
@@ -506,7 +506,7 @@ export class MapsApiService extends ConsentAwareService {
     this.streetViewCache.set(spotId, null);
     this._setStreetViewMetadataAvailability(
       this._getStreetViewMetadataCacheKey(spotId),
-      false
+      false,
     );
   }
 
@@ -529,7 +529,7 @@ export class MapsApiService extends ConsentAwareService {
   }
 
   private _getStreetViewMetadataCacheKey(
-    spotIdOrLocation: string | google.maps.LatLngLiteral
+    spotIdOrLocation: string | google.maps.LatLngLiteral,
   ): string {
     if (typeof spotIdOrLocation === "string") {
       return `spot:${spotIdOrLocation}`;
@@ -541,7 +541,7 @@ export class MapsApiService extends ConsentAwareService {
 
   getCachedStreetViewPanoramaAvailability(
     location: google.maps.LatLngLiteral,
-    spotId?: string
+    spotId?: string,
   ): boolean | undefined {
     const cacheKey = spotId
       ? this._getStreetViewMetadataCacheKey(spotId)
@@ -549,12 +549,12 @@ export class MapsApiService extends ConsentAwareService {
     return this.streetViewMetadataCache.get(cacheKey);
   }
 
-  private _makeStreetViewMetadataUrl(location: google.maps.LatLngLiteral): string {
+  private _makeStreetViewMetadataUrl(
+    location: google.maps.LatLngLiteral,
+  ): string {
     return `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
       location.lat
-    },${
-      location.lng
-    }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
+    },${location.lng}&fov=${120}&return_error_code=${true}&source=outdoor&key=${
       environment.keys.firebaseConfig.apiKey
     }`;
   }
@@ -562,20 +562,18 @@ export class MapsApiService extends ConsentAwareService {
   private _makeStreetViewImageUrl(
     location: google.maps.LatLngLiteral,
     imageWidth: number,
-    imageHeight: number
+    imageHeight: number,
   ): string {
     return `https://maps.googleapis.com/maps/api/streetview?size=${imageWidth}x${imageHeight}&location=${
       location.lat
-    },${
-      location.lng
-    }&fov=${120}&return_error_code=${true}&source=outdoor&key=${
+    },${location.lng}&fov=${120}&return_error_code=${true}&source=outdoor&key=${
       environment.keys.firebaseConfig.apiKey
     }`;
   }
 
   async hasStreetViewPanoramaForLocation(
     location: google.maps.LatLngLiteral,
-    spotId?: string
+    spotId?: string,
   ): Promise<boolean> {
     if (!this._isAnyStreetViewEnabled()) {
       return false;
@@ -606,8 +604,8 @@ export class MapsApiService extends ConsentAwareService {
         data.status === "OK"
           ? "OK"
           : data.status === "ZERO_RESULTS"
-          ? "ZERO_RESULTS"
-          : "UNKNOWN";
+            ? "ZERO_RESULTS"
+            : "UNKNOWN";
 
       if (status === "OK") {
         this._setStreetViewMetadataAvailability(cacheKey, true);
@@ -637,12 +635,14 @@ export class MapsApiService extends ConsentAwareService {
   }
 
   private _isAnyStreetViewEnabled(): boolean {
-    return this.isStreetViewPreviewEnabled() || this.isStreetViewDetailEnabled();
+    return (
+      this.isStreetViewPreviewEnabled() || this.isStreetViewDetailEnabled()
+    );
   }
 
   private _setStreetViewMetadataAvailability(
     cacheKey: string,
-    value: boolean
+    value: boolean,
   ): void {
     const currentValue = this.streetViewMetadataCache.get(cacheKey);
     if (currentValue === value && this.streetViewMetadataCache.has(cacheKey)) {
@@ -655,7 +655,7 @@ export class MapsApiService extends ConsentAwareService {
   // Instance method instead of static to access consent checking
   async loadStreetviewForLocation(
     location: google.maps.LatLngLiteral,
-    spotId?: string
+    spotId?: string,
   ): Promise<ExternalImage | undefined> {
     if (!this.isStreetViewDetailEnabled()) {
       return undefined;
@@ -666,7 +666,7 @@ export class MapsApiService extends ConsentAwareService {
       if (this.streetViewCache.get(spotId) === null) {
         const cachedAvailability = this.getCachedStreetViewPanoramaAvailability(
           location,
-          spotId
+          spotId,
         );
         if (cachedAvailability !== true) {
           return undefined;
@@ -682,7 +682,7 @@ export class MapsApiService extends ConsentAwareService {
 
     const hasPanorama = await this.hasStreetViewPanoramaForLocation(
       location,
-      spotId
+      spotId,
     );
 
     if (!hasPanorama) {
@@ -691,7 +691,7 @@ export class MapsApiService extends ConsentAwareService {
 
     return new ExternalImage(
       this._makeStreetViewImageUrl(location, 400, 400),
-      "streetview"
+      "streetview",
     );
   }
 
@@ -718,7 +718,7 @@ export class MapsApiService extends ConsentAwareService {
     ];
 
     const isDetailedType = types.some((t) =>
-      detailedTypes.some((dt) => t.includes(dt))
+      detailedTypes.some((dt) => t.includes(dt)),
     );
 
     // Broader place types
@@ -728,7 +728,7 @@ export class MapsApiService extends ConsentAwareService {
       "postal_code",
     ];
     const isBroaderType = types.some((t) =>
-      broaderTypes.some((bt) => t.includes(bt))
+      broaderTypes.some((bt) => t.includes(bt)),
     );
 
     if (isDetailedType) return 18; // High zoom for specific places
@@ -743,7 +743,7 @@ export class MapsApiService extends ConsentAwareService {
   async getNearbyPlacesByDistance(
     location: google.maps.LatLngLiteral,
     type: string = "restaurant",
-    maxResults: number = 5
+    maxResults: number = 5,
   ): Promise<google.maps.places.Place[]> {
     console.log("Fetching nearby places by distance:", location, type);
 

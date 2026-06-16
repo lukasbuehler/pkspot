@@ -9,7 +9,7 @@ import {
   provideAppInitializer,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
-import { environment } from "../environments/environment";
+import { environment } from "../environments/environment.default";
 import {
   provideFunctions,
   getFunctions as ngfGetFunctions,
@@ -97,7 +97,7 @@ export const appConfig: ApplicationConfig = {
 
       console.log(
         "[Firestore] Initializing with settings:",
-        JSON.stringify(firestoreSettings)
+        JSON.stringify(firestoreSettings),
       );
 
       // Try to get existing Firestore instance first, initialize only if needed
@@ -112,7 +112,7 @@ export const appConfig: ApplicationConfig = {
           e?.message?.includes("already been called")
         ) {
           console.warn(
-            "[Firestore] Already initialized, using existing instance"
+            "[Firestore] Already initialized, using existing instance",
           );
           firestoreInstance = ngfGetFirestore(app);
         } else {

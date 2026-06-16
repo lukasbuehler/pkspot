@@ -1,5 +1,5 @@
 import { FirebaseOptions } from "@angular/fire/app";
-import { environment } from "../../../environments/environment";
+import { environment } from "../../../environments/environment.default";
 
 export const FIREBASE_EMULATOR_STORAGE_KEY = "pkspot:e2e:firebaseEmulators";
 
@@ -49,9 +49,7 @@ const defaultSettings: FirebaseEmulatorSettings = {
   },
 };
 
-export function getFirebaseEmulatorSettings():
-  | FirebaseEmulatorSettings
-  | null {
+export function getFirebaseEmulatorSettings(): FirebaseEmulatorSettings | null {
   if (environment.production || !isBrowserRuntime()) {
     return null;
   }
@@ -89,7 +87,9 @@ function isBrowserRuntime(): boolean {
 
 function readStorageValue(): string | null {
   try {
-    return globalThis.window.localStorage.getItem(FIREBASE_EMULATOR_STORAGE_KEY);
+    return globalThis.window.localStorage.getItem(
+      FIREBASE_EMULATOR_STORAGE_KEY,
+    );
   } catch {
     return null;
   }

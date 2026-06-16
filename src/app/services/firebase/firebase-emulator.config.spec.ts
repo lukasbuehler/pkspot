@@ -4,7 +4,7 @@ import {
   getFirebaseConfig,
   getFirebaseEmulatorSettings,
 } from "./firebase-emulator.config";
-import { environment } from "../../../environments/environment";
+import { environment } from "../../../environments/environment.default";
 
 describe("firebase emulator config", () => {
   afterEach(() => {

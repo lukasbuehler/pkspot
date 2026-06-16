@@ -8,7 +8,7 @@ import {
   LocalSpotChallenge,
 } from "../../db/models/SpotChallenge";
 import { LocaleCode } from "../../db/models/Interfaces";
-import { environment } from "../../environments/environment";
+import { environment } from "../../environments/environment.default";
 import { getDisplayLocalityName } from "../../scripts/AddressHelpers";
 import { normalizeLegacySpotMapPath } from "../../scripts/SpotRouteHelpers";
 
@@ -47,7 +47,10 @@ export class MetaTagService {
 
   isServer: boolean;
 
-  constructor(private meta: Meta, private titleService: Title) {
+  constructor(
+    private meta: Meta,
+    private titleService: Title,
+  ) {
     this.isServer = isPlatformServer(this.platformId);
   }
 
@@ -55,7 +58,7 @@ export class MetaTagService {
     title: string,
     image_src: string,
     description: string,
-    canonicalUrl?: string
+    canonicalUrl?: string,
   ) {
     const normalizedImage =
       this.normalizeAbsoluteUrl(image_src) || this.defaultImageUrl;
@@ -107,7 +110,7 @@ export class MetaTagService {
       content: description,
     });
     this.setRobotsContent(
-      "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
+      "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
     );
 
     // Canonical URL
@@ -127,7 +130,7 @@ export class MetaTagService {
   public syncCanonicalAndHreflangForPath(path: string): void {
     const cleanPath =
       normalizeLegacySpotMapPath(
-        (path || "/").split("?")[0].split("#")[0] || "/"
+        (path || "/").split("?")[0].split("#")[0] || "/",
       ) || "/";
     const canonicalUrl = this.buildCanonicalUrl(cleanPath);
     this.meta.updateTag({
@@ -147,7 +150,7 @@ export class MetaTagService {
 
     // Remove existing canonical tag if present
     const existingCanonical = this.document.querySelector(
-      'link[rel="canonical"]'
+      'link[rel="canonical"]',
     );
     if (existingCanonical) {
       existingCanonical.remove();
@@ -225,7 +228,9 @@ export class MetaTagService {
 
     const detailSegments: string[] = [];
     if (spot.rating) {
-      detailSegments.push(`Rated ${Math.round(spot.rating * 10) / 10} out of 5`);
+      detailSegments.push(
+        `Rated ${Math.round(spot.rating * 10) / 10} out of 5`,
+      );
     }
     if (spot.description()) {
       detailSegments.push(spot.description());
@@ -249,14 +254,13 @@ export class MetaTagService {
    */
   public setChallengeMetaTags(
     challenge: SpotChallenge | LocalSpotChallenge,
-    canonicalPath?: string
+    canonicalPath?: string,
   ): void {
     const spotName = challenge.spot.name();
     const challengeName = challenge.name();
     const title = $localize`${challengeName} - ${spotName}`;
 
-    const image =
-      this.getSpotSeoImage(challenge.spot) ?? this.defaultImageUrl;
+    const image = this.getSpotSeoImage(challenge.spot) ?? this.defaultImageUrl;
 
     let description = $localize`Challenge at ${spotName}`;
 
@@ -290,7 +294,7 @@ export class MetaTagService {
    */
   public setEventMetaTags(
     event: EventMetaTagData,
-    canonicalPath?: string
+    canonicalPath?: string,
   ): void {
     const title = `${event.name || "Event"} | PK Spot`;
     const image = event.image || this.defaultImageUrl;
@@ -309,8 +313,7 @@ export class MetaTagService {
   public setUserMetaTags(user: User, canonicalPath?: string): void {
     const title = `${user.displayName || "User"} | PK Spot`;
     const image =
-      user.profilePicture?.getPreviewImageSrc() ||
-      this.defaultImageUrl;
+      user.profilePicture?.getPreviewImageSrc() || this.defaultImageUrl;
     const displayName = user.displayName || "this user";
     const possessive = displayName.endsWith("s")
       ? `${displayName}'`
@@ -348,7 +351,7 @@ export class MetaTagService {
     pageTitle: string,
     pageDescription: string,
     pageImage?: string,
-    canonicalPath?: string
+    canonicalPath?: string,
   ): void {
     const title = `${pageTitle} | PK Spot`;
     const image = pageImage || this.defaultImageUrl;
@@ -364,7 +367,7 @@ export class MetaTagService {
     countryName: string,
     topRatedCount: number,
     dryCount: number,
-    canonicalPath?: string
+    canonicalPath?: string,
   ): void {
     const title = `${countryName} Parkour Spots | PK Spot`;
     const description = `Discover ${topRatedCount} top rated parkour spots and ${dryCount} dry training options across ${countryName} on PK Spot.`;
@@ -379,7 +382,7 @@ export class MetaTagService {
     title: string,
     description: string,
     imageUrl?: string,
-    canonicalPath?: string
+    canonicalPath?: string,
   ): void {
     const canonical = canonicalPath
       ? this.buildCanonicalUrl(canonicalPath)
@@ -389,7 +392,7 @@ export class MetaTagService {
       title,
       imageUrl || this.defaultImageUrl,
       description,
-      canonical
+      canonical,
     );
   }
 
@@ -398,7 +401,7 @@ export class MetaTagService {
     localityName: string,
     topRatedCount: number,
     dryCount: number,
-    canonicalPath?: string
+    canonicalPath?: string,
   ): void {
     const title = `${localityName}, ${countryName} Parkour Spots | PK Spot`;
     const description = `Discover ${topRatedCount} top rated parkour spots and ${dryCount} dry training options in ${localityName}, ${countryName} on PK Spot.`;

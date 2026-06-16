@@ -35,7 +35,7 @@ import {
   MapRectangle,
 } from "@angular/google-maps";
 import { Subscription } from "rxjs";
-import { environment } from "../../../environments/environment";
+import { environment } from "../../../environments/environment.default";
 import { MapsApiService } from "../../services/maps-api.service";
 import { ConsentService } from "../../services/consent.service";
 import { GeoPoint } from "firebase/firestore";
@@ -68,9 +68,7 @@ import {
   MapPolygonOverlay,
   MapPointMarker,
 } from "../maps/map-overlays";
-import {
-  filterEventSpotCollisions,
-} from "./map-marker-collision-filter";
+import { filterEventSpotCollisions } from "./map-marker-collision-filter";
 import type {
   MapMarkerCollisionCandidate,
   MapMarkerCollisionLayout,
@@ -79,7 +77,7 @@ import type {
 function enumerateTileRangeX(
   start: number,
   end: number,
-  zoom: number
+  zoom: number,
 ): number[] {
   const tileCount = 1 << zoom;
   const normalize = (value: number) => {
@@ -269,8 +267,7 @@ export class GoogleMap2dComponent
       const currentZoom = this.googleMap.googleMap.getZoom();
       if (
         currentZoom === undefined ||
-        Math.abs(currentZoom - newZoom) >
-          GoogleMap2dComponent.ZOOM_SYNC_EPSILON
+        Math.abs(currentZoom - newZoom) > GoogleMap2dComponent.ZOOM_SYNC_EPSILON
       ) {
         this.googleMap.googleMap.setZoom(newZoom);
       }
@@ -471,7 +468,8 @@ export class GoogleMap2dComponent
     if (
       this._visibleRegularSpotMarkersCache &&
       this._visibleRegularSpotMarkersCache.spots === this.spots &&
-      this._visibleRegularSpotMarkersCache.highlightedSpots === highlightedSpots &&
+      this._visibleRegularSpotMarkersCache.highlightedSpots ===
+        highlightedSpots &&
       this._visibleRegularSpotMarkersCache.selectedSpot === selectedSpot &&
       this._visibleRegularSpotMarkersCache.isEditing === isEditing &&
       this._visibleRegularSpotMarkersCache.shouldRenderRegularSpotMarkers ===
@@ -552,15 +550,17 @@ export class GoogleMap2dComponent
           this._isEventCollisionMarker(marker) &&
           this._isPointMarkerVisibleAtZoom(marker, zoom),
       )
-      .map((marker): MapMarkerCollisionCandidate => ({
-        id: marker.id,
-        kind: "event",
-        location: marker.location,
-        priority: getMapMarkerPriority(marker),
-        widthPx: EVENT_MARKER_COLLISION_SIZE_PX,
-        heightPx: EVENT_MARKER_COLLISION_SIZE_PX,
-        anchor: "center",
-      }));
+      .map(
+        (marker): MapMarkerCollisionCandidate => ({
+          id: marker.id,
+          kind: "event",
+          location: marker.location,
+          priority: getMapMarkerPriority(marker),
+          widthPx: EVENT_MARKER_COLLISION_SIZE_PX,
+          heightPx: EVENT_MARKER_COLLISION_SIZE_PX,
+          anchor: "center",
+        }),
+      );
   }
 
   private _getCommunityCollisionCandidates(
@@ -572,15 +572,17 @@ export class GoogleMap2dComponent
           this._isCommunityCollisionMarker(marker) &&
           this._isPointMarkerVisibleAtZoom(marker, zoom),
       )
-      .map((marker): MapMarkerCollisionCandidate => ({
-        id: marker.id,
-        kind: "community",
-        location: marker.location,
-        priority: getMapMarkerPriority(marker),
-        widthPx: COMMUNITY_MARKER_COLLISION_SIZE_PX,
-        heightPx: COMMUNITY_MARKER_COLLISION_SIZE_PX,
-        anchor: "center",
-      }));
+      .map(
+        (marker): MapMarkerCollisionCandidate => ({
+          id: marker.id,
+          kind: "community",
+          location: marker.location,
+          priority: getMapMarkerPriority(marker),
+          widthPx: COMMUNITY_MARKER_COLLISION_SIZE_PX,
+          heightPx: COMMUNITY_MARKER_COLLISION_SIZE_PX,
+          anchor: "center",
+        }),
+      );
   }
 
   private _getSpotPreviewCollisionCandidates(
@@ -616,20 +618,22 @@ export class GoogleMap2dComponent
   private _getSpotModelCollisionCandidates(
     spots: readonly (LocalSpot | Spot)[],
   ): MapMarkerCollisionCandidate[] {
-    return spots.map((spot): MapMarkerCollisionCandidate => ({
-      id: this._getSpotModelCollisionId(spot),
-      kind: "spot",
-      location: spot.location(),
-      priority: getSpotMarkerPriority({
-        rating: spot.rating,
-        access: spot.access(),
-        isIconic: spot.isIconic,
-        isReported: spot.isReported,
+    return spots.map(
+      (spot): MapMarkerCollisionCandidate => ({
+        id: this._getSpotModelCollisionId(spot),
+        kind: "spot",
+        location: spot.location(),
+        priority: getSpotMarkerPriority({
+          rating: spot.rating,
+          access: spot.access(),
+          isIconic: spot.isIconic,
+          isReported: spot.isReported,
+        }),
+        widthPx: SPOT_MARKER_COLLISION_WIDTH_PX,
+        heightPx: SPOT_MARKER_COLLISION_HEIGHT_PX,
+        anchor: "bottom-center",
       }),
-      widthPx: SPOT_MARKER_COLLISION_WIDTH_PX,
-      heightPx: SPOT_MARKER_COLLISION_HEIGHT_PX,
-      anchor: "bottom-center",
-    }));
+    );
   }
 
   private _getMarkerCollisionZoom(): number {
@@ -739,15 +743,9 @@ export class GoogleMap2dComponent
    * they become large on screen. This avoids an abrupt visual hand-off when
    * a user opens a community and also keeps close-up circles out of the way.
    */
-  circleOverlayOptions(
-    circle: MapCircleOverlay,
-  ): google.maps.CircleOptions {
+  circleOverlayOptions(circle: MapCircleOverlay): google.maps.CircleOptions {
     const diameterPx = this._circleDiameterPx(circle);
-    const fade = this._smoothstep(
-      10,
-      320,
-      diameterPx,
-    );
+    const fade = this._smoothstep(10, 320, diameterPx);
     const primary = this._getCssColorAsHex("--mat-sys-primary", "#0036ba");
     const primaryBorder = this._getCssColorAsHex(
       "--mat-sys-on-primary-container",
@@ -785,9 +783,7 @@ export class GoogleMap2dComponent
 
   private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {
     const latitudeRadians = (latitude * Math.PI) / 180;
-    return (
-      (156_543.033_92 * Math.cos(latitudeRadians)) / Math.pow(2, zoom)
-    );
+    return (156_543.033_92 * Math.cos(latitudeRadians)) / Math.pow(2, zoom);
   }
 
   private _lerp(start: number, end: number, progress: number): number {
@@ -795,7 +791,10 @@ export class GoogleMap2dComponent
   }
 
   private _smoothstep(start: number, end: number, value: number): number {
-    const normalized = Math.max(0, Math.min(1, (value - start) / (end - start)));
+    const normalized = Math.max(
+      0,
+      Math.min(1, (value - start) / (end - start)),
+    );
     return normalized * normalized * (3 - 2 * normalized);
   }
 
@@ -869,11 +868,11 @@ export class GoogleMap2dComponent
 
     const neTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
       boundsToRender.getNorthEast().toJSON(),
-      intZoom
+      intZoom,
     );
     const swTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
       boundsToRender.getSouthWest().toJSON(),
-      intZoom
+      intZoom,
     );
 
     // Check if we cover effectively the whole world horizontally
@@ -895,8 +894,8 @@ export class GoogleMap2dComponent
     const lngSpan = isFullWorldWrap
       ? 360
       : lngDiff < 0
-      ? lngDiff + 360
-      : lngDiff;
+        ? lngDiff + 360
+        : lngDiff;
 
     // Maximum valid tile index for Y at this zoom level
     const maxTileIndex = (1 << intZoom) - 1;
@@ -1071,7 +1070,7 @@ export class GoogleMap2dComponent
     private _consentService: ConsentService,
     private theme: ThemeService,
     private geolocationService: GeolocationService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {
     super();
 
@@ -1103,7 +1102,7 @@ export class GoogleMap2dComponent
           $localize`:Snackbar action for disabled geolocation info|Action button on snackbar shown when user clicks geolocation button but permissions are denied@@map.geolocation_denied.snackbar_action:OK`,
           {
             duration: 5000,
-          }
+          },
         );
       }
     });
@@ -1148,7 +1147,7 @@ export class GoogleMap2dComponent
           "Visible tiles are more than " + tooManyTiles + ", not rendering.",
           "Would have rendered: ",
           visibleTiles.tiles.length,
-          "tiles"
+          "tiles",
         );
         return;
       }
@@ -1283,12 +1282,15 @@ export class GoogleMap2dComponent
     }
 
     if (colorScheme) {
-      (nextOptions as google.maps.MapOptions & { colorScheme: string }).colorScheme =
-        colorScheme;
+      (
+        nextOptions as google.maps.MapOptions & { colorScheme: string }
+      ).colorScheme = colorScheme;
     } else {
-      delete (nextOptions as google.maps.MapOptions & {
-        colorScheme?: unknown;
-      }).colorScheme;
+      delete (
+        nextOptions as google.maps.MapOptions & {
+          colorScheme?: unknown;
+        }
+      ).colorScheme;
     }
 
     // If map is already initialized, use setOptions.
@@ -1428,13 +1430,13 @@ export class GoogleMap2dComponent
     if (!capabilities.isDataDrivenStylingAvailable) {
       console.warn(
         "Google Maps data-driven styling is not available for this map yet.",
-        capabilities
+        capabilities,
       );
       return;
     }
 
     const featureType = await this._getFeatureBoundaryFeatureType(
-      boundary.featureType
+      boundary.featureType,
     );
     if (requestVersion !== this._featureBoundaryRequestVersion) {
       return;
@@ -1447,7 +1449,7 @@ export class GoogleMap2dComponent
     const layer = map.getFeatureLayer(featureType);
     if (!layer.isAvailable) {
       console.warn(
-        "Google Maps COUNTRY boundary layer is not available for this map ID. Enable data-driven styling for COUNTRY boundaries in the Google Cloud map style."
+        "Google Maps COUNTRY boundary layer is not available for this map ID. Enable data-driven styling for COUNTRY boundaries in the Google Cloud map style.",
       );
       return;
     }
@@ -1475,7 +1477,7 @@ export class GoogleMap2dComponent
   }
 
   private async _getFeatureBoundaryFeatureType(
-    featureType: "COUNTRY"
+    featureType: "COUNTRY",
   ): Promise<google.maps.FeatureType | null> {
     const mapsApi = this._getGoogleMapsApi() as
       | ((typeof google)["maps"] & {
@@ -1523,7 +1525,7 @@ export class GoogleMap2dComponent
 
     try {
       const { Place } = (await google.maps.importLibrary(
-        "places"
+        "places",
       )) as google.maps.PlacesLibrary;
       const { places } = await Place.searchByText({
         textQuery: query,
@@ -1571,7 +1573,7 @@ export class GoogleMap2dComponent
     }
 
     const rgbMatch = value.match(
-      /^rgba?\(\s*(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})/iu
+      /^rgba?\(\s*(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})/iu,
     );
     if (!rgbMatch) {
       return fallback;
@@ -1591,7 +1593,7 @@ export class GoogleMap2dComponent
     this._headingChangedSubscription = this.googleMap.headingChanged.subscribe(
       () => {
         this.headingIsNotNorth.set(this.googleMap!.getHeading() !== 0);
-      }
+      },
     );
   }
 
@@ -1600,14 +1602,16 @@ export class GoogleMap2dComponent
       return;
     }
 
-    this._mapCapabilitiesChangedListener =
-      this.googleMap.googleMap.addListener("mapcapabilities_changed", () => {
+    this._mapCapabilitiesChangedListener = this.googleMap.googleMap.addListener(
+      "mapcapabilities_changed",
+      () => {
         void this._updateFeatureBoundaryStyle();
-      });
+      },
+    );
   }
 
   private _geoPointToLatLng(
-    geoPoint: GeoPoint
+    geoPoint: GeoPoint,
   ): google.maps.LatLngLiteral | null {
     return geoPoint
       ? { lat: geoPoint.latitude, lng: geoPoint.longitude }
@@ -1806,7 +1810,7 @@ export class GoogleMap2dComponent
       // Update FPS every 500ms
       if (now - this._lastFpsUpdate >= 500) {
         const fps = Math.round(
-          (this._frameCount * 1000) / (now - this._lastFpsUpdate)
+          (this._frameCount * 1000) / (now - this._lastFpsUpdate),
         );
         this.fps.set(fps);
         this._frameCount = 0;
@@ -2047,7 +2051,7 @@ export class GoogleMap2dComponent
       }
 
       console.log(
-        "⚠️ Could not get live polygon paths, falling back to existing paths"
+        "⚠️ Could not get live polygon paths, falling back to existing paths",
       );
     }
 
@@ -2088,7 +2092,7 @@ export class GoogleMap2dComponent
    * Converts a Google Maps Polygon to an array of coordinate paths
    */
   private getPathFromPolygon(
-    polygon: google.maps.Polygon
+    polygon: google.maps.Polygon,
   ): google.maps.LatLngLiteral[][] {
     const paths: google.maps.LatLngLiteral[][] = [];
 
@@ -2137,7 +2141,7 @@ export class GoogleMap2dComponent
 
   focusOnLocation(
     location: google.maps.LatLngLiteral | google.maps.LatLng,
-    zoom: number = this.focusZoom()
+    zoom: number = this.focusZoom(),
   ) {
     if (!this.googleMap) return;
 
@@ -2237,7 +2241,7 @@ export class GoogleMap2dComponent
 
       // Find the element with "Google Maps" in the title
       const logoElements = mapContainer.querySelectorAll(
-        '[title*="Google Maps"]'
+        '[title*="Google Maps"]',
       );
 
       if (logoElements.length > 0) {
@@ -2262,7 +2266,7 @@ export class GoogleMap2dComponent
    */
   async waitForPolygonAndGetPaths(
     maxRetries: number = 10,
-    retryDelay: number = 100
+    retryDelay: number = 100,
   ): Promise<google.maps.LatLngLiteral[][] | null> {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       // Force change detection to ensure ViewChild is updated
@@ -2495,7 +2499,10 @@ export class GoogleMap2dComponent
     return `${index}_${location.lat}_${location.lng}`;
   }
 
-  private _debugMapEvent(event: string, payload: Record<string, unknown>): void {
+  private _debugMapEvent(
+    event: string,
+    payload: Record<string, unknown>,
+  ): void {
     if (!this.isDebug()) return;
 
     console.debug("[MapDebug][GoogleMap2d]", event, {

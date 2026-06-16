@@ -3,7 +3,7 @@ import { isPlatformBrowser } from "@angular/common";
 import { Router, NavigationEnd } from "@angular/router";
 import type { CaptureResult, Properties } from "posthog-js";
 import { ConsentService } from "./consent.service";
-import { environment } from "../../environments/environment";
+import { environment } from "../../environments/environment.default";
 import { Capacitor } from "@capacitor/core";
 import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { filter } from "rxjs/operators";
@@ -79,15 +79,16 @@ export class AnalyticsService {
     // Check for localhost/dev environment safeguard
     if (this.isLocalhost() && !environment.production) {
       console.log(
-        "[AnalyticsDebug] Skipping initialization for localhost/dev environment (Safeguard Active)"
+        "[AnalyticsDebug] Skipping initialization for localhost/dev environment (Safeguard Active)",
       );
       return;
     }
 
     const { apiKey, host } = environment.keys.posthog;
     console.log(
-      `[AnalyticsDebug] Initializing with Host: ${host}, Key: ${apiKey ? apiKey.substring(0, 4) + "***" : "MISSING"
-      }`
+      `[AnalyticsDebug] Initializing with Host: ${host}, Key: ${
+        apiKey ? apiKey.substring(0, 4) + "***" : "MISSING"
+      }`,
     );
 
     if (!apiKey || !host) {
@@ -117,8 +118,9 @@ export class AnalyticsService {
     if (this.isNative()) {
       // Prepend base URL for consistent reporting in PostHog
       const baseUrl = environment.baseUrl || "https://pkspot.app";
-      const fullUrl = `${baseUrl}${screenName.startsWith("/") ? "" : "/"
-        }${screenName}`;
+      const fullUrl = `${baseUrl}${
+        screenName.startsWith("/") ? "" : "/"
+      }${screenName}`;
       const normalizedProperties = {
         ...(properties ?? {}),
         ...this.getPlatformProperties(),
@@ -208,7 +210,7 @@ export class AnalyticsService {
     const persistedId = localStorage.getItem(this.distinctIdStorageKey);
     if (persistedId) {
       console.log(
-        `[AnalyticsDebug] Bootstrapping with persisted ID: ${persistedId}`
+        `[AnalyticsDebug] Bootstrapping with persisted ID: ${persistedId}`,
       );
       bootstrapConfig = {
         bootstrap: {
@@ -280,9 +282,7 @@ export class AnalyticsService {
   isAvailable(): boolean {
     if (!this._initialized) return false;
     if (this.isNative()) return true;
-    return (
-      isPlatformBrowser(this._platformId) && this._posthog !== null
-    );
+    return isPlatformBrowser(this._platformId) && this._posthog !== null;
   }
 
   /**
@@ -318,7 +318,7 @@ export class AnalyticsService {
 
     const normalizedProperties = this.normalizeEventProperties(
       eventName,
-      properties
+      properties,
     );
 
     if (this.isNative()) {
@@ -394,7 +394,7 @@ export class AnalyticsService {
       } catch (e) {
         console.error(
           "AnalyticsService: failed to register authenticated flag",
-          e
+          e,
         );
       }
     }
@@ -432,7 +432,7 @@ export class AnalyticsService {
       } catch (e) {
         console.error(
           "AnalyticsService: failed to clear authenticated flag",
-          e
+          e,
         );
       }
     }
@@ -445,7 +445,7 @@ export class AnalyticsService {
    */
   setConsentProperties(
     consentGranted: boolean,
-    acceptedVersion?: string
+    acceptedVersion?: string,
   ): void {
     if (!this.isAvailable()) return;
 
@@ -638,7 +638,7 @@ export class AnalyticsService {
 
   private normalizeEventProperties(
     eventName: string,
-    properties?: Record<string, unknown>
+    properties?: Record<string, unknown>,
   ): Record<string, unknown> | undefined {
     const normalized = { ...(properties ?? {}) };
 
@@ -670,9 +670,11 @@ export class AnalyticsService {
     }
 
     try {
-      let initialReferrer = localStorage.getItem(this.initialReferrerStorageKey);
+      let initialReferrer = localStorage.getItem(
+        this.initialReferrerStorageKey,
+      );
       let initialReferringDomain = localStorage.getItem(
-        this.initialReferringDomainStorageKey
+        this.initialReferringDomainStorageKey,
       );
 
       if (!initialReferrer || !initialReferringDomain) {
@@ -693,7 +695,7 @@ export class AnalyticsService {
         localStorage.setItem(this.initialReferrerStorageKey, initialReferrer);
         localStorage.setItem(
           this.initialReferringDomainStorageKey,
-          initialReferringDomain
+          initialReferringDomain,
         );
       }
 
@@ -801,7 +803,7 @@ export class AnalyticsService {
         window.history.replaceState(
           window.history.state,
           document.title,
-          cleanPath
+          cleanPath,
         );
       }
     } catch (e) {
@@ -810,7 +812,7 @@ export class AnalyticsService {
   }
 
   private async registerNativeSuperProperty(
-    props: Record<string, unknown>
+    props: Record<string, unknown>,
   ): Promise<void> {
     try {
       const changedProps = Object.entries(props).filter(([key, value]) => {
@@ -822,7 +824,7 @@ export class AnalyticsService {
       });
 
       const promises = changedProps.map(([key, value]) =>
-        CapacitorPostHog.register({ key, value })
+        CapacitorPostHog.register({ key, value }),
       );
       await Promise.all(promises);
       for (const [key, value] of changedProps) {
@@ -835,7 +837,7 @@ export class AnalyticsService {
 
   private normalizeErrorReportProperties(
     error: unknown,
-    options: ErrorReportOptions
+    options: ErrorReportOptions,
   ): Properties {
     const summary = this.getErrorSummary(error);
     const normalized: Properties = {
@@ -912,7 +914,7 @@ export class AnalyticsService {
   }
 
   private toPostHogProperty(
-    value: unknown
+    value: unknown,
   ):
     | string
     | number
@@ -956,7 +958,7 @@ export class AnalyticsService {
   }
 
   private processEventBeforeSend(
-    event: CaptureResult | null
+    event: CaptureResult | null,
   ): CaptureResult | null {
     if (!event) return event;
 
@@ -976,7 +978,7 @@ export class AnalyticsService {
     if (event.properties && event.properties["$pathname"]) {
       event.properties["$pathname"] = event.properties["$pathname"].replace(
         /^\/(en|de|de-CH|fr|it|es|nl)(\/|$)/,
-        "/"
+        "/",
       );
     }
     if (event.properties && event.properties["$current_url"]) {
@@ -996,7 +998,7 @@ export class AnalyticsService {
   public addUtmToUrl(
     url: string | null | undefined,
     campaign: string = "referral",
-    medium: string = "referral"
+    medium: string = "referral",
   ): string | null {
     if (!url) return null;
 

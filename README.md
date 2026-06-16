@@ -34,6 +34,23 @@ You can also reach out on Instagram, Discord, or by email at [contact@lukasbuehl
 
 For feature requests, please use Discord or contact me directly.
 
+### Local Development Setup
+
+To setup for local development, duplicate the file `src/environments/environment.default.ts` to `src/environments/environment.development.ts`.
+
+Replace the `firebaseConfig` with your own from Firebase.
+Under `keys.firebaseConfig.apiKey` you will need to add your own Google API Key, with the following APIs enabled for full functionality:
+
+- IAM Service Account Credentials
+- Identity and Access Management (IAM) API
+- Identity Toolkit API
+- Maps JavaScript API
+- Places API (New)
+- Secret Manager API
+- Street View Static API
+- Token Service API
+
+
 ### Translation
 
 The translation files are in [`src/locale`](./src/locale/) and

@@ -1,7 +1,7 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { SearchClient } from "typesense";
 import { SearchParams } from "typesense/lib/Typesense/Documents";
-import { environment } from "../../environments/environment";
+import { environment } from "../../environments/environment.default";
 import { MapsApiService } from "./maps-api.service";
 import { AmenitiesMap } from "../../db/schemas/Amenities";
 import { SpotAccess, SpotTypes } from "../../db/schemas/SpotTypeAndAccess";
@@ -1463,11 +1463,12 @@ export class SearchService {
     const eventCandidates = ((eventsResult.hits ?? []) as any[])
       .map((hit) => this.getEventFromHit(hit))
       .filter((event): event is PkEvent => !!event);
-    const events = (bbox.coversWorld
-      ? eventCandidates
-      : eventCandidates.filter((event) =>
-          SearchService._eventIntersectsViewport(event, bbox),
-        )
+    const events = (
+      bbox.coversWorld
+        ? eventCandidates
+        : eventCandidates.filter((event) =>
+            SearchService._eventIntersectsViewport(event, bbox),
+          )
     ).slice(0, eventLimit);
     const promoEvents = ((promoEventsResult.hits ?? []) as any[])
       .map((hit) => this.getEventFromHit(hit))

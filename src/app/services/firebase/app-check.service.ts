@@ -6,7 +6,7 @@ import {
   InitializeOptions,
 } from "@capacitor-firebase/app-check";
 import { ReCaptchaEnterpriseProvider } from "firebase/app-check";
-import { environment } from "../../../environments/environment";
+import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
 
 export interface FirebaseAppCheckSettings {
@@ -17,7 +17,7 @@ export interface FirebaseAppCheckSettings {
 
 export function buildFirebaseAppCheckInitializeOptions(
   settings: FirebaseAppCheckSettings | undefined,
-  platform: "web" | "ios" | "android"
+  platform: "web" | "ios" | "android",
 ): InitializeOptions | null {
   if (!settings?.enabled) {
     return null;
@@ -56,21 +56,23 @@ export class FirebaseAppCheckService {
   private initializationPromise: Promise<void> | null = null;
 
   initialize(
-    settings: FirebaseAppCheckSettings | undefined = environment.appCheck
+    settings: FirebaseAppCheckSettings | undefined = environment.appCheck,
   ): Promise<void> {
     if (this.initializationPromise) {
       return this.initializationPromise;
     }
 
-    this.initializationPromise = this.initializeOnce(settings).catch((error) => {
-      this.initializationPromise = null;
-      throw error;
-    });
+    this.initializationPromise = this.initializeOnce(settings).catch(
+      (error) => {
+        this.initializationPromise = null;
+        throw error;
+      },
+    );
     return this.initializationPromise;
   }
 
   private async initializeOnce(
-    settings: FirebaseAppCheckSettings | undefined
+    settings: FirebaseAppCheckSettings | undefined,
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -81,12 +83,12 @@ export class FirebaseAppCheckService {
 
     const options = buildFirebaseAppCheckInitializeOptions(
       settings,
-      this.platformService.getPlatform()
+      this.platformService.getPlatform(),
     );
     if (!options) {
       if (settings?.enabled && this.platformService.getPlatform() === "web") {
         console.warn(
-          "[AppCheck] Web App Check is enabled but no reCAPTCHA Enterprise site key is configured."
+          "[AppCheck] Web App Check is enabled but no reCAPTCHA Enterprise site key is configured.",
         );
       }
       return;
