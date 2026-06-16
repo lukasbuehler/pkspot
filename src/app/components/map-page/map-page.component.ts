@@ -2455,6 +2455,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         ) {
           this.filterChipChanged("");
         }
+
+        if (!uid) {
+          setTimeout(() => this._redirectSignedOutSpotEditHistory(), 0);
+        }
       },
     );
 
@@ -2686,6 +2690,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     resolvedSpot: Spot | null = null,
     resolvedChallenge: SpotChallenge | null = null,
   ): Promise<void> {
+    if (
+      showEditHistory &&
+      spotIdOrSlug &&
+      this._redirectSignedOutSpotEditHistory(spotIdOrSlug)
+    ) {
+      showEditHistory = false;
+    }
+
     if (challengeId && spotIdOrSlug) {
       // open the spot on a challenge
       if (resolvedChallenge) {
@@ -4063,6 +4075,41 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       challengeId,
       showEditHistory,
     };
+  }
+
+  private _redirectSignedOutSpotEditHistory(spotIdOrSlug?: string | null): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+
+    if (!this.authService.initialAuthStateResolved() || this.isSignedIn()) {
+      return false;
+    }
+
+    const routeState = spotIdOrSlug
+      ? {
+          spotIdOrSlug,
+          showEditHistory: true,
+        }
+      : this._parseMapRouteState(this.router.url);
+
+    if (!routeState.showEditHistory || !routeState.spotIdOrSlug) {
+      return false;
+    }
+
+    this.showSpotEditHistory.set(false);
+
+    const queryIndex = this.router.url.indexOf("?");
+    const queryString =
+      queryIndex >= 0 ? this.router.url.slice(queryIndex) : "";
+    const spotPath = `${buildSpotCanonicalPath(routeState.spotIdOrSlug)}${queryString}`;
+
+    if (this.router.url === spotPath) {
+      return true;
+    }
+
+    void this.router.navigateByUrl(spotPath, { replaceUrl: true });
+    return true;
   }
 
   /**
