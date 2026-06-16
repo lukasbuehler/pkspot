@@ -182,6 +182,8 @@ describe("EventCardComponent", () => {
   });
 
   it("includes a lightweight intent count preview for upcoming events", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T12:00:00.000Z"));
     fixture.componentRef.setInput(
       "event",
       buildEvent(
