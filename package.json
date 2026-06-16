@@ -10,7 +10,7 @@
     "serve:ios": "npx cap run ios",
     "dev": "ng serve --watch --configuration=dev",
     "build": "ng build && node copy-proxy-server.js",
-    "build:ci": "ng build --configuration=ci && node copy-proxy-server.js",
+    "build:ci": "node scripts/prepare-ci-environment.mjs && ng build --configuration=ci && node copy-proxy-server.js",
     "build:dev": "ng build --configuration=dev && node copy-proxy-server.js",
     "build:prod": "ng build --configuration=production && node copy-proxy-server.js",
     "build:android:prod": "node scripts/build-mobile.js android && npx cap sync android",

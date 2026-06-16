@@ -97,7 +97,7 @@
             "dev": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.default.ts",
                   "with": "src/environments/environment.development.ts"
                 }
               ],
@@ -108,8 +108,8 @@
             "ci": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.ci.ts"
+                  "replace": "src/environments/environment.default.ts",
+                  "with": "src/environments/environment.ci.generated.ts"
                 }
               ],
               "optimization": false,
@@ -119,7 +119,7 @@
             "staging": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.default.ts",
                   "with": "src/environments/environment.staging.ts"
                 }
               ],
@@ -140,7 +140,7 @@
             "production": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.default.ts",
                   "with": "src/environments/environment.production.ts"
                 }
               ],
@@ -172,7 +172,7 @@
             "dev-optim": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.default.ts",
                   "with": "src/environments/environment.development.ts"
                 }
               ],
@@ -182,7 +182,7 @@
             "ios-dev": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.default.ts",
                   "with": "src/environments/environment.development.ts"
                 }
               ],
@@ -203,7 +203,7 @@
             "ios": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.default.ts",
                   "with": "src/environments/environment.ios.ts"
                 }
               ],
@@ -236,7 +236,7 @@
             "android-dev": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.default.ts",
                   "with": "src/environments/environment.development.ts"
                 }
               ],
@@ -257,7 +257,7 @@
             "android": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
+                  "replace": "src/environments/environment.default.ts",
                   "with": "src/environments/environment.android.ts"
                 }
               ],
