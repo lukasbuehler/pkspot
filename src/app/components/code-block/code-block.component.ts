@@ -1,4 +1,4 @@
-import { Component, inject, Input } from "@angular/core";
+import { Component, inject, Input, ChangeDetectionStrategy } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -8,6 +8,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
   selector: "app-code-block",
   templateUrl: "./code-block.component.html",
   styleUrl: "./code-block.component.scss",
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MatButtonModule, MatIconModule, MatTooltipModule],
 })
 export class CodeBlockComponent {

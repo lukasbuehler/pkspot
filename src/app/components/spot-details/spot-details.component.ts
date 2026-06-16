@@ -20,6 +20,7 @@ import {
   model,
   inject,
   OnDestroy,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import {
   MatProgressBar,
@@ -303,6 +304,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     "[style.--open-progress]": "openProgressStyle",
     "[@grow]": "grow",
   },
+  changeDetection: ChangeDetectionStrategy.Eager,
   schemas: [],
 })
 export class SpotDetailsComponent

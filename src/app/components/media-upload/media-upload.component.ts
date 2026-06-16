@@ -1,4 +1,4 @@
-import { effect, inject, Optional, Self, signal } from "@angular/core";
+import { effect, inject, Optional, Self, signal, ChangeDetectionStrategy } from "@angular/core";
 import { Component, OnInit, Output, EventEmitter, Input } from "@angular/core";
 import {
   ControlValueAccessor,
@@ -42,6 +42,7 @@ export interface UploadMedia {
   selector: "app-media-upload",
   templateUrl: "./media-upload.component.html",
   styleUrls: ["./media-upload.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     ReactiveFormsModule,

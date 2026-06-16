@@ -6,6 +6,7 @@ import {
   computed,
   signal,
   LOCALE_ID,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { CommonModule, NgOptimizedImage } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
@@ -28,6 +29,7 @@ import { MatRippleModule } from "@angular/material/core";
     MatRippleModule,
   ],
   templateUrl: "./poi-detail.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./poi-detail.component.scss",
 })
 export class PoiDetailComponent {

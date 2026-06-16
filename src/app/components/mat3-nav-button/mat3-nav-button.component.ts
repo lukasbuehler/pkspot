@@ -1,11 +1,12 @@
 import { NgOptimizedImage } from "@angular/common";
-import { Component, HostBinding, input, Input } from "@angular/core";
+import { Component, HostBinding, input, Input, ChangeDetectionStrategy } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 
 @Component({
   selector: "app-mat3-nav-button",
   templateUrl: "./mat3-nav-button.component.html",
   styleUrls: ["./mat3-nav-button.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MatIcon, NgOptimizedImage],
 })
 export class Mat3NavButtonComponent {

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, PLATFORM_ID } from "@angular/core";
+import { Component, OnInit, OnDestroy, inject, PLATFORM_ID, ChangeDetectionStrategy } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { RecaptchaUnavailableInSsrError } from "../../services/recaptcha.service";
@@ -29,6 +29,7 @@ import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focu
   selector: "app-sign-up-page",
   templateUrl: "./sign-up-page.component.html",
   styleUrls: ["./sign-up-page.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatButton,
     RouterLink,

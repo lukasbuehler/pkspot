@@ -10,6 +10,7 @@ import {
   Optional,
   Output,
   Self,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import {
   AbstractControl,
@@ -74,6 +75,7 @@ export function regexValidator(): ValidatorFn {
   providers: [
     { provide: MatFormFieldControl, useExisting: RegexInputComponent },
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, ReactiveFormsModule],
 })
 export class RegexInputComponent

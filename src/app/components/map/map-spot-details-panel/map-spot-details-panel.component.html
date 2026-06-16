@@ -3,7 +3,7 @@
   [loading]="!!pendingSpot()"
   [loadingTitle]="pendingSpot()?.name ?? ''"
   [loadingSubtitle]="pendingSpot()?.locality ?? ''"
-  [loadingImageSrc]="pendingSpot()?.imageSrc"
+  [loadingImageSrc]="$safeNavigationMigration(pendingSpot()?.imageSrc)"
   [spot]="spot()"
   [(challenge)]="challenge"
   [border]="false"

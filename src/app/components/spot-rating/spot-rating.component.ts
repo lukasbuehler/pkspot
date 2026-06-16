@@ -1,10 +1,11 @@
-import { Component, Input, OnChanges } from "@angular/core";
+import { Component, Input, OnChanges, ChangeDetectionStrategy } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 
 @Component({
   selector: "app-spot-rating",
   templateUrl: "./spot-rating.component.html",
   styleUrls: ["./spot-rating.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MatIcon],
 })
 export class SpotRatingComponent implements OnChanges {

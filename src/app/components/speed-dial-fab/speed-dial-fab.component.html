@@ -6,7 +6,7 @@
 >
   <button
     mat-fab
-    [extended]="buttonConfig?.mainButton?.isExtended"
+    [extended]="$safeNavigationMigration(buttonConfig?.mainButton?.isExtended)"
     class="sd-toggler"
     [color]="buttonConfig?.mainButton?.color || 'primary'"
     [matTooltipDisabled]="!buttonConfig?.mainButton?.tooltip || !openOnHover"

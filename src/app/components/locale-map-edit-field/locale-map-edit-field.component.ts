@@ -10,6 +10,7 @@ import {
   signal,
   Signal,
   WritableSignal,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { LocaleCode, LocaleMap } from "../../../db/models/Interfaces";
@@ -53,6 +54,7 @@ import { getBestLocale } from "../../../scripts/LanguageHelpers";
     ]),
   ],
   templateUrl: "./locale-map-edit-field.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./locale-map-edit-field.component.scss",
 })
 export class LocaleMapEditFieldComponent {

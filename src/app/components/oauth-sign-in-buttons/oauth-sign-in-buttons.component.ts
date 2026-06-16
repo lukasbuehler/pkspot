@@ -1,4 +1,4 @@
-import { Component, inject, Input, Output, EventEmitter } from "@angular/core";
+import { Component, inject, Input, Output, EventEmitter, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule, NgOptimizedImage } from "@angular/common";
 import { MatButton } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -9,6 +9,7 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
   selector: "app-oauth-sign-in-buttons",
   templateUrl: "./oauth-sign-in-buttons.component.html",
   styleUrls: ["./oauth-sign-in-buttons.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     MatButton,

@@ -281,7 +281,7 @@
     <div class="mb-1 mt-1">
       <!-- spot media carousel  -->
       @if (spot()?.media() && spot()!.media().length > 0) {
-      <app-img-carousel [media]="spot()?.media()" [spotId]="getSpotId()" class="mb-3"
+      <app-img-carousel [media]="$safeNavigationMigration(spot()?.media())" [spotId]="getSpotId()" class="mb-3"
         (mediaRemove)="mediaRemoved($event)">
       </app-img-carousel>
       }

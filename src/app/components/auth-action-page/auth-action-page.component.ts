@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, PLATFORM_ID } from "@angular/core";
+import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule, isPlatformBrowser } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -32,6 +32,7 @@ interface ActionState {
   selector: "app-auth-action-page",
   templateUrl: "./auth-action-page.component.html",
   styleUrls: ["./auth-action-page.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     MatButtonModule,

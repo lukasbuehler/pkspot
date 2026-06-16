@@ -10,6 +10,7 @@ import {
   inject,
   signal,
   computed,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import {
@@ -132,6 +133,7 @@ type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
       useValue: { displayDefaultIndicatorType: false },
     },
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatStepper,
     MatStepperIcon,

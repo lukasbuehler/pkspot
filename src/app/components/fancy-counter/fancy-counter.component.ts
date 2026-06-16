@@ -1,5 +1,5 @@
 import { animate, style, transition, trigger } from "@angular/animations";
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
 
 @Component({
   selector: "app-fancy-counter",
@@ -36,6 +36,7 @@ import { Component, Input, OnInit } from "@angular/core";
       ),
     ]),
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [],
 })
 export class FancyCounterComponent implements OnInit {

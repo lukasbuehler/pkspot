@@ -4,6 +4,7 @@ import {
   LOCALE_ID,
   WritableSignal,
   signal,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { SpotReviewSchema } from "../../../db/schemas/SpotReviewSchema";
 import {
@@ -45,6 +46,7 @@ import { LocaleCode } from "../../../db/models/Interfaces";
     FormsModule,
   ],
   templateUrl: "./spot-review-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./spot-review-dialog.component.scss",
 })
 export class SpotReviewDialogComponent {

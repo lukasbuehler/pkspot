@@ -7,6 +7,7 @@ import {
   LOCALE_ID,
   model,
   signal,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -92,6 +93,7 @@ import { buildSpotChallengeCanonicalPath } from "../../../scripts/SpotRouteHelpe
   animations: [],
   providers: [provideNativeDateAdapter()],
   templateUrl: "./challenge-detail.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./challenge-detail.component.scss",
 })
 export class ChallengeDetailComponent {

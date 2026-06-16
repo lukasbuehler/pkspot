@@ -12,7 +12,7 @@
       <textarea
         cdkFocusInitial
         matInput
-        [value]="localeMap()![locale]?.text"
+        [value]="$safeNavigationMigration(localeMap()![locale]?.text)"
         [placeholder]="placeholder()"
         (change)="valueChanged($event, locale)"
         rows="3"
@@ -21,7 +21,7 @@
       <input
         cdkFocusInitial
         matInput
-        [value]="localeMap()![locale]?.text"
+        [value]="$safeNavigationMigration(localeMap()![locale]?.text)"
         [placeholder]="placeholder()"
         (change)="valueChanged($event, locale)"
       />}

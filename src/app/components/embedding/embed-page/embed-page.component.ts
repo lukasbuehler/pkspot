@@ -5,6 +5,7 @@ import {
   PLATFORM_ID,
   signal,
   afterNextRender,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
@@ -47,6 +48,7 @@ type EmbedType = "map" | "event" | "event-map";
   ],
   templateUrl: "./embed-page.component.html",
   styleUrls: ["./embed-page.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: APP_BASE_HREF,

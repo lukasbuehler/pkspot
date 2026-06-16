@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, PLATFORM_ID } from "@angular/core";
+import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectionStrategy } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { RecaptchaUnavailableInSsrError } from "../../services/recaptcha.service";
@@ -24,6 +24,7 @@ import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focu
   selector: "app-forgot-password-page",
   templateUrl: "./forgot-password-page.component.html",
   styleUrls: ["./forgot-password-page.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     ReactiveFormsModule,

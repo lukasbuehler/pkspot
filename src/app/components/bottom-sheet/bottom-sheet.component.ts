@@ -11,12 +11,14 @@ import {
   inject,
   signal,
   ViewChild,
+  ChangeDetectionStrategy
 } from "@angular/core";
 
 @Component({
   selector: "app-bottom-sheet",
   templateUrl: "./bottom-sheet.component.html",
   styleUrls: ["./bottom-sheet.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
 })
 export class BottomSheetComponent implements AfterViewInit, OnDestroy {

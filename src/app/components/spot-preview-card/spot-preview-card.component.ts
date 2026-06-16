@@ -13,6 +13,7 @@ import {
   signal,
   OnDestroy,
   effect,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { MapsApiService } from "../../services/maps-api.service";
@@ -45,6 +46,7 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
   selector: "app-spot-preview-card",
   templateUrl: "./spot-preview-card.component.html",
   styleUrls: ["./spot-preview-card.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatCardModule,
     MatRippleModule,

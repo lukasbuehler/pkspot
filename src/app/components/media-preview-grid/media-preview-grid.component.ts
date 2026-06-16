@@ -18,6 +18,7 @@ import {
   OnInit,
   Output,
   signal,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 import { MatIconButton } from "@angular/material/button";
@@ -31,6 +32,7 @@ import { MediaReportDialogComponent } from "../../media-report-dialog/media-repo
   selector: "app-media-preview-grid",
   templateUrl: "./media-preview-grid.component.html",
   styleUrls: ["./media-preview-grid.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CdkDropListGroup,
     CdkDropList,

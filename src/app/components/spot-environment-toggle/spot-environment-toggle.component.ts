@@ -1,4 +1,4 @@
-import { Component, output, input } from "@angular/core";
+import { Component, output, input, ChangeDetectionStrategy } from "@angular/core";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { MatIconModule } from "@angular/material/icon";
 import { AmenityIcons } from "../../../db/schemas/Amenities";
@@ -11,6 +11,7 @@ import { AmenityIcons } from "../../../db/schemas/Amenities";
   selector: "app-spot-environment-toggle",
   imports: [MatButtonToggleModule, MatIconModule],
   templateUrl: "./spot-environment-toggle.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./spot-environment-toggle.component.scss",
 })
 export class SpotEnvironmentToggleComponent {

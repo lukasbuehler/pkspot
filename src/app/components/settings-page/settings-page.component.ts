@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild, ChangeDetectionStrategy } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { NgClass, NgSwitch, NgSwitchCase } from "@angular/common";
@@ -59,6 +59,7 @@ import crew from "../../../assets/data/crew.json";
     RouterLink,
     ContributionStatusNoteComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   host: { ngSkipHydration: "true" },
 })
 export class SettingsPageComponent implements OnInit {

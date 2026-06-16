@@ -10,6 +10,7 @@ import {
   ElementRef,
   PLATFORM_ID,
   computed,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
@@ -123,6 +124,7 @@ type EventMapTab = "event" | "spots" | "challenges";
     ]),
   ],
   templateUrl: "./event-map-page.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./event-map-page.component.scss",
 })
 export class EventMapPageComponent implements OnInit, OnDestroy {

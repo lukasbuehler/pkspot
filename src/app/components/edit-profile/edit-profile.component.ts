@@ -6,6 +6,7 @@ import {
   LOCALE_ID,
   OnInit,
   Output,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { User } from "../../../db/models/User";
@@ -57,6 +58,7 @@ type NormalizedSocials = {
   selector: "app-edit-profile",
   templateUrl: "./edit-profile.component.html",
   styleUrls: ["./edit-profile.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CropImageComponent,
     MatIcon,

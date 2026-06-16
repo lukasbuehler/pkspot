@@ -6,6 +6,7 @@ import {
   LOCALE_ID,
   Inject,
   ChangeDetectorRef,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import {
   MatDialog,
@@ -70,6 +71,7 @@ type ProfileSocialLink = {
   selector: "app-profile-page",
   templateUrl: "./profile-page.component.html",
   styleUrls: ["./profile-page.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatProgressSpinner,
     MatCard,

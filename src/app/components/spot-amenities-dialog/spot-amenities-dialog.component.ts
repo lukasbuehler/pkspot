@@ -1,4 +1,4 @@
-import { Component, Inject, signal, WritableSignal } from "@angular/core";
+import { Component, Inject, signal, WritableSignal, ChangeDetectionStrategy } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
@@ -43,6 +43,7 @@ export interface SpotAmenitiesDialogData {
     SpotEnvironmentToggleComponent,
   ],
   templateUrl: "./spot-amenities-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./spot-amenities-dialog.component.scss",
 })
 export class SpotAmenitiesDialogComponent {

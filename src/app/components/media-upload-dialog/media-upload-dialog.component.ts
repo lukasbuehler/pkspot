@@ -1,4 +1,4 @@
-import { Component, Inject, inject, signal, ViewChild } from "@angular/core";
+import { Component, Inject, inject, signal, ViewChild, ChangeDetectionStrategy } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -38,6 +38,7 @@ export interface MediaUploadDialogData {
     MediaUpload,
     MatSnackBarModule,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: "./media-upload-dialog.component.html",
 })
 export class MediaUploadDialogComponent {

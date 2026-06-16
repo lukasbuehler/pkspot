@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit } from "@angular/core";
+import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { ImageCroppedEvent, ImageCropperComponent } from "ngx-image-cropper";
 import { MatButton } from "@angular/material/button";
 import { MatCard, MatCardContent } from "@angular/material/card";
@@ -13,6 +13,7 @@ import { MatIcon } from "@angular/material/icon";
   templateUrl: "./crop-image.component.html",
   styleUrls: ["./crop-image.component.scss"],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ImageCropperComponent, MatButton, MatCard, MatCardContent, MatIcon],
 })
 export class CropImageComponent implements OnInit {

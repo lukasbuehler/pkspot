@@ -5,6 +5,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { AsyncPipe, DatePipe, KeyValuePipe } from "@angular/common";
 import { Router, RouterLink } from "@angular/router";
@@ -49,6 +50,7 @@ const ACTIVITY_PAGE_SIZE = 25;
     KeyValuePipe,
   ],
   templateUrl: "./activity-page.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./activity-page.component.scss",
 })
 export class ActivityPageComponent implements OnInit, OnDestroy {

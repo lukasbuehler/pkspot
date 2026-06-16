@@ -10,6 +10,7 @@ import {
   SimpleChanges,
   model,
   effect,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import {
   ChallengeLabelNames,
@@ -58,6 +59,7 @@ type ChallengeType =
     ChipSelectComponent,
   ],
   templateUrl: "./challenge-list.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./challenge-list.component.scss",
 })
 export class ChallengeListComponent {

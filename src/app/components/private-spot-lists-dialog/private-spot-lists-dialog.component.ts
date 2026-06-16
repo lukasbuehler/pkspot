@@ -1,4 +1,4 @@
-import { Component, LOCALE_ID, OnInit, inject, signal } from "@angular/core";
+import { Component, LOCALE_ID, OnInit, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
@@ -28,6 +28,7 @@ export interface PrivateSpotListsDialogData {
   selector: "app-private-spot-lists-dialog",
   templateUrl: "./private-spot-lists-dialog.component.html",
   styleUrls: ["./private-spot-lists-dialog.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatDialogTitle,
     MatDialogContent,

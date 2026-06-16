@@ -4,6 +4,7 @@ import {
   inject,
   LOCALE_ID,
   signal,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
@@ -58,6 +59,7 @@ interface MediaReportDialogData {
     NgOptimizedImage,
   ],
   templateUrl: "./media-report-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./media-report-dialog.component.scss",
 })
 export class MediaReportDialogComponent implements AfterViewInit {

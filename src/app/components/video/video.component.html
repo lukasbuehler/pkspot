@@ -1,8 +1,8 @@
 <video
   class="media-video"
-  [src]="media()?.getVideoSrc()"
+  [src]="$safeNavigationMigration(media()?.getVideoSrc())"
   controls
-  [poster]="media()?.getPreviewImageSrc()"
+  [poster]="$safeNavigationMigration(media()?.getPreviewImageSrc())"
 ></video>
 <!-- @if(!post.mediaIsImage && post.mediaSrc) {
 <vg-player

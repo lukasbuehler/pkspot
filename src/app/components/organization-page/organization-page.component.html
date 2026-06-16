@@ -19,8 +19,8 @@
               >
                 @if (organization()?.logo_url) {
                   <img
-                    [src]="organization()?.logo_url"
-                    [alt]="organization()?.name + ' logo'"
+                    [src]="$safeNavigationMigration(organization()?.logo_url)"
+                    [alt]="$safeNavigationMigration(organization()?.name) + ' logo'"
                   />
                 } @else {
                   <span>{{ organizationInitial() }}</span>
@@ -71,7 +71,7 @@
                     <a
                       matButton="outlined"
                       color="primary"
-                      [href]="organization()?.website_url"
+                      [href]="$safeNavigationMigration(organization()?.website_url)"
                       target="_blank"
                       rel="noopener noreferrer nofollow"
                     >

@@ -6,6 +6,7 @@ import {
   OnInit,
   ViewChild,
   LOCALE_ID,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
@@ -48,6 +49,7 @@ export interface SelectLanguageDialogData {
     AutocompleteOverlayRepositionDirective,
   ],
   templateUrl: "./select-language-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./select-language-dialog.component.scss",
 })
 export class SelectLanguageDialogComponent implements OnInit, AfterViewInit {

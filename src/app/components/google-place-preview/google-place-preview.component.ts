@@ -9,6 +9,7 @@ import {
   LOCALE_ID,
   effect,
   input,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { CommonModule, NgOptimizedImage } from "@angular/common";
 import {
@@ -41,6 +42,7 @@ import { AnalyticsService } from "../../services/analytics.service";
     MatButtonModule,
   ],
   templateUrl: "./google-place-preview.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ["./google-place-preview.component.scss"],
 })
 export class GooglePlacePreviewComponent implements OnDestroy {

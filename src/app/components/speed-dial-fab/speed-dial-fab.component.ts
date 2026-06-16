@@ -8,6 +8,7 @@ import {
   OnInit,
   Output,
   ViewChild,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { speedDialFabAnimations } from "./speed-dial-fab.animations";
 import { NgIf, NgFor } from "@angular/common";
@@ -36,6 +37,7 @@ export interface SpeedDialFabButtonConfig {
   templateUrl: "./speed-dial-fab.component.html",
   styleUrls: ["./speed-dial-fab.component.scss"],
   animations: speedDialFabAnimations,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MatFabButton, MatTooltip, MatIcon, MatMiniFabButton],
 })
 export class SpeedDialFabComponent implements OnInit {

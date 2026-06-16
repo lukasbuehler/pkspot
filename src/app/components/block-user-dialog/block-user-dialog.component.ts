@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, ChangeDetectionStrategy } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import {
   MatDialogActions,
@@ -35,6 +35,7 @@ import {
       </button>
     </mat-dialog-actions>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
 })
 export class BlockUserDialogComponent {

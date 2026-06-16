@@ -4,6 +4,7 @@ import {
   inject,
   PLATFORM_ID,
   ChangeDetectorRef,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { CommonModule, isPlatformBrowser } from "@angular/common";
 import { RouterLink } from "@angular/router";
@@ -49,6 +50,7 @@ interface UserData {
     MatIconModule,
   ],
   templateUrl: "./leaderboard-page.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./leaderboard-page.component.scss",
 })
 export class LeaderboardPageComponent implements OnInit {

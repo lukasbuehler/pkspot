@@ -1,4 +1,4 @@
-import { Component, input, inject, computed } from "@angular/core";
+import { Component, input, inject, computed, ChangeDetectionStrategy } from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { RouterLink } from "@angular/router";
@@ -10,6 +10,7 @@ import { MatIconModule } from "@angular/material/icon";
   selector: "app-profile-button",
   imports: [RouterLink, NgOptimizedImage, MatButtonModule, MatIconModule],
   templateUrl: "./profile-button.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./profile-button.component.scss",
 })
 export class ProfileButtonComponent {

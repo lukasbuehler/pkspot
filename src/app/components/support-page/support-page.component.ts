@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from "@angular/core";
+import { Component, OnInit, inject, ChangeDetectionStrategy } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -21,6 +21,7 @@ interface FaqCategory {
   selector: "app-support-page",
   templateUrl: "./support-page.component.html",
   styleUrls: ["./support-page.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatIconModule,
     MatButtonModule,

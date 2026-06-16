@@ -8,6 +8,7 @@ import {
   Inject,
   PLATFORM_ID,
   inject,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { MatAnchor, MatButtonModule } from "@angular/material/button";
@@ -29,6 +30,7 @@ interface Partner {
   selector: "app-about-page",
   templateUrl: "./about-page.component.html",
   styleUrls: ["./about-page.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatAnchor,
     MatIconModule,
