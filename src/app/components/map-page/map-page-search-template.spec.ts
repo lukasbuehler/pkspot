@@ -18,6 +18,16 @@ describe("MapPageComponent search template", () => {
     expect(template).toContain("Preparing map layout...");
   });
 
+  it("does not hide route-resolved panel content behind the browser layout gate during SSR", () => {
+    const template = readFileSync(templatePath, "utf8");
+
+    expect(template).toContain(
+      "@if (!responsiveService.isInitialized() && !isServer)",
+    );
+    expect(template).toContain('<ng-template #sidebarContent>');
+    expect(template).toContain('<app-map-community-landing-panel');
+  });
+
   it("should allow Google Places results in the main map search fields", () => {
     const template = readFileSync(templatePath, "utf8");
     const searchFields = template.match(

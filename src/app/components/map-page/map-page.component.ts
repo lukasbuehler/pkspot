@@ -1412,7 +1412,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const nextPath = `/map/communities/${encodeURIComponent(slug)}`;
     this.panelBackTarget.set(this._getCurrentPanelBackTarget(nextPath));
     this._location.go(nextPath);
-    this._syncMapPanelStateFromUrl(nextPath);
+    void this._syncMapPanelStateFromUrl(nextPath);
   }
 
   exploreCommunitySpots(mode: "all" | "dry"): void {
@@ -1468,7 +1468,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._location.go(nextPath);
 
     const routeState = this._parseMapRouteState(nextPath);
-    this._handleURLParamsChange(
+    void this._handleURLParamsChange(
       routeState.spotIdOrSlug,
       routeState.showChallenges,
       routeState.challengeId,
@@ -1501,7 +1501,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.panelBackTarget.set(this._getCurrentPanelBackTarget(nextPath));
       this._location.go(nextPath);
     }
-    this._loadEventFromRouteIfPresent(nextPath, {
+    void this._loadEventFromRouteIfPresent(nextPath, {
       previewEvent: event ?? null,
       refresh: options.refresh ?? false,
     });
@@ -2489,7 +2489,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
-    this._loadEventFromRouteIfPresent(this.router.url);
 
     // Parse URL to handle legacy `/map/:spot` and canonical
     // `/map/spots/:spot` shapes consistently.
@@ -2506,8 +2505,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       showEditHistory: routeState.showEditHistory,
     });
 
-    this.pendingTasks.run(async () => {
-      this._handleURLParamsChange(
+    void this.pendingTasks.run(async () => {
+      await this._loadEventFromRouteIfPresent(this.router.url);
+      await this._handleURLParamsChange(
         routeState.spotIdOrSlug,
         routeState.showChallenges,
         routeState.challengeId,
@@ -2577,7 +2577,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             // Navigating away from map, do not interfere
             return;
           }
-          this._syncFullMapStateFromUrl(navEvent.urlAfterRedirects);
+          void this._syncFullMapStateFromUrl(navEvent.urlAfterRedirects);
           // Also extract filter query param from URL to keep it in sync
           const queryIndex = navEvent.urlAfterRedirects.indexOf("?");
           const queryString =
@@ -2600,7 +2600,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         // the map stays mounted. Browser back/forward can therefore update
         // the address bar without a fresh router resolver pass; keep the
         // selected panel state in step with that URL here.
-        this._syncFullMapStateFromUrl(url);
+        void this._syncFullMapStateFromUrl(url);
         const queryIndex = url.indexOf("?");
         const params = new URLSearchParams(
           queryIndex >= 0 ? url.substring(queryIndex + 1) : "",
@@ -2678,14 +2678,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  _handleURLParamsChange(
+  async _handleURLParamsChange(
     spotIdOrSlug: string | null,
     showChallenges: boolean,
     challengeId: string | null,
     showEditHistory: boolean,
     resolvedSpot: Spot | null = null,
     resolvedChallenge: SpotChallenge | null = null,
-  ) {
+  ): Promise<void> {
     if (challengeId && spotIdOrSlug) {
       // open the spot on a challenge
       if (resolvedChallenge) {
@@ -2693,9 +2693,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         const selectedSpot = this.selectedSpot();
         if (selectedSpot && selectedSpot instanceof Spot) {
-          this.loadChallengeById(selectedSpot, challengeId, false).then(
-            () => {},
-          );
+          await this.loadChallengeById(selectedSpot, challengeId, false);
         } else if (!selectedSpot) {
           // load the spot by id then the challenge
         } else {
@@ -2722,15 +2720,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           false,
         );
-        this._getSpotIdFromSlugOrId(spotIdOrSlug).then((spotId) => {
-          if (!spotId) {
-            console.warn("Could not get spot id from slug or id.");
-            return;
-          }
+        const spotId = await this._getSpotIdFromSlugOrId(spotIdOrSlug);
+        if (!spotId) {
+          console.warn("Could not get spot id from slug or id.");
+          return;
+        }
 
-          // open the spot
-          this.loadSpotById(spotId as SpotId, false).then(() => {});
-        });
+        // open the spot
+        await this.loadSpotById(spotId as SpotId, false);
       }
     } else {
       // close the spot
@@ -4082,7 +4079,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _loadEventFromRouteIfPresent(
     url: string,
     options: { previewEvent?: PkEvent | null; refresh?: boolean } = {},
-  ): void {
+  ): Promise<void> {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
     const match = cleanUrl.match(/^\/map\/events?\/([^/]+)$/u);
     if (!match) {
@@ -4090,7 +4087,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.selectedEvent.set(null);
         this.pendingEventPreview.set(null);
       }
-      return;
+      return Promise.resolve();
     }
 
     const eventIdOrSlug = decodeURIComponent(match[1]);
@@ -4101,7 +4098,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       (current.slug === eventIdOrSlug || current.id === (eventIdOrSlug as any))
     ) {
       this.pendingEventPreview.set(null);
-      return; // already showing
+      return Promise.resolve(); // already showing
     }
 
     const previewEvent =
@@ -4114,10 +4111,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (previewEvent && !options.refresh) {
-      return;
+      return Promise.resolve();
     }
 
-    void this._eventsService
+    return this._eventsService
       .getEventBySlugOrId(eventIdOrSlug)
       .then((event) => {
         if (!event) return;
@@ -4160,11 +4157,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.resetPanelContentToTop();
   }
 
-  private _syncFullMapStateFromUrl(url: string): void {
+  private async _syncFullMapStateFromUrl(url: string): Promise<void> {
     this.panelBackTarget.set(null);
-    this._syncMapPanelStateFromUrl(url);
+    await this._syncMapPanelStateFromUrl(url);
     const routeState = this._parseMapRouteState(url);
-    this._handleURLParamsChange(
+    await this._handleURLParamsChange(
       routeState.spotIdOrSlug,
       routeState.showChallenges,
       routeState.challengeId,
@@ -4172,7 +4169,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  private _syncMapPanelStateFromUrl(url: string): void {
+  private async _syncMapPanelStateFromUrl(url: string): Promise<void> {
     const cleanUrl = (url || "").split("?")[0].split("#")[0];
     const communityMatch = cleanUrl.match(/^\/map\/communities\/([^/]+)$/u);
 
@@ -4218,7 +4215,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedCommunityLanding.set(null);
       this._openInfoPanel();
 
-      void this._landingPagesService
+      await this._landingPagesService
         .getCommunityPage(slug, 8, false)
         .then((community) => {
           if (!community) {
@@ -4252,7 +4249,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedCommunityLanding.set(null);
     this.pendingCommunityLanding.set(null);
-    this._loadEventFromRouteIfPresent(url);
+    await this._loadEventFromRouteIfPresent(url);
   }
 
   private _findCommunityPreviewBySlug(

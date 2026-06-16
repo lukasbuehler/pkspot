@@ -141,13 +141,13 @@ describe("MapPageComponent URL-driven panel state", () => {
       /this\._locationSubscription = this\._location\.subscribe[\s\S]*?\n      \}\);/
     )?.[0];
     const syncMethod = source.match(
-      /private _syncFullMapStateFromUrl[\s\S]*?\n  \}/
+      /private async _syncFullMapStateFromUrl[\s\S]*?\n  \}/
     )?.[0];
 
-    expect(locationSubscription).toContain("this._syncFullMapStateFromUrl(url)");
-    expect(syncMethod).toContain("this._syncMapPanelStateFromUrl(url)");
+    expect(locationSubscription).toContain("void this._syncFullMapStateFromUrl(url)");
+    expect(syncMethod).toContain("await this._syncMapPanelStateFromUrl(url)");
     expect(syncMethod).toContain("this._parseMapRouteState(url)");
-    expect(syncMethod).toContain("this._handleURLParamsChange(");
+    expect(syncMethod).toContain("await this._handleURLParamsChange(");
   });
 
   it("stores contextual panel back targets for community and event transitions", () => {

@@ -206,6 +206,31 @@ function assertCrawlerSurface(html, routeLabel, expected = {}) {
   }
 }
 
+function assertBodyCrawlerContent(html, routeLabel, expectedBodyPatterns) {
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  assert.ok(bodyMatch, `${routeLabel} should include a body element`);
+
+  const body = bodyMatch[1] || "";
+  assert.doesNotMatch(
+    body,
+    /Preparing map layout/,
+    `${routeLabel} body should not stop at the map layout placeholder`
+  );
+  assert.doesNotMatch(
+    body,
+    /Falling back to client side rendering|Loading events/,
+    `${routeLabel} body should not be a loading or CSR fallback shell`
+  );
+
+  for (const pattern of expectedBodyPatterns) {
+    assert.match(
+      body,
+      pattern,
+      `${routeLabel} body should include ${pattern.toString()}`
+    );
+  }
+}
+
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -443,6 +468,10 @@ async function main() {
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/spots\/josefhalle"/,
       body: /Sportzentrum Josef/i,
     });
+    assertBodyCrawlerContent(socialPreviewHtml, "Spot SSR route", [
+      /Sportzentrum Josef/i,
+      /Josefstrasse|Zürich|Zurich/i,
+    ]);
     assert.match(
       socialPreviewHtml,
       /<meta property="og:title"[^>]+content="Sportzentrum Josef - Zürich \| PK Spot"/,
@@ -480,6 +509,51 @@ async function main() {
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/communities\/switzerland"/,
       body: /Switzerland/i,
     });
+    assertBodyCrawlerContent(communityPreviewHtml, "Community SSR route", [
+      /Switzerland/i,
+      /Communities in Switzerland|Country Directory/i,
+    ]);
+
+    const zurichCommunityResponse = await fetch(
+      `${baseUrl}/en/map/communities/zuerich`,
+      {
+        redirect: "manual",
+        headers: {
+          "user-agent": "Googlebot/2.1",
+        },
+      }
+    );
+    assert.equal(
+      zurichCommunityResponse.status,
+      200,
+      "Zurich community SSR route should render for crawlers"
+    );
+    const zurichCommunityHtml = await zurichCommunityResponse.text();
+    assertCrawlerSurface(zurichCommunityHtml, "Zurich community SSR route", {
+      title: /Parkour in Zürich, Switzerland \| PK Spot Community/,
+      ogUrl:
+        /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/communities\/zuerich"/,
+      body: /Zürich/i,
+    });
+    assertBodyCrawlerContent(zurichCommunityHtml, "Zurich community SSR route", [
+      /Zürich/i,
+      /Sportzentrum Josef|Josefhalle/i,
+      /href="\/en\/map\/spots\/josefhalle"|href="\/map\/spots\/josefhalle"/i,
+    ]);
+
+    const mapResponse = await fetch(`${baseUrl}/en/map`, {
+      redirect: "manual",
+      headers: {
+        "user-agent": "Googlebot/2.1",
+      },
+    });
+    assert.equal(mapResponse.status, 200, "Map SSR route should render");
+    const mapHtml = await mapResponse.text();
+    assert.match(mapHtml, /<!doctype html>/i, "Map SSR route should return HTML");
+    assertBodyCrawlerContent(mapHtml, "Map SSR route", [
+      /PK Spot/i,
+      /find spots, communities, and events near you/i,
+    ]);
 
     const eventsPageResponse = await fetch(`${baseUrl}/en/events`, {
       redirect: "manual",
@@ -498,6 +572,10 @@ async function main() {
       /Swiss Jam 2025/,
       "Events SSR HTML should include rendered event cards"
     );
+    assertBodyCrawlerContent(eventsPageHtml, "Events SSR route", [
+      /Swiss Jam 2025/,
+      /href="\/en\/events\/swissjam25"|href="\/events\/swissjam25"/,
+    ]);
     assert.doesNotMatch(
       eventsPageHtml,
       /Loading events/,
@@ -525,6 +603,10 @@ async function main() {
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/events\/swissjam25"/,
       body: /Swiss Jam 2025/,
     });
+    assertBodyCrawlerContent(eventPreviewHtml, "Event SSR route", [
+      /Swiss Jam 2025/,
+      /Winterthur|Zurich|Zürich|Switzerland/i,
+    ]);
     assert.match(
       eventPreviewHtml,
       /<meta property="og:title"[^>]+content="Swiss Jam 2025 \| PK Spot"/,
@@ -540,6 +622,31 @@ async function main() {
       /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/events"/,
       "Event SSR HTML should not fall back to the generic events OpenGraph URL"
     );
+
+    const mapEventPreviewResponse = await fetch(
+      `${baseUrl}/en/map/events/swissjam25`,
+      {
+        redirect: "manual",
+        headers: {
+          "user-agent": "Googlebot/2.1",
+        },
+      }
+    );
+    assert.equal(
+      mapEventPreviewResponse.status,
+      200,
+      "Map event SSR route should render for crawlers"
+    );
+    const mapEventPreviewHtml = await mapEventPreviewResponse.text();
+    assert.match(
+      mapEventPreviewHtml,
+      /<!doctype html>/i,
+      "Map event SSR route should return HTML"
+    );
+    assertBodyCrawlerContent(mapEventPreviewHtml, "Map event SSR route", [
+      /Swiss Jam 2025/,
+      /See full event|Open event|Event/i,
+    ]);
 
     const profilePreviewResponse = await fetch(`${baseUrl}/en/u/lukas`, {
       redirect: "manual",
