@@ -49,7 +49,7 @@ export interface SelectLanguageDialogData {
     AutocompleteOverlayRepositionDirective,
   ],
   templateUrl: "./select-language-dialog.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./select-language-dialog.component.scss",
 })
 export class SelectLanguageDialogComponent implements OnInit, AfterViewInit {

@@ -1237,7 +1237,7 @@ interface SwiperDialogResult {
       }
     `,
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class SwiperDialogComponent implements AfterViewInit, OnDestroy {

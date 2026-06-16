@@ -6,7 +6,7 @@ import { MatIconModule } from "@angular/material/icon";
   selector: "app-spot-amenity-toggle",
   imports: [MatButtonToggleModule, MatIconModule],
   templateUrl: "./spot-amenity-toggle.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./spot-amenity-toggle.component.scss",
 })
 export class SpotAmenityToggleComponent {

@@ -907,6 +907,37 @@ describe("SearchService", () => {
       expect(spotFilter).toContain("70, 150, -70, 150, -70, 0, 70, 0");
     });
 
+    it("splits very wide antimeridian spot viewports before multi-searching", async () => {
+      const bounds = {
+        getNorthEast: () => ({
+          lat: () => 87.22105657762411,
+          lng: () => -159.51298475337524,
+        }),
+        getSouthWest: () => ({
+          lat: () => -79.80482445119773,
+          lng: () => -138.77080436765948,
+        }),
+      } as google.maps.LatLngBounds;
+
+      await service.searchMapObjectsInBounds(bounds);
+
+      const spotFilter = typesenseMultiSearchMock.mock.calls[0][0].searches[0]
+        .filter_by;
+      expect(spotFilter.match(/location:\(/g)?.length).toBe(3);
+      expect(spotFilter).toContain(
+        "87.221, 20.615, -79.805, 20.615, -79.805, -138.771, 87.221, -138.771",
+      );
+      expect(spotFilter).toContain(
+        "87.221, 180, -79.805, 180, -79.805, 20.615, 87.221, 20.615",
+      );
+      expect(spotFilter).toContain(
+        "87.221, -159.513, -79.805, -159.513, -79.805, -180, 87.221, -180",
+      );
+      expect(spotFilter).not.toContain(
+        "87.221, 180, -79.805, 180, -79.805, -138.771, 87.221, -138.771",
+      );
+    });
+
     it("groups locality communities by viewport tile and fetches countries only when requested", async () => {
       const bounds = {
         getNorthEast: () => ({ lat: () => 47.4, lng: () => 8.55 }),

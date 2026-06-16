@@ -93,7 +93,7 @@ import { buildSpotChallengeCanonicalPath } from "../../../scripts/SpotRouteHelpe
   animations: [],
   providers: [provideNativeDateAdapter()],
   templateUrl: "./challenge-detail.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./challenge-detail.component.scss",
 })
 export class ChallengeDetailComponent {

@@ -9,7 +9,7 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
   selector: "app-oauth-sign-in-buttons",
   templateUrl: "./oauth-sign-in-buttons.component.html",
   styleUrls: ["./oauth-sign-in-buttons.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     MatButton,

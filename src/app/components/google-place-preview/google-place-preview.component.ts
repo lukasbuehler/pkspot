@@ -42,7 +42,7 @@ import { AnalyticsService } from "../../services/analytics.service";
     MatButtonModule,
   ],
   templateUrl: "./google-place-preview.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ["./google-place-preview.component.scss"],
 })
 export class GooglePlacePreviewComponent implements OnDestroy {

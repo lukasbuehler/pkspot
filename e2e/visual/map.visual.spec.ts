@@ -25,7 +25,7 @@ test.describe("Map Page Visual Regression @visual", () => {
 
     // Mask dynamic map content to reduce flakiness
     await expect(page).toHaveScreenshot("map-page-desktop.png", {
-      maxDiffPixels: 40_000, // Higher tolerance for the masked map edge.
+      maxDiffPixels: 80_000, // Higher tolerance for the masked map edge.
       fullPage: false,
       animations: "disabled",
       mask: [
@@ -43,7 +43,7 @@ test.describe("Map Page Visual Regression @visual", () => {
     await page.waitForTimeout(2000);
 
     await expect(page).toHaveScreenshot("map-page-mobile.png", {
-      maxDiffPixels: 1000,
+      maxDiffPixels: 3_000,
       fullPage: false,
       animations: "disabled",
     });

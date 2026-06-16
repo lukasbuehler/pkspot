@@ -32,7 +32,7 @@ import { MediaReportDialogComponent } from "../../media-report-dialog/media-repo
   selector: "app-media-preview-grid",
   templateUrl: "./media-preview-grid.component.html",
   styleUrls: ["./media-preview-grid.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkDropListGroup,
     CdkDropList,

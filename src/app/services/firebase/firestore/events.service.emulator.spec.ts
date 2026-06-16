@@ -106,6 +106,27 @@ async function waitForEventTypesenseFields(eventId: string): Promise<void> {
   throw new Error(`Timed out waiting for event helper fields on events/${eventId}`);
 }
 
+async function waitForNoAreaEventBounds(eventId: string): Promise<void> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb().doc(`events/${eventId}`).get();
+    const data = snapshot.data();
+    if (
+      data?.["bounds_radius_m"] > 0 &&
+      data?.["bounds_center"] instanceof admin.firestore.GeoPoint &&
+      data?.["bounds"]?.north === 47.2418983544606 &&
+      data?.["bounds"]?.south === 47.2395741198416 &&
+      data?.["bounds"]?.east === 8.73119948180532 &&
+      data?.["bounds"]?.west === 8.729841149520867
+    ) {
+      return;
+    }
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for no-area event bounds on events/${eventId}`,
+  );
+}
+
 function parseHostPort(value: string): [string, number] {
   const [host, portValue] = value.split(":");
   const port = Number(portValue);
@@ -465,6 +486,72 @@ runWithEmulator("EventsService emulator integration", () => {
           lat: 47.39732893509323,
           lng: 8.548509576285669,
         },
+      }),
+    );
+  });
+
+  it("derives Typesense bounds from custom markers when an event has no area or spots", async () => {
+    const eventId = `typesense-no-area-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}`;
+
+    await adminDb()
+      .doc(`events/${eventId}`)
+      .set({
+        name: "No area event",
+        venue_string: "Pausenplatz Kirchbuhl",
+        locality_string: "Stafa, Switzerland",
+        location: { latitude: 47.23957411984155, longitude: 8.729841149520867 },
+        location_raw: { lat: 47.23957411984155, lng: 8.729841149520867 },
+        start: { seconds: 1_781_942_400, nanoseconds: 0 },
+        end: { seconds: 1_782_054_000, nanoseconds: 0 },
+        custom_markers: [
+          {
+            priority: "required",
+            name: "Pausenplatz Kirchbuhl",
+            location: {
+              lat: 47.2395741198416,
+              lng: 8.729841149520867,
+            },
+            color: "secondary",
+            icons: ["trophy"],
+          },
+          {
+            priority: "required",
+            name: "Turnhalle Obstgarten",
+            location: {
+              lat: 47.2418983544606,
+              lng: 8.73119948180532,
+            },
+            color: "tertiary",
+            icons: ["home", "trophy"],
+          },
+        ],
+      });
+
+    await waitForNoAreaEventBounds(eventId);
+
+    const snapshot = await adminDb().doc(`events/${eventId}`).get();
+    const data = snapshot.data();
+
+    expect(data?.["bounds_center"]).toBeInstanceOf(admin.firestore.GeoPoint);
+    expect(data?.["bounds_center"].latitude).toBeCloseTo(
+      (47.2418983544606 + 47.2395741198416) / 2,
+      6,
+    );
+    expect(data?.["bounds_center"].longitude).toBeCloseTo(
+      (8.73119948180532 + 8.729841149520867) / 2,
+      6,
+    );
+    expect(data).toEqual(
+      expect.objectContaining({
+        bounds: {
+          north: 47.2418983544606,
+          south: 47.2395741198416,
+          east: 8.73119948180532,
+          west: 8.729841149520867,
+        },
+        bounds_radius_m: expect.any(Number),
       }),
     );
   });

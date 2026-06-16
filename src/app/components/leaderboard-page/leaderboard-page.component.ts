@@ -50,7 +50,7 @@ interface UserData {
     MatIconModule,
   ],
   templateUrl: "./leaderboard-page.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./leaderboard-page.component.scss",
 })
 export class LeaderboardPageComponent implements OnInit {

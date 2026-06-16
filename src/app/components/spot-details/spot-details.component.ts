@@ -304,7 +304,7 @@ export class AsRatingKeyPipe implements PipeTransform {
     "[style.--open-progress]": "openProgressStyle",
     "[@grow]": "grow",
   },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   schemas: [],
 })
 export class SpotDetailsComponent

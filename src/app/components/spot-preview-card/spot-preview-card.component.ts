@@ -46,7 +46,7 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
   selector: "app-spot-preview-card",
   templateUrl: "./spot-preview-card.component.html",
   styleUrls: ["./spot-preview-card.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatCardModule,
     MatRippleModule,

@@ -133,7 +133,7 @@ type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
       useValue: { displayDefaultIndicatorType: false },
     },
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatStepper,
     MatStepperIcon,

@@ -367,6 +367,13 @@ const _eventInlineSpotPoints = (
     ...(_plainCoordinate(spot.location) ? [_plainCoordinate(spot.location)!] : []),
   ]);
 
+const _eventCustomMarkerPoints = (
+  eventData: EventSchema
+): Array<{ lat: number; lng: number }> =>
+  (eventData.custom_markers ?? [])
+    .map((marker) => _plainCoordinate(marker.location))
+    .filter(Boolean) as Array<{ lat: number; lng: number }>;
+
 const _spotDocumentPoints = (
   data: FirebaseFirestore.DocumentData | undefined
 ): Array<{ lat: number; lng: number }> => {
@@ -416,7 +423,17 @@ const _deriveEventBounds = async (
     ..._eventInlineSpotPoints(eventData),
     ...(await _eventSpotPoints(eventData)),
   ];
-  return _boundsFromPoints(spotPoints);
+  if (spotPoints.length > 0) return _boundsFromPoints(spotPoints);
+
+  const customMarkerPoints = _eventCustomMarkerPoints(eventData);
+  if (customMarkerPoints.length > 0) {
+    return _boundsFromPoints(customMarkerPoints);
+  }
+
+  const location =
+    _rawCoordinate(eventData.location_raw) ??
+    _geoPointCoordinate(eventData.location);
+  return location ? _boundsFromPoints([location]) : undefined;
 };
 
 const _withLocalizedDefault = <T extends Record<string, unknown>>(

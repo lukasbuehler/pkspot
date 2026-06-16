@@ -18,7 +18,7 @@ import {
   selector: "app-bottom-sheet",
   templateUrl: "./bottom-sheet.component.html",
   styleUrls: ["./bottom-sheet.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
 })
 export class BottomSheetComponent implements AfterViewInit, OnDestroy {

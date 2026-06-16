@@ -1,10 +1,17 @@
 # PK Spot ([pkspot.app](https://pkspot.app))
 
+Version 1.1.2
+
 **The spot for everything parkour.**
 
-Find spots, check in, discover what is happening nearby, and connect with your local parkour community.
+Find spots, check in, discover what is happening nearby, and connect with your local Parkour community.
 
-PK Spot is growing toward one app for parkour spots, training, events, jams, and community.
+PK Spot is growing toward one app for Parkour spots, training, events, jams, and community.
+
+### Download on the App Store and Google Play
+
+<!-- <a href="https://apps.apple.com/app/pk-spot-parkour-freerunning/id6757597683"><img style="height: 50px;" src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-example-preferred_2x.png"></a>
+<a href="https://play.google.com/store/apps/details?id=com.pkspot.app"><img style="height: 50px; margin-top: -10px; margin-bottom: -5px" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"></a> -->
 
 ## Collaborating
 

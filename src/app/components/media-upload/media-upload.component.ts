@@ -42,7 +42,7 @@ export interface UploadMedia {
   selector: "app-media-upload",
   templateUrl: "./media-upload.component.html",
   styleUrls: ["./media-upload.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     ReactiveFormsModule,

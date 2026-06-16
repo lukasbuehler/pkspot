@@ -32,7 +32,7 @@ interface ActionState {
   selector: "app-auth-action-page",
   templateUrl: "./auth-action-page.component.html",
   styleUrls: ["./auth-action-page.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     MatButtonModule,

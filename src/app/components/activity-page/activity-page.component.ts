@@ -50,7 +50,7 @@ const ACTIVITY_PAGE_SIZE = 25;
     KeyValuePipe,
   ],
   templateUrl: "./activity-page.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./activity-page.component.scss",
 })
 export class ActivityPageComponent implements OnInit, OnDestroy {

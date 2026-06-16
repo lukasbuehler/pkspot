@@ -71,7 +71,7 @@ type ProfileSocialLink = {
   selector: "app-profile-page",
   templateUrl: "./profile-page.component.html",
   styleUrls: ["./profile-page.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatProgressSpinner,
     MatCard,

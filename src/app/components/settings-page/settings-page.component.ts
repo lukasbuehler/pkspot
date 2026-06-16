@@ -59,7 +59,7 @@ import crew from "../../../assets/data/crew.json";
     RouterLink,
     ContributionStatusNoteComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { ngSkipHydration: "true" },
 })
 export class SettingsPageComponent implements OnInit {

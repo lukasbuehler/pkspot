@@ -19,7 +19,7 @@ import { MatButtonModule } from "@angular/material/button";
   selector: "app-locale-map-view",
   imports: [MatIconModule, MatButtonModule],
   templateUrl: "./locale-map-view.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./locale-map-view.component.scss",
 })
 export class LocaleMapViewComponent {

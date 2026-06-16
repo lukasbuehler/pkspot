@@ -43,7 +43,7 @@ export interface SpotAmenitiesDialogData {
     SpotEnvironmentToggleComponent,
   ],
   templateUrl: "./spot-amenities-dialog.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./spot-amenities-dialog.component.scss",
 })
 export class SpotAmenitiesDialogComponent {

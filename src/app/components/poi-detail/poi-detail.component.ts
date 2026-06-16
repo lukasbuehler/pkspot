@@ -29,7 +29,7 @@ import { MatRippleModule } from "@angular/material/core";
     MatRippleModule,
   ],
   templateUrl: "./poi-detail.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./poi-detail.component.scss",
 })
 export class PoiDetailComponent {

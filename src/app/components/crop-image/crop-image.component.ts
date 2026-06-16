@@ -13,7 +13,7 @@ import { MatIcon } from "@angular/material/icon";
   templateUrl: "./crop-image.component.html",
   styleUrls: ["./crop-image.component.scss"],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ImageCropperComponent, MatButton, MatCard, MatCardContent, MatIcon],
 })
 export class CropImageComponent implements OnInit {

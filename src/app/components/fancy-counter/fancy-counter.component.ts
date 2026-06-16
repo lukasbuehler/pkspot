@@ -36,7 +36,7 @@ import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core
       ),
     ]),
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
 })
 export class FancyCounterComponent implements OnInit {

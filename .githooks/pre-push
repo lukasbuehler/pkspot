@@ -1,5 +1,12 @@
 #!/usr/bin/env sh
 set -eu
 
-echo "Running pre-push verification..."
-npm run test:prepush
+current_branch="$(git symbolic-ref --quiet --short HEAD || true)"
+
+if [ "$current_branch" = "main" ]; then
+  echo "Running GitHub CI-equivalent pre-push verification for main..."
+  npm run test:ci
+else
+  echo "Running pre-push verification..."
+  npm run test:prepush
+fi

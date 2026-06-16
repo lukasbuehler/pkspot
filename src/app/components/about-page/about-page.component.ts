@@ -30,7 +30,7 @@ interface Partner {
   selector: "app-about-page",
   templateUrl: "./about-page.component.html",
   styleUrls: ["./about-page.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatAnchor,
     MatIconModule,

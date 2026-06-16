@@ -1598,8 +1598,8 @@ export class SearchService {
   }): Array<[number, number]> {
     if (bbox.crossesAntimeridian) {
       return [
-        [bbox.west, 180],
-        [-180, bbox.east],
+        ...SearchService._splitWideLongitudeInterval(bbox.west, 180),
+        ...SearchService._splitWideLongitudeInterval(-180, bbox.east),
       ];
     }
 
@@ -1612,6 +1612,24 @@ export class SearchService {
     }
 
     return [[bbox.west, bbox.east]];
+  }
+
+  private static _splitWideLongitudeInterval(
+    west: number,
+    east: number,
+  ): Array<[number, number]> {
+    const longitudeSpan = east - west;
+    if (longitudeSpan <= 180) {
+      return [[west, east]];
+    }
+
+    const intervalCount = Math.ceil(longitudeSpan / 180);
+    const intervalWidth = longitudeSpan / intervalCount;
+
+    return Array.from({ length: intervalCount }, (_, index) => [
+      west + intervalWidth * index,
+      index === intervalCount - 1 ? east : west + intervalWidth * (index + 1),
+    ]);
   }
 
   private static _geoRectangleFilter(

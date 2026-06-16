@@ -124,7 +124,7 @@ type EventMapTab = "event" | "spots" | "challenges";
     ]),
   ],
   templateUrl: "./event-map-page.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./event-map-page.component.scss",
 })
 export class EventMapPageComponent implements OnInit, OnDestroy {

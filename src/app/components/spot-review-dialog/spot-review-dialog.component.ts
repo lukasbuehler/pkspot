@@ -46,7 +46,7 @@ import { LocaleCode } from "../../../db/models/Interfaces";
     FormsModule,
   ],
   templateUrl: "./spot-review-dialog.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./spot-review-dialog.component.scss",
 })
 export class SpotReviewDialogComponent {

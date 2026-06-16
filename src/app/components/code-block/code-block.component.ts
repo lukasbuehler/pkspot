@@ -8,7 +8,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
   selector: "app-code-block",
   templateUrl: "./code-block.component.html",
   styleUrl: "./code-block.component.scss",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatButtonModule, MatIconModule, MatTooltipModule],
 })
 export class CodeBlockComponent {

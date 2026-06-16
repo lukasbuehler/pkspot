@@ -54,7 +54,7 @@ import { getBestLocale } from "../../../scripts/LanguageHelpers";
     ]),
   ],
   templateUrl: "./locale-map-edit-field.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./locale-map-edit-field.component.scss",
 })
 export class LocaleMapEditFieldComponent {

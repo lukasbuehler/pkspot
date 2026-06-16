@@ -59,7 +59,7 @@ interface MediaReportDialogData {
     NgOptimizedImage,
   ],
   templateUrl: "./media-report-dialog.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./media-report-dialog.component.scss",
 })
 export class MediaReportDialogComponent implements AfterViewInit {

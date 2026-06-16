@@ -10,7 +10,7 @@ import { MatIconModule } from "@angular/material/icon";
   selector: "app-profile-button",
   imports: [RouterLink, NgOptimizedImage, MatButtonModule, MatIconModule],
   templateUrl: "./profile-button.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./profile-button.component.scss",
 })
 export class ProfileButtonComponent {

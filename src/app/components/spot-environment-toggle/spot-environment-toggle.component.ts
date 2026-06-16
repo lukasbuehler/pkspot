@@ -11,7 +11,7 @@ import { AmenityIcons } from "../../../db/schemas/Amenities";
   selector: "app-spot-environment-toggle",
   imports: [MatButtonToggleModule, MatIconModule],
   templateUrl: "./spot-environment-toggle.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./spot-environment-toggle.component.scss",
 })
 export class SpotEnvironmentToggleComponent {

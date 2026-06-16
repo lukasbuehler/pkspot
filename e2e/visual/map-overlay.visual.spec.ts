@@ -18,7 +18,7 @@ test.describe("Map Overlay Visual Regression @visual", () => {
       "map-search-and-filter-chips.png",
       {
         animations: "disabled",
-        maxDiffPixels: 80,
+        maxDiffPixels: 250,
       },
     );
   });

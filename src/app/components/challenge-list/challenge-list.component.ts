@@ -59,7 +59,7 @@ type ChallengeType =
     ChipSelectComponent,
   ],
   templateUrl: "./challenge-list.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./challenge-list.component.scss",
 })
 export class ChallengeListComponent {

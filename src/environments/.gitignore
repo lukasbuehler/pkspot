@@ -1,3 +1,4 @@
 environment.*.ts
+!environment.ci.ts
 !environment.default.ts
 !environment.production.ts

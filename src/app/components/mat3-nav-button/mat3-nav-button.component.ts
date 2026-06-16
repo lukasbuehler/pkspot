@@ -6,7 +6,7 @@ import { MatIcon } from "@angular/material/icon";
   selector: "app-mat3-nav-button",
   templateUrl: "./mat3-nav-button.component.html",
   styleUrls: ["./mat3-nav-button.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIcon, NgOptimizedImage],
 })
 export class Mat3NavButtonComponent {

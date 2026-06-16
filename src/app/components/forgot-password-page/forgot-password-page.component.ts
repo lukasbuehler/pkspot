@@ -24,7 +24,7 @@ import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focu
   selector: "app-forgot-password-page",
   templateUrl: "./forgot-password-page.component.html",
   styleUrls: ["./forgot-password-page.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     ReactiveFormsModule,

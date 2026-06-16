@@ -37,7 +37,7 @@ export interface SpeedDialFabButtonConfig {
   templateUrl: "./speed-dial-fab.component.html",
   styleUrls: ["./speed-dial-fab.component.scss"],
   animations: speedDialFabAnimations,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatFabButton, MatTooltip, MatIcon, MatMiniFabButton],
 })
 export class SpeedDialFabComponent implements OnInit {

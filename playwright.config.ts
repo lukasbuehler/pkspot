@@ -102,7 +102,7 @@ export default defineConfig({
    * The test server only serves the 'de' locale (dev build).
    */
   webServer: {
-    command: "npm run build:dev && npm run serve:test",
+    command: "npm run build:ci && npm run serve:test",
     url: "http://localhost:4000",
     reuseExistingServer: !process.env["CI"],
     timeout: 180 * 1000, // 3 minutes for build + server start

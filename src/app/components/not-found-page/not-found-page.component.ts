@@ -8,7 +8,7 @@ import { RouterLink } from "@angular/router";
   templateUrl: "./not-found-page.component.html",
   styleUrls: ["./not-found-page.component.scss"],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIconModule, MatButtonModule, RouterLink],
 })
 export class NotFoundPageComponent implements OnInit {

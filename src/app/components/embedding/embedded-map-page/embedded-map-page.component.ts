@@ -5,7 +5,7 @@ import { SpotMapComponent } from "../../spot-map/spot-map.component";
   selector: "app-embedded-map-page",
   imports: [SpotMapComponent],
   templateUrl: "./embedded-map-page.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./embedded-map-page.component.scss",
 })
 export class EmbeddedMapPageComponent {}

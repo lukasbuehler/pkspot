@@ -21,7 +21,7 @@ interface FaqCategory {
   selector: "app-support-page",
   templateUrl: "./support-page.component.html",
   styleUrls: ["./support-page.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatIconModule,
     MatButtonModule,

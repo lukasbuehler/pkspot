@@ -38,7 +38,7 @@ export interface MediaUploadDialogData {
     MediaUpload,
     MatSnackBarModule,
   ],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./media-upload-dialog.component.html",
 })
 export class MediaUploadDialogComponent {

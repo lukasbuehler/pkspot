@@ -28,7 +28,7 @@ export interface PrivateSpotListsDialogData {
   selector: "app-private-spot-lists-dialog",
   templateUrl: "./private-spot-lists-dialog.component.html",
   styleUrls: ["./private-spot-lists-dialog.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatDialogTitle,
     MatDialogContent,

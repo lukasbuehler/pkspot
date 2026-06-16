@@ -5,7 +5,7 @@ import { MatIcon } from "@angular/material/icon";
   selector: "app-spot-rating",
   templateUrl: "./spot-rating.component.html",
   styleUrls: ["./spot-rating.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIcon],
 })
 export class SpotRatingComponent implements OnChanges {

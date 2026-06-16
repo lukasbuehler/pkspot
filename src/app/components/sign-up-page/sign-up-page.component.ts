@@ -29,7 +29,7 @@ import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focu
   selector: "app-sign-up-page",
   templateUrl: "./sign-up-page.component.html",
   styleUrls: ["./sign-up-page.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatButton,
     RouterLink,

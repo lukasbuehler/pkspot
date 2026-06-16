@@ -48,7 +48,7 @@ type EmbedType = "map" | "event" | "event-map";
   ],
   templateUrl: "./embed-page.component.html",
   styleUrls: ["./embed-page.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: APP_BASE_HREF,

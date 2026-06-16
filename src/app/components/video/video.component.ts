@@ -5,7 +5,7 @@ import { VideoMedia } from "../../../db/models/Media";
   selector: "app-video",
   imports: [],
   templateUrl: "./video.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./video.component.scss",
 })
 export class VideoComponent {
