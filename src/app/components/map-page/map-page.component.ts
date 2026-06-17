@@ -16,6 +16,7 @@ import {
   NgZone,
   ChangeDetectionStrategy,
   untracked,
+  ElementRef,
 } from "@angular/core";
 import { Location } from "@angular/common";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -91,7 +92,7 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { Timestamp } from "firebase/firestore";
 import { SpotEdit } from "../../../db/models/SpotEdit";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
-import { MatSidenavModule } from "@angular/material/sidenav";
+import { MatDrawerContainer, MatSidenavModule } from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
@@ -250,6 +251,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
+  @ViewChild("drawerContainer") drawerContainer?: MatDrawerContainer;
+  @ViewChild("infoDrawer", { read: ElementRef })
+  private _infoDrawerElement?: ElementRef<HTMLElement>;
   @ViewChild(BottomSheetComponent) bottomSheet?: BottomSheetComponent;
 
   /** Signal to track when the map is ready for interaction */
@@ -414,6 +418,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Direct immediate measure helper (bypasses RAF coalescing)
   private _chipsDirectMeasure: (() => void) | null = null;
   private _chipsWindowResizeListener: (() => void) | null = null;
+  private _drawerResizeObserver: ResizeObserver | null = null;
+  private _drawerMarginRefreshRaf: number | null = null;
+  private _drawerMarginRefreshFollowupRaf: number | null = null;
   // Last measured width of the chips container — used to avoid re-measuring when width didn't change
   private _lastMeasuredWidth: number | null = null;
   // Last applied final height to avoid redundant updates across callbacks
@@ -2233,6 +2240,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
+    effect(() => {
+      this.responsiveService.isInitialized();
+      this.responsiveService.isNotMobile();
+      this.sidenavOpen();
+      this.compactSidenavRange();
+      this.mapSidenavMode();
+      this._scheduleDrawerContentMarginRefresh();
+    });
+
     // Effect to peek bottom sheet when proximity spot is detected
     effect(() => {
       const spot = this.checkInService.currentProximitySpot();
@@ -2613,6 +2629,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       // Setup scroll listeners for the sidebar (desktop) and bottom-sheet (mobile)
       try {
         this._attachSidebarScrollListeners();
+        this._attachDrawerResizeObserver();
 
         // Measure the chip listbox height and keep the top spacer in sync
         try {
@@ -3823,6 +3840,46 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private _attachDrawerResizeObserver(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this._drawerResizeObserver?.disconnect();
+    this._drawerResizeObserver = null;
+
+    const drawerElement = this._infoDrawerElement?.nativeElement;
+    if (!drawerElement) {
+      return;
+    }
+
+    this._drawerResizeObserver = new ResizeObserver(() => {
+      this._scheduleDrawerContentMarginRefresh();
+    });
+    this._drawerResizeObserver.observe(drawerElement);
+    this._scheduleDrawerContentMarginRefresh();
+  }
+
+  private _scheduleDrawerContentMarginRefresh(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    if (this._drawerMarginRefreshRaf !== null) {
+      return;
+    }
+
+    this._drawerMarginRefreshRaf = requestAnimationFrame(() => {
+      this._drawerMarginRefreshRaf = null;
+      this.drawerContainer?.updateContentMargins();
+
+      this._drawerMarginRefreshFollowupRaf = requestAnimationFrame(() => {
+        this._drawerMarginRefreshFollowupRaf = null;
+        this.drawerContainer?.updateContentMargins();
+      });
+    });
+  }
+
   // Handler invoked by the ResizeObserver directive attached to the chips container.
   onChipsContainerResize(rect: DOMRectReadOnly) {
     const measuredHeight = rect?.height ?? 0;
@@ -4985,6 +5042,30 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           // ignore
         }
         this._chipsWindowResizeListener = null;
+      }
+      if (this._drawerResizeObserver) {
+        try {
+          this._drawerResizeObserver.disconnect();
+        } catch (e) {
+          // ignore
+        }
+        this._drawerResizeObserver = null;
+      }
+      if (this._drawerMarginRefreshRaf !== null) {
+        try {
+          cancelAnimationFrame(this._drawerMarginRefreshRaf);
+        } catch (e) {
+          // ignore
+        }
+        this._drawerMarginRefreshRaf = null;
+      }
+      if (this._drawerMarginRefreshFollowupRaf !== null) {
+        try {
+          cancelAnimationFrame(this._drawerMarginRefreshFollowupRaf);
+        } catch (e) {
+          // ignore
+        }
+        this._drawerMarginRefreshFollowupRaf = null;
       }
     } catch (e) {
       console.warn("Error removing scroll listeners:", e);

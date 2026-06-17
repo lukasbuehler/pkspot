@@ -22,16 +22,13 @@ test.describe("Map Page Visual Regression @visual", () => {
     await mapPage.goto("de");
     await mapPage.waitForMapReady();
     await page.waitForTimeout(2000);
+    const mapSurface = page.locator("app-google-map-2d").first();
 
-    // Mask dynamic map content to reduce flakiness
     await expect(page).toHaveScreenshot("map-page-desktop.png", {
       maxDiffPixels: 80_000, // Higher tolerance for the masked map edge.
       fullPage: false,
       animations: "disabled",
-      mask: [
-        // Mask only the volatile Google Maps render layer, not app overlays.
-        page.locator("app-google-map-2d canvas, .gm-style > div:first-child"),
-      ],
+      mask: [mapSurface],
     });
   });
 

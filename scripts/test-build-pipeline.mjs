@@ -10,6 +10,10 @@ const repoRoot = path.resolve(__dirname, "..");
 const serverPort = process.env.PKSPOT_TEST_BUILD_PORT || "4180";
 const baseUrl = `http://localhost:${serverPort}`;
 const nvmNodeDir = path.join(process.env.HOME || "", ".nvm", "versions", "node");
+const smokeFetchTimeoutMs = Number.parseInt(
+  process.env.PKSPOT_TEST_BUILD_FETCH_TIMEOUT_MS || "15000",
+  10
+);
 
 const angularJsonPath = path.join(repoRoot, "angular.json");
 const srcProxyServerPath = path.join(repoRoot, "src", "proxy-server.mjs");
@@ -136,10 +140,14 @@ async function waitForServer(url, serverProcess, logBuffer, timeoutMs = 60_000) 
     }
 
     try {
-      const response = await fetch(url, {
-        redirect: "manual",
-        headers: { "cache-control": "no-cache" },
-      });
+      const response = await fetchWithTimeout(
+        url,
+        {
+          redirect: "manual",
+          headers: { "cache-control": "no-cache" },
+        },
+        "SSR readiness probe"
+      );
       if (response.status > 0) {
         return;
       }
@@ -153,6 +161,31 @@ async function waitForServer(url, serverProcess, logBuffer, timeoutMs = 60_000) 
   throw new Error(
     `Timed out waiting for SSR server at ${url}\n${logBuffer.join("")}`
   );
+}
+
+async function fetchWithTimeout(url, options = {}, description = url) {
+  const timeoutMs = Number.isFinite(smokeFetchTimeoutMs)
+    ? smokeFetchTimeoutMs
+    : 15_000;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: options.signal ?? controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error(
+        `Timed out after ${timeoutMs}ms while fetching ${description}: ${url}`
+      );
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function assertCrawlerSurface(html, routeLabel, expected = {}) {
@@ -294,9 +327,13 @@ async function assertBrowserAssetsLoad(html, locale, serverLogs, serverLogOffset
   );
 
   for (const assetUrl of assetUrls) {
-    const response = await fetch(`${baseUrl}${assetUrl}`, {
-      redirect: "manual",
-    });
+    const response = await fetchWithTimeout(
+      `${baseUrl}${assetUrl}`,
+      {
+        redirect: "manual",
+      },
+      `${locale} browser asset ${assetUrl}`
+    );
     assert.equal(
       response.status,
       200,
@@ -386,12 +423,16 @@ async function main() {
     await waitForServer(`${baseUrl}/robots.txt`, serverProcess, serverLogs);
 
     console.log("\n==> exercising SSR and static asset routes");
-    const redirectResponse = await fetch(`${baseUrl}/`, {
-      redirect: "manual",
-      headers: {
-        "accept-language": "de-CH,de;q=0.9,en;q=0.8",
+    const redirectResponse = await fetchWithTimeout(
+      `${baseUrl}/`,
+      {
+        redirect: "manual",
+        headers: {
+          "accept-language": "de-CH,de;q=0.9,en;q=0.8",
+        },
       },
-    });
+      "root locale redirect"
+    );
     assert.equal(redirectResponse.status, 301, "Root should redirect by locale");
     assert.equal(
       redirectResponse.headers.get("location"),
@@ -401,9 +442,13 @@ async function main() {
 
     for (const locale of supportedLanguageCodes) {
       const serverLogOffset = serverLogs.length;
-      const ssrResponse = await fetch(`${baseUrl}/${locale}/`, {
-        redirect: "manual",
-      });
+      const ssrResponse = await fetchWithTimeout(
+        `${baseUrl}/${locale}/`,
+        {
+          redirect: "manual",
+        },
+        `${locale} SSR route`
+      );
       assert.equal(
         ssrResponse.status,
         200,
@@ -430,12 +475,16 @@ async function main() {
       );
       await assertBrowserAssetsLoad(ssrHtml, locale, serverLogs, serverLogOffset);
 
-      const staleHtmlRevalidationResponse = await fetch(`${baseUrl}/${locale}/`, {
-        redirect: "manual",
-        headers: {
-          "if-modified-since": new Date(Date.now() + 86_400_000).toUTCString(),
+      const staleHtmlRevalidationResponse = await fetchWithTimeout(
+        `${baseUrl}/${locale}/`,
+        {
+          redirect: "manual",
+          headers: {
+            "if-modified-since": new Date(Date.now() + 86_400_000).toUTCString(),
+          },
         },
-      });
+        `${locale} SSR revalidation route`
+      );
       assert.equal(
         staleHtmlRevalidationResponse.status,
         200,
@@ -447,14 +496,15 @@ async function main() {
       );
     }
 
-    const socialPreviewResponse = await fetch(
+    const socialPreviewResponse = await fetchWithTimeout(
       `${baseUrl}/en/map/spots/josefhalle`,
       {
         redirect: "manual",
         headers: {
           "user-agent": "WhatsApp/2.24.1 A",
         },
-      }
+      },
+      "spot social preview SSR route"
     );
     assert.equal(
       socialPreviewResponse.status,
@@ -488,14 +538,15 @@ async function main() {
       "Spot SSR HTML should not fall back to the default OpenGraph title"
     );
 
-    const communityPreviewResponse = await fetch(
+    const communityPreviewResponse = await fetchWithTimeout(
       `${baseUrl}/en/map/communities/switzerland`,
       {
         redirect: "manual",
         headers: {
           "user-agent": "WhatsApp/2.24.1 A",
         },
-      }
+      },
+      "community social preview SSR route"
     );
     assert.equal(
       communityPreviewResponse.status,
@@ -514,14 +565,15 @@ async function main() {
       /Communities in Switzerland|Country Directory/i,
     ]);
 
-    const zurichCommunityResponse = await fetch(
+    const zurichCommunityResponse = await fetchWithTimeout(
       `${baseUrl}/en/map/communities/zuerich`,
       {
         redirect: "manual",
         headers: {
           "user-agent": "Googlebot/2.1",
         },
-      }
+      },
+      "Zurich community SSR route"
     );
     assert.equal(
       zurichCommunityResponse.status,
@@ -541,12 +593,16 @@ async function main() {
       /href="\/en\/map\/spots\/josefhalle"|href="\/map\/spots\/josefhalle"/i,
     ]);
 
-    const mapResponse = await fetch(`${baseUrl}/en/map`, {
-      redirect: "manual",
-      headers: {
-        "user-agent": "Googlebot/2.1",
+    const mapResponse = await fetchWithTimeout(
+      `${baseUrl}/en/map`,
+      {
+        redirect: "manual",
+        headers: {
+          "user-agent": "Googlebot/2.1",
+        },
       },
-    });
+      "map SSR route"
+    );
     assert.equal(mapResponse.status, 200, "Map SSR route should render");
     const mapHtml = await mapResponse.text();
     assert.match(mapHtml, /<!doctype html>/i, "Map SSR route should return HTML");
@@ -555,12 +611,16 @@ async function main() {
       /find spots, communities, and events near you/i,
     ]);
 
-    const eventsPageResponse = await fetch(`${baseUrl}/en/events`, {
-      redirect: "manual",
-      headers: {
-        "user-agent": "WhatsApp/2.24.1 A",
+    const eventsPageResponse = await fetchWithTimeout(
+      `${baseUrl}/en/events`,
+      {
+        redirect: "manual",
+        headers: {
+          "user-agent": "WhatsApp/2.24.1 A",
+        },
       },
-    });
+      "events SSR route"
+    );
     assert.equal(
       eventsPageResponse.status,
       200,
@@ -582,14 +642,15 @@ async function main() {
       "Events SSR HTML should not remain in the loading state"
     );
 
-    const eventPreviewResponse = await fetch(
+    const eventPreviewResponse = await fetchWithTimeout(
       `${baseUrl}/en/events/swissjam25`,
       {
         redirect: "manual",
         headers: {
           "user-agent": "WhatsApp/2.24.1 A",
         },
-      }
+      },
+      "event social preview SSR route"
     );
     assert.equal(
       eventPreviewResponse.status,
@@ -623,14 +684,15 @@ async function main() {
       "Event SSR HTML should not fall back to the generic events OpenGraph URL"
     );
 
-    const mapEventPreviewResponse = await fetch(
+    const mapEventPreviewResponse = await fetchWithTimeout(
       `${baseUrl}/en/map/events/swissjam25`,
       {
         redirect: "manual",
         headers: {
           "user-agent": "Googlebot/2.1",
         },
-      }
+      },
+      "map event SSR route"
     );
     assert.equal(
       mapEventPreviewResponse.status,
@@ -648,12 +710,16 @@ async function main() {
       /See full event|Open event|Event/i,
     ]);
 
-    const profilePreviewResponse = await fetch(`${baseUrl}/en/u/lukas`, {
-      redirect: "manual",
-      headers: {
-        "user-agent": "WhatsApp/2.24.1 A",
+    const profilePreviewResponse = await fetchWithTimeout(
+      `${baseUrl}/en/u/lukas`,
+      {
+        redirect: "manual",
+        headers: {
+          "user-agent": "WhatsApp/2.24.1 A",
+        },
       },
-    });
+      "profile social preview SSR route"
+    );
     assert.equal(
       profilePreviewResponse.status,
       200,
@@ -667,14 +733,15 @@ async function main() {
       body: /profile|spots|activity|Lukas/i,
     });
 
-    const notFoundResponse = await fetch(
+    const notFoundResponse = await fetchWithTimeout(
       `${baseUrl}/en/this-route-should-not-exist`,
       {
         redirect: "manual",
         headers: {
           "user-agent": "WhatsApp/2.24.1 A",
         },
-      }
+      },
+      "unknown SSR route"
     );
     assert.equal(
       notFoundResponse.status,
@@ -688,13 +755,21 @@ async function main() {
       "Unknown SSR route should render a not-found surface"
     );
 
-    const robotsResponse = await fetch(`${baseUrl}/robots.txt`);
+    const robotsResponse = await fetchWithTimeout(
+      `${baseUrl}/robots.txt`,
+      {},
+      "robots.txt"
+    );
     assert.equal(robotsResponse.status, 200, "robots.txt should be served");
     assertSsrCacheHeaders(robotsResponse, "robots.txt");
     const robotsText = await robotsResponse.text();
     assert.match(robotsText, /User-agent/i, "robots.txt should have content");
 
-    const faviconResponse = await fetch(`${baseUrl}/favicon.ico`);
+    const faviconResponse = await fetchWithTimeout(
+      `${baseUrl}/favicon.ico`,
+      {},
+      "favicon.ico"
+    );
     assert.equal(faviconResponse.status, 200, "Root favicon should be served");
     assertImmutableAssetCacheHeaders(faviconResponse, "/favicon.ico");
     const faviconBytes = await faviconResponse.arrayBuffer();
@@ -702,7 +777,11 @@ async function main() {
 
     for (const locale of supportedLanguageCodes) {
       const assetUrl = `/${locale}/assets/fonts/icons_list.txt`;
-      const assetResponse = await fetch(`${baseUrl}${assetUrl}`);
+      const assetResponse = await fetchWithTimeout(
+        `${baseUrl}${assetUrl}`,
+        {},
+        `${locale} icons asset`
+      );
       assert.equal(
         assetResponse.status,
         200,

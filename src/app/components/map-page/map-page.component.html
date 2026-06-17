@@ -294,12 +294,14 @@
   </div>
 
   <mat-drawer-container
+    #drawerContainer
     class="h-100 bg-transparent"
     [class.sidenav-open]="sidenavOpen()"
     [class.compact-sidenav]="compactSidenavRange()"
     [hasBackdrop]="false"
   >
     <mat-drawer
+      #infoDrawer
       [opened]="sidenavOpen()"
       position="start"
       [mode]="mapSidenavMode()"
