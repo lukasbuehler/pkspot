@@ -200,19 +200,6 @@ describe("OrganizationsService", () => {
     );
   });
 
-  it("removes spot stewardship through the compatibility method", async () => {
-    const service = configure();
-
-    await service.setSpotVerification("spot-1", null);
-
-    expect(mockCallable).toHaveBeenCalledWith({
-      spotId: "spot-1",
-      organizationId: null,
-      relationship: "steward",
-      enabled: false,
-    });
-  });
-
   it("does not allow non-admin users to set organization relationships", async () => {
     const service = configure(false);
 

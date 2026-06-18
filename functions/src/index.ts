@@ -48,7 +48,6 @@ export {
   evaluateSpotEditVotesOnVoteWrite,
   evaluatePendingSpotEditVotesOnSchedule,
   reviewVerifiedSpotEdit,
-  setSpotVerification,
   setSpotOrganizationRelationship,
 } from "./spotEditFunctions";
 export { syncVerifiedSpotOrganizationSnapshots } from "./organizationFunctions";

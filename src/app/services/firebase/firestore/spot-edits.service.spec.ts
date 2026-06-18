@@ -223,6 +223,41 @@ describe("SpotEditsService", () => {
     );
   });
 
+  it("does not route legacy-only verified spots into private organization review", async () => {
+    mockFirestoreAdapter.getDocument.mockResolvedValueOnce({
+      verification: {
+        status: "verified",
+        organization_id: "pkspot",
+        organization: {
+          id: "pkspot",
+          name: "PK Spot",
+          slug: "pkspot",
+        },
+        verified_by_user_id: "admin-user",
+        verified_at: {} as never,
+        lock_edits: true,
+      },
+    });
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
+
+    await service.addSpotEdit("spot-1", {
+      type: "UPDATE",
+      timestamp: {} as SpotEditSchema["timestamp"],
+      timestamp_raw_ms: 1,
+      user: { uid: "user-1", display_name: "Test User" },
+      data: {
+        name: { en: "Legacy Verified Spot Edit" },
+      },
+    });
+
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/spot-1/edits",
+      expect.objectContaining({
+        visibility: "public",
+      })
+    );
+  });
+
   it("recursively removes undefined values from edit documents", async () => {
     mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
 

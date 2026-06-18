@@ -306,8 +306,7 @@ export class SpotEditsService extends ConsentAwareService {
     const requiresOrganizationReview =
       edit.type === "UPDATE" &&
       (spot?.management?.status === "managed" ||
-        (spot?.stewardship?.organization_ids?.length ?? 0) > 0 ||
-        spot?.verification?.status === "verified");
+        (spot?.stewardship?.organization_ids?.length ?? 0) > 0);
     const visibility = requiresOrganizationReview ? "private" : "public";
     const cleanEdit = cleanDataForFirestore({
       visibility,

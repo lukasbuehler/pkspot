@@ -59,6 +59,35 @@ describe("app routes", () => {
     expect(organizationRoute?.data?.["routeName"]).toBe("Organization");
   });
 
+  it("should keep organization admin and review boilerplate hidden from navigation", () => {
+    const hiddenOrganizationRoutes = routes.filter((route) =>
+      ["organization-admin", "organization-reviews"].includes(route.path ?? "")
+    );
+
+    expect(hiddenOrganizationRoutes.map((route) => route.path).sort()).toEqual([
+      "organization-admin",
+      "organization-reviews",
+    ]);
+    expect(hiddenOrganizationRoutes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "organization-admin",
+          data: expect.objectContaining({
+            routeName: "Organization Admin",
+            discoverable: false,
+          }),
+        }),
+        expect.objectContaining({
+          path: "organization-reviews",
+          data: expect.objectContaining({
+            routeName: "Organization Reviews",
+            discoverable: false,
+          }),
+        }),
+      ])
+    );
+  });
+
   it("should register the contact page as an acceptance-free static route", () => {
     const contactRoute = routes.find((route) => route.path === "contact");
 

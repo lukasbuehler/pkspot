@@ -340,7 +340,7 @@ export function isDrySpotCandidate(
 export function deriveSpotCommunityData(
   spotLike: Pick<
     SpotSchema,
-    "address" | "type" | "amenities" | "stewardship" | "management" | "verification"
+    "address" | "type" | "amenities" | "stewardship" | "management"
   >,
 ): SpotLandingSchema | null {
   const country = getCountryMetadata(
@@ -369,8 +369,7 @@ export function deriveSpotCommunityData(
     isDry: isDrySpotCandidate(spotLike),
     organizationVerified:
       spotLike.management?.status === "managed" ||
-      (spotLike.stewardship?.organization_ids?.length ?? 0) > 0 ||
-      spotLike.verification?.status === "verified",
+      (spotLike.stewardship?.organization_ids?.length ?? 0) > 0,
   };
 }
 

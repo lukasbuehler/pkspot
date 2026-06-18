@@ -161,13 +161,10 @@ export const applySpotEditOnCreate = onDocumentCreated(
               (id: unknown): id is string => typeof id === "string"
             )
           : [];
-        const legacyVerificationOrganizationId = spotData.verification?.organization_id;
         const reviewOrganizationIds = managementOrganizationId
           ? [managementOrganizationId]
           : stewardOrganizationIds.length > 0
           ? stewardOrganizationIds
-          : legacyVerificationOrganizationId
-          ? [legacyVerificationOrganizationId]
           : [];
         const reviewOrganizationId = reviewOrganizationIds[0];
 
@@ -1016,20 +1013,6 @@ async function setSpotOrganizationRelationshipImpl(
 export const setSpotOrganizationRelationship = onCall(
   CALLABLE_CORS_OPTIONS,
   setSpotOrganizationRelationshipImpl
-);
-
-// Backwards-compatible callable name: old "verification" now means stewardship.
-export const setSpotVerification = onCall(
-  CALLABLE_CORS_OPTIONS,
-  async (request) =>
-    setSpotOrganizationRelationshipImpl({
-      ...request,
-      data: {
-        ...(request.data ?? {}),
-        relationship: "steward",
-        enabled: request.data?.organizationId !== null,
-      },
-    })
 );
 
 async function tryAcquireEditApplyLock(

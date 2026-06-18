@@ -73,6 +73,23 @@ describe("SpotLandingHelpers", () => {
     ).toEqual(expect.objectContaining({ organizationVerified: true }));
   });
 
+  it("should not treat legacy spot verification as organization verified", () => {
+    expect(
+      deriveSpotCommunityData({
+        address: { country: { code: "ch", name: "Switzerland" } },
+        type: "urban landscape",
+        verification: {
+          status: "verified",
+          organization_id: "pkspot",
+          organization: { id: "pkspot", name: "PK Spot", slug: "pkspot" },
+          verified_by_user_id: "admin",
+          verified_at: {} as never,
+          lock_edits: true,
+        },
+      } as Parameters<typeof deriveSpotCommunityData>[0]),
+    ).toEqual(expect.objectContaining({ organizationVerified: false }));
+  });
+
   it("should mark covered and indoor spots as dry", () => {
     expect(
       isDrySpotCandidate({

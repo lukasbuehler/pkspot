@@ -1232,8 +1232,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         const requiresOrganizationReview =
           spot instanceof Spot &&
           (spot.management?.status === "managed" ||
-            (spot.stewardship?.organization_ids?.length ?? 0) > 0 ||
-            spot.verification?.status === "verified");
+            (spot.stewardship?.organization_ids?.length ?? 0) > 0);
         const saveMessage = requiresOrganizationReview
           ? $localize`Edit submitted for organization review`
           : $localize`Spot saved successfully`;

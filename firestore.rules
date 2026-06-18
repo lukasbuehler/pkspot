@@ -38,8 +38,7 @@ service cloud.firestore {
           'stewardship' in spot
           && 'organization_ids' in spot.stewardship
           && spot.stewardship.organization_ids.size() > 0
-        )
-        || ('verification' in spot && spot.verification.status == 'verified');
+        );
     }
 
     function eventComputedFields() {

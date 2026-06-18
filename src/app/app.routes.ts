@@ -237,7 +237,7 @@ export const routes: Routes = [
       import("./components/organization-review-inbox/organization-review-inbox.component").then(
         (m) => m.OrganizationReviewInboxComponent,
       ),
-    data: { routeName: "Organization Reviews" },
+    data: { routeName: "Organization Reviews", discoverable: false },
   },
   {
     path: "organization-admin",
@@ -245,7 +245,7 @@ export const routes: Routes = [
       import("./components/organization-admin-page/organization-admin-page.component").then(
         (m) => m.OrganizationAdminPageComponent,
       ),
-    data: { routeName: "Organization Admin" },
+    data: { routeName: "Organization Admin", discoverable: false },
   },
   {
     path: "moderation",

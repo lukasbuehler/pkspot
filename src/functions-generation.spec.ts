@@ -60,6 +60,23 @@ describe("Cloud Functions generation policy", () => {
     expect(spotEditSource).toContain("used_spots");
   });
 
+  it("does not keep legacy spot verification fallbacks in org review routing", () => {
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+    const spotEditSource = readFileSync(
+      resolve(functionsSourceRoot, "spotEditFunctions.ts"),
+      "utf8"
+    );
+    const rulesSource = readFileSync(resolve(repoRoot, "firestore.rules"), "utf8");
+
+    expect(indexSource).not.toContain("setSpotVerification");
+    expect(spotEditSource).not.toContain("legacyVerification");
+    expect(spotEditSource).not.toContain("spotData.verification");
+    expect(rulesSource).not.toContain("spot.verification.status");
+  });
+
   it("keeps signup number assignment on a gen 2 profile trigger", () => {
     const source = readFileSync(
       resolve(functionsSourceRoot, "userSignupFunctions.ts"),

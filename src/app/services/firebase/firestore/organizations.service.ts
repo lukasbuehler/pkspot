@@ -381,15 +381,4 @@ export class OrganizationsService {
     );
   }
 
-  // Compatibility alias: old verification is now public-spot stewardship.
-  async setSpotVerification(
-    spotId: string,
-    organizationId: string | null
-  ): Promise<void> {
-    if (organizationId === null) {
-      await this._setSpotOrganizationRelationship(spotId, null, "steward", false);
-      return;
-    }
-    await this.setSpotStewardship(spotId, organizationId, true);
-  }
 }

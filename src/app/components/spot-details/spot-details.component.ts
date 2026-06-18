@@ -672,20 +672,7 @@ export class SpotDetailsComponent
           organization !== undefined
       ) ?? [];
 
-    if (organizations.length > 0) return organizations;
-
-    const legacyVerification = spot.verification;
-    if (legacyVerification?.status !== "verified") return [];
-
-    return [
-      {
-        status: "active",
-        organization_id: legacyVerification.organization_id,
-        organization: legacyVerification.organization,
-        stewarded_by_user_id: legacyVerification.verified_by_user_id,
-        stewarded_at: legacyVerification.verified_at,
-      },
-    ];
+    return organizations;
   });
   readonly managedOrganization = computed((): SpotManagementSchema | null => {
     const spot = this.spot();
@@ -1273,10 +1260,7 @@ export class SpotDetailsComponent
 
       const nextStewardId = this.selectedStewardOrganizationId();
       const currentStewardIds = new Set(
-        spot.stewardship?.organization_ids ??
-          (spot.verification?.organization_id
-            ? [spot.verification.organization_id]
-            : [])
+        spot.stewardship?.organization_ids ?? []
       );
       if (nextStewardId && !currentStewardIds.has(nextStewardId)) {
         await this._organizationsService.setSpotStewardship(
