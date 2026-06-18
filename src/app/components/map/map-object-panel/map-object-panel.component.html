@@ -10,7 +10,7 @@
 </div>
 
 <app-filter-chips-bar
-  class="d-block pb-3 px-3"
+  class="d-block pb-2 px-3"
   [selectedFilter]="mode()"
   [presetFilters]="objectTypeFilterChips()"
   [showFiltersChip]="false"
@@ -42,7 +42,10 @@
     @if (mode() === "all") {
       @if (allModeEvents().length > 0) {
         <section class="object-panel-section px-3">
-          <div class="peek-title" [class.peek-title--hidden]="hidePeekTitles()">
+          <div
+            class="peek-title pt-1"
+            [class.peek-title--hidden]="hidePeekTitles()"
+          >
             <h2 class="mat-title-medium m-0" i18n="@@map.all_events_heading">
               Events
             </h2>
@@ -55,7 +58,10 @@
         </section>
       }
       <section class="object-panel-section px-3">
-        <div class="peek-title" [class.peek-title--hidden]="hidePeekTitles()">
+        <div
+          class="peek-title pt-1"
+          [class.peek-title--hidden]="hidePeekTitles()"
+        >
           <h2 class="mat-title-medium m-0" i18n="@@map.all_spots_heading">
             Spots
           </h2>
@@ -85,12 +91,17 @@
       </section>
       @if (allModeCommunities().length > 0) {
         <section class="object-panel-section px-3">
-          <h2
-            class="mat-title-medium mb-2"
-            i18n="@@map.all_communities_heading"
+          <div
+            class="peek-title pt-1"
+            [class.peek-title--hidden]="hidePeekTitles()"
           >
-            Communities
-          </h2>
+            <h2
+              class="mat-title-medium mb-2"
+              i18n="@@map.all_communities_heading"
+            >
+              Communities
+            </h2>
+          </div>
           <app-map-community-list
             [communities]="allModeCommunities()"
             (selectCommunity)="communitySelect.emit($event)"

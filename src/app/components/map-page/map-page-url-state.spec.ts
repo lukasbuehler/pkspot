@@ -272,6 +272,18 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(filterMethod).toContain('this.mapObjectMode.set("spots")');
   });
 
+  it("loads country communities in the initial viewport object search", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const viewportSearch = source.match(
+      /\.searchMapObjectsInBounds\(bounds, \{[\s\S]*?\n          \}\)/
+    )?.[0];
+
+    expect(viewportSearch).toContain("includeCountryCommunities: true");
+    expect(viewportSearch).not.toContain(
+      'includeCountryCommunities: objectMode === "communities"',
+    );
+  });
+
   it("keeps all-panel community and about links crawlable", () => {
     const objectPanel = readFileSync(
       join(

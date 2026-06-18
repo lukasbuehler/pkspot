@@ -50,39 +50,8 @@ mat-card {
   left: 50%;
   z-index: 2;
   color: var(--mat-sys-primary);
+  background: transparent;
   transform: translate(-50%, -50%);
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: -2.2rem;
-    z-index: -1;
-    border-radius: 999px;
-    background: radial-gradient(
-      circle at center,
-      color-mix(in srgb, var(--mat-sys-shadow) 96%, transparent) 0%,
-      color-mix(in srgb, var(--mat-sys-shadow) 84%, transparent) 34%,
-      color-mix(in srgb, var(--mat-sys-shadow) 56%, transparent) 56%,
-      color-mix(in srgb, var(--mat-sys-shadow) 28%, transparent) 75%,
-      transparent 100%
-    );
-    filter: blur(16px);
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    inset: -3.4rem;
-    z-index: -2;
-    border-radius: 999px;
-    background: radial-gradient(
-      circle at center,
-      color-mix(in srgb, var(--mat-sys-shadow) 58%, transparent) 0%,
-      color-mix(in srgb, var(--mat-sys-shadow) 38%, transparent) 45%,
-      transparent 100%
-    );
-    filter: blur(24px);
-  }
 }
 
 mat-card.compact {

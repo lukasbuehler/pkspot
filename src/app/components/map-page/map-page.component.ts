@@ -1844,7 +1844,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // Debounced 400ms so rapid pans don't fan out into a request per frame.
     effect((onCleanup) => {
       const viewport = this._viewport();
-      const objectMode = this.mapObjectMode();
       if (!viewport) return;
       if (typeof google === "undefined" || !google?.maps) return;
 
@@ -1860,7 +1859,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           .searchMapObjectsInBounds(bounds, {
             eventLimit: searchLimits.events,
             communityLimit: searchLimits.communities,
-            includeCountryCommunities: objectMode === "communities",
+            // Load countries with the initial/all-mode result so switching to
+            // Communities does not make country rows pop in after the fact.
+            includeCountryCommunities: true,
             viewportZoom: viewport.zoom,
           })
           .then((result) => {

@@ -10,7 +10,7 @@
     @if (canScrollLeft()) {
       <button
         type="button"
-        class="scroll-button left d-flex align-items-center justify-content-center"
+        class="scroll-button glass left d-flex align-items-center justify-content-center"
         [attr.aria-label]="scrollLeftLabel"
         (click)="scrollChips('left')"
       >
@@ -66,7 +66,7 @@
     @if (canScrollRight()) {
       <button
         type="button"
-        class="scroll-button right d-flex align-items-center justify-content-center"
+        class="scroll-button glass right d-flex align-items-center justify-content-center"
         [attr.aria-label]="scrollRightLabel"
         (click)="scrollChips('right')"
       >
