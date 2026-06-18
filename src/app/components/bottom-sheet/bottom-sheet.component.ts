@@ -19,7 +19,6 @@ import {
   templateUrl: "./bottom-sheet.component.html",
   styleUrls: ["./bottom-sheet.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
 })
 export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   @Output() isAtTopChange = new EventEmitter<boolean>();
@@ -121,6 +120,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private resizeObserver: ResizeObserver | null = null;
   private lastRecordedHeight = 0;
   private mutationObserver: MutationObserver | null = null;
+  private layoutRecalculationFrameId: number | null = null;
 
   // ─── Shared drag helpers ───────────────────────────────────────────
 
@@ -352,18 +352,15 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     };
     this.addListener(window as any, "resize", handleWindowResize);
 
-    // Also set up a MutationObserver to detect DOM changes in the parent that might affect layout
-    // (e.g., nav bar being added/removed)
+    // Watch only the direct layout host. The map page contains a very active
+    // Google Maps subtree; observing descendants here would turn internal map
+    // style/class churn into repeated sheet layout reads.
     if (typeof MutationObserver !== "undefined" && sheetEl.parentElement) {
       this.mutationObserver = new MutationObserver(() => {
-        // Use a small delay to allow layout to settle
-        setTimeout(() => {
-          this.recalculateSheetPosition(sheetEl);
-        }, 50);
+        this.scheduleSheetPositionRecalculation(sheetEl);
       });
       this.mutationObserver.observe(sheetEl.parentElement, {
         childList: true,
-        subtree: true,
         attributes: true,
         attributeFilter: ["class", "style"],
       });
@@ -809,6 +806,21 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.mutationObserver.disconnect();
       this.mutationObserver = null;
     }
+    if (this.layoutRecalculationFrameId !== null) {
+      window.cancelAnimationFrame(this.layoutRecalculationFrameId);
+      this.layoutRecalculationFrameId = null;
+    }
+  }
+
+  private scheduleSheetPositionRecalculation(sheetEl: HTMLElement): void {
+    if (this.layoutRecalculationFrameId !== null) {
+      return;
+    }
+
+    this.layoutRecalculationFrameId = window.requestAnimationFrame(() => {
+      this.layoutRecalculationFrameId = null;
+      this.recalculateSheetPosition(sheetEl);
+    });
   }
 
   private shouldStartDrag(event: PointerEvent, sheetEl: HTMLElement): boolean {

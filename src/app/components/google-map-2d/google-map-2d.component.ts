@@ -133,6 +133,12 @@ interface VisibleRegularSpotMarkersCache {
   visibleSpots: (LocalSpot | Spot)[];
 }
 
+interface VisibleHighlightedSpotPreviewsCache {
+  spots: SpotPreviewData[];
+  selectedSpotId: string | null;
+  visibleSpots: SpotPreviewData[];
+}
+
 export interface TilesObject {
   zoom: number;
   tiles: { x: number; y: number }[];
@@ -444,12 +450,27 @@ export class GoogleMap2dComponent
     const selectedSpotId =
       selectedSpot && "id" in selectedSpot ? selectedSpot.id : null;
 
-    // Only filter out the selected spot - don't filter by bounds
-    if (selectedSpotId) {
-      return spots.filter((spot) => spot.id !== selectedSpotId);
+    if (
+      this._visibleHighlightedSpotPreviewsCache &&
+      this._visibleHighlightedSpotPreviewsCache.spots === spots &&
+      this._visibleHighlightedSpotPreviewsCache.selectedSpotId ===
+        selectedSpotId
+    ) {
+      return this._visibleHighlightedSpotPreviewsCache.visibleSpots;
     }
 
-    return spots;
+    // Only filter out the selected spot - don't filter by bounds.
+    const visibleSpots = selectedSpotId
+      ? spots.filter((spot) => spot.id !== selectedSpotId)
+      : spots;
+
+    this._visibleHighlightedSpotPreviewsCache = {
+      spots,
+      selectedSpotId,
+      visibleSpots,
+    };
+
+    return visibleSpots;
   }
 
   private _getVisibleRegularSpotMarkers(): (LocalSpot | Spot)[] {
@@ -735,6 +756,8 @@ export class GoogleMap2dComponent
   private _featureBoundaryPlaceIdCache = new Map<string, string | null>();
   private _markerCollisionLayoutCache: MarkerCollisionLayoutCache | null = null;
   private _visibleRegularSpotMarkersCache: VisibleRegularSpotMarkersCache | null =
+    null;
+  private _visibleHighlightedSpotPreviewsCache: VisibleHighlightedSpotPreviewsCache | null =
     null;
 
   /**
@@ -1761,10 +1784,6 @@ export class GoogleMap2dComponent
 
   // }
 
-  private _lastBoundsChangeTime = 0;
-  private _boundsThrottleTimer: any = null;
-  private readonly BOUNDS_THROTTLE_MS = 1000;
-
   // FPS Counter
   fps = signal<number>(0);
   private _lastFrameTime = 0;
@@ -1821,31 +1840,6 @@ export class GoogleMap2dComponent
       this._fpsAnimationFrameId = requestAnimationFrame(loop);
     };
     this._fpsAnimationFrameId = requestAnimationFrame(loop);
-  }
-
-  boundsChanged() {
-    const now = Date.now();
-
-    // If enough time has passed, execute immediately
-    if (now - this._lastBoundsChangeTime > this.BOUNDS_THROTTLE_MS) {
-      this._executeBoundsChange();
-      this._lastBoundsChangeTime = now;
-      // Clear any pending timer since we just executed
-      if (this._boundsThrottleTimer) {
-        clearTimeout(this._boundsThrottleTimer);
-        this._boundsThrottleTimer = null;
-      }
-    } else {
-      // Otherwise, schedule a trailing update to ensure the final state is captured
-      // This handles the case where the user stops moving between throttle intervals
-      if (this._boundsThrottleTimer) clearTimeout(this._boundsThrottleTimer);
-
-      this._boundsThrottleTimer = setTimeout(() => {
-        this._executeBoundsChange();
-        this._lastBoundsChangeTime = Date.now();
-        this._boundsThrottleTimer = null;
-      }, this.BOUNDS_THROTTLE_MS);
-    }
   }
 
   cameraIdle() {
