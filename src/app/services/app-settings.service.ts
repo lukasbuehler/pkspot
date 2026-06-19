@@ -9,6 +9,7 @@ export class AppSettingsService {
 
   // Signals for settings
   debugMode = signal<boolean>(false);
+  mapProfileMode = signal<boolean>(false);
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this._loadSettings();
@@ -31,6 +32,9 @@ export class AppSettingsService {
         if (typeof parsed.debugMode === "boolean") {
           this.debugMode.set(parsed.debugMode);
         }
+        if (typeof parsed.mapProfileMode === "boolean") {
+          this.mapProfileMode.set(parsed.mapProfileMode);
+        }
       }
     } catch (e) {
       console.warn("Failed to load app settings", e);
@@ -45,6 +49,7 @@ export class AppSettingsService {
     try {
       const settings = {
         debugMode: this.debugMode(),
+        mapProfileMode: this.mapProfileMode(),
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
     } catch (e) {

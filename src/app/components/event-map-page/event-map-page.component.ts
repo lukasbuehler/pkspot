@@ -499,7 +499,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     const canonicalPath = this._eventCanonicalPath(event);
     const description = this._eventDescription(event);
     const image =
-      eventImageDisplaySrc(event.bannerSrc) ?? "/assets/banner_1200x630.png";
+      eventImageDisplaySrc(event.bannerSrc) ?? "assets/banner_1200x630.png";
 
     this.metaTagService.setEventMetaTags(
       {

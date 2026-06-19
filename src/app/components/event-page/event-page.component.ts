@@ -1239,7 +1239,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       event.bannerSrc ??
       event.media.find((item) => item.type === MediaType.Image)?.src ??
       event.inlineSpots.flatMap((spot) => spot.images ?? [])[0] ??
-      "/assets/banner_1200x630.png"
+      "assets/banner_1200x630.png"
     );
   }
 

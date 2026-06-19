@@ -59,7 +59,7 @@ describe("communityLandingResolver", () => {
       requestedSlug: "london",
       title: "Parkour in London, United Kingdom | PK Spot Community",
       description: "Discover London parkour spots.",
-      imageUrl: "/assets/banner_1200x630.png",
+      imageUrl: "assets/banner_1200x630.png",
       canonicalPath: "/map/communities/london",
       country: { name: "United Kingdom", slug: "united-kingdom" },
       locality: { name: "London", slug: "london" },

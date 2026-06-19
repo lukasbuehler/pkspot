@@ -371,6 +371,21 @@
             </mat-slide-toggle>
           </div>
 
+          <div class="my-4">
+            <h3 class="mat-h3">Map Profiling</h3>
+            <p class="mat-body">
+              Log map frame timing, long tasks, rendering mode, and marker counts
+              to the console.
+            </p>
+            <mat-slide-toggle
+              [checked]="appSettings.mapProfileMode()"
+              (change)="appSettings.mapProfileMode.set($event.checked)"
+              color="primary"
+            >
+              Enable Map Profiling
+            </mat-slide-toggle>
+          </div>
+
           <!--
           <div class="my-4">
             <h3 class="mat-h3">Geo-URI links</h3>

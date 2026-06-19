@@ -23,6 +23,7 @@ import { buildSpotCanonicalPath } from "../../scripts/SpotRouteHelpers";
 import { communityLocalizedText } from "../../scripts/CommunityInfoCardHelpers";
 import { APP_LINKS } from "../shared/app-links";
 import { collectCommunitySpotDirectory } from "../shared/community-spot-directory";
+import { AssetUrlService } from "./asset-url.service";
 
 type SpotStructuredData = Record<string, unknown> & {
   "@type": "Place" | "SportsActivityLocation";
@@ -35,6 +36,7 @@ export class StructuredDataService {
   static readonly BRAND_NAME = "PK Spot";
   static readonly BRAND_URL = "https://pkspot.app";
   static readonly LOGO_URL = "https://pkspot.app/assets/icons/icon-512.webp";
+  private static readonly DEFAULT_IMAGE_PATH = "assets/banner_1200x630.png";
   static readonly INSTAGRAM_LINKTREE_URL = "https://linktr.ee/pkspot";
   static readonly INSTAGRAM_PROFILE_URL = "https://instagram.com/pkspot.app";
   static readonly APPLE_APP_STORE_URL = APP_LINKS.appleAppStoreUrl;
@@ -43,6 +45,7 @@ export class StructuredDataService {
   locale: string = inject(LOCALE_ID);
   platformId = inject(PLATFORM_ID);
   private document = inject(DOCUMENT);
+  private readonly assetUrls = inject(AssetUrlService);
 
   isServer: boolean;
 
@@ -605,16 +608,39 @@ export class StructuredDataService {
     if (!trimmed) {
       return undefined;
     }
+    const nativeBundledAssetUrl =
+      this.assetUrls.resolveBundledAssetUrl(trimmed);
+    if (nativeBundledAssetUrl && nativeBundledAssetUrl !== trimmed) {
+      return this.normalizeAbsoluteUrl(nativeBundledAssetUrl);
+    }
     if (/^https?:\/\//i.test(trimmed)) {
       return trimmed;
     }
     if (trimmed.startsWith("//")) {
       return `https:${trimmed}`;
     }
+    if (this.isDefaultSocialImagePath(trimmed)) {
+      return `${environment.baseUrl}/${this.getCanonicalLocale()}/${StructuredDataService.DEFAULT_IMAGE_PATH}`;
+    }
     if (trimmed.startsWith("/")) {
       return `${environment.baseUrl}${trimmed}`;
     }
     return `${environment.baseUrl}/${trimmed.replace(/^\/+/, "")}`;
+  }
+
+  private isDefaultSocialImagePath(path: string): boolean {
+    return (
+      path === StructuredDataService.DEFAULT_IMAGE_PATH ||
+      path === `/${StructuredDataService.DEFAULT_IMAGE_PATH}`
+    );
+  }
+
+  private getCanonicalLocale(): string {
+    const [language, region] = this.locale.replace("_", "-").split("-");
+    const normalizedLanguage = language?.toLowerCase() || "en";
+    return region
+      ? `${normalizedLanguage}-${region.toUpperCase()}`
+      : normalizedLanguage;
   }
 
   private normalizeHttpUrl(url?: string): string | undefined {

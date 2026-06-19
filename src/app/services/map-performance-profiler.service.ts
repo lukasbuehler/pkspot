@@ -1,5 +1,7 @@
 import { isPlatformBrowser } from "@angular/common";
 import { Inject, Injectable, PLATFORM_ID } from "@angular/core";
+import { Capacitor } from "@capacitor/core";
+import { environment } from "../../environments/environment.default";
 
 export type MapProfilePayload = Record<string, unknown>;
 
@@ -7,6 +9,7 @@ export interface MapProfileEvent {
   label: string;
   payload: MapProfilePayload;
   timestampMs: number;
+  wallTimeMs: number;
 }
 
 interface MapProfileEnableOptions {
@@ -20,7 +23,9 @@ interface MapProfileState {
 }
 
 interface MapProfileConsoleApi {
+  breadcrumbs: () => MapProfileEvent[];
   clear: () => void;
+  clearBreadcrumbs: () => void;
   disable: () => void;
   dump: () => MapProfileEvent[];
   enable: (options?: MapProfileEnableOptions) => void;
@@ -50,14 +55,18 @@ interface WindowWithMapProfile extends Window {
 
 const PROFILE_STORAGE_KEY = "pkspotMapProfile";
 const PROFILE_VERBOSE_STORAGE_KEY = "pkspotMapProfileVerbose";
+const PROFILE_BREADCRUMB_STORAGE_KEY = "pkspotMapProfileBreadcrumbs";
 const MAX_STORED_EVENTS = 1_000;
+const MAX_STORED_BREADCRUMBS = 100;
 const FRAME_REPORT_INTERVAL_MS = 1_000;
+const MAX_SANITIZE_DEPTH = 6;
 
 @Injectable({
   providedIn: "root",
 })
 export class MapPerformanceProfilerService {
   private readonly _isBrowser: boolean;
+  private _breadcrumbs: MapProfileEvent[] = [];
   private _enabled = false;
   private _events: MapProfileEvent[] = [];
   private _frameGaps: number[] = [];
@@ -65,12 +74,16 @@ export class MapPerformanceProfilerService {
   private _lastFrameTimestamp: number | null = null;
   private _lastFrameReportTimestamp = 0;
   private _longTaskObserver: PerformanceObserver | null = null;
+  private _consoleInterceptorInstalled = false;
+  private _googleMarkerContentVisibilityWarningCount = 0;
+  private _throttledEventTimestamps = new Map<string, number>();
   private _verbose = false;
 
   constructor(@Inject(PLATFORM_ID) platformId: object) {
     this._isBrowser = isPlatformBrowser(platformId);
     if (!this._isBrowser) return;
 
+    this._dumpPreviousBreadcrumbs();
     this._installConsoleApi();
 
     if (this._shouldAutoEnable()) {
@@ -106,28 +119,44 @@ export class MapPerformanceProfilerService {
     this._stopLongTaskObserver();
   }
 
+  ensureInstalled(): void {
+    if (!this._isBrowser) return;
+
+    this._installConsoleApi();
+  }
+
   isEnabled(): boolean {
     return this._enabled;
   }
 
   record(label: string, payload: MapProfilePayload = {}): MapProfileEvent | null {
-    if (!this._enabled) return null;
+    const event = this._createEvent(label, payload);
+    this._storeBreadcrumb(event);
 
-    const event: MapProfileEvent = {
-      label,
-      payload,
-      timestampMs: Math.round(performance.now()),
-    };
+    if (!this._enabled) return event;
+
     this._events.push(event);
     if (this._events.length > MAX_STORED_EVENTS) {
       this._events.shift();
     }
 
-    console.info(`[MapProfile] ${label}`, {
-      ...payload,
-      timestampMs: event.timestampMs,
-    });
+    console.info(`[MapProfile] ${label} ${this._stringifyEvent(event)}`);
     return event;
+  }
+
+  recordThrottled(
+    label: string,
+    payload: MapProfilePayload = {},
+    intervalMs = 1_000,
+  ): MapProfileEvent | null {
+    const now = performance.now();
+    const lastTimestamp = this._throttledEventTimestamps.get(label) ?? 0;
+    if (now - lastTimestamp < intervalMs) {
+      return null;
+    }
+
+    this._throttledEventTimestamps.set(label, now);
+    return this.record(label, payload);
   }
 
   snapshot(label = "manual"): MapProfileEvent | null {
@@ -139,7 +168,9 @@ export class MapPerformanceProfilerService {
     };
 
     if (!this._enabled) {
-      console.info(`[MapProfile] snapshot:${label}`, payload);
+      console.info(
+        `[MapProfile] snapshot:${label} ${this._stringifyPayload(payload)}`,
+      );
       return null;
     }
 
@@ -148,20 +179,36 @@ export class MapPerformanceProfilerService {
 
   dump(): MapProfileEvent[] {
     const events = [...this._events];
-    console.info("[MapProfile] dump", events);
+    console.info(`[MapProfile] dump ${this._stringifyPayload(events)}`);
     return events;
   }
 
+  breadcrumbs(): MapProfileEvent[] {
+    const breadcrumbs = [...this._breadcrumbs];
+    console.info(
+      `[MapProfile] breadcrumbs ${this._stringifyPayload(breadcrumbs)}`,
+    );
+    return breadcrumbs;
+  }
+
   json(): string {
-    const json = JSON.stringify(this._events, null, 2);
-    console.info("[MapProfile] json", json);
+    const json = this._stringifyPayload(this._events);
+    console.info(`[MapProfile] json ${json}`);
     return json;
   }
 
   clear(): void {
     this._events = [];
     this._frameGaps = [];
+    this._googleMarkerContentVisibilityWarningCount = 0;
+    this._throttledEventTimestamps.clear();
     console.info("[MapProfile] cleared");
+  }
+
+  clearBreadcrumbs(): void {
+    this._breadcrumbs = [];
+    localStorage.removeItem(PROFILE_BREADCRUMB_STORAGE_KEY);
+    console.info("[MapProfile] breadcrumbs-cleared");
   }
 
   state(): MapProfileState {
@@ -174,8 +221,12 @@ export class MapPerformanceProfilerService {
 
   private _installConsoleApi(): void {
     const win = window as WindowWithMapProfile;
+    const alreadyInstalled = !!win.pkspotMapProfile;
+    this._installConsoleInterceptor();
     win.pkspotMapProfile = {
+      breadcrumbs: () => this.breadcrumbs(),
       clear: () => this.clear(),
+      clearBreadcrumbs: () => this.clearBreadcrumbs(),
       disable: () => this.disable(),
       dump: () => this.dump(),
       enable: (options?: MapProfileEnableOptions) => this.enable(options),
@@ -183,13 +234,215 @@ export class MapPerformanceProfilerService {
       snapshot: (label?: string) => this.snapshot(label),
       state: () => this.state(),
     };
+    if (!alreadyInstalled) {
+      console.info("[MapProfile] console-api-installed");
+    }
+  }
+
+  private _installConsoleInterceptor(): void {
+    if (this._consoleInterceptorInstalled) return;
+
+    const originalDebug = console.debug.bind(console);
+    const originalWarn = console.warn.bind(console);
+
+    console.debug = (...args: unknown[]) => {
+      if (this._observeConsoleMessage(args)) return;
+      originalDebug(...args);
+    };
+    console.warn = (...args: unknown[]) => {
+      if (this._observeConsoleMessage(args)) return;
+      originalWarn(...args);
+    };
+    this._consoleInterceptorInstalled = true;
+  }
+
+  private _observeConsoleMessage(args: unknown[]): boolean {
+    const message = args.map((arg) => String(arg)).join(" ");
+    if (
+      !message.includes(
+        "Rendering was performed in a subtree hidden by content-visibility",
+      )
+    ) {
+      return false;
+    }
+
+    this._googleMarkerContentVisibilityWarningCount++;
+    this.recordThrottled(
+      "google-marker-content-visibility",
+      {
+        path: window.location.pathname,
+        totalWarnings: this._googleMarkerContentVisibilityWarningCount,
+      },
+      750,
+    );
+    return true;
+  }
+
+  private _createEvent(
+    label: string,
+    payload: MapProfilePayload = {},
+  ): MapProfileEvent {
+    return {
+      label,
+      payload,
+      timestampMs: Math.round(performance.now()),
+      wallTimeMs: Date.now(),
+    };
+  }
+
+  private _storeBreadcrumb(event: MapProfileEvent): void {
+    const breadcrumb: MapProfileEvent = {
+      ...event,
+      payload: this._sanitizePayload(event.payload),
+    };
+    this._breadcrumbs.push(breadcrumb);
+    if (this._breadcrumbs.length > MAX_STORED_BREADCRUMBS) {
+      this._breadcrumbs.splice(
+        0,
+        this._breadcrumbs.length - MAX_STORED_BREADCRUMBS,
+      );
+    }
+
+    try {
+      localStorage.setItem(
+        PROFILE_BREADCRUMB_STORAGE_KEY,
+        JSON.stringify(this._breadcrumbs),
+      );
+    } catch {
+      // Keep profiling best-effort; storage can fail under quota pressure.
+    }
+  }
+
+  private _dumpPreviousBreadcrumbs(): void {
+    const previous = this._loadStoredBreadcrumbs();
+    if (previous.length > 0) {
+      console.info(
+        `[MapProfile] previous-breadcrumbs ${this._stringifyPayload(previous)}`,
+      );
+    }
+
+    this._breadcrumbs = [];
+    try {
+      localStorage.setItem(PROFILE_BREADCRUMB_STORAGE_KEY, "[]");
+    } catch {
+      // Ignore storage failures; live console logging still works.
+    }
+  }
+
+  private _loadStoredBreadcrumbs(): MapProfileEvent[] {
+    try {
+      const raw = localStorage.getItem(PROFILE_BREADCRUMB_STORAGE_KEY);
+      if (!raw) return [];
+
+      const parsed: unknown = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed.filter(
+        (event): event is MapProfileEvent =>
+          typeof event === "object" &&
+          event !== null &&
+          typeof (event as MapProfileEvent).label === "string" &&
+          typeof (event as MapProfileEvent).timestampMs === "number" &&
+          typeof (event as MapProfileEvent).wallTimeMs === "number",
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  private _sanitizePayload(value: unknown, depth = 0): MapProfilePayload {
+    const sanitized = this._sanitizeValue(value, depth);
+    return this._isPlainObject(sanitized) ? sanitized : { value: sanitized };
+  }
+
+  private _sanitizeValue(value: unknown, depth: number): unknown {
+    if (
+      value === null ||
+      typeof value === "string" ||
+      typeof value === "boolean"
+    ) {
+      return value;
+    }
+
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : String(value);
+    }
+
+    if (typeof value === "undefined") {
+      return null;
+    }
+
+    if (depth >= MAX_SANITIZE_DEPTH) {
+      return this._summarizeValue(value);
+    }
+
+    if (Array.isArray(value)) {
+      return value
+        .slice(0, 20)
+        .map((item) => this._sanitizeValue(item, depth + 1));
+    }
+
+    if (this._isPlainObject(value)) {
+      return Object.fromEntries(
+        Object.entries(value)
+          .slice(0, 30)
+          .map(([key, item]) => [key, this._sanitizeValue(item, depth + 1)]),
+      );
+    }
+
+    return this._summarizeValue(value);
+  }
+
+  private _isPlainObject(value: unknown): value is Record<string, unknown> {
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      (Object.getPrototypeOf(value) === Object.prototype ||
+        Object.getPrototypeOf(value) === null)
+    );
+  }
+
+  private _summarizeValue(value: unknown): string {
+    if (value instanceof Error) {
+      return `${value.name}: ${value.message}`;
+    }
+
+    const constructorName =
+      typeof value === "object" && value !== null
+        ? value.constructor?.name
+        : typeof value;
+    return `[${constructorName ?? "unknown"}]`;
+  }
+
+  private _stringifyEvent(event: MapProfileEvent): string {
+    return this._stringifyPayload({
+      ...event,
+      payload: this._sanitizePayload(event.payload),
+    });
+  }
+
+  private _stringifyPayload(value: unknown): string {
+    try {
+      return JSON.stringify(this._sanitizeValue(value, 0));
+    } catch (error) {
+      return JSON.stringify({ stringifyError: String(error) });
+    }
   }
 
   private _shouldAutoEnable(): boolean {
     const params = new URLSearchParams(window.location.search);
     return (
       params.get("mapProfile") === "1" ||
-      localStorage.getItem(PROFILE_STORAGE_KEY) === "1"
+      localStorage.getItem(PROFILE_STORAGE_KEY) === "1" ||
+      this._isAndroidDevelopmentBuild()
+    );
+  }
+
+  private _isAndroidDevelopmentBuild(): boolean {
+    return (
+      !environment.production &&
+      Capacitor.isNativePlatform() &&
+      Capacitor.getPlatform() === "android"
     );
   }
 
@@ -206,7 +459,14 @@ export class MapPerformanceProfilerService {
       }
 
       if (this._lastFrameTimestamp !== null) {
-        this._frameGaps.push(timestamp - this._lastFrameTimestamp);
+        const frameGap = timestamp - this._lastFrameTimestamp;
+        this._frameGaps.push(frameGap);
+        if (frameGap >= 250) {
+          this.record("frame-gap", {
+            gapMs: Math.round(frameGap * 10) / 10,
+            path: window.location.pathname,
+          });
+        }
       }
       this._lastFrameTimestamp = timestamp;
 

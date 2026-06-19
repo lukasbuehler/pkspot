@@ -11,6 +11,7 @@ import { LocaleCode } from "../../db/models/Interfaces";
 import { environment } from "../../environments/environment.default";
 import { getDisplayLocalityName } from "../../scripts/AddressHelpers";
 import { normalizeLegacySpotMapPath } from "../../scripts/SpotRouteHelpers";
+import { AssetUrlService } from "./asset-url.service";
 
 export interface MetaTagData {
   title: string;
@@ -29,7 +30,7 @@ interface EventMetaTagData {
   providedIn: "root",
 })
 export class MetaTagService {
-  private static readonly DEFAULT_IMAGE_PATH = "/assets/banner_1200x630.png";
+  private static readonly DEFAULT_IMAGE_PATH = "assets/banner_1200x630.png";
   private static readonly SUPPORTED_LOCALES = [
     "en",
     "de",
@@ -44,6 +45,7 @@ export class MetaTagService {
   locale: LocaleCode = inject(LOCALE_ID);
   platformId = inject(PLATFORM_ID);
   private document = inject(DOCUMENT);
+  private readonly assetUrls = inject(AssetUrlService);
 
   isServer: boolean;
 
@@ -527,16 +529,31 @@ export class MetaTagService {
     if (!trimmed) {
       return "";
     }
+    const nativeBundledAssetUrl =
+      this.assetUrls.resolveBundledAssetUrl(trimmed);
+    if (nativeBundledAssetUrl && nativeBundledAssetUrl !== trimmed) {
+      return this.normalizeAbsoluteUrl(nativeBundledAssetUrl);
+    }
     if (/^https?:\/\//i.test(trimmed)) {
       return trimmed;
     }
     if (trimmed.startsWith("//")) {
       return `https:${trimmed}`;
     }
+    if (this.isDefaultSocialImagePath(trimmed)) {
+      return `${environment.baseUrl}/${this.getCanonicalLocale()}/${MetaTagService.DEFAULT_IMAGE_PATH}`;
+    }
     if (trimmed.startsWith("/")) {
       return `${environment.baseUrl}${trimmed}`;
     }
     return `${environment.baseUrl}/${trimmed.replace(/^\/+/, "")}`;
+  }
+
+  private isDefaultSocialImagePath(path: string): boolean {
+    return (
+      path === MetaTagService.DEFAULT_IMAGE_PATH ||
+      path === `/${MetaTagService.DEFAULT_IMAGE_PATH}`
+    );
   }
 
   private buildSpotTitle(spot: Spot | LocalSpot): string {

@@ -68,6 +68,13 @@ export class AssetUrlService {
 
   private _readBundledAssetPath(url: string): string | null {
     const normalized = url.trim();
+    const firstPartyAssetMatch = normalized.match(
+      /^https:\/\/(?:www\.)?pkspot\.app\/assets\/(.+)$/iu,
+    );
+    if (firstPartyAssetMatch?.[1]) {
+      return firstPartyAssetMatch[1];
+    }
+
     if (/^(?:https?:|data:|blob:|capacitor:|file:)/iu.test(normalized)) {
       return null;
     }

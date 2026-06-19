@@ -4,6 +4,7 @@ import { TestBed } from "@angular/core/testing";
 import { Meta, Title } from "@angular/platform-browser";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MetaTagService } from "./meta-tag.service";
+import { PlatformService } from "./platform.service";
 import { User } from "../../db/models/User";
 
 const createDocumentMetaMock = (doc: Document) => ({
@@ -43,8 +44,10 @@ describe("MetaTagService", () => {
   let doc: Document;
   let title: { setTitle: ReturnType<typeof vi.fn> };
   let service: MetaTagService;
+  let isNative = false;
 
   beforeEach(() => {
+    isNative = false;
     doc = document.implementation.createHTMLDocument("PK Spot");
     title = { setTitle: vi.fn() };
 
@@ -56,6 +59,7 @@ describe("MetaTagService", () => {
         { provide: Title, useValue: title },
         { provide: LOCALE_ID, useValue: "en" },
         { provide: PLATFORM_ID, useValue: "server" },
+        { provide: PlatformService, useValue: { isNative: () => isNative } },
       ],
     });
 
@@ -122,6 +126,25 @@ describe("MetaTagService", () => {
     );
     expect(linkHref(doc, 'link[rel="canonical"]')).toBe(
       "https://pkspot.app/en/events/swissjam26",
+    );
+  });
+
+  it("rewrites first-party bundled social images for native builds", () => {
+    isNative = true;
+
+    service.setEventMetaTags(
+      {
+        name: "Swiss Jam 2026",
+        image: "https://pkspot.app/assets/banner_1200x630.png",
+      },
+      "/events/swissjam26",
+    );
+
+    expect(metaContent(doc, 'meta[property="og:image"]')).toBe(
+      "https://pkspot.app/en/assets/banner_1200x630.png",
+    );
+    expect(metaContent(doc, 'meta[name="twitter:image"]')).toBe(
+      "https://pkspot.app/en/assets/banner_1200x630.png",
     );
   });
 

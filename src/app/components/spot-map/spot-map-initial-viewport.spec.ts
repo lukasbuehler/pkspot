@@ -84,6 +84,44 @@ describe("resolveInitialMapViewport", () => {
     });
   });
 
+  it("should skip invalid selected, bounds, and saved centers", () => {
+    const viewport = resolveInitialMapViewport({
+      selectedSpotLocation: { lat: 47, lng: Infinity },
+      centerStart: { lat: 48, lng: Number.NaN },
+      boundsCenter: { lat: 100, lng: 8 },
+      lastLocationAndZoom: {
+        location: { lat: 7, lng: Infinity },
+        zoom: 9,
+      },
+      fallbackPreset: {
+        center: { lat: 40, lng: -100 },
+        zoom: 4,
+      },
+      focusZoom: 10,
+    });
+
+    expect(viewport).toEqual({
+      center: { lat: 40, lng: -100 },
+      zoom: 4,
+      source: "fallback",
+    });
+  });
+
+  it("should use the first valid center after an invalid higher-priority center", () => {
+    const viewport = resolveInitialMapViewport({
+      selectedSpotLocation: { lat: 47, lng: Infinity },
+      centerStart: { lat: 46.2, lng: 6.1 },
+      fallbackPreset,
+      focusZoom: 13,
+    });
+
+    expect(viewport).toEqual({
+      center: { lat: 46.2, lng: 6.1 },
+      zoom: 13,
+      source: "center-start",
+    });
+  });
+
   it("should use the fallback preset for a first-time consented visitor", () => {
     const viewport = resolveInitialMapViewport({
       fallbackPreset: {

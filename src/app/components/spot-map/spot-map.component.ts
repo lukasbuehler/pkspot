@@ -55,6 +55,7 @@ import {
   getDataFromClusterTileKey,
 } from "../../../db/schemas/SpotClusterTile";
 import { MapsApiService } from "../../services/maps-api.service";
+import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { isPlatformServer } from "@angular/common";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
@@ -80,6 +81,13 @@ import {
   resolveInitialMapViewport,
   StoredMapViewport,
 } from "./spot-map-initial-viewport";
+import {
+  isFiniteBoundsLiteral,
+  isFiniteLatLngBounds,
+  isFiniteLatLngLiteral,
+  reportInvalidMapCoordinate,
+  toFiniteLatLngLiteral,
+} from "../../shared/map-coordinate-utils";
 import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AnalyticsService } from "../../services/analytics.service";
 
@@ -115,6 +123,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   startRegionService = inject(StartRegionService);
 
   private _router = inject(Router);
+  private _mapProfiler = inject(MapPerformanceProfilerService);
 
   private _isDestroyed = false;
   private readonly duplicateSpotCreateRadiusMeters = 5;
@@ -579,11 +588,18 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       if (showAmenities) {
         if (!amenityMarkers || amenityMarkers.length === 0) {
           this.visibleMarkers.set(inputMarkers);
+          this._recordVisibleMarkerProfile(inputMarkers.length, 0, showAmenities);
           return;
         }
         this.visibleMarkers.set(amenityMarkers.concat(inputMarkers));
+        this._recordVisibleMarkerProfile(
+          inputMarkers.length,
+          amenityMarkers.length,
+          showAmenities,
+        );
       } else {
         this.visibleMarkers.set(inputMarkers);
+        this._recordVisibleMarkerProfile(inputMarkers.length, 0, showAmenities);
       }
     });
 
@@ -704,8 +720,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     if (this._isDestroyed) return;
 
-    const boundsCenter = this.boundRestriction
-      ? new google.maps.LatLngBounds(this.boundRestriction).getCenter().toJSON()
+    const boundsCenter = isFiniteBoundsLiteral(this.boundRestriction)
+      ? toFiniteLatLngLiteral(
+          new google.maps.LatLngBounds(this.boundRestriction).getCenter(),
+        )
       : null;
     const viewport = resolveInitialMapViewport({
       selectedSpotLocation: selectedSpot?.location() ?? null,
@@ -718,14 +736,21 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       focusZoom: this.focusZoom(),
     });
 
-    this.map.center = viewport.center;
     this.mapZoom.set(viewport.zoom);
     this._debugMapEvent("initializeViewport", {
       source: viewport.source,
       center: viewport.center,
       zoom: viewport.zoom,
     });
-    this.map.setZoom(viewport.zoom);
+    this._mapProfiler.record("spot-map:initialize-viewport", {
+      center: viewport.center,
+      source: viewport.source,
+      zoom: viewport.zoom,
+    });
+    this.map.setCamera(
+      { center: viewport.center, zoom: viewport.zoom },
+      `initialize-viewport:${viewport.source}`,
+    );
     this._lastStoredMapViewport = {
       location: viewport.center,
       zoom: viewport.zoom,
@@ -817,11 +842,28 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this._visibleTilesObj = visibleTilesObj;
     if (!visibleTilesObj) return;
 
+    this._mapProfiler.recordThrottled(
+      "spot-map:visible-tiles",
+      {
+        center: visibleTilesObj.center ?? null,
+        tileCount: visibleTilesObj.tiles.length,
+        zoom: visibleTilesObj.zoom,
+      },
+      750,
+    );
     this._spotMapDataManager.setVisibleTiles(visibleTilesObj);
   }
 
   visibleViewportChanged(viewport: VisibleViewport): void {
     if (!viewport) return;
+    this._mapProfiler.recordThrottled(
+      "spot-map:visible-viewport",
+      {
+        bbox: viewport.bbox,
+        zoom: viewport.zoom,
+      },
+      750,
+    );
     this._spotMapDataManager.setVisibleViewport(viewport);
     this.visibleViewportChange.emit(viewport);
   }
@@ -835,9 +877,25 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   mapBoundsChanged(bounds: google.maps.LatLngBounds, zoom: number) {
+    const boundsDebug = bounds?.toJSON();
+    if (!isFiniteLatLngBounds(bounds)) {
+      reportInvalidMapCoordinate(
+        "Ignoring mapBoundsChanged with invalid bounds",
+        boundsDebug,
+      );
+      return;
+    }
+
     // update the local bounds variable
     this.bounds = bounds;
     const center = bounds.getCenter().toJSON();
+    if (!isFiniteLatLngLiteral(center)) {
+      reportInvalidMapCoordinate(
+        "Ignoring mapBoundsChanged with invalid center",
+        center,
+      );
+      return;
+    }
 
     this._debugMapEvent("mapBoundsChanged", {
       center,
@@ -846,6 +904,16 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       storedZoom: this._lastStoredMapViewport?.zoom ?? null,
       selectedCommunity: Boolean(this.communityArea),
     });
+    this._mapProfiler.recordThrottled(
+      "spot-map:bounds-changed",
+      {
+        bounds: bounds.toJSON(),
+        center,
+        selectedCommunity: Boolean(this.communityArea),
+        zoom,
+      },
+      750,
+    );
 
     // Always emit viewport change so map-page can drive the map-island.
     this.viewportBoundsChange.emit(bounds);
@@ -901,6 +969,23 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     return (
       Math.abs(left.lat - right.lat) < epsilon &&
       Math.abs(left.lng - right.lng) < epsilon
+    );
+  }
+
+  private _recordVisibleMarkerProfile(
+    inputMarkers: number,
+    amenityMarkers: number,
+    showAmenities: boolean,
+  ): void {
+    this._mapProfiler.recordThrottled(
+      "spot-map:visible-marker-inputs",
+      {
+        amenityMarkers,
+        inputMarkers,
+        showAmenities,
+        totalVisibleMarkers: inputMarkers + amenityMarkers,
+      },
+      750,
     );
   }
 
@@ -1053,19 +1138,35 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   focusSpot(spot: Spot | LocalSpot) {
     const zoom = Math.max(this.mapZoom(), this.focusZoom());
+    const location = spot.location();
+    if (!isFiniteLatLngLiteral(location)) {
+      reportInvalidMapCoordinate("Ignoring focusSpot with invalid location", {
+        spot: this._getSpotFocusKey(spot),
+        location,
+      });
+      return;
+    }
 
     this._debugMapEvent("focusSpot", {
       spot: this._getSpotFocusKey(spot),
-      location: spot.location(),
+      location,
       zoom,
     });
-    this.focusPoint(spot.location(), zoom);
+    this.focusPoint(location, zoom);
   }
 
   focusPoint(
     point: google.maps.LatLngLiteral,
     zoom: number = this.focusZoom(),
   ) {
+    if (!isFiniteLatLngLiteral(point)) {
+      reportInvalidMapCoordinate(
+        "Ignoring focusPoint with invalid coordinates",
+        point,
+      );
+      return;
+    }
+
     const targetZoom = Math.max(this.mapZoom(), zoom);
 
     this._debugMapEvent("focusPoint", {
@@ -1075,19 +1176,21 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       currentZoom: this.mapZoom(),
     });
 
-    if (this.map?.googleMap) {
-      this.map.googleMap.panTo(point);
-      this.map.setZoom(targetZoom);
-    } else {
-      // If map is not ready yet, set the center directly
-      if (this.map) {
-        this.map.center = point;
-        this.map.setZoom(targetZoom);
-      }
+    if (this.map) {
+      this.map.setCamera({ center: point, zoom: targetZoom }, "focus-point");
     }
   }
 
   focusBounds(bounds: google.maps.LatLngBounds) {
+    const boundsDebug = bounds?.toJSON();
+    if (!isFiniteLatLngBounds(bounds)) {
+      reportInvalidMapCoordinate(
+        "Ignoring focusBounds with invalid bounds",
+        boundsDebug,
+      );
+      return;
+    }
+
     this._debugMapEvent("focusBounds", {
       center: bounds.getCenter().toJSON(),
       bounds: bounds.toJSON(),
@@ -1139,8 +1242,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     let center_coordinates: google.maps.LatLngLiteral | undefined =
       this.map.googleMap.getCenter()?.toJSON();
 
-    if (!center_coordinates) {
-      console.error("Could not get center coordinates of the map");
+    if (!isFiniteLatLngLiteral(center_coordinates)) {
+      reportInvalidMapCoordinate(
+        "Could not get center coordinates of the map",
+        center_coordinates,
+      );
       return;
     }
 

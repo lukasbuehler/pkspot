@@ -264,7 +264,7 @@ async function resolveUserContent(
         metaTagService.setStaticPageMetaTags(
           `${userId} Profile`,
           "Check out this user's profile and achievements on PK Spot.",
-          "/assets/banner_1200x630.png",
+          "assets/banner_1200x630.png",
           `/u/${userId}`
         );
       }
@@ -273,7 +273,7 @@ async function resolveUserContent(
       metaTagService.setStaticPageMetaTags(
         `${userId} Profile`,
         "Check out this user's profile and achievements on PK Spot.",
-        "/assets/banner_1200x630.png",
+        "assets/banner_1200x630.png",
         `/u/${userId}`
       );
     }
@@ -281,7 +281,7 @@ async function resolveUserContent(
     metaTagService.setStaticPageMetaTags(
       "User Profile",
       "Check out this user's profile and achievements on PK Spot.",
-      "/assets/banner_1200x630.png",
+      "assets/banner_1200x630.png",
       "/profile"
     );
   }

@@ -38,6 +38,11 @@ describe("AssetUrlService", () => {
     expect(service.resolveBundledAssetUrl("/assets/logos/wpf_camp.jpg")).toBe(
       "/en/assets/logos/wpf_camp.jpg",
     );
+    expect(
+      service.resolveBundledAssetUrl(
+        "https://pkspot.app/assets/banner_1200x630.png",
+      ),
+    ).toBe("/en/assets/banner_1200x630.png");
   });
 
   it("leaves external and storage-style URLs unchanged on native", () => {

@@ -15,7 +15,8 @@ import { Spot } from "../../db/models/Spot";
 import { MediaType } from "../../db/models/Interfaces";
 import { SpotId } from "../../db/schemas/SpotSchema";
 
-const DEFAULT_SOCIAL_IMAGE = "https://pkspot.app/assets/banner_1200x630.png";
+const DEFAULT_SOCIAL_IMAGE =
+  "https://pkspot.app/en/assets/banner_1200x630.png";
 
 const createDocumentMetaMock = (doc: Document) => ({
   updateTag: vi.fn(

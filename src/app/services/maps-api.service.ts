@@ -18,6 +18,10 @@ import {
 } from "rxjs";
 import { ExternalImage } from "../../db/models/Media";
 import { ConsentAwareService } from "./consent-aware.service";
+import {
+  isFiniteLatLngLiteral,
+  reportInvalidMapCoordinate,
+} from "../shared/map-coordinate-utils";
 
 interface LocationAndZoom {
   location: google.maps.LatLngLiteral;
@@ -138,6 +142,16 @@ export class MapsApiService extends ConsentAwareService {
 
   storeLastLocationAndZoom(lastLocationAndZoom: LocationAndZoom) {
     if (typeof localStorage === "undefined") return;
+    if (
+      !isFiniteLatLngLiteral(lastLocationAndZoom.location) ||
+      !Number.isFinite(lastLocationAndZoom.zoom)
+    ) {
+      reportInvalidMapCoordinate(
+        "Ignoring invalid last map viewport",
+        lastLocationAndZoom,
+      );
+      return;
+    }
 
     localStorage.setItem(
       "lastLocationAndZoom",
@@ -151,7 +165,23 @@ export class MapsApiService extends ConsentAwareService {
     let lastLocationAndZoom = localStorage.getItem("lastLocationAndZoom");
     if (!lastLocationAndZoom) return Promise.resolve(null);
 
-    return Promise.resolve(JSON.parse(lastLocationAndZoom));
+    try {
+      const parsed = JSON.parse(lastLocationAndZoom) as LocationAndZoom;
+      if (
+        !isFiniteLatLngLiteral(parsed?.location) ||
+        !Number.isFinite(parsed?.zoom)
+      ) {
+        localStorage.removeItem("lastLocationAndZoom");
+        reportInvalidMapCoordinate("Removed invalid saved map viewport", parsed);
+        return Promise.resolve(null);
+      }
+
+      return Promise.resolve(parsed);
+    } catch (error) {
+      localStorage.removeItem("lastLocationAndZoom");
+      console.warn("Removed unreadable saved map viewport", error);
+      return Promise.resolve(null);
+    }
   }
 
   storeMapStyle(mapStyle: "roadmap" | "satellite" | "hybrid" | "terrain") {

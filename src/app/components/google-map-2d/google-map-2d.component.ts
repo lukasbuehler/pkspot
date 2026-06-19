@@ -39,6 +39,7 @@ import { environment } from "../../../environments/environment.default";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { ConsentService } from "../../services/consent.service";
+import { PlatformService } from "../../services/platform.service";
 import { GeoPoint } from "firebase/firestore";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
@@ -74,6 +75,13 @@ import type {
   MapMarkerCollisionCandidate,
   MapMarkerCollisionLayout,
 } from "./map-marker-collision-filter";
+import {
+  isFiniteBoundsLiteral,
+  isFiniteLatLngBounds,
+  isUsableMapCenterLiteral,
+  reportInvalidMapCoordinate,
+  toUsableMapCenterLiteral,
+} from "../../shared/map-coordinate-utils";
 
 function enumerateTileRangeX(
   start: number,
@@ -183,6 +191,14 @@ export interface TilesObject {
   viewportBounds?: google.maps.LatLngBoundsLiteral;
 }
 
+interface MapCameraSnapshot {
+  bounds: google.maps.LatLngBoundsLiteral | null;
+  center: google.maps.LatLngLiteral;
+  source: string;
+  timestampMs: number;
+  zoom: number;
+}
+
 @Component({
   selector: "app-google-map-2d",
   templateUrl: "./google-map-2d.component.html",
@@ -223,9 +239,18 @@ export class GoogleMap2dComponent
   implements OnChanges, AfterViewInit, OnDestroy
 {
   private static readonly ZOOM_SYNC_EPSILON = 0.5;
+  private static readonly CAMERA_JUMP_WINDOW_MS = 600;
+  private static readonly MAX_CAMERA_ZOOM_JUMP = 3;
   private _isInternalZoomChange = false;
+  private _isRecoveringInvalidCamera = false;
   private _hasInitializedNativeMap = false;
   private _hasStartedAutoLocationWatch = false;
+  private _invalidCameraRecoveryCount = 0;
+  private _invalidCameraRecoveryTimeoutId: ReturnType<typeof setTimeout> | null =
+    null;
+  private _cameraRecoveryVerificationTimeoutId: ReturnType<typeof setTimeout> | null =
+    null;
+  private _lastValidCamera: MapCameraSnapshot | null = null;
 
   readonly autoStartLocationWatch = environment.features.checkIns;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
@@ -256,9 +281,10 @@ export class GoogleMap2dComponent
   Math = Math; // expose Math for template usage
   // Expose the global Google namespace to the template to satisfy Angular's
   // template type-checker where expressions reference `google.maps.*`.
-  // Use `any` because the global may be undefined at build-time.
-  readonly google: any =
-    typeof window !== "undefined" ? (window as any).google : undefined;
+  readonly google: typeof google | undefined =
+    typeof window !== "undefined"
+      ? (window as Window & { google?: typeof google }).google
+      : undefined;
 
   focusZoom = input<number>(17);
   isDebug = input<boolean>(false);
@@ -280,6 +306,11 @@ export class GoogleMap2dComponent
     lng: 2.4305363,
   };
   @Input() set center(coords: google.maps.LatLngLiteral) {
+    if (!isUsableMapCenterLiteral(coords)) {
+      reportInvalidMapCoordinate("Ignoring invalid map center", coords);
+      return;
+    }
+
     this._center = coords;
     if (this.googleMap) {
       this.googleMap.panTo(this._center);
@@ -292,11 +323,18 @@ export class GoogleMap2dComponent
 
   _zoom = signal<number>(4);
   private readonly _communityVisualZoom = signal<number>(4);
+  private _lastObservedNativeIntegerZoom: number | null = null;
   private readonly COMMUNITY_VISUAL_ZOOM_STEP = 0.1;
   private readonly COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX = 320;
 
   @Input() set zoom(newZoom: number) {
+    if (!Number.isFinite(newZoom)) {
+      reportInvalidMapCoordinate("Ignoring invalid map zoom", newZoom);
+      return;
+    }
+
     this._setCommunityVisualZoom(newZoom);
+    this._lastObservedNativeIntegerZoom = Math.floor(newZoom);
 
     if (this._isInternalZoomChange) {
       this._zoom.set(newZoom);
@@ -323,7 +361,61 @@ export class GoogleMap2dComponent
     this.zoomChange.emit(this._zoom());
   }
 
+  setCamera(
+    camera: {
+      center: google.maps.LatLngLiteral | google.maps.LatLng;
+      zoom: number;
+    },
+    reason: string = "programmatic",
+  ): void {
+    const center = toUsableMapCenterLiteral(camera.center);
+    if (!center || !Number.isFinite(camera.zoom)) {
+      reportInvalidMapCoordinate("Ignoring invalid setCamera request", camera);
+      return;
+    }
+
+    this._center = center;
+    this._zoom.set(Math.floor(camera.zoom));
+    this._lastObservedNativeIntegerZoom = Math.floor(camera.zoom);
+    this._setCommunityVisualZoom(camera.zoom);
+
+    const nativeMap = this.googleMap?.googleMap;
+    if (!nativeMap) {
+      this.zoomChange.emit(this._zoom());
+      return;
+    }
+
+    this._mapProfiler.record("google-map-2d:set-camera", {
+      center,
+      reason,
+      zoom: camera.zoom,
+    });
+
+    const target = { center, zoom: camera.zoom };
+    const moveCamera = nativeMap.moveCamera?.bind(nativeMap);
+    if (moveCamera) {
+      moveCamera(target);
+    } else {
+      nativeMap.setCenter(center);
+      nativeMap.setZoom(camera.zoom);
+    }
+
+    this._rememberValidCamera({
+      bounds: this.googleMap?.getBounds()?.toJSON() ?? null,
+      center,
+      source: reason,
+      timestampMs: performance.now(),
+      zoom: camera.zoom,
+    });
+    this.zoomChange.emit(this._zoom());
+  }
+
   setCenter(center: google.maps.LatLngLiteral): void {
+    if (!isUsableMapCenterLiteral(center)) {
+      reportInvalidMapCoordinate("Ignoring invalid setCenter request", center);
+      return;
+    }
+
     this.center = center;
   }
 
@@ -333,23 +425,47 @@ export class GoogleMap2dComponent
 
   getAndEmitChangedZoom() {
     if (!this.googleMap) return;
-    const mapZoom = this.googleMap.getZoom();
-    if (typeof mapZoom !== "number") return;
+    if (this._isRecoveringInvalidCamera) {
+      this._recordRecoverySuppressedCameraEvent("zoom-changed");
+      return;
+    }
 
+    const camera = this._readCurrentCameraSnapshot("zoom-changed");
+    if (!camera) {
+      this._recoverInvalidCamera("zoom-changed");
+      return;
+    }
+
+    this._rememberValidCamera(camera);
+    const mapZoom = camera.zoom;
+    const newZoom = Math.floor(mapZoom);
+    if (newZoom === this._lastObservedNativeIntegerZoom) return;
+
+    this._lastObservedNativeIntegerZoom = newZoom;
+    this._debugMapEvent("zoomChanged", { zoom: newZoom, mapZoom });
+    this._recordMapProfile("zoom-changed", {
+      deferredRenderZoom: true,
+      mapZoom,
+      renderZoom: this._zoom(),
+      zoom: newZoom,
+    });
+  }
+
+  private _commitSettledCameraZoom(mapZoom: number, source: string): void {
     this._setCommunityVisualZoom(mapZoom);
 
     const newZoom = Math.floor(mapZoom);
+    this._lastObservedNativeIntegerZoom = newZoom;
     if (newZoom === this._zoom()) return;
 
-    this._debugMapEvent("zoomChanged", { zoom: newZoom, mapZoom });
-    this._recordMapProfile("zoom-changed", { mapZoom, zoom: newZoom });
-    this._isInternalZoomChange = true;
+    const previousZoom = this._zoom();
     this._zoom.set(newZoom);
-    this.zoomChange.emit(newZoom);
-    // Reset flag after change detection cycle
-    setTimeout(() => {
-      this._isInternalZoomChange = false;
-    }, 0);
+    this._mapProfiler.record("google-map-2d:render-zoom-settled", {
+      mapZoom,
+      previousZoom,
+      source,
+      zoom: newZoom,
+    });
   }
 
   private _setCommunityVisualZoom(mapZoom: number): void {
@@ -630,16 +746,24 @@ export class GoogleMap2dComponent
       return this._markerCollisionLayoutCache.layout;
     }
 
-    const layout = filterEventSpotCollisions(
-      [
-        ...this._getEventCollisionCandidates(zoom),
-        ...this._getCommunityCollisionCandidates(zoom),
-        ...this._getPointCollisionCandidates(zoom),
-        ...this._getSpotPreviewCollisionCandidates(highlightedSpots),
-        ...this._getSpotModelCollisionCandidates(regularSpots),
-      ],
-      zoom,
-    );
+    const eventCandidates = this._getEventCollisionCandidates(zoom);
+    const communityCandidates = this._getCommunityCollisionCandidates(zoom);
+    const pointCandidates = this._getPointCollisionCandidates(zoom);
+    const highlightedSpotCandidates =
+      this._getSpotPreviewCollisionCandidates(highlightedSpots);
+    const regularSpotCandidates =
+      this._getSpotModelCollisionCandidates(regularSpots);
+    const candidates = [
+      ...eventCandidates,
+      ...communityCandidates,
+      ...pointCandidates,
+      ...highlightedSpotCandidates,
+      ...regularSpotCandidates,
+    ];
+
+    const startedAt = performance.now();
+    const layout = filterEventSpotCollisions(candidates, zoom);
+    const durationMs = performance.now() - startedAt;
 
     this._markerCollisionLayoutCache = {
       highlightedSpots,
@@ -648,8 +772,78 @@ export class GoogleMap2dComponent
       zoom,
       layout,
     };
+    this._recordCollisionProfile({
+      durationMs,
+      inputCounts: {
+        communities: communityCandidates.length,
+        events: eventCandidates.length,
+        highlightedSpots: highlightedSpotCandidates.length,
+        points: pointCandidates.length,
+        regularSpots: regularSpotCandidates.length,
+        total: candidates.length,
+      },
+      layout,
+      zoom,
+    });
 
     return layout;
+  }
+
+  private _recordCollisionProfile(args: {
+    durationMs: number;
+    inputCounts: {
+      communities: number;
+      events: number;
+      highlightedSpots: number;
+      points: number;
+      regularSpots: number;
+      total: number;
+    };
+    layout: MapMarkerCollisionLayout;
+    zoom: number;
+  }): void {
+    const spotInputCount =
+      args.inputCounts.highlightedSpots + args.inputCounts.regularSpots;
+    const hiddenCounts = {
+      communities: args.layout.hiddenCommunityIds.size,
+      events: args.layout.hiddenEventIds.size,
+      points: args.layout.hiddenPointIds.size,
+      spots: args.layout.hiddenSpotIds.size,
+      total:
+        args.layout.hiddenCommunityIds.size +
+        args.layout.hiddenEventIds.size +
+        args.layout.hiddenPointIds.size +
+        args.layout.hiddenSpotIds.size,
+    };
+
+    this._mapProfiler.recordThrottled(
+      "google-map-2d:collision",
+      {
+        durationMs: Math.round(args.durationMs * 100) / 100,
+        hiddenCounts,
+        hiddenPercent: {
+          communities: this._percentage(
+            hiddenCounts.communities,
+            args.inputCounts.communities,
+          ),
+          events: this._percentage(hiddenCounts.events, args.inputCounts.events),
+          points: this._percentage(hiddenCounts.points, args.inputCounts.points),
+          spots: this._percentage(hiddenCounts.spots, spotInputCount),
+          total: this._percentage(hiddenCounts.total, args.inputCounts.total),
+        },
+        inputCounts: args.inputCounts,
+        visibleCounts: {
+          communities:
+            args.inputCounts.communities - hiddenCounts.communities,
+          events: args.inputCounts.events - hiddenCounts.events,
+          points: args.inputCounts.points - hiddenCounts.points,
+          spots: spotInputCount - hiddenCounts.spots,
+          total: args.inputCounts.total - hiddenCounts.total,
+        },
+        zoom: args.zoom,
+      },
+      750,
+    );
   }
 
   private _getEventCollisionCandidates(
@@ -806,6 +1000,11 @@ export class GoogleMap2dComponent
     }
 
     return POINT_MARKER_FULL_COLLISION_SIZE_PX;
+  }
+
+  private _percentage(count: number, total: number): number {
+    if (total <= 0) return 0;
+    return Math.round((count / total) * 10_000) / 100;
   }
 
   private _getSpotPreviewCollisionId(spot: SpotPreviewData): string {
@@ -1278,6 +1477,7 @@ export class GoogleMap2dComponent
     private geolocationService: GeolocationService,
     private snackBar: MatSnackBar,
     private _mapProfiler: MapPerformanceProfilerService,
+    private _platformService: PlatformService,
   ) {
     super();
 
@@ -1360,6 +1560,16 @@ export class GoogleMap2dComponent
       }
 
       this.visibleTilesChange.emit(visibleTiles);
+      this._mapProfiler.recordThrottled(
+        "google-map-2d:visible-tiles",
+        {
+          center: visibleTiles.center ?? null,
+          tileCount: visibleTiles.tiles.length,
+          viewportBounds: visibleTiles.viewportBounds ?? null,
+          zoom: visibleTiles.zoom,
+        },
+        750,
+      );
 
       // Emit a viewport (bbox + zoom) for consumers that prefer bbox-driven loading
       const bounds = this.boundsToRender();
@@ -1431,8 +1641,18 @@ export class GoogleMap2dComponent
     this._recordMapProfile("ready");
 
     if (this.googleMap.googleMap && !this._hasInitializedNativeMap) {
-      this.googleMap.googleMap.setCenter(this.center);
-      this.googleMap.googleMap.setZoom(this.zoom);
+      const initialCamera = this._readCurrentCameraSnapshot("map-ready");
+      if (initialCamera) {
+        this._rememberValidCamera(initialCamera);
+      } else {
+        this._rememberValidCamera({
+          bounds: null,
+          center: this.center,
+          source: "initial-input",
+          timestampMs: performance.now(),
+          zoom: this.zoom,
+        });
+      }
       this._hasInitializedNativeMap = true;
     }
 
@@ -1470,23 +1690,41 @@ export class GoogleMap2dComponent
 
   private async _updateMapConfig() {
     const desiredMapTypeId = this.mapTypeId();
-    const isMapInitialized = !!this.googleMap?.googleMap;
     const nextOptions: google.maps.MapOptions = {
       ...this.mapOptions,
       mapTypeId: desiredMapTypeId,
     };
     const vectorRenderingType = this._getVectorRenderingType();
+    const rasterRenderingType = this._getRasterRenderingType();
     const colorScheme = await this._loadDarkColorScheme();
 
+    const shouldPreferRaster = this._shouldPreferRasterRendering();
+    const shouldUseFractionalZoom = !this._shouldDisableFractionalZoom();
+    nextOptions.isFractionalZoomEnabled = shouldUseFractionalZoom;
+    const isMapInitialized = !!this.googleMap?.googleMap;
+
     if (!isMapInitialized) {
-      if (vectorRenderingType) {
+      nextOptions.center = this.center;
+      nextOptions.zoom = this.zoom;
+
+      if (shouldPreferRaster && rasterRenderingType) {
+        nextOptions.renderingType = rasterRenderingType;
+      } else if (shouldPreferRaster) {
+        nextOptions.renderingType = "RASTER" as google.maps.RenderingType;
+      } else if (vectorRenderingType) {
         nextOptions.renderingType = vectorRenderingType;
       } else if (environment.mapId) {
         // Fallback: if Map ID is present but enum not loaded yet, force VECTOR string
-        (nextOptions as any).renderingType = "VECTOR";
+        (
+          nextOptions as google.maps.MapOptions & {
+            renderingType: google.maps.RenderingType | "VECTOR";
+          }
+        ).renderingType = "VECTOR";
       }
     } else {
       delete (nextOptions as Partial<google.maps.MapOptions>).renderingType;
+      delete (nextOptions as Partial<google.maps.MapOptions>).center;
+      delete (nextOptions as Partial<google.maps.MapOptions>).zoom;
     }
 
     if (colorScheme) {
@@ -1505,10 +1743,17 @@ export class GoogleMap2dComponent
     // `renderingType` must not be changed after instantiation.
     if (isMapInitialized && this.googleMap?.googleMap) {
       try {
+        const staleCameraOptions = {
+          center: this.mapOptions.center ?? null,
+          zoom: this.mapOptions.zoom ?? null,
+        };
         this.googleMap.googleMap.setOptions(nextOptions);
         this._recordMapProfile("config-updated", {
+          cameraOptionsSuppressed: true,
+          isFractionalZoomEnabled: shouldUseFractionalZoom,
           mapTypeId: desiredMapTypeId,
           requestedRenderingType: nextOptions.renderingType ?? null,
+          staleCameraOptions,
         });
       } catch (e) {
         console.warn("Failed to update map config:", e);
@@ -1523,12 +1768,22 @@ export class GoogleMap2dComponent
       this._mapProfiler.record("google-map-2d:config-initialized", {
         mapIdPresent: !!environment.mapId,
         mapTypeId: desiredMapTypeId,
+        isFractionalZoomEnabled: shouldUseFractionalZoom,
         requestedRenderingType: nextOptions.renderingType ?? null,
+        rasterFallback: shouldPreferRaster,
       });
     } catch (e) {
       console.warn("Failed to set map config:", e);
       this.optionsInitialized.set(true); // Proceed anyway
     }
+  }
+
+  private _shouldPreferRasterRendering(): boolean {
+    return this._platformService.getPlatform() === "android";
+  }
+
+  private _shouldDisableFractionalZoom(): boolean {
+    return this._platformService.getPlatform() === "android";
   }
 
   private _getGoogleMapsApi(): (typeof google)["maps"] | null {
@@ -1542,6 +1797,11 @@ export class GoogleMap2dComponent
   private _getVectorRenderingType(): google.maps.RenderingType | null {
     const mapsApi = this._getGoogleMapsApi();
     return mapsApi?.RenderingType?.VECTOR ?? null;
+  }
+
+  private _getRasterRenderingType(): google.maps.RenderingType | null {
+    const mapsApi = this._getGoogleMapsApi();
+    return mapsApi?.RenderingType?.RASTER ?? null;
   }
 
   private async _loadDarkColorScheme(): Promise<string | null> {
@@ -1585,6 +1845,13 @@ export class GoogleMap2dComponent
 
   private _applyFitBounds(): void {
     if (!this.googleMap?.googleMap || !this.fitToBounds) return;
+    if (!isFiniteBoundsLiteral(this.fitToBounds)) {
+      reportInvalidMapCoordinate(
+        "Ignoring invalid fitToBounds input",
+        this.fitToBounds,
+      );
+      return;
+    }
 
     this.googleMap.fitBounds(this.fitToBounds, 40);
   }
@@ -1630,6 +1897,8 @@ export class GoogleMap2dComponent
     this._mapCapabilitiesChangedListener = null;
     this._featureBoundaryRequestVersion++;
     this._clearFeatureBoundaryStyle();
+    this._clearInvalidCameraRecoveryTimeout();
+    this._clearCameraRecoveryVerificationTimeout();
     this._stopFpsLoop();
   }
 
@@ -1868,14 +2137,12 @@ export class GoogleMap2dComponent
     // Pan to current position if available, otherwise it will happen when location updates
     const pos = this.geolocationService.currentLocation();
     if (pos && this.googleMap) {
-      this.googleMap.panTo(pos.location);
-      this.googleMap.zoom = 17;
+      this.setCamera({ center: pos.location, zoom: 17 }, "geolocation");
     } else {
       // If we don't have a location yet, try to get it once
       const pos = await this.geolocationService.getCurrentPosition();
       if (pos && this.googleMap) {
-        this.googleMap.panTo(pos.location);
-        this.googleMap.zoom = 17;
+        this.setCamera({ center: pos.location, zoom: 17 }, "geolocation");
       }
     }
   }
@@ -2038,14 +2305,267 @@ export class GoogleMap2dComponent
   }
 
   cameraIdle() {
+    if (this._isRecoveringInvalidCamera) {
+      this._recordRecoverySuppressedCameraEvent("idle");
+      return;
+    }
+
+    const camera = this._readCurrentCameraSnapshot("idle");
+    if (!camera) {
+      this._recoverInvalidCamera("idle");
+      return;
+    }
+
+    this._rememberValidCamera(camera);
+    this._commitSettledCameraZoom(camera.zoom, "idle");
     this._executeBoundsChange();
     this.centerChanged();
     this._recordMapProfile("idle");
   }
 
+  private _recordRecoverySuppressedCameraEvent(source: string): void {
+    this._mapProfiler.recordThrottled(
+      "google-map-2d:camera-event-ignored-during-recovery",
+      {
+        observed: this._readUnsafeCameraSnapshot(source),
+        recoveryCount: this._invalidCameraRecoveryCount,
+        source,
+      },
+      250,
+    );
+  }
+
+  private _readCurrentCameraSnapshot(source: string): MapCameraSnapshot | null {
+    if (!this.googleMap) return null;
+
+    const timestampMs = performance.now();
+    const center = toUsableMapCenterLiteral(this.googleMap.getCenter());
+    const bounds = this.googleMap.getBounds();
+    const boundsLiteral = bounds?.toJSON() ?? null;
+    const zoom = this.googleMap.getZoom();
+
+    if (
+      !center ||
+      typeof zoom !== "number" ||
+      !Number.isFinite(zoom) ||
+      (boundsLiteral && !isFiniteLatLngBounds(bounds)) ||
+      this._isSuspiciousCameraJump({ source, timestampMs, zoom })
+    ) {
+      return null;
+    }
+
+    return {
+      bounds: boundsLiteral,
+      center,
+      source,
+      timestampMs,
+      zoom,
+    };
+  }
+
+  private _isSuspiciousCameraJump(camera: {
+    source: string;
+    timestampMs: number;
+    zoom: number;
+  }): boolean {
+    const previous = this._lastValidCamera;
+    if (!previous || this._isRecoveringInvalidCamera) return false;
+
+    const elapsedMs = camera.timestampMs - previous.timestampMs;
+    const zoomDelta = Math.abs(camera.zoom - previous.zoom);
+    const isSuspicious =
+      elapsedMs >= 0 &&
+      elapsedMs <= GoogleMap2dComponent.CAMERA_JUMP_WINDOW_MS &&
+      zoomDelta > GoogleMap2dComponent.MAX_CAMERA_ZOOM_JUMP;
+
+    if (isSuspicious) {
+      this._mapProfiler.record("google-map-2d:suspicious-camera-jump", {
+        current: camera,
+        elapsedMs: Math.round(elapsedMs),
+        previous,
+        zoomDelta: Math.round(zoomDelta * 100) / 100,
+      });
+    }
+
+    return isSuspicious;
+  }
+
+  private _rememberValidCamera(camera: MapCameraSnapshot): void {
+    this._lastValidCamera = {
+      bounds: camera.bounds ? { ...camera.bounds } : null,
+      center: { ...camera.center },
+      source: camera.source,
+      timestampMs: camera.timestampMs,
+      zoom: camera.zoom,
+    };
+  }
+
+  private _recoverInvalidCamera(source: string): void {
+    if (!this.googleMap?.googleMap || this._isRecoveringInvalidCamera) return;
+
+    const observed = this._readUnsafeCameraSnapshot(source);
+    const fallback = this._lastValidCamera ?? {
+      bounds: null,
+      center: this.center,
+      source: "component-input",
+      timestampMs: performance.now(),
+      zoom: this.zoom,
+    };
+
+    this._invalidCameraRecoveryCount++;
+    reportInvalidMapCoordinate(
+      `Recovering invalid Google Maps camera from ${source}`,
+      {
+        fallback,
+        observed,
+        recoveryCount: this._invalidCameraRecoveryCount,
+      },
+    );
+    this._mapProfiler.record("google-map-2d:invalid-camera", {
+      fallback,
+      observed,
+      recoveryCount: this._invalidCameraRecoveryCount,
+      source,
+    });
+
+    this._isRecoveringInvalidCamera = true;
+    this._clearInvalidCameraRecoveryTimeout();
+
+    try {
+      const nativeMap = this.googleMap.googleMap;
+      const target = {
+        center: fallback.center,
+        zoom: fallback.zoom,
+      };
+      const moveCamera = nativeMap.moveCamera?.bind(nativeMap);
+
+      if (moveCamera) {
+        moveCamera(target);
+      } else {
+        nativeMap.setCenter(fallback.center);
+        nativeMap.setZoom(fallback.zoom);
+      }
+
+      this._center = fallback.center;
+      this._zoom.set(Math.floor(fallback.zoom));
+      this._lastObservedNativeIntegerZoom = Math.floor(fallback.zoom);
+      this._setCommunityVisualZoom(fallback.zoom);
+      this._mapProfiler.record("google-map-2d:camera-recovered", {
+        recoveryCount: this._invalidCameraRecoveryCount,
+        source,
+        target,
+      });
+      this._scheduleCameraRecoveryVerification(fallback, source);
+    } catch (error) {
+      this._mapProfiler.record("google-map-2d:camera-recovery-failed", {
+        error: String(error),
+        fallback,
+        observed,
+        source,
+      });
+      console.warn("Failed to recover Google Maps camera:", error);
+      this._forceRecreateNativeMap("camera-recovery-failed", fallback);
+    } finally {
+      this._invalidCameraRecoveryTimeoutId = setTimeout(() => {
+        this._isRecoveringInvalidCamera = false;
+        this._invalidCameraRecoveryTimeoutId = null;
+      }, 1_000);
+    }
+  }
+
+  private _readUnsafeCameraSnapshot(source: string): Record<string, unknown> {
+    return {
+      bounds: this.googleMap?.getBounds()?.toJSON() ?? null,
+      center: this.googleMap?.getCenter()?.toJSON() ?? null,
+      source,
+      zoom: this.googleMap?.getZoom() ?? null,
+    };
+  }
+
+  private _clearInvalidCameraRecoveryTimeout(): void {
+    if (this._invalidCameraRecoveryTimeoutId === null) return;
+
+    clearTimeout(this._invalidCameraRecoveryTimeoutId);
+    this._invalidCameraRecoveryTimeoutId = null;
+  }
+
+  private _scheduleCameraRecoveryVerification(
+    fallback: MapCameraSnapshot,
+    source: string,
+  ): void {
+    this._clearCameraRecoveryVerificationTimeout();
+    this._cameraRecoveryVerificationTimeoutId = setTimeout(() => {
+      this._cameraRecoveryVerificationTimeoutId = null;
+      const camera = this._readCurrentCameraSnapshot("recovery-verification");
+      const zoomDelta = camera ? Math.abs(camera.zoom - fallback.zoom) : Infinity;
+      if (camera && zoomDelta <= 1.5) {
+        this._mapProfiler.record("google-map-2d:camera-recovery-verified", {
+          camera,
+          source,
+          zoomDelta: Math.round(zoomDelta * 100) / 100,
+        });
+        this._isRecoveringInvalidCamera = false;
+        this._clearInvalidCameraRecoveryTimeout();
+        return;
+      }
+
+      this._mapProfiler.record("google-map-2d:camera-recovery-unverified", {
+        camera,
+        fallback,
+        source,
+        zoomDelta: Number.isFinite(zoomDelta)
+          ? Math.round(zoomDelta * 100) / 100
+          : String(zoomDelta),
+      });
+      this._isRecoveringInvalidCamera = false;
+      this._clearInvalidCameraRecoveryTimeout();
+      this._forceRecreateNativeMap("camera-recovery-unverified", fallback);
+    }, 500);
+  }
+
+  private _clearCameraRecoveryVerificationTimeout(): void {
+    if (this._cameraRecoveryVerificationTimeoutId === null) return;
+
+    clearTimeout(this._cameraRecoveryVerificationTimeoutId);
+    this._cameraRecoveryVerificationTimeoutId = null;
+  }
+
+  private _forceRecreateNativeMap(
+    reason: string,
+    fallback: MapCameraSnapshot,
+  ): void {
+    this._mapProfiler.record("google-map-2d:recreate-native-map", {
+      fallback,
+      reason,
+    });
+    this._center = fallback.center;
+    this._zoom.set(Math.floor(fallback.zoom));
+    this._lastObservedNativeIntegerZoom = Math.floor(fallback.zoom);
+    this._setCommunityVisualZoom(fallback.zoom);
+    this._hasInitializedNativeMap = false;
+    this.googleMap = undefined;
+    this.optionsInitialized.set(false);
+    this.cdr.detectChanges();
+
+    setTimeout(() => {
+      this.mapOptions = {
+        ...this.mapOptions,
+        center: fallback.center,
+        zoom: fallback.zoom,
+      };
+      this.optionsInitialized.set(true);
+      this.cdr.markForCheck();
+    }, 0);
+  }
+
   private _executeBoundsChange() {
     if (!this.googleMap) return;
     const bounds = this.googleMap.getBounds()!;
+    const boundsDebug = bounds?.toJSON();
+    if (!isFiniteLatLngBounds(bounds)) {
+      reportInvalidMapCoordinate("Ignoring invalid map bounds", boundsDebug);
+      return;
+    }
 
     this.boundsToRender.set(bounds);
     this._debugMapEvent("boundsChanged", {
@@ -2059,15 +2579,29 @@ export class GoogleMap2dComponent
   centerChanged() {
     if (!this.googleMap) return;
     const center = this.googleMap.getCenter()!;
+    const centerLiteral = toUsableMapCenterLiteral(center);
+    if (!centerLiteral) {
+      reportInvalidMapCoordinate(
+        "Ignoring invalid map centerChanged value",
+        center?.toJSON(),
+      );
+      return;
+    }
+
     this._debugMapEvent("centerChanged", {
-      center: center.toJSON(),
+      center: centerLiteral,
       zoom: this.googleMap.getZoom(),
     });
-    this.centerChange.emit(center.toJSON());
+    this.centerChange.emit(centerLiteral);
   }
 
   fitBounds(bounds: google.maps.LatLngBounds) {
     if (!this.googleMap) return;
+    const boundsDebug = bounds?.toJSON();
+    if (!isFiniteLatLngBounds(bounds)) {
+      reportInvalidMapCoordinate("Ignoring invalid fitBounds request", boundsDebug);
+      return;
+    }
 
     this._debugMapEvent("fitBounds", {
       center: bounds.getCenter().toJSON(),
@@ -2335,26 +2869,22 @@ export class GoogleMap2dComponent
   ) {
     if (!this.googleMap) return;
 
-    if (!location) {
-      console.warn("No or invalid location provided to focus on", location);
-      console.trace();
+    const target = toUsableMapCenterLiteral(location);
+    if (!target) {
+      reportInvalidMapCoordinate(
+        "No or invalid location provided to focus on",
+        location,
+      );
       return;
     }
 
     this._debugMapEvent("focusOnLocation", {
-      location: "toJSON" in location ? location.toJSON() : location,
+      location: target,
       zoom,
       currentZoom: this.zoom,
     });
 
-    if (this.zoom !== zoom) {
-      this.setZoom(zoom);
-      setTimeout(() => {
-        this.googleMap?.panTo(location);
-      }, 200);
-    } else {
-      this.googleMap?.panTo(location);
-    }
+    this.setCamera({ center: target, zoom }, "focus-on-location");
   }
 
   focusOnGeolocation() {

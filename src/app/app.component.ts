@@ -12,6 +12,7 @@ import {
   WritableSignal,
   NgZone,
   ChangeDetectionStrategy,
+  effect,
 } from "@angular/core";
 import {
   trigger,
@@ -84,6 +85,8 @@ import { AgeAssuranceService } from "./services/age-assurance.service";
 import type { ContentType } from "./resolvers/content.resolver";
 import { APP_LINKS } from "./shared/app-links";
 import { buildUnembeddedUrlFromHref } from "./shared/embedded-url";
+import { MapPerformanceProfilerService } from "./services/map-performance-profiler.service";
+import { AppSettingsService } from "./services/app-settings.service";
 
 interface ButtonBase {
   name: string;
@@ -195,6 +198,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _backHandlingService = inject(BackHandlingService);
   private _keyboardService = inject(KeyboardService);
   private _ageAssuranceService = inject(AgeAssuranceService);
+  private _appSettings = inject(AppSettingsService);
+  private _mapProfiler = inject(MapPerformanceProfilerService);
   public checkInService = inject(CheckInService);
   readonly checkInEnabled = environment.features.checkIns;
   readonly activityEnabled = environment.features.activity;
@@ -224,6 +229,19 @@ export class AppComponent implements OnInit, AfterViewInit {
     NavigationPerfEntry
   >();
   private _activeNavigationPerfId: number | null = null;
+  private _mapProfileEnabledFromSettings = false;
+  private readonly _mapProfileSettingsEffect = effect(() => {
+    if (this._appSettings.mapProfileMode()) {
+      this._mapProfileEnabledFromSettings = true;
+      this._mapProfiler.enable({ verbose: true });
+      return;
+    }
+
+    if (this._mapProfileEnabledFromSettings) {
+      this._mapProfileEnabledFromSettings = false;
+      this._mapProfiler.disable();
+    }
+  });
 
   alainMode: boolean = false;
 
@@ -288,6 +306,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     this._keyboardService.init();
+    this._mapProfiler.ensureInstalled();
     this.installNavigationPerformanceLogging();
 
     this.router.events

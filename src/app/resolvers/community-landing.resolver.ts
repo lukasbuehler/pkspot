@@ -58,7 +58,7 @@ export const communityLandingResolver: ResolveFn<
       canonicalPath,
       title: `${pageTitle} Not Found - PK Spot`,
       description: "This PK Spot community landing page could not be found.",
-      imageUrl: "/assets/banner_1200x630.png",
+      imageUrl: "assets/banner_1200x630.png",
       hasCustomImage: false,
       country: {
         name: humanizeSlugSegment(requestedSlug),

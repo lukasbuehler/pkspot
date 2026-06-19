@@ -1,4 +1,5 @@
 import { StartRegionPreset } from "../../services/start-region.service";
+import { isFiniteLatLngLiteral } from "../../shared/map-coordinate-utils";
 
 export interface StoredMapViewport {
   location: google.maps.LatLngLiteral;
@@ -30,7 +31,7 @@ export interface InitialMapViewport {
 export function resolveInitialMapViewport(
   options: ResolveInitialMapViewportOptions
 ): InitialMapViewport {
-  if (options.selectedSpotLocation) {
+  if (isFiniteLatLngLiteral(options.selectedSpotLocation)) {
     return {
       center: options.selectedSpotLocation,
       zoom: options.focusZoom,
@@ -38,7 +39,7 @@ export function resolveInitialMapViewport(
     };
   }
 
-  if (options.centerStart) {
+  if (isFiniteLatLngLiteral(options.centerStart)) {
     return {
       center: options.centerStart,
       zoom: options.focusZoom,
@@ -46,7 +47,7 @@ export function resolveInitialMapViewport(
     };
   }
 
-  if (options.boundsCenter) {
+  if (isFiniteLatLngLiteral(options.boundsCenter)) {
     return {
       center: options.boundsCenter,
       zoom: options.focusZoom,
@@ -54,7 +55,7 @@ export function resolveInitialMapViewport(
     };
   }
 
-  if (options.lastLocationAndZoom) {
+  if (isFiniteLatLngLiteral(options.lastLocationAndZoom?.location)) {
     return {
       center: options.lastLocationAndZoom.location,
       zoom: options.lastLocationAndZoom.zoom,

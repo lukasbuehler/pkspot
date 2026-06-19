@@ -52,7 +52,7 @@ const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
   drySpots: [{ id: "spot-2", name: "Brixton" }],
   image: {
     type: "default",
-    url: "/assets/banner_1200x630.png",
+    url: "assets/banner_1200x630.png",
   },
   links: {},
   infoCards: [],

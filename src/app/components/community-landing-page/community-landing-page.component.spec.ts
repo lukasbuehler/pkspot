@@ -24,7 +24,7 @@ const communityData: CommunityLandingPageData = {
   canonicalPath: "/map/communities/switzerland",
   title: "Parkour in Switzerland | PK Spot Community",
   description: "Discover parkour spots in Switzerland.",
-  imageUrl: "/assets/banner_1200x630.png",
+  imageUrl: "assets/banner_1200x630.png",
   hasCustomImage: false,
   country: { name: "Switzerland", slug: "switzerland" },
   breadcrumbs: [

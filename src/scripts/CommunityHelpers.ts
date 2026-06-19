@@ -18,7 +18,7 @@ import {
 } from "./AddressHelpers";
 
 export const COMMUNITY_PAGE_MIN_SPOTS = 5;
-export const COMMUNITY_DEFAULT_IMAGE_PATH = "/assets/banner_1200x630.png";
+export const COMMUNITY_DEFAULT_IMAGE_PATH = "assets/banner_1200x630.png";
 
 const COUNTRY_SLUG_ALIASES: Record<string, string> = {
   GB: "uk",
