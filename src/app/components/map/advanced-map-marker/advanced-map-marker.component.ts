@@ -1,4 +1,3 @@
-import { animate, style, transition, trigger } from "@angular/animations";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -22,24 +21,6 @@ import type { MapMarkerSchema } from "../markers/map-marker.model";
 @Component({
   selector: "app-advanced-map-marker",
   imports: [MapAdvancedMarker, MatIconModule, MarkerComponent],
-  animations: [
-    trigger("fadeInOut", [
-      transition(":enter", [
-        style({ opacity: 0, transform: "translateY(20%) scale(0.9)" }),
-        animate(
-          "0.22s ease-out",
-          style({ opacity: 1, transform: "translateY(50%) scale(1)" })
-        ),
-      ]),
-      transition(":leave", [
-        style({ opacity: 1, transform: "translateY(50%) scale(1)" }),
-        animate(
-          "0.18s ease-in",
-          style({ opacity: 0, transform: "translateY(20%) scale(0.9)" })
-        ),
-      ]),
-    ]),
-  ],
   templateUrl: "./advanced-map-marker.component.html",
   styleUrl: "./advanced-map-marker.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

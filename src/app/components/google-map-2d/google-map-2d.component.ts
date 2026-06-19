@@ -37,6 +37,7 @@ import {
 import { Subscription } from "rxjs";
 import { environment } from "../../../environments/environment.default";
 import { MapsApiService } from "../../services/maps-api.service";
+import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { ConsentService } from "../../services/consent.service";
 import { GeoPoint } from "firebase/firestore";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -115,6 +116,8 @@ const EVENT_MARKER_COLLISION_SIZE_PX = 48;
 const SPOT_MARKER_COLLISION_WIDTH_PX = 124;
 const SPOT_MARKER_COLLISION_HEIGHT_PX = 52;
 const COMMUNITY_MARKER_COLLISION_SIZE_PX = 16;
+const POINT_MARKER_DOT_COLLISION_SIZE_PX = 48;
+const POINT_MARKER_FULL_COLLISION_SIZE_PX = 48;
 
 interface MarkerCollisionLayoutCache {
   highlightedSpots: SpotPreviewData[];
@@ -137,6 +140,38 @@ interface VisibleHighlightedSpotPreviewsCache {
   spots: SpotPreviewData[];
   selectedSpotId: string | null;
   visibleSpots: SpotPreviewData[];
+}
+
+interface FilteredHighlightedSpotMarkersCache {
+  spots: SpotPreviewData[];
+  layout: MapMarkerCollisionLayout;
+  visibleSpots: SpotPreviewData[];
+}
+
+interface FilteredRegularSpotMarkersCache {
+  spots: (LocalSpot | Spot)[];
+  layout: MapMarkerCollisionLayout;
+  visibleSpots: (LocalSpot | Spot)[];
+}
+
+interface FilteredPointMarkersCache {
+  markers: MapPointMarker[];
+  layout: MapMarkerCollisionLayout;
+  zoom: number;
+  visibleMarkers: MapPointMarker[];
+}
+
+interface VisibleHighlightedSpotAreasCache {
+  spots: SpotPreviewData[];
+  areas: SpotPreviewAreaOverlay[];
+}
+
+interface CircleOverlayRenderState {
+  darkMode: boolean;
+  inputOptions: MapCircleOverlay["options"] | undefined;
+  options: google.maps.CircleOptions;
+  clickable: boolean;
+  visualZoom: number;
 }
 
 export interface TilesObject {
@@ -307,6 +342,7 @@ export class GoogleMap2dComponent
     if (newZoom === this._zoom()) return;
 
     this._debugMapEvent("zoomChanged", { zoom: newZoom, mapZoom });
+    this._recordMapProfile("zoom-changed", { mapZoom, zoom: newZoom });
     this._isInternalZoomChange = true;
     this._zoom.set(newZoom);
     this.zoomChange.emit(newZoom);
@@ -399,45 +435,98 @@ export class GoogleMap2dComponent
       return spots;
     }
 
-    const hiddenSpotIds = this._getMarkerCollisionLayout().hiddenSpotIds;
+    const layout = this._getMarkerCollisionLayout();
+    const hiddenSpotIds = layout.hiddenSpotIds;
 
     if (hiddenSpotIds.size === 0) {
       return spots;
     }
 
-    return spots.filter(
+    if (
+      this._filteredHighlightedSpotMarkersCache &&
+      this._filteredHighlightedSpotMarkersCache.spots === spots &&
+      this._filteredHighlightedSpotMarkersCache.layout === layout
+    ) {
+      return this._filteredHighlightedSpotMarkersCache.visibleSpots;
+    }
+
+    const visibleSpots = spots.filter(
       (spot) => !hiddenSpotIds.has(this._getSpotPreviewCollisionId(spot)),
     );
+
+    this._filteredHighlightedSpotMarkersCache = {
+      spots,
+      layout,
+      visibleSpots,
+    };
+
+    return visibleSpots;
   }
 
   getVisibleSpotMarkers(): (LocalSpot | Spot)[] {
     const spots = this._getVisibleRegularSpotMarkers();
-    const hiddenSpotIds = this._getMarkerCollisionLayout().hiddenSpotIds;
+    const layout = this._getMarkerCollisionLayout();
+    const hiddenSpotIds = layout.hiddenSpotIds;
 
     if (hiddenSpotIds.size === 0) {
       return spots;
     }
 
-    return spots.filter(
+    if (
+      this._filteredRegularSpotMarkersCache &&
+      this._filteredRegularSpotMarkersCache.spots === spots &&
+      this._filteredRegularSpotMarkersCache.layout === layout
+    ) {
+      return this._filteredRegularSpotMarkersCache.visibleSpots;
+    }
+
+    const visibleSpots = spots.filter(
       (spot) => !hiddenSpotIds.has(this._getSpotModelCollisionId(spot)),
     );
+
+    this._filteredRegularSpotMarkersCache = {
+      spots,
+      layout,
+      visibleSpots,
+    };
+
+    return visibleSpots;
   }
 
   getVisiblePointMarkers(): MapPointMarker[] {
-    const { hiddenCommunityIds, hiddenEventIds } =
-      this._getMarkerCollisionLayout();
+    const layout = this._getMarkerCollisionLayout();
+    const zoom = this.zoom;
+    const { hiddenCommunityIds, hiddenEventIds, hiddenPointIds } = layout;
 
-    if (hiddenEventIds.size === 0 && hiddenCommunityIds.size === 0) {
-      return this.pointMarkers;
+    if (
+      this._filteredPointMarkersCache &&
+      this._filteredPointMarkersCache.markers === this.pointMarkers &&
+      this._filteredPointMarkersCache.layout === layout &&
+      this._filteredPointMarkersCache.zoom === zoom
+    ) {
+      return this._filteredPointMarkersCache.visibleMarkers;
     }
 
-    return this.pointMarkers.filter(
+    const visibleMarkers = this.pointMarkers.filter(
       (marker) =>
+        this._isPointMarkerVisibleAtZoom(marker, zoom) &&
         (!this._isEventCollisionMarker(marker) ||
           !hiddenEventIds.has(marker.id)) &&
         (!this._isCommunityCollisionMarker(marker) ||
-          !hiddenCommunityIds.has(marker.id)),
+          !hiddenCommunityIds.has(marker.id)) &&
+        (this._isEventCollisionMarker(marker) ||
+          this._isCommunityCollisionMarker(marker) ||
+          !hiddenPointIds.has(marker.id)),
     );
+
+    this._filteredPointMarkersCache = {
+      markers: this.pointMarkers,
+      layout,
+      zoom,
+      visibleMarkers,
+    };
+
+    return visibleMarkers;
   }
 
   private _getVisibleHighlightedSpotPreviews(): SpotPreviewData[] {
@@ -545,6 +634,7 @@ export class GoogleMap2dComponent
       [
         ...this._getEventCollisionCandidates(zoom),
         ...this._getCommunityCollisionCandidates(zoom),
+        ...this._getPointCollisionCandidates(zoom),
         ...this._getSpotPreviewCollisionCandidates(highlightedSpots),
         ...this._getSpotModelCollisionCandidates(regularSpots),
       ],
@@ -604,6 +694,33 @@ export class GoogleMap2dComponent
           anchor: "center",
         }),
       );
+  }
+
+  private _getPointCollisionCandidates(
+    zoom: number,
+  ): MapMarkerCollisionCandidate[] {
+    return this.pointMarkers
+      .filter(
+        (marker) =>
+          !this._isEventCollisionMarker(marker) &&
+          !this._isCommunityCollisionMarker(marker) &&
+          this._isPointMarkerVisibleAtZoom(marker, zoom) &&
+          marker.priority !== "required" &&
+          marker.ignoreCollisions !== true,
+      )
+      .map((marker): MapMarkerCollisionCandidate => {
+        const sizePx = this._getPointMarkerCollisionSize(marker, zoom);
+
+        return {
+          id: marker.id,
+          kind: "point",
+          location: marker.location,
+          priority: getMapMarkerPriority(marker),
+          widthPx: sizePx,
+          heightPx: sizePx,
+          anchor: "center",
+        };
+      });
   }
 
   private _getSpotPreviewCollisionCandidates(
@@ -679,6 +796,18 @@ export class GoogleMap2dComponent
     );
   }
 
+  private _getPointMarkerCollisionSize(
+    marker: MapPointMarker,
+    zoom: number,
+  ): number {
+    const dotModeThreshold = marker.dotModeThreshold ?? 17;
+    if (!marker.forceFullMarker && zoom <= dotModeThreshold) {
+      return POINT_MARKER_DOT_COLLISION_SIZE_PX;
+    }
+
+    return POINT_MARKER_FULL_COLLISION_SIZE_PX;
+  }
+
   private _getSpotPreviewCollisionId(spot: SpotPreviewData): string {
     return `spot:${spot.id}`;
   }
@@ -694,12 +823,27 @@ export class GoogleMap2dComponent
 
   getVisibleHighlightedSpotAreas(): SpotPreviewAreaOverlay[] {
     if (this.zoom < SPOT_AREA_MIN_ZOOM) {
-      return [];
+      return this._emptyHighlightedSpotAreas;
     }
 
-    return this._getVisibleHighlightedSpotPreviews()
+    const spots = this._getVisibleHighlightedSpotPreviews();
+    if (
+      this._visibleHighlightedSpotAreasCache &&
+      this._visibleHighlightedSpotAreasCache.spots === spots
+    ) {
+      return this._visibleHighlightedSpotAreasCache.areas;
+    }
+
+    const areas = spots
       .map((spot) => this._getSpotPreviewAreaOverlay(spot))
       .filter((area): area is SpotPreviewAreaOverlay => !!area);
+
+    this._visibleHighlightedSpotAreasCache = {
+      spots,
+      areas,
+    };
+
+    return areas;
   }
 
   getHighlightZIndex(_spot: SpotPreviewData): number {
@@ -759,6 +903,18 @@ export class GoogleMap2dComponent
     null;
   private _visibleHighlightedSpotPreviewsCache: VisibleHighlightedSpotPreviewsCache | null =
     null;
+  private _filteredHighlightedSpotMarkersCache: FilteredHighlightedSpotMarkersCache | null =
+    null;
+  private _filteredRegularSpotMarkersCache: FilteredRegularSpotMarkersCache | null =
+    null;
+  private _filteredPointMarkersCache: FilteredPointMarkersCache | null = null;
+  private _visibleHighlightedSpotAreasCache: VisibleHighlightedSpotAreasCache | null =
+    null;
+  private readonly _emptyHighlightedSpotAreas: SpotPreviewAreaOverlay[] = [];
+  private readonly _circleOverlayRenderStateCache = new WeakMap<
+    MapCircleOverlay,
+    CircleOverlayRenderState
+  >();
 
   /**
    * Passive locality circles begin with the stronger dot treatment while
@@ -767,6 +923,28 @@ export class GoogleMap2dComponent
    * a user opens a community and also keeps close-up circles out of the way.
    */
   circleOverlayOptions(circle: MapCircleOverlay): google.maps.CircleOptions {
+    return this._getCircleOverlayRenderState(circle).options;
+  }
+
+  isCircleOverlayClickable(circle: MapCircleOverlay): boolean {
+    return this._getCircleOverlayRenderState(circle).clickable;
+  }
+
+  private _getCircleOverlayRenderState(
+    circle: MapCircleOverlay,
+  ): CircleOverlayRenderState {
+    const visualZoom = this._communityVisualZoom();
+    const darkMode = this.resolvedDarkMode();
+    const cached = this._circleOverlayRenderStateCache.get(circle);
+    if (
+      cached &&
+      cached.visualZoom === visualZoom &&
+      cached.darkMode === darkMode &&
+      cached.inputOptions === circle.options
+    ) {
+      return cached;
+    }
+
     const diameterPx = this._circleDiameterPx(circle);
     const fade = this._smoothstep(10, 320, diameterPx);
     const primary = this._getCssColorAsHex("--mat-sys-primary", "#0036ba");
@@ -775,23 +953,28 @@ export class GoogleMap2dComponent
       "#001a67",
     );
 
-    return {
+    const clickable =
+      (circle.options?.clickable ?? true) &&
+      diameterPx <= this.COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX;
+    const options: google.maps.CircleOptions = {
       fillColor: primary,
       fillOpacity: this._lerp(0.85, 0.08, fade),
       strokeColor: this._mixHexColor(primaryBorder, primary, fade),
       strokeOpacity: this._lerp(1, 0.28, fade),
       strokeWeight: this._lerp(1, 1, fade),
-      clickable: circle.options?.clickable ?? true,
       ...circle.options,
+      clickable,
     };
-  }
 
-  isCircleOverlayClickable(circle: MapCircleOverlay): boolean {
-    if (circle.options?.clickable === false) return false;
-    return (
-      this._circleDiameterPx(circle) <=
-      this.COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX
-    );
+    const state: CircleOverlayRenderState = {
+      darkMode,
+      inputOptions: circle.options,
+      options,
+      clickable,
+      visualZoom,
+    };
+    this._circleOverlayRenderStateCache.set(circle, state);
+    return state;
   }
 
   private _circleDiameterPx(circle: MapCircleOverlay): number {
@@ -1094,6 +1277,7 @@ export class GoogleMap2dComponent
     private theme: ThemeService,
     private geolocationService: GeolocationService,
     private snackBar: MatSnackBar,
+    private _mapProfiler: MapPerformanceProfilerService,
   ) {
     super();
 
@@ -1244,6 +1428,7 @@ export class GoogleMap2dComponent
       zoom: this.zoom,
       hasInitializedNativeMap: this._hasInitializedNativeMap,
     });
+    this._recordMapProfile("ready");
 
     if (this.googleMap.googleMap && !this._hasInitializedNativeMap) {
       this.googleMap.googleMap.setCenter(this.center);
@@ -1321,6 +1506,10 @@ export class GoogleMap2dComponent
     if (isMapInitialized && this.googleMap?.googleMap) {
       try {
         this.googleMap.googleMap.setOptions(nextOptions);
+        this._recordMapProfile("config-updated", {
+          mapTypeId: desiredMapTypeId,
+          requestedRenderingType: nextOptions.renderingType ?? null,
+        });
       } catch (e) {
         console.warn("Failed to update map config:", e);
       }
@@ -1331,6 +1520,11 @@ export class GoogleMap2dComponent
     try {
       this.mapOptions = nextOptions;
       this.optionsInitialized.set(true);
+      this._mapProfiler.record("google-map-2d:config-initialized", {
+        mapIdPresent: !!environment.mapId,
+        mapTypeId: desiredMapTypeId,
+        requestedRenderingType: nextOptions.renderingType ?? null,
+      });
     } catch (e) {
       console.warn("Failed to set map config:", e);
       this.optionsInitialized.set(true); // Proceed anyway
@@ -1628,6 +1822,7 @@ export class GoogleMap2dComponent
     this._mapCapabilitiesChangedListener = this.googleMap.googleMap.addListener(
       "mapcapabilities_changed",
       () => {
+        this._recordMapProfile("capabilities-changed");
         void this._updateFeatureBoundaryStyle();
       },
     );
@@ -1845,6 +2040,7 @@ export class GoogleMap2dComponent
   cameraIdle() {
     this._executeBoundsChange();
     this.centerChanged();
+    this._recordMapProfile("idle");
   }
 
   private _executeBoundsChange() {
@@ -2503,6 +2699,56 @@ export class GoogleMap2dComponent
       ...payload,
       selectedSpot: this._debugSelectedSpotKey(),
       timestamp: Math.round(performance.now()),
+    });
+  }
+
+  private _recordMapProfile(
+    event: string,
+    payload: Record<string, unknown> = {},
+  ): void {
+    if (!this._mapProfiler.isEnabled()) return;
+
+    const nativeMap = this.googleMap?.googleMap;
+    const layout = this._getMarkerCollisionLayout();
+    const visiblePointMarkers = this.getVisiblePointMarkers();
+    const center = this.googleMap?.getCenter()?.toJSON() ?? null;
+    const bounds = this.googleMap?.getBounds()?.toJSON() ?? null;
+
+    this._mapProfiler.record(`google-map-2d:${event}`, {
+      ...payload,
+      actualRenderingType: nativeMap?.getRenderingType?.() ?? null,
+      bounds,
+      capabilities: nativeMap?.getMapCapabilities?.() ?? null,
+      center,
+      collision: {
+        hiddenCommunities: layout.hiddenCommunityIds.size,
+        hiddenEvents: layout.hiddenEventIds.size,
+        hiddenPoints: layout.hiddenPointIds.size,
+        hiddenSpots: layout.hiddenSpotIds.size,
+      },
+      inputs: {
+        circleOverlays: this.circleOverlays.length,
+        highlightedSpots: this.highlightedSpots.length,
+        pointMarkers: this.pointMarkers.length,
+        priorityMarkers: this.priorityMarkers().length,
+        regularSpots: this.spots.length,
+      },
+      mapIdPresent: !!environment.mapId,
+      mapTypeId: this.mapTypeId(),
+      overlays: {
+        bounds: this.boundsOverlays.length,
+        polygons: this.polygonOverlays.length,
+      },
+      requestedRenderingType: this.mapOptions.renderingType ?? null,
+      visible: {
+        pointMarkers: visiblePointMarkers.length,
+        regularSpotMarkers: this.getVisibleSpotMarkers().length,
+        highlightedSpots: this.getVisibleHighlightedSpots().length,
+      },
+      zoom: {
+        component: this.zoom,
+        native: this.googleMap?.getZoom() ?? null,
+      },
     });
   }
 

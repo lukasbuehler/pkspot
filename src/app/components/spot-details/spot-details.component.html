@@ -663,6 +663,14 @@
           </div>
         }
 
+        <p
+          class="mat-body-small m-0 py-2"
+          i18n="@@spot.details.type_access_disclaimer"
+        >
+          Info can be outdated or wrong. Always check signs and local rules
+          on site.
+        </p>
+
         @if (!isLocalSpot() && upcomingEvents().length > 0) {
           <div class="mb-4">
             <mat-divider class="my-3"></mat-divider>
@@ -988,13 +996,6 @@
     } } }
     END OF CHALLENGES SECTION -->
 
-        <p
-          class="mat-body-small m-0 py-2"
-          i18n="@@spot.details.type_access_disclaimer"
-        >
-          Info can be outdated or wrong. Always check signs and local rules
-          on site.
-        </p>
         <app-spot-provenance [spot]="spot()"></app-spot-provenance>
       } @else {
         <!--

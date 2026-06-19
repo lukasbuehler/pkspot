@@ -106,6 +106,7 @@ import {
 } from "../custom-filter-dialog/custom-filter-dialog.component";
 import { BackHandlingService } from "../../services/back-handling.service";
 import { AppSettingsService } from "../../services/app-settings.service";
+import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { environment } from "../../../environments/environment.default";
 import {
   buildSpotCanonicalPath,
@@ -151,6 +152,7 @@ import {
   PendingSpotPanel,
 } from "../map/map-panel-view.model";
 import { MapCheckInBannerComponent } from "../map/map-check-in-banner/map-check-in-banner.component";
+import type { MapPointMarker } from "../maps/map-overlays";
 
 interface EventPromoDismissalRecord {
   showAgainAt: string;
@@ -177,6 +179,27 @@ interface CommunitySpotFocus {
   center: { lat: number; lng: number };
   radiusM: number;
 }
+
+type DenseMapPerformanceVariant =
+  | "communities-only"
+  | "custom-only"
+  | "empty"
+  | "events-only"
+  | "full"
+  | "no-communities";
+
+const DENSE_MAP_PERFORMANCE_CENTER: google.maps.LatLngLiteral = {
+  lat: 47.3769,
+  lng: 8.5417,
+};
+const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
+  "communities-only",
+  "custom-only",
+  "empty",
+  "events-only",
+  "full",
+  "no-communities",
+]);
 
 @Component({
   selector: "app-map-page",
@@ -594,6 +617,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   );
   visibleEventSeriesById = computed(() => this._visibleEventSeriesById());
   visibleMapCommunities = computed(() => this._visibleMapCommunities());
+  private readonly _denseMapPerformanceMode = signal(false);
+  private readonly _denseMapPerformanceVariant =
+    signal<DenseMapPerformanceVariant>("full");
+  private readonly _denseMapPerformanceEventMarkers =
+    createDenseMapPerformancePointMarkers(DENSE_MAP_PERFORMANCE_CENTER);
+  private readonly _denseMapPerformanceCommunityMarkers =
+    createDenseMapPerformanceCommunityMarkers(DENSE_MAP_PERFORMANCE_CENTER);
 
   readonly eventFilterOptions: ReadonlyArray<{
     value: MapEventFilter;
@@ -763,6 +793,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * panel already convey it) to avoid the chip overlapping the panel UI.
    */
   availableCommunityMarkers = computed<CommunityMapMarker[]>(() => {
+    if (this._denseMapPerformanceMode()) {
+      const variant = this._denseMapPerformanceVariant();
+      return variant === "full" || variant === "communities-only"
+        ? this._denseMapPerformanceCommunityMarkers
+        : [];
+    }
+
     const mode = this.mapObjectMode();
     if (mode !== "all" && mode !== "communities") return [];
 
@@ -801,6 +838,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * border style.
    */
   availableEventMarkers = computed(() => {
+    if (this._denseMapPerformanceMode()) {
+      return getDenseMapPerformancePointMarkersForVariant(
+        this._denseMapPerformanceEventMarkers,
+        this._denseMapPerformanceVariant(),
+      );
+    }
+
     const now = new Date();
     return buildVisibleEventMarkers({
       visibleEvents:
@@ -1085,6 +1129,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   onViewportBoundsChange(bounds: google.maps.LatLngBounds): void {
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
+    this._recordMapProfile("viewport-bounds-change", {
+      bounds: bounds.toJSON(),
+    });
     this._viewport.set({
       zoom: this._viewport()?.zoom ?? 0,
       bbox: {
@@ -1097,6 +1144,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onVisibleViewportChange(viewport: VisibleViewport): void {
+    this._recordMapProfile("visible-viewport-change", {
+      viewport,
+    });
     this._viewport.set(viewport);
   }
 
@@ -1809,6 +1859,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private breakpointObserver: BreakpointObserver,
     private _spotEditsService: SpotEditsService,
     public appSettings: AppSettingsService,
+    private _mapProfiler: MapPerformanceProfilerService,
   ) {
     this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
       (value) => {
@@ -1820,6 +1871,23 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
 
     if (isPlatformBrowser(this.platformId)) {
+      const denseMapPerformanceMode =
+        !environment.production &&
+        localStorage.getItem("pkspotDenseMapPerformance") === "1";
+      this._denseMapPerformanceMode.set(denseMapPerformanceMode);
+      if (denseMapPerformanceMode) {
+        this._denseMapPerformanceVariant.set(
+          getDenseMapPerformanceVariantFromLocalStorage(),
+        );
+        this.mapsService.storeLastLocationAndZoom({
+          location: DENSE_MAP_PERFORMANCE_CENTER,
+          zoom: 14,
+        });
+      }
+      this._recordMapProfile("constructed", {
+        denseMapPerformanceMode,
+        denseMapPerformanceVariant: this._denseMapPerformanceVariant(),
+      });
       this._loadEventPromoDismissals();
       const compactSidenavQuery =
         "(min-width: 600px) and (max-width: 767.98px)";
@@ -1835,6 +1903,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     // once. Map object markers/counts are loaded per viewport below.
     if (isPlatformBrowser(this.platformId)) {
       afterNextRender(() => {
+        if (this._denseMapPerformanceMode()) return;
         this.loadPromotableCommunitiesAfterConsent();
       });
     }
@@ -1845,6 +1914,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     effect((onCleanup) => {
       const viewport = this._viewport();
       if (!viewport) return;
+      if (this._denseMapPerformanceMode()) return;
       if (typeof google === "undefined" || !google?.maps) return;
 
       const bbox = viewport.bbox;
@@ -2274,6 +2344,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setVisibleSpots(spots: Spot[]) {
+    this._recordMapProfile("visible-spots-change", {
+      count: spots?.length ?? 0,
+    });
     if (!spots || spots.length === 0) {
       this.visibleSpots = [];
       return;
@@ -2575,6 +2648,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.spotMap) {
           console.debug("spotMap is now available, setting mapReady");
           this.mapReady.set(true);
+          this._recordMapProfile("spot-map-ready");
           this._focusCommunityFromQueryParam();
         } else {
           // Keep polling every 50ms until spotMap is available
@@ -3336,6 +3410,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   onFilterBoundsChange(bounds: google.maps.LatLngBounds): void {
     if (!this._activeFilter || !this.spotMap) return;
+    this._recordMapProfile("filter-bounds-change", {
+      activeFilter: this._activeFilter,
+      bounds: bounds.toJSON(),
+    });
 
     if (this._activeFilter === "saved") {
       void this._applySavedFilter(bounds);
@@ -3873,10 +3951,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._drawerMarginRefreshRaf = requestAnimationFrame(() => {
       this._drawerMarginRefreshRaf = null;
       this.drawerContainer?.updateContentMargins();
+      this._recordMapProfile("drawer-margin-refresh");
 
       this._drawerMarginRefreshFollowupRaf = requestAnimationFrame(() => {
         this._drawerMarginRefreshFollowupRaf = null;
         this.drawerContainer?.updateContentMargins();
+        this._recordMapProfile("drawer-margin-refresh-followup");
       });
     });
   }
@@ -3999,6 +4079,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     event: string,
     payload: Record<string, unknown>,
   ): void {
+    this._recordMapProfile(event, payload);
     if (!this.appSettings.debugMode()) return;
 
     console.debug("[MapDebug][MapPage]", event, {
@@ -4007,6 +4088,33 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       selectedCommunity: this.selectedCommunityLanding()?.communityKey ?? null,
       selectedEvent: this.selectedEvent()?.id ?? null,
       timestamp: Math.round(performance.now()),
+    });
+  }
+
+  private _recordMapProfile(
+    event: string,
+    payload: Record<string, unknown> = {},
+  ): void {
+    if (!this._mapProfiler.isEnabled()) return;
+
+    this._mapProfiler.record(`map-page:${event}`, {
+      ...payload,
+      denseMapPerformanceMode: this._denseMapPerformanceMode(),
+      denseMapPerformanceVariant: this._denseMapPerformanceVariant(),
+      activeFilter: this._activeFilter,
+      mapObjectMode: this.mapObjectMode(),
+      mapReady: this.mapReady(),
+      route: this.router.url,
+      selectedFilter: this.selectedFilter(),
+      selectedCommunity: this.selectedCommunityLanding()?.communityKey ?? null,
+      selectedEvent: this.selectedEvent()?.id ?? null,
+      selectedSpot: this._getSelectedSpotKey(this.selectedSpot()),
+      visibleCounts: {
+        communities: this.availableCommunityMarkers().length,
+        eventMarkers: this.availableEventMarkers().length,
+        events: this._visibleMapEvents().length,
+        spots: this.visibleSpots.length,
+      },
     });
   }
 
@@ -5113,5 +5221,109 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   dismissCheckInSpot(spotId: SpotId) {
     this.checkInService.dismissSpot(spotId);
+  }
+}
+
+function createDenseMapPerformancePointMarkers(
+  center: google.maps.LatLngLiteral,
+): MapPointMarker[] {
+  let seed = 0x51eed;
+  const markers: MapPointMarker[] = [];
+
+  for (let index = 0; index < 1_500; index++) {
+    seed = nextDenseMapPerformanceSeed(seed);
+    const latOffset = (seed / 0xffffffff - 0.5) * 0.22;
+    seed = nextDenseMapPerformanceSeed(seed);
+    const lngOffset = (seed / 0xffffffff - 0.5) * 0.22;
+    const type =
+      index % 9 === 0 ? "event" : index % 5 === 0 ? "community" : "custom";
+
+    markers.push({
+      id: `dense-marker-${index}`,
+      type,
+      name: `Dense marker ${index}`,
+      location: {
+        lat: center.lat + latOffset,
+        lng: center.lng + lngOffset,
+      },
+      color:
+        type === "event"
+          ? "secondary"
+          : type === "community"
+            ? "tertiary"
+            : "primary",
+      icons:
+        type === "event"
+          ? ["event"]
+          : type === "community"
+            ? ["groups"]
+            : undefined,
+      minZoom: index % 13 === 0 ? 13 : undefined,
+      maxZoom: index % 17 === 0 ? 16 : undefined,
+      priority:
+        type === "event" ? 700 : type === "community" ? 300 : 100 + (index % 50),
+    });
+  }
+
+  return markers;
+}
+
+function createDenseMapPerformanceCommunityMarkers(
+  center: google.maps.LatLngLiteral,
+): CommunityMapMarker[] {
+  let seed = 0x7a11;
+  const communities: CommunityMapMarker[] = [];
+
+  for (let index = 0; index < 180; index++) {
+    seed = nextDenseMapPerformanceSeed(seed);
+    const latOffset = (seed / 0xffffffff - 0.5) * 0.28;
+    seed = nextDenseMapPerformanceSeed(seed);
+    const lngOffset = (seed / 0xffffffff - 0.5) * 0.28;
+
+    communities.push({
+      communityKey: `dense-community-${index}`,
+      displayName: `Dense community ${index}`,
+      scope: "locality",
+      center: {
+        lat: center.lat + latOffset,
+        lng: center.lng + lngOffset,
+      },
+      radiusM: 80 + (index % 12) * 55,
+    });
+  }
+
+  return communities;
+}
+
+function nextDenseMapPerformanceSeed(seed: number): number {
+  return (seed * 1664525 + 1013904223) >>> 0;
+}
+
+function getDenseMapPerformanceVariantFromLocalStorage(): DenseMapPerformanceVariant {
+  const variant = localStorage.getItem("pkspotDenseMapPerformanceVariant");
+  return DENSE_MAP_PERFORMANCE_VARIANTS.has(
+    variant as DenseMapPerformanceVariant,
+  )
+    ? (variant as DenseMapPerformanceVariant)
+    : "full";
+}
+
+function getDenseMapPerformancePointMarkersForVariant(
+  markers: readonly MapPointMarker[],
+  variant: DenseMapPerformanceVariant,
+): MapPointMarker[] {
+  switch (variant) {
+    case "communities-only":
+      return markers.filter((marker) => marker.type === "community");
+    case "custom-only":
+      return markers.filter((marker) => marker.type === "custom");
+    case "empty":
+      return [];
+    case "events-only":
+      return markers.filter((marker) => marker.type === "event");
+    case "full":
+      return [...markers];
+    case "no-communities":
+      return markers.filter((marker) => marker.type !== "community");
   }
 }

@@ -6,7 +6,6 @@
   role="button"
 >
   <div
-    [@fadeInOut]
     class="advanced-map-marker-dot shadow-sm border"
     [class.marker-primary-dark]="marker().color === 'primary'"
     [class.marker-secondary-dark]="marker().color === 'secondary'"
@@ -75,7 +74,6 @@
   </div>
   }
   <app-marker
-    [@fadeInOut]
     class="advanced-map-marker-pin"
     style="pointer-events: none"
     [icons]="marker().icons"

@@ -172,15 +172,12 @@
       (markerClick)="markerClick($event)"></app-advanced-map-marker>
     }
     @for(marker of getVisiblePointMarkers(); track marker.id) {
-    @if((marker.minZoom === undefined || zoom >= marker.minZoom) && (marker.maxZoom === undefined || zoom <=
-    marker.maxZoom)) {
     @if(marker.type === "event") {
     <app-event-dot-marker [marker]="marker" (markerClick)="pointMarkerClick.emit($event)"></app-event-dot-marker>
     } @else {
     <app-advanced-map-marker [marker]="marker" [index]="$index" [zoom]="zoom"
       [forceFullMarker]="marker.forceFullMarker ?? false" [dotModeThreshold]="marker.dotModeThreshold ?? 17"
       [emitDotClick]="true" (markerClick)="pointMarkerClick.emit(marker)"></app-advanced-map-marker>
-    }
     }
     }
     <!-- Additional Markers (amenities, custom markers, etc.) -->
