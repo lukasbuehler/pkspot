@@ -2120,6 +2120,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
                   type: item.localSpot.type(),
                   access: item.localSpot.access(),
                   amenities: item.localSpot.amenities(),
+                  external_references: item.localSpot.data().external_references,
                 };
               }),
             }

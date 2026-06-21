@@ -22,7 +22,7 @@ export interface ImportCreditSchema {
   attribution_text?: string;
   website_url?: string;
   instagram_url?: string;
-  license: string;
+  license?: string;
 }
 
 export interface ImportLegalSchema {
@@ -78,6 +78,10 @@ export interface ImportChunkSpotSchema {
   type?: string;
   access?: string;
   amenities?: Partial<AmenitiesMap>;
+  external_references?: {
+    google_maps_place_id?: string;
+    website_url?: string;
+  };
 }
 
 export interface ImportChunkSchema {

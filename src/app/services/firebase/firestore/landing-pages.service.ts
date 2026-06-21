@@ -153,7 +153,10 @@ export class LandingPagesService {
       canonicalPath,
       title: pageDoc.title,
       description: pageDoc.description,
-      imageUrl: pageDoc.image?.url || "assets/banner_1200x630.png",
+      imageUrl:
+        this._assetUrls.resolveBundledAssetUrl(
+          pageDoc.image?.url || "assets/banner_1200x630.png",
+        ) ?? "assets/banner_1200x630.png",
       hasCustomImage: pageDoc.image?.type
         ? pageDoc.image.type !== "default"
         : false,

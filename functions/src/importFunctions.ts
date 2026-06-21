@@ -12,6 +12,10 @@ interface ImportChunkSpot {
   type?: string;
   access?: string;
   amenities?: Record<string, boolean | null | undefined>;
+  external_references?: {
+    google_maps_place_id?: string;
+    website_url?: string;
+  };
 }
 
 interface ImportChunk {
@@ -145,6 +149,7 @@ async function processImportChunk(
         type: spot.type ?? "other",
         access: spot.access ?? "other",
         amenities: spot.amenities ?? {},
+        external_references: spot.external_references,
         source: importId,
         is_iconic: false,
         rating: 0,

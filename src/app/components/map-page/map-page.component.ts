@@ -163,6 +163,7 @@ type MapEventFilter = "live" | "competition" | "jam" | "camp";
 
 type CommunityCountryFocusData = {
   boundsCenter?: [number, number];
+  boundsRadiusM?: number;
   displayName: string;
   countryCode?: string;
   googleMapsPlaceId?: string;
@@ -4633,7 +4634,34 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const [lat, lng] = community.boundsCenter ?? [];
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    const radiusM = community.boundsRadiusM;
+    const focusedBoundsFromRadius =
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      typeof radiusM === "number" &&
+      Number.isFinite(radiusM) &&
+      radiusM > 0;
+    if (focusedBoundsFromRadius) {
+      const radiusDegrees = radiusM / 111_320;
+      this.spotMap.focusBounds(
+        new google.maps.LatLngBounds(
+          {
+            lat: Number(lat) - radiusDegrees,
+            lng: Number(lng) - radiusDegrees,
+          },
+          {
+            lat: Number(lat) + radiusDegrees,
+            lng: Number(lng) + radiusDegrees,
+          },
+        ),
+      );
+    }
+
+    if (
+      !focusedBoundsFromRadius &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng)
+    ) {
       this.spotMap.focusPoint({ lat: Number(lat), lng: Number(lng) }, 5);
     }
 

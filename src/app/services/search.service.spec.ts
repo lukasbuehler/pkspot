@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { SearchService } from "./search.service";
 import { MapsApiService } from "./maps-api.service";
+import { PlatformService } from "./platform.service";
 import { GeoPoint } from "firebase/firestore";
 import {
   SpotFilterMode,
@@ -42,6 +43,7 @@ vi.mock("../../environments/environment", () => ({
 describe("SearchService", () => {
   let service: SearchService;
   let mapsApiServiceSpy: { autocompletePlaceSearch: ReturnType<typeof vi.fn> };
+  let platformServiceSpy: { isNative: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     typesenseSearchMock.mockReset();
@@ -59,11 +61,15 @@ describe("SearchService", () => {
     mapsApiServiceSpy = {
       autocompletePlaceSearch: vi.fn().mockResolvedValue([]),
     };
+    platformServiceSpy = {
+      isNative: vi.fn().mockReturnValue(false),
+    };
 
     TestBed.configureTestingModule({
       providers: [
         SearchService,
         { provide: MapsApiService, useValue: mapsApiServiceSpy },
+        { provide: PlatformService, useValue: platformServiceSpy },
       ],
     });
 
@@ -399,6 +405,22 @@ describe("SearchService", () => {
 
       expect(preview.boundsCenter).toEqual([47.3769, 8.5417]);
       expect(preview.boundsRadiusM).toBe(4200);
+    });
+
+    it("rewrites bundled community image URLs for native builds", () => {
+      platformServiceSpy.isNative.mockReturnValue(true);
+
+      const preview = service.getCommunityPreviewFromHit({
+        document: {
+          communityKey: "locality:ch:ag:baden",
+          displayName: "Baden",
+          image: {
+            url: "https://pkspot.app/assets/banner_1200x630.png",
+          },
+        },
+      });
+
+      expect(preview.imageUrl).toBe("/en/assets/banner_1200x630.png");
     });
   });
 

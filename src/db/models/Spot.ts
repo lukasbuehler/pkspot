@@ -589,6 +589,9 @@ export class LocalSpot {
       type: this.type(),
       access: this.access(),
       amenities: this.amenities(),
+      external_references: this.googlePlaceId()
+        ? { google_maps_place_id: this.googlePlaceId() }
+        : undefined,
       bounds: this._makeBoundsFromPaths(this.paths() ?? []),
       hide_streetview: this.hideStreetview,
     };

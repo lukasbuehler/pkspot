@@ -4,6 +4,8 @@ import compression from "compression";
 import {
   applyTrustedClientRegionHeader,
   handleQrStickerRequest,
+  LONG_LIVED_ASSET_CACHE_CONTROL,
+  sendMissingAssetResponse,
 } from "./proxy-server-helpers.mjs";
 import {
   LAST_MODIFIED,
@@ -195,11 +197,11 @@ function run() {
     const iconPath = path.join(__dirname, iconRelativePath);
     console.log(`Serving root icon: ${req.path} from ${iconPath}`);
 
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("Cache-Control", LONG_LIVED_ASSET_CACHE_CONTROL);
     return res.sendFile(iconPath, (err) => {
       if (err) {
         console.error(`Failed to serve root icon ${req.path}:`, err.message);
-        res.status(404).send(`Icon not found: ${req.path}`);
+        sendMissingAssetResponse(res, req.path);
       }
     });
   });
@@ -230,14 +232,14 @@ function run() {
     const assetPath = path.join(__dirname, `../browser/${lang}`, asset);
     console.log(`Serving localized browser file: ${req.path} from ${assetPath}`);
 
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("Cache-Control", LONG_LIVED_ASSET_CACHE_CONTROL);
     return res.sendFile(assetPath, (err) => {
       if (err) {
         console.error(
           `Failed to serve localized browser file ${req.path}:`,
           err.message,
         );
-        res.status(404).send(`Asset not found: ${req.path}`);
+        sendMissingAssetResponse(res, req.path);
       }
     });
   });
@@ -247,13 +249,13 @@ function run() {
     console.log(`Serving asset: ${req.path} from ${assetPath}`);
 
     // Override global cache header for static assets
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("Cache-Control", LONG_LIVED_ASSET_CACHE_CONTROL);
 
     // Send file with error handling
     res.sendFile(assetPath, (err) => {
       if (err) {
         console.error(`Failed to serve asset ${req.path}:`, err.message);
-        res.status(404).send(`Asset not found: ${req.path}`);
+        sendMissingAssetResponse(res, req.path);
       }
     });
   });
@@ -272,7 +274,7 @@ function run() {
       );
 
       // Override global cache header for static assets
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      res.setHeader("Cache-Control", LONG_LIVED_ASSET_CACHE_CONTROL);
 
       res.sendFile(assetPath, (err) => {
         if (err) {
@@ -280,7 +282,7 @@ function run() {
             `Failed to serve language-specific asset ${req.path}:`,
             err.message,
           );
-          res.status(404).send(`Asset not found: ${req.path}`);
+          sendMissingAssetResponse(res, req.path);
         }
       });
     } else {

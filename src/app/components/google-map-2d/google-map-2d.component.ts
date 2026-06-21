@@ -22,6 +22,7 @@ import {
   effect,
   AfterViewInit,
   ChangeDetectionStrategy,
+  NgZone,
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
@@ -39,7 +40,6 @@ import { environment } from "../../../environments/environment.default";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { ConsentService } from "../../services/consent.service";
-import { PlatformService } from "../../services/platform.service";
 import { GeoPoint } from "firebase/firestore";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
@@ -126,6 +126,8 @@ const SPOT_MARKER_COLLISION_HEIGHT_PX = 52;
 const COMMUNITY_MARKER_COLLISION_SIZE_PX = 16;
 const POINT_MARKER_DOT_COLLISION_SIZE_PX = 48;
 const POINT_MARKER_FULL_COLLISION_SIZE_PX = 48;
+const MAP_PROFILE_FULL_SNAPSHOT_INTERVAL_MS = 1_000;
+const POINT_MARKER_NATIVE_CIRCLE_MAX_ZOOM = 11;
 
 interface MarkerCollisionLayoutCache {
   highlightedSpots: SpotPreviewData[];
@@ -182,6 +184,14 @@ interface CircleOverlayRenderState {
   visualZoom: number;
 }
 
+interface PointMarkerCircleRenderState {
+  darkMode: boolean;
+  marker: MapPointMarker;
+  options: google.maps.CircleOptions;
+  radiusM: number;
+  visualZoom: number;
+}
+
 export interface TilesObject {
   zoom: number;
   tiles: { x: number; y: number }[];
@@ -197,6 +207,11 @@ interface MapCameraSnapshot {
   source: string;
   timestampMs: number;
   zoom: number;
+}
+
+interface ProgrammaticCameraJumpAllowance {
+  source: string;
+  untilMs: number;
 }
 
 @Component({
@@ -251,6 +266,9 @@ export class GoogleMap2dComponent
   private _cameraRecoveryVerificationTimeoutId: ReturnType<typeof setTimeout> | null =
     null;
   private _lastValidCamera: MapCameraSnapshot | null = null;
+  private _lastFullMapProfileTimestamp = 0;
+  private _programmaticCameraJumpAllowance: ProgrammaticCameraJumpAllowance | null =
+    null;
 
   readonly autoStartLocationWatch = environment.features.checkIns;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
@@ -265,6 +283,9 @@ export class GoogleMap2dComponent
         return;
       }
 
+      if (content !== this.googleMap) {
+        this._clearCameraEventListeners();
+      }
       this.googleMap = content;
       this.onMapReady();
     }
@@ -645,6 +666,18 @@ export class GoogleMap2dComponent
     return visibleMarkers;
   }
 
+  getVisibleNativeCirclePointMarkers(): MapPointMarker[] {
+    return this.getVisiblePointMarkers().filter((marker) =>
+      this._isPointMarkerRenderedAsNativeCircle(marker),
+    );
+  }
+
+  getVisibleHtmlPointMarkers(): MapPointMarker[] {
+    return this.getVisiblePointMarkers().filter(
+      (marker) => !this._isPointMarkerRenderedAsNativeCircle(marker),
+    );
+  }
+
   private _getVisibleHighlightedSpotPreviews(): SpotPreviewData[] {
     const spots = this._highlightedSpotsSignal();
     if (spots.length === 0) {
@@ -990,6 +1023,28 @@ export class GoogleMap2dComponent
     );
   }
 
+  private _isPointMarkerRenderedAsNativeCircle(
+    marker: MapPointMarker,
+  ): boolean {
+    const zoom = this.googleMap?.getZoom() ?? this.zoom;
+    if (zoom > POINT_MARKER_NATIVE_CIRCLE_MAX_ZOOM) {
+      return false;
+    }
+
+    if (
+      marker.forceFullMarker ||
+      marker.priority === "required" ||
+      marker.ignoreCollisions
+    ) {
+      return false;
+    }
+
+    return (
+      this._isEventCollisionMarker(marker) ||
+      this._isCommunityCollisionMarker(marker)
+    );
+  }
+
   private _getPointMarkerCollisionSize(
     marker: MapPointMarker,
     zoom: number,
@@ -1114,6 +1169,10 @@ export class GoogleMap2dComponent
     MapCircleOverlay,
     CircleOverlayRenderState
   >();
+  private readonly _pointMarkerCircleRenderStateCache = new WeakMap<
+    MapPointMarker,
+    PointMarkerCircleRenderState
+  >();
 
   /**
    * Passive locality circles begin with the stronger dot treatment while
@@ -1123,6 +1182,14 @@ export class GoogleMap2dComponent
    */
   circleOverlayOptions(circle: MapCircleOverlay): google.maps.CircleOptions {
     return this._getCircleOverlayRenderState(circle).options;
+  }
+
+  pointMarkerCircleOptions(marker: MapPointMarker): google.maps.CircleOptions {
+    return this._getPointMarkerCircleRenderState(marker).options;
+  }
+
+  pointMarkerCircleRadius(marker: MapPointMarker): number {
+    return this._getPointMarkerCircleRenderState(marker).radiusM;
   }
 
   isCircleOverlayClickable(circle: MapCircleOverlay): boolean {
@@ -1176,6 +1243,49 @@ export class GoogleMap2dComponent
     return state;
   }
 
+  private _getPointMarkerCircleRenderState(
+    marker: MapPointMarker,
+  ): PointMarkerCircleRenderState {
+    const darkMode = this.resolvedDarkMode();
+    const visualZoom = this._communityVisualZoom();
+    const cached = this._pointMarkerCircleRenderStateCache.get(marker);
+    if (
+      cached &&
+      cached.darkMode === darkMode &&
+      cached.marker === marker &&
+      cached.visualZoom === visualZoom
+    ) {
+      return cached;
+    }
+
+    const fillColor = this._getMarkerCssColor(marker.color);
+    const strokeColor = this._getMarkerCssStrokeColor(marker.color);
+    const radiusPx = this._isEventCollisionMarker(marker) ? 7 : 5;
+    const radiusM = Math.max(
+      1,
+      radiusPx *
+        this._metersPerPixelAtLatitude(marker.location.lat, visualZoom),
+    );
+    const options: google.maps.CircleOptions = {
+      clickable: true,
+      fillColor,
+      fillOpacity: this._isEventCollisionMarker(marker) ? 0.9 : 0.82,
+      strokeColor,
+      strokeOpacity: 1,
+      strokeWeight: this._isEventCollisionMarker(marker) ? 2 : 1,
+      zIndex: getMapMarkerPriority(marker),
+    };
+    const state: PointMarkerCircleRenderState = {
+      darkMode,
+      marker,
+      options,
+      radiusM,
+      visualZoom,
+    };
+    this._pointMarkerCircleRenderStateCache.set(marker, state);
+    return state;
+  }
+
   private _circleDiameterPx(circle: MapCircleOverlay): number {
     return (
       (circle.radiusM * 2) /
@@ -1184,6 +1294,43 @@ export class GoogleMap2dComponent
         this._communityVisualZoom(),
       )
     );
+  }
+
+  private _getMarkerCssColor(color: MapPointMarker["color"]): string {
+    switch (color) {
+      case "secondary":
+        return this._getCssColorAsHex("--mat-sys-secondary", "#1a6c19");
+      case "tertiary":
+        return this._getCssColorAsHex("--mat-sys-tertiary", "#625b71");
+      case "gray":
+        return this._getCssColorAsHex("--mat-sys-outline", "#79747e");
+      case "primary":
+      default:
+        return this._getCssColorAsHex("--mat-sys-primary", "#0036ba");
+    }
+  }
+
+  private _getMarkerCssStrokeColor(color: MapPointMarker["color"]): string {
+    switch (color) {
+      case "secondary":
+        return this._getCssColorAsHex(
+          "--mat-sys-on-secondary-container",
+          "#002204",
+        );
+      case "tertiary":
+        return this._getCssColorAsHex(
+          "--mat-sys-on-tertiary-container",
+          "#1d192b",
+        );
+      case "gray":
+        return this._getCssColorAsHex("--mat-sys-surface", "#ffffff");
+      case "primary":
+      default:
+        return this._getCssColorAsHex(
+          "--mat-sys-on-primary-container",
+          "#001a67",
+        );
+    }
   }
 
   private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {
@@ -1477,7 +1624,7 @@ export class GoogleMap2dComponent
     private geolocationService: GeolocationService,
     private snackBar: MatSnackBar,
     private _mapProfiler: MapPerformanceProfilerService,
-    private _platformService: PlatformService,
+    private _ngZone: NgZone,
   ) {
     super();
 
@@ -1613,6 +1760,8 @@ export class GoogleMap2dComponent
   isApiLoadedSubscription: Subscription | null = null;
   consentSubscription: Subscription | null = null;
   private _headingChangedSubscription: Subscription | null = null;
+  private _cameraIdleListener: google.maps.MapsEventListener | null = null;
+  private _zoomChangedListener: google.maps.MapsEventListener | null = null;
   private _mapCapabilitiesChangedListener: google.maps.MapsEventListener | null =
     null;
 
@@ -1677,6 +1826,7 @@ export class GoogleMap2dComponent
     this._applyFitBounds();
 
     this.positionGoogleMapsLogo();
+    this._subscribeToCameraEvents();
     this._subscribeToHeadingChanges();
     this._subscribeToMapCapabilitiesChanges();
     void this._updateFeatureBoundaryStyle();
@@ -1779,11 +1929,11 @@ export class GoogleMap2dComponent
   }
 
   private _shouldPreferRasterRendering(): boolean {
-    return this._platformService.getPlatform() === "android";
+    return false;
   }
 
   private _shouldDisableFractionalZoom(): boolean {
-    return this._platformService.getPlatform() === "android";
+    return false;
   }
 
   private _getGoogleMapsApi(): (typeof google)["maps"] | null {
@@ -1853,6 +2003,7 @@ export class GoogleMap2dComponent
       return;
     }
 
+    this._allowProgrammaticCameraJump("fit-to-bounds-input");
     this.googleMap.fitBounds(this.fitToBounds, 40);
   }
 
@@ -1893,6 +2044,7 @@ export class GoogleMap2dComponent
     if (this.consentSubscription) this.consentSubscription.unsubscribe();
     if (this._headingChangedSubscription)
       this._headingChangedSubscription.unsubscribe();
+    this._clearCameraEventListeners();
     this._mapCapabilitiesChangedListener?.remove();
     this._mapCapabilitiesChangedListener = null;
     this._featureBoundaryRequestVersion++;
@@ -2071,6 +2223,62 @@ export class GoogleMap2dComponent
     return `#${[red, green, blue]
       .map((channel) => channel.toString(16).padStart(2, "0"))
       .join("")}`;
+  }
+
+  private _subscribeToCameraEvents(): void {
+    if (
+      this._cameraIdleListener ||
+      this._zoomChangedListener ||
+      !this.googleMap?.googleMap
+    ) {
+      return;
+    }
+
+    const nativeMap = this.googleMap.googleMap;
+    this._ngZone.runOutsideAngular(() => {
+      this._cameraIdleListener = nativeMap.addListener("idle", () => {
+        this._ngZone.run(() => this.cameraIdle());
+      });
+      this._zoomChangedListener = nativeMap.addListener("zoom_changed", () => {
+        this._handleNativeZoomChangedOutsideAngular();
+      });
+    });
+  }
+
+  private _clearCameraEventListeners(): void {
+    this._cameraIdleListener?.remove();
+    this._cameraIdleListener = null;
+    this._zoomChangedListener?.remove();
+    this._zoomChangedListener = null;
+  }
+
+  private _handleNativeZoomChangedOutsideAngular(): void {
+    if (this._isRecoveringInvalidCamera) {
+      this._ngZone.run(() => this.getAndEmitChangedZoom());
+      return;
+    }
+
+    const camera = this._readCurrentCameraSnapshot("zoom-changed");
+    if (!camera) {
+      this._ngZone.run(() => this.getAndEmitChangedZoom());
+      return;
+    }
+
+    this._rememberValidCamera(camera);
+    const newZoom = Math.floor(camera.zoom);
+    if (newZoom === this._lastObservedNativeIntegerZoom) return;
+
+    this._lastObservedNativeIntegerZoom = newZoom;
+    this._debugMapEvent("zoomChanged", {
+      mapZoom: camera.zoom,
+      zoom: newZoom,
+    });
+    this._recordMapProfile("zoom-changed", {
+      deferredRenderZoom: true,
+      mapZoom: camera.zoom,
+      renderZoom: this._zoom(),
+      zoom: newZoom,
+    });
   }
 
   private _subscribeToHeadingChanges(): void {
@@ -2373,6 +2581,29 @@ export class GoogleMap2dComponent
 
     const elapsedMs = camera.timestampMs - previous.timestampMs;
     const zoomDelta = Math.abs(camera.zoom - previous.zoom);
+    const allowedProgrammaticJump =
+      this._programmaticCameraJumpAllowance &&
+      camera.timestampMs <= this._programmaticCameraJumpAllowance.untilMs;
+    if (
+      allowedProgrammaticJump &&
+      elapsedMs >= 0 &&
+      elapsedMs <= GoogleMap2dComponent.CAMERA_JUMP_WINDOW_MS * 3 &&
+      zoomDelta > GoogleMap2dComponent.MAX_CAMERA_ZOOM_JUMP
+    ) {
+      this._mapProfiler.recordThrottled(
+        "google-map-2d:programmatic-camera-jump-allowed",
+        {
+          allowance: this._programmaticCameraJumpAllowance,
+          current: camera,
+          elapsedMs: Math.round(elapsedMs),
+          previous,
+          zoomDelta: Math.round(zoomDelta * 100) / 100,
+        },
+        500,
+      );
+      return false;
+    }
+
     const isSuspicious =
       elapsedMs >= 0 &&
       elapsedMs <= GoogleMap2dComponent.CAMERA_JUMP_WINDOW_MS &&
@@ -2388,6 +2619,14 @@ export class GoogleMap2dComponent
     }
 
     return isSuspicious;
+  }
+
+  private _allowProgrammaticCameraJump(source: string): void {
+    this._programmaticCameraJumpAllowance = {
+      source,
+      untilMs:
+        performance.now() + GoogleMap2dComponent.CAMERA_JUMP_WINDOW_MS * 3,
+    };
   }
 
   private _rememberValidCamera(camera: MapCameraSnapshot): void {
@@ -2607,6 +2846,7 @@ export class GoogleMap2dComponent
       center: bounds.getCenter().toJSON(),
       bounds: bounds.toJSON(),
     });
+    this._allowProgrammaticCameraJump("fit-bounds");
     this.googleMap.fitBounds(bounds);
   }
 
@@ -3239,23 +3479,15 @@ export class GoogleMap2dComponent
     if (!this._mapProfiler.isEnabled()) return;
 
     const nativeMap = this.googleMap?.googleMap;
-    const layout = this._getMarkerCollisionLayout();
-    const visiblePointMarkers = this.getVisiblePointMarkers();
-    const center = this.googleMap?.getCenter()?.toJSON() ?? null;
-    const bounds = this.googleMap?.getBounds()?.toJSON() ?? null;
-
-    this._mapProfiler.record(`google-map-2d:${event}`, {
+    const now = performance.now();
+    const shouldRecordFullSnapshot = this._shouldRecordFullMapProfileSnapshot(
+      event,
+      now,
+    );
+    const basePayload = {
       ...payload,
       actualRenderingType: nativeMap?.getRenderingType?.() ?? null,
-      bounds,
       capabilities: nativeMap?.getMapCapabilities?.() ?? null,
-      center,
-      collision: {
-        hiddenCommunities: layout.hiddenCommunityIds.size,
-        hiddenEvents: layout.hiddenEventIds.size,
-        hiddenPoints: layout.hiddenPointIds.size,
-        hiddenSpots: layout.hiddenSpotIds.size,
-      },
       inputs: {
         circleOverlays: this.circleOverlays.length,
         highlightedSpots: this.highlightedSpots.length,
@@ -3270,16 +3502,66 @@ export class GoogleMap2dComponent
         polygons: this.polygonOverlays.length,
       },
       requestedRenderingType: this.mapOptions.renderingType ?? null,
+      zoom: {
+        component: this.zoom,
+        native: this.googleMap?.getZoom() ?? null,
+      },
+    };
+
+    if (!shouldRecordFullSnapshot) {
+      this._mapProfiler.record(`google-map-2d:${event}`, {
+        ...basePayload,
+        profileDetail: "light",
+      });
+      return;
+    }
+
+    const layout = this._getMarkerCollisionLayout();
+    const visiblePointMarkers = this.getVisiblePointMarkers();
+    const center = this.googleMap?.getCenter()?.toJSON() ?? null;
+    const bounds = this.googleMap?.getBounds()?.toJSON() ?? null;
+
+    this._mapProfiler.record(`google-map-2d:${event}`, {
+      ...basePayload,
+      bounds,
+      center,
+      collision: {
+        hiddenCommunities: layout.hiddenCommunityIds.size,
+        hiddenEvents: layout.hiddenEventIds.size,
+        hiddenPoints: layout.hiddenPointIds.size,
+        hiddenSpots: layout.hiddenSpotIds.size,
+      },
+      profileDetail: "full",
       visible: {
         pointMarkers: visiblePointMarkers.length,
         regularSpotMarkers: this.getVisibleSpotMarkers().length,
         highlightedSpots: this.getVisibleHighlightedSpots().length,
       },
-      zoom: {
-        component: this.zoom,
-        native: this.googleMap?.getZoom() ?? null,
-      },
     });
+  }
+
+  private _shouldRecordFullMapProfileSnapshot(
+    event: string,
+    timestampMs: number,
+  ): boolean {
+    if (
+      event === "ready" ||
+      event === "config-updated" ||
+      event === "capabilities-changed"
+    ) {
+      this._lastFullMapProfileTimestamp = timestampMs;
+      return true;
+    }
+
+    if (
+      timestampMs - this._lastFullMapProfileTimestamp >=
+      MAP_PROFILE_FULL_SNAPSHOT_INTERVAL_MS
+    ) {
+      this._lastFullMapProfileTimestamp = timestampMs;
+      return true;
+    }
+
+    return false;
   }
 
   private _debugSelectedSpotKey(): string | null {

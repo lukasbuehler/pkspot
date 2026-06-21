@@ -17,6 +17,7 @@ interface MapProfileEnableOptions {
 }
 
 interface MapProfileState {
+  consoleMode: "summary" | "verbose";
   enabled: boolean;
   eventCount: number;
   verbose: boolean;
@@ -59,6 +60,7 @@ const PROFILE_BREADCRUMB_STORAGE_KEY = "pkspotMapProfileBreadcrumbs";
 const MAX_STORED_EVENTS = 1_000;
 const MAX_STORED_BREADCRUMBS = 100;
 const FRAME_REPORT_INTERVAL_MS = 1_000;
+const BREADCRUMB_PERSIST_INTERVAL_MS = 2_000;
 const MAX_SANITIZE_DEPTH = 6;
 
 @Injectable({
@@ -76,6 +78,7 @@ export class MapPerformanceProfilerService {
   private _longTaskObserver: PerformanceObserver | null = null;
   private _consoleInterceptorInstalled = false;
   private _googleMarkerContentVisibilityWarningCount = 0;
+  private _lastBreadcrumbPersistTimestamp = 0;
   private _throttledEventTimestamps = new Map<string, number>();
   private _verbose = false;
 
@@ -140,7 +143,9 @@ export class MapPerformanceProfilerService {
       this._events.shift();
     }
 
-    console.info(`[MapProfile] ${label} ${this._stringifyEvent(event)}`);
+    if (this._shouldPrintEvent(label)) {
+      console.info(`[MapProfile] ${label} ${this._stringifyEvent(event)}`);
+    }
     return event;
   }
 
@@ -179,12 +184,14 @@ export class MapPerformanceProfilerService {
 
   dump(): MapProfileEvent[] {
     const events = [...this._events];
+    this._persistBreadcrumbs();
     console.info(`[MapProfile] dump ${this._stringifyPayload(events)}`);
     return events;
   }
 
   breadcrumbs(): MapProfileEvent[] {
     const breadcrumbs = [...this._breadcrumbs];
+    this._persistBreadcrumbs();
     console.info(
       `[MapProfile] breadcrumbs ${this._stringifyPayload(breadcrumbs)}`,
     );
@@ -193,6 +200,7 @@ export class MapPerformanceProfilerService {
 
   json(): string {
     const json = this._stringifyPayload(this._events);
+    this._persistBreadcrumbs();
     console.info(`[MapProfile] json ${json}`);
     return json;
   }
@@ -213,6 +221,7 @@ export class MapPerformanceProfilerService {
 
   state(): MapProfileState {
     return {
+      consoleMode: this._verbose ? "verbose" : "summary",
       enabled: this._enabled,
       eventCount: this._events.length,
       verbose: this._verbose,
@@ -303,6 +312,16 @@ export class MapPerformanceProfilerService {
       );
     }
 
+    const now = performance.now();
+    if (now - this._lastBreadcrumbPersistTimestamp < BREADCRUMB_PERSIST_INTERVAL_MS) {
+      return;
+    }
+
+    this._persistBreadcrumbs(now);
+  }
+
+  private _persistBreadcrumbs(timestamp = performance.now()): void {
+    this._lastBreadcrumbPersistTimestamp = timestamp;
     try {
       localStorage.setItem(
         PROFILE_BREADCRUMB_STORAGE_KEY,
@@ -324,9 +343,27 @@ export class MapPerformanceProfilerService {
     this._breadcrumbs = [];
     try {
       localStorage.setItem(PROFILE_BREADCRUMB_STORAGE_KEY, "[]");
+      this._lastBreadcrumbPersistTimestamp = performance.now();
     } catch {
       // Ignore storage failures; live console logging still works.
     }
+  }
+
+  private _shouldPrintEvent(label: string): boolean {
+    if (this._verbose) return true;
+
+    return (
+      label === "frames" ||
+      label === "frame-gap" ||
+      label === "long-task" ||
+      label === "google-marker-content-visibility" ||
+      label.startsWith("profiler:") ||
+      label.startsWith("snapshot:") ||
+      label.startsWith("google-map-2d:camera-") ||
+      label.startsWith("google-map-2d:invalid-camera") ||
+      label.startsWith("google-map-2d:suspicious-camera") ||
+      label.startsWith("google-map-2d:recreate-native-map")
+    );
   }
 
   private _loadStoredBreadcrumbs(): MapProfileEvent[] {

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { LandingPagesService } from "./landing-pages.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { PlatformService } from "../../platform.service";
 
 const createMockFirestoreAdapter = () => ({
   getDocument: vi.fn(),
@@ -69,14 +70,19 @@ const buildCommunityDoc = (overrides: Record<string, unknown> = {}) => ({
 describe("LandingPagesService", () => {
   let service: LandingPagesService;
   let mockFirestoreAdapter: ReturnType<typeof createMockFirestoreAdapter>;
+  let platformServiceSpy: { isNative: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     mockFirestoreAdapter = createMockFirestoreAdapter();
+    platformServiceSpy = {
+      isNative: vi.fn().mockReturnValue(false),
+    };
 
     TestBed.configureTestingModule({
       providers: [
         LandingPagesService,
         { provide: FirestoreAdapterService, useValue: mockFirestoreAdapter },
+        { provide: PlatformService, useValue: platformServiceSpy },
       ],
     });
 
@@ -127,6 +133,21 @@ describe("LandingPagesService", () => {
       2,
       "community_pages/locality:gb:london"
     );
+  });
+
+  it("rewrites default community image URLs for native builds", async () => {
+    platformServiceSpy.isNative.mockReturnValue(true);
+    mockFirestoreAdapter.getDocument
+      .mockResolvedValueOnce({
+        id: "london",
+        communityKey: "locality:gb:london",
+        isPreferred: true,
+      })
+      .mockResolvedValueOnce(buildCommunityDoc());
+
+    const result = await service.getCommunityPage("london");
+
+    expect(result?.imageUrl).toBe("/en/assets/banner_1200x630.png");
   });
 
   it("maps curated community info cards from the page document", async () => {

@@ -1,4 +1,7 @@
 export const CLIENT_REGION_HEADER = "x-pkspot-client-region";
+export const LONG_LIVED_ASSET_CACHE_CONTROL =
+  "public, max-age=31536000, immutable";
+export const MISSING_ASSET_CACHE_CONTROL = "no-store";
 export const QR_STICKER_CAMPAIGNS = {
   nice: {
     campaign: "nice-spot-v1",
@@ -76,4 +79,13 @@ export function handleQrStickerRequest(req, res, next) {
 
   res.setHeader("Cache-Control", "no-store");
   return res.redirect(302, target);
+}
+
+export function sendMissingAssetResponse(res, requestPath) {
+  if (res.headersSent) {
+    return;
+  }
+
+  res.setHeader("Cache-Control", MISSING_ASSET_CACHE_CONTROL);
+  res.status(404).type("text/plain").send(`Asset not found: ${requestPath}`);
 }

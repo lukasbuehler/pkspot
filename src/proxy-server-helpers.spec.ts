@@ -4,7 +4,9 @@ import {
   getQrStickerRedirectTarget,
   getTrustedClientRegionFromHeaders,
   handleQrStickerRequest,
+  MISSING_ASSET_CACHE_CONTROL,
   normalizeClientRegionHeader,
+  sendMissingAssetResponse,
 } from "./proxy-server-helpers.mjs";
 
 describe("proxy-server client region helpers", () => {
@@ -94,5 +96,27 @@ describe("proxy-server client region helpers", () => {
     expect(res.setHeader).not.toHaveBeenCalled();
     expect(res.redirect).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalled();
+  });
+
+  it("should not let missing browser assets inherit immutable cache headers", () => {
+    const res = {
+      headersSent: false,
+      send: vi.fn(),
+      setHeader: vi.fn(),
+      status: vi.fn(() => res),
+      type: vi.fn(() => res),
+    };
+
+    sendMissingAssetResponse(res, "/en/chunk-LX5C6STU.js");
+
+    expect(res.setHeader).toHaveBeenCalledWith(
+      "Cache-Control",
+      MISSING_ASSET_CACHE_CONTROL
+    );
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.type).toHaveBeenCalledWith("text/plain");
+    expect(res.send).toHaveBeenCalledWith(
+      "Asset not found: /en/chunk-LX5C6STU.js"
+    );
   });
 });

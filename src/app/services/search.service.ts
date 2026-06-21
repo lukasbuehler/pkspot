@@ -298,7 +298,9 @@ export class SearchService {
       localityName:
         doc?.["geography.localityName"] ?? geography?.localityName ?? undefined,
       totalSpots,
-      imageUrl: doc?.["image.url"] ?? doc?.image?.url ?? undefined,
+      imageUrl: this._assetUrls.resolveBundledAssetUrl(
+        doc?.["image.url"] ?? doc?.image?.url ?? undefined,
+      ),
       canonicalPath: doc?.canonicalPath ?? undefined,
       boundsCenter,
       boundsRadiusM,
