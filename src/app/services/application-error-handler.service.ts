@@ -15,6 +15,7 @@ const dynamicImportErrorSignals = [
   "chunkloaderror",
   "importing a module script failed",
 ];
+const angularHmrErrorSignals = ["ɵhmr"];
 
 function collectErrorSignals(error: unknown, depth: number = 0): string[] {
   if (depth > 2 || error === null || error === undefined) {
@@ -50,6 +51,11 @@ export function isDynamicImportLoadError(error: unknown): boolean {
   return dynamicImportErrorSignals.some((signal) => signalText.includes(signal));
 }
 
+export function isAngularHmrModuleError(error: unknown): boolean {
+  const signalText = collectErrorSignals(error).join("\n").toLowerCase();
+  return angularHmrErrorSignals.some((signal) => signalText.includes(signal));
+}
+
 @Injectable()
 export class ApplicationErrorHandler implements ErrorHandler {
   private readonly analytics = inject(AnalyticsService);
@@ -66,14 +72,14 @@ export class ApplicationErrorHandler implements ErrorHandler {
       userFacing: true,
     });
 
-    if (isDynamicImportLoadError(error)) {
-      this.reloadOnceForDynamicImportError();
+    if (isDynamicImportLoadError(error) || isAngularHmrModuleError(error)) {
+      this.reloadOnceForRecoverableModuleError();
     }
 
     console.error(error);
   }
 
-  private reloadOnceForDynamicImportError(): void {
+  private reloadOnceForRecoverableModuleError(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }

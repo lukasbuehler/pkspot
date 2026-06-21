@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AnalyticsService } from "./analytics.service";
 import {
   ApplicationErrorHandler,
+  isAngularHmrModuleError,
   isDynamicImportLoadError,
 } from "./application-error-handler.service";
 
@@ -105,6 +106,31 @@ describe("ApplicationErrorHandler", () => {
       handled: false,
       userFacing: true,
     });
+    expect(setTimeout).toHaveBeenCalledTimes(1);
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it("recognizes Angular HMR module namespace failures", () => {
+    expect(
+      isAngularHmrModuleError(
+        new TypeError(
+          'can\'t access property "PlatformService", ɵhmr8 is undefined',
+        ),
+      ),
+    ).toBe(true);
+    expect(isAngularHmrModuleError(new Error("Permission denied"))).toBe(false);
+  });
+
+  it("reloads once for Angular HMR module namespace failures", () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { handler, reload, setTimeout } = configureHandler();
+    const error = new TypeError(
+      'can\'t access property "PlatformService", ɵhmr8 is undefined',
+    );
+
+    handler.handleError(error);
+    handler.handleError(error);
+
     expect(setTimeout).toHaveBeenCalledTimes(1);
     expect(reload).toHaveBeenCalledTimes(1);
   });
