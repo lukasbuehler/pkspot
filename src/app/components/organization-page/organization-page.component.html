@@ -19,6 +19,7 @@
               >
                 @if (organization()?.logo_url) {
                   <img
+                    class="organization-overview__logo-image"
                     [src]="$safeNavigationMigration(organization()?.logo_url)"
                     [alt]="$safeNavigationMigration(organization()?.name) + ' logo'"
                   />

@@ -126,11 +126,8 @@
                 matTooltip="Managed by {{ managed.organization.name }}"
                 i18n-matTooltip="@@spot.managed.tooltip"
                 [attr.aria-label]="'Managed by ' + managed.organization.name"
-                style="width: 60px; margin-left: -8px; margin-right: -8px"
               >
-                <mat-icon style="width: 24px; flex-shrink: 0"
-                  >verified_user</mat-icon
-                >
+                <mat-icon>verified_user</mat-icon>
                 @if (managed.organization.logo_url) {
                   <img
                     class="spot-verification-logo"
@@ -158,11 +155,8 @@
                   matTooltip="Verified by {{ steward.organization.name }}"
                   i18n-matTooltip="@@spot.verified.tooltip"
                   [attr.aria-label]="'Verified by ' + steward.organization.name"
-                  style="width: 60px; margin-left: -8px; margin-right: -8px"
                 >
-                  <mat-icon style="width: 24px; flex-shrink: 0"
-                    >verified_user</mat-icon
-                  >
+                  <mat-icon>verified_user</mat-icon>
                   @if (steward.organization.logo_url) {
                     <img
                       class="spot-verification-logo"

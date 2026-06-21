@@ -115,6 +115,23 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(component).toContain("this._openPendingSpotPanel(");
   });
 
+  it("keeps selected spot details synced from the spot document snapshot", () => {
+    const source = readFileSync(componentPath, "utf8");
+
+    expect(source).toContain("private selectedSpotSnapshotId = signal");
+    expect(source).toContain("this.selectedSpotSnapshotId.set(spot.id)");
+    expect(source).toContain(
+      "const selectedSpotId = this.selectedSpotSnapshotId();"
+    );
+    expect(source).toContain(
+      "if (this.isServer || this.isEditing() || !selectedSpotId)"
+    );
+    expect(source).toContain(
+      ".getSpotById$(selectedSpotId, this.locale)"
+    );
+    expect(source).toContain("this.selectedSpot.set(freshSpot)");
+  });
+
   it("delegates event preview URL updates back into URL-state loading", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(

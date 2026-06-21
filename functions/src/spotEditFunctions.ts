@@ -82,7 +82,7 @@ const MIN_TOTAL_VOTES = 2;
 const MIN_YES_NO_RATIO = 3;
 const PENDING_VOTE_EDITS_LIMIT = 300;
 const PENDING_VOTE_EDITS_FALLBACK_SCAN_LIMIT = 900;
-const CALLABLE_CORS_OPTIONS = { cors: true };
+const CALLABLE_CORS_OPTIONS = { cors: true, invoker: "public" as const };
 
 // Rollout control:
 // Keep legacy instant-apply behavior for iconic community spots until clients

@@ -258,6 +258,19 @@ describe("SpotEditsService", () => {
     );
   });
 
+  it("treats empty update edits as a no-op", async () => {
+    const editId = await service.addSpotEdit("spot-1", {
+      type: "UPDATE",
+      timestamp: {} as SpotEditSchema["timestamp"],
+      timestamp_raw_ms: 1,
+      user: { uid: "user-1", display_name: "Test User" },
+      data: {},
+    });
+
+    expect(editId).toBe("");
+    expect(mockFirestoreAdapter.addDocument).not.toHaveBeenCalled();
+  });
+
   it("recursively removes undefined values from edit documents", async () => {
     mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
 

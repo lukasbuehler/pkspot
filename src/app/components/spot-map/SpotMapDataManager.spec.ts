@@ -125,6 +125,37 @@ describe("SpotMapDataManager filters", () => {
     );
   });
 
+  it("does not create an edit when an existing spot has no data changes", async () => {
+    const spotEditsService = {
+      createSpotUpdateEdit: vi.fn(),
+    };
+    const authService = {
+      isSignedIn: true,
+      user: {
+        uid: "live-auth-uid",
+        email: "live@example.test",
+        data: new User("live-auth-uid", {
+          display_name: "Live User",
+        }),
+      },
+    };
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [SpotEditsService, spotEditsService],
+          [AuthenticationService, authService],
+        ])
+      )
+    );
+    const spot = makeSpot("spot-1", SpotTypes.Park);
+
+    const spotId = await manager.saveSpot(spot, spot);
+
+    expect(spotId).toBe("spot-1");
+    expect(spotEditsService.createSpotUpdateEdit).not.toHaveBeenCalled();
+  });
+
   it("keeps cached full spots visible when a preset filter is active", () => {
     const parkourSpot = makeSpot("parkour", SpotTypes.PkPark);
     const regularSpot = makeSpot("regular", SpotTypes.Playground);

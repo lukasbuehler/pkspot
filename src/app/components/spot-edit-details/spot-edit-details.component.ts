@@ -18,6 +18,7 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { createUserReference } from "../../../scripts/Helpers";
 import { SpotEditVoteValue } from "../../../db/schemas/SpotEditVoteSchema";
+import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 
 @Component({
   selector: "app-spot-edit-details",
@@ -37,14 +38,45 @@ export class SpotEditDetailsComponent {
   locale = inject(LOCALE_ID);
   authenticationService = inject(AuthenticationService);
   private _spotEditsService = inject(SpotEditsService);
+  private _organizationsService = inject(OrganizationsService);
   private _snackBar = inject(MatSnackBar);
 
   isSubmittingVote = signal(false);
+  isSubmittingReview = signal(false);
+  isLoadingReviewEligibility = signal(false);
   userVoteValue = signal<SpotEditVoteValue | null>(null);
+  reviewerOrganizationIds = signal<ReadonlySet<string>>(new Set());
 
   yesVotes = computed(() => this.spotEdit()?.vote_summary?.yes_count ?? 0);
   noVotes = computed(() => this.spotEdit()?.vote_summary?.no_count ?? 0);
   totalVotes = computed(() => this.spotEdit()?.vote_summary?.total_count ?? 0);
+  reviewOrganizationIds = computed(() => {
+    const edit = this.spotEdit();
+    if (!edit) return [];
+    if (edit.review_organization_ids?.length) {
+      return edit.review_organization_ids;
+    }
+    return edit.review_organization_id ? [edit.review_organization_id] : [];
+  });
+  isOrganizationReviewEdit = computed(() => {
+    const edit = this.spotEdit();
+    return (
+      edit?.review_status === "pending" &&
+      this.reviewOrganizationIds().length > 0
+    );
+  });
+  canReviewOrganizationEdit = computed(() => {
+    if (!this.isOrganizationReviewEdit()) {
+      return false;
+    }
+    const reviewerIds = this.reviewerOrganizationIds();
+    return this.reviewOrganizationIds().some((id) => reviewerIds.has(id));
+  });
+  reviewHeading = computed(() =>
+    this.canReviewOrganizationEdit()
+      ? $localize`Review for your organization`
+      : $localize`Organization review`
+  );
 
   statusText = computed(() => {
     const edit = this.spotEdit();
@@ -86,11 +118,14 @@ export class SpotEditDetailsComponent {
       !!edit &&
       edit.type === "UPDATE" &&
       edit.approved !== true &&
+      !this.isOrganizationReviewEdit() &&
       this.authenticationService.isSignedIn
     );
   }
 
   constructor() {
+    void this._loadReviewerOrganizations();
+
     effect((onCleanup) => {
       const edit = this.spotEdit();
       const spotId = this.spotId();
@@ -124,6 +159,78 @@ export class SpotEditDetailsComponent {
 
   async voteNo() {
     await this._submitVote(-1);
+  }
+
+  async approveOrganizationEdit() {
+    await this._reviewOrganizationEdit("approve");
+  }
+
+  async rejectOrganizationEdit() {
+    await this._reviewOrganizationEdit("reject");
+  }
+
+  private async _loadReviewerOrganizations(): Promise<void> {
+    if (!this.authenticationService.isSignedIn) {
+      this.reviewerOrganizationIds.set(new Set());
+      return;
+    }
+
+    this.isLoadingReviewEligibility.set(true);
+    try {
+      const organizations =
+        await this._organizationsService.getReviewerOrganizations();
+      this.reviewerOrganizationIds.set(
+        new Set(organizations.map((organization) => organization.id))
+      );
+    } catch (error) {
+      console.warn("Failed to load reviewer organizations", error);
+      this.reviewerOrganizationIds.set(new Set());
+    } finally {
+      this.isLoadingReviewEligibility.set(false);
+    }
+  }
+
+  private async _reviewOrganizationEdit(
+    decision: "approve" | "reject"
+  ): Promise<void> {
+    const edit = this.spotEdit();
+    const spotId = this.spotId();
+
+    if (
+      !edit ||
+      !spotId ||
+      !this.canReviewOrganizationEdit() ||
+      this.isSubmittingReview()
+    ) {
+      return;
+    }
+
+    this.isSubmittingReview.set(true);
+    try {
+      await this._spotEditsService.reviewVerifiedSpotEdit(
+        spotId,
+        edit.id,
+        decision
+      );
+      this._snackBar.open(
+        decision === "approve"
+          ? $localize`Edit approved`
+          : $localize`Edit rejected`,
+        undefined,
+        { duration: 2200 }
+      );
+    } catch (error) {
+      console.error("Failed to review organization edit", error);
+      this._snackBar.open(
+        $localize`Failed to submit organization review`,
+        $localize`Dismiss`,
+        {
+          duration: 2500,
+        }
+      );
+    } finally {
+      this.isSubmittingReview.set(false);
+    }
   }
 
   private async _submitVote(voteValue: SpotEditVoteValue): Promise<void> {

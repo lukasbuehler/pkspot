@@ -321,6 +321,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   pendingEventPreview = signal<PendingEventPanel | null>(null);
   selectedPoi = signal<PoiData | null>(null);
   selectedSpotIdOrSlug: WritableSignal<SpotId | string | null> = signal(null);
+  private selectedSpotSnapshotId = signal<SpotId | null>(null);
   searchPreviewCommunity = signal<CommunitySearchPreview | null>(null);
   selectedSpotIdForEdits = computed(() => {
     const spot = this.selectedSpot();
@@ -2102,9 +2103,43 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (spot instanceof Spot) {
         this.selectedSpotIdOrSlug.set(spot.slug ?? spot.id);
+        this.selectedSpotSnapshotId.set(spot.id);
       } else {
         this.selectedSpotIdOrSlug.set("");
+        this.selectedSpotSnapshotId.set(null);
       }
+    });
+
+    effect((onCleanup) => {
+      const selectedSpotId = this.selectedSpotSnapshotId();
+
+      if (this.isServer || this.isEditing() || !selectedSpotId) {
+        return;
+      }
+
+      const selectedSpotSub = this._spotsService
+        .getSpotById$(selectedSpotId, this.locale)
+        .subscribe({
+          next: (freshSpot) => {
+            const currentSpot = this.selectedSpot();
+            if (!(currentSpot instanceof Spot)) {
+              return;
+            }
+
+            if (currentSpot.id !== freshSpot.id) {
+              return;
+            }
+
+            this.selectedSpot.set(freshSpot);
+          },
+          error: (err) => {
+            console.error("Error syncing selected spot:", err);
+          },
+        });
+
+      onCleanup(() => {
+        selectedSpotSub.unsubscribe();
+      });
     });
 
     effect(() => {

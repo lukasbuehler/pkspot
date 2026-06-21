@@ -316,6 +316,9 @@ export class SpotEditsService extends ConsentAwareService {
     // Check if the edit data is empty - if so, don't create an edit
     if (!cleanEdit.data || Object.keys(cleanEdit.data).length === 0) {
       console.warn("Skipping empty edit for spot", spotId);
+      if (cleanEdit.type === "UPDATE") {
+        return "";
+      }
       return Promise.reject(
         new Error("Cannot create an edit with no data changes")
       );

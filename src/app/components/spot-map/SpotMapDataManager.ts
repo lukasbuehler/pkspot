@@ -467,6 +467,10 @@ export class SpotMapDataManager {
         ) as Partial<SpotSchema>;
       }
 
+      if (Object.keys(diffData).length === 0) {
+        return spotId;
+      }
+
       await this._spotEditsService.createSpotUpdateEdit(
         spotId,
         diffData,

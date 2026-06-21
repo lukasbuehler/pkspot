@@ -308,15 +308,26 @@ div.google-img-container {
 }
 
 .spot-verification-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   flex-shrink: 0;
+  width: 60px;
   min-width: 0;
-  max-width: 160px;
+  overflow: hidden;
+
+  mat-icon {
+    width: 24px;
+    flex-shrink: 0;
+  }
 }
 
 .spot-verification-logo {
-  width: 20px;
-  height: 20px;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
   background: var(--mat-sys-surface);
+  flex-shrink: 0;
 }

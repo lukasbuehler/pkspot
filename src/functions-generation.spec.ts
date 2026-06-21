@@ -77,6 +77,17 @@ describe("Cloud Functions generation policy", () => {
     expect(rulesSource).not.toContain("spot.verification.status");
   });
 
+  it("keeps organization review callables publicly invokable for browser preflight", () => {
+    const spotEditSource = readFileSync(
+      resolve(functionsSourceRoot, "spotEditFunctions.ts"),
+      "utf8"
+    );
+
+    expect(spotEditSource).toContain("const CALLABLE_CORS_OPTIONS");
+    expect(spotEditSource).toContain("cors: true");
+    expect(spotEditSource).toContain('invoker: "public"');
+  });
+
   it("keeps signup number assignment on a gen 2 profile trigger", () => {
     const source = readFileSync(
       resolve(functionsSourceRoot, "userSignupFunctions.ts"),
