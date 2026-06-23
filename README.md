@@ -1,17 +1,55 @@
 # PK Spot ([pkspot.app](https://pkspot.app))
 
-Version 1.1.2
-
 **The spot for everything parkour.**
 
 Find spots, check in, discover what is happening nearby, and connect with your local Parkour community.
 
 PK Spot is growing toward one app for Parkour spots, training, events, jams, and community.
 
-### Download on the App Store and Google Play
+## Download on the App Store and Google Play
 
 <!-- <a href="https://apps.apple.com/app/pk-spot-parkour-freerunning/id6757597683"><img style="height: 50px;" src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-example-preferred_2x.png"></a>
 <a href="https://play.google.com/store/apps/details?id=com.pkspot.app"><img style="height: 50px; margin-top: -10px; margin-bottom: -5px" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"></a> -->
+
+## Release Notes
+
+### Version 1.1.2 - "Events & Communities polish"
+
+- Event info pages
+- Community info cards
+- Event series to filter by
+- Map performance and UI/UX improvements
+- Organizations can verify spots
+- Event RSVPs
+- Bug fixes and polishing
+
+### Version 1.1.0 and 1.1.1 - 21.5.2026 "Communities and more"
+
+- Added Communities and Events
+- Save spots and mark them as visited
+- Added community pages and map search
+- Bug fixes and UI polish
+
+### Version 1.0.11 - 22.2.2026
+
+- Added saved and visited spot lists
+- Improved provenance and verification workflows
+- Bug fixes and more
+
+### Version 1.0.9 - 3.2.2026
+
+- Performance and image-loading improvements
+- Added the hybrid satellite map with location labels
+- Added splash screens and animated spot previews
+- Fixed spot image editing side effects and mobile splash screens
+
+### Version 1.0.8 - 24.1.2026
+
+- Improved map performance and location UX
+- Improved spot previews, highlights, and clusters
+- Added Android early access setup
+- Fixed Google sign-in on some devices with browser redirect fallback
+- Fixed profile picture uploads, media ordering, and language startup issues
 
 ## Collaborating
 

@@ -357,34 +357,44 @@
           </div>
 
           <div class="my-4">
-            <h3 class="mat-h3">Map Debug Mode</h3>
+            <h3 class="mat-h3">Vector map rendering</h3>
             <p class="mat-body">
-              Enable overlay with technical information (FPS, Zoom Level, Tile
-              Coordinates).
+              Enable smoother fractional zoom and vector map effects. Raster
+              rendering is the default because it is more stable on some mobile
+              WebViews.
             </p>
             <mat-slide-toggle
-              [checked]="appSettings.debugMode()"
-              (change)="appSettings.debugMode.set($event.checked)"
+              [checked]="appSettings.enableVectorMaps()"
+              (change)="appSettings.enableVectorMaps.set($event.checked)"
               color="primary"
             >
-              Enable Map Debug Mode
+              Enable vector maps
             </mat-slide-toggle>
           </div>
 
-          <div class="my-4">
-            <h3 class="mat-h3">Map Profiling</h3>
-            <p class="mat-body">
-              Log map frame timing, long tasks, rendering mode, and marker counts
-              to the console.
-            </p>
-            <mat-slide-toggle
-              [checked]="appSettings.mapProfileMode()"
-              (change)="appSettings.mapProfileMode.set($event.checked)"
-              color="primary"
-            >
-              Enable Map Profiling
-            </mat-slide-toggle>
-          </div>
+          <mat-expansion-panel class="my-4">
+            <mat-expansion-panel-header>
+              <mat-panel-title>Developer options</mat-panel-title>
+              <mat-panel-description>
+                Map diagnostics
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div>
+              <h3 class="mat-h3">Map Debug Mode</h3>
+              <p class="mat-body">
+                Enable the map debug overlay and console profiling for frame
+                timing, long tasks, rendering mode, and marker counts.
+              </p>
+              <mat-slide-toggle
+                [checked]="appSettings.debugMode()"
+                (change)="appSettings.debugMode.set($event.checked)"
+                color="primary"
+              >
+                Enable Map Debug Mode
+              </mat-slide-toggle>
+            </div>
+          </mat-expansion-panel>
 
           <!--
           <div class="my-4">

@@ -207,6 +207,8 @@ export class AsRatingKeyPipe implements PipeTransform {
   }
 }
 
+type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
+
 @Component({
   selector: "app-spot-details",
   templateUrl: "./spot-details.component.html",
@@ -1204,10 +1206,16 @@ export class SpotDetailsComponent
     this.isSaving = true;
 
     if (spot instanceof Spot) {
-      const relationshipsSaved =
+      const relationshipSaveResult =
         await this._saveOrganizationRelationshipChangesIfNeeded(spot);
-      if (!relationshipsSaved) {
+      if (relationshipSaveResult === "failed") {
         this.isSaving = false;
+        return;
+      }
+
+      if (relationshipSaveResult === "changed") {
+        this.isSaving = false;
+        this.isEditing.set(false);
         return;
       }
     }
@@ -1236,12 +1244,13 @@ export class SpotDetailsComponent
 
   private async _saveOrganizationRelationshipChangesIfNeeded(
     spot: Spot
-  ): Promise<boolean> {
+  ): Promise<OrganizationRelationshipSaveResult> {
     if (!this.isAdmin()) {
-      return true;
+      return "unchanged";
     }
 
     try {
+      let hasChanges = false;
       const nextManagerId = this.selectedManagerOrganizationId() || null;
       const currentManagerId = spot.management?.organization_id ?? null;
       if (nextManagerId !== currentManagerId) {
@@ -1256,6 +1265,7 @@ export class SpotDetailsComponent
           undefined,
           { duration: 2200 }
         );
+        hasChanges = true;
       }
 
       const nextStewardId = this.selectedStewardOrganizationId();
@@ -1272,9 +1282,10 @@ export class SpotDetailsComponent
         this._snackbar.open($localize`Verified organization added`, undefined, {
           duration: 2200,
         });
+        hasChanges = true;
       }
 
-      return true;
+      return hasChanges ? "changed" : "unchanged";
     } catch (error) {
       console.error("Failed to update spot organization relationship", error);
       this._snackbar.open(
@@ -1282,7 +1293,7 @@ export class SpotDetailsComponent
         undefined,
         { duration: 3000 }
       );
-      return false;
+      return "failed";
     }
   }
 
@@ -2107,10 +2118,7 @@ export class SpotDetailsComponent
         next: (incoming: Spot) => {
           const current = this.spot();
           if (current instanceof Spot && current.id === incoming.id) {
-            // Apply general fields from schema
-            current.applyFromSchema(incoming.data());
-            // data() does not include external_references; ensure place id is preserved
-            current.googlePlaceId.set(incoming.googlePlaceId());
+            this.spot.set(incoming);
           }
         },
         error: (err) => console.warn("Live spot update error", err),

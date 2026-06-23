@@ -18,6 +18,7 @@ import {
   MatHint,
 } from "@angular/material/form-field";
 import { MatDivider } from "@angular/material/divider";
+import { MatExpansionModule } from "@angular/material/expansion";
 import { MatBadge } from "@angular/material/badge";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
@@ -56,6 +57,7 @@ import crew from "../../../assets/data/crew.json";
     FormsModule,
     MatProgressSpinner,
     MatSlideToggleModule,
+    MatExpansionModule,
     RouterLink,
     ContributionStatusNoteComponent,
   ],

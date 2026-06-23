@@ -15,7 +15,7 @@
           <img [ngSrc]="photoUrl()!" fill />
         </div>
       }
-      <mat-card-header class="pb-2 overflow-hidden">
+      <mat-card-header class="pb-2 pt-0 overflow-hidden">
         <mat-card-title
           class="text-truncate mw-100 pt-2 mat-title-medium"
           style="font-size: 1.1rem"
@@ -23,7 +23,7 @@
           {{ place()!.displayName }}
         </mat-card-title>
         <mat-card-subtitle class="d-flex flex-row gap-2 mat-title-small">
-          <div class="d-flex flex-column gap-1">
+          <div class="d-flex flex-column gap-1 overflow-hidden">
             <div class="d-flex flex-row gap-2 mat-title-small">
               @if (closedTemporarily()) {
                 <span class="mat-label-small text-warn" i18n
@@ -38,18 +38,21 @@
                 />
               }
             </div>
-            <div class="d-flex flex-row gap-2">
+            <div
+              class="d-flex flex-row gap-2 text-truncate overflow-hidden flex-shrink-0"
+            >
               @if (openStatusText()) {
-                <span class="text-truncate mat-label-medium">{{
-                  openStatusText()!
-                }}</span>
+                <span class="text-truncate mat-label-medium flex-shrink-0"
+                  >{{ openStatusText()!
+                  }}{{ todayHoursText() ? "," : "" }}</span
+                >
               }
               @if (todayHoursText()) {
                 <span
                   class="text-truncate mat-label-medium"
                   [title]="todayHoursText()!"
                 >
-                  {{ todayHoursText()! }}
+                  <span>Open</span> {{ todayHoursText()! }}
                 </span>
               }
             </div>

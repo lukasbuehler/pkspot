@@ -40,6 +40,7 @@ import { environment } from "../../../environments/environment.default";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { ConsentService } from "../../services/consent.service";
+import { AppSettingsService } from "../../services/app-settings.service";
 import { GeoPoint } from "firebase/firestore";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
@@ -214,6 +215,12 @@ interface ProgrammaticCameraJumpAllowance {
   untilMs: number;
 }
 
+interface WatchedMapCanvas {
+  canvas: HTMLCanvasElement;
+  lostListener: (event: Event) => void;
+  restoredListener: (event: Event) => void;
+}
+
 @Component({
   selector: "app-google-map-2d",
   templateUrl: "./google-map-2d.component.html",
@@ -256,6 +263,7 @@ export class GoogleMap2dComponent
   private static readonly ZOOM_SYNC_EPSILON = 0.5;
   private static readonly CAMERA_JUMP_WINDOW_MS = 600;
   private static readonly MAX_CAMERA_ZOOM_JUMP = 3;
+  private static readonly CAMERA_IDLE_WATCHDOG_MS = 2_500;
   private _isInternalZoomChange = false;
   private _isRecoveringInvalidCamera = false;
   private _hasInitializedNativeMap = false;
@@ -265,9 +273,18 @@ export class GoogleMap2dComponent
     null;
   private _cameraRecoveryVerificationTimeoutId: ReturnType<typeof setTimeout> | null =
     null;
+  private _cameraIdleWatchdogTimeoutId: ReturnType<typeof setTimeout> | null =
+    null;
   private _lastValidCamera: MapCameraSnapshot | null = null;
   private _lastFullMapProfileTimestamp = 0;
   private _programmaticCameraJumpAllowance: ProgrammaticCameraJumpAllowance | null =
+    null;
+  private _mapCanvasObserver: MutationObserver | null = null;
+  private readonly _watchedMapCanvases = new Map<
+    HTMLCanvasElement,
+    WatchedMapCanvas
+  >();
+  private _webGlContextRecoveryTimeoutId: ReturnType<typeof setTimeout> | null =
     null;
 
   readonly autoStartLocationWatch = environment.features.checkIns;
@@ -1625,6 +1642,7 @@ export class GoogleMap2dComponent
     private snackBar: MatSnackBar,
     private _mapProfiler: MapPerformanceProfilerService,
     private _ngZone: NgZone,
+    private _appSettings: AppSettingsService,
   ) {
     super();
 
@@ -1683,6 +1701,23 @@ export class GoogleMap2dComponent
       const __ = this.mapTypeId(); // Ensure we react to map type changes too
 
       this._updateMapConfig();
+    });
+
+    effect(() => {
+      const enableVectorMaps = this._appSettings.enableVectorMaps();
+      if (!this._hasInitializedNativeMap) {
+        void this._updateMapConfig();
+        return;
+      }
+
+      const fallback = this._getCameraRecoveryFallback(
+        "map-rendering-setting-changed",
+      );
+      this._mapProfiler.record("google-map-2d:rendering-setting-changed", {
+        enableVectorMaps,
+        fallback,
+      });
+      this._forceRecreateNativeMap("map-rendering-setting-changed", fallback);
     });
 
     // if (this.selectedSpot) {
@@ -1829,6 +1864,7 @@ export class GoogleMap2dComponent
     this._subscribeToCameraEvents();
     this._subscribeToHeadingChanges();
     this._subscribeToMapCapabilitiesChanges();
+    this._watchMapCanvasContextLoss();
     void this._updateFeatureBoundaryStyle();
 
     if (this.isDebug()) {
@@ -1917,6 +1953,7 @@ export class GoogleMap2dComponent
       this.optionsInitialized.set(true);
       this._mapProfiler.record("google-map-2d:config-initialized", {
         mapIdPresent: !!environment.mapId,
+        enableVectorMaps: this._appSettings.enableVectorMaps(),
         mapTypeId: desiredMapTypeId,
         isFractionalZoomEnabled: shouldUseFractionalZoom,
         requestedRenderingType: nextOptions.renderingType ?? null,
@@ -1929,11 +1966,11 @@ export class GoogleMap2dComponent
   }
 
   private _shouldPreferRasterRendering(): boolean {
-    return false;
+    return !this._appSettings.enableVectorMaps();
   }
 
   private _shouldDisableFractionalZoom(): boolean {
-    return false;
+    return !this._appSettings.enableVectorMaps();
   }
 
   private _getGoogleMapsApi(): (typeof google)["maps"] | null {
@@ -2047,10 +2084,13 @@ export class GoogleMap2dComponent
     this._clearCameraEventListeners();
     this._mapCapabilitiesChangedListener?.remove();
     this._mapCapabilitiesChangedListener = null;
+    this._clearMapCanvasContextListeners();
     this._featureBoundaryRequestVersion++;
     this._clearFeatureBoundaryStyle();
     this._clearInvalidCameraRecoveryTimeout();
     this._clearCameraRecoveryVerificationTimeout();
+    this._clearWebGlContextRecoveryTimeout();
+    this._clearCameraIdleWatchdog();
     this._stopFpsLoop();
   }
 
@@ -2061,6 +2101,14 @@ export class GoogleMap2dComponent
     const boundary = this.featureBoundaryOverlay;
     const map = this.googleMap?.googleMap;
     if (!boundary || !map || typeof google === "undefined") {
+      return;
+    }
+    if (!this._appSettings.enableVectorMaps()) {
+      this._mapProfiler.recordThrottled(
+        "google-map-2d:feature-boundary-skipped-raster",
+        { featureType: boundary.featureType },
+        2_000,
+      );
       return;
     }
 
@@ -2258,27 +2306,147 @@ export class GoogleMap2dComponent
       return;
     }
 
-    const camera = this._readCurrentCameraSnapshot("zoom-changed");
-    if (!camera) {
+    const mapZoom = this.googleMap?.googleMap?.getZoom();
+    if (typeof mapZoom !== "number" || !Number.isFinite(mapZoom)) {
       this._ngZone.run(() => this.getAndEmitChangedZoom());
       return;
     }
 
-    this._rememberValidCamera(camera);
-    const newZoom = Math.floor(camera.zoom);
+    this._scheduleCameraIdleWatchdog();
+    const newZoom = Math.floor(mapZoom);
     if (newZoom === this._lastObservedNativeIntegerZoom) return;
 
     this._lastObservedNativeIntegerZoom = newZoom;
     this._debugMapEvent("zoomChanged", {
-      mapZoom: camera.zoom,
+      mapZoom,
       zoom: newZoom,
     });
     this._recordMapProfile("zoom-changed", {
       deferredRenderZoom: true,
-      mapZoom: camera.zoom,
+      lightweightCameraRead: true,
+      mapZoom,
       renderZoom: this._zoom(),
       zoom: newZoom,
     });
+  }
+
+  private _watchMapCanvasContextLoss(): void {
+    const mapDiv = this.googleMap?.googleMap?.getDiv();
+    if (!mapDiv || this._mapCanvasObserver) {
+      return;
+    }
+
+    this._registerMapCanvasContextListeners(mapDiv);
+    this._mapCanvasObserver = new MutationObserver(() => {
+      this._registerMapCanvasContextListeners(mapDiv);
+    });
+    this._mapCanvasObserver.observe(mapDiv, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  private _registerMapCanvasContextListeners(mapDiv: HTMLElement): void {
+    mapDiv.querySelectorAll("canvas").forEach((canvas) => {
+      if (!(canvas instanceof HTMLCanvasElement)) {
+        return;
+      }
+      if (this._watchedMapCanvases.has(canvas)) {
+        return;
+      }
+
+      const lostListener = (event: Event) => {
+        event.preventDefault();
+        this._ngZone.run(() => this._handleMapWebGlContextLost(event));
+      };
+      const restoredListener = (event: Event) => {
+        this._ngZone.run(() => this._handleMapWebGlContextRestored(event));
+      };
+
+      canvas.addEventListener("webglcontextlost", lostListener);
+      canvas.addEventListener("webglcontextrestored", restoredListener);
+      this._watchedMapCanvases.set(canvas, {
+        canvas,
+        lostListener,
+        restoredListener,
+      });
+    });
+  }
+
+  private _handleMapWebGlContextLost(event: Event): void {
+    const contextEvent = event as WebGLContextEvent;
+    const fallback = this._getCameraRecoveryFallback("webgl-context-lost");
+    this._mapProfiler.record("google-map-2d:webgl-context-lost", {
+      fallback,
+      statusMessage: contextEvent.statusMessage || null,
+    });
+    reportInvalidMapCoordinate("Google Maps WebGL context lost", {
+      fallback,
+      statusMessage: contextEvent.statusMessage || null,
+    });
+
+    this._clearWebGlContextRecoveryTimeout();
+    this._webGlContextRecoveryTimeoutId = setTimeout(() => {
+      this._webGlContextRecoveryTimeoutId = null;
+      this._forceRecreateNativeMap("webgl-context-lost", fallback);
+    }, 100);
+  }
+
+  private _handleMapWebGlContextRestored(event: Event): void {
+    const contextEvent = event as WebGLContextEvent;
+    this._mapProfiler.record("google-map-2d:webgl-context-restored", {
+      statusMessage: contextEvent.statusMessage || null,
+    });
+  }
+
+  private _clearMapCanvasContextListeners(): void {
+    this._mapCanvasObserver?.disconnect();
+    this._mapCanvasObserver = null;
+
+    this._watchedMapCanvases.forEach(
+      ({ canvas, lostListener, restoredListener }) => {
+        canvas.removeEventListener("webglcontextlost", lostListener);
+        canvas.removeEventListener("webglcontextrestored", restoredListener);
+      },
+    );
+    this._watchedMapCanvases.clear();
+  }
+
+  private _clearWebGlContextRecoveryTimeout(): void {
+    if (this._webGlContextRecoveryTimeoutId === null) return;
+
+    clearTimeout(this._webGlContextRecoveryTimeoutId);
+    this._webGlContextRecoveryTimeoutId = null;
+  }
+
+  private _scheduleCameraIdleWatchdog(): void {
+    this._clearCameraIdleWatchdog();
+    this._cameraIdleWatchdogTimeoutId = setTimeout(() => {
+      this._cameraIdleWatchdogTimeoutId = null;
+      this._ngZone.run(() => this._handleCameraIdleWatchdogTimeout());
+    }, GoogleMap2dComponent.CAMERA_IDLE_WATCHDOG_MS);
+  }
+
+  private _handleCameraIdleWatchdogTimeout(): void {
+    if (!this.googleMap?.googleMap || this._isRecoveringInvalidCamera) {
+      return;
+    }
+
+    const camera = this._readCurrentCameraSnapshot("zoom-idle-watchdog");
+    const fallback =
+      camera ?? this._getCameraRecoveryFallback("zoom-idle-watchdog");
+    this._mapProfiler.record("google-map-2d:camera-idle-watchdog-timeout", {
+      fallback,
+      hadValidCamera: Boolean(camera),
+    });
+    this._forceRecreateNativeMap("zoom-idle-watchdog-timeout", fallback);
+  }
+
+  private _clearCameraIdleWatchdog(): void {
+    if (this._cameraIdleWatchdogTimeoutId === null) return;
+
+    clearTimeout(this._cameraIdleWatchdogTimeoutId);
+    this._cameraIdleWatchdogTimeoutId = null;
   }
 
   private _subscribeToHeadingChanges(): void {
@@ -2513,6 +2681,7 @@ export class GoogleMap2dComponent
   }
 
   cameraIdle() {
+    this._clearCameraIdleWatchdog();
     if (this._isRecoveringInvalidCamera) {
       this._recordRecoverySuppressedCameraEvent("idle");
       return;
@@ -2576,6 +2745,13 @@ export class GoogleMap2dComponent
     timestampMs: number;
     zoom: number;
   }): boolean {
+    // A settled idle camera with finite center/bounds is a valid Maps result.
+    // Event maps and fit-to-bounds previews can legitimately jump several
+    // zoom levels from the initial fallback camera on their first idle event.
+    if (camera.source === "idle" || camera.source === "recovery-verification") {
+      return false;
+    }
+
     const previous = this._lastValidCamera;
     if (!previous || this._isRecoveringInvalidCamera) return false;
 
@@ -2643,13 +2819,7 @@ export class GoogleMap2dComponent
     if (!this.googleMap?.googleMap || this._isRecoveringInvalidCamera) return;
 
     const observed = this._readUnsafeCameraSnapshot(source);
-    const fallback = this._lastValidCamera ?? {
-      bounds: null,
-      center: this.center,
-      source: "component-input",
-      timestampMs: performance.now(),
-      zoom: this.zoom,
-    };
+    const fallback = this._getCameraRecoveryFallback("component-input");
 
     this._invalidCameraRecoveryCount++;
     reportInvalidMapCoordinate(
@@ -2721,6 +2891,20 @@ export class GoogleMap2dComponent
     };
   }
 
+  private _getCameraRecoveryFallback(source: string): MapCameraSnapshot {
+    if (this._lastValidCamera) {
+      return this._lastValidCamera;
+    }
+
+    return {
+      bounds: null,
+      center: this.center,
+      source,
+      timestampMs: performance.now(),
+      zoom: this.zoom,
+    };
+  }
+
   private _clearInvalidCameraRecoveryTimeout(): void {
     if (this._invalidCameraRecoveryTimeoutId === null) return;
 
@@ -2773,6 +2957,8 @@ export class GoogleMap2dComponent
     reason: string,
     fallback: MapCameraSnapshot,
   ): void {
+    this._clearMapCanvasContextListeners();
+    this._clearWebGlContextRecoveryTimeout();
     this._mapProfiler.record("google-map-2d:recreate-native-map", {
       fallback,
       reason,
@@ -2792,7 +2978,7 @@ export class GoogleMap2dComponent
         center: fallback.center,
         zoom: fallback.zoom,
       };
-      this.optionsInitialized.set(true);
+      void this._updateMapConfig();
       this.cdr.markForCheck();
     }, 0);
   }

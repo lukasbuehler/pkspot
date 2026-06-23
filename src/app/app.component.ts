@@ -229,16 +229,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     NavigationPerfEntry
   >();
   private _activeNavigationPerfId: number | null = null;
-  private _mapProfileEnabledFromSettings = false;
+  private _mapProfileEnabledFromDebug = false;
   private readonly _mapProfileSettingsEffect = effect(() => {
-    if (this._appSettings.mapProfileMode()) {
-      this._mapProfileEnabledFromSettings = true;
+    if (this._appSettings.debugMode()) {
+      this._mapProfileEnabledFromDebug = true;
       this._mapProfiler.enable({ verbose: true });
       return;
     }
 
-    if (this._mapProfileEnabledFromSettings) {
-      this._mapProfileEnabledFromSettings = false;
+    if (this._mapProfileEnabledFromDebug) {
+      this._mapProfileEnabledFromDebug = false;
       this._mapProfiler.disable();
     }
   });

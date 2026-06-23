@@ -459,6 +459,61 @@
         </div>
         } -->
 
+        <!-- Google place (reusable component) -->
+        @if (spot()?.googlePlaceId()) {
+          <div class="mb-4">
+            <h4
+              class="mat-title-small"
+              i18n="
+                google maps section header|Header for the Google Maps
+                section@@spot.google_maps.header"
+            >
+              This spot on Google Maps®
+            </h4>
+            <app-google-place-preview [placeId]="spot()!.googlePlaceId()" />
+          </div>
+        }
+
+        <!-- Navigate and open in google buttons -->
+        <div class="d-flex flex-column flex-xl-row gap-2 mb-4">
+          <button
+            mat-stroked-button
+            color="primary"
+            class="flex-grow-1 flex-basis-0 py-2"
+            i18n-matTooltip="
+              Open in maps button tooltip|Tooltip of button to open the spot in
+              maps@@open_maps_tooltip"
+            matTooltip="Open the location of this spot in Maps"
+            (click)="openSpotInMaps()"
+          >
+            <mat-icon>place</mat-icon>
+            <span
+              i18n="
+                Open in maps button|Button to open the spot in
+                maps@@open_maps_button_label"
+              >Open in {{ isAppleMaps ? "Apple Maps" : "Google Maps" }}</span
+            >
+          </button>
+          <button
+            mat-stroked-button
+            color="primary"
+            class="flex-grow-1 flex-basis-0 py-2"
+            i18n-matTooltip="
+              navigate to spot tooltip|Tooltip for navigate to spot
+              button@@spot.navigate.tooltip"
+            matTooltip="Navigate to this spot"
+            (click)="openDirectionsInMaps()"
+          >
+            <mat-icon>directions</mat-icon>
+            <span
+              i18n="
+                navigate to spot button|Button text for navigate to
+                spot@@spot.navigate.button"
+              >Navigate to spot</span
+            >
+          </button>
+        </div>
+
         <h3
           class="mat-title-medium"
           i18n="
@@ -467,6 +522,76 @@
         >
           Details
         </h3>
+
+        <!-- Type and Access -->
+        @if (spot()?.type() !== "other" || spot()!.access() !== "other") {
+          <div class="mb-4">
+            <div class="d-flex flex-row gap-2">
+              @if (spot()?.type() !== "other") {
+                <div
+                  class="d-flex flex-column justify-content-start align-items-start gap-2 pt-2 flex-grow-1 flex-basis-0"
+                  style="min-width: 0"
+                >
+                  <h4
+                    class="mat-title-small m-0"
+                    i18n="@@spot.details.spot_type_chip"
+                  >
+                    Spot Type
+                  </h4>
+                  <h4
+                    class="mat-title-medium m-0 d-flex align-items-center gap-2"
+                    style="min-width: 0; max-width: 100%"
+                  >
+                    <mat-icon class="flex-shrink-0">{{
+                      spotTypesIcons[spot()!.type()]
+                    }}</mat-icon>
+                    <span class="text-truncate flex-shrink-1">{{
+                      spotTypeNames[spot()!.type()]
+                    }}</span>
+                    <mat-icon
+                      class="text-muted help-icon flex-shrink-0"
+                      [matTooltip]="spotTypeDescriptions[spot()!.type()]"
+                      >help_outline</mat-icon
+                    >
+                  </h4>
+                </div>
+              }
+              @if (spot()?.access() !== "other") {
+                <div
+                  class="d-flex flex-column justify-content-start align-items-start gap-2 pt-2 flex-grow-1 flex-basis-0"
+                  style="min-width: 0"
+                >
+                  <h4
+                    class="mat-title-small m-0"
+                    i18n="@@spot.details.spot_access_chip"
+                  >
+                    Spot Access
+                  </h4>
+                  <h4
+                    class="mat-title-medium m-0 d-flex align-items-center gap-2"
+                    style="min-width: 0; max-width: 100%"
+                    [class.access-off-limits]="
+                      spot()!.access() === 'off-limits'
+                    "
+                    [class.access-private]="spot()!.access() === 'private'"
+                  >
+                    <mat-icon class="flex-shrink-0">{{
+                      spotAccessIcons[spot()!.access()]
+                    }}</mat-icon>
+                    <span class="text-truncate flex-shrink-1">{{
+                      spotAccessNames[spot()!.access()]
+                    }}</span>
+                    <mat-icon
+                      class="text-muted help-icon flex-shrink-0"
+                      [matTooltip]="spotAccessDescriptions[spot()!.access()]"
+                      >help_outline</mat-icon
+                    >
+                  </h4>
+                </div>
+              }
+            </div>
+          </div>
+        }
 
         <!-- Freatures -->
         @if (
@@ -493,75 +618,22 @@
           </div>
         }
 
-        <!-- Google place (reusable component) -->
-        @if (spot()?.googlePlaceId()) {
-          <div class="mb-4">
-            <h4
-              class="mat-title-small"
-              i18n="
-                google maps section header|Header for the Google Maps
-                section@@spot.google_maps.header"
-            >
-              This spot on Google Maps®
-            </h4>
-            <app-google-place-preview [placeId]="spot()!.googlePlaceId()" />
-          </div>
-        }
-
-        <!-- Navigate and open in google buttons -->
-        <div>
-          <div class="d-flex flex-column flex-xl-row gap-2">
-            <button
-              mat-stroked-button
-              color="primary"
-              class="flex-grow-1 flex-basis-0 py-2"
-              i18n-matTooltip="
-                Open in maps button tooltip|Tooltip of button to open the spot
-                in maps@@open_maps_tooltip"
-              matTooltip="Open the location of this spot in Maps"
-              (click)="openSpotInMaps()"
-            >
-              <mat-icon>place</mat-icon>
-              <span
-                i18n="
-                  Open in maps button|Button to open the spot in
-                  maps@@open_maps_button_label"
-                >Open in {{ isAppleMaps ? "Apple Maps" : "Google Maps" }}</span
-              >
-            </button>
-            <button
-              mat-stroked-button
-              color="primary"
-              class="flex-grow-1 flex-basis-0 py-2"
-              i18n-matTooltip="
-                navigate to spot tooltip|Tooltip for navigate to spot
-                button@@spot.navigate.tooltip"
-              matTooltip="Navigate to this spot"
-              (click)="openDirectionsInMaps()"
-            >
-              <mat-icon>directions</mat-icon>
-              <span
-                i18n="
-                  navigate to spot button|Button text for navigate to
-                  spot@@spot.navigate.button"
-                >Navigate to spot</span
-              >
-            </button>
-          </div>
-        </div>
-
         <!-- Spot Description -->
         @if (spot()?.description()) {
-          <app-locale-map-view
-            [@fadeSlideOnChange]="spot()!.descriptions() | json"
-            title="Description"
-            i18n-title="description header|The header for the spot description"
-            [localeMap]="spot()!.descriptions()"
-          ></app-locale-map-view>
+          <div>
+            <app-locale-map-view
+              [@fadeSlideOnChange]="spot()!.descriptions() | json"
+              title="Description"
+              i18n-title="
+                description header|The header for the spot description
+              "
+              [localeMap]="spot()!.descriptions()"
+            ></app-locale-map-view>
+          </div>
         }
 
         <!-- Spot Address or Location-->
-        <div class="d-flex justify-start mb-4 flex-column">
+        <div class="d-flex justify-start mb-3 flex-column">
           @if (spot()?.address()?.formatted) {
             <h4
               class="mat-title-small"
@@ -587,82 +659,12 @@
           }
         </div>
 
-        <!-- Type and Acccess -->
-        @if (spot()?.type() !== "other" || spot()!.access() !== "other") {
-          <div class="mb-4">
-            <h4
-              class="mat-title-small"
-              i18n="@@spot.details.type_access.header"
-            >
-              Spot Type and Access
-            </h4>
-            <div class="d-flex flex-row gap-2">
-              @if (spot()?.type() !== "other") {
-                <div
-                  class="d-flex flex-column justify-content-start align-items-start gap-2 p-2 flex-grow-1 flex-basis-0 border rounded"
-                >
-                  <div class="d-flex w-100 justify-content-between align-items-center">
-                    <span
-                      class="mat-label-small px-1 border rounded"
-                      i18n="@@spot.details.spot_type_chip"
-                      >Spot Type</span
-                    >
-                    <mat-icon
-                      class="text-muted"
-                      style="font-size: 16px; width: 16px; height: 16px; line-height: 16px"
-                      [matTooltip]="spotTypeDescriptions[spot()!.type()]"
-                      >help_outline</mat-icon
-                    >
-                  </div>
-                  <h4 class="mat-title-medium m-0">
-                    <mat-icon class="me-2">{{
-                      spotTypesIcons[spot()!.type()]
-                    }}</mat-icon
-                    >{{ spotTypeNames[spot()!.type()] }}
-                  </h4>
-                </div>
-              }
-              @if (spot()?.access() !== "other") {
-                <div
-                  class="d-flex flex-column justify-content-start align-items-start gap-2 p-2 flex-grow-1 flex-basis-0 border rounded"
-                >
-                  <div class="d-flex w-100 justify-content-between align-items-center">
-                    <span
-                      class="mat-label-small px-1 border rounded"
-                      i18n="@@spot.details.spot_access_chip"
-                      >Spot Access</span
-                    >
-                    <mat-icon
-                      class="text-muted"
-                      style="font-size: 16px; width: 16px; height: 16px; line-height: 16px"
-                      [matTooltip]="spotAccessDescriptions[spot()!.access()]"
-                      >help_outline</mat-icon
-                    >
-                  </div>
-                  <h4
-                    class="mat-title-medium m-0"
-                    [class.access-off-limits]="
-                      spot()!.access() === 'off-limits'
-                    "
-                    [class.access-private]="spot()!.access() === 'private'"
-                  >
-                    <mat-icon class="me-2">{{
-                      spotAccessIcons[spot()!.access()]
-                    }}</mat-icon
-                    >{{ spotAccessNames[spot()!.access()] }}
-                  </h4>
-                </div>
-              }
-            </div>
-          </div>
-        }
-
         <p
-          class="mat-body-small m-0 py-2"
+          class="mat-body-small m-0 mb-2"
           i18n="@@spot.details.type_access_disclaimer"
         >
-          Info can be outdated or wrong. Always check signs and local rules
-          on site.
+          Info can be outdated or wrong. Always check signs and local rules on
+          site.
         </p>
 
         @if (!isLocalSpot() && upcomingEvents().length > 0) {

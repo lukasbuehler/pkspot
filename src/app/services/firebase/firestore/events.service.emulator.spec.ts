@@ -313,7 +313,7 @@ runWithEmulator("EventsService emulator integration", () => {
       notgoing: 0,
       total: 1,
     });
-  });
+  }, 20_000);
 
   it("updates event edit fields through the real web Firestore adapter", async () => {
     const uid = authService.user.uid;

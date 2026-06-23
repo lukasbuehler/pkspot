@@ -208,6 +208,13 @@ div.google-img-container {
   font-size: 1rem;
 }
 
+.help-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+}
+
 .negative-amenity {
   &.mat-mdc-chip {
     border-color: color-mix(in srgb, var(--mat-sys-error) 60%, transparent);

@@ -16,6 +16,7 @@ import { MapsApiService } from "../../services/maps-api.service";
 import { AnalyticsService } from "../../services/analytics.service";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { MatRippleModule } from "@angular/material/core";
+import { getGooglePlaceOpeningHoursStatus } from "../../shared/google-place-opening-hours";
 
 @Component({
   selector: "app-poi-detail",
@@ -129,155 +130,24 @@ export class PoiDetailComponent {
     return "Point of Interest";
   }
 
-  isOpenNow = computed<boolean | undefined>(() => {
-    const p = this.poi().googlePlace;
-    const oh: any = p?.regularOpeningHours as any;
-    if (!oh) return undefined;
-    const periods = oh?.Eg;
-    if (!periods || periods.length === 0) return undefined;
+  private openingHoursStatus = computed(() =>
+    getGooglePlaceOpeningHoursStatus(
+      this.poi().googlePlace?.regularOpeningHours,
+      this._locale,
+    ),
+  );
 
-    const now = new Date();
-    const today = now.getDay();
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  isOpenNow = computed<boolean | undefined>(
+    () => this.openingHoursStatus().isOpenNow,
+  );
 
-    const todays = periods.filter((per: any) => per?.Fg?.Fg === today);
+  openStatusText = computed<string | null>(
+    () => this.openingHoursStatus().openStatusText,
+  );
 
-    for (const per of todays) {
-      const openH = per?.Fg?.Gg ?? 0;
-      const openM = per?.Fg?.Hg ?? 0;
-      const closeH = per?.Eg?.Gg ?? 0;
-      const closeM = per?.Eg?.Hg ?? 0;
-
-      const openMinutes = openH * 60 + (openM || 0);
-      const closeMinutes = closeH * 60 + (closeM || 0);
-
-      const closeDay = per?.Eg?.Fg;
-      const closesTomorrow = closeDay !== undefined && closeDay !== today;
-      const effectiveClose = closesTomorrow
-        ? 24 * 60 + closeMinutes
-        : closeMinutes;
-      const effectiveNow =
-        closesTomorrow && nowMinutes < openMinutes
-          ? nowMinutes + 24 * 60
-          : nowMinutes;
-
-      if (effectiveNow >= openMinutes && effectiveNow < effectiveClose) {
-        return true;
-      }
-    }
-    return false;
-  });
-
-  openStatusText = computed<string | null>(() => {
-    const p = this.poi().googlePlace;
-    if (!p) return null;
-    const oh: any = p.regularOpeningHours as any;
-    const periods: any[] | undefined = oh?.Eg;
-    if (!periods || periods.length === 0) return null;
-
-    const now = new Date();
-    const today = now.getDay();
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-
-    const fmtTime = new Intl.DateTimeFormat(this._locale, {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-
-    const todays = periods.filter((per: any) => per?.Fg?.Fg === today);
-
-    for (const per of todays) {
-      const openH = per?.Fg?.Gg ?? 0;
-      const openM = per?.Fg?.Hg ?? 0;
-      const closeH = per?.Eg?.Gg ?? 0;
-      const closeM = per?.Eg?.Hg ?? 0;
-
-      const openMinutes = openH * 60 + openM;
-      const closeMinutes = closeH * 60 + closeM;
-
-      const closeDay = per?.Eg?.Fg;
-      const closesTomorrow = closeDay !== undefined && closeDay !== today;
-      const effectiveClose = closesTomorrow
-        ? 24 * 60 + closeMinutes
-        : closeMinutes;
-      const effectiveNow =
-        closesTomorrow && nowMinutes < openMinutes
-          ? nowMinutes + 24 * 60
-          : nowMinutes;
-
-      if (effectiveNow >= openMinutes && effectiveNow < effectiveClose) {
-        const closeDate = new Date(now);
-        closeDate.setHours(closeH, closeM, 0, 0);
-        if (closesTomorrow) closeDate.setDate(closeDate.getDate() + 1);
-        return `Open now until ${fmtTime.format(closeDate)}`;
-      }
-    }
-
-    const upcoming = todays
-      .filter((per: any) => {
-        const openH = per?.Fg?.Gg ?? 0;
-        const openM = per?.Fg?.Hg ?? 0;
-        const openMinutes = openH * 60 + openM;
-        return openMinutes > nowMinutes;
-      })
-      .sort((a: any, b: any) => {
-        const aM = (a?.Fg?.Gg ?? 0) * 60 + (a?.Fg?.Hg ?? 0);
-        const bM = (b?.Fg?.Gg ?? 0) * 60 + (b?.Fg?.Hg ?? 0);
-        return aM - bM;
-      });
-
-    if (upcoming.length > 0) {
-      const openH = upcoming[0]?.Fg?.Gg ?? 0;
-      const openM = upcoming[0]?.Fg?.Hg ?? 0;
-      const openDate = new Date(now);
-      openDate.setHours(openH, openM, 0, 0);
-      return `Opens at ${fmtTime.format(openDate)}`;
-    }
-
-    return "Closed";
-  });
-
-  todayHoursText = computed<string | null>(() => {
-    const p = this.poi().googlePlace;
-    const oh: any = p?.regularOpeningHours as any;
-    const periods: any[] | undefined = oh?.Eg;
-    if (!periods || periods.length === 0) return null;
-
-    const now = new Date();
-    const today = now.getDay();
-    const fmtTime = new Intl.DateTimeFormat(this._locale, {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-
-    const todays = periods.filter((per: any) => per?.Fg?.Fg === today);
-
-    if (todays.length === 0) return null;
-
-    const intervals: string[] = [];
-    for (const per of todays) {
-      const openH = per?.Fg?.Gg;
-      const openM = per?.Fg?.Hg ?? 0;
-      const closeH = per?.Eg?.Gg ?? 0;
-      const closeM = per?.Eg?.Hg ?? 0;
-
-      if (openH === undefined || openH === null) continue;
-
-      const openDate = new Date(now);
-      openDate.setHours(openH, openM, 0, 0);
-      const closeDate = new Date(now);
-      closeDate.setHours(closeH, closeM, 0, 0);
-
-      if (per?.Eg?.Fg !== undefined && per?.Eg?.Fg !== today) {
-        closeDate.setDate(closeDate.getDate() + 1);
-      }
-
-      intervals.push(
-        `${fmtTime.format(openDate)}–${fmtTime.format(closeDate)}`
-      );
-    }
-    return intervals.join(", ");
-  });
+  todayHoursText = computed<string | null>(
+    () => this.openingHoursStatus().todayHoursText,
+  );
 
   navigateTo() {
     const location = this.poi().location;
