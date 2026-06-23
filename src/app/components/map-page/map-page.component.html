@@ -228,28 +228,32 @@
 
 <ng-template #chips class="position-relative">
   <!-- Filter chips bar with horizontally scrollable presets and Filters button -->
-  @if (showSpotFilterChips()) {
-    <app-filter-chips-bar
-      @fadeInOut
-      [selectedFilter]="selectedFilter()"
-      [showSavedChip]="isSignedIn()"
-      [showVisitedChip]="isSignedIn()"
-      [customFilterActive]="!!customFilterParams()"
-      (filterChange)="filterChipChanged($event)"
-      (clearClick)="clearActiveFilter()"
-      (filtersClick)="openCustomFilterDialog()"
-    ></app-filter-chips-bar>
-  } @else if (showEventFilterChips()) {
-    <app-filter-chips-bar
-      @fadeInOut
-      [selectedFilter]="selectedEventFilter()"
-      [presetFilters]="eventFilterOptions"
-      [showFiltersChip]="false"
-      [ariaLabel]="eventFiltersLabel"
-      (filterChange)="eventFilterChanged($event)"
-      (clearClick)="eventFilterChanged('')"
-    ></app-filter-chips-bar>
-  }
+  <div class="filter-chips-switcher">
+    @if (showSpotFilterChips()) {
+      <app-filter-chips-bar
+        @fadeInOut
+        class="filter-chips-switcher__bar"
+        [selectedFilter]="selectedFilter()"
+        [showSavedChip]="isSignedIn()"
+        [showVisitedChip]="isSignedIn()"
+        [customFilterActive]="!!customFilterParams()"
+        (filterChange)="filterChipChanged($event)"
+        (clearClick)="clearActiveFilter()"
+        (filtersClick)="openCustomFilterDialog()"
+      ></app-filter-chips-bar>
+    } @else if (showEventFilterChips()) {
+      <app-filter-chips-bar
+        @fadeInOut
+        class="filter-chips-switcher__bar"
+        [selectedFilter]="selectedEventFilter()"
+        [presetFilters]="eventFilterOptions"
+        [showFiltersChip]="false"
+        [ariaLabel]="eventFiltersLabel"
+        (filterChange)="eventFilterChanged($event)"
+        (clearClick)="eventFilterChanged('')"
+      ></app-filter-chips-bar>
+    }
+  </div>
 </ng-template>
 
 <!--

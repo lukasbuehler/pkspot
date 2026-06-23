@@ -180,6 +180,17 @@ mat-drawer-container.sidenav-open .map-island-host {
   pointer-events: none;
 }
 
+.filter-chips-switcher {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+}
+
+.filter-chips-switcher__bar {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
 // mat-chip-option,
 // mat-chip {
 //   border-radius: 20px;
