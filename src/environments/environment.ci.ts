@@ -6,6 +6,7 @@ export const environment = {
   features: {
     checkIns: false,
     activity: false,
+    mapPerformanceProfiling: false,
     streetView: {
       preview: false,
       detail: true,

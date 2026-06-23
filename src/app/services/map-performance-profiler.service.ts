@@ -67,6 +67,7 @@ const MAX_SANITIZE_DEPTH = 6;
   providedIn: "root",
 })
 export class MapPerformanceProfilerService {
+  private readonly _isAvailable = environment.features.mapPerformanceProfiling;
   private readonly _isBrowser: boolean;
   private _breadcrumbs: MapProfileEvent[] = [];
   private _enabled = false;
@@ -84,7 +85,7 @@ export class MapPerformanceProfilerService {
 
   constructor(@Inject(PLATFORM_ID) platformId: object) {
     this._isBrowser = isPlatformBrowser(platformId);
-    if (!this._isBrowser) return;
+    if (!this._isBrowser || !this._isAvailable) return;
 
     this._dumpPreviousBreadcrumbs();
     this._installConsoleApi();
@@ -98,7 +99,7 @@ export class MapPerformanceProfilerService {
   }
 
   enable(options: MapProfileEnableOptions = {}): void {
-    if (!this._isBrowser) return;
+    if (!this._isBrowser || !this._isAvailable) return;
 
     this._enabled = true;
     this._verbose = !!options.verbose;
@@ -113,7 +114,7 @@ export class MapPerformanceProfilerService {
   }
 
   disable(): void {
-    if (!this._isBrowser) return;
+    if (!this._isBrowser || !this._isAvailable) return;
 
     this.record("profiler:disabled", {});
     this._enabled = false;
@@ -123,7 +124,7 @@ export class MapPerformanceProfilerService {
   }
 
   ensureInstalled(): void {
-    if (!this._isBrowser) return;
+    if (!this._isBrowser || !this._isAvailable) return;
 
     this._installConsoleApi();
   }
@@ -133,6 +134,8 @@ export class MapPerformanceProfilerService {
   }
 
   record(label: string, payload: MapProfilePayload = {}): MapProfileEvent | null {
+    if (!this._isBrowser || !this._isAvailable) return null;
+
     const event = this._createEvent(label, payload);
     this._storeBreadcrumb(event);
 
@@ -154,6 +157,8 @@ export class MapPerformanceProfilerService {
     payload: MapProfilePayload = {},
     intervalMs = 1_000,
   ): MapProfileEvent | null {
+    if (!this._isBrowser || !this._isAvailable) return null;
+
     const now = performance.now();
     const lastTimestamp = this._throttledEventTimestamps.get(label) ?? 0;
     if (now - lastTimestamp < intervalMs) {
