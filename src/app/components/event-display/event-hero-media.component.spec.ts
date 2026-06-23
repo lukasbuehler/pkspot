@@ -27,8 +27,9 @@ class ImgCarouselStubComponent {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class MediaPlaceholderStubComponent {
-  src = input("assets/spot_placeholder.png");
+  src = input<string | null>("assets/spot_placeholder.png");
   label = input<string | null>(null);
+  variant = input<"spot" | "event">("spot");
 }
 
 const buildEvent = (extra: Partial<EventSchema> = {}): PkEvent =>
@@ -142,5 +143,18 @@ describe("EventHeroMediaComponent", () => {
     expect(carousel.media()?.map((media) => media.getPreviewImageSrc())).toEqual(
       ["https://worlds.example.com/session.jpg"],
     );
+  });
+
+  it("uses the event placeholder when no hero media is available", () => {
+    const fixture = createFixture(buildEvent());
+    fixture.detectChanges();
+
+    const placeholder = fixture.debugElement.query(
+      By.directive(MediaPlaceholderStubComponent),
+    ).componentInstance as MediaPlaceholderStubComponent;
+
+    expect(placeholder.src()).toBeNull();
+    expect(placeholder.variant()).toBe("event");
+    expect(placeholder.label()).toBe("Preview Event");
   });
 });

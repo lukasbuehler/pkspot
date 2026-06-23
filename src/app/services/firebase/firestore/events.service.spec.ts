@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { deleteField, Timestamp } from "@angular/fire/firestore";
 import { BehaviorSubject, Observable } from "rxjs";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { EventId, EventSchema } from "../../../../db/schemas/EventSchema";
@@ -420,6 +420,19 @@ describe("EventsService", () => {
     expect(firestoreAdapter.updateDocument.mock.calls[0][1]).not.toHaveProperty(
       "description",
     );
+  });
+
+  it("deletes localized and derived event descriptions when descriptions are cleared", async () => {
+    await service.updateEvent("event-1" as EventId, {
+      description_i18n: null,
+    });
+
+    const [, payload] = firestoreAdapter.updateDocument.mock.calls[0] as [
+      string,
+      Record<string, unknown>,
+    ];
+    expect(payload.description_i18n).toEqual(deleteField());
+    expect(payload.description).toEqual(deleteField());
   });
 
   it("does not write an RSVP while signed out", async () => {

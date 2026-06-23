@@ -1,9 +1,11 @@
-<img
-  class="placeholder-image"
-  [src]="src()"
-  alt=""
-  aria-hidden="true"
-/>
+@if (src(); as placeholderSrc) {
+  <img
+    class="placeholder-image"
+    [src]="placeholderSrc"
+    alt=""
+    aria-hidden="true"
+  />
+}
 @if(showLabel()) {
   @if(label(); as customLabel) {
     <span class="placeholder-label">{{ customLabel }}</span>

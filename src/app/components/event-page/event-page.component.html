@@ -94,9 +94,11 @@
         </div>
       </header>
 
-      <section class="event-hero">
-        <app-event-hero-media [event]="event"></app-event-hero-media>
-      </section>
+      @if (hasHeroMedia()) {
+        <section class="event-hero">
+          <app-event-hero-media [event]="event"></app-event-hero-media>
+        </section>
+      }
 
       @if (description()) {
         <section class="event-section">

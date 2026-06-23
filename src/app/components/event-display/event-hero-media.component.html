@@ -9,7 +9,8 @@
     ></app-img-carousel>
   } @else {
     <app-media-placeholder
-      src="assets/spot_placeholder.png"
+      [src]="null"
+      variant="event"
       [label]="event().name"
     ></app-media-placeholder>
   }

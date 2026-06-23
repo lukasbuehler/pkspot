@@ -24,9 +24,10 @@ type EventSlugDocument = EventSlugSchema & { id: string };
 type EventRSVPDocument = EventRSVPSchema & { id: string };
 export type EventWritePatch = Omit<
   Partial<EventSchema>,
-  "bounds" | "area_polygon" | "location"
+  "bounds" | "area_polygon" | "location" | "description_i18n"
 > & {
   area_polygon?: EventSchema["area_polygon"] | null;
+  description_i18n?: EventSchema["description_i18n"] | null;
 };
 
 /**
@@ -124,6 +125,10 @@ export class EventsService extends ConsentAwareService {
     const clientData = stripServerDerivedEventFields(data);
     const docData = stripUndefined({
       ...clientData,
+      description_i18n:
+        clientData.description_i18n === null
+          ? undefined
+          : clientData.description_i18n,
       published: data.published ?? true,
       time_created: now,
       time_updated: now,
@@ -170,8 +175,13 @@ export class EventsService extends ConsentAwareService {
     this._requireAdmin("updateEvent");
 
     const clientPatch = stripServerDerivedEventFields(patch);
+    const shouldDeleteDescription = clientPatch.description_i18n === null;
     const cleaned = stripUndefined({
       ...clientPatch,
+      description_i18n: shouldDeleteDescription
+        ? deleteField()
+        : clientPatch.description_i18n,
+      description: shouldDeleteDescription ? deleteField() : undefined,
       area_polygon:
         clientPatch.area_polygon === null ? deleteField() : clientPatch.area_polygon,
       time_updated: Timestamp.now(),

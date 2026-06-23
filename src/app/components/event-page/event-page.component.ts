@@ -64,6 +64,7 @@ import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.c
 import { EventCardComponent } from "../event-card/event-card.component";
 import { EventProgramTimelineComponent } from "./event-program-timeline.component";
 import {
+  eventHeroMedia,
   eventImageDisplaySrc,
   eventStatusLabel,
   type EventStatus,
@@ -166,6 +167,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const description = this.description();
     if (!description) return false;
     return description.split(/\r?\n/).length > 6 || description.length > 520;
+  });
+  readonly hasHeroMedia = computed(() => {
+    const event = this.event();
+    return event ? eventHeroMedia(event).length > 0 : false;
   });
 
   readonly name = computed(() => this.event()?.name ?? "");

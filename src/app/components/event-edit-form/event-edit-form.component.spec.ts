@@ -134,6 +134,29 @@ describe("EventEditFormComponent", () => {
     ]);
   });
 
+  it("emits a deletion marker when all existing event descriptions are removed", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        description_i18n: {
+          en: { text: "Existing description", provider: "user" },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    component.descriptionLocaleMap = {};
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].description_i18n).toBeNull();
+  });
+
   it("prepends the legacy outer ring when compatibility is enabled", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

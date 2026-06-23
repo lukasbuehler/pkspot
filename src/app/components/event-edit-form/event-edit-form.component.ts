@@ -207,9 +207,10 @@ type EditableSeriesMembership = {
 };
 export type EventEditPatch = Omit<
   Partial<EventSchema>,
-  "bounds" | "area_polygon" | "location"
+  "bounds" | "area_polygon" | "location" | "description_i18n"
 > & {
   area_polygon?: EventSchema["area_polygon"] | null;
+  description_i18n?: EventSchema["description_i18n"] | null;
 };
 
 /**
@@ -1855,10 +1856,15 @@ export class EventEditFormComponent {
     );
   }
 
-  private _descriptionI18nPatch(): LocaleMap | undefined {
+  private _descriptionI18nPatch(): LocaleMap | null | undefined {
     const descriptions = this._descriptionLocaleMap();
     if (!descriptions || Object.keys(descriptions).length === 0) {
-      return undefined;
+      const event = this.event();
+      const hadExistingDescription = Boolean(
+        event?.description ||
+          (event?.descriptions && Object.keys(event.descriptions).length > 0),
+      );
+      return hadExistingDescription ? null : undefined;
     }
     return descriptions;
   }

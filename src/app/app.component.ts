@@ -87,6 +87,7 @@ import { APP_LINKS } from "./shared/app-links";
 import { buildUnembeddedUrlFromHref } from "./shared/embedded-url";
 import { MapPerformanceProfilerService } from "./services/map-performance-profiler.service";
 import { AppSettingsService } from "./services/app-settings.service";
+import { UiLanguageService } from "./services/ui-language.service";
 
 interface ButtonBase {
   name: string;
@@ -175,6 +176,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _appRef = inject(ApplicationRef);
   readonly responsive = inject(ResponsiveService);
   private readonly _platformService = inject(PlatformService);
+  private readonly _uiLanguageService = inject(UiLanguageService);
 
   // Inject AuthService immediately to ensure auth state restoration works
   private _authService = inject(AuthenticationService);
@@ -1464,8 +1466,17 @@ html.pkspot-roboto-loaded body {
       });
     }
 
+    if (!signedIn && !isCompact) {
+      buttons.push({
+        spacerBefore: !isOnMobileWeb,
+        name: $localize`:@@2826581353496868063:Language`,
+        function: () => this._uiLanguageService.changeLanguage(),
+        icon: "language",
+      });
+    }
+
     buttons.push({
-      spacerBefore: !isOnMobileWeb,
+      spacerBefore: !isOnMobileWeb && (signedIn || isCompact),
       name: signedIn
         ? shortUserDisplayName || $localize`Profile`
         : $localize`:@@login.nav_label:Account`,

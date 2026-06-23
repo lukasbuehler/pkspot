@@ -43,6 +43,7 @@
 .event-hero {
   overflow: hidden;
   height: clamp(180px, 28vw, 300px);
+  margin-bottom: 3rem;
 }
 
 .event-hero app-event-hero-media {
@@ -52,7 +53,7 @@
 }
 
 .event-section {
-  margin-top: 3rem;
+  margin-top: 1rem;
 }
 
 .event-tags mat-chip {

@@ -440,6 +440,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  private _isCommunityCircleClickable(community: CommunityMapMarker): boolean {
+    return this._communityCircleDiameterPx(community) <= 320;
+  }
+
   private _communityCircleDiameterPx(community: CommunityMapMarker): number {
     return (
       (community.radiusM * 2) /
@@ -505,16 +509,30 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   readonly communityCircleOverlays = computed<MapCircleOverlay[]>(() =>
     this.availableCommunities
-      .filter((community) => community.scope === "locality")
-      .map((community) => ({
-        id: `community:${community.communityKey}`,
-        center: community.center,
-        radiusM: community.radiusM,
-        options: {
-          clickable: true,
-          zIndex: 1,
-        },
-      })),
+      .filter(
+        (community) =>
+          community.scope === "locality" &&
+          !this._shouldShowCommunityCenterDot(community),
+      )
+      .map((community) => {
+        const clickable = this._isCommunityCircleClickable(community);
+
+        return {
+          id: `community:${community.communityKey}`,
+          center: community.center,
+          radiusM: community.radiusM,
+          options: {
+            clickable,
+            zIndex: 1,
+            ...(clickable
+              ? {}
+              : {
+                  fillOpacity: 0,
+                  strokeOpacity: 0,
+                }),
+          },
+        };
+      }),
   );
 
   headingIsNotNorth: Signal<boolean> = computed(() => {
