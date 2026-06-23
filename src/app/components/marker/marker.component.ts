@@ -32,6 +32,7 @@ export class MarkerComponent {
   imageBackgroundColor = input<string | null | undefined>(null);
   // Can be number or pre-formatted string (e.g., rating with one decimal)
   number = input<number | string | null | undefined>(null);
+  numberVariant = input<"default" | "flag">("default");
   // If true, always show 1 decimal place (for ratings); if false, only show decimals for non-integers (for challenge numbers)
   isRating = input<boolean>(false);
 

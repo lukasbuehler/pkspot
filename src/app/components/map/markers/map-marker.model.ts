@@ -11,7 +11,9 @@ export interface MapMarkerSchema {
    */
   imageSrc?: string;
   imageBackgroundColor?: string;
-  number?: number;
+  number?: number | string;
+  numberVariant?: "default" | "flag";
+  size?: number;
   priority?: "required" | number;
   ignoreCollisions?: boolean;
   type?: string;

@@ -21,13 +21,15 @@
     <div #scrollArea class="chips-scroll-area">
       <mat-chip-listbox
         [multiple]="false"
+        [value]="renderedSelectedFilter()"
         [attr.aria-label]="ariaLabel() ?? quickFiltersLabel"
       >
         @if (showSavedChip()) {
           <mat-chip-option
             [class.glass]="appearance() === 'glass'"
             [class.solid-chip]="appearance() === 'solid'"
-            [selected]="selectedFilter() === 'saved'"
+            value="saved"
+            [selected]="renderedSelectedFilter() === 'saved'"
             (click)="onPresetChipClick('saved')"
           >
             <mat-icon matChipAvatar>bookmark</mat-icon>
@@ -39,7 +41,8 @@
           <mat-chip-option
             [class.glass]="appearance() === 'glass'"
             [class.solid-chip]="appearance() === 'solid'"
-            [selected]="selectedFilter() === 'visited'"
+            value="visited"
+            [selected]="renderedSelectedFilter() === 'visited'"
             (click)="onPresetChipClick('visited')"
           >
             <mat-icon matChipAvatar>beenhere</mat-icon>
@@ -51,7 +54,8 @@
           <mat-chip-option
             [class.glass]="appearance() === 'glass'"
             [class.solid-chip]="appearance() === 'solid'"
-            [selected]="selectedFilter() === filter.urlParam"
+            [value]="filter.urlParam"
+            [selected]="renderedSelectedFilter() === filter.urlParam"
             (click)="onPresetChipClick(filter.urlParam)"
           >
             @if (filter.icon) {

@@ -7,9 +7,7 @@
         (click)="onSelect($event, community)"
       >
         <span class="community-avatar" aria-hidden="true">
-          @if (community.imageUrl) {
-            <img [src]="community.imageUrl" alt="" />
-          } @else if (flagEmoji(community)) {
+          @if (flagEmoji(community)) {
             <span class="community-flag">{{ flagEmoji(community) }}</span>
           } @else {
             <mat-icon>{{ fallbackIcon(community) }}</mat-icon>

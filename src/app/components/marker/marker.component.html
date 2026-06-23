@@ -17,7 +17,11 @@
     [class.icons-only]="(icons() || imageSrc() || isCheckIn()) && !formattedNumber()"
   >
     @if(formattedNumber()) {
-    <span class="d-inline-block">{{ formattedNumber() }}</span>
+    <span
+      class="marker-number d-inline-block"
+      [class.marker-number--flag]="numberVariant() === 'flag'"
+      >{{ formattedNumber() }}</span
+    >
     } @if(isCheckIn()) {
     <mat-icon style="height: 20px; font-size: 20px; width: 20px"
       >beenhere</mat-icon

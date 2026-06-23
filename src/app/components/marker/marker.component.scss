@@ -42,9 +42,14 @@
       padding-right: 5px;
     }
 
-    > span {
+    .marker-number {
       font-size: larger;
+      line-height: 1;
       padding: 0;
+
+      &--flag {
+        font-size: 1.55rem;
+      }
     }
   }
   > svg {

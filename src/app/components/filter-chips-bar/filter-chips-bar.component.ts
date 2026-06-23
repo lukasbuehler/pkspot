@@ -82,6 +82,9 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   /** Emits when user clears the active filter */
   clearClick = output<void>();
 
+  private readonly _renderedSelectedFilter = signal("");
+  readonly renderedSelectedFilter = this._renderedSelectedFilter.asReadonly();
+
   private readonly scrollArea =
     viewChild<ElementRef<HTMLDivElement>>("scrollArea");
   private readonly ngZone = inject(NgZone);
@@ -143,6 +146,15 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   readonly scrollRightLabel = $localize`:@@filter_scroll_right:Scroll filters right`;
 
   constructor() {
+    effect(() => {
+      const selectedFilter = this.selectedFilter();
+      this._renderedSelectedFilter.set(
+        !this.allowDeselect() && !selectedFilter
+          ? this._fallbackFilterValue()
+          : selectedFilter,
+      );
+    });
+
     effect(() => {
       const filtersKey = this.visiblePresetFilters()
         .map((filter) => `${filter.urlParam}:${filter.label}:${filter.icon}`)
@@ -210,11 +222,24 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   }
 
   onPresetChipClick(value: string): void {
-    if (!this.allowDeselect() && this.selectedFilter() === value) {
+    if (this.renderedSelectedFilter() !== value) {
+      this._renderedSelectedFilter.set(value);
+      this.filterChange.emit(value);
       return;
     }
 
-    this.filterChange.emit(this.selectedFilter() === value ? "" : value);
+    if (this.allowDeselect()) {
+      this._renderedSelectedFilter.set("");
+      this.filterChange.emit("");
+      return;
+    }
+
+    const fallback = this._fallbackFilterValue();
+    this._renderedSelectedFilter.set("");
+    this._renderedSelectedFilter.set(fallback);
+    if (fallback && fallback !== this.selectedFilter()) {
+      this.filterChange.emit(fallback);
+    }
   }
 
   onFiltersClick(): void {
@@ -276,5 +301,12 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
     this.canScrollRight.set(
       scrollElement.scrollLeft < maxScrollLeft - tolerance,
     );
+  }
+
+  private _fallbackFilterValue(): string {
+    if (this.showSavedChip()) return "saved";
+    if (this.showVisitedChip()) return "visited";
+
+    return this.visiblePresetFilters()[0]?.urlParam ?? "";
   }
 }

@@ -786,24 +786,25 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   /**
-   * Locality communities with bounds info, projected into the map shape.
-   * Country and region circles are intentionally excluded for now: they
-   * become too large to communicate anything useful on the map, while
-   * locality circles read as named places rather than background paint.
-   *
-   * Hide the currently-selected community's marker (the area circle +
-   * panel already convey it) to avoid the chip overlapping the panel UI.
+   * Community map areas show for localities in All and Communities modes.
+   * Communities mode additionally decorates every community with a full pin.
+   * Hide the currently-selected community's marker because the area overlay
+   * and panel already convey it.
    */
   availableCommunityMarkers = computed<CommunityMapMarker[]>(() => {
+    const mode = this.mapObjectMode();
+    if (mode !== "all" && mode !== "communities") return [];
+    const showFullPins = mode === "communities";
+
     if (this._denseMapPerformanceMode()) {
       const variant = this._denseMapPerformanceVariant();
       return variant === "full" || variant === "communities-only"
-        ? this._denseMapPerformanceCommunityMarkers
+        ? this._denseMapPerformanceCommunityMarkers.map((community) => ({
+            ...community,
+            pinVisible: showFullPins,
+          }))
         : [];
     }
-
-    const mode = this.mapObjectMode();
-    if (mode !== "all" && mode !== "communities") return [];
 
     const selectedKey =
       this.selectedCommunityLanding()?.communityKey ??
@@ -815,7 +816,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .filter(
         (c) =>
           c.communityKey !== selectedKey &&
-          c.scope === "locality" &&
+          (showFullPins || c.scope === "locality") &&
           c.boundsCenter &&
           typeof c.boundsRadiusM === "number" &&
           c.boundsRadiusM > 0,
@@ -824,6 +825,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         communityKey: c.communityKey,
         displayName: c.displayName,
         scope: c.scope,
+        countryCode: c.countryCode,
+        pinVisible: showFullPins,
+        pinIcon: showFullPins ? this._communityPinIcon(c) : undefined,
+        pinLabel: showFullPins ? this._communityPinLabel(c) : undefined,
+        pinSize: showFullPins
+          ? c.scope === "country"
+            ? 1.14
+            : 0.86
+          : undefined,
         center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },
         radiusM: c.boundsRadiusM!,
       }));
@@ -859,6 +869,32 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       now,
     });
   });
+
+  private _communityPinIcon(community: CommunitySearchPreview): string {
+    switch (community.scope) {
+      case "country":
+        return "public";
+      case "region":
+        return "map";
+      case "locality":
+        return "location_city";
+      default:
+        return "groups";
+    }
+  }
+
+  private _communityPinLabel(
+    community: CommunitySearchPreview,
+  ): string | undefined {
+    if (community.scope !== "country") {
+      return undefined;
+    }
+
+    const countryCode = String(community.countryCode ?? "")
+      .trim()
+      .toUpperCase();
+    return countryCode ? countries[countryCode]?.emoji : undefined;
+  }
 
   selectedEventBoundsOverlays = computed(() =>
     buildSelectedEventBoundsOverlays(

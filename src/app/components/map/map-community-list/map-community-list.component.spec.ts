@@ -51,6 +51,7 @@ describe("MapCommunityListComponent", () => {
         displayName: "Zofingen",
         scope: "locality",
         localityName: "Zofingen",
+        imageUrl: "assets/community-banner.png",
         regionName: "Aargau",
         totalSpots: 5,
       }),
@@ -62,6 +63,9 @@ describe("MapCommunityListComponent", () => {
       fixture.debugElement.query(By.css(".community-avatar mat-icon"))
         .nativeElement.textContent,
     ).toContain("location_city");
+    expect(
+      fixture.debugElement.query(By.css(".community-avatar img")),
+    ).toBeNull();
     expect(
       fixture.debugElement.query(By.css(".community-subtitle")).nativeElement
         .textContent,

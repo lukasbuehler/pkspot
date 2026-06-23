@@ -352,44 +352,6 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     return this.visibleHighlightedSpots();
   });
 
-  private _shouldShowCommunityCenterDot(
-    community: CommunityMapMarker,
-  ): boolean {
-    return (
-      this._communityCircleDiameterPx(community) <=
-      this._communityDotDiameterPx(community)
-    );
-  }
-
-  private _isCommunityCircleClickable(community: CommunityMapMarker): boolean {
-    return this._communityCircleDiameterPx(community) <= 320;
-  }
-
-  private _communityCircleDiameterPx(community: CommunityMapMarker): number {
-    return (
-      (community.radiusM * 2) /
-      this._metersPerPixelAtLatitude(community.center.lat, this.mapZoom())
-    );
-  }
-
-  private _communityDotDiameterPx(community: CommunityMapMarker): number {
-    switch (community.scope) {
-      case "country":
-        return 20;
-      case "region":
-        return 14;
-      case "locality":
-        return 10;
-      default:
-        return 12;
-    }
-  }
-
-  private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {
-    const latitudeRadians = (latitude * Math.PI) / 180;
-    return (156_543.033_92 * Math.cos(latitudeRadians)) / Math.pow(2, zoom);
-  }
-
   visibleMarkers = signal<MarkerSchema[]>([]);
   readonly pointMarkers = computed<MapPointMarker[]>(() => [
     ...this.communityPointMarkers(),
@@ -469,45 +431,90 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       .join("")}`;
   }
 
+  private _shouldShowCommunityCenterDot(
+    community: CommunityMapMarker,
+  ): boolean {
+    return (
+      this._communityCircleDiameterPx(community) <=
+      this._communityDotDiameterPx(community)
+    );
+  }
+
+  private _communityCircleDiameterPx(community: CommunityMapMarker): number {
+    return (
+      (community.radiusM * 2) /
+      this._metersPerPixelAtLatitude(community.center.lat, this.mapZoom())
+    );
+  }
+
+  private _communityDotDiameterPx(community: CommunityMapMarker): number {
+    switch (community.scope) {
+      case "country":
+        return 20;
+      case "region":
+        return 14;
+      case "locality":
+        return 10;
+      default:
+        return 12;
+    }
+  }
+
+  private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {
+    const latitudeRadians = (latitude * Math.PI) / 180;
+    return (156_543.033_92 * Math.cos(latitudeRadians)) / Math.pow(2, zoom);
+  }
+
   readonly communityPointMarkers = computed<MapPointMarker[]>(() =>
     this.availableCommunities
-      .filter((community) => this._shouldShowCommunityCenterDot(community))
+      .filter(
+        (community) =>
+          community.pinVisible || this._shouldShowCommunityCenterDot(community),
+      )
       .map((community) => ({
         id: `community:${community.communityKey}`,
         name: community.displayName,
         location: community.center,
         color: "primary",
         type: "community",
-        number: undefined,
-        forceFullMarker: false,
+        number: community.pinVisible ? community.pinLabel : undefined,
+        numberVariant:
+          community.pinVisible && community.pinLabel ? "flag" : "default",
+        icons: community.pinVisible
+          ? community.pinLabel
+            ? undefined
+            : [community.pinIcon ?? "location_city"]
+          : undefined,
+        forceFullMarker: community.pinVisible ?? false,
         maxZoom: undefined,
-        dotModeThreshold: Number.POSITIVE_INFINITY,
-        priority: 40,
-        ignoreCollisions: true,
+        dotModeThreshold: community.pinVisible
+          ? undefined
+          : Number.POSITIVE_INFINITY,
+        priority: community.pinVisible
+          ? community.scope === "country"
+            ? "required"
+            : 340
+          : 40,
+        ignoreCollisions: community.pinVisible ? undefined : true,
+        size: community.pinVisible
+          ? (community.pinSize ??
+            (community.scope === "country" ? 1.14 : 0.86))
+          : undefined,
       })),
   );
 
   readonly communityCircleOverlays = computed<MapCircleOverlay[]>(() =>
     this.availableCommunities
-      .filter((community) => !this._shouldShowCommunityCenterDot(community))
-      .map((community) => {
-        const clickable = this._isCommunityCircleClickable(community);
-
-        return {
-          id: `community:${community.communityKey}`,
-          center: community.center,
-          radiusM: community.radiusM,
-          options: {
-            clickable,
-            ...(clickable
-              ? {}
-              : {
-                  fillOpacity: 0,
-                  strokeOpacity: 0,
-                }),
-          },
-        };
-      }),
+      .filter((community) => community.scope === "locality")
+      .map((community) => ({
+        id: `community:${community.communityKey}`,
+        center: community.center,
+        radiusM: community.radiusM,
+        options: {
+          clickable: true,
+          zIndex: 1,
+        },
+      })),
   );
 
   headingIsNotNorth: Signal<boolean> = computed(() => {
