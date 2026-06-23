@@ -2,16 +2,19 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const outputPath = resolve("src/environments/environment.ci.generated.ts");
-const publicWebApiKey = "AIzaSyBweX0jjdbdrIy2slKPf6ZAhvl6XHz4AlI";
-const localDevelopmentApiKey = "AIzaSyC_yCSapgBDvJytXpWY724-UKbeM37N5d8";
 const localEnv = {
   ...readLocalEnvFile(resolve(".env")),
   ...readLocalEnvFile(resolve(".env.local")),
 };
 const apiKey =
   process.env["PKSPOT_CI_FIREBASE_API_KEY"] ??
-  localEnv["PKSPOT_CI_FIREBASE_API_KEY"] ??
-  (process.env["CI"] ? publicWebApiKey : localDevelopmentApiKey);
+  localEnv["PKSPOT_CI_FIREBASE_API_KEY"];
+
+if (!apiKey) {
+  throw new Error(
+    "Missing PKSPOT_CI_FIREBASE_API_KEY. Set it in CI secrets or a local ignored env file before generating the CI environment.",
+  );
+}
 
 const content = `import { environment as ciEnvironment } from "./environment.ci";
 

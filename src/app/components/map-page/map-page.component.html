@@ -292,9 +292,14 @@
         (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
       ></app-search-field>
     </div>
-    @if (!sidebarContentIsScrolling() || !sidenavOpen()) {
+    <div
+      class="desktop-filter-chips-host"
+      [class.desktop-filter-chips-host--hidden]="
+        sidebarContentIsScrolling() && sidenavOpen()
+      "
+    >
       <ng-container *ngTemplateOutlet="chips"></ng-container>
-    }
+    </div>
   </div>
 
   <mat-drawer-container

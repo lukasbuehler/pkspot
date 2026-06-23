@@ -191,6 +191,24 @@ mat-drawer-container.sidenav-open .map-island-host {
   min-width: 0;
 }
 
+.desktop-filter-chips-host {
+  max-height: 88px;
+  opacity: 1;
+  overflow: hidden;
+  transform: translateY(0);
+  transition:
+    max-height 180ms ease,
+    opacity 160ms ease,
+    transform 180ms ease;
+}
+
+.desktop-filter-chips-host--hidden {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+}
+
 // mat-chip-option,
 // mat-chip {
 //   border-radius: 20px;
