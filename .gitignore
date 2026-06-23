@@ -58,7 +58,7 @@ node_modules/
 .npm
 
 # Firebase testing stuff
-.firbase-emulator*
+.firebase-emulators*
 
 # Optional eslint cache
 .eslintcache
