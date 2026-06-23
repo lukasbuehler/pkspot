@@ -7787,6 +7787,30 @@
         <target>Cargando Google Place…</target>
       </segment>
     </unit>
+    <unit id="googlePlace.open24Hours">
+      <segment state="initial">
+        <source>Open 24 hours</source>
+        <target>Abierto 24 horas</target>
+      </segment>
+    </unit>
+    <unit id="googlePlace.openHoursRange">
+      <segment state="initial">
+        <source>Open <ph id="0" equiv="PH" disp="formatTime.format(openDate)"/>-<ph id="1" equiv="PH_1" disp="formatTime.format(closeDate)"/></source>
+        <target>Abierto <ph id="0" equiv="PH" disp="formatTime.format(openDate)"/>-<ph id="1" equiv="PH_1" disp="formatTime.format(closeDate)"/></target>
+      </segment>
+    </unit>
+    <unit id="googlePlace.openNowUntil">
+      <segment state="initial">
+        <source>Open now until <ph id="0" equiv="PH" disp="formatTime.format(closeDate)"/></source>
+        <target>Abierto hasta las <ph id="0" equiv="PH" disp="formatTime.format(closeDate)"/></target>
+      </segment>
+    </unit>
+    <unit id="googlePlace.opensAt">
+      <segment state="initial">
+        <source>Opens at <ph id="0" equiv="PH" disp="formatTime.format(openDate)"/></source>
+        <target>Abre a las <ph id="0" equiv="PH" disp="formatTime.format(openDate)"/></target>
+      </segment>
+    </unit>
     <unit id="1636934520301910285">
       <segment state="initial">
         <source>Reset password</source>

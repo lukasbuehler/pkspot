@@ -3638,6 +3638,26 @@
         <source>Loading Google Place…</source>
       </segment>
     </unit>
+    <unit id="googlePlace.open24Hours">
+      <segment>
+        <source>Open 24 hours</source>
+      </segment>
+    </unit>
+    <unit id="googlePlace.openHoursRange">
+      <segment>
+        <source>Open <ph id="0" equiv="PH" disp="formatTime.format(openDate)"/>-<ph id="1" equiv="PH_1" disp="formatTime.format(closeDate)"/></source>
+      </segment>
+    </unit>
+    <unit id="googlePlace.openNowUntil">
+      <segment>
+        <source>Open now until <ph id="0" equiv="PH" disp="formatTime.format(closeDate)"/></source>
+      </segment>
+    </unit>
+    <unit id="googlePlace.opensAt">
+      <segment>
+        <source>Opens at <ph id="0" equiv="PH" disp="formatTime.format(openDate)"/></source>
+      </segment>
+    </unit>
     <unit id="3599528462269889129">
       <segment>
         <source>Closed · Opens <ph id="0" equiv="PH" disp="nextDayLabel"/>. <ph id="1" equiv="PH_1" disp="fmtTime.format( openDate )"/></source>

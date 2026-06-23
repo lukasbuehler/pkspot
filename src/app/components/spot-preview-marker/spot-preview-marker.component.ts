@@ -109,7 +109,7 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
       cursor: pointer;
       outline: none;
       overflow: visible;
-      pointer-events: auto;
+      pointer-events: none;
     }
 
     .spot-preview-marker__visual {
@@ -131,6 +131,8 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
     }
 
     .spot-preview-marker__pin {
+      cursor: pointer;
+      pointer-events: auto;
       transition:
         opacity 0.18s ease,
         transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);

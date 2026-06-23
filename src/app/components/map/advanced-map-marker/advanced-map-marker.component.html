@@ -1,29 +1,10 @@
-@if(useDotMode()) {
 <div
-  #dotShell
-  class="advanced-map-marker-shell advanced-map-marker-shell--dot"
-  tabindex="0"
-  role="button"
->
-  <div
-    class="advanced-map-marker-dot shadow-sm border"
-    [class.marker-primary-dark]="marker().color === 'primary'"
-    [class.marker-secondary-dark]="marker().color === 'secondary'"
-    [class.marker-tertiary-dark]="marker().color === 'tertiary'"
-  ></div>
-</div>
-<map-advanced-marker
-  [position]="marker().location"
-  [content]="dotShell"
-  [options]="markerOptions()"
-  (mapClick)="onDotMapClick(dotShell, $event)"
-/>
-} @else {
-<div
-  #fullMarkerShell
-  class="advanced-map-marker-shell advanced-map-marker-shell--full"
-  [class.preview-enabled]="hoverPreviewEnabled()"
-  [class.preview-visible]="previewVisible()"
+  #markerShell
+  class="advanced-map-marker-shell"
+  [class.advanced-map-marker-shell--dot]="useDotMode()"
+  [class.advanced-map-marker-shell--full]="!useDotMode()"
+  [class.preview-enabled]="!useDotMode() && hoverPreviewEnabled()"
+  [class.preview-visible]="!useDotMode() && previewVisible()"
   tabindex="0"
   role="button"
   [attr.aria-label]="marker().name"
@@ -32,6 +13,14 @@
   (focus)="showPreview()"
   (blur)="hidePreview()"
 >
+  @if(useDotMode()) {
+  <div
+    class="advanced-map-marker-dot shadow-sm border"
+    [class.marker-primary-dark]="marker().color === 'primary'"
+    [class.marker-secondary-dark]="marker().color === 'secondary'"
+    [class.marker-tertiary-dark]="marker().color === 'tertiary'"
+  ></div>
+  } @else {
   @if(hoverPreviewEnabled() && marker().name) {
   <div class="advanced-map-marker-preview">
     <div class="advanced-map-marker-card">
@@ -83,13 +72,13 @@
     [color]="marker().color ?? 'primary'"
     [size]="0.8"
     [title]="marker().name"
-    (click)="onMarkerContentClick(fullMarkerShell)"
+    (click)="onMarkerContentClick(markerShell)"
   />
+  }
 </div>
 <map-advanced-marker
   [position]="marker().location"
-  [content]="fullMarkerShell"
+  [content]="markerShell"
   [options]="markerOptions()"
-  (mapClick)="onMarkerContentClick(fullMarkerShell, $event)"
+  (mapClick)="onMapMarkerClick(markerShell, $event)"
 />
-}

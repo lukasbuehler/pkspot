@@ -128,7 +128,7 @@ const COMMUNITY_MARKER_COLLISION_SIZE_PX = 16;
 const POINT_MARKER_DOT_COLLISION_SIZE_PX = 48;
 const POINT_MARKER_FULL_COLLISION_SIZE_PX = 48;
 const MAP_PROFILE_FULL_SNAPSHOT_INTERVAL_MS = 1_000;
-const POINT_MARKER_NATIVE_CIRCLE_MAX_ZOOM = 11;
+const POINT_MARKER_NATIVE_CIRCLE_MAX_ZOOM = 13;
 
 interface MarkerCollisionLayoutCache {
   highlightedSpots: SpotPreviewData[];
@@ -361,7 +361,9 @@ export class GoogleMap2dComponent
 
   _zoom = signal<number>(4);
   private readonly _communityVisualZoom = signal<number>(4);
+  private _communityVisualZoomAnimationFrameId: number | null = null;
   private _lastObservedNativeIntegerZoom: number | null = null;
+  private readonly COMMUNITY_VISUAL_ZOOM_ANIMATION_MS = 180;
   private readonly COMMUNITY_VISUAL_ZOOM_STEP = 0.1;
   private readonly COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX = 320;
 
@@ -415,7 +417,7 @@ export class GoogleMap2dComponent
     this._center = center;
     this._zoom.set(Math.floor(camera.zoom));
     this._lastObservedNativeIntegerZoom = Math.floor(camera.zoom);
-    this._setCommunityVisualZoom(camera.zoom);
+    this._setCommunityVisualZoom(camera.zoom, { animate: true });
 
     const nativeMap = this.googleMap?.googleMap;
     if (!nativeMap) {
@@ -490,7 +492,7 @@ export class GoogleMap2dComponent
   }
 
   private _commitSettledCameraZoom(mapZoom: number, source: string): void {
-    this._setCommunityVisualZoom(mapZoom);
+    this._setCommunityVisualZoom(mapZoom, { animate: true });
 
     const newZoom = Math.floor(mapZoom);
     this._lastObservedNativeIntegerZoom = newZoom;
@@ -506,7 +508,10 @@ export class GoogleMap2dComponent
     });
   }
 
-  private _setCommunityVisualZoom(mapZoom: number): void {
+  private _setCommunityVisualZoom(
+    mapZoom: number,
+    options: { animate?: boolean } = {},
+  ): void {
     const steppedZoomUnits = Math.round(
       mapZoom / this.COMMUNITY_VISUAL_ZOOM_STEP,
     );
@@ -518,9 +523,54 @@ export class GoogleMap2dComponent
       return;
     }
 
-    this._communityVisualZoom.set(
-      steppedZoomUnits * this.COMMUNITY_VISUAL_ZOOM_STEP,
-    );
+    const targetZoom = steppedZoomUnits * this.COMMUNITY_VISUAL_ZOOM_STEP;
+    if (!options.animate) {
+      this._cancelCommunityVisualZoomAnimation();
+      this._communityVisualZoom.set(targetZoom);
+      return;
+    }
+
+    this._animateCommunityVisualZoom(targetZoom);
+  }
+
+  private _animateCommunityVisualZoom(targetZoom: number): void {
+    this._cancelCommunityVisualZoomAnimation();
+
+    const startZoom = this._communityVisualZoom();
+    const zoomDelta = targetZoom - startZoom;
+    if (Math.abs(zoomDelta) < 0.01) {
+      this._communityVisualZoom.set(targetZoom);
+      return;
+    }
+
+    const startMs = performance.now();
+    const step = (nowMs: number) => {
+      const elapsedMs = nowMs - startMs;
+      const progress = Math.min(
+        1,
+        elapsedMs / this.COMMUNITY_VISUAL_ZOOM_ANIMATION_MS,
+      );
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+
+      this._communityVisualZoom.set(startZoom + zoomDelta * easedProgress);
+
+      if (progress < 1) {
+        this._communityVisualZoomAnimationFrameId = requestAnimationFrame(step);
+        return;
+      }
+
+      this._communityVisualZoomAnimationFrameId = null;
+      this._communityVisualZoom.set(targetZoom);
+    };
+
+    this._communityVisualZoomAnimationFrameId = requestAnimationFrame(step);
+  }
+
+  private _cancelCommunityVisualZoomAnimation(): void {
+    if (this._communityVisualZoomAnimationFrameId === null) return;
+
+    cancelAnimationFrame(this._communityVisualZoomAnimationFrameId);
+    this._communityVisualZoomAnimationFrameId = null;
   }
 
   onMapClick(event: google.maps.MapMouseEvent | google.maps.IconMouseEvent) {
@@ -2090,6 +2140,7 @@ export class GoogleMap2dComponent
     this._clearInvalidCameraRecoveryTimeout();
     this._clearCameraRecoveryVerificationTimeout();
     this._clearWebGlContextRecoveryTimeout();
+    this._cancelCommunityVisualZoomAnimation();
     this._clearCameraIdleWatchdog();
     this._stopFpsLoop();
   }

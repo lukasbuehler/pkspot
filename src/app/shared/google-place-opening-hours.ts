@@ -139,14 +139,14 @@ function getOpenStatusText(
 ): string | null {
   if (activePeriod) {
     if (activePeriod.closeMinuteOfWeek === null) {
-      return "Open 24 hours";
+      return $localize`:@@googlePlace.open24Hours:Open 24 hours`;
     }
 
     const closeDate = addMinutes(
       now,
       activePeriod.closeMinuteOfWeek - activePeriod.activeNowMinuteOfWeek,
     );
-    return `Open now until ${formatTime.format(closeDate)}`;
+    return $localize`:@@googlePlace.openNowUntil:Open now until ${formatTime.format(closeDate)}`;
   }
 
   if (
@@ -158,7 +158,7 @@ function getOpenStatusText(
       now,
       nextOpening.openMinuteOfWeek - nowMinuteOfWeek,
     );
-    return `Opens at ${formatTime.format(openDate)}`;
+    return $localize`:@@googlePlace.opensAt:Opens at ${formatTime.format(openDate)}`;
   }
 
   return null;
@@ -186,7 +186,7 @@ function getTodayHoursText(
     );
 
   if (activePeriod?.close === null) {
-    return "Open 24 hours";
+    return null;
   }
 
   if (activePeriod && todaysPeriods.length === 0) {
@@ -205,12 +205,12 @@ function getTodayHoursText(
 
   const intervals = todaysPeriods.map((period) => {
     if (period.close === null) {
-      return "Open 24 hours";
+      return $localize`:@@googlePlace.open24Hours:Open 24 hours`;
     }
 
     const openDate = dateForPointOnToday(now, period.open);
     const closeDate = dateForClosePoint(openDate, period.open, period.close);
-    return `${formatTime.format(openDate)}-${formatTime.format(closeDate)}`;
+    return $localize`:@@googlePlace.openHoursRange:Open ${formatTime.format(openDate)}-${formatTime.format(closeDate)}`;
   });
 
   return intervals.join(", ");

@@ -13,7 +13,7 @@ describe("getGooglePlaceOpeningHoursStatus", () => {
 
     expect(status.isOpenNow).toBe(true);
     expect(status.openStatusText).toBe("Open now until 5:00 PM");
-    expect(status.todayHoursText).toBe("10:00 AM-5:00 PM");
+    expect(status.todayHoursText).toBe("Open 10:00 AM-5:00 PM");
   });
 
   it("shows upcoming hours later today", () => {
@@ -27,7 +27,7 @@ describe("getGooglePlaceOpeningHoursStatus", () => {
 
     expect(status.isOpenNow).toBe(false);
     expect(status.openStatusText).toBe("Opens at 3:00 PM");
-    expect(status.todayHoursText).toBe("3:00 PM-6:00 PM");
+    expect(status.todayHoursText).toBe("Open 3:00 PM-6:00 PM");
   });
 
   it("shows the next opening when today's hours are already over", () => {
@@ -68,7 +68,7 @@ describe("getGooglePlaceOpeningHoursStatus", () => {
 
     expect(status.isOpenNow).toBe(true);
     expect(status.openStatusText).toBe("Open 24 hours");
-    expect(status.todayHoursText).toBe("Open 24 hours");
+    expect(status.todayHoursText).toBeNull();
   });
 });
 

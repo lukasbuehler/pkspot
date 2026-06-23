@@ -59,7 +59,19 @@ export class AdvancedMapMarkerComponent {
     }
   }
 
-  onMarkerContentClick(markerContent?: HTMLElement, event?: unknown): void {
+  onMapMarkerClick(el: HTMLElement | null | undefined, event?: unknown): void {
+    if (this.useDotMode()) {
+      this.onDotMapClick(el, event);
+      return;
+    }
+
+    this.onMarkerContentClick(el, event);
+  }
+
+  onMarkerContentClick(
+    markerContent: HTMLElement | null | undefined,
+    event?: unknown,
+  ): void {
     if (!markerContent) return;
 
     this.focusMarkerShell(markerContent);
