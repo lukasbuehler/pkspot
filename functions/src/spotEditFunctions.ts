@@ -241,7 +241,7 @@ export const applySpotEditOnCreate = onDocumentCreated(
         applyLocationFields(createData, spotId);
         applyBoundsFields(createData, spotId);
 
-        await spotRef.update(createData);
+        await spotRef.set(createData, { merge: true });
         console.log(
           `Updated spot ${spotId} with data from CREATE edit ${editId}`
         );

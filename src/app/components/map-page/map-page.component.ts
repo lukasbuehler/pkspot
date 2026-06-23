@@ -3049,8 +3049,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Retry loading the spot if it's not yet populated by the cloud function
     let lastError: any;
-    const maxAttempts = 15;
-    const delayMs = 200;
+    const maxAttempts = 60;
+    const delayMs = 500;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
@@ -3082,6 +3082,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // All attempts failed
     console.error("Failed to load spot after retries:", lastError);
+    if (requestVersion === this._spotLoadRequestVersion) {
+      this.pendingSpotPreview.set(null);
+    }
     throw lastError;
   }
 

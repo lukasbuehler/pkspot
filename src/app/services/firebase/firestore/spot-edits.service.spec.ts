@@ -223,6 +223,34 @@ describe("SpotEditsService", () => {
     );
   });
 
+  it("keeps slug in normal update edits so preferred URL changes are submitted", async () => {
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
+
+    await service.createSpotUpdateEdit(
+      "spot-1" as never,
+      {
+        slug: "new-preferred-url",
+      },
+      { uid: "user-1", display_name: "Test User" },
+      {
+        slug: "old-preferred-url",
+      }
+    );
+
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/spot-1/edits",
+      expect.objectContaining({
+        type: "UPDATE",
+        data: {
+          slug: "new-preferred-url",
+        },
+        prevData: {
+          slug: "old-preferred-url",
+        },
+      })
+    );
+  });
+
   it("does not route legacy-only verified spots into private organization review", async () => {
     mockFirestoreAdapter.getDocument.mockResolvedValueOnce({
       verification: {

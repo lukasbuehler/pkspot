@@ -163,6 +163,35 @@ async function testCreateSpotFromPlainLocation() {
   assert.ok(spot.tile_coordinates?.z16, "Expected tile coordinates for map queries");
 }
 
+async function testCreateSpotMaterializesWithoutPlaceholder() {
+  const spotId = "integration-create-without-placeholder";
+
+  await createEdit(
+    spotId,
+    "create",
+    editPayload({
+      type: "CREATE",
+      offsetMs: 1250,
+      user: SECOND_USER,
+      data: {
+        name: { en: "Integration No Placeholder" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+        address: null,
+        media: [],
+        type: "urban landscape",
+        access: "public",
+        amenities: { outdoor: true },
+      },
+    })
+  );
+
+  const spot = await getSpot(spotId);
+  assert.deepEqual(spot.name, { en: "Integration No Placeholder" });
+  assertCoordinate(spot.location_raw, 47.3769, 8.5417, "spot.location_raw");
+  assert.ok(spot.location, "Expected create edit to write normalized location");
+  assert.ok(spot.tile_coordinates?.z16, "Expected tile coordinates for map queries");
+}
+
 async function testCreateSpotFromRawOnlyLocationAndBounds() {
   const spotId = "integration-create-raw-only-location";
   await db.collection("spots").doc(spotId).set({});
@@ -1086,6 +1115,7 @@ async function main() {
 
   console.log("Running spot creation/edit integration flow...");
   await testCreateSpotFromPlainLocation();
+  await testCreateSpotMaterializesWithoutPlaceholder();
   await testCreateSpotFromRawOnlyLocationAndBounds();
   await testLocationAndBoundsMobileShapes();
   await testSourceAndSystemFieldsAreIgnoredOnUpdate();

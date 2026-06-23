@@ -462,7 +462,6 @@ export class SpotEditsService extends ConsentAwareService {
       "verification",
       "address",
       "landing",
-      "slug",
       "top_challenges",
       "num_challenges",
       // System fields
