@@ -133,9 +133,7 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
     .spot-preview-marker__pin {
       cursor: pointer;
       pointer-events: auto;
-      transition:
-        opacity 0.18s ease,
-        transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
+      transition: opacity 0.18s ease;
       transform-origin: bottom center;
     }
 
@@ -148,11 +146,9 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
       align-items: center;
       opacity: 0;
       pointer-events: none;
-      transform: translateX(-50%) translateY(16px) scale(0.88);
+      transform: translateX(-50%);
       transform-origin: bottom center;
-      transition:
-        opacity 0.18s ease,
-        transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
+      transition: opacity 0.18s ease;
       will-change: opacity, transform;
     }
 
@@ -190,13 +186,12 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
     .spot-preview-marker.preview-enabled.preview-visible
       .spot-preview-marker__preview {
       opacity: 1;
-      transform: translateX(-50%) translateY(0) scale(1);
+      transform: translateX(-50%);
     }
 
     .spot-preview-marker.preview-enabled.preview-visible
       .spot-preview-marker__pin {
       opacity: 0;
-      transform: translateY(10px) scale(0.8);
     }
 
     .spot-preview-marker:focus-visible {

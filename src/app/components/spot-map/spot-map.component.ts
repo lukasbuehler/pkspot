@@ -502,7 +502,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         ignoreCollisions: community.pinVisible ? undefined : true,
         size: community.pinVisible
           ? (community.pinSize ??
-            (community.scope === "country" ? 1.04 : 0.86))
+            (community.scope === "country" ? 0.94 : 0.86))
           : undefined,
       })),
   );
@@ -613,7 +613,11 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       if (showAmenities) {
         if (!amenityMarkers || amenityMarkers.length === 0) {
           this.visibleMarkers.set(inputMarkers);
-          this._recordVisibleMarkerProfile(inputMarkers.length, 0, showAmenities);
+          this._recordVisibleMarkerProfile(
+            inputMarkers.length,
+            0,
+            showAmenities,
+          );
           return;
         }
         this.visibleMarkers.set(amenityMarkers.concat(inputMarkers));
@@ -802,7 +806,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   mapClick(event: google.maps.LatLngLiteral) {
-    console.log("Map clicked!", event);
+    // console.debug("Map clicked!", event);
 
     // Emit the click event for parent components to handle (e.g. deselection)
     this.mapClickEvent.emit(event);

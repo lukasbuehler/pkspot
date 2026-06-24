@@ -19,9 +19,6 @@
 }
 
 .advanced-map-marker-pin {
-  transition:
-    opacity 0.18s ease,
-    transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
   transform-origin: bottom center;
 }
 
@@ -34,11 +31,8 @@
   align-items: center;
   opacity: 0;
   pointer-events: none;
-  transform: translateX(-50%) translateY(16px) scale(0.88);
+  transform: translateX(-50%);
   transform-origin: bottom center;
-  transition:
-    opacity 0.18s ease,
-    transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
   width: clamp(210px, 22vw, 280px);
   will-change: opacity, transform;
 }
@@ -125,13 +119,14 @@
 .advanced-map-marker-shell.preview-enabled.preview-visible
   .advanced-map-marker-preview {
   opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1);
+  transform: translateX(-50%);
+  transition: opacity 0.18s ease;
 }
 
 .advanced-map-marker-shell.preview-enabled.preview-visible
   .advanced-map-marker-pin {
   opacity: 0;
-  transform: translateY(10px) scale(0.8);
+  transition: opacity 0.18s ease;
 }
 
 @media (hover: none), (pointer: coarse) {

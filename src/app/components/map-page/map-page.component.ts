@@ -446,6 +446,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _drawerResizeObserver: ResizeObserver | null = null;
   private _drawerMarginRefreshRaf: number | null = null;
   private _drawerMarginRefreshFollowupRaf: number | null = null;
+  private _panelScrollAttachmentRaf: number | null = null;
   // Last measured width of the chips container — used to avoid re-measuring when width didn't change
   private _lastMeasuredWidth: number | null = null;
   // Last applied final height to avoid redundant updates across callbacks
@@ -831,7 +832,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         pinLabel: showFullPins ? this._communityPinLabel(c) : undefined,
         pinSize: showFullPins
           ? c.scope === "country"
-            ? 1.04
+            ? 0.94
             : 0.86
           : undefined,
         center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },
@@ -2390,6 +2391,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.compactSidenavRange();
       this.mapSidenavMode();
       this._scheduleDrawerContentMarginRefresh();
+      this._schedulePanelScrollListenerAttachment();
     });
 
     // Effect to peek bottom sheet when proximity spot is detected
@@ -3979,9 +3981,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       // Try to attach sidebar (desktop) listener
-      const drawerInner = document.querySelector(
-        ".mat-drawer-inner-container",
-      ) as HTMLElement | null;
+      const drawerInner = this._getSidebarScrollElement();
       if (drawerInner) {
         this._sidebarScrollEl = drawerInner;
         this._sidebarScrollListener = () => {
@@ -4025,6 +4025,36 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     } catch (e) {
       console.warn("Could not attach sidebar scroll listeners:", e);
     }
+  }
+
+  private _getSidebarScrollElement(): HTMLElement | null {
+    const drawerElement = this._infoDrawerElement?.nativeElement;
+    const drawerInner = drawerElement?.querySelector<HTMLElement>(
+      ".mat-drawer-inner-container",
+    );
+
+    return (
+      drawerInner ??
+      document.querySelector<HTMLElement>(
+        "mat-drawer.info-panel .mat-drawer-inner-container",
+      )
+    );
+  }
+
+  private _schedulePanelScrollListenerAttachment(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    if (this._panelScrollAttachmentRaf !== null) {
+      return;
+    }
+
+    this._panelScrollAttachmentRaf = requestAnimationFrame(() => {
+      this._panelScrollAttachmentRaf = null;
+      this._attachSidebarScrollListeners();
+      this._attachDrawerResizeObserver();
+    });
   }
 
   private _attachDrawerResizeObserver(): void {
@@ -4276,9 +4306,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const el =
       this._sidebarScrollEl ||
-      (document.querySelector(
-        ".mat-drawer-inner-container",
-      ) as HTMLElement | null);
+      this._getSidebarScrollElement();
 
     if (el) {
       el.scrollTo({ top: 0 });
@@ -5351,6 +5379,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           // ignore
         }
         this._drawerMarginRefreshFollowupRaf = null;
+      }
+      if (this._panelScrollAttachmentRaf !== null) {
+        try {
+          cancelAnimationFrame(this._panelScrollAttachmentRaf);
+        } catch (e) {
+          // ignore
+        }
+        this._panelScrollAttachmentRaf = null;
       }
     } catch (e) {
       console.warn("Error removing scroll listeners:", e);

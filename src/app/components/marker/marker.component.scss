@@ -8,7 +8,9 @@
   border-style: solid;
   //   opacity: 0.8;
   border-width: 2px;
-  transition: background-color 1s ease, border-color 1s ease;
+  transition:
+    background-color 1s ease,
+    border-color 1s ease;
 }
 
 .pin-marker {
@@ -30,7 +32,10 @@
 
     min-width: 38px;
 
-    transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+    transition:
+      border-color 0.3s,
+      background-color 0.3s,
+      color 0.3s;
 
     &.has-icons:not(.icons-only) {
       padding-left: 10px;
@@ -43,12 +48,16 @@
     }
 
     .marker-number {
+      align-items: center;
+      display: inline-flex;
+      justify-content: center;
       font-size: larger;
       line-height: 1;
       padding: 0;
+      text-align: center;
 
       &--flag {
-        font-size: 1.45rem;
+        font-size: 1.3rem;
       }
     }
   }
