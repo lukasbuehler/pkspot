@@ -34,7 +34,12 @@ public class GooglePlacePhotoPlugin: CAPPlugin, CAPBridgedPlugin {
                 guard let self else { return }
 
                 if let error {
-                    call.reject("Failed to fetch Google Place photos", nil, error)
+                    self.rejectGooglePlacesError(
+                        call,
+                        message: "Failed to fetch Google Place photos",
+                        code: "GOOGLE_PLACES_FETCH_FAILED",
+                        error: error
+                    )
                     return
                 }
 
@@ -76,7 +81,12 @@ public class GooglePlacePhotoPlugin: CAPPlugin, CAPBridgedPlugin {
             guard let self else { return }
 
             if let error {
-                call.reject("Failed to load Google Place photo", nil, error)
+                self.rejectGooglePlacesError(
+                    call,
+                    message: "Failed to load Google Place photo",
+                    code: "GOOGLE_PLACES_PHOTO_FAILED",
+                    error: error
+                )
                 return
             }
 
@@ -98,6 +108,24 @@ public class GooglePlacePhotoPlugin: CAPPlugin, CAPBridgedPlugin {
 
     private func clampedImageSize(_ value: Int) -> Int {
         min(max(value, 1), 1600)
+    }
+
+    private func rejectGooglePlacesError(
+        _ call: CAPPluginCall,
+        message: String,
+        code: String,
+        error: Error
+    ) {
+        let nsError = error as NSError
+        let details: [String: Any] = [
+            "domain": nsError.domain,
+            "code": nsError.code,
+            "localizedDescription": nsError.localizedDescription,
+            "userInfo": nsError.userInfo.mapValues { String(describing: $0) }
+        ]
+
+        print("GooglePlacePhotoPlugin \(code): \(details)")
+        call.reject("\(message): \(nsError.localizedDescription)", code, error, details)
     }
 
     private func attributionStrings(for photo: GMSPlacePhotoMetadata) -> [String] {

@@ -64,6 +64,8 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - When adding a Swift Package that app target Swift files import directly, add the package product to the app target's package dependencies and Frameworks phase. A dependency inside `CapApp-SPM/Package.swift` does not automatically make the module importable from `AppDelegate.swift` or other app target Swift files.
 - `ios/App/CapApp-SPM/Package.swift` is managed by Capacitor CLI commands. Avoid manual durable changes there unless there is no better option, and expect `cap sync` to rewrite it.
 - Google Places photo URLs from Maps JS may produce WebP payloads that fail to decode in iOS WebKit. Native iOS image workarounds should use the Google Places SDK and return displayable image data, then show required Google/photo attribution before release.
+- Firebase App Check initialization from the Capacitor plugin does not automatically attach App Check tokens to the native Google Places SDK. If Google Places iOS calls return HTTP 403 while the API key itself is accepted, check that `GMSPlacesClient.setAppCheckTokenProvider(...)` is wired and that simulator/debug App Check is configured when testing locally.
+- Native iOS Google Places SDK calls should use a separate `PLACES_API_KEY` in `ios/App/App/GoogleService-Info.plist`, restricted to the iOS bundle ID. The Firebase/web `API_KEY` may be website-restricted for Capacitor webview and Maps JS requests, which does not authorize native SDK requests.
 
 ## Firebase region preference
 

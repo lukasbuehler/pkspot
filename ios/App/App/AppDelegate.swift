@@ -1,15 +1,19 @@
 import UIKit
 import Capacitor
+import FirebaseAppCheck
 import FirebaseAuth
+import FirebaseCore
 import GooglePlaces
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    private let placesAppCheckTokenProvider = GooglePlacesFirebaseAppCheckTokenProvider()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        configureFirebase()
         configureGooglePlaces()
         return true
     }
@@ -56,12 +60,62 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private func configureGooglePlaces() {
         guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
               let config = NSDictionary(contentsOfFile: path),
-              let apiKey = config["API_KEY"] as? String,
-              !apiKey.isEmpty else {
-            print("Google Places SDK not configured: missing API_KEY in GoogleService-Info.plist")
+              let apiKey = googlePlacesApiKey(from: config) else {
+            print("Google Places SDK not configured: missing PLACES_API_KEY or API_KEY in GoogleService-Info.plist")
             return
         }
 
-        GMSPlacesClient.provideAPIKey(apiKey)
+        let accepted = GMSPlacesClient.provideAPIKey(apiKey)
+        GMSPlacesClient.setAppCheckTokenProvider(placesAppCheckTokenProvider)
+        print("Google Places SDK configured: accepted=\(accepted), version=\(GMSPlacesClient.sdkVersion())")
+    }
+
+    private func configureFirebase() {
+        guard FirebaseApp.app() == nil else {
+            return
+        }
+
+        FirebaseApp.configure()
+    }
+
+    private func googlePlacesApiKey(from config: NSDictionary) -> String? {
+        for key in ["PLACES_API_KEY", "API_KEY"] {
+            guard let value = config[key] as? String else {
+                continue
+            }
+
+            let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedValue.isEmpty {
+                return trimmedValue
+            }
+        }
+
+        return nil
+    }
+}
+
+private final class GooglePlacesFirebaseAppCheckTokenProvider: NSObject, GMSPlacesAppCheckTokenProvider {
+    @objc(fetchAppCheckTokenWithCompletion:)
+    func fetchAppCheckToken(completion: @escaping GMSAppCheckTokenCompletion) {
+        AppCheck.appCheck().token(forcingRefresh: false) { result, error in
+            if let error = error {
+                print("Google Places App Check token failed: \(error.localizedDescription)")
+                completion(nil, error as NSError)
+                return
+            }
+
+            guard let token = result?.token else {
+                let missingTokenError = NSError(
+                    domain: "com.pkspot.google-places-app-check",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "Firebase App Check returned no token."]
+                )
+                print("Google Places App Check token failed: \(missingTokenError.localizedDescription)")
+                completion(nil, missingTokenError)
+                return
+            }
+
+            completion(token, nil)
+        }
     }
 }
