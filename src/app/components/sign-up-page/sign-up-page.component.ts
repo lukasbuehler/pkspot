@@ -84,7 +84,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
         email: ["", [Validators.required, Validators.email]],
         password: ["", [Validators.required, Validators.minLength(6)]],
         repeatPassword: ["", [Validators.required]],
-        agreeCheck: [false, [Validators.required]],
+        agreeCheck: [false, [Validators.requiredTrue]],
         inviteCode: ["", Validators.required],
       },
       {
@@ -207,6 +207,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
 
     if (this.createAccountForm?.invalid) {
       this.createAccountForm.markAllAsTouched();
+      this.signUpError = this._getCreateAccountValidationError();
       this._analytics.trackEvent("auth_sign_up_invalid", {
         display_name_invalid:
           this.createAccountForm.controls["displayName"].invalid,
@@ -274,6 +275,27 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
         });
         this.isSubmitting = false;
       });
+  }
+
+  private _getCreateAccountValidationError(): string {
+    const form = this.createAccountForm;
+    if (!form) {
+      return $localize`Could not create account!`;
+    }
+
+    if (form.hasError("repeatedPasswordDoesNotMatchPassword")) {
+      return $localize`Password and repeated password don't match`;
+    }
+
+    if (form.controls["agreeCheck"].invalid) {
+      return $localize`You need to agree to the terms and conditions!`;
+    }
+
+    if (form.controls["inviteCode"].invalid) {
+      return $localize`Could not create account!`;
+    }
+
+    return $localize`Could not create account!`;
   }
 
   private _getAuthErrorCode(error: unknown): string | null {

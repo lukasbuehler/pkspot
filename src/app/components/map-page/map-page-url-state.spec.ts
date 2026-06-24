@@ -167,6 +167,15 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(syncMethod).toContain("await this._handleURLParamsChange(");
   });
 
+  it("does not retry direct invalid spot URL loads for the full pending-preview window", () => {
+    const source = readFileSync(componentPath, "utf8");
+
+    expect(source).toContain(
+      "await this.loadSpotById(spotId as SpotId, false, pendingPreview)"
+    );
+    expect(source).toContain("const maxAttempts = preview ? 60 : 1;");
+  });
+
   it("stores contextual panel back targets for community and event transitions", () => {
     const source = readFileSync(componentPath, "utf8");
     const template = readFileSync(templatePath, "utf8");

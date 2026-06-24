@@ -2901,7 +2901,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         // open the spot
-        await this.loadSpotById(spotId as SpotId, false);
+        await this.loadSpotById(spotId as SpotId, false, pendingPreview);
       }
     } else {
       // close the spot
@@ -3060,9 +3060,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     }
 
-    // Retry loading the spot if it's not yet populated by the cloud function
+    // Retry only when we have a pending preview from an in-app selection.
+    // Direct URL loads should fail quickly for invalid IDs instead of holding
+    // SSR/browser navigation open for the full retry window.
     let lastError: any;
-    const maxAttempts = 60;
+    const maxAttempts = preview ? 60 : 1;
     const delayMs = 500;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
