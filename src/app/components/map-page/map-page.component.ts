@@ -831,7 +831,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         pinLabel: showFullPins ? this._communityPinLabel(c) : undefined,
         pinSize: showFullPins
           ? c.scope === "country"
-            ? 1.14
+            ? 1.04
             : 0.86
           : undefined,
         center: { lat: c.boundsCenter![0], lng: c.boundsCenter![1] },

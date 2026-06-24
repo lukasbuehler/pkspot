@@ -56,9 +56,12 @@
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   border-radius: 100px;
   clip-path: inset(0 round 100px);
+  overscroll-behavior-x: contain;
   scrollbar-width: none; // Firefox
+  touch-action: pan-x;
   -ms-overflow-style: none; // IE/Edge
 
   &::-webkit-scrollbar {
@@ -161,6 +164,7 @@ mat-chip {
   overflow: hidden;
   clip-path: inset(0 round 20px);
   flex-shrink: 0;
+  touch-action: pan-x;
 }
 
 .solid-chip {

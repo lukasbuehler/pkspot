@@ -502,7 +502,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         ignoreCollisions: community.pinVisible ? undefined : true,
         size: community.pinVisible
           ? (community.pinSize ??
-            (community.scope === "country" ? 1.14 : 0.86))
+            (community.scope === "country" ? 1.04 : 0.86))
           : undefined,
       })),
   );
