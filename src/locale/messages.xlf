@@ -217,6 +217,11 @@
         <source> Live &amp; Verified </source>
       </segment>
     </unit>
+    <unit id="1025791844730471949">
+      <segment>
+        <source>Edit approved</source>
+      </segment>
+    </unit>
     <unit id="1038551913502372916">
       <segment>
         <source> Create organizations and manage who can review organization-routed spot edits. Verified-by and managed-by settings live on each spot&apos;s admin edit form. </source>
@@ -350,6 +355,11 @@
     <unit id="5141203522177015720">
       <segment>
         <source> Review community reports and contact messages. </source>
+      </segment>
+    </unit>
+    <unit id="7435704556903111313">
+      <segment>
+        <source>Organization review</source>
       </segment>
     </unit>
     <unit id="744750008248382275">
@@ -657,6 +667,11 @@
         <source>Admin access required.</source>
       </segment>
     </unit>
+    <unit id="1816655675231412974">
+      <segment>
+        <source>Profile reports</source>
+      </segment>
+    </unit>
     <unit id="1820086832367799914">
       <segment>
         <source>Rejected by organization</source>
@@ -680,6 +695,11 @@
     <unit id="5510291204960492499">
       <segment>
         <source>Organization review inbox</source>
+      </segment>
+    </unit>
+    <unit id="5516877052541003749">
+      <segment>
+        <source>Failed to submit organization review</source>
       </segment>
     </unit>
     <unit id="7833933616390918367">
@@ -3551,6 +3571,11 @@
         <source>Failed to handle report</source>
       </segment>
     </unit>
+    <unit id="167320025709083474">
+      <segment>
+        <source> Waiting for an organization reviewer. </source>
+      </segment>
+    </unit>
     <unit id="1675135336563892261">
       <segment>
         <source>Failed to update visited spot</source>
@@ -3660,7 +3685,7 @@
     </unit>
     <unit id="3599528462269889129">
       <segment>
-        <source>Closed · Opens <ph id="0" equiv="PH" disp="nextDayLabel"/>. <ph id="1" equiv="PH_1" disp="fmtTime.format( openDate )"/></source>
+        <source>Closed · Opens <ph id="0" equiv="PH" disp="formatWeekday.format(openDate)"/>. <ph id="1" equiv="PH_1" disp="formatTime.format(openDate)"/></source>
       </segment>
     </unit>
     <unit id="7860418101283165917">
@@ -3740,6 +3765,11 @@
     <unit id="1744316082077040772">
       <segment>
         <source>Loading Google Maps® API...</source>
+      </segment>
+    </unit>
+    <unit id="1748972213745441743">
+      <segment>
+        <source>Profiles</source>
       </segment>
     </unit>
     <unit id="2729703763662350648">
@@ -3968,6 +3998,11 @@
         <source>Please select a file to upload</source>
       </segment>
     </unit>
+    <unit id="7013608157776536894">
+      <segment>
+        <source>Public contributions are unavailable for this account right now. You can still browse spots and manage private saved or visited spots. Depending on the app store age-safety signal, parent or guardian consent may be needed before public contributions are available.</source>
+      </segment>
+    </unit>
     <unit id="7014916356457269810">
       <segment>
         <source>File mimetype is not allowed!</source>
@@ -4128,6 +4163,11 @@
         <source>Spots Created</source>
       </segment>
     </unit>
+    <unit id="563334124435707239">
+      <segment>
+        <source>Review for your organization</source>
+      </segment>
+    </unit>
     <unit id="5633758103176780803">
       <segment>
         <source> No public members yet. </source>
@@ -4161,11 +4201,6 @@
     <unit id="2902020729496987690">
       <segment>
         <source>Delete this contact message from the active inbox? The message will still be recorded in moderation provenance.</source>
-      </segment>
-    </unit>
-    <unit id="2903281922331638025">
-      <segment>
-        <source>User ID (blank = current user)</source>
       </segment>
     </unit>
     <unit id="2917314929120683887">
@@ -4520,6 +4555,11 @@
     <unit id="6945945395354199350">
       <segment>
         <source>Incorrect password. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="2136736395651055980">
+      <segment>
+        <source>Checking organization access...</source>
       </segment>
     </unit>
     <unit id="2143027146062629863">
@@ -5025,6 +5065,11 @@
         <source>No</source>
       </segment>
     </unit>
+    <unit id="3554832972932526425">
+      <segment>
+        <source>Edit rejected</source>
+      </segment>
+    </unit>
     <unit id="6997602168024654529">
       <segment>
         <source>Not sure</source>
@@ -5096,11 +5141,6 @@
     <unit id="5557620594634616784">
       <segment>
         <source>No events available to embed.</source>
-      </segment>
-    </unit>
-    <unit id="5567404971286131139">
-      <segment>
-        <source> This spot is not eligible for highlights. To be eligible, it needs at least one user-submitted picture and at least one rating. </source>
       </segment>
     </unit>
     <unit id="5574644924997298566">
@@ -5182,11 +5222,6 @@
         <source> Local Knowledge, Global Reach </source>
       </segment>
     </unit>
-    <unit id="spot.details.type_access.header">
-      <segment>
-        <source> Spot Type and Access </source>
-      </segment>
-    </unit>
     <unit id="spot.details.type_access_disclaimer">
       <segment>
         <source> Info can be outdated or wrong. Always check signs and local rules on site. </source>
@@ -5194,12 +5229,12 @@
     </unit>
     <unit id="spot.details.spot_type_chip">
       <segment>
-        <source>Spot Type</source>
+        <source> Spot Type </source>
       </segment>
     </unit>
     <unit id="spot.details.spot_access_chip">
       <segment>
-        <source>Spot Access</source>
+        <source> Spot Access </source>
       </segment>
     </unit>
     <unit id="address_title">
@@ -5332,21 +5367,6 @@
       </notes>
       <segment>
         <source>Edit button with a pencil icon</source>
-      </segment>
-    </unit>
-    <unit id="spot.edit.crew_help.body">
-      <segment>
-        <source> We are open to help with testing, software, spot reviews, translations, design, and local community work. </source>
-      </segment>
-    </unit>
-    <unit id="spot.edit.crew_help.contact">
-      <segment>
-        <source>Join the crew</source>
-      </segment>
-    </unit>
-    <unit id="spot.edit.crew_help.title">
-      <segment>
-        <source> Want to help PK Spot? </source>
       </segment>
     </unit>
     <unit id="8902169607450414056">
@@ -5493,21 +5513,6 @@
       </notes>
       <segment>
         <source>Hide Streetview</source>
-      </segment>
-    </unit>
-    <unit id="spot.edit.import_help.body">
-      <segment>
-        <source> If you have a Google My Maps, KML/KMZ, spreadsheet, or local spot list, we are happy to help import it. </source>
-      </segment>
-    </unit>
-    <unit id="spot.edit.import_help.contact">
-      <segment>
-        <source>Contact us</source>
-      </segment>
-    </unit>
-    <unit id="spot.edit.import_help.title">
-      <segment>
-        <source> Have an existing spot map? </source>
       </segment>
     </unit>
     <unit id="8126459137636028145">
@@ -5660,6 +5665,11 @@
     <unit id="6964548934732214977">
       <segment>
         <source> Only lowercase letters, numbers, and hyphens are allowed. </source>
+      </segment>
+    </unit>
+    <unit id="6965432395310138943">
+      <segment>
+        <source>Public contributions are unavailable for this account right now. You can still browse spots and manage private saved or visited spots.</source>
       </segment>
     </unit>
     <unit id="6377092763030946894">
@@ -5840,9 +5850,9 @@
         <source>Reset map orientation to north</source>
       </segment>
     </unit>
-    <unit id="8685790330643186548">
+    <unit id="6861514919146809253">
       <segment>
-        <source>No organization verifies this public spot yet.</source>
+        <source> No organization verifies this public spot yet. </source>
       </segment>
     </unit>
     <unit id="8693603235657020323">
@@ -6353,6 +6363,11 @@
     <unit id="7724618434121262533">
       <segment>
         <source>Unnamed Drinking Water spot</source>
+      </segment>
+    </unit>
+    <unit id="772492746070301855">
+      <segment>
+        <source>Profile report</source>
       </segment>
     </unit>
     <unit id="7727546793696327095">
