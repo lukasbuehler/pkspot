@@ -98,6 +98,12 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
   private _removeScrollListener: (() => void) | null = null;
   private _animationFrameId: number | null = null;
   private _deferredScrollStateUpdateId: number | null = null;
+  private _activeDragPointerId: number | null = null;
+  private _dragStartX = 0;
+  private _dragStartY = 0;
+  private _dragStartScrollLeft = 0;
+  private _hasDraggedScroll = false;
+  private _suppressNextChipClick = false;
 
   /** Preset filter chips derived from SPOT_FILTER_CONFIGS */
   private readonly _spotPresetFilters: readonly PresetFilterChip[] = [
@@ -221,7 +227,13 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  onPresetChipClick(value: string): void {
+  onPresetChipClick(value: string, event?: Event): void {
+    if (this._suppressNextChipClick) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      return;
+    }
+
     if (this.renderedSelectedFilter() !== value) {
       this._renderedSelectedFilter.set(value);
       this.filterChange.emit(value);
@@ -256,11 +268,73 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const distance = Math.max(scrollElement.clientWidth * 0.72, 180);
+    const distance = Math.max(
+      48,
+      Math.min(scrollElement.clientWidth * 0.35, 96),
+    );
     scrollElement.scrollBy({
       left: direction === "right" ? distance : -distance,
       behavior: "smooth",
     });
+  }
+
+  onScrollPointerDown(event: PointerEvent): void {
+    const scrollElement = this.scrollArea()?.nativeElement;
+    if (
+      !scrollElement ||
+      (event.pointerType === "mouse" && event.button !== 0)
+    ) {
+      return;
+    }
+
+    this._activeDragPointerId = event.pointerId;
+    this._dragStartX = event.clientX;
+    this._dragStartY = event.clientY;
+    this._dragStartScrollLeft = scrollElement.scrollLeft;
+    this._hasDraggedScroll = false;
+    scrollElement.setPointerCapture?.(event.pointerId);
+  }
+
+  onScrollPointerMove(event: PointerEvent): void {
+    if (this._activeDragPointerId !== event.pointerId) {
+      return;
+    }
+
+    const scrollElement = this.scrollArea()?.nativeElement;
+    if (!scrollElement) {
+      return;
+    }
+
+    const deltaX = event.clientX - this._dragStartX;
+    const deltaY = event.clientY - this._dragStartY;
+    const isHorizontalDrag =
+      Math.abs(deltaX) > 6 && Math.abs(deltaX) > Math.abs(deltaY);
+    if (!this._hasDraggedScroll && !isHorizontalDrag) {
+      return;
+    }
+
+    this._hasDraggedScroll = true;
+    scrollElement.scrollLeft = this._dragStartScrollLeft - deltaX;
+    event.preventDefault();
+    this._scheduleScrollStateUpdate();
+  }
+
+  onScrollPointerEnd(event: PointerEvent): void {
+    if (this._activeDragPointerId !== event.pointerId) {
+      return;
+    }
+
+    const scrollElement = this.scrollArea()?.nativeElement;
+    scrollElement?.releasePointerCapture?.(event.pointerId);
+    this._activeDragPointerId = null;
+
+    if (this._hasDraggedScroll) {
+      this._suppressNextChipClick = true;
+      window.setTimeout(() => {
+        this._suppressNextChipClick = false;
+      }, 0);
+    }
+    this._hasDraggedScroll = false;
   }
 
   private _scheduleScrollStateUpdate(): void {

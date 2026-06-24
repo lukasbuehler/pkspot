@@ -7757,6 +7757,16 @@
         <target>Cerrado temporalmente</target>
       </segment>
     </unit>
+    <unit id="googlePlacePreview.photoAttributionPrefix">
+      <notes>
+        <note category="description">Short prefix shown before the Google Place photo author name</note>
+        <note category="meaning">Google photo attribution prefix</note>
+      </notes>
+      <segment state="initial">
+        <source>Image:</source>
+        <target>Imagen:</target>
+      </segment>
+    </unit>
     <unit id="1608155773786279707">
       <segment state="initial">
         <source>Linked Google Place</source>

@@ -228,7 +228,17 @@
 
 <ng-template #chips class="position-relative">
   <!-- Filter chips bar with horizontally scrollable presets and Filters button -->
-  <div class="filter-chips-switcher">
+  <div
+    class="filter-chips-switcher"
+    [style.opacity]="
+      responsiveService.isMobile() ? 1 - bottomSheetProgress() : 1
+    "
+    [style.pointer-events]="
+      responsiveService.isMobile() && bottomSheetProgress() > 0.95
+        ? 'none'
+        : null
+    "
+  >
     @if (showSpotFilterChips()) {
       <app-filter-chips-bar
         @fadeInOut

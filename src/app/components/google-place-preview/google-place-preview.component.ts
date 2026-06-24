@@ -58,6 +58,7 @@ export class GooglePlacePreviewComponent {
   error = signal<string | null>(null);
   place = signal<google.maps.places.Place | null>(null);
   nativePhotoUrl = signal<string | null>(null);
+  nativePhotoAttributions = signal<string[]>([]);
 
   photoUrl = computed(() => {
     const p = this.place();
@@ -68,6 +69,17 @@ export class GooglePlacePreviewComponent {
     } catch {
       return null;
     }
+  });
+
+  photoAttributionText = computed(() => {
+    if (this._isIosWebKit()) {
+      return this._formatAttributions(this.nativePhotoAttributions());
+    }
+
+    const attributions = this.place()?.photos?.[0]?.authorAttributions.map(
+      (attribution) => attribution.displayName,
+    );
+    return this._formatAttributions(attributions);
   });
 
   websiteUrl = computed<string | null>(() => {
@@ -164,6 +176,7 @@ export class GooglePlacePreviewComponent {
       } else {
         this._nativePhotoRequestId++;
         this.nativePhotoUrl.set(null);
+        this.nativePhotoAttributions.set([]);
       }
     });
   }
@@ -209,6 +222,7 @@ export class GooglePlacePreviewComponent {
   private async _loadNativePhoto(placeId: string): Promise<void> {
     const requestId = ++this._nativePhotoRequestId;
     this.nativePhotoUrl.set(null);
+    this.nativePhotoAttributions.set([]);
 
     const photo = await this._nativePhoto.getPhoto(
       placeId,
@@ -221,6 +235,21 @@ export class GooglePlacePreviewComponent {
     }
 
     this.nativePhotoUrl.set(photo?.imageDataUrl ?? null);
+    this.nativePhotoAttributions.set(photo?.attributions ?? []);
+  }
+
+  private _formatAttributions(
+    attributions: readonly (string | null | undefined)[] | undefined,
+  ): string | null {
+    const names = [
+      ...new Set(
+        (attributions ?? [])
+          .map((attribution) => attribution?.trim())
+          .filter((attribution): attribution is string => !!attribution),
+      ),
+    ];
+
+    return names.length ? names.join(", ") : null;
   }
 
   private _isIosWebKit(): boolean {

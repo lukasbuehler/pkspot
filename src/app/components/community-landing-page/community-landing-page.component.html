@@ -128,23 +128,28 @@
             </span>
           </div>
 
-          <div class="community-panel-body px-3 pb-3">
-            @if (data.hasCustomImage && data.imageUrl) {
-              <div class="community-panel-media">
-                <img
-                  [ngSrc]="data.imageUrl"
-                  fill
-                  class="object-fit-cover position-absolute"
-                  [alt]="heading()"
-                />
-              </div>
-            }
+          <div class="collapsible">
+            <div class="community-panel-body px-3 pb-3">
+              @if (data.hasCustomImage && data.imageUrl) {
+                <div class="community-panel-media">
+                  <img
+                    [ngSrc]="data.imageUrl"
+                    fill
+                    class="object-fit-cover position-absolute"
+                    [alt]="heading()"
+                  />
+                </div>
+              }
 
-            @if (introText()) {
-              <span class="py-3 d-flex align-items-center gap-1">
-                {{ introText() }}
-              </span>
-            }
+              @if (introText()) {
+                <span
+                  class="d-flex align-items-center gap-1 mat-body-medium"
+                  [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
+                >
+                  {{ introText() }}
+                </span>
+              }
+            </div>
           </div>
         </app-map-info-panel>
       </header>
@@ -199,11 +204,12 @@
     }
 
     @if (!data.notFound) {
-      <section class="content-section local-info-section">
-        @if (communityInfoCards().length > 0) {
+      @if (communityInfoCards().length > 0) {
+        <section class="content-section local-info-section">
           <div class="section-heading section-heading-row">
             <h2
-              class="mat-title-large m-0"
+              class="mat-title-large m-0 collapsible"
+              [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
               i18n="@@community.local_knowledge_heading"
             >
               Local Knowledge
@@ -220,141 +226,95 @@
               </button>
             }
           </div>
-        }
 
-        @if (isEditingKnowledge()) {
-          <app-community-knowledge-editor
-            [cards]="communityKnowledgeCards()"
-            [saving]="isSavingKnowledge()"
-            (save)="saveKnowledgeCards($event)"
-            (cancel)="cancelKnowledgeEdit()"
-          ></app-community-knowledge-editor>
-        } @else {
-          @if (communityInfoCards().length > 0) {
-            <div class="local-info-grid">
-              @for (card of communityInfoCards(); track card.id) {
-                <mat-card class="local-info-card border">
-                  <mat-card-content>
-                    <div class="local-info-card-header">
-                      <span class="local-info-icon" aria-hidden="true">
-                        <mat-icon>{{ card.icon }}</mat-icon>
-                      </span>
-                      <div class="local-info-title-block">
-                        <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
-                        @if (card.disclosure) {
-                          <span class="local-info-disclosure">{{
-                            card.disclosure
-                          }}</span>
-                        }
+          @if (isEditingKnowledge()) {
+            <app-community-knowledge-editor
+              [cards]="communityKnowledgeCards()"
+              [saving]="isSavingKnowledge()"
+              (save)="saveKnowledgeCards($event)"
+              (cancel)="cancelKnowledgeEdit()"
+            ></app-community-knowledge-editor>
+          } @else {
+            @if (communityInfoCards().length > 0) {
+              <div class="local-info-grid">
+                @for (card of communityInfoCards(); track card.id) {
+                  <mat-card class="local-info-card border">
+                    <mat-card-content>
+                      <div class="local-info-card-header">
+                        <span class="local-info-icon" aria-hidden="true">
+                          <mat-icon>{{ card.icon }}</mat-icon>
+                        </span>
+                        <div class="local-info-title-block">
+                          <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
+                          @if (card.disclosure) {
+                            <span class="local-info-disclosure">{{
+                              card.disclosure
+                            }}</span>
+                          }
+                        </div>
                       </div>
-                    </div>
 
-                    @if (card.body) {
-                      <p class="mat-body-medium local-info-body">
-                        {{ card.body }}
-                      </p>
-                    }
+                      @if (card.body) {
+                        <p class="mat-body-medium local-info-body">
+                          {{ card.body }}
+                        </p>
+                      }
 
-                    @if (card.cta; as cta) {
-                      <div class="local-info-actions">
-                        @if (cta.target === "url") {
-                          <a
-                            mat-stroked-button
-                            [href]="cta.url"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            (click)="trackCommunityInfoCtaClick(card, cta)"
-                          >
-                            <mat-icon>link</mat-icon>
-                            <span>{{ cta.label }}</span>
-                          </a>
-                        } @else {
-                          <a
-                            mat-stroked-button
-                            [routerLink]="cta.path"
-                            (click)="trackCommunityInfoCtaClick(card, cta)"
-                          >
-                            <mat-icon>{{
-                              cta.target === "spot" ? "place" : "event"
-                            }}</mat-icon>
-                            <span>{{ cta.label }}</span>
-                          </a>
-                        }
-                      </div>
-                    }
-                  </mat-card-content>
-                </mat-card>
-              }
-            </div>
+                      @if (card.cta; as cta) {
+                        <div class="local-info-actions">
+                          @if (cta.target === "url") {
+                            <a
+                              mat-stroked-button
+                              [href]="cta.url"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              (click)="trackCommunityInfoCtaClick(card, cta)"
+                            >
+                              <mat-icon>link</mat-icon>
+                              <span>{{ cta.label }}</span>
+                            </a>
+                          } @else {
+                            <a
+                              mat-stroked-button
+                              [routerLink]="cta.path"
+                              (click)="trackCommunityInfoCtaClick(card, cta)"
+                            >
+                              <mat-icon>{{
+                                cta.target === "spot" ? "place" : "event"
+                              }}</mat-icon>
+                              <span>{{ cta.label }}</span>
+                            </a>
+                          }
+                        </div>
+                      }
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            }
           }
-
-          <div
-            class="d-flex flex-wrap align-items-center justify-content-between gap-3 border py-3 ps-3 px-3 pl-3 border"
-            style="border-radius: 24px"
-            [class.mt-3]="communityInfoCards().length > 0"
-          >
-            <div>
-              <h3
-                class="mat-title-medium m-0"
-                i18n="@@community.knowledge_cta.title"
-              >
-                Know this community?
-              </h3>
-              <p
-                class="mat-body-medium m-0"
-                i18n="@@community.knowledge_cta.body"
-              >
-                Tell us about jams, chats, classes, shops, or anything locals
-                should know so we can add it here.
-              </p>
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-              <a
-                mat-flat-button
-                routerLink="/contact"
-                [queryParams]="contactQueryParams()"
-                (click)="trackCommunityContactCtaClick()"
-              >
-                <mat-icon>mail</mat-icon>
-                <span i18n="@@community.knowledge_cta.button">
-                  Share community info
-                </span>
-              </a>
-              @if (canEditKnowledge()) {
-                <button
-                  matButton="filled"
-                  type="button"
-                  aria-label="Add community knowledge"
-                  matTooltip="Add community knowledge"
-                  (click)="startKnowledgeEdit()"
-                >
-                  <mat-icon>create</mat-icon>
-                  <span i18n="@@community.add_community_knowledge"
-                    >Add community knowledge</span
-                  >
-                </button>
-              }
-            </div>
-          </div>
-        }
-      </section>
+        </section>
+      }
 
       @if (visibleEvents().length > 0) {
         <section class="content-section events-section">
-          <div
-            class="section-heading d-flex align-items-baseline justify-content-between gap-3"
-          >
-            <h2 class="mat-title-large m-0" i18n="@@community.events_heading">
-              Events
-            </h2>
-            <a
-              matButton
-              routerLink="/events"
-              class="mat-label-large"
-              i18n="@@community.discover_more_events"
+          <div class="collapsible">
+            <div
+              class="section-heading d-flex align-items-baseline justify-content-between gap-3"
+              [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
             >
-              Discover more events →
-            </a>
+              <h2 class="mat-title-large m-0" i18n="@@community.events_heading">
+                Events
+              </h2>
+              <a
+                matButton
+                routerLink="/events"
+                class="mat-label-large"
+                i18n="@@community.discover_more_events"
+              >
+                Discover more events →
+              </a>
+            </div>
           </div>
 
           <div class="events-grid">
@@ -390,7 +350,6 @@
         <section class="content-section community-explore-section">
           <a
             mat-stroked-button
-            class="mt-2"
             routerLink="/map"
             [queryParams]="exploreMapQueryParams('all')"
             (click)="onExploreCommunitySpots($event, 'all')"
@@ -419,7 +378,6 @@
             ></app-spot-list>
             <a
               mat-stroked-button
-              class="mt-2"
               routerLink="/map"
               [queryParams]="exploreMapQueryParams('all')"
               (click)="onExploreCommunitySpots($event, 'all')"
@@ -433,7 +391,10 @@
         }
         @if (data.drySpots.length > 0) {
           <section class="content-section">
-            <div class="section-heading">
+            <div
+              class="section-heading collapsible"
+              [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
+            >
               <h2 class="mat-title-large m-0">Dry Spots</h2>
             </div>
 
@@ -448,7 +409,6 @@
             ></app-spot-list>
             <a
               mat-stroked-button
-              class="mt-2"
               routerLink="/map"
               [queryParams]="exploreMapQueryParams('dry')"
               (click)="onExploreCommunitySpots($event, 'dry')"
@@ -470,6 +430,57 @@
           </p>
         </section>
       }
+
+      <section class="content-section">
+        <div
+          class="d-flex flex-wrap align-items-center justify-content-between gap-3 border py-3 ps-3 px-3 pl-3 border"
+          style="border-radius: 24px"
+          [class.mt-3]="communityInfoCards().length > 0"
+        >
+          <div>
+            <h3
+              class="mat-title-medium m-0"
+              i18n="@@community.knowledge_cta.title"
+            >
+              Know this community?
+            </h3>
+            <p
+              class="mat-body-medium m-0"
+              i18n="@@community.knowledge_cta.body"
+            >
+              Tell us about jams, chats, classes, shops, or anything locals
+              should know so we can add it here.
+            </p>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a
+              mat-flat-button
+              routerLink="/contact"
+              [queryParams]="contactQueryParams()"
+              (click)="trackCommunityContactCtaClick()"
+            >
+              <mat-icon>mail</mat-icon>
+              <span i18n="@@community.knowledge_cta.button">
+                Share community info
+              </span>
+            </a>
+            @if (canEditKnowledge()) {
+              <button
+                matButton="filled"
+                type="button"
+                aria-label="Add community knowledge"
+                matTooltip="Add community knowledge"
+                (click)="startKnowledgeEdit()"
+              >
+                <mat-icon>create</mat-icon>
+                <span i18n="@@community.add_community_knowledge"
+                  >Add community knowledge</span
+                >
+              </button>
+            }
+          </div>
+        </div>
+      </section>
 
       @if (childCommunities().length > 0) {
         <section class="content-section">

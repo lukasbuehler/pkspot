@@ -45,11 +45,7 @@ html {
   --keyboard-offset: 0px;
   --keyboard-scroll-space: 0px;
 
-  --map-glass-surface-base: color-mix(
-    in srgb,
-    var(--mat-sys-surface-container) 80%,
-    var(--mat-sys-on-surface) 20%
-  );
+  --map-glass-surface-base: var(--mat-sys-surface-container-high);
   --map-glass-surface: color-mix(
     in srgb,
     var(--map-glass-surface-base) 85%,
@@ -57,11 +53,7 @@ html {
   );
   --map-glass-blur: blur(10px);
   --app-access-off-limits: var(--mat-sys-error);
-  --app-access-private: color-mix(
-    in srgb,
-    var(--mat-sys-error) 45%,
-    var(--mat-sys-secondary) 55%
-  );
+  --app-access-private: rgb(250, 238, 79);
 }
 
 html.platform-ios {

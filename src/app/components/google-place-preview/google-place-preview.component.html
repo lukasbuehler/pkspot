@@ -12,6 +12,18 @@
       @if (photoUrl()) {
         <div mat-card-sm-image class="google-img-container">
           <img [src]="photoUrl()!" alt="" />
+          @if (photoAttributionText(); as attribution) {
+            <span class="google-photo-attribution" [title]="attribution">
+              <span
+                i18n="
+                  Google photo attribution prefix|Short prefix shown before the
+                  Google Place photo author name@@googlePlacePreview.photoAttributionPrefix
+                "
+                >Image:</span
+              >
+              {{ attribution }}
+            </span>
+          }
         </div>
       }
       <mat-card-header class="pb-2 pt-0 overflow-hidden">

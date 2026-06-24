@@ -3649,6 +3649,15 @@
         <source>Temporarily closed</source>
       </segment>
     </unit>
+    <unit id="googlePlacePreview.photoAttributionPrefix">
+      <notes>
+        <note category="description">Short prefix shown before the Google Place photo author name</note>
+        <note category="meaning">Google photo attribution prefix</note>
+      </notes>
+      <segment>
+        <source>Image:</source>
+      </segment>
+    </unit>
     <unit id="2274234887706573129">
       <notes>
         <note category="description">Label of the button to open the website of the spot</note>

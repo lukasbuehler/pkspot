@@ -84,6 +84,9 @@ interface CommunityInfoCardView {
   templateUrl: "./community-landing-page.component.html",
   styleUrl: "./community-landing-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[style.--open-progress]": "openProgress()",
+  },
 })
 export class CommunityLandingPageComponent {
   private _route = inject(ActivatedRoute);
@@ -159,7 +162,8 @@ export class CommunityLandingPageComponent {
   );
 
   communityData = computed(() => {
-    const data = this.communityDataInput() ?? this._communityData() ?? undefined;
+    const data =
+      this.communityDataInput() ?? this._communityData() ?? undefined;
     const override = this._infoCardsOverride();
     if (!data || override?.communityKey !== data.communityKey) {
       return data;
@@ -190,11 +194,13 @@ export class CommunityLandingPageComponent {
       return "We could not find a PK Spot community page for this route yet.";
     }
 
-    return `Find parkour spots, events, and local community info for ${data.displayName}.`;
+    return $localize`Find parkour spots, events, and local community info for ${data.displayName}.`;
   });
 
   scopeLabel = computed(() => {
-    const scope = this.loading() ? this.loadingScope() : this.communityData()?.scope;
+    const scope = this.loading()
+      ? this.loadingScope()
+      : this.communityData()?.scope;
     if (!scope) {
       return "Community";
     }
@@ -584,7 +590,9 @@ export class CommunityLandingPageComponent {
   }
 
   private _getCountryFlag(countryCode: string | null | undefined): string {
-    const normalizedCode = String(countryCode ?? "").trim().toUpperCase();
+    const normalizedCode = String(countryCode ?? "")
+      .trim()
+      .toUpperCase();
     return normalizedCode ? (countries[normalizedCode]?.emoji ?? "") : "";
   }
 

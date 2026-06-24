@@ -18,7 +18,15 @@
       </button>
     }
 
-    <div #scrollArea class="chips-scroll-area">
+    <div
+      #scrollArea
+      class="chips-scroll-area"
+      (pointerdown)="onScrollPointerDown($event)"
+      (pointermove)="onScrollPointerMove($event)"
+      (pointerup)="onScrollPointerEnd($event)"
+      (pointercancel)="onScrollPointerEnd($event)"
+      (pointerleave)="onScrollPointerEnd($event)"
+    >
       <mat-chip-listbox
         [multiple]="false"
         [value]="renderedSelectedFilter()"
@@ -30,7 +38,7 @@
             [class.solid-chip]="appearance() === 'solid'"
             value="saved"
             [selected]="renderedSelectedFilter() === 'saved'"
-            (click)="onPresetChipClick('saved')"
+            (click)="onPresetChipClick('saved', $event)"
           >
             <mat-icon matChipAvatar>bookmark</mat-icon>
             <span>{{ savedLabel }}</span>
@@ -43,7 +51,7 @@
             [class.solid-chip]="appearance() === 'solid'"
             value="visited"
             [selected]="renderedSelectedFilter() === 'visited'"
-            (click)="onPresetChipClick('visited')"
+            (click)="onPresetChipClick('visited', $event)"
           >
             <mat-icon matChipAvatar>beenhere</mat-icon>
             <span>{{ visitedLabel }}</span>
@@ -56,7 +64,7 @@
             [class.solid-chip]="appearance() === 'solid'"
             [value]="filter.urlParam"
             [selected]="renderedSelectedFilter() === filter.urlParam"
-            (click)="onPresetChipClick(filter.urlParam)"
+            (click)="onPresetChipClick(filter.urlParam, $event)"
           >
             @if (filter.icon) {
               <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
