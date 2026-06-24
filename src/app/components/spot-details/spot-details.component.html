@@ -550,11 +550,18 @@
                     <span class="text-truncate flex-shrink-1">{{
                       spotTypeNames[spot()!.type()]
                     }}</span>
-                    <mat-icon
-                      class="text-muted help-icon flex-shrink-0"
+                    <button
+                      mat-icon-button
+                      type="button"
+                      class="spot-help-button flex-shrink-0"
                       [matTooltip]="spotTypeDescriptions[spot()!.type()]"
-                      >help_outline</mat-icon
+                      matTooltipTouchGestures="on"
+                      #spotTypeTooltip="matTooltip"
+                      [attr.aria-label]="spotTypeDescriptions[spot()!.type()]"
+                      (click)="spotTypeTooltip.show(0); $event.stopPropagation()"
                     >
+                      <mat-icon class="help-icon">help_outline</mat-icon>
+                    </button>
                   </h4>
                 </div>
               }
@@ -583,11 +590,18 @@
                     <span class="text-truncate flex-shrink-1">{{
                       spotAccessNames[spot()!.access()]
                     }}</span>
-                    <mat-icon
-                      class="text-muted help-icon flex-shrink-0"
+                    <button
+                      mat-icon-button
+                      type="button"
+                      class="spot-help-button flex-shrink-0"
                       [matTooltip]="spotAccessDescriptions[spot()!.access()]"
-                      >help_outline</mat-icon
+                      matTooltipTouchGestures="on"
+                      #spotAccessTooltip="matTooltip"
+                      [attr.aria-label]="spotAccessDescriptions[spot()!.access()]"
+                      (click)="spotAccessTooltip.show(0); $event.stopPropagation()"
                     >
+                      <mat-icon class="help-icon">help_outline</mat-icon>
+                    </button>
                   </h4>
                 </div>
               }

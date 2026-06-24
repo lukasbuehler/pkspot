@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
 import FirebaseAuth
+import GooglePlaces
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -9,6 +10,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        configureGooglePlaces()
         return true
     }
 
@@ -51,4 +53,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+    private func configureGooglePlaces() {
+        guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+              let config = NSDictionary(contentsOfFile: path),
+              let apiKey = config["API_KEY"] as? String,
+              !apiKey.isEmpty else {
+            print("Google Places SDK not configured: missing API_KEY in GoogleService-Info.plist")
+            return
+        }
+
+        GMSPlacesClient.provideAPIKey(apiKey)
+    }
 }

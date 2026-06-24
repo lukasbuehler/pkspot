@@ -8,7 +8,7 @@ import {
   input,
   ChangeDetectionStrategy,
 } from "@angular/core";
-import { CommonModule, NgOptimizedImage } from "@angular/common";
+import { CommonModule } from "@angular/common";
 import {
   MatCard,
   MatCardHeader,
@@ -24,6 +24,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { AnalyticsService } from "../../services/analytics.service";
 import { getGooglePlaceOpeningHoursStatus } from "../../shared/google-place-opening-hours";
 import { PlatformService } from "../../services/platform.service";
+import { NativeGooglePlacePhotoService } from "../../services/native-google-place-photo.service";
 
 @Component({
   selector: "app-google-place-preview",
@@ -35,7 +36,6 @@ import { PlatformService } from "../../services/platform.service";
     MatCardSubtitle,
     MatRipple,
     SpotRatingComponent,
-    NgOptimizedImage,
     MatIconModule,
     MatButtonModule,
   ],
@@ -47,7 +47,9 @@ export class GooglePlacePreviewComponent {
   private _maps = inject(MapsApiService);
   private _analytics = inject(AnalyticsService);
   private _platform = inject(PlatformService);
+  private _nativePhoto = inject(NativeGooglePlacePhotoService);
   private _locale: string = inject(LOCALE_ID);
+  private _nativePhotoRequestId = 0;
 
   placeId = input<string | null | undefined>(undefined);
   // Always render in standard (non-dense) layout
@@ -55,10 +57,12 @@ export class GooglePlacePreviewComponent {
   loading = signal(false);
   error = signal<string | null>(null);
   place = signal<google.maps.places.Place | null>(null);
+  nativePhotoUrl = signal<string | null>(null);
 
   photoUrl = computed(() => {
     const p = this.place();
-    if (!p || this._isIosWebKit()) return null;
+    if (!p) return null;
+    if (this._isIosWebKit()) return this.nativePhotoUrl();
     try {
       return this._maps.getPhotoURLOfGooglePlace(p, 300, 200);
     } catch {
@@ -147,8 +151,19 @@ export class GooglePlacePreviewComponent {
 
   constructor() {
     effect(() => {
+      this.placeId();
       if (this._maps.isApiLoaded()) {
         this._loadDetails();
+      }
+    });
+
+    effect(() => {
+      const id = this.placeId();
+      if (id && this._nativePhoto.isAvailable()) {
+        this._loadNativePhoto(id);
+      } else {
+        this._nativePhotoRequestId++;
+        this.nativePhotoUrl.set(null);
       }
     });
   }
@@ -189,6 +204,23 @@ export class GooglePlacePreviewComponent {
         this.loading.set(false);
       }
     }
+  }
+
+  private async _loadNativePhoto(placeId: string): Promise<void> {
+    const requestId = ++this._nativePhotoRequestId;
+    this.nativePhotoUrl.set(null);
+
+    const photo = await this._nativePhoto.getPhoto(
+      placeId,
+      300,
+      200,
+    );
+
+    if (requestId !== this._nativePhotoRequestId) {
+      return;
+    }
+
+    this.nativePhotoUrl.set(photo?.imageDataUrl ?? null);
   }
 
   private _isIosWebKit(): boolean {

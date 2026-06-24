@@ -215,6 +215,21 @@ div.google-img-container {
   line-height: 16px;
 }
 
+.spot-help-button.mat-mdc-icon-button {
+  --mdc-icon-button-state-layer-size: 24px;
+
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.72;
+}
+
+.spot-help-button.mat-mdc-icon-button:hover,
+.spot-help-button.mat-mdc-icon-button:focus-visible {
+  opacity: 1;
+}
+
 .negative-amenity {
   &.mat-mdc-chip {
     border-color: color-mix(in srgb, var(--mat-sys-error) 60%, transparent);
