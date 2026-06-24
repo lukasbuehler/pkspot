@@ -215,6 +215,15 @@ interface ProgrammaticCameraJumpAllowance {
   untilMs: number;
 }
 
+interface PendingCameraOperation {
+  attempt: number;
+  hasReportedWait: boolean;
+  isRecovery: boolean;
+  reason: string;
+  requestedAtMs: number;
+  run: () => void;
+}
+
 interface WatchedMapCanvas {
   canvas: HTMLCanvasElement;
   lostListener: (event: Event) => void;
@@ -264,6 +273,8 @@ export class GoogleMap2dComponent
   private static readonly CAMERA_JUMP_WINDOW_MS = 600;
   private static readonly MAX_CAMERA_ZOOM_JUMP = 3;
   private static readonly CAMERA_IDLE_WATCHDOG_MS = 2_500;
+  private static readonly CAMERA_OPERATION_MIN_VIEWPORT_SIZE_PX = 32;
+  private static readonly CAMERA_OPERATION_WAIT_TIMEOUT_MS = 1_500;
   private _isInternalZoomChange = false;
   private _isRecoveringInvalidCamera = false;
   private _hasInitializedNativeMap = false;
@@ -286,6 +297,8 @@ export class GoogleMap2dComponent
   >();
   private _webGlContextRecoveryTimeoutId: ReturnType<typeof setTimeout> | null =
     null;
+  private _pendingCameraOperation: PendingCameraOperation | null = null;
+  private _pendingCameraOperationFrameId: number | null = null;
 
   readonly autoStartLocationWatch = environment.features.checkIns;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
@@ -351,7 +364,9 @@ export class GoogleMap2dComponent
 
     this._center = coords;
     if (this.googleMap) {
-      this.googleMap.panTo(this._center);
+      this._runWhenMapViewportReady("center-input", () => {
+        this.googleMap?.panTo(this._center);
+      });
     }
   }
   @Output() centerChange = new EventEmitter<google.maps.LatLngLiteral>();
@@ -388,7 +403,9 @@ export class GoogleMap2dComponent
         currentZoom === undefined ||
         Math.abs(currentZoom - newZoom) > GoogleMap2dComponent.ZOOM_SYNC_EPSILON
       ) {
-        this.googleMap.googleMap.setZoom(newZoom);
+        this._runWhenMapViewportReady("zoom-input", () => {
+          this.googleMap?.googleMap?.setZoom(newZoom);
+        });
       }
     }
   }
@@ -431,21 +448,26 @@ export class GoogleMap2dComponent
       zoom: camera.zoom,
     });
 
-    const target = { center, zoom: camera.zoom };
-    const moveCamera = nativeMap.moveCamera?.bind(nativeMap);
-    if (moveCamera) {
-      moveCamera(target);
-    } else {
-      nativeMap.setCenter(center);
-      nativeMap.setZoom(camera.zoom);
-    }
+    this._runWhenMapViewportReady(`set-camera:${reason}`, () => {
+      const activeMap = this.googleMap?.googleMap;
+      if (!activeMap) return;
 
-    this._rememberValidCamera({
-      bounds: this.googleMap?.getBounds()?.toJSON() ?? null,
-      center,
-      source: reason,
-      timestampMs: performance.now(),
-      zoom: camera.zoom,
+      const target = { center, zoom: camera.zoom };
+      const moveCamera = activeMap.moveCamera?.bind(activeMap);
+      if (moveCamera) {
+        moveCamera(target);
+      } else {
+        activeMap.setCenter(center);
+        activeMap.setZoom(camera.zoom);
+      }
+
+      this._rememberValidCamera({
+        bounds: this.googleMap?.getBounds()?.toJSON() ?? null,
+        center,
+        source: reason,
+        timestampMs: performance.now(),
+        zoom: camera.zoom,
+      });
     });
     this.zoomChange.emit(this._zoom());
   }
@@ -571,6 +593,97 @@ export class GoogleMap2dComponent
 
     cancelAnimationFrame(this._communityVisualZoomAnimationFrameId);
     this._communityVisualZoomAnimationFrameId = null;
+  }
+
+  private _runWhenMapViewportReady(
+    reason: string,
+    run: () => void,
+    options: { isRecovery?: boolean } = {},
+  ): void {
+    if (this._isMapViewportReady()) {
+      run();
+      return;
+    }
+
+    if (
+      this._pendingCameraOperation?.isRecovery &&
+      !options.isRecovery
+    ) {
+      return;
+    }
+
+    this._pendingCameraOperation = {
+      attempt: 0,
+      hasReportedWait: false,
+      isRecovery: options.isRecovery ?? false,
+      reason,
+      requestedAtMs: performance.now(),
+      run,
+    };
+    this._schedulePendingCameraOperation();
+  }
+
+  private _schedulePendingCameraOperation(): void {
+    if (this._pendingCameraOperationFrameId !== null) return;
+
+    this._pendingCameraOperationFrameId = requestAnimationFrame(() => {
+      this._pendingCameraOperationFrameId = null;
+      const operation = this._pendingCameraOperation;
+      if (!operation) return;
+
+      if (this._isMapViewportReady()) {
+        this._pendingCameraOperation = null;
+        operation.run();
+        return;
+      }
+
+      const elapsedMs = performance.now() - operation.requestedAtMs;
+      if (
+        !operation.hasReportedWait &&
+        elapsedMs >=
+        GoogleMap2dComponent.CAMERA_OPERATION_WAIT_TIMEOUT_MS
+      ) {
+        this._mapProfiler.record("google-map-2d:camera-operation-deferred", {
+          elapsedMs: Math.round(elapsedMs),
+          reason: operation.reason,
+          size: this._getMapViewportSize(),
+        });
+      }
+
+      this._pendingCameraOperation = {
+        ...operation,
+        attempt: operation.attempt + 1,
+        hasReportedWait:
+          operation.hasReportedWait ||
+          elapsedMs >=
+            GoogleMap2dComponent.CAMERA_OPERATION_WAIT_TIMEOUT_MS,
+      };
+      this._schedulePendingCameraOperation();
+    });
+  }
+
+  private _clearPendingCameraOperation(): void {
+    if (this._pendingCameraOperationFrameId !== null) {
+      cancelAnimationFrame(this._pendingCameraOperationFrameId);
+      this._pendingCameraOperationFrameId = null;
+    }
+    this._pendingCameraOperation = null;
+  }
+
+  private _isMapViewportReady(): boolean {
+    const size = this._getMapViewportSize();
+    return (
+      size.width >= GoogleMap2dComponent.CAMERA_OPERATION_MIN_VIEWPORT_SIZE_PX &&
+      size.height >= GoogleMap2dComponent.CAMERA_OPERATION_MIN_VIEWPORT_SIZE_PX
+    );
+  }
+
+  private _getMapViewportSize(): { height: number; width: number } {
+    const rect = this._hostElement.nativeElement.getBoundingClientRect();
+    return {
+      height: Math.round(rect.height),
+      width: Math.round(rect.width),
+    };
   }
 
   onMapClick(event: google.maps.MapMouseEvent | google.maps.IconMouseEvent) {
@@ -1174,11 +1287,13 @@ export class GoogleMap2dComponent
   resetMapOrientation() {
     if (!this.googleMap) return;
 
-    this.googleMap?.fitBounds(this.googleMap.getBounds()!, {
-      bottom: -100,
-      top: -100,
-      left: -100,
-      right: -100,
+    this._runWhenMapViewportReady("reset-map-orientation", () => {
+      this.googleMap?.fitBounds(this.googleMap.getBounds()!, {
+        bottom: -100,
+        top: -100,
+        left: -100,
+        right: -100,
+      });
     });
   }
 
@@ -1688,6 +1803,7 @@ export class GoogleMap2dComponent
     public mapsApiService: MapsApiService,
     private _consentService: ConsentService,
     private theme: ThemeService,
+    private _hostElement: ElementRef<HTMLElement>,
     private geolocationService: GeolocationService,
     private snackBar: MatSnackBar,
     private _mapProfiler: MapPerformanceProfilerService,
@@ -1845,6 +1961,7 @@ export class GoogleMap2dComponent
   isApiLoadedSubscription: Subscription | null = null;
   consentSubscription: Subscription | null = null;
   private _headingChangedSubscription: Subscription | null = null;
+  private _tiltChangedSubscription: Subscription | null = null;
   private _cameraIdleListener: google.maps.MapsEventListener | null = null;
   private _zoomChangedListener: google.maps.MapsEventListener | null = null;
   private _mapCapabilitiesChangedListener: google.maps.MapsEventListener | null =
@@ -1911,8 +2028,10 @@ export class GoogleMap2dComponent
     this._applyFitBounds();
 
     this.positionGoogleMapsLogo();
+    this._enforceTwoDimensionalCamera("map-ready");
     this._subscribeToCameraEvents();
     this._subscribeToHeadingChanges();
+    this._subscribeToTiltChanges();
     this._subscribeToMapCapabilitiesChanges();
     this._watchMapCanvasContextLoss();
     void this._updateFeatureBoundaryStyle();
@@ -2091,7 +2210,9 @@ export class GoogleMap2dComponent
     }
 
     this._allowProgrammaticCameraJump("fit-to-bounds-input");
-    this.googleMap.fitBounds(this.fitToBounds, 40);
+    this._runWhenMapViewportReady("fit-to-bounds-input", () => {
+      this.googleMap?.fitBounds(this.fitToBounds!, 40);
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -2131,6 +2252,8 @@ export class GoogleMap2dComponent
     if (this.consentSubscription) this.consentSubscription.unsubscribe();
     if (this._headingChangedSubscription)
       this._headingChangedSubscription.unsubscribe();
+    if (this._tiltChangedSubscription)
+      this._tiltChangedSubscription.unsubscribe();
     this._clearCameraEventListeners();
     this._mapCapabilitiesChangedListener?.remove();
     this._mapCapabilitiesChangedListener = null;
@@ -2141,6 +2264,7 @@ export class GoogleMap2dComponent
     this._clearCameraRecoveryVerificationTimeout();
     this._clearWebGlContextRecoveryTimeout();
     this._cancelCommunityVisualZoomAnimation();
+    this._clearPendingCameraOperation();
     this._clearCameraIdleWatchdog();
     this._stopFpsLoop();
   }
@@ -2505,9 +2629,60 @@ export class GoogleMap2dComponent
 
     this._headingChangedSubscription = this.googleMap.headingChanged.subscribe(
       () => {
-        this.headingIsNotNorth.set(this.googleMap!.getHeading() !== 0);
+        const heading = this.googleMap?.getHeading() ?? 0;
+        this.headingIsNotNorth.set(heading !== 0);
+        if (heading !== 0) {
+          this._enforceTwoDimensionalCamera("heading-changed");
+        }
       },
     );
+  }
+
+  private _subscribeToTiltChanges(): void {
+    if (this._tiltChangedSubscription || !this.googleMap) return;
+
+    this._tiltChangedSubscription = this.googleMap.tiltChanged.subscribe(() => {
+      const tilt = this.googleMap?.getTilt() ?? 0;
+      if (tilt !== 0) {
+        this._enforceTwoDimensionalCamera("tilt-changed");
+      }
+    });
+  }
+
+  private _enforceTwoDimensionalCamera(source: string): void {
+    const nativeMap = this.googleMap?.googleMap;
+    if (!nativeMap) return;
+
+    const heading = nativeMap.getHeading() ?? 0;
+    const tilt = nativeMap.getTilt() ?? 0;
+    const headingInteractionEnabled =
+      nativeMap.getHeadingInteractionEnabled?.() ?? null;
+    const tiltInteractionEnabled =
+      nativeMap.getTiltInteractionEnabled?.() ?? null;
+
+    this._mapProfiler.recordThrottled(
+      "google-map-2d:enforce-2d-camera",
+      {
+        heading,
+        headingInteractionEnabled,
+        source,
+        tilt,
+        tiltInteractionEnabled,
+      },
+      500,
+    );
+
+    nativeMap.setHeadingInteractionEnabled(false);
+    nativeMap.setTiltInteractionEnabled(false);
+
+    if (heading !== 0) {
+      nativeMap.setHeading(0);
+      this.headingIsNotNorth.set(false);
+    }
+
+    if (tilt !== 0) {
+      nativeMap.setTilt(0);
+    }
   }
 
   private _subscribeToMapCapabilitiesChanges(): void {
@@ -2592,6 +2767,7 @@ export class GoogleMap2dComponent
     isFractionalZoomEnabled: true,
     tilt: 0,
     headingInteractionEnabled: false,
+    tiltInteractionEnabled: false,
   };
 
   optionsInitialized = signal<boolean>(false);
@@ -2891,46 +3067,54 @@ export class GoogleMap2dComponent
     this._isRecoveringInvalidCamera = true;
     this._clearInvalidCameraRecoveryTimeout();
 
-    try {
-      const nativeMap = this.googleMap.googleMap;
-      const target = {
-        center: fallback.center,
-        zoom: fallback.zoom,
-      };
-      const moveCamera = nativeMap.moveCamera?.bind(nativeMap);
+    this._runWhenMapViewportReady(
+      `camera-recovery:${source}`,
+      () => {
+        try {
+          const nativeMap = this.googleMap?.googleMap;
+          if (!nativeMap) return;
 
-      if (moveCamera) {
-        moveCamera(target);
-      } else {
-        nativeMap.setCenter(fallback.center);
-        nativeMap.setZoom(fallback.zoom);
-      }
+          const target = {
+            center: fallback.center,
+            zoom: fallback.zoom,
+          };
+          const moveCamera = nativeMap.moveCamera?.bind(nativeMap);
 
-      this._center = fallback.center;
-      this._zoom.set(Math.floor(fallback.zoom));
-      this._lastObservedNativeIntegerZoom = Math.floor(fallback.zoom);
-      this._setCommunityVisualZoom(fallback.zoom);
-      this._mapProfiler.record("google-map-2d:camera-recovered", {
-        recoveryCount: this._invalidCameraRecoveryCount,
-        source,
-        target,
-      });
-      this._scheduleCameraRecoveryVerification(fallback, source);
-    } catch (error) {
-      this._mapProfiler.record("google-map-2d:camera-recovery-failed", {
-        error: String(error),
-        fallback,
-        observed,
-        source,
-      });
-      console.warn("Failed to recover Google Maps camera:", error);
-      this._forceRecreateNativeMap("camera-recovery-failed", fallback);
-    } finally {
-      this._invalidCameraRecoveryTimeoutId = setTimeout(() => {
-        this._isRecoveringInvalidCamera = false;
-        this._invalidCameraRecoveryTimeoutId = null;
-      }, 1_000);
-    }
+          if (moveCamera) {
+            moveCamera(target);
+          } else {
+            nativeMap.setCenter(fallback.center);
+            nativeMap.setZoom(fallback.zoom);
+          }
+
+          this._center = fallback.center;
+          this._zoom.set(Math.floor(fallback.zoom));
+          this._lastObservedNativeIntegerZoom = Math.floor(fallback.zoom);
+          this._setCommunityVisualZoom(fallback.zoom);
+          this._mapProfiler.record("google-map-2d:camera-recovered", {
+            recoveryCount: this._invalidCameraRecoveryCount,
+            source,
+            target,
+          });
+          this._scheduleCameraRecoveryVerification(fallback, source);
+        } catch (error) {
+          this._mapProfiler.record("google-map-2d:camera-recovery-failed", {
+            error: String(error),
+            fallback,
+            observed,
+            source,
+          });
+          console.warn("Failed to recover Google Maps camera:", error);
+          this._forceRecreateNativeMap("camera-recovery-failed", fallback);
+        } finally {
+          this._invalidCameraRecoveryTimeoutId = setTimeout(() => {
+            this._isRecoveringInvalidCamera = false;
+            this._invalidCameraRecoveryTimeoutId = null;
+          }, 1_000);
+        }
+      },
+      { isRecovery: true },
+    );
   }
 
   private _readUnsafeCameraSnapshot(source: string): Record<string, unknown> {
@@ -3084,7 +3268,9 @@ export class GoogleMap2dComponent
       bounds: bounds.toJSON(),
     });
     this._allowProgrammaticCameraJump("fit-bounds");
-    this.googleMap.fitBounds(bounds);
+    this._runWhenMapViewportReady("fit-bounds", () => {
+      this.googleMap?.fitBounds(bounds);
+    });
   }
 
   editingSpotPositionChanged(position: google.maps.LatLng) {

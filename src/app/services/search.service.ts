@@ -1,6 +1,5 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { SearchClient } from "typesense";
-import { SearchParams } from "typesense/lib/Typesense/Documents";
 import { environment } from "../../environments/environment.default";
 import { MapsApiService } from "./maps-api.service";
 import { AmenitiesMap } from "../../db/schemas/Amenities";
@@ -36,6 +35,7 @@ export class SearchService {
   readonly COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE =
     "_text_match:desc,counts.totalSpots:desc";
   private readonly MAP_GROUP_LIMIT = 2;
+  private readonly SPOT_GROUP_LIMIT = 5;
 
   private readonly client: SearchClient = new SearchClient({
     nodes: [
@@ -124,7 +124,7 @@ export class SearchService {
       return undefined;
     }
 
-    const evenZoom = Math.max(2, Math.min(16, Math.floor(zoom) & ~1));
+    const evenZoom = Math.max(2, Math.min(16, Math.floor(zoom))) & ~1;
     return `tile_coordinates.z${evenZoom}.x,tile_coordinates.z${evenZoom}.y`;
   }
 
@@ -140,6 +140,38 @@ export class SearchService {
 
     const hits = (result as { hits?: unknown } | null)?.hits;
     return Array.isArray(hits) ? hits : [];
+  }
+
+  private static _flattenTypesenseHitsRoundRobin(result: unknown): any[] {
+    const groupedHits = (result as { grouped_hits?: unknown } | null)
+      ?.grouped_hits;
+    if (!Array.isArray(groupedHits)) {
+      return SearchService._flattenTypesenseHits(result);
+    }
+
+    const groupedHitLists = groupedHits
+      .map((group) => {
+        const hits = (group as { hits?: unknown } | null)?.hits;
+        return Array.isArray(hits) ? hits : [];
+      })
+      .filter((hits) => hits.length > 0);
+
+    const maxGroupLength = groupedHitLists.reduce(
+      (max, hits) => Math.max(max, hits.length),
+      0,
+    );
+    const hits: any[] = [];
+
+    for (let hitIndex = 0; hitIndex < maxGroupLength; hitIndex++) {
+      for (const groupHits of groupedHitLists) {
+        const hit = groupHits[hitIndex];
+        if (hit) {
+          hits.push(hit);
+        }
+      }
+    }
+
+    return hits;
   }
 
   public getSpotPreviewFromHit(hit: any): SpotPreviewData {
@@ -618,7 +650,7 @@ export class SearchService {
 
     // Reuse filter logic
     return this._executeSearch(
-      latLongPairList,
+      `location:(${latLongPairList.join(", ")})`,
       num_spots,
       types,
       accesses,
@@ -630,7 +662,7 @@ export class SearchService {
   }
 
   private async _executeSearch(
-    latLongPairList: string[],
+    viewportFilter: string | undefined,
     num_spots: number,
     types?: SpotTypes[],
     accesses?: SpotAccess[],
@@ -654,10 +686,10 @@ export class SearchService {
       );
     }
 
-    let filterByString = `location:(${latLongPairList.join(", ")})`;
-    if (filters.length > 0) {
-      filterByString += ` && (${filters.join(" || ")})`;
-    }
+    const filterByString = SearchService._joinFilters([
+      viewportFilter,
+      filters.length > 0 ? `(${filters.join(" || ")})` : undefined,
+    ]);
 
     const MAX_PER_PAGE = 250;
     const perPage = Math.min(MAX_PER_PAGE, Math.max(1, num_spots));
@@ -665,9 +697,21 @@ export class SearchService {
     const groupingParams = groupBy
       ? {
           group_by: groupBy,
-          group_limit: this.MAP_GROUP_LIMIT,
+          group_limit: this.SPOT_GROUP_LIMIT,
         }
       : {};
+
+    const searchParams: {
+      q: string;
+      sort_by: string;
+      filter_by?: string;
+    } = {
+      q: "*",
+      sort_by: this.SPOT_SORT_BY_RATING,
+    };
+    if (filterByString) {
+      searchParams.filter_by = filterByString;
+    }
 
     // Fetch first page to learn total found and to return early when small
     const firstPage = await this.client
@@ -675,9 +719,7 @@ export class SearchService {
       .documents()
       .search(
         {
-          q: "*",
-          filter_by: filterByString,
-          sort_by: this.SPOT_SORT_BY_RATING,
+          ...searchParams,
           per_page: perPage,
           page: 1,
           ...groupingParams,
@@ -685,21 +727,25 @@ export class SearchService {
         {},
       );
 
-    let allHits: any[] = SearchService._flattenTypesenseHits(firstPage);
+    let allHits: any[] = groupBy
+      ? SearchService._flattenTypesenseHitsRoundRobin(firstPage)
+      : SearchService._flattenTypesenseHits(firstPage);
 
-    const found: number =
-      (firstPage && (firstPage as any).found) || allHits.length;
+    const found = SearchService._readFound(firstPage) || allHits.length;
+    const pageFound = SearchService._readTopLevelFound(firstPage) || found;
 
     // If we already satisfied the requested number (after filtering)
-    if (allHits.length >= num_spots || found <= perPage) {
-      allHits = this.sortHitsByPriorityThenMedia(allHits);
+    if (allHits.length >= num_spots || pageFound <= perPage) {
+      if (!groupBy) {
+        allHits = this.sortHitsByPriorityThenMedia(allHits);
+      }
       return {
         hits: allHits.slice(0, num_spots),
         found: found,
       };
     }
 
-    const remainingToFetch = Math.min(num_spots, found) - allHits.length;
+    const remainingToFetch = Math.min(num_spots, pageFound) - allHits.length;
     const remainingPages = Math.ceil(remainingToFetch / perPage);
 
     // Build requests for remaining pages (pages 2..)
@@ -711,9 +757,7 @@ export class SearchService {
           .documents()
           .search(
             {
-              q: "*",
-              filter_by: filterByString,
-              sort_by: this.SPOT_SORT_BY_RATING,
+              ...searchParams,
               per_page: perPage,
               page: i,
               ...groupingParams,
@@ -726,10 +770,16 @@ export class SearchService {
     const settled = await Promise.allSettled(pageRequests);
     for (const res of settled) {
       if (res.status === "fulfilled" && res.value) {
-        allHits.push(...SearchService._flattenTypesenseHits(res.value));
+        allHits.push(
+          ...(groupBy
+            ? SearchService._flattenTypesenseHitsRoundRobin(res.value)
+            : SearchService._flattenTypesenseHits(res.value)),
+        );
       }
     }
-    allHits = this.sortHitsByPriorityThenMedia(allHits);
+    if (!groupBy) {
+      allHits = this.sortHitsByPriorityThenMedia(allHits);
+    }
 
     // Build a merged result object similar to Typesense response shape
     const mergedResult = { ...(firstPage as any) } as any;
@@ -748,36 +798,12 @@ export class SearchService {
     amenities_false?: (keyof AmenitiesMap)[],
     viewportZoom?: number,
   ): Promise<{ hits: any[]; found: number }> {
-    let neLat = bounds.getNorthEast().lat();
-    let neLng = bounds.getNorthEast().lng();
-    let swLat = bounds.getSouthWest().lat();
-    let swLng = bounds.getSouthWest().lng();
-
-    // Fix for IDL/DateLine normalization issues.
-    if (swLng > neLng) {
-      swLng -= 360;
-    }
-
-    const latLongPairList: string[] = [
-      // northeast
-      neLat,
-      neLng,
-
-      // southeast
-      swLat,
-      neLng,
-
-      // southwest
-      swLat,
-      swLng,
-
-      // northwest
-      neLat,
-      swLng,
-    ].map((num) => SearchService._formatGeoFilterCoordinate(num));
+    const viewportFilter = SearchService._spotViewportFilter(
+      SearchService._boundsToLiteral(bounds),
+    );
 
     return this._executeSearch(
-      latLongPairList,
+      viewportFilter,
       num_spots,
       types,
       accesses,
@@ -1497,6 +1523,31 @@ export class SearchService {
   }
 
   private static _readFound(result: unknown): number {
+    const groupedHits = (result as { grouped_hits?: unknown } | null)
+      ?.grouped_hits;
+    if (Array.isArray(groupedHits)) {
+      const groupedFound = groupedHits.reduce(
+        (total, group) => {
+          const found = (group as { found?: unknown } | null)?.found;
+          if (typeof found !== "number" || !Number.isFinite(found)) {
+            return total;
+          }
+
+          return { sawFound: true, count: total.count + found };
+        },
+        { sawFound: false, count: 0 },
+      );
+
+      if (groupedFound.sawFound) {
+        return groupedFound.count;
+      }
+    }
+
+    const found = SearchService._readTopLevelFound(result);
+    return found;
+  }
+
+  private static _readTopLevelFound(result: unknown): number {
     const found = (result as { found?: unknown } | null)?.found;
     return typeof found === "number" && Number.isFinite(found) ? found : 0;
   }

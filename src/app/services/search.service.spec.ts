@@ -478,7 +478,7 @@ describe("SearchService", () => {
       expect(results.found).toBe(0);
     });
 
-    it("groups filtered spot searches by the current viewport tile", async () => {
+    it("groups active filter result lists by viewport tile and sums group counts", async () => {
       const mockBounds = {
         getNorthEast: () => ({ lat: () => 48.2, lng: () => 11.7 }),
         getSouthWest: () => ({ lat: () => 48.1, lng: () => 11.5 }),
@@ -490,10 +490,16 @@ describe("SearchService", () => {
         grouped_hits: [
           {
             group_key: [33, 21],
-            hits: [{ document: { id: "spot-a", rating: 5 } }],
+            found: 120,
+            hits: [
+              { document: { id: "spot-a", rating: 5 } },
+              { document: { id: "spot-c", rating: 5 } },
+              { document: { id: "spot-d", rating: 5 } },
+            ],
           },
           {
             group_key: [34, 21],
+            found: 2,
             hits: [{ document: { id: "spot-b", rating: 4 } }],
           },
         ],
@@ -510,7 +516,78 @@ describe("SearchService", () => {
       expect(params.group_by).toBe(
         "tile_coordinates.z6.x,tile_coordinates.z6.y",
       );
-      expect(params.group_limit).toBe(2);
+      expect(params.group_limit).toBe(5);
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(1);
+      expect(results.found).toBe(122);
+      expect(results.hits.map((hit) => hit.document.id)).toEqual([
+        "spot-a",
+        "spot-b",
+        "spot-c",
+        "spot-d",
+      ]);
+    });
+
+    it("omits unsafe world-scale viewport filters for active spot filters", async () => {
+      const mockBounds = {
+        getNorthEast: () => ({ lat: () => 70, lng: () => 0 }),
+        getSouthWest: () => ({ lat: () => -70, lng: () => 0 }),
+        toJSON: () => ({}),
+      } as unknown as google.maps.LatLngBounds;
+
+      typesenseSearchMock.mockResolvedValueOnce({
+        found: 0,
+        grouped_hits: [],
+      });
+
+      await service.searchSpotsInBoundsWithFilter(
+        mockBounds,
+        SpotFilterMode.Indoor,
+        10,
+        2,
+      );
+
+      const params = typesenseSearchMock.mock.calls[0][0];
+      expect(params.filter_by).not.toContain("location:(");
+      expect(params.filter_by).toContain("type:=[");
+      expect(params.filter_by).toContain("amenities_true:=[indoor]");
+      expect(params.group_by).toBe(
+        "tile_coordinates.z2.x,tile_coordinates.z2.y",
+      );
+      expect(params.group_limit).toBe(5);
+    });
+
+    it("falls back to top-level found when grouped hit counts are unavailable", async () => {
+      const mockBounds = {
+        getNorthEast: () => ({ lat: () => 48.2, lng: () => 11.7 }),
+        getSouthWest: () => ({ lat: () => 48.1, lng: () => 11.5 }),
+        toJSON: () => ({}),
+      } as unknown as google.maps.LatLngBounds;
+
+      typesenseSearchMock.mockResolvedValueOnce({
+        found: 1,
+        grouped_hits: [
+          {
+            group_key: [33, 21],
+            hits: [
+              { document: { id: "spot-a", rating: 5 } },
+              { document: { id: "spot-b", rating: 4 } },
+            ],
+          },
+        ],
+      });
+
+      const results = await service.searchSpotsInBounds(
+        mockBounds,
+        10,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        6.4,
+      );
+
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(1);
+      expect(results.found).toBe(1);
       expect(results.hits.map((hit) => hit.document.id)).toEqual([
         "spot-a",
         "spot-b",
