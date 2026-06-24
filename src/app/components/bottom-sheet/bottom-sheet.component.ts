@@ -117,6 +117,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private currentOffset = 0;
   private readonly dragExcludeSelector =
     "input, select, textarea, [contenteditable='true'], [data-drag-exclude], [data-sheet-drag='false']";
+  private readonly horizontalScrollSelector = "[data-horizontal-scroll]";
   private resizeObserver: ResizeObserver | null = null;
   private lastRecordedHeight = 0;
   private mutationObserver: MutationObserver | null = null;
@@ -555,10 +556,12 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private setupTouchHandling(sheetEl: HTMLElement): void {
     let lastY = 0;
     let shiftY = 0;
+    let initialX = 0;
     let initialY = 0;
     let startTime = 0;
     let startY = 0;
     let hasDragged = false;
+    let isHorizontalScrollTarget = false;
     let isScrollableUp = false;
     let isScrollableDown = false;
     let alwaysVisible = 0;
@@ -584,11 +587,14 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       originalTarget = target;
       originalTouch = touch;
       lastY = touch.pageY;
+      initialX = touch.clientX;
       initialY = touch.clientY;
       startTime = performance.now();
       startY = touch.pageY;
       shiftY = touch.clientY - this.currentOffset;
       hasDragged = false;
+      isHorizontalScrollTarget =
+        target?.closest(this.horizontalScrollSelector) !== null;
       alwaysVisible = this.getAlwaysVisible(sheetEl);
       isScrollableUp = this.checkScrollableUp(target, sheetEl);
       isScrollableDown = this.checkScrollableDown(target, sheetEl);
@@ -623,9 +629,28 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       if (!touch) return;
 
       const pageY = touch.pageY;
+      const absDeltaX = Math.abs(touch.clientX - initialX);
+      const absDeltaY = Math.abs(touch.clientY - initialY);
 
       if (!hasDragged) {
-        if (Math.abs(pageY - initialY) <= this.minDragDistance) return;
+        if (
+          isHorizontalScrollTarget &&
+          absDeltaX > this.minDragDistance &&
+          absDeltaX > absDeltaY
+        ) {
+          this.cleanupTouchListeners(
+            removeTouchMove,
+            removeTouchEnd,
+            removeTouchCancel
+          );
+          this.syncContentOverflow();
+          this.activeTouchId = null;
+          originalTarget = null;
+          originalTouch = null;
+          return;
+        }
+
+        if (absDeltaY <= this.minDragDistance) return;
 
         // If sheet is fully open and content is scrollable, allow native scroll
         // pageY > initialY means swiping down (scrolling up in content)

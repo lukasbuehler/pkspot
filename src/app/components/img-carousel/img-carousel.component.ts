@@ -115,13 +115,11 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   private autoplayIntersectionObserver: IntersectionObserver | null = null;
   private readonly autoplayVideos = new Map<number, HTMLVideoElement>();
   private readonly videoCurrentTimes = new Map<number, number>();
-  private activePreviewPointerId: number | null = null;
-  private previewDragStartX = 0;
-  private previewDragStartY = 0;
-  private previewDragStartScrollLeft = 0;
-  private previewDragMoved = false;
-  private previewDragDirection: "horizontal" | "vertical" | null = null;
-  private readonly previewDragLockThresholdPx = 6;
+  private previewPointerStartX = 0;
+  private previewPointerStartY = 0;
+  private previewPointerStartScrollLeft = 0;
+  private hasPreviewPointerStart = false;
+  private readonly previewClickMoveThresholdPx = 6;
   private readonly previewGapPx = 10;
   private readonly containedImageDefaultBackground =
     "var(--mat-sys-surface-container-highest)";
@@ -588,15 +586,37 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     }
 
     const distance = Math.max(scroller.clientWidth * 0.72, 180);
-    scroller.scrollBy({
-      left: direction === "right" ? distance : -distance,
+    const maxScrollLeft = this.getMaxPreviewScrollLeft(this.previewTrackWidth());
+    const currentScrollLeft = this.getBoundedScrollLeft(
+      scroller.scrollLeft,
+      maxScrollLeft,
+    );
+    const targetScrollLeft = this.getBoundedScrollLeft(
+      currentScrollLeft + (direction === "right" ? distance : -distance),
+      maxScrollLeft,
+    );
+
+    scroller.scrollTo({
+      left: targetScrollLeft,
       behavior: "smooth",
     });
   }
 
   onPreviewClick(event: MouseEvent): void {
-    if (this.previewDragMoved) {
-      this.previewDragMoved = false;
+    const scroller = this.previewScroller?.nativeElement;
+    const movedSincePointerDown =
+      this.hasPreviewPointerStart &&
+      (Math.abs(event.clientX - this.previewPointerStartX) >
+        this.previewClickMoveThresholdPx ||
+        Math.abs(event.clientY - this.previewPointerStartY) >
+          this.previewClickMoveThresholdPx ||
+        Math.abs(
+          (scroller?.scrollLeft ?? this.previewPointerStartScrollLeft) -
+            this.previewPointerStartScrollLeft,
+        ) > this.previewClickMoveThresholdPx);
+    this.hasPreviewPointerStart = false;
+
+    if (movedSincePointerDown) {
       event.preventDefault();
       event.stopPropagation();
       return;
@@ -638,70 +658,10 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.activePreviewPointerId = event.pointerId;
-    this.previewDragStartX = event.clientX;
-    this.previewDragStartY = event.clientY;
-    this.previewDragStartScrollLeft = scroller.scrollLeft;
-    this.previewDragMoved = false;
-    this.previewDragDirection = null;
-    event.stopPropagation();
-    scroller.setPointerCapture(event.pointerId);
-  }
-
-  onPreviewPointerMove(event: PointerEvent): void {
-    const scroller = this.previewScroller?.nativeElement;
-    if (!scroller || this.activePreviewPointerId !== event.pointerId) {
-      return;
-    }
-
-    const deltaX = event.clientX - this.previewDragStartX;
-    const deltaY = event.clientY - this.previewDragStartY;
-    const absDeltaX = Math.abs(deltaX);
-    const absDeltaY = Math.abs(deltaY);
-
-    if (
-      this.previewDragDirection === null &&
-      Math.max(absDeltaX, absDeltaY) >= this.previewDragLockThresholdPx
-    ) {
-      this.previewDragDirection =
-        absDeltaX >= absDeltaY ? "horizontal" : "vertical";
-    }
-
-    if (this.previewDragDirection === "vertical") {
-      this.previewDragMoved = true;
-      event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-
-    if (this.previewDragDirection !== "horizontal") {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (absDeltaX > 3) {
-      this.previewDragMoved = true;
-    }
-    scroller.scrollLeft = this.previewDragStartScrollLeft - deltaX;
-    this.queuePreviewResize();
-  }
-
-  onPreviewPointerEnd(event: PointerEvent): void {
-    const scroller = this.previewScroller?.nativeElement;
-    if (this.activePreviewPointerId !== event.pointerId) {
-      return;
-    }
-
-    if (scroller?.hasPointerCapture(event.pointerId)) {
-      scroller.releasePointerCapture(event.pointerId);
-    }
-    if (this.previewDragDirection !== null) {
-      event.stopPropagation();
-    }
-    this.activePreviewPointerId = null;
-    this.previewDragDirection = null;
+    this.hasPreviewPointerStart = true;
+    this.previewPointerStartX = event.clientX;
+    this.previewPointerStartY = event.clientY;
+    this.previewPointerStartScrollLeft = scroller.scrollLeft;
   }
 
   getImageAspectRatio(index: number): string {
@@ -901,8 +861,11 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     const viewportRect = viewport.getBoundingClientRect();
     const viewportWidth = viewportRect.width;
     const viewportHeight = viewportRect.height;
-    const scrollLeft = scroller.scrollLeft;
     const layout = this.getPreviewLayout(viewportWidth, viewportHeight);
+    const scrollLeft = this.getBoundedScrollLeft(
+      scroller.scrollLeft,
+      this.getMaxPreviewScrollLeft(layout.trackWidth),
+    );
     let virtualLeft = layout.startInset;
 
     this.previewTrackWidth.set(layout.trackWidth);
@@ -952,11 +915,28 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     }
 
     const scrollWidth = trackWidth ?? scroller.scrollWidth;
-    const maxScrollLeft = Math.max(scrollWidth - scroller.clientWidth, 0);
+    const maxScrollLeft = this.getMaxPreviewScrollLeft(scrollWidth);
+    const scrollLeft = this.getBoundedScrollLeft(
+      scroller.scrollLeft,
+      maxScrollLeft,
+    );
     const tolerance = 4;
 
-    this.canScrollLeft.set(scroller.scrollLeft > tolerance);
-    this.canScrollRight.set(scroller.scrollLeft < maxScrollLeft - tolerance);
+    this.canScrollLeft.set(scrollLeft > tolerance);
+    this.canScrollRight.set(scrollLeft < maxScrollLeft - tolerance);
+  }
+
+  private getMaxPreviewScrollLeft(trackWidth: number): number {
+    const scroller = this.previewScroller?.nativeElement;
+    if (!scroller) {
+      return 0;
+    }
+
+    return Math.max(trackWidth - scroller.clientWidth, 0);
+  }
+
+  private getBoundedScrollLeft(scrollLeft: number, maxScrollLeft: number): number {
+    return Math.max(0, Math.min(scrollLeft, maxScrollLeft));
   }
 
   private getPreviewLayout(

@@ -29,6 +29,25 @@ describe("ImgCarouselComponent", () => {
     return TestBed.createComponent(ImgCarouselComponent);
   };
 
+  const setScrollerBounds = (
+    scroller: HTMLElement,
+    clientWidth: number,
+    scrollLeft: number,
+  ): ReturnType<typeof vi.fn> => {
+    const scrollTo = vi.fn();
+    Object.defineProperty(scroller, "clientWidth", {
+      configurable: true,
+      value: clientWidth,
+    });
+    Object.defineProperty(scroller, "scrollLeft", {
+      configurable: true,
+      writable: true,
+      value: scrollLeft,
+    });
+    scroller.scrollTo = scrollTo;
+    return scrollTo;
+  };
+
   it("renders external videos with an external media source link", () => {
     localStorage.setItem(
       "pkspot.showExternalMedia.v1",
@@ -195,6 +214,42 @@ describe("ImgCarouselComponent", () => {
     fixture.componentInstance.imageClick(0);
 
     expect(dialog.open).not.toHaveBeenCalled();
+  });
+
+  it("clamps right button scrolling to the visible preview track end", () => {
+    const fixture = createFixture();
+    fixture.componentRef.setInput("media", []);
+    fixture.detectChanges();
+    const scroller = (
+      fixture.nativeElement as HTMLElement
+    ).querySelector<HTMLElement>(".carousel-scroll-layer")!;
+    const scrollTo = setScrollerBounds(scroller, 300, 650);
+
+    fixture.componentInstance.previewTrackWidth.set(1000);
+    fixture.componentInstance.scrollPreview("right");
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      left: 700,
+      behavior: "smooth",
+    });
+  });
+
+  it("clamps left button scrolling when the native scroller rubber-bands", () => {
+    const fixture = createFixture();
+    fixture.componentRef.setInput("media", []);
+    fixture.detectChanges();
+    const scroller = (
+      fixture.nativeElement as HTMLElement
+    ).querySelector<HTMLElement>(".carousel-scroll-layer")!;
+    const scrollTo = setScrollerBounds(scroller, 300, -40);
+
+    fixture.componentInstance.previewTrackWidth.set(1000);
+    fixture.componentInstance.scrollPreview("left");
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      left: 0,
+      behavior: "smooth",
+    });
   });
 
   it("keeps separate gates for separate external domains", () => {

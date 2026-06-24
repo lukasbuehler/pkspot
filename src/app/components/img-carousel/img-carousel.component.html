@@ -146,11 +146,10 @@
   <div
     #previewScroller
     class="carousel-scroll-layer"
+    data-no-expand
+    data-horizontal-scroll
     (click)="onPreviewClick($event)"
-    (pointercancel)="onPreviewPointerEnd($event)"
     (pointerdown)="onPreviewPointerDown($event)"
-    (pointermove)="onPreviewPointerMove($event)"
-    (pointerup)="onPreviewPointerEnd($event)"
     (scroll)="onPreviewScroll()"
   >
     <div
