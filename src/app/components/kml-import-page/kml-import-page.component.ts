@@ -100,6 +100,7 @@ import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 import { AnyMedia, ExternalImage } from "../../../db/models/Media";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
+import { AnalyticsService } from "../../services/analytics.service";
 // KML import is gated by the `isAdmin` flag on the user document
 // (see UserSchema.is_admin). Previously a hardcoded uid whitelist; now
 // any admin can import. The check below mirrors spot-details and other
@@ -345,7 +346,8 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     private _dialog: MatDialog,
     private _authService: AuthenticationService,
     private cdr: ChangeDetectorRef,
-    private _mapsApiService: MapsApiService
+    private _mapsApiService: MapsApiService,
+    private _analytics: AnalyticsService
   ) {}
 
   ngOnInit(): void {
@@ -1042,6 +1044,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     if (!this._ensureAuthenticatedForUpload()) {
       return;
     }
+    this._analytics.trackEvent("kml_import_file_selected", {
+      file_type: file.name.split(".").pop()?.toLowerCase() ?? null,
+      file_size_bytes: file.size,
+    });
     this.kmlUploadFile = file;
     this.continueToSetup();
   }
@@ -1414,6 +1420,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    this._analytics.trackEvent("kml_import_parse_started", {
+      file_type: this.kmlUploadFile.name.split(".").pop()?.toLowerCase() ?? null,
+      file_size_bytes: this.kmlUploadFile.size,
+    });
     this.isParsingSetup = true;
     this.setupWarningMessage.set(null);
     this.setupMediaErrorMessage.set(null);
@@ -1496,6 +1506,9 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       }
     } catch (error) {
       console.error("Error preparing import file:", error);
+      this._analytics.trackEvent("kml_import_parse_failed", {
+        stage: "prepare_file",
+      });
     } finally {
       this.setupMediaValidationProgress.set(null);
       this.isParsingSetup = false;
@@ -1809,11 +1822,19 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       this._syncLegalControlState();
 
       // parsing was successful
+      this._analytics.trackEvent("kml_import_parse_succeeded", {
+        spot_count: this.importStats.spotCount,
+        folder_count: this.importStats.folderCount,
+        image_count: this.importStats.imageCount,
+      });
       this.stepperHorizontal.selected.completed = true;
       this.stepperHorizontal.next();
     } catch (error: unknown) {
       // parsing was not successful
       console.error(error);
+      this._analytics.trackEvent("kml_import_parse_failed", {
+        stage: "parse_kml",
+      });
     }
   }
 
@@ -1893,6 +1914,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       return;
     }
     if (this.setupFormGroup.invalid || this.creditsFormGroup.invalid) {
+      this._analytics.trackEvent("kml_import_setup_invalid", {
+        setup_invalid: this.setupFormGroup.invalid,
+        credits_invalid: this.creditsFormGroup.invalid,
+      });
       this.setupFormGroup.markAllAsTouched();
       this.creditsFormGroup.markAllAsTouched();
       this.legalFormGroup.markAllAsTouched();
@@ -1903,6 +1928,9 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     if (legalValidationError) {
       this.legalValidationMessage.set(legalValidationError);
       this.legalFormGroup.markAllAsTouched();
+      this._analytics.trackEvent("kml_import_setup_invalid", {
+        reason: "legal_validation",
+      });
       return;
     }
     this.legalValidationMessage.set(null);
@@ -1914,6 +1942,11 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     }
 
     this.kmlParserService.confirmSetup().then(() => {
+      this._analytics.trackEvent("kml_import_setup_confirmed", {
+        spot_count: this.importStats.spotCount,
+        folder_count: this.importStats.folderCount,
+        image_count: this.importStats.imageCount,
+      });
       if (!this.stepperHorizontal || !this.stepperHorizontal.selected) {
         console.error("stepperHorizontal is not defined");
         return;
@@ -2039,6 +2072,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     this.stepperHorizontal.next();
 
     try {
+      this._analytics.trackEvent("kml_import_started", {
+        included_spot_count: this.includedSpotCount(),
+        total_spot_count: this.totalVerificationCount(),
+      });
       const uid = this._authService.user.uid;
       if (!this._authService.isSignedIn || !uid) {
         console.error("User must be authenticated to import spots");
@@ -2132,7 +2169,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         status: chunks.length > 0 ? "PROCESSING" : "COMPLETED",
       });
 
-      this._spotImportSuccessful();
+      this._spotImportSuccessful(importId);
     } catch (error) {
       console.error("Failed to import spots:", error);
       this._spotImportFailed();
@@ -2602,12 +2639,17 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return cleaned.length > 0 ? cleaned : undefined;
   }
 
-  private _spotImportSuccessful() {
+  private _spotImportSuccessful(importId?: string) {
     if (!this.stepperHorizontal || !this.stepperHorizontal.selected) {
       console.error("stepperHorizontal is not defined");
       return;
     }
 
+    this._analytics.trackEvent("kml_import_succeeded", {
+      import_id: importId ?? null,
+      included_spot_count: this.includedSpotCount(),
+      total_spot_count: this.totalVerificationCount(),
+    });
     this.stepperHorizontal.selected.completed = true;
     this.stepperHorizontal.next();
   }
@@ -2618,6 +2660,10 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    this._analytics.trackEvent("kml_import_failed", {
+      included_spot_count: this.includedSpotCount(),
+      total_spot_count: this.totalVerificationCount(),
+    });
     this.stepperHorizontal.selected.completed = false;
     this.stepperHorizontal.previous();
   }

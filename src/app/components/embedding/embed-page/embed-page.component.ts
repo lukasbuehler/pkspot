@@ -11,6 +11,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
+import { MatSlideToggleChange } from "@angular/material/slide-toggle";
 import { CodeBlockComponent } from "../../code-block/code-block.component";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { APP_BASE_HREF, isPlatformBrowser } from "@angular/common";
@@ -27,6 +28,7 @@ import {
   ChipSelectorOption,
 } from "../../chip-selector/chip-selector.component";
 import { buildUnembeddedUrlFromHref } from "../../../shared/embedded-url";
+import { AnalyticsService } from "../../../services/analytics.service";
 
 type EmbedType = "map" | "event" | "event-map";
 
@@ -67,6 +69,7 @@ export class EmbedPageComponent {
   baseHref = inject(APP_BASE_HREF);
   private _platformId = inject(PLATFORM_ID);
   private _eventsService = inject(EventsService);
+  private _analytics = inject(AnalyticsService);
 
   supportedLanguageCodes = ["en", "de", "de-CH", "fr", "it", "nl", "es"];
   languages: Record<string, { name_english: string; name_native?: string }> =
@@ -167,6 +170,15 @@ export class EmbedPageComponent {
 </div>`;
   });
 
+  embedAnalyticsProperties = computed<Record<string, unknown>>(() => ({
+    embed_type: this.tab(),
+    event_id: this.eventId() || null,
+    embed_language: this.embedLanguage(),
+    show_event_header: this.showEventHeader(),
+    show_satellite_toggle: this.showSatelliteToggle(),
+    show_geolocation: this.showGeolocation(),
+  }));
+
   constructor() {
     if (isPlatformBrowser(this._platformId)) {
       afterNextRender(() => {
@@ -178,7 +190,67 @@ export class EmbedPageComponent {
   onEmbedTypeChange(value: string | null): void {
     if (value === "map" || value === "event" || value === "event-map") {
       this.tab.set(value);
+      this._analytics.trackEvent("embed_option_changed", {
+        ...this.embedAnalyticsProperties(),
+        option: "embed_type",
+        value,
+      });
     }
+  }
+
+  onEventSelectionChange(value: string): void {
+    this.eventId.set(value);
+    this._analytics.trackEvent("embed_option_changed", {
+      ...this.embedAnalyticsProperties(),
+      option: "event",
+      value,
+    });
+  }
+
+  onLanguageChange(value: LocaleCode | "auto"): void {
+    this.embedLanguage.set(value);
+    this._analytics.trackEvent("embed_option_changed", {
+      ...this.embedAnalyticsProperties(),
+      option: "language",
+      value,
+    });
+  }
+
+  onShowEventHeaderChange(event: MatSlideToggleChange): void {
+    this.showEventHeader.set(event.checked);
+    this._analytics.trackEvent("embed_option_changed", {
+      ...this.embedAnalyticsProperties(),
+      option: "show_event_header",
+      value: event.checked,
+    });
+  }
+
+  onShowSatelliteToggleChange(event: MatSlideToggleChange): void {
+    this.showSatelliteToggle.set(event.checked);
+    this._analytics.trackEvent("embed_option_changed", {
+      ...this.embedAnalyticsProperties(),
+      option: "show_satellite_toggle",
+      value: event.checked,
+    });
+  }
+
+  onShowGeolocationChange(event: MatSlideToggleChange): void {
+    this.showGeolocation.set(event.checked);
+    this._analytics.trackEvent("embed_option_changed", {
+      ...this.embedAnalyticsProperties(),
+      option: "show_geolocation",
+      value: event.checked,
+    });
+  }
+
+  trackPublicContentClick(): void {
+    this._analytics.trackOutboundLinkClick(
+      "embed_page",
+      "embedded_credit",
+      this.publicContentUrl(),
+      "PK Spot",
+      this.embedAnalyticsProperties(),
+    );
   }
 
   private async _loadEvents() {

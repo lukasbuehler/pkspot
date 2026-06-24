@@ -23,6 +23,7 @@ import {
   ModerationReportsService,
 } from "../../services/firebase/firestore/moderation-reports.service";
 import { ModerationActionType } from "../../../db/schemas/ModerationActionSchema";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-moderation-dashboard-page",
@@ -43,6 +44,7 @@ import { ModerationActionType } from "../../../db/schemas/ModerationActionSchema
 export class ModerationDashboardPageComponent implements OnDestroy {
   private readonly _reportsService = inject(ModerationReportsService);
   private readonly _snackbar = inject(MatSnackBar);
+  private readonly _analytics = inject(AnalyticsService);
   readonly authService = inject(AuthenticationService);
 
   readonly authResolved = this.authService.initialAuthStateResolved;
@@ -132,14 +134,29 @@ export class ModerationDashboardPageComponent implements OnDestroy {
     }
 
     this.actionPath.set(message.path);
+    this._analytics.trackEvent("moderation_contact_action_started", {
+      action_type: actionType,
+      message_path: message.path,
+      message_topic: message.topic ?? null,
+    });
     try {
       await this._reportsService.handleContactMessage(message, actionType);
       await this.reload();
+      this._analytics.trackEvent("moderation_contact_action_succeeded", {
+        action_type: actionType,
+        message_path: message.path,
+        message_topic: message.topic ?? null,
+      });
       this._snackbar.open($localize`Contact message archived`, undefined, {
         duration: 3000,
       });
     } catch (error) {
       console.error("Failed to handle contact message", error);
+      this._analytics.trackEvent("moderation_contact_action_failed", {
+        action_type: actionType,
+        message_path: message.path,
+        message_topic: message.topic ?? null,
+      });
       this._snackbar.open($localize`Failed to update contact message`, undefined, {
         duration: 4000,
       });

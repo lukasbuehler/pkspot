@@ -38,6 +38,7 @@ import {
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityKnowledgeEditorComponent } from "../community-knowledge-editor/community-knowledge-editor.component";
 import { collectCommunitySpotDirectory } from "../../shared/community-spot-directory";
+import { AnalyticsService } from "../../services/analytics.service";
 
 type CommunityExploreMode = "all" | "dry";
 
@@ -90,6 +91,7 @@ export class CommunityLandingPageComponent {
   private _landingPagesService = inject(LandingPagesService);
   private _snackbar = inject(MatSnackBar);
   private _locale = inject(LOCALE_ID);
+  private _analytics = inject(AnalyticsService);
 
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
@@ -285,11 +287,23 @@ export class CommunityLandingPageComponent {
   });
 
   onSelectEvent(event: PkEvent): void {
+    this._analytics.trackEvent("community_event_selected", {
+      ...this._communityAnalyticsProperties(),
+      event_id: event.id,
+      event_slug: event.slug ?? null,
+      event_name: event.name,
+      panel_mode: this.panelMode(),
+    });
     this.selectEvent.emit(event);
   }
 
   onCommunityPathClick(event: MouseEvent, path: string): void {
     event.preventDefault();
+    this._analytics.trackEvent("community_breadcrumb_clicked", {
+      ...this._communityAnalyticsProperties(),
+      destination: path,
+      panel_mode: this.panelMode(),
+    });
     this.openCommunityPath.emit(path);
   }
 
@@ -298,6 +312,13 @@ export class CommunityLandingPageComponent {
       return;
     }
 
+    this._analytics.trackEvent("community_spot_selected", {
+      ...this._communityAnalyticsProperties(),
+      spot_id: spot.id,
+      spot_slug: spot.slug ?? null,
+      spot_name: spot.name,
+      panel_mode: this.panelMode(),
+    });
     this.selectSpot.emit(spot);
   }
 
@@ -314,6 +335,11 @@ export class CommunityLandingPageComponent {
   }
 
   onExploreCommunitySpots(event: MouseEvent, mode: CommunityExploreMode): void {
+    this._analytics.trackEvent("community_explore_map_clicked", {
+      ...this._communityAnalyticsProperties(),
+      mode,
+      panel_mode: this.panelMode(),
+    });
     if (!this.panelMode()) {
       return;
     }
@@ -344,10 +370,16 @@ export class CommunityLandingPageComponent {
     if (!this.canEditKnowledge()) {
       return;
     }
+    this._analytics.trackEvent("community_knowledge_edit_opened", {
+      ...this._communityAnalyticsProperties(),
+    });
     this.isEditingKnowledge.set(true);
   }
 
   cancelKnowledgeEdit(): void {
+    this._analytics.trackEvent("community_knowledge_edit_cancelled", {
+      ...this._communityAnalyticsProperties(),
+    });
     this.isEditingKnowledge.set(false);
   }
 
@@ -358,6 +390,10 @@ export class CommunityLandingPageComponent {
     }
 
     this.isSavingKnowledge.set(true);
+    this._analytics.trackEvent("community_knowledge_save_clicked", {
+      ...this._communityAnalyticsProperties(),
+      card_count: cards.length,
+    });
     try {
       await this._landingPagesService.updateCommunityInfoCards(
         data.communityKey,
@@ -371,8 +407,16 @@ export class CommunityLandingPageComponent {
       this._snackbar.open($localize`Community knowledge saved`, undefined, {
         duration: 3000,
       });
+      this._analytics.trackEvent("community_knowledge_saved", {
+        ...this._communityAnalyticsProperties(),
+        card_count: cards.length,
+      });
     } catch (error) {
       console.error("Failed to save community knowledge cards", error);
+      this._analytics.trackEvent("community_knowledge_save_failed", {
+        ...this._communityAnalyticsProperties(),
+        card_count: cards.length,
+      });
       this._snackbar.open(
         $localize`Failed to save community knowledge`,
         undefined,
@@ -381,6 +425,28 @@ export class CommunityLandingPageComponent {
     } finally {
       this.isSavingKnowledge.set(false);
     }
+  }
+
+  trackCommunityInfoCtaClick(
+    card: CommunityInfoCardView,
+    cta: CommunityInfoCardCtaView,
+  ): void {
+    this._analytics.trackEvent("community_info_cta_clicked", {
+      ...this._communityAnalyticsProperties(),
+      card_id: card.id,
+      card_title: card.title,
+      cta_label: cta.label,
+      cta_target: cta.target,
+      destination: cta.target === "url" ? cta.url : cta.path,
+      panel_mode: this.panelMode(),
+    });
+  }
+
+  trackCommunityContactCtaClick(): void {
+    this._analytics.trackContactChannelClick("contact_form", "community_page", {
+      ...this._communityAnalyticsProperties(),
+      cta_id: "community_knowledge",
+    });
   }
 
   lastUpdatedDate = computed(() => {
@@ -504,6 +570,17 @@ export class CommunityLandingPageComponent {
     } catch {
       return null;
     }
+  }
+
+  private _communityAnalyticsProperties(): Record<string, unknown> {
+    const data = this.communityData();
+    return {
+      community_key: data?.communityKey ?? null,
+      community_slug: data?.preferredSlug ?? null,
+      community_name: data?.displayName ?? null,
+      community_scope: data?.scope ?? null,
+      country_code: data?.country.code ?? null,
+    };
   }
 
   private _getCountryFlag(countryCode: string | null | undefined): string {

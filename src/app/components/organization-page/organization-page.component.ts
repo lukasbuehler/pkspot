@@ -21,6 +21,7 @@ import {
   OrganizationsService,
 } from "../../services/firebase/firestore/organizations.service";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-organization-page",
@@ -41,6 +42,7 @@ export class OrganizationPageComponent implements OnInit {
   private readonly _route = inject(ActivatedRoute);
   private readonly _organizationsService = inject(OrganizationsService);
   private readonly _locale = inject<LocaleCode>(LOCALE_ID);
+  private readonly _analytics = inject(AnalyticsService);
 
   readonly organization = signal<OrganizationDocument | null>(null);
   readonly members = signal<(OrganizationMemberSchema & { id: string })[]>([]);
@@ -117,5 +119,53 @@ export class OrganizationPageComponent implements OnInit {
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  trackOrganizationWebsiteClick(): void {
+    const organization = this.organization();
+    if (!organization?.website_url) {
+      return;
+    }
+
+    this._analytics.trackOutboundLinkClick(
+      "organization_page",
+      "organization_website",
+      organization.website_url,
+      "Website",
+      this._organizationAnalyticsProperties(),
+    );
+  }
+
+  trackOrganizationSpotClick(
+    spot: Spot,
+    relationship: "stewarded" | "managed" | "used",
+  ): void {
+    this._analytics.trackEvent("organization_spot_clicked", {
+      ...this._organizationAnalyticsProperties(),
+      relationship,
+      spot_id: spot.id,
+      spot_slug: spot.slug ?? null,
+      spot_name: spot.name(),
+    });
+  }
+
+  trackOrganizationMemberClick(
+    member: OrganizationMemberSchema & { id: string },
+  ): void {
+    this._analytics.trackEvent("organization_member_clicked", {
+      ...this._organizationAnalyticsProperties(),
+      member_id: member.id,
+      user_id: member.user.uid,
+      role: member.role,
+    });
+  }
+
+  private _organizationAnalyticsProperties(): Record<string, unknown> {
+    const organization = this.organization();
+    return {
+      organization_id: organization?.id ?? null,
+      organization_slug: organization?.slug ?? null,
+      organization_name: organization?.name ?? null,
+    };
   }
 }

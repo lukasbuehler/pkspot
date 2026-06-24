@@ -4,6 +4,7 @@ import { MatButton } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-oauth-sign-in-buttons",
@@ -20,6 +21,7 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 })
 export class OAuthSignInButtonsComponent {
   private _authService = inject(AuthenticationService);
+  private _analytics = inject(AnalyticsService);
 
   @Input() disabled: boolean = false;
   @Input() layout: "row" | "column" = "column";
@@ -45,11 +47,17 @@ export class OAuthSignInButtonsComponent {
 
     this.isSigningInGoogle = true;
     this.start.emit();
+    this._analytics.trackEvent("auth_oauth_attempted", {
+      provider: "google",
+    });
 
     this._authService
       .signInGoogle()
       .then(() => {
         console.log("Successfully signed in with Google");
+        this._analytics.trackEvent("auth_oauth_succeeded", {
+          provider: "google",
+        });
         this.success.emit();
       })
       .catch((err) => {
@@ -89,6 +97,13 @@ export class OAuthSignInButtonsComponent {
             message: userMessage,
           });
         }
+        this._analytics.trackEvent(
+          userMessage ? "auth_oauth_failed" : "auth_oauth_cancelled",
+          {
+            provider: "google",
+            error_code: this._getAuthErrorCode(err),
+          },
+        );
       })
       .finally(() => {
         this.isSigningInGoogle = false;
@@ -102,11 +117,17 @@ export class OAuthSignInButtonsComponent {
 
     this.isSigningInApple = true;
     this.start.emit();
+    this._analytics.trackEvent("auth_oauth_attempted", {
+      provider: "apple",
+    });
 
     this._authService
       .signInApple()
       .then(() => {
         console.log("Successfully signed in with Apple");
+        this._analytics.trackEvent("auth_oauth_succeeded", {
+          provider: "apple",
+        });
         this.success.emit();
       })
       .catch((err) => {
@@ -139,9 +160,25 @@ export class OAuthSignInButtonsComponent {
             message: userMessage,
           });
         }
+        this._analytics.trackEvent(
+          userMessage ? "auth_oauth_failed" : "auth_oauth_cancelled",
+          {
+            provider: "apple",
+            error_code: this._getAuthErrorCode(err),
+          },
+        );
       })
       .finally(() => {
         this.isSigningInApple = false;
       });
+  }
+
+  private _getAuthErrorCode(error: unknown): string | null {
+    if (typeof error === "object" && error !== null && "code" in error) {
+      const code = (error as { code: unknown }).code;
+      return typeof code === "string" ? code : null;
+    }
+
+    return null;
   }
 }

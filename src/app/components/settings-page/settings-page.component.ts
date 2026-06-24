@@ -33,6 +33,7 @@ import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { ContributionStatusNoteComponent } from "../contribution-status-note/contribution-status-note.component";
 import { version } from "../../../../package.json";
 import crew from "../../../assets/data/crew.json";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-settings-page",
@@ -79,7 +80,8 @@ export class SettingsPageComponent implements OnInit {
     private _metaTagService: MetaTagService,
     public appSettings: AppSettingsService,
     private _uiLanguageService: UiLanguageService,
-    public ageAssurance: AgeAssuranceService
+    public ageAssurance: AgeAssuranceService,
+    private _analytics: AnalyticsService
   ) {}
   languageCodes = languageCodes;
 
@@ -138,6 +140,19 @@ export class SettingsPageComponent implements OnInit {
   newPassword: string = "";
   confirmNewPassword: string = "";
   isChangingPassword: boolean = false;
+
+  trackOutboundLinkClick(
+    linkType: string,
+    url: string,
+    ctaLabel: string,
+  ): void {
+    this._analytics.trackOutboundLinkClick(
+      "settings_page",
+      linkType,
+      url,
+      ctaLabel,
+    );
+  }
 
   deleteAccountPassword: string = "";
   isDeletingAccount: boolean = false;

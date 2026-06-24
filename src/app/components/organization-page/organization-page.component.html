@@ -75,6 +75,7 @@
                       [href]="$safeNavigationMigration(organization()?.website_url)"
                       target="_blank"
                       rel="noopener noreferrer nofollow"
+                      (click)="trackOrganizationWebsiteClick()"
                     >
                       <mat-icon>open_in_new</mat-icon>
                       <span i18n>Website</span>
@@ -99,6 +100,7 @@
                   <a
                     [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
                     class="organization-spot-link"
+                    (click)="trackOrganizationSpotClick(spot, 'stewarded')"
                   >
                     <app-spot-preview-card
                       [spotData]="spot"
@@ -129,6 +131,7 @@
                   <a
                     [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
                     class="organization-spot-link"
+                    (click)="trackOrganizationSpotClick(spot, 'managed')"
                   >
                     <app-spot-preview-card
                       [spotData]="spot"
@@ -159,6 +162,7 @@
                   <a
                     [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
                     class="organization-spot-link"
+                    (click)="trackOrganizationSpotClick(spot, 'used')"
                   >
                     <app-spot-preview-card
                       [spotData]="spot"
@@ -189,6 +193,7 @@
                   <a
                     class="organization-member"
                     [routerLink]="['/u', member.user.uid]"
+                    (click)="trackOrganizationMemberClick(member)"
                   >
                     @if (member.user.profile_picture) {
                       <img

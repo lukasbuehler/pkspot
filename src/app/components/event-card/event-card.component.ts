@@ -23,6 +23,7 @@ import {
   eventStatusLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-event-card",
@@ -42,6 +43,7 @@ import {
 })
 export class EventCardComponent {
   private _locale = inject<LocaleCode>(LOCALE_ID);
+  private _analytics = inject(AnalyticsService);
 
   event = input.required<PkEvent>();
   seriesById = input<Record<string, SeriesDocument>>({});
@@ -94,7 +96,22 @@ export class EventCardComponent {
     }
 
     event.preventDefault();
+    this.trackEventCardClick("panel_select");
     this.select.emit(this.event());
+  }
+
+  trackEventCardClick(action: "navigate" | "panel_select"): void {
+    const event = this.event();
+    this._analytics.trackEvent("event_card_clicked", {
+      event_id: event.id,
+      event_slug: event.slug ?? null,
+      event_name: event.name,
+      event_status: event.status(),
+      action,
+      select_mode: this.selectMode(),
+      is_promoted: event.isPromoted,
+      external_provider: event.externalSource?.provider ?? null,
+    });
   }
 
   private _seriesShortLabel(label: string): string {

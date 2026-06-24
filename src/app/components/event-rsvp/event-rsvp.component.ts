@@ -19,6 +19,7 @@ import {
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-event-rsvp",
@@ -37,6 +38,7 @@ export class EventRsvpComponent {
   private _injector = inject(Injector);
   private _eventsService?: EventsService;
   private _authService?: AuthenticationService;
+  private _analytics = inject(AnalyticsService);
   private _loadVersion = 0;
 
   readonly eventId = input<string | null>(null);
@@ -105,6 +107,12 @@ export class EventRsvpComponent {
 
     const previousSelected = this.selectedRsvp();
     const previousLoaded = this.loadedRsvp();
+    this._analytics.trackEvent("event_rsvp_selected", {
+      event_id: eventId,
+      rsvp: next,
+      previous_rsvp: previousSelected,
+      was_loaded_rsvp: previousLoaded === next,
+    });
     this.selectedRsvp.set(next);
     this.errorMessage.set("");
     this.isSaving.set(true);
@@ -112,6 +120,10 @@ export class EventRsvpComponent {
     try {
       await this._events().setMyRsvp(eventId, next);
       this.loadedRsvp.set(next);
+      this._analytics.trackEvent("event_rsvp_saved", {
+        event_id: eventId,
+        rsvp: next,
+      });
     } catch (err) {
       console.error("Failed to save event RSVP", err);
       this.selectedRsvp.set(previousSelected);
@@ -119,6 +131,10 @@ export class EventRsvpComponent {
       this.errorMessage.set(
         $localize`:@@event_rsvp.save_failed:Couldn't save your response. Try again in a moment.`,
       );
+      this._analytics.trackEvent("event_rsvp_save_failed", {
+        event_id: eventId,
+        rsvp: next,
+      });
     } finally {
       this.isSaving.set(false);
     }
@@ -130,6 +146,10 @@ export class EventRsvpComponent {
 
     const previousSelected = this.selectedRsvp();
     const previousLoaded = this.loadedRsvp();
+    this._analytics.trackEvent("event_rsvp_clear_clicked", {
+      event_id: eventId,
+      previous_rsvp: previousSelected,
+    });
     this.selectedRsvp.set(null);
     this.errorMessage.set("");
     this.isSaving.set(true);
@@ -137,6 +157,10 @@ export class EventRsvpComponent {
     try {
       await this._events().clearMyRsvp(eventId);
       this.loadedRsvp.set(null);
+      this._analytics.trackEvent("event_rsvp_cleared", {
+        event_id: eventId,
+        previous_rsvp: previousLoaded,
+      });
     } catch (err) {
       console.error("Failed to clear event RSVP", err);
       this.selectedRsvp.set(previousSelected);
@@ -144,9 +168,36 @@ export class EventRsvpComponent {
       this.errorMessage.set(
         $localize`:@@event_rsvp.clear_failed:Couldn't clear your response. Try again in a moment.`,
       );
+      this._analytics.trackEvent("event_rsvp_clear_failed", {
+        event_id: eventId,
+        previous_rsvp: previousLoaded,
+      });
     } finally {
       this.isSaving.set(false);
     }
+  }
+
+  trackRsvpMenuOpened(): void {
+    const eventId = this.eventId();
+    if (!eventId) {
+      return;
+    }
+
+    this._analytics.trackEvent("event_rsvp_menu_opened", {
+      event_id: eventId,
+      current_rsvp: this.selectedRsvp(),
+    });
+  }
+
+  trackRsvpSignInClicked(): void {
+    const eventId = this.eventId();
+    if (!eventId) {
+      return;
+    }
+
+    this._analytics.trackEvent("event_rsvp_sign_in_clicked", {
+      event_id: eventId,
+    });
   }
 
   private async _loadRsvp(eventId: string): Promise<void> {

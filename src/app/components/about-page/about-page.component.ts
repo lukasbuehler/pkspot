@@ -16,6 +16,10 @@ import { NgOptimizedImage, isPlatformBrowser } from "@angular/common";
 import { RouterLinkWithHref } from "@angular/router";
 import { APP_LINKS } from "../../shared/app-links";
 import { PlatformService } from "../../services/platform.service";
+import {
+  AnalyticsService,
+  ContactChannel,
+} from "../../services/analytics.service";
 import crew from "../../../assets/data/crew.json";
 
 interface Partner {
@@ -45,9 +49,44 @@ export class AboutPageComponent implements AfterViewInit, OnDestroy {
   readonly appLinks = APP_LINKS;
   readonly crew = crew;
   private readonly platformService = inject(PlatformService);
+  private readonly analytics = inject(AnalyticsService);
 
   openPKSpotinAppStore(): void {
+    this.analytics.trackEvent("app_store_cta_clicked", {
+      surface: "about_page",
+      cta_id: "about_app_icon",
+    });
     this.platformService.openPKSpotinAppStore();
+  }
+
+  trackOutboundLinkClick(
+    linkType: string,
+    url: string,
+    ctaLabel: string,
+    properties?: Record<string, unknown>,
+  ): void {
+    this.analytics.trackOutboundLinkClick(
+      "about_page",
+      linkType,
+      url,
+      ctaLabel,
+      properties,
+    );
+  }
+
+  trackContactChannelClick(channel: ContactChannel, ctaId: string): void {
+    this.analytics.trackContactChannelClick(channel, "about_page", {
+      cta_id: ctaId,
+      topic: channel === "contact_form" ? "crew" : null,
+    });
+  }
+
+  trackInternalCtaClick(ctaId: string, destination: string): void {
+    this.analytics.trackEvent("internal_cta_clicked", {
+      surface: "about_page",
+      cta_id: ctaId,
+      destination,
+    });
   }
 
   // Base partners data

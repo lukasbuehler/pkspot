@@ -30,6 +30,7 @@
             [href]="discordUrl"
             target="_blank"
             class="mt-auto"
+            (click)="trackContactChannelClick('discord', 'support_card_discord')"
           >
             <img
               src="assets/logos/discord_white.svg"
@@ -53,6 +54,7 @@
             mat-stroked-button
             routerLink="/contact"
             class="mt-auto"
+            (click)="trackContactChannelClick('contact_form', 'support_card_contact_form')"
           >
             <mat-icon>email</mat-icon>
             <span i18n>Contact us</span>
@@ -73,6 +75,7 @@
             [href]="instagramUrl"
             target="_blank"
             class="mt-auto"
+            (click)="trackContactChannelClick('instagram', 'support_card_instagram')"
           >
             <img
               src="assets/logos/instagram.svg"
@@ -117,7 +120,11 @@
           <mat-icon>info</mat-icon>
           <span i18n>About PK Spot</span>
         </a>
-        <a mat-stroked-button routerLink="/contact">
+        <a
+          mat-stroked-button
+          routerLink="/contact"
+          (click)="trackContactChannelClick('contact_form', 'support_quick_link_contact')"
+        >
           <mat-icon>email</mat-icon>
           <span i18n>Contact us</span>
         </a>
@@ -133,6 +140,7 @@
           mat-stroked-button
           href="https://github.com/lukasbuehler/pkspot"
           target="_blank"
+          (click)="trackOutboundLinkClick('github', 'https://github.com/lukasbuehler/pkspot', 'GitHub')"
         >
           <img src="assets/logos/github.svg" alt="" class="btn-icon me-2" />
           <span i18n>GitHub</span>
@@ -143,7 +151,12 @@
     <footer class="d-flex flex-column align-items-center">
       <p class="mat-body-large" i18n>
         Can't find what you're looking for?
-        <a [href]="discordUrl" target="_blank">Join our Discord</a>
+        <a
+          [href]="discordUrl"
+          target="_blank"
+          (click)="trackContactChannelClick('discord', 'support_footer_discord')"
+          >Join our Discord</a
+        >
         and we'll help you out!
       </p>
     </footer>

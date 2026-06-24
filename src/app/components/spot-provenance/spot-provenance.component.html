@@ -13,6 +13,7 @@
       [href]="importViewerUrl()!"
       target="_blank"
       rel="noopener noreferrer"
+      (click)="trackSourceLinkClick('import_viewer', importViewerUrl())"
       i18n="@@openMapSourceButtonLabel"
       >Open Map</a
     >
@@ -22,6 +23,7 @@
       [href]="sourceUrl()!"
       target="_blank"
       rel="noopener noreferrer"
+      (click)="trackSourceLinkClick('source', sourceUrl())"
       i18n
       >View source</a
     >
@@ -31,6 +33,7 @@
       [href]="instagramUrl()!"
       target="_blank"
       rel="noopener noreferrer"
+      (click)="trackSourceLinkClick('instagram', instagramUrl())"
       i18n
       >Instagram</a
     >
@@ -47,6 +50,7 @@
     href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
     target="_blank"
     rel="noopener noreferrer"
+    (click)="trackSourceLinkClick('license', 'https://creativecommons.org/licenses/by-nc-sa/4.0/')"
     >CC BY-NC-SA 4.0</a
   >
   license.

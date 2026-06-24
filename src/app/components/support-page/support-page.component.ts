@@ -5,6 +5,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { RouterLink } from "@angular/router";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { AnalyticsService, ContactChannel } from "../../services/analytics.service";
 
 interface FaqItem {
   question: string;
@@ -32,6 +33,7 @@ interface FaqCategory {
 })
 export class SupportPageComponent implements OnInit {
   private readonly _metaTagService = inject(MetaTagService);
+  private readonly _analytics = inject(AnalyticsService);
 
   ngOnInit(): void {
     this._metaTagService.setStaticPageMetaTags(
@@ -120,4 +122,23 @@ export class SupportPageComponent implements OnInit {
 
   readonly discordUrl = "https://discord.gg/Th5vx4KnQb";
   readonly instagramUrl = "https://instagram.com/pkspot.app";
+
+  trackContactChannelClick(channel: ContactChannel, ctaId: string): void {
+    this._analytics.trackContactChannelClick(channel, "support_page", {
+      cta_id: ctaId,
+    });
+  }
+
+  trackOutboundLinkClick(
+    linkType: string,
+    url: string,
+    ctaLabel: string,
+  ): void {
+    this._analytics.trackOutboundLinkClick(
+      "support_page",
+      linkType,
+      url,
+      ctaLabel,
+    );
+  }
 }

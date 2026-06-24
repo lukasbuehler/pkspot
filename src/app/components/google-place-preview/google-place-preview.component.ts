@@ -1,15 +1,12 @@
 import {
   Component,
-  Input,
-  OnChanges,
-  OnDestroy,
   computed,
   inject,
   signal,
   LOCALE_ID,
   effect,
   input,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import { CommonModule, NgOptimizedImage } from "@angular/common";
 import {
@@ -26,10 +23,10 @@ import { MatButtonModule } from "@angular/material/button";
 
 import { AnalyticsService } from "../../services/analytics.service";
 import { getGooglePlaceOpeningHoursStatus } from "../../shared/google-place-opening-hours";
+import { PlatformService } from "../../services/platform.service";
 
 @Component({
   selector: "app-google-place-preview",
-  standalone: true,
   imports: [
     CommonModule,
     MatCard,
@@ -46,9 +43,10 @@ import { getGooglePlaceOpeningHoursStatus } from "../../shared/google-place-open
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ["./google-place-preview.component.scss"],
 })
-export class GooglePlacePreviewComponent implements OnDestroy {
+export class GooglePlacePreviewComponent {
   private _maps = inject(MapsApiService);
   private _analytics = inject(AnalyticsService);
+  private _platform = inject(PlatformService);
   private _locale: string = inject(LOCALE_ID);
 
   placeId = input<string | null | undefined>(undefined);
@@ -60,7 +58,7 @@ export class GooglePlacePreviewComponent implements OnDestroy {
 
   photoUrl = computed(() => {
     const p = this.place();
-    if (!p) return null;
+    if (!p || this._isIosWebKit()) return null;
     try {
       return this._maps.getPhotoURLOfGooglePlace(p, 300, 200);
     } catch {
@@ -149,16 +147,11 @@ export class GooglePlacePreviewComponent implements OnDestroy {
 
   constructor() {
     effect(() => {
-      const isApiLoaded = this._maps.isApiLoaded();
-      const id = this.placeId();
-
-      if (isApiLoaded) {
+      if (this._maps.isApiLoaded()) {
         this._loadDetails();
       }
     });
   }
-
-  ngOnDestroy(): void {}
 
   private async _loadDetails() {
     const id = this.placeId();
@@ -182,15 +175,33 @@ export class GooglePlacePreviewComponent implements OnDestroy {
         this.loading.set(true);
         const details = await this._maps.getGooglePlaceById(id);
         this.place.set(details);
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.warn("Failed to load Google Place details", e);
         this.error.set(
-          typeof e === "string" ? e : e?.message ?? "Failed to load"
+          typeof e === "string"
+            ? e
+            : e instanceof Error
+              ? e.message
+              : "Failed to load"
         );
         this.place.set(null);
       } finally {
         this.loading.set(false);
       }
     }
+  }
+
+  private _isIosWebKit(): boolean {
+    if (this._platform.getPlatform() === "ios") {
+      return true;
+    }
+    if (typeof navigator === "undefined") {
+      return false;
+    }
+
+    return (
+      /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    );
   }
 }

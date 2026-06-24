@@ -104,6 +104,6 @@ describe("MapPageComponent search template", () => {
     expect(controls).toBeDefined();
     expect(controls).toContain("isSignedIn()");
     expect(controls).toContain("spotMap.mapZoom() >= 14");
-    expect(controls).toContain('(createSpot)="spotMap.createSpot()"');
+    expect(controls).toContain('(createSpot)="onCreateSpot()"');
   });
 });

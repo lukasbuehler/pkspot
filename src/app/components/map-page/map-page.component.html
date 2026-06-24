@@ -207,10 +207,10 @@
           (bottomSheetOpen() || bottomSheetProgress() > 0)
         )
       "
-      (resetNorth)="spotMap.resetMapOrientation()"
-      (toggleMapStyle)="spotMap.toggleMapStyle()"
-      (focusGeolocation)="spotMap.focusOnGeolocation()"
-      (createSpot)="spotMap.createSpot()"
+      (resetNorth)="onResetNorth()"
+      (toggleMapStyle)="onToggleMapStyle()"
+      (focusGeolocation)="onFocusGeolocation()"
+      (createSpot)="onCreateSpot()"
     ></app-map-floating-controls>
   }
 </ng-template>

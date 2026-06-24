@@ -21,6 +21,7 @@ import {
 import { MatRadioModule } from "@angular/material/radio";
 import { FormsModule } from "@angular/forms";
 import { SpotReportsService } from "../../services/firebase/firestore/spot-reports.service.js";
+import { AnalyticsService } from "../../services/analytics.service";
 @Component({
   selector: "app-spot-report-dialog",
   imports: [
@@ -43,6 +44,7 @@ export class SpotReportDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<SpotReportDialogComponent>,
     private _spotReportsService: SpotReportsService,
+    private _analytics: AnalyticsService,
     @Inject(MAT_DIALOG_DATA) public data: SpotReportSchema
   ) {}
 
@@ -55,10 +57,20 @@ export class SpotReportDialogComponent {
       return;
     }
 
+    this._analytics.trackEvent("spot_report_submit_clicked", {
+      spot_id: this.data.spot.id,
+      reason: this.data.reason,
+    });
     this.isSubmitting.set(true);
     try {
       const reportId = await this._spotReportsService.addSpotReport(this.data);
       this.dialogRef.close({ report: this.data, reportId });
+    } catch (error) {
+      this._analytics.trackEvent("spot_report_submit_failed", {
+        spot_id: this.data.spot.id,
+        reason: this.data.reason,
+      });
+      throw error;
     } finally {
       this.isSubmitting.set(false);
     }

@@ -30,6 +30,7 @@ import { UiLanguageService } from "../../services/ui-language.service";
 import { languageCodes } from "../../../scripts/Languages";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-sign-in-page",
@@ -56,6 +57,7 @@ import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focu
 export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly uiLanguage = inject(UiLanguageService);
   private readonly _metaTagService = inject(MetaTagService);
+  private readonly _analytics = inject(AnalyticsService);
 
   @ViewChild(OAuthSignInButtonsComponent)
   oauthButtons?: OAuthSignInButtonsComponent;
@@ -172,6 +174,10 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
     if (this.signInForm?.invalid) {
       this.signInForm.markAllAsTouched();
+      this._analytics.trackEvent("auth_email_sign_in_invalid", {
+        email_invalid: this.signInForm.controls["email"].invalid,
+        password_invalid: this.signInForm.controls["password"].invalid,
+      });
       return;
     }
 
@@ -182,9 +188,11 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.isSubmitting.set(true);
     this.signInError.set("");
+    this._analytics.trackEvent("auth_email_sign_in_attempted");
 
     this._authService.signInEmailPassword(email, password).then(
       () => {
+        this._analytics.trackEvent("auth_email_sign_in_succeeded");
         // login and return the user to where they were
         this._router.navigateByUrl(this._returnUrl);
       },
@@ -193,6 +201,9 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
         console.error(err);
         const code = this._getAuthErrorCode(err);
         this.signInError.set(this._getSignInErrorMessage(code));
+        this._analytics.trackEvent("auth_email_sign_in_failed", {
+          error_code: code ?? null,
+        });
         this.isSubmitting.set(false);
       },
     );

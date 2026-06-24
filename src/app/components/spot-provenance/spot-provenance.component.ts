@@ -11,6 +11,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { ImportSchema } from "../../../db/schemas/ImportSchema";
 import { ImportsService } from "../../services/firebase/firestore/imports.service";
+import { AnalyticsService } from "../../services/analytics.service";
 
 type ImportDocument = ImportSchema & { id: string };
 
@@ -25,6 +26,7 @@ export class SpotProvenanceComponent {
   spot = input<Spot | LocalSpot | null>(null);
 
   private _importsService = inject(ImportsService);
+  private _analytics = inject(AnalyticsService);
   private _importLookupRequestId = 0;
   private _importDoc = signal<ImportDocument | null>(null);
 
@@ -84,6 +86,19 @@ export class SpotProvenanceComponent {
     this._safeExternalUrl(this._importDoc()?.credits?.instagram_url)
   );
 
+  trackSourceLinkClick(
+    linkType: "import_viewer" | "source" | "instagram" | "license",
+    url: string | null | undefined
+  ): void {
+    const spot = this.spot();
+    this._analytics.trackEvent("spot_source_link_clicked", {
+      spot_id: spot instanceof Spot ? spot.id : null,
+      link_type: linkType,
+      source_name: this.sourceDisplayText() || null,
+      destination_domain: this._destinationDomain(url),
+    });
+  }
+
   constructor() {
     effect(() => {
       const requestId = ++this._importLookupRequestId;
@@ -131,5 +146,17 @@ export class SpotProvenanceComponent {
 
   private _isLikelyUrl(value: string): boolean {
     return this._safeExternalUrl(value) !== null;
+  }
+
+  private _destinationDomain(url: string | null | undefined): string | null {
+    if (!url) {
+      return null;
+    }
+
+    try {
+      return new URL(url).hostname || null;
+    } catch {
+      return null;
+    }
   }
 }

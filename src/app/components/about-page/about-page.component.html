@@ -66,13 +66,19 @@
         </div>
       </div>
       <div class="d-flex gap-3 mt-2 flex-wrap align-items-center">
-        <a mat-stroked-button [routerLink]="['/map']" i18n>
+        <a
+          mat-stroked-button
+          [routerLink]="['/map']"
+          (click)="trackInternalCtaClick('about_explore_map', '/map')"
+          i18n
+        >
           <mat-icon>search</mat-icon> Explore the Map
         </a>
         <a
           mat-stroked-button
           href="https://instagram.com/pkspot.app"
           target="_blank"
+          (click)="trackContactChannelClick('instagram', 'about_follow_instagram')"
           i18n
         >
           <img
@@ -118,6 +124,7 @@
           mat-stroked-button
           [href]="appLinks.appleAppStoreUrl"
           target="_blank"
+          (click)="trackOutboundLinkClick('app_store', appLinks.appleAppStoreUrl, 'App Store')"
           i18n
         >
           <img
@@ -132,6 +139,7 @@
           mat-stroked-button
           [href]="appLinks.googlePlayStoreUrl"
           target="_blank"
+          (click)="trackOutboundLinkClick('app_store', appLinks.googlePlayStoreUrl, 'Google Play')"
           i18n
         >
           <img
@@ -168,6 +176,7 @@
               — All community spot data is
               <a
                 href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en"
+                (click)="trackOutboundLinkClick('license', 'https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en', 'CC BY-NC-SA 4.0')"
                 >CC BY-NC-SA 4.0</a
               >
               licensed. Open, shareable, yours forever.
@@ -180,7 +189,10 @@
             <strong i18n>Open Source</strong>
             <span class="mat-body-medium" i18n>
               — No black-box algorithms, no hidden tracking.
-              <a href="https://github.com/lukasbuehler/pkspot">View on GitHub</a
+              <a
+                href="https://github.com/lukasbuehler/pkspot"
+                (click)="trackOutboundLinkClick('github', 'https://github.com/lukasbuehler/pkspot', 'View on GitHub')"
+                >View on GitHub</a
               >.
             </span>
           </div>
@@ -192,7 +204,11 @@
             <span class="mat-body-medium" i18n>
               — We never sell your data. No tracking cookies, no shady ad
               networks.
-              <a routerLink="/privacy-policy">Privacy Policy</a>.
+              <a
+                routerLink="/privacy-policy"
+                (click)="trackInternalCtaClick('about_privacy_policy', '/privacy-policy')"
+                >Privacy Policy</a
+              >.
             </span>
           </div>
         </div>
@@ -216,7 +232,12 @@
       <div class="carousel-container">
         <div class="carousel-track" #carouselTrack>
           @for (partner of partners; track $index) {
-            <a [href]="partner.url" class="partner-link" target="_blank">
+            <a
+              [href]="partner.url"
+              class="partner-link"
+              target="_blank"
+              (click)="trackOutboundLinkClick('partner', partner.url, partner.name, { partner_name: partner.name })"
+            >
               <div
                 class="partner-logo position-relative object-fit-contain"
                 [class]="partner.logoClass"
@@ -258,7 +279,12 @@
             @if (member.socials && member.socials.length) {
               <div class="team-socials">
                 @for (social of member.socials; track social.url) {
-                  <a [href]="social.url" target="_blank" [attr.aria-label]="social.type">
+                  <a
+                    [href]="social.url"
+                    target="_blank"
+                    [attr.aria-label]="social.type"
+                    (click)="trackOutboundLinkClick('crew_social', social.url, social.type, { crew_member: member.name, social_type: social.type })"
+                  >
                     @if (social.type === 'instagram') {
                       <img src="assets/logos/instagram.svg" alt="" />
                     } @else if (social.type === 'github') {
@@ -279,6 +305,7 @@
           color="primary"
           routerLink="/contact"
           [queryParams]="{ topic: 'crew' }"
+          (click)="trackContactChannelClick('contact_form', 'about_join_us')"
         >
           <mat-icon>groups</mat-icon>
           <span i18n="@@about.crew.contact_button">Join us</span>
@@ -298,25 +325,53 @@
         — we are happy to have you on board.
       </p>
       <div class="d-flex gap-3">
-        <a matButton="filled" color="accent" routerLink="/" i18n>
+        <a
+          matButton="filled"
+          color="accent"
+          routerLink="/"
+          (click)="trackInternalCtaClick('about_start_exploring', '/')"
+          i18n
+        >
           Start Exploring
         </a>
-        <a matButton="filled" color="primary" [routerLink]="['/sign-up']" i18n>
+        <a
+          matButton="filled"
+          color="primary"
+          [routerLink]="['/sign-up']"
+          (click)="trackInternalCtaClick('about_sign_up', '/sign-up')"
+          i18n
+        >
           Sign Up
         </a>
       </div>
 
       <div class="socials">
-        <a href="https://instagram.com/pkspot.app" matIconButton>
+        <a
+          href="https://instagram.com/pkspot.app"
+          matIconButton
+          (click)="trackContactChannelClick('instagram', 'about_footer_instagram')"
+        >
           <img src="assets/logos/instagram.svg" alt="" />
         </a>
-        <a href="https://tiktok.com/@parkourspot" matIconButton>
+        <a
+          href="https://tiktok.com/@parkourspot"
+          matIconButton
+          (click)="trackOutboundLinkClick('social', 'https://tiktok.com/@parkourspot', 'TikTok')"
+        >
           <img src="assets/logos/tiktok.svg" alt="" />
         </a>
-        <a matIconButton href="https://discord.gg/Th5vx4KnQb">
+        <a
+          matIconButton
+          href="https://discord.gg/Th5vx4KnQb"
+          (click)="trackContactChannelClick('discord', 'about_footer_discord')"
+        >
           <img src="assets/logos/discord_white.svg" alt="" />
         </a>
-        <a href="https://github.com/lukasbuehler/pkspot" matIconButton>
+        <a
+          href="https://github.com/lukasbuehler/pkspot"
+          matIconButton
+          (click)="trackOutboundLinkClick('github', 'https://github.com/lukasbuehler/pkspot', 'GitHub')"
+        >
           <img src="assets/logos/github.svg" alt="" />
         </a>
       </div>
@@ -332,8 +387,18 @@
           >Terms of Service</a
         >
         <a routerLink="/privacy-policy" i18n="@@policy.long">Privacy Policy</a>
-        <a routerLink="/support" i18n>Support</a>
-        <a routerLink="/contact" i18n>Contact</a>
+        <a
+          routerLink="/support"
+          (click)="trackInternalCtaClick('about_footer_support', '/support')"
+          i18n
+          >Support</a
+        >
+        <a
+          routerLink="/contact"
+          (click)="trackContactChannelClick('contact_form', 'about_footer_contact')"
+          i18n
+          >Contact</a
+        >
         <a routerLink="/impressum">Impressum</a>
       </div>
     </footer>

@@ -7,7 +7,11 @@
     <ng-container [ngTemplateOutlet]="card"></ng-container>
   </a>
 } @else {
-  <a [routerLink]="route()" class="event-card-action">
+  <a
+    [routerLink]="route()"
+    class="event-card-action"
+    (click)="trackEventCardClick('navigate')"
+  >
     <ng-container [ngTemplateOutlet]="card"></ng-container>
   </a>
 }

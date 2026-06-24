@@ -26,6 +26,7 @@ import { MatFormField, MatFormFieldModule } from "@angular/material/form-field";
 import { FormsModule } from "@angular/forms";
 import { MatInput, MatInputModule } from "@angular/material/input";
 import { LocaleCode } from "../../../db/models/Interfaces";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-spot-review-dialog",
@@ -65,7 +66,8 @@ export class SpotReviewDialogComponent {
     @Inject(MAT_DIALOG_DATA)
     public data: { review: SpotReviewSchema; isUpdate: boolean },
     @Inject(LOCALE_ID) public locale: LocaleCode,
-    private _spotReviewsService: SpotReviewsService
+    private _spotReviewsService: SpotReviewsService,
+    private _analytics: AnalyticsService
   ) {
     this.review = data.review;
     this.isUpdate = data.isUpdate;
@@ -84,13 +86,31 @@ export class SpotReviewDialogComponent {
       locale: this.locale,
     };
 
+    this._analytics.trackEvent("spot_review_submit_clicked", {
+      spot_id: this.review.spot.id,
+      rating: this.review.rating,
+      is_update: this.isUpdate,
+      has_comment: this.reviewComment().trim().length > 0,
+      comment_length: this.reviewComment().trim().length,
+    });
     this._spotReviewsService
       .updateSpotReview(this.review)
       .then(() => {
+        this._analytics.trackEvent("spot_review_submitted", {
+          spot_id: this.review.spot.id,
+          rating: this.review.rating,
+          is_update: this.isUpdate,
+          has_comment: this.reviewComment().trim().length > 0,
+        });
         // this.dialogref.close();
       })
       .catch((err) => {
         console.error(err);
+        this._analytics.trackEvent("spot_review_submit_failed", {
+          spot_id: this.review.spot.id,
+          rating: this.review.rating,
+          is_update: this.isUpdate,
+        });
       });
   }
 }

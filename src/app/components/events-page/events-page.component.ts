@@ -23,6 +23,7 @@ import {
   SeriesService,
 } from "../../services/firebase/firestore/series.service";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-events-page",
@@ -43,6 +44,7 @@ export class EventsPageComponent implements OnInit {
   private _seriesService = inject(SeriesService);
   private _route = inject(ActivatedRoute, { optional: true });
   private _router = inject(Router, { optional: true });
+  private _analytics = inject(AnalyticsService);
 
   /** Shows the "+ Create event" button only to admins. */
   readonly isAdmin = computed(() => this._authService.isAdmin());
@@ -173,11 +175,19 @@ export class EventsPageComponent implements OnInit {
   }
 
   toggleSeriesFilter(seriesId: string): void {
+    const wasSelected = this.selectedSeriesIds().includes(seriesId);
     this.selectedSeriesIds.update((selected) =>
-      selected.includes(seriesId)
+      wasSelected
         ? selected.filter((id) => id !== seriesId)
         : [...selected, seriesId],
     );
+    this._analytics.trackEvent("events_filter_changed", {
+      filter_type: "series",
+      value: seriesId,
+      enabled: !wasSelected,
+      selected_series_count: this.selectedSeriesIds().length,
+      selected_category_count: this.selectedCategories().length,
+    });
     void this._updateFilterQueryParams();
   }
 
@@ -187,15 +197,26 @@ export class EventsPageComponent implements OnInit {
 
   clearSeriesFilters(): void {
     this.selectedSeriesIds.set([]);
+    this._analytics.trackEvent("events_filter_cleared", {
+      filter_type: "series",
+    });
     void this._updateFilterQueryParams();
   }
 
   toggleCategoryFilter(category: EventCategory): void {
+    const wasSelected = this.selectedCategories().includes(category);
     this.selectedCategories.update((selected) =>
-      selected.includes(category)
+      wasSelected
         ? selected.filter((item) => item !== category)
         : [...selected, category],
     );
+    this._analytics.trackEvent("events_filter_changed", {
+      filter_type: "category",
+      value: category,
+      enabled: !wasSelected,
+      selected_series_count: this.selectedSeriesIds().length,
+      selected_category_count: this.selectedCategories().length,
+    });
     void this._updateFilterQueryParams();
   }
 
@@ -205,7 +226,16 @@ export class EventsPageComponent implements OnInit {
 
   clearCategoryFilters(): void {
     this.selectedCategories.set([]);
+    this._analytics.trackEvent("events_filter_cleared", {
+      filter_type: "category",
+    });
     void this._updateFilterQueryParams();
+  }
+
+  trackCreateEventClick(): void {
+    this._analytics.trackEvent("event_create_clicked", {
+      surface: "events_page",
+    });
   }
 
   categoryLabel(category: EventCategory): string {

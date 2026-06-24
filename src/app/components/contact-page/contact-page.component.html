@@ -24,7 +24,7 @@
             Thanks for reaching out. We will get back to you through the contact
             info you shared.
           </p>
-          <button mat-stroked-button type="button" (click)="submitted.set(false)">
+          <button mat-stroked-button type="button" (click)="sendAnotherMessage()">
             <mat-icon>email</mat-icon>
             <span i18n="@@contact.success.send_another">Send another</span>
           </button>
@@ -139,7 +139,12 @@
           <p class="mat-body-medium" i18n="@@contact.instagram.body">
             Quick question or casual hello? You can also reach us on Instagram.
           </p>
-          <a mat-stroked-button [href]="instagramUrl" target="_blank">
+          <a
+            mat-stroked-button
+            [href]="instagramUrl"
+            target="_blank"
+            (click)="trackContactChannelClick('instagram')"
+          >
             <img src="assets/logos/instagram.svg" alt="" />
             <span i18n="@@contact.instagram.link">@pkspot.app</span>
           </a>
@@ -155,7 +160,12 @@
           <p class="mat-body-medium" i18n="@@contact.discord.body">
             Prefer a community chat? Join the Discord and say hello there.
           </p>
-          <a mat-stroked-button [href]="discordUrl" target="_blank">
+          <a
+            mat-stroked-button
+            [href]="discordUrl"
+            target="_blank"
+            (click)="trackContactChannelClick('discord')"
+          >
             <img src="assets/logos/discord_white.svg" alt="" />
             <span i18n="@@contact.discord.link">Join Discord</span>
           </a>

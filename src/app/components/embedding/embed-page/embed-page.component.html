@@ -21,7 +21,7 @@
           <mat-label i18n>Event</mat-label>
           <mat-select
             [ngModel]="eventId()"
-            (ngModelChange)="eventId.set($event)"
+            (ngModelChange)="onEventSelectionChange($event)"
             [disabled]="eventsLoading() || events().length === 0"
           >
             @for (event of events(); track event.id) {
@@ -43,7 +43,10 @@
         <!-- General settings -->
         <mat-form-field class="w-100 mb-3" appearance="outline">
           <mat-label i18n>Language</mat-label>
-          <mat-select [(ngModel)]="embedLanguage">
+          <mat-select
+            [ngModel]="embedLanguage()"
+            (ngModelChange)="onLanguageChange($event)"
+          >
             <mat-option value="auto">Automatic</mat-option>
             @for(code of supportedLanguageCodes; track $index) {
             <mat-option [value]="code"
@@ -54,18 +57,30 @@
         </mat-form-field>
 
         @switch (tab()) { @case ("map") {
-        <mat-slide-toggle [(ngModel)]="showSatelliteToggle" i18n
+        <mat-slide-toggle
+          [ngModel]="showSatelliteToggle()"
+          (change)="onShowSatelliteToggleChange($event)"
+          i18n
           >Show satellite toggle</mat-slide-toggle
         >
-        <mat-slide-toggle [(ngModel)]="showGeolocation" i18n
+        <mat-slide-toggle
+          [ngModel]="showGeolocation()"
+          (change)="onShowGeolocationChange($event)"
+          i18n
           >Show geolocation</mat-slide-toggle
         >
         } @case ("event") {
-        <mat-slide-toggle [(ngModel)]="showEventHeader" i18n
+        <mat-slide-toggle
+          [ngModel]="showEventHeader()"
+          (change)="onShowEventHeaderChange($event)"
+          i18n
           >Show Event header</mat-slide-toggle
         >
         } @case ("event-map") {
-        <mat-slide-toggle [(ngModel)]="showEventHeader" i18n
+        <mat-slide-toggle
+          [ngModel]="showEventHeader()"
+          (change)="onShowEventHeaderChange($event)"
+          i18n
           >Show Event header</mat-slide-toggle
         >
         } }
@@ -87,7 +102,11 @@
             <span>Interactive event embed</span>
             <span
               >Event data by
-              <a [href]="publicContentUrl()" target="_blank" rel="noopener"
+              <a
+                [href]="publicContentUrl()"
+                target="_blank"
+                rel="noopener"
+                (click)="trackPublicContentClick()"
                 >PK Spot</a
               ></span
             >
@@ -106,7 +125,11 @@
         consent banner or terms that users agree to before viewing embedded
         content.
       </div>
-      <app-code-block [code]="iframeCode()"></app-code-block>
+      <app-code-block
+        [code]="iframeCode()"
+        analyticsEventName="embed_code_copied"
+        [analyticsProperties]="embedAnalyticsProperties()"
+      ></app-code-block>
     </div>
   </div>
 </div>

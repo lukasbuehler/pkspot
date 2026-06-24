@@ -46,6 +46,7 @@
           [attr.data-rsvp]="selectedRsvp()"
           aria-label="Response"
           i18n-aria-label="@@event_rsvp.group_label"
+          (click)="trackRsvpMenuOpened()"
         >
           @if (!selectedRsvp()) {
             <span class="rsvp-button-label" i18n="@@event_rsvp.prompt"
@@ -111,7 +112,11 @@
           }
         </mat-menu>
       } @else {
-        <a mat-stroked-button routerLink="/sign-in">
+        <a
+          mat-stroked-button
+          routerLink="/sign-in"
+          (click)="trackRsvpSignInClicked()"
+        >
           <mat-icon>login</mat-icon>
           <span i18n="@@event_rsvp.sign_in">Sign in to respond</span>
         </a>

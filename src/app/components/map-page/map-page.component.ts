@@ -2921,6 +2921,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       rating?: number;
     };
   }) {
+    this._analytics.trackEvent("map_search_result_selected", {
+      result_type: value.type,
+      result_id: value.id,
+      has_context_filter: !!this.selectedFilter() || !!this.customFilterParams(),
+      event_filter: this.selectedEventFilter() || null,
+      map_object_mode: this.mapObjectMode(),
+    });
     this.clearSearchPlacePreview();
 
     if (value.type === "place") {
@@ -2993,6 +3000,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   openGooglePlaceById(id: string) {
     this.clearSearchPlacePreview();
+    this._analytics.trackEvent("map_google_place_opened", {
+      place_id: id,
+      source: "search",
+    });
     console.debug("[DEBUG openGooglePlaceById] Opening place with id:", id);
     this.mapsService
       .getGooglePlaceById(id)
@@ -3557,6 +3568,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   filterChipChanged(selectedChip: string) {
+    this._analytics.trackEvent("map_spot_filter_changed", {
+      filter: selectedChip || null,
+      previous_filter: this.selectedFilter() || null,
+      custom_filter_active: !!this.customFilterParams(),
+    });
     if (!selectedChip || selectedChip.length === 0) {
       this._clearSpotFilterState();
       return;
@@ -3699,6 +3715,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   eventFilterChanged(selectedFilter: string): void {
     const filter = this._isMapEventFilter(selectedFilter) ? selectedFilter : "";
+    this._analytics.trackEvent("map_event_filter_changed", {
+      filter: filter || null,
+      previous_filter: this.selectedEventFilter() || null,
+      toggled_off: this.selectedEventFilter() === filter,
+    });
     if (filter && this.mapObjectMode() !== "events") {
       this.mapObjectMode.set("events");
     }
@@ -3712,6 +3733,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * Opens the custom filter dialog and applies the selected filters.
    */
   openCustomFilterDialog(): void {
+    this._analytics.trackEvent("map_custom_filter_opened", {
+      selected_filter: this.selectedFilter() || null,
+      has_existing_custom_filter: !!this.customFilterParams(),
+    });
     if (this.mapObjectMode() === "all") {
       this.mapObjectMode.set("spots");
     }
@@ -3733,11 +3758,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     dialogRef.afterClosed().subscribe((result: CustomFilterParams | null) => {
       if (!result) {
         // User cancelled - do nothing
+        this._analytics.trackEvent("map_custom_filter_cancelled");
         return;
       }
 
       if (!this._hasFilters(result)) {
         // Clear custom filter and reset to no filter
+        this._analytics.trackEvent("map_custom_filter_cleared");
         this.customFilterParams.set(null);
         this.filterChipChanged("");
         return;
@@ -3745,11 +3772,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const matchingPreset = this._getMatchingPresetFilter(result);
       if (matchingPreset) {
+        this._analytics.trackEvent("map_custom_filter_matched_preset", {
+          filter: matchingPreset,
+        });
         this.customFilterParams.set(null);
         this.filterChipChanged(matchingPreset);
         return;
       }
 
+      this._analytics.trackEvent("map_custom_filter_applied", {
+        filter_count: this._countCustomFilterCriteria(result),
+      });
       // Store the custom filter params
       this.customFilterParams.set(this._cloneCustomFilterParams(result));
 
@@ -4111,6 +4144,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this._openInfoPanel();
 
       if (spotChanged) {
+        this._analytics.trackEvent("map_spot_selected", {
+          spot_key: nextSpotKey,
+          previous_spot_key: previousSpotKey,
+          update_url: updateUrl,
+          source: "map",
+        });
         this._debugMapEvent("selectSpotFocus", {
           previousSpotKey,
           nextSpotKey,
@@ -4122,6 +4161,41 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.updateMapURL();
       }
     }
+  }
+
+  onFocusGeolocation(): void {
+    this._analytics.trackEvent("map_geolocation_requested", {
+      has_current_location: !!this.geolocationService.currentLocation(),
+      had_error: !!this.geolocationService.error(),
+    });
+    this.spotMap?.focusOnGeolocation();
+  }
+
+  onCreateSpot(): void {
+    this._analytics.trackEvent("map_create_spot_clicked", {
+      zoom: this._viewport()?.zoom ?? null,
+      map_object_mode: this.mapObjectMode(),
+    });
+    this.spotMap?.createSpot();
+  }
+
+  onResetNorth(): void {
+    this._analytics.trackEvent("map_reset_north_clicked");
+    this.spotMap?.resetMapOrientation();
+  }
+
+  onToggleMapStyle(): void {
+    this._analytics.trackEvent("map_style_toggled");
+    this.spotMap?.toggleMapStyle();
+  }
+
+  private _countCustomFilterCriteria(params: CustomFilterParams): number {
+    return (
+      params.types.length +
+      params.accesses.length +
+      params.amenities_true.length +
+      params.amenities_false.length
+    );
   }
 
   onSpotOpenRequested(spot: Spot | LocalSpot | SpotPreviewData | SpotId): void {

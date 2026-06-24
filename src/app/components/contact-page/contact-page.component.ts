@@ -58,6 +58,7 @@ export class ContactPageComponent implements OnInit {
   private readonly _platformId = inject(PLATFORM_ID);
   private readonly _locale = inject<string>(LOCALE_ID);
   private readonly _destroyRef = inject(DestroyRef);
+  private _trackedFormStarted = false;
 
   readonly instagramUrl = "https://instagram.com/pkspot.app";
   readonly discordUrl = "https://discord.gg/Th5vx4KnQb";
@@ -115,6 +116,7 @@ export class ContactPageComponent implements OnInit {
       topic,
       source_path: this._sourcePath(),
     });
+    this._trackFormStartWhenEdited();
   }
 
   get contactInfoHasError(): boolean {
@@ -132,13 +134,31 @@ export class ContactPageComponent implements OnInit {
       return;
     }
 
+    const sourcePath = this._sourcePath();
+    this._analyticsService.trackEvent("contact_submit_clicked", {
+      topic: this.topic(),
+      source_path: sourcePath,
+      has_contact_info: !!this.contactForm.controls.contactInfo.value.trim(),
+      has_message: !!this.contactForm.controls.message.value.trim(),
+    });
+
     if (this.contactForm.invalid) {
       this.contactForm.markAllAsTouched();
+      this._analyticsService.trackEvent("contact_submit_invalid", {
+        topic: this.topic(),
+        source_path: sourcePath,
+        contact_info_invalid: this.contactForm.controls.contactInfo.invalid,
+        message_invalid: this.contactForm.controls.message.invalid,
+      });
       return;
     }
 
     const value = this.contactForm.getRawValue();
     if (value.website.trim()) {
+      this._analyticsService.trackEvent("contact_honeypot_filled", {
+        topic: this.topic(),
+        source_path: sourcePath,
+      });
       this.submitted.set(true);
       return;
     }
@@ -147,7 +167,6 @@ export class ContactPageComponent implements OnInit {
     this.submitError.set("");
 
     try {
-      const sourcePath = this._sourcePath();
       const messageId =
         await this._contactMessagesService.submitContactMessage({
           message: value.message,
@@ -171,12 +190,31 @@ export class ContactPageComponent implements OnInit {
       });
     } catch (error) {
       console.error("Failed to submit contact message", error);
+      this._analyticsService.trackEvent("contact_submit_failed", {
+        topic: this.topic(),
+        source_path: sourcePath,
+      });
       this.submitError.set(
         $localize`:@@contact.submit.error:Could not send your message. Please try again or reach out on Instagram.`
       );
     } finally {
       this.isSubmitting.set(false);
     }
+  }
+
+  sendAnotherMessage(): void {
+    this._analyticsService.trackEvent("contact_send_another_clicked", {
+      topic: this.topic(),
+      source_path: this._sourcePath(),
+    });
+    this.submitted.set(false);
+  }
+
+  trackContactChannelClick(channel: "contact_form" | "discord" | "instagram") {
+    this._analyticsService.trackContactChannelClick(channel, "contact_page", {
+      topic: this.topic(),
+      source_path: this._sourcePath(),
+    });
   }
 
   private _prefillContactInfoWhenAvailable(): void {
@@ -191,6 +229,30 @@ export class ContactPageComponent implements OnInit {
           return;
         }
         contactInfoControl.setValue(user?.email?.trim() ?? "");
+      });
+  }
+
+  private _trackFormStartWhenEdited(): void {
+    this.contactForm.valueChanges
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe((value) => {
+        if (this._trackedFormStarted) {
+          return;
+        }
+
+        const hasContactInfo = !!value.contactInfo?.trim();
+        const hasMessage = !!value.message?.trim();
+        if (!hasContactInfo && !hasMessage) {
+          return;
+        }
+
+        this._trackedFormStarted = true;
+        this._analyticsService.trackEvent("contact_form_started", {
+          topic: this.topic(),
+          source_path: this._sourcePath(),
+          started_with_contact_info: hasContactInfo,
+          started_with_message: hasMessage,
+        });
       });
   }
 

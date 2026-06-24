@@ -11,6 +11,7 @@
           color="primary"
           routerLink="/events/new"
           class="create-event-fab"
+          (click)="trackCreateEventClick()"
         >
           <mat-icon>calendar_add_on</mat-icon>
           <span i18n="@@events.create">Create event</span>

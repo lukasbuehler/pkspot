@@ -1182,6 +1182,11 @@ export class SpotDetailsComponent
         );
         return;
       }
+      const spot = this.spot();
+      this._analyticsService.trackEvent("spot_edit_opened", {
+        spot_id: spot instanceof Spot ? spot.id : null,
+        is_new_spot: this.isNewSpot,
+      });
       this.isEditing.set(true);
       void this._ensureOrganizationsLoadedForAdmin();
     }
@@ -1193,7 +1198,10 @@ export class SpotDetailsComponent
 
   editHistoryButtonClick() {
     if (this.authenticationService.isSignedIn) {
-      // TODO Open the edit history view
+      const spot = this.spot();
+      this._analyticsService.trackEvent("spot_edit_history_opened", {
+        spot_id: spot instanceof Spot ? spot.id : null,
+      });
     }
   }
 
@@ -1203,6 +1211,11 @@ export class SpotDetailsComponent
       return;
     }
 
+    this._analyticsService.trackEvent("spot_edit_save_clicked", {
+      spot_id: spot instanceof Spot ? spot.id : null,
+      is_new_spot: this.isNewSpot,
+      organization_admin_changes_available: spot instanceof Spot && this.isAdmin(),
+    });
     this.isSaving = true;
 
     if (spot instanceof Spot) {
@@ -1350,6 +1363,11 @@ export class SpotDetailsComponent
   }
 
   discardButtonClick() {
+    const spot = this.spot();
+    this._analyticsService.trackEvent("spot_edit_discarded", {
+      spot_id: spot instanceof Spot ? spot.id : null,
+      is_new_spot: this.isNewSpot,
+    });
     this.discardClick.emit();
     this.isEditing.set(false);
 
@@ -1371,6 +1389,10 @@ export class SpotDetailsComponent
   }
 
   addBoundsClicked() {
+    const spot = this.spot();
+    this._analyticsService.trackEvent("spot_add_bounds_clicked", {
+      spot_id: spot instanceof Spot ? spot.id : null,
+    });
     if (!(this.spot() instanceof Spot)) {
       console.error("the spot needs to be saved first before adding bounds");
     }
@@ -1455,6 +1477,10 @@ export class SpotDetailsComponent
       } else {
         this._bookmarkedSpotIds.delete(spot.id);
       }
+      this._analyticsService.trackEvent("spot_bookmark_toggled", {
+        spot_id: spot.id,
+        enabled: shouldBookmark,
+      });
     } catch (error) {
       this.bookmarked.set(!shouldBookmark);
       console.error("Failed to update saved spot", error);
@@ -1497,6 +1523,10 @@ export class SpotDetailsComponent
       } else {
         this._visitedSpotIds.delete(spot.id);
       }
+      this._analyticsService.trackEvent("spot_visited_toggled", {
+        spot_id: spot.id,
+        enabled: shouldBeVisited,
+      });
     } catch (error) {
       this.visited.set(!shouldBeVisited);
       console.error("Failed to update visited spot", error);
@@ -1669,6 +1699,9 @@ export class SpotDetailsComponent
 
     const spot = this.spot();
     if (!(spot instanceof Spot)) return;
+    this._analyticsService.trackEvent("spot_media_upload_opened", {
+      spot_id: spot.id,
+    });
     import("../media-upload-dialog/media-upload-dialog.component").then((m) => {
       const ref = this.dialog.open(m.MediaUploadDialogComponent, {
         data: {
@@ -1813,6 +1846,10 @@ export class SpotDetailsComponent
       },
       reason: "",
     };
+    this._analyticsService.trackEvent("spot_report_opened", {
+      spot_id: spot.id,
+      report_count: spot.reportCount,
+    });
     const dialogRef = this.dialog.open(SpotReportDialogComponent, {
       data: spotReportData,
     });
@@ -1827,6 +1864,11 @@ export class SpotDetailsComponent
         spot.isReported = true;
         spot.reportReason = result.report.reason;
         spot.reportCount += 1;
+        this._analyticsService.trackEvent("spot_report_submitted", {
+          spot_id: spot.id,
+          report_id: result.reportId,
+          reason: result.report.reason,
+        });
         this._snackbar.open($localize`Report submitted. Thanks for helping keep spots accurate.`, undefined, {
           duration: 4000,
         });
@@ -1844,6 +1886,10 @@ export class SpotDetailsComponent
       console.error("User not signed in, cannot open review dialog");
       return;
     }
+
+    this._analyticsService.trackEvent("spot_review_opened", {
+      spot_id: spot.id,
+    });
 
     let isUpdate: boolean = false;
     let review: SpotReviewSchema | undefined;
@@ -1902,6 +1948,20 @@ export class SpotDetailsComponent
           },
         });
       });
+  }
+
+  trackVerificationBadgeClick(
+    relationship: "managed" | "stewarded",
+    organizationId: string,
+    organizationName: string
+  ): void {
+    const spot = this.spot();
+    this._analyticsService.trackEvent("spot_verification_badge_clicked", {
+      spot_id: spot instanceof Spot ? spot.id : null,
+      organization_id: organizationId,
+      organization_name: organizationName,
+      relationship,
+    });
   }
 
   openChallenge(challengeId: string) {

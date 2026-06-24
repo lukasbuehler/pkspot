@@ -33,6 +33,8 @@ export interface AnalyticsContext {
   posthog_session_replay_url?: string;
 }
 
+export type ContactChannel = "contact_form" | "discord" | "instagram";
+
 export function stripUtmParametersFromUrl(url: string): string {
   const parsedUrl = new URL(url, "https://pkspot.app");
 
@@ -329,6 +331,35 @@ export class AnalyticsService {
     } else {
       this._posthog?.capture(eventName, normalizedProperties);
     }
+  }
+
+  trackOutboundLinkClick(
+    surface: string,
+    linkType: string,
+    url: string | null | undefined,
+    ctaLabel?: string,
+    properties?: Record<string, unknown>,
+  ): void {
+    this.trackEvent("outbound_link_clicked", {
+      ...(properties ?? {}),
+      surface,
+      link_type: linkType,
+      cta_label: ctaLabel ?? null,
+      destination_domain: this.getDestinationDomain(url),
+      url: this.safeAnalyticsUrl(url),
+    });
+  }
+
+  trackContactChannelClick(
+    channel: ContactChannel,
+    surface: string,
+    properties?: Record<string, unknown>,
+  ): void {
+    this.trackEvent("contact_channel_clicked", {
+      ...(properties ?? {}),
+      channel,
+      surface,
+    });
   }
 
   reportError(error: unknown, options: ErrorReportOptions): void {
@@ -662,6 +693,34 @@ export class AnalyticsService {
       app_version: this.appVersion,
       $app_version: this.appVersion,
     };
+  }
+
+  private getDestinationDomain(url: string | null | undefined): string | null {
+    if (!url) {
+      return null;
+    }
+
+    try {
+      return new URL(url, "https://pkspot.app").hostname || null;
+    } catch {
+      return null;
+    }
+  }
+
+  private safeAnalyticsUrl(url: string | null | undefined): string | null {
+    if (!url) {
+      return null;
+    }
+
+    try {
+      const parsedUrl = new URL(url, "https://pkspot.app");
+      if (parsedUrl.origin === "https://pkspot.app") {
+        return `${parsedUrl.pathname}${parsedUrl.hash}`;
+      }
+      return `${parsedUrl.origin}${parsedUrl.pathname}`;
+    } catch {
+      return null;
+    }
   }
 
   private getInitialAttributionProperties(): Record<string, string> {

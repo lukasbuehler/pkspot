@@ -126,6 +126,7 @@
                 matTooltip="Managed by {{ managed.organization.name }}"
                 i18n-matTooltip="@@spot.managed.tooltip"
                 [attr.aria-label]="'Managed by ' + managed.organization.name"
+                (click)="trackVerificationBadgeClick('managed', managed.organization_id, managed.organization.name)"
               >
                 <mat-icon>verified_user</mat-icon>
                 @if (managed.organization.logo_url) {
@@ -155,6 +156,7 @@
                   matTooltip="Verified by {{ steward.organization.name }}"
                   i18n-matTooltip="@@spot.verified.tooltip"
                   [attr.aria-label]="'Verified by ' + steward.organization.name"
+                  (click)="trackVerificationBadgeClick('stewarded', steward.organization_id, steward.organization.name)"
                 >
                   <mat-icon>verified_user</mat-icon>
                   @if (steward.organization.logo_url) {

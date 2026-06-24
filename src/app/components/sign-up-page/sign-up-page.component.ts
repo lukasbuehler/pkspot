@@ -24,6 +24,7 @@ import { RecaptchaService } from "../../services/recaptcha.service";
 import { ConsentService } from "../../services/consent.service";
 import { Subscription, filter } from "rxjs";
 import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
+import { AnalyticsService } from "../../services/analytics.service";
 
 @Component({
   selector: "app-sign-up-page",
@@ -67,6 +68,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
   private _recaptchaSetupCompleted = false;
   private readonly _metaTagService = inject(MetaTagService);
   private readonly _platformId = inject(PLATFORM_ID);
+  private readonly _analytics = inject(AnalyticsService);
 
   ngOnInit(): void {
     this._metaTagService.setStaticPageMetaTags(
@@ -198,6 +200,27 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this._analytics.trackEvent("auth_sign_up_attempted", {
+      has_invite_code: !!createAccountFormValue.inviteCode?.trim(),
+      agreed_terms: !!createAccountFormValue.agreeCheck,
+    });
+
+    if (this.createAccountForm?.invalid) {
+      this.createAccountForm.markAllAsTouched();
+      this._analytics.trackEvent("auth_sign_up_invalid", {
+        display_name_invalid:
+          this.createAccountForm.controls["displayName"].invalid,
+        email_invalid: this.createAccountForm.controls["email"].invalid,
+        password_invalid: this.createAccountForm.controls["password"].invalid,
+        repeat_password_invalid:
+          this.createAccountForm.controls["repeatPassword"].invalid,
+        terms_invalid: this.createAccountForm.controls["agreeCheck"].invalid,
+        invite_code_invalid:
+          this.createAccountForm.controls["inviteCode"].invalid,
+      });
+      return;
+    }
+
     let displayName = createAccountFormValue.displayName;
     let email = createAccountFormValue.email;
     const password = createAccountFormValue.password;
@@ -212,6 +235,9 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     if (!password || !repeatedPassword || password !== repeatedPassword) {
       console.error("Password and repeated password don't match");
       this.signUpError = $localize`Password and repeated password don't match`;
+      this._analytics.trackEvent("auth_sign_up_invalid", {
+        reason: "password_mismatch",
+      });
       return;
     }
 
@@ -219,6 +245,9 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     if (!agreeCheck) {
       console.error("User did not agree!");
       this.signUpError = $localize`You need to agree to the terms and conditions!`;
+      this._analytics.trackEvent("auth_sign_up_invalid", {
+        reason: "terms_not_accepted",
+      });
       return;
     }
 
@@ -234,12 +263,25 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
       .createAccount(email, password, displayName)
       .then(() => {
         console.log("Created account!");
+        this._analytics.trackEvent("auth_sign_up_succeeded");
         this._router.navigateByUrl(this._returnUrl);
       })
       .catch((err) => {
         console.error("Cannot create account!", err);
         this.signUpError = $localize`Could not create account!`;
+        this._analytics.trackEvent("auth_sign_up_failed", {
+          error_code: this._getAuthErrorCode(err),
+        });
         this.isSubmitting = false;
       });
+  }
+
+  private _getAuthErrorCode(error: unknown): string | null {
+    if (typeof error === "object" && error !== null && "code" in error) {
+      const code = (error as { code: unknown }).code;
+      return typeof code === "string" ? code : null;
+    }
+
+    return null;
   }
 }

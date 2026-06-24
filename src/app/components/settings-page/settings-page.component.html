@@ -467,6 +467,7 @@
                 mat-stroked-button
                 href="https://github.com/lukasbuehler/pkspot"
                 target="_blank"
+                (click)="trackOutboundLinkClick('github', 'https://github.com/lukasbuehler/pkspot', 'GitHub Repository')"
               >
                 <mat-icon>code</mat-icon>
                 <span i18n="@@settings.about.github_repository"
@@ -503,7 +504,13 @@
               <span i18n="@@settings.about.license_prefix">
                 All community spot data on PK Spot is licensed under
               </span>
-              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" class="fw-medium">CC BY-NC-SA 4.0</a>.
+              <a
+                href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en"
+                target="_blank"
+                class="fw-medium"
+                (click)="trackOutboundLinkClick('license', 'https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en', 'CC BY-NC-SA 4.0')"
+                >CC BY-NC-SA 4.0</a
+              >.
               <span i18n="@@settings.about.license_suffix">
                 This means the data belongs to the community and remains open and shareable.
               </span>

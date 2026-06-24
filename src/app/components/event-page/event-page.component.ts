@@ -539,14 +539,31 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       text: `PK Spot: ${event.name}`,
       url: link,
     };
+    this._analytics.trackEvent("share_event_clicked", {
+      surface: "event_info_page",
+      event_id: event.id,
+      event_slug: event.slug ?? null,
+      event_name: event.name,
+      event_status: event.status(),
+    });
 
     const { Capacitor } = await import("@capacitor/core");
     if (Capacitor.isNativePlatform()) {
       const { Share } = await import("@capacitor/share");
       try {
         await Share.share({ ...shareData, dialogTitle: "Share Event" });
+        this._analytics.trackEvent("share_event_succeeded", {
+          surface: "event_info_page",
+          event_id: event.id,
+          method: "native_share",
+        });
       } catch (err) {
         console.error("Couldn't share this event", err);
+        this._analytics.trackEvent("share_event_failed", {
+          surface: "event_info_page",
+          event_id: event.id,
+          method: "native_share",
+        });
       }
       return;
     }
@@ -554,13 +571,28 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        this._analytics.trackEvent("share_event_succeeded", {
+          surface: "event_info_page",
+          event_id: event.id,
+          method: "web_share",
+        });
       } catch (err) {
         console.error("Couldn't share this event", err);
+        this._analytics.trackEvent("share_event_failed", {
+          surface: "event_info_page",
+          event_id: event.id,
+          method: "web_share",
+        });
       }
       return;
     }
 
     await navigator.clipboard.writeText(`${event.name} - PK Spot \n${link}`);
+    this._analytics.trackEvent("share_event_succeeded", {
+      surface: "event_info_page",
+      event_id: event.id,
+      method: "clipboard",
+    });
     this._snackbar.open(
       $localize`:@@event_info.link_copied:Event link copied to clipboard.`,
       $localize`:@@common.dismiss:Dismiss`,

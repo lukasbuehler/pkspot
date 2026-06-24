@@ -263,12 +263,17 @@
                             [href]="cta.url"
                             target="_blank"
                             rel="noopener noreferrer"
+                            (click)="trackCommunityInfoCtaClick(card, cta)"
                           >
                             <mat-icon>link</mat-icon>
                             <span>{{ cta.label }}</span>
                           </a>
                         } @else {
-                          <a mat-stroked-button [routerLink]="cta.path">
+                          <a
+                            mat-stroked-button
+                            [routerLink]="cta.path"
+                            (click)="trackCommunityInfoCtaClick(card, cta)"
+                          >
                             <mat-icon>{{
                               cta.target === "spot" ? "place" : "event"
                             }}</mat-icon>
@@ -308,6 +313,7 @@
                 mat-flat-button
                 routerLink="/contact"
                 [queryParams]="contactQueryParams()"
+                (click)="trackCommunityContactCtaClick()"
               >
                 <mat-icon>mail</mat-icon>
                 <span i18n="@@community.knowledge_cta.button">
