@@ -45,7 +45,7 @@ html {
   --keyboard-offset: 0px;
   --keyboard-scroll-space: 0px;
 
-  --map-glass-surface-base: var(--mat-sys-surface-container-high);
+  --map-glass-surface-base: var(--mat-sys-surface-container-highest);
   --map-glass-surface: color-mix(
     in srgb,
     var(--map-glass-surface-base) 85%,

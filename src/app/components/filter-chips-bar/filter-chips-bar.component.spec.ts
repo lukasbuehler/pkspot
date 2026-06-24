@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   FilterChipsBarComponent,
   PresetFilterChip,
@@ -67,5 +67,49 @@ describe("FilterChipsBarComponent", () => {
     );
 
     expect(selectedChip.nativeElement.textContent).toContain("All");
+  });
+
+  it("captures the pointer only after a horizontal drag starts", () => {
+    fixture.detectChanges();
+    const scrollArea = fixture.debugElement.query(
+      By.css(".chips-scroll-area"),
+    ).nativeElement as HTMLDivElement;
+    const setPointerCapture = vi.fn();
+    const releasePointerCapture = vi.fn();
+    Object.defineProperties(scrollArea, {
+      setPointerCapture: { value: setPointerCapture },
+      releasePointerCapture: { value: releasePointerCapture },
+      hasPointerCapture: { value: vi.fn(() => false) },
+    });
+
+    fixture.componentInstance.onScrollPointerDown({
+      button: 0,
+      clientX: 10,
+      clientY: 10,
+      pointerId: 1,
+      pointerType: "mouse",
+    } as PointerEvent);
+    fixture.componentInstance.onScrollPointerEnd({
+      pointerId: 1,
+    } as PointerEvent);
+
+    expect(setPointerCapture).not.toHaveBeenCalled();
+    expect(releasePointerCapture).not.toHaveBeenCalled();
+
+    fixture.componentInstance.onScrollPointerDown({
+      button: 0,
+      clientX: 10,
+      clientY: 10,
+      pointerId: 2,
+      pointerType: "mouse",
+    } as PointerEvent);
+    fixture.componentInstance.onScrollPointerMove({
+      clientX: 30,
+      clientY: 11,
+      pointerId: 2,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent);
+
+    expect(setPointerCapture).toHaveBeenCalledWith(2);
   });
 });

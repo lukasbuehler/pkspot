@@ -332,8 +332,10 @@
       @if (communityPickSections().length > 0) {
         @for (section of communityPickSections(); track section.category) {
           <section class="content-section">
-            <div class="section-heading">
-              <h2 class="mat-title-large m-0">{{ section.title }}</h2>
+            <div class="collapsible">
+              <div class="section-heading">
+                <h2 class="mat-title-large m-0">{{ section.title }}</h2>
+              </div>
             </div>
 
             <app-spot-list

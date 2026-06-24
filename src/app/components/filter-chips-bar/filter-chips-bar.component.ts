@@ -292,7 +292,6 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
     this._dragStartY = event.clientY;
     this._dragStartScrollLeft = scrollElement.scrollLeft;
     this._hasDraggedScroll = false;
-    scrollElement.setPointerCapture?.(event.pointerId);
   }
 
   onScrollPointerMove(event: PointerEvent): void {
@@ -313,7 +312,11 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this._hasDraggedScroll = true;
+    if (!this._hasDraggedScroll) {
+      this._hasDraggedScroll = true;
+      scrollElement.setPointerCapture?.(event.pointerId);
+    }
+
     scrollElement.scrollLeft = this._dragStartScrollLeft - deltaX;
     event.preventDefault();
     this._scheduleScrollStateUpdate();
@@ -325,7 +328,9 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
     }
 
     const scrollElement = this.scrollArea()?.nativeElement;
-    scrollElement?.releasePointerCapture?.(event.pointerId);
+    if (scrollElement?.hasPointerCapture?.(event.pointerId)) {
+      scrollElement.releasePointerCapture(event.pointerId);
+    }
     this._activeDragPointerId = null;
 
     if (this._hasDraggedScroll) {

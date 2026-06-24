@@ -18,36 +18,7 @@
   min-width: 0;
   position: relative;
 
-  &.can-scroll-left .chips-scroll-area {
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 40px);
-    mask-image: linear-gradient(to right, transparent, #000 40px);
-  }
-
-  &.can-scroll-right .chips-scroll-area {
-    -webkit-mask-image: linear-gradient(
-      to right,
-      #000 calc(100% - 40px),
-      transparent
-    );
-    mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
-  }
-
-  &.can-scroll-left.can-scroll-right .chips-scroll-area {
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent,
-      #000 40px,
-      #000 calc(100% - 40px),
-      transparent
-    );
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      #000 40px,
-      #000 calc(100% - 40px),
-      transparent
-    );
-  }
+  // Removed mask-image rules because they break backdrop-filter on child chips
 }
 
 .chips-scroll-area {
@@ -58,7 +29,6 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   border-radius: 100px;
-  clip-path: inset(0 round 100px);
   overscroll-behavior-x: contain;
   scrollbar-width: none; // Firefox
   touch-action: pan-x;
@@ -211,7 +181,7 @@ mat-chip {
     --mat-chip-elevated-container-color: var(--map-glass-surface);
     --mdc-chip-outline-color: transparent;
 
-    background: var(--map-glass-surface) !important;
+    background-color: var(--map-glass-surface) !important;
     border-radius: 20px;
     overflow: hidden;
     clip-path: inset(0 round 20px);
@@ -224,12 +194,13 @@ mat-chip {
     -webkit-backface-visibility: hidden;
   }
 
-  .glass.mat-mdc-standard-chip {
+  .glass.mat-mdc-standard-chip,
+  .glass.mat-mdc-chip,
+  .glass.mat-mdc-chip-option {
     --mdc-chip-elevated-container-color: var(--map-glass-surface);
     --mat-chip-elevated-container-color: var(--map-glass-surface);
     --mdc-chip-outline-color: transparent;
-    background: var(--map-glass-surface) !important;
-    overflow: hidden;
+    background-color: transparent !important;
   }
 
   // Remove border on glass chips
@@ -247,7 +218,7 @@ mat-chip {
     );
     --mdc-chip-outline-color: var(--mat-sys-outline-variant);
 
-    background: var(--mat-sys-surface-container-high) !important;
+    background-color: var(--mat-sys-surface-container-high) !important;
     border-radius: 8px;
     overflow: hidden;
     clip-path: inset(0 round 8px);
@@ -255,7 +226,9 @@ mat-chip {
     -webkit-backdrop-filter: none !important;
   }
 
-  .solid-chip.mat-mdc-standard-chip {
+  .solid-chip.mat-mdc-standard-chip,
+  .solid-chip.mat-mdc-chip,
+  .solid-chip.mat-mdc-chip-option {
     --mdc-chip-elevated-container-color: var(
       --mat-sys-surface-container-high
     );
@@ -263,16 +236,25 @@ mat-chip {
       --mat-sys-surface-container-high
     );
     --mdc-chip-outline-color: var(--mat-sys-outline-variant);
-    background: var(--mat-sys-surface-container-high) !important;
     overflow: hidden;
   }
 
   .solid-chip.mat-mdc-chip-selected .mdc-evolution-chip__action--primary {
-    background: var(--mat-sys-secondary-container) !important;
+    background-color: var(--mat-sys-secondary-container) !important;
   }
 
   .solid-chip.mat-mdc-chip-selected .mdc-evolution-chip__text-label,
   .solid-chip.mat-mdc-chip-selected .mat-icon {
+    color: var(--mat-sys-on-secondary-container) !important;
+  }
+
+  .glass.mat-mdc-chip-selected .mdc-evolution-chip__action--primary {
+    background-color: color-mix(in srgb, var(--mat-sys-secondary-container) 85%, transparent) !important;
+  }
+
+  .glass.mat-mdc-chip-selected .mdc-evolution-chip__text-label,
+  .glass.mat-mdc-chip-selected .mat-icon,
+  .glass.mat-mdc-chip-selected .mdc-evolution-chip__icon {
     color: var(--mat-sys-on-secondary-container) !important;
   }
 }
