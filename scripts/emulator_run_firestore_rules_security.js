@@ -581,6 +581,17 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh) 
       "socials.youtube_handle": "@owner",
     })
   );
+  await assertAllowed("owner updates profile access scaffold fields", () =>
+    updateDoc(doc(owner.db, "users/owner"), {
+      account_privacy: "private",
+      profile_visibility: "mutuals",
+    })
+  );
+  await assertDenied("owner cannot write unknown profile access state", () =>
+    updateDoc(doc(owner.db, "users/owner"), {
+      account_privacy: "friends-only",
+    })
+  );
   await assertDenied("owner cannot change manual custom profile links", () =>
     updateDoc(doc(owner.db, "users/owner"), {
       "socials.other": [

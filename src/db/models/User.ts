@@ -1,5 +1,10 @@
 import { humanTimeSince, parseFirestoreTimestamp } from "../../scripts/Helpers";
-import { UserSchema, UserSocialsSchema } from "../schemas/UserSchema";
+import {
+  UserAccountPrivacy,
+  UserProfileVisibility,
+  UserSchema,
+  UserSocialsSchema,
+} from "../schemas/UserSchema";
 import { StorageImage, ImageMedia } from "./Media";
 
 export class User {
@@ -16,6 +21,8 @@ export class User {
   public nationalityCode: string | null = null;
   public homeCity: string | null = null;
   public socials: UserSocialsSchema | null = null;
+  public accountPrivacy: UserAccountPrivacy = "public";
+  public profileVisibility: UserProfileVisibility = "public";
 
   // NOTE: bookmarks, visitedSpots, and settings are now loaded separately via UsersService.getPrivateData()
 
@@ -63,6 +70,8 @@ export class User {
 
     this.nationalityCode = this._data.nationality_code ?? null;
     this.homeCity = this._data.home_city ?? null;
+    this.accountPrivacy = this._data.account_privacy ?? "public";
+    this.profileVisibility = this._data.profile_visibility ?? "public";
     this.socials = this._data.socials
       ? {
           instagram_handle: this._data.socials.instagram_handle,

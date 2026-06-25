@@ -11,6 +11,9 @@ export interface UserSocialsSchema {
   other?: UserSocialCustomLinkSchema[];
 }
 
+export type UserAccountPrivacy = "public" | "private";
+export type UserProfileVisibility = "public" | "followers" | "mutuals";
+
 export type AgeParticipationState =
   | "allowed"
   | "read_only_age_restricted"
@@ -60,6 +63,8 @@ export interface UserSchema {
   home_city?: string;
   socials?: UserSocialsSchema;
   age_policy?: UserAgePolicySchema;
+  account_privacy?: UserAccountPrivacy;
+  profile_visibility?: UserProfileVisibility;
 
   creationDate?: Timestamp;
   // NOTE: bookmarks, visited_spots, and settings are now in private_data subcollection

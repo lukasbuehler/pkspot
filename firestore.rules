@@ -182,6 +182,13 @@ service cloud.firestore {
         );
     }
 
+    function validUserProfileAccess() {
+      return (!('account_privacy' in request.resource.data)
+          || request.resource.data.account_privacy in ['public', 'private'])
+        && (!('profile_visibility' in request.resource.data)
+          || request.resource.data.profile_visibility in ['public', 'followers', 'mutuals']);
+    }
+
     function userCustomSocialLinksUnchanged() {
       return request.resource.data.get('socials', {}).get('other', []) ==
         resource.data.get('socials', {}).get('other', []);
@@ -538,6 +545,7 @@ service cloud.firestore {
       allow create: if request.auth.uid != null && request.auth.uid == userId
          && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy'])
          && validUserSocials()
+         && validUserProfileAccess()
          && noUserCustomSocialLinksOnCreate();
       allow update: if request.auth.uid != null && request.auth.uid == userId
          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy'])
@@ -546,6 +554,7 @@ service cloud.firestore {
            || agePolicyAllowsPublicParticipation()
          )
          && validUserSocials()
+         && validUserProfileAccess()
          && userCustomSocialLinksUnchanged();
       allow delete: if request.auth.uid != null && request.auth.uid == userId;
 

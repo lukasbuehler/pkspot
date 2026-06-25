@@ -155,6 +155,50 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   private lastLoadedFollowing?: Timestamp;
 
+  get profileIdentity(): string {
+    return this.user?.uid
+      ? `/u/${this.user.uid}`
+      : this.userId
+        ? `/u/${this.userId}`
+        : "";
+  }
+
+  get hasProfileMetadata(): boolean {
+    return !!(
+      (this.user?.nationalityCode &&
+        this.countries[this.user.nationalityCode]) ||
+      this.user?.startTimeDiffString ||
+      this.user?.visitedSpotsCount
+    );
+  }
+
+  get totalContributions(): number {
+    return (
+      this.createdSpotsCount + this.editedSpotsCount + this.mediaAddedCount
+    );
+  }
+
+  get profileAccessLabel(): string {
+    return this.user?.accountPrivacy === "private"
+      ? $localize`Private account`
+      : $localize`Public account`;
+  }
+
+  get profileVisibilityLabel(): string {
+    switch (this.user?.profileVisibility) {
+      case "followers":
+        return $localize`Visible to followers`;
+      case "mutuals":
+        return $localize`Visible to mutuals`;
+      default:
+        return $localize`Public profile`;
+    }
+  }
+
+  get profileVisibilityIcon(): string {
+    return this.user?.profileVisibility === "public" ? "public" : "groups";
+  }
+
   ngOnInit(): void {
     // Subscribe to auth state changes first - this handles the case where
     // auth isn't ready on initial load (e.g., page refresh)
